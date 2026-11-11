@@ -46,7 +46,7 @@ maintainer play/sign-off remains a separate milestone exit gate.
 - The drawer identifies the guest preview, tests phase-0 replacement, and keeps
   its production exclusion checks. Fixture documentation covers all 33 inputs.
 
-`make verify` and `mise exec -- make verify-full` pass with 191 Vitest tests.
+`make verify` and `mise exec -- make verify-full` pass with 192 Vitest tests.
 Statements: 98.98% overall, 98.79% app, 99.21% UI, 99.39% UI/widgets. All original
 coverage floors and strict/lint rules remain intact. Security/SBOM gates pass.
 
@@ -63,7 +63,12 @@ finish before freezing fixture time. No DOM was hidden or screenshot masked.
 Before the final pass, response messages were strengthened to queue each update
 instead of replacing an unread one. The final pass includes the real engine's
 batched escalation and two stand-down announcements and acknowledges them in
-sequence. No fourth review pass was used.
+sequence. No fourth review pass was used. After the three passes, a focused mounted test
+exposed unread response history surviving Start Over when iteration stayed at 1.
+A one-condition log-sequence rollback guard fixes that case; the regression test
+and full gate pass. This reset-only change has no layout effect and received no
+fourth browser review. The real-time fresh-run opening uses monotonically
+increasing log sequences, so that guard is outside its executed path.
 
 Final result: 38 fixture/viewport cases, 71 audit rows and 78 screenshots, zero
 console errors/warnings or page errors, and zero outstanding UI audit findings.

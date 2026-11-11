@@ -97,6 +97,18 @@ describe('second-pass presentation follow-up', () => {
     view.close();
   });
 
+  it('discards unread response history when a confirmed start-over resets the same iteration number', async () => {
+    const view = await mountM4('guest-skimmer');
+    load(m4State('response-paged'));
+    expect(view.find('response-notice')).not.toBeNull();
+    load(m4State('ending-the_ark'));
+    view.click('start-over'); view.click('start-over-confirm');
+    expect(gameStore.store.getState().game.currentPhase).toBe(0);
+    expect(view.find('response-notice')).toBeNull();
+    expect(view.find('res-cycles')).toBeNull();
+    view.close();
+  });
+
   it('counts down the same pending interrupt in the decoded forecast', async () => {
     const view = await mountM4('phase-1-widgets');
     const game = m4State('phase-1-widgets'), dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === game.currentPhase);

@@ -30,7 +30,7 @@ export default function ResponseNotice() {
   const logs = useGame((game) => game.logs);
   const seq = useGame((game) => game.logSeq);
   const [seen, setSeen] = useState({ ready, iteration, level, seq, queue: [] as Change[] });
-  if (!ready || !seen.ready || seen.iteration !== iteration) {
+  if (!ready || !seen.ready || seen.iteration !== iteration || seq < seen.seq) {
     if (seen.ready !== ready || seen.iteration !== iteration || seen.level !== level || seen.seq !== seq) {
       setSeen({ ready, iteration, level, seq, queue: [] });
     }
