@@ -67,3 +67,64 @@ Not verified, and therefore the first things to check in M0:
 - `mise install`, the bootstrap script, the devcontainer, and the GitHub Actions workflow were written but not executed.
 - `gitleaks`, `osv-scanner` and `trivy` were not run; their command lines in the Makefile should be confirmed against the pinned versions.
 - Nothing involving Expo, React Native, Android or iOS exists yet, so none of it has been run.
+
+## F. M0 bootstrap verification (2026-11-11)
+
+The initial GitHub Actions run on Ubuntu 24.04 passed `make verify`, then failed
+`make security`: OSV found `minimatch` 10.2.6, a development dependency of ESLint
+and typescript-eslint, affected by
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+The patched version is 11.0.1. Both direct tools are already at the registry's
+latest versions and still request minimatch 10, so `package.json` pins a pnpm
+override for `minimatch@>=10 <11.0.1` to 11.0.1 until upstream adopts the fix. The dependency is BlueOak-1.0.0
+licensed. The existing lint run exercises the override; no gate or threshold
+was changed.
+
+Verified locally on Ubuntu 26.04.1 x86_64 with the pinned toolchain:
+
+- `bash scripts/bootstrap-ubuntu24.sh` completed successfully with mise already
+  installed. All required apt packages were already present.
+- `mise install` completed. Node 24.22.2, pnpm 10.28.0, gitleaks 8.30.1,
+  osv-scanner 2.7.1 and trivy 0.76.2 were checked by running each binary.
+- mise 2026.1.5 initially generated an incomplete lockfile without pnpm's URL.
+  CI caught this because mise-action runs `mise install --locked` when a lockfile
+  exists. Upgraded the local mise binary to CI's 2026.11.5 and regenerated with
+  `mise lock --upgrade --platform linux-x64`. The committed format-v4 lockfile
+  records URLs and checksums for all five tools. `mise install --locked` passed.
+  No tracked mise settings or CI settings were changed.
+- `mise exec -- make setup` passed with the frozen pnpm lockfile.
+- `mise exec -- make verify-full` passed: strict typecheck, zero-warning lint,
+  content validation, all 71 tests, coverage thresholds, balance gates, dependency
+  audit, Git history secret scan, OSV, Trivy and CycloneDX SBOM generation.
+  Statement coverage was 98.17%, branch coverage 94.37%. The audit and OSV found
+  no known vulnerabilities. The STEALTH strategy reached victory in 2.27 hours
+  with no wipes; the GREEDY recovery scenario passed its gates.
+- `sbom.cdx.json` was generated locally and remains ignored as intended. The CI
+  workflow uploads the SBOM as an artifact. Trivy's configured SBOM excludes
+  development dependencies; OSV and pnpm audit cover those dependencies.
+- The private GitHub repository exists, `main` is pushed, and milestone issues
+  M0 through M6 exist as #1 through #7.
+
+Verified in a fresh isolated Ubuntu 24.04 environment:
+
+- Docker's launcher on this host is broken. Used debootstrap to create a Noble
+  root filesystem and systemd-nspawn to run a separate clone of the M0 branch.
+- `bash scripts/bootstrap-ubuntu24.sh` passed as root, including OS package
+  installation, mise 2026.11.6 installation through its signed apt repository,
+  and installation of all five pinned tools from the committed lockfile.
+- `mise exec -- make setup` and `mise exec -- make verify-full` passed, including
+  all 71 tests, security scans and SBOM generation.
+- [PR CI run 42970593265](https://github.com/williamzujkowski/daemon-zero/actions/runs/42970593265)
+  passed on GitHub's Ubuntu 24.04 runner at commit `9b5ee4d`, including a clean
+  `mise install --locked`, security scans, SBOM generation and artifact upload.
+  The `sbom-cyclonedx` artifact was confirmed through the GitHub API.
+
+Remaining checks and approvals:
+
+- The VS Code devcontainer and the non-root sudo bootstrap path were not tested.
+  Toolchain downloads are locked for Linux x64 only; other platforms are untested.
+- M0's exit gate requires a successful `ci` run on `main` after the dependency
+  fix is merged. PR CI is verified separately before requesting merge approval.
+- `main` has no branch protection. Enabling it to require `verify` needs maintainer
+  approval under `AGENTS.md`; merging this PR also needs maintainer approval.
+- M1 has not been started. Expo, web UI, Android and iOS remain unbuilt and untested.
