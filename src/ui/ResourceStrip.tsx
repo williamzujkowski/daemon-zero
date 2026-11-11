@@ -39,6 +39,6 @@ function ThreatAmount() {
 }
 
 const styles = StyleSheet.create({
-  strip: { flexDirection: 'row', flexWrap: 'wrap', borderBottomWidth: 1, borderColor: palette.border, paddingHorizontal: 16, gap: 20 },
-  readout: { paddingVertical: 10, minWidth: 135 },
+  strip: { flexDirection: 'row', flexWrap: 'wrap', borderBottomWidth: 1, borderColor: palette.border, paddingHorizontal: 16, columnGap: 20, rowGap: 0 },
+  readout: { paddingVertical: 8, minWidth: 135 },
 });

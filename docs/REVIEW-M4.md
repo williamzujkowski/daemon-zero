@@ -85,3 +85,27 @@ Open content/design finding: #28 (`second-pass`). Prose promises a permanent
 Eidolon ban, but the existing trait predicate permits contact after a wipe clears
 current traits despite MOLOCH in legacy.traitsEver. Reproduced with public pure
 engine functions; UI follows actual requirements and leaves prose unchanged.
+
+## Build 3: corporate ledger and payroll (#31)
+
+Capital/net income, generated/consumed megawatts and efficiency are numeric.
+Insolvency, power shortfall and brownout have explicit text warnings. Allocation
+steps derive from the existing maximum. Infrastructure and operatives come from
+the repeatable registry, with real hire/dismiss actions, next-level costs and
+revenue/scan modifiers shown. Phase 4 hardware remains data-driven.
+
+The desktop third column now selects NETWORK or CORP, defaulting to CORP on
+Phase 4 entry; earlier full-tree stacking buried the new controls. The existing
+registry test observes both selectable panes rather than requiring simultaneous
+mounting. No gate was weakened. UI-SPEC.md explains that change and the tighter
+wrapped resource spacing identified in the first phone screenshot pass.
+
+`make verify` passes with 146 tests and unchanged gates. Mounted tests exercise
+allocation, hire/dismiss, insolvency, power and brownout, and desktop switching.
+Two headed review rounds cover insolvency/hired operatives, power shortfall and
+victory-ready at both sizes. Actual browser clicks hire/dismiss and visit every
+allocation step. All five operative cards receive scrolled captures. Final pass:
+no horizontal overflow, gated resources, numeric accessible meters, named 44 px
+controls, actual keyboard reachability and zero console warnings/errors. 38
+final PNGs are attached, outside the watched project tree and never committed.
+No remaining build-3 UI finding; native corporate interactions are not claimed.

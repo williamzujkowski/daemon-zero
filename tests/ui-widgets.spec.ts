@@ -77,7 +77,10 @@ describe('M3 widgets', () => {
     expect(view.container.textContent).toContain('Speech decoder offline');
     expect(view.find('decoded-speech')).toBeNull();
     act(() => { gameStore.initialize({ ...game, unlockedWidgets: [...CONTENT.widgets.keys()] }, 0, null); });
-    expect(view.container.querySelectorAll('[data-testid^="widget-"]').length).toBe(CONTENT.widgets.size);
+    const visible = new Set([...view.container.querySelectorAll('[data-testid^="widget-"]')].map((node) => node.getAttribute('data-testid')));
+    act(() => { view.find('tab-CORP')?.click(); });
+    for (const node of view.container.querySelectorAll('[data-testid^="widget-"]')) visible.add(node.getAttribute('data-testid'));
+    expect(visible.size).toBe(CONTENT.widgets.size);
     view.close();
   });
 

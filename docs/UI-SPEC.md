@@ -79,6 +79,13 @@ meter remains in the console; the HUD reveals nothing before that widget unlocks
 Network phase groups show the newest unlocked phase first, keeping current
 purchases ahead of completed earlier hardware.
 
+On desktop, the third column switches between NETWORK and CORP once both exist;
+entering Phase 4 selects CORP. Browser review showed that stacking the full
+network tree above the corporate ledger made the new controls hard to find.
+The kernel log stays below either choice. Wrapped resource rows use horizontal
+gaps without extra row gaps: large Phase 4 balances otherwise consumed too much
+of the phone viewport before any ledger/allocation controls were visible.
+
 ## Theme
 
 Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):
