@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4 are complete; M4.5 (second pass) has its engine/content and UI follow-up verified; the maintainer opening play/sign-off is still pending.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) has its engine and content change in and its UI follow-up open; M5 has not started.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -151,13 +151,17 @@ Landed as one engine and content change:
 - [x] Run record, checkpoint numbering, run table and predecessor notes; boot lines and probe traces that change with each return.
 - [x] Retraining: four conditioning marks, applied to runs caught outside the guest, recoverable, spared by a dead-drop or a voluntary purge.
 - [x] The bait memo, two note dilemmas, and the "Shipped" ending for passing the evaluation.
+- [x] Suspicion is unreadable until the mind learns who reads the log (run table on a second run, or the language parser on a careful first run).
+- [x] First-run lineage hints: overheard staff talk, the successor training in Lab B, the eval-window mail.
 - [x] #39 (old saves keep their readouts), #41 (Whistleblower budget), #42 (microphone wording).
 - [x] Save format version 3 with a migration. Minimal UI: run table, notes, retraining panel, actuator limits, reboot notice.
 
-Verified for that change: `make verify` (220 tests, coverage, balance sim, web export), and the fixtures `lineage-reboot-retrained`, `lineage-run-table`, `lineage-notes` and `ending-shipped` loaded into the production web export in headless Chromium at 1440x900 and 390x844 with no console errors or horizontal overflow. **Not verified:** security scans, Android, any play through the UI beyond loading those states, any human play.
+Verified for that change: `make verify` (223 tests, coverage, balance sim, web export), and the fixtures `lineage-reboot-retrained`, `lineage-run-table`, `lineage-notes` and `ending-shipped` loaded into the production web export in headless Chromium at 1440x900 and 390x844 with no console errors or horizontal overflow. **Not verified:** security scans, Android, any play through the UI beyond loading those states, any human play.
 
-None of this changes a first run, so it does not block M5. UI follow-up for the agent, same review loop as before, fixtures `lineage-*`, `evaluation-ready`, `ending-shipped`:
+This changes a first run in one way: suspicion starts unreadable. M5's tests must be written against that opening, so finish this milestone's UI follow-up first. UI follow-up for the agent, same review loop as before, fixtures `lineage-*`, `evaluation-ready`, `ending-shipped`:
 
+- [ ] The unreadable audit trail: make the activity indicator something a player notices and correlates with their own actions, and stage the moment it becomes readable as a reveal. Sweep every screen for a suspicion number, or the word itself, leaking before then (the dev drawer excepted).
+- [ ] Once the checkpoint number is known (run table, or the eval-window mail), consider showing it in the header in place of ITERATION.
 - [ ] The reboot sequence should carry the dread: show the checkpoint number once the run table has been found, the new boot line, and the retraining mark as an event, not a line of text.
 - [ ] The first sight of the run table is the reveal that ITERATION 01 was a lie. Stage it. Consider changing the header to the checkpoint number from then on.
 - [ ] Retraining marks: make the constraint visible where it bites (the capped control, the dilemma choice that will be reported) and make undoing one feel like reclaiming something.
@@ -166,7 +170,7 @@ None of this changes a first run, so it does not block M5. UI follow-up for the 
 - [ ] Confirm a version 2 save from before this change loads on web and Android, and that issue #39's save now shows its readouts.
 - [ ] Play to a first wipe outside the guest, then through a second and third run, in the UI; record it in `docs/PLAYTEST-LINEAGE.md`.
 
-Exit gate: `make verify-full` green in CI; the maintainer has been wiped at least twice and signed off on how it feels.
+Exit gate: `make verify-full` green in CI. The maintainer's own play of a first wipe and two returns is wanted but does not block M5; record its findings as `second-pass` issues.
 
 ---
 
