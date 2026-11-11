@@ -5,12 +5,8 @@
 import { CONTENT } from '../content';
 import { importSave, tick } from '../engine';
 import type { GameRuntime } from './runtime';
-
-const renders = new Map<string, number>();
-
-export function recordNodeRender(id: string): void {
-  renders.set(id, (renders.get(id) ?? 0) + 1);
-}
+import { snapshotRenderCounts } from './renderCounts';
+export { recordNodeRender } from './renderCounts';
 
 export interface DevHost {
   __daemon?: {
@@ -37,7 +33,7 @@ export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis
       });
       if (!result.ok) throw new Error(result.reason);
     },
-    renderCounts: () => Object.fromEntries(renders),
+    renderCounts: snapshotRenderCounts,
   };
   return () => { delete host.__daemon; };
 }

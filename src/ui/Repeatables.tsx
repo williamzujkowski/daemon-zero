@@ -32,9 +32,9 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   </View>;
 });
 
-export default function Repeatables() {
+export default function Repeatables({ phase = 1 }: { phase?: number }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
-    .filter((rep) => rep.phaseId === 1 && meetsRequirements(game, rep.requirements)).map((rep) => rep.id)));
+    .filter((rep) => rep.phaseId === phase && meetsRequirements(game, rep.requirements)).map((rep) => rep.id)));
   return <>{ids.map((id) => {
     const rep = CONTENT.repeatables.get(id);
     return rep ? <Upgrade key={id} rep={rep} /> : null;

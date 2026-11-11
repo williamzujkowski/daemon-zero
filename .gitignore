@@ -9,6 +9,7 @@ sbom.cdx.json
 playwright-report/
 test-results/
 m3-review-artifacts/
+m4-review-artifacts/
 
 # Expo / React Native (M1+)
 .expo/

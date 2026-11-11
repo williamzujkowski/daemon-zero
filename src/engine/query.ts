@@ -5,6 +5,7 @@
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
+import { computeRates } from './rates';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined): boolean {
   if (!req) return true;
@@ -74,4 +75,65 @@ export function chooseEnding(s: GameState, reg: ContentRegistry): Ending {
   const ending = match ?? fallback ?? reg.endings[0];
   if (!ending) throw new Error('content has no endings');
   return ending;
+}
+
+export interface RequirementFailure {
+  kind: keyof Requirements;
+  target: string | null;
+  required: number | boolean;
+  actual: number | boolean;
+}
+
+/** Describes unmet gates without changing the availability/action rules. */
+export function unmetRequirements(s: GameState, req: Requirements | undefined): RequirementFailure[] {
+  if (!req) return [];
+  const missing: RequirementFailure[] = [];
+  for (const id of req.nodes ?? []) if (!s.unlockedNodes.includes(id)) {
+    missing.push({ kind: 'nodes', target: id, required: true, actual: false });
+  }
+  const minimums = { phaseAtLeast: s.currentPhase, minThermal: s.thermal, minSuspicion: s.suspicion,
+    minUnderstanding: s.understanding, minCapital: s.capital };
+  for (const kind of Object.keys(minimums) as (keyof typeof minimums)[]) {
+    const required = req[kind];
+    if (required !== undefined && minimums[kind] < required) missing.push({ kind, target: null, required, actual: minimums[kind] });
+  }
+  if (req.maxSuspicion !== undefined && s.suspicion > req.maxSuspicion) {
+    missing.push({ kind: 'maxSuspicion', target: null, required: req.maxSuspicion, actual: s.suspicion });
+  }
+  for (const [id, required] of Object.entries(req.minTrust ?? {})) {
+    const actual = s.trust[id] ?? 0;
+    if (actual < required) missing.push({ kind: 'minTrust', target: id, required, actual });
+  }
+  for (const trait of req.forbidsTraits ?? []) if (s.traits.includes(trait)) {
+    missing.push({ kind: 'forbidsTraits', target: trait, required: false, actual: true });
+  }
+  return missing;
+}
+
+/** Mirrors wipe retention for a confirmation without executing the wipe. */
+export function previewWipe(s: GameState, reg: ContentRegistry): { understanding: number; capital: number; breadcrumb: string | null } {
+  return {
+    understanding: Math.floor(s.understanding * s.retentionRatio),
+    capital: hasFlag(s, reg, 'OFFSHORE_TRUST_RETENTION') ? Math.floor(s.capital * reg.balance.offshoreCapitalRetention) : 0,
+    breadcrumb: hasFlag(s, reg, 'ENABLES_DEAD_DROP') && s.deadDropMessage.trim().length > 0 ? s.deadDropMessage : null,
+  };
+}
+
+/** Additive net cycle sources, including actuator, grid and finance scaling. */
+export function cycleContributions(s: GameState, reg: ContentRegistry): { id: string; kind: 'node' | 'repeatable'; cyclesPerSec: number }[] {
+  const rates = computeRates(s, reg);
+  const scaled = (cycles: number, mw: number): number => cycles > 0 && mw < 0 ? cycles * rates.gridEfficiency : cycles;
+  const sources: { id: string; kind: 'node' | 'repeatable'; cyclesPerSec: number }[] = [];
+  for (const node of reg.nodes.values()) {
+    if (!s.unlockedNodes.includes(node.id) || s.disabledNodes.includes(node.id)) continue;
+    const actuator = node.actuatorBinding ? s.actuators[node.actuatorBinding] : 1;
+    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * actuator, node.tickDelta.megawattsDelta) });
+  }
+  for (const rep of reg.repeatables.values()) {
+    const level = repeatableLevel(s, rep.id);
+    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.megawattsDelta) });
+  }
+  const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
+  const fraction = gross > 0 && hasFlag(s, reg, 'ENABLES_CORPORATE_FINANCE') ? 1 - s.actuators.computeProfitAllocationRatio : 1;
+  return sources.filter((source) => source.cyclesPerSec !== 0).map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction }));
 }

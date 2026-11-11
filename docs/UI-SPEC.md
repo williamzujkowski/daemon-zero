@@ -58,6 +58,20 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept.
 
+## M4 continuity and network
+
+One network tree owns the Phase 2/3 cards and repeatables; the other network
+widgets are summaries, lore and actions. This avoids duplicate controls/test IDs
+when multiple network widgets unlock. Actions render from their registry groups;
+locked controls explain current unmet gates and cooldowns.
+
+The reboot view responds to iteration changes, including changes inside a tick,
+and reconstructs from saved iteration/cause/breadcrumb on reload. It requires a
+Continue action; acknowledgement is local presentation state and resets for a
+new iteration or a restarted run. Legacy echoes appear in the kernel log when
+the engine emits them on rediscovery, preserving their authored reveal timing.
+Wipe confirmation previews the engine's retained resources and stored breadcrumb.
+
 ## Theme
 
 Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):

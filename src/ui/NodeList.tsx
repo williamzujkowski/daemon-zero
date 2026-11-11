@@ -8,9 +8,12 @@ import { CONTENT } from '../content';
 import { gameStore } from '../app/session';
 import NodeCard from './NodeCard';
 
-export default function NodeList({ owned }: { owned?: boolean }) {
+export default function NodeList({ owned, phase = 1, group, showLocked = false }: {
+  owned?: boolean; phase?: number; group?: string; showLocked?: boolean;
+}) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.nodes.values()]
-    .filter((node) => (owned === undefined || game.unlockedNodes.includes(node.id) === owned) && node.phaseId === 1 && (game.unlockedNodes.includes(node.id) ||
+    .filter((node) => (owned === undefined || game.unlockedNodes.includes(node.id) === owned) && node.phaseId === phase &&
+      (group === undefined || node.uiGroup === group) && (game.unlockedNodes.includes(node.id) || showLocked ||
       ((game.cycles > 0 || game.unlockedNodes.length > 0) && node.prerequisites.every((id) => game.unlockedNodes.includes(id)))))
     .map((node) => node.id)));
   return <>{ids.map((id) => {
