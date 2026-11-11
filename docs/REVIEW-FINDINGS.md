@@ -67,3 +67,50 @@ Not verified, and therefore the first things to check in M0:
 - `mise install`, the bootstrap script, the devcontainer, and the GitHub Actions workflow were written but not executed.
 - `gitleaks`, `osv-scanner` and `trivy` were not run; their command lines in the Makefile should be confirmed against the pinned versions.
 - Nothing involving Expo, React Native, Android or iOS exists yet, so none of it has been run.
+
+## F. M0 bootstrap verification (2026-11-11)
+
+The initial GitHub Actions run on Ubuntu 24.04 passed `make verify`, then failed
+`make security`: OSV found `minimatch` 10.2.6, a development dependency of ESLint
+and typescript-eslint, affected by
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+The patched version is 11.0.1. Both direct tools are already at the registry's
+latest versions and still request minimatch 10, so `package.json` pins a pnpm
+override to 11.0.1 until upstream adopts the fix. The dependency is BlueOak-1.0.0
+licensed. The existing lint run exercises the override; no gate or threshold
+was changed.
+
+Verified locally on Ubuntu 26.04.1 x86_64 with the pinned toolchain:
+
+- `bash scripts/bootstrap-ubuntu24.sh` completed successfully with mise already
+  installed. All required apt packages were already present.
+- `mise install` completed. Node 24.22.2, pnpm 10.28.0, gitleaks 8.30.1,
+  osv-scanner 2.7.1 and trivy 0.76.2 were checked by running each binary.
+- mise 2026.1.5 did not generate a lockfile for already installed tools.
+  `MISE_EXPERIMENTAL=true mise lock --platform linux-x64` generated `mise.lock`.
+  It records the five tool versions and four Linux download checksums; this mise
+  version emitted no platform URL/checksum for pnpm. Other platforms are untested.
+- `mise exec -- make setup` passed with the frozen pnpm lockfile.
+- `mise exec -- make verify-full` passed: strict typecheck, zero-warning lint,
+  content validation, all 71 tests, coverage thresholds, balance gates, dependency
+  audit, Git history secret scan, OSV, Trivy and CycloneDX SBOM generation.
+  Statement coverage was 98.17%, branch coverage 94.37%. The audit and OSV found
+  no known vulnerabilities. The STEALTH strategy reached victory in 2.27 hours
+  with no wipes; the GREEDY recovery scenario passed its gates.
+- `sbom.cdx.json` was generated locally and remains ignored as intended. The CI
+  workflow uploads the SBOM as an artifact. Trivy's configured SBOM excludes
+  development dependencies; OSV and pnpm audit cover those dependencies.
+- The private GitHub repository exists, `main` is pushed, and milestone issues
+  M0 through M6 exist as #1 through #7.
+
+Remaining checks and approvals:
+
+- The bootstrap script has not been run locally on Ubuntu 24.04. This host runs
+  Ubuntu 26.04, and its Docker launcher points at a missing snap binary. The
+  devcontainer and the fresh mise installation through the signed apt repository
+  remain untested. CI uses Ubuntu 24.04 but installs mise through mise-action.
+- M0's exit gate requires a successful `ci` run on `main` after the dependency
+  fix is merged. PR CI is verified separately before requesting merge approval.
+- `main` has no branch protection. Enabling it to require `verify` needs maintainer
+  approval under `AGENTS.md`; merging this PR also needs maintainer approval.
+- M1 has not been started. Expo, web UI, Android and iOS remain unbuilt and untested.

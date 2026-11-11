@@ -33,6 +33,9 @@
   "pnpm": {
     "ignoredBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "minimatch": "11.0.1"
+    }
   }
 }

@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 is next.** The seed (content, engine, sim, tests, tooling config) is already in the repo.
+Status: **M0 verification is in progress** ([tracking issue #1](https://github.com/williamzujkowski/daemon-zero/issues/1)). Local gates pass; the exit gate still requires green CI on `main`. See `docs/REVIEW-FINDINGS.md` section F for evidence and limitations.
 
 ---
 
@@ -11,12 +11,12 @@ Status: **M0 is next.** The seed (content, engine, sim, tests, tooling config) i
 Goal: the seed runs green on the maintainer's machine and in CI.
 
 - [ ] `bash scripts/bootstrap-ubuntu24.sh` on Ubuntu 24.04 (installs mise, then the pinned toolchain from `mise.toml`).
-- [ ] `make setup && make verify` passes locally.
-- [ ] Run `mise install` and commit the generated `mise.lock` if the installed mise version produces one.
-- [ ] `git init`, first commit, create the GitHub repo (`gh repo create`), push.
+- [x] `make setup && make verify` passes locally (Ubuntu 26.04, pinned Node 24.22.2 and pnpm 10.28.0).
+- [x] Run `mise install` and commit the generated `mise.lock` if the installed mise version produces one. With mise 2026.1.5, generated using `MISE_EXPERIMENTAL=true mise lock --platform linux-x64`.
+- [x] `git init`, first commit, create the GitHub repo (`gh repo create`), push.
 - [ ] Confirm the `ci` workflow passes, including `make security` and `make sbom`. These scanners were **not** run when the seed was assembled; fix or report whatever they find.
 - [ ] Enable branch protection on `main` (require the `verify` check). Ask the maintainer before changing repo settings.
-- [ ] `bash scripts/seed-issues.sh` to create milestone issues.
+- [x] `bash scripts/seed-issues.sh` to create milestone issues (#1 through #7). Do not rerun: the script creates duplicates.
 
 Exit gate: CI green on `main`; issues exist for M1 to M6.
 
