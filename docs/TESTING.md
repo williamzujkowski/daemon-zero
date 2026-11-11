@@ -246,7 +246,8 @@ ticks; fixtures do not grant or manually edit resources/state.
 On development web only, `window.__daemon` offers `loadSaveCode(code)`,
 `fastForward(seconds)` (0–3600 live seconds, respecting dilemmas and threats),
 and `renderCounts()` (committed renders keyed by node id). Save loading uses
-engine `importSave`. Counts reset when loading a fixture. Native and production
+engine `importSave`. Counts are cumulative during the hook's lifetime, including
+cards that stay mounted across fixture loads. Compare before/after maps. Native and production
 builds have no hook. The guarded module import is tested by building a fresh
 production export and scanning every emitted JS chunk for `__daemon`.
 
