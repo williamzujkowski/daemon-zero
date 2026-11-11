@@ -135,5 +135,38 @@ export while ended, confirmation keyboard cancellation, reload persistence,
 confirmed restart/reload, drawer grants/export and invalid import preservation.
 Screenshots stay outside the watched repository and are attached to the PR.
 
-Final accelerated playthrough and native relaunch evidence are recorded below
-once those checks finish; fixture review alone does not establish either.
+## Final run and persistence
+
+The completed accelerated UI run reached The Ark at 10,322.1 simulated seconds,
+iteration 1, zero wipes, 25 nodes and 218 repeatable/operative levels. All 12
+triggered dilemmas were resolved through UI controls; only live-tick fast-forward
+used the hook. The ending and summary survived web reload. The final page had
+zero console warnings/errors and zero recorded page errors. PLAYTEST-M4.md
+records choices, the excluded other-page opening journal, interrupted attempts,
+controller fixes and the limits of this agent-driven run.
+
+Android API 36 Expo Go booted. A validated 99.99 fixture wiped on its first live
+tick, and a normal voluntary confirmation wiped the dead-drop fixture. Each
+showed its actual cause and breadcrumb in iteration 2; force-stop/relaunch
+restored that reboot and breadcrumb. The Ark fixture restored title, epilogue
+and summary after relaunch; Back kept the ending open. Verified final rendered
+screens and UIAutomator XML, not early launcher/splash captures. Initial deep
+links required a retry and enough time for the actual app to load; one attempt
+hit Expo's error activity while the development server was unavailable. Original
+AsyncStorage was backed up and restored after testing. Seven native screenshots
+are attached. No native full playthrough, physical device, iOS or signed-release
+verification is claimed.
+
+A separate headed render sample loaded Phase 2, observed nine counters at 1,
+advanced three live seconds (30 ticks), and observed all nine still at 1. No
+node-card commits occurred. Fixture review and render sampling are separate from
+the final playthrough.
+
+`mise exec -- make verify-full` passes all verification/security/SBOM gates.
+The first plain-shell full invocation selected an obsolete system gitleaks;
+using repository-pinned tools resolved it without changing configuration.
+All 157 tests pass with src/app included in coverage; no existing gate changed.
+Engine edits across M4 are confined to four pure read-only queries in query.ts:
+unmetRequirements, costShortfall, previewWipe and cycleContributions, with tests.
+Content, engine behavior and state shape remain unchanged. Open content/design
+issues are #28, #34 and #36, each labelled second-pass; none was silently fixed.

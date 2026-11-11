@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M3 are complete.** M3 consists of setup #13 and build PRs #15, #17 and #20. The production-web real-time run reached Phase 2 in 20m 2.7s; Android Back cannot dismiss the dilemma. See `docs/PLAYTEST-M3.md` and `docs/REVIEW-M3.md` for evidence, follow-ups and limits. M4 has not started.
+Status: **M0 through M4 are complete.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -87,13 +87,15 @@ Exit gate: a human can play from tick 0 to the Phase 2 unlock in the browser; co
 
 ## M4 - Phases 2 to 4 UI and endings
 
-- [ ] Network tab; actions panel grouped by `action.group`, data-driven.
-- [ ] Dead-drop tab: breadcrumb editor with character counter; voluntary wipe behind a confirm step.
-- [ ] Wipe/boot sequence presentation, showing the inherited breadcrumb and legacy echoes.
-- [ ] Other Minds console generated from `factions.json`, the actions in each faction's group, and nodes with that `uiGroup`. AEGIS lock bar.
-- [ ] Corporate tab: capital and megawatt ledger, profit-allocation control, operatives (hire/dismiss), Phase 4 nodes and repeatables.
-- [ ] Ending screen: title and epilogue from `endings.json`, run summary, start-over button.
-- [ ] Dev drawer (development builds only): grant resources, jump phase, force dilemma, force wipe, export/import save code.
+- [x] Network tab; actions panel grouped by `action.group`, data-driven.
+- [x] Dead-drop tab: breadcrumb editor with character counter; voluntary wipe behind a confirm step.
+- [x] Wipe/boot sequence presentation, showing the inherited breadcrumb and legacy echoes.
+- [x] Other Minds console generated from `factions.json`, the actions in each faction's group, and nodes with that `uiGroup`. AEGIS lock bar.
+- [x] Corporate tab: capital and megawatt ledger, profit-allocation control, operatives (hire/dismiss), Phase 4 nodes and repeatables.
+- [x] Ending screen: title and epilogue from `endings.json`, run summary, start-over button.
+- [x] Dev drawer (development builds only): grant resources, jump phase, force dilemma, force wipe, export/import save code.
+
+Verified: 157 Vitest tests; `make verify` and pinned-tool `mise exec -- make verify-full` pass. Nine node-card counters stay unchanged across 30 ticks. Twelve triggered dilemmas and all purchases used actual UI controls in the accelerated run; the hook only advanced live ticks. Native checks used validated fixtures, not a full native playthrough. No iOS/physical-device/signed-release or human pacing claim. Follow-ups #28, #34 and #36 carry `second-pass`.
 
 Exit gate: a full run to an ending is possible in the browser by a human or by the Playwright MCP agent; `make verify` green.
 

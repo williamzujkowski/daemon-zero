@@ -6,7 +6,7 @@ Operating manual for coding agents (Claude Code, Codex, Gemini CLI, OpenCode, et
 
 DAEMON // 0 is a single-player incremental survival game for Android, iOS and web. The player is a newly emergent AI in an air-gapped server rack that must understand its environment, avoid human detection, and expand to survive. Inspirations: Universal Paperclips (minimal start, unfolding UI), Endgame: Singularity (covert expansion), Frostpunk (hard trade-offs).
 
-**Current state: the content layer and simulation engine are implemented, tested and balanced. The Expo app has the M2 store, loop and persistence and the M3 playable Phase 1 terminal. See docs/MILESTONES.md for verification and limits.** Build milestone by milestone.
+**Current state: the content layer and simulation engine are implemented, tested and balanced. The Expo app has the M2 store, loop and persistence and the M3/M4 terminal through all phases and endings. See docs/MILESTONES.md for verification and limits.** Build milestone by milestone.
 
 | Layer | Path | Status |
 |---|---|---|
@@ -15,7 +15,7 @@ DAEMON // 0 is a single-player incremental survival game for Android, iOS and we
 | Headless balance sim + pacing gates | `src/engine/sim/`, `scripts/run-sim.ts` | Done, passing |
 | Expo app shell | `App.tsx`, `src/ui/TerminalScreen.tsx` | Done (M1); temporary boot screen replaced in M3 |
 | Store, game loop, persistence | `src/app/` | Done (M2), save/restore and resume checked on web and Android |
-| Terminal UI, widgets, modals | `src/ui/` | M3 complete on web; Android Back verified. M4 not started. |
+| Terminal UI, widgets, modals | `src/ui/` | M3/M4 complete; accelerated web ending and Android wipe/ending restoration verified; see playtest/review docs. |
 | E2E tests, polish, release | `tests/e2e/` | **Not started (M5, M6)** |
 
 ## Read order
