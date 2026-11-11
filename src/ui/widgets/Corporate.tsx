@@ -6,10 +6,11 @@ import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import Repeatables from '../Repeatables';
-import { useGame } from '../state';
+import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 
 function Ledger() {
+  const known = useSurveillanceKnown();
   const capital = useGame((game) => Math.floor(game.capital));
   const income = useGame((game) => game.rates.capitalPerSec);
   const generated = useGame((game) => game.rates.megawattsGenerated);
@@ -22,7 +23,7 @@ function Ledger() {
     <Text testID="power-ledger" style={theme.text}>Power: {generated} MW generated / {consumed} MW consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
-      INSOLVENT: capital exhausted; unpaid drains increase suspicion.</Text>}
+      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'}</Text>}
     {generated < consumed && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       POWER SHORTFALL: powered hardware is throttled.</Text>}
     {brownout && <Text testID="brownout-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>

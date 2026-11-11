@@ -324,3 +324,11 @@ Phase 2 boundary with ordinary inputs, read small test-ID values and wait on
 real timers. Record visibility, phase entry times, choices and confusing points
 in `docs/PLAYTEST-SECOND-PASS.md`. This agent run does not substitute for the
 maintainer's own opening play/sign-off required by the M4.5 exit gate.
+
+## M4.6 lineage verification
+
+Fresh fixture generation now returns 46 saves. `tests/ui-lineage-followup.spec.ts`
+sweeps blind fixtures, tests real parser/table transitions and recovery, and
+checks capped/reported controls. See `docs/REVIEW-LINEAGE.md` for historical v1/v2
+save provenance, web/Android checks and the three-pass visible review. Engine
+saves now migrate to version 3; the app envelope remains version 1.

@@ -1,3 +1,4 @@
+import DisclosureText from './DisclosureText';
 /**
  * Content-driven upgrades appear only when their engine requirements are met.
  * Level changes update the price; affordability updates only the button leaf.
@@ -22,7 +23,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const surveillanceKnown = useSurveillanceKnown();
   return <View testID={'rep-' + rep.id} style={theme.panel}>
     <Text style={theme.heading}>{rep.name}</Text>
-    <Text style={theme.text}>{rep.description}</Text>
+    <DisclosureText style={theme.text}>{rep.description}</DisclosureText>
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
     <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${String(rep.perLevelEffects.memoryCapIncrease)} MB capacity` : ''}</Text>

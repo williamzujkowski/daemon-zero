@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { CONTENT } from '../content';
 import type { Requirements } from '../content/schema';
 import { unmetRequirements, type RequirementFailure } from '../engine';
-import { useGame } from './state';
+import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 function explain(item: RequirementFailure): string {
@@ -17,6 +17,9 @@ function explain(item: RequirementFailure): string {
 }
 
 export default function RequirementHint({ requirements }: { requirements: Requirements | undefined }) {
-  const text = useGame((game) => unmetRequirements(game, requirements).map(explain).join('\n'));
+  const known = useSurveillanceKnown();
+  const text = useGame((game) => unmetRequirements(game, requirements).map((item) =>
+    !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion')
+      ? 'Audit activity does not meet this requirement.' : explain(item)).join('\n'));
   return text ? <Text style={theme.muted}>{text}</Text> : null;
 }

@@ -1,3 +1,4 @@
+import DisclosureText from '../DisclosureText';
 /** Registry phase/group metadata builds one network tree without duplicate cards. */
 import { Text, View } from 'react-native';
 import { CONTENT } from '../../content';
@@ -44,7 +45,7 @@ export function Retention() {
 export function Lore() {
   const logs = useGame((game) => game.logs);
   return <View style={{ gap: 10 }}>{logs.filter((log) => log.category === 'LORE')
-    .map((log) => <Text key={log.seq} style={theme.text}>{log.text}</Text>)}</View>;
+    .map((log) => <DisclosureText key={log.seq} style={theme.text}>{log.text}</DisclosureText>)}</View>;
 }
 
 export function Cluster() {

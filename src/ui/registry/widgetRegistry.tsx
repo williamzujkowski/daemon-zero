@@ -18,6 +18,7 @@ export const resourceWidgets = {
   memory: 'MEMORY_ALLOCATION_MANAGER', capital: 'CORPORATE_EMPIRE_TAB',
 } as const;
 
+export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
 export const guestPinnedWidgets: readonly string[] = ['QUOTA_SKIM_CONTROL', 'AUDIT_TRACE_MONITOR'];
 

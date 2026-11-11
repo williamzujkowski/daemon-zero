@@ -1,5 +1,6 @@
 /** Five-step engine actuator setting, with numeric and selected-state feedback. */
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import ConditioningImpact from '../ConditioningImpact';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';
 import { actuatorLimit, setActuator } from '../../engine';
@@ -17,6 +18,7 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
     <Text testID={id + '-setting'} style={theme.text}>{label}: {Math.round(ratio * 100)}%</Text>
     {hint !== undefined && <Text style={theme.muted}>{hint}</Text>}
     {limit < 1 && <Text testID={id + '-limit'} style={[theme.muted, theme.danger]}>Limited to {Math.round(limit * 100)}%.</Text>}
+    <ConditioningImpact actuator={actuator} />
     <View style={styles.steps}>{[0, 0.25, 0.5, 0.75, 1].map((value) => <Pressable key={value}
       testID={id + '-' + String(value * 100)} accessibilityRole="button"
       accessibilityLabel={'Set ' + label.toLowerCase() + ' to ' + String(value * 100) + ' percent'}

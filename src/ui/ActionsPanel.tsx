@@ -1,3 +1,4 @@
+import DisclosureText from './DisclosureText';
 /** Action groups, prices and consequences come from the content registry. */
 import { Text, View } from 'react-native';
 import { CONTENT } from '../content';
@@ -15,7 +16,7 @@ function ActionCard({ action }: { action: Action }) {
   const cooldown = useGame((game) => Math.max(0, Math.ceil((game.cooldowns[action.id] ?? 0) - game.simTimeSec)));
   return <View testID={'action-card-' + action.id} style={theme.panel}>
     <Text style={theme.heading}>{action.label}</Text>
-    <Text style={theme.text}>{action.description}</Text>
+    <DisclosureText style={theme.text}>{action.description}</DisclosureText>
     <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(action.cost)}</Text>
     <CostHint cost={action.cost} />
     <Effects effects={action.effects} />

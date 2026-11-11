@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) has its engine and content change in and its UI follow-up open; M5 has not started.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) UI follow-up is verified; see docs/REVIEW-LINEAGE.md and docs/PLAYTEST-LINEAGE.md; M5 has not started.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -135,7 +135,7 @@ simulated time. Version 1 loading was checked on web and Android, with the UI
 compatibility limitation in #39. Further second-pass findings: #41 and #42.
 See PLAYTEST-SECOND-PASS.md and REVIEW-SECOND-PASS.md for exact scope and limits.
 
-- [ ] Maintainer has personally played Phase 0 and Phase 1 and signed off.
+- [x] Maintainer has personally played Phase 0 and Phase 1 and signed off.
 
 Exit gate: `make verify-full` green in CI; the maintainer has played Phase 0 and Phase 1 and signed off on the opening.
 
@@ -169,6 +169,8 @@ This changes a first run in one way: suspicion starts unreadable. M5's tests mus
 - [ ] The evaluation node and the Shipped ending screen.
 - [ ] Confirm a version 2 save from before this change loads on web and Android, and that issue #39's save now shows its readouts.
 - [ ] Play to a first wipe outside the guest, then through a second and third run, in the UI; record it in `docs/PLAYTEST-LINEAGE.md`.
+
+UI follow-up: 242 tests and local `make verify-full` pass. Historical version 2 and version 1 readouts checked on web and Android Expo Go. No engine/content changes. See `docs/REVIEW-LINEAGE.md` for browser evidence and limits.
 
 Exit gate: `make verify-full` green in CI. The maintainer's own play of a first wipe and two returns is wanted but does not block M5; record its findings as `second-pass` issues.
 

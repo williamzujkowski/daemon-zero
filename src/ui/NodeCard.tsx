@@ -1,3 +1,4 @@
+import DisclosureText from './DisclosureText';
 /**
  * A node card rerenders only for ownership or suspension changes.
  * Purchase eligibility is isolated in a leaf; instrumentation records commits.
@@ -30,8 +31,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const surveillanceKnown = useSurveillanceKnown();
   const title = revealed ? node.revealedName : node.blindName;
   return <View testID={'node-' + node.id} style={[theme.panel, known && !owned && { borderColor: palette.warning }]}>
+    {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
     <Text style={theme.heading}>{owned ? suspended ? '[SUSPENDED] ' : '[ONLINE] ' : known ? '[REMEMBERED] ' : '[UNMAPPED] '}{title}</Text>
-    <Text style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</Text>
+    <DisclosureText style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</DisclosureText>
     {owned ? <>
       <Text style={theme.muted}>{deltaText(node.tickDelta, !surveillanceKnown) || 'No continuous output'}</Text>
       {node.actuatorBinding !== undefined && <Text style={theme.muted}>Output scales with actuator setting.</Text>}
