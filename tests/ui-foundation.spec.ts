@@ -7,7 +7,7 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { makeFixtures } from '../scripts/make-fixtures';
+import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
 import { importSave } from '../src/engine';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';

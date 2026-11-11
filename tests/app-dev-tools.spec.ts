@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installDevTools, recordNodeRender, type DevHost } from '../src/app/devTools';
 import { CONTENT } from '../src/content';
 import { createInitialState, exportSave } from '../src/engine';
-import { makeFixtures } from '../scripts/make-fixtures';
+import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
 import { runtimeHarness, settle } from './app-helpers';
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date', 'performance', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] }); });
