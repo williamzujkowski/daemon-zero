@@ -72,6 +72,13 @@ new iteration or a restarted run. Legacy echoes appear in the kernel log when
 the engine emits them on rediscovery, preserving their authored reveal timing.
 Wipe confirmation previews the engine's retained resources and stored breadcrumb.
 
+Once the Other Minds widget unlocks, the resource strip also shows a compact
+numeric AEGIS readout. Browser review found that the full console meter was too
+far below the network tree to keep an urgent lock visible. The full accessible
+meter remains in the console; the HUD reveals nothing before that widget unlocks.
+Network phase groups show the newest unlocked phase first, keeping current
+purchases ahead of completed earlier hardware.
+
 ## Theme
 
 Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):

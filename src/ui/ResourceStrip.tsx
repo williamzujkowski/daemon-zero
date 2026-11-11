@@ -4,7 +4,7 @@
  */
 import { StyleSheet, Text, View } from 'react-native';
 import { useGame } from './state';
-import { resourceWidgets } from './registry/widgetRegistry';
+import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
 
 type Resource = keyof typeof resourceWidgets;
@@ -24,11 +24,18 @@ function Amount({ resource }: { resource: Resource }) {
 }
 
 export default function ResourceStrip() {
+  const threatKnown = useGame((game) => game.unlockedWidgets.includes(threatWidget));
   const gates = useGame((game) => Object.entries(resourceWidgets)
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
-  if (!gates) return null;
-  return <View testID="resource-strip" style={styles.strip}>{gates.split(',').map((resource) =>
-    <Amount key={resource} resource={resource as Resource} />)}</View>;
+  if (!gates && !threatKnown) return null;
+  return <View testID="resource-strip" style={styles.strip}>{gates.split(',').filter(Boolean).map((resource) =>
+    <Amount key={resource} resource={resource as Resource} />)}{threatKnown && <ThreatAmount />}</View>;
+}
+
+function ThreatAmount() {
+  const lock = useGame((game) => Math.round(game.aegisLock * 10) / 10);
+  return <View style={styles.readout}><Text style={theme.muted}>AEGIS LOCK</Text>
+    <Text testID="aegis-hud" style={[theme.text, lock >= 90 && theme.danger]}>{lock.toFixed(1)} / 100%</Text></View>;
 }
 
 const styles = StyleSheet.create({

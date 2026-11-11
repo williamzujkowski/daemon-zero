@@ -62,3 +62,26 @@ The final round exercises wipe confirmation, keyboard cancellation, voluntary
 wipe and reload, and forced-tick wipe followed by reload. Each retained the
 breadcrumb and rebuilt the reboot view. No remaining build-1 UI findings. Native
 wipe/ending persistence is reserved for the final M4 checks.
+
+## Build 2: Other Minds (#29)
+
+Faction identities, descriptions, trust meters, action groups and matching
+uiGroup offers come from the registry. Locked controls show unmet requirements,
+cooldowns and quantized missing resource/free-memory amounts. Added the pure
+costShortfall query; tests verify equivalence with the existing affordability
+predicate. No spending or requirement behavior changed.
+
+`make verify` passes with 143 tests and all original gates. Mounted tests cover
+all factions/offers, an offer purchase, trait/trust/budget locks, a registry
+AEGIS action and numeric/accessible threat feedback. Two visible passes cover
+AEGIS 90, trust 85 and trust 0/MOLOCH at both sizes, including every faction's
+scrolled panel. Pass 1 exposed that the urgent lock was buried beneath the long
+tree; pass 2 adds a widget-gated HUD readout and puts the newest phase first.
+UI-SPEC.md explains both changes. No horizontal overflow, inaccessible/small
+controls or console warnings/errors remained. 45 final PNGs are attached to the
+PR, outside the watched repo and never committed.
+
+Open content/design finding: #28 (`second-pass`). Prose promises a permanent
+Eidolon ban, but the existing trait predicate permits contact after a wipe clears
+current traits despite MOLOCH in legacy.traitsEver. Reproduced with public pure
+engine functions; UI follows actual requirements and leaves prose unchanged.
