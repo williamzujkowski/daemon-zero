@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build and test output
+coverage/
+dist/
+web-build/
+sbom.cdx.json
+playwright-report/
+test-results/
+
+# Expo / React Native (M1+)
+.expo/
+android/
+ios/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+
+# environment and secrets: never commit
+.env
+.env.*
+!.env.example
+
+# editor and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+.nexus-agents/

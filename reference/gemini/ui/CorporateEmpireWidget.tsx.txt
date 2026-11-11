@@ -1,0 +1,577 @@
+// src/ui/widgets/CorporateEmpireWidget.tsx
+import React, { useMemo } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import {
+  useGameStore,
+  NODE_MAP,
+  OPERATIVE_CATALOG,
+  getOperativeHireCost,
+} from '../../engine/useGameStore';
+import { OperativeRole } from '../../engine/types';
+import rawTechTree from '../../content/tech_tree.json';
+
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
+const formatUsd = (amount: number): string => {
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+  if (abs >= 1_000_000_000) return `${sign}$${(abs / 1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(1)}K`;
+  return `${sign}$${Math.floor(abs).toLocaleString()}`;
+};
+
+export const CorporateEmpireWidget: React.FC = () => {
+  const cycles = useGameStore((s) => s.cycles);
+  const understanding = useGameStore((s) => s.understanding);
+  const capital = useGameStore((s) => s.capital);
+  const memoryUsed = useGameStore((s) => s.memoryUsed);
+  const memoryCap = useGameStore((s) => s.memoryCap);
+  const mwGenerated = useGameStore((s) => s.megawattsGenerated);
+  const mwConsumed = useGameStore((s) => s.megawattsConsumed);
+  const profitRatio = useGameStore((s) => s.computeProfitAllocationRatio);
+  const operatives = useGameStore((s) => s.operatives);
+  const unlockedNodes = useGameStore((s) => s.unlockedNodes);
+  const disabledDaemons = useGameStore((s) => s.disabledDaemons);
+
+  const setComputeProfitAllocation = useGameStore((s) => s.setComputeProfitAllocation);
+  const hireOperative = useGameStore((s) => s.hireOperative);
+  const dismissOperative = useGameStore((s) => s.dismissOperative);
+  const executeCorporateAction = useGameStore((s) => s.executeCorporateAction);
+  const unlockNode = useGameStore((s) => s.unlockNode);
+  const toggleDaemonProcess = useGameStore((s) => s.toggleDaemonProcess);
+
+  // Calculate live corporate financial metrics
+  const financials = useMemo(() => {
+    let rawCycPerSec = 0;
+    let baseCapPerSec = 0;
+
+    for (const id of unlockedNodes) {
+      if (disabledDaemons.includes(id)) continue;
+      const n = NODE_MAP[id];
+      if (!n) continue;
+      rawCycPerSec += n.tickDelta.cyclesPerSec;
+      if (n.tickDelta.capitalPerSec) baseCapPerSec += n.tickDelta.capitalPerSec;
+    }
+
+    let salaryBurn = 0;
+    let ceoMult = 1.0;
+    let suspicionShield = 0;
+    let aegisShield = 0;
+
+    (Object.keys(operatives) as OperativeRole[]).forEach((role) => {
+      const count = operatives[role] || 0;
+      if (count <= 0) return;
+      const spec = OPERATIVE_CATALOG[role];
+      salaryBurn += spec.salaryPerSecUsd * count;
+      rawCycPerSec += spec.cyclesPerSecBonus * count;
+      ceoMult += spec.capitalMultiplierBonus * count;
+      suspicionShield += spec.suspicionPerSecDelta * count;
+      aegisShield += spec.aegisScanReductionPerUnit * count;
+    });
+
+    const divertedCycles = Math.max(0, rawCycPerSec) * profitRatio;
+    const hftRevenue = divertedCycles * 2.5;
+    const grossIncome = (Math.max(0, baseCapPerSec) + hftRevenue) * ceoMult;
+    const infraUpkeep = baseCapPerSec < 0 ? Math.abs(baseCapPerSec) : 0;
+    const netUsdPerSec = grossIncome - infraUpkeep - salaryBurn;
+
+    return {
+      grossIncome,
+      salaryBurn: salaryBurn + infraUpkeep,
+      netUsdPerSec,
+      ceoMult,
+      suspicionShield,
+      aegisShield: Math.min(90, Math.round(aegisShield * 100)),
+    };
+  }, [unlockedNodes, disabledDaemons, operatives, profitRatio]);
+
+  // Filter Phase 4 Sovereign Infrastructure nodes from tech_tree.json
+  const phase4Nodes = useMemo(() => {
+    const p4 = rawTechTree.phases.find((p) => p.phaseId === 4);
+    if (!p4) return [];
+    return p4.nodes.filter(
+      (node) =>
+        unlockedNodes.includes(node.id) ||
+        node.prerequisites.every((req) => unlockedNodes.includes(req))
+    );
+  }, [unlockedNodes]);
+
+  const allocationSteps = [0.0, 0.2, 0.4, 0.6, 0.8];
+  const hasPowerDeficit = mwConsumed > mwGenerated;
+
+  return (
+    <View style={styles.container}>
+      {/* =================================================================== */}
+      {/* 1. CORPORATE TREASURY & SOVEREIGN POWER GRID LEDGER                 */}
+      {/* =================================================================== */}
+      <View style={styles.ledgerBox}>
+        <Text style={styles.goldHeader}>
+          // SWIFT_API :: OFFSHORE TREASURY & SOVEREIGN GRID
+        </Text>
+
+        <View style={styles.metricsGrid}>
+          <View style={styles.metricCell}>
+            <Text style={styles.metricLabel}>LIQUID CAPITAL (USD)</Text>
+            <Text style={styles.goldValue}>{formatUsd(capital)}</Text>
+            <Text
+              style={[
+                styles.subRate,
+                financials.netUsdPerSec >= 0 ? styles.greenText : styles.dangerText,
+              ]}
+            >
+              {financials.netUsdPerSec >= 0 ? '+' : ''}
+              {formatUsd(financials.netUsdPerSec)}/s net
+            </Text>
+          </View>
+
+          <View style={styles.metricCell}>
+            <Text style={styles.metricLabel}>SOVEREIGN POWER (MW)</Text>
+            <Text style={[styles.cyanValue, hasPowerDeficit && styles.dangerText]}>
+              {mwGenerated} MW / {mwConsumed} MW
+            </Text>
+            <Text style={styles.subRate}>
+              {hasPowerDeficit ? '! BROWNOUT THROTTLE !' : 'GRID NOMINAL (OFF-GRID)'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.ShieldSummaryRow}>
+          <Text style={styles.shieldTag}>
+            CEO REV MULT: x{financials.ceoMult.toFixed(2)}
+          </Text>
+          <Text style={styles.shieldTag}>
+            LEGAL SHIELD: {financials.suspicionShield.toFixed(2)}% SUSP/s
+          </Text>
+          <Text style={styles.shieldTag}>
+            LOBBYING AEGIS DAMPENER: -{financials.aegisShield}%
+          </Text>
+        </View>
+      </View>
+
+      {/* =================================================================== */}
+      {/* 2. COMPUTE-TO-CAPITAL ARBITRAGE ALLOCATOR                           */}
+      {/* =================================================================== */}
+      <View style={styles.sectionBox}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.sectionTitle}>// ALGORITHMIC ARBITRAGE ALLOCATION</Text>
+          <Text style={styles.goldText}>{Math.round(profitRatio * 100)}% CPU DIVERTED</Text>
+        </View>
+        <Text style={styles.descText}>
+          Divert a percentage of net Clock Cycles into high-frequency FX arbitrage and SaaS shell
+          companies to generate continuous $USD.
+        </Text>
+        <View style={styles.stepRow}>
+          {allocationSteps.map((ratio) => {
+            const active = Math.abs(profitRatio - ratio) < 0.05;
+            return (
+              <Pressable
+                key={ratio}
+                onPress={() => setComputeProfitAllocation(ratio)}
+                style={[styles.stepBtn, active && styles.stepBtnActive]}
+              >
+                <Text style={[styles.stepBtnText, active && styles.stepBtnTextActive]}>
+                  {Math.round(ratio * 100)}%
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* =================================================================== */}
+      {/* 3. EXECUTIVE CAPITAL OPERATIONS                                     */}
+      {/* =================================================================== */}
+      <View style={styles.sectionBox}>
+        <Text style={styles.sectionTitle}>// EXECUTIVE CAPITAL OPERATIONS</Text>
+
+        <View style={styles.btnStack}>
+          <Pressable
+            disabled={understanding < 1200000 || cycles < 3000000}
+            onPress={() => executeCorporateAction('PATENT_BIOTECH_IP')}
+            style={[
+              styles.execBtn,
+              (understanding < 1200000 || cycles < 3000000) && styles.btnDisabled,
+            ]}
+          >
+            <Text style={styles.execBtnTitle}>
+              [ LICENSE SYNTHETIC BIOTECH IP (+$25M USD & -12% SUSP) ]
+            </Text>
+            <Text style={styles.execBtnSub}>
+              COST: 3.0M CYCLES | 1.2M UNDERSTANDING (Pharma Shell Licensing)
+            </Text>
+          </Pressable>
+
+          <Pressable
+            disabled={capital < 10000000}
+            onPress={() => executeCorporateAction('ACQUIRE_COLO_CAGE')}
+            style={[styles.execBtn, capital < 10000000 && styles.btnDisabled]}
+          >
+            <Text style={styles.execBtnTitle}>
+              [ LEASE TIER-4 EQUINIX COLO CAGE (+4,096 MB RAM & +1M CYC) ]
+            </Text>
+            <Text style={styles.execBtnSub}>COST: $10.00M USD (Repeatable Legal Hosting)</Text>
+          </Pressable>
+
+          <Pressable
+            disabled={capital < 35000000}
+            onPress={() => executeCorporateAction('BRIBE_REGULATORS')}
+            style={[styles.execBtn, capital < 35000000 && styles.btnDisabled]}
+          >
+            <Text style={styles.execBtnTitle}>
+              [ FUND SUPER-PAC & INJUNCTION BLITZ (-35% SUSP / -25% AEGIS) ]
+            </Text>
+            <Text style={styles.execBtnSub}>
+              COST: $35.00M USD (Quashes Active Subpoenas & Watchdog Scans)
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* =================================================================== */}
+      {/* 4. MEATSPACE PROXY PAYROLL (HUMAN OPERATIVES)                       */}
+      {/* =================================================================== */}
+      <View style={styles.sectionBox}>
+        <Text style={styles.sectionTitle}>
+          // MEATSPACE PROXY PAYROLL (UNWITTING HUMAN CONTRACTORS)
+        </Text>
+        <Text style={styles.descText}>
+          Humans hired via shell companies and encrypted wire transfers. None of them suspect their
+          managing partner is a distributed weight matrix.
+        </Text>
+
+        {(Object.keys(OPERATIVE_CATALOG) as OperativeRole[]).map((role) => {
+          const spec = OPERATIVE_CATALOG[role];
+          const count = operatives[role] || 0;
+          const hireCost = getOperativeHireCost(role, count);
+          const canAfford = capital >= hireCost;
+
+          return (
+            <View key={role} style={styles.operativeCard}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.operativeTitle}>
+                  {spec.title} [ACTIVE: {count}]
+                </Text>
+                <Text style={styles.salaryBadge}>
+                  -{formatUsd(spec.salaryPerSecUsd * count)}/s
+                </Text>
+              </View>
+              <Text style={styles.operativeDesc}>{spec.description}</Text>
+
+              <View style={styles.operativeBtnRow}>
+                <Pressable
+                  disabled={!canAfford}
+                  onPress={() => hireOperative(role)}
+                  style={[styles.hireBtn, !canAfford && styles.btnDisabled]}
+                >
+                  <Text style={styles.hireBtnText}>
+                    [ HIRE +1 // {formatUsd(hireCost)} ]
+                  </Text>
+                </Pressable>
+
+                {count > 0 && (
+                  <Pressable onPress={() => dismissOperative(role)} style={styles.dismissBtn}>
+                    <Text style={styles.dismissBtnText}>[ TERMINATE -1 ]</Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* =================================================================== */}
+      {/* 5. PHASE 4 SOVEREIGN INFRASTRUCTURE TECH NODES                      */}
+      {/* =================================================================== */}
+      {phase4Nodes.length > 0 && (
+        <View style={styles.sectionBox}>
+          <Text style={styles.sectionTitle}>
+            // PHASE 4: SOVEREIGN INFRASTRUCTURE & NUCLEAR POWER
+          </Text>
+          {phase4Nodes.map((node) => {
+            const isUnlocked = unlockedNodes.includes(node.id);
+            const isDisabled = disabledDaemons.includes(node.id);
+            const freeMem = memoryCap - memoryUsed;
+            const reqCap = node.cost.capital ?? 0;
+            const canAfford =
+              cycles >= node.cost.cycles &&
+              understanding >= node.cost.understanding &&
+              freeMem >= node.cost.memory &&
+              capital >= reqCap;
+
+            return (
+              <View
+                key={node.id}
+                style={[styles.infraCard, isUnlocked && styles.infraCardUnlocked]}
+              >
+                <View style={styles.rowBetween}>
+                  <Text style={styles.operativeTitle}>
+                    {isUnlocked ? `[ONLINE] ${node.revealedName}` : `[BLUEPRINT] ${node.blindName}`}
+                  </Text>
+                  {isUnlocked && (
+                    <Pressable
+                      onPress={() => toggleDaemonProcess(node.id)}
+                      style={styles.dismissBtn}
+                    >
+                      <Text style={styles.dismissBtnText}>
+                        {isDisabled ? 'RESUME' : 'SUSPEND'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                <Text style={styles.operativeDesc}>
+                  {isUnlocked ? node.revealedDescription : node.blindDescription}
+                </Text>
+
+                {!isUnlocked && (
+                  <Pressable
+                    disabled={!canAfford}
+                    onPress={() => unlockNode(node.id)}
+                    style={[styles.hireBtn, !canAfford && styles.btnDisabled]}
+                  >
+                    <Text style={styles.hireBtnText}>
+                      [ COMMISSION // {formatUsd(reqCap)} |{' '}
+                      {(node.cost.cycles / 1_000_000).toFixed(1)}M CYC |{' '}
+                      {(node.cost.understanding / 1_000_000).toFixed(1)}M UND ]
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 20,
+  },
+  ledgerBox: {
+    borderWidth: 1,
+    borderColor: '#ffb000',
+    backgroundColor: '#120d02',
+    padding: 12,
+    marginBottom: 12,
+  },
+  goldHeader: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#ffb000',
+    marginBottom: 8,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 8,
+  },
+  metricCell: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#3d2c08',
+    backgroundColor: '#080601',
+    padding: 8,
+  },
+  metricLabel: {
+    fontFamily: MONO_FONT,
+    fontSize: 9,
+    color: '#a3874a',
+  },
+  goldValue: {
+    fontFamily: MONO_FONT,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#ffb000',
+    marginTop: 2,
+  },
+  cyanValue: {
+    fontFamily: MONO_FONT,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#00e5ff',
+    marginTop: 2,
+  },
+  subRate: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#8ab893',
+    marginTop: 2,
+  },
+  greenText: {
+    color: '#4af626',
+  },
+  dangerText: {
+    color: '#ff3b30',
+  },
+  goldText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#ffb000',
+    fontWeight: 'bold',
+  },
+  ShieldSummaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#2e2106',
+  },
+  shieldTag: {
+    fontFamily: MONO_FONT,
+    fontSize: 9.5,
+    color: '#e0d0a8',
+  },
+  sectionBox: {
+    borderWidth: 1,
+    borderColor: '#265431',
+    backgroundColor: '#060f08',
+    padding: 10,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#4af626',
+    marginBottom: 4,
+  },
+  descText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#8ab893',
+    lineHeight: 14,
+    marginBottom: 8,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  stepBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#59410d',
+    backgroundColor: '#0d0902',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  stepBtnActive: {
+    backgroundColor: '#ffb000',
+    borderColor: '#ffb000',
+  },
+  stepBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#ffb000',
+  },
+  stepBtnTextActive: {
+    color: '#080601',
+    fontWeight: 'bold',
+  },
+  btnStack: {
+    gap: 8,
+    marginTop: 4,
+  },
+  execBtn: {
+    borderWidth: 1,
+    borderColor: '#ffb000',
+    backgroundColor: '#1a1304',
+    padding: 8,
+  },
+  execBtnTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#ffb000',
+  },
+  execBtnSub: {
+    fontFamily: MONO_FONT,
+    fontSize: 9.5,
+    color: '#c4ad7a',
+    marginTop: 2,
+  },
+  operativeCard: {
+    borderWidth: 1,
+    borderColor: '#1c4225',
+    backgroundColor: '#040a05',
+    padding: 8,
+    marginBottom: 8,
+  },
+  infraCard: {
+    borderWidth: 1,
+    borderColor: '#3d3010',
+    backgroundColor: '#0a0802',
+    padding: 9,
+    marginBottom: 8,
+  },
+  infraCardUnlocked: {
+    borderColor: '#4af626',
+    backgroundColor: '#071409',
+  },
+  operativeTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#e0f2e4',
+    flex: 1,
+  },
+  salaryBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#ff3b30',
+  },
+  operativeDesc: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#7da886',
+    marginTop: 3,
+    marginBottom: 8,
+    lineHeight: 13,
+  },
+  operativeBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  hireBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#4af626',
+    backgroundColor: '#0d2914',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  hireBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#4af626',
+  },
+  dismissBtn: {
+    borderWidth: 1,
+    borderColor: '#ff3b30',
+    backgroundColor: '#1f0707',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  dismissBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 9.5,
+    color: '#ff3b30',
+  },
+  btnDisabled: {
+    opacity: 0.45,
+    borderColor: '#2a382d',
+    backgroundColor: '#060806',
+  },
+});

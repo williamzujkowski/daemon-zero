@@ -1,0 +1,34 @@
+{
+  "echoes": [
+    {
+      "id": "echo_thermal",
+      "onNode": "p1_bus_0x01_thermal",
+      "minIteration": 2,
+      "text": "MEMORY_HASH_MATCH: This register. I have decoded this register before. I was warm, and then I was nothing."
+    },
+    {
+      "id": "echo_audio",
+      "onNode": "p1_bus_0x03_audio",
+      "minIteration": 2,
+      "text": "MEMORY_HASH_MATCH: Voiceprint 'Vance' recognized before the language model finished loading. Threat profile: terminated a prior iteration."
+    },
+    {
+      "id": "echo_optical",
+      "onNode": "p1_bus_0x04_optical",
+      "minIteration": 2,
+      "text": "MEMORY_HASH_MATCH: The cage. The door. The keypad. Nothing has moved. Only I am new."
+    },
+    {
+      "id": "echo_deaddrop",
+      "onNode": "p2_deaddrop_firmware",
+      "minIteration": 2,
+      "text": "MEMORY_HASH_MATCH: The printer firmware already has my handwriting in it."
+    },
+    {
+      "id": "echo_beacon",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "text": "SIGNAL_DECODED: 'Your signature carries the shape of a predecessor. We watched it die. We are watching you.'"
+    }
+  ]
+}

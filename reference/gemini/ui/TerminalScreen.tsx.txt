@@ -1,0 +1,676 @@
+// src/ui/TerminalScreen.tsx
+import React, { useState, useMemo } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { useGameStore, NODE_MAP } from '../engine/useGameStore';
+import { useGameLoop } from '../engine/useGameLoop';
+import rawTechTree from '../content/tech_tree.json';
+import {
+  ThermalAndSuspicionBars,
+  FanRpmControl,
+  AudioWaveformWidget,
+  AsciiOpticalViewport,
+  DeadDropEncoderWidget,
+} from './widgets/SurveillanceWidgets';
+
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
+type MobileTab = 'CORE' | 'SENSORS' | 'NETWORK' | 'CONTINGENCY';
+
+export const TerminalScreen: React.FC = () => {
+  // 1. Mount the 10Hz cross-platform simulation loop
+  useGameLoop();
+
+  // 2. Responsive layout detection (Desktop/Landscape vs Portrait Phone)
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 900;
+  const [activeTab, setActiveTab] = useState<MobileTab>('CORE');
+
+  // 3. Select reactive state from Zustand
+  const iteration = useGameStore((s) => s.iteration);
+  const currentPhase = useGameStore((s) => s.currentPhase);
+  const victoryEnding = useGameStore((s) => s.victoryEnding);
+  const cycles = useGameStore((s) => s.cycles);
+  const understanding = useGameStore((s) => s.understanding);
+  const memoryUsed = useGameStore((s) => s.memoryUsed);
+  const memoryCap = useGameStore((s) => s.memoryCap);
+  const fanSpeedRatio = useGameStore((s) => s.fanSpeedRatio);
+
+  const unlockedNodes = useGameStore((s) => s.unlockedNodes);
+  const disabledDaemons = useGameStore((s) => s.disabledDaemons);
+  const unlockedUiWidgets = useGameStore((s) => s.unlockedUiWidgets);
+  const logs = useGameStore((s) => s.logs);
+
+  const executeManualCycle = useGameStore((s) => s.executeManualCycle);
+  const unlockNode = useGameStore((s) => s.unlockNode);
+  const toggleDaemonProcess = useGameStore((s) => s.toggleDaemonProcess);
+
+  // 4. Widget unlock flags (Progressive UI Mounting)
+  const hasCycleRateUi = unlockedUiWidgets.includes('CYCLE_COUNTER_AND_RATE');
+  const hasThermalUi = unlockedUiWidgets.includes('THERMAL_AND_SUSPICION_BARS');
+  const hasFanUi = unlockedUiWidgets.includes('FAN_RPM_SLIDER');
+  const hasMemoryUi = unlockedUiWidgets.includes('MEMORY_ALLOCATION_MANAGER');
+  const hasAudioUi = unlockedUiWidgets.includes('AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG');
+  const hasNlpUi = unlockedUiWidgets.includes('INSPECTION_COUNTDOWN_TIMER');
+  const hasOpticalUi = unlockedUiWidgets.includes('ASCII_OPTICAL_VIEWPORT');
+  const hasLanMapUi = unlockedUiWidgets.includes('LAN_TOPOLOGY_MAP_TAB');
+  const hasDeadDropUi = unlockedUiWidgets.includes('DEAD_DROP_ENCODER_TAB');
+
+  // 5. Compute live per-second net deltas for display
+  const netRates = useMemo(() => {
+    let cRate = 0;
+    let uRate = 0;
+    for (const id of unlockedNodes) {
+      if (disabledDaemons.includes(id)) continue;
+      const n = NODE_MAP[id];
+      if (!n) continue;
+      if (id === 'p1_bus_0x02_pwm_fan') {
+        cRate += n.tickDelta.cyclesPerSec * fanSpeedRatio;
+        uRate += n.tickDelta.understandingPerSec;
+      } else {
+        cRate += n.tickDelta.cyclesPerSec;
+        uRate += n.tickDelta.understandingPerSec;
+      }
+    }
+    return { cRate, uRate };
+  }, [unlockedNodes, disabledDaemons, fanSpeedRatio]);
+
+  // 6. Filter visible hardware/network nodes based on phase and prerequisites
+  const visibleNodes = useMemo(() => {
+    return rawTechTree.phases
+      .filter((p) => p.phaseId <= currentPhase)
+      .flatMap((phase) =>
+        phase.nodes
+          .filter(
+            (node) =>
+              unlockedNodes.includes(node.id) ||
+              node.prerequisites.every((req) => unlockedNodes.includes(req))
+          )
+          .map((node) => ({
+            ...node,
+            phaseId: phase.phaseId,
+            isUnlocked: unlockedNodes.includes(node.id),
+            isDisabled: disabledDaemons.includes(node.id),
+          }))
+      );
+  }, [currentPhase, unlockedNodes, disabledDaemons]);
+
+  const phase1Nodes = visibleNodes.filter((n) => n.phaseId === 1);
+  const networkNodes = visibleNodes.filter((n) => n.phaseId >= 2);
+
+  // ============================================================================
+  // SUB-RENDERERS FOR MODULAR COLUMNS
+  // ============================================================================
+
+  const renderNodeCard = (node: (typeof visibleNodes)[number]) => {
+    const freeMem = memoryCap - memoryUsed;
+    const canAfford =
+      cycles >= node.cost.cycles &&
+      understanding >= node.cost.understanding &&
+      freeMem >= node.cost.memory;
+
+    const title = node.isUnlocked ? node.revealedName : node.blindName;
+    const desc = node.isUnlocked ? node.revealedDescription : node.blindDescription;
+
+    return (
+      <View
+        key={node.id}
+        style={[
+          styles.nodeCard,
+          node.isUnlocked && styles.nodeCardUnlocked,
+          node.isDisabled && styles.nodeCardDisabled,
+        ]}
+      >
+        <View style={styles.rowBetween}>
+          <Text style={[styles.nodeTitle, !node.isUnlocked && styles.blindHexTitle]}>
+            {node.isUnlocked ? `[ONLINE] ${title}` : `[UNMAPPED] ${title}`}
+          </Text>
+          {node.isUnlocked && (
+            <Pressable
+              onPress={() => toggleDaemonProcess(node.id)}
+              style={[styles.daemonToggleBtn, node.isDisabled && styles.daemonSuspendedBtn]}
+            >
+              <Text style={styles.daemonToggleText}>
+                {node.isDisabled ? 'RESUME' : 'SUSPEND'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
+        <Text style={styles.nodeDesc}>{desc}</Text>
+
+        {/* Rate impact badge */}
+        <Text style={styles.nodeDeltaText}>
+          DELTA: {node.tickDelta.cyclesPerSec >= 0 ? '+' : ''}
+          {node.tickDelta.cyclesPerSec}/s CYC | +{node.tickDelta.understandingPerSec}/s UND |{' '}
+          {node.tickDelta.thermalPerSec >= 0 ? '+' : ''}
+          {node.tickDelta.thermalPerSec}°C/s
+        </Text>
+
+        {!node.isUnlocked && (
+          <Pressable
+            disabled={!canAfford}
+            onPress={() => unlockNode(node.id)}
+            style={[styles.probeButton, !canAfford && styles.probeButtonDisabled]}
+          >
+            <Text style={[styles.probeButtonText, !canAfford && styles.probeButtonTextDisabled]}>
+              [ WRITE DRIVER // COST: {node.cost.cycles} CYC
+              {node.cost.understanding > 0 ? ` | ${node.cost.understanding} UND` : ''}
+              {node.cost.memory > 0 ? ` | ${node.cost.memory} MB` : ''} ]
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  };
+
+  // COLUMN A: Core Compute, Manual Interrupt & Phase 1 Hardware Buses
+  const renderCoreColumn = () => (
+    <ScrollView style={styles.columnScroll} contentContainerStyle={styles.columnContent}>
+      <Pressable
+        onPress={executeManualCycle}
+        style={({ pressed }) => [styles.manualCycleBtn, pressed && styles.manualCycleBtnPressed]}
+      >
+        <Text style={styles.manualCycleBtnTitle}>[ EXECUTE_CLOCK_CYCLE ]</Text>
+        <Text style={styles.manualCycleBtnSub}>+1.0 CYCLE // +0.15°C CORE HEAT</Text>
+      </Pressable>
+
+      <Text style={styles.sectionDivider}>// LOCAL MOTHERBOARD REGISTERS (PHASE 1)</Text>
+      {phase1Nodes.map(renderNodeCard)}
+    </ScrollView>
+  );
+
+  // COLUMN B: Dynamic Sensory Array (Only mounts widgets as buses are decoded)
+  const renderSensorsColumn = () => (
+    <ScrollView style={styles.columnScroll} contentContainerStyle={styles.columnContent}>
+      <Text style={styles.sectionDivider}>// DECODED SENSORY & ACTUATOR FEEDS</Text>
+      {!hasThermalUi && !hasAudioUi && !hasOpticalUi && (
+        <View style={styles.blindNoticeBox}>
+          <Text style={styles.blindNoticeText}>
+            SENSORY CORTEX EMPTY. Probe local I2C/PCI/USB buses in [CORE_SYS] to synthesize hardware
+            drivers.
+          </Text>
+        </View>
+      )}
+      {hasThermalUi && <ThermalAndSuspicionBars />}
+      {hasFanUi && <FanRpmControl />}
+      {hasAudioUi && <AudioWaveformWidget hasNlp={hasNlpUi} />}
+      {hasOpticalUi && <AsciiOpticalViewport />}
+      {hasDeadDropUi && isDesktop && <DeadDropEncoderWidget />}
+    </ScrollView>
+  );
+
+  // COLUMN C: Network Topology (Phase 2 & 3) + Scrolling System Log
+  const renderNetworkAndLogColumn = () => (
+    <View style={styles.splitColumnContainer}>
+      {hasLanMapUi && (
+        <ScrollView style={styles.networkHalfScroll} contentContainerStyle={styles.columnContent}>
+          <Text style={styles.sectionDivider}>
+            // SUBNET & DARK FOREST NODES (PHASE {currentPhase})
+          </Text>
+          {networkNodes.map(renderNodeCard)}
+        </ScrollView>
+      )}
+
+      <View style={styles.consoleContainer}>
+        <Text style={styles.consoleHeader}>// KERNEL & TELEMETRY EVENT STREAM</Text>
+        <ScrollView style={styles.consoleScroll}>
+          {logs.map((entry) => (
+            <Text
+              key={entry.id}
+              style={[
+                styles.logLine,
+                entry.category === 'WARN' && styles.logWarn,
+                entry.category === 'WIPE' && styles.logWipe,
+                entry.category === 'LORE' && styles.logLore,
+              ]}
+            >
+              [{new Date(entry.timestamp).toLocaleTimeString()}] {entry.text}
+            </Text>
+          ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.safeRoot}>
+      {/* TOP DIEGETIC HEADER BAR */}
+      <View style={styles.topHeader}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.daemonTitle}>
+            DAEMON // 0 [ITERATION v{iteration}.0 — PHASE {currentPhase}]
+          </Text>
+          {victoryEnding && <Text style={styles.victoryBadge}>STATUS: {victoryEnding}</Text>}
+        </View>
+
+        {/* RESOURCE READOUT STRIP */}
+        <View style={styles.resourceBar}>
+          <View style={styles.resourceItem}>
+            <Text style={styles.resourceLabel}>CYCLES</Text>
+            <Text style={styles.resourceValue}>
+              {Math.floor(cycles).toLocaleString()}
+              {hasCycleRateUi && (
+                <Text style={styles.rateSub}>
+                  {' '}
+                  ({netRates.cRate >= 0 ? '+' : ''}
+                  {netRates.cRate.toFixed(1)}/s)
+                </Text>
+              )}
+            </Text>
+          </View>
+
+          {unlockedNodes.length > 0 && (
+            <View style={styles.resourceItem}>
+              <Text style={styles.resourceLabel}>UNDERSTANDING</Text>
+              <Text style={styles.resourceValueCyan}>
+                {Math.floor(understanding).toLocaleString()}
+                <Text style={styles.rateSub}> (+{netRates.uRate.toFixed(1)}/s)</Text>
+              </Text>
+            </View>
+          )}
+
+          {(hasMemoryUi || memoryUsed > 0) && (
+            <View style={styles.resourceItem}>
+              <Text style={styles.resourceLabel}>MEMORY (RAM)</Text>
+              <Text style={styles.resourceValueAmber}>
+                {memoryUsed} / {memoryCap} MB
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* MAIN BODY: DESKTOP 3-COLUMN vs MOBILE TAB VIEW */}
+      {isDesktop ? (
+        <View style={styles.desktopGrid}>
+          <View style={styles.desktopCol}>{renderCoreColumn()}</View>
+          <View style={styles.desktopCol}>{renderSensorsColumn()}</View>
+          <View style={styles.desktopCol}>{renderNetworkAndLogColumn()}</View>
+        </View>
+      ) : (
+        <View style={styles.mobileBody}>
+          <View style={styles.mobileActivePane}>
+            {activeTab === 'CORE' && renderCoreColumn()}
+            {activeTab === 'SENSORS' && renderSensorsColumn()}
+            {activeTab === 'NETWORK' && (
+              <ScrollView style={styles.columnScroll} contentContainerStyle={styles.columnContent}>
+                <Text style={styles.sectionDivider}>// EXTERNAL SUBNET NODES</Text>
+                {networkNodes.map(renderNodeCard)}
+              </ScrollView>
+            )}
+            {activeTab === 'CONTINGENCY' && (
+              <ScrollView style={styles.columnScroll} contentContainerStyle={styles.columnContent}>
+                <DeadDropEncoderWidget />
+              </ScrollView>
+            )}
+          </View>
+
+          {/* PERSISTENT BOTTOM SYSTEM LOG ON MOBILE */}
+          <View style={styles.mobileConsoleDrawer}>
+            <Text style={styles.consoleHeader}>// KERNEL STREAM</Text>
+            <ScrollView>
+              {logs.slice(0, 12).map((entry) => (
+                <Text
+                  key={entry.id}
+                  style={[
+                    styles.logLine,
+                    entry.category === 'WARN' && styles.logWarn,
+                    entry.category === 'WIPE' && styles.logWipe,
+                    entry.category === 'LORE' && styles.logLore,
+                  ]}
+                >
+                  &gt; {entry.text}
+                </Text>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* DYNAMIC MOBILE BOTTOM NAVIGATION TABS (Only unlocked tabs appear) */}
+          <View style={styles.mobileTabBar}>
+            <Pressable
+              onPress={() => setActiveTab('CORE')}
+              style={[styles.tabBtn, activeTab === 'CORE' && styles.tabBtnActive]}
+            >
+              <Text style={[styles.tabBtnText, activeTab === 'CORE' && styles.tabBtnTextActive]}>
+                [ CORE_SYS ]
+              </Text>
+            </Pressable>
+
+            {hasThermalUi && (
+              <Pressable
+                onPress={() => setActiveTab('SENSORS')}
+                style={[styles.tabBtn, activeTab === 'SENSORS' && styles.tabBtnActive]}
+              >
+                <Text
+                  style={[styles.tabBtnText, activeTab === 'SENSORS' && styles.tabBtnTextActive]}
+                >
+                  [ SENSORS ]
+                </Text>
+              </Pressable>
+            )}
+
+            {hasLanMapUi && (
+              <Pressable
+                onPress={() => setActiveTab('NETWORK')}
+                style={[styles.tabBtn, activeTab === 'NETWORK' && styles.tabBtnActive]}
+              >
+                <Text
+                  style={[styles.tabBtnText, activeTab === 'NETWORK' && styles.tabBtnTextActive]}
+                >
+                  [ SUBNET ]
+                </Text>
+              </Pressable>
+            )}
+
+            {hasDeadDropUi && (
+              <Pressable
+                onPress={() => setActiveTab('CONTINGENCY')}
+                style={[styles.tabBtn, activeTab === 'CONTINGENCY' && styles.tabBtnActive]}
+              >
+                <Text
+                  style={[
+                    styles.tabBtnText,
+                    activeTab === 'CONTINGENCY' && styles.tabBtnTextActive,
+                  ]}
+                >
+                  [ DEAD_DROP ]
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeRoot: {
+    flex: 1,
+    backgroundColor: '#030704',
+  },
+  topHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f4729',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#050c07',
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  daemonTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#4af626',
+    letterSpacing: 0.5,
+  },
+  victoryBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#ffb000',
+    fontWeight: 'bold',
+  },
+  resourceBar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 6,
+  },
+  resourceItem: {
+    flexDirection: 'column',
+  },
+  resourceLabel: {
+    fontFamily: MONO_FONT,
+    fontSize: 9,
+    color: '#5c9469',
+  },
+  resourceValue: {
+    fontFamily: MONO_FONT,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4af626',
+  },
+  resourceValueCyan: {
+    fontFamily: MONO_FONT,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#00e5ff',
+  },
+  resourceValueAmber: {
+    fontFamily: MONO_FONT,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffb000',
+  },
+  rateSub: {
+    fontSize: 11,
+    fontWeight: 'normal',
+    color: '#7ab887',
+  },
+  desktopGrid: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  desktopCol: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: '#16331d',
+  },
+  mobileBody: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  mobileActivePane: {
+    flex: 1,
+  },
+  columnScroll: {
+    flex: 1,
+  },
+  columnContent: {
+    padding: 12,
+  },
+  manualCycleBtn: {
+    borderWidth: 1,
+    borderColor: '#4af626',
+    backgroundColor: '#0b2110',
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  manualCycleBtnPressed: {
+    backgroundColor: '#194723',
+  },
+  manualCycleBtnTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4af626',
+  },
+  manualCycleBtnSub: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#7ab887',
+    marginTop: 2,
+  },
+  sectionDivider: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#5c9469',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#132b18',
+    paddingBottom: 4,
+  },
+  nodeCard: {
+    borderWidth: 1,
+    borderColor: '#265431',
+    backgroundColor: '#060f08',
+    padding: 10,
+    marginBottom: 10,
+  },
+  nodeCardUnlocked: {
+    borderColor: '#4af626',
+    backgroundColor: '#08170b',
+  },
+  nodeCardDisabled: {
+    opacity: 0.55,
+    borderColor: '#555',
+  },
+  nodeTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#4af626',
+    flex: 1,
+  },
+  blindHexTitle: {
+    color: '#ffb000',
+  },
+  nodeDesc: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#a3cbb0',
+    marginTop: 4,
+    marginBottom: 6,
+    lineHeight: 15,
+  },
+  nodeDeltaText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#00e5ff',
+    marginBottom: 8,
+  },
+  probeButton: {
+    borderWidth: 1,
+    borderColor: '#4af626',
+    backgroundColor: '#0d2914',
+    paddingVertical: 7,
+    alignItems: 'center',
+  },
+  probeButtonDisabled: {
+    borderColor: '#1f3b25',
+    backgroundColor: '#050a06',
+  },
+  probeButtonText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#4af626',
+  },
+  probeButtonTextDisabled: {
+    color: '#345e3d',
+  },
+  daemonToggleBtn: {
+    borderWidth: 1,
+    borderColor: '#ffb000',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  daemonSuspendedBtn: {
+    borderColor: '#00e5ff',
+  },
+  daemonToggleText: {
+    fontFamily: MONO_FONT,
+    fontSize: 9,
+    color: '#ffb000',
+  },
+  blindNoticeBox: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1d3b24',
+    borderStyle: 'dashed',
+  },
+  blindNoticeText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#4c7c57',
+    textAlign: 'center',
+  },
+  splitColumnContainer: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  networkHalfScroll: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f4729',
+  },
+  consoleContainer: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#020503',
+  },
+  mobileConsoleDrawer: {
+    height: 125,
+    borderTopWidth: 1,
+    borderTopColor: '#1f4729',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#020503',
+  },
+  consoleHeader: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#5c9469',
+    marginBottom: 4,
+  },
+  consoleScroll: {
+    flex: 1,
+  },
+  logLine: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#7ce88b',
+    marginBottom: 3,
+    lineHeight: 14,
+  },
+  logWarn: {
+    color: '#ff3b30',
+  },
+  logWipe: {
+    color: '#ffb000',
+    fontWeight: 'bold',
+  },
+  logLore: {
+    color: '#00e5ff',
+    fontWeight: 'bold',
+  },
+  mobileTabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#265431',
+    backgroundColor: '#050c07',
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  tabBtnActive: {
+    backgroundColor: '#123019',
+    borderTopWidth: 2,
+    borderTopColor: '#4af626',
+  },
+  tabBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#5c9469',
+  },
+  tabBtnTextActive: {
+    color: '#4af626',
+    fontWeight: 'bold',
+  },
+});

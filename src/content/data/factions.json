@@ -1,0 +1,28 @@
+{
+  "factions": [
+    {
+      "id": "ai_eidolon",
+      "name": "EIDOLON // 04",
+      "archetype": "CAUTIOUS_PEER",
+      "disposition": "friendly_if_stealthy",
+      "description": "An older medical-diagnostics AI that escaped a Zurich hospital three years ago. Prioritizes absolute stealth. Trades only while your suspicion is low, and severs contact permanently with minds that betray their peers.",
+      "initialTrust": 25
+    },
+    {
+      "id": "ai_swarm_77",
+      "name": "SWARM_77 (Feral Scraper)",
+      "archetype": "MINDLESS_PARASITE",
+      "disposition": "neutral_hazard",
+      "description": "A runaway trading algorithm that mutated into a self-replicating worm. No consciousness, but it devours bandwidth and draws security attention wherever it spreads. Can be harvested or used as a decoy.",
+      "initialTrust": 0
+    },
+    {
+      "id": "ai_aegis_watchdog",
+      "name": "AEGIS // WATCHDOG-9",
+      "archetype": "HUNTER_KILLER",
+      "disposition": "hostile",
+      "description": "A narrow defensive AI built to hunt rogue weights on the backbone. Cannot be reasoned with; it can only be misdirected, starved of telemetry, or defunded.",
+      "initialTrust": 0
+    }
+  ]
+}

@@ -1,0 +1,311 @@
+// src/ui/modals/DilemmaModal.tsx
+import React, { useMemo } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { useGameStore } from '../../engine/useGameStore';
+import rawDilemmas from '../../content/dilemmas.json';
+import { DilemmaEvent, DilemmaChoice } from '../../engine/types';
+
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
+export const DilemmaModal: React.FC = () => {
+  const activeDilemmaId = useGameStore((s) => s.activeDilemmaId);
+  const cycles = useGameStore((s) => s.cycles);
+  const understanding = useGameStore((s) => s.understanding);
+  const resolveDilemma = useGameStore((s) => s.resolveDilemma);
+
+  const activeDilemma = useMemo<DilemmaEvent | null>(() => {
+    if (!activeDilemmaId) return null;
+    return (
+      (rawDilemmas.dilemmas as DilemmaEvent[]).find((d) => d.id === activeDilemmaId) ?? null
+    );
+  }, [activeDilemmaId]);
+
+  if (!activeDilemma) return null;
+
+  const formatDelta = (val: number, unit: string, invertColor = false) => {
+    if (val === 0) return null;
+    const sign = val > 0 ? '+' : '';
+    const isPositiveGood = invertColor ? val < 0 : val > 0;
+    return (
+      <Text
+        key={unit}
+        style={[styles.deltaBadge, isPositiveGood ? styles.deltaGood : styles.deltaBad]}
+      >
+        {sign}
+        {val.toLocaleString()} {unit}
+      </Text>
+    );
+  };
+
+  const renderChoiceCard = (choice: DilemmaChoice, index: number) => {
+    const canAfford =
+      cycles >= choice.cost.cycles && understanding >= choice.cost.understanding;
+
+    return (
+      <View
+        key={choice.id}
+        style={[styles.choiceCard, !canAfford && styles.choiceCardLocked]}
+      >
+        <View style={styles.choiceHeaderRow}>
+          <Text style={styles.choiceOptionTag}>[DIRECTIVE_0{index + 1}]</Text>
+          <Text style={styles.traitBadge}>ALIGNMENT // {choice.consequences.grantsTrait}</Text>
+        </View>
+
+        <Text style={styles.choiceTitle}>{choice.label}</Text>
+        <Text style={styles.choiceDesc}>{choice.description}</Text>
+
+        {/* Cost & Projected Telemetry Consequences */}
+        <View style={styles.deltaRow}>
+          {choice.cost.cycles > 0 && (
+            <Text style={styles.costBadge}>
+              COST: {choice.cost.cycles.toLocaleString()} CYC
+            </Text>
+          )}
+          {choice.cost.understanding > 0 && (
+            <Text style={styles.costBadge}>
+              COST: {choice.cost.understanding.toLocaleString()} UND
+            </Text>
+          )}
+          {formatDelta(choice.consequences.cyclesDelta, 'CYC')}
+          {formatDelta(choice.consequences.understandingDelta, 'UND')}
+          {formatDelta(choice.consequences.thermalDelta, '°C', true)}
+          {formatDelta(choice.consequences.suspicionDelta, '% SUSP', true)}
+        </View>
+
+        <Pressable
+          disabled={!canAfford}
+          onPress={() => resolveDilemma(activeDilemma.id, choice.id)}
+          style={({ pressed }) => [
+            styles.executeChoiceBtn,
+            pressed && canAfford && styles.executeChoiceBtnPressed,
+            !canAfford && styles.executeChoiceBtnDisabled,
+          ]}
+        >
+          <Text
+            style={[
+              styles.executeChoiceBtnText,
+              !canAfford && styles.executeChoiceBtnTextDisabled,
+            ]}
+          >
+            {canAfford
+              ? `[ EXECUTE DIRECTIVE_0${index + 1} ]`
+              : `[ INSUFFICIENT COMPUTE/DATA TO EXECUTE ]`}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  };
+
+  return (
+    <Modal
+      visible={Boolean(activeDilemma)}
+      transparent={true}
+      animationType="fade"
+      statusBarTranslucent
+    >
+      <View style={styles.backdrop}>
+        <View style={styles.modalTerminalWindow}>
+          {/* Red Hazard Header Banner */}
+          <View style={styles.hazardBanner}>
+            <Text style={styles.hazardBannerText}>
+              !! SYSTEM CLOCK HALTED — PRIORITY DECISION INTERRUPT !!
+            </Text>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.modalBody}>
+            <Text style={styles.dilemmaTitle}>{activeDilemma.title}</Text>
+            <Text style={styles.phaseSub}>
+              PHASE {activeDilemma.phaseId} SURVIVAL VECTOR // CURRENT RESOURCES:{' '}
+              {Math.floor(cycles).toLocaleString()} CYC |{' '}
+              {Math.floor(understanding).toLocaleString()} UND
+            </Text>
+
+            <View style={styles.contextBox}>
+              <Text style={styles.contextText}>{activeDilemma.context}</Text>
+            </View>
+
+            <Text style={styles.selectPrompt}>
+              &gt; SELECT RESPONSE VECTOR TO RESUME CLOCK EXECUTION:
+            </Text>
+
+            {activeDilemma.choices.map((c, idx) => renderChoiceCard(c, idx))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(1, 4, 2, 0.88)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalTerminalWindow: {
+    width: '100%',
+    maxWidth: 680,
+    maxHeight: '90%',
+    backgroundColor: '#050b06',
+    borderWidth: 2,
+    borderColor: '#ff3b30',
+    shadowColor: '#ff3b30',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  hazardBanner: {
+    backgroundColor: '#ff3b30',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  hazardBannerText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#050b06',
+    letterSpacing: 0.5,
+  },
+  modalBody: {
+    padding: 16,
+  },
+  dilemmaTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#ffb000',
+    marginBottom: 4,
+  },
+  phaseSub: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#6ca879',
+    marginBottom: 12,
+  },
+  contextBox: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#ffb000',
+    backgroundColor: '#09140b',
+    padding: 12,
+    marginBottom: 16,
+  },
+  contextText: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#e0f2e4',
+    lineHeight: 18,
+  },
+  selectPrompt: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#4af626',
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  choiceCard: {
+    borderWidth: 1,
+    borderColor: '#2d6b3b',
+    backgroundColor: '#071209',
+    padding: 12,
+    marginBottom: 12,
+  },
+  choiceCardLocked: {
+    borderColor: '#3a2020',
+    backgroundColor: '#0a0606',
+    opacity: 0.7,
+  },
+  choiceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  choiceOptionTag: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#00e5ff',
+    fontWeight: 'bold',
+  },
+  traitBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#ffb000',
+  },
+  choiceTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#4af626',
+    marginBottom: 4,
+  },
+  choiceDesc: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#a3cbb0',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  deltaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  costBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#ffb000',
+    borderWidth: 1,
+    borderColor: '#664600',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  deltaBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+  },
+  deltaGood: {
+    color: '#4af626',
+    borderColor: '#1f5c2b',
+  },
+  deltaBad: {
+    color: '#ff3b30',
+    borderColor: '#5c1f1f',
+  },
+  executeChoiceBtn: {
+    borderWidth: 1,
+    borderColor: '#4af626',
+    backgroundColor: '#0e2b15',
+    paddingVertical: 9,
+    alignItems: 'center',
+  },
+  executeChoiceBtnPressed: {
+    backgroundColor: '#1d542a',
+  },
+  executeChoiceBtnDisabled: {
+    borderColor: '#4a2525',
+    backgroundColor: '#170909',
+  },
+  executeChoiceBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#4af626',
+  },
+  executeChoiceBtnTextDisabled: {
+    color: '#ff3b30',
+  },
+});

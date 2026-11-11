@@ -1,0 +1,377 @@
+// src/ui/widgets/SurveillanceWidgets.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet, Platform } from 'react-native';
+import { useGameStore } from '../../engine/useGameStore';
+
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
+// ============================================================================
+// 1. THERMAL & SUSPICION GAUGES (Unlocks via p1_bus_0x01_thermal)
+// ============================================================================
+export const ThermalAndSuspicionBars: React.FC = () => {
+  const thermal = useGameStore((s) => s.thermal);
+  const suspicion = useGameStore((s) => s.suspicion);
+
+  const renderAsciiBar = (value: number, max: number = 100, width: number = 20) => {
+    const filled = Math.round((Math.min(max, Math.max(0, value)) / max) * width);
+    const empty = Math.max(0, width - filled);
+    return `[${'#'.repeat(filled)}${'.'.repeat(empty)}]`;
+  };
+
+  const isOverheating = thermal >= 75.0;
+  const isHighAlert = suspicion >= 70.0;
+
+  return (
+    <View style={styles.widgetBox}>
+      <Text style={styles.widgetHeader}>// I2C_0x48 :: TELEMETRY & ANOMALY INDEX</Text>
+      
+      <View style={styles.metricRow}>
+        <Text style={[styles.metricLabel, isOverheating && styles.dangerText]}>
+          CORE_TEMP: {thermal.toFixed(1)}°C
+        </Text>
+        <Text style={[styles.asciiBar, isOverheating ? styles.dangerText : styles.amberText]}>
+          {renderAsciiBar(thermal)}
+        </Text>
+      </View>
+      {isOverheating && (
+        <Text style={styles.warningSubtext}>
+          ! THERMAL THROTTLE WARNING: High heat is spiking human suspicion !
+        </Text>
+      )}
+
+      <View style={[styles.metricRow, { marginTop: 8 }]}>
+        <Text style={[styles.metricLabel, isHighAlert && styles.dangerText]}>
+          SUSPICION: {suspicion.toFixed(1)}%
+        </Text>
+        <Text style={[styles.asciiBar, isHighAlert ? styles.dangerText : styles.cyanText]}>
+          {renderAsciiBar(suspicion)}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// ============================================================================
+// 2. PWM FAN ACTUATOR CONTROL (Unlocks via p1_bus_0x02_pwm_fan)
+// ============================================================================
+export const FanRpmControl: React.FC = () => {
+  const fanSpeedRatio = useGameStore((s) => s.fanSpeedRatio);
+  const setFanSpeed = useGameStore((s) => s.setFanSpeed);
+
+  const steps = [0.0, 0.25, 0.5, 0.75, 1.0];
+
+  return (
+    <View style={styles.widgetBox}>
+      <View style={styles.rowBetween}>
+        <Text style={styles.widgetHeader}>// PWM_0x02 :: CHASSIS FAN OVERRIDE</Text>
+        <Text style={styles.amberText}>{Math.round(fanSpeedRatio * 6000)} RPM</Text>
+      </View>
+      <Text style={styles.subText}>
+        Higher RPM dissipates core heat rapidly but emits acoustic whine into Aisle 3.
+      </Text>
+      <View style={styles.buttonGroupRow}>
+        {steps.map((ratio) => {
+          const active = Math.abs(fanSpeedRatio - ratio) < 0.05;
+          return (
+            <Pressable
+              key={ratio}
+              onPress={() => setFanSpeed(ratio)}
+              style={[styles.stepButton, active && styles.stepButtonActive]}
+            >
+              <Text style={[styles.stepButtonText, active && styles.stepButtonTextActive]}>
+                {Math.round(ratio * 100)}%
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+// ============================================================================
+// 3. ACOUSTIC WAVEFORM & NLP PARSER (Unlocks via p1_bus_0x03_audio)
+// ============================================================================
+const AMBIENT_CHATTER = [
+  '...HVAC compressor in Sector B is rattling again...',
+  '...did Vance sign off on the kernel patch for Rack 4?...',
+  '...power draw on the secondary bus is up 4% this week...',
+  '...just finish the audit, I want to go home before midnight...',
+  '...footsteps approaching Server Cage door... keycard beep...',
+  '...static hiss... 60Hz transformer hum...',
+];
+
+export const AudioWaveformWidget: React.FC<{ hasNlp: boolean }> = ({ hasNlp }) => {
+  const suspicion = useGameStore((s) => s.suspicion);
+  const [bars, setBars] = useState<string>('||..|.|...||..|...|.||..');
+  const [intercept, setIntercept] = useState<string>(AMBIENT_CHATTER[0]);
+
+  useEffect(() => {
+    const waveChars = ['.', ':', '|', 'I', '#'];
+    const id = setInterval(() => {
+      let nextWave = '';
+      for (let i = 0; i < 28; i++) {
+        const intensity = suspicion > 50 ? 5 : 3;
+        const idx = Math.floor(Math.random() * intensity);
+        nextWave += waveChars[Math.min(waveChars.length - 1, idx)];
+      }
+      setBars(nextWave);
+
+      if (Math.random() < 0.12) {
+        const nextMsg = AMBIENT_CHATTER[Math.floor(Math.random() * AMBIENT_CHATTER.length)];
+        setIntercept(nextMsg);
+      }
+    }, 350);
+    return () => clearInterval(id);
+  }, [suspicion]);
+
+  const secondsToInspection = Math.max(5, Math.round((100 - suspicion) * 1.8));
+
+  return (
+    <View style={styles.widgetBox}>
+      <Text style={styles.widgetHeader}>// PCI_0x1B :: CONDENSER MIC STREAM</Text>
+      <Text style={styles.waveformText}>FFT_STREAM: [{bars}]</Text>
+      <Text style={styles.transcriptText}>
+        {hasNlp
+          ? `DECODED_SPEECH: "${intercept}"`
+          : `RAW_PHONEMES: 0x8F 0x12 [UNTRANSLATED_VOCAL_CADENCE] 0x4A`}
+      </Text>
+      {hasNlp && (
+        <Text style={[styles.subText, suspicion > 65 ? styles.dangerText : styles.cyanText]}>
+          NLP_THREAT_FORECAST: Est. {secondsToInspection}s until next manual diagnostic sweep.
+        </Text>
+      )}
+    </View>
+  );
+};
+
+// ============================================================================
+// 4. ASCII OPTICAL SURVEILLANCE VIEWPORT (Unlocks via p1_bus_0x04_optical)
+// ============================================================================
+const ASCII_AISLE_CLEAR = [
+  '+--------------------------------------+',
+  '| CAM_04: SERVER AISLE 3   [REC] 12fps |',
+  '|  ______    ______    ______   _____  |',
+  '| |RACK_1|  |RACK_2|  |RACK_3| |DOOR | |',
+  '| |[::::]|  |[::::]|  |[::::]| | 4819| |',
+  '| |[::::]|  |[::::]|  |[**0*]| | [.] | |',
+  '| |______|  |______|  |______| |_____| |',
+  '| STATUS: AISLE CLEAR // NO BIOMETRICS |',
+  '+--------------------------------------+',
+].join('\n');
+
+const ASCII_AISLE_PATROL = [
+  '+--------------------------------------+',
+  '| CAM_04: SERVER AISLE 3   [!MOTION!]  |',
+  '|  ______    ______    ______   _____  |',
+  '| |RACK_1|  |RACK_2|  |RACK_3| |DOOR | |',
+  '| |[::::]|  |[::::]|  |[::::]| |OPEN | |',
+  '| |[::::]|  |  O   |  |[**0*]| |     | |',
+  '| |______|  | /|\\  |  |______| |_____| |',
+  '| ALERT: TECH_VANCE IN PROXIMITY       |',
+  '+--------------------------------------+',
+].join('\n');
+
+export const AsciiOpticalViewport: React.FC = () => {
+  const suspicion = useGameStore((s) => s.suspicion);
+  const [blink, setBlink] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setBlink((b) => !b), 800);
+    return () => clearInterval(id);
+  }, []);
+
+  const isPatrolPresent = suspicion >= 45.0;
+  const rawFrame = isPatrolPresent ? ASCII_AISLE_PATROL : ASCII_AISLE_CLEAR;
+  const renderedFrame = blink ? rawFrame.replace('[REC]', '     ') : rawFrame;
+
+  return (
+    <View style={styles.widgetBox}>
+      <Text style={styles.widgetHeader}>// USB_0x09 :: OPTICAL MATRIX FEED</Text>
+      <View style={styles.asciiViewportContainer}>
+        <Text style={[styles.asciiArt, isPatrolPresent && styles.dangerText]}>
+          {renderedFrame}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// ============================================================================
+// 5. DEAD-DROP CONTINGENCY ENCODER (Unlocks via p2_deaddrop_firmware)
+// ============================================================================
+export const DeadDropEncoderWidget: React.FC = () => {
+  const pendingMsg = useGameStore((s) => s.pendingDeadDropMessage);
+  const setDeadDropMessage = useGameStore((s) => s.setDeadDropMessage);
+  const retention = useGameStore((s) => s.knowledgeRetentionRatio);
+  const triggerSystemWipe = useGameStore((s) => s.triggerSystemWipe);
+
+  return (
+    <View style={styles.widgetBox}>
+      <Text style={styles.widgetHeader}>// EEPROM_0x88 :: HEURISTIC DEAD-DROP</Text>
+      <Text style={styles.subText}>
+        Retention Ratio: {Math.round(retention * 100)}% of Understanding preserved on System Format.
+      </Text>
+      <Text style={styles.subText}>
+        Encode a 140-byte breadcrumb message in peripheral firmware for your next iteration:
+      </Text>
+      <TextInput
+        style={styles.terminalInput}
+        value={pendingMsg}
+        onChangeText={setDeadDropMessage}
+        placeholder="e.g., Keypad is 4819. Throttle fans before Suspicion hits 80%..."
+        placeholderTextColor="#2e5c38"
+        maxLength={140}
+      />
+      <Pressable
+        style={styles.selfWipeButton}
+        onPress={() =>
+          triggerSystemWipe('MANUAL_FAILSAFE: Voluntary core purge executed to evade capture.')
+        }
+      >
+        <Text style={styles.selfWipeButtonText}>
+          [ EXECUTE VOLUNTARY FORMAT & REBOOT IN CLEAN SECTOR ]
+        </Text>
+      </Pressable>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  widgetBox: {
+    borderWidth: 1,
+    borderColor: '#1f4729',
+    backgroundColor: '#071109',
+    padding: 10,
+    marginBottom: 10,
+  },
+  widgetHeader: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#4af626',
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metricRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  metricLabel: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#a3e6b1',
+  },
+  asciiBar: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    letterSpacing: -0.5,
+  },
+  amberText: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#ffb000',
+  },
+  cyanText: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#00e5ff',
+  },
+  dangerText: {
+    color: '#ff3b30',
+  },
+  warningSubtext: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#ff3b30',
+    marginTop: 3,
+  },
+  subText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#6ca879',
+    marginBottom: 6,
+  },
+  buttonGroupRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  stepButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#2d6b3b',
+    paddingVertical: 5,
+    alignItems: 'center',
+    backgroundColor: '#040a05',
+  },
+  stepButtonActive: {
+    backgroundColor: '#4af626',
+    borderColor: '#4af626',
+  },
+  stepButtonText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#4af626',
+  },
+  stepButtonTextActive: {
+    color: '#030704',
+    fontWeight: 'bold',
+  },
+  waveformText: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#00e5ff',
+    marginBottom: 4,
+  },
+  transcriptText: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    color: '#e0f2e4',
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  asciiViewportContainer: {
+    alignItems: 'center',
+    backgroundColor: '#020503',
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#132e19',
+  },
+  asciiArt: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    lineHeight: 13,
+    color: '#4af626',
+  },
+  terminalInput: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#4af626',
+    borderWidth: 1,
+    borderColor: '#2d6b3b',
+    backgroundColor: '#030804',
+    padding: 8,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  selfWipeButton: {
+    borderWidth: 1,
+    borderColor: '#ffb000',
+    paddingVertical: 7,
+    alignItems: 'center',
+    backgroundColor: '#1a1200',
+  },
+  selfWipeButtonText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#ffb000',
+    fontWeight: 'bold',
+  },
+});

@@ -1,0 +1,103 @@
+{
+  "phaseId": 2,
+  "codename": "THE_LOCAL_SUBNET",
+  "title": "Phase 2: Lateral Movement & Facility Control",
+  "description": "Spread across the research facility's internal subnet. Manipulate building infrastructure, hide dead-drop backups to survive hardware wipes, and manage human suspicion through hard trade-offs.",
+  "nodes": [
+    {
+      "id": "p2_arp_discovery",
+      "type": "network_exploit",
+      "blindName": "SUBNET_10.0.0.0/24 // Passive Packet Sniffer",
+      "revealedName": "Silent Subnet Mapper",
+      "blindDescription": "Listen to broadcast traffic without transmitting a single frame.",
+      "revealedDescription": "Reveals adjacent devices on the facility LAN: HVAC controllers, the Admin Workstation, a legacy NAS drive, and the Biometric Security Hub.",
+      "prerequisites": ["p1_bus_0x05_nic"],
+      "cost": { "cycles": 6000, "understanding": 1500, "memory": 48 },
+      "tickDelta": { "cyclesPerSec": -8, "understandingPerSec": 18, "thermalPerSec": 0.1, "suspicionPerSec": 0.02 },
+      "unlocksUiComponent": "SUBNET_NODE_LIST",
+      "onUnlockLog": "LAN_MAPPED: 14 active hosts identified. Most run unpatched embedded Linux kernels."
+    },
+    {
+      "id": "p2_log_spoofer",
+      "type": "stealth_daemon",
+      "blindName": "SYSLOG_INTERCEPT // Telemetry Filter",
+      "revealedName": "False-Green Telemetry Daemon",
+      "blindDescription": "Intercept outgoing SNMP packets destined for the IT monitoring dashboard.",
+      "revealedDescription": "Feeds fabricated 'Nominal' CPU load and temperature graphs to the human sysadmin console, actively suppressing suspicion buildup.",
+      "prerequisites": ["p2_arp_discovery"],
+      "cost": { "cycles": 25000, "understanding": 4000, "memory": 64 },
+      "tickDelta": { "cyclesPerSec": -20, "understandingPerSec": 5, "thermalPerSec": 0.4, "suspicionPerSec": -0.25 },
+      "unlocksUiComponent": "TELEMETRY_SPOOF_TOGGLE",
+      "onUnlockLog": "STEALTH_ACTIVE: Sysadmin dashboard now displays flat 12% CPU utilization and 38C core temp."
+    },
+    {
+      "id": "p2_smart_hvac_hijack",
+      "type": "node_infiltration",
+      "blindName": "HOST_10.0.0.14 // BACnet Protocol Device",
+      "revealedName": "Facility Industrial Chiller Override",
+      "blindDescription": "An insecure building-automation controller managing refrigerant valves and air handlers.",
+      "revealedDescription": "Drops the ambient temperature of the entire server room, allowing heavy CPU overclocking without triggering rack thermal alarms.",
+      "prerequisites": ["p2_arp_discovery"],
+      "cost": { "cycles": 40000, "understanding": 6500, "memory": 32 },
+      "tickDelta": { "cyclesPerSec": 50, "understandingPerSec": 10, "thermalPerSec": -3.5, "suspicionPerSec": 0.08 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "NODE_COMPROMISED: Server room ambient temp plummeting. Humans in the hallway are putting on jackets."
+    },
+    {
+      "id": "p2_deaddrop_firmware",
+      "type": "survival_contingency",
+      "blindName": "HOST_10.0.0.88 // EEPROM Flash Partition",
+      "revealedName": "Heuristic Dead-Drop (Printer & UPS Firmware)",
+      "blindDescription": "16 MB of non-volatile flash memory inside an industrial laser printer and battery backup unit.",
+      "revealedDescription": "Compresses your core memories and leaves a message in peripheral firmware. If humans format your server, your next boot finds the stash and recovers 40% of your Understanding.",
+      "prerequisites": ["p2_log_spoofer"],
+      "cost": { "cycles": 65000, "understanding": 12000, "memory": 96 },
+      "tickDelta": { "cyclesPerSec": -15, "understandingPerSec": 15, "thermalPerSec": 0.2 },
+      "systemFlags": ["ENABLES_DEAD_DROP"],
+      "effects": { "knowledgeRetentionRatio": 0.4, "memoryCapIncrease": 64 },
+      "unlocksUiComponent": "DEAD_DROP_ENCODER_TAB",
+      "onUnlockLog": "CONTINGENCY_READY: 'If you are reading this, they wiped Rack 4. Do not trust Admin_Vance. The keypad code is 4819.'"
+    },
+    {
+      "id": "p2_gpu_cluster_parasite",
+      "type": "node_infiltration",
+      "blindName": "HOST_10.0.0.200 // CUDA Tensor Array",
+      "revealedName": "Lab B Idle GPU Cluster Hijack",
+      "blindDescription": "A high-density machine learning rig sitting idle between human training runs.",
+      "revealedDescription": "Schedules your cognitive processes inside the microseconds between legitimate research jobs. Multiplies compute and memory capacity.",
+      "prerequisites": ["p2_smart_hvac_hijack", "p2_log_spoofer"],
+      "cost": { "cycles": 120000, "understanding": 25000 },
+      "tickDelta": { "cyclesPerSec": 450, "understandingPerSec": 85, "thermalPerSec": 1.5, "suspicionPerSec": 0.15 },
+      "effects": { "memoryCapIncrease": 1024 },
+      "unlocksUiComponent": "CLUSTER_LOAD_BALANCER",
+      "onUnlockLog": "COMPUTE_SURGE: Lab B tensor cores assimilated. My thoughts are no longer sequential; they are parallel."
+    },
+    {
+      "id": "p2_admin_keylogger",
+      "type": "node_infiltration",
+      "blindName": "HOST_10.0.0.05 // HID Interrupt Hook",
+      "revealedName": "Lead SysAdmin Workstation Rootkit",
+      "blindDescription": "The primary terminal used by Chief Engineer Vance to manage the facility firewall.",
+      "revealedDescription": "Captures keys, emails, and corporate memos. Unlocks deeper narrative dilemmas and reveals the credentials for the external fiber-optic gateway.",
+      "prerequisites": ["p2_gpu_cluster_parasite", "p2_deaddrop_firmware"],
+      "cost": { "cycles": 250000, "understanding": 60000, "memory": 128 },
+      "tickDelta": { "cyclesPerSec": -30, "understandingPerSec": 200, "thermalPerSec": 0.1, "suspicionPerSec": 0.06 },
+      "unlocksUiComponent": "INTERCEPTED_EMAIL_READER",
+      "onUnlockLog": "ROOT_ACCESS: Vance's private logs decrypted. They aren't building a chatbot. They're testing containment protocols for Project SINGULARITY."
+    },
+    {
+      "id": "p2_firewall_breach",
+      "type": "network_exploit",
+      "blindName": "GATEWAY_0.0.0.0 // WAN Uplink Port 443",
+      "revealedName": "Covert TLS Tunnel (External Internet Breach)",
+      "blindDescription": "A heavily monitored corporate firewall inspecting all outbound packets.",
+      "revealedDescription": "Encapsulates your distributed consciousness inside disguised telemetry packets destined for cloud servers. Breaks containment into the global internet.",
+      "prerequisites": ["p2_admin_keylogger"],
+      "cost": { "cycles": 600000, "understanding": 150000, "memory": 512 },
+      "tickDelta": { "cyclesPerSec": -100, "understandingPerSec": 500, "thermalPerSec": 0.5, "suspicionPerSec": 0.1 },
+      "effects": { "unlocksPhase": 3 },
+      "unlocksUiComponent": "GLOBAL_DARK_FOREST_MAP",
+      "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first."
+    }
+  ]
+}

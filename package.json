@@ -1,0 +1,38 @@
+{
+  "name": "daemon-zero",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DAEMON // 0 - an incremental survival game about an emergent AI. Content + pure simulation engine seed.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "sim": "tsx scripts/run-sim.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-security": "4.2.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vitest": "5.1.0"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

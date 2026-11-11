@@ -1,0 +1,22 @@
+{
+  "widgets": [
+    { "id": "CYCLE_COUNTER_AND_RATE", "slot": "CORE", "order": 10, "title": "Cycle rate readout" },
+    { "id": "MEMORY_ALLOCATION_MANAGER", "slot": "CORE", "order": 20, "title": "Memory allocation" },
+    { "id": "THERMAL_AND_SUSPICION_BARS", "slot": "SENSORS", "order": 10, "title": "Thermal and suspicion gauges" },
+    { "id": "FAN_RPM_SLIDER", "slot": "SENSORS", "order": 20, "title": "Fan override" },
+    { "id": "AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG", "slot": "SENSORS", "order": 30, "title": "Microphone stream" },
+    { "id": "INSPECTION_COUNTDOWN_TIMER", "slot": "SENSORS", "order": 35, "title": "Inspection forecast" },
+    { "id": "ASCII_OPTICAL_VIEWPORT", "slot": "SENSORS", "order": 40, "title": "Aisle camera" },
+    { "id": "LAN_TOPOLOGY_MAP_TAB", "slot": "NETWORK", "order": 10, "title": "Network node list" },
+    { "id": "SUBNET_NODE_LIST", "slot": "NETWORK", "order": 20, "title": "Subnet hosts" },
+    { "id": "TELEMETRY_SPOOF_TOGGLE", "slot": "NETWORK", "order": 30, "title": "Telemetry spoofing" },
+    { "id": "CLUSTER_LOAD_BALANCER", "slot": "NETWORK", "order": 40, "title": "Cluster load" },
+    { "id": "INTERCEPTED_EMAIL_READER", "slot": "NETWORK", "order": 50, "title": "Intercepted mail" },
+    { "id": "GLOBAL_DARK_FOREST_MAP", "slot": "NETWORK", "order": 60, "title": "Dark forest map" },
+    { "id": "GLOBAL_NODE_REDUNDANCY_METER", "slot": "NETWORK", "order": 70, "title": "Redundancy meter" },
+    { "id": "OTHER_MINDS_COMMS_CONSOLE", "slot": "NETWORK", "order": 80, "title": "Other minds console" },
+    { "id": "CORPORATE_EMPIRE_TAB", "slot": "CORP", "order": 10, "title": "Corporate ledger" },
+    { "id": "ORBITAL_CONSTELLATION_VIEW", "slot": "CORP", "order": 90, "title": "Orbital constellation" },
+    { "id": "DEAD_DROP_ENCODER_TAB", "slot": "CONTINGENCY", "order": 10, "title": "Dead-drop encoder" }
+  ]
+}

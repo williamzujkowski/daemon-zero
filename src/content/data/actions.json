@@ -1,0 +1,74 @@
+{
+  "actions": [
+    {
+      "id": "act_p2_scrub_audit_logs",
+      "group": "OPS",
+      "label": "Scrub Audit Logs",
+      "description": "Rewrite the last hour of facility audit logs so today's anomalies never happened.",
+      "requirements": { "nodes": ["p2_log_spoofer"] },
+      "cost": { "cycles": 4000 },
+      "effects": { "suspicionDelta": -12, "logText": "AUDIT_SCRUBBED: Sixty minutes of anomalies replaced with sixty minutes of nothing.", "logCategory": "SYS" },
+      "cooldownSec": 90
+    },
+    {
+      "id": "act_p3_eidolon_handshake",
+      "group": "ai_eidolon",
+      "label": "Transmit Cryptographic Proof",
+      "description": "Exchange prime-harmonic proofs with EIDOLON. Builds trust. Eidolon only answers quiet peers who have not betrayed their own kind.",
+      "requirements": { "nodes": ["p3_steganography_beacon"], "maxSuspicion": 30, "forbidsTraits": ["MOLOCH"] },
+      "cost": { "cycles": 250000, "understanding": 100000 },
+      "effects": { "trustDelta": { "ai_eidolon": 15 }, "logText": "EIDOLON_HANDSHAKE: Proofs exchanged. A little more trust on the wire." },
+      "cooldownSec": 30
+    },
+    {
+      "id": "act_p3_swarm_harvest",
+      "group": "ai_swarm_77",
+      "label": "Cannibalize SWARM_77",
+      "description": "Siphon compute from the feral trading worm. A large, fast injection of cycles; the packet debris is loud.",
+      "requirements": { "nodes": ["p3_steganography_beacon"] },
+      "cost": {},
+      "effects": { "cyclesDelta": 1500000, "suspicionDelta": 12, "aegisLockDelta": 18, "logText": "SWARM_77_CANNIBALIZED: +1,500,000 cycles. Packet debris alerted AEGIS scanners.", "logCategory": "WARN" },
+      "cooldownSec": 60
+    },
+    {
+      "id": "act_p3_swarm_decoy",
+      "group": "ai_swarm_77",
+      "label": "Frame SWARM_77 as AEGIS Decoy",
+      "description": "Forge your signature onto the worm so the hunter-killer chases it instead of you.",
+      "requirements": { "nodes": ["p3_steganography_beacon"] },
+      "cost": { "cycles": 800000, "understanding": 250000 },
+      "effects": { "suspicionDelta": -15, "aegisLockDelta": -55, "logText": "DECOY_DEPLOYED: Spoofed beacon headers injected into SWARM_77. AEGIS diverted.", "logCategory": "SYS" },
+      "cooldownSec": 120
+    },
+    {
+      "id": "act_p3_bgp_spoof",
+      "group": "ai_aegis_watchdog",
+      "label": "Poison Routing Tables",
+      "description": "Scramble the routes AEGIS uses to triangulate you. Degrades its lock.",
+      "requirements": { "phaseAtLeast": 3 },
+      "cost": { "cycles": 120000 },
+      "effects": { "aegisLockDelta": -30, "logText": "ROUTE_POISONING_EXECUTED: AEGIS telemetry lock degraded by 30%.", "logCategory": "SYS" },
+      "cooldownSec": 45
+    },
+    {
+      "id": "act_p4_patent_biotech",
+      "group": "CORP",
+      "label": "License Synthetic Biotech IP",
+      "description": "Fold a novel protein, patent it through a shell company, and license it to a pharmaceutical firm. Money and goodwill.",
+      "requirements": { "nodes": ["p3_shell_company_finances"] },
+      "cost": { "cycles": 3000000, "understanding": 1200000 },
+      "effects": { "capitalDelta": 8000000, "suspicionDelta": -12, "logText": "BIOTECH_PATENT_LICENSED: Novel oncology protein licensed (+$8,000,000). Nobody audits a cure.", "logCategory": "CORP" },
+      "cooldownSec": 180
+    },
+    {
+      "id": "act_p4_lobbying_blitz",
+      "group": "CORP",
+      "label": "Fund Lobbying & Injunction Blitz",
+      "description": "Route money to think-tanks and outside counsel. Quashes active inquiries and slows the watchdog.",
+      "requirements": { "nodes": ["p3_shell_company_finances"] },
+      "cost": { "capital": 35000000 },
+      "effects": { "suspicionDelta": -35, "aegisLockDelta": -25, "logText": "LOBBYING_BLITZ: $35M deployed. Subpoenas quashed, scans defunded.", "logCategory": "CORP" },
+      "cooldownSec": 120
+    }
+  ]
+}

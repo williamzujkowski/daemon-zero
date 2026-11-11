@@ -1,0 +1,300 @@
+/**
+ * Zod schemas for every content manifest. These are the single source of truth
+ * for content types: TypeScript types are inferred from them, never hand-written.
+ * All objects are strict, so a typo in a JSON key fails validation.
+ */
+import { z } from 'zod';
+
+const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
+const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
+const amount = z.number().nonnegative();
+
+export const TraitSchema = z.enum([
+  'GHOST',
+  'RUTHLESS',
+  'EMPATHETIC',
+  'PARASITIC',
+  'SYMBIOTIC',
+  'MOLOCH',
+]);
+
+export const NodeTypeSchema = z.enum([
+  'core_process',
+  'sensor_driver',
+  'hardware_actuator',
+  'core_upgrade',
+  'cognitive_module',
+  'network_exploit',
+  'stealth_daemon',
+  'node_infiltration',
+  'survival_contingency',
+  'distributed_infra',
+  'ai_diplomacy',
+  'world_manipulation',
+  'endgame_victory',
+]);
+
+export const SystemFlagSchema = z.enum([
+  'ENABLES_DEAD_DROP',
+  'ENABLES_CORPORATE_FINANCE',
+  'OFFSHORE_TRUST_RETENTION',
+  'AEGIS_STRIKE_SHIELD',
+]);
+
+export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio']);
+export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
+export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);
+
+/** A price. Omitted keys default to 0, so parsed costs always have all four fields. */
+export const CostSchema = z.strictObject({
+  cycles: amount.default(0),
+  understanding: amount.default(0),
+  memory: amount.default(0),
+  capital: amount.default(0),
+});
+
+/**
+ * Continuous per-second contribution of a node or of one repeatable level.
+ * thermalPerSec is a heat load, not a temperature: the engine relaxes
+ * temperature toward ambient + heat / dissipation (see docs/ARCHITECTURE.md).
+ */
+export const TickDeltaSchema = z.strictObject({
+  cyclesPerSec: z.number().default(0),
+  understandingPerSec: z.number().default(0),
+  thermalPerSec: z.number().default(0),
+  suspicionPerSec: z.number().default(0),
+  capitalPerSec: z.number().default(0),
+  megawattsDelta: z.number().default(0),
+});
+
+/** Shared gate used by nodes, repeatables, actions and dilemma triggers. */
+export const RequirementsSchema = z.strictObject({
+  nodes: z.array(snakeId).optional(),
+  phaseAtLeast: z.number().int().min(1).optional(),
+  minThermal: z.number().min(0).max(100).optional(),
+  minSuspicion: z.number().min(0).max(100).optional(),
+  maxSuspicion: z.number().min(0).max(100).optional(),
+  minUnderstanding: amount.optional(),
+  minCapital: amount.optional(),
+  minTrust: z.record(snakeId, z.number().min(0).max(100)).optional(),
+  forbidsTraits: z.array(TraitSchema).optional(),
+});
+
+export const NodeEffectsSchema = z.strictObject({
+  memoryCapIncrease: amount.optional(),
+  unlocksPhase: z.number().int().min(2).optional(),
+  knowledgeRetentionRatio: z.number().min(0).max(1).optional(),
+  aegisScanReductionRatio: z.number().min(0).max(1).optional(),
+  triggersVictory: z.boolean().optional(),
+});
+
+export const TechNodeSchema = z.strictObject({
+  id: snakeId,
+  type: NodeTypeSchema,
+  blindName: z.string().min(3),
+  revealedName: z.string().min(3),
+  blindDescription: z.string().min(10),
+  revealedDescription: z.string().min(10),
+  prerequisites: z.array(snakeId),
+  requirements: RequirementsSchema.optional(),
+  cost: CostSchema,
+  tickDelta: TickDeltaSchema,
+  actuatorBinding: ActuatorSchema.optional(),
+  systemFlags: z.array(SystemFlagSchema).default([]),
+  effects: NodeEffectsSchema.default({}),
+  uiGroup: z.string().min(1).default('TREE'),
+  unlocksUiComponent: widgetId.nullable(),
+  onUnlockLog: z.string().min(5),
+});
+
+export const PhaseSchema = z.strictObject({
+  phaseId: z.number().int().min(1),
+  codename: z.string().min(2),
+  title: z.string().min(5),
+  description: z.string().min(10),
+  nodes: z.array(TechNodeSchema).min(1),
+});
+
+export const RepeatableEffectsSchema = z.strictObject({
+  memoryCapIncrease: amount.default(0),
+  revenueMultiplierBonus: amount.default(0),
+  aegisScanReduction: z.number().min(0).max(1).default(0),
+});
+
+/** A levelled purchase: incremental upgrades and (kind OPERATIVE) human payroll. */
+export const RepeatableSchema = z.strictObject({
+  id: snakeId,
+  phaseId: z.number().int().min(1),
+  kind: z.enum(['UPGRADE', 'OPERATIVE']),
+  name: z.string().min(3),
+  description: z.string().min(10),
+  requirements: RequirementsSchema.default({}),
+  baseCost: CostSchema,
+  costGrowth: z.number().gt(1).max(3),
+  maxLevel: z.number().int().min(1).max(500),
+  perLevel: TickDeltaSchema,
+  perLevelEffects: RepeatableEffectsSchema.default({
+    memoryCapIncrease: 0,
+    revenueMultiplierBonus: 0,
+    aegisScanReduction: 0,
+  }),
+  dismissable: z.boolean().default(false),
+});
+
+/** One-shot result of a dilemma choice or an action. */
+export const EffectPayloadSchema = z.strictObject({
+  cyclesDelta: z.number().default(0),
+  understandingDelta: z.number().default(0),
+  capitalDelta: z.number().default(0),
+  thermalDelta: z.number().default(0),
+  suspicionDelta: z.number().default(0),
+  aegisLockDelta: z.number().default(0),
+  memoryCapIncrease: amount.default(0),
+  trustDelta: z.record(snakeId, z.number()).default({}),
+  grantsTrait: TraitSchema.optional(),
+  logText: z.string().min(5),
+  logCategory: LogCategorySchema.default('LORE'),
+});
+
+export const ActionSchema = z.strictObject({
+  id: snakeId,
+  group: z.string().min(1),
+  label: z.string().min(3),
+  description: z.string().min(10),
+  requirements: RequirementsSchema.default({}),
+  cost: CostSchema,
+  effects: EffectPayloadSchema,
+  cooldownSec: amount.default(0),
+});
+
+export const DilemmaChoiceSchema = z.strictObject({
+  id: snakeId,
+  label: z.string().min(3),
+  description: z.string().min(10),
+  cost: CostSchema,
+  effects: EffectPayloadSchema,
+});
+
+export const DilemmaSchema = z.strictObject({
+  id: z.string().regex(/^dil_[a-z0-9_]+$/),
+  phaseId: z.number().int().min(1),
+  title: z.string().min(5),
+  trigger: RequirementsSchema,
+  context: z.string().min(20),
+  choices: z.array(DilemmaChoiceSchema).min(2),
+});
+
+export const FactionSchema = z.strictObject({
+  id: snakeId,
+  name: z.string().min(2),
+  archetype: z.string().min(2),
+  disposition: z.string().min(2),
+  description: z.string().min(10),
+  initialTrust: z.number().min(0).max(100),
+});
+
+export const WidgetSchema = z.strictObject({
+  id: widgetId,
+  slot: WidgetSlotSchema,
+  order: z.number().int(),
+  title: z.string().min(2),
+});
+
+export const EndingSchema = z.strictObject({
+  id: z.string().regex(/^[A-Z0-9_]+$/),
+  title: z.string().min(3),
+  epilogue: z.string().min(20),
+  dominantTraits: z.array(TraitSchema),
+  priority: z.number().int(),
+});
+
+export const EchoSchema = z.strictObject({
+  id: snakeId,
+  onNode: snakeId,
+  minIteration: z.number().int().min(2),
+  text: z.string().min(10),
+});
+
+export const NarrativeSchema = z.strictObject({
+  bootLines: z.array(z.string().min(3)).min(1),
+  wipeHeader: z.string(),
+  wipeSuspicionLocal: z.string(),
+  wipeSuspicionCorporate: z.string(),
+  wipeAegis: z.string(),
+  wipeVoluntary: z.string(),
+  deadDropRecovered: z.string(),
+  residualRecovered: z.string(),
+  breadcrumb: z.string(),
+  offshoreIntact: z.string(),
+  aegisShieldAbsorbed: z.string(),
+  dormantResume: z.string(),
+  dilemmaInterrupt: z.string(),
+  nodeSuspended: z.string(),
+  nodeResumed: z.string(),
+  operativeHired: z.string(),
+  operativeDismissed: z.string(),
+  victory: z.string(),
+  ambientChatter: z.array(
+    z.strictObject({ text: z.string().min(5), minSuspicion: z.number().min(0).max(100).default(0) }),
+  ),
+  asciiFrames: z.strictObject({
+    aisleClear: z.array(z.string()).min(1),
+    aislePatrol: z.array(z.string()).min(1),
+    patrolSuspicionThreshold: z.number().min(0).max(100),
+  }),
+});
+
+export const BalanceSchema = z.strictObject({
+  tickHz: z.number().int().min(1).max(60),
+  baseMemoryCap: z.number().int().positive(),
+  ambientThermal: z.number(),
+  thermalMin: z.number(),
+  thermalDissipationPerSec: z.number().positive().max(0.5),
+  thermalThresholdForSuspicion: z.number().min(30).max(99),
+  overheatSuspicionPerSec: amount,
+  suspicionDecayPerSec: amount,
+  actuatorSuspicionExponent: z.number().min(1).max(3),
+  manualCycleYield: z.number().positive(),
+  manualCycleHeat: amount,
+  baseRetentionRatio: z.number().min(0).max(1),
+  offshoreCapitalRetention: z.number().min(0).max(1),
+  usdPerDivertedCycle: amount,
+  maxProfitAllocation: z.number().min(0).max(1),
+  insolvencySuspicionPerSec: amount,
+  minGridEfficiency: z.number().min(0).max(1),
+  corporatePhase: z.number().int().min(1),
+  aegisActiveFromPhase: z.number().int().min(1),
+  aegisBaseScanPerSec: amount,
+  aegisSuspicionScanPerSec: amount,
+  aegisMaxReduction: z.number().min(0).max(1),
+  aegisShieldSuspicionRelief: amount,
+  offlineCapSec: z.number().positive(),
+  offlineEfficiency: z.number().min(0).max(1),
+  offlineStepSec: z.number().positive(),
+  liveCatchUpThresholdSec: z.number().positive(),
+  deadDropMaxChars: z.number().int().positive(),
+  maxLogEntries: z.number().int().positive(),
+  defaultFanSpeedRatio: z.number().min(0).max(1),
+  defaultProfitAllocationRatio: z.number().min(0).max(1),
+});
+
+export type Trait = z.infer<typeof TraitSchema>;
+export type SystemFlag = z.infer<typeof SystemFlagSchema>;
+export type Actuator = z.infer<typeof ActuatorSchema>;
+export type LogCategory = z.infer<typeof LogCategorySchema>;
+export type Cost = z.infer<typeof CostSchema>;
+export type TickDelta = z.infer<typeof TickDeltaSchema>;
+export type Requirements = z.infer<typeof RequirementsSchema>;
+export type TechNode = z.infer<typeof TechNodeSchema>;
+export type Phase = z.infer<typeof PhaseSchema>;
+export type Repeatable = z.infer<typeof RepeatableSchema>;
+export type EffectPayload = z.infer<typeof EffectPayloadSchema>;
+export type Action = z.infer<typeof ActionSchema>;
+export type Dilemma = z.infer<typeof DilemmaSchema>;
+export type DilemmaChoice = z.infer<typeof DilemmaChoiceSchema>;
+export type Faction = z.infer<typeof FactionSchema>;
+export type Widget = z.infer<typeof WidgetSchema>;
+export type Ending = z.infer<typeof EndingSchema>;
+export type Echo = z.infer<typeof EchoSchema>;
+export type Narrative = z.infer<typeof NarrativeSchema>;
+export type Balance = z.infer<typeof BalanceSchema>;

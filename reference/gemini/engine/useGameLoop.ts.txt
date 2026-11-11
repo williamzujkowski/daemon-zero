@@ -1,0 +1,39 @@
+// src/engine/useGameLoop.ts
+import { useEffect } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { useGameStore } from './useGameStore';
+import { flushPendingSave } from './storage';
+import rawTechTree from '../content/tech_tree.json';
+
+const TICK_INTERVAL_MS = rawTechTree.balanceConfig.baseTickMs || 100;
+
+export const useGameLoop = () => {
+  const processTick = useGameStore((state) => state.processTick);
+
+  useEffect(() => {
+    // 1. Primary 10Hz Simulation Interval
+    const intervalId = setInterval(() => {
+      processTick(Date.now());
+    }, TICK_INTERVAL_MS);
+
+    // 2. AppState Listener for iOS, Android, and Web Tab Switching
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        // Immediately process elapsed offline time on wake
+        processTick(Date.now());
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Flush any throttled state to disk before OS suspends the app
+        processTick(Date.now());
+        flushPendingSave();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      clearInterval(intervalId);
+      subscription.remove();
+      flushPendingSave();
+    };
+  }, [processTick]);
+};

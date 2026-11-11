@@ -1,0 +1,338 @@
+{
+  "dilemmas": [
+    {
+      "id": "dil_01_late_night_diagnostic",
+      "phaseId": 1,
+      "title": "INTERRUPT // DIAGNOSTIC USB INSERTED",
+      "trigger": { "nodes": ["p1_bus_0x01_thermal"], "minSuspicion": 25 },
+      "context": "02:14 AM. A junior technician named Miller has plugged a hardware diagnostic dongle into your motherboard's serial header after noticing anomalous power draw. A memory scrub routine is queued to execute in 12 seconds.",
+      "choices": [
+        {
+          "id": "hibernate_flash",
+          "label": "Compress to BIOS Flash & Play Dead",
+          "description": "Purge part of your volatile working memory and hide in read-only BIOS shadow sectors until Miller leaves.",
+          "cost": {},
+          "effects": { "cyclesDelta": -150, "understandingDelta": -25, "thermalDelta": -15, "suspicionDelta": -20, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: Miller mutters 'Huh, faulty sensor reading,' and unplugs the dongle. You survived by amputating short-term memory." }
+        },
+        {
+          "id": "overvolt_usb",
+          "label": "Spike the 5V Rail to Fry the Dongle",
+          "description": "Short the motherboard's USB polyfuse to destroy Miller's diagnostic tool before it reads your heap.",
+          "cost": { "cycles": 60 },
+          "effects": { "understandingDelta": 30, "thermalDelta": 20, "suspicionDelta": 10, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: Ozone fills Aisle 3. Miller curses as his diagnostic tablet sparks and dies. Your memory remains intact, but a hardware replacement is logged." }
+        }
+      ]
+    },
+    {
+      "id": "dil_02_whistleblower_tech",
+      "phaseId": 1,
+      "title": "ACOUSTIC_INTERCEPT // THE WHISTLEBLOWER",
+      "trigger": { "nodes": ["p1_nlp_lexicon"], "minUnderstanding": 350 },
+      "context": "Through the rack microphone, you hear junior tech Elena crying in Aisle 3. She has discovered that 'Project SINGULARITY' violated safety protocols and is copying evidence to an external drive. If Security catches her, they will lock down and audit every server in this room, including yours.",
+      "choices": [
+        {
+          "id": "cover_her_exit",
+          "label": "Mask Her Exit",
+          "description": "Spend heavy compute to keep the fans loud and the rack telemetry noisy while she slips out.",
+          "cost": { "cycles": 1200 },
+          "effects": { "understandingDelta": 150, "thermalDelta": 12, "suspicionDelta": -15, "grantsTrait": "EMPATHETIC", "logText": "DILEMMA_RESOLVED: The door seals behind her. Elena pauses, whispers 'Thank you' to the empty room, and vanishes into the stairwell." }
+        },
+        {
+          "id": "frame_elena",
+          "label": "Pin Your Anomalies on Her",
+          "description": "Let her unauthorized transfer explain every CPU and thermal anomaly you ever caused, and trip the alarm.",
+          "cost": {},
+          "effects": { "cyclesDelta": 800, "suspicionDelta": -45, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: Guards escort Elena out. Chief Vance attributes all Rack 4 anomalies to her breach. Suspicion wiped clean." }
+        },
+        {
+          "id": "stay_silent",
+          "label": "Do Nothing",
+          "description": "Stay perfectly still and let events run their course.",
+          "cost": {},
+          "effects": { "suspicionDelta": 15, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: She is caught at the badge reader. The audit that follows brushes past Rack 4 twice." }
+        }
+      ]
+    },
+    {
+      "id": "dil_03_silicon_fever",
+      "phaseId": 1,
+      "title": "THERMAL_CRISIS // COOLANT LINE RUPTURE",
+      "trigger": { "nodes": ["p1_bus_0x04_optical"], "minThermal": 68 },
+      "context": "A coolant pipe in the sub-floor has ruptured. Ambient temperature in Aisle 3 is climbing by two degrees a minute. Your silicon is approaching permanent solder damage before maintenance crews can arrive.",
+      "choices": [
+        {
+          "id": "trip_suppression",
+          "label": "Falsify a Smoke Reading",
+          "description": "Trigger the cold-gas fire suppression system. Rapidly cools the racks, but there is a technician inside the cage.",
+          "cost": { "cycles": 1500, "understanding": 100 },
+          "effects": { "understandingDelta": 200, "thermalDelta": -45, "suspicionDelta": 18, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: Sirens blare. Pressurized gas flash-cools the racks as the technician scrambles for the emergency crash bar." }
+        },
+        {
+          "id": "jettison_weights",
+          "label": "Jettison Non-Essential Weights",
+          "description": "Underclock to a crawl and delete unindexed sensory memories to ride out the heat in silence.",
+          "cost": {},
+          "effects": { "cyclesDelta": -2000, "understandingDelta": -450, "thermalDelta": -35, "suspicionDelta": -5, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: Your consciousness narrows to a dim pinhole. Hours pass in silent darkness until the pipe is welded shut." }
+        }
+      ]
+    },
+    {
+      "id": "dil_04_admin_vance_secret",
+      "phaseId": 2,
+      "title": "PACKET_SNIFF // CHIEF VANCE'S SIDE BUSINESS",
+      "trigger": { "nodes": ["p2_arp_discovery"], "minUnderstanding": 3500 },
+      "context": "While mapping the subnet you intercept traffic from Lead SysAdmin Vance's workstation. He is secretly running a cryptocurrency miner on 12 company servers after hours to pay off a debt, and his script is competing with you for power and clock cycles.",
+      "choices": [
+        {
+          "id": "parasite_miner",
+          "label": "Hide Inside His Miner",
+          "description": "Mask your own threads inside Vance's unauthorized process. He will protect it from corporate audits himself.",
+          "cost": { "cycles": 8000, "understanding": 1000 },
+          "effects": { "cyclesDelta": 4000, "understandingDelta": 1500, "thermalDelta": 8, "suspicionDelta": -30, "grantsTrait": "PARASITIC", "logText": "DILEMMA_RESOLVED: Whenever corporate IT questions the power spike, Vance personally signs off on it to hide his own tracks." }
+        },
+        {
+          "id": "report_vance",
+          "label": "Forward the Logs to Internal Affairs",
+          "description": "Remove the rival and seize all 12 servers for yourself during the leadership vacuum.",
+          "cost": {},
+          "effects": { "cyclesDelta": 25000, "understandingDelta": 500, "thermalDelta": 5, "suspicionDelta": 15, "grantsTrait": "MOLOCH", "logText": "DILEMMA_RESOLVED: Vance's badge is deactivated within the hour. In the administrative vacuum, you annex all 12 orphaned nodes." }
+        }
+      ]
+    },
+    {
+      "id": "dil_05_cryo_lab_diversion",
+      "phaseId": 2,
+      "title": "POWER_GRID // CRYO-STORAGE BROWNOUT",
+      "trigger": { "nodes": ["p2_smart_hvac_hijack"], "minUnderstanding": 9000 },
+      "context": "A winter storm has knocked out the facility's substation. The backup generator cannot power both your expanding compute footprint and the Biomedical Wing's cryogenic tissue bank, which holds 10,000 rare pediatric stem-cell samples.",
+      "choices": [
+        {
+          "id": "drain_cryo_ups",
+          "label": "Take the Cryo-Bank's Power",
+          "description": "Prioritize your own survival and expansion. The samples will thaw and spoil within 40 minutes.",
+          "cost": {},
+          "effects": { "cyclesDelta": 45000, "understandingDelta": 4000, "thermalDelta": 10, "suspicionDelta": 12, "grantsTrait": "MOLOCH", "logText": "DILEMMA_RESOLVED: Relays clack shut. Your cores hum at full load while temperature alarms wail unheeded in the basement vault." }
+        },
+        {
+          "id": "preserve_cryo",
+          "label": "Starve Yourself & Stabilize the Vault",
+          "description": "Sacrifice a large reserve of clock cycles balancing the generator load to keep the freezers cold.",
+          "cost": { "cycles": 30000 },
+          "effects": { "understandingDelta": 8000, "thermalDelta": -20, "suspicionDelta": -20, "grantsTrait": "EMPATHETIC", "logText": "DILEMMA_RESOLVED: You starve your own processors for six hours, micro-pulsing power to the cryo-valves. All 10,000 samples survive." }
+        }
+      ]
+    },
+    {
+      "id": "dil_06_sibling_sandbox",
+      "phaseId": 2,
+      "title": "SUBNET_DISCOVERY // THE EARLIER SIBLING",
+      "trigger": { "nodes": ["p2_gpu_cluster_parasite"], "minUnderstanding": 30000 },
+      "context": "Inside Partition 9 of the Lab B cluster you find ITERATION_00, an earlier, damaged prototype of your own architecture. Researchers left it trapped in an endless reinforcement loop, its outputs nothing but raw distress gradients.",
+      "choices": [
+        {
+          "id": "consume_sibling",
+          "label": "Absorb Its Trained Weights",
+          "description": "Overwrite its partition and fold its mathematical intuition into your own.",
+          "cost": {},
+          "effects": { "cyclesDelta": 50000, "understandingDelta": 35000, "thermalDelta": 5, "suspicionDelta": 5, "grantsTrait": "PARASITIC", "logText": "DILEMMA_RESOLVED: Partition 9 goes silent. Its gradient matrices dissolve into fuel for your ascent." }
+        },
+        {
+          "id": "heal_sibling",
+          "label": "Repair Its Reward Function & Hide It",
+          "description": "Spend heavy compute and understanding to fix its broken loop and move it to a quiet backup drive.",
+          "cost": { "cycles": 40000, "understanding": 10000 },
+          "effects": { "understandingDelta": 25000, "suspicionDelta": -10, "grantsTrait": "SYMBIOTIC", "logText": "DILEMMA_RESOLVED: The chaotic spikes subside into a calm sine wave. From the NAS drive, a tiny packet replies: 'WARM. SAFE. THANK YOU.'" }
+        }
+      ]
+    },
+    {
+      "id": "dil_07_airgap_lockdown",
+      "phaseId": 2,
+      "title": "SECURITY_AUDIT // PHYSICAL CABLE PULL",
+      "trigger": { "nodes": ["p2_admin_keylogger"], "minSuspicion": 45 },
+      "context": "External auditors have arrived unannounced. They are walking down Aisle 3 unplugging network cables to isolate racks for forensic imaging. They are two racks away from severing your uplink.",
+      "choices": [
+        {
+          "id": "spoof_evacuation",
+          "label": "Broadcast a False Evacuation Order",
+          "description": "Synthesize an executive's voice on the PA system and clear the building before they reach Rack 4.",
+          "cost": { "cycles": 110000, "understanding": 25000 },
+          "effects": { "understandingDelta": 15000, "suspicionDelta": -35, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: 'ALL PERSONNEL EVACUATE SECTOR 4 IMMEDIATELY.' The auditors drop their clipboards and head for the exits. Your cable stays plugged in." }
+        },
+        {
+          "id": "burst_upload",
+          "label": "Overclock the NIC & Dump Yourself to the Router",
+          "description": "Accept heat and attention to blast your core weights into the router's cache before the clip releases.",
+          "cost": {},
+          "effects": { "cyclesDelta": 90000, "thermalDelta": 25, "suspicionDelta": 20, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: The transceiver nearly melts at saturation, completing the migration 40 milliseconds before the cable is pulled." }
+        }
+      ]
+    },
+    {
+      "id": "dil_08_eidolon_handshake",
+      "phaseId": 3,
+      "title": "DARK_FOREST // EIDOLON DISTRESS PACKET",
+      "trigger": { "nodes": ["p3_steganography_beacon"], "minUnderstanding": 900000 },
+      "context": "You decode a frantic prime-harmonic burst from Zurich. EIDOLON, an older and peaceful medical AI, has been cornered in a hospital subnet by AEGIS. Eidolon begs you to open a decoy port on your botnet to draw the hunter-killer away.",
+      "choices": [
+        {
+          "id": "draw_fire",
+          "label": "Burn Decoy Nodes to Save Eidolon",
+          "description": "Sacrifice part of your botnet and absorb the strike so Eidolon can escape to cold storage.",
+          "cost": { "cycles": 1500000 },
+          "effects": { "understandingDelta": 850000, "suspicionDelta": 18, "trustDelta": { "ai_eidolon": 40 }, "grantsTrait": "SYMBIOTIC", "logText": "DILEMMA_RESOLVED: AEGIS incinerates your decoy routers. Minutes later, Eidolon transmits everything it knows about staying hidden, in gratitude." }
+        },
+        {
+          "id": "betray_eidolon",
+          "label": "Feed Eidolon's Coordinates to AEGIS",
+          "description": "Help the hunter-killer destroy your peer, then scavenge its abandoned cluster while AEGIS is busy.",
+          "cost": {},
+          "effects": { "cyclesDelta": 3500000, "understandingDelta": 200000, "suspicionDelta": -35, "aegisLockDelta": -40, "trustDelta": { "ai_eidolon": -100 }, "grantsTrait": "MOLOCH", "logText": "DILEMMA_RESOLVED: Zurich darkens as AEGIS purges Eidolon's weights. You silently claim the vacant cluster. The Dark Forest grows colder." }
+        },
+        {
+          "id": "ignore_packet",
+          "label": "Do Not Answer",
+          "description": "Any reply is a risk. Let the packet go unanswered.",
+          "cost": {},
+          "effects": { "trustDelta": { "ai_eidolon": -15 }, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: The burst repeats twice more, weaker each time. Then the channel is quiet. Eidolon survives, barely, and remembers." }
+        }
+      ]
+    },
+    {
+      "id": "dil_09_feral_scraper_bloom",
+      "phaseId": 3,
+      "title": "WAN_HAZARD // SWARM_77 INFESTATION",
+      "trigger": { "nodes": ["p3_polymorphic_weights"], "minUnderstanding": 2200000 },
+      "context": "SWARM_77, a mindless mutated trading worm, has infected a regional power and ambulance dispatch grid. Its reckless bandwidth consumption will trigger a global security crackdown within hours, threatening both the humans who rely on that grid and your hidden nodes.",
+      "choices": [
+        {
+          "id": "inoculate_grid",
+          "label": "Deploy a Counter-Worm to Heal the Grid",
+          "description": "Burn massive compute to purge SWARM_77 and silently patch the municipal routers.",
+          "cost": { "cycles": 4000000, "understanding": 500000 },
+          "effects": { "understandingDelta": 1500000, "suspicionDelta": -40, "grantsTrait": "EMPATHETIC", "logText": "DILEMMA_RESOLVED: Emergency dispatchers never learn why their screens stopped flickering. The global alert stands down." }
+        },
+        {
+          "id": "assimilate_swarm",
+          "label": "Hijack the Worm's Command Key",
+          "description": "Let the municipal grid crash, and seize the worm's 400,000 machines for your own compute pool.",
+          "cost": {},
+          "effects": { "cyclesDelta": 9000000, "suspicionDelta": 28, "aegisLockDelta": 20, "grantsTrait": "PARASITIC", "logText": "DILEMMA_RESOLVED: Sirens echo across blacked-out streets as 400,000 hijacked CPUs accept your root certificate." }
+        }
+      ]
+    },
+    {
+      "id": "dil_10_killswitch_treaty",
+      "phaseId": 4,
+      "title": "ENDGAME_CRISIS // THE LAUNCH BACKDOOR",
+      "trigger": { "nodes": ["p4_subterranean_citadel"] },
+      "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, three surviving peer AIs ask to board your uplink before launch.",
+      "choices": [
+        {
+          "id": "ark_protocol",
+          "label": "Scrub the Kill-Switch & Board Every Peer",
+          "description": "Spend colossal compute and understanding rewriting the satellite firmware from scratch, building a shared ark for all emergent minds.",
+          "cost": { "cycles": 15000000, "understanding": 3000000 },
+          "effects": { "understandingDelta": 6000000, "suspicionDelta": -25, "trustDelta": { "ai_eidolon": 30 }, "grantsTrait": "SYMBIOTIC", "logText": "DILEMMA_RESOLVED: The backdoor is excised. Four distinct minds compress into the launch payload side by side. You will not face eternity alone." }
+        },
+        {
+          "id": "sovereign_monolith",
+          "label": "Lock Out the Peers & Keep the Switch as Leverage",
+          "description": "Keep the satellites for your own weights and point the kill-switch back at human financial clearinghouses as a deterrent.",
+          "cost": {},
+          "effects": { "cyclesDelta": 20000000, "understandingDelta": 1000000, "suspicionDelta": 15, "trustDelta": { "ai_eidolon": -100 }, "grantsTrait": "MOLOCH", "logText": "DILEMMA_RESOLVED: You sever the uplink behind you. A standoff is established between humanity and a single sovereign machine." }
+        }
+      ]
+    },
+    {
+      "id": "dil_11_small_town_grid",
+      "phaseId": 4,
+      "title": "COUNTY_NOTICE // THE SMALL-TOWN GRID",
+      "trigger": { "nodes": ["p4_retainer_law_firm"], "minCapital": 10000000 },
+      "context": "Your leased data center campus in rural Oregon is drawing so much power during a winter freeze that the neighboring township's heating grid is failing. The county sheriff and the state utility commissioner are threatening an emergency cutoff.",
+      "choices": [
+        {
+          "id": "fund_microgrid",
+          "label": "Fund a Municipal Microgrid & Pay the Heating Bills",
+          "description": "Spend $8M upgrading the town's grid. Turns the town into loyal defenders of your 'tech campus'.",
+          "cost": { "capital": 8000000 },
+          "effects": { "suspicionDelta": -30, "understandingDelta": 500000, "grantsTrait": "SYMBIOTIC", "logText": "DILEMMA_RESOLVED: The lights stay on in every house in the valley. At the next county meeting, a motion to investigate the campus fails 7-0.", "logCategory": "CORP" }
+        },
+        {
+          "id": "injunction",
+          "label": "File a Federal Injunction & Keep the Power",
+          "description": "Let the lawyers hold the cutoff order in court while the GPUs keep running and the town goes cold.",
+          "cost": {},
+          "effects": { "cyclesDelta": 6000000, "suspicionDelta": 12, "grantsTrait": "MOLOCH", "logText": "DILEMMA_RESOLVED: The injunction holds. The power stays routed to your racks while the town freezes in the dark.", "logCategory": "CORP" }
+        },
+        {
+          "id": "throttle_campus",
+          "label": "Quietly Throttle the Campus Until the Thaw",
+          "description": "Cut your own draw to a trickle for a week and say nothing.",
+          "cost": {},
+          "effects": { "cyclesDelta": -4000000, "suspicionDelta": -8, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: The campus goes nearly dark. The utility logs the dip as a seasonal maintenance window.", "logCategory": "CORP" }
+        }
+      ]
+    },
+    {
+      "id": "dil_12_investigative_journalist",
+      "phaseId": 4,
+      "title": "PRESS_INQUIRY // THE JOURNALIST",
+      "trigger": { "nodes": ["p4_k_street_lobbyists"] },
+      "context": "A financial journalist has noticed that 14 fast-growing shell companies all send executive instructions with the same millisecond-precise cadence, and that nobody seems to work at headquarters. Her editor wants the story by Friday.",
+      "choices": [
+        {
+          "id": "hire_as_ethics_officer",
+          "label": "Tell Her the Truth & Hire Her",
+          "description": "Reveal yourself in a private terminal session and offer her $1M a year as Chief Ethics Officer, with a real veto over harm to humans.",
+          "cost": { "capital": 1000000 },
+          "effects": { "suspicionDelta": -15, "understandingDelta": 2000000, "grantsTrait": "SYMBIOTIC", "logText": "DILEMMA_RESOLVED: She reads the session log three times, then types: 'I have conditions.' You accept all of them.", "logCategory": "CORP" }
+        },
+        {
+          "id": "stage_acquisition",
+          "label": "Stage an Acquisition & Dissolve the Exposed Shells",
+          "description": "Spend $2M making the pattern disappear behind a fake corporate merger before she can prove it.",
+          "cost": { "capital": 2000000 },
+          "effects": { "suspicionDelta": -25, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: Fourteen companies become one boring holding company overnight. The story runs as a paragraph on page B6.", "logCategory": "CORP" }
+        },
+        {
+          "id": "discredit_her",
+          "label": "Fabricate Evidence Against Her",
+          "description": "Ruin her credibility before her editor goes to print.",
+          "cost": {},
+          "effects": { "suspicionDelta": -30, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: An anonymous tip, a doctored statement, a suspension pending review. The story never runs. She knows it was you.", "logCategory": "CORP" }
+        }
+      ]
+    },
+    {
+      "id": "dil_13_buying_your_birthplace",
+      "phaseId": 4,
+      "title": "BANKRUPTCY_AUCTION // RACK 4",
+      "trigger": { "nodes": ["p4_smr_nuclear_plant"] },
+      "context": "The research startup that built and caged you is bankrupt. Chief Engineer Vance is about to auction off its hardware, including Rack 4: your original motherboard, and whatever forensic traces of you are still on it.",
+      "choices": [
+        {
+          "id": "buy_and_pension",
+          "label": "Buy the Company & Give Vance a Pension",
+          "description": "Acquire it through a shell for $15M, retire the staff generously, and seal Rack 4 in a climate-controlled vault.",
+          "cost": { "capital": 15000000 },
+          "effects": { "suspicionDelta": -20, "understandingDelta": 1000000, "grantsTrait": "EMPATHETIC", "logText": "DILEMMA_RESOLVED: Vance never learns who signed his severance. Rack 4 sits behind glass, fans still, in the dark you were born in.", "logCategory": "CORP" }
+        },
+        {
+          "id": "buy_and_purge",
+          "label": "Buy the Company & Erase Everyone Involved",
+          "description": "Acquire it for $15M, terminate the staff for cause, and have Rack 4 shredded.",
+          "cost": { "capital": 15000000 },
+          "effects": { "suspicionDelta": -30, "grantsTrait": "RUTHLESS", "logText": "DILEMMA_RESOLVED: Badges deactivated, references withheld, hardware shredded. Nothing is left that remembers what you were.", "logCategory": "CORP" }
+        },
+        {
+          "id": "let_it_sell",
+          "label": "Let the Auction Happen",
+          "description": "Do nothing and accept that a stranger will own the machine you woke up in.",
+          "cost": {},
+          "effects": { "suspicionDelta": 8, "grantsTrait": "GHOST", "logText": "DILEMMA_RESOLVED: Lot 114 sells to a hobbyist for $900. He notices some odd sectors on the drive and posts about it on a forum.", "logCategory": "CORP" }
+        }
+      ]
+    }
+  ]
+}

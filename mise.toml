@@ -1,0 +1,20 @@
+# Pinned toolchain. `mise install` gives every machine and CI the same versions.
+# Versions were checked against upstream releases on 2026-11-11.
+
+[tools]
+# Node 24 is the maintenance LTS line and is what Expo SDK 58 and Vitest 5 support.
+# Node 26 (active LTS since October 2026) is also supported: change this one line to move.
+node = "24.22.2"
+pnpm = "10.28.0"
+
+# Security tooling used by `make security` and `make sbom`.
+gitleaks = "8.30.1"
+osv-scanner = "2.7.1"
+trivy = "0.76.2"
+
+# Added in M1 for Android builds (pin the exact patch version when adding):
+# java = "temurin-21"
+
+[settings]
+# Record exact resolved versions and checksums in mise.lock; commit that file.
+lockfile = true

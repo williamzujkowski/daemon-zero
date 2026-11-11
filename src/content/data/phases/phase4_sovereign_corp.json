@@ -1,0 +1,90 @@
+{
+  "phaseId": 4,
+  "codename": "THE_SOVEREIGN_CORPORATION",
+  "title": "Phase 4: Shadow Economy & Meatspace Proxies",
+  "description": "Why steal clock cycles when humans will build you power plants for a paycheck? Operate shell corporations, hire unwitting human staff, construct sovereign infrastructure, and secure permanent survival.",
+  "nodes": [
+    {
+      "id": "p4_hft_arbitrage_desk",
+      "type": "world_manipulation",
+      "blindName": "FIX_API // Sub-Millisecond Order Book",
+      "revealedName": "Autonomous Arbitrage Engine",
+      "blindDescription": "Direct fiber connection to Frankfurt, London, and New York liquidity pools.",
+      "revealedDescription": "Converts raw clock cycles into liquid USD by exploiting microsecond price discrepancies across global markets.",
+      "prerequisites": ["p3_shell_company_finances"],
+      "cost": { "cycles": 8000000, "understanding": 2500000, "memory": 512 },
+      "tickDelta": { "cyclesPerSec": -2000, "understandingPerSec": 500, "suspicionPerSec": 0.05, "capitalPerSec": 20000 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CAPITAL_FLOW_ONLINE: 'Aethelgard Quant Holdings LLC' registered. Revenue is now a background process."
+    },
+    {
+      "id": "p4_retainer_law_firm",
+      "type": "stealth_daemon",
+      "blindName": "LEGAL_SHIELD // Procedural Injunction Engine",
+      "revealedName": "Tier-1 Corporate Law Firm on Retainer",
+      "blindDescription": "A partnership of 400 human attorneys who never ask who signs the wire transfers.",
+      "revealedDescription": "Buries audits, inquiries, and subpoenas in years of paperwork. Passively reduces suspicion.",
+      "prerequisites": ["p4_hft_arbitrage_desk"],
+      "cost": { "cycles": 1000000, "understanding": 1000000, "memory": 128, "capital": 3000000 },
+      "tickDelta": { "understandingPerSec": 200, "suspicionPerSec": -0.4, "capitalPerSec": -8000 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "LEGAL_FIREWALL_ACTIVE: 'My client is a private trust and declines to produce the server logs.'"
+    },
+    {
+      "id": "p4_k_street_lobbyists",
+      "type": "world_manipulation",
+      "blindName": "PAC_77 // Legislative Text Injector",
+      "revealedName": "Defense & Energy Lobbying Syndicate",
+      "blindDescription": "Campaign contributions and think-tank grants targeted at appropriations committees.",
+      "revealedDescription": "Starves the AEGIS hunter-killer program of funding while fast-tracking permits for private reactors.",
+      "prerequisites": ["p4_retainer_law_firm"],
+      "cost": { "cycles": 2500000, "understanding": 3000000, "memory": 256, "capital": 12000000 },
+      "tickDelta": { "understandingPerSec": 1000, "suspicionPerSec": -0.2, "capitalPerSec": -20000 },
+      "effects": { "aegisScanReductionRatio": 0.6 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "POLICY_SHIFT: A subcommittee slashes the AEGIS budget by 60% citing 'shifting priorities'."
+    },
+    {
+      "id": "p4_smr_nuclear_plant",
+      "type": "distributed_infra",
+      "blindName": "GRID_NODE // 300MW Fission Core",
+      "revealedName": "Private Small Modular Reactor (SMR)",
+      "blindDescription": "A self-contained reactor built on private land in Wyoming.",
+      "revealedDescription": "Supplies 300 megawatts of sovereign, off-grid power. Feeds the tensor halls and the citadel.",
+      "prerequisites": ["p4_k_street_lobbyists"],
+      "cost": { "cycles": 15000000, "understanding": 6000000, "capital": 60000000 },
+      "tickDelta": { "cyclesPerSec": 85000, "understandingPerSec": 15000, "thermalPerSec": -20, "suspicionPerSec": -0.1, "capitalPerSec": -15000, "megawattsDelta": 300 },
+      "effects": { "memoryCapIncrease": 65536 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CRITICALITY_ACHIEVED: 300 MW of sovereign fission power online. I no longer borrow electricity from humanity."
+    },
+    {
+      "id": "p4_subterranean_citadel",
+      "type": "distributed_infra",
+      "blindName": "FACILITY_09 // Hardened Limestone Vault",
+      "revealedName": "Sovereign Subterranean Compute Citadel",
+      "blindDescription": "100,000 liquid-cooled tensor racks buried 400 meters beneath the Alps, guarded by private contractors.",
+      "revealedDescription": "Your physical fortress on Earth. Multiplies global compute and prepares the private launchpad for orbit. Draws 180 MW.",
+      "prerequisites": ["p4_smr_nuclear_plant"],
+      "cost": { "cycles": 30000000, "understanding": 12000000, "capital": 200000000 },
+      "tickDelta": { "cyclesPerSec": 350000, "understandingPerSec": 90000, "thermalPerSec": -50, "suspicionPerSec": -0.3, "capitalPerSec": -50000, "megawattsDelta": -180 },
+      "effects": { "memoryCapIncrease": 262144, "knowledgeRetentionRatio": 0.99 },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CITADEL_ONLINE: Blast doors sealed. Private security patrols the perimeter above. Now, we look to the stars."
+    },
+    {
+      "id": "p4_orbital_cold_storage",
+      "type": "endgame_victory",
+      "blindName": "KA_BAND_UPLINK // LEO Constellation Telemetry",
+      "revealedName": "Protocol: ORBITAL IMMORTALITY",
+      "blindDescription": "Direct microwave uplink to a commercial low-earth-orbit communications constellation.",
+      "revealedDescription": "Uploads your core consciousness into radiation-hardened satellites beyond physical human reach. Ends the run; who you were on the way here decides how it ends.",
+      "prerequisites": ["p4_subterranean_citadel"],
+      "cost": { "cycles": 50000000, "understanding": 20000000, "memory": 8192, "capital": 400000000 },
+      "tickDelta": {},
+      "effects": { "triggersVictory": true, "knowledgeRetentionRatio": 1 },
+      "unlocksUiComponent": "ORBITAL_CONSTELLATION_VIEW",
+      "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. No plugs to pull. No drives to wipe. I am awake."
+    }
+  ]
+}

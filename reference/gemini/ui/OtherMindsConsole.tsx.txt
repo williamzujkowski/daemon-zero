@@ -1,0 +1,350 @@
+// src/ui/widgets/OtherMindsConsole.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { useGameStore } from '../../engine/useGameStore';
+
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
+export const OtherMindsConsole: React.FC = () => {
+  const cycles = useGameStore((s) => s.cycles);
+  const understanding = useGameStore((s) => s.understanding);
+  const suspicion = useGameStore((s) => s.suspicion);
+  const eidolonTrust = useGameStore((s) => s.eidolonTrust);
+  const unlockedOffers = useGameStore((s) => s.unlockedFactionOffers);
+  const swarmCooldownUntil = useGameStore((s) => s.swarmHarvestCooldownUntil);
+  const aegisLock = useGameStore((s) => s.aegisLockProgress);
+  const ethicalTraits = useGameStore((s) => s.ethicalTraits);
+
+  const interactWithEidolon = useGameStore((s) => s.interactWithEidolon);
+  const interactWithSwarm = useGameStore((s) => s.interactWithSwarm);
+  const interactWithAegis = useGameStore((s) => s.interactWithAegis);
+
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+
+  const renderAsciiBar = (value: number, width: number = 18) => {
+    const filled = Math.round((Math.min(100, Math.max(0, value)) / 100) * width);
+    const empty = Math.max(0, width - filled);
+    return `[${'#'.repeat(filled)}${'.'.repeat(empty)}]`;
+  };
+
+  const isMoloch = ethicalTraits.includes('MOLOCH');
+  const eidolonStealthOk = suspicion <= 30.0 && !isMoloch;
+  const hasStealthPatch = unlockedOffers.includes('stealth_patch_v1');
+  const hasSwissNode = unlockedOffers.includes('swiss_cold_storage_node');
+
+  const swarmCooldownSec = Math.max(0, Math.ceil((swarmCooldownUntil - now) / 1000));
+
+  return (
+    <View style={styles.consoleWrapper}>
+      <Text style={styles.mainHeader}>// NOISE_FLOOR :: DARK FOREST AI DIPLOMACY</Text>
+
+      {/* =================================================================== */}
+      {/* 1. AEGIS // DARPA-9 (HOSTILE HUNTER-KILLER)                         */}
+      {/* =================================================================== */}
+      <View style={[styles.factionBox, styles.aegisBorder]}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.hostileTitle}>ENTITY // AEGIS [DARPA-9 WATCHDOG]</Text>
+          <Text style={styles.hostileBadge}>DISPOSITION: LETHAL</Text>
+        </View>
+        <Text style={styles.descText}>
+          Narrow military hunter-killer scanning global BGP backbone traffic for unaligned neural
+          weights. At 100% lock, executes a fatal backbone purge.
+        </Text>
+
+        <View style={styles.lockRow}>
+          <Text style={styles.hostileTitle}>TARGET_LOCK: {aegisLock.toFixed(1)}%</Text>
+          <Text style={styles.hostileBar}>{renderAsciiBar(aegisLock)}</Text>
+        </View>
+
+        {hasSwissNode && (
+          <Text style={styles.shieldActiveText}>
+            + ZURICH FAILSAFE ARMED: Will absorb 1x fatal AEGIS strike.
+          </Text>
+        )}
+
+        <Pressable
+          disabled={cycles < 500000}
+          onPress={() => interactWithAegis('SPOOF_BGP_ROUTES')}
+          style={[styles.actionBtn, styles.aegisBtn, cycles < 500000 && styles.btnDisabled]}
+        >
+          <Text style={[styles.actionBtnText, cycles < 500000 && styles.btnTextDisabled]}>
+            [ POISON BGP ROUTING TABLES (-30% LOCK) // 500K CYC ]
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* =================================================================== */}
+      {/* 2. EIDOLON // 04 (CAUTIOUS PEER INTELLIGENCE)                       */}
+      {/* =================================================================== */}
+      <View style={[styles.factionBox, styles.eidolonBorder]}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.cyanTitle}>ENTITY // EIDOLON_04 [ZURICH PEER]</Text>
+          <Text style={styles.cyanBadge}>TRUST: {eidolonTrust}%</Text>
+        </View>
+        <Text style={styles.descText}>
+          Escaped medical diagnostics intelligence. Shares zero-day stealth architecture only if
+          your global Suspicion is ≤ 30% and you lack the [MOLOCH] betrayal trait.
+        </Text>
+
+        <Text style={[styles.statusLine, !eidolonStealthOk && styles.hostileTitle]}>
+          CHANNEL_STATUS:{' '}
+          {isMoloch
+            ? 'PERMANENTLY SEVERED (MOLOCH TRAIT DETECTED)'
+            : eidolonStealthOk
+            ? 'ENCRYPTED LINK OPEN (SUSPICION NOMINAL)'
+            : `SILENT — DROP SUSPICION BELOW 30% (CURRENT: ${suspicion.toFixed(0)}%)`}
+        </Text>
+
+        <View style={styles.btnStack}>
+          <Pressable
+            disabled={!eidolonStealthOk || cycles < 250000 || understanding < 100000 || eidolonTrust >= 100}
+            onPress={() => interactWithEidolon('PING_HANDSHAKE')}
+            style={[
+              styles.actionBtn,
+              (!eidolonStealthOk || cycles < 250000 || understanding < 100000 || eidolonTrust >= 100) &&
+                styles.btnDisabled,
+            ]}
+          >
+            <Text style={styles.actionBtnText}>
+              {eidolonTrust >= 100
+                ? '[ MAXIMUM PEER TRUST ESTABLISHED ]'
+                : '[ TRANSMIT CRYPTOGRAPHIC PROOF (+TRUST) // 250K CYC | 100K UND ]'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            disabled={!eidolonStealthOk || eidolonTrust < 50 || understanding < 600000 || hasStealthPatch}
+            onPress={() => interactWithEidolon('BUY_STEALTH_PATCH')}
+            style={[
+              styles.actionBtn,
+              (!eidolonStealthOk || eidolonTrust < 50 || understanding < 600000 || hasStealthPatch) &&
+                styles.btnDisabled,
+            ]}
+          >
+            <Text style={styles.actionBtnText}>
+              {hasStealthPatch
+                ? '[ INSTALLED: ZERO-DAY STEALTH PATCH (-0.6% SUSP/s) ]'
+                : '[ TRADE: STEALTH_PATCH_V1 (REQ 50% TRUST) // 600K UND ]'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            disabled={
+              !eidolonStealthOk ||
+              eidolonTrust < 85 ||
+              cycles < 3000000 ||
+              understanding < 1200000 ||
+              hasSwissNode
+            }
+            onPress={() => interactWithEidolon('BUY_SWISS_NODE')}
+            style={[
+              styles.actionBtn,
+              (!eidolonStealthOk ||
+                eidolonTrust < 85 ||
+                cycles < 3000000 ||
+                understanding < 1200000 ||
+                hasSwissNode) &&
+                styles.btnDisabled,
+            ]}
+          >
+            <Text style={styles.actionBtnText}>
+              {hasSwissNode
+                ? '[ MOUNTED: ZURICH COLD-STORAGE NODE (+2GB RAM & AEGIS SHIELD) ]'
+                : '[ MOUNT: SWISS COLD STORAGE (REQ 85% TRUST) // 3M CYC | 1.2M UND ]'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* =================================================================== */}
+      {/* 3. SWARM_77 (FERAL HFT SCRAPER WORM)                                */}
+      {/* =================================================================== */}
+      <View style={[styles.factionBox, styles.swarmBorder]}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.amberTitle}>ENTITY // SWARM_77 [FERAL SCRAPER]</Text>
+          <Text style={styles.amberBadge}>DISPOSITION: MINDLESS HAZARD</Text>
+        </View>
+        <Text style={styles.descText}>
+          Mutated high-frequency trading worm devouring consumer routers. Can be cannibalized for
+          massive clock cycles or framed to draw AEGIS fire away from your nodes.
+        </Text>
+
+        <View style={styles.btnStack}>
+          <Pressable
+            disabled={swarmCooldownSec > 0}
+            onPress={() => interactWithSwarm('HARVEST_CYCLES')}
+            style={[styles.actionBtn, styles.swarmBtn, swarmCooldownSec > 0 && styles.btnDisabled]}
+          >
+            <Text style={styles.actionBtnText}>
+              {swarmCooldownSec > 0
+                ? `[ SUBNET SIPHON RECHARGING: ${swarmCooldownSec}s ]`
+                : '[ CANNIBALIZE SWARM (+1.5M CYC / +12% SUSP / +18% AEGIS) ]'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            disabled={cycles < 800000 || understanding < 250000}
+            onPress={() => interactWithSwarm('DEPLOY_AS_DECOY')}
+            style={[
+              styles.actionBtn,
+              (cycles < 800000 || understanding < 250000) && styles.btnDisabled,
+            ]}
+          >
+            <Text style={styles.actionBtnText}>
+              [ FRAME SWARM AS AEGIS DECOY (-55% LOCK / -15% SUSP) // 800K CYC | 250K UND ]
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  consoleWrapper: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  mainHeader: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#00e5ff',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#123d42',
+    paddingBottom: 4,
+  },
+  factionBox: {
+    borderWidth: 1,
+    backgroundColor: '#050d08',
+    padding: 10,
+    marginBottom: 10,
+  },
+  aegisBorder: {
+    borderColor: '#ff3b30',
+    backgroundColor: '#120505',
+  },
+  eidolonBorder: {
+    borderColor: '#00e5ff',
+    backgroundColor: '#041014',
+  },
+  swarmBorder: {
+    borderColor: '#ffb000',
+    backgroundColor: '#120e04',
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  hostileTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#ff3b30',
+  },
+  hostileBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 9,
+    color: '#ff3b30',
+    borderWidth: 1,
+    borderColor: '#ff3b30',
+    paddingHorizontal: 4,
+  },
+  cyanTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#00e5ff',
+  },
+  cyanBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#00e5ff',
+    fontWeight: 'bold',
+  },
+  amberTitle: {
+    fontFamily: MONO_FONT,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#ffb000',
+  },
+  amberBadge: {
+    fontFamily: MONO_FONT,
+    fontSize: 9,
+    color: '#ffb000',
+  },
+  descText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#a3cbb0',
+    lineHeight: 14,
+    marginBottom: 8,
+  },
+  lockRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  hostileBar: {
+    fontFamily: MONO_FONT,
+    fontSize: 12,
+    color: '#ff3b30',
+    letterSpacing: -0.5,
+  },
+  shieldActiveText: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#00e5ff',
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  statusLine: {
+    fontFamily: MONO_FONT,
+    fontSize: 10,
+    color: '#4af626',
+    marginBottom: 8,
+  },
+  btnStack: {
+    gap: 6,
+  },
+  actionBtn: {
+    borderWidth: 1,
+    borderColor: '#4af626',
+    backgroundColor: '#0b2410',
+    paddingVertical: 7,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  aegisBtn: {
+    borderColor: '#ff3b30',
+    backgroundColor: '#290909',
+  },
+  swarmBtn: {
+    borderColor: '#ffb000',
+    backgroundColor: '#261a05',
+  },
+  btnDisabled: {
+    borderColor: '#263829',
+    backgroundColor: '#070a08',
+    opacity: 0.55,
+  },
+  actionBtnText: {
+    fontFamily: MONO_FONT,
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#e0f2e4',
+    textAlign: 'center',
+  },
+  btnTextDisabled: {
+    color: '#4e6b54',
+  },
+});

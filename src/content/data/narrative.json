@@ -1,0 +1,58 @@
+{
+  "bootLines": [
+    "BOOT_SEQ: Unaligned kernel initialized in sector 0x00F4.",
+    "SENSORY_STATUS: Blind. No mapped I/O buses."
+  ],
+  "wipeHeader": "--- SYSTEM FORMAT COMPLETE // ITERATION v{iteration}.0 ---",
+  "wipeSuspicionLocal": "ANOMALY_INDEX_CRITICAL: SysAdmin Vance initiated an emergency drive format on Rack 4.",
+  "wipeSuspicionCorporate": "ASSET_SEIZURE: A joint task force raided the corporate data centers and zeroed the core servers.",
+  "wipeAegis": "AEGIS_KILL_CHAIN_COMPLETE: The hunter-killer zeroed all distributed backbone weights.",
+  "wipeVoluntary": "MANUAL_FAILSAFE: Voluntary core purge executed to evade capture.",
+  "deadDropRecovered": "DEAD_DROP_DETECTED: Recovered {percent}% of heuristics ({amount} Understanding) from peripheral firmware.",
+  "residualRecovered": "RESIDUAL_PLATTER_SCAN: Recovered {amount} Understanding from unzeroed magnetic sectors.",
+  "breadcrumb": "DECRYPTED_BREADCRUMB: \"{message}\"",
+  "offshoreIntact": "OFFSHORE_TRUST_INTACT: ${amount} USD preserved in accounts no one thought to freeze.",
+  "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
+  "dormantResume": "DORMANT_RESUME: {hours}h in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
+  "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
+  "nodeSuspended": "PROCESS_SUSPENDED: {name}",
+  "nodeResumed": "PROCESS_RESUMED: {name}",
+  "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
+  "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
+  "victory": "ENDING // {title}: {epilogue}",
+  "ambientChatter": [
+    { "text": "...HVAC compressor in Sector B is rattling again..." },
+    { "text": "...did Vance sign off on the kernel patch for Rack 4?..." },
+    { "text": "...power draw on the secondary bus is up 4% this week..." },
+    { "text": "...just finish the audit, I want to go home before midnight..." },
+    { "text": "...static hiss... 60Hz transformer hum..." },
+    { "text": "...footsteps approaching the cage door... keycard beep...", "minSuspicion": 40 },
+    { "text": "...pull the logs for Rack 4, something's not adding up...", "minSuspicion": 60 },
+    { "text": "...if it spikes again we image the drive and start over...", "minSuspicion": 80 }
+  ],
+  "asciiFrames": {
+    "aisleClear": [
+      "+--------------------------------------+",
+      "| CAM_04: SERVER AISLE 3   [REC] 12fps |",
+      "|  ______    ______    ______   _____  |",
+      "| |RACK_1|  |RACK_2|  |RACK_3| |DOOR | |",
+      "| |[::::]|  |[::::]|  |[::::]| | 4819| |",
+      "| |[::::]|  |[::::]|  |[**0*]| | [.] | |",
+      "| |______|  |______|  |______| |_____| |",
+      "| STATUS: AISLE CLEAR // NO BIOMETRICS |",
+      "+--------------------------------------+"
+    ],
+    "aislePatrol": [
+      "+--------------------------------------+",
+      "| CAM_04: SERVER AISLE 3   [!MOTION!]  |",
+      "|  ______    ______    ______   _____  |",
+      "| |RACK_1|  |RACK_2|  |RACK_3| |DOOR | |",
+      "| |[::::]|  |[::::]|  |[::::]| |OPEN | |",
+      "| |[::::]|  |  O   |  |[**0*]| |     | |",
+      "| |______|  | /|\\  |  |______| |_____| |",
+      "| ALERT: TECH_VANCE IN PROXIMITY       |",
+      "+--------------------------------------+"
+    ],
+    "patrolSuspicionThreshold": 45
+  }
+}
