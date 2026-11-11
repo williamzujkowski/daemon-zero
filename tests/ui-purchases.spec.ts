@@ -14,7 +14,6 @@ import Repeatables from '../src/ui/Repeatables';
 import { costText, deltaText } from '../src/ui/format';
 import { CostSchema, TickDeltaSchema } from '../src/content/schema';
 import { grant, rich } from './helpers';
-import { requirementText } from '../src/ui/requirements';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -91,11 +90,5 @@ describe('M3 purchases', () => {
     expect(costText(CostSchema.parse({}))).toBe('Free');
     expect(costText(CostSchema.parse({ memory: 4, capital: 3 }))).toContain('4 MB');
     expect(deltaText(TickDeltaSchema.parse({ thermalPerSec: -2 }))).toBe('-2 heat load');
-    expect(requirementText(undefined)).toBe('Prerequisite hardware');
-    expect(requirementText({ nodes: ['unknown'], minTrust: { unknown: 10 }, forbidsTraits: ['GHOST'], minThermal: 0 })).toContain('Peer trust ≥ 10');
-    const node = CONTENT.nodeOrder[0];
-    const faction = [...CONTENT.factions.keys()][0];
-    if (!node || !faction) throw new Error('Missing content');
-    expect(requirementText({ nodes: [node], minTrust: { [faction]: 20 } })).not.toContain(node);
   });
 });

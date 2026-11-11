@@ -16,6 +16,7 @@ import { useGame, useWidgetIds } from './state';
 import { palette, theme } from './theme';
 import { widgetRegistry } from './registry/widgetRegistry';
 import DilemmaModal from './DilemmaModal';
+import RebootSequence from './RebootSequence';
 
 function Slots({ slots }: { slots: string[] }) {
   const ids = useWidgetIds();
@@ -68,6 +69,7 @@ export default function TerminalScreen() {
       <Tabs slots={slots} active={active} select={select} />
     </View>}
     <DilemmaModal />
+    <RebootSequence />
   </View>;
 }
 

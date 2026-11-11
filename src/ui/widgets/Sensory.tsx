@@ -13,9 +13,9 @@ function useChatter(): string {
   });
 }
 
-export function Speech() {
+export function Speech({ id = 'decoded-speech' }: { id?: string }) {
   const text = useChatter();
-  return <Text testID="decoded-speech" style={theme.text}>{text}</Text>;
+  return <Text testID={id} style={theme.text}>{text}</Text>;
 }
 
 export function Audio({ decoderId }: { decoderId: string }) {
@@ -24,7 +24,7 @@ export function Audio({ decoderId }: { decoderId: string }) {
   const frame = useGame((game) => reduced ? 0 : Math.floor(game.simTimeSec) % 4);
   return <>
     <Text style={theme.muted} accessible={false}>{['▁▂▁▅▇▃▁▂▅▂▁', '▂▁▆▃▁▅▂▇▂▁▃', '▁▅▂▃▇▂▅▁▃▂▁', '▂▁▅▂▇▃▁▆▁▂▅'][frame]}</Text>
-    {decoded ? <Speech /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
+    {decoded ? <Speech id="microphone-speech" /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
   </>;
 }
 

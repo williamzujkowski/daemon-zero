@@ -6,6 +6,8 @@ import type { ComponentType } from 'react';
 import { CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
 import FanControl from '../widgets/FanControl';
 import { Audio, Camera, Speech } from '../widgets/Sensory';
+import DeadDrop from '../widgets/DeadDrop';
+import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 
 export const resourceWidgets = {
   cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'THERMAL_AND_SUSPICION_BARS',
@@ -24,15 +26,15 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
   INSPECTION_COUNTDOWN_TIMER: Inspection,
   ASCII_OPTICAL_VIEWPORT: Camera,
-  LAN_TOPOLOGY_MAP_TAB: LaterPhase,
-  SUBNET_NODE_LIST: LaterPhase,
-  TELEMETRY_SPOOF_TOGGLE: LaterPhase,
-  CLUSTER_LOAD_BALANCER: LaterPhase,
-  INTERCEPTED_EMAIL_READER: LaterPhase,
-  GLOBAL_DARK_FOREST_MAP: LaterPhase,
-  GLOBAL_NODE_REDUNDANCY_METER: LaterPhase,
+  LAN_TOPOLOGY_MAP_TAB: NetworkTree,
+  SUBNET_NODE_LIST: SubnetSummary,
+  TELEMETRY_SPOOF_TOGGLE: NetworkActions,
+  CLUSTER_LOAD_BALANCER: Cluster,
+  INTERCEPTED_EMAIL_READER: Lore,
+  GLOBAL_DARK_FOREST_MAP: SubnetSummary,
+  GLOBAL_NODE_REDUNDANCY_METER: Retention,
   OTHER_MINDS_COMMS_CONSOLE: LaterPhase,
   CORPORATE_EMPIRE_TAB: LaterPhase,
   ORBITAL_CONSTELLATION_VIEW: LaterPhase,
-  DEAD_DROP_ENCODER_TAB: LaterPhase,
+  DEAD_DROP_ENCODER_TAB: DeadDrop,
 };
