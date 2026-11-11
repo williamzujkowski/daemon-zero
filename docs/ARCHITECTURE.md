@@ -98,7 +98,7 @@ Public API is `src/engine/index.ts`.
 | `systems/` | Pipeline stages: resources, thermal, suspicion, AEGIS, dilemmas. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. |
-| `query.ts` | `meetsRequirements`, `isNodeAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`. |
+| `query.ts` | `meetsRequirements`, `isNodeAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, validate, migrate, reconcile, paste codes. |
 | `sim/` | Bot, headless simulation, pacing gates. |

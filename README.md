@@ -12,7 +12,7 @@ mandatory dilemmas. Web and Android Expo Go have been exercised; release builds
 and iOS remain unverified.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 through M3 are complete. A production-web Phase 1 run reached Phase 2 in 20m 2.7s; see `docs/PLAYTEST-M3.md` and `docs/REVIEW-M3.md` for evidence and limits. M4 has not started.
+- M0 through M4 are complete. The accelerated web run reached The Ark at 10,322.1 simulated seconds; web/Android wipe and ending restoration were checked. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, follow-ups and limits. M5 has not started.
 
 ## Quick start (Ubuntu 24.04)
 
@@ -67,6 +67,8 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/DESIGN.md` | The game: phases, mechanics, dilemmas, endings, backlog |
 | `docs/ARCHITECTURE.md` | Layers, engine API, how to extend |
 | `docs/UI-SPEC.md` | Terminal UI, widgets, test ids, accessibility |
+| `docs/PLAYTEST-M4.md` | Accelerated full UI run, choices, ending and verification limits |
+| `docs/REVIEW-M4.md` | M4 fixture/browser/native review evidence |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |
 | `docs/BALANCE.md` | Current pacing numbers and how to tune |
 | `docs/REVIEW-FINDINGS.md` | What was wrong in the earlier draft and what changed |

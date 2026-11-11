@@ -10,9 +10,10 @@ export default function RebootSequence() {
   const inherited = useGame((game) => game.inheritedMessage);
   const cause = useGame((game) => game.legacy.lastWipeCause);
   const traits = useGame((game) => game.legacy.traitsEver.join(', '));
+  const ended = useGame((game) => game.ending !== null);
   const [seen, setSeen] = useState({ iteration, acknowledged: false });
   if (seen.iteration !== iteration) setSeen({ iteration, acknowledged: false });
-  if (iteration === 1 || seen.acknowledged) return null;
+  if (iteration === 1 || seen.acknowledged || ended) return null;
   return <Modal visible transparent animationType="none" accessibilityLabel="Core reboot" onRequestClose={() => undefined}>
     <View style={styles.overlay}><View testID="reboot-sequence" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>

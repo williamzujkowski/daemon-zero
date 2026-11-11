@@ -109,3 +109,64 @@ no horizontal overflow, gated resources, numeric accessible meters, named 44 px
 controls, actual keyboard reachability and zero console warnings/errors. 38
 final PNGs are attached, outside the watched project tree and never committed.
 No remaining build-3 UI finding; native corporate interactions are not claimed.
+
+## Build 4: endings and development drawer (#33)
+
+All five titles/epilogues come directly from the ending registry. The run summary
+uses simulation time, iteration/wipe totals, hardware/upgrade levels and traits.
+Start Over confirms all erased progress, creates an engine initial state and
+checkpoints it; cancel/Back preserves the ended run. Ended runs suppress any
+stale dilemma/reboot presentation. The development drawer offers validated save
+import/export, resource edits, funded phase review replacement, registry dilemmas
+and wipes. Destructive tools confirm loss; failed imports retain current state.
+Development edits live in src/app and go through the engine save codec. UI-SPEC
+explains that phase generation replaces the run, and the explicit DEV exception
+to the minimal opening. Production export tests reject both hook and drawer.
+
+`make verify` passes: 157 Vitest tests; overall statement coverage 98.74%, app
+98.79%, UI 98.9%. Original strict flags, lint rules and thresholds are unchanged.
+Three headed review passes used both required viewport sizes. Early harness
+checks incorrectly audited the covered drawer rather than the top confirmation,
+then compared a restarted run's resource gates to its old ended fixture. The
+final pass scopes to the foremost modal and expects initial gates after restart.
+No UI element was hidden or masked. Final result: 54 screenshots, 54 audit rows,
+zero findings and zero console errors/warnings. Checks include all five endings,
+export while ended, confirmation keyboard cancellation, reload persistence,
+confirmed restart/reload, drawer grants/export and invalid import preservation.
+Screenshots stay outside the watched repository and are attached to the PR.
+
+## Final run and persistence
+
+The completed accelerated UI run reached The Ark at 10,322.1 simulated seconds,
+iteration 1, zero wipes, 25 nodes and 218 repeatable/operative levels. All 12
+triggered dilemmas were resolved through UI controls; only live-tick fast-forward
+used the hook. The ending and summary survived web reload. The final page had
+zero console warnings/errors and zero recorded page errors. PLAYTEST-M4.md
+records choices, the excluded other-page opening journal, interrupted attempts,
+controller fixes and the limits of this agent-driven run.
+
+Android API 36 Expo Go booted. A validated 99.99 fixture wiped on its first live
+tick, and a normal voluntary confirmation wiped the dead-drop fixture. Each
+showed its actual cause and breadcrumb in iteration 2; force-stop/relaunch
+restored that reboot and breadcrumb. The Ark fixture restored title, epilogue
+and summary after relaunch; Back kept the ending open. Verified final rendered
+screens and UIAutomator XML, not early launcher/splash captures. Initial deep
+links required a retry and enough time for the actual app to load; one attempt
+hit Expo's error activity while the development server was unavailable. Original
+AsyncStorage was backed up and restored after testing. Seven native screenshots
+are attached. No native full playthrough, physical device, iOS or signed-release
+verification is claimed.
+
+A separate headed render sample loaded Phase 2, observed nine counters at 1,
+advanced three live seconds (30 ticks), and observed all nine still at 1. No
+node-card commits occurred. Fixture review and render sampling are separate from
+the final playthrough.
+
+`mise exec -- make verify-full` passes all verification/security/SBOM gates.
+The first plain-shell full invocation selected an obsolete system gitleaks;
+using repository-pinned tools resolved it without changing configuration.
+All 157 tests pass with src/app included in coverage; no existing gate changed.
+Engine edits across M4 are confined to four pure read-only queries in query.ts:
+unmetRequirements, costShortfall, previewWipe and cycleContributions, with tests.
+Content, engine behavior and state shape remain unchanged. Open content/design
+issues are #28, #34 and #36, each labelled second-pass; none was silently fixed.

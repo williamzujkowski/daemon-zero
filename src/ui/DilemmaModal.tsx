@@ -27,8 +27,9 @@ function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: strin
 
 export default function DilemmaModal() {
   const id = useGame((game) => game.activeDilemmaId);
+  const ended = useGame((game) => game.ending !== null);
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
-  if (!dilemma) return null;
+  if (!dilemma || ended) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
     <View style={styles.overlay}>

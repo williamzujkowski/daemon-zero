@@ -86,6 +86,19 @@ The kernel log stays below either choice. Wrapped resource rows use horizontal
 gaps without extra row gaps: large Phase 4 balances otherwise consumed too much
 of the phone viewport before any ledger/allocation controls were visible.
 
+An ended run replaces play with its registry title, epilogue, simulated duration,
+iteration/wipe totals, hardware/upgrade totals and traits. Back/Escape cannot
+dismiss it. Start Over requires a second confirmation listing everything erased;
+cancel preserves the ending. Ended runs suppress pending dilemma/reboot modals.
+
+Development builds have a labelled DEV launcher, including on the ending screen.
+Its scrollable drawer grants resources, generates a funded phase review state,
+forces registry dilemmas/wipes and exports/imports save codes. Generating a phase
+replaces the run rather than promising a behavior-preserving phase jump; the
+confirmation says so. Import validates through the engine save codec. The drawer
+and web hook are excluded from production exports by tests. This explicit
+development tool is the only exception to the otherwise minimal opening screen.
+
 ## Theme
 
 Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):

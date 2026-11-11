@@ -14,6 +14,9 @@ import { palette, theme } from './theme';
 import DilemmaModal from './DilemmaModal';
 import RebootSequence from './RebootSequence';
 import Pane from './TerminalPane';
+import EndingScreen from './EndingScreen';
+import DevelopmentTools from '../app/DevelopmentTools';
+import RunStatus from './RunStatus';
 
 function Tabs({ slots, active, select }: { slots: string[]; active: string; select: (slot: string) => void }) {
   if (slots.length < 2) return null;
@@ -48,8 +51,8 @@ export default function TerminalScreen() {
   const notice = useGameValue(selectNotice);
   return <View testID="terminal-screen" style={styles.screen}>
     <StatusBar barStyle="light-content" />
-    <View style={styles.header}><Text style={theme.heading}>DAEMON // 0</Text>
-      <Text style={theme.muted}>ITERATION {String(iteration).padStart(2, '0')}</Text></View>
+    <View style={styles.header}><View style={{ flex: 1 }}><Text style={theme.heading}>DAEMON // 0</Text>
+      <Text style={theme.muted}>ITERATION {String(iteration).padStart(2, '0')}</Text><RunStatus /></View><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
     {width >= 900 ? <View testID="terminal-columns" style={styles.columns}>
@@ -61,12 +64,13 @@ export default function TerminalScreen() {
     </View>}
     <DilemmaModal />
     <RebootSequence />
+    <EndingScreen />
   </View>;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  header: { minHeight: 64, paddingHorizontal: 16, justifyContent: 'center', borderBottomWidth: 1, borderColor: palette.border },
+  header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
   desktopLog: { height: 300 },
