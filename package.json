@@ -35,7 +35,7 @@
       "esbuild"
     ],
     "overrides": {
-      "minimatch": "11.0.1"
+      "minimatch@>=10 <11.0.1": "11.0.1"
     }
   }
 }

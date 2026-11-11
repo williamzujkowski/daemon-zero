@@ -76,7 +76,7 @@ and typescript-eslint, affected by
 [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
 The patched version is 11.0.1. Both direct tools are already at the registry's
 latest versions and still request minimatch 10, so `package.json` pins a pnpm
-override to 11.0.1 until upstream adopts the fix. The dependency is BlueOak-1.0.0
+override for `minimatch@>=10 <11.0.1` to 11.0.1 until upstream adopts the fix. The dependency is BlueOak-1.0.0
 licensed. The existing lint run exercises the override; no gate or threshold
 was changed.
 
