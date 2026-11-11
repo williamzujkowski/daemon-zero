@@ -6,9 +6,8 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  // M1+: uncomment to give the Android emulator hardware acceleration.
-  // Only on a host where /dev/kvm exists; the container will not start otherwise.
-  // "runArgs": ["--device=/dev/kvm"],
+  // Host /dev/kvm was confirmed during M1. Requires KVM on the container host.
+  "runArgs": ["--device=/dev/kvm"],
   "containerEnv": {
     "EXPO_NO_TELEMETRY": "1"
   },
