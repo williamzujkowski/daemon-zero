@@ -1,6 +1,7 @@
 // ESLint flat config. Architectural rules live here so they are enforced, not just documented.
 import js from '@eslint/js';
 import security from 'eslint-plugin-security';
+import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 const UI_ONLY_IMPORTS = ['react', 'react-dom', 'react-native', 'react-native-*', 'expo', 'expo-*', 'zustand', 'zustand/*', '@react-native-*/*'];
@@ -24,6 +25,11 @@ export default tseslint.config(
       // Typed lookups into our own records are safe and pervasive; this rule only adds noise here.
       'security/detect-object-injection': 'off',
     },
+  },
+  {
+    files: ['App.tsx', 'src/app/**/*.{ts,tsx}', 'src/ui/**/*.{ts,tsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs.flat.recommended.rules,
   },
   {
     // The simulation and content layers are pure: no UI frameworks, no clocks, no randomness.

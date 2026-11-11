@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -26,8 +26,8 @@ test: ## Unit tests with coverage thresholds
 sim: ## Headless full-game balance simulation and pacing gates
 	pnpm sim
 
-verify: typecheck lint validate test sim ## The gate every change must pass
-	@echo "[PASS] verify: typecheck, lint, content, tests, balance"
+verify: typecheck lint validate test sim build-web ## The gate every change must pass
+	@echo "[PASS] verify: typecheck, lint, content, tests, balance, web export"
 
 audit: ## Known-vulnerability audit of dependencies (fails on high or critical)
 	pnpm audit --audit-level=high
@@ -50,5 +50,17 @@ verify-full: verify security sbom ## What CI runs
 clean: ## Remove build and coverage output
 	rm -rf coverage dist .expo sbom.cdx.json
 
-# Targets added by later milestones (see docs/MILESTONES.md):
-#   M1: dev, web, android, build-web      M5: e2e
+# Expo forces worker colour output; clear NO_COLOR to avoid conflicting Node flags.
+dev: ## Start the Expo development server
+	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm start
+
+web: ## Start Expo in the browser
+	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm web
+
+android: ## Open the app on an Android emulator or device using Expo Go
+	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm android
+
+build-web: ## Export the production web app
+	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
+
+# M5 adds e2e (see docs/MILESTONES.md).
