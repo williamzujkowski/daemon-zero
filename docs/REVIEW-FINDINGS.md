@@ -119,12 +119,24 @@ Verified in a fresh isolated Ubuntu 24.04 environment:
   `mise install --locked`, security scans, SBOM generation and artifact upload.
   The `sbom-cyclonedx` artifact was confirmed through the GitHub API.
 
-Remaining checks and approvals:
+M0 exit gate and solo-maintainer settings:
+
+- The maintainer approved a solo workflow with no reviewer approvals. `main`
+  requires a PR and an up-to-date passing `verify` check, enforces these checks
+  for admins, and blocks force pushes and branch deletion. The settings were
+  read back from the GitHub API after applying them.
+- [PR #8](https://github.com/williamzujkowski/daemon-zero/pull/8) merged after its
+  final CI passed. [Main CI run 42971163056](https://github.com/williamzujkowski/daemon-zero/actions/runs/42971163056)
+  passed at merge commit `ab743c3`, including verification, all security scans,
+  SBOM generation and artifact upload. Milestone issues M1 through M6 exist;
+  M0's exit gate is satisfied.
+- Used nexus-agents CI health checking and a DevOps expert review. The expert
+  independently ran lint, OSV and pnpm audit, confirmed the dependency fix, and
+  recommended scoping the override. Its preliminary findings were reconciled
+  with the subsequent full verification runs and completed lockfile.
+
+Not verified:
 
 - The VS Code devcontainer and the non-root sudo bootstrap path were not tested.
   Toolchain downloads are locked for Linux x64 only; other platforms are untested.
-- M0's exit gate requires a successful `ci` run on `main` after the dependency
-  fix is merged. PR CI is verified separately before requesting merge approval.
-- `main` has no branch protection. Enabling it to require `verify` needs maintainer
-  approval under `AGENTS.md`; merging this PR also needs maintainer approval.
 - M1 has not been started. Expo, web UI, Android and iOS remain unbuilt and untested.

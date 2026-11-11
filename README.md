@@ -9,7 +9,7 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 This repository is a **seed**: the full game content and a tested, balanced simulation engine, plus the plan and tooling for coding agents to build the app around them. There is no UI yet.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- Next step: `docs/MILESTONES.md`, starting at M0.
+- M0 bootstrap is verified locally and in CI. M1 (Expo app shell) is next; see `docs/MILESTONES.md`.
 
 ## Quick start (Ubuntu 24.04)
 
