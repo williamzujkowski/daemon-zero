@@ -17,9 +17,9 @@ describe('app shell server render', () => {
     const markup = renderToStaticMarkup(createElement(App));
     expect(markup).toContain(firstEntry?.text);
     expect(markup).toContain(initial.logs[0]?.text);
-    expect(markup).toContain('data-testid="boot-screen"');
-    expect(markup).toContain('data-testid="boot-log"');
-    expect(markup).toContain('Loading saved state...');
+    expect(markup).toContain('data-testid="terminal-screen"');
+    expect(markup).toContain('data-testid="kernel-log"');
+    expect(markup).not.toContain('data-testid="resource-strip"');
     expect(markup).toContain('aria-disabled="true"');
   });
 });

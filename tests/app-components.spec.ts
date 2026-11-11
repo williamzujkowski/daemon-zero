@@ -24,10 +24,11 @@ describe('M2 mounted app', () => {
     host.document.body.appendChild(container);
     const root = createRoot(container);
     await act(async () => { root.render(createElement(App)); await Promise.resolve(); });
-    expect(container.querySelector('[data-testid="save-status"]')?.textContent).toBe('Ready.');
+    expect(container.querySelector('[data-testid="manual-cycle"]')?.getAttribute('aria-disabled')).not.toBe('true');
     const button = container.querySelector<HTMLElement>('[data-testid="manual-cycle"]');
     act(() => { button?.click(); });
-    expect(container.querySelector('[data-testid="res-cycles"]')?.textContent).toBe('Cycles: 1');
+    expect(gameStore.store.getState().game.cycles).toBe(1);
+    expect(container.querySelector('[data-testid="res-cycles"]')).toBeNull();
     expect(host.localStorage.getItem(SAVE_KEY)).toContain('"savedAtMs"');
     act(() => { root.unmount(); });
     container.remove();

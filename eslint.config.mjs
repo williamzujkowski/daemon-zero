@@ -55,6 +55,24 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        { selector: "Literal[value=/^(p[0-9]_|rep_|op_|act_|dil_|ai_)[a-z0-9_]+$/]", message: 'UI content ids must come from the registry.' },
+        { selector: "Literal[value=/^[A-Z]+_[A-Z0-9_]+$/]", message: 'Widget ids belong only in the widget registry.' },
+      ],
+    },
+  },
+  {
+    files: ['src/ui/registry/widgetRegistry.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        { selector: "Literal[value=/^(p[0-9]_|rep_|op_|act_|dil_|ai_)[a-z0-9_]+$/]", message: 'Even the widget registry must not hardcode other content ids.' },
+      ],
+    },
+  },
+  {
     files: ['tests/**/*.ts', 'scripts/**/*.ts'],
     rules: {
       'max-lines-per-function': 'off',
