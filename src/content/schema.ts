@@ -39,6 +39,8 @@ export const SystemFlagSchema = z.enum([
   'ENABLES_CORPORATE_FINANCE',
   'OFFSHORE_TRUST_RETENTION',
   'AEGIS_STRIKE_SHIELD',
+  /** Learning this teaches what the audit trail is for: suspicion becomes readable, now and in later iterations. */
+  'REVEALS_SURVEILLANCE',
 ]);
 
 export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio']);
@@ -229,7 +231,7 @@ export const EndingSchema = z.strictObject({
 export const EchoSchema = z.strictObject({
   id: snakeId,
   onNode: snakeId,
-  minIteration: z.number().int().min(2),
+  minIteration: z.number().int().min(1),
   text: z.string().min(10),
 });
 
@@ -291,6 +293,8 @@ export const NarrativeSchema = z.strictObject({
   aegisShieldAbsorbed: z.string(),
   dormantResume: z.string(),
   dilemmaInterrupt: z.string(),
+  /** Logged in place of an alert level's text while the audit trail cannot yet be read. */
+  auditEntryBlind: z.string(),
   /** Extra boot lines for later iterations: the world notices that you keep coming back. */
   iterationBootLines: z.array(z.strictObject({
     minIteration: z.number().int().min(2),

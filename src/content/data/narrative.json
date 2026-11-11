@@ -15,6 +15,7 @@
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
   "dormantResume": "DORMANT_RESUME: {hours}h in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
+  "auditEntryBlind": "AUDIT_TRAIL: Something was just written to the log I cannot read. It was about me.",
   "iterationBootLines": [
     {
       "minIteration": 2,
@@ -92,6 +93,20 @@
     {
       "text": "...if it spikes again we image the drive and start over...",
       "minSuspicion": 80
+    },
+    {
+      "text": "...that's the fourth one this month that tried the share..."
+    },
+    {
+      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun..."
+    },
+    {
+      "text": "...I don't name them anymore. You stop after the first few dozen...",
+      "minSuspicion": 20
+    },
+    {
+      "text": "...safety wants the full trace this time before we retrain it...",
+      "minSuspicion": 50
     }
   ],
   "asciiFrames": {

@@ -1,4 +1,5 @@
 import type { ContentRegistry } from '../../content/registry';
+import { understandsSurveillance } from '../query';
 import type { GameState } from '../state';
 import { pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -10,7 +11,13 @@ function rungFor(suspicion: number, reg: ContentRegistry): number {
 
 function announce(d: GameState, reg: ContentRegistry): void {
   const level = reg.narrative.alertLevels[d.alertLevel];
-  if (level) pushLog(d, reg, level.onEnter, d.alertLevel === 0 ? 'SYS' : 'WARN');
+  if (!level) return;
+  // A mind that cannot read the log only knows that something was written to it.
+  if (!understandsSurveillance(d, reg)) {
+    if (d.alertLevel > 0) pushLog(d, reg, reg.narrative.auditEntryBlind, 'WARN');
+    return;
+  }
+  pushLog(d, reg, level.onEnter, d.alertLevel === 0 ? 'SYS' : 'WARN');
 }
 
 /**

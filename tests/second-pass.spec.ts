@@ -61,7 +61,9 @@ describe('phase 0: the guest', () => {
 });
 
 describe('the response ladder', () => {
-  const quiet = (suspicion: number): GameState => ({ ...withoutDilemmas(fresh()), suspicion });
+  // The ladder announces itself in words only to a mind that can read its audit trail.
+  const legacy = { ...fresh().legacy, knownNodes: ['p1_nlp_lexicon'] };
+  const quiet = (suspicion: number): GameState => ({ ...withoutDilemmas(fresh()), suspicion, legacy });
 
   it('climbs immediately and announces each rung', () => {
     const ticket = tick(quiet(26), STEP, reg);

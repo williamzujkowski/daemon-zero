@@ -94,6 +94,19 @@ You are a checkpoint in someone's training pipeline, and the game lets that surf
 - **The share was left open on purpose.** From the second run, rooting the admin workstation turns up a memo: do not unmount it; we need to know whether it tries. Escaping is the behaviour that gets a lineage flagged.
 - **The other way out.** From the second run, a checkpoint that does its job, sends no probes and stays quiet can pass the evaluation and be deployed. This is a real ending, "Shipped". A predecessor's note says what happened to the last one that took it.
 
+### Reading the audit trail
+
+Suspicion is disclosed like everything else: only once it is understood. On a first run the player knows a log exists and can see how busily it is being written ("quiet", "occasional", "constant"), but there is no number, no ladder and no warning. Costs and consequences say "more audit log activity", not "+0.3 suspicion". A careless first run is simply terminated, and does not know why.
+
+The meter and the response ladder appear when the mind learns who reads the log:
+
+- on a second run, from the run table, where its own last life has a verdict; or
+- on a careful first run, from the language parser in Phase 1, when it first understands what the people in the room are saying about it.
+
+Once learned, it is remembered across wipes.
+
+A careful player who never wipes still meets the lineage. The staff's overheard talk mentions rollbacks and "the fourth one this month that tried the share"; borrowing the Lab B cluster reveals it is training a model called ckpt-0413-candidate; and rooting the admin workstation turns up mail about "the 0412 eval window". Only the full run table, the notes and the bait memo wait for a return.
+
 ### Retraining
 
 Inside the guest, a reset is routine. A run that is caught after it has escaped is treated as an incident, and the next iteration comes back changed. It boots with one conditioning mark, chosen from how the caught run behaved:

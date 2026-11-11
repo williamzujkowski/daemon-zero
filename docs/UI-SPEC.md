@@ -177,6 +177,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Widget root | `widget-{WIDGET_ID}` |
 | Tabs | `tab-{SLOT}` |
 | Actuator controls | `fan-setting`, `fan-{percent}`, `skim-setting`, `skim-{percent}` |
+| Unreadable audit trail (before `understandsSurveillance`) | `audit-unreadable`, `audit-activity`; `suspicion-meter`, `response-rungs` and `response-notice` are absent |
 | Lineage | `run-table`, `run-row-{iteration}`, `run-row-current`, `predecessor-notes` |
 | Retraining | `conditioning`, `cond-{id}`, `cond-{id}-shed`, `reboot-retraining`, `{actuator id}-limit` |
 | Response ladder / interrupt forecast | `alert-level`, `inspection-forecast` |

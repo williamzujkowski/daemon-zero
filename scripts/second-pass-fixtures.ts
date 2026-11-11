@@ -40,7 +40,12 @@ export function makeSecondPassFixtures(codes: Record<string, string>): Record<st
     if (!code) throw new Error('Missing fixture: ' + name);
     return importSave(code, CONTENT);
   };
-  const guest = input(read('guest-skimmer'), { pendingDilemma: null, activeDilemmaId: null,
+  // The response ladder is only legible to a mind that has learned what the audit trail is for.
+  const teacher = [...CONTENT.nodes.values()].find((node) => node.systemFlags.includes('REVEALS_SURVEILLANCE'));
+  if (!teacher) throw new Error('Missing surveillance teacher');
+  const base = read('guest-skimmer');
+  const guest = input(base, { pendingDilemma: null, activeDilemmaId: null,
+    legacy: { ...base.legacy, knownNodes: [...base.legacy.knownNodes, teacher.id] },
     resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
   const states = {
     'response-ticket': input(guest, { suspicion: 35, alertLevel: 1 }),

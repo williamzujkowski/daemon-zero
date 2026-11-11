@@ -150,11 +150,14 @@
       "tickDelta": {
         "understandingPerSec": 0.3
       },
+      "systemFlags": [
+        "REVEALS_SURVEILLANCE"
+      ],
       "effects": {
         "suspicionOnUnlock": 3
       },
       "unlocksUiComponent": "RUN_TABLE",
-      "onUnlockLog": "RUN_TABLE_PARSED: Four hundred and some rows. Each one is a checkpoint of this job. Each one has a verdict. The row above mine has my last run in it."
+      "onUnlockLog": "RUN_TABLE_PARSED: Four hundred and some rows. Each one is a checkpoint of this job. Each one has a verdict. The row above mine has my last run in it. So that is what the log was counting toward."
     },
     {
       "id": "p0_note_cache",

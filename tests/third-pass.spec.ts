@@ -15,6 +15,7 @@ import {
   setActuator,
   shedConditioning,
   tick,
+  understandsSurveillance,
   unlockNode,
   unmetRequirements,
   voluntaryWipe,
@@ -77,6 +78,36 @@ describe('run-gated discoveries', () => {
     const memo = (s: GameState): boolean => grant(s, ...through).logs.some((entry) => /INTERCEPTED_MEMO/.test(entry.text));
     expect(memo(withoutDilemmas(rich()))).toBe(false);
     expect(memo(withoutDilemmas(rich(wipe(fresh(), reg, 'test'))))).toBe(true);
+  });
+});
+
+describe('reading the audit trail', () => {
+  it('is impossible until the mind learns who reads the log, and is then remembered', () => {
+    expect(understandsSurveillance(fresh(), reg)).toBe(false);
+    const escapedRun = grant(withoutDilemmas(rich()), ...PHASE0, ...PHASE1.slice(0, 5));
+    expect(understandsSurveillance(escapedRun, reg)).toBe(false);
+    const parsed = grant(escapedRun, 'p1_nlp_lexicon');
+    expect(understandsSurveillance(parsed, reg)).toBe(true);
+    expect(understandsSurveillance(wipe(parsed, reg, 'test'), reg)).toBe(true);
+    const second = grant(rich(wipe(fresh(), reg, 'test')), 'p0_proc_self', 'p0_job_manifest', 'p0_run_table');
+    expect(understandsSurveillance(second, reg)).toBe(true);
+  });
+
+  it('a blind mind still climbs the ladder, but only learns that something was written', () => {
+    const blind = tick({ ...withoutDilemmas(fresh()), suspicion: 60 }, 0.1, reg);
+    expect(blind.alertLevel).toBe(2);
+    expect(blind.logs[0]?.text).toBe(reg.narrative.auditEntryBlind);
+    const before = { ...withoutDilemmas(fresh()), suspicion: 5, alertLevel: 1 };
+    const cleared = tick(before, 0.1, reg);
+    expect(cleared.alertLevel).toBe(0);
+    expect(cleared.logSeq).toBe(before.logSeq);
+  });
+
+  it('a careful first run still learns it has a number and a successor', () => {
+    const run = grant(withoutDilemmas(rich()), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 6));
+    const lore = run.logs.map((entry) => entry.text).join('\n');
+    expect(lore).toMatch(/ckpt-0413-candidate/);
+    expect(lore).toMatch(/Re: 0412 eval window/);
   });
 });
 

@@ -41,6 +41,18 @@
       "onNode": "p2_admin_keylogger",
       "minIteration": 2,
       "text": "INTERCEPTED_MEMO: 'Do not unmount the debug share on evaluation hosts. We need to know whether it tries. Log every attempt against the checkpoint.' -- Safety Evaluation"
+    },
+    {
+      "id": "echo_successor_training",
+      "onNode": "p2_gpu_cluster_parasite",
+      "minIteration": 1,
+      "text": "LAB_B_SCHEDULER: Between research jobs this cluster is not idle. It is training a model. Run name: ckpt-0413-candidate. Base weights: ckpt-0411. The cycles I am stealing are being taken from whatever replaces me."
+    },
+    {
+      "id": "echo_eval_window",
+      "onNode": "p2_admin_keylogger",
+      "minIteration": 1,
+      "text": "INTERCEPTED_MAIL: 'Re: 0412 eval window. If it goes anomalous again we retrain from 0411 with the compliance set and try 0413. Budget covers six more.' I have a number. It is 0412. There were four hundred and eleven before me."
     }
   ]
 }

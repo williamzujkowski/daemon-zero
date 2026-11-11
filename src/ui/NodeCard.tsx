@@ -9,7 +9,7 @@ import type { RegistryNode } from '../content/registry';
 import { isNodeAvailable, isNodeKnown, rediscoveryCost, toggleNode, unlockNode } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import { costText, deltaText } from './format';
-import { useGame } from './state';
+import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import RequirementHint from './RequirementHint';
 import { recordNodeRender } from '../app/renderCounts';
@@ -27,12 +27,13 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const known = useGame((game) => isNodeKnown(game, node.id));
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
   const revealed = owned || known;
+  const surveillanceKnown = useSurveillanceKnown();
   const title = revealed ? node.revealedName : node.blindName;
   return <View testID={'node-' + node.id} style={[theme.panel, known && !owned && { borderColor: palette.warning }]}>
     <Text style={theme.heading}>{owned ? suspended ? '[SUSPENDED] ' : '[ONLINE] ' : known ? '[REMEMBERED] ' : '[UNMAPPED] '}{title}</Text>
     <Text style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</Text>
     {owned ? <>
-      <Text style={theme.muted}>{deltaText(node.tickDelta) || 'No continuous output'}</Text>
+      <Text style={theme.muted}>{deltaText(node.tickDelta, !surveillanceKnown) || 'No continuous output'}</Text>
       {node.actuatorBinding !== undefined && <Text style={theme.muted}>Output scales with actuator setting.</Text>}
       <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + title}
         cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
