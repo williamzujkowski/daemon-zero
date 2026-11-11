@@ -140,3 +140,72 @@ Not verified:
 - The VS Code devcontainer and the non-root sudo bootstrap path were not tested.
   Toolchain downloads are locked for Linux x64 only; other platforms are untested.
 - M1 has not been started. Expo, web UI, Android and iOS remain unbuilt and untested.
+
+## G. M1 Expo app shell verification (2026-11-11)
+
+The SDK 58 blank TypeScript template was scaffolded in a temporary directory.
+Expo 58.0.23, React 19.3.0, React Native 0.88.1 and web packages were installed
+through Expo's SDK-compatible installer and pinned to their resolved versions.
+The template supplies no Babel configuration; Expo's default Metro/Babel setup
+successfully builds the JSON content imports on both platforms.
+
+`index.ts` registers `App.tsx`, which renders `src/app/BootScreen.tsx`. The screen
+reads `createInitialState(CONTENT)` through the public engine API and shows the
+oldest log entry, since the engine stores logs newest first. No engine/content
+files changed. There is no loop, store, persistence, manual-cycle control or M2+
+behavior in this milestone.
+
+### Preserved gates and compatibility findings
+
+- Every original TypeScript compiler option was compared against M0 and is
+  unchanged. Expo's base and JSX support were added, and TSX/root files are now
+  included in typechecking.
+- Every existing ESLint configuration block is unchanged. Added the compatible
+  `eslint-plugin-react-hooks` 7.1.1 recommended rules for app/UI modules.
+- The optional `eslint-config-expo` 58.0.4 was evaluated and removed. Its
+  `eslint-plugin-import` 2.32.0 and `eslint-plugin-react` 7.37.5 dependencies
+  exclude ESLint 10 in their peer ranges. No rule was disabled to use it.
+- Coverage now includes TSX and `App.tsx`, retaining the original global floors:
+  90% lines/functions/statements and 80% branches. Additional app/UI floors are
+  80%. The new shell and root have 100% coverage on all metrics.
+- Expo CLI/fingerprint pulled `glob` 13.0.7, which OSV rejected under
+  [GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4).
+  A scoped `glob@>=13 <14.0.2` override pins the patched 14.0.2 release. No
+  vulnerability was ignored and no scanner setting or threshold changed.
+- Metro worker colour settings conflicted with this host's `NO_COLOR` variable.
+  The Expo Make targets clear that variable to avoid Node's conflicting-colour
+  warning; no diagnostic suppression flag is used.
+
+### Checks run
+
+- `expo install --check`: dependencies are up to date for SDK 58.
+- `make verify-full`: passed typecheck, zero-warning lint, content validation,
+  72 tests, original coverage thresholds, balance gates, production web export,
+  pnpm audit, gitleaks, OSV, Trivy and CycloneDX SBOM generation. Statement
+  coverage is 98.18%, branch coverage 94.37%; audit and OSV have no findings.
+- Production export served over HTTP and opened with Playwright in Chromium.
+  Desktop and 390 x 844 viewports show `BOOT_SEQ` on an `rgb(0, 0, 0)` background,
+  with no horizontal overflow on the narrow viewport. No console warnings or
+  errors were recorded.
+- `bootstrap-ubuntu24.sh --android` passed on the Ubuntu 26.04 host and inside
+  isolated Ubuntu 24.04. This installs pinned Temurin 21.0.13+9 through mise,
+  SHA-256-verified Android command-line tools 22.0 (archive build 15859902),
+  platform `android-37.0`, build tools 37.0.0, platform tools and the emulator.
+  `qemu-system-x86` is used because `qemu-kvm` has multiple providers on the host.
+- `/dev/kvm` exists and `emulator -accel-check` confirms KVM is usable. Enabled
+  the devcontainer's KVM device mapping only after those host checks.
+- **Android actually booted.** Created a Pixel 7 AVD using Google's API 36
+  x86_64 image, started it headlessly with KVM/SwiftShader, and ran `make android`.
+  Expo Go installed and loaded the app; Metro bundled the native entry with
+  Hermes. `adb shell getprop sys.boot_completed` returned `1`. UIAutomator
+  reported resource id `boot-log` with the exact `BOOT_SEQ` entry. A screenshot
+  was inspected and shows readable green text on black.
+
+### Not verified
+
+- A signed standalone Android APK/AAB, a physical Android device or iOS boot.
+  The Android result is an actual Expo Go emulator boot, not a release build.
+- The VS Code devcontainer itself; the host's Docker launcher is still broken.
+- Non-Linux toolchain locks, signing, release identities and M2+ functionality.
+
+M1's CI evidence is tracked in issue #2. M2 has not been started.

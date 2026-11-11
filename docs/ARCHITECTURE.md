@@ -5,11 +5,26 @@
 ```
 src/content/   data + schemas          no dependencies except zod
 src/engine/    pure simulation         depends on content types only
-src/app/       store, loop, storage    (M1-M2) depends on engine; owns clocks and I/O
+src/app/       M1 boot shell; M2 store, loop, storage will own clocks and I/O
 src/ui/        React Native views      (M3-M4) depends on app + engine queries
 ```
 
 Dependencies point downward only. The engine can be run, tested and balanced with no UI, which is what `make sim` does: a full playthrough in about a second.
+
+## App shell (M1)
+
+`index.ts` registers `App.tsx` with Expo. `src/app/BootScreen.tsx` creates the
+initial state through the engine's public API and displays its first
+chronological log line. It does not advance time or persist state; those belong
+to M2. The same component renders through React Native on Android and React
+Native Web in the browser. Metro's default Expo configuration handles the JSON
+content imports without custom transforms.
+
+`tsconfig.json` extends Expo's base while retaining every original compiler
+option. The existing ESLint configuration remains intact with React Hooks rules
+added for app/UI modules. Expo's optional ESLint preset is omitted because its
+import/react plugins do not declare ESLint 10 support. Coverage now measures
+TSX and the root component without reducing any existing threshold.
 
 ## Content (`src/content/`)
 
