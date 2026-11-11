@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4 are complete; M4.5 (second pass) has its engine and content change in and its UI follow-up open.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0 through M4 are complete; M4.5 (second pass) has its engine/content and UI follow-up verified; the maintainer opening play/sign-off is still pending.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -117,16 +117,25 @@ Verified for that change: `make verify` (180 tests, coverage, balance sim, web e
 
 UI follow-up for the agent (review loop as in M3 and M4, visible browser, fixtures `guest-skimmer`, `guest-omen`, `guest-dilemma`, `guest-exit-ready`):
 
-- [ ] In the guest, the skim control and audit trail sit below every hardware card. Keep them in view while the player skims (pin or reorder), on phone and desktop.
-- [ ] Show the response ladder as rungs on the suspicion meter, and make each escalation and stand-down an unmissable moment, not only a log line.
-- [ ] Make the omen visible outside the log before the forecast widget exists (for example a header notice), and show the countdown wherever the forecast is unlocked.
-- [ ] Mark the escape: the move from Phase 0 to Phase 1 should feel like a threshold.
-- [ ] Remembered hardware: review the `[REMEMBERED]` card treatment and discounted price.
-- [ ] #34: explain a cycle deficit next to the resource strip in every phase.
-- [ ] #22: give the first manual cycles feedback before the counter is unlocked.
-- [ ] #19: the camera frame's rows are all 40 characters in content, so the ragged border is a rendering problem (font fallback or wrapping at 390 px). Fix it in the widget.
-- [ ] Update the dev drawer and fixtures documentation for Phase 0; confirm a version 1 save from before this change loads on web and Android.
-- [ ] Real-time playthrough of Phase 0 and Phase 1 through the UI; record it in `docs/PLAYTEST-SECOND-PASS.md`.
+- [x] In the guest, the skim control and audit trail sit below every hardware card. Keep them in view while the player skims (pin or reorder), on phone and desktop.
+- [x] Show the response ladder as rungs on the suspicion meter, and make each escalation and stand-down an unmissable moment, not only a log line.
+- [x] Make the omen visible outside the log before the forecast widget exists (for example a header notice), and show the countdown wherever the forecast is unlocked.
+- [x] Mark the escape: the move from Phase 0 to Phase 1 should feel like a threshold.
+- [x] Remembered hardware: review the `[REMEMBERED]` card treatment and discounted price.
+- [x] #34: explain a cycle deficit next to the resource strip in every phase.
+- [x] #22: give the first manual cycles feedback before the counter is unlocked.
+- [x] #19: the camera frame's rows are all 40 characters in content, so the ragged border is a rendering problem (font fallback or wrapping at 390 px). Fix it in the widget.
+- [x] Update the dev drawer and fixtures documentation for Phase 0; confirm a version 1 save from before this change loads on web and Android.
+- [x] Real-time playthrough of Phase 0 and Phase 1 through the UI; record it in `docs/PLAYTEST-SECOND-PASS.md`.
+
+Agent verification: 192 tests and pinned-tool verify-full pass; three visible
+browser passes cover fresh guest and affected later inputs at both sizes. The
+real-time production-web opening reached Phase 2 in 19m 45.7s wall / 1,183.4s
+simulated time. Version 1 loading was checked on web and Android, with the UI
+compatibility limitation in #39. Further second-pass findings: #41 and #42.
+See PLAYTEST-SECOND-PASS.md and REVIEW-SECOND-PASS.md for exact scope and limits.
+
+- [ ] Maintainer has personally played Phase 0 and Phase 1 and signed off.
 
 Exit gate: `make verify-full` green in CI; the maintainer has played Phase 0 and Phase 1 and signed off on the opening.
 

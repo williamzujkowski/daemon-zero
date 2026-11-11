@@ -106,9 +106,17 @@ does not bypass gates or change engine migration to hide that issue.
 
 ## Real-time opening
 
-The final fresh production-web Phase 0/1 playthrough is recorded in
-PLAYTEST-SECOND-PASS.md when it finishes. An earlier short prototype opening was
+The final fresh production-web Phase 0/1 playthrough reached Phase 2 in
+19m 45.7s wall time, with the unlock at 1,183.4 simulated seconds. Phase 0
+ended at 293.9s; Phase 1 took 889.5s. Fourteen nodes and 34 upgrade levels
+were purchased through the UI, and both triggered dilemmas were resolved.
+Zero console warnings/errors, zero recorded page errors, all visibility samples
+visible and no dormant log entries. Details/choices are in PLAYTEST-SECOND-PASS.md. An earlier short prototype opening was
 stopped before the response-queue refinement and is not the final run's evidence.
 The final run uses a unique page URL, normal timers, no development hook/imports
 and no fast-forward. Small test-ID reads and UI actions replace repeated snapshots.
 Agent playback does not replace the maintainer's required opening sign-off.
+
+
+Open second-pass issues: #39 (v1 audit/readouts), #41 (Whistleblower budget window)
+and #42 (microphone wording). None was hidden with an engine/content workaround.
