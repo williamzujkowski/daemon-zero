@@ -48,7 +48,9 @@ Expo's transient import indicator over Core. Final capture primes identical
 ownership safely, waits for imports to finish, then freezes time and loads the
 exact fixture. The browser clock is resumed before each priming stage because
 the override is shared by pages in the browser context. It does not hide DOM
-elements or alter the engine.
+elements or alter the engine. Final captures live outside the watched project
+tree: writing screenshot assets inside it was triggering additional Fast Refresh
+indicators during the paused-clock review. No indicator is masked or hidden.
 The card counter now has a small synchronous storage module separate from the
 lazy web hook: remounting a pane no longer repeatedly invokes Metro's import
 loader/indicator just to record a commit. The production hook exclusion test is

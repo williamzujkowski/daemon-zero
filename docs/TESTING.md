@@ -256,3 +256,20 @@ images directly to each build PR. Do not commit them. Reviews use 390x844 and
 1440x900, at most three passes per PR, and record the checklist and open items in
 the PR description. Full-page snapshots are disabled by default; use test ids,
 small evaluations and explicit screenshots.
+
+## M4 review fixtures and capture location
+
+The fixture CLI emits 21 codes, including controlled Phase 2–4, breadcrumb/wipe,
+faction, insolvency/power and all-ending saves. See REVIEW-M4.md for semantics;
+these controlled inputs are not balance playthroughs.
+
+For M4, save screenshots outside Metro's watched project tree, for example under
+`/tmp/daemon-zero-m4-review-artifacts`, and attach them directly to the PR. Writing
+new PNG assets in the project can trigger a Fast Refresh indicator that remains
+visible while a test clock is paused. Do not hide indicators or mask screenshots.
+Use a fresh isolated browser context per fixture/viewport, load safe ownership
+first, let imports and their indicator finish, then pause the fixture clock if
+needed and load the exact transient save. Playwright clock overrides are scoped
+to the browser context, not just one page. Full-run playtests use a separate fresh
+context with its normal clock; only the expressly allowed live-tick hook advances
+simulated time during the accelerated M4 run.
