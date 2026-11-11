@@ -12,7 +12,7 @@ mandatory dilemmas. Web and Android Expo Go have been exercised; release builds
 and iOS remain unverified.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 through M2 are complete. M3 is undergoing its final real-time playthrough; see `docs/MILESTONES.md` and `docs/REVIEW-M3.md`.
+- M0 through M3 are complete. A production-web Phase 1 run reached Phase 2 in 20m 2.7s; see `docs/PLAYTEST-M3.md` and `docs/REVIEW-M3.md` for evidence and limits. M4 has not started.
 
 ## Quick start (Ubuntu 24.04)
 

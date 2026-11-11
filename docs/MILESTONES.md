@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0, M1 and M2 are complete. M3 implementation is complete; its final real-time playthrough is in progress in PR #20.** Setup #13, foundation #15 and purchases #17 are merged. See `docs/REVIEW-M3.md` for browser/native evidence and limits. [M2 CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106).
+Status: **M0 through M3 are complete.** M3 consists of setup #13 and build PRs #15, #17 and #20. The production-web real-time run reached Phase 2 in 20m 2.7s; Android Back cannot dismiss the dilemma. See `docs/PLAYTEST-M3.md` and `docs/REVIEW-M3.md` for evidence, follow-ups and limits. M4 has not started.
 
 ---
 
@@ -62,6 +62,14 @@ Exit gate: play for a minute in the browser using a temporary debug button for `
 ## M3 - Terminal UI, Phase 1 playable
 
 Goal: Phase 1 is fully playable and feels like the design. Follow `docs/UI-SPEC.md`.
+
+Verified: `make verify-full`, 128 Vitest tests, three headed fixture review passes
+per build PR (two for foundation), all eight card counts unchanged at 1→1 over
+three live seconds, a 20m 2.7s production-web playthrough without the dev hook,
+and actual Android Expo Go Back/choice/restore checks. `src/app` remains covered;
+every existing gate/strict flag is retained. No engine/content changes. Follow-ups
+#19, #21, #22 and #23 remain open. Native real-time progression, iOS, physical devices,
+screen readers, signed builds and native profiling were not verified.
 
 - [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above).
 - [x] Kernel log as a virtualized list.

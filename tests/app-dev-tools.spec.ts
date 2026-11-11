@@ -41,4 +41,16 @@ describe('web development tools', () => {
   it('produces all five validated fixture states using the real engine', () => {
     expect(Object.keys(makeFixtures())).toEqual(['tick-0', 'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready']);
   });
+
+  it('retains card commits recorded before the hook attaches or reattaches', () => {
+    const h = runtimeHarness();
+    const host: DevHost = {};
+    recordNodeRender('reattach');
+    const remove = installDevTools(h.runtime, host);
+    expect(host.__daemon?.renderCounts().reattach).toBe(1);
+    remove();
+    const detach = installDevTools(h.runtime, host);
+    expect(host.__daemon?.renderCounts().reattach).toBe(1);
+    detach();
+  });
 });

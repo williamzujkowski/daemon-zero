@@ -70,13 +70,53 @@ and scrolled screenshots of camera/forecast and modal choices. Zero console
 warnings/errors. Remaining content finding: #19, uneven authored ASCII borders;
 no content was changed. Screenshots are attached, not committed.
 
-125 Vitest tests pass under the single existing runner, including the registry,
+128 Vitest tests pass under the single existing runner, including the registry,
 fan input, feeds, meter values, unaffordable/free/paid choices, frozen dilemma
 ticks and resumed time after a choice. `make verify` passes with unchanged lint,
 strict flags and coverage floors, including src/app. Engine/content are unchanged.
-The UI spec now explicitly identifies scramble reveals and haptics as the M5
+The actual development-hook effect is tested for installation, normal cleanup,
+unmount before its lazy import settles and preserving counts when reattached.
+Counts live for the page lifetime so late attachment cannot erase card commits.
+Coverage is 98.72% statements and
+94.21% branches globally; src/app is explicitly included, with 99.60% statements,
+100% lines/functions and 96.03% branches. The UI spec identifies scramble reveals and haptics as the M5
 feel pass already assigned in the milestone plan.
 
-Final real-time playthrough and Android Back evidence are being recorded before
-this PR is marked ready. No iOS, physical device, signed release, native screen
-reader or midrange-device performance claims are made.
+### Android
+
+Actually booted the M3 app in Expo Go 58.0.5 on the Pixel 7 API 36 x86_64 emulator.
+Initial connection attempts preceded adb port reversal and failed to download
+the project; a subsequent launch with `adb reverse tcp:8081 tcp:8081` loaded it.
+For a reproducible dilemma, force-stopped Expo Go, backed up its scoped RKStorage
+SQLite database and inserted the engine-generated dilemma fixture in the normal
+timestamped save envelope. No native dev hook or app bypass was added: normal
+startup deserialize validates the save. This is fixture testing, not a native
+real-time progression run.
+
+UIAutomator and screenshots show the Whistleblower title and CLOCK PAUSED before
+and after a real `KEYCODE_BACK`. The same ExperienceActivity stayed foregrounded;
+**Back cannot dismiss the dilemma**. Scrolling to a free choice and tapping it
+resolved the decision. The persisted game had activeDilemmaId null, the resolved
+dilemma and RUTHLESS trait, and advanced from fixture time 304.7 to 314.8 seconds.
+After force-stop/relaunch it preserved the decision and advanced to 363.11
+seconds. Native ReactNativeJS error logs were empty. UIAutomator timed out waiting
+for idle after resolution while the live UI was updating; the persisted state
+provides the resolution/resume evidence. Restored the original emulator save
+and shut down the emulator after testing. Before/after Back PNGs are on the PR.
+
+### Final web checks
+
+The production web run reached Phase 2 in **20m 2.7s**, without the hook, imported
+saves or time acceleration. Includes a harness repair pause during a frozen
+dilemma. See PLAYTEST-M3.md for method, timing, follow-ups #19/#21/#22/#23 and limits.
+The completed run restored afterward with all eight nodes and its network widget.
+
+After the playthrough, loaded the separate all-Phase-1-widget development fixture
+for a three-real-second render sample. All eight card IDs were mounted, and every
+committed count stayed **1 → 1** while cycles advanced **22 → 71**. Cards: clock,
+thermal sensor, fan, memory compression, audio, parser, camera and NIC. This is
+commit instrumentation, not a React DevTools profiler trace or native profiler.
+`make verify-full` passed with all 128 tests and unchanged gates/security tooling.
+
+No iOS, physical device, signed release, native screen reader or midrange-device
+performance claims are made.
