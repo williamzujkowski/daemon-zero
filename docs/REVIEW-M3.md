@@ -51,3 +51,32 @@ represented. Affordability is a separate subscribing button leaf.
 
 Native purchase input and native performance were not checked in this PR. The
 dilemma fixture blocks ordinary input, but its modal arrives in build 3.
+
+## Build 3: Phase 1 widgets and dilemmas (#18)
+
+The registry covers exactly the 18 manifest IDs. Phase 1 bodies are implemented;
+later-phase entries have frames only until M4. Thermal/suspicion and memory show
+numbers and accessible values. Fan controls expose five settings. Audio and
+camera use authored narrative, with decoded speech gated by the parser. The
+forecast is explicitly a current-rate projection, not a scheduled event.
+
+Three headed passes cover all fixtures at both requested sizes. Pass 1's audit
+incorrectly included background controls behind the modal; pass 2 checks only
+the modal's focus scope. Component verification also exposed missing web ARIA
+meter values, fixed before pass 3. The final pass includes actual keyboard
+reachability in Core and Sensors, 44 px controls, accessible numeric meters,
+scroll-width checks, resource/widget gating, Escape and backdrop resistance,
+and scrolled screenshots of camera/forecast and modal choices. Zero console
+warnings/errors. Remaining content finding: #19, uneven authored ASCII borders;
+no content was changed. Screenshots are attached, not committed.
+
+125 Vitest tests pass under the single existing runner, including the registry,
+fan input, feeds, meter values, unaffordable/free/paid choices, frozen dilemma
+ticks and resumed time after a choice. `make verify` passes with unchanged lint,
+strict flags and coverage floors, including src/app. Engine/content are unchanged.
+The UI spec now explicitly identifies scramble reveals and haptics as the M5
+feel pass already assigned in the milestone plan.
+
+Final real-time playthrough and Android Back evidence are being recorded before
+this PR is marked ready. No iOS, physical device, signed release, native screen
+reader or midrange-device performance claims are made.

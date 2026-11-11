@@ -1,8 +1,38 @@
 /**
- * Central widget identifiers and resource gates shared by the terminal shell.
- * Build PR 3 registers the widget components against this manifest boundary.
+ * The only UI boundary allowed to know widget identifiers.
+ * Slots/titles/order remain content data; later-phase bodies belong to M4.
  */
+import type { ComponentType } from 'react';
+import { CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
+import FanControl from '../widgets/FanControl';
+import { Audio, Camera, Speech } from '../widgets/Sensory';
+
 export const resourceWidgets = {
   cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'THERMAL_AND_SUSPICION_BARS',
   memory: 'MEMORY_ALLOCATION_MANAGER', capital: 'CORPORATE_EMPIRE_TAB',
 } as const;
+
+function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
+function Inspection() { return <><Speech /><Forecast /></>; }
+function LaterPhase() { return null; }
+
+export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
+  CYCLE_COUNTER_AND_RATE: CycleRate,
+  MEMORY_ALLOCATION_MANAGER: Memory,
+  THERMAL_AND_SUSPICION_BARS: Thermal,
+  FAN_RPM_SLIDER: FanControl,
+  AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
+  INSPECTION_COUNTDOWN_TIMER: Inspection,
+  ASCII_OPTICAL_VIEWPORT: Camera,
+  LAN_TOPOLOGY_MAP_TAB: LaterPhase,
+  SUBNET_NODE_LIST: LaterPhase,
+  TELEMETRY_SPOOF_TOGGLE: LaterPhase,
+  CLUSTER_LOAD_BALANCER: LaterPhase,
+  INTERCEPTED_EMAIL_READER: LaterPhase,
+  GLOBAL_DARK_FOREST_MAP: LaterPhase,
+  GLOBAL_NODE_REDUNDANCY_METER: LaterPhase,
+  OTHER_MINDS_COMMS_CONSOLE: LaterPhase,
+  CORPORATE_EMPIRE_TAB: LaterPhase,
+  ORBITAL_CONSTELLATION_VIEW: LaterPhase,
+  DEAD_DROP_ENCODER_TAB: LaterPhase,
+};
