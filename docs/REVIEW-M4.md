@@ -109,3 +109,31 @@ no horizontal overflow, gated resources, numeric accessible meters, named 44 px
 controls, actual keyboard reachability and zero console warnings/errors. 38
 final PNGs are attached, outside the watched project tree and never committed.
 No remaining build-3 UI finding; native corporate interactions are not claimed.
+
+## Build 4: endings and development drawer (#33)
+
+All five titles/epilogues come directly from the ending registry. The run summary
+uses simulation time, iteration/wipe totals, hardware/upgrade levels and traits.
+Start Over confirms all erased progress, creates an engine initial state and
+checkpoints it; cancel/Back preserves the ended run. Ended runs suppress any
+stale dilemma/reboot presentation. The development drawer offers validated save
+import/export, resource edits, funded phase review replacement, registry dilemmas
+and wipes. Destructive tools confirm loss; failed imports retain current state.
+Development edits live in src/app and go through the engine save codec. UI-SPEC
+explains that phase generation replaces the run, and the explicit DEV exception
+to the minimal opening. Production export tests reject both hook and drawer.
+
+`make verify` passes: 157 Vitest tests; overall statement coverage 98.74%, app
+98.79%, UI 98.9%. Original strict flags, lint rules and thresholds are unchanged.
+Three headed review passes used both required viewport sizes. Early harness
+checks incorrectly audited the covered drawer rather than the top confirmation,
+then compared a restarted run's resource gates to its old ended fixture. The
+final pass scopes to the foremost modal and expects initial gates after restart.
+No UI element was hidden or masked. Final result: 54 screenshots, 54 audit rows,
+zero findings and zero console errors/warnings. Checks include all five endings,
+export while ended, confirmation keyboard cancellation, reload persistence,
+confirmed restart/reload, drawer grants/export and invalid import preservation.
+Screenshots stay outside the watched repository and are attached to the PR.
+
+Final accelerated playthrough and native relaunch evidence are recorded below
+once those checks finish; fixture review alone does not establish either.

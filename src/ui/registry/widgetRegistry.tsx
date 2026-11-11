@@ -10,6 +10,7 @@ import DeadDrop from '../widgets/DeadDrop';
 import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
 import Corporate from '../widgets/Corporate';
+import { EndingMarker } from '../EndingScreen';
 
 export const resourceWidgets = {
   cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'THERMAL_AND_SUSPICION_BARS',
@@ -20,7 +21,6 @@ export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
 
 function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
 function Inspection() { return <><Speech /><Forecast /></>; }
-function LaterPhase() { return null; }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   CYCLE_COUNTER_AND_RATE: CycleRate,
@@ -39,6 +39,6 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   GLOBAL_NODE_REDUNDANCY_METER: Retention,
   OTHER_MINDS_COMMS_CONSOLE: OtherMinds,
   CORPORATE_EMPIRE_TAB: Corporate,
-  ORBITAL_CONSTELLATION_VIEW: LaterPhase,
+  ORBITAL_CONSTELLATION_VIEW: EndingMarker,
   DEAD_DROP_ENCODER_TAB: DeadDrop,
 };
