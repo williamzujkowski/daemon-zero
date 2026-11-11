@@ -3,39 +3,17 @@
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { CONTENT } from '../content';
 import { selectNotice, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
 import KernelLog from './KernelLog';
-import ManualCycle from './ManualCycle';
-import NodeList from './NodeList';
-import Repeatables from './Repeatables';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
 import { palette, theme } from './theme';
-import { widgetRegistry } from './registry/widgetRegistry';
 import DilemmaModal from './DilemmaModal';
 import RebootSequence from './RebootSequence';
-
-function Slots({ slots }: { slots: string[] }) {
-  const ids = useWidgetIds();
-  return <>{ids.map((id) => {
-    const widget = CONTENT.widgets.get(id);
-    const Component = widgetRegistry[id];
-    return widget && Component && slots.includes(widget.slot) ? <View key={id} testID={'widget-' + id} style={theme.panel}>
-      <Text style={theme.heading}>{widget.title}</Text>
-      <Component />
-    </View> : null;
-  })}</>;
-}
-
-function Pane({ slots }: { slots: string[] }) {
-  return <ScrollView style={styles.pane} contentContainerStyle={styles.paneContent}>
-    {slots.includes('CORE') && <><ManualCycle /><NodeList owned={false} /><Repeatables /><NodeList owned /></>}
-    <Slots slots={slots} />
-  </ScrollView>;
-}
+import Pane from './TerminalPane';
 
 function Tabs({ slots, active, select }: { slots: string[]; active: string; select: (slot: string) => void }) {
   if (slots.length < 2) return null;
@@ -44,6 +22,19 @@ function Tabs({ slots, active, select }: { slots: string[]; active: string; sele
       accessibilityState={{ selected: slot === active }} aria-selected={slot === active}
       style={[styles.tab, slot === active && styles.selected]}
       onPress={() => { select(slot); }}><Text style={theme.muted}>{slot}</Text></Pressable>)}</View>;
+}
+
+function ThirdColumn({ slots }: { slots: string[] }) {
+  const phase = useGame((game) => game.currentPhase);
+  const preferred = phase >= CONTENT.balance.corporatePhase ? 'CORP' : 'NETWORK';
+  const [selection, select] = useState({ phase, slot: preferred });
+  if (selection.phase !== phase) select({ phase, slot: preferred });
+  const available = slots.filter((slot) => slot === 'NETWORK' || slot === 'CORP');
+  const active = available.some((slot) => slot === selection.slot) ? selection.slot : available[0] ?? 'NETWORK';
+  return <View style={styles.third}>
+    <Tabs slots={available} active={active} select={(slot) => { select({ phase, slot }); }} />
+    <Pane slots={[active]} /><View style={styles.desktopLog}><KernelLog /></View>
+  </View>;
 }
 
 export default function TerminalScreen() {
@@ -63,7 +54,7 @@ export default function TerminalScreen() {
     <ResourceStrip />
     {width >= 900 ? <View testID="terminal-columns" style={styles.columns}>
       <Pane slots={['CORE']} /><Pane slots={['SENSORS', 'CONTINGENCY']} />
-      <View style={styles.third}><Pane slots={['NETWORK', 'CORP']} /><View style={styles.desktopLog}><KernelLog /></View></View>
+      <ThirdColumn slots={slots} />
     </View> : <View testID="terminal-mobile" style={styles.mobile}>
       <Pane slots={[active]} /><View style={styles.mobileLog}><KernelLog /></View>
       <Tabs slots={slots} active={active} select={select} />
@@ -77,8 +68,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   header: { minHeight: 64, paddingHorizontal: 16, justifyContent: 'center', borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
-  pane: { flex: 1, minWidth: 0, minHeight: 0 },
-  paneContent: { padding: 16, gap: 14 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
   desktopLog: { height: 300 },
   mobile: { flex: 1, minHeight: 0 },
