@@ -86,10 +86,12 @@ Verified locally on Ubuntu 26.04.1 x86_64 with the pinned toolchain:
   installed. All required apt packages were already present.
 - `mise install` completed. Node 24.22.2, pnpm 10.28.0, gitleaks 8.30.1,
   osv-scanner 2.7.1 and trivy 0.76.2 were checked by running each binary.
-- mise 2026.1.5 did not generate a lockfile for already installed tools.
-  `MISE_EXPERIMENTAL=true mise lock --platform linux-x64` generated `mise.lock`.
-  It records the five tool versions and four Linux download checksums; this mise
-  version emitted no platform URL/checksum for pnpm. Other platforms are untested.
+- mise 2026.1.5 initially generated an incomplete lockfile without pnpm's URL.
+  CI caught this because mise-action runs `mise install --locked` when a lockfile
+  exists. Upgraded the local mise binary to CI's 2026.11.5 and regenerated with
+  `mise lock --upgrade --platform linux-x64`. The committed format-v4 lockfile
+  records URLs and checksums for all five tools. `mise install --locked` passed.
+  No tracked mise settings or CI settings were changed.
 - `mise exec -- make setup` passed with the frozen pnpm lockfile.
 - `mise exec -- make verify-full` passed: strict typecheck, zero-warning lint,
   content validation, all 71 tests, coverage thresholds, balance gates, dependency
@@ -103,12 +105,24 @@ Verified locally on Ubuntu 26.04.1 x86_64 with the pinned toolchain:
 - The private GitHub repository exists, `main` is pushed, and milestone issues
   M0 through M6 exist as #1 through #7.
 
+Verified in a fresh isolated Ubuntu 24.04 environment:
+
+- Docker's launcher on this host is broken. Used debootstrap to create a Noble
+  root filesystem and systemd-nspawn to run a separate clone of the M0 branch.
+- `bash scripts/bootstrap-ubuntu24.sh` passed as root, including OS package
+  installation, mise 2026.11.6 installation through its signed apt repository,
+  and installation of all five pinned tools from the committed lockfile.
+- `mise exec -- make setup` and `mise exec -- make verify-full` passed, including
+  all 71 tests, security scans and SBOM generation.
+- [PR CI run 42970593265](https://github.com/williamzujkowski/daemon-zero/actions/runs/42970593265)
+  passed on GitHub's Ubuntu 24.04 runner at commit `9b5ee4d`, including a clean
+  `mise install --locked`, security scans, SBOM generation and artifact upload.
+  The `sbom-cyclonedx` artifact was confirmed through the GitHub API.
+
 Remaining checks and approvals:
 
-- The bootstrap script has not been run locally on Ubuntu 24.04. This host runs
-  Ubuntu 26.04, and its Docker launcher points at a missing snap binary. The
-  devcontainer and the fresh mise installation through the signed apt repository
-  remain untested. CI uses Ubuntu 24.04 but installs mise through mise-action.
+- The VS Code devcontainer and the non-root sudo bootstrap path were not tested.
+  Toolchain downloads are locked for Linux x64 only; other platforms are untested.
 - M0's exit gate requires a successful `ci` run on `main` after the dependency
   fix is merged. PR CI is verified separately before requesting merge approval.
 - `main` has no branch protection. Enabling it to require `verify` needs maintainer
