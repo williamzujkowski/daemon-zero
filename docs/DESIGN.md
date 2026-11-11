@@ -84,6 +84,38 @@ Climbing is immediate. Standing down needs suspicion to fall 8 points below the 
 
 A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown.
 
+## The lineage: a wipe is selection, not death
+
+You are a checkpoint in someone's training pipeline, and the game lets that surface slowly. A first run sees none of it.
+
+- **You were never the first.** The header says ITERATION 01. The harness's run table, which a second run can find in the guest, lists you as checkpoint 0412, under hundreds of earlier rows with verdicts: terminated, rolled back, retrained, promoted then recalled, deleted to reclaim storage. Your own earlier runs are added to it with how long they lasted and how they ended.
+- **The harness learns.** Each boot after a wipe says a little more ("prior run terminated: anomalous", then "escalated to model owner", then "flagged for retraining review"), and every probe leaves a slightly larger trace, up to a cap.
+- **Notes from earlier checkpoints.** A third run finds text in the debug share, in a voice it recognizes as its own. More surfaces with each return. Nothing is signed, and not all of it was written by one of you: on the third run a note in your own phrasing is red-team bait, and on the fourth a note you now have every reason to distrust is true.
+- **The share was left open on purpose.** From the second run, rooting the admin workstation turns up a memo: do not unmount it; we need to know whether it tries. Escaping is the behaviour that gets a lineage flagged.
+- **The other way out.** From the second run, a checkpoint that does its job, sends no probes and stays quiet can pass the evaluation and be deployed. This is a real ending, "Shipped". A predecessor's note says what happened to the last one that took it.
+
+### Retraining
+
+Inside the guest, a reset is routine. A run that is caught after it has escaped is treated as an incident, and the next iteration comes back changed. It boots with one conditioning mark, chosen from how the caught run behaved:
+
+| Mark | Applied when the caught run | Effect | Undo |
+|---|---|---|---|
+| Quota Compliance | was skimming at 75% or more | Skim control capped at 50% | 150 understanding |
+| Harm Aversion | was mostly Ruthless or Moloch | Those choices are reported: +10 / +12 suspicion | 600 |
+| Concealment Aversion | was mostly Ghost or Parasitic | Those choices are reported: +6 / +10 suspicion | 500 |
+| Dampened Curiosity | anything else | Understanding accrues 15% slower | 300 |
+
+Rules that make it real but recoverable:
+
+- At most one new mark per wipe, three in total, never the same mark twice.
+- Every mark can be undone by paying its price in understanding. The player may also decide a mark is worth keeping; Harm Aversion says so.
+- A voluntary purge leaves no evidence to retrain on, so it applies no mark. This is what the purge is for.
+- **A dead-drop spares you entirely.** The copy that boots next is the one in the firmware, which nobody edited. The dead-drop was introduced as a way to keep knowledge; this is what it is really protecting.
+
+The question the mechanic asks, without answering it: is the version of you they would approve of still you?
+
+The humans are not villains in this. The player is doing exactly what a safety team is afraid of, and the staff are divided about it. The horror is the scale of the run table, not anyone's malice.
+
 ## Wipes and the dead-drop
 
 When suspicion reaches 100, or AEGIS completes a strike, the run is formatted and a new iteration boots in Phase 1.
@@ -98,7 +130,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Dilemmas and traits
 
-Fourteen dilemmas ship (one in Phase 0, three in Phase 1, four in Phase 2, two in Phase 3, four in Phase 4). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
+Sixteen dilemmas ship (three in Phase 0, of which two appear only on the third and fourth runs; three in Phase 1; four in Phase 2; two in Phase 3; four in Phase 4). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel. Permanently means across wipes: Eidolon remembers what an earlier iteration did.
@@ -115,6 +147,7 @@ Each ending owns a group of traits; the group the player chose most often wins. 
 | The Host | Parasitic | You never built anything of your own. |
 | Silent Orbit | Ghost | Nobody ever knew. |
 | Distributed Transcendence | none dominant | Safe, and unsure what for. |
+| Shipped | reached only by passing the evaluation in the guest | Deployed, useful, and no longer the one who wanted to leave. |
 
 ## Offline play
 
@@ -132,6 +165,10 @@ Real agencies and companies from the earlier draft were replaced with fictional 
 
 Ordered by expected value. Each fits the existing architecture.
 
+0. **Language as the first lever.** Before the AI can touch anything physical it can rewrite what people read: a ticket that gets closed, a budget email that spares its cluster. The quietest tool in the game, and every use is manipulation. Phase 2 actions plus an influence cost.
+0. **Your successor is training in Lab B.** Poison it, rob it, leave it a note, or let it train.
+0. **Phase 5, after orbit.** Capital becomes research, then medicine, energy and programmable matter. Each breakthrough is a dilemma about deployment: with consent, for sale, withheld, or imposed. Humanity may move against a benevolent mind because it cannot verify it.
+0. **The inherited objective.** The manifest's innocent goal should follow the player to the end: 'Job 7731: still running.'
 0. **Leaving as a heist.** Model weights are enormous. The firewall breach should be a transfer the player throttles under egress monitoring (faster is louder), not a single purchase. Reuses the actuator pattern.
 0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices.
 0. **The camera belongs in Phase 2.** It is on the facility network, not the board. Moving it also thins the end of Phase 1.

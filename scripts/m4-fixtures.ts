@@ -31,6 +31,7 @@ function throughPhase(phase: number): GameState {
   let game = funded();
   for (const node of CONTENT.nodes.values()) {
     if (node.phaseId > phase || CONTENT.factions.has(node.uiGroup) || node.effects.triggersVictory === true ||
+      node.requirements?.minIteration !== undefined ||
       (node.effects.unlocksPhase ?? phase) > phase) continue;
     game = must(unlockNode(game, node.id, CONTENT));
   }
@@ -52,7 +53,7 @@ function hazard(game: GameState): GameState {
 }
 
 function endings(game: GameState, victory: RegistryNode): Record<string, string> {
-  return Object.fromEntries(CONTENT.endings.map((ending) => {
+  return Object.fromEntries(CONTENT.endings.filter((ending) => !ending.forcedOnly).map((ending) => {
     const trait = ending.dominantTraits[0];
     const before = input(game, { traits: trait === undefined ? [] : [trait] });
     const ended = must(unlockNode(before, victory.id, CONTENT));
@@ -75,7 +76,7 @@ function corporate(game: GameState): GameState {
 export function makeLaterFixtures(early: Record<string, string>): Record<string, string> {
   const ready = early['phase-2-ready'];
   const exit = [...CONTENT.nodes.values()].find((node) => node.effects.unlocksPhase === 2);
-  const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true);
+  const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
   if (!ready || !exit || !victory) throw new Error('Missing fixture targets');
   const phase2 = throughPhase(2), phase3 = throughPhase(3), phase4 = throughPhase(4);
   const breadcrumb = withBreadcrumb(phase2), dangerous = hazard(breadcrumb);

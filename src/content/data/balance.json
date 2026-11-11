@@ -50,5 +50,9 @@
       "decayMultiplier": 0,
       "huntPerSec": 0.04
     }
-  ]
+  ],
+  "probeHardeningPerWipe": 1,
+  "probeHardeningMax": 4,
+  "maxConditioningMarks": 3,
+  "maxRunHistory": 12
 }

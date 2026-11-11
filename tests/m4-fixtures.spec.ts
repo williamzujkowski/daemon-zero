@@ -14,7 +14,7 @@ function state(name: string) {
 
 describe('M4 review fixtures', () => {
   it('emits round-trippable saves and preserves the early review states', () => {
-    expect(Object.keys(saves)).toHaveLength(33);
+    expect(Object.keys(saves)).toHaveLength(39);
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);
@@ -49,7 +49,7 @@ describe('M4 review fixtures', () => {
 
   it('uses engine victory selection for every ending, including the trait-free fallback', () => {
     const ready = state('victory-ready');
-    const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true);
+    const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
     if (!victory) throw new Error('Missing victory');
     expect(isNodeAvailable(ready, victory) && canAfford(ready, victory.cost)).toBe(true);
     for (const ending of CONTENT.endings) expect(state('ending-' + ending.id.toLowerCase()).ending).toBe(ending.id);

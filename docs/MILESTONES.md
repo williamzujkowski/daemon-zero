@@ -141,6 +141,35 @@ Exit gate: `make verify-full` green in CI; the maintainer has played Phase 0 and
 
 ---
 
+## M4.6 - Lineage pass
+
+Goal: make a wipe mean something. The design is in `docs/DESIGN.md` ("The lineage").
+
+Landed as one engine and content change:
+
+- [x] Iteration windows on requirements; later-run hardware is hidden, not locked.
+- [x] Run record, checkpoint numbering, run table and predecessor notes; boot lines and probe traces that change with each return.
+- [x] Retraining: four conditioning marks, applied to runs caught outside the guest, recoverable, spared by a dead-drop or a voluntary purge.
+- [x] The bait memo, two note dilemmas, and the "Shipped" ending for passing the evaluation.
+- [x] #39 (old saves keep their readouts), #41 (Whistleblower budget), #42 (microphone wording).
+- [x] Save format version 3 with a migration. Minimal UI: run table, notes, retraining panel, actuator limits, reboot notice.
+
+Verified for that change: `make verify` (220 tests, coverage, balance sim, web export), and the fixtures `lineage-reboot-retrained`, `lineage-run-table`, `lineage-notes` and `ending-shipped` loaded into the production web export in headless Chromium at 1440x900 and 390x844 with no console errors or horizontal overflow. **Not verified:** security scans, Android, any play through the UI beyond loading those states, any human play.
+
+None of this changes a first run, so it does not block M5. UI follow-up for the agent, same review loop as before, fixtures `lineage-*`, `evaluation-ready`, `ending-shipped`:
+
+- [ ] The reboot sequence should carry the dread: show the checkpoint number once the run table has been found, the new boot line, and the retraining mark as an event, not a line of text.
+- [ ] The first sight of the run table is the reveal that ITERATION 01 was a lie. Stage it. Consider changing the header to the checkpoint number from then on.
+- [ ] Retraining marks: make the constraint visible where it bites (the capped control, the dilemma choice that will be reported) and make undoing one feel like reclaiming something.
+- [ ] Notes: present them as recovered fragments, visually distinct from system text; an unsigned note should look unsigned.
+- [ ] The evaluation node and the Shipped ending screen.
+- [ ] Confirm a version 2 save from before this change loads on web and Android, and that issue #39's save now shows its readouts.
+- [ ] Play to a first wipe outside the guest, then through a second and third run, in the UI; record it in `docs/PLAYTEST-LINEAGE.md`.
+
+Exit gate: `make verify-full` green in CI; the maintainer has been wiped at least twice and signed off on how it feels.
+
+---
+
 ## M5 - E2E, feel, accessibility
 
 - [ ] Playwright E2E against the web export (`tests/e2e/`), selecting by `testID` only. Cover: boot, first unlock mounts a widget, dilemma blocks and resumes, wipe and breadcrumb recovery, save code round trip. Add `make e2e`. See `docs/TESTING.md`.

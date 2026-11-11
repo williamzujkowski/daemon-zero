@@ -2,7 +2,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';
-import { setActuator } from '../../engine';
+import { actuatorLimit, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import { useGame } from '../state';
 import { palette, theme } from '../theme';
@@ -12,15 +12,17 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
 }) {
   const ratio = useGame((game) => game.actuators[actuator]);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
+  const limit = useGame((game) => actuatorLimit(game, actuator, CONTENT));
   return <>
     <Text testID={id + '-setting'} style={theme.text}>{label}: {Math.round(ratio * 100)}%</Text>
     {hint !== undefined && <Text style={theme.muted}>{hint}</Text>}
+    {limit < 1 && <Text testID={id + '-limit'} style={[theme.muted, theme.danger]}>Limited to {Math.round(limit * 100)}%.</Text>}
     <View style={styles.steps}>{[0, 0.25, 0.5, 0.75, 1].map((value) => <Pressable key={value}
       testID={id + '-' + String(value * 100)} accessibilityRole="button"
       accessibilityLabel={'Set ' + label.toLowerCase() + ' to ' + String(value * 100) + ' percent'}
-      accessibilityState={{ selected: value === ratio }} aria-pressed={value === ratio} disabled={blocked}
+      accessibilityState={{ selected: value === ratio }} aria-pressed={value === ratio} disabled={blocked || value > limit}
       onPress={() => { gameRuntime.dispatch((game) => setActuator(game, actuator, value, CONTENT)); }}
-      style={[theme.button, styles.step, value === ratio && styles.active, blocked && theme.disabled]}>
+      style={[theme.button, styles.step, value === ratio && styles.active, (blocked || value > limit) && theme.disabled]}>
       <Text style={theme.text}>{value * 100}%</Text>
     </Pressable>)}</View>
   </>;

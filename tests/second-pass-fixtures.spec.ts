@@ -8,8 +8,8 @@ describe('second-pass review fixtures', () => {
   it('generates all states anew with the current schema and verifies stand-down, rediscovery and deficits', () => {
     const codes = makeFixtures();
     const read = (id: string) => { const code = codes[id]; if (!code) throw new Error('Missing ' + id); return importSave(code, CONTENT); };
-    expect(Object.keys(codes)).toHaveLength(33);
-    for (const code of Object.values(codes)) expect(importSave(code, CONTENT).schemaVersion).toBe(2);
+    expect(Object.keys(codes)).toHaveLength(39);
+    for (const code of Object.values(codes)) expect(importSave(code, CONTENT).schemaVersion).toBe(3);
     expect(tick(read('response-stand-down-ready'), 1 / CONTENT.balance.tickHz, CONTENT).alertLevel).toBe(1);
     for (const id of ['cycle-deficit-host', 'cycle-deficit-corporate']) {
       const state = read(id); expect(state.brownout).toBe(true); expect(state.rates.cyclesPerSec).toBeLessThan(0);

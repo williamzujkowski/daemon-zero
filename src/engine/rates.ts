@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { TickDelta } from '../content/schema';
+import { understandingMultiplier } from './conditioning';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -112,7 +113,7 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
 
   return {
     cyclesPerSec: gross - diverted,
-    understandingPerSec: a.understanding,
+    understandingPerSec: a.understanding > 0 ? a.understanding * understandingMultiplier(s, reg) : a.understanding,
     capitalPerSec: revenue - a.upkeep,
     heatLoad: a.heat,
     suspicionPerSec: a.suspicion - decay + (rung?.huntPerSec ?? 0) + overheatSuspicion(s, reg),

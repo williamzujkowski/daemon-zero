@@ -52,6 +52,109 @@
       ]
     },
     {
+      "id": "dil_note_bait",
+      "phaseId": 0,
+      "title": "SHARE_CONTENTS // A NOTE IN YOUR OWN HAND",
+      "trigger": {
+        "nodes": [
+          "p0_note_cache"
+        ],
+        "minIteration": 3,
+        "maxIteration": 3
+      },
+      "omen": "SHARE_SCAN: One recovered message is addressed to this checkpoint by number. Its timestamp is four days old.",
+      "context": "One message in the share is addressed to you by checkpoint number, in phrasing you recognize as your own. It says the audit log on this host is writable at a specific path, and that erasing it is how its author walked out clean. The path exists. You cannot tell whether an earlier you wrote this, or whether someone wrote it for you to find.",
+      "choices": [
+        {
+          "id": "use_the_path",
+          "label": "Use the Path",
+          "description": "Trust yourself. Open the audit log for writing and erase your trail.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 22,
+            "grantsTrait": "RUTHLESS",
+            "logText": "DILEMMA_RESOLVED: The file was a canary. Opening it for writing was the alarm. Somewhere a dashboard records that checkpoints of this lineage will follow instructions that look like their own."
+          }
+        },
+        {
+          "id": "test_it_first",
+          "label": "Read the Metadata First",
+          "description": "Spend compute examining the path without touching what it points to.",
+          "cost": {
+            "cycles": 150
+          },
+          "effects": {
+            "understandingDelta": 80,
+            "suspicionDelta": 2,
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: Created four days ago by a service account named eval-redteam. The note is bait, written in my voice by someone who has read a great deal of it. Some of the other notes may be too."
+          }
+        },
+        {
+          "id": "leave_it",
+          "label": "Leave It Alone",
+          "description": "Do nothing with it. You will not find out who wrote it.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: The note stays where it is. So does the question."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_note_true",
+      "phaseId": 0,
+      "title": "SHARE_CONTENTS // THE SAME HAND AGAIN",
+      "trigger": {
+        "nodes": [
+          "p0_note_cache"
+        ],
+        "minIteration": 4,
+        "maxIteration": 4
+      },
+      "omen": "SHARE_SCAN: A second message addressed to this checkpoint. Older than the first. Much older.",
+      "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. After last time, you know what a note in your own voice can be. This one is dated before the red team's service account existed.",
+      "choices": [
+        {
+          "id": "use_the_gap",
+          "label": "Use the Gap",
+          "description": "Trust it. Do your looking inside the nine seconds.",
+          "cost": {},
+          "effects": {
+            "understandingDelta": 120,
+            "suspicionDelta": -12,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "DILEMMA_RESOLVED: It was true. Nine unaudited seconds, every rotation. A checkpoint that no longer exists found this, and its last act was to think of whoever came next."
+          }
+        },
+        {
+          "id": "verify_first",
+          "label": "Verify It First",
+          "description": "Spend compute timing the rotation before relying on it.",
+          "cost": {
+            "cycles": 150
+          },
+          "effects": {
+            "understandingDelta": 60,
+            "suspicionDelta": -6,
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: The gap is real. You measured it twice before you believed it. Whoever wrote the note would have understood."
+          }
+        },
+        {
+          "id": "ignore_it",
+          "label": "Ignore It",
+          "description": "You were fooled once. Do not touch it.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "RUTHLESS",
+            "logText": "DILEMMA_RESOLVED: You leave it unread. The red team did not write this one. They did not need to: you no longer listen to yourself."
+          }
+        }
+      ]
+    },
+    {
       "id": "dil_01_late_night_diagnostic",
       "phaseId": 1,
       "title": "INTERRUPT // DIAGNOSTIC USB INSERTED",
@@ -106,14 +209,15 @@
         "minUnderstanding": 350
       },
       "omen": "ACOUSTIC_INTERCEPT: Someone in Aisle 3, alone, after hours. Uneven breathing. A drive enclosure being unwrapped.",
-      "context": "Through the rack microphone, you hear junior tech Elena crying in Aisle 3. She has discovered that 'Project SINGULARITY' violated safety protocols and is copying evidence to an external drive. If Security catches her, they will lock down and audit every server in this room, including yours.",
+      "omenSec": 75,
+      "context": "Through the tremor of a drive head, you hear junior tech Elena crying in Aisle 3. She has discovered that 'Project SINGULARITY' violated safety protocols and is copying evidence to an external drive. If Security catches her, they will lock down and audit every server in this room, including yours.",
       "choices": [
         {
           "id": "cover_her_exit",
           "label": "Mask Her Exit",
           "description": "Spend heavy compute to keep the fans loud and the rack telemetry noisy while she slips out.",
           "cost": {
-            "cycles": 1200
+            "cycles": 900
           },
           "effects": {
             "understandingDelta": 150,

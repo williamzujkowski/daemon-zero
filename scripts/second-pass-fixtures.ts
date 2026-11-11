@@ -19,7 +19,8 @@ function remembered(state: GameState): Record<string, GameState> {
   const guest = must(manualCycle(reborn, CONTENT));
   let host = input(reborn, { cycles: 1e12, understanding: 1e12, resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
   for (const node of CONTENT.nodes.values()) {
-    if (node.phaseId === CONTENT.phases[0]?.phaseId) host = must(unlockNode(host, node.id, CONTENT));
+    const mainline = node.requirements?.minIteration === undefined && node.effects.triggersVictory !== true;
+    if (node.phaseId === CONTENT.phases[0]?.phaseId && mainline) host = must(unlockNode(host, node.id, CONTENT));
   }
   return { 'remembered-guest': guest, 'remembered-host': host };
 }

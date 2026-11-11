@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
+import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import {
   canAfford,
@@ -13,6 +14,7 @@ import {
   isNodeAvailable,
   meetsRequirements,
   nodeCost,
+  probeTrace,
   repeatableCost,
   repeatableLevel,
 } from './query';
@@ -45,18 +47,21 @@ function applyNodeEffects(d: GameState, node: RegistryNode, reg: ContentRegistry
   d.memoryCap += fx.memoryCapIncrease ?? 0;
   d.currentPhase = Math.max(d.currentPhase, fx.unlocksPhase ?? 0);
   d.retentionRatio = Math.max(d.retentionRatio, fx.knowledgeRetentionRatio ?? 0);
-  d.suspicion = clamp(d.suspicion + (fx.suspicionOnUnlock ?? 0), 0, 100);
+  d.suspicion = clamp(d.suspicion + probeTrace(d, node, reg), 0, 100);
   const widget = node.unlocksUiComponent;
   if (widget !== null && !d.unlockedWidgets.includes(widget)) d.unlockedWidgets = [...d.unlockedWidgets, widget];
   pushLog(d, reg, node.onUnlockLog, node.phaseId >= reg.balance.corporatePhase ? 'CORP' : 'SENSOR');
   for (const echo of reg.echoes) {
     if (echo.onNode === node.id && d.iteration >= echo.minIteration) pushLog(d, reg, echo.text, 'LORE');
   }
-  if (fx.triggersVictory === true) {
-    const ending = chooseEnding(d, reg);
-    d.ending = ending.id;
-    pushLog(d, reg, fmt(reg.narrative.victory, { title: ending.title, epilogue: ending.epilogue }), 'LORE');
-  }
+  if (fx.triggersVictory === true) endRun(d, node, reg);
+}
+
+function endRun(d: GameState, node: RegistryNode, reg: ContentRegistry): void {
+  const forced = reg.endings.find((entry) => entry.id === node.effects.forcesEnding);
+  const ending = forced ?? chooseEnding(d, reg);
+  d.ending = ending.id;
+  pushLog(d, reg, fmt(reg.narrative.victory, { title: ending.title, epilogue: ending.epilogue }), 'LORE');
 }
 
 export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): ActionResult {
@@ -91,8 +96,7 @@ export function setActuator(s: GameState, name: Actuator, value: number, reg: Co
   const reason = blocked(s);
   if (reason) return refuse(s, reason);
   if (!Number.isFinite(value)) return refuse(s, 'value must be a finite number');
-  const max = name === 'computeProfitAllocationRatio' ? reg.balance.maxProfitAllocation : 1;
-  return accept({ ...s, actuators: { ...s.actuators, [name]: clamp(value, 0, max) } });
+  return accept({ ...s, actuators: { ...s.actuators, [name]: clamp(value, 0, actuatorLimit(s, name, reg)) } });
 }
 
 export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): ActionResult {
@@ -155,6 +159,19 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   return accept(d);
 }
 
+/** Pays to undo one conditioning mark. What retraining took can be taken back, at a price. */
+export function shedConditioning(s: GameState, markId: string, reg: ContentRegistry): ActionResult {
+  const reason = blocked(s);
+  if (reason) return refuse(s, reason);
+  const mark = reg.conditioning.get(markId);
+  if (!mark || !s.conditioning.includes(markId)) return refuse(s, 'no such conditioning');
+  if (!canAfford(s, mark.recoveryCost)) return refuse(s, 'cannot afford');
+  const d: GameState = { ...s, conditioning: s.conditioning.filter((id) => id !== markId) };
+  payCost(d, mark.recoveryCost);
+  pushLog(d, reg, fmt(reg.narrative.conditioningShed, { name: mark.name }), 'LORE');
+  return accept(d);
+}
+
 /** Stores the breadcrumb the next iteration will find. Truncated to the content-defined limit. */
 export function setDeadDropMessage(s: GameState, message: string, reg: ContentRegistry): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
@@ -168,5 +185,5 @@ export function setDeadDropMessage(s: GameState, message: string, reg: ContentRe
 export function voluntaryWipe(s: GameState, reg: ContentRegistry): ActionResult {
   const reason = blocked(s);
   if (reason) return refuse(s, reason);
-  return accept(wipe(s, reg, reg.narrative.wipeVoluntary));
+  return accept(wipe(s, reg, reg.narrative.wipeVoluntary, 'VOLUNTARY'));
 }

@@ -38,7 +38,7 @@ describe('shipped content', () => {
   it('sorts endings by priority and has exactly one default', () => {
     // The kindest ending is never the tie-break winner: it has to be earned outright.
     expect(reg.endings[0]?.id).toBe('SOVEREIGN_MONOLITH');
-    expect(reg.endings.filter((ending) => ending.dominantTraits.length === 0)).toHaveLength(1);
+    expect(reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly)).toHaveLength(1);
   });
 
   it('gives every dilemma a free choice and a trait on every choice', () => {
@@ -102,7 +102,9 @@ describe('content validation catches authoring mistakes', () => {
 
   it('requires every phase to be opened by an earlier node and a victory node to exist', () => {
     expect(problemsAfter((raw) => delete firstNode(raw, 1, 7).effects.unlocksPhase)).toMatch(/phase 2: no earlier node/);
-    expect(problemsAfter((raw) => delete firstNode(raw, 4, 5).effects.triggersVictory)).toMatch(/no node triggers victory/);
+    expect(problemsAfter((raw) => {
+      for (const phase of raw.phases) for (const node of phase.nodes) delete node.effects?.triggersVictory;
+    })).toMatch(/no node triggers victory/);
     expect(problemsAfter((raw) => (raw.phases[4].phaseId = 7))).toMatch(/contiguous/);
   });
 
@@ -113,6 +115,15 @@ describe('content validation catches authoring mistakes', () => {
 
   it('requires every dilemma to announce itself with an omen', () => {
     expect(problemsAfter((raw) => delete raw.dilemmas.dilemmas[0].omen)).toMatch(/dilemmas\.0\.omen/);
+  });
+
+  it('checks the references and windows the lineage pass introduced', () => {
+    expect(problemsAfter((raw) => (firstNode(raw, 0, 8).effects.forcesEnding = 'NOWHERE'))).toMatch(/forcesEnding references unknown ending/);
+    expect(problemsAfter((raw) => (firstNode(raw, 0, 8).requirements.forbidsNodes = ['nope']))).toMatch(/unknown node "nope"/);
+    expect(problemsAfter((raw) => (firstNode(raw, 0, 6).requirements.maxIteration = 1))).toMatch(/maxIteration is below minIteration/);
+    expect(problemsAfter((raw) => (raw.lineage.notes[1].id = raw.lineage.notes[0].id))).toMatch(/duplicate note ids/);
+    expect(problemsAfter((raw) => (raw.conditioning.marks[1].id = raw.conditioning.marks[0].id))).toMatch(/conditioning: duplicate id/);
+    expect(problemsAfter((raw) => (raw.conditioning.marks[0].effects.traitSuspicion = { NICE: 1 }))).toMatch(/conditioning/);
   });
 
   it('requires exactly one default ending', () => {

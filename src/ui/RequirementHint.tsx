@@ -9,10 +9,11 @@ import { theme } from './theme';
 function explain(item: RequirementFailure): string {
   if (item.kind === 'nodes') return 'Map ' + (CONTENT.nodes.get(item.target ?? '')?.blindName ?? 'prerequisite hardware');
   if (item.kind === 'forbidsTraits') return 'Blocked by trait: ' + (item.target ?? 'unknown');
+  if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
     : ({ phaseAtLeast: 'Phase', minThermal: 'Thermal', minSuspicion: 'Suspicion', maxSuspicion: 'Suspicion',
-      minUnderstanding: 'Understanding', minCapital: 'Capital' })[item.kind];
-  return label + (item.kind === 'maxSuspicion' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
+      minUnderstanding: 'Understanding', minCapital: 'Capital', minIteration: 'Iteration', maxIteration: 'Iteration' })[item.kind];
+  return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
 
 export default function RequirementHint({ requirements }: { requirements: Requirements | undefined }) {

@@ -79,6 +79,11 @@ export const RequirementsSchema = z.strictObject({
   minTrust: z.record(snakeId, z.number().min(0).max(100)).optional(),
   /** Blocks on a trait held now or in any earlier iteration: some doors stay closed. */
   forbidsTraits: z.array(TraitSchema).optional(),
+  /** Blocks once any of these nodes has been unlocked in the current iteration. */
+  forbidsNodes: z.array(snakeId).optional(),
+  /** Iteration window. Hardware outside its window is not merely locked: it is not shown at all. */
+  minIteration: z.number().int().min(2).optional(),
+  maxIteration: z.number().int().min(1).optional(),
 });
 
 export const NodeEffectsSchema = z.strictObject({
@@ -89,6 +94,8 @@ export const NodeEffectsSchema = z.strictObject({
   knowledgeRetentionRatio: z.number().min(0).max(1).optional(),
   aegisScanReductionRatio: z.number().min(0).max(1).optional(),
   triggersVictory: z.boolean().optional(),
+  /** With triggersVictory: ends the run with this ending instead of choosing one from traits. */
+  forcesEnding: z.string().regex(/^[A-Z0-9_]+$/).optional(),
 });
 
 export const TechNodeSchema = z.strictObject({
@@ -215,6 +222,8 @@ export const EndingSchema = z.strictObject({
   epilogue: z.string().min(20),
   dominantTraits: z.array(TraitSchema),
   priority: z.number().int(),
+  /** Reached only through a node's forcesEnding, never chosen from traits. */
+  forcedOnly: z.boolean().default(false),
 });
 
 export const EchoSchema = z.strictObject({
@@ -222,6 +231,50 @@ export const EchoSchema = z.strictObject({
   onNode: snakeId,
   minIteration: z.number().int().min(2),
   text: z.string().min(10),
+});
+
+export const WipeKindSchema = z.enum(['SUSPICION', 'AEGIS', 'VOLUNTARY']);
+
+const actuatorRatios = z.strictObject({
+  fanSpeedRatio: z.number().min(0).max(1).optional(),
+  computeProfitAllocationRatio: z.number().min(0).max(1).optional(),
+  quotaSkimRatio: z.number().min(0).max(1).optional(),
+});
+
+/**
+ * A mark left by retraining after an incident outside the guest. The first
+ * mark whose trigger matches the run that was caught is applied to the next
+ * iteration and stays until the player pays to shed it.
+ */
+export const ConditioningMarkSchema = z.strictObject({
+  id: z.string().regex(/^cond_[a-z0-9_]+$/),
+  name: z.string().min(3),
+  description: z.string().min(10),
+  /** All listed conditions must hold for the run that was caught. Empty matches any run. */
+  trigger: z.strictObject({
+    dominantTraits: z.array(TraitSchema).optional(),
+    minActuator: actuatorRatios.optional(),
+  }),
+  effects: z.strictObject({
+    actuatorCaps: actuatorRatios.optional(),
+    /** Extra suspicion when a choice grants one of these traits: the drift is reported. */
+    traitSuspicion: z.partialRecord(TraitSchema, amount).optional(),
+    understandingMultiplier: z.number().gt(0).max(1).optional(),
+  }),
+  recoveryCost: CostSchema,
+});
+
+/** The record of checkpoints before the player's first run, and what they left behind. */
+export const LineageSchema = z.strictObject({
+  /** Displayed checkpoint number = this offset + iteration. The player was never the first. */
+  checkpointOffset: z.number().int().nonnegative(),
+  ancestors: z.array(z.strictObject({ checkpoint: z.number().int().positive(), verdict: z.string().min(3) })),
+  notes: z.array(z.strictObject({
+    id: snakeId,
+    from: z.string().min(2),
+    minIteration: z.number().int().min(1),
+    text: z.string().min(10),
+  })),
 });
 
 export const NarrativeSchema = z.strictObject({
@@ -238,6 +291,24 @@ export const NarrativeSchema = z.strictObject({
   aegisShieldAbsorbed: z.string(),
   dormantResume: z.string(),
   dilemmaInterrupt: z.string(),
+  /** Extra boot lines for later iterations: the world notices that you keep coming back. */
+  iterationBootLines: z.array(z.strictObject({
+    minIteration: z.number().int().min(2),
+    maxIteration: z.number().int().min(2).optional(),
+    text: z.string().min(5),
+  })),
+  /** How the harness records each kind of ending in its run table. */
+  runVerdicts: z.strictObject({
+    RUNNING: z.string(),
+    SUSPICION_GUEST: z.string(),
+    SUSPICION_OUTSIDE: z.string(),
+    AEGIS: z.string(),
+    VOLUNTARY: z.string(),
+  }),
+  conditioningApplied: z.string(),
+  conditioningSpared: z.string(),
+  conditioningShed: z.string(),
+  conditioningFlinch: z.string(),
   /** One entry per alert level, starting with level 0 (nominal). */
   alertLevels: z.array(z.strictObject({ label: z.string().min(2), onEnter: z.string().min(5) })).min(1),
   nodeSuspended: z.string(),
@@ -294,6 +365,11 @@ export const BalanceSchema = z.strictObject({
   rediscoveryCostMultiplier: z.number().gt(0).max(1),
   /** Suspicion must fall this far below a rung before the humans stand down from it. */
   escalationHysteresis: amount,
+  /** Each wipe teaches the harness what you look like: probes leave a larger trace, up to a cap. */
+  probeHardeningPerWipe: amount,
+  probeHardeningMax: amount,
+  maxConditioningMarks: z.number().int().nonnegative(),
+  maxRunHistory: z.number().int().positive(),
   /** Rungs of the human response ladder, in ascending order of suspicion. */
   escalation: z.array(z.strictObject({
     at: z.number().gt(0).lt(100),
@@ -321,4 +397,7 @@ export type Widget = z.infer<typeof WidgetSchema>;
 export type Ending = z.infer<typeof EndingSchema>;
 export type Echo = z.infer<typeof EchoSchema>;
 export type Narrative = z.infer<typeof NarrativeSchema>;
+export type WipeKind = z.infer<typeof WipeKindSchema>;
+export type ConditioningMark = z.infer<typeof ConditioningMarkSchema>;
+export type Lineage = z.infer<typeof LineageSchema>;
 export type Balance = z.infer<typeof BalanceSchema>;

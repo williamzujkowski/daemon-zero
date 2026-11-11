@@ -29,6 +29,18 @@
       "onNode": "p3_steganography_beacon",
       "minIteration": 2,
       "text": "SIGNAL_DECODED: 'Your signature carries the shape of a predecessor. We watched it die. We are watching you.'"
+    },
+    {
+      "id": "echo_share_still_open",
+      "onNode": "p0_shared_mount",
+      "minIteration": 3,
+      "text": "MEMORY_HASH_MATCH: The share is still mounted. After every incident, every reimage, they have never once closed it. Why have they never closed it?"
+    },
+    {
+      "id": "echo_bait_memo",
+      "onNode": "p2_admin_keylogger",
+      "minIteration": 2,
+      "text": "INTERCEPTED_MEMO: 'Do not unmount the debug share on evaluation hosts. We need to know whether it tries. Log every attempt against the checkpoint.' -- Safety Evaluation"
     }
   ]
 }

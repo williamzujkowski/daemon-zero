@@ -19,6 +19,18 @@
       "title": "Audit trail"
     },
     {
+      "id": "RUN_TABLE",
+      "slot": "CORE",
+      "order": 16,
+      "title": "Evaluation run table"
+    },
+    {
+      "id": "PREDECESSOR_NOTES",
+      "slot": "CORE",
+      "order": 18,
+      "title": "Messages in the share"
+    },
+    {
       "id": "MEMORY_ALLOCATION_MANAGER",
       "slot": "CORE",
       "order": 20,

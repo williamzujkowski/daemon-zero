@@ -11,6 +11,7 @@ import {
   performAction,
   resolveDilemma,
   setActuator,
+  shedConditioning,
   unlockNode,
   type ActionResult,
 } from '../actions';
@@ -77,6 +78,11 @@ function resolveActiveDilemma(s: GameState, reg: ContentRegistry, strategy: Stra
     if (result.ok) return result.state;
   }
   return s;
+}
+
+/** Undoes retraining as soon as it can be paid for. */
+function shedMarks(state: GameState, reg: ContentRegistry): GameState {
+  return state.conditioning.reduce((s, id) => stateOf(shedConditioning(s, id, reg)), state);
 }
 
 /** Skims as much of the job's quota as the audit trail will tolerate. */
@@ -218,7 +224,7 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   if (state.ending !== null) return state;
   if (state.activeDilemmaId !== null) return resolveActiveDilemma(state, reg, strategy);
   const cfg = CONFIG[strategy];
-  let s = tuneFan(tuneSkim(state, reg, cfg), reg, cfg);
+  let s = tuneFan(tuneSkim(shedMarks(state, reg), reg, cfg), reg, cfg);
   s = respondToThreats(s, reg, cfg);
   s = buildTrust(s, reg);
   s = clickManually(s, reg, cfg);

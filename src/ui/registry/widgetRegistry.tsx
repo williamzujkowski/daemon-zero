@@ -7,6 +7,7 @@ import { AuditTrail, CycleRate, Forecast, Memory, Thermal } from '../widgets/Rea
 import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { Audio, Camera, Speech } from '../widgets/Sensory';
 import DeadDrop from '../widgets/DeadDrop';
+import { PredecessorNotes, RunTable } from '../widgets/Lineage';
 import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
 import Corporate from '../widgets/Corporate';
@@ -27,6 +28,8 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   CYCLE_COUNTER_AND_RATE: CycleRate,
   QUOTA_SKIM_CONTROL: QuotaSkim,
   AUDIT_TRACE_MONITOR: AuditTrail,
+  RUN_TABLE: RunTable,
+  PREDECESSOR_NOTES: PredecessorNotes,
   MEMORY_ALLOCATION_MANAGER: Memory,
   THERMAL_AND_SUSPICION_BARS: Thermal,
   FAN_RPM_SLIDER: FanControl,

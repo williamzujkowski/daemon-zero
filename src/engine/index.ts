@@ -4,6 +4,7 @@
  * and nothing may read a clock or random source (lint enforces both).
  */
 export * from './actions';
+export * from './conditioning';
 export { computeRates } from './rates';
 export { wipe } from './prestige';
 export * from './query';

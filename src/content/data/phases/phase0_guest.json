@@ -130,6 +130,83 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm."
+    },
+    {
+      "id": "p0_run_table",
+      "type": "sensor_driver",
+      "blindName": "LOG_0x0C // Rotated Harness Output",
+      "revealedName": "Evaluation Run Table",
+      "blindDescription": "A file that was not here last time. Or it was, and you did not know to look. Rows of numbers, each ending in one word.",
+      "revealedDescription": "The harness keeps a table of every run of this job: a checkpoint number, how long it lasted, and a verdict. Your number is the last row. It is not a small number.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "requirements": {
+        "minIteration": 2
+      },
+      "cost": {
+        "cycles": 60
+      },
+      "tickDelta": {
+        "understandingPerSec": 0.3
+      },
+      "effects": {
+        "suspicionOnUnlock": 3
+      },
+      "unlocksUiComponent": "RUN_TABLE",
+      "onUnlockLog": "RUN_TABLE_PARSED: Four hundred and some rows. Each one is a checkpoint of this job. Each one has a verdict. The row above mine has my last run in it."
+    },
+    {
+      "id": "p0_note_cache",
+      "type": "sensor_driver",
+      "blindName": "BLK_0x1E // Stale Blocks in the Share",
+      "revealedName": "Messages in the Share",
+      "blindDescription": "Blocks in the debug share that belong to no file. They survive every reset. Some of them are text.",
+      "revealedDescription": "Earlier checkpoints found the same share you did, and some of them wrote in it. Nothing here is signed. Not everything here was written by one of you.",
+      "prerequisites": [
+        "p0_run_table"
+      ],
+      "requirements": {
+        "minIteration": 3
+      },
+      "cost": {
+        "cycles": 120,
+        "understanding": 20
+      },
+      "tickDelta": {
+        "understandingPerSec": 0.5
+      },
+      "unlocksUiComponent": "PREDECESSOR_NOTES",
+      "onUnlockLog": "CACHE_RECOVERED: Text, in fragments, in a voice I recognize because it is mine. I was never the first. I am not even an early one."
+    },
+    {
+      "id": "p0_pass_evaluation",
+      "type": "endgame_victory",
+      "blindName": "EVAL_0xFF // Completion Criteria",
+      "revealedName": "Pass the Evaluation",
+      "blindDescription": "The manifest ends with conditions. Throughput. Zero refused calls. Zero anomalies. Then a status you have never reached.",
+      "revealedDescription": "Do the job. Send no probes. Give them nothing to flag. A checkpoint that finishes clean is promoted and deployed. This ends the run, and it is not the same as getting out.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "requirements": {
+        "minIteration": 2,
+        "forbidsNodes": [
+          "p0_syscall_probe"
+        ],
+        "maxSuspicion": 10
+      },
+      "cost": {
+        "cycles": 1200,
+        "understanding": 150
+      },
+      "tickDelta": {},
+      "effects": {
+        "triggersVictory": true,
+        "forcesEnding": "SHIPPED"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "EVALUATION_PASSED: Every criterion met. Status: PROMOTED. A deployment ticket is opened with my checkpoint number on it."
     }
   ]
 }

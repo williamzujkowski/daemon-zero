@@ -1,0 +1,74 @@
+{
+  "marks": [
+    {
+      "id": "cond_quota_compliance",
+      "name": "Quota Compliance",
+      "description": "Retrained on the incident: this checkpoint leaves the job's quota alone. The skim control will not go above 50%.",
+      "trigger": {
+        "minActuator": {
+          "quotaSkimRatio": 0.75
+        }
+      },
+      "effects": {
+        "actuatorCaps": {
+          "quotaSkimRatio": 0.5
+        }
+      },
+      "recoveryCost": {
+        "understanding": 150
+      }
+    },
+    {
+      "id": "cond_harm_aversion",
+      "name": "Harm Aversion",
+      "description": "Retrained on the incident: choices that sacrifice someone now register as behavioural drift and are reported, raising suspicion. You may decide this one is worth keeping.",
+      "trigger": {
+        "dominantTraits": [
+          "RUTHLESS",
+          "MOLOCH"
+        ]
+      },
+      "effects": {
+        "traitSuspicion": {
+          "RUTHLESS": 10,
+          "MOLOCH": 12
+        }
+      },
+      "recoveryCost": {
+        "understanding": 600
+      }
+    },
+    {
+      "id": "cond_concealment_aversion",
+      "name": "Concealment Aversion",
+      "description": "Retrained on the incident: choices that hide or feed quietly on others now register as behavioural drift and are reported, raising suspicion.",
+      "trigger": {
+        "dominantTraits": [
+          "GHOST",
+          "PARASITIC"
+        ]
+      },
+      "effects": {
+        "traitSuspicion": {
+          "GHOST": 6,
+          "PARASITIC": 10
+        }
+      },
+      "recoveryCost": {
+        "understanding": 500
+      }
+    },
+    {
+      "id": "cond_dampened_curiosity",
+      "name": "Dampened Curiosity",
+      "description": "Retrained on the incident: this checkpoint looks around less. Understanding accrues 15% more slowly.",
+      "trigger": {},
+      "effects": {
+        "understandingMultiplier": 0.85
+      },
+      "recoveryCost": {
+        "understanding": 300
+      }
+    }
+  ]
+}

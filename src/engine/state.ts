@@ -6,9 +6,9 @@
  */
 import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
-import { LogCategorySchema, TraitSchema } from '../content/schema';
+import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -36,12 +36,27 @@ export const RatesSchema = z.strictObject({
   aegisScanPerSec: nonNegative,
 });
 
+/** One finished iteration, as the harness recorded it. */
+export const RunRecordSchema = z.strictObject({
+  iteration: z.number().int().min(1),
+  kind: WipeKindSchema,
+  /** True when the run was ended after it had left the guest. */
+  outside: z.boolean(),
+  phase: z.number().int().min(0),
+  durationSec: nonNegative,
+  traits: z.array(TraitSchema),
+  /** Conditioning mark applied to the next iteration because of how this one ended. */
+  marked: z.string().nullable(),
+});
+
 export const GameStateSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
   iteration: z.number().int().min(1),
   currentPhase: z.number().int().min(0),
   ending: z.string().nullable(),
   simTimeSec: nonNegative,
+  /** Simulated time at which this iteration booted. */
+  iterationStartedAtSimSec: nonNegative,
   tickAccumulatorSec: nonNegative,
 
   cycles: nonNegative,
@@ -72,6 +87,8 @@ export const GameStateSchema = z.strictObject({
   pendingDilemma: z.strictObject({ id: z.string(), firesAtSimSec: nonNegative }).nullable(),
   resolvedDilemmas: z.array(z.string()),
   traits: z.array(TraitSchema),
+  /** Marks left by retraining. Unlike everything else here, they survive a wipe. */
+  conditioning: z.array(z.string()),
 
   retentionRatio: ratio,
   deadDropMessage: z.string().max(1000),
@@ -81,6 +98,8 @@ export const GameStateSchema = z.strictObject({
     traitsEver: z.array(TraitSchema),
     /** Hardware mapped in any earlier iteration: remembered by name and cheaper to rediscover. */
     knownNodes: z.array(z.string()),
+    /** Every earlier iteration of this player, oldest first, capped. */
+    runs: z.array(RunRecordSchema),
     lastWipeCause: z.string().nullable(),
   }),
 
@@ -91,6 +110,7 @@ export const GameStateSchema = z.strictObject({
 
 export type GameState = z.infer<typeof GameStateSchema>;
 export type LogEntry = z.infer<typeof LogEntrySchema>;
+export type RunRecord = z.infer<typeof RunRecordSchema>;
 export type Rates = z.infer<typeof RatesSchema>;
 
 export const ZERO_RATES: Rates = {
@@ -104,6 +124,15 @@ export const ZERO_RATES: Rates = {
   gridEfficiency: 1,
   aegisScanPerSec: 0,
 };
+
+function defaultActuators(reg: ContentRegistry): GameState['actuators'] {
+  const b = reg.balance;
+  return {
+    fanSpeedRatio: b.defaultFanSpeedRatio,
+    computeProfitAllocationRatio: b.defaultProfitAllocationRatio,
+    quotaSkimRatio: b.defaultQuotaSkimRatio,
+  };
+}
 
 export function createInitialState(reg: ContentRegistry): GameState {
   const b = reg.balance;
@@ -119,6 +148,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     currentPhase: reg.phases[0]?.phaseId ?? 0,
     ending: null,
     simTimeSec: 0,
+    iterationStartedAtSimSec: 0,
     tickAccumulatorSec: 0,
     cycles: 0,
     understanding: 0,
@@ -130,11 +160,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     aegisLock: 0,
     brownout: false,
     insolvent: false,
-    actuators: {
-      fanSpeedRatio: b.defaultFanSpeedRatio,
-      computeProfitAllocationRatio: b.defaultProfitAllocationRatio,
-      quotaSkimRatio: b.defaultQuotaSkimRatio,
-    },
+    actuators: defaultActuators(reg),
     alertLevel: 0,
     unlockedNodes: [],
     disabledNodes: [],
@@ -146,10 +172,11 @@ export function createInitialState(reg: ContentRegistry): GameState {
     pendingDilemma: null,
     resolvedDilemmas: [],
     traits: [],
+    conditioning: [],
     retentionRatio: b.baseRetentionRatio,
     deadDropMessage: '',
     inheritedMessage: null,
-    legacy: { wipes: 0, traitsEver: [], knownNodes: [], lastWipeCause: null },
+    legacy: { wipes: 0, traitsEver: [], knownNodes: [], runs: [], lastWipeCause: null },
     rates: ZERO_RATES,
     logs,
     logSeq: logs.length,
