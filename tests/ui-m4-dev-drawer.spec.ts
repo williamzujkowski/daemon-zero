@@ -26,6 +26,8 @@ describe('M4 development drawer', () => {
     const view = await mountM4('phase-2-unlocked');
     await act(async () => { await vi.dynamicImportSettled(); });
     view.click('dev-open');
+    expect(view.find('dev-phase-info')?.textContent).toContain(CONTENT.phases[0]?.title);
+    expect(view.find('dev-phase-0')).not.toBeNull();
     const before = gameStore.store.getState().game.cycles;
     typeInto('dev-amount', '0'); view.click('dev-grant');
     expect(view.find('dev-status')?.textContent).toContain('positive amount');
@@ -45,6 +47,9 @@ describe('M4 development drawer', () => {
     view.click('dev-phase-4'); view.click('dev-jump-confirm');
     expect(gameStore.store.getState().game.currentPhase).toBe(4);
     expect(view.find('dev-drawer')).toBeNull();
+    view.click('dev-open'); view.click('dev-phase-0'); view.click('dev-jump-confirm');
+    expect(gameStore.store.getState().game.currentPhase).toBe(0);
+    expect(gameStore.store.getState().game.schemaVersion).toBe(2);
     view.close();
   });
 

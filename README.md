@@ -14,6 +14,8 @@ and iOS remain unverified.
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
 - M0 through M4 are complete. The accelerated web run reached The Ark at 10,322.1 simulated seconds; web/Android wipe and ending restoration were checked. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, follow-ups and limits. M5 has not started.
 
+- M4.5 UI follow-up is verified: the real-time guest/host run reached Phase 2 in 19m 45.7s. Maintainer opening play/sign-off remains pending; see `docs/PLAYTEST-SECOND-PASS.md` and `docs/REVIEW-SECOND-PASS.md`.
+
 ## Quick start (Ubuntu 24.04)
 
 ```bash
@@ -67,6 +69,8 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/DESIGN.md` | The game: phases, mechanics, dilemmas, endings, backlog |
 | `docs/ARCHITECTURE.md` | Layers, engine API, how to extend |
 | `docs/UI-SPEC.md` | Terminal UI, widgets, test ids, accessibility |
+| `docs/PLAYTEST-SECOND-PASS.md` | Real-time guest/host opening run, choices and limits |
+| `docs/REVIEW-SECOND-PASS.md` | Fresh M4.5 browser/native review and compatibility evidence |
 | `docs/PLAYTEST-M4.md` | Accelerated full UI run, choices, ending and verification limits |
 | `docs/REVIEW-M4.md` | M4 fixture/browser/native review evidence |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |

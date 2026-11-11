@@ -4,6 +4,7 @@ import { CONTENT } from '../../content';
 import { useGame } from '../state';
 import { theme } from '../theme';
 import Meter from './Meter';
+import ResponseRungs from './ResponseRungs';
 
 export function CycleRate() {
   const rate = useGame((game) => game.rates.cyclesPerSec);
@@ -34,6 +35,7 @@ export function AuditTrail() {
   const next = CONTENT.balance.escalation[level];
   return <>
     <Meter id="suspicion-meter" label="Suspicion" value={suspicion} unit="%" />
+    <ResponseRungs />
     <Text testID="alert-level" style={[theme.text, level > 0 && theme.danger]}>
       Response: {CONTENT.narrative.alertLevels[level]?.label ?? 'UNKNOWN'}
     </Text>

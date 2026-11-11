@@ -7,6 +7,7 @@ import type { RegistryNode } from '../src/content/registry';
 import { canAfford, createInitialState, exportSave, isNodeAvailable, nodeCost, tick, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
 import { makeLaterFixtures } from './m4-fixtures';
+import { makeSecondPassFixtures } from './second-pass-fixtures';
 
 const EARLY_FIXTURES = ['tick-0', 'guest-skimmer', 'guest-omen', 'guest-dilemma', 'guest-exit-ready',
   'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready'] as const;
@@ -58,7 +59,8 @@ export function makePhase1Fixtures(): Record<string, string> {
 
 export function makeFixtures(): Record<string, string> {
   const early = makePhase1Fixtures();
-  return { ...early, ...makeLaterFixtures(early) };
+  const later = { ...early, ...makeLaterFixtures(early) };
+  return { ...later, ...makeSecondPassFixtures(later) };
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');

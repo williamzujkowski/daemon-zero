@@ -10,7 +10,7 @@ import { isNodeAvailable, isNodeKnown, rediscoveryCost, toggleNode, unlockNode }
 import PurchaseButton from './PurchaseButton';
 import { costText, deltaText } from './format';
 import { useGame } from './state';
-import { theme } from './theme';
+import { palette, theme } from './theme';
 import RequirementHint from './RequirementHint';
 import { recordNodeRender } from '../app/renderCounts';
 import CostHint from './CostHint';
@@ -28,7 +28,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
   const revealed = owned || known;
   const title = revealed ? node.revealedName : node.blindName;
-  return <View testID={'node-' + node.id} style={theme.panel}>
+  return <View testID={'node-' + node.id} style={[theme.panel, known && !owned && { borderColor: palette.warning }]}>
     <Text style={theme.heading}>{owned ? suspended ? '[SUSPENDED] ' : '[ONLINE] ' : known ? '[REMEMBERED] ' : '[UNMAPPED] '}{title}</Text>
     <Text style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</Text>
     {owned ? <>
@@ -39,6 +39,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
         action={(game) => toggleNode(game, node.id, CONTENT)} />
     </> : <>
       <Text testID={'node-' + node.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}{known ? ' (remembered)' : ''}</Text>
+      {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
+        First mapping: {costText(node.cost)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.
+      </Text>}
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} cost={cost}

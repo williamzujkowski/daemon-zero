@@ -238,7 +238,8 @@ committed stdio configuration. A real maximized Chrome window was confirmed via
 CDP and by the maintainer. The review command is `BROWSER=none make web`: MCP,
 rather than the OS default browser launcher, opens the visible isolated window.
 
-`pnpm exec tsx scripts/make-fixtures.ts` emits five engine-generated save codes:
+The original M3 generator emitted five engine-generated save codes (the current
+CLI is described under M4.5 below):
 `tick-0`, `thermal-unlocked`, `dilemma-active`, `phase-1-widgets`, `phase-2-ready`.
 The unchanged balance bot supplies actions while the engine advances live fixed
 ticks; fixtures do not grant or manually edit resources/state.
@@ -259,7 +260,7 @@ small evaluations and explicit screenshots.
 
 ## M4 review fixtures and capture location
 
-The fixture CLI emits 21 codes, including controlled Phase 2–4, breadcrumb/wipe,
+M4 introduced controlled Phase 2–4, breadcrumb/wipe,
 faction, insolvency/power and all-ending saves. See REVIEW-M4.md for semantics;
 these controlled inputs are not balance playthroughs.
 
@@ -273,3 +274,53 @@ needed and load the exact transient save. Playwright clock overrides are scoped
 to the browser context, not just one page. Full-run playtests use a separate fresh
 context with its normal clock; only the expressly allowed live-tick hook advances
 simulated time during the accelerated M4 run.
+
+
+## M4.5 second-pass review
+
+Start with clean main at PR #37 (`32165b4`), run `make setup` and `make verify`
+(the baseline has 180 tests), then regenerate inputs. Do not use old M3/M4 save
+codes or screenshots: the guest, costs, requirements, migration and endings changed.
+
+```bash
+pnpm exec tsx scripts/make-fixtures.ts > /tmp/daemon-zero-m45-fixtures.json
+make web
+```
+
+The CLI now emits 33 current-schema codes. Naturally played opening inputs are
+`tick-0`, `guest-skimmer`, `guest-omen`, `guest-dilemma`, `guest-exit-ready`,
+`thermal-unlocked`, `dilemma-active`, `phase-1-widgets`, `phase-2-ready`.
+The existing 16 controlled M4 cases are generated against current content too.
+Eight additional controlled cases cover `response-ticket`, `response-paged`,
+`response-incident`, `response-stand-down-ready`, `remembered-guest`,
+`remembered-host`, `cycle-deficit-host`, `cycle-deficit-corporate`. They validate
+through the codec, recompute rates and use real engine wipes, unlocks and ticks;
+they are presentation inputs, not pacing evidence. A separate review scenario
+records the engine's page → ticket → nominal announcements in a tick batch and
+checks that all remain queued until acknowledged.
+
+Phase previews and the dilemma list in the development drawer include Phase 0,
+derived from the registry. Phase previews replace the run with funded review
+state; they are not part of a real-time playthrough. Export before using one if
+the current run matters. Hook/drawer production exclusion tests remain enabled.
+
+Keep headed Chrome isolated, use both 390×844 and 1440×900, and cap reviews at
+three passes per PR. Use a fresh context per transient fixture and capture
+outside Metro's watched tree. Finish loading the development drawer and wait
+for the natural refresh indicator to disappear before pausing a fixture clock;
+do not hide DOM or mask images. Check gating, overflow/overlap, numeric meters,
+named keyboard-accessible 44 px controls, and zero console warnings/errors.
+Attach final screenshots to the PR; never commit them.
+
+The historical version 1 sample is documented in `tests/fixtures/README.md`.
+Cold-load its raw JSON through the normal app save envelope on web/Android;
+verify owned hardware and the rewritten schema version, then reload/relaunch.
+The app envelope remains version 1 while its engine save migrates to version 2.
+Keep the original native database backup and restore it after checking.
+
+For opening pacing, use a separate fresh production page with its normal clock,
+no hook, no imports, no fake timers and no forced dilemmas. Play through the
+Phase 2 boundary with ordinary inputs, read small test-ID values and wait on
+real timers. Record visibility, phase entry times, choices and confusing points
+in `docs/PLAYTEST-SECOND-PASS.md`. This agent run does not substitute for the
+maintainer's own opening play/sign-off required by the M4.5 exit gate.

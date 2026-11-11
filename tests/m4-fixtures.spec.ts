@@ -14,7 +14,7 @@ function state(name: string) {
 
 describe('M4 review fixtures', () => {
   it('emits round-trippable saves and preserves the early review states', () => {
-    expect(Object.keys(saves)).toHaveLength(25);
+    expect(Object.keys(saves)).toHaveLength(33);
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);

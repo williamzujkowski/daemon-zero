@@ -33,3 +33,7 @@ ios/
 !.vscode/extensions.json
 *.log
 .nexus-agents/
+
+# local research registry
+/docs/research/registry/papers.yaml
+/docs/research/registry/techniques.yaml
