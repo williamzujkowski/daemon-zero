@@ -8,7 +8,7 @@
 | Engine unit tests | Vitest | `tests/*.spec.ts` | `make test` (with coverage thresholds) |
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
-| Component tests (M3+) | Vitest + React Native Testing Library | `tests/ui/` | `make test` |
+| Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end (M5) | Playwright against the web export | `tests/e2e/` | `make e2e` |
 | Agent-driven exploratory testing | Playwright MCP | `.mcp.json` | on demand |
 
@@ -246,7 +246,7 @@ ticks; fixtures do not grant or manually edit resources/state.
 On development web only, `window.__daemon` offers `loadSaveCode(code)`,
 `fastForward(seconds)` (0–3600 live seconds, respecting dilemmas and threats),
 and `renderCounts()` (committed renders keyed by node id). Save loading uses
-engine `importSave`. Counts are cumulative during the hook's lifetime, including
+engine `importSave`. Counts are cumulative during the page's lifetime, including
 cards that stay mounted across fixture loads. Compare before/after maps. Native and production
 builds have no hook. The guarded module import is tested by building a fresh
 production export and scanning every emitted JS chunk for `__daemon`.

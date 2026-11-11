@@ -14,13 +14,17 @@ import Repeatables from './Repeatables';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
 import { palette, theme } from './theme';
+import { widgetRegistry } from './registry/widgetRegistry';
+import DilemmaModal from './DilemmaModal';
 
 function Slots({ slots }: { slots: string[] }) {
   const ids = useWidgetIds();
   return <>{ids.map((id) => {
     const widget = CONTENT.widgets.get(id);
-    return widget && slots.includes(widget.slot) ? <View key={id} style={theme.panel}>
+    const Component = widgetRegistry[id];
+    return widget && Component && slots.includes(widget.slot) ? <View key={id} testID={'widget-' + id} style={theme.panel}>
       <Text style={theme.heading}>{widget.title}</Text>
+      <Component />
     </View> : null;
   })}</>;
 }
@@ -63,6 +67,7 @@ export default function TerminalScreen() {
       <Pane slots={[active]} /><View style={styles.mobileLog}><KernelLog /></View>
       <Tabs slots={slots} active={active} select={select} />
     </View>}
+    <DilemmaModal />
   </View>;
 }
 

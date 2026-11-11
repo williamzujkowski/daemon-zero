@@ -45,14 +45,14 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 - The first manual cycle discovers the first blind node. Tick 0 remains log plus manual control. Purchase prices remain visible even before the corresponding resource readout unlocks; prices are not current balances.
 - Unlocked: `[ONLINE] {revealedName}`, revealed description, per-second deltas, suspend/resume.
 - A node is listed when already unlocked or its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
-- On unlock, run a short character-scramble reveal from blind to revealed name (skip under reduced motion).
+- M5 feel pass: on unlock, run a short character-scramble reveal from blind to revealed name (skip under reduced motion). M3 reveals the content immediately, matching the milestone split.
 
 ## Dilemma modal
 
 - Opens whenever `activeDilemmaId` is set; cannot be dismissed.
 - Shows title, context, each choice with cost, effect badges (good/bad colouring) and the trait it grants.
 - Unaffordable choices are disabled and say why. At least one choice is always free.
-- Fires a warning haptic on open.
+- M5 feel pass: fires a warning haptic on open, alongside the haptics dependency listed in MILESTONES.md. M3 establishes mandatory decisions and accessible controls.
 
 ## Destructive actions
 
