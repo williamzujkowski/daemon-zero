@@ -6,10 +6,10 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 ## Status
 
-The full game content and tested simulation engine now have an Expo app shell. Web and Android show the first engine boot log on a black screen. The real-time loop, persistence and playable UI arrive in M2 and later.
+The Expo app now runs the simulation in real time and saves/restores it locally. A temporary status screen shows cycles, elapsed time, logs and a manual-cycle debug control on web and Android. The playable terminal UI arrives in M3.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 and M1 are complete. M2 (store, game loop, persistence) has not started; see `docs/MILESTONES.md`.
+- M0 and M1 are complete. M2 store/loop/persistence is implemented; verification is tracked in issue #3 and `docs/MILESTONES.md`. M3 has not started.
 
 ## Quick start (Ubuntu 24.04)
 

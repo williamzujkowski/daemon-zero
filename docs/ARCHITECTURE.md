@@ -5,26 +5,59 @@
 ```
 src/content/   data + schemas          no dependencies except zod
 src/engine/    pure simulation         depends on content types only
-src/app/       M1 boot shell; M2 store, loop, storage will own clocks and I/O
+src/app/       store, loop, storage     owns all clocks, lifecycle and persistence I/O
 src/ui/        React Native views      (M3-M4) depends on app + engine queries
 ```
 
 Dependencies point downward only. The engine can be run, tested and balanced with no UI, which is what `make sim` does: a full playthrough in about a second.
 
-## App shell (M1)
+## App runtime (M1-M2)
 
-`index.ts` registers `App.tsx` with Expo. `src/app/BootScreen.tsx` creates the
-initial state through the engine's public API and displays its first
-chronological log line. It does not advance time or persist state; those belong
-to M2. The same component renders through React Native on Android and React
-Native Web in the browser. Metro's default Expo configuration handles the JSON
-content imports without custom transforms.
+`index.ts` registers `App.tsx`. `src/app/BootScreen.tsx` is a temporary status
+screen with boot/latest logs, quantized cycles/time, recovery notices and a
+manual-cycle debug button. It starts `useGameLoop` and reads primitive selectors;
+M3 will replace this with the playable terminal UI.
 
-`tsconfig.json` extends Expo's base while retaining every original compiler
-option. The existing ESLint configuration remains intact with React Hooks rules
-added for app/UI modules. Expo's optional ESLint preset is omitted because its
-import/react plugins do not declare ESLint 10 support. Coverage now measures
-TSX and the root component without reducing any existing threshold.
+- `store.ts`: vanilla Zustand `{ game, ready, notice }`. Its read API omits
+  `setState`. Engine actions and `advance` supply every game-state change;
+  initialization receives a state validated by the save codec. Input is blocked
+  until loading completes.
+- `runtime.ts`: one interval at `CONTENT.balance.tickHz`, based on monotonic
+  `performance.now()`. It accounts for elapsed live time before dispatching an
+  action, then checkpoints accepted actions immediately. Iteration changes from
+  automatic wipes also checkpoint immediately. Reference-counted leases and an
+  activation token handle effect cleanup/remounts during async hydration.
+- `platform.ts`: browser `visibilitychange`/`pagehide`/`pageshow`, native
+  `AppState`, synchronous `localStorage`, and lazy native AsyncStorage bindings.
+- `clock.ts`: all real clock and timer access. Live deltas use a monotonic clock;
+  background/restart deltas use a wall timestamp with negative gaps clamped to 0.
+- `storage.ts` / `saveQueue.ts`: explicit saves every five seconds and on
+  actions, background and cleanup. No persist middleware or per-tick
+  serialization. Writes start immediately when idle and are ordered so an older
+  async native write cannot overwrite a newer checkpoint. A web pagehide write
+  starts synchronously before returning to the browser.
+
+The strict app envelope is `{ version: 1, savedAtMs, game: serialize(game) }` under
+`daemon-zero.save.v1`. `GameState` itself is unchanged. Reads validate the bounded
+JSON envelope and use engine `deserialize` to validate/migrate/reconcile the game.
+The loader also bounds pending live time before passing untrusted state to catch-up.
+On `SaveError`, the original raw value is stored at
+`daemon-zero.save.corrupt-backup` before a fresh run can replace it. A backup or
+read failure preserves the original slot and disables autosave for that session,
+with a visible notice. Write failures are reported and retried; a successful
+retry clears only the write-error notice, preserving corruption-recovery notices.
+
+Backgrounding samples the remaining foreground delta, saves, and stops the
+interval. Foregrounding passes the wall-clock gap to engine `advance` exactly
+once and establishes a fresh monotonic baseline. Startup does the same using
+the loaded timestamp, then checkpoints catch-up so another reload cannot replay
+the gap. Only the engine decides live vs. dormant catch-up, caps, paused dilemmas,
+yields and threat handling.
+
+`tsconfig.json`, the existing ESLint rules and coverage thresholds are unchanged
+in M2. Vitest already includes `src/**/*.{ts,tsx}` and `App.tsx`, with an app
+coverage floor of 80% alongside the original global floors. Native storage uses
+Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 
 ## Content (`src/content/`)
 
@@ -99,28 +132,21 @@ The engine never reads a clock. The app calls `advance(state, elapsedSeconds, re
 - Up to `liveCatchUpThresholdSec` (5 s): fixed steps of `1 / tickHz`, remainder carried in `tickAccumulatorSec`.
 - Longer gaps (app backgrounded or closed): **dormant** mode. Capped at `offlineCapSec`, 1-second steps, positive yields multiplied by `offlineEfficiency`, drains paused, suspicion can only fall, AEGIS frozen, no dilemmas, no wipes. The player never returns to a loss or a decision that happened without them.
 
-### Sketch: how the app layer uses the engine (M2)
+### How UI code dispatches (M2)
 
 ```ts
-// src/app/store.ts
-import { createStore } from 'zustand/vanilla';
 import { CONTENT } from '../content';
-import { advance, createInitialState, type ActionResult, type GameState } from '../engine';
+import { unlockNode } from '../engine';
+import { gameRuntime } from './session';
 
-export const store = createStore<{ game: GameState }>(() => ({ game: createInitialState(CONTENT) }));
-
-export function dispatch(action: (s: GameState) => ActionResult): ActionResult {
-  const result = action(store.getState().game);
-  if (result.ok) store.setState({ game: result.state });
-  return result;
-}
-
-export function step(elapsedSec: number): void {
-  store.setState(({ game }) => ({ game: advance(game, elapsedSec, CONTENT) }));
-}
-
-// usage: dispatch((s) => unlockNode(s, nodeId, CONTENT));
+// Account for live time, apply the engine action, and checkpoint accepted input.
+gameRuntime.dispatch((game) => unlockNode(game, nodeId, CONTENT));
 ```
+
+Use `useGameValue` with primitive selectors for display. Do not call the raw
+store's `step` or initialization methods from UI code; `GameRuntime` coordinates
+those with timestamps and persistence. New game behavior still belongs in the
+engine's public actions or `advance`, not the store or UI.
 
 ## How to extend
 

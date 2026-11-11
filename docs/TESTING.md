@@ -7,7 +7,7 @@
 | Content validation | Zod + integrity checks | `scripts/validate-content.ts`, `tests/content.spec.ts` | `make validate`, `make test` |
 | Engine unit tests | Vitest | `tests/*.spec.ts` | `make test` (with coverage thresholds) |
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
-| M1 shell smoke test | Vitest + React DOM server / React Native Web | `tests/app.spec.ts` | `make test` |
+| Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3+) | Vitest + React Native Testing Library | `tests/ui/` | `make test` |
 | End-to-end (M5) | Playwright against the web export | `tests/e2e/` | `make e2e` |
 | Agent-driven exploratory testing | Playwright MCP | `.mcp.json` | on demand |
@@ -148,3 +148,67 @@ image is installed separately for the emulator test. Tool paths and Android
 licenses stay outside the repo. `--android` accepts the SDK licenses; the default
 bootstrap does not install the SDK or KVM packages. The pinned JDK is part of the
 common mise toolchain.
+
+## M2 persistence and resume
+
+`tests/app-store.spec.ts`, `app-runtime.spec.ts`, `app-storage.spec.ts`,
+`app-platform.spec.ts` and `app-components.spec.ts` cover the actual store, save
+codec, scheduler and component hooks. Runtime tests fake `Date`, `performance`
+and timers, advance an exact 600-second background gap, and assert no hidden
+interval runs or double catch-up occurs. They also check clock rollback, live
+wall-clock jumps, startup/restart catch-up, effect remount races, failed I/O,
+backup-before-replacement, ordered async writes, action checkpoints, automatic
+wipes and paused dilemmas. A serialize spy confirms that 10 Hz ticks serialize
+only on the five-second throttle; accepted inputs checkpoint immediately.
+
+The mounted component test uses happy-dom with the existing React Native Web
+alias. It checks readiness/input and proves that subsecond engine updates do not
+rerender a subscriber whose quantized seconds value has not changed. Production
+clock and storage access stays entirely in `src/app`; tests supply fake services.
+The M1 coverage configuration remains unchanged and includes all app TS/TSX.
+
+### Web manual check
+
+1. Build/serve `dist` as above, or run `make web`. Use a consistent origin because
+   localStorage is scoped by scheme, host and port.
+2. Press `manual-cycle`, let the simulation run for at least one minute, then
+   reload. Confirm cycles and simulation time restore and input waits for loading.
+3. Background for ten real minutes and return. The latest log should show
+   `DORMANT_RESUME` and simulation time should include the gap once.
+4. Inspect the `daemon-zero.save.v1` envelope if needed. Metadata is outside the
+   engine save; never bypass engine validation to load it.
+
+Headless Chromium may keep `document.visibilityState` visible for all tabs. In
+that environment, label the lifecycle check explicitly as simulated: dispatch
+`pagehide`, freeze the page through CDP `Page.setWebLifecycleState`, wait ten real
+minutes, set it active and dispatch `pageshow`. Do not claim this reproduces a
+natural tab visibility transition. Automated adapter tests independently check
+`visibilitychange` and listener cleanup.
+
+### Android manual check
+
+Use the existing M1 AVD/Expo Go setup. Press the debug cycle button and capture
+its count, force-stop Expo Go without clearing its data, then reopen the same
+project URI and confirm the count restores. For example:
+
+```bash
+adb exec-out screencap -p > /tmp/m2-before.png
+adb shell am force-stop host.exp.exponent
+adb shell am start -W -a android.intent.action.VIEW -d exp://YOUR_HOST:8081 -p host.exp.exponent
+```
+
+Wait until the app is visibly ready before taking the restore screenshot. Then
+press Home, confirm the launcher is the resumed activity, wait at least ten real
+minutes, and reopen the same URI. Capture the displayed `DORMANT_RESUME`, restored
+cycles and simulation time. This exercises real native AppState and AsyncStorage.
+
+```bash
+adb shell input keyevent KEYCODE_HOME
+adb shell dumpsys activity activities
+# Wait ten real minutes, then reopen and inspect the screen.
+adb exec-out screencap -p > /tmp/m2-after.png
+```
+
+The updating seconds readout may prevent UIAutomator's idle-state dump from
+settling; screenshots can verify these visible values. Expo Go emulator checks
+are distinct from a signed Android release build or physical device check.
