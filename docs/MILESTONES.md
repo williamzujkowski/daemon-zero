@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 and M1 are complete. M2 is implemented and under verification; M3 has not started.** See [issue #3](https://github.com/williamzujkowski/daemon-zero/issues/3) and `docs/REVIEW-FINDINGS.md` section H for M2 evidence and limitations.
+Status: **M0, M1 and M2 are complete. M3 has not started.** [M2 CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106). See [issue #3](https://github.com/williamzujkowski/daemon-zero/issues/3) and `docs/REVIEW-FINDINGS.md` section H for evidence and limitations.
 
 ---
 

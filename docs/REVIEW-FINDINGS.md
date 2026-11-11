@@ -284,10 +284,14 @@ ReactNativeJS main-start log was unchanged. A screenshot confirmed
 DORMANT_RESUME: 0.2h, 9 cycles and about 1000 simulation seconds after returning.
 The Recents snapshot before returning showed 347 seconds; the result is consistent
 with one background catch-up plus the foreground seconds before capture.
+A final cold launch after restarting Metro against the committed source again
+restored 9 cycles; native error logs were empty.
 
 ### Not verified
 
 A natural browser tab-hide transition in this headless Chromium session (the
 web lifecycle was simulated as described), a physical Android device, iOS,
 signed standalone builds, or a VS Code devcontainer boot. The real native ten-minute
-background test passed; final CI status is tracked in issue #3. M3 has not started.
+background test passed. [PR CI run 42978773106](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106)
+passed on Ubuntu 24.04 at commit `15f391c`, including all verification, security
+scans and SBOM upload. Issue #3 tracks final merge sign-off. M3 has not started.

@@ -9,7 +9,7 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 The Expo app now runs the simulation in real time and saves/restores it locally. A temporary status screen shows cycles, elapsed time, logs and a manual-cycle debug control on web and Android. The playable terminal UI arrives in M3.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 and M1 are complete. M2 store/loop/persistence is implemented; verification is tracked in issue #3 and `docs/MILESTONES.md`. M3 has not started.
+- M0 through M2 are complete. M3 (playable terminal UI) has not started; see `docs/MILESTONES.md`.
 
 ## Quick start (Ubuntu 24.04)
 
