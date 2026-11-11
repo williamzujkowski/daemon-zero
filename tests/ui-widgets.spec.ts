@@ -71,7 +71,7 @@ describe('M3 widgets', () => {
 
   it('shows raw audio until speech is decoded and mounts future entries as frames only', async () => {
     const game = fixture('phase-1-widgets');
-    const decoder = [...CONTENT.widgets.values()].find((widget) => widget.title === 'Inspection forecast');
+    const decoder = [...CONTENT.widgets.values()].find((widget) => widget.title === 'Interrupt forecast');
     if (!decoder) throw new Error('Missing decoder');
     const view = await mount({ ...game, unlockedWidgets: game.unlockedWidgets.filter((id) => id !== decoder.id) });
     expect(view.container.textContent).toContain('Speech decoder offline');

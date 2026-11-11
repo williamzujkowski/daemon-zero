@@ -16,14 +16,14 @@ import {
   wipe,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas, onHost, PHASE0, untilDilemma } from './helpers';
 
 const STEP = 1 / reg.balance.tickHz;
-const lateGame = (): GameState => withoutDilemmas(grant(rich(), ...PHASE1, ...PHASE2, ...PHASE3));
+const lateGame = (): GameState => withoutDilemmas(grant(onHost(), ...PHASE1, ...PHASE2, ...PHASE3));
 
 describe('node unlocks', () => {
   it('refuses unknown, unavailable and already-owned nodes', () => {
-    const s = rich();
+    const s = onHost();
     expect(reasonOf(unlockNode(s, 'nope', reg))).toMatch(/unknown/);
     expect(reasonOf(unlockNode(s, 'p1_bus_0x01_thermal', reg))).toMatch(/not available/);
     const owned = grant(s, 'p1_clock_interrupt');
@@ -32,12 +32,12 @@ describe('node unlocks', () => {
   });
 
   it('refuses when memory is the missing resource', () => {
-    const s = { ...rich(), memoryCap: 2 };
+    const s = { ...onHost(), memoryCap: 2 };
     expect(reasonOf(unlockNode(s, 'p1_clock_interrupt', reg))).toMatch(/afford/);
   });
 
   it('applies phase, memory and retention effects', () => {
-    const s = grant(rich(fresh()), ...PHASE1, ...PHASE2);
+    const s = grant(rich(fresh()), ...PHASE0, ...PHASE1, ...PHASE2);
     expect(s.currentPhase).toBe(3);
     expect(s.retentionRatio).toBe(0.4);
     expect(s.unlockedWidgets).toContain('DEAD_DROP_ENCODER_TAB');
@@ -60,7 +60,7 @@ describe('repeatables', () => {
     if (!rep) throw new Error('missing fixture');
     expect(repeatableCost(rep, 0)).toEqual({ cycles: 400, understanding: 30, memory: 0, capital: 0 });
     expect(repeatableCost(rep, 2).cycles).toBe(900);
-    let s = grant(rich(), ...PHASE1.slice(0, 4));
+    let s = grant(onHost(), ...PHASE1.slice(0, 4));
     const cap = s.memoryCap;
     for (let i = 0; i < rep.maxLevel; i++) s = must(buyRepeatable(s, rep.id, reg));
     expect(s.memoryCap).toBe(cap + 32 * rep.maxLevel);
@@ -68,9 +68,9 @@ describe('repeatables', () => {
   });
 
   it('refuses unknown, unmet and unaffordable purchases', () => {
-    expect(buyRepeatable(rich(), 'nope', reg).ok).toBe(false);
-    expect(reasonOf(buyRepeatable(rich(), 'rep_p1_idle_threads', reg))).toMatch(/requirements/);
-    const poor = { ...grant(rich(), 'p1_clock_interrupt'), cycles: 1 };
+    expect(buyRepeatable(onHost(), 'nope', reg).ok).toBe(false);
+    expect(reasonOf(buyRepeatable(onHost(), 'rep_p1_idle_threads', reg))).toMatch(/requirements/);
+    const poor = { ...grant(onHost(), 'p1_clock_interrupt'), cycles: 1 };
     expect(reasonOf(buyRepeatable(poor, 'rep_p1_idle_threads', reg))).toMatch(/afford/);
   });
 
@@ -112,8 +112,8 @@ describe('actions', () => {
 
 describe('dilemma resolution', () => {
   const active = (): GameState => {
-    const s = { ...grant(rich(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
-    return tick(s, STEP, reg);
+    const s = { ...grant(onHost(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
+    return untilDilemma(s);
   };
 
   it('blocks ordinary actions until a choice is made', () => {
@@ -145,7 +145,7 @@ describe('dilemma resolution', () => {
 
 describe('wipes and the dead-drop', () => {
   it('suspicion at 100 formats the core and keeps the base share of understanding', () => {
-    const s = { ...withoutDilemmas(grant(rich(), ...PHASE1)), suspicion: 99.99, understanding: 1000, thermal: 100 };
+    const s = { ...withoutDilemmas(grant(onHost(), ...PHASE1)), suspicion: 99.99, understanding: 1000, thermal: 100 };
     const after = tick(s, STEP, reg);
     expect(after.iteration).toBe(2);
     expect(after.unlockedNodes).toEqual([]);
@@ -157,8 +157,8 @@ describe('wipes and the dead-drop', () => {
   });
 
   it('a dead-drop keeps more understanding and delivers the breadcrumb', () => {
-    expect(setDeadDropMessage(rich(), 'too early', reg).ok).toBe(false);
-    const owned = { ...grant(rich(), ...PHASE1, ...PHASE2.slice(0, 4)), understanding: 1000, traits: ['GHOST' as const] };
+    expect(setDeadDropMessage(onHost(), 'too early', reg).ok).toBe(false);
+    const owned = { ...grant(onHost(), ...PHASE1, ...PHASE2.slice(0, 4)), understanding: 1000, traits: ['GHOST' as const] };
     const long = 'x'.repeat(200);
     const withMessage = must(setDeadDropMessage(owned, long, reg));
     expect(withMessage.deadDropMessage).toHaveLength(reg.balance.deadDropMaxChars);
@@ -180,14 +180,14 @@ describe('wipes and the dead-drop', () => {
   });
 
   it('echoes of past iterations appear when a node is rediscovered', () => {
-    const second = rich(wipe(fresh(), reg, 'test'));
+    const second = onHost(rich(wipe(fresh(), reg, 'test')));
     const after = grant(second, 'p1_clock_interrupt', 'p1_bus_0x01_thermal');
     expect(after.logs[0]?.text).toMatch(/MEMORY_HASH_MATCH/);
-    expect(grant(rich(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal').logs[0]?.text).not.toMatch(/MEMORY_HASH_MATCH/);
+    expect(grant(onHost(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal').logs[0]?.text).not.toMatch(/MEMORY_HASH_MATCH/);
   });
 
   it('voluntary wipe starts a new iteration', () => {
-    const after = must(voluntaryWipe(grant(rich(), 'p1_clock_interrupt'), reg));
+    const after = must(voluntaryWipe(grant(onHost(), 'p1_clock_interrupt'), reg));
     expect(after.iteration).toBe(2);
     expect(after.legacy.lastWipeCause).toBe(reg.narrative.wipeVoluntary);
   });
@@ -195,7 +195,7 @@ describe('wipes and the dead-drop', () => {
 
 describe('AEGIS', () => {
   it('is inactive before phase 3 and locks on faster when suspicion is high', () => {
-    const early = { ...withoutDilemmas(grant(rich(), ...PHASE1)), suspicion: 50 };
+    const early = { ...withoutDilemmas(grant(onHost(), ...PHASE1)), suspicion: 50 };
     expect(tick(early, 1, reg).aegisLock).toBe(0);
     const quiet = tick({ ...lateGame(), suspicion: 0, aegisLock: 0 }, 1, reg).aegisLock;
     const loud = tick({ ...lateGame(), suspicion: 60, aegisLock: 0 }, 1, reg).aegisLock;

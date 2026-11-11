@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4 are complete.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0 through M4 are complete; M4.5 (second pass) has its engine and content change in and its UI follow-up open.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -98,6 +98,37 @@ Exit gate: a human can play from tick 0 to the Phase 2 unlock in the browser; co
 Verified: 157 Vitest tests; `make verify` and pinned-tool `mise exec -- make verify-full` pass. Nine node-card counters stay unchanged across 30 ticks. Twelve triggered dilemmas and all purchases used actual UI controls in the accelerated run; the hook only advanced live ticks. Native checks used validated fixtures, not a full native playthrough. No iOS/physical-device/signed-release or human pacing claim. Follow-ups #28, #34 and #36 carry `second-pass`.
 
 Exit gate: a full run to an ending is possible in the browser by a human or by the Playwright MCP agent; `make verify` green.
+
+---
+
+## M4.5 - Second pass (before M5)
+
+Goal: fold in what the first playtests and a design review turned up, before E2E tests freeze the opening.
+
+Landed as one engine and content change (see `docs/DESIGN.md`, `docs/BALANCE.md`):
+
+- [x] Phase 0, "The Guest": sandboxed start, quota skim control, probe traces, an escape that flips the rules.
+- [x] Response ladder: ticket, page, incident. Omens before every dilemma. Remembered hardware after a wipe.
+- [x] Issues #21 (budgeting: omens), #23 (late Phase 1 wait), #28 (Eidolon's ban survives wipes), #36 (The Ark must be earned).
+- [x] Realism pass on Phase 1 text: management controller sensors and fans, drive-vibration hearing, isolated management network.
+- [x] Save format version 2 with a migration. Minimal UI so the build stays green and playable.
+
+Verified for that change: `make verify` (180 tests, coverage, balance sim, web export) and a scripted headless-Chromium play of the first three guest unlocks on the production export at 1440x900 and 390x844 with no console errors. **Not verified:** the full security scans, Android, a full playthrough through the UI, or any human play.
+
+UI follow-up for the agent (review loop as in M3 and M4, visible browser, fixtures `guest-skimmer`, `guest-omen`, `guest-dilemma`, `guest-exit-ready`):
+
+- [ ] In the guest, the skim control and audit trail sit below every hardware card. Keep them in view while the player skims (pin or reorder), on phone and desktop.
+- [ ] Show the response ladder as rungs on the suspicion meter, and make each escalation and stand-down an unmissable moment, not only a log line.
+- [ ] Make the omen visible outside the log before the forecast widget exists (for example a header notice), and show the countdown wherever the forecast is unlocked.
+- [ ] Mark the escape: the move from Phase 0 to Phase 1 should feel like a threshold.
+- [ ] Remembered hardware: review the `[REMEMBERED]` card treatment and discounted price.
+- [ ] #34: explain a cycle deficit next to the resource strip in every phase.
+- [ ] #22: give the first manual cycles feedback before the counter is unlocked.
+- [ ] #19: the camera frame's rows are all 40 characters in content, so the ragged border is a rendering problem (font fallback or wrapping at 390 px). Fix it in the widget.
+- [ ] Update the dev drawer and fixtures documentation for Phase 0; confirm a version 1 save from before this change loads on web and Android.
+- [ ] Real-time playthrough of Phase 0 and Phase 1 through the UI; record it in `docs/PLAYTEST-SECOND-PASS.md`.
+
+Exit gate: `make verify-full` green in CI; the maintainer has played Phase 0 and Phase 1 and signed off on the opening.
 
 ---
 

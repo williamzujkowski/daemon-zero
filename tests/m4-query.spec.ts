@@ -4,7 +4,7 @@ import { CONTENT } from '../src/content';
 import { canAfford, computeRates, costShortfall, cycleContributions, meetsRequirements, previewWipe, unmetRequirements, wipe } from '../src/engine';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { importSave } from '../src/engine';
-import { fresh, grant, rich } from './helpers';
+import { fresh, grant, onHost } from './helpers';
 
 const fixtures = makeFixtures();
 describe('M4 read-only queries', () => {
@@ -27,7 +27,7 @@ describe('M4 read-only queries', () => {
       { kind: 'maxSuspicion', target: null, required: 30, actual: 60 },
     ]);
     expect(unmetRequirements(base, undefined)).toEqual([]);
-    expect(unmetRequirements(base, { phaseAtLeast: 1, maxSuspicion: 0, minUnderstanding: 0 })).toEqual([]);
+    expect(unmetRequirements(base, { phaseAtLeast: 0, maxSuspicion: 0, minUnderstanding: 0 })).toEqual([]);
     for (const code of Object.values(fixtures)) {
       const game = importSave(code, CONTENT), before = JSON.stringify(game);
       for (const action of CONTENT.actions.values()) {
@@ -38,7 +38,7 @@ describe('M4 read-only queries', () => {
   });
 
   it('previews actual wipe retention and breadcrumb behavior', () => {
-    for (const game of [fresh(), rich(), grant(rich(), 'p1_clock_interrupt'), importSave(fixtures['deaddrop-breadcrumb'] ?? '', CONTENT)]) {
+    for (const game of [fresh(), onHost(), grant(onHost(), 'p1_clock_interrupt'), importSave(fixtures['deaddrop-breadcrumb'] ?? '', CONTENT)]) {
       const before = JSON.stringify(game), actual = wipe(game, CONTENT, 'Query comparison');
       expect(previewWipe(game, CONTENT)).toEqual({ understanding: actual.understanding, capital: actual.capital, breadcrumb: actual.inheritedMessage });
       expect(JSON.stringify(game)).toBe(before);

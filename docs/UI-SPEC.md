@@ -24,8 +24,10 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | Widget | Shows | Engine data |
 |---|---|---|
 | `CYCLE_COUNTER_AND_RATE` | cycles/s next to the counter | `state.rates.cyclesPerSec` |
+| `QUOTA_SKIM_CONTROL` | five-step control for the guest's quota skim | `actuators.quotaSkimRatio`, `setActuator` |
+| `AUDIT_TRACE_MONITOR` | suspicion meter, current rung of the response ladder, next threshold; gates the understanding readout | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | used / cap bar | `memoryUsed`, `memoryCap` |
-| `THERMAL_AND_SUSPICION_BARS` | two ASCII meters, overheat warning | `thermal`, `suspicion`, `balance.thermalThresholdForSuspicion` |
+| `THERMAL_AND_SUSPICION_BARS` | thermal meter and overheat warning (suspicion moved to the audit trail) | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | five-step control | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
 | `INSPECTION_COUNTDOWN_TIMER` | decoded speech instead of raw phonemes; threat forecast | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
@@ -138,6 +140,8 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
 | Tabs | `tab-{SLOT}` |
+| Actuator controls | `fan-setting`, `fan-{percent}`, `skim-setting`, `skim-{percent}` |
+| Response ladder / interrupt forecast | `alert-level`, `inspection-forecast` |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel log | `kernel-log` |

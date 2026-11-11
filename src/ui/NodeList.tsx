@@ -8,8 +8,8 @@ import { CONTENT } from '../content';
 import { gameStore } from '../app/session';
 import NodeCard from './NodeCard';
 
-export default function NodeList({ owned, phase = 1, group, showLocked = false }: {
-  owned?: boolean; phase?: number; group?: string; showLocked?: boolean;
+export default function NodeList({ owned, phase, group, showLocked = false }: {
+  owned?: boolean; phase: number; group?: string; showLocked?: boolean;
 }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.nodes.values()]
     .filter((node) => (owned === undefined || game.unlockedNodes.includes(node.id) === owned) && node.phaseId === phase &&

@@ -61,7 +61,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 
 ## Content (`src/content/`)
 
-- `data/*.json` - all game data. `data/phases/*.json` hold the tech tree, one file per phase.
+- `data/*.json` - all game data. `data/phases/*.json` hold the tech tree, one file per phase. Phases are numbered from 0 (the guest); each declares the `uiSlot` whose pane hosts its hardware.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem.
@@ -95,7 +95,7 @@ Public API is `src/engine/index.ts`.
 | `state.ts` | `GameStateSchema` (Zod), inferred `GameState`, `createInitialState`. |
 | `rates.ts` | `computeRates(state, reg)`: the only reader of `tickDelta`. Used by the tick, the UI readouts and the bot. |
 | `tick.ts` | `tick` (one fixed step through `TICK_PIPELINE`) and `advance` (elapsed seconds to ticks). |
-| `systems/` | Pipeline stages: resources, thermal, suspicion, AEGIS, dilemmas. |
+| `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, dilemmas. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
@@ -113,14 +113,18 @@ Public API is `src/engine/index.ts`.
 tick(state, dt):
   if ending or active dilemma: return state unchanged      (clock is frozen)
   rates = computeRates(state)                               (once per tick)
-  integrateResources -> integrateThermal -> integrateSuspicion -> integrateAegis -> evaluateDilemmas
+  integrateResources -> integrateThermal -> integrateSuspicion -> integrateEscalation -> integrateAegis -> evaluateDilemmas
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
 - **Thermal.** `dT/dt = heatLoad - dissipation * (T - ambient)`. Temperature settles at `ambient + heatLoad / dissipation`. `tickDelta.thermalPerSec` is therefore a heat load, not degrees per second.
 - **Suspicion.** Integrates node and repeatable contributions minus decay, plus an overheat term above the threshold. At 100 the run is wiped.
 - **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. At 100 a shield node is burned if owned; otherwise the run is wiped.
-- **Dilemmas.** The first unresolved dilemma whose trigger is met becomes active, which freezes the clock.
+- **Escalation.** `alertLevel` is the rung of the human response ladder (`balance.escalation`). It rises as soon as suspicion reaches a rung and falls one rung at a time once suspicion is `escalationHysteresis` below it. `computeRates` reads the rung: each one scales suspicion decay and may add a hunt rate.
+- **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock. Neither beat happens while dormant.
+- **One-off traces.** `effects.suspicionOnUnlock` adds suspicion once when a node is unlocked.
+- **Remembered hardware.** A wipe adds every unlocked node to `legacy.knownNodes`. `nodeCost(state, node, reg)` halves cycles and understanding for those (`rediscoveryCostMultiplier`). Always charge and display `nodeCost`, never `node.cost`.
+- **Traits outlive wipes.** `requirements.forbidsTraits` checks current traits and `legacy.traitsEver`.
 - **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`.
 - **Power grid.** Megawatt shortfall throttles only the cycle output of megawatt-consuming sources, never the whole economy.
 - **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive cycle income is diverted to capital at `usdPerDivertedCycle`, times the revenue multiplier from operatives.
@@ -161,6 +165,8 @@ engine's public actions or `advance`, not the store or UI.
 **Add a mechanic.** Write a `TickSystem` in `src/engine/systems/`, insert it in `TICK_PIPELINE`, add its constants to `balance.json` and `BalanceSchema`, add its state fields (schema, initial state, version bump, migration), and test it. If it needs a per-node switch, add a `systemFlag`.
 
 **Add a resource.** Touches `CostSchema`, `TickDeltaSchema`, `EffectPayloadSchema`, `GameStateSchema`, `rates.ts`, `systems/resources.ts`, `transactions.ts`, `query.canAfford`, and the bot's `timeToAfford`. This is the most invasive change; plan it as its own PR.
+
+**Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
 **Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape.
 

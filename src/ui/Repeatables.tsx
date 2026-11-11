@@ -44,7 +44,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   </View>;
 });
 
-export default function Repeatables({ phase = 1, kind }: { phase?: number; kind?: Repeatable['kind'] }) {
+export default function Repeatables({ phase, kind }: { phase: number; kind?: Repeatable['kind'] }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
     .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) &&
       meetsRequirements(game, rep.requirements)).map((rep) => rep.id)));

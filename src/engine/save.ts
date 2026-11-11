@@ -17,7 +17,20 @@ const MAX_SAVE_CHARS = 1_000_000;
  * changes: bump SCHEMA_VERSION in state.ts and add the upgrade step here.
  * Never edit an existing step; players may still hold saves of any old version.
  */
-export const MIGRATIONS: Readonly<Record<number, Migration>> = {};
+export const MIGRATIONS: Readonly<Record<number, Migration>> = {
+  // v2: the guest phase, the response ladder, dilemma omens and remembered hardware.
+  1: (save) => {
+    const actuators = typeof save.actuators === 'object' && save.actuators !== null ? save.actuators : {};
+    const legacy = typeof save.legacy === 'object' && save.legacy !== null ? save.legacy : {};
+    return {
+      ...save,
+      actuators: { quotaSkimRatio: 0.25, ...actuators },
+      alertLevel: 0,
+      pendingDilemma: null,
+      legacy: { knownNodes: [], ...legacy },
+    };
+  },
+};
 
 export class SaveError extends Error {
   constructor(message: string) {
@@ -50,6 +63,11 @@ function known<T>(source: Record<string, T>, ids: Iterable<string>, fallback: (i
   return out;
 }
 
+function clampPhase(phase: number, reg: ContentRegistry): number {
+  const ids = reg.phases.map((entry) => entry.phaseId);
+  return Math.min(Math.max(phase, Math.min(...ids)), Math.max(...ids));
+}
+
 /** Drops references to content that no longer exists so an old save loads against new content. */
 export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const levels = known(s.levels, reg.repeatables.keys(), () => undefined);
@@ -61,7 +79,10 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
   return {
     ...s,
-    currentPhase: Math.min(s.currentPhase, reg.phases.length),
+    currentPhase: clampPhase(s.currentPhase, reg),
+    alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
+    pendingDilemma: s.pendingDilemma !== null && dilemmaIds.has(s.pendingDilemma.id) ? s.pendingDilemma : null,
+    legacy: { ...s.legacy, knownNodes: s.legacy.knownNodes.filter((id) => reg.nodes.has(id)) },
     ending: endingKnown ? s.ending : null,
     unlockedNodes: s.unlockedNodes.filter((id) => reg.nodes.has(id)),
     disabledNodes: s.disabledNodes.filter((id) => reg.nodes.has(id)),

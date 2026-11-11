@@ -125,9 +125,10 @@ function checkDilemmas(reg: ContentRegistry): string[] {
 function checkPhases(reg: ContentRegistry): string[] {
   const problems: string[] = [];
   const nodes = [...reg.nodes.values()];
+  const first = reg.phases[0]?.phaseId ?? 0;
   reg.phases.forEach((phase, index) => {
-    if (phase.phaseId !== index + 1) problems.push(`phases must be contiguous from 1; found ${String(phase.phaseId)}`);
-    if (phase.phaseId === 1) return;
+    if (phase.phaseId !== first + index) problems.push(`phases must be contiguous; found ${String(phase.phaseId)}`);
+    if (index === 0) return;
     const opener = nodes.some((n) => n.effects.unlocksPhase === phase.phaseId && n.phaseId < phase.phaseId);
     if (!opener) problems.push(`phase ${String(phase.phaseId)}: no earlier node has effects.unlocksPhase for it`);
   });
@@ -146,6 +147,20 @@ function checkNarrativeRefs(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** The response ladder must climb, and every level needs words for when the humans reach it. */
+function checkEscalation(reg: ContentRegistry): string[] {
+  const problems: string[] = [];
+  const rungs = reg.balance.escalation;
+  rungs.forEach((rung, index) => {
+    const previous = rungs[index - 1];
+    if (previous && rung.at <= previous.at) problems.push('balance: escalation rungs must be in ascending order');
+  });
+  if (reg.narrative.alertLevels.length !== rungs.length + 1) {
+    problems.push('narrative: alertLevels needs one entry per escalation rung plus one for nominal');
+  }
+  return problems;
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkPrerequisites(reg),
@@ -155,5 +170,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkDilemmas(reg),
     ...checkPhases(reg),
     ...checkNarrativeRefs(reg),
+    ...checkEscalation(reg),
   ];
 }

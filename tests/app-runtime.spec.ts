@@ -7,7 +7,7 @@ import * as engine from '../src/engine';
 import { CONTENT } from '../src/content';
 import { SAVE_KEY } from '../src/app/storage';
 import { memoryStorage, runtimeHarness, settle } from './app-helpers';
-import { grant, rich, withoutDilemmas } from './helpers';
+import { grant, onHost, withoutDilemmas } from './helpers';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date', 'performance', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
@@ -209,7 +209,7 @@ describe('app runtime', () => {
     const h = runtimeHarness();
     const release = h.runtime.start();
     await settle();
-    const funded = rich();
+    const funded = onHost();
     h.game.initialize(funded, 0, null);
     h.runtime.dispatch((game) => engine.unlockNode(game, 'p1_clock_interrupt', CONTENT));
     await settle();
@@ -232,13 +232,13 @@ describe('app runtime', () => {
     const h = runtimeHarness();
     const release = h.runtime.start();
     await settle();
-    const dangerous = withoutDilemmas(grant(rich(), 'p1_clock_interrupt'));
+    const dangerous = withoutDilemmas(grant(onHost(), 'p1_clock_interrupt'));
     h.game.initialize({ ...dangerous, thermal: 100, suspicion: 99.99 }, 0, null);
     await vi.advanceTimersByTimeAsync(100);
     expect((await h.persistence.load()).game.iteration).toBe(2);
     const dilemma = CONTENT.dilemmas[0];
     if (!dilemma) throw new Error('fixture dilemma missing');
-    h.game.initialize({ ...rich(), activeDilemmaId: dilemma.id }, 0, null);
+    h.game.initialize({ ...onHost(), activeDilemmaId: dilemma.id }, 0, null);
     h.activity(false);
     await vi.advanceTimersByTimeAsync(600_000);
     h.activity(true);

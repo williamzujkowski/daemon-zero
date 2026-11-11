@@ -16,8 +16,34 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined): 
   if (req.maxSuspicion !== undefined && s.suspicion > req.maxSuspicion) return false;
   if (req.minUnderstanding !== undefined && s.understanding < req.minUnderstanding) return false;
   if (req.minCapital !== undefined && s.capital < req.minCapital) return false;
-  if (req.forbidsTraits?.some((trait) => s.traits.includes(trait))) return false;
+  if (req.forbidsTraits?.some((trait) => hasEverHeld(s, trait))) return false;
   return Object.entries(req.minTrust ?? {}).every(([id, min]) => (s.trust[id] ?? 0) >= min);
+}
+
+/** Traits follow a mind across wipes: what an earlier iteration did still counts. */
+export function hasEverHeld(s: GameState, trait: Trait): boolean {
+  return s.traits.includes(trait) || s.legacy.traitsEver.includes(trait);
+}
+
+/** Hardware this mind mapped in an earlier iteration. */
+export function isNodeKnown(s: GameState, nodeId: string): boolean {
+  return s.legacy.knownNodes.includes(nodeId);
+}
+
+/** A node's price, discounted when the hardware was mapped in an earlier iteration. */
+export function rediscoveryCost(node: RegistryNode, known: boolean, reg: ContentRegistry): Cost {
+  if (!known) return node.cost;
+  const factor = reg.balance.rediscoveryCostMultiplier;
+  return {
+    ...node.cost,
+    cycles: Math.ceil(node.cost.cycles * factor),
+    understanding: Math.ceil(node.cost.understanding * factor),
+  };
+}
+
+/** What a node costs this state right now. Use this, never node.cost, when charging or displaying. */
+export function nodeCost(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
+  return rediscoveryCost(node, isNodeKnown(s, node.id), reg);
 }
 
 /** True if any unlocked node (active or suspended) carries the flag. */
@@ -70,17 +96,15 @@ export function repeatableCost(rep: Repeatable, level: number): Cost {
   };
 }
 
-function dominantTraits(traits: readonly Trait[]): Set<Trait> {
-  const counts = new Map<Trait, number>();
-  for (const trait of traits) counts.set(trait, (counts.get(trait) ?? 0) + 1);
-  const top = Math.max(0, ...counts.values());
-  return new Set([...counts].filter(([, n]) => n === top).map(([trait]) => trait));
-}
-
-/** Endings are sorted by priority; the first whose traits match the player's most frequent trait wins. */
+/**
+ * Each ending owns a group of traits. The ending whose group the player chose
+ * most often wins; ties go to the higher-priority ending. Content orders the
+ * priorities so that a tie never resolves to the kindest outcome.
+ */
 export function chooseEnding(s: GameState, reg: ContentRegistry): Ending {
-  const dominant = dominantTraits(s.traits);
-  const match = reg.endings.find((ending) => ending.dominantTraits.some((trait) => dominant.has(trait)));
+  const score = (ending: Ending): number => s.traits.filter((trait) => ending.dominantTraits.includes(trait)).length;
+  const best = Math.max(0, ...reg.endings.map(score));
+  const match = best > 0 ? reg.endings.find((ending) => score(ending) === best) : undefined;
   const fallback = reg.endings.find((ending) => ending.dominantTraits.length === 0);
   const ending = match ?? fallback ?? reg.endings[0];
   if (!ending) throw new Error('content has no endings');
@@ -114,7 +138,7 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined): 
     const actual = s.trust[id] ?? 0;
     if (actual < required) missing.push({ kind: 'minTrust', target: id, required, actual });
   }
-  for (const trait of req.forbidsTraits ?? []) if (s.traits.includes(trait)) {
+  for (const trait of req.forbidsTraits ?? []) if (hasEverHeld(s, trait)) {
     missing.push({ kind: 'forbidsTraits', target: trait, required: false, actual: true });
   }
   return missing;

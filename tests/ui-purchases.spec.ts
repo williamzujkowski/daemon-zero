@@ -5,7 +5,7 @@ import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { createInitialState, manualCycle, type GameState } from '../src/engine';
+import { createInitialState, manualCycle, repeatableCost, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { installDevTools } from '../src/app/devTools';
 import type { DevHost } from '../src/app/devTools';
@@ -15,6 +15,7 @@ import { costText, deltaText } from '../src/ui/format';
 import { CostSchema, TickDeltaSchema } from '../src/content/schema';
 import { grant, rich } from './helpers';
 
+const OPENING = CONTENT.phases[0]?.phaseId ?? 0;
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
 beforeEach(() => { vi.useFakeTimers(); });
@@ -27,7 +28,7 @@ async function mount(game: GameState) {
   const container = host.document.createElement('div');
   host.document.body.appendChild(container);
   const root = createRoot(container);
-  act(() => { root.render(createElement('div', null, createElement(NodeList, { owned: false }), createElement(Repeatables), createElement(NodeList, { owned: true }))); });
+  act(() => { root.render(createElement('div', null, createElement(NodeList, { owned: false, phase: OPENING }), createElement(Repeatables, { phase: OPENING }), createElement(NodeList, { owned: true, phase: OPENING }))); });
   return { container, click(id: string) {
     const button = container.querySelector<HTMLElement>('[data-testid="' + id + '"]');
     expect(button).not.toBeNull(); act(() => { button?.click(); });
@@ -62,7 +63,7 @@ describe('M3 purchases', () => {
     expect(view.container.textContent).toContain(rep.name);
     view.click('rep-' + rep.id + '-buy');
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(1);
-    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain('14 cycles');
+    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(String(repeatableCost(rep, 1).cycles) + ' cycles');
     act(() => { gameStore.initialize({ ...grant(rich(), node.id), levels: { [rep.id]: rep.maxLevel } }, 0, null); });
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-buy"]')).toBeNull();
     expect(view.container.textContent).toContain('Maximum level');
@@ -76,12 +77,12 @@ describe('M3 purchases', () => {
     const first = CONTENT.phases[0]?.nodes[0];
     if (!first) throw new Error('Missing node');
     const game = grant(rich(), first.id);
-    const view = await mount({ ...game, cycles: 79 });
+    const view = await mount({ ...game, cycles: 39.5 });
     await act(async () => { await Promise.resolve(); });
     const before = dev.__daemon?.renderCounts();
     expect(Object.keys(before ?? {}).length).toBe(2);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(gameStore.store.getState().game.cycles).toBeGreaterThan(80);
+    expect(gameStore.store.getState().game.cycles).toBeGreaterThan(40);
     expect(dev.__daemon?.renderCounts()).toEqual(before);
     view.close(); clean();
   });

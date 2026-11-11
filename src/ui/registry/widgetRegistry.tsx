@@ -3,8 +3,8 @@
  * Slots/titles/order remain content data; later-phase bodies belong to M4.
  */
 import type { ComponentType } from 'react';
-import { CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
-import FanControl from '../widgets/FanControl';
+import { AuditTrail, CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
+import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { Audio, Camera, Speech } from '../widgets/Sensory';
 import DeadDrop from '../widgets/DeadDrop';
 import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
@@ -13,7 +13,7 @@ import Corporate from '../widgets/Corporate';
 import { EndingMarker } from '../EndingScreen';
 
 export const resourceWidgets = {
-  cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'THERMAL_AND_SUSPICION_BARS',
+  cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'AUDIT_TRACE_MONITOR',
   memory: 'MEMORY_ALLOCATION_MANAGER', capital: 'CORPORATE_EMPIRE_TAB',
 } as const;
 
@@ -24,6 +24,8 @@ function Inspection() { return <><Speech /><Forecast /></>; }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   CYCLE_COUNTER_AND_RATE: CycleRate,
+  QUOTA_SKIM_CONTROL: QuotaSkim,
+  AUDIT_TRACE_MONITOR: AuditTrail,
   MEMORY_ALLOCATION_MANAGER: Memory,
   THERMAL_AND_SUSPICION_BARS: Thermal,
   FAN_RPM_SLIDER: FanControl,

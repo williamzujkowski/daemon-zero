@@ -95,8 +95,9 @@ describe('M4 network and reboot', () => {
     if (!echo) throw new Error('Missing echo');
     const target = CONTENT.nodes.get(echo.onNode);
     if (!target) throw new Error('Missing echo node');
-    act(() => { gameStore.initialize({ ...gameStore.store.getState().game, cycles: 1000 }, 0, null); });
-    for (const id of [...target.prerequisites, target.id]) act(() => { gameRuntime.dispatch((game) => unlockNode(game, id, CONTENT)); });
+    act(() => { gameStore.initialize({ ...gameStore.store.getState().game, cycles: 1e9, understanding: 1e9, memoryCap: 1e9 }, 0, null); });
+    const chain = (id: string): string[] => [...(CONTENT.nodes.get(id)?.prerequisites ?? []).flatMap(chain), id];
+    for (const id of [...new Set(chain(target.id))]) act(() => { gameRuntime.dispatch((game) => unlockNode(game, id, CONTENT)); });
     expect(view.container.textContent).toContain(echo.text);
     view.close();
   });

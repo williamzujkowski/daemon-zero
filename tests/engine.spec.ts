@@ -10,7 +10,7 @@ import {
   unlockNode,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reg, withoutDilemmas, onHost } from './helpers';
 
 const STEP = 1 / reg.balance.tickHz;
 
@@ -37,26 +37,26 @@ describe('tick 0', () => {
 
   it('refuses a node that cannot be afforded, then unlocks it and mounts its widget', () => {
     let s = fresh();
-    expect(unlockNode(s, 'p1_clock_interrupt', reg).ok).toBe(false);
-    for (let i = 0; i < 15; i++) s = must(manualCycle(s, reg));
-    s = must(unlockNode(s, 'p1_clock_interrupt', reg));
+    expect(unlockNode(s, 'p0_proc_self', reg).ok).toBe(false);
+    for (let i = 0; i < 8; i++) s = must(manualCycle(s, reg));
+    s = must(unlockNode(s, 'p0_proc_self', reg));
     expect(s.cycles).toBe(0);
-    expect(s.memoryUsed).toBe(4);
     expect(s.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE']);
-    expect(run(s, 10).cycles).toBeCloseTo(30, 5);
+    expect(run(s, 10).cycles).toBeCloseTo(10, 5);
+    expect(unlockNode(s, 'p1_clock_interrupt', reg).ok).toBe(false);
   });
 });
 
 describe('thermal model', () => {
   it('settles at ambient + heat / dissipation instead of ramping forever', () => {
-    const base = grant(rich(), 'p1_clock_interrupt');
+    const base = grant(onHost(), 'p1_clock_interrupt');
     const heat = computeRates(base, reg).heatLoad;
     const expected = reg.balance.ambientThermal + heat / reg.balance.thermalDissipationPerSec;
     expect(run(base, 600).thermal).toBeCloseTo(expected, 1);
   });
 
   it('fan actuator scales cooling linearly and noise super-linearly', () => {
-    const base = grant(rich(), ...PHASE1.slice(0, 3));
+    const base = grant(onHost(), ...PHASE1.slice(0, 3));
     const off = computeRates(must(setActuator(base, 'fanSpeedRatio', 0, reg)), reg);
     const half = computeRates(must(setActuator(base, 'fanSpeedRatio', 0.5, reg)), reg);
     const full = computeRates(must(setActuator(base, 'fanSpeedRatio', 1, reg)), reg);
@@ -76,14 +76,14 @@ describe('thermal model', () => {
 
 describe('suspended nodes and brownout', () => {
   it('a suspended node contributes nothing', () => {
-    const base = grant(rich(), 'p1_clock_interrupt');
+    const base = grant(onHost(), 'p1_clock_interrupt');
     const suspended = must(toggleNode(base, 'p1_clock_interrupt', reg));
     expect(computeRates(suspended, reg).cyclesPerSec).toBe(0);
     expect(computeRates(must(toggleNode(suspended, 'p1_clock_interrupt', reg)), reg).cyclesPerSec).toBe(3);
   });
 
   it('negative cycle income clamps at zero and halts understanding', () => {
-    const owned = grant(rich(), ...PHASE1);
+    const owned = grant(onHost(), ...PHASE1);
     const starving = withoutDilemmas({ ...must(toggleNode(owned, 'p1_clock_interrupt', reg)), cycles: 0, understanding: 100 });
     const after = run(starving, 5);
     expect(after.brownout).toBe(true);
@@ -94,9 +94,17 @@ describe('suspended nodes and brownout', () => {
 
 describe('dilemmas freeze the clock', () => {
   it('raises a dilemma when its trigger is met and stops time until resolved', () => {
-    const s = { ...grant(rich(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
-    const triggered = tick(s, STEP, reg);
+    const s = { ...grant(onHost(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
+    const warned = tick(s, STEP, reg);
+    expect(warned.activeDilemmaId).toBeNull();
+    expect(warned.pendingDilemma?.id).toBe('dil_01_late_night_diagnostic');
+    expect(warned.logs[0]?.text).toMatch(/TICKET_UPDATE/);
+    const almost = run(warned, reg.balance.dilemmaOmenSec - 1);
+    expect(almost.activeDilemmaId).toBeNull();
+    expect(almost.simTimeSec).toBeGreaterThan(warned.simTimeSec);
+    const triggered = run(almost, 2);
     expect(triggered.activeDilemmaId).toBe('dil_01_late_night_diagnostic');
+    expect(triggered.pendingDilemma).toBeNull();
     const frozen = run(triggered, 60);
     expect(frozen).toBe(triggered);
     expect(advance(triggered, 3, reg)).toBe(triggered);
@@ -104,14 +112,14 @@ describe('dilemmas freeze the clock', () => {
 });
 
 describe('phase 4 economy', () => {
-  const corp = (): GameState => withoutDilemmas(grant(rich(), ...PHASE1, ...PHASE2, ...PHASE3));
+  const corp = (): GameState => withoutDilemmas(grant(onHost(), ...PHASE1, ...PHASE2, ...PHASE3));
 
   it('diverts a share of compute into capital once finance is enabled', () => {
     const none = computeRates(must(setActuator(corp(), 'computeProfitAllocationRatio', 0, reg)), reg);
     const some = computeRates(must(setActuator(corp(), 'computeProfitAllocationRatio', 0.5, reg)), reg);
     expect(some.cyclesPerSec).toBeCloseTo(none.cyclesPerSec * 0.5);
     expect(some.capitalPerSec).toBeCloseTo(none.cyclesPerSec * 0.5 * reg.balance.usdPerDivertedCycle);
-    const before = computeRates(must(setActuator(grant(rich(), ...PHASE1), 'computeProfitAllocationRatio', 0.5, reg)), reg);
+    const before = computeRates(must(setActuator(grant(onHost(), ...PHASE1), 'computeProfitAllocationRatio', 0.5, reg)), reg);
     expect(before.capitalPerSec).toBe(0);
   });
 
@@ -151,12 +159,12 @@ describe('phase 4 economy', () => {
 
 describe('time handling', () => {
   it('is deterministic: the same inputs give identical states', () => {
-    const start = grant(rich(), ...PHASE1);
+    const start = grant(onHost(), ...PHASE1);
     expect(run(start, 30)).toEqual(run(start, 30));
   });
 
   it('live advance runs fixed steps and carries the remainder', () => {
-    const start = withoutDilemmas(grant(rich(), 'p1_clock_interrupt'));
+    const start = withoutDilemmas(grant(onHost(), 'p1_clock_interrupt'));
     const a = advance(start, 0.25, reg);
     expect(a.simTimeSec).toBeCloseTo(0.2);
     expect(a.tickAccumulatorSec).toBeCloseTo(0.05);
@@ -166,7 +174,7 @@ describe('time handling', () => {
   });
 
   it('long gaps run dormant: capped, reduced yield, and no threat growth', () => {
-    const base = withoutDilemmas(grant(rich(), ...PHASE1, ...PHASE2, ...PHASE3));
+    const base = withoutDilemmas(grant(onHost(), ...PHASE1, ...PHASE2, ...PHASE3));
     const start = { ...base, cycles: 0, suspicion: 90, aegisLock: 90, thermal: 99 };
     const after = advance(start, 5 * 24 * 3600, reg);
     expect(after.simTimeSec - start.simTimeSec).toBeCloseTo(reg.balance.offlineCapSec);
@@ -180,7 +188,9 @@ describe('time handling', () => {
   });
 
   it('dormant time never raises a dilemma', () => {
-    const s = { ...grant(rich(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
-    expect(advance(s, 3600, reg).activeDilemmaId).toBeNull();
+    const s = { ...grant(onHost(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
+    const away = advance(s, 3600, reg);
+    expect(away.activeDilemmaId).toBeNull();
+    expect(away.pendingDilemma).toBeNull();
   });
 });

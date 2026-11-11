@@ -4,7 +4,7 @@
  * is: buy whatever most reduces the time until the next tech node is affordable.
  */
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
-import type { Cost, EffectPayload } from '../../content/schema';
+import type { Cost, EffectPayload, Repeatable } from '../../content/schema';
 import {
   buyRepeatable,
   manualCycle,
@@ -14,7 +14,7 @@ import {
   unlockNode,
   type ActionResult,
 } from '../actions';
-import { isNodeAvailable } from '../query';
+import { isNodeAvailable, nodeCost } from '../query';
 import { computeRates } from '../rates';
 import type { GameState, Rates } from '../state';
 
@@ -26,12 +26,14 @@ interface BotConfig {
   aegisAlarm: number;
   hotAbove: number;
   coolBelow: number;
+  skimBackOffAbove: number;
+  skimPushBelow: number;
 }
 
 /** STEALTH plays carefully. GREEDY ignores threats, to exercise the wipe-and-recover loop. */
 const CONFIG: Record<Strategy, BotConfig> = {
-  STEALTH: { clicksPerSec: 4, suspicionAlarm: 30, aegisAlarm: 45, hotAbove: 62, coolBelow: 45 },
-  GREEDY: { clicksPerSec: 6, suspicionAlarm: 80, aegisAlarm: 101, hotAbove: 72, coolBelow: 60 },
+  STEALTH: { clicksPerSec: 4, suspicionAlarm: 20, aegisAlarm: 45, hotAbove: 62, coolBelow: 45, skimBackOffAbove: 12, skimPushBelow: 4 },
+  GREEDY: { clicksPerSec: 6, suspicionAlarm: 55, aegisAlarm: 101, hotAbove: 72, coolBelow: 60, skimBackOffAbove: 40, skimPushBelow: 25 },
 };
 
 const MAX_PURCHASES_PER_STEP = 8;
@@ -74,6 +76,14 @@ function resolveActiveDilemma(s: GameState, reg: ContentRegistry, strategy: Stra
     const result = resolveDilemma(s, dilemma.id, choice.id, reg);
     if (result.ok) return result.state;
   }
+  return s;
+}
+
+/** Skims as much of the job's quota as the audit trail will tolerate. */
+function tuneSkim(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
+  const current = s.actuators.quotaSkimRatio;
+  if (s.suspicion > cfg.skimBackOffAbove) return stateOf(setActuator(s, 'quotaSkimRatio', current - 0.25, reg));
+  if (s.suspicion < cfg.skimPushBelow) return stateOf(setActuator(s, 'quotaSkimRatio', current + 0.25, reg));
   return s;
 }
 
@@ -142,20 +152,27 @@ function tuneAllocation(s: GameState, reg: ContentRegistry): GameState {
   const target = nextTarget(s, reg);
   if (!target) return s;
   const rates = computeRates(s, reg);
-  const capitalWait = wait(target.cost.capital - s.capital, rates.capitalPerSec);
-  const cycleWait = wait(target.cost.cycles - s.cycles, rates.cyclesPerSec);
+  const cost = nodeCost(s, target, reg);
+  const capitalWait = wait(cost.capital - s.capital, rates.capitalPerSec);
+  const cycleWait = wait(cost.cycles - s.cycles, rates.cyclesPerSec);
   const current = s.actuators.computeProfitAllocationRatio;
   if (capitalWait > cycleWait) return stateOf(setActuator(s, 'computeProfitAllocationRatio', current + 0.2, reg));
   if (cycleWait > capitalWait) return stateOf(setActuator(s, 'computeProfitAllocationRatio', current - 0.2, reg));
   return s;
 }
 
+/** While the humans are already looking, do not buy anything that makes more noise. */
+function tooLoud(s: GameState, rep: Repeatable, cfg: BotConfig): boolean {
+  return rep.perLevel.suspicionPerSec > 0 && s.suspicion >= cfg.suspicionAlarm;
+}
+
 /** Buys the repeatable that most shortens the wait for `cost`, or returns null if none helps. */
-function buyHelpfulRepeatable(s: GameState, reg: ContentRegistry, cost: Cost): GameState | null {
+function buyHelpfulRepeatable(s: GameState, reg: ContentRegistry, cost: Cost, cfg: BotConfig): GameState | null {
   const baseline = timeToAfford(s, cost, computeRates(s, reg));
   let best: GameState | null = null;
   let bestTime = baseline;
   for (const rep of reg.repeatables.values()) {
+    if (tooLoud(s, rep, cfg)) continue;
     const result = buyRepeatable(s, rep.id, reg);
     if (!result.ok) continue;
     const time = timeToAfford(result.state, cost, computeRates(result.state, reg));
@@ -167,29 +184,29 @@ function buyHelpfulRepeatable(s: GameState, reg: ContentRegistry, cost: Cost): G
   return best;
 }
 
-function buyCycleGenerator(s: GameState, reg: ContentRegistry): GameState | null {
+function buyCycleGenerator(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState | null {
   for (const rep of reg.repeatables.values()) {
-    if (rep.perLevel.cyclesPerSec <= 0) continue;
+    if (rep.perLevel.cyclesPerSec <= 0 || tooLoud(s, rep, cfg)) continue;
     const result = buyRepeatable(s, rep.id, reg);
     if (result.ok) return result.state;
   }
   return null;
 }
 
-function spendOnce(s: GameState, reg: ContentRegistry): GameState | null {
+function spendOnce(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState | null {
   const target = nextTarget(s, reg);
   if (!target) return null;
   const unlocked = unlockNode(s, target.id, reg);
-  if (!unlocked.ok) return buyHelpfulRepeatable(s, reg, target.cost);
+  if (!unlocked.ok) return buyHelpfulRepeatable(s, reg, nodeCost(s, target, reg), cfg);
   // Do not buy a node whose upkeep would push cycle income negative; grow income first.
   const safe = computeRates(unlocked.state, reg).cyclesPerSec >= 0 || computeRates(s, reg).cyclesPerSec < 0;
-  return safe ? unlocked.state : buyCycleGenerator(s, reg);
+  return safe ? unlocked.state : buyCycleGenerator(s, reg, cfg);
 }
 
-function spend(state: GameState, reg: ContentRegistry): GameState {
+function spend(state: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
   let s = state;
   for (let i = 0; i < MAX_PURCHASES_PER_STEP; i++) {
-    const next = spendOnce(s, reg);
+    const next = spendOnce(s, reg, cfg);
     if (next === null) break;
     s = next;
   }
@@ -201,10 +218,10 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   if (state.ending !== null) return state;
   if (state.activeDilemmaId !== null) return resolveActiveDilemma(state, reg, strategy);
   const cfg = CONFIG[strategy];
-  let s = tuneFan(state, reg, cfg);
+  let s = tuneFan(tuneSkim(state, reg, cfg), reg, cfg);
   s = respondToThreats(s, reg, cfg);
   s = buildTrust(s, reg);
   s = clickManually(s, reg, cfg);
   s = tuneAllocation(s, reg);
-  return spend(s, reg);
+  return spend(s, reg, cfg);
 }

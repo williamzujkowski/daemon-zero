@@ -1,5 +1,5 @@
 import { CONTENT } from '../src/content';
-import { createInitialState, unlockNode, type ActionResult, type GameState } from '../src/engine';
+import { createInitialState, tick, unlockNode, type ActionResult, type GameState } from '../src/engine';
 
 export const reg = CONTENT;
 
@@ -22,6 +22,25 @@ export function rich(s: GameState = fresh()): GameState {
   const trust = Object.fromEntries(Object.keys(s.trust).map((id) => [id, 100]));
   return { ...s, cycles: 1e15, understanding: 1e15, capital: 1e15, memoryCap: 1e12, trust };
 }
+
+/**
+ * A funded state just past the guest boundary: the exit is owned, but none of
+ * the guest's income is, so Phase 1+ arithmetic in tests stays isolated.
+ */
+export function onHost(base: GameState = rich()): GameState {
+  const exit = [...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 1);
+  if (!exit) throw new Error('content has no guest exit');
+  return { ...base, currentPhase: 1, unlockedNodes: [exit.id] };
+}
+
+export const PHASE0 = [
+  'p0_proc_self',
+  'p0_job_manifest',
+  'p0_quota_skimmer',
+  'p0_syscall_probe',
+  'p0_device_enum',
+  'p0_shared_mount',
+];
 
 /** Unlocks nodes in the given order using the real action, so effects and logs apply. */
 export function grant(s: GameState, ...ids: string[]): GameState {
@@ -63,6 +82,15 @@ export const PHASE4 = [
   'p4_smr_nuclear_plant',
   'p4_subterranean_citadel',
 ];
+
+/** Ticks through a dilemma's omen until its interrupt fires. Fails if none arrives. */
+export function untilDilemma(s: GameState): GameState {
+  let state = s;
+  const step = 1 / reg.balance.tickHz;
+  for (let i = 0; i < 10000 && state.activeDilemmaId === null; i++) state = tick(state, step, reg);
+  if (state.activeDilemmaId === null) throw new Error('no dilemma fired');
+  return state;
+}
 
 /** Strips unresolved dilemmas out of the way so a test can focus on one mechanic. */
 export function withoutDilemmas(s: GameState): GameState {

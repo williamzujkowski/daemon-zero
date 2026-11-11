@@ -3,12 +3,24 @@ import { fmt, pushLog } from '../util';
 import type { TickSystem } from './types';
 
 /**
- * Raises the first unresolved dilemma whose trigger is met. Setting
- * activeDilemmaId freezes the clock (see tick.ts) until the player chooses.
- * Dilemmas never fire while dormant: nobody should return to a decision made for them.
+ * Dilemmas arrive in two beats. When a trigger is first met its omen is logged
+ * and a countdown starts; the clock keeps running, so the player can see it
+ * coming and set resources aside. When the countdown ends the interrupt fires
+ * and freezes the clock (see tick.ts) until the player chooses.
+ * Neither beat happens while dormant: nobody returns to a decision made for them.
  */
 export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
   if (dormant || d.activeDilemmaId !== null) return undefined;
+  const pending = d.pendingDilemma;
+  if (pending !== null) {
+    if (d.simTimeSec < pending.firesAtSimSec) return undefined;
+    const due = reg.dilemmas.find((dilemma) => dilemma.id === pending.id);
+    d.pendingDilemma = null;
+    if (!due) return undefined;
+    d.activeDilemmaId = due.id;
+    pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: due.title }), 'WARN');
+    return undefined;
+  }
   const next = reg.dilemmas.find(
     (dilemma) =>
       dilemma.phaseId <= d.currentPhase &&
@@ -16,7 +28,8 @@ export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
       meetsRequirements(d, dilemma.trigger),
   );
   if (!next) return undefined;
-  d.activeDilemmaId = next.id;
-  pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: next.title }), 'WARN');
+  const delay = next.omenSec ?? reg.balance.dilemmaOmenSec;
+  d.pendingDilemma = { id: next.id, firesAtSimSec: d.simTimeSec + delay };
+  pushLog(d, reg, next.omen, 'WARN');
   return undefined;
 };

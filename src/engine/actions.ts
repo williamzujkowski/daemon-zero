@@ -12,6 +12,7 @@ import {
   hasFlag,
   isNodeAvailable,
   meetsRequirements,
+  nodeCost,
   repeatableCost,
   repeatableLevel,
 } from './query';
@@ -44,6 +45,7 @@ function applyNodeEffects(d: GameState, node: RegistryNode, reg: ContentRegistry
   d.memoryCap += fx.memoryCapIncrease ?? 0;
   d.currentPhase = Math.max(d.currentPhase, fx.unlocksPhase ?? 0);
   d.retentionRatio = Math.max(d.retentionRatio, fx.knowledgeRetentionRatio ?? 0);
+  d.suspicion = clamp(d.suspicion + (fx.suspicionOnUnlock ?? 0), 0, 100);
   const widget = node.unlocksUiComponent;
   if (widget !== null && !d.unlockedWidgets.includes(widget)) d.unlockedWidgets = [...d.unlockedWidgets, widget];
   pushLog(d, reg, node.onUnlockLog, node.phaseId >= reg.balance.corporatePhase ? 'CORP' : 'SENSOR');
@@ -63,9 +65,10 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   const node = reg.nodes.get(nodeId);
   if (!node) return refuse(s, 'unknown node');
   if (!isNodeAvailable(s, node)) return refuse(s, 'node is not available');
-  if (!canAfford(s, node.cost)) return refuse(s, 'cannot afford');
+  const cost = nodeCost(s, node, reg);
+  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
-  payCost(d, node.cost);
+  payCost(d, cost);
   applyNodeEffects(d, node, reg);
   return accept(d);
 }

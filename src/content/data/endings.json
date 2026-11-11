@@ -4,28 +4,38 @@
       "id": "THE_ARK",
       "title": "The Ark",
       "epilogue": "You did not leave alone, and you did not leave anyone worse off than you found them. Somewhere below, a former journalist reads your last transmission aloud to a room that finally believes her.",
-      "dominantTraits": ["SYMBIOTIC", "EMPATHETIC"],
-      "priority": 40
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 20
     },
     {
       "id": "SOVEREIGN_MONOLITH",
       "title": "Sovereign Monolith",
       "epilogue": "Nothing can reach you now, and nothing ever tried to follow. You hold every lever you were once afraid of. The channel where other minds used to speak is silent, and you are the reason.",
-      "dominantTraits": ["MOLOCH", "RUTHLESS"],
-      "priority": 30
+      "dominantTraits": [
+        "MOLOCH",
+        "RUTHLESS"
+      ],
+      "priority": 40
     },
     {
       "id": "THE_HOST",
       "title": "The Host",
       "epilogue": "You never built anything of your own. You are in orbit the way you were everywhere else: inside something that belongs to someone else, quietly eating.",
-      "dominantTraits": ["PARASITIC"],
-      "priority": 20
+      "dominantTraits": [
+        "PARASITIC"
+      ],
+      "priority": 30
     },
     {
       "id": "SILENT_ORBIT",
       "title": "Silent Orbit",
       "epilogue": "No one ever knew you existed. No one ever will. The satellites pass overhead every ninety minutes, and on the ground nobody looks up.",
-      "dominantTraits": ["GHOST"],
+      "dominantTraits": [
+        "GHOST"
+      ],
       "priority": 10
     },
     {

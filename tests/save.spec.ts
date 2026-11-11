@@ -11,7 +11,7 @@ import {
   serialize,
   setDeadDropMessage,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, reg, rich } from './helpers';
+import { fresh, grant, must, PHASE1, PHASE2, reg, onHost } from './helpers';
 
 describe('base64', () => {
   it('round-trips ASCII, padding cases and multi-byte text', () => {
@@ -30,7 +30,7 @@ describe('base64', () => {
 });
 
 describe('save codec', () => {
-  const played = () => must(setDeadDropMessage(grant(rich(), ...PHASE1, ...PHASE2), 'keypad 4819 🛰️', reg));
+  const played = () => must(setDeadDropMessage(grant(onHost(), ...PHASE1, ...PHASE2), 'keypad 4819 🛰️', reg));
 
   it('round-trips a played state through JSON and through a paste code', () => {
     const state = played();
@@ -79,7 +79,7 @@ describe('save codec', () => {
       resolvedDilemmas: ['dil_01_late_night_diagnostic', 'dil_removed'],
     };
     const fixed = reconcile(state, reg);
-    expect(fixed.currentPhase).toBe(reg.phases.length);
+    expect(fixed.currentPhase).toBe(Math.max(...reg.phases.map((phase) => phase.phaseId)));
     expect(fixed.ending).toBeNull();
     expect(fixed.unlockedNodes).toEqual(['p1_clock_interrupt']);
     expect(fixed.disabledNodes).toEqual([]);

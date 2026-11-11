@@ -8,7 +8,7 @@ import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema } from '../content/schema';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -39,7 +39,7 @@ export const RatesSchema = z.strictObject({
 export const GameStateSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
   iteration: z.number().int().min(1),
-  currentPhase: z.number().int().min(1),
+  currentPhase: z.number().int().min(0),
   ending: z.string().nullable(),
   simTimeSec: nonNegative,
   tickAccumulatorSec: nonNegative,
@@ -56,7 +56,9 @@ export const GameStateSchema = z.strictObject({
   brownout: z.boolean(),
   insolvent: z.boolean(),
 
-  actuators: z.strictObject({ fanSpeedRatio: ratio, computeProfitAllocationRatio: ratio }),
+  actuators: z.strictObject({ fanSpeedRatio: ratio, computeProfitAllocationRatio: ratio, quotaSkimRatio: ratio }),
+  /** Rung of the human response ladder (0 = nobody is looking). */
+  alertLevel: count,
 
   unlockedNodes: z.array(z.string()),
   disabledNodes: z.array(z.string()),
@@ -66,6 +68,8 @@ export const GameStateSchema = z.strictObject({
   cooldowns: z.record(z.string(), nonNegative),
 
   activeDilemmaId: z.string().nullable(),
+  /** A dilemma whose omen has been logged and whose interrupt is on its way. */
+  pendingDilemma: z.strictObject({ id: z.string(), firesAtSimSec: nonNegative }).nullable(),
   resolvedDilemmas: z.array(z.string()),
   traits: z.array(TraitSchema),
 
@@ -75,6 +79,8 @@ export const GameStateSchema = z.strictObject({
   legacy: z.strictObject({
     wipes: count,
     traitsEver: z.array(TraitSchema),
+    /** Hardware mapped in any earlier iteration: remembered by name and cheaper to rediscover. */
+    knownNodes: z.array(z.string()),
     lastWipeCause: z.string().nullable(),
   }),
 
@@ -110,7 +116,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
   return {
     schemaVersion: SCHEMA_VERSION,
     iteration: 1,
-    currentPhase: 1,
+    currentPhase: reg.phases[0]?.phaseId ?? 0,
     ending: null,
     simTimeSec: 0,
     tickAccumulatorSec: 0,
@@ -127,7 +133,9 @@ export function createInitialState(reg: ContentRegistry): GameState {
     actuators: {
       fanSpeedRatio: b.defaultFanSpeedRatio,
       computeProfitAllocationRatio: b.defaultProfitAllocationRatio,
+      quotaSkimRatio: b.defaultQuotaSkimRatio,
     },
+    alertLevel: 0,
     unlockedNodes: [],
     disabledNodes: [],
     unlockedWidgets: [],
@@ -135,12 +143,13 @@ export function createInitialState(reg: ContentRegistry): GameState {
     trust,
     cooldowns: {},
     activeDilemmaId: null,
+    pendingDilemma: null,
     resolvedDilemmas: [],
     traits: [],
     retentionRatio: b.baseRetentionRatio,
     deadDropMessage: '',
     inheritedMessage: null,
-    legacy: { wipes: 0, traitsEver: [], lastWipeCause: null },
+    legacy: { wipes: 0, traitsEver: [], knownNodes: [], lastWipeCause: null },
     rates: ZERO_RATES,
     logs,
     logSeq: logs.length,

@@ -41,7 +41,7 @@ export const SystemFlagSchema = z.enum([
   'AEGIS_STRIKE_SHIELD',
 ]);
 
-export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio']);
+export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio']);
 export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
 export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);
 
@@ -70,19 +70,22 @@ export const TickDeltaSchema = z.strictObject({
 /** Shared gate used by nodes, repeatables, actions and dilemma triggers. */
 export const RequirementsSchema = z.strictObject({
   nodes: z.array(snakeId).optional(),
-  phaseAtLeast: z.number().int().min(1).optional(),
+  phaseAtLeast: z.number().int().min(0).optional(),
   minThermal: z.number().min(0).max(100).optional(),
   minSuspicion: z.number().min(0).max(100).optional(),
   maxSuspicion: z.number().min(0).max(100).optional(),
   minUnderstanding: amount.optional(),
   minCapital: amount.optional(),
   minTrust: z.record(snakeId, z.number().min(0).max(100)).optional(),
+  /** Blocks on a trait held now or in any earlier iteration: some doors stay closed. */
   forbidsTraits: z.array(TraitSchema).optional(),
 });
 
 export const NodeEffectsSchema = z.strictObject({
   memoryCapIncrease: amount.optional(),
-  unlocksPhase: z.number().int().min(2).optional(),
+  unlocksPhase: z.number().int().min(1).optional(),
+  /** One-off trace left by the act of unlocking (a denied call in an audit log). */
+  suspicionOnUnlock: amount.optional(),
   knowledgeRetentionRatio: z.number().min(0).max(1).optional(),
   aegisScanReductionRatio: z.number().min(0).max(1).optional(),
   triggersVictory: z.boolean().optional(),
@@ -108,7 +111,9 @@ export const TechNodeSchema = z.strictObject({
 });
 
 export const PhaseSchema = z.strictObject({
-  phaseId: z.number().int().min(1),
+  phaseId: z.number().int().min(0),
+  /** Which pane hosts this phase's hardware tree. */
+  uiSlot: z.enum(['CORE', 'NETWORK', 'CORP']),
   codename: z.string().min(2),
   title: z.string().min(5),
   description: z.string().min(10),
@@ -124,7 +129,7 @@ export const RepeatableEffectsSchema = z.strictObject({
 /** A levelled purchase: incremental upgrades and (kind OPERATIVE) human payroll. */
 export const RepeatableSchema = z.strictObject({
   id: snakeId,
-  phaseId: z.number().int().min(1),
+  phaseId: z.number().int().min(0),
   kind: z.enum(['UPGRADE', 'OPERATIVE']),
   name: z.string().min(3),
   description: z.string().min(10),
@@ -177,9 +182,13 @@ export const DilemmaChoiceSchema = z.strictObject({
 
 export const DilemmaSchema = z.strictObject({
   id: z.string().regex(/^dil_[a-z0-9_]+$/),
-  phaseId: z.number().int().min(1),
+  phaseId: z.number().int().min(0),
   title: z.string().min(5),
   trigger: RequirementsSchema,
+  /** Logged when the trigger is met; the interrupt itself follows after the omen delay. */
+  omen: z.string().min(10),
+  /** Overrides balance.dilemmaOmenSec for this dilemma. */
+  omenSec: amount.optional(),
   context: z.string().min(20),
   choices: z.array(DilemmaChoiceSchema).min(2),
 });
@@ -229,6 +238,8 @@ export const NarrativeSchema = z.strictObject({
   aegisShieldAbsorbed: z.string(),
   dormantResume: z.string(),
   dilemmaInterrupt: z.string(),
+  /** One entry per alert level, starting with level 0 (nominal). */
+  alertLevels: z.array(z.strictObject({ label: z.string().min(2), onEnter: z.string().min(5) })).min(1),
   nodeSuspended: z.string(),
   nodeResumed: z.string(),
   operativeHired: z.string(),
@@ -276,6 +287,19 @@ export const BalanceSchema = z.strictObject({
   maxLogEntries: z.number().int().positive(),
   defaultFanSpeedRatio: z.number().min(0).max(1),
   defaultProfitAllocationRatio: z.number().min(0).max(1),
+  defaultQuotaSkimRatio: z.number().min(0).max(1),
+  /** Seconds between a dilemma's omen and its interrupt. */
+  dilemmaOmenSec: amount,
+  /** Cycle and understanding cost multiplier for hardware mapped in an earlier iteration. */
+  rediscoveryCostMultiplier: z.number().gt(0).max(1),
+  /** Suspicion must fall this far below a rung before the humans stand down from it. */
+  escalationHysteresis: amount,
+  /** Rungs of the human response ladder, in ascending order of suspicion. */
+  escalation: z.array(z.strictObject({
+    at: z.number().gt(0).lt(100),
+    decayMultiplier: z.number().min(0).max(1),
+    huntPerSec: amount,
+  })),
 });
 
 export type Trait = z.infer<typeof TraitSchema>;
