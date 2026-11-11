@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0, M1 and M2 are complete. M3 has not started.** [M2 CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106). See [issue #3](https://github.com/williamzujkowski/daemon-zero/issues/3) and `docs/REVIEW-FINDINGS.md` section H for evidence and limitations.
+Status: **M0, M1 and M2 are complete. M3 implementation is complete; its final real-time playthrough is in progress in PR #20.** Setup #13, foundation #15 and purchases #17 are merged. See `docs/REVIEW-M3.md` for browser/native evidence and limits. [M2 CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106).
 
 ---
 
@@ -63,15 +63,15 @@ Exit gate: play for a minute in the browser using a temporary debug button for `
 
 Goal: Phase 1 is fully playable and feels like the design. Follow `docs/UI-SPEC.md`.
 
-- [ ] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above).
-- [ ] Kernel log as a virtualized list.
-- [ ] Resource strip that reveals each readout only when its widget is unlocked.
-- [ ] Node cards, data-driven from the registry: blind name/description until unlocked, revealed after; cost, deltas, suspend/resume.
-- [ ] Repeatables panel, data-driven from `reg.repeatables` filtered by `meetsRequirements`.
-- [ ] Widget registry driven by `src/content/data/widgets.json`, with a test asserting every widget id in content has a registered component.
-- [ ] Phase 1 widgets: thermal and suspicion bars, fan control, microphone stream, inspection forecast, ASCII camera. Text comes from `narrative.json`.
-- [ ] Dilemma modal: shows costs and consequences, disables unaffordable choices, cannot be dismissed without choosing.
-- [ ] `testID` on every interactive element (see UI-SPEC). Accessibility labels and roles.
+- [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above).
+- [x] Kernel log as a virtualized list.
+- [x] Resource strip that reveals each readout only when its widget is unlocked.
+- [x] Node cards, data-driven from the registry: blind name/description until unlocked, revealed after; cost, deltas, suspend/resume.
+- [x] Repeatables panel, data-driven from `reg.repeatables` filtered by `meetsRequirements`.
+- [x] Widget registry driven by `src/content/data/widgets.json`, with a test asserting every widget id in content has a registered component.
+- [x] Phase 1 widgets: thermal and suspicion bars, fan control, microphone stream, inspection forecast, ASCII camera. Text comes from `narrative.json`.
+- [x] Dilemma modal: shows costs and consequences, disables unaffordable choices, cannot be dismissed without choosing.
+- [x] `testID` on every interactive element (see UI-SPEC). Accessibility labels and roles.
 
 Exit gate: a human can play from tick 0 to the Phase 2 unlock in the browser; component tests cover the registry and the modal; `make verify` green.
 

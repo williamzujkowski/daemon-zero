@@ -6,10 +6,13 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 ## Status
 
-The Expo app now runs the simulation in real time and saves/restores it locally. A temporary status screen shows cycles, elapsed time, logs and a manual-cycle debug control on web and Android. The playable terminal UI arrives in M3.
+The Expo app runs and saves the simulation locally. Its Phase 1 terminal has
+progressively unlocked readouts, hardware cards, upgrades, sensor feeds and
+mandatory dilemmas. Web and Android Expo Go have been exercised; release builds
+and iOS remain unverified.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 through M2 are complete. M3 (playable terminal UI) has not started; see `docs/MILESTONES.md`.
+- M0 through M2 are complete. M3 is undergoing its final real-time playthrough; see `docs/MILESTONES.md` and `docs/REVIEW-M3.md`.
 
 ## Quick start (Ubuntu 24.04)
 
@@ -35,19 +38,20 @@ and a standalone release build.
 
 ## Handing this to coding agents
 
-1. Create the GitHub repo and push this tree.
-2. Run `bash scripts/seed-issues.sh` to create one issue per milestone.
-3. Point your agent at the repo. It will read `AGENTS.md` (Claude Code reads it through `CLAUDE.md`). A good first prompt:
+1. Use the existing GitHub repository and milestone issues. Do not rerun the seed script: it creates duplicates.
+2. Point your agent at the repo. It will read `AGENTS.md` (Claude Code reads it through `CLAUDE.md`). A starting prompt:
 
-   > Read AGENTS.md and docs/MILESTONES.md. Complete milestone M0, then stop and report what you verified and what you could not.
+   > Read AGENTS.md and docs/MILESTONES.md. Complete the next unfinished milestone only, then report what you verified and what you could not.
 
-4. Proceed one milestone at a time. Each has an exit gate.
+3. Proceed one milestone at a time. Each has an exit gate.
 
 ## Layout
 
 ```
 src/content/      game data (JSON), schemas, integrity checks
 src/engine/       pure simulation: tick pipeline, actions, saves, sim bot
+src/app/          runtime, store, clocks, lifecycle and local persistence
+src/ui/           terminal panes, cards, widgets and dilemma modal
 tests/            Vitest suites
 scripts/          content validator, sim runner, bootstrap, issue seeding
 docs/             design, architecture, UI spec, testing, balance, milestones, review findings
