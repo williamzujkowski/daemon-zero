@@ -101,6 +101,40 @@ confirmation says so. Import validates through the engine save codec. The drawer
 and web hook are excluded from production exports by tests. This explicit
 development tool is the only exception to the otherwise minimal opening screen.
 
+## M4.5 opening and feedback
+
+During Phase 0 the unlocked quota skim and audit trail stay outside the CORE
+hardware scroll view. Their own labels replace redundant panel headings, and
+the phone log is 120 px high while in the guest so hardware still has room.
+Both widgets return to manifest placement after escaping. Nothing is pinned
+before its widget unlocks.
+
+The suspicion meter includes data-driven response rungs, with numeric thresholds
+and a textual current-rung marker. Escalation/stand-down notices sit beside the
+resource strip and wait for acknowledgement. Engine announcements are queued in
+sequence, including multiple changes inside one tick batch; acknowledging one
+does not discard the next. Hydration and new iterations establish a baseline.
+An inbound dilemma's authored omen appears outside the log even before decoding;
+the unlocked forecast displays its remaining simulation-time countdown.
+
+Crossing from the guest to the host presents the host phase's authored title and
+description behind an explicit Enter Host action. The notice says that the
+simulation continues; it does not pause or change engine time. Dilemmas take
+priority. Restoring a host save does not invent an escape transition.
+
+Before the cycle readout unlocks, successful manual input produces a small
+instruction-commit confirmation, not a hidden balance. It retires when the
+counter appears. Every phase with a cycle readout explains a negative net rate
+or brownout immediately beside the resource strip; understanding wording follows
+its existing unlock gate. Remembered cards use a labelled amber border, the
+engine's discounted price, and a comparison with the first-mapping cost.
+
+The camera is a grid of fixed-width character cells instead of a wrapped text
+paragraph. Every authored row and character stays intact. The grid fits its
+available width and preferred font scale, and supplies one semantic image label;
+font fallback cannot shift the right border. Browser review checks clear and
+patrol rows at both viewport sizes. This changes rendering only.
+
 ## Theme
 
 Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):

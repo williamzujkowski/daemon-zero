@@ -32,6 +32,8 @@ function DrawerActions({ ask, apply }: Commands) {
   });
   return <>
     <Text style={theme.muted}>Development save edits bypass normal progression. Export a code to keep a copy.</Text>
+    <Text testID="dev-phase-info" style={theme.muted}>Opening review: {CONTENT.phases[0]?.title}.
+      Phase previews replace this run with a funded state; earlier hardware is mapped through engine actions.</Text>
     <TextInput testID="dev-amount" accessibilityLabel="Development resource amount" keyboardType="numeric"
       value={amount} onChangeText={setAmount} style={[theme.text, styles.input]} />
     <Control id="dev-grant" label="Grant resource amount" disabled={ended} press={() => { apply(() => tools.grant(Number(amount))); }} />

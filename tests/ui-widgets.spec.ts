@@ -59,13 +59,15 @@ describe('M3 widgets', () => {
     }
     expect(view.find('memory-meter')?.getAttribute('aria-valuetext')).toContain('MB');
     expect(view.find('decoded-speech')?.textContent).toBe(CONTENT.narrative.ambientChatter[0]?.text);
-    expect(view.find('camera-frame')?.textContent).toBe(CONTENT.narrative.asciiFrames.aisleClear.join('\n'));
+    expect([...view.container.querySelectorAll('[data-testid^="camera-row-"]')].map((row) => row.textContent))
+      .toEqual(CONTENT.narrative.asciiFrames.aisleClear);
     expect(view.find('inspection-forecast')?.textContent).toContain('stable or falling');
     act(() => { gameStore.initialize({ ...fixture('phase-1-widgets'), thermal: 90, suspicion: 90,
       rates: { ...fixture('phase-1-widgets').rates, suspicionPerSec: 1 } }, 0, null); });
     expect(view.container.textContent).toContain('WARNING: overheat');
     expect(view.find('inspection-forecast')?.textContent).toContain('10s');
-    expect(view.find('camera-frame')?.textContent).toBe(CONTENT.narrative.asciiFrames.aislePatrol.join('\n'));
+    expect([...view.container.querySelectorAll('[data-testid^="camera-row-"]')].map((row) => row.textContent))
+      .toEqual(CONTENT.narrative.asciiFrames.aislePatrol);
     view.close();
   });
 

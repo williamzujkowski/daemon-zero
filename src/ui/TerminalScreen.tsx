@@ -17,6 +17,9 @@ import Pane from './TerminalPane';
 import EndingScreen from './EndingScreen';
 import DevelopmentTools from '../app/DevelopmentTools';
 import RunStatus from './RunStatus';
+import ResponseNotice from './ResponseNotice';
+import OmenNotice from './OmenNotice';
+import PhaseThreshold from './PhaseThreshold';
 
 function Tabs({ slots, active, select }: { slots: string[]; active: string; select: (slot: string) => void }) {
   if (slots.length < 2) return null;
@@ -48,6 +51,7 @@ export default function TerminalScreen() {
   const [selected, select] = useState('CORE');
   const active = slots.includes(selected) ? selected : 'CORE';
   const iteration = useGame((game) => game.iteration);
+  const guest = useGame((game) => game.currentPhase === CONTENT.phases[0]?.phaseId);
   const notice = useGameValue(selectNotice);
   return <View testID="terminal-screen" style={styles.screen}>
     <StatusBar barStyle="light-content" />
@@ -55,14 +59,16 @@ export default function TerminalScreen() {
       <Text style={theme.muted}>ITERATION {String(iteration).padStart(2, '0')}</Text><RunStatus /></View><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
+    <ResponseNotice /><OmenNotice />
     {width >= 900 ? <View testID="terminal-columns" style={styles.columns}>
       <Pane slots={['CORE']} /><Pane slots={['SENSORS', 'CONTINGENCY']} />
       <ThirdColumn slots={slots} />
     </View> : <View testID="terminal-mobile" style={styles.mobile}>
-      <Pane slots={[active]} /><View style={styles.mobileLog}><KernelLog /></View>
+      <Pane slots={[active]} /><View style={[styles.mobileLog, guest && { height: 120 }]}><KernelLog /></View>
       <Tabs slots={slots} active={active} select={select} />
     </View>}
     <DilemmaModal />
+    <PhaseThreshold />
     <RebootSequence />
     <EndingScreen />
   </View>;

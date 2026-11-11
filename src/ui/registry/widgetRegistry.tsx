@@ -18,6 +18,7 @@ export const resourceWidgets = {
 } as const;
 
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
+export const guestPinnedWidgets: readonly string[] = ['QUOTA_SKIM_CONTROL', 'AUDIT_TRACE_MONITOR'];
 
 function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
 function Inspection() { return <><Speech /><Forecast /></>; }

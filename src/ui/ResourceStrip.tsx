@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useGame } from './state';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
+import CycleDeficit from './CycleDeficit';
 
 type Resource = keyof typeof resourceWidgets;
 function Amount({ resource }: { resource: Resource }) {
@@ -29,7 +30,8 @@ export default function ResourceStrip() {
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
   if (!gates && !threatKnown) return null;
   return <View testID="resource-strip" style={styles.strip}>{gates.split(',').filter(Boolean).map((resource) =>
-    <Amount key={resource} resource={resource as Resource} />)}{threatKnown && <ThreatAmount />}</View>;
+    <Amount key={resource} resource={resource as Resource} />)}{threatKnown && <ThreatAmount />}
+    {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
 }
 
 function ThreatAmount() {
