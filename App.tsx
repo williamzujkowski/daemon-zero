@@ -1,6 +1,6 @@
 /**
  * Expo entry component shared by web and native.
- * M1 renders only the initial engine boot screen.
+ * The M2 status screen starts the app-owned game loop and persistence runtime.
  */
 import BootScreen from './src/app/BootScreen';
 

@@ -213,3 +213,85 @@ passed on Ubuntu 24.04 at commit `b74442f`, including locked tool installation,
 frozen dependencies, all verify gates (including web export), security scans,
 SBOM generation and artifact upload. Issue #2 tracks final merge sign-off.
 M2 has not been started.
+
+## H. M2 store, clocks and persistence verification (2026-11-11)
+
+The existing public engine API is sufficient: no engine or content changes were
+needed. All production clock, timer, lifecycle and storage access is in
+`src/app`. A vanilla Zustand 5.1.0 store holds engine state plus loading/recovery
+metadata; no persist middleware is used. Expo installed the SDK-compatible
+AsyncStorage 2.2.0. Both dependencies and the happy-dom 21.0.4 test environment
+are pinned exactly.
+
+The app save envelope keeps `savedAtMs` outside GameState and calls the engine
+codec to serialize/deserialize the inner game. Untrusted envelopes, invalid
+engine saves and excessive pending live time are rejected and backed up before
+replacement. If reading or backup fails, autosave is disabled with a visible
+notice and the existing slot is preserved. Other write failures are reported
+and retried. An ordered queue prevents slow old writes replacing newer saves;
+an idle localStorage write starts synchronously for pagehide handling.
+
+Foreground timing uses one monotonic interval at the content tick rate. Saves
+serialize every five seconds, immediately on accepted actions and automatic
+wipes, and on background/cleanup. Backgrounding stops the interval. Startup and
+resume use the wall timestamp, clamp negative gaps to zero and pass elapsed
+seconds to engine advance. The engine remains responsible for dormant caps,
+yields, threats and paused dilemmas. A fresh monotonic baseline prevents double
+catch-up after returning.
+
+### Automated checks
+
+- `make setup` passed using the frozen lockfile; `make verify-full` passed:
+  typecheck, zero-warning lint, content validation, 108 tests, unchanged coverage
+  thresholds, balance gates, production web export, audit, gitleaks, OSV, Trivy
+  and SBOM generation. Audit and OSV have no findings.
+- Coverage explicitly includes all `src/**/*.{ts,tsx}` plus App.tsx, and the
+  existing `src/app/**` floors are unchanged at 80%. App coverage is 100% lines,
+  100% functions, 99.55% statements and 95.12% branches. Global statements are
+  98.45%, branches 94.48%, functions 99.57% and lines 99.76%.
+- Fake timers cover an exact 600-second gap with no hidden ticks and only one
+  resume; restart catch-up, foreground wall-clock jumps, rollback, inactive
+  hydration, effect remount races and duplicate lifecycle notifications.
+- Tests cover successful/refused dispatch, purchases, dilemma choices, voluntary
+  and automatic wipes, synchronous web writes, ordered/failing native writes,
+  bad saves and failed backups, plus actual React effect cleanup and quantized
+  subscriber render counts. A serialize spy verifies no per-tick serialization.
+- The complete ESLint, TypeScript and Vitest configuration files are byte-for-byte
+  unchanged from M1. The engine/content diff is empty. No gate was weakened.
+
+### Web checks
+
+The production export was served on `127.0.0.1:8088`. Twelve manual cycles were
+saved, the simulation ran for about 112 seconds, then a reload restored 12 cycles
+and 112 seconds. Chromium kept visibilityState visible even after switching to
+another tab, so the long background test was explicitly simulated: dispatched
+pagehide and froze Chromium through CDP for 608.333 real seconds. The display
+remained at 172 seconds while frozen; after activating and dispatching pageshow,
+the saved state was about 780.731 seconds with one DORMANT_RESUME entry and all
+12 cycles. A subsequent reload preserved the count and resume log.
+
+### Android checks
+
+The Pixel 7 API 36 x86_64 emulator actually ran the M2 app in Expo Go, using real
+AppState and AsyncStorage. Nine manual cycles were saved. Expo Go was force-
+stopped without clearing data and relaunched using the same project URI. A
+screenshot confirmed 9 cycles restored and simulation time progressed to 339
+seconds. The native app was then backgrounded with Home at 07:06:18 UTC, with
+NexusLauncher confirmed as the resumed activity. At 07:17:00 UTC (about ten
+minutes 42 seconds later), the same task was selected through Recents without
+sending a new project intent. The process remained PID 3813 and the last
+ReactNativeJS main-start log was unchanged. A screenshot confirmed
+DORMANT_RESUME: 0.2h, 9 cycles and about 1000 simulation seconds after returning.
+The Recents snapshot before returning showed 347 seconds; the result is consistent
+with one background catch-up plus the foreground seconds before capture.
+A final cold launch after restarting Metro against the committed source again
+restored 9 cycles; native error logs were empty.
+
+### Not verified
+
+A natural browser tab-hide transition in this headless Chromium session (the
+web lifecycle was simulated as described), a physical Android device, iOS,
+signed standalone builds, or a VS Code devcontainer boot. The real native ten-minute
+background test passed. [PR CI run 42978773106](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106)
+passed on Ubuntu 24.04 at commit `15f391c`, including all verification, security
+scans and SBOM upload. Issue #3 tracks final merge sign-off. M3 has not started.

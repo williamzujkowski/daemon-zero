@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 and M1 are complete. M2 has not started.** The M1 shell is verified on web and Android, and [CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42973786660). See `docs/REVIEW-FINDINGS.md` sections F and G for evidence and limitations.
+Status: **M0, M1 and M2 are complete. M3 has not started.** [M2 CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42978773106). See [issue #3](https://github.com/williamzujkowski/daemon-zero/issues/3) and `docs/REVIEW-FINDINGS.md` section H for evidence and limitations.
 
 ---
 
@@ -45,13 +45,15 @@ Exit gate: `make verify` green including `build-web`; app boots in a browser and
 
 Goal: the engine runs in real time inside the app and survives restarts. Still minimal UI.
 
-- [ ] `src/app/store.ts`: a zustand vanilla store holding `{ game: GameState }` and a `dispatch(action)` helper that applies an engine action and stores the result. See the sketch in `docs/ARCHITECTURE.md`.
-- [ ] `src/app/useGameLoop.ts`: one interval at `balance.tickHz`. Each fire calls `advance(game, elapsedSeconds, CONTENT)` using a monotonic clock. The engine handles fixed steps and dormant catch-up.
-- [ ] App background/foreground: on resume, compute elapsed wall-clock time from a timestamp saved with the game and pass it to `advance`. Wall-clock handling lives here, never in the engine.
-- [ ] `src/app/storage.ts`: platform adapter (`AsyncStorage` on native, `localStorage` on web). Save explicitly on a throttle (every few seconds) and immediately on background, purchase, dilemma resolution and wipe. **Do not use zustand `persist`**: it serializes the whole state on every tick.
-- [ ] Load through `deserialize()`; on `SaveError`, keep the bad save under a backup key, start fresh, and tell the player.
-- [ ] Selector hooks that subscribe to primitives or quantized values (for example `Math.floor(cycles)`) so the tree does not re-render at 10 Hz.
-- [ ] Tests: store dispatch, loop timing with fake timers, save/load round trip, corrupted save recovery.
+Local verification: `make verify-full` passes with 108 tests. Save/restore was checked by web reload and Android Expo Go force-stop/relaunch. An exact 600-second fake-clock resume, a 608-second real Chromium freeze with simulated page lifecycle events, and a real Android Home/Recents background wait of about ten minutes 42 seconds all produced the expected catch-up. See section H of `docs/REVIEW-FINDINGS.md` for limits and evidence.
+
+- [x] `src/app/store.ts`: a zustand vanilla store holding `{ game: GameState }` and a `dispatch(action)` helper that applies an engine action and stores the result. See the sketch in `docs/ARCHITECTURE.md`.
+- [x] `src/app/useGameLoop.ts`: one interval at `balance.tickHz`. Each fire calls `advance(game, elapsedSeconds, CONTENT)` using a monotonic clock. The engine handles fixed steps and dormant catch-up.
+- [x] App background/foreground: on resume, compute elapsed wall-clock time from a timestamp saved with the game and pass it to `advance`. Wall-clock handling lives here, never in the engine.
+- [x] `src/app/storage.ts`: platform adapter (`AsyncStorage` on native, `localStorage` on web). Save explicitly on a throttle (every few seconds) and immediately on background, purchase, dilemma resolution and wipe. **Do not use zustand `persist`**: it serializes the whole state on every tick.
+- [x] Load through `deserialize()`; on `SaveError`, keep the bad save under a backup key, start fresh, and tell the player.
+- [x] Selector hooks that subscribe to primitives or quantized values (for example `Math.floor(cycles)`) so the tree does not re-render at 10 Hz.
+- [x] Tests: store dispatch, loop timing with fake timers, save/load round trip, corrupted save recovery.
 
 Exit gate: play for a minute in the browser using a temporary debug button for `manualCycle`, reload, and the state is restored; background for 10 minutes and resume shows a `DORMANT_RESUME` log line.
 
