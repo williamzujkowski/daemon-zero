@@ -12,7 +12,8 @@ export function NetworkTree() {
   const current = useGame((game) => game.currentPhase);
   const initial = CONTENT.phases[0]?.phaseId ?? 1;
   return <View style={{ gap: 14 }}>{CONTENT.phases.filter((phase) => phase.phaseId > initial &&
-    phase.phaseId < CONTENT.balance.corporatePhase && phase.phaseId <= current).map((phase) =>
+    phase.phaseId < CONTENT.balance.corporatePhase && phase.phaseId <= current)
+    .sort((left, right) => right.phaseId - left.phaseId).map((phase) =>
     <View key={phase.phaseId} style={{ gap: 14 }}>
       <Text style={theme.heading}>{phase.title}</Text>
       <NodeList phase={phase.phaseId} group="TREE" owned={false} />

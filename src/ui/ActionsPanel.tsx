@@ -9,6 +9,7 @@ import PurchaseButton from './PurchaseButton';
 import RequirementHint from './RequirementHint';
 import { useGame } from './state';
 import { theme } from './theme';
+import CostHint from './CostHint';
 
 function ActionCard({ action }: { action: Action }) {
   const cooldown = useGame((game) => Math.max(0, Math.ceil((game.cooldowns[action.id] ?? 0) - game.simTimeSec)));
@@ -16,6 +17,7 @@ function ActionCard({ action }: { action: Action }) {
     <Text style={theme.heading}>{action.label}</Text>
     <Text style={theme.text}>{action.description}</Text>
     <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(action.cost)}</Text>
+    <CostHint cost={action.cost} />
     <Effects effects={action.effects} />
     <RequirementHint requirements={action.requirements} />
     {cooldown > 0 && <Text testID={'action-cooldown-' + action.id} style={theme.muted}>Cooldown: {cooldown}s</Text>}

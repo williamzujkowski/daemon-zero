@@ -13,6 +13,7 @@ import { useGame } from './state';
 import { theme } from './theme';
 import RequirementHint from './RequirementHint';
 import { recordNodeRender } from '../app/renderCounts';
+import CostHint from './CostHint';
 
 function NodeCard({ node }: { node: RegistryNode }) {
   const owned = useGame((game) => game.unlockedNodes.includes(node.id));
@@ -34,6 +35,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
         action={(game) => toggleNode(game, node.id, CONTENT)} />
     </> : <>
       <Text testID={'node-' + node.id + '-cost'} style={theme.muted}>Cost: {costText(node.cost)}</Text>
+      <CostHint cost={node.cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} cost={node.cost}
         allowed={(game) => isNodeAvailable(game, node)} action={(game) => unlockNode(game, node.id, CONTENT)} />

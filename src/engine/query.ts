@@ -45,6 +45,16 @@ export function canAfford(s: GameState, cost: Cost): boolean {
   );
 }
 
+/** Positive deficits for presentation; spending still goes through actions. */
+export function costShortfall(s: GameState, cost: Cost): Cost {
+  return {
+    cycles: Math.max(0, cost.cycles - s.cycles),
+    understanding: Math.max(0, cost.understanding - s.understanding),
+    capital: Math.max(0, cost.capital - s.capital),
+    memory: Math.max(0, cost.memory - freeMemory(s)),
+  };
+}
+
 export function repeatableLevel(s: GameState, id: string): number {
   return s.levels[id] ?? 0;
 }

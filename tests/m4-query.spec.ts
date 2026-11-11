@@ -1,13 +1,22 @@
 /** Pure presentation queries must agree with the unchanged engine decisions. */
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { computeRates, cycleContributions, meetsRequirements, previewWipe, unmetRequirements, wipe } from '../src/engine';
+import { canAfford, computeRates, costShortfall, cycleContributions, meetsRequirements, previewWipe, unmetRequirements, wipe } from '../src/engine';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { importSave } from '../src/engine';
 import { fresh, grant, rich } from './helpers';
 
 const fixtures = makeFixtures();
 describe('M4 read-only queries', () => {
+  it('reports exact affordability deficits without changing the spending decision', () => {
+    const cost = { cycles: 12, understanding: 3, memory: 100, capital: 8 };
+    const s = { ...fresh(), cycles: 1.2, understanding: 2, capital: 2 };
+    expect(costShortfall(s, cost)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, capital: 6 });
+    for (const code of Object.values(fixtures)) {
+      const game = importSave(code, CONTENT);
+      expect(Object.values(costShortfall(game, cost)).every((value) => value === 0)).toBe(canAfford(game, cost));
+    }
+  });
   it('reports every requirement kind and matches the existing boolean query', () => {
     const base = fresh();
     const req = { nodes: ['missing'], phaseAtLeast: 3, minThermal: 80, minSuspicion: 20,
