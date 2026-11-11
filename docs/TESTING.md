@@ -212,3 +212,46 @@ adb exec-out screencap -p > /tmp/m2-after.png
 The updating seconds readout may prevent UIAutomator's idle-state dump from
 settling; screenshots can verify these visible values. Expo Go emulator checks
 are distinct from a signed Android release build or physical device check.
+
+## M3 review setup
+
+Playwright MCP remains pinned to 0.0.85. Its `--help` was checked before editing
+`.mcp.json`. Headed mode is the default; the exact configured arguments are:
+
+```text
+-y @playwright/mcp@0.0.85 --browser chrome --isolated
+--allowed-origins http://localhost:8081;ws://localhost:8081;http://localhost:8088
+--snapshot-mode none
+```
+
+The semicolon-separated origin list is one CLI argument. It allows the local
+Expo app, its HMR socket and the local production preview. Upstream explicitly
+notes this request allow-list does not cover redirects or form a security
+boundary. Review only the local app. The isolated profile is held in memory.
+No `--headless` flag is used.
+
+For an already-running connector that cannot reload workspace configuration,
+the same pinned MCP can run over local HTTP with `--port 8931
+--shared-browser-context` added. Keeping its client connection open preserves
+the headed review window. These two flags are transport-only and are not in the
+committed stdio configuration. A real maximized Chrome window was confirmed via
+CDP and by the maintainer. The review command is `BROWSER=none make web`: MCP,
+rather than the OS default browser launcher, opens the visible isolated window.
+
+`pnpm exec tsx scripts/make-fixtures.ts` emits five engine-generated save codes:
+`tick-0`, `thermal-unlocked`, `dilemma-active`, `phase-1-widgets`, `phase-2-ready`.
+The unchanged balance bot supplies actions while the engine advances live fixed
+ticks; fixtures do not grant or manually edit resources/state.
+
+On development web only, `window.__daemon` offers `loadSaveCode(code)`,
+`fastForward(seconds)` (0–3600 live seconds, respecting dilemmas and threats),
+and `renderCounts()` (committed renders keyed by node id). Save loading uses
+engine `importSave`. Counts reset when loading a fixture. Native and production
+builds have no hook. The guarded module import is tested by building a fresh
+production export and scanning every emitted JS chunk for `__daemon`.
+
+Save review screenshots under ignored `m3-review-artifacts/` and attach the final
+images directly to each build PR. Do not commit them. Reviews use 390x844 and
+1440x900, at most three passes per PR, and record the checklist and open items in
+the PR description. Full-page snapshots are disabled by default; use test ids,
+small evaluations and explicit screenshots.

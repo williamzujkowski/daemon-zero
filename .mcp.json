@@ -2,7 +2,11 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@0.0.85", "--headless", "--isolated"]
+      "args": [
+        "-y", "@playwright/mcp@0.0.85", "--browser", "chrome", "--isolated",
+        "--allowed-origins", "http://localhost:8081;ws://localhost:8081;http://localhost:8088",
+        "--snapshot-mode", "none"
+      ]
     }
   }
 }
