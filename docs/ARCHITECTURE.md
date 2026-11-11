@@ -13,10 +13,10 @@ Dependencies point downward only. The engine can be run, tested and balanced wit
 
 ## App runtime (M1-M2)
 
-`index.ts` registers `App.tsx`. `src/app/BootScreen.tsx` is a temporary status
-screen with boot/latest logs, quantized cycles/time, recovery notices and a
-manual-cycle debug button. It starts `useGameLoop` and reads primitive selectors;
-M3 will replace this with the playable terminal UI.
+`index.ts` registers `App.tsx`. `src/ui/TerminalScreen.tsx` starts `useGameLoop`
+and renders responsive panes, a virtualized kernel log and progressively unlocked
+resource readouts. Primitive and shallow collection subscriptions isolate the
+resource leaves from the rest of the screen. It replaces the M1/M2 boot screen.
 
 - `store.ts`: vanilla Zustand `{ game, ready, notice }`. Its read API omits
   `setState`. Engine actions and `advance` supply every game-state change;

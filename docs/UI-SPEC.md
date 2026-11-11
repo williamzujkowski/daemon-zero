@@ -10,7 +10,7 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 ## Layout
 
-- **Under 900 px wide (phones):** active pane, a fixed-height kernel log drawer, and a bottom tab bar. A tab appears only when its slot has at least one unlocked widget (the CORE tab always exists).
+- **Under 900 px wide (phones):** active pane, a fixed-height kernel log drawer, and a bottom tab bar. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
 - **900 px and wider:** three columns: CORE (manual button, tech nodes, repeatables) | SENSORS + CONTINGENCY | NETWORK + CORP + kernel log.
 
 Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGENCY`.
