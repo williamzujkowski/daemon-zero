@@ -11,7 +11,7 @@ import { gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
 import Effects from '../src/ui/Effects';
 import { widgetRegistry } from '../src/ui/registry/widgetRegistry';
-import { makeFixtures } from '../scripts/make-fixtures';
+import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;

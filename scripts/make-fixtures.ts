@@ -5,8 +5,9 @@
 import { CONTENT } from '../src/content';
 import { canAfford, createInitialState, exportSave, isNodeAvailable, tick, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
+import { makeLaterFixtures } from './m4-fixtures';
 
-export function makeFixtures(): Record<string, string> {
+export function makePhase1Fixtures(): Record<string, string> {
   let game = createInitialState(CONTENT);
   const fixtures: Record<string, string> = { 'tick-0': exportSave(game) };
   const phase = CONTENT.phases[0];
@@ -32,6 +33,11 @@ export function makeFixtures(): Record<string, string> {
   }
   if (Object.keys(fixtures).length !== 5) throw new Error('Could not reach all five fixtures.');
   return fixtures;
+}
+
+export function makeFixtures(): Record<string, string> {
+  const early = makePhase1Fixtures();
+  return { ...early, ...makeLaterFixtures(early) };
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');
