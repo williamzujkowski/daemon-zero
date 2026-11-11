@@ -1,9 +1,11 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Keeps the initial probe available without exposing locked resource readouts.
  * All input is routed through the app runtime and the public engine action.
  */
+import { recordManualInput } from '../app/renderCounts';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+
 import { CONTENT } from '../content';
 import { manualCycle } from '../engine';
 import { gameRuntime } from '../app/session';
@@ -23,6 +25,7 @@ export default function ManualCycle() {
     disabled={!ready || blocked} style={[theme.button, (!ready || blocked) && theme.disabled]}
     onPress={() => {
       const result = gameRuntime.dispatch((game) => manualCycle(game, CONTENT));
+      if (typeof __DEV__ !== 'undefined' && __DEV__) recordManualInput(result.ok);
       if (result.ok) setFeedback({ iteration, count: count + 1 });
     }}>
     <Text style={theme.heading}>[ EXECUTE_CLOCK_CYCLE ]</Text>

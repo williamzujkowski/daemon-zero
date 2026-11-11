@@ -1,8 +1,9 @@
+import { Text, View } from './PhaseTheme';
 /**
  * Explains lost compute beside the balances, including before corporate finance.
  * Resource-specific wording follows the same disclosure gates as the strip.
  */
-import { Text, View } from 'react-native';
+
 import { useGame } from './state';
 import { resourceWidgets } from './registry/widgetRegistry';
 import { theme } from './theme';

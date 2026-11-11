@@ -1,6 +1,8 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /** Endings use authored prose and require a second confirmation before erasing progress. */
+import SaveTransfer from './SaveTransfer';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import { startOver } from '../app/newRun';
 import DevelopmentTools from '../app/DevelopmentTools';
@@ -42,7 +44,7 @@ export default function EndingScreen() {
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
         <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start a new run"
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>
-        <DevelopmentTools location="ending" />
+        <SaveTransfer /><DevelopmentTools location="ending" />
       </View>
     </ScrollView></View>
     {confirming && <ConfirmDialog id="start-over" title="Start a new run" cancel={() => { confirm(false); }}

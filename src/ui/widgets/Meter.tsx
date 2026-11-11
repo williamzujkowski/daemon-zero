@@ -1,5 +1,6 @@
+import { Text, View } from '../PhaseTheme';
 /** Numeric and ASCII meter with an accessible value independent of its colour. */
-import { Text, View } from 'react-native';
+
 import { theme } from '../theme';
 
 export default function Meter({ label, value, max = 100, unit = '', id }: {

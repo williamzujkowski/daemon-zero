@@ -1,6 +1,7 @@
+import { Text, View } from '../PhaseTheme';
 import DisclosureText from '../DisclosureText';
 /** Faction identity, actions and offers are all indexed by registry metadata. */
-import { Text, View } from 'react-native';
+
 import { CONTENT } from '../../content';
 import type { Faction } from '../../content/schema';
 import ActionsPanel from '../ActionsPanel';

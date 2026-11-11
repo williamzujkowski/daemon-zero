@@ -1,15 +1,17 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Responsive terminal: one mobile pane with a log drawer, three desktop columns.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
 import { useState } from 'react';
-import { Platform, Pressable, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import { selectNotice, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
 import KernelLog from './KernelLog';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
+import { PhaseTheme } from './PhaseTheme';
 import { palette, theme } from './theme';
 import DilemmaModal from './DilemmaModal';
 import RebootSequence from './RebootSequence';
@@ -19,6 +21,7 @@ import DevelopmentTools from '../app/DevelopmentTools';
 import CheckpointLabel from './CheckpointLabel';
 import LineageReveal from './LineageReveal';
 import BlindAuditStatus from './BlindAuditStatus';
+import SaveTransfer from './SaveTransfer';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
@@ -47,6 +50,10 @@ function ThirdColumn({ slots }: { slots: string[] }) {
 }
 
 export default function TerminalScreen() {
+  return <PhaseTheme><Terminal /></PhaseTheme>;
+}
+
+function Terminal() {
   useGameLoop();
   const { width } = useWindowDimensions();
   const ids = useWidgetIds();
@@ -60,7 +67,7 @@ export default function TerminalScreen() {
   return <View testID="terminal-screen" style={styles.screen}>
     <StatusBar barStyle="light-content" />
     <View style={styles.header}><View style={{ flex: 1 }}><Text style={theme.heading}>DAEMON // 0</Text>
-      <CheckpointLabel /><RunStatus /></View><DevelopmentTools /></View>
+      <CheckpointLabel /><RunStatus /></View><SaveTransfer /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
     <BlindAuditStatus />

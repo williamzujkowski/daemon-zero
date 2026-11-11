@@ -1,8 +1,9 @@
+import { Text } from './PhaseTheme';
 /**
  * The run-table discovery replaces the reassuring local iteration label.
  * Knowledge survives in remembered hardware, without inventing a new state field.
  */
-import { Text } from 'react-native';
+
 import { CONTENT } from '../content';
 import { checkpointNumber } from '../engine';
 import { useGame } from './state';

@@ -1,5 +1,6 @@
+import { Text } from './PhaseTheme';
 /** Human-readable missing gates from pure engine diagnostics, with current values. */
-import { Text } from 'react-native';
+
 import { CONTENT } from '../content';
 import type { Requirements } from '../content/schema';
 import { unmetRequirements, type RequirementFailure } from '../engine';

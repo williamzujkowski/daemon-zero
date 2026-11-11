@@ -1,6 +1,7 @@
+import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /** Action groups, prices and consequences come from the content registry. */
-import { Text, View } from 'react-native';
+
 import { CONTENT } from '../content';
 import type { Action } from '../content/schema';
 import { meetsRequirements, performAction } from '../engine';

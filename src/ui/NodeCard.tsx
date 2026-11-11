@@ -1,10 +1,11 @@
+import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /**
  * A node card rerenders only for ownership or suspension changes.
  * Purchase eligibility is isolated in a leaf; instrumentation records commits.
  */
-import { memo, useEffect, useMemo } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { memo, Profiler, useEffect, useMemo } from 'react';
+import { Platform } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { isNodeAvailable, isNodeKnown, rediscoveryCost, toggleNode, unlockNode } from '../engine';
@@ -13,8 +14,9 @@ import { costText, deltaText } from './format';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import RequirementHint from './RequirementHint';
-import { recordNodeRender } from '../app/renderCounts';
+import { recordNodeRender, recordNodeProfile } from '../app/renderCounts';
 import CostHint from './CostHint';
+import NodeTitle from './NodeTitle';
 
 function NodeCard({ node }: { node: RegistryNode }) {
   const owned = useGame((game) => game.unlockedNodes.includes(node.id));
@@ -31,9 +33,11 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const surveillanceKnown = useSurveillanceKnown();
   const title = revealed ? node.revealedName : node.blindName;
   return <View testID={'node-' + node.id} style={[theme.panel, known && !owned && { borderColor: palette.warning }]}>
+    <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
-    <Text style={theme.heading}>{owned ? suspended ? '[SUSPENDED] ' : '[ONLINE] ' : known ? '[REMEMBERED] ' : '[UNMAPPED] '}{title}</Text>
+    <NodeTitle id={node.id} name={title} owned={owned} status={owned ? suspended ? '[SUSPENDED] ' : '[ONLINE] ' : known ? '[REMEMBERED] ' : '[UNMAPPED] '} />
     <DisclosureText style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</DisclosureText>
+    </Profiler>
     {owned ? <>
       <Text style={theme.muted}>{deltaText(node.tickDelta, !surveillanceKnown) || 'No continuous output'}</Text>
       {node.actuatorBinding !== undefined && <Text style={theme.muted}>Output scales with actuator setting.</Text>}

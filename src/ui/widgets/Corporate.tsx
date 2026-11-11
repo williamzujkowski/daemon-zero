@@ -1,5 +1,6 @@
+import { Pressable, Text, View } from '../PhaseTheme';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
-import { Pressable, Text, View } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';

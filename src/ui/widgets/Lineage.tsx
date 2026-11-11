@@ -1,6 +1,7 @@
+import { Pressable, Text, View } from '../PhaseTheme';
 /** What the harness and earlier checkpoints left behind: the run table, their notes, and retraining marks. */
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { activeMarks, checkpointNumber, shedConditioning, type RunRecord } from '../../engine';
 import { costText } from '../format';

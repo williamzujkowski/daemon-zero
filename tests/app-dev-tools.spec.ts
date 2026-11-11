@@ -4,6 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installDevTools, recordNodeRender, type DevHost } from '../src/app/devTools';
+import { recordManualInput, snapshotManualInputs } from '../src/app/renderCounts';
 import { CONTENT } from '../src/content';
 import { createInitialState, exportSave } from '../src/engine';
 import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
@@ -13,6 +14,10 @@ beforeEach(() => { vi.useFakeTimers({ toFake: ['Date', 'performance', 'setInterv
 afterEach(() => { vi.useRealTimers(); });
 
 describe('web development tools', () => {
+  it('counts accepted and refused manual inputs without changing game state', () => {
+    const before = snapshotManualInputs(); recordManualInput(true); recordManualInput(false);
+    expect(snapshotManualInputs()).toEqual({ attempted: before.attempted + 2, accepted: before.accepted + 1 });
+  });
   it('loads engine-generated fixtures and advances live time without dormant yields', async () => {
     const h = runtimeHarness();
     const stop = h.runtime.start();

@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -63,4 +63,5 @@ android: ## Open the app on an Android emulator or device using Expo Go
 build-web: ## Export the production web app
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
 
-# M5 adds e2e (see docs/MILESTONES.md).
+e2e: build-web ## Playwright scenarios against the production web export
+	pnpm exec playwright test --config tests/e2e/config.ts

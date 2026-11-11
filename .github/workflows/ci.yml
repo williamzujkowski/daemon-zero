@@ -35,6 +35,12 @@ jobs:
       - name: Typecheck, lint, content, tests, balance
         run: make verify
 
+      - name: Install E2E browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Production web E2E
+        run: make e2e
+
       - name: Security scans
         run: make security
 

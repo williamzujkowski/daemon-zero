@@ -1,9 +1,10 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Response changes remain visible until acknowledged, independently of the log.
  * Hydration and a new iteration establish a baseline rather than inventing an event.
  */
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import type { LogEntry } from '../engine';

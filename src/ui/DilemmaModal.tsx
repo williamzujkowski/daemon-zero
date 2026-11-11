@@ -1,6 +1,10 @@
+import { Pressable, Text, View } from './PhaseTheme';
+import { useEffect } from 'react';
+import { feedback } from '../app/feedback';
+import { useReducedMotion } from '../app/useReducedMotion';
 import DisclosureText from './DisclosureText';
 /** Mandatory engine decisions freeze play; neither Back nor Escape dismisses them. */
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
 import { canAfford, resolveDilemma } from '../engine';
@@ -29,8 +33,10 @@ function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: strin
 }
 
 export default function DilemmaModal() {
+  const reduced = useReducedMotion();
   const id = useGame((game) => game.activeDilemmaId);
   const ended = useGame((game) => game.ending !== null);
+  useEffect(() => { if (id && !ended) void feedback('interrupt', reduced); }, [id, ended, reduced]);
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
   if (!dilemma || ended) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}

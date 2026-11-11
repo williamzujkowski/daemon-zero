@@ -1,5 +1,6 @@
+import { Text, View } from './PhaseTheme';
 /** One scrollable pane renders only the unlocked manifest slots requested by its layout. */
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';

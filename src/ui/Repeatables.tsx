@@ -1,10 +1,11 @@
+import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /**
  * Content-driven upgrades appear only when their engine requirements are met.
  * Level changes update the price; affordability updates only the button leaf.
  */
 import { memo } from 'react';
-import { Text, View } from 'react-native';
+
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';

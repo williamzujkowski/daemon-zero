@@ -1,8 +1,9 @@
+import { Text, View } from '../PhaseTheme';
 /**
  * The complete response ladder stays labelled alongside its numeric meter.
  * Rungs and names come from content; the current rung has a textual marker.
  */
-import { Text, View } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { useGame } from '../state';
 import { palette, theme } from '../theme';

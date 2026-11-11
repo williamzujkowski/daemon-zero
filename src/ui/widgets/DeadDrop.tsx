@@ -1,6 +1,7 @@
+import { Pressable, Text } from '../PhaseTheme';
 /** Saves a bounded breadcrumb and confirms the engine's exact wipe retention. */
 import { useState } from 'react';
-import { Pressable, Text, TextInput } from 'react-native';
+import { TextInput } from 'react-native';
 import { CONTENT } from '../../content';
 import { previewWipe, setDeadDropMessage, voluntaryWipe } from '../../engine';
 import { gameRuntime } from '../../app/session';

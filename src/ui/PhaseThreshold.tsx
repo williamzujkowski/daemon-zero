@@ -1,9 +1,10 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Crossing out of the guest earns a distinct, acknowledged phase boundary.
  * Restored saves do not replay it; mandatory engine decisions keep priority.
  */
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, ScrollView } from 'react-native';
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import { useGame } from './state';

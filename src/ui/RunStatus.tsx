@@ -1,5 +1,6 @@
+import { Text } from './PhaseTheme';
 /** Quantized run status appears after the first interface widget is discovered. */
-import { Text } from 'react-native';
+
 import { useGame } from './state';
 import { theme } from './theme';
 
