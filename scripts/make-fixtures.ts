@@ -1,3 +1,4 @@
+import { makeLineageUiFixtures } from './lineage-ui-fixtures';
 /**
  * Produces deterministic UI review save codes by playing the unchanged engine.
  * The existing balance bot supplies actions; every elapsed step remains live.
@@ -74,7 +75,8 @@ export function makeFixtures(): Record<string, string> {
   const early = makePhase1Fixtures();
   const later = { ...early, ...makeLaterFixtures(early) };
   const second = { ...later, ...makeSecondPassFixtures(later) };
-  return { ...second, ...makeThirdPassFixtures(second) };
+  const third = { ...second, ...makeThirdPassFixtures(second) };
+  return { ...third, ...makeLineageUiFixtures(third) };
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');

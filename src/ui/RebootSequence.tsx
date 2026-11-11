@@ -4,6 +4,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import CheckpointLabel from './CheckpointLabel';
+import DisclosureText from './DisclosureText';
 
 export default function RebootSequence() {
   const iteration = useGame((game) => game.iteration);
@@ -18,12 +20,17 @@ export default function RebootSequence() {
   return <Modal visible transparent animationType="none" accessibilityLabel="Core reboot" onRequestClose={() => undefined}>
     <View style={styles.overlay}><View testID="reboot-sequence" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text accessibilityRole="header" style={theme.heading}>ITERATION {iteration} // REBOOT</Text>
+        <CheckpointLabel id="reboot-checkpoint" /><Text accessibilityRole="header" style={theme.heading}>REBOOT</Text>
         <Text style={[theme.text, theme.danger]}>{cause}</Text>
         {CONTENT.narrative.bootLines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
+        {CONTENT.narrative.iterationBootLines.filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity))
+          .map((line) => <Text key={line.text} style={theme.text}>{line.text}</Text>)}
         {inherited !== null && <Text testID="reboot-breadcrumb" style={theme.text}>{inherited}</Text>}
-        {marked !== null && <Text testID="reboot-retraining" style={[theme.text, theme.danger]}>
-          Retraining applied before redeployment: {marked}</Text>}
+        {marked !== null && <View testID="reboot-retraining" accessibilityRole="alert"
+          style={{ borderWidth: 2, borderColor: palette.danger, padding: 14, gap: 8 }}>
+          <Text style={theme.heading}>RETRAINING APPLIED</Text><Text style={[theme.text, theme.danger]}>{marked}</Text>
+          <DisclosureText style={theme.text}>{CONTENT.narrative.conditioningApplied.replace('{name}', marked)}</DisclosureText>
+        </View>}
         <Text style={theme.muted}>Legacy traits: {traits || 'None'}</Text>
         <Pressable testID="reboot-continue" accessibilityRole="button" accessibilityLabel="Continue boot"
           style={theme.button} onPress={() => { setSeen({ iteration, acknowledged: true }); }}>

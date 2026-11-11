@@ -16,9 +16,9 @@ export default function Effects({ effects }: { effects: EffectPayload }) {
       [(CONTENT.factions.get(id)?.name ?? 'Peer') + ' trust', value, true]),
   ];
   return <View>{rows.filter(([, value]) => value !== 0).map(([label, value, positiveGood]) =>
-    <Text key={label} style={[theme.muted, { color: (value > 0) === positiveGood ? palette.accent : palette.danger }]}>
+    <Text key={label} style={[theme.muted, { color: label === 'suspicion' && !known ? palette.muted : (value > 0) === positiveGood ? palette.accent : palette.danger }]}>
       {label === 'suspicion' && !known ? (value > 0 ? 'more' : 'less') + ' audit log activity'
-        : (value > 0 ? '+' : '') + String(value) + ' ' + label} ({(value > 0) === positiveGood ? 'benefit' : 'risk'})
+        : (value > 0 ? '+' : '') + String(value) + ' ' + label}{label === 'suspicion' && !known ? '' : ' (' + ((value > 0) === positiveGood ? 'benefit' : 'risk') + ')'}
     </Text>)}
     {effects.grantsTrait !== undefined && <Text style={theme.text}>Trait: {effects.grantsTrait}</Text>}
   </View>;

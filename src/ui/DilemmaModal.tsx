@@ -1,9 +1,11 @@
+import DisclosureText from './DisclosureText';
 /** Mandatory engine decisions freeze play; neither Back nor Escape dismisses them. */
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
 import { canAfford, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
+import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
 import { costText } from './format';
 import { useGame } from './state';
@@ -13,9 +15,10 @@ function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: strin
   const affordable = useGame((game) => canAfford(game, choice.cost));
   return <View style={theme.panel}>
     <Text style={theme.heading}>{choice.label}</Text>
-    <Text style={theme.text}>{choice.description}</Text>
+    <DisclosureText style={theme.text}>{choice.description}</DisclosureText>
     <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
     <Effects effects={choice.effects} />
+    <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
     <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button" accessibilityLabel={choice.label}
       disabled={!affordable} style={[theme.button, !affordable && theme.disabled]}
@@ -37,7 +40,7 @@ export default function DilemmaModal() {
         <ScrollView contentContainerStyle={styles.content}>
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
           <Text style={theme.muted}>CLOCK PAUSED // DECISION REQUIRED</Text>
-          <Text style={theme.text}>{dilemma.context}</Text>
+          <DisclosureText style={theme.text}>{dilemma.context}</DisclosureText>
           {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} />)}
         </ScrollView>
       </View>

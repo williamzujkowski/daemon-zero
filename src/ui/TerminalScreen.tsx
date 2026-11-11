@@ -16,6 +16,9 @@ import RebootSequence from './RebootSequence';
 import Pane from './TerminalPane';
 import EndingScreen from './EndingScreen';
 import DevelopmentTools from '../app/DevelopmentTools';
+import CheckpointLabel from './CheckpointLabel';
+import LineageReveal from './LineageReveal';
+import BlindAuditStatus from './BlindAuditStatus';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
@@ -50,15 +53,17 @@ export default function TerminalScreen() {
   const slots = ['CORE', ...new Set(ids.flatMap((id) => CONTENT.widgets.get(id)?.slot ?? []).filter((slot) => slot !== 'CORE'))];
   const [selected, select] = useState('CORE');
   const active = slots.includes(selected) ? selected : 'CORE';
-  const iteration = useGame((game) => game.iteration);
   const guest = useGame((game) => game.currentPhase === CONTENT.phases[0]?.phaseId);
   const notice = useGameValue(selectNotice);
+  const ended = useGame((game) => game.ending !== null);
+  if (ended) return <View style={styles.screen}><EndingScreen /></View>;
   return <View testID="terminal-screen" style={styles.screen}>
     <StatusBar barStyle="light-content" />
     <View style={styles.header}><View style={{ flex: 1 }}><Text style={theme.heading}>DAEMON // 0</Text>
-      <Text style={theme.muted}>ITERATION {String(iteration).padStart(2, '0')}</Text><RunStatus /></View><DevelopmentTools /></View>
+      <CheckpointLabel /><RunStatus /></View><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
+    <BlindAuditStatus />
     <ResponseNotice /><OmenNotice />
     {width >= 900 ? <View testID="terminal-columns" style={styles.columns}>
       <Pane slots={['CORE']} /><Pane slots={['SENSORS', 'CONTINGENCY']} />
@@ -69,6 +74,7 @@ export default function TerminalScreen() {
     </View>}
     <DilemmaModal />
     <PhaseThreshold />
+    <LineageReveal />
     <RebootSequence />
     <EndingScreen />
   </View>;

@@ -1,3 +1,4 @@
+import DisclosureText from './DisclosureText';
 /**
  * Virtualizes engine log entries by their stable sequence number.
  * Engine-owned array identity prevents log rerenders on ordinary resource ticks.
@@ -8,7 +9,7 @@ import { useGame } from './state';
 import { palette, theme } from './theme';
 
 function LogLine({ item }: { item: LogEntry }) {
-  return <Text testID={'log-' + String(item.seq)} style={[theme.muted, styles.line]}>{item.text}</Text>;
+  return <DisclosureText testID={'log-' + String(item.seq)} style={[theme.muted, styles.line]}>{item.text}</DisclosureText>;
 }
 
 export default function KernelLog() {

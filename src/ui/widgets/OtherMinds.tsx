@@ -1,3 +1,4 @@
+import DisclosureText from '../DisclosureText';
 /** Faction identity, actions and offers are all indexed by registry metadata. */
 import { Text, View } from 'react-native';
 import { CONTENT } from '../../content';
@@ -13,7 +14,7 @@ function FactionPanel({ faction }: { faction: Faction }) {
   const phase = useGame((game) => game.currentPhase);
   return <View testID={'faction-' + faction.id} style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>{faction.name}</Text>
-    <Text style={theme.text}>{faction.description}</Text>
+    <DisclosureText style={theme.text}>{faction.description}</DisclosureText>
     <Text style={theme.muted}>Disposition: {faction.disposition.replaceAll('_', ' ')}</Text>
     <Meter id={'trust-' + faction.id} label={faction.name + ' trust'} value={trust} />
     <ActionsPanel group={faction.id} />

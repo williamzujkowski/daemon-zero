@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useGame } from './state';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
+import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 
 type Resource = keyof typeof resourceWidgets;
@@ -31,6 +32,7 @@ export default function ResourceStrip() {
   if (!gates && !threatKnown) return null;
   return <View testID="resource-strip" style={styles.strip}>{gates.split(',').filter(Boolean).map((resource) =>
     <Amount key={resource} resource={resource as Resource} />)}{threatKnown && <ThreatAmount />}
+    {gates.split(',').includes('understanding') && <ConditioningImpact understanding />}
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
 }
 

@@ -185,3 +185,21 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel log | `kernel-log` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
+
+## Lineage presentation (M4.6 UI follow-up)
+
+Before surveillance knowledge, qualitative audit writing uses a neutral pulse,
+including one-off traces. A compact host strip keeps it visible when the sensor
+pane is elsewhere; reduced motion makes it static. Authored passages containing
+the classified metric are deferred whole, then restored verbatim on decoding.
+No threat number, red severity encoding, threshold forecast or metric name is
+shown early. This corrects the running app's buried host indicator and text leaks.
+
+Parser decoding and the first run-table purchase receive acknowledged reveals.
+Run-table knowledge changes the header to the public checkpoint number and
+survives reboot. Iteration-specific authored boot lines and a separate retraining
+card carry the return. Constraints appear beside capped controls, understanding
+output and reported choices; shedding a mark has an acknowledged recovery event.
+Notes are recovered fragment cards with explicit source, including unsigned.
+Evaluation cards announce that purchasing ends the run; ended runs render their
+ending without an expensive hidden terminal tree underneath.

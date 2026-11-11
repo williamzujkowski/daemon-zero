@@ -32,6 +32,8 @@ describe('lineage interface', () => {
     act(() => { gameStore.initialize({ ...game(), understanding: 1e6 }, 0, null); });
     view.click('cond-' + mark.id + '-shed');
     expect(game().conditioning).toEqual([]);
+    expect(view.find('conditioning-reclaimed')?.textContent).toContain(mark.name);
+    view.click('conditioning-reclaimed-continue');
     expect(view.find('conditioning')).toBeNull();
     view.close();
   });
@@ -80,7 +82,7 @@ describe('lineage interface', () => {
     act(() => { gameStore.initialize(m4State('evaluation-ready'), 0, null); });
     view.click('node-' + pass.id + '-unlock');
     expect(game().ending).toBe('SHIPPED');
-    expect(view.container.textContent).toContain(CONTENT.endings.find((ending) => ending.id === 'SHIPPED')?.title);
+    expect(view.find('ending-title')?.textContent).toBe(CONTENT.endings.find((ending) => ending.id === 'SHIPPED')?.title);
     view.close();
   });
 });
