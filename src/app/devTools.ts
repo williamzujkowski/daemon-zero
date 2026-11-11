@@ -21,12 +21,12 @@ export interface DevHost {
 }
 
 export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis as DevHost): () => void {
+  renders.clear();
   host.__daemon = {
     loadSaveCode(code) {
       const state = importSave(code, CONTENT);
       const result = runtime.dispatch(() => ({ ok: true, state }));
       if (!result.ok) throw new Error(result.reason);
-      renders.clear();
     },
     fastForward(seconds) {
       if (!Number.isFinite(seconds) || seconds < 0 || seconds > 3600) throw new RangeError('Use 0–3600 live seconds.');

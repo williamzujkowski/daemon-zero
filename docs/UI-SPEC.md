@@ -42,8 +42,9 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 ## Node cards
 
 - Not yet unlocked: `[UNMAPPED] {blindName}`, blind description, cost, a `[ WRITE DRIVER ]` button disabled unless `canAfford`.
+- The first manual cycle discovers the first blind node. Tick 0 remains log plus manual control. Purchase prices remain visible even before the corresponding resource readout unlocks; prices are not current balances.
 - Unlocked: `[ONLINE] {revealedName}`, revealed description, per-second deltas, suspend/resume.
-- A node is listed when `isNodeAvailable(state, node)` or already unlocked. Nodes with unmet `requirements` (for example faction offers) show what is missing rather than hiding.
+- A node is listed when already unlocked or its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
 - On unlock, run a short character-scramble reveal from blind to revealed name (skip under reduced motion).
 
 ## Dilemma modal

@@ -9,6 +9,8 @@ import { selectNotice, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
 import KernelLog from './KernelLog';
 import ManualCycle from './ManualCycle';
+import NodeList from './NodeList';
+import Repeatables from './Repeatables';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
 import { palette, theme } from './theme';
@@ -25,7 +27,7 @@ function Slots({ slots }: { slots: string[] }) {
 
 function Pane({ slots }: { slots: string[] }) {
   return <ScrollView style={styles.pane} contentContainerStyle={styles.paneContent}>
-    {slots.includes('CORE') && <ManualCycle />}
+    {slots.includes('CORE') && <><ManualCycle /><NodeList owned={false} /><Repeatables /><NodeList owned /></>}
     <Slots slots={slots} />
   </ScrollView>;
 }
