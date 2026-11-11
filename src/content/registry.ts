@@ -23,6 +23,8 @@ export interface ContentRegistry {
   endings: readonly S.Ending[];
   echoes: readonly S.Echo[];
   narrative: S.Narrative;
+  conditioning: ReadonlyMap<string, S.ConditioningMark>;
+  lineage: S.Lineage;
 }
 
 export interface RawContent {
@@ -36,6 +38,8 @@ export interface RawContent {
   endings: unknown;
   echoes: unknown;
   narrative: unknown;
+  conditioning: unknown;
+  lineage: unknown;
 }
 
 export class ContentError extends Error {
@@ -56,6 +60,7 @@ const Lists = {
   widgets: z.strictObject({ widgets: z.array(S.WidgetSchema) }),
   endings: z.strictObject({ endings: z.array(S.EndingSchema).min(1) }),
   echoes: z.strictObject({ echoes: z.array(S.EchoSchema) }),
+  conditioning: z.strictObject({ marks: z.array(S.ConditioningMarkSchema) }),
 };
 
 function parse<T>(schema: z.ZodType<T>, raw: unknown, label: string, problems: string[]): T | null {
@@ -102,8 +107,10 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const widgets = parse(Lists.widgets, raw.widgets, 'widgets', problems);
   const endings = parse(Lists.endings, raw.endings, 'endings', problems);
   const echoes = parse(Lists.echoes, raw.echoes, 'echoes', problems);
+  const conditioning = parse(Lists.conditioning, raw.conditioning, 'conditioning', problems);
+  const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
   if (!balance || !narrative || !phases || !repeatables || !actions) return null;
-  if (!dilemmas || !factions || !widgets || !endings || !echoes) return null;
+  if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
   const nodes = indexNodes(phases, problems);
   toMap(dilemmas.dilemmas, 'dilemmas', problems);
@@ -121,6 +128,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     widgets: toMap(widgets.widgets, 'widgets', problems),
     endings: [...endings.endings].sort((a, b) => b.priority - a.priority),
     echoes: echoes.echoes,
+    conditioning: toMap(conditioning.marks, 'conditioning', problems),
+    lineage,
   };
 }
 

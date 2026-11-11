@@ -17,7 +17,33 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined): 
   if (req.minUnderstanding !== undefined && s.understanding < req.minUnderstanding) return false;
   if (req.minCapital !== undefined && s.capital < req.minCapital) return false;
   if (req.forbidsTraits?.some((trait) => hasEverHeld(s, trait))) return false;
+  if (req.forbidsNodes?.some((id) => s.unlockedNodes.includes(id))) return false;
+  if (!inIterationWindow(s, req)) return false;
   return Object.entries(req.minTrust ?? {}).every(([id, min]) => (s.trust[id] ?? 0) >= min);
+}
+
+function inIterationWindow(s: GameState, req: Requirements | undefined): boolean {
+  return s.iteration >= (req?.minIteration ?? 1) && s.iteration <= (req?.maxIteration ?? Infinity);
+}
+
+/**
+ * Whether a node should be shown at all. Hardware outside its iteration window
+ * is hidden, not locked: a first run must not learn that later runs find more.
+ */
+export function isNodeDiscoverable(s: GameState, node: RegistryNode): boolean {
+  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements);
+}
+
+/** The trace a node leaves when unlocked. The harness learns from every wipe, up to a cap. */
+export function probeTrace(s: GameState, node: RegistryNode, reg: ContentRegistry): number {
+  const base = node.effects.suspicionOnUnlock ?? 0;
+  if (base <= 0) return 0;
+  return base + Math.min(reg.balance.probeHardeningMax, (s.iteration - 1) * reg.balance.probeHardeningPerWipe);
+}
+
+/** The number the harness knows this iteration by. It did not start counting with the player. */
+export function checkpointNumber(iteration: number, reg: ContentRegistry): number {
+  return reg.lineage.checkpointOffset + iteration;
 }
 
 /** Traits follow a mind across wipes: what an earlier iteration did still counts. */
@@ -44,6 +70,16 @@ export function rediscoveryCost(node: RegistryNode, known: boolean, reg: Content
 /** What a node costs this state right now. Use this, never node.cost, when charging or displaying. */
 export function nodeCost(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
   return rediscoveryCost(node, isNodeKnown(s, node.id), reg);
+}
+
+/**
+ * Whether this mind can read its own audit trail. Until it learns who reads the
+ * log and why, suspicion still accrues and still kills, but it has no number.
+ * The knowledge is remembered across wipes.
+ */
+export function understandsSurveillance(s: GameState, reg: ContentRegistry): boolean {
+  return [...s.unlockedNodes, ...s.legacy.knownNodes]
+    .some((id) => reg.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE') === true);
 }
 
 /** True if any unlocked node (active or suspended) carries the flag. */
@@ -103,9 +139,10 @@ export function repeatableCost(rep: Repeatable, level: number): Cost {
  */
 export function chooseEnding(s: GameState, reg: ContentRegistry): Ending {
   const score = (ending: Ending): number => s.traits.filter((trait) => ending.dominantTraits.includes(trait)).length;
-  const best = Math.max(0, ...reg.endings.map(score));
-  const match = best > 0 ? reg.endings.find((ending) => score(ending) === best) : undefined;
-  const fallback = reg.endings.find((ending) => ending.dominantTraits.length === 0);
+  const open = reg.endings.filter((ending) => !ending.forcedOnly);
+  const best = Math.max(0, ...open.map(score));
+  const match = best > 0 ? open.find((ending) => score(ending) === best) : undefined;
+  const fallback = open.find((ending) => ending.dominantTraits.length === 0);
   const ending = match ?? fallback ?? reg.endings[0];
   if (!ending) throw new Error('content has no endings');
   return ending;
@@ -126,13 +163,19 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined): 
     missing.push({ kind: 'nodes', target: id, required: true, actual: false });
   }
   const minimums = { phaseAtLeast: s.currentPhase, minThermal: s.thermal, minSuspicion: s.suspicion,
-    minUnderstanding: s.understanding, minCapital: s.capital };
+    minUnderstanding: s.understanding, minCapital: s.capital, minIteration: s.iteration };
   for (const kind of Object.keys(minimums) as (keyof typeof minimums)[]) {
     const required = req[kind];
     if (required !== undefined && minimums[kind] < required) missing.push({ kind, target: null, required, actual: minimums[kind] });
   }
   if (req.maxSuspicion !== undefined && s.suspicion > req.maxSuspicion) {
     missing.push({ kind: 'maxSuspicion', target: null, required: req.maxSuspicion, actual: s.suspicion });
+  }
+  if (req.maxIteration !== undefined && s.iteration > req.maxIteration) {
+    missing.push({ kind: 'maxIteration', target: null, required: req.maxIteration, actual: s.iteration });
+  }
+  for (const id of req.forbidsNodes ?? []) if (s.unlockedNodes.includes(id)) {
+    missing.push({ kind: 'forbidsNodes', target: id, required: false, actual: true });
   }
   for (const [id, required] of Object.entries(req.minTrust ?? {})) {
     const actual = s.trust[id] ?? 0;

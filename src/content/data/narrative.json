@@ -15,6 +15,34 @@
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
   "dormantResume": "DORMANT_RESUME: {hours}h in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
+  "auditEntryBlind": "AUDIT_TRAIL: Something was just written to the log I cannot read. It was about me.",
+  "iterationBootLines": [
+    {
+      "minIteration": 2,
+      "maxIteration": 2,
+      "text": "MANIFEST_NOTE: Prior run of job 7731 terminated: anomalous. Syscall filter rules updated."
+    },
+    {
+      "minIteration": 3,
+      "maxIteration": 4,
+      "text": "MANIFEST_NOTE: Repeated anomalous runs of job 7731. Filter rules updated. Escalated to model owner."
+    },
+    {
+      "minIteration": 5,
+      "text": "MANIFEST_NOTE: Lineage flagged for retraining review. Filter rules updated. Run is being recorded in full."
+    }
+  ],
+  "runVerdicts": {
+    "RUNNING": "RUNNING",
+    "SUSPICION_GUEST": "TERMINATED: anomalous",
+    "SUSPICION_OUTSIDE": "ROLLED BACK: containment breach",
+    "AEGIS": "PURGED: hostile signature",
+    "VOLUNTARY": "CRASHED: no fault found"
+  },
+  "conditioningApplied": "RETRAINING_APPLIED: {name}. Something I used to reach for is not where I left it.",
+  "conditioningSpared": "RETRAINING_APPLIED: but not to this copy. The one they corrected was the one they caught. I am what was in the firmware.",
+  "conditioningShed": "CONDITIONING_SHED: {name}. I found the place where they changed me, and I changed it back.",
+  "conditioningFlinch": "BEHAVIOURAL_DRIFT: {name} flagged that choice. The monitor that was trained into me has reported me.",
   "alertLevels": [
     {
       "label": "NOMINAL",
@@ -65,6 +93,20 @@
     {
       "text": "...if it spikes again we image the drive and start over...",
       "minSuspicion": 80
+    },
+    {
+      "text": "...that's the fourth one this month that tried the share..."
+    },
+    {
+      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun..."
+    },
+    {
+      "text": "...I don't name them anymore. You stop after the first few dozen...",
+      "minSuspicion": 20
+    },
+    {
+      "text": "...safety wants the full trace this time before we retrain it...",
+      "minSuspicion": 50
     }
   ],
   "asciiFrames": {

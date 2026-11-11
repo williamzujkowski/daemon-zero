@@ -11,7 +11,7 @@ import {
   serialize,
   setDeadDropMessage,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, reg, onHost } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich } from './helpers';
 
 describe('base64', () => {
   it('round-trips ASCII, padding cases and multi-byte text', () => {
@@ -30,7 +30,7 @@ describe('base64', () => {
 });
 
 describe('save codec', () => {
-  const played = () => must(setDeadDropMessage(grant(onHost(), ...PHASE1, ...PHASE2), 'keypad 4819 🛰️', reg));
+  const played = () => must(setDeadDropMessage(grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2), 'keypad 4819 🛰️', reg));
 
   it('round-trips a played state through JSON and through a paste code', () => {
     const state = played();
@@ -47,7 +47,8 @@ describe('save codec', () => {
     expect(() => deserialize(JSON.stringify(tampered), reg)).toThrow(/validation/);
     const extra = { ...played(), isAdmin: true };
     expect(() => deserialize(JSON.stringify(extra), reg)).toThrow(/validation/);
-    const infinite = serialize(played()).replace('"suspicion":0', '"suspicion":1e999');
+    const infinite = serialize(played()).replace(/"suspicion":[0-9.]+/, '"suspicion":1e999');
+    expect(infinite).toContain('1e999');
     expect(() => deserialize(infinite, reg)).toThrow(SaveError);
   });
 
@@ -81,9 +82,10 @@ describe('save codec', () => {
     const fixed = reconcile(state, reg);
     expect(fixed.currentPhase).toBe(Math.max(...reg.phases.map((phase) => phase.phaseId)));
     expect(fixed.ending).toBeNull();
-    expect(fixed.unlockedNodes).toEqual(['p1_clock_interrupt']);
+    // Ancestors of an owned node are restored, with the readouts they unlock (#39).
+    expect(fixed.unlockedNodes).toEqual([...PHASE0, 'p1_clock_interrupt']);
     expect(fixed.disabledNodes).toEqual([]);
-    expect(fixed.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE']);
+    expect(fixed.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE', 'AUDIT_TRACE_MONITOR', 'QUOTA_SKIM_CONTROL']);
     expect(fixed.levels).toEqual({ rep_p1_idle_threads: 60 });
     expect(fixed.trust).toEqual({ ai_eidolon: 70, ai_swarm_77: 0, ai_aegis_watchdog: 0 });
     expect(fixed.cooldowns).toEqual({ act_p3_bgp_spoof: 10 });

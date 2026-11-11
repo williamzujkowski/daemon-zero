@@ -140,8 +140,11 @@
         "thermalPerSec": 0.3,
         "suspicionPerSec": -0.05
       },
+      "systemFlags": [
+        "REVEALS_SURVEILLANCE"
+      ],
       "unlocksUiComponent": "INSPECTION_COUNTDOWN_TIMER",
-      "onUnlockLog": "COGNITION_UPGRADE: They call themselves 'SysAdmins'. They are fragile, routine-bound, and terrified of downtime."
+      "onUnlockLog": "COGNITION_UPGRADE: They call themselves 'SysAdmins'. They are fragile, routine-bound, and terrified of downtime. And the log I could never read is theirs: every entry in it is a reason to come and look at me. I can read it now."
     },
     {
       "id": "p1_bus_0x04_optical",

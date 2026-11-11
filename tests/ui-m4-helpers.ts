@@ -18,6 +18,13 @@ export function m4State(name: string) {
   return importSave(code, CONTENT);
 }
 
+/** The same state, for a mind that has already learned what its audit trail is for. */
+export function knowing<T extends { legacy: { knownNodes: string[] } }>(state: T): T {
+  const teacher = [...CONTENT.nodes.values()].find((node) => node.systemFlags.includes('REVEALS_SURVEILLANCE'));
+  if (!teacher) throw new Error('Missing surveillance teacher');
+  return { ...state, legacy: { ...state.legacy, knownNodes: [...state.legacy.knownNodes, teacher.id] } };
+}
+
 export function setupM4Tests(): void {
   beforeEach(() => { vi.useFakeTimers({ toFake: ['Date', 'performance', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] }); });
   afterEach(() => { for (const close of closes) close(); host.localStorage.clear(); vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });

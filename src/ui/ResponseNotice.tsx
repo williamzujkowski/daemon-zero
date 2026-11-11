@@ -7,7 +7,7 @@ import { Pressable, Text, View } from 'react-native';
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import type { LogEntry } from '../engine';
-import { useGame } from './state';
+import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 
 interface Change { from: number; to: number }
@@ -24,6 +24,7 @@ function changes(logs: readonly LogEntry[], after: number, from: number, to: num
 }
 
 export default function ResponseNotice() {
+  const known = useSurveillanceKnown();
   const ready = useGameValue(selectReady);
   const level = useGame((game) => game.alertLevel);
   const iteration = useGame((game) => game.iteration);
@@ -38,6 +39,12 @@ export default function ResponseNotice() {
   }
   if (seen.level !== level || seen.seq !== seq) {
     setSeen({ ready, iteration, level, seq, queue: [...seen.queue, ...changes(logs, seen.seq, seen.level, level)] }); return null;
+  }
+  // Escalations are only legible once the audit trail is. Before that the log line is all there is,
+  // and nothing is held back to be announced later.
+  if (!known) {
+    if (seen.queue.length > 0) setSeen({ ...seen, queue: [] });
+    return null;
   }
   const update = seen.queue[0];
   if (!update) return null;

@@ -14,7 +14,9 @@ const deltaUnits: Record<keyof TickDelta, string> = {
   suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW',
 };
 
-export function deltaText(delta: TickDelta): string {
+/** With `blind`, suspicion has no number yet: only whether the unreadable log gets busier or quieter. */
+export function deltaText(delta: TickDelta, blind = false): string {
   return Object.entries(delta).filter(([, value]) => value !== 0)
-    .map(([key, value]) => `${value > 0 ? '+' : ''}${String(value)} ${deltaUnits[key as keyof TickDelta]}`).join(' · ');
+    .map(([key, value]) => blind && key === 'suspicionPerSec' ? (value > 0 ? 'more' : 'less') + ' audit log activity'
+      : `${value > 0 ? '+' : ''}${String(value)} ${deltaUnits[key as keyof TickDelta]}`).join(' · ');
 }

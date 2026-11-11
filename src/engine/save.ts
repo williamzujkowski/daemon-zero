@@ -30,6 +30,11 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
       legacy: { knownNodes: [], ...legacy },
     };
   },
+  // v3: run history, conditioning marks and the iteration clock.
+  2: (save) => {
+    const legacy = typeof save.legacy === 'object' && save.legacy !== null ? save.legacy : {};
+    return { ...save, conditioning: [], iterationStartedAtSimSec: 0, legacy: { runs: [], ...legacy } };
+  },
 };
 
 export class SaveError extends Error {
@@ -68,6 +73,27 @@ function clampPhase(phase: number, reg: ContentRegistry): number {
   return Math.min(Math.max(phase, Math.min(...ids)), Math.max(...ids));
 }
 
+/**
+ * Owning a node implies owning everything it was built on. A save written
+ * before a phase was inserted ahead of it lacks those ancestors (and the
+ * readouts they unlock), so they are restored here, ancestors first.
+ */
+function withAncestors(owned: readonly string[], reg: ContentRegistry): string[] {
+  const out: string[] = [];
+  const visit = (id: string): void => {
+    const node = reg.nodes.get(id);
+    if (!node || out.includes(id)) return;
+    for (const parent of node.prerequisites) visit(parent);
+    out.push(id);
+  };
+  for (const id of owned) visit(id);
+  return out;
+}
+
+function widgetsOf(nodes: readonly string[], reg: ContentRegistry): string[] {
+  return nodes.flatMap((id) => reg.nodes.get(id)?.unlocksUiComponent ?? []);
+}
+
 /** Drops references to content that no longer exists so an old save loads against new content. */
 export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const levels = known(s.levels, reg.repeatables.keys(), () => undefined);
@@ -77,16 +103,20 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const dilemmaIds = new Set(reg.dilemmas.map((dilemma) => dilemma.id));
   const activeKnown = s.activeDilemmaId !== null && dilemmaIds.has(s.activeDilemmaId);
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
+  const unlockedNodes = withAncestors(s.unlockedNodes, reg);
+  const restored = unlockedNodes.filter((id) => !s.unlockedNodes.includes(id));
+  const widgets = [...new Set([...s.unlockedWidgets, ...widgetsOf(restored, reg)])];
   return {
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
     pendingDilemma: s.pendingDilemma !== null && dilemmaIds.has(s.pendingDilemma.id) ? s.pendingDilemma : null,
+    conditioning: s.conditioning.filter((id) => reg.conditioning.has(id)),
     legacy: { ...s.legacy, knownNodes: s.legacy.knownNodes.filter((id) => reg.nodes.has(id)) },
     ending: endingKnown ? s.ending : null,
-    unlockedNodes: s.unlockedNodes.filter((id) => reg.nodes.has(id)),
+    unlockedNodes,
     disabledNodes: s.disabledNodes.filter((id) => reg.nodes.has(id)),
-    unlockedWidgets: s.unlockedWidgets.filter((id) => reg.widgets.has(id)),
+    unlockedWidgets: widgets.filter((id) => reg.widgets.has(id)),
     levels,
     trust: known(s.trust, reg.factions.keys(), (id) => reg.factions.get(id)?.initialTrust),
     cooldowns: known(s.cooldowns, reg.actions.keys(), () => undefined),

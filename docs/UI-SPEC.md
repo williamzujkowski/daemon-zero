@@ -25,6 +25,8 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 |---|---|---|
 | `CYCLE_COUNTER_AND_RATE` | cycles/s next to the counter | `state.rates.cyclesPerSec` |
 | `QUOTA_SKIM_CONTROL` | five-step control for the guest's quota skim | `actuators.quotaSkimRatio`, `setActuator` |
+| `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
+| `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
 | `AUDIT_TRACE_MONITOR` | suspicion meter, current rung of the response ladder, next threshold; gates the understanding readout | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | used / cap bar | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal meter and overheat warning (suspicion moved to the audit trail) | `thermal`, `balance.thermalThresholdForSuspicion` |
@@ -175,6 +177,9 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Widget root | `widget-{WIDGET_ID}` |
 | Tabs | `tab-{SLOT}` |
 | Actuator controls | `fan-setting`, `fan-{percent}`, `skim-setting`, `skim-{percent}` |
+| Unreadable audit trail (before `understandsSurveillance`) | `audit-unreadable`, `audit-activity`; `suspicion-meter`, `response-rungs` and `response-notice` are absent |
+| Lineage | `run-table`, `run-row-{iteration}`, `run-row-current`, `predecessor-notes` |
+| Retraining | `conditioning`, `cond-{id}`, `cond-{id}-shed`, `reboot-retraining`, `{actuator id}-limit` |
 | Response ladder / interrupt forecast | `alert-level`, `inspection-forecast` |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |

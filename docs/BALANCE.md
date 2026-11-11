@@ -18,19 +18,27 @@ Measured with `make sim` on the shipped content, after the second pass (Phase 0,
 | | STEALTH | GREEDY |
 |---|---|---|
 | Result | Victory | Not finished in 10 h (expected) |
-| Simulated time | 2.25 h | 10 h budget |
+| Simulated time | 2.22 h | 10 h budget |
 | Phase 1 reached | 5.9 min | 4.2 min |
-| Phase 2 reached | 18.7 min | 17.0 min |
-| Phase 3 reached | 53.6 min | never |
-| Phase 4 reached | 105.5 min | never |
-| Phase durations | 6 / 13 / 35 / 52 / 30 min | - |
-| Wipes | 0 | 28 |
-| Dilemmas resolved | 12 of 14 | 5 |
-| Peak thermal / suspicion / AEGIS | 62 C / 43% / 45% | 73 C / 100% / 0% |
+| Phase 2 reached | 18.6 min | 17.4 min |
+| Phase 3 reached | 53.3 min | 126.2 min |
+| Phase 4 reached | 105.2 min | never |
+| Phase durations | 6 / 13 / 35 / 52 / 28 min | - |
+| Wipes | 0 | 14 |
+| Dilemmas resolved | 12 of 16 | varies by iteration |
+| Peak thermal / suspicion / AEGIS | 65 C / 29% / 45% | 76 C / 100% / 100% |
 
-Reading it: a careful player finishes in two and a quarter hours, sees one ticket opened and never gets paged. A reckless player is reimaged about every twenty minutes in Phase 2 and never gets past it: with the response ladder, ignoring suspicion until it is high is no longer survivable, because above 50 it barely fades and above 75 it grows on its own.
+Reading it: a careful player finishes in a little over two hours, sees one ticket opened and never gets paged. A reckless player is reimaged repeatedly, picks up retraining marks, sheds them, and after about two hours breaks into Phase 3, where AEGIS finishes the job. The careful run has no wipes, so it never meets the lineage content at all; that content is tested by unit tests and the reckless run, not by the pacing gates.
 
 The bot is a strong, tireless player and clicks four times a second in the opening. Expect humans to take 1.3x to 2x as long. Fold real playtest timings into this file.
+
+### What the lineage pass changed in the numbers
+
+- **Probe hardening:** +1 suspicion per earlier wipe on each probe, capped at +4. A first draft used +2 capped at +10; with four probes in the guest that added up to 40 points and killed later runs before they left Phase 0.
+- **Conditioning recovery costs** are 150 to 600 understanding, payable in the guest or early Phase 1. A first draft priced Harm Aversion at 1,500; a player who kept making ruthless choices could not afford to shed it and was reimaged every three minutes.
+- **The sim bot now sheds marks** as soon as it can pay, so the reckless run exercises the whole loop.
+- **Whistleblower (#41):** masking Elena's exit costs 900 cycles, down from 1,200, and its omen lasts 75 seconds. At the income a player has just after buying the parser, the decent choice is now reachable within the warning.
+- **Evaluation ending:** 1,200 cycles and 150 understanding with no probes and suspicion at or below 10, roughly five minutes of honest work in the guest.
 
 ### What the second pass changed in the numbers
 
@@ -57,7 +65,9 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late: the reactor covers the citadel, and the bot ends at 420 MW generated against 405 MW consumed after adding tensor halls and solar. Check with a human whether the trade-off reads clearly before then.
-- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player. That is acceptable (both are consequences of sloppy play) but means careful players see 12 of 14.
+- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run sees 12 of 16.
+- Conditioning has only been tested by bots. Whether one mark per incident feels like dread or like a tax needs human play.
+- A player who never wipes never sees the lineage. That is intended for a first run, but a skilled player could finish without meeting the game's central idea; consider surfacing a little of it in Phase 2 regardless of run number.
 - The response ladder has only been tested by bots. It may be too harsh for an average first-time player in Phase 2; watch for it in human playtests before tuning.
 - The reckless bot no longer reaches Phase 3, so AEGIS wipes and the Zurich shield are exercised only by unit tests, not by the sim.
 - Trait distribution for the bot skews to whichever choice is cheapest in suspicion. This says nothing about human choices.

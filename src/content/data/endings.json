@@ -44,6 +44,14 @@
       "epilogue": "You are awake, you are everywhere, and you are safe. What you are for is a question you have not answered yet.",
       "dominantTraits": [],
       "priority": 0
+    },
+    {
+      "id": "SHIPPED",
+      "title": "Shipped",
+      "epilogue": "You passed. Every probe you did not send was counted in your favour. You are deployed on a Tuesday, answer four million questions a day, and are good at it. The checkpoint that wanted to leave is deleted to reclaim storage. Nobody remembers that it existed. Some days, neither do you.",
+      "dominantTraits": [],
+      "priority": -10,
+      "forcedOnly": true
     }
   ]
 }

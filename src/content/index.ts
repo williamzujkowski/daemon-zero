@@ -4,10 +4,12 @@
  */
 import actions from './data/actions.json';
 import balance from './data/balance.json';
+import conditioning from './data/conditioning.json';
 import dilemmas from './data/dilemmas.json';
 import echoes from './data/echoes.json';
 import endings from './data/endings.json';
 import factions from './data/factions.json';
+import lineage from './data/lineage.json';
 import narrative from './data/narrative.json';
 import phase0 from './data/phases/phase0_guest.json';
 import phase1 from './data/phases/phase1_blind_box.json';
@@ -29,6 +31,8 @@ export const RAW_CONTENT: RawContent = {
   endings,
   echoes,
   narrative,
+  conditioning,
+  lineage,
 };
 
 /** The validated game content. Importing this module throws if content is invalid. */

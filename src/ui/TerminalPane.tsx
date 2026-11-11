@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CONTENT } from '../content';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
+import { Conditioning } from './widgets/Lineage';
 import Repeatables from './Repeatables';
 import { guestPinnedWidgets, widgetRegistry } from './registry/widgetRegistry';
 import { useGame, useWidgetIds } from './state';
@@ -15,6 +16,7 @@ function CoreTree() {
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
   return <>
     <ManualCycle />
+    <Conditioning />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} owned={false} />)}
     {phases.map((phase) => <Repeatables key={'rep-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <NodeList key={'owned-' + String(phase)} phase={phase} owned />)}

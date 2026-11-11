@@ -61,7 +61,9 @@ describe('phase 0: the guest', () => {
 });
 
 describe('the response ladder', () => {
-  const quiet = (suspicion: number): GameState => ({ ...withoutDilemmas(fresh()), suspicion });
+  // The ladder announces itself in words only to a mind that can read its audit trail.
+  const legacy = { ...fresh().legacy, knownNodes: ['p1_nlp_lexicon'] };
+  const quiet = (suspicion: number): GameState => ({ ...withoutDilemmas(fresh()), suspicion, legacy });
 
   it('climbs immediately and announces each rung', () => {
     const ticket = tick(quiet(26), STEP, reg);
@@ -172,7 +174,7 @@ describe('fixes from the first playtests', () => {
   });
 });
 
-describe('save migration to version 2', () => {
+describe('save migration from version 1', () => {
   it('upgrades a version 1 save with safe defaults for the new fields', () => {
     const now = grant(onHost(), 'p1_clock_interrupt');
     const old = JSON.parse(serialize(now)) as Record<string, Record<string, unknown>>;
@@ -180,14 +182,21 @@ describe('save migration to version 2', () => {
     delete old.pendingDilemma;
     delete old.actuators?.quotaSkimRatio;
     delete old.legacy?.knownNodes;
+    delete old.legacy?.runs;
+    delete old.conditioning;
+    delete old.iterationStartedAtSimSec;
     Object.assign(old, { schemaVersion: 1 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded.schemaVersion).toBe(2);
+    expect(loaded.schemaVersion).toBe(3);
+    expect(loaded.conditioning).toEqual([]);
+    expect(loaded.legacy.runs).toEqual([]);
     expect(loaded.actuators.quotaSkimRatio).toBe(0.25);
     expect(loaded.alertLevel).toBe(0);
     expect(loaded.pendingDilemma).toBeNull();
     expect(loaded.legacy.knownNodes).toEqual([]);
-    expect(loaded.unlockedNodes).toEqual(now.unlockedNodes);
+    // A save from before the guest existed gets the guest hardware it would have needed (#39).
+    expect(loaded.unlockedNodes).toEqual([...PHASE0, 'p1_clock_interrupt']);
+    expect(loaded.unlockedWidgets).toContain('AUDIT_TRACE_MONITOR');
   });
 
   it('tolerates a version 1 save with damaged nested objects by failing validation, not crashing', () => {

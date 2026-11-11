@@ -1,7 +1,7 @@
 /** Phase 1 readouts use engine values and clearly label extrapolated forecasts. */
 import { Text } from 'react-native';
 import { CONTENT } from '../../content';
-import { useGame } from '../state';
+import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import Meter from './Meter';
 import ResponseRungs from './ResponseRungs';
@@ -20,16 +20,31 @@ export function Memory() {
 export function Thermal() {
   const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;
+  const known = useSurveillanceKnown();
   return <>
     <Meter id="thermal-meter" label="Thermal" value={thermal} unit=" °C" />
     <Text style={[theme.muted, thermal > threshold && theme.danger]}>
-      {thermal > threshold ? 'WARNING: overheat increases suspicion. ' : ''}Overheat threshold: {threshold} °C
+      {thermal > threshold ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
     </Text>
   </>;
 }
 
+/**
+ * Before the mind knows what the log is for, it can only tell that a log exists
+ * and how busily it is being written. The meter and the ladder come with understanding.
+ */
+function UnreadableAuditTrail() {
+  const activity = useGame((game) => game.rates.suspicionPerSec <= 0 ? 'quiet' : game.rates.suspicionPerSec < 0.1 ? 'occasional' : 'constant');
+  return <>
+    <Text testID="audit-unreadable" style={theme.text}>Audit trail: present. Contents unreadable.</Text>
+    <Text testID="audit-activity" style={[theme.muted, activity === 'constant' && theme.danger]}>Write activity: {activity}.</Text>
+  </>;
+}
 /** Suspicion and the rung of the human response ladder it has reached. */
 export function AuditTrail() {
+  return useSurveillanceKnown() ? <ReadableAuditTrail /> : <UnreadableAuditTrail />;
+}
+function ReadableAuditTrail() {
   const suspicion = useGame((game) => Math.round(game.suspicion * 10) / 10);
   const level = useGame((game) => game.alertLevel);
   const next = CONTENT.balance.escalation[level];

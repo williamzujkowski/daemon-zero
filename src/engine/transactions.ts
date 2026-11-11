@@ -4,9 +4,10 @@
  * so costs and rewards cannot drift apart or drive a resource negative.
  */
 import type { ContentRegistry } from '../content/registry';
-import type { Cost, EffectPayload } from '../content/schema';
+import type { Cost, EffectPayload, Trait } from '../content/schema';
+import { flinches } from './conditioning';
 import type { GameState } from './state';
-import { clamp, pushLog } from './util';
+import { clamp, fmt, pushLog } from './util';
 
 /** Deducts a cost from a draft. Callers must check canAfford first. */
 export function payCost(d: GameState, cost: Cost): void {
@@ -24,6 +25,14 @@ function applyTrust(d: GameState, deltas: Record<string, number>): void {
   d.trust = trust;
 }
 
+/** A conditioned mind that chooses against its conditioning is reported by the monitor trained into it. */
+function reportDrift(d: GameState, trait: Trait, reg: ContentRegistry): void {
+  for (const { mark, suspicion } of flinches(d, trait, reg)) {
+    d.suspicion = clamp(d.suspicion + suspicion, 0, 100);
+    pushLog(d, reg, fmt(reg.narrative.conditioningFlinch, { name: mark.name }), 'WARN');
+  }
+}
+
 /** Applies a one-shot effect payload to a draft, clamping every meter to its legal range. */
 export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegistry): void {
   d.cycles = Math.max(0, d.cycles + fx.cyclesDelta);
@@ -34,6 +43,9 @@ export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegist
   d.aegisLock = clamp(d.aegisLock + fx.aegisLockDelta, 0, 100);
   d.memoryCap += fx.memoryCapIncrease;
   applyTrust(d, fx.trustDelta);
-  if (fx.grantsTrait) d.traits = [...d.traits, fx.grantsTrait];
   pushLog(d, reg, fx.logText, fx.logCategory);
+  if (fx.grantsTrait) {
+    d.traits = [...d.traits, fx.grantsTrait];
+    reportDrift(d, fx.grantsTrait, reg);
+  }
 }

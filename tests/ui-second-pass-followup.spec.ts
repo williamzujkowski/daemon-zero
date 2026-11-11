@@ -4,7 +4,7 @@ import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
-import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
 const load = (state: ReturnType<typeof m4State>): void => { act(() => { gameStore.initialize(state, 0, null); }); };
@@ -12,6 +12,7 @@ const load = (state: ReturnType<typeof m4State>): void => { act(() => { gameStor
 describe('second-pass presentation follow-up', () => {
   it('pins the guest controls outside hardware scrolling, without duplicating them after escape', async () => {
     const view = await mountM4('guest-skimmer');
+    load(knowing(m4State('guest-skimmer')));
     const pinned = view.find('guest-console'), scroll = view.find('pane-scroll-CORE');
     const skim = view.find('skim-setting'), meter = view.find('suspicion-meter');
     if (!pinned || !scroll || !skim || !meter) throw new Error('Missing guest controls');
@@ -20,7 +21,7 @@ describe('second-pass presentation follow-up', () => {
     expect(scroll.contains(pinned)).toBe(false);
     view.click('skim-100');
     expect(gameStore.store.getState().game.actuators.quotaSkimRatio).toBe(1);
-    load(m4State('thermal-unlocked'));
+    load(knowing(m4State('thermal-unlocked')));
     expect(view.find('guest-console')).toBeNull();
     expect(host.document.querySelectorAll('[data-testid="suspicion-meter"]')).toHaveLength(1);
     view.close();
@@ -81,6 +82,7 @@ describe('second-pass presentation follow-up', () => {
 
   it('queues rapid engine announcements even when a tick batch ends back at the starting rung', async () => {
     const view = await mountM4('guest-skimmer');
+    load(knowing(m4State('guest-skimmer')));
     while (view.find('response-acknowledge')) view.click('response-acknowledge');
     const game = gameStore.store.getState().game;
     const paged = CONTENT.narrative.alertLevels[2], nominal = CONTENT.narrative.alertLevels[0];

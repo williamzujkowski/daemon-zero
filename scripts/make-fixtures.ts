@@ -7,6 +7,7 @@ import type { RegistryNode } from '../src/content/registry';
 import { canAfford, createInitialState, exportSave, isNodeAvailable, nodeCost, tick, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
 import { makeLaterFixtures } from './m4-fixtures';
+import { makeThirdPassFixtures } from './third-pass-fixtures';
 import { makeSecondPassFixtures } from './second-pass-fixtures';
 
 const EARLY_FIXTURES = ['tick-0', 'guest-skimmer', 'guest-omen', 'guest-dilemma', 'guest-exit-ready',
@@ -27,6 +28,12 @@ function reviewTargets() {
   return { guest, thermal, skimmer, guestExit, hostExit, widgets };
 }
 
+/** The state one purchase away from a node: the bank is topped up to exactly its price. */
+function funded(state: GameState, node: RegistryNode): GameState {
+  const cost = nodeCost(state, node, CONTENT);
+  return { ...state, cycles: Math.max(state.cycles, cost.cycles), understanding: Math.max(state.understanding, cost.understanding) };
+}
+
 export function makePhase1Fixtures(): Record<string, string> {
   let game = createInitialState(CONTENT);
   const found: Record<string, string> = { 'tick-0': exportSave(game) };
@@ -45,7 +52,13 @@ export function makePhase1Fixtures(): Record<string, string> {
     if (ready(state, t.hostExit)) found['phase-2-ready'] ??= exportSave(state);
   };
   for (let second = 0; second < 3600 && found['phase-2-ready'] === undefined; second++) {
+    const before = game;
     game = botStep(game, CONTENT, 'STEALTH');
+    // The bot can earn the last few cycles by hand and buy an exit within one step, so the
+    // "ready" moment is never observed. Reconstruct it from the state just before the purchase.
+    for (const [name, exit] of [['guest-exit-ready', t.guestExit], ['phase-2-ready', t.hostExit]] as const) {
+      if (!before.unlockedNodes.includes(exit.id) && game.unlockedNodes.includes(exit.id)) found[name] ??= exportSave(funded(before, exit));
+    }
     observe(game);
     for (let frame = 0; frame < CONTENT.balance.tickHz; frame++) {
       game = tick(game, 1 / CONTENT.balance.tickHz, CONTENT);
@@ -60,7 +73,8 @@ export function makePhase1Fixtures(): Record<string, string> {
 export function makeFixtures(): Record<string, string> {
   const early = makePhase1Fixtures();
   const later = { ...early, ...makeLaterFixtures(early) };
-  return { ...later, ...makeSecondPassFixtures(later) };
+  const second = { ...later, ...makeSecondPassFixtures(later) };
+  return { ...second, ...makeThirdPassFixtures(second) };
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');

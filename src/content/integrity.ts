@@ -47,8 +47,11 @@ function checkReachability(reg: ContentRegistry): string[] {
 function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
-  for (const id of req.nodes ?? []) {
+  for (const id of [...(req.nodes ?? []), ...(req.forbidsNodes ?? [])]) {
     if (!reg.nodes.has(id)) problems.push(`${owner}: requirement references unknown node "${id}"`);
+  }
+  if (req.minIteration !== undefined && req.maxIteration !== undefined && req.maxIteration < req.minIteration) {
+    problems.push(`${owner}: maxIteration is below minIteration`);
   }
   for (const id of Object.keys(req.minTrust ?? {})) {
     if (!reg.factions.has(id)) problems.push(`${owner}: requirement references unknown faction "${id}"`);
@@ -73,6 +76,10 @@ function checkNodes(reg: ContentRegistry): string[] {
     problems.push(...checkRequirements(reg, owner, node.requirements), ...checkGroup(reg, owner, node.uiGroup));
     if (node.unlocksUiComponent !== null && !reg.widgets.has(node.unlocksUiComponent)) {
       problems.push(`${owner}: unknown widget "${node.unlocksUiComponent}"`);
+    }
+    const forced = node.effects.forcesEnding;
+    if (forced !== undefined && !reg.endings.some((ending) => ending.id === forced)) {
+      problems.push(`${owner}: forcesEnding references unknown ending "${forced}"`);
     }
     if (reg.repeatables.has(node.id) || reg.actions.has(node.id)) {
       problems.push(`${owner}: id collides with a repeatable or action`);
@@ -142,7 +149,9 @@ function checkNarrativeRefs(reg: ContentRegistry): string[] {
   for (const echo of reg.echoes) {
     if (!reg.nodes.has(echo.onNode)) problems.push(`echo "${echo.id}": unknown node "${echo.onNode}"`);
   }
-  const defaults = reg.endings.filter((ending) => ending.dominantTraits.length === 0);
+  const defaults = reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly);
+  const noteIds = new Set(reg.lineage.notes.map((note) => note.id));
+  if (noteIds.size !== reg.lineage.notes.length) problems.push('lineage: duplicate note ids');
   if (defaults.length !== 1) problems.push('endings: exactly one ending must have empty dominantTraits (the default)');
   return problems;
 }

@@ -12,18 +12,19 @@ import { buyRepeatable, dismissRepeatable, meetsRequirements, repeatableCost, re
 import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
 import PurchaseButton from './PurchaseButton';
-import { useGame } from './state';
+import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
 
 const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
   const cost = repeatableCost(rep, level);
+  const surveillanceKnown = useSurveillanceKnown();
   return <View testID={'rep-' + rep.id} style={theme.panel}>
     <Text style={theme.heading}>{rep.name}</Text>
     <Text style={theme.text}>{rep.description}</Text>
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
-    <Text style={theme.muted}>Per level: {deltaText(rep.perLevel)}
+    <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${String(rep.perLevelEffects.memoryCapIncrease)} MB capacity` : ''}</Text>
     {rep.perLevelEffects.revenueMultiplierBonus > 0 && <Text style={theme.muted}>
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}

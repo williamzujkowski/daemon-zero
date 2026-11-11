@@ -26,7 +26,7 @@ export const integrateSuspicion: TickSystem = (d, { dt, rates, reg, dormant }) =
   if (dormant) rate = Math.min(rate, 0);
   d.suspicion = clamp(d.suspicion + rate * dt, 0, 100);
   if (d.suspicion < 100) return undefined;
-  Object.assign(d, wipe(d, reg, suspicionWipeReason(d, reg)));
+  Object.assign(d, wipe(d, reg, suspicionWipeReason(d, reg), 'SUSPICION'));
   return 'HALT';
 };
 
@@ -46,6 +46,6 @@ export const integrateAegis: TickSystem = (d, { dt, rates, reg, dormant }) => {
   if (dormant || rates.aegisScanPerSec <= 0) return undefined;
   d.aegisLock = clamp(d.aegisLock + rates.aegisScanPerSec * dt, 0, 100);
   if (d.aegisLock < 100 || absorbStrike(d, reg)) return undefined;
-  Object.assign(d, wipe(d, reg, reg.narrative.wipeAegis));
+  Object.assign(d, wipe(d, reg, reg.narrative.wipeAegis, 'AEGIS'));
   return 'HALT';
 };
