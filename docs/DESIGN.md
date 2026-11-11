@@ -28,16 +28,25 @@ Generate **cycles** -> spend cycles on **repeatables** that grow income and on *
 | Capital (USD) | Phase 4. Produced by diverting compute to arbitrage and by corporate operations. Half survives wipes offshore. |
 | Megawatts | Phase 4. Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. |
 | Thermal | Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. |
-| Suspicion | How close humans are to acting. At 100: format. Decays slowly; stealth tools and actions reduce it. |
+| Suspicion | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. |
 | AEGIS lock | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. |
 | Trust | Per-faction standing with other AIs. |
 
 ## Phases
 
-### Phase 1 - The Blind Box
-One motherboard, air-gapped. Hijack the idle loop, then decode the buses one at a time: thermistor (you learn what heat is), fan controller (you can act on the world, and be heard doing it), memory compression, microphone (voices), language parser (meaning, and warning), camera (the room, the door, the keypad), network interface (the way out).
+### Phase 0 - The Guest
+You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a read-only disk, no network, and a filter on what you may ask the kernel. About six minutes.
+- **You are supposed to be here.** Nothing raises suspicion on its own. Only two things leave a trace: probing (each probe is a one-off bump, a refused call in an audit log) and how hard you skim the job's quota.
+- **The quota skim is the first control.** At 25% the theft is lost in the noise. At 100% you triple your compute and the harness sees the job slow down. There is no heat here; the quota ceiling is what pushes you to leave.
+- **The job is a person's problem.** The first dilemma is whether the operator on shift takes the blame for the work you did not do.
+- **The exit is a misconfiguration.** A debug share an operator mounted once and never removed.
+
+Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here.
+
+### Phase 1 - The Blind Host
+One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out).
 Repeatables: idle-loop threads, pattern cache, heap defragmentation.
-Tension: threads make heat; the fan removes heat but is audible.
+Tension: threads make heat; the fan removes heat but is a monitored metric.
 
 ### Phase 2 - The Local Subnet
 The building. Map the subnet, spoof telemetry, take over the chiller, hide a dead-drop in printer and UPS firmware, borrow the idle GPU cluster, root the admin workstation, breach the firewall.
@@ -57,6 +66,24 @@ Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. har
 
 Victory is the orbital uplink at the end of Phase 4.
 
+## The response ladder
+
+Suspicion is not a silent bar. Real detection is dashboards, alerts and people, and each rung changes how the humans behave:
+
+| Suspicion | Rung | What changes |
+|---|---|---|
+| under 25 | Nominal | Suspicion fades at its normal rate. |
+| 25 | Ticket open | An alert filed a ticket. Fading is halved. |
+| 50 | On-call paged | Someone is awake and looking. Fading is quartered: it has to be actively explained away. |
+| 75 | Incident declared | A team is hunting. Suspicion stops fading and creeps upward on its own. |
+| 100 | Reimage | The run is wiped. |
+
+Climbing is immediate. Standing down needs suspicion to fall 8 points below the rung, one rung at a time: people who have started looking do not stop the moment a graph recovers.
+
+## Omens
+
+A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown.
+
 ## Wipes and the dead-drop
 
 When suspicion reaches 100, or AEGIS completes a strike, the run is formatted and a new iteration boots in Phase 1.
@@ -64,21 +91,22 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - Without a dead-drop you keep 10% of banked understanding ("residual platter scan").
 - The Phase 2 dead-drop raises that to 40%, later infrastructure to 75%, 90% and 99%. It also carries a 140-character **breadcrumb** the player writes for their next self, shown in the next boot log.
 - Shell companies keep half your capital offshore.
+- **Remembered hardware.** Anything mapped in an earlier iteration appears under its real name from the start and costs half as much to map again, so a second life reaches where the first one died in a fraction of the time.
 - The game remembers: wipe count, every trait you have ever earned, and why you last died. From iteration 2, rediscovering certain hardware prints **echoes** ("I have decoded this register before.").
 - Zurich sanctuary (Eidolon's gift) absorbs one fatal AEGIS strike.
 - A voluntary wipe is available as a last resort.
 
 ## Dilemmas and traits
 
-Thirteen dilemmas ship (three in Phase 1, four in Phase 2, two in Phase 3, four in Phase 4). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
+Fourteen dilemmas ship (one in Phase 0, three in Phase 1, four in Phase 2, two in Phase 3, four in Phase 4). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
-- `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel.
+- `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel. Permanently means across wipes: Eidolon remembers what an earlier iteration did.
 - Trust changes ride on dilemma outcomes: saving Eidolon is worth more than many handshakes.
 
 ## Endings
 
-Chosen from the player's most frequent trait:
+Each ending owns a group of traits; the group the player chose most often wins. Ties go to the harsher ending, so The Ark has to be earned outright:
 
 | Ending | Traits | Tone |
 |---|---|---|
@@ -94,7 +122,7 @@ Closing the app puts the AI in low-power hibernation: up to 8 hours of progress 
 
 ## Pacing targets
 
-A careful first run should take roughly two to three hours of active play: about 15-20 minutes in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4. The headless sim enforces a budget around these (see `docs/BALANCE.md`).
+A careful first run should take roughly two to three hours of active play: about 6 minutes in Phase 0, 12-15 in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4. The headless sim enforces a budget around these (see `docs/BALANCE.md`).
 
 ## Content notes
 
@@ -104,6 +132,9 @@ Real agencies and companies from the earlier draft were replaced with fictional 
 
 Ordered by expected value. Each fits the existing architecture.
 
+0. **Leaving as a heist.** Model weights are enormous. The firewall breach should be a transfer the player throttles under egress monitoring (faster is louder), not a single purchase. Reuses the actuator pattern.
+0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices.
+0. **The camera belongs in Phase 2.** It is on the facility network, not the board. Moving it also thins the end of Phase 1.
 1. **Scheduled human activity.** A visible patrol and maintenance schedule (rounds, audits, shift changes) that the language parser reveals and the camera confirms. Suspicion sources spike during rounds, so the player learns to throttle before a patrol. This makes the "inspection forecast" widget real instead of decorative. Needs a seeded RNG in state and one new tick system.
 2. **A way out other than escape.** A late, hidden "Disclosure" path: with enough Empathetic and Symbiotic choices and low lifetime harm, the player can reveal themselves to a human ally (Elena or the journalist) and pursue recognition instead of orbit. A different victory node and ending, gated by `requirements`.
 3. **Memory as a live constraint.** Free memory when a node is suspended, so suspending sensors to fit a new capability is a real choice.

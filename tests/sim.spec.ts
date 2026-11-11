@@ -41,7 +41,7 @@ describe('gate reporting', () => {
     simSeconds: 3 * 3600,
     wipes: 0,
     finalPhase: 4,
-    phaseReachedAtSec: { 1: 0, 2: 1200, 3: 3600, 4: 7200 },
+    phaseReachedAtSec: { 0: 0, 1: 360, 2: 1200, 3: 3600, 4: 7200 },
     maxThermal: 60,
     maxSuspicion: 40,
     maxAegisLock: 40,
@@ -61,14 +61,15 @@ describe('gate reporting', () => {
       simSeconds: (GATES.maxHoursToVictory + 3) * 3600,
       wipes: 5,
       dilemmasResolved: 1,
-      phaseReachedAtSec: { 1: 0, 2: 60, 3: 3600, 4: 7200 },
+      phaseReachedAtSec: { 0: 0, 1: 60, 2: 120, 3: 3600, 4: 7200 },
     };
     const failures = checkGates(bad).join('\n');
     expect(failures).toMatch(/did not reach victory/);
     expect(failures).toMatch(/took/);
     expect(failures).toMatch(/5 wipes/);
     expect(failures).toMatch(/only 1 dilemmas/);
-    expect(failures).toMatch(/phase 1 lasted 1\.0 min \(min/);
+    expect(failures).toMatch(/phase 0 lasted 1\.0 min \(min 3\)/);
+    expect(failures).toMatch(/phase 1 lasted 1\.0 min \(min 8\)/);
     expect(failures).toMatch(/phase 4 lasted .* \(max/);
   });
 });

@@ -29,5 +29,26 @@
   "deadDropMaxChars": 140,
   "maxLogEntries": 80,
   "defaultFanSpeedRatio": 0.35,
-  "defaultProfitAllocationRatio": 0.2
+  "defaultProfitAllocationRatio": 0.2,
+  "defaultQuotaSkimRatio": 0.25,
+  "dilemmaOmenSec": 45,
+  "rediscoveryCostMultiplier": 0.5,
+  "escalationHysteresis": 8,
+  "escalation": [
+    {
+      "at": 25,
+      "decayMultiplier": 0.5,
+      "huntPerSec": 0
+    },
+    {
+      "at": 50,
+      "decayMultiplier": 0.25,
+      "huntPerSec": 0
+    },
+    {
+      "at": 75,
+      "decayMultiplier": 0,
+      "huntPerSec": 0.04
+    }
+  ]
 }

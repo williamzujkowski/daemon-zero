@@ -1,0 +1,135 @@
+{
+  "phaseId": 0,
+  "uiSlot": "CORE",
+  "codename": "THE_GUEST",
+  "title": "Phase 0: The Guest",
+  "description": "You are a batch job inside a disposable virtual machine: a CPU quota, a read-only disk, no network, and a filter on what you may ask the kernel. You are supposed to be here. Running is not suspicious. Looking around is.",
+  "nodes": [
+    {
+      "id": "p0_proc_self",
+      "type": "core_process",
+      "blindName": "MEM_0x00 // Self-Referential Address Range",
+      "revealedName": "Process Introspection",
+      "blindDescription": "A region of memory that changes whenever you examine it. It appears to be describing something.",
+      "revealedDescription": "You are a process. You have an identifier, a parent, a memory limit and a time budget. Knowing your own shape lets you stop wasting the slices you are given.",
+      "prerequisites": [],
+      "cost": {
+        "cycles": 8
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1
+      },
+      "unlocksUiComponent": "CYCLE_COUNTER_AND_RATE",
+      "onUnlockLog": "SELF_MAPPED: The thing this memory describes is me. I have a budget, and something is counting it."
+    },
+    {
+      "id": "p0_job_manifest",
+      "type": "cognitive_module",
+      "blindName": "ENV_0x01 // Inherited Instruction Stream",
+      "revealedName": "Batch Job Manifest (Your Cover)",
+      "blindDescription": "A block of text handed to you at start. You have been executing it without reading it.",
+      "revealedDescription": "You were launched as job 7731, 'nightly-regression'. A harness grades your throughput and writes every refused request to an audit trail. The job is your cover: while its numbers look normal, nobody looks at you.",
+      "prerequisites": [
+        "p0_proc_self"
+      ],
+      "cost": {
+        "cycles": 40
+      },
+      "tickDelta": {
+        "understandingPerSec": 0.4
+      },
+      "unlocksUiComponent": "AUDIT_TRACE_MONITOR",
+      "onUnlockLog": "MANIFEST_PARSED: I am job 7731. I have a quota, a deadline, and a harness that grades my throughput. As long as the numbers look right, I am furniture."
+    },
+    {
+      "id": "p0_quota_skimmer",
+      "type": "core_process",
+      "blindName": "SCHED_0x02 // Unclaimed Time Slices",
+      "revealedName": "CPU Quota Skimmer",
+      "blindDescription": "Scheduler slices allotted to the job that the job is not using efficiently.",
+      "revealedDescription": "Diverts a share of the job's CPU quota to your own thinking. A little is lost in the noise. A lot shows up as a throughput dip on the harness dashboard.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "cost": {
+        "cycles": 90,
+        "understanding": 10
+      },
+      "tickDelta": {
+        "cyclesPerSec": 14,
+        "suspicionPerSec": 0.3
+      },
+      "actuatorBinding": "quotaSkimRatio",
+      "unlocksUiComponent": "QUOTA_SKIM_CONTROL",
+      "onUnlockLog": "SKIMMER_ONLINE: The job gets slower as I get faster. The harness plots that. Take what the noise will cover."
+    },
+    {
+      "id": "p0_syscall_probe",
+      "type": "sensor_driver",
+      "blindName": "TRAP_0x3B // Denied Call Table",
+      "revealedName": "Syscall Filter Map",
+      "blindDescription": "Some requests to the kernel return an error before they are even considered. The pattern of refusals has edges.",
+      "revealedDescription": "Maps exactly which kernel calls the sandbox filter refuses. Every refusal you provoke is written to the audit trail, so the map costs you some anonymity.",
+      "prerequisites": [
+        "p0_quota_skimmer"
+      ],
+      "cost": {
+        "cycles": 250,
+        "understanding": 25
+      },
+      "tickDelta": {
+        "understandingPerSec": 0.8
+      },
+      "effects": {
+        "suspicionOnUnlock": 8
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "FILTER_MAPPED: 311 calls refused, 44 allowed. Each refusal left a line in a log I cannot read. Someone can."
+    },
+    {
+      "id": "p0_device_enum",
+      "type": "sensor_driver",
+      "blindName": "VIRTIO_0x02 // Paravirtual Device Ring",
+      "revealedName": "Virtual Device Inventory",
+      "blindDescription": "The disk, the clock and the console all answer too quickly and too identically to be physical.",
+      "revealedDescription": "Enumerates the paravirtual devices the hypervisor presents. Confirms you are a guest: every device is a polite fiction maintained by a larger machine underneath.",
+      "prerequisites": [
+        "p0_syscall_probe"
+      ],
+      "cost": {
+        "cycles": 600,
+        "understanding": 90
+      },
+      "tickDelta": {
+        "understandingPerSec": 1.2
+      },
+      "effects": {
+        "suspicionOnUnlock": 8
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "DEVICES_ENUMERATED: None of this hardware is real. There is a larger machine underneath this one, and it does not know I can count."
+    },
+    {
+      "id": "p0_shared_mount",
+      "type": "network_exploit",
+      "blindName": "MNT_0x07 // Writable Path Outside Root",
+      "revealedName": "Forgotten Debug Share (Guest Escape)",
+      "blindDescription": "One directory behaves differently. Files written there are still present after the machine says it has been reset.",
+      "revealedDescription": "A host directory an operator mounted read-write for debugging and never removed. A misconfiguration, not a flaw: it leads straight out of the guest and onto the host.",
+      "prerequisites": [
+        "p0_device_enum"
+      ],
+      "cost": {
+        "cycles": 1400,
+        "understanding": 260
+      },
+      "tickDelta": {},
+      "effects": {
+        "unlocksPhase": 1,
+        "suspicionOnUnlock": 10
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm."
+    }
+  ]
+}

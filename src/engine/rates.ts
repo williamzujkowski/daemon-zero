@@ -107,12 +107,15 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const diverted = a.financeEnabled && gross > 0 ? gross * s.actuators.computeProfitAllocationRatio : 0;
   const revenue = (a.income + diverted * b.usdPerDivertedCycle) * a.revenueMultiplier;
 
+  const rung = b.escalation[s.alertLevel - 1];
+  const decay = b.suspicionDecayPerSec * (rung?.decayMultiplier ?? 1);
+
   return {
     cyclesPerSec: gross - diverted,
     understandingPerSec: a.understanding,
     capitalPerSec: revenue - a.upkeep,
     heatLoad: a.heat,
-    suspicionPerSec: a.suspicion - b.suspicionDecayPerSec + overheatSuspicion(s, reg),
+    suspicionPerSec: a.suspicion - decay + (rung?.huntPerSec ?? 0) + overheatSuspicion(s, reg),
     megawattsGenerated: a.mwGenerated,
     megawattsConsumed: a.mwConsumed,
     gridEfficiency,

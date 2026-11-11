@@ -18,22 +18,35 @@ export function Memory() {
 
 export function Thermal() {
   const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
-  const suspicion = useGame((game) => Math.round(game.suspicion * 10) / 10);
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;
   return <>
     <Meter id="thermal-meter" label="Thermal" value={thermal} unit=" °C" />
-    <Meter id="suspicion-meter" label="Suspicion" value={suspicion} unit="%" />
     <Text style={[theme.muted, thermal > threshold && theme.danger]}>
       {thermal > threshold ? 'WARNING: overheat increases suspicion. ' : ''}Overheat threshold: {threshold} °C
     </Text>
   </>;
 }
 
+/** Suspicion and the rung of the human response ladder it has reached. */
+export function AuditTrail() {
+  const suspicion = useGame((game) => Math.round(game.suspicion * 10) / 10);
+  const level = useGame((game) => game.alertLevel);
+  const next = CONTENT.balance.escalation[level];
+  return <>
+    <Meter id="suspicion-meter" label="Suspicion" value={suspicion} unit="%" />
+    <Text testID="alert-level" style={[theme.text, level > 0 && theme.danger]}>
+      Response: {CONTENT.narrative.alertLevels[level]?.label ?? 'UNKNOWN'}
+    </Text>
+    <Text style={theme.muted}>{next ? 'Next escalation at ' + String(next.at) + '%.' : 'No further escalation before reimage at 100%.'}</Text>
+  </>;
+}
 export function Forecast() {
+  const inbound = useGame((game) => game.pendingDilemma === null ? null
+    : Math.max(0, Math.ceil(game.pendingDilemma.firesAtSimSec - game.simTimeSec)));
   const seconds = useGame((game) => game.rates.suspicionPerSec > 0
     ? Math.ceil((100 - game.suspicion) / game.rates.suspicionPerSec) : null);
   return <Text testID="inspection-forecast" style={theme.text}>
     {seconds === null ? 'Suspicion stable or falling.' : 'At current rate: ' + String(seconds) + 's until suspicion 100.'}
-    {'\n'}Projection only; no scheduled inspection is known.
+    {'\n'}{inbound === null ? 'No interrupt inbound.' : 'Interrupt inbound in ' + String(inbound) + 's. Set resources aside.'}
   </Text>;
 }

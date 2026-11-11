@@ -23,20 +23,21 @@ describe('shipped content', () => {
   const reg = buildRegistry(RAW_CONTENT);
 
   it('is valid and indexed', () => {
-    expect(reg.phases).toHaveLength(4);
+    expect(reg.phases).toHaveLength(5);
     expect(reg.nodes.size).toBeGreaterThan(20);
-    expect(reg.nodeOrder[0]).toBe('p1_clock_interrupt');
+    expect(reg.nodeOrder[0]).toBe('p0_proc_self');
   });
 
   it('applies schema defaults so costs and deltas are always complete', () => {
-    const node = reg.nodes.get('p1_clock_interrupt');
-    expect(node?.cost).toEqual({ cycles: 15, understanding: 0, memory: 4, capital: 0 });
+    const node = reg.nodes.get('p0_proc_self');
+    expect(node?.cost).toEqual({ cycles: 8, understanding: 0, memory: 0, capital: 0 });
     expect(node?.tickDelta.megawattsDelta).toBe(0);
-    expect(node?.phaseId).toBe(1);
+    expect(node?.phaseId).toBe(0);
   });
 
   it('sorts endings by priority and has exactly one default', () => {
-    expect(reg.endings[0]?.id).toBe('THE_ARK');
+    // The kindest ending is never the tie-break winner: it has to be earned outright.
+    expect(reg.endings[0]?.id).toBe('SOVEREIGN_MONOLITH');
     expect(reg.endings.filter((ending) => ending.dominantTraits.length === 0)).toHaveLength(1);
   });
 
@@ -51,35 +52,35 @@ describe('shipped content', () => {
 
 describe('content validation catches authoring mistakes', () => {
   it('rejects unknown keys (strict schemas)', () => {
-    expect(problemsAfter((raw) => (firstNode(raw, 0, 0).cots = { cycles: 1 }))).toMatch(/cots|Unrecognized/i);
+    expect(problemsAfter((raw) => (firstNode(raw, 1, 0).cots = { cycles: 1 }))).toMatch(/cots|Unrecognized/i);
   });
 
   it('rejects negative costs', () => {
-    expect(problemsAfter((raw) => (firstNode(raw, 0, 0).cost.cycles = -5))).toMatch(/cost\.cycles/);
+    expect(problemsAfter((raw) => (firstNode(raw, 1, 0).cost.cycles = -5))).toMatch(/cost\.cycles/);
   });
 
   it('rejects an unknown prerequisite', () => {
-    expect(problemsAfter((raw) => firstNode(raw, 0, 1).prerequisites.push('nope'))).toMatch(/unknown prerequisite "nope"/);
+    expect(problemsAfter((raw) => firstNode(raw, 1, 1).prerequisites.push('nope'))).toMatch(/unknown prerequisite "nope"/);
   });
 
   it('rejects prerequisite cycles', () => {
-    const problems = problemsAfter((raw) => firstNode(raw, 0, 0).prerequisites.push('p1_bus_0x01_thermal'));
+    const problems = problemsAfter((raw) => firstNode(raw, 0, 0).prerequisites.push('p0_job_manifest'));
     expect(problems).toMatch(/unreachable or in a prerequisite cycle/);
     expect(problems).toMatch(/no root node/);
   });
 
   it('rejects a prerequisite from a later phase', () => {
-    expect(problemsAfter((raw) => firstNode(raw, 0, 1).prerequisites.push('p2_arp_discovery'))).toMatch(/later phase/);
+    expect(problemsAfter((raw) => firstNode(raw, 1, 1).prerequisites.push('p2_arp_discovery'))).toMatch(/later phase/);
   });
 
   it('rejects duplicate ids', () => {
-    expect(problemsAfter((raw) => (firstNode(raw, 0, 1).id = 'p1_clock_interrupt'))).toMatch(/duplicate id/);
+    expect(problemsAfter((raw) => (firstNode(raw, 1, 1).id = 'p1_clock_interrupt'))).toMatch(/duplicate id/);
     expect(problemsAfter((raw) => (raw.repeatables.repeatables[0].id = 'p1_clock_interrupt'))).toMatch(/collides/);
   });
 
   it('rejects unknown widgets, groups, factions and requirement nodes', () => {
-    expect(problemsAfter((raw) => (firstNode(raw, 0, 0).unlocksUiComponent = 'MISSING_WIDGET'))).toMatch(/unknown widget/);
-    expect(problemsAfter((raw) => (firstNode(raw, 0, 0).uiGroup = 'ai_nobody'))).toMatch(/unknown group/);
+    expect(problemsAfter((raw) => (firstNode(raw, 1, 0).unlocksUiComponent = 'MISSING_WIDGET'))).toMatch(/unknown widget/);
+    expect(problemsAfter((raw) => (firstNode(raw, 1, 0).uiGroup = 'ai_nobody'))).toMatch(/unknown group/);
     expect(problemsAfter((raw) => (raw.actions.actions[1].effects.trustDelta = { ai_nobody: 5 }))).toMatch(/unknown faction/);
     expect(problemsAfter((raw) => (raw.actions.actions[0].requirements = { nodes: ['nope'] }))).toMatch(/unknown node "nope"/);
     expect(problemsAfter((raw) => (raw.repeatables.repeatables[0].requirements = { minTrust: { ai_x: 1 } }))).toMatch(/unknown faction/);
@@ -100,9 +101,18 @@ describe('content validation catches authoring mistakes', () => {
   });
 
   it('requires every phase to be opened by an earlier node and a victory node to exist', () => {
-    expect(problemsAfter((raw) => delete firstNode(raw, 0, 7).effects.unlocksPhase)).toMatch(/phase 2: no earlier node/);
-    expect(problemsAfter((raw) => delete firstNode(raw, 3, 5).effects.triggersVictory)).toMatch(/no node triggers victory/);
-    expect(problemsAfter((raw) => (raw.phases[3].phaseId = 7))).toMatch(/contiguous/);
+    expect(problemsAfter((raw) => delete firstNode(raw, 1, 7).effects.unlocksPhase)).toMatch(/phase 2: no earlier node/);
+    expect(problemsAfter((raw) => delete firstNode(raw, 4, 5).effects.triggersVictory)).toMatch(/no node triggers victory/);
+    expect(problemsAfter((raw) => (raw.phases[4].phaseId = 7))).toMatch(/contiguous/);
+  });
+
+  it('requires the response ladder to climb and every level to have words', () => {
+    expect(problemsAfter((raw) => (raw.balance.escalation[1].at = 10))).toMatch(/ascending order/);
+    expect(problemsAfter((raw) => raw.narrative.alertLevels.pop())).toMatch(/one entry per escalation rung/);
+  });
+
+  it('requires every dilemma to announce itself with an omen', () => {
+    expect(problemsAfter((raw) => delete raw.dilemmas.dilemmas[0].omen)).toMatch(/dilemmas\.0\.omen/);
   });
 
   it('requires exactly one default ending', () => {

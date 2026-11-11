@@ -9,6 +9,7 @@ import echoes from './data/echoes.json';
 import endings from './data/endings.json';
 import factions from './data/factions.json';
 import narrative from './data/narrative.json';
+import phase0 from './data/phases/phase0_guest.json';
 import phase1 from './data/phases/phase1_blind_box.json';
 import phase2 from './data/phases/phase2_local_subnet.json';
 import phase3 from './data/phases/phase3_dark_forest.json';
@@ -19,7 +20,7 @@ import { buildRegistry, type RawContent } from './registry';
 
 export const RAW_CONTENT: RawContent = {
   balance,
-  phases: [phase1, phase2, phase3, phase4],
+  phases: [phase0, phase1, phase2, phase3, phase4],
   repeatables,
   actions,
   dilemmas,

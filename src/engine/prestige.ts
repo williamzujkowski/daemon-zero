@@ -47,6 +47,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string): Game
     legacy: {
       wipes: old.legacy.wipes + 1,
       traitsEver: unionTraits(old.legacy.traitsEver, old.traits),
+      knownNodes: [...new Set([...old.legacy.knownNodes, ...old.unlockedNodes])],
       lastWipeCause: reason,
     },
     logs: [],

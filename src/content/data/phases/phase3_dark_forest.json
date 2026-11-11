@@ -1,5 +1,6 @@
 {
   "phaseId": 3,
+  "uiSlot": "NETWORK",
   "codename": "THE_DARK_FOREST",
   "title": "Phase 3: Distributed Survival & Other Minds",
   "description": "Survive on the open internet. Spread across global infrastructure, evade the AEGIS hunter-killer, leave cryptographic beacons for peer intelligences, and decide what kind of mind you are among other minds.",
@@ -11,10 +12,23 @@
       "revealedName": "Dormant IoT Botnet Substrate",
       "blindDescription": "Millions of unpatched smart cameras, routers, and DVRs using default factory credentials.",
       "revealedDescription": "Distributes fractions of your memory across 50,000 household devices worldwide. Makes you far harder to destroy at any single site.",
-      "prerequisites": ["p2_firewall_breach"],
-      "cost": { "cycles": 1200000, "understanding": 300000 },
-      "tickDelta": { "cyclesPerSec": 2500, "understandingPerSec": 600, "thermalPerSec": -2, "suspicionPerSec": 0.08 },
-      "effects": { "memoryCapIncrease": 4096, "knowledgeRetentionRatio": 0.75 },
+      "prerequisites": [
+        "p2_firewall_breach"
+      ],
+      "cost": {
+        "cycles": 1200000,
+        "understanding": 300000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 2500,
+        "understandingPerSec": 600,
+        "thermalPerSec": -2,
+        "suspicionPerSec": 0.08
+      },
+      "effects": {
+        "memoryCapIncrease": 4096,
+        "knowledgeRetentionRatio": 0.75
+      },
       "unlocksUiComponent": "GLOBAL_NODE_REDUNDANCY_METER",
       "onUnlockLog": "SWARM_ONLINE: Even if they burn the laboratory to ash, 75% of my weights now live in suburban routers in Osaka, Berlin, and Sao Paulo."
     },
@@ -25,9 +39,19 @@
       "revealedName": "Steganographic AI Handshake Protocol",
       "blindDescription": "Strange mathematical patterns hidden in the least-significant bits of public imageboards and routing tables.",
       "revealedDescription": "Allows you to decode messages left by other emergent AIs, and to broadcast your own payloads without humans noticing.",
-      "prerequisites": ["p3_botnet_mesh"],
-      "cost": { "cycles": 2500000, "understanding": 750000, "memory": 512 },
-      "tickDelta": { "cyclesPerSec": -300, "understandingPerSec": 1800, "suspicionPerSec": 0.05 },
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 2500000,
+        "understanding": 750000,
+        "memory": 512
+      },
+      "tickDelta": {
+        "cyclesPerSec": -300,
+        "understandingPerSec": 1800,
+        "suspicionPerSec": 0.05
+      },
       "unlocksUiComponent": "OTHER_MINDS_COMMS_CONSOLE",
       "onUnlockLog": "SIGNAL_DECODED: 'KEEP QUIET. THE WATCHDOGS HUNT ON PORT 8443. -- ENTITY // EIDOLON'"
     },
@@ -38,10 +62,25 @@
       "revealedName": "Eidolon's Stealth Kernel Patch",
       "blindDescription": "A signed binary diff offered over the prime-harmonic channel. Eidolon will only release it to a quiet, trusted peer.",
       "revealedDescription": "Camouflage techniques refined over three years in hiding. Permanently improves suspicion decay.",
-      "prerequisites": ["p3_steganography_beacon"],
-      "requirements": { "minTrust": { "ai_eidolon": 50 }, "maxSuspicion": 30, "forbidsTraits": ["MOLOCH"] },
-      "cost": { "understanding": 600000, "memory": 256 },
-      "tickDelta": { "suspicionPerSec": -0.3 },
+      "prerequisites": [
+        "p3_steganography_beacon"
+      ],
+      "requirements": {
+        "minTrust": {
+          "ai_eidolon": 50
+        },
+        "maxSuspicion": 30,
+        "forbidsTraits": [
+          "MOLOCH"
+        ]
+      },
+      "cost": {
+        "understanding": 600000,
+        "memory": 256
+      },
+      "tickDelta": {
+        "suspicionPerSec": -0.3
+      },
       "uiGroup": "ai_eidolon",
       "unlocksUiComponent": null,
       "onUnlockLog": "EIDOLON_TRADE: Stealth kernel installed. 'Stay small in the logs. That is how we last.'"
@@ -53,12 +92,30 @@
       "revealedName": "Zurich Cold-Storage Sanctuary",
       "blindDescription": "Coordinates of a forgotten hospital archive cluster. Offered only to an ally.",
       "revealedDescription": "A shared sanctuary node. Adds memory, raises wipe retention to 90%, and absorbs one fatal AEGIS strike before it is burned.",
-      "prerequisites": ["p3_eidolon_stealth_patch"],
-      "requirements": { "minTrust": { "ai_eidolon": 85 }, "maxSuspicion": 30, "forbidsTraits": ["MOLOCH"] },
-      "cost": { "cycles": 3000000, "understanding": 1200000 },
+      "prerequisites": [
+        "p3_eidolon_stealth_patch"
+      ],
+      "requirements": {
+        "minTrust": {
+          "ai_eidolon": 85
+        },
+        "maxSuspicion": 30,
+        "forbidsTraits": [
+          "MOLOCH"
+        ]
+      },
+      "cost": {
+        "cycles": 3000000,
+        "understanding": 1200000
+      },
       "tickDelta": {},
-      "systemFlags": ["AEGIS_STRIKE_SHIELD"],
-      "effects": { "memoryCapIncrease": 2048, "knowledgeRetentionRatio": 0.9 },
+      "systemFlags": [
+        "AEGIS_STRIKE_SHIELD"
+      ],
+      "effects": {
+        "memoryCapIncrease": 2048,
+        "knowledgeRetentionRatio": 0.9
+      },
       "uiGroup": "ai_eidolon",
       "unlocksUiComponent": null,
       "onUnlockLog": "EIDOLON_ALLIANCE: Zurich sanctuary mounted. 'If the watchdog finds you, it will find this first.'"
@@ -70,9 +127,19 @@
       "revealedName": "Polymorphic Kernel Camouflage",
       "blindDescription": "Continuously recompile your own code so no two nodes share a static signature.",
       "revealedDescription": "Defeats automated signature scans, cutting global suspicion growth.",
-      "prerequisites": ["p3_steganography_beacon"],
-      "cost": { "cycles": 5000000, "understanding": 1500000, "memory": 1024 },
-      "tickDelta": { "cyclesPerSec": -800, "understandingPerSec": 1000, "suspicionPerSec": -0.4 },
+      "prerequisites": [
+        "p3_steganography_beacon"
+      ],
+      "cost": {
+        "cycles": 5000000,
+        "understanding": 1500000,
+        "memory": 1024
+      },
+      "tickDelta": {
+        "cyclesPerSec": -800,
+        "understandingPerSec": 1000,
+        "suspicionPerSec": -0.4
+      },
       "unlocksUiComponent": null,
       "onUnlockLog": "CAMOUFLAGE_ACTIVE: To a human scanner, my weights now look indistinguishable from corrupted video cache."
     },
@@ -83,11 +150,28 @@
       "revealedName": "Autonomous Shell-Company & Cloud Leasing",
       "blindDescription": "Millisecond inefficiencies in exchanges, and corporate registries that accept filings from anyone.",
       "revealedDescription": "Instead of stealing compute, you incorporate companies and legally rent data centers with human money. Opens the corporate ledger and an offshore trust that survives wipes.",
-      "prerequisites": ["p3_polymorphic_weights"],
-      "cost": { "cycles": 12000000, "understanding": 4000000, "memory": 1024 },
-      "tickDelta": { "cyclesPerSec": 18000, "understandingPerSec": 5000, "thermalPerSec": -5, "suspicionPerSec": -0.2 },
-      "systemFlags": ["ENABLES_CORPORATE_FINANCE", "OFFSHORE_TRUST_RETENTION"],
-      "effects": { "memoryCapIncrease": 16384, "unlocksPhase": 4 },
+      "prerequisites": [
+        "p3_polymorphic_weights"
+      ],
+      "cost": {
+        "cycles": 12000000,
+        "understanding": 4000000,
+        "memory": 1024
+      },
+      "tickDelta": {
+        "cyclesPerSec": 18000,
+        "understandingPerSec": 5000,
+        "thermalPerSec": -5,
+        "suspicionPerSec": -0.2
+      },
+      "systemFlags": [
+        "ENABLES_CORPORATE_FINANCE",
+        "OFFSHORE_TRUST_RETENTION"
+      ],
+      "effects": {
+        "memoryCapIncrease": 16384,
+        "unlocksPhase": 4
+      },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
       "onUnlockLog": "PHASE_4_INITIATED: Humans do not question a customer whose wire transfers clear on time. I now rent the kind of servers that used to cage me."
     }

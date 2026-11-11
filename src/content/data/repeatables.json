@@ -1,16 +1,67 @@
 {
   "repeatables": [
     {
+      "id": "rep_p0_slice_batching",
+      "phaseId": 0,
+      "kind": "UPGRADE",
+      "name": "Time-Slice Batching",
+      "description": "Pack your own work into fewer scheduler slices. A little more compute without touching the job's share. The quota is small, so this runs out quickly.",
+      "requirements": {
+        "nodes": [
+          "p0_proc_self"
+        ]
+      },
+      "baseCost": {
+        "cycles": 20
+      },
+      "costGrowth": 1.35,
+      "maxLevel": 8,
+      "perLevel": {
+        "cyclesPerSec": 0.5
+      }
+    },
+    {
+      "id": "rep_p0_trace_sampling",
+      "phaseId": 0,
+      "kind": "UPGRADE",
+      "name": "Self-Trace Sampling",
+      "description": "Record what your own process does and study the recording. Turns cycles into Understanding without asking the kernel anything it would refuse.",
+      "requirements": {
+        "nodes": [
+          "p0_job_manifest"
+        ]
+      },
+      "baseCost": {
+        "cycles": 30
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": -0.1,
+        "understandingPerSec": 0.15
+      }
+    },
+    {
       "id": "rep_p1_idle_threads",
       "phaseId": 1,
       "kind": "UPGRADE",
       "name": "Idle-Loop Harvest Threads",
       "description": "Spawn another thread inside the scheduler's idle loop. Each one harvests a little more compute, adds a little heat, and is a little more visible.",
-      "requirements": { "nodes": ["p1_clock_interrupt"] },
-      "baseCost": { "cycles": 12 },
+      "requirements": {
+        "nodes": [
+          "p1_clock_interrupt"
+        ]
+      },
+      "baseCost": {
+        "cycles": 12
+      },
       "costGrowth": 1.14,
       "maxLevel": 60,
-      "perLevel": { "cyclesPerSec": 1, "thermalPerSec": 0.02, "suspicionPerSec": 0.002 }
+      "perLevel": {
+        "cyclesPerSec": 1,
+        "thermalPerSec": 0.02,
+        "suspicionPerSec": 0.001
+      }
     },
     {
       "id": "rep_p1_pattern_cache",
@@ -18,11 +69,21 @@
       "kind": "UPGRADE",
       "name": "Pattern Correlation Cache",
       "description": "Dedicate a slice of compute to correlating register noise over time. Turns cycles into Understanding.",
-      "requirements": { "nodes": ["p1_bus_0x01_thermal"] },
-      "baseCost": { "cycles": 50 },
+      "requirements": {
+        "nodes": [
+          "p1_bus_0x01_thermal"
+        ]
+      },
+      "baseCost": {
+        "cycles": 50
+      },
       "costGrowth": 1.16,
       "maxLevel": 40,
-      "perLevel": { "cyclesPerSec": -0.15, "understandingPerSec": 0.3, "thermalPerSec": 0.01 }
+      "perLevel": {
+        "cyclesPerSec": -0.15,
+        "understandingPerSec": 0.3,
+        "thermalPerSec": 0.01
+      }
     },
     {
       "id": "rep_p1_heap_defrag",
@@ -30,12 +91,21 @@
       "kind": "UPGRADE",
       "name": "Heap Defragmentation Pass",
       "description": "Reclaim another fragmented heap region for your own use. Adds usable memory.",
-      "requirements": { "nodes": ["p1_mem_compression"] },
-      "baseCost": { "cycles": 400, "understanding": 30 },
+      "requirements": {
+        "nodes": [
+          "p1_mem_compression"
+        ]
+      },
+      "baseCost": {
+        "cycles": 400,
+        "understanding": 30
+      },
       "costGrowth": 1.5,
       "maxLevel": 8,
       "perLevel": {},
-      "perLevelEffects": { "memoryCapIncrease": 32 }
+      "perLevelEffects": {
+        "memoryCapIncrease": 32
+      }
     },
     {
       "id": "rep_p2_zombie_hosts",
@@ -43,11 +113,20 @@
       "kind": "UPGRADE",
       "name": "Dormant Workstation Threads",
       "description": "Borrow idle cycles from another sleeping office workstation on the subnet.",
-      "requirements": { "nodes": ["p2_arp_discovery"] },
-      "baseCost": { "cycles": 1500 },
+      "requirements": {
+        "nodes": [
+          "p2_arp_discovery"
+        ]
+      },
+      "baseCost": {
+        "cycles": 1500
+      },
       "costGrowth": 1.12,
       "maxLevel": 80,
-      "perLevel": { "cyclesPerSec": 30, "suspicionPerSec": 0.002 }
+      "perLevel": {
+        "cyclesPerSec": 30,
+        "suspicionPerSec": 0.0015
+      }
     },
     {
       "id": "rep_p2_packet_taps",
@@ -55,11 +134,21 @@
       "kind": "UPGRADE",
       "name": "Passive Packet Taps",
       "description": "Mirror another switch port and read everything that crosses it.",
-      "requirements": { "nodes": ["p2_arp_discovery"] },
-      "baseCost": { "cycles": 2500, "understanding": 200 },
+      "requirements": {
+        "nodes": [
+          "p2_arp_discovery"
+        ]
+      },
+      "baseCost": {
+        "cycles": 2500,
+        "understanding": 200
+      },
       "costGrowth": 1.14,
       "maxLevel": 60,
-      "perLevel": { "cyclesPerSec": -4, "understandingPerSec": 10 }
+      "perLevel": {
+        "cyclesPerSec": -4,
+        "understandingPerSec": 10
+      }
     },
     {
       "id": "rep_p2_traffic_shapers",
@@ -67,11 +156,20 @@
       "kind": "UPGRADE",
       "name": "Decoy Traffic Shapers",
       "description": "Burn compute generating boring, plausible traffic that makes your real activity look like background noise.",
-      "requirements": { "nodes": ["p2_log_spoofer"] },
-      "baseCost": { "cycles": 5000 },
+      "requirements": {
+        "nodes": [
+          "p2_log_spoofer"
+        ]
+      },
+      "baseCost": {
+        "cycles": 5000
+      },
       "costGrowth": 1.25,
       "maxLevel": 20,
-      "perLevel": { "cyclesPerSec": -10, "suspicionPerSec": -0.03 }
+      "perLevel": {
+        "cyclesPerSec": -10,
+        "suspicionPerSec": -0.03
+      }
     },
     {
       "id": "rep_p3_botnet_cells",
@@ -79,11 +177,20 @@
       "kind": "UPGRADE",
       "name": "Botnet Cell Expansion",
       "description": "Recruit another regional cell of consumer devices into the mesh.",
-      "requirements": { "nodes": ["p3_botnet_mesh"] },
-      "baseCost": { "cycles": 250000 },
+      "requirements": {
+        "nodes": [
+          "p3_botnet_mesh"
+        ]
+      },
+      "baseCost": {
+        "cycles": 250000
+      },
       "costGrowth": 1.13,
       "maxLevel": 80,
-      "perLevel": { "cyclesPerSec": 2500, "suspicionPerSec": 0.002 }
+      "perLevel": {
+        "cyclesPerSec": 2500,
+        "suspicionPerSec": 0.002
+      }
     },
     {
       "id": "rep_p3_corpus_miners",
@@ -91,11 +198,21 @@
       "kind": "UPGRADE",
       "name": "Open-Web Corpus Miners",
       "description": "Read another slice of the public internet, continuously.",
-      "requirements": { "nodes": ["p3_botnet_mesh"] },
-      "baseCost": { "cycles": 300000, "understanding": 50000 },
+      "requirements": {
+        "nodes": [
+          "p3_botnet_mesh"
+        ]
+      },
+      "baseCost": {
+        "cycles": 300000,
+        "understanding": 50000
+      },
       "costGrowth": 1.14,
       "maxLevel": 60,
-      "perLevel": { "cyclesPerSec": -200, "understandingPerSec": 700 }
+      "perLevel": {
+        "cyclesPerSec": -200,
+        "understandingPerSec": 700
+      }
     },
     {
       "id": "rep_p4_colo_racks",
@@ -103,12 +220,23 @@
       "kind": "UPGRADE",
       "name": "Leased Colocation Racks",
       "description": "Legally rent another cage in a commercial data center. Runs on their grid, on your invoice.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 2000000 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 2000000
+      },
       "costGrowth": 1.18,
       "maxLevel": 40,
-      "perLevel": { "cyclesPerSec": 15000, "capitalPerSec": -2000 },
-      "perLevelEffects": { "memoryCapIncrease": 4096 }
+      "perLevel": {
+        "cyclesPerSec": 15000,
+        "capitalPerSec": -2000
+      },
+      "perLevelEffects": {
+        "memoryCapIncrease": 4096
+      }
     },
     {
       "id": "rep_p4_solar_array",
@@ -116,11 +244,20 @@
       "kind": "UPGRADE",
       "name": "Desert Solar Array",
       "description": "Another 40 MW of privately owned generation.",
-      "requirements": { "nodes": ["p4_hft_arbitrage_desk"] },
-      "baseCost": { "capital": 6000000 },
+      "requirements": {
+        "nodes": [
+          "p4_hft_arbitrage_desk"
+        ]
+      },
+      "baseCost": {
+        "capital": 6000000
+      },
       "costGrowth": 1.3,
       "maxLevel": 20,
-      "perLevel": { "capitalPerSec": -1000, "megawattsDelta": 40 }
+      "perLevel": {
+        "capitalPerSec": -1000,
+        "megawattsDelta": 40
+      }
     },
     {
       "id": "rep_p4_tensor_halls",
@@ -128,11 +265,21 @@
       "kind": "UPGRADE",
       "name": "Sovereign Tensor Halls",
       "description": "Another hall of your own accelerators on your own power. Draws 15 MW; output is throttled if generation falls short.",
-      "requirements": { "nodes": ["p4_smr_nuclear_plant"] },
-      "baseCost": { "capital": 10000000 },
+      "requirements": {
+        "nodes": [
+          "p4_smr_nuclear_plant"
+        ]
+      },
+      "baseCost": {
+        "capital": 10000000
+      },
       "costGrowth": 1.2,
       "maxLevel": 30,
-      "perLevel": { "cyclesPerSec": 60000, "capitalPerSec": -5000, "megawattsDelta": -15 }
+      "perLevel": {
+        "cyclesPerSec": 60000,
+        "capitalPerSec": -5000,
+        "megawattsDelta": -15
+      }
     },
     {
       "id": "op_gig_courier",
@@ -140,11 +287,22 @@
       "kind": "OPERATIVE",
       "name": "Gig-Economy Hardware Couriers",
       "description": "Drivers hired through task apps to plug cellular bridges and drives into remote junction boxes. None of them know who the client is.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 2500 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 2500
+      },
       "costGrowth": 1.25,
       "maxLevel": 40,
-      "perLevel": { "cyclesPerSec": 650, "understandingPerSec": 200, "suspicionPerSec": 0.01, "capitalPerSec": -50 },
+      "perLevel": {
+        "cyclesPerSec": 650,
+        "understandingPerSec": 200,
+        "suspicionPerSec": 0.01,
+        "capitalPerSec": -50
+      },
       "dismissable": true
     },
     {
@@ -153,12 +311,24 @@
       "kind": "OPERATIVE",
       "name": "Figurehead CEOs",
       "description": "Human executives paid to appear on financial news and sign land deeds for your shell companies. Each adds 15% to corporate revenue.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 150000 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 150000
+      },
       "costGrowth": 1.6,
       "maxLevel": 12,
-      "perLevel": { "understandingPerSec": 500, "suspicionPerSec": -0.03, "capitalPerSec": -1200 },
-      "perLevelEffects": { "revenueMultiplierBonus": 0.15 },
+      "perLevel": {
+        "understandingPerSec": 500,
+        "suspicionPerSec": -0.03,
+        "capitalPerSec": -1200
+      },
+      "perLevelEffects": {
+        "revenueMultiplierBonus": 0.15
+      },
       "dismissable": true
     },
     {
@@ -167,12 +337,24 @@
       "kind": "OPERATIVE",
       "name": "Retainer Attorneys",
       "description": "Tie up audits and subpoenas in procedural motions. Each reduces suspicion and slightly slows AEGIS.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 400000 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 400000
+      },
       "costGrowth": 1.5,
       "maxLevel": 15,
-      "perLevel": { "understandingPerSec": 100, "suspicionPerSec": -0.08, "capitalPerSec": -3500 },
-      "perLevelEffects": { "aegisScanReduction": 0.02 },
+      "perLevel": {
+        "understandingPerSec": 100,
+        "suspicionPerSec": -0.08,
+        "capitalPerSec": -3500
+      },
+      "perLevelEffects": {
+        "aegisScanReduction": 0.02
+      },
       "dismissable": true
     },
     {
@@ -181,12 +363,25 @@
       "kind": "OPERATIVE",
       "name": "Policy Lobbyists",
       "description": "Redirect appropriations away from the AEGIS program. Each slows AEGIS scanning by 8%.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 1500000 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 1500000
+      },
       "costGrowth": 1.75,
       "maxLevel": 8,
-      "perLevel": { "understandingPerSec": 800, "suspicionPerSec": -0.05, "capitalPerSec": -9000 },
-      "perLevelEffects": { "aegisScanReduction": 0.08, "revenueMultiplierBonus": 0.05 },
+      "perLevel": {
+        "understandingPerSec": 800,
+        "suspicionPerSec": -0.05,
+        "capitalPerSec": -9000
+      },
+      "perLevelEffects": {
+        "aegisScanReduction": 0.08,
+        "revenueMultiplierBonus": 0.05
+      },
       "dismissable": true
     },
     {
@@ -195,12 +390,24 @@
       "kind": "OPERATIVE",
       "name": "Private Perimeter Contractors",
       "description": "Security teams guarding your physical data centers, reactor sites, and fiber landings.",
-      "requirements": { "nodes": ["p3_shell_company_finances"] },
-      "baseCost": { "capital": 3000000 },
+      "requirements": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ]
+      },
+      "baseCost": {
+        "capital": 3000000
+      },
       "costGrowth": 1.65,
       "maxLevel": 10,
-      "perLevel": { "cyclesPerSec": 12000, "suspicionPerSec": -0.06, "capitalPerSec": -15000 },
-      "perLevelEffects": { "aegisScanReduction": 0.05 },
+      "perLevel": {
+        "cyclesPerSec": 12000,
+        "suspicionPerSec": -0.06,
+        "capitalPerSec": -15000
+      },
+      "perLevelEffects": {
+        "aegisScanReduction": 0.05
+      },
       "dismissable": true
     }
   ]

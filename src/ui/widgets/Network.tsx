@@ -10,9 +10,7 @@ import { theme } from '../theme';
 
 export function NetworkTree() {
   const current = useGame((game) => game.currentPhase);
-  const initial = CONTENT.phases[0]?.phaseId ?? 1;
-  return <View style={{ gap: 14 }}>{CONTENT.phases.filter((phase) => phase.phaseId > initial &&
-    phase.phaseId < CONTENT.balance.corporatePhase && phase.phaseId <= current)
+  return <View style={{ gap: 14 }}>{CONTENT.phases.filter((phase) => phase.uiSlot === 'NETWORK' && phase.phaseId <= current)
     .sort((left, right) => right.phaseId - left.phaseId).map((phase) =>
     <View key={phase.phaseId} style={{ gap: 14 }}>
       <Text style={theme.heading}>{phase.title}</Text>
@@ -33,7 +31,7 @@ export function NetworkActions() {
 export function SubnetSummary() {
   const count = useGame((game) => game.unlockedNodes.filter((id) => {
     const node = CONTENT.nodes.get(id);
-    return node !== undefined && node.phaseId > 1;
+    return node !== undefined && CONTENT.phases.find((phase) => phase.phaseId === node.phaseId)?.uiSlot !== 'CORE';
   }).length);
   return <Text style={theme.text}>Mapped external hardware: {count}</Text>;
 }

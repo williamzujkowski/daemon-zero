@@ -8,6 +8,7 @@ import type { ContentRegistry } from '../content/registry';
 import { computeRates } from './rates';
 import type { GameState } from './state';
 import { evaluateDilemmas } from './systems/dilemmas';
+import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import type { TickSystem } from './systems/types';
@@ -18,6 +19,7 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateResources,
   integrateThermal,
   integrateSuspicion,
+  integrateEscalation,
   integrateAegis,
   evaluateDilemmas,
 ];

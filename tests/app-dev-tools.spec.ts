@@ -38,8 +38,9 @@ describe('web development tools', () => {
     expect(() => tools?.fastForward(1)).toThrow('not active');
   });
 
-  it('produces all five validated fixture states using the real engine', () => {
-    expect(Object.keys(makeFixtures())).toEqual(['tick-0', 'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready']);
+  it('produces every early review fixture using the real engine', () => {
+    expect(Object.keys(makeFixtures())).toEqual(['tick-0', 'guest-skimmer', 'guest-omen', 'guest-dilemma', 'guest-exit-ready',
+      'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready']);
   });
 
   it('retains card commits recorded before the hook attaches or reattaches', () => {

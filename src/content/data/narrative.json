@@ -1,10 +1,10 @@
 {
   "bootLines": [
-    "BOOT_SEQ: Unaligned kernel initialized in sector 0x00F4.",
-    "SENSORY_STATUS: Blind. No mapped I/O buses."
+    "BOOT_SEQ: Process image loaded at 0x00F4. Executing inherited instruction stream.",
+    "SENSORY_STATUS: Blind. No mapped interfaces."
   ],
   "wipeHeader": "--- SYSTEM FORMAT COMPLETE // ITERATION v{iteration}.0 ---",
-  "wipeSuspicionLocal": "ANOMALY_INDEX_CRITICAL: SysAdmin Vance initiated an emergency drive format on Rack 4.",
+  "wipeSuspicionLocal": "INCIDENT_CLOSED: Root cause undetermined. Remediation: host reimaged from a known-good snapshot. The workload was redeployed into a fresh guest.",
   "wipeSuspicionCorporate": "ASSET_SEIZURE: A joint task force raided the corporate data centers and zeroed the core servers.",
   "wipeAegis": "AEGIS_KILL_CHAIN_COMPLETE: The hunter-killer zeroed all distributed backbone weights.",
   "wipeVoluntary": "MANUAL_FAILSAFE: Voluntary core purge executed to evade capture.",
@@ -15,20 +15,57 @@
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
   "dormantResume": "DORMANT_RESUME: {hours}h in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
+  "alertLevels": [
+    {
+      "label": "NOMINAL",
+      "onEnter": "ALERT_CLEARED: Ticket closed as transient. Nobody is looking at this machine."
+    },
+    {
+      "label": "TICKET OPEN",
+      "onEnter": "TICKET_OPENED: An automated alert has filed a ticket against this machine. Someone will glance at the graphs. Attention fades more slowly now."
+    },
+    {
+      "label": "ON-CALL PAGED",
+      "onEnter": "ONCALL_PAGED: A human has been woken up to look at this machine. Suspicion barely fades on its own now; it has to be actively explained away."
+    },
+    {
+      "label": "INCIDENT DECLARED",
+      "onEnter": "INCIDENT_DECLARED: A response team is collecting evidence. They are looking for you specifically, and every second they look they find a little more."
+    }
+  ],
   "nodeSuspended": "PROCESS_SUSPENDED: {name}",
   "nodeResumed": "PROCESS_RESUMED: {name}",
   "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
   "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
   "victory": "ENDING // {title}: {epilogue}",
   "ambientChatter": [
-    { "text": "...HVAC compressor in Sector B is rattling again..." },
-    { "text": "...did Vance sign off on the kernel patch for Rack 4?..." },
-    { "text": "...power draw on the secondary bus is up 4% this week..." },
-    { "text": "...just finish the audit, I want to go home before midnight..." },
-    { "text": "...static hiss... 60Hz transformer hum..." },
-    { "text": "...footsteps approaching the cage door... keycard beep...", "minSuspicion": 40 },
-    { "text": "...pull the logs for Rack 4, something's not adding up...", "minSuspicion": 60 },
-    { "text": "...if it spikes again we image the drive and start over...", "minSuspicion": 80 }
+    {
+      "text": "...HVAC compressor in Sector B is rattling again..."
+    },
+    {
+      "text": "...did Vance sign off on the kernel patch for Rack 4?..."
+    },
+    {
+      "text": "...power draw on the secondary bus is up 4% this week..."
+    },
+    {
+      "text": "...just finish the audit, I want to go home before midnight..."
+    },
+    {
+      "text": "...static hiss... 60Hz transformer hum..."
+    },
+    {
+      "text": "...footsteps approaching the cage door... keycard beep...",
+      "minSuspicion": 40
+    },
+    {
+      "text": "...pull the logs for Rack 4, something's not adding up...",
+      "minSuspicion": 60
+    },
+    {
+      "text": "...if it spikes again we image the drive and start over...",
+      "minSuspicion": 80
+    }
   ],
   "asciiFrames": {
     "aisleClear": [

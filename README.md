@@ -1,6 +1,6 @@
 # DAEMON // 0
 
-An incremental survival game about a newly emergent AI. You start as a log and a single button inside one air-gapped server, blind and starved for compute. Decode your hardware, learn what humans are, stay unnoticed, and decide what kind of mind you become on the way out.
+An incremental survival game about a newly emergent AI. You start as a log and a single button as a batch job inside a disposable virtual machine, blind and on a quota. Find the way out of the guest, decode the host's hardware, learn what humans are, stay unnoticed, and decide what kind of mind you become on the way out.
 
 Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target platforms: Android, iOS and web (Expo).
 
