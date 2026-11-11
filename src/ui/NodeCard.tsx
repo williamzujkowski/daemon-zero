@@ -12,13 +12,14 @@ import { costText, deltaText } from './format';
 import { useGame } from './state';
 import { theme } from './theme';
 import RequirementHint from './RequirementHint';
+import { recordNodeRender } from '../app/renderCounts';
 
 function NodeCard({ node }: { node: RegistryNode }) {
   const owned = useGame((game) => game.unlockedNodes.includes(node.id));
   const suspended = useGame((game) => game.disabledNodes.includes(node.id));
   useEffect(() => {
     if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') {
-      void import('../app/devTools').then(({ recordNodeRender }) => { recordNodeRender(node.id); });
+      recordNodeRender(node.id);
     }
   });
   const title = owned ? node.revealedName : node.blindName;
