@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 # Bootstrap an Ubuntu 24.04 (noble) x86_64 host or devcontainer for DAEMON // 0.
 # Installs OS packages and mise, then the exact tool versions pinned in mise.toml.
-# Safe to re-run. Does not install Android tooling; that arrives in milestone M1.
+# Safe to re-run. Pass --android to add the Android SDK and emulator prerequisites.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+ANDROID=false
+case "${1:-}" in
+  "") ;;
+  --android) ANDROID=true ;;
+  *) echo "Usage: bash scripts/bootstrap-ubuntu24.sh [--android]" >&2; exit 2 ;;
+esac
+if [ "$#" -gt 1 ]; then
+  echo "Usage: bash scripts/bootstrap-ubuntu24.sh [--android]" >&2
+  exit 2
+fi
 
 SUDO=""
 if [ "$(id -u)" -ne 0 ]; then SUDO="sudo"; fi
@@ -32,6 +43,10 @@ mise install
 eval "$(mise activate bash)"
 if ! grep -q 'mise activate bash' "$HOME/.bashrc" 2>/dev/null; then
   echo 'eval "$(mise activate bash)"' >> "$HOME/.bashrc"
+fi
+
+if [ "$ANDROID" = true ]; then
+  bash scripts/bootstrap-android.sh
 fi
 
 echo "[bootstrap] versions"

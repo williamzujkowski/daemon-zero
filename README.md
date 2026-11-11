@@ -6,10 +6,10 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 ## Status
 
-This repository is a **seed**: the full game content and a tested, balanced simulation engine, plus the plan and tooling for coding agents to build the app around them. There is no UI yet.
+The full game content and tested simulation engine now have an Expo app shell. Web and Android show the first engine boot log on a black screen. The real-time loop, persistence and playable UI arrive in M2 and later.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 bootstrap is verified locally and in CI. M1 (Expo app shell) is next; see `docs/MILESTONES.md`.
+- M0 and M1 are complete. M2 (store, game loop, persistence) has not started; see `docs/MILESTONES.md`.
 
 ## Quick start (Ubuntu 24.04)
 
@@ -19,7 +19,19 @@ make setup                           # install dependencies from the lockfile
 make verify                          # typecheck, lint, content validation, tests, balance sim
 ```
 
-Already have Node 22.13+ or 24 and pnpm 10? `pnpm install --frozen-lockfile && make verify` is enough.
+Use `mise install` for the pinned Node, pnpm and JDK versions. `make verify` now
+includes a production web export to `dist/`.
+
+```bash
+make web       # open the app in the browser
+make dev       # start Expo without choosing a platform
+make build-web # export the production web app
+```
+
+For Android, run `bash scripts/bootstrap-ubuntu24.sh --android`, source
+`~/.config/daemon-zero/android-env.sh`, create/start an AVD, then run `make android`.
+See `docs/TESTING.md` for commands and the distinction between Expo Go verification
+and a standalone release build.
 
 ## Handing this to coding agents
 

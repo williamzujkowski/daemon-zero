@@ -12,8 +12,8 @@ gitleaks = "8.30.1"
 osv-scanner = "2.7.1"
 trivy = "0.76.2"
 
-# Added in M1 for Android builds (pin the exact patch version when adding):
-# java = "temurin-21"
+# JDK used by Android command-line tools and native builds.
+java = "temurin-21.0.13+9.0.LTS"
 
 [settings]
 # Record exact resolved versions and checksums in mise.lock; commit that file.

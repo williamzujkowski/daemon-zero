@@ -14,16 +14,29 @@
     "validate:content": "tsx scripts/validate-content.ts",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "sim": "tsx scripts/run-sim.ts"
+    "sim": "tsx scripts/run-sim.ts",
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "build:web": "expo export --platform web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "58.0.17",
+    "expo": "58.0.23",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-web": "0.21.4",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@vitest/coverage-v8": "5.1.0",
     "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-security": "4.2.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
@@ -35,7 +48,9 @@
       "esbuild"
     ],
     "overrides": {
-      "minimatch@>=10 <11.0.1": "11.0.1"
+      "minimatch@>=10 <11.0.1": "11.0.1",
+      "glob@>=13 <14.0.2": "14.0.2"
     }
-  }
+  },
+  "main": "index.ts"
 }

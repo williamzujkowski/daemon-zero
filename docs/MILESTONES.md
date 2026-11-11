@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 is complete. M1 has not started.** Local verification and [CI on `main`](https://github.com/williamzujkowski/daemon-zero/actions/runs/42971163056) pass. Milestone issues exist and solo-maintainer branch protection is enabled. See `docs/REVIEW-FINDINGS.md` section F for evidence and limitations.
+Status: **M0 and M1 are complete. M2 has not started.** The M1 shell is verified on web and Android, and [CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42973786660). See `docs/REVIEW-FINDINGS.md` sections F and G for evidence and limitations.
 
 ---
 
@@ -26,14 +26,16 @@ Exit gate: CI green on `main`; issues exist for M1 to M6.
 
 Goal: an Expo app that boots on web and Android and proves it can import the engine. No game UI yet.
 
-- [ ] Add Expo to this repo without disturbing the seed. Recommended: scaffold `npx create-expo-app@latest --template blank-typescript` in a temp directory, then merge its `app.json`, `App.tsx`, `babel.config.js`, assets and dependencies into this repo. Install Expo-coupled packages with `npx expo install` so versions match the SDK.
-- [ ] Web support: `npx expo install react-dom react-native-web`.
-- [ ] Make `tsconfig.json` extend `expo/tsconfig.base` while keeping every strict flag already set. Add `jsx` settings as the template requires.
-- [ ] Add React lint rules: `eslint-plugin-react-hooks` (and the Expo ESLint config if compatible with ESLint 10). Keep all existing rules.
-- [ ] `App.tsx` renders a black screen with the first boot log line read from `createInitialState(CONTENT)`. This proves Metro resolves the JSON content and the engine.
-- [ ] Add `make dev`, `make web`, `make android` targets and `make build-web` (`npx expo export --platform web`). Add `build-web` to `verify`.
-- [ ] Extend `scripts/bootstrap-ubuntu24.sh --android` to install the JDK via mise (`java = temurin-21`, pinned), Android command-line tools and KVM packages. Enable the `/dev/kvm` line in `.devcontainer/devcontainer.json` only after confirming the host has KVM.
-- [ ] Update Vitest coverage `include` so UI code added later is measured (floor 80% for `src/app`, `src/ui`).
+Local verification: 72 tests and `make verify-full` pass. Production web boots at desktop and 390 px width. Android actually booted in Expo Go on a Pixel 7 API 36 x86_64 emulator. The `--android` bootstrap passed on the Ubuntu 26.04 host and isolated Ubuntu 24.04. Standalone Android/iOS builds and a physical device were not tested.
+
+- [x] Add Expo to this repo without disturbing the seed. Recommended: scaffold `npx create-expo-app@latest --template blank-typescript` in a temp directory, then merge its `app.json`, `App.tsx`, any Babel configuration supplied by the template, assets and dependencies into this repo. Install Expo-coupled packages with `npx expo install` so versions match the SDK.
+- [x] Web support: `npx expo install react-dom react-native-web`.
+- [x] Make `tsconfig.json` extend `expo/tsconfig.base` while keeping every strict flag already set. Add `jsx` settings as the template requires.
+- [x] Add React lint rules: `eslint-plugin-react-hooks` (the optional Expo preset was tested and omitted: its import/react plugins exclude ESLint 10). All existing rules are retained.
+- [x] `App.tsx` renders a black screen with the first boot log line read from `createInitialState(CONTENT)`. This proves Metro resolves the JSON content and the engine.
+- [x] Add `make dev`, `make web`, `make android` targets and `make build-web` (`npx expo export --platform web`). Add `build-web` to `verify`.
+- [x] Extend `scripts/bootstrap-ubuntu24.sh --android` to install the JDK via mise (`java = temurin-21`, pinned), Android command-line tools and KVM packages. Enable the `/dev/kvm` line in `.devcontainer/devcontainer.json` only after confirming the host has KVM.
+- [x] Update Vitest coverage `include` so UI code added later is measured (floor 80% for `src/app`, `src/ui`).
 
 Exit gate: `make verify` green including `build-web`; app boots in a browser and shows the boot line; Android boot verified on an emulator or device, or explicitly reported as not verified.
 
