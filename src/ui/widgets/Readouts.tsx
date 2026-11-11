@@ -1,6 +1,7 @@
+import { Text } from '../PhaseTheme';
 /** Phase 1 readouts use engine values and clearly label extrapolated forecasts. */
 import { useState } from 'react';
-import { Text } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';

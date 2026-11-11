@@ -1,6 +1,7 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /** Iteration changes from any engine path reveal the durable boot evidence. */
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';

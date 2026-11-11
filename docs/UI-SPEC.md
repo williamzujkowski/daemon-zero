@@ -203,3 +203,28 @@ output and reported choices; shedding a mark has an acknowledged recovery event.
 Notes are recovered fragment cards with explicit source, including unsigned.
 Evaluation cards announce that purchasing ends the run; ended runs render their
 ending without an expensive hidden terminal tree underneath.
+
+## M5 feel and save transfer
+
+The initial guest shares Phase 1's phosphor green. Phase changes recolour accent
+and structural-border tokens through a stable context; danger, warning, body
+text and backgrounds retain their semantic colours. The border tokens are
+#856325 (Phase 2), #267582 (Phase 3) and #82743f (Phase 4).
+
+A successful live driver purchase decrypts the authored revealed name over
+420 ms. The accessible name is complete immediately. Cold-loaded owned cards
+show their names immediately; reduced motion skips decoding and audit blinking.
+Backgrounding or unmounting cancels the reveal timer, owned by src/app. Accepted
+purchases have optional native selection feedback; mandatory interrupts have
+warning feedback. Web and reduced-motion mode invoke no haptic API.
+
+The production SAVE control provides an exportable backup and confirmed import;
+invalid codes leave progress intact. It is also available on the ending screen.
+This extends the former dev-only transfer path so production E2E exercises an
+actual player feature. Dev drawer, resource grants and the development hook
+remain absent from production exports.
+
+Card profiling separates the static identity/description from changing balance
+and eligibility leaves. Development metrics report parent render counts, React
+Profiler commits/duration for static content, and accepted/attempted manual
+inputs; they do not change or persist game state.

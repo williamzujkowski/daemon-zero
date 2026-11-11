@@ -1,8 +1,9 @@
+import { Text, View } from './PhaseTheme';
 /**
  * Reveals each resource only after its registry gate is unlocked.
  * Each readout subscribes independently to quantized amounts and engine rates.
  */
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useGame } from './state';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';

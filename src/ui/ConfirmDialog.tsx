@@ -1,5 +1,6 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /** Reusable explicit second confirmation for destructive local actions. */
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { palette, theme } from './theme';
 
 export default function ConfirmDialog({ title, detail, id, confirm, cancel }: {

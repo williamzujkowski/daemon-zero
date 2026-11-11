@@ -32,45 +32,29 @@ The bot buys whatever most shortens the wait for the next tech node. It only use
 
 The web build is the E2E target because it runs the same code as native and needs no emulator.
 
-1. Add dev dependencies with exact versions: `@playwright/test`, and `serve` (or use `npx expo start --web`). Install the browser with `npx playwright install --with-deps chromium`.
-2. Build once and serve statically, which is faster and more stable than the dev server:
+`@playwright/test` is pinned in the lockfile. Install its Chromium once with
+`pnpm exec playwright install --with-deps chromium`, then run `make e2e`.
+The target exports production web and starts Python's static server on
+127.0.0.1:4173. CI installs Chromium and runs the same target with read-only
+repository permissions. No development hook is present in this target.
 
-```ts
-// playwright.config.ts
-import { defineConfig } from '@playwright/test';
+Configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keeping them
+separate from the existing Vitest `.spec.ts` discovery. Vitest remains the sole
+component/unit runner. There are seven scenarios at each of 390x844 and
+1440x900 (14 cases); all controls and values are selected by test ID only.
 
-export default defineConfig({
-  testDir: 'tests/e2e',
-  use: { baseURL: 'http://localhost:4173', testIdAttribute: 'data-testid' },
-  webServer: {
-    command: 'npx expo export --platform web && npx serve dist --listen 4173 --single',
-    url: 'http://localhost:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
-});
-```
+Fixtures are regenerated in each test worker with the current engine. Focused
+states enter through the ordinary app storage envelope, not a production hook.
+The opening starts empty and buys the process view and manifest through the UI.
+Other tests buy the first-run parser, trigger a real tick-driven wipe, recover
+its breadcrumb, and buy the second-run table. Dilemmas block and resume the
+clock; confirmed save transfer rejects invalid input and round-trips progress.
+Reduced motion and numeric accessible late-phase meters are covered too.
 
-3. Select by test id only (see `docs/UI-SPEC.md`). Do not select by text.
-
-```ts
-// tests/e2e/boot.spec.ts
-import { expect, test } from '@playwright/test';
-
-test('tick 0 is blind, and the first driver mounts the rate readout', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByTestId('manual-cycle')).toBeVisible();
-  await expect(page.getByTestId('widget-CYCLE_COUNTER_AND_RATE')).toHaveCount(0);
-  for (let i = 0; i < 15; i++) await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('node-p1_clock_interrupt-unlock').click();
-  await expect(page.getByTestId('widget-CYCLE_COUNTER_AND_RATE')).toBeVisible();
-});
-```
-
-4. Long scenarios (a dilemma, a wipe, Phase 3) should not be reached by clicking for minutes. Add a development-only hook that loads a save code, for example `window.__daemonLoadSave(code)`, compiled out of production builds, and generate the save codes in a Node script using the engine (`exportSave(grant(...))`).
-5. Each test starts from clean storage (`page.addInitScript(() => localStorage.clear())`).
-
-Minimum E2E coverage: boot; first unlock mounts a widget; a dilemma blocks input until resolved; wipe then breadcrumb appears in the boot log; save code export and import; reload restores state.
+The clock is installed **before navigation**. Playwright `runFor` delivers timer
+callbacks rather than dormant catch-up. Each case gets independent storage and
+fails on browser console warnings, errors or page errors. Trace artifacts are
+retained on failure in ignored `test-results/`.
 
 ## Agent-driven testing with Playwright MCP
 

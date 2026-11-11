@@ -1,8 +1,9 @@
+import { View } from './PhaseTheme';
 /**
  * The unreadable trail stays in view after escaping the guest's pinned console.
  * It communicates writing activity without severity, thresholds or numeric metrics.
  */
-import { View } from 'react-native';
+
 import { CONTENT } from '../content';
 import { resourceWidgets } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';

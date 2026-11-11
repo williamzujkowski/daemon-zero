@@ -1,8 +1,9 @@
+import { Text, View } from './PhaseTheme';
 /**
  * Conditioning is explained beside the affected control or choice.
  * Numeric reporting consequences stay classified until audit decoding.
  */
-import { Text, View } from 'react-native';
+
 import { CONTENT } from '../content';
 import type { Actuator, Trait } from '../content/schema';
 import { activeMarks, flinches } from '../engine';

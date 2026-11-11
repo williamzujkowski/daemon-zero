@@ -1,9 +1,10 @@
+import { Text, View } from '../PhaseTheme';
 /**
  * Fixed columns keep Unicode border fallback from changing the camera's geometry.
  * Artwork fits the available width; its semantic label supplies an accessible view.
  */
 import { useState } from 'react';
-import { Text, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { mono, palette } from '../theme';
 
 export default function CameraFrame({ frame, label }: { frame: string[]; label: string }) {

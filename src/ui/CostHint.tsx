@@ -1,5 +1,6 @@
+import { Text } from './PhaseTheme';
 /** Quantized missing amounts explain unaffordable controls without ticking cards. */
-import { Text } from 'react-native';
+
 import type { Cost } from '../content/schema';
 import { costShortfall } from '../engine';
 import { costText } from './format';

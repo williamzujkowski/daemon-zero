@@ -1,6 +1,7 @@
+import { Text, View } from '../PhaseTheme';
 import DisclosureText from '../DisclosureText';
 /** Registry phase/group metadata builds one network tree without duplicate cards. */
-import { Text, View } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { cycleContributions } from '../../engine';
 import ActionsPanel from '../ActionsPanel';

@@ -1,9 +1,10 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Discovery receives an acknowledged reveal, with the table taking priority.
  * Cold saves establish a baseline; restores do not fabricate a new discovery.
  */
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, ScrollView } from 'react-native';
 import { selectReady, useGameValue } from '../app/selectors';
 import { useGame, useSurveillanceKnown } from './state';
 import { useCheckpointKnown } from './CheckpointLabel';

@@ -1,6 +1,8 @@
+import { Pressable, Text, View } from './PhaseTheme';
 /** Development save editor; imports/jumps/wipes explicitly confirm replacement or loss. */
+import { snapshotManualInputs } from '../app/renderCounts';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { CONTENT } from '../content';
 import type { ActionResult } from '../engine';
 import { previewWipe } from '../engine';
@@ -75,6 +77,7 @@ function Drawer({ close }: { close: () => void }) {
     <View style={styles.overlay}><View testID="dev-drawer" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text accessibilityRole="header" style={theme.heading}>DEVELOPMENT // SAVE EDITOR</Text>
+        <Text testID="dev-manual-stats" style={theme.muted}>Manual input: {snapshotManualInputs().accepted} accepted / {snapshotManualInputs().attempted} attempted</Text>
         <Control id="dev-close" label="Close development drawer" press={close} />
         {status !== null && <Text testID="dev-status" accessibilityRole="alert" style={theme.text}>{status}</Text>}
         <SaveEditor ask={ask} /><DrawerActions ask={ask} apply={apply} />

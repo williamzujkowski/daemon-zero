@@ -1,9 +1,10 @@
+import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /**
  * Virtualizes engine log entries by their stable sequence number.
  * Engine-owned array identity prevents log rerenders on ordinary resource ticks.
  */
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import type { LogEntry } from '../engine';
 import { useGame } from './state';
 import { palette, theme } from './theme';

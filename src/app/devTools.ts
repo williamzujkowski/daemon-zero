@@ -5,7 +5,7 @@
 import { CONTENT } from '../content';
 import { importSave, tick } from '../engine';
 import type { GameRuntime } from './runtime';
-import { snapshotRenderCounts } from './renderCounts';
+import { snapshotRenderCounts, snapshotNodeProfiles } from './renderCounts';
 export { recordNodeRender } from './renderCounts';
 
 export interface DevHost {
@@ -13,6 +13,7 @@ export interface DevHost {
     loadSaveCode(code: string): void;
     fastForward(seconds: number): void;
     renderCounts(): Record<string, number>;
+    cardProfiles(): ReturnType<typeof snapshotNodeProfiles>;
   };
 }
 
@@ -34,6 +35,7 @@ export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis
       if (!result.ok) throw new Error(result.reason);
     },
     renderCounts: snapshotRenderCounts,
+    cardProfiles: snapshotNodeProfiles,
   };
   return () => { delete host.__daemon; };
 }

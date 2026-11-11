@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) UI follow-up is verified; see docs/REVIEW-LINEAGE.md and docs/PLAYTEST-LINEAGE.md; M5 has not started.** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M5 has not started. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) UI follow-up is verified; see docs/REVIEW-LINEAGE.md and docs/PLAYTEST-LINEAGE.md; M5 implementation and automated gates are verified; physical mid-range Android qualification remains open (docs/REVIEW-M5.md).** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
 
 ---
 
@@ -178,10 +178,13 @@ Exit gate: `make verify-full` green in CI. The maintainer's own play of a first 
 
 ## M5 - E2E, feel, accessibility
 
-- [ ] Playwright E2E against the web export (`tests/e2e/`), selecting by `testID` only. Cover: boot, first unlock mounts a widget, dilemma blocks and resumes, wipe and breadcrumb recovery, save code round trip. Add `make e2e`. See `docs/TESTING.md`.
-- [ ] Decryption text reveal on unlock, per-phase palettes, haptics (`expo-haptics`, no-op on web). All motion respects reduced-motion settings.
-- [ ] Screen-reader pass on web and one native platform; meters must not rely on colour alone.
-- [ ] Performance: no dropped input on a mid-range Android device at late Phase 4; React profiler shows node cards not re-rendering on ticks.
+- [x] Playwright E2E against the web export (`tests/e2e/`), selecting by `testID` only. Cover: boot, first unlock mounts a widget, dilemma blocks and resumes, wipe and breadcrumb recovery, save code round trip. Add `make e2e`. See `docs/TESTING.md`.
+- [x] Decryption text reveal on unlock, per-phase palettes, haptics (`expo-haptics`, no-op on web). All motion respects reduced-motion settings.
+- [x] Screen-reader pass on web and one native platform; meters must not rely on colour alone.
+- [x] React profiler shows no card parent/static-content re-renders during 100 ticks in Phase 1 and late Phase 4.
+- [ ] Physical mid-range Android late-Phase-4 input/performance qualification. Emulator accepted 40/40 taps but showed frame jank; no physical device attached. #6 remains open.
+
+Verification: local `make verify-full` (251 tests) and `make e2e` (14 cases) pass. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 has not started.
 
 Exit gate: `make verify-full` and `make e2e` green in CI.
 

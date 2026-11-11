@@ -1,5 +1,6 @@
+import { Pressable, Text, View } from '../PhaseTheme';
 /** Five-step engine actuator setting, with numeric and selected-state feedback. */
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import ConditioningImpact from '../ConditioningImpact';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';

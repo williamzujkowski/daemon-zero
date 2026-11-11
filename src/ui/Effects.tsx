@@ -1,5 +1,6 @@
+import { Text, View } from './PhaseTheme';
 /** Consequence badges use signed numbers and explicit labels as well as colour. */
-import { Text, View } from 'react-native';
+
 import type { EffectPayload } from '../content/schema';
 import { CONTENT } from '../content';
 import { useSurveillanceKnown } from './state';

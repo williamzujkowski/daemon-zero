@@ -1,9 +1,10 @@
+import { View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /**
  * An inbound dilemma's authored omen is visible before language decoding exists.
  * The decoded forecast owns the countdown; this notice never reveals locked choices.
  */
-import { View } from 'react-native';
+
 import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';

@@ -1,5 +1,6 @@
+import { Text } from '../PhaseTheme';
 /** Narrative feeds come verbatim from content; motion follows live engine time. */
-import { Text } from 'react-native';
+
 import { CONTENT } from '../../content';
 import { useReducedMotion } from '../../app/useReducedMotion';
 import { useGame } from '../state';
