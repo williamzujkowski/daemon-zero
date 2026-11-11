@@ -196,7 +196,7 @@ behavior in this milestone.
   the devcontainer's KVM device mapping only after those host checks.
 - **Android actually booted.** Created a Pixel 7 AVD using Google's API 36
   x86_64 image, started it headlessly with KVM/SwiftShader, and ran `make android`.
-  Expo Go installed and loaded the app; Metro bundled the native entry with
+  Expo Go 58.0.5 installed and loaded the app on Android 16; Metro bundled the native entry with
   Hermes. `adb shell getprop sys.boot_completed` returned `1`. UIAutomator
   reported resource id `boot-log` with the exact `BOOT_SEQ` entry. A screenshot
   was inspected and shows readable green text on black.
@@ -208,4 +208,8 @@ behavior in this milestone.
 - The VS Code devcontainer itself; the host's Docker launcher is still broken.
 - Non-Linux toolchain locks, signing, release identities and M2+ functionality.
 
-M1's CI evidence is tracked in issue #2. M2 has not been started.
+[M1 PR CI run 42973786660](https://github.com/williamzujkowski/daemon-zero/actions/runs/42973786660)
+passed on Ubuntu 24.04 at commit `b74442f`, including locked tool installation,
+frozen dependencies, all verify gates (including web export), security scans,
+SBOM generation and artifact upload. Issue #2 tracks final merge sign-off.
+M2 has not been started.

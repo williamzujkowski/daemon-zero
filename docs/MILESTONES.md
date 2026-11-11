@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 is complete. M1 is implemented and verified locally; CI sign-off is tracked in [issue #2](https://github.com/williamzujkowski/daemon-zero/issues/2). M2 has not started.** See `docs/REVIEW-FINDINGS.md` sections F and G for evidence and limitations.
+Status: **M0 and M1 are complete. M2 has not started.** The M1 shell is verified on web and Android, and [CI passed](https://github.com/williamzujkowski/daemon-zero/actions/runs/42973786660). See `docs/REVIEW-FINDINGS.md` sections F and G for evidence and limitations.
 
 ---
 

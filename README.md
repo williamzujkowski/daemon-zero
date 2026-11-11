@@ -9,7 +9,7 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 The full game content and tested simulation engine now have an Expo app shell. Web and Android show the first engine boot log on a black screen. The real-time loop, persistence and playable UI arrive in M2 and later.
 
 - Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 is complete. M1 adds the Expo shell; see `docs/MILESTONES.md` and milestone issue #2 for its verification status. M2 has not started.
+- M0 and M1 are complete. M2 (store, game loop, persistence) has not started; see `docs/MILESTONES.md`.
 
 ## Quick start (Ubuntu 24.04)
 
