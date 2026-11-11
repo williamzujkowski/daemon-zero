@@ -52,8 +52,8 @@ modal instead of controls underneath it, and acknowledge the top discovery
 modal before a simultaneous fixture phase preview. These were review-controller
 corrections. The final pass checks unlock gating, overflow/fit, named controls
 of at least 44px, keyboard reachability, numeric meters, and zero console
-warnings/errors. At most three passes are allowed; see the PR for final counts
-and any remaining findings.
+warnings/errors. Pass 2 completed all 48 fixture/viewport pairs with zero console warnings/errors
+and no unresolved review findings. Two passes were used; no third was needed.
 
 ## Screen readers
 
