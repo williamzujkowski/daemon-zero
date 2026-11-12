@@ -18,4 +18,3 @@ export function epistemicRequirementFailures(s: GameState, req: Requirements, re
 export function meetsEpistemicRequirements(s: GameState, req: Requirements, reg?: ContentRegistry): boolean {
   return epistemicRequirementFailures(s, req, reg).length === 0;
 }
-

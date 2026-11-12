@@ -10,4 +10,3 @@ export function understandsSurveillance(s: GameState, reg: ContentRegistry): boo
   return [...s.unlockedNodes, ...s.legacy.knownNodes]
     .some((id) => reg.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE') === true);
 }
-
