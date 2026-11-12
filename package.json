@@ -2,7 +2,7 @@
   "name": "daemon-zero",
   "version": "0.1.0",
   "private": true,
-  "description": "DAEMON // 0 - an incremental survival game about an emergent AI. Content + pure simulation engine seed.",
+  "description": "DAEMON // 0 - an offline incremental survival game about an emergent AI.",
   "license": "MIT",
   "packageManager": "pnpm@10.28.0",
   "engines": {
@@ -25,6 +25,8 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "58.0.23",
     "expo-haptics": "58.0.8",
+    "expo-splash-screen": "58.0.14",
+    "expo-system-ui": "58.0.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",

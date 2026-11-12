@@ -6,15 +6,18 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 ## Status
 
-The Expo app runs and saves the simulation locally. Its Phase 1 terminal has
-progressively unlocked readouts, hardware cards, upgrades, sensor feeds and
-mandatory dilemmas. Web and Android Expo Go have been exercised; release builds
-and iOS remain unverified.
+Playable gameplay phases **0–4**, orbital endings, wipes/retraining and Lineage
+(including Shipped). M4.5 has maintainer approval; M5's automated gates and
+accessibility checks pass, with physical Android qualification still open (#6).
+Gameplay Phase 5 is a post-M6 expansion, not milestone M5.
 
-- Playable headlessly today: `make sim` runs a complete playthrough in about a second.
-- M0 through M4 are complete. The accelerated web run reached The Ark at 10,322.1 simulated seconds; web/Android wipe and ending restoration were checked. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, follow-ups and limits. M5 has not started.
-
-- M4.5 UI follow-up is verified: the real-time guest/host run reached Phase 2 in 19m 45.7s. Maintainer opening play/sign-off remains pending; see `docs/PLAYTEST-SECOND-PASS.md` and `docs/REVIEW-SECOND-PASS.md`.
+The [cohesion audit](docs/REVIEW-COHESION.md) verifies disclosure, save migration,
+web/Android Expo Go reloads and flat node-card render counts. Issues #28 and #36
+are fixed and closed. See [release instructions](docs/RELEASE.md) for standalone
+web export, Android signing/builds, artifact verification and remaining limits.
+M6 supplies a locally test-signed Android release candidate and standalone web
+export; see [verification and limits](docs/REVIEW-M6.md). Production signing/store
+submission and iOS are not yet qualified.
 
 ## Quick start (Ubuntu 24.04)
 
@@ -55,7 +58,7 @@ src/engine/       pure simulation: tick pipeline, actions, saves, sim bot
 src/app/          runtime, store, clocks, lifecycle and local persistence
 src/ui/           terminal panes, cards, widgets and dilemma modal
 tests/            Vitest suites
-scripts/          content validator, sim runner, bootstrap, issue seeding
+scripts/          validation, sim, fixtures, bootstrap, release builds and branding
 docs/             design, architecture, UI spec, testing, balance, milestones, review findings
 reference/gemini/ the earlier AI draft (prior art, not a spec)
 ```
@@ -74,6 +77,9 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/PLAYTEST-M4.md` | Accelerated full UI run, choices, ending and verification limits |
 | `docs/REVIEW-M4.md` | M4 fixture/browser/native review evidence |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |
+| `docs/RELEASE.md` | Release builds, signing, distribution and qualification limits |
+| `docs/PRIVACY.md` | No-data-collection declaration and local save behavior |
+| `docs/REVIEW-COHESION.md` | Phase 0–4 / Lineage audit and issue closure |
 | `docs/BALANCE.md` | Current pacing numbers and how to tune |
 | `docs/REVIEW-FINDINGS.md` | What was wrong in the earlier draft and what changed |
 

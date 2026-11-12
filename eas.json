@@ -1,0 +1,15 @@
+{
+  "cli": { "version": "=27.7.2", "appVersionSource": "local" },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_NO_TELEMETRY": "1" }
+    },
+    "production": {
+      "distribution": "store",
+      "android": { "buildType": "app-bundle" },
+      "env": { "EXPO_NO_TELEMETRY": "1" }
+    }
+  }
+}

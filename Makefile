@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -65,3 +65,6 @@ build-web: ## Export the production web app
 
 e2e: build-web ## Playwright scenarios against the production web export
 	pnpm exec playwright test --config tests/e2e/config.ts
+
+android-release: ## Build signed local release AAB and APK (external signing environment required)
+	bash scripts/build-android-release.sh

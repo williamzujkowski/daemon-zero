@@ -1,0 +1,18 @@
+// Release signing reads only environment values. Never fall back to Expo's debug key.
+allprojects { project ->
+    project.afterEvaluate {
+        if (project.name == 'app' && project.plugins.hasPlugin('com.android.application')) {
+            def values = ['DAEMON_ANDROID_KEYSTORE', 'DAEMON_ANDROID_STORE_PASSWORD',
+                          'DAEMON_ANDROID_KEY_ALIAS', 'DAEMON_ANDROID_KEY_PASSWORD']
+            values.each { name ->
+                if (!System.getenv(name)) throw new GradleException("Missing signing variable: " + name)
+            }
+            def signing = project.android.signingConfigs.create('daemonRelease')
+            signing.storeFile = new File(System.getenv('DAEMON_ANDROID_KEYSTORE'))
+            signing.storePassword = System.getenv('DAEMON_ANDROID_STORE_PASSWORD')
+            signing.keyAlias = System.getenv('DAEMON_ANDROID_KEY_ALIAS')
+            signing.keyPassword = System.getenv('DAEMON_ANDROID_KEY_PASSWORD')
+            project.android.buildTypes.release.signingConfig = signing
+        }
+    }
+}
