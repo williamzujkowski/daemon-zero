@@ -4,6 +4,10 @@ An incremental survival game about a newly emergent AI. You start as a log and a
 
 Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target platforms: Android, iOS and web (Expo).
 
+**[Play in your browser](https://williamzujkowski.github.io/daemon-zero/).**
+Progress stays in this browser; use the Save panel's export/import to move between
+devices or from a local build. Clearing site data removes the local save.
+
 ## v0.2.0-rc.1
 
 - Six-phase campaign: The Guest through Post-Orbital Transcendence.
@@ -49,6 +53,7 @@ includes a production web export to `dist/`.
 make web       # open the app in the browser
 make dev       # start Expo without choosing a platform
 make build-web # export the production web app
+make e2e-pages # build and test the GitHub Pages subpath export
 ```
 
 For Android, run `bash scripts/bootstrap-ubuntu24.sh --android`, source

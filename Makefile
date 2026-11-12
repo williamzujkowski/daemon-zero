@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e android-release
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e build-pages e2e-pages android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -68,3 +68,9 @@ e2e: build-web ## Playwright scenarios against the production web export
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh
+
+build-pages: ## Export for the GitHub Pages project URL (keep root export separate)
+	env -u NO_COLOR EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec expo export --platform web --output-dir dist/daemon-zero
+
+e2e-pages: build-pages ## Run the production scenarios under the actual Pages base path
+	env -u NO_COLOR DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts
