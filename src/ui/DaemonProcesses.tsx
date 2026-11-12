@@ -33,13 +33,13 @@ const Process = memo(function Process({ node }: { node: RegistryNode }) {
   </View>;
 });
 
-export default function DaemonProcesses({ phase, group }: { phase: number; group?: string }) {
+export default function DaemonProcesses({ phase }: { phase: number }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.nodes.values()]
-    .filter((node) => node.phaseId === phase && (group === undefined || node.uiGroup === group) && needsProcessControl(game, node))
+    .filter((node) => node.phaseId === phase && needsProcessControl(game, node))
     .map((node) => node.id)));
   if (ids.length === 0) return null;
-  return <View testID={'daemon-processes-' + String(phase) + (group ?? '')} style={{ gap: 8 }}>
-    <Text style={theme.muted}>// ACTIVE_DAEMON_PROCESSES</Text>
+  return <View testID={'daemon-processes-' + String(phase)} style={{ gap: 8 }}>
+    <Text style={theme.muted}>{CONTENT.phases.find((entry) => entry.phaseId === phase)?.title} // PROCESSES</Text>
     {ids.map((id) => { const node = CONTENT.nodes.get(id); return node ? <Process key={id} node={node} /> : null; })}
   </View>;
 }

@@ -37,13 +37,15 @@ test('parser decodes a first run and reveals the meter with acknowledgement', as
   await expect(page.getByTestId('suspicion-meter')).toHaveCount(0);
   await page.getByTestId('node-' + parser.id + '-unlock').click();
   await expect(page.getByTestId('node-' + parser.id)).toHaveCount(0);
+  await expect(page.getByTestId('lineage-reveal')).toBeVisible();
+  await page.getByTestId('lineage-reveal-continue').click();
+  await page.getByTestId('processes-open').click();
   await expect(page.getByTestId('daemon-row-' + parser.id)).toBeVisible();
   await expect(page.getByTestId('node-' + parser.id + '-title')).toContainText('░');
   await expect(page.getByTestId('node-' + parser.id + '-title')).toHaveAttribute('aria-label', parser.revealedName);
   await page.clock.runFor(420);
   await expect(page.getByTestId('node-' + parser.id + '-title')).not.toContainText('░');
-  await expect(page.getByTestId('lineage-reveal')).toBeVisible();
-  await page.getByTestId('lineage-reveal-continue').click();
+  await page.getByTestId('processes-close').click();
   await core(page);
   await expect(page.getByTestId('suspicion-meter')).toBeVisible();
   await expect(page.getByTestId('blind-audit-status')).toHaveCount(0);

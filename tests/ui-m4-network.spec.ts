@@ -44,6 +44,7 @@ describe('M4 network and reboot', () => {
     expect(gameStore.store.getState().game.cycles).toBe(before - action.cost.cycles);
     expect(view.find('action-' + action.id)?.getAttribute('aria-disabled')).toBe('true');
     expect(view.find('action-cooldown-' + action.id)?.textContent).toContain(String(action.cooldownSec));
+    view.click('reference-CLUSTER_LOAD_BALANCER');
     expect(view.find('cycle-sources')?.textContent).toContain('cycles/s');
     const allIds = [...view.container.querySelectorAll('[data-testid]')].map((element) => element.getAttribute('data-testid'));
     expect(new Set(allIds).size).toBe(allIds.length);

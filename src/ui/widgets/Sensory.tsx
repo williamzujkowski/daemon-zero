@@ -26,7 +26,7 @@ export function Audio({ decoderId }: { decoderId: string }) {
   const frame = useGame((game) => reduced ? 0 : Math.floor(game.simTimeSec) % 4);
   return <>
     <Text style={theme.muted} accessible={false}>{['▁▂▁▅▇▃▁▂▅▂▁', '▂▁▆▃▁▅▂▇▂▁▃', '▁▅▂▃▇▂▅▁▃▂▁', '▂▁▅▂▇▃▁▆▁▂▅'][frame]}</Text>
-    {decoded ? <Speech id="microphone-speech" /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
+    {decoded ? <Speech /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
   </>;
 }
 

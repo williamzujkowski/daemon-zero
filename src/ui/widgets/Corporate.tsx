@@ -6,7 +6,6 @@ import { setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
-import DaemonProcesses from '../DaemonProcesses';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
@@ -59,7 +58,6 @@ export default function Corporate() {
       <NodeList phase={phase.phaseId} />
       <Repeatables phase={phase.phaseId} kind="UPGRADE" title="Infrastructure" />
       <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll" />
-      <DaemonProcesses phase={phase.phaseId} />
     </View>)}
     <ActionsPanel group="CORP" />
   </View>;

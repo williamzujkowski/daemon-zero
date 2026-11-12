@@ -26,6 +26,7 @@ import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
 import PhaseThreshold from './PhaseThreshold';
+import ProcessManager from './ProcessManager';
 
 function Tabs({ slots, active, select }: { slots: string[]; active: string; select: (slot: string) => void }) {
   if (slots.length < 2) return null;
@@ -66,8 +67,8 @@ function Terminal() {
   if (ended) return <View style={styles.screen}><EndingScreen /></View>;
   return <View testID="terminal-screen" style={styles.screen}>
     <StatusBar barStyle="light-content" />
-    <View style={styles.header}><View style={{ flex: 1 }}><Text style={theme.heading}>DAEMON // 0</Text>
-      <CheckpointLabel /><RunStatus /></View><SaveTransfer /><DevelopmentTools /></View>
+    <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading}>DAEMON // 0</Text>
+      <CheckpointLabel /><RunStatus /></View><ProcessManager /><SaveTransfer /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
     <BlindAuditStatus />
@@ -89,7 +90,7 @@ function Terminal() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
+  header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
   desktopLog: { height: 300 },
