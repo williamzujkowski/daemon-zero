@@ -28,7 +28,8 @@ describe('headless balance simulation', () => {
     const again = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
-  });
+    expect(again.finalState).toEqual(stealth.finalState);
+  }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
     const greedy = runHeadlessSim(reg, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });

@@ -43,7 +43,14 @@ save transfer and production exclusion of the hook/drawer at both viewports.
 Security scans and CycloneDX SBOM generation passed. No lint warnings.
 Trivy emitted its existing advisory about the ignored Android mapping file's
 size; Node E2E workers emitted the host colour-environment conflict warning.
-These are tooling notices, not application console findings.
+These are tooling notices, not application console findings. The first CI run
+also emitted React act warnings from the existing mounted-app test harness;
+no claim of a zero-warning visible Phase 5 browser audit is made here.
+
+The first CI run exceeded Vitest's default five-second wall-clock timeout on
+the full campaign replay. That single test now allows 30 seconds under coverage
+and additionally compares the entire final state. No gameplay pacing bound,
+assertion, global timeout or coverage setting changed.
 
 ## Sim evidence and tuning
 
