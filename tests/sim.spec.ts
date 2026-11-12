@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { GameStateSchema } from '../src/engine';
 import { botStep, timeToAfford } from '../src/engine/sim/bot';
 import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
@@ -7,7 +8,8 @@ import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, reg } from './helpers';
 
 describe('headless balance simulation', () => {
-  const stealth = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
+  let stealth: SimReport;
+  beforeAll(() => { stealth = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }); }, 30_000);
 
   it('a careful player can finish the game inside the pacing budget', () => {
     expect(checkGates(stealth)).toEqual([]);
@@ -29,6 +31,8 @@ describe('headless balance simulation', () => {
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
+    // Frozen pre-optimization report: includes every final-state bit and telemetry field.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('5654a34ec6762b820570006c767213c579f6145555946b9bfd7ea3e1071f6c81');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -40,7 +44,8 @@ describe('headless balance simulation', () => {
     expect(Object.keys(greedy.phaseReachedAtSec).length).toBeGreaterThan(1);
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
-  });
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ce6db1859f5132dcef1684b7f7ec64a322bc98c678fe5e9c75caa878c0751906');
+  }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 
 describe('gate reporting', () => {
