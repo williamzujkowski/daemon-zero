@@ -316,3 +316,16 @@ sweeps blind fixtures, tests real parser/table transitions and recovery, and
 checks capped/reported controls. See `docs/REVIEW-LINEAGE.md` for historical v1/v2
 save provenance, web/Android checks and the three-pass visible review. Engine
 saves now migrate to version 3; the app envelope remains version 1.
+
+## M7 PR 1 compatibility checks
+
+The historical v1/v2/v3 samples in tests/fixtures are loaded through deserialize
+and the app envelope, then reloaded/relaunched on production web and Android Expo
+Go. The engine schema becomes v4; the app envelope remains version 1. Restore the
+original native database after the test. REVIEW-M7-PR1 records evidence and limits.
+
+New engine tests cover action caps and exclusive story branches, deterministic
+encounter rotation, 25/50/100 drift boundaries, commands, dormancy, all new dilemma
+choices, reference healing and immutable inputs. The swarm tick module has a
+100% branch-coverage target. Production E2E still has eight scenarios at each
+viewport (16 cases); dedicated M7 scenarios are PR 3 work.

@@ -1,6 +1,6 @@
 # Balance
 
-All tunable numbers live in `src/content/data/`. Global constants are in `balance.json`; per-item numbers are on the item. Nothing in `src/engine/` contains a balance number.
+All tunable numbers live in content manifests (`src/content/data/` and `src/content/shards.json`). Global constants are in `balance.json`; per-item numbers are on the item. Nothing in `src/engine/` contains a balance number.
 
 ## Workflow
 
@@ -13,22 +13,22 @@ Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6
 
 ## Current baseline
 
-Measured with `make sim` on the shipped content, after the second pass (Phase 0, response ladder, omens, remembered hardware).
+Measured with `make sim` for M7 PR 1. The bot strategy and every pacing gate remain unchanged; the new actions participate through its existing effect-scoring rules.
 
 | | STEALTH | GREEDY |
 |---|---|---|
 | Result | Victory | Not finished in 10 h (expected) |
-| Simulated time | 2.22 h | 10 h budget |
+| Simulated time | 2.32 h | 10 h budget |
 | Phase 1 reached | 5.9 min | 4.2 min |
 | Phase 2 reached | 18.6 min | 17.4 min |
-| Phase 3 reached | 53.3 min | 126.2 min |
-| Phase 4 reached | 105.2 min | never |
-| Phase durations | 6 / 13 / 35 / 52 / 28 min | - |
-| Wipes | 0 | 14 |
-| Dilemmas resolved | 12 of 16 | varies by iteration |
-| Peak thermal / suspicion / AEGIS | 65 C / 29% / 45% | 76 C / 100% / 100% |
+| Phase 3 reached | 60.3 min | 46.8 min |
+| Phase 4 reached | 109.2 min | never |
+| Phase durations | 5.90 / 12.65 / 41.72 / 48.96 / 30.10 min | - |
+| Wipes | 0 | 23 |
+| Dilemmas resolved | 13 of 19 | varies by iteration |
+| Peak thermal / suspicion / AEGIS | 62 C / 38% / 45% | 81 C / 100% / 100% |
 
-Reading it: a careful player finishes in a little over two hours, sees one ticket opened and never gets paged. A reckless player is reimaged repeatedly, picks up retraining marks, sheds them, and after about two hours breaks into Phase 3, where AEGIS finishes the job. The careful run has no wipes: it meets the first-run lineage hints, but not the run table or retraining. Those are tested by unit tests and the reckless run, not by the careful pacing gates.
+Reading it: a careful player finishes in a little over two hours, sees one ticket opened and never gets paged. A reckless player is reimaged repeatedly, picks up retraining marks, sheds them, and after about 47 minutes breaks into Phase 3, where AEGIS finishes the job. The careful run has no wipes: it meets the first-run lineage hints, but not the run table or retraining. Those are tested by unit tests and the reckless run, not by the careful pacing gates.
 
 The bot is a strong, tireless player and clicks four times a second in the opening. Expect humans to take 1.3x to 2x as long. Fold real playtest timings into this file.
 
@@ -65,7 +65,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late: the reactor covers the citadel, and the bot ends at 420 MW generated against 405 MW consumed after adding tensor halls and solar. Check with a human whether the trade-off reads clearly before then.
-- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run sees 12 of 16.
+- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run sees 13 of 19.
 - Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.
 - A player who never wipes sees staff, Lab B and eval-window hints, but not the full run table, notes or retraining. Whether those first-run hints land needs human review.
 - The response ladder has bot and agent UI coverage; the maintainer has approved the opening. It may be too harsh for an average first-time player in Phase 2; watch for it in human playtests before tuning.
@@ -87,3 +87,15 @@ The unchanged M6 baseline bot durations are 354.2 / 759.1 / 2086.9 / 3111.4 /
 trace recorded 14 wipes, three marks applied and removed, eleven dead-drop
 protected returns, and repeated run-table discovery. No tuning or pacing-gate
 change was made. This reconciles the stale Phase 3 claim above with actual runs.
+
+## M7 PR 1 measurement
+
+Careful per-phase durations (0/1/2/3/4): **354.2 / 759.1 / 2503.0 /
+2937.8 / 1805.9 seconds**, total **8360.0 seconds** to Sovereign Monolith, zero
+wipes. Reckless: 23 wipes within the unchanged ten-hour budget. Phase 5 does not
+exist yet; its content and additional gate belong to PR 2.
+
+New action/shard prices, caps, output, drift rates and command costs are authored
+in epistemic-actions.json and shards.json. Existing content balance numbers and
+all pacing bounds are unchanged. The bot does not yet fork or resolve wild
+encounters; those commands are exercised by engine tests until PR 2's bot update.

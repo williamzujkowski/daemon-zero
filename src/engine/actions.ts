@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
+import { actionAvailable, actionCost } from './epistemic';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import {
@@ -69,7 +70,7 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (reason) return refuse(s, reason);
   const node = reg.nodes.get(nodeId);
   if (!node) return refuse(s, 'unknown node');
-  if (!isNodeAvailable(s, node)) return refuse(s, 'node is not available');
+  if (!isNodeAvailable(s, node, reg)) return refuse(s, 'node is not available');
   const cost = nodeCost(s, node, reg);
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
@@ -104,7 +105,7 @@ export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): A
   if (reason) return refuse(s, reason);
   const rep = reg.repeatables.get(id);
   if (!rep) return refuse(s, 'unknown repeatable');
-  if (!meetsRequirements(s, rep.requirements)) return refuse(s, 'requirements not met');
+  if (!meetsRequirements(s, rep.requirements, reg)) return refuse(s, 'requirements not met');
   const level = repeatableLevel(s, id);
   if (level >= rep.maxLevel) return refuse(s, 'already at maximum level');
   const cost = repeatableCost(rep, level);
@@ -137,11 +138,14 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
   if (reason) return refuse(s, reason);
   const action = reg.actions.get(id);
   if (!action) return refuse(s, 'unknown action');
-  if (!meetsRequirements(s, action.requirements)) return refuse(s, 'requirements not met');
+  if (!actionAvailable(s, action, reg)) return refuse(s, 'requirements not met');
   if ((s.cooldowns[id] ?? 0) > s.simTimeSec) return refuse(s, 'on cooldown');
-  if (!canAfford(s, action.cost)) return refuse(s, 'cannot afford');
+  const cost = actionCost(s, action, reg);
+  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s };
-  payCost(d, action.cost);
+  payCost(d, cost);
+  d.actionCounts = { ...d.actionCounts, [id]: (d.actionCounts[id] ?? 0) + 1 };
+  if (action.durationSec !== undefined) d.actionEffectUntil = { ...d.actionEffectUntil, [id]: d.simTimeSec + action.durationSec };
   applyEffects(d, action.effects, reg);
   if (action.cooldownSec > 0) d.cooldowns = { ...d.cooldowns, [id]: d.simTimeSec + action.cooldownSec };
   return accept(d);
@@ -155,7 +159,7 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
   payCost(d, choice.cost);
-  applyEffects(d, choice.effects, reg);
+  applyEffects(d, choice.effects, reg, choice.cost.memory);
   return accept(d);
 }
 

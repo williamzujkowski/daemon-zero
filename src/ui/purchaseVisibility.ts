@@ -10,7 +10,7 @@ export function pendingNode(game: GameState, node: RegistryNode, showLocked = fa
 }
 
 export function pendingRepeatable(game: GameState, rep: Repeatable): boolean {
-  return meetsRequirements(game, rep.requirements) && repeatableLevel(game, rep.id) < rep.maxLevel;
+  return meetsRequirements(game, rep.requirements, CONTENT) && repeatableLevel(game, rep.id) < rep.maxLevel;
 }
 
 export function needsProcessControl(game: GameState, node: RegistryNode): boolean {

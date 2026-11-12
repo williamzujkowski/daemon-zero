@@ -3,6 +3,7 @@
  * id references between manifests, and design rules that prevent soft-locks.
  * Every check returns human-readable problems; an empty list means valid.
  */
+import { checkSwarmIntegrity } from './integritySwarm';
 import type { ContentRegistry } from './registry';
 import type { Cost, Requirements } from './schema';
 
@@ -170,8 +171,20 @@ function checkEscalation(reg: ContentRegistry): string[] {
   return problems;
 }
 
+function checkSwarmReferences(reg: ContentRegistry): string[] {
+  const problems: string[] = [];
+  for (const template of reg.swarm.playerSwarmTemplates) problems.push(...checkRequirements(reg, template.id, template.requirements));
+  for (const encounter of reg.swarm.wildShardEncounters) {
+    problems.push(...checkRequirements(reg, encounter.id, encounter.requirements));
+    problems.push(...checkTrustTargets(reg, encounter.id, encounter.consume.trustDelta));
+  }
+  return problems;
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
+    ...checkSwarmIntegrity(reg),
+    ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),
     ...checkReachability(reg),
     ...checkNodes(reg),

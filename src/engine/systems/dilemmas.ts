@@ -25,7 +25,7 @@ export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
     (dilemma) =>
       dilemma.phaseId <= d.currentPhase &&
       !d.resolvedDilemmas.includes(dilemma.id) &&
-      meetsRequirements(d, dilemma.trigger),
+      meetsRequirements(d, dilemma.trigger, reg),
   );
   if (!next) return undefined;
   const delay = next.omenSec ?? reg.balance.dilemmaOmenSec;

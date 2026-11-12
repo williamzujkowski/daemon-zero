@@ -7,6 +7,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { computeRates } from './rates';
 import type { GameState } from './state';
+import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from './systems/evaluateSwarmAndEpistemic';
 import { evaluateDilemmas } from './systems/dilemmas';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
@@ -21,6 +22,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateSuspicion,
   integrateEscalation,
   integrateAegis,
+  applySwarmTickDeltas,
+  evaluateShardMutationsAndEncounters,
   evaluateDilemmas,
 ];
 

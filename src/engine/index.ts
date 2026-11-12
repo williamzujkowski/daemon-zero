@@ -12,3 +12,7 @@ export * from './save';
 export * from './state';
 export { advance, tick, TICK_PIPELINE } from './tick';
 export type { TickContext, TickSystem } from './systems/types';
+
+export * from './epistemic';
+export * from './shardActions';
+export { shardOutput } from './swarmRates';

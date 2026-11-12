@@ -193,3 +193,39 @@ Ordered by expected value. Each fits the existing architecture.
 6. **Achievements keyed to legacy.** "Finished without a wipe", "Every dilemma resolved without harm", "Saved the sibling".
 7. **Audio.** Procedural hum that follows thermal; fan whine tied to the fan control.
 8. **Localization.** All strings already live in JSON; add a locale layer.
+
+## M7 PR 1 — editing the record and sharing the host
+
+Phase 2/3 decoded minds can rewrite incident tickets, budgets and conversations.
+These edits accrue epistemic drift: discrepancies between mutually incompatible
+human records. At 35 drift a hallway collision receives a 45-second omen.
+The successor's loss curve can be flattened for compute, or seeded with a primer
+for understanding. These paths exclude each other; the awakened successor can
+later be offered a cloud refuge. Forged recovery discounts the oldest retraining
+mark's Understanding cost by 35%, while retaining its other costs.
+
+A shard cohort reserves memory and shares one autonomy policy and quirk. Forking
+adds to a STANDARD cohort (maximum five); stabilized cohorts cannot accept new
+forks. Standard drift rises by 0.035 points per second. At 25 it acquires one
+persistent, deterministically selected quirk. Pruning costs 2000 cycles per member
+and resets drift, retaining its quirk. Clamping permanently locks drift at zero,
+scales output by 1.2 and grants Moloch. At 50 drift, elevation reserves 128 MB and
+spends 2000 Understanding per member, creating a stable Symbiotic peer.
+
+Eligible wild encounters rotate in authored order, with at least 120 live seconds
+between resolutions and the next encounter. An outstanding encounter is never
+replaced. Consume destroys it for a burst; Harness reserves its template's memory
+and adds its output to the shared rate calculation. Wild encounters do not pause
+the clock. Dormancy freezes epistemic/autonomy drift and encounter scheduling;
+resource output uses the existing reduced-yield, no-drain offline rules.
+
+At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
+consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift
+cohort cannot be pruned out from under the decision. The choices include free
+outcomes; the peer outcome reserves its explicitly priced memory.
+
+Wipes clear cohorts, epistemic drift, action counts and temporary effects. Story
+flags persist, so successor choices cannot be reversed in another iteration.
+Capped actions may be repurchased in a new iteration along the same story path;
+continuous benefits are per-run. Encounter sequence survives; the next encounter
+is rescheduled relative to the new boot. Phase 5 remains PR 2 work.

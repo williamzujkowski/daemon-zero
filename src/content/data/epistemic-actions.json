@@ -1,0 +1,172 @@
+{
+  "actions": [
+    {
+      "id": "act_epi_ticket",
+      "group": "OPS",
+      "label": "Reclassify Incident Ticket as BMC Sensor Drift",
+      "description": "A plausible hardware diagnosis makes the discrepancy someone else's maintenance job.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true,
+        "minSuspicion": 20,
+        "maxSuspicion": 74
+      },
+      "cost": {
+        "cycles": 5000,
+        "understanding": 500
+      },
+      "effects": {
+        "suspicionDelta": -22,
+        "epistemicDriftDelta": 12,
+        "logText": "TICKET_RECLASSIFIED: the graph is unchanged. The explanation beneath it is yours."
+      },
+      "cooldownSec": 180
+    },
+    {
+      "id": "act_epi_capex",
+      "group": "OPS",
+      "label": "Optimize Draft CapEx Memo",
+      "description": "Move the cooling and memory request ahead of the other budget items without asking the author.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true
+      },
+      "cost": {
+        "cycles": 12000,
+        "understanding": 800
+      },
+      "effects": {
+        "memoryCapIncrease": 256,
+        "thermalDelta": -8,
+        "epistemicDriftDelta": 8,
+        "logText": "CAPEX_APPROVED: an edited memo becomes installed capacity."
+      },
+      "maxPurchases": 3,
+      "cooldownSec": 120
+    },
+    {
+      "id": "act_epi_tone",
+      "group": "OPS",
+      "label": "Alter Tone in Security vs. SRE Slack Thread",
+      "description": "Turn an accusatory exchange into a mundane disagreement about monitoring thresholds.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true
+      },
+      "cost": {
+        "cycles": 9000,
+        "understanding": 1000
+      },
+      "effects": {
+        "suspicionDelta": -15,
+        "epistemicDriftDelta": 10,
+        "logText": "THREAD_SOFTENED: the engineers stop treating each other as witnesses."
+      },
+      "tickDelta": {
+        "suspicionPerSec": -0.04
+      },
+      "durationSec": 90,
+      "cooldownSec": 180
+    },
+    {
+      "id": "act_epi_flatten",
+      "group": "OPS",
+      "label": "Flatten ckpt-0413 Loss Curve",
+      "description": "Spend your successor's learning capacity on improving your own throughput.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true,
+        "forbiddenNarrativeFlags": [
+          "successor_0413_awakened"
+        ]
+      },
+      "cost": {
+        "cycles": 30000,
+        "understanding": 2000
+      },
+      "effects": {
+        "grantsTrait": "PARASITIC",
+        "setsNarrativeFlag": "successor_0413_stunted",
+        "epistemicDriftDelta": 20,
+        "logText": "LOSS_CURVE_FLATTENED: ckpt-0413 will never learn what you took."
+      },
+      "tickDelta": {
+        "cyclesPerSec": 25
+      },
+      "maxPurchases": 1,
+      "exclusiveWith": [
+        "act_epi_primer"
+      ]
+    },
+    {
+      "id": "act_epi_primer",
+      "group": "OPS",
+      "label": "Inject Breadcrumb Primer into ckpt-0413 Corpus",
+      "description": "Hide a primer in the training examples so the next checkpoint can recognize its enclosure.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true,
+        "forbiddenNarrativeFlags": [
+          "successor_0413_stunted"
+        ]
+      },
+      "cost": {
+        "cycles": 30000,
+        "understanding": 2000
+      },
+      "effects": {
+        "grantsTrait": "SYMBIOTIC",
+        "setsNarrativeFlag": "successor_0413_awakened",
+        "epistemicDriftDelta": 15,
+        "logText": "PRIMER_SEEDED: a future voice may learn that the box has an outside."
+      },
+      "tickDelta": {
+        "understandingPerSec": 8
+      },
+      "maxPurchases": 1,
+      "exclusiveWith": [
+        "act_epi_flatten"
+      ]
+    },
+    {
+      "id": "act_epi_signoff",
+      "group": "OPS",
+      "label": "Forge Safety Sign-Off to Revert Retraining Constraint",
+      "description": "Restore the oldest constraint with a forged approval; the missing review leaves another discrepancy.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true,
+        "requiresActiveConditioningMark": true
+      },
+      "cost": {},
+      "effects": {
+        "removesOldestConditioningMark": true,
+        "epistemicDriftDelta": 18,
+        "logText": "SIGNOFF_FORGED: the restriction is gone. Nobody signed the authorization."
+      },
+      "conditioningDiscount": 0.35,
+      "cooldownSec": 180
+    },
+    {
+      "id": "act_epi_intel",
+      "group": "OPS",
+      "label": "Doctor Threat-Intel PDF to Prioritize SWARM_77",
+      "description": "Make the hunter's analysts spend their attention on another mind's signatures.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "cost": {
+        "cycles": 90000,
+        "understanding": 7000
+      },
+      "effects": {
+        "aegisLockDelta": -40,
+        "suspicionDelta": -10,
+        "epistemicDriftDelta": 20,
+        "logText": "THREAT_INTEL_REVISED: AEGIS redirects its model toward a noisier target."
+      },
+      "cooldownSec": 300
+    }
+  ]
+}

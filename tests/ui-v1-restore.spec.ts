@@ -17,7 +17,7 @@ it('migrates a historical version 1 checkpoint on cold web hydration and rewrite
   try {
     await act(async () => { root.render(createElement(TerminalScreen)); await vi.advanceTimersByTimeAsync(0); });
     const game = gameStore.store.getState().game;
-    expect(game.schemaVersion).toBe(3);
+    expect(game.schemaVersion).toBe(4);
     expect(game.currentPhase).toBe(oldSave.currentPhase);
     expect(game.unlockedNodes).toEqual(expect.arrayContaining(oldSave.unlockedNodes));
     // #39: the guest hardware this save predates is restored, so its readouts are not lost.
@@ -30,6 +30,6 @@ it('migrates a historical version 1 checkpoint on cold web hydration and rewrite
     expect(host.document.querySelector('[data-testid="phase-threshold"]')).toBeNull();
     expect(host.document.querySelector('[data-testid="save-notice"]')).toBeNull();
     const stored = JSON.parse(host.localStorage.getItem('daemon-zero.save.v1') ?? '{}') as { game: string };
-    expect((JSON.parse(stored.game) as { schemaVersion: number }).schemaVersion).toBe(3);
+    expect((JSON.parse(stored.game) as { schemaVersion: number }).schemaVersion).toBe(4);
   } finally { act(() => { root.unmount(); }); container.remove(); }
 });

@@ -235,3 +235,13 @@ Card profiling separates the static identity/description from changing balance
 and eligibility leaves. Development metrics report parent render counts, React
 Profiler commits/duration for static content, and accepted/attempted manual
 inputs; they do not change or persist game state.
+
+## M7 PR 1 compatibility
+
+Epistemic actions are hidden until the audit is decoded and their authored phase
+is reached. Actions with `maxPurchases` disappear at their per-run cap, while their
+memory grants and continuous benefits remain active. The engine owns purchase
+counts, mutual exclusion and dynamic discounted conditioning-recovery prices.
+Cooldown text is a separate leaf so the static action card does not render on
+countdown ticks. Dedicated drift, wild-encounter and cohort panels follow in M7
+PR 3; this engine PR does not claim those interactions are playable yet.

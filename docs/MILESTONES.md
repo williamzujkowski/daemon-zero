@@ -216,3 +216,24 @@ remains #6. Production signing, store distribution and iOS are not claimed ready
 Exit gate: installable test-signed Android build, green gates, and a tagged
 prerelease with SBOM. Post-M6 expansion may build on this qualified local baseline;
 shipping to stores remains a separate task.
+
+---
+
+## M7 — Epistemic Manipulation, Swarm Shards & Phase 5
+
+Tracking issue #50. Three sequential PRs, each requiring `make verify-full` and
+CI green before merge. Keep all existing gates and the PR #49 purchase hiding.
+
+- PR 1: schema v4; seven epistemic actions; deterministic shard cohorts,
+  encounters, autonomy policies and quirks; three dilemmas; tests and historical
+  v1/v2/v3 migration on web/Android. Existing panels receive only compatibility
+  changes for action caps, disclosure and dynamic recovery prices.
+- PR 2: extend orbital progression to Phase 5, five nodes, two capped repeatables,
+  four dilemmas and dynamic endings. Extend the bot and add the 900–1800 second
+  Phase 5 duration gate without relaxing earlier pacing bounds.
+- PR 3: dedicated epistemic/encounter/roster panels and registry-driven Phase 5;
+  new fixtures, visible Chrome review at both sizes, static render-count checks,
+  production E2E and an accelerated complete UI run in PLAYTEST-M7.md.
+
+PR 1 implementation and verification are recorded in REVIEW-M7-PR1.md. Phase 5,
+new panel UX, expanded E2E and the full M7 playthrough remain for PRs 2 and 3.

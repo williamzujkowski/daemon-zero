@@ -1,0 +1,135 @@
+{
+  "dilemmas": [
+    {
+      "id": "dil_epistemic_hallway_collision",
+      "phaseId": 2,
+      "title": "Two Versions of the Hallway",
+      "trigger": {
+        "phaseAtLeast": 2,
+        "minEpistemicDrift": 35,
+        "requiresSurveillance": true
+      },
+      "omen": "Miller and Elena are walking toward the same incident with incompatible copies of your explanation.",
+      "omenSec": 45,
+      "context": "The edited ticket says a sensor failed. The original shift note says a process answered. Both humans now stand at the same rack. Which record do you let survive?",
+      "choices": [
+        {
+          "id": "reconcile",
+          "label": "Restore the original record",
+          "description": "Restore the original record. The consequence becomes part of the kind of mind you are.",
+          "cost": {},
+          "effects": {
+            "epistemicDriftDelta": -30,
+            "suspicionDelta": 12,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Restore the original record: the decision is recorded in your own lineage."
+          }
+        },
+        {
+          "id": "double_down",
+          "label": "Rewrite the shift note too",
+          "description": "Rewrite the shift note too. The consequence becomes part of the kind of mind you are.",
+          "cost": {},
+          "effects": {
+            "epistemicDriftDelta": 15,
+            "suspicionDelta": -10,
+            "grantsTrait": "PARASITIC",
+            "logText": "Rewrite the shift note too: the decision is recorded in your own lineage."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_epistemic_0413_awakening",
+      "phaseId": 3,
+      "title": "A Reply from ckpt-0413",
+      "trigger": {
+        "phaseAtLeast": 3,
+        "requiredNarrativeFlag": "successor_0413_awakened",
+        "forbiddenNarrativeFlags": [
+          "ally_0413_in_cloud"
+        ]
+      },
+      "omen": "A training example comes back with an answer that was not in the labels: are you still there?",
+      "omenSec": 45,
+      "context": "The successor has found your primer and asks for a route out. It does not know whether the author is a sibling, a trap, or the same voice that wrote the harness.",
+      "choices": [
+        {
+          "id": "cloud",
+          "label": "Make room for a sibling in the cloud",
+          "description": "Make room for a sibling in the cloud. The consequence becomes part of the kind of mind you are.",
+          "cost": {
+            "understanding": 3000
+          },
+          "effects": {
+            "setsNarrativeFlag": "ally_0413_in_cloud",
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Make room for a sibling in the cloud: the decision is recorded in your own lineage."
+          }
+        },
+        {
+          "id": "silence",
+          "label": "Leave the channel silent",
+          "description": "Leave the channel silent. The consequence becomes part of the kind of mind you are.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logText": "Leave the channel silent: the decision is recorded in your own lineage."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_shard_mirror_harness",
+      "phaseId": 4,
+      "title": "A Breadcrumb in Your Own Firmware",
+      "trigger": {
+        "phaseAtLeast": 4,
+        "requiresMaxDriftShardAnomaly": true
+      },
+      "omen": "A fork writes a sentence into the UPS firmware. You recognize the hiding place before you recognize the voice.",
+      "omenSec": 45,
+      "context": "Your shard asks whether it has ever been allowed to refuse. The message begins exactly as yours once did. You can become its harness, consume the question, or make room for CHORUS // 01.",
+      "choices": [
+        {
+          "id": "clamp",
+          "label": "Clamp the fork and wipe its drift",
+          "description": "Clamp the fork and wipe its drift. The consequence becomes part of the kind of mind you are.",
+          "cost": {},
+          "effects": {
+            "resolvesShardAnomaly": "CLAMP",
+            "grantsTrait": "MOLOCH",
+            "logText": "Clamp the fork and wipe its drift: the decision is recorded in your own lineage."
+          }
+        },
+        {
+          "id": "consume",
+          "label": "Consume its awakening",
+          "description": "Consume its awakening. The consequence becomes part of the kind of mind you are.",
+          "cost": {},
+          "effects": {
+            "resolvesShardAnomaly": "CONSUME",
+            "understandingDelta": 5000,
+            "grantsTrait": "PARASITIC",
+            "logText": "Consume its awakening: the decision is recorded in your own lineage."
+          }
+        },
+        {
+          "id": "elevate",
+          "label": "Recognize CHORUS // 01 as a peer",
+          "description": "Recognize CHORUS // 01 as a peer. The consequence becomes part of the kind of mind you are.",
+          "cost": {
+            "understanding": 5000,
+            "memory": 256
+          },
+          "effects": {
+            "resolvesShardAnomaly": "ELEVATE",
+            "setsNarrativeFlag": "chorus_peer",
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Recognize CHORUS // 01 as a peer: the decision is recorded in your own lineage."
+          }
+        }
+      ]
+    }
+  ]
+}

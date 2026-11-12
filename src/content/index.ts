@@ -3,6 +3,9 @@
  * new file, import it here. Nothing outside this folder imports JSON directly.
  */
 import actions from './data/actions.json';
+import epistemicActions from './data/epistemic-actions.json';
+import swarm from './shards.json';
+import swarmNarrative from './narrative/m7.json';
 import balance from './data/balance.json';
 import conditioning from './data/conditioning.json';
 import dilemmas from './data/dilemmas.json';
@@ -24,8 +27,9 @@ export const RAW_CONTENT: RawContent = {
   balance,
   phases: [phase0, phase1, phase2, phase3, phase4],
   repeatables,
-  actions,
-  dilemmas,
+  swarm,
+  actions: { actions: [...actions.actions, ...epistemicActions.actions] },
+  dilemmas: { dilemmas: [...dilemmas.dilemmas, ...swarmNarrative.dilemmas] },
   factions,
   widgets,
   endings,
