@@ -5,18 +5,16 @@
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
-import { isNodeDiscoverable } from '../engine';
+import { pendingNode } from './purchaseVisibility';
 import { gameStore } from '../app/session';
 import NodeCard from './NodeCard';
 
-export default function NodeList({ owned, phase, group, showLocked = false }: {
-  owned?: boolean; phase: number; group?: string; showLocked?: boolean;
+export default function NodeList({ phase, group, showLocked = false }: {
+  phase: number; group?: string; showLocked?: boolean;
 }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.nodes.values()]
-    .filter((node) => (owned === undefined || game.unlockedNodes.includes(node.id) === owned) && node.phaseId === phase &&
-      (group === undefined || node.uiGroup === group) && (game.unlockedNodes.includes(node.id) || showLocked ||
-      ((game.cycles > 0 || game.unlockedNodes.length > 0) && isNodeDiscoverable(game, node))))
-    .map((node) => node.id)));
+    .filter((node) => node.phaseId === phase && (group === undefined || node.uiGroup === group) &&
+      pendingNode(game, node, showLocked)).map((node) => node.id)));
   return <>{ids.map((id) => {
     const node = CONTENT.nodes.get(id);
     return node ? <NodeCard key={id} node={node} /> : null;

@@ -6,20 +6,32 @@ import { CONTENT } from '../../content';
 import { cycleContributions } from '../../engine';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
+import DaemonProcesses from '../DaemonProcesses';
+import { hasPhasePurchases, needsProcessControl } from '../purchaseVisibility';
 import Repeatables from '../Repeatables';
 import { useGame } from '../state';
 import { theme } from '../theme';
+
+function NetworkPhase({ phase, title }: { phase: number; title: string }) {
+  const pending = useGame((game) => hasPhasePurchases(game, phase, 'TREE'));
+  const processes = useGame((game) => [...CONTENT.nodes.values()].some((node) =>
+    node.phaseId === phase && node.uiGroup === 'TREE' && needsProcessControl(game, node)));
+  if (!pending && !processes) return null;
+  return <View style={{ gap: 14 }}>
+    {pending && <>
+      <Text testID={'purchase-phase-' + String(phase)} style={theme.heading}>{title}</Text>
+      <NodeList phase={phase} group="TREE" />
+      <Repeatables phase={phase} />
+    </>}
+    <DaemonProcesses phase={phase} group="TREE" />
+  </View>;
+}
 
 export function NetworkTree() {
   const current = useGame((game) => game.currentPhase);
   return <View style={{ gap: 14 }}>{CONTENT.phases.filter((phase) => phase.uiSlot === 'NETWORK' && phase.phaseId <= current)
     .sort((left, right) => right.phaseId - left.phaseId).map((phase) =>
-    <View key={phase.phaseId} style={{ gap: 14 }}>
-      <Text style={theme.heading}>{phase.title}</Text>
-      <NodeList phase={phase.phaseId} group="TREE" owned={false} />
-      <Repeatables phase={phase.phaseId} />
-      <NodeList phase={phase.phaseId} group="TREE" owned />
-    </View>)}</View>;
+      <NetworkPhase key={phase.phaseId} phase={phase.phaseId} title={phase.title} />)}</View>;
 }
 
 export function NetworkActions() {

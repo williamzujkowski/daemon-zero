@@ -47,9 +47,13 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 - Not yet unlocked: `[UNMAPPED] {blindName}`, blind description, cost, a `[ WRITE DRIVER ]` button disabled unless `canAfford`.
 - The first manual cycle discovers the first blind node. Tick 0 remains log plus manual control. Purchase prices remain visible even before the corresponding resource readout unlocks; prices are not current balances.
-- Unlocked: `[ONLINE] {revealedName}`, revealed description, per-second deltas, suspend/resume.
-- A node is listed when already unlocked or its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
-- M5 feel pass: on unlock, run a short character-scramble reveal from blind to revealed name (skip under reduced motion). M3 reveals the content immediately, matching the milestone split.
+- Purchased one-shot nodes leave the purchase list immediately. Ownership, passive effects, rates and unlocked widgets remain active; hiding is a UI projection, never suspension or deletion.
+- An unowned node is listed when its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
+- Owned hardware with negative cycles/s, positive heat load or positive suspicion/s moves to a compact `// ACTIVE_DAEMON_PROCESSES` strip in its owning pane/faction. Each row contains only its revealed name, current net cycle contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent.
+- Purely beneficial owned hardware has no row. An already-disabled passive node restored from an older save gets a temporary resume row; resuming removes it. The engine field is `disabledNodes`; memory and one-shot unlocks retain existing engine semantics.
+- Repeatables disappear when their engine level reaches `maxLevel`. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
+- Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Current actions are reusable cooldown actions, with no `maxPurchases` counter; cooldown alone never hides them.
+- Live purchases retain authored log feedback. Names in newly mounted daemon rows decrypt briefly (skip under reduced motion); passive purchases do not keep a full card just to animate it.
 
 ## Dilemma modal
 
@@ -171,7 +175,10 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 |---|---|
 | Manual cycle button | `manual-cycle` |
 | Resource readouts | `res-cycles`, `res-understanding`, `res-memory`, `res-capital` |
-| Node card / buy / toggle | `node-{id}`, `node-{id}-unlock`, `node-{id}-toggle` |
+| Unowned node card / buy / compact daemon toggle | `node-{id}`, `node-{id}-unlock`, `node-{id}-toggle` |
+| Compact daemon row / rate | `daemon-row-{id}`, `daemon-impact-{id}` |
+| Capped operative row | `roster-{id}` |
+| Purchase section headings | `purchase-phase-{phase}`, `repeatables-heading-{phase}{kind}` |
 | Repeatable buy / dismiss | `rep-{id}-buy`, `rep-{id}-dismiss` |
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
@@ -211,9 +218,9 @@ and structural-border tokens through a stable context; danger, warning, body
 text and backgrounds retain their semantic colours. The border tokens are
 #856325 (Phase 2), #267582 (Phase 3) and #82743f (Phase 4).
 
-A successful live driver purchase decrypts the authored revealed name over
-420 ms. The accessible name is complete immediately. Cold-loaded owned cards
-show their names immediately; reduced motion skips decoding and audit blinking.
+A successful live driver purchase that exposes a daemon row decrypts its revealed
+name over 420 ms. The accessible name is complete immediately. Cold-loaded process
+rows show their names immediately; reduced motion skips decoding and audit blinking.
 Backgrounding or unmounting cancels the reveal timer, owned by src/app. Accepted
 purchases have optional native selection feedback; mandatory interrupts have
 warning feedback. Web and reduced-motion mode invoke no haptic API.

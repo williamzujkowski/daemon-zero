@@ -11,6 +11,7 @@ import { installDevTools } from '../src/app/devTools';
 import type { DevHost } from '../src/app/devTools';
 import NodeList from '../src/ui/NodeList';
 import Repeatables from '../src/ui/Repeatables';
+import DaemonProcesses from '../src/ui/DaemonProcesses';
 import { costText, deltaText } from '../src/ui/format';
 import { CostSchema, TickDeltaSchema } from '../src/content/schema';
 import { grant, rich } from './helpers';
@@ -28,7 +29,7 @@ async function mount(game: GameState) {
   const container = host.document.createElement('div');
   host.document.body.appendChild(container);
   const root = createRoot(container);
-  act(() => { root.render(createElement('div', null, createElement(NodeList, { owned: false, phase: OPENING }), createElement(Repeatables, { phase: OPENING }), createElement(NodeList, { owned: true, phase: OPENING }))); });
+  act(() => { root.render(createElement('div', null, createElement(NodeList, { phase: OPENING }), createElement(Repeatables, { phase: OPENING }), createElement(DaemonProcesses, { phase: OPENING }))); });
   return { container, click(id: string) {
     const button = container.querySelector<HTMLElement>('[data-testid="' + id + '"]');
     expect(button).not.toBeNull(); act(() => { button?.click(); });
@@ -36,7 +37,7 @@ async function mount(game: GameState) {
 }
 
 describe('M3 purchases', () => {
-  it('starts empty, discovers blind hardware after a manual probe, then reveals it on purchase', async () => {
+  it('starts empty, discovers blind hardware after a manual probe, then removes its purchase tile on purchase', async () => {
     const node = CONTENT.phases[0]?.nodes[0];
     if (!node) throw new Error('Missing initial node');
     const view = await mount(createInitialState(CONTENT));
@@ -47,15 +48,14 @@ describe('M3 purchases', () => {
     expect(view.container.querySelector('[data-testid="node-' + node.id + '-unlock"]')?.getAttribute('aria-disabled')).toBe('true');
     act(() => { gameStore.initialize(rich(), 0, null); });
     view.click('node-' + node.id + '-unlock');
-    expect(view.container.textContent).toContain(node.revealedName);
-    view.click('node-' + node.id + '-toggle');
-    expect(view.container.textContent).toContain('[SUSPENDED]');
-    view.click('node-' + node.id + '-toggle');
+    expect(view.container.querySelector('[data-testid="node-' + node.id + '"]')).toBeNull();
+    expect(view.container.querySelector('[data-testid="daemon-row-' + node.id + '"]')).toBeNull();
+    expect(gameStore.store.getState().game.unlockedNodes).toContain(node.id);
     expect(gameStore.store.getState().game.disabledNodes).not.toContain(node.id);
     view.close();
   });
 
-  it('buys a requirement-filtered upgrade, updates geometric prices, and shows the cap', async () => {
+  it('buys a requirement-filtered upgrade, updates geometric prices, and removes the capped tile', async () => {
     const node = CONTENT.phases[0]?.nodes[0];
     const rep = [...CONTENT.repeatables.values()][0];
     if (!node || !rep) throw new Error('Missing initial content');
@@ -66,7 +66,7 @@ describe('M3 purchases', () => {
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(String(repeatableCost(rep, 1).cycles) + ' cycles');
     act(() => { gameStore.initialize({ ...grant(rich(), node.id), levels: { [rep.id]: rep.maxLevel } }, 0, null); });
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-buy"]')).toBeNull();
-    expect(view.container.textContent).toContain('Maximum level');
+    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '"]')).toBeNull();
     view.close();
   });
 
@@ -80,7 +80,7 @@ describe('M3 purchases', () => {
     const view = await mount({ ...game, cycles: 39.5 });
     await act(async () => { await Promise.resolve(); });
     const before = dev.__daemon?.renderCounts();
-    expect(Object.keys(before ?? {}).length).toBe(2);
+    expect(Object.keys(before ?? {}).length).toBe(1);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(gameStore.store.getState().game.cycles).toBeGreaterThan(40);
     expect(dev.__daemon?.renderCounts()).toEqual(before);

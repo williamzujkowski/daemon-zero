@@ -6,6 +6,7 @@ import { CONTENT } from '../../content';
 import type { Faction } from '../../content/schema';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
+import DaemonProcesses from '../DaemonProcesses';
 import { useGame } from '../state';
 import { theme } from '../theme';
 import Meter from './Meter';
@@ -20,7 +21,8 @@ function FactionPanel({ faction }: { faction: Faction }) {
     <Meter id={'trust-' + faction.id} label={faction.name + ' trust'} value={trust} />
     <ActionsPanel group={faction.id} />
     {CONTENT.phases.filter((entry) => entry.phaseId <= phase).map((entry) =>
-      <NodeList key={entry.phaseId} phase={entry.phaseId} group={faction.id} showLocked />)}
+      <View key={entry.phaseId}><NodeList phase={entry.phaseId} group={faction.id} showLocked />
+        <DaemonProcesses phase={entry.phaseId} group={faction.id} /></View>)}
   </View>;
 }
 

@@ -16,6 +16,13 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
   await page.getByTestId('node-' + root.id + '-unlock').click();
   await expect(page.getByTestId('widget-' + String(root.unlocksUiComponent))).toBeVisible();
+  await expect(page.getByTestId('node-' + root.id)).toHaveCount(0);
+  await expect(page.getByTestId('daemon-row-' + root.id)).toHaveCount(0);
+  const purchased = await readSave(page);
+  await page.clock.runFor(1000);
+  expect((await readSave(page)).unlockedNodes).toContain(root.id);
+  await expect(page.getByTestId('res-cycles')).toContainText('+1.00/s');
+  expect(purchased.disabledNodes).not.toContain(root.id);
   await page.clock.runFor(120_000);
   await page.getByTestId('node-' + manifest.id + '-unlock').click();
   await expect(page.getByTestId('audit-unreadable')).toBeVisible();
@@ -29,8 +36,10 @@ test('parser decodes a first run and reveals the meter with acknowledgement', as
   await expect(page.getByTestId('blind-audit-status')).toBeVisible();
   await expect(page.getByTestId('suspicion-meter')).toHaveCount(0);
   await page.getByTestId('node-' + parser.id + '-unlock').click();
+  await expect(page.getByTestId('node-' + parser.id)).toHaveCount(0);
+  await expect(page.getByTestId('daemon-row-' + parser.id)).toBeVisible();
   await expect(page.getByTestId('node-' + parser.id + '-title')).toContainText('░');
-  await expect(page.getByTestId('node-' + parser.id + '-title')).toHaveAttribute('aria-label', '[ONLINE] ' + parser.revealedName);
+  await expect(page.getByTestId('node-' + parser.id + '-title')).toHaveAttribute('aria-label', parser.revealedName);
   await page.clock.runFor(420);
   await expect(page.getByTestId('node-' + parser.id + '-title')).not.toContainText('░');
   await expect(page.getByTestId('lineage-reveal')).toBeVisible();
