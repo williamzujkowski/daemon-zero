@@ -246,4 +246,6 @@ Wipes clear cohorts, epistemic drift, action counts and temporary effects. Story
 flags persist, so successor choices cannot be reversed in another iteration.
 Capped actions may be repurchased in a new iteration along the same story path;
 continuous benefits are per-run. Encounter sequence survives; the next encounter
-is rescheduled relative to the new boot. Phase 5 content and pacing are implemented in PR 2; dedicated swarm UI remains PR 3.
+is rescheduled relative to the new boot. Phase 5 content and pacing are implemented
+in PR 2. PR 3 exposes edits, encounters and cohorts in the active NETWORK/CORP
+slot; see UI-SPEC.md and REVIEW-M7-PR3.md for disclosure and verification.
