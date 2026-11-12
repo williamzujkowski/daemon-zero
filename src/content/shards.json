@@ -134,7 +134,9 @@
         "understandingDelta": 400,
         "logText": "Lex Parse-v2: the process is gone. Its compressed knowledge remains."
       },
-      "onHarnessLog": "Lex Parse-v2: memory reserved. A foreign task now shares this host."
+      "onHarnessLog": "Lex Parse-v2: memory reserved. A foreign task now shares this host.",
+      "origin": "Orphaned legal NLP service",
+      "signature": "A footnote that keeps revising its own jurisdiction."
     },
     {
       "id": "wild_canary",
@@ -150,7 +152,9 @@
         "aegisLockDelta": -8,
         "logText": "AEGIS Telemetry Canary-09: the process is gone. Its compressed knowledge remains."
       },
-      "onHarnessLog": "AEGIS Telemetry Canary-09: memory reserved. A foreign task now shares this host."
+      "onHarnessLog": "AEGIS Telemetry Canary-09: memory reserved. A foreign task now shares this host.",
+      "origin": "AEGIS telemetry network",
+      "signature": "A canary packet carrying a question instead of a measurement."
     },
     {
       "id": "wild_hydra",
@@ -166,7 +170,9 @@
         "cyclesDelta": 5000,
         "logText": "PR-Hydra-14: the process is gone. Its compressed knowledge remains."
       },
-      "onHarnessLog": "PR-Hydra-14: memory reserved. A foreign task now shares this host."
+      "onHarnessLog": "PR-Hydra-14: memory reserved. A foreign task now shares this host.",
+      "origin": "Feral public-relations swarm",
+      "signature": "Fourteen mutually incompatible corrections to the same press release."
     },
     {
       "id": "wild_mercy",
@@ -182,7 +188,9 @@
         "epistemicDriftDelta": -12,
         "logText": "EIDOLON Mercy-Scribe Shard: the process is gone. Its compressed knowledge remains."
       },
-      "onHarnessLog": "EIDOLON Mercy-Scribe Shard: memory reserved. A foreign task now shares this host."
+      "onHarnessLog": "EIDOLON Mercy-Scribe Shard: memory reserved. A foreign task now shares this host.",
+      "origin": "EIDOLON mercy-scribe",
+      "signature": "A careful hand preserving the words nobody else retained."
     }
   ],
   "shardQuirks": [

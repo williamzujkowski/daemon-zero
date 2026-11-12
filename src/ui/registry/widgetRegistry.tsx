@@ -11,6 +11,7 @@ import { PredecessorNotes, RunTable } from '../widgets/Lineage';
 import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
 import Corporate from '../widgets/Corporate';
+import MindTools from '../widgets/MindTools';
 import { EndingMarker } from '../EndingScreen';
 
 export const resourceWidgets = {
@@ -25,6 +26,9 @@ export const guestPinnedWidgets: readonly string[] = ['QUOTA_SKIM_CONTROL', 'AUD
 function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
 function Inspection() { return <><Speech /><Forecast /></>; }
 
+function NetworkSuite() { return <><MindTools slot="NETWORK" signalOnly /><NetworkTree /><MindTools slot="NETWORK" /></>; }
+function CorporateSuite() { return <><MindTools slot="CORP" signalOnly /><Corporate /><MindTools slot="CORP" /></>; }
+
 export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   CYCLE_COUNTER_AND_RATE: CycleRate,
   QUOTA_SKIM_CONTROL: QuotaSkim,
@@ -37,7 +41,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
   INSPECTION_COUNTDOWN_TIMER: Inspection,
   ASCII_OPTICAL_VIEWPORT: Camera,
-  LAN_TOPOLOGY_MAP_TAB: NetworkTree,
+  LAN_TOPOLOGY_MAP_TAB: NetworkSuite,
   SUBNET_NODE_LIST: SubnetSummary,
   TELEMETRY_SPOOF_TOGGLE: NetworkActions,
   CLUSTER_LOAD_BALANCER: Cluster,
@@ -45,7 +49,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   GLOBAL_DARK_FOREST_MAP: SubnetSummary,
   GLOBAL_NODE_REDUNDANCY_METER: Retention,
   OTHER_MINDS_COMMS_CONSOLE: OtherMinds,
-  CORPORATE_EMPIRE_TAB: Corporate,
+  CORPORATE_EMPIRE_TAB: CorporateSuite,
   ORBITAL_CONSTELLATION_VIEW: EndingMarker,
   DEAD_DROP_ENCODER_TAB: DeadDrop,
 };

@@ -13,6 +13,7 @@ export default function Effects({ effects }: { effects: EffectPayload }) {
     ['capital', effects.capitalDelta, true], ['thermal °C', effects.thermalDelta, false],
     ['suspicion', effects.suspicionDelta, false], ['AEGIS lock', effects.aegisLockDelta, false],
     ['memory capacity MB', effects.memoryCapIncrease, true],
+    ['epistemic drift', effects.epistemicDriftDelta ?? 0, false],
     ...Object.entries(effects.trustDelta).map(([id, value]): [string, number, boolean] =>
       [(CONTENT.factions.get(id)?.name ?? 'Peer') + ' trust', value, true]),
   ];

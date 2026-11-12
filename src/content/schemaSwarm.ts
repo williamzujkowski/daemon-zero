@@ -13,6 +13,7 @@ export const ShardQuirkSchema = z.strictObject({
   tickDelta: TickDeltaSchema, epistemicDriftPerSec: z.number(),
 });
 export const WildEncounterSchema = z.strictObject({
+  origin: z.string().min(3), signature: z.string().min(3),
   id, name: z.string().min(3), description: z.string().min(10),
   requirements: RequirementsSchema, templateId: id, consume: EffectPayloadSchema,
   onHarnessLog: z.string().min(10),

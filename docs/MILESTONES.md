@@ -237,5 +237,6 @@ CI green before merge. Keep all existing gates and the PR #49 purchase hiding.
 
 PR 1 implementation and verification are recorded in REVIEW-M7-PR1.md. PR 2
 Phase 5 content, bot coverage and pacing are recorded in REVIEW-M7-PR2.md.
-Dedicated panels, visible fixture reviews, expanded E2E and the full M7 UI
-playthrough remain PR 3.
+PR 3 panels, fixtures, production E2E, visible review and native persistence
+are recorded in REVIEW-M7-PR3.md; the accelerated complete UI run is recorded
+in PLAYTEST-M7.md. Physical-device qualification remains open in #6.

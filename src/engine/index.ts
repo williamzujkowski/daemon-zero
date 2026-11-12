@@ -16,3 +16,6 @@ export type { TickContext, TickSystem } from './systems/types';
 export * from './epistemic';
 export * from './shardActions';
 export { shardOutput } from './swarmRates';
+
+export * from './epistemicQuery';
+export * from './swarmQuery';

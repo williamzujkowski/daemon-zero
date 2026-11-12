@@ -44,3 +44,6 @@ credentials.json
 *.aab
 *.apks
 release-artifacts/
+
+# Local browser review artifacts
+.playwright-mcp/
