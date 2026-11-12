@@ -29,7 +29,7 @@ async function mount(game: GameState) {
   const container = host.document.createElement('div');
   host.document.body.appendChild(container);
   const root = createRoot(container);
-  act(() => { root.render(createElement('div', null, createElement(NodeList, { phase: OPENING }), createElement(Repeatables, { phase: OPENING }), createElement(DaemonProcesses, { phase: OPENING }))); });
+  await act(async () => { root.render(createElement('div', null, createElement(NodeList, { phase: OPENING }), createElement(Repeatables, { phase: OPENING }), createElement(DaemonProcesses, { phase: OPENING }))); await vi.advanceTimersByTimeAsync(0); });
   return { container, click(id: string) {
     const button = container.querySelector<HTMLElement>('[data-testid="' + id + '"]');
     expect(button).not.toBeNull(); act(() => { button?.click(); });

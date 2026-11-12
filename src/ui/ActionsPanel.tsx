@@ -2,13 +2,15 @@ import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /** Action groups, prices and consequences come from the content registry. */
 
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
+import { Platform } from 'react-native';
+import { recordNodeRender } from '../app/renderCounts';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../app/session';
 import { CONTENT } from '../content';
 import type { Action } from '../content/schema';
-import { actionAvailable, actionCost, actionExhausted, understandsSurveillance, performAction } from '../engine';
+import { actionAvailable, actionCost, actionExhausted, performAction } from '../engine';
 import { costText } from './format';
 import Effects from './Effects';
 import PurchaseButton from './PurchaseButton';
@@ -22,7 +24,8 @@ function Cooldown({ id }: { id: string }) {
   return seconds > 0 ? <Text testID={'action-cooldown-' + id} style={theme.muted}>Cooldown: {seconds}s</Text> : null;
 }
 
-const ActionCard = memo(function ActionCard({ action }: { action: Action }) {
+export const ActionCard = memo(function ActionCard({ action }: { action: Action }) {
+  useEffect(() => { if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') recordNodeRender('action:' + action.id); });
   const cost = useStore(gameStore.store, useShallow(({ game }) => actionCost(game, action, CONTENT)));
   return <View testID={'action-card-' + action.id} style={theme.panel}>
     <Text style={theme.heading}>{action.label}</Text>
@@ -40,8 +43,7 @@ const ActionCard = memo(function ActionCard({ action }: { action: Action }) {
 
 export default function ActionsPanel({ group }: { group: string }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.actions.values()]
-    .filter((action) => action.group === group && !actionExhausted(game, action) &&
-      (!action.requirements.requiresSurveillance || (understandsSurveillance(game, CONTENT) && game.currentPhase >= (action.requirements.phaseAtLeast ?? 0))))
+    .filter((action) => action.group === group && !action.requirements.requiresSurveillance && !actionExhausted(game, action))
     .map((action) => action.id)));
   return <View testID={'actions-group-' + group} style={{ gap: 12 }}>
     {ids.map((id) => { const action = CONTENT.actions.get(id); return action ? <ActionCard key={id} action={action} /> : null; })}

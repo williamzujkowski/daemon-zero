@@ -12,6 +12,7 @@ const phases = [
   { accent: '#ffb000', border: '#856325' },
   { accent: '#00e5ff', border: '#267582' },
   { accent: '#f5c542', border: '#82743f' },
+  { accent: '#e2e8f0', border: '#73869c' },
 ];
 type MutableStyle = { -readonly [K in keyof TextStyle]: TextStyle[K] };
 const Context = createContext(opening);

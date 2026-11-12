@@ -26,7 +26,7 @@ async function mount(name: string) {
   host.document.body.appendChild(container);
   const root = createRoot(container);
   await act(async () => { root.render(createElement(TerminalScreen)); await vi.advanceTimersByTimeAsync(0); });
-  act(() => { gameStore.initialize(importSave(code, CONTENT), 0, null); });
+  await act(async () => { gameStore.initialize(importSave(code, CONTENT), 0, null); await vi.advanceTimersByTimeAsync(0); });
   const close = () => { act(() => { root.unmount(); }); container.remove(); closes.delete(close); };
   closes.add(close);
   const find = (id: string) => host.document.querySelector<HTMLElement>('[data-testid="' + id + '"]');

@@ -257,3 +257,25 @@ The final protocol displays unmet dilemma decisions by their content titles.
 The unfinished ending marker displays the current phase title, since reaching
 orbit is now an intermediate step. Dedicated swarm panels and Phase 5 visual
 review remain PR 3 work.
+
+## M7 tools and post-orbital presentation
+
+After the audit is decoded, the active phase's registry slot owns the mind tools:
+NETWORK in Phases 2–3 and CORP in Phases 4–5. A pending wild signal sits above
+purchases, so its invitation is not buried below the corporate upgrade feed.
+Epistemic actions and the swarm roster follow purchases. Blind openings mount
+none of these tools. All titles, IDs, effects and requirements come from content.
+
+Epistemic manipulation shows numeric drift and a status label, formatted costs,
+unmet requirements and cooldowns. Maxed and mutually excluded edits disappear.
+Wild signals show origin, signature, instant CONSUME effects and HARNESS RAM/output
+previews. Forks show costs; cohorts show count, allocated MB, numeric/ASCII drift,
+autonomy mode and quirk details. PRUNE, CLAMP and ELEVATE explain their effects,
+prices and missing requirements. Buttons remain at least 44 px in both dimensions.
+
+Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
+Completed cards hide while effects and compact daemon controls remain. Ending
+screens replace the feed, leaving zero purchase cards. Static node/action/cohort
+parents subscribe only to stable presentation and eligibility; ticking drift,
+output, cooldown and affordability live in separate leaves. Development counters
+use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.

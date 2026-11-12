@@ -64,7 +64,7 @@ build-web: ## Export the production web app
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
 
 e2e: build-web ## Playwright scenarios against the production web export
-	pnpm exec playwright test --config tests/e2e/config.ts
+	env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh

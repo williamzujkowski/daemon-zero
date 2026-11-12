@@ -347,3 +347,23 @@ reservation and observed epistemic, shard and Lineage activity. Pacing adds an
 inclusive 900–1800-second Phase 5 range and zero careful wipes; earlier bounds
 remain in force. Dedicated M7 browser scenarios, fresh two-size visual audits,
 30-tick render counts and an Android Phase 5 ending relaunch remain PR 3.
+
+## M7 PR 3 UI verification
+
+Regeneration now produces 62 codes, adding `epistemic-ready-p2`,
+`wild-shard-encounter-p3`, `shard-drift-quirk-p4`, `mirror-harness-dilemma`,
+`phase5-entry` and `phase5-midgame`. Late fixtures use controlled resources to
+isolate interactions; they are not pacing evidence. Nine Phase 5 ending variants
+still use real final purchases. Never reuse earlier fixture output.
+
+The production suite has 13 scenarios per viewport (26 cases). M7 cases exercise
+editing/caps/exclusions, consuming/harnessing, live mutation, prune/clamp/elevate,
+all Phase 5 purchases and decisions, and reload persistence. They use Save-panel
+imports and Playwright's clock, not a production dev hook. The existing test
+asserts the hook and drawer are absent from the production export.
+
+Query tests require 100% coverage for epistemicQuery, swarmQuery and
+queryPresentation. Mounted-app tests cover blind disclosure and flat parents
+across 30 separately published live ticks. The visible-browser audit independently
+uses 3,000 ms of timer callbacks, not one batched fast-forward publication.
+See REVIEW-M7-PR3.md for native checks and PLAYTEST-M7.md for the accelerated run.

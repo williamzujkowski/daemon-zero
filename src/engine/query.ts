@@ -5,9 +5,10 @@
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
-import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemic';
+import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
+export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   if (!req) return true;
@@ -74,16 +75,6 @@ export function rediscoveryCost(node: RegistryNode, known: boolean, reg: Content
 /** What a node costs this state right now. Use this, never node.cost, when charging or displaying. */
 export function nodeCost(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
   return rediscoveryCost(node, isNodeKnown(s, node.id), reg);
-}
-
-/**
- * Whether this mind can read its own audit trail. Until it learns who reads the
- * log and why, suspicion still accrues and still kills, but it has no number.
- * The knowledge is remembered across wipes.
- */
-export function understandsSurveillance(s: GameState, reg: ContentRegistry): boolean {
-  return [...s.unlockedNodes, ...s.legacy.knownNodes]
-    .some((id) => reg.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE') === true);
 }
 
 /** True if any unlocked node (active or suspended) carries the flag. */

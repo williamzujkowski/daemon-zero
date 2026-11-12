@@ -6,10 +6,11 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 ## Status
 
-Playable gameplay phases **0–4**, orbital endings, wipes/retraining and Lineage
-(including Shipped). M4.5 has maintainer approval; M5's automated gates and
-accessibility checks pass, with physical Android qualification still open (#6).
-Gameplay Phase 5 is a post-M6 expansion, not milestone M5.
+Playable gameplay phases **0–5**, post-orbital endings, epistemic manipulation,
+swarm shards, wipes/retraining and Lineage (including Shipped). M7 adds the
+post-M6 expansion; gameplay Phase 5 is distinct from milestone M5. Physical
+Android qualification remains open (#6). See the [M7 review](docs/REVIEW-M7-PR3.md)
+and [accelerated UI playthrough](docs/PLAYTEST-M7.md) for current evidence.
 
 The [cohesion audit](docs/REVIEW-COHESION.md) verifies disclosure, save migration,
 web/Android Expo Go reloads and flat node-card render counts. Issues #28 and #36
@@ -76,6 +77,8 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/REVIEW-SECOND-PASS.md` | Fresh M4.5 browser/native review and compatibility evidence |
 | `docs/PLAYTEST-M4.md` | Accelerated full UI run, choices, ending and verification limits |
 | `docs/REVIEW-M4.md` | M4 fixture/browser/native review evidence |
+| `docs/REVIEW-M7-PR3.md` | M7 panels, query coverage, browser/native verification |
+| `docs/PLAYTEST-M7.md` | Accelerated Phase 0–5 UI campaign and choices |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |
 | `docs/RELEASE.md` | Release builds, signing, distribution and qualification limits |
 | `docs/PRIVACY.md` | No-data-collection declaration and local save behavior |

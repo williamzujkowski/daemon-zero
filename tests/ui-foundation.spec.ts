@@ -32,7 +32,7 @@ async function mount(name: string, width: number) {
   host.document.body.appendChild(container);
   const root = createRoot(container);
   await act(async () => { root.render(createElement(TerminalScreen)); await vi.advanceTimersByTimeAsync(0); });
-  act(() => { gameStore.initialize(state, 0, null); });
+  await act(async () => { gameStore.initialize(state, 0, null); await vi.advanceTimersByTimeAsync(0); });
   return { container, close() { act(() => { root.unmount(); }); container.remove(); } };
 }
 
