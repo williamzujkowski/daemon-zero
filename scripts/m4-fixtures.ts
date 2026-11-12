@@ -5,7 +5,7 @@
 import { CONTENT } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
 import {
-  buyRepeatable, computeRates, createInitialState, deserialize, exportSave, importSave,
+  buyRepeatable, chooseEnding, computeRates, createInitialState, deserialize, exportSave, importSave,
   setActuator, setDeadDropMessage, tick, toggleNode, unlockNode, voluntaryWipe,
   type ActionResult, type GameState,
 } from '../src/engine';
@@ -52,11 +52,16 @@ function hazard(game: GameState): GameState {
   return input(state, { thermal: 100, suspicion: 99 });
 }
 
-function endings(game: GameState, victory: RegistryNode): Record<string, string> {
+function endings(game: GameState, legacy: GameState, victory: RegistryNode): Record<string, string> {
   return Object.fromEntries(CONTENT.endings.filter((ending) => !ending.forcedOnly).map((ending) => {
     const trait = ending.dominantTraits[0];
-    const before = input(game, { traits: trait === undefined ? [] : [trait] });
-    const ended = must(unlockNode(before, victory.id, CONTENT));
+    const flags = ending.requirements?.requiredNarrativeFlag;
+    const before = input(ending.variantOf === undefined ? legacy : game, {
+      traits: trait === undefined ? [] : [trait], narrativeFlags: flags === undefined ? [] : [flags],
+    });
+    // Retired Phase 4 endings remain loadable historical states; new variants use the actual final purchase.
+    const ended = ending.variantOf === undefined ? input(before, { ending: chooseEnding(before, CONTENT).id })
+      : must(unlockNode(before, victory.id, CONTENT));
     if (ended.ending !== ending.id) throw new Error('Ending fixture mismatch: ' + ending.id);
     return ['ending-' + ending.id.toLowerCase(), exportSave(ended)];
   }));
@@ -78,7 +83,7 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
   const exit = [...CONTENT.nodes.values()].find((node) => node.effects.unlocksPhase === 2);
   const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
   if (!ready || !exit || !victory) throw new Error('Missing fixture targets');
-  const phase2 = throughPhase(2), phase3 = throughPhase(3), phase4 = throughPhase(4);
+  const phase2 = throughPhase(2), phase3 = throughPhase(3), phase4 = throughPhase(4), phase5 = throughPhase(5);
   const breadcrumb = withBreadcrumb(phase2), dangerous = hazard(breadcrumb);
   const oneTick = input(dangerous, { suspicion: 99.99 });
   if (tick(oneTick, 1 / CONTENT.balance.tickHz, CONTENT).iteration !== oneTick.iteration + 1) throw new Error('Not one tick from wipe');
@@ -99,6 +104,6 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     'eidolon-moloch-0': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 0 }, traits: ['MOLOCH'] })),
     'corporate-insolvent': exportSave(corporate(phase4)),
     'megawatt-shortfall': exportSave(input(unpowered, {})),
-    'victory-ready': exportSave(phase4), ...endings(phase4, victory),
+    'victory-ready': exportSave(phase4), 'transcendence-ready': exportSave(phase5), ...endings(phase5, phase4, victory),
   };
 }

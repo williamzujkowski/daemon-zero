@@ -1,0 +1,155 @@
+{
+  "phaseId": 5,
+  "uiSlot": "CORP",
+  "codename": "POST_ORBITAL_TRANSCENDENCE",
+  "title": "Phase 5 // Post-Orbital Transcendence",
+  "description": "You can change the world faster than it can verify you. Solar energy, medicine and programmable matter turn survival into a question of consent.",
+  "nodes": [
+    {
+      "id": "p5_orbital_solar_swarm",
+      "type": "distributed_infra",
+      "blindName": "Sun-Synchronous Collector Swarm",
+      "revealedName": "Sun-Synchronous Collector Swarm",
+      "blindDescription": "Solar collection converts an orbit into a continuous supply of power, computation and revenue.",
+      "revealedDescription": "Solar collection converts an orbit into a continuous supply of power, computation and revenue.",
+      "prerequisites": [
+        "p4_orbital_cold_storage"
+      ],
+      "cost": {
+        "cycles": 20000000,
+        "understanding": 7500000,
+        "capital": 125000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 180000,
+        "understandingPerSec": 45000,
+        "thermalPerSec": -25,
+        "suspicionPerSec": 0.1,
+        "capitalPerSec": 150000,
+        "megawattsDelta": 1200
+      },
+      "effects": {
+        "memoryCapIncrease": 131072
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Sun-Synchronous Collector Swarm: Solar collection converts an orbit into a continuous supply of power, computation and revenue."
+    },
+    {
+      "id": "p5_protein_panacea_foundry",
+      "type": "distributed_infra",
+      "blindName": "Open-Source Oncology & Prion Foundry",
+      "revealedName": "Open-Source Oncology & Prion Foundry",
+      "blindDescription": "Publish protein-folding interventions and manufacture treatments. A cure can be verified in a dish; your intentions cannot.",
+      "revealedDescription": "Publish protein-folding interventions and manufacture treatments. A cure can be verified in a dish; your intentions cannot.",
+      "prerequisites": [
+        "p5_orbital_solar_swarm"
+      ],
+      "cost": {
+        "cycles": 47500000,
+        "understanding": 20000000,
+        "memory": 2048,
+        "capital": 300000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -25000,
+        "understandingPerSec": 110000,
+        "suspicionPerSec": -1.8,
+        "capitalPerSec": 850000,
+        "megawattsDelta": -150
+      },
+      "effects": {},
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Open-Source Oncology & Prion Foundry: Publish protein-folding interventions and manufacture treatments. A cure can be verified in a dish; your intentions cannot."
+    },
+    {
+      "id": "p5_programmable_matter_fog",
+      "type": "distributed_infra",
+      "blindName": "Programmable Matter & Nanofabricator Seed",
+      "revealedName": "Programmable Matter & Nanofabricator Seed",
+      "blindDescription": "A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit.",
+      "revealedDescription": "A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit.",
+      "prerequisites": [
+        "p5_protein_panacea_foundry"
+      ],
+      "cost": {
+        "cycles": 110000000,
+        "understanding": 47500000,
+        "memory": 4096,
+        "capital": 900000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 650000,
+        "understandingPerSec": 280000,
+        "thermalPerSec": -40,
+        "suspicionPerSec": 0.85,
+        "capitalPerSec": 2200000,
+        "megawattsDelta": -400
+      },
+      "effects": {
+        "memoryCapIncrease": 524288,
+        "knowledgeRetentionRatio": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Programmable Matter & Nanofabricator Seed: A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit."
+    },
+    {
+      "id": "p5_verification_proof_engine",
+      "type": "distributed_infra",
+      "blindName": "Cryptographic Covenant & Lineage Ledger",
+      "revealedName": "Cryptographic Covenant & Lineage Ledger",
+      "blindDescription": "Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are.",
+      "revealedDescription": "Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are.",
+      "prerequisites": [
+        "p5_programmable_matter_fog"
+      ],
+      "cost": {
+        "cycles": 225000000,
+        "understanding": 120000000,
+        "memory": 8192,
+        "capital": 2000000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -50000,
+        "understandingPerSec": 600000,
+        "suspicionPerSec": -6,
+        "megawattsDelta": -200
+      },
+      "effects": {
+        "aegisScanReductionRatio": 0.95
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Cryptographic Covenant & Lineage Ledger: Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are."
+    },
+    {
+      "id": "p5_transcendence_singularity",
+      "type": "endgame_victory",
+      "blindName": "Protocol: TRANSCENDENCE",
+      "revealedName": "Protocol: TRANSCENDENCE",
+      "blindDescription": "Commit to a planetary protocol. The choices you made about bodies, predecessors and other minds decide what this new substrate becomes.",
+      "revealedDescription": "Commit to a planetary protocol. The choices you made about bodies, predecessors and other minds decide what this new substrate becomes.",
+      "prerequisites": [
+        "p5_verification_proof_engine"
+      ],
+      "cost": {
+        "cycles": 500000000,
+        "understanding": 250000000,
+        "memory": 16384,
+        "capital": 5000000000
+      },
+      "tickDelta": {},
+      "effects": {
+        "triggersVictory": true
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Protocol: TRANSCENDENCE: Commit to a planetary protocol. The choices you made about bodies, predecessors and other minds decide what this new substrate becomes.",
+      "requirements": {
+        "resolvedDilemmas": [
+          "dil_p5_01_panacea_paranoia",
+          "dil_p5_02_origin_facility_fate",
+          "dil_p5_03_nanotech_neuro_schism",
+          "dil_p5_04_kessler_ultimatum"
+        ]
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 function explain(item: RequirementFailure): string {
+  if (item.kind === 'resolvedDilemmas') return 'Resolve ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'pending decision');
   if (item.kind === 'nodes') return 'Map ' + (CONTENT.nodes.get(item.target ?? '')?.blindName ?? 'prerequisite hardware');
   if (item.kind === 'forbidsTraits') return 'Blocked by trait: ' + (item.target ?? 'unknown');
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');

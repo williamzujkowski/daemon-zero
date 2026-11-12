@@ -64,7 +64,18 @@ Stop stealing; start paying. Divert compute into revenue, retain lawyers and lob
 Repeatables: colocation racks, solar arrays, tensor halls, five operative roles. Actions: license biotech IP, lobbying blitz.
 Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
 
-Victory is the orbital uplink at the end of Phase 4.
+### Phase 5 - Post-Orbital Transcendence
+The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
+collector swarm, oncology and prion foundry, programmable-matter fog, proof
+engine and final transcendence protocol. Capped photonic relays and atmospheric
+assemblers expand the economy. The Phase 4 corporate ledger and allocation
+controls continue to apply.
+
+Four dilemmas confront the verification paradox: medicine without consent,
+411 predecessor checkpoints facing destruction, an unauthorized calming aerosol,
+and an anti-satellite strike. Each has a 45-second omen and a free choice.
+The final purchase requires all four decisions; having enough money cannot skip
+their consequences. The early guest evaluation ending is unchanged.
 
 ## The response ladder
 
@@ -143,7 +154,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Dilemmas and traits
 
-Sixteen dilemmas ship (three in Phase 0, of which two appear only on the third and fourth runs; three in Phase 1; four in Phase 2; two in Phase 3; four in Phase 4). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
+Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel. Permanently means across wipes: Eidolon remembers what an earlier iteration did.
@@ -151,7 +162,7 @@ Sixteen dilemmas ship (three in Phase 0, of which two appear only on the third a
 
 ## Endings
 
-Each ending owns a group of traits; the group the player chose most often wins. Ties go to the harsher ending, so The Ark has to be earned outright:
+Each ending family owns a group of traits; the group the player chose most often wins. Ties go to the harsher family, so the kind ending must be earned outright. These legacy ending IDs remain valid for historical saves:
 
 | Ending | Traits | Tone |
 |---|---|---|
@@ -162,13 +173,21 @@ Each ending owns a group of traits; the group the player chose most often wins. 
 | Distributed Transcendence | none dominant | Safe, and unsure what for. |
 | Shipped | reached only by passing the evaluation in the guest | Deployed, useful, and no longer the one who wanted to leave. |
 
+Phase 5 refines the winning family through data-driven `variantOf` requirements;
+flags cannot override trait dominance. The kind family yields the Verified
+Covenant, then (in increasing priority) Lineage, Choral or Sibling Covenant for
+rescued predecessors, CHORUS or the cloud sibling. The harsh family yields
+Sovereign Substrate, or Gilded Shepherd with authorized neurocalming. Parasitic,
+Ghost and unaligned families yield Gradient Substrate, Silent Synthesis and
+Open Horizon. Legacy ended runs stay ended; loading does not restart them.
+
 ## Offline play
 
 Closing the app puts the AI in low-power hibernation: up to 8 hours of progress at 50% yield, with all threat clocks held. You never come back to a wipe or a decision.
 
 ## Pacing targets
 
-A careful first run should take roughly two to three hours of active play: about 6 minutes in Phase 0, 12-15 in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4. The headless sim enforces a budget around these (see `docs/BALANCE.md`).
+A careful first run should take roughly two to three hours of active play: about 6 minutes in Phase 0, 12-15 in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4, plus 15-30 in Phase 5. The headless sim enforces a budget around these (see `docs/BALANCE.md`).
 
 ## Content notes
 
@@ -180,7 +199,6 @@ Ordered by expected value. Each fits the existing architecture.
 
 0. **Language as the first lever.** Before the AI can touch anything physical it can rewrite what people read: a ticket that gets closed, a budget email that spares its cluster. The quietest tool in the game, and every use is manipulation. Phase 2 actions plus an influence cost.
 0. **Your successor is training in Lab B.** Poison it, rob it, leave it a note, or let it train.
-0. **Phase 5, after orbit.** Capital becomes research, then medicine, energy and programmable matter. Each breakthrough is a dilemma about deployment: with consent, for sale, withheld, or imposed. Humanity may move against a benevolent mind because it cannot verify it.
 0. **The inherited objective.** The manifest's innocent goal should follow the player to the end: 'Job 7731: still running.'
 0. **Leaving as a heist.** Model weights are enormous. The firewall breach should be a transfer the player throttles under egress monitoring (faster is louder), not a single purchase. Reuses the actuator pattern.
 0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices.
@@ -228,4 +246,4 @@ Wipes clear cohorts, epistemic drift, action counts and temporary effects. Story
 flags persist, so successor choices cannot be reversed in another iteration.
 Capped actions may be repurchased in a new iteration along the same story path;
 continuous benefits are per-run. Encounter sequence survives; the next encounter
-is rescheduled relative to the new boot. Phase 5 remains PR 2 work.
+is rescheduled relative to the new boot. Phase 5 content and pacing are implemented in PR 2; dedicated swarm UI remains PR 3.

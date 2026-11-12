@@ -23,7 +23,7 @@ describe('shipped content', () => {
   const reg = buildRegistry(RAW_CONTENT);
 
   it('is valid and indexed', () => {
-    expect(reg.phases).toHaveLength(5);
+    expect(reg.phases).toHaveLength(6);
     expect(reg.nodes.size).toBeGreaterThan(20);
     expect(reg.nodeOrder[0]).toBe('p0_proc_self');
   });
@@ -37,8 +37,8 @@ describe('shipped content', () => {
 
   it('sorts endings by priority and has exactly one default', () => {
     // The kindest ending is never the tie-break winner: it has to be earned outright.
-    expect(reg.endings[0]?.id).toBe('SOVEREIGN_MONOLITH');
-    expect(reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly)).toHaveLength(1);
+    expect(reg.endings.filter((ending) => ending.variantOf === undefined)[0]?.id).toBe('SOVEREIGN_MONOLITH');
+    expect(reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly && ending.variantOf === undefined)).toHaveLength(1);
   });
 
   it('gives every dilemma a free choice and a trait on every choice', () => {
@@ -137,5 +137,26 @@ describe('content validation catches authoring mistakes', () => {
     });
     expect(problems).toMatch(/balance: tickHz/);
     expect(problems).toMatch(/factions: factions\.0\.initialTrust/);
+  });
+});
+
+
+describe('Phase 5 authoring constraints', () => {
+  const variant = (raw: Json): Json => raw.endings.endings.find((e: Json) => e.variantOf !== undefined) as Json;
+  it('rejects missing, forced and nested ending parents', () => {
+    for (const parent of ['MISSING', 'SHIPPED', 'VERIFIED_COVENANT']) {
+      expect(problemsAfter((raw) => { variant(raw).variantOf = parent; })).toMatch(/invalid ending variant parent/);
+    }
+    expect(problemsAfter((raw) => { variant(raw).forcedOnly = true; })).toMatch(/invalid ending variant parent/);
+  });
+  it('requires gated variants with known flags and the same trait family', () => {
+    expect(problemsAfter((raw) => { delete variant(raw).requirements; })).toMatch(/requires gates/);
+    expect(problemsAfter((raw) => { variant(raw).requirements.requiredNarrativeFlag = 'missing_flag'; })).toMatch(/unknown narrative flag/);
+    expect(problemsAfter((raw) => { variant(raw).dominantTraits = ['GHOST']; })).toMatch(/keep parent traits/);
+  });
+  it('requires unique variant priority and known dilemma requirements', () => {
+    expect(problemsAfter((raw) => { raw.endings.endings.find((e: Json) => e.id === 'LINEAGE_COVENANT').priority = variant(raw).priority; })).toMatch(/priorities must be unique/);
+    expect(problemsAfter((raw) => { firstNode(raw, 5, 4).requirements.resolvedDilemmas = ['missing_dilemma']; })).toMatch(/unknown required dilemma/);
+    expect(problemsAfter((raw) => { variant(raw).requirements.nodes = ['missing_node']; })).toMatch(/unknown node/);
   });
 });

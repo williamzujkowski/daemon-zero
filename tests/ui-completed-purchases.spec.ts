@@ -116,3 +116,29 @@ describe('completed purchase feed', () => {
     view.close();
   });
 });
+
+
+it('Phase 5 purchases hide at completion while the corporate panel retains effects and daemon controls', async () => {
+  const view = await mountM4('victory-ready');
+  const orbit = [...CONTENT.nodes.values()].find((n) => n.effects.unlocksPhase === 5);
+  const solar = CONTENT.phases.find((p) => p.phaseId === 5)?.nodes[0];
+  if (!orbit || !solar) throw new Error('Missing orbital transition');
+  view.click('node-' + orbit.id + '-unlock');
+  expect(view.find('node-' + orbit.id)).toBeNull();
+  expect(view.find('node-' + solar.id)).not.toBeNull();
+  const before = computeRates(gameStore.store.getState().game, CONTENT);
+  view.click('node-' + solar.id + '-unlock');
+  expect(view.find('node-' + solar.id)).toBeNull();
+  expect(view.find('daemon-row-' + solar.id)).not.toBeNull();
+  expect(computeRates(gameStore.store.getState().game, CONTENT).understandingPerSec - before.understandingPerSec).toBeCloseTo(solar.tickDelta.understandingPerSec);
+  const game = m4State('transcendence-ready');
+  const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 5);
+  act(() => { gameStore.initialize({ ...game, levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel - 1])) } }, 0, null); });
+  for (const rep of reps) {
+    view.click('rep-' + rep.id + '-buy');
+    expect(view.find('rep-' + rep.id)).toBeNull();
+    expect(gameStore.store.getState().game.levels[rep.id]).toBe(5);
+  }
+  expect(view.find('repeatables-heading-5UPGRADE')).toBeNull();
+  view.close();
+});

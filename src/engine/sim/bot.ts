@@ -3,6 +3,7 @@
  * public engine actions, so anything it can do a human can do. Its purchase rule
  * is: buy whatever most reduces the time until the next tech node is affordable.
  */
+import { manageSwarm, progressionMemoryReserve } from './swarmStrategy';
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
 import type { Cost, EffectPayload, Repeatable } from '../../content/schema';
 import {
@@ -226,6 +227,7 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   const cfg = CONFIG[strategy];
   let s = tuneFan(tuneSkim(shedMarks(state, reg), reg, cfg), reg, cfg);
   s = respondToThreats(s, reg, cfg);
+  s = manageSwarm(s, reg, progressionMemoryReserve(s, reg), strategy === 'STEALTH');
   s = buildTrust(s, reg);
   s = clickManually(s, reg, cfg);
   s = tuneAllocation(s, reg);

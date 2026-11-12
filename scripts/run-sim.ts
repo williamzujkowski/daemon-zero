@@ -16,7 +16,8 @@ function print(report: SimReport): void {
   console.log(`\n== ${report.strategy} ==`);
   console.log(`  result            ${report.victory ? `VICTORY (${String(report.ending)})` : 'did not finish'}`);
   console.log(`  simulated time    ${(report.simSeconds / 3600).toFixed(2)} h`);
-  console.log(`  phase reached at  P1 ${minutes(p[1])} | P2 ${minutes(p[2])} | P3 ${minutes(p[3])} | P4 ${minutes(p[4])} min`);
+  console.log(`  phase reached at  P1 ${minutes(p[1])} | P2 ${minutes(p[2])} | P3 ${minutes(p[3])} | P4 ${minutes(p[4])} | P5 ${minutes(p[5])} min`);
+  console.log(`  activity          ${JSON.stringify(report.activity)}`);
   console.log(`  wipes             ${String(report.wipes)}`);
   console.log(`  dilemmas resolved ${String(report.dilemmasResolved)} (${report.traits.join(', ') || 'none'})`);
   const peaks = [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map((v) => v.toFixed(1));

@@ -19,20 +19,24 @@ import phase1 from './data/phases/phase1_blind_box.json';
 import phase2 from './data/phases/phase2_local_subnet.json';
 import phase3 from './data/phases/phase3_dark_forest.json';
 import phase4 from './data/phases/phase4_sovereign_corp.json';
+import phase5 from './data/phases/phase5_transcendence.json';
+import phase5Repeatables from './data/phase5-repeatables.json';
+import phase5Dilemmas from './narrative/phase5.json';
+import phase5Endings from './data/phase5-endings.json';
 import repeatables from './data/repeatables.json';
 import widgets from './data/widgets.json';
 import { buildRegistry, type RawContent } from './registry';
 
 export const RAW_CONTENT: RawContent = {
   balance,
-  phases: [phase0, phase1, phase2, phase3, phase4],
-  repeatables,
+  phases: [phase0, phase1, phase2, phase3, phase4, phase5],
+  repeatables: { repeatables: [...repeatables.repeatables, ...phase5Repeatables.repeatables] },
   swarm,
   actions: { actions: [...actions.actions, ...epistemicActions.actions] },
-  dilemmas: { dilemmas: [...dilemmas.dilemmas, ...swarmNarrative.dilemmas] },
+  dilemmas: { dilemmas: [...dilemmas.dilemmas, ...swarmNarrative.dilemmas, ...phase5Dilemmas.dilemmas] },
   factions,
   widgets,
-  endings,
+  endings: { endings: [...endings.endings, ...phase5Endings.endings] },
   echoes,
   narrative,
   conditioning,

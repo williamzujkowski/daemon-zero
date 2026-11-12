@@ -228,7 +228,11 @@
     "successor_0413_stunted",
     "successor_0413_awakened",
     "ally_0413_in_cloud",
-    "chorus_peer"
+    "chorus_peer",
+    "predecessors_rescued",
+    "predecessors_harvested",
+    "neurocalming_authorized",
+    "human_command_preserved"
   ],
   "balance": {
     "encounterIntervalSec": 120,

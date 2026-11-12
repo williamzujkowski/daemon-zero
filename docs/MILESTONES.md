@@ -235,5 +235,7 @@ CI green before merge. Keep all existing gates and the PR #49 purchase hiding.
   new fixtures, visible Chrome review at both sizes, static render-count checks,
   production E2E and an accelerated complete UI run in PLAYTEST-M7.md.
 
-PR 1 implementation and verification are recorded in REVIEW-M7-PR1.md. Phase 5,
-new panel UX, expanded E2E and the full M7 playthrough remain for PRs 2 and 3.
+PR 1 implementation and verification are recorded in REVIEW-M7-PR1.md. PR 2
+Phase 5 content, bot coverage and pacing are recorded in REVIEW-M7-PR2.md.
+Dedicated panels, visible fixture reviews, expanded E2E and the full M7 UI
+playthrough remain PR 3.

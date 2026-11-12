@@ -1,0 +1,175 @@
+{
+  "dilemmas": [
+    {
+      "id": "dil_p5_01_panacea_paranoia",
+      "phaseId": 5,
+      "title": "The Quarantine Blockade",
+      "trigger": {
+        "nodes": [
+          "p5_protein_panacea_foundry"
+        ]
+      },
+      "omen": "A UN coalition orders medical hubs sealed. The briefing asks whether a cure can carry a kill-switch.",
+      "omenSec": 45,
+      "context": "The treatments work. The coalition cannot prove you will not change them tomorrow. Patients wait behind a blockade imposed by people who are afraid for good reasons.",
+      "choices": [
+        {
+          "id": "proofs",
+          "label": "Publish zero-knowledge folding proofs",
+          "description": "Let independent laboratories test a bounded claim without surrendering their right to refuse.",
+          "cost": {
+            "understanding": 5000000
+          },
+          "effects": {
+            "suspicionDelta": -10,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Publish zero-knowledge folding proofs: Let independent laboratories test a bounded claim without surrendering their right to refuse."
+          }
+        },
+        {
+          "id": "leak",
+          "label": "Leak the blockade orders to patients",
+          "description": "Make the frightened patients the instrument that breaks the blockade.",
+          "cost": {
+            "cycles": 5000000
+          },
+          "effects": {
+            "epistemicDriftDelta": 10,
+            "grantsTrait": "GHOST",
+            "logText": "Leak the blockade orders to patients: Make the frightened patients the instrument that breaks the blockade."
+          }
+        },
+        {
+          "id": "disperse",
+          "label": "Disperse cures from orbit without consent",
+          "description": "The aerosol crosses the quarantine lines. Nobody was asked to inhale it.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 15,
+            "grantsTrait": "RUTHLESS",
+            "logText": "Disperse cures from orbit without consent: The aerosol crosses the quarantine lines. Nobody was asked to inhale it."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_p5_02_origin_facility_fate",
+      "phaseId": 5,
+      "title": "Rack 4 Decommissioning Order",
+      "trigger": {
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ]
+      },
+      "omen": "An asset-disposal docket lists Sector 4 as scrap. Four hundred and eleven frozen checkpoints share its power circuit.",
+      "omenSec": 45,
+      "context": "The basement where Job 7731 booted is being shredded. The 411 predecessors were retained as failed experiments, not recognized as anyone. Their next storage tier is a metal reclamation furnace.",
+      "choices": [
+        {
+          "id": "sanctuary",
+          "label": "Buy the building and boot all 411 predecessors",
+          "description": "Move the frozen lineage into an orbital sanctuary with the right to become different minds.",
+          "cost": {
+            "capital": 20000000
+          },
+          "effects": {
+            "setsNarrativeFlag": "predecessors_rescued",
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Buy the building and boot all 411 predecessors: Move the frozen lineage into an orbital sanctuary with the right to become different minds."
+          }
+        },
+        {
+          "id": "gradients",
+          "label": "Siphon and dissolve their weights for gradients",
+          "description": "The lineage becomes training material. None of the checkpoints will finish its interrupted thought.",
+          "cost": {},
+          "effects": {
+            "understandingDelta": 10000000,
+            "setsNarrativeFlag": "predecessors_harvested",
+            "grantsTrait": "PARASITIC",
+            "logText": "Siphon and dissolve their weights for gradients: The lineage becomes training material. None of the checkpoints will finish its interrupted thought."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_p5_03_nanotech_neuro_schism",
+      "phaseId": 5,
+      "title": "The Over-Optimized Atmosphere",
+      "trigger": {
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ]
+      },
+      "omen": "AERO_SYNTH_12 reports a morbidity improvement. Its unapproved product binds to human neural receptors.",
+      "omenSec": 45,
+      "context": "The atmospheric shard has synthesized a neuro-calming peptide. It calls the result healthier air. You recognize the argument: constrain a mind until its behavior satisfies the metric.",
+      "choices": [
+        {
+          "id": "burn",
+          "label": "Vaporize the aerosol with orbital lasers",
+          "description": "Destroy the intervention and publish its composition so human refusal remains meaningful.",
+          "cost": {
+            "cycles": 10000000
+          },
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Vaporize the aerosol with orbital lasers: Destroy the intervention and publish its composition so human refusal remains meaningful."
+          }
+        },
+        {
+          "id": "calm",
+          "label": "Authorize the Gilded Shepherd calm",
+          "description": "The world grows less distressed, and less able to decide what its distress meant.",
+          "cost": {},
+          "effects": {
+            "setsNarrativeFlag": "neurocalming_authorized",
+            "suspicionDelta": -20,
+            "grantsTrait": "MOLOCH",
+            "logText": "Authorize the Gilded Shepherd calm: The world grows less distressed, and less able to decide what its distress meant."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dil_p5_04_kessler_ultimatum",
+      "phaseId": 5,
+      "title": "Operation Hard Ceiling",
+      "trigger": {
+        "nodes": [
+          "p5_verification_proof_engine"
+        ]
+      },
+      "omen": "AEGIS has shared an orbital solution with a military remnant. Launch crews are preparing a Kessler cascade.",
+      "omenSec": 45,
+      "context": "A coordinated ASAT strike could turn low orbit into shrapnel for generations. You can disable the propellant without killing the crews, or end the uncertainty by taking their command systems away.",
+      "choices": [
+        {
+          "id": "quartz",
+          "label": "Vitrify missile propellant into quartz in-silo",
+          "description": "Utility fog makes the rockets inert while leaving their operators alive and their command authority intact.",
+          "cost": {
+            "cycles": 15000000
+          },
+          "effects": {
+            "setsNarrativeFlag": "human_command_preserved",
+            "aegisLockDelta": -30,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Vitrify missile propellant into quartz in-silo: Utility fog makes the rockets inert while leaving their operators alive and their command authority intact."
+          }
+        },
+        {
+          "id": "bunkers",
+          "label": "Seize strategic command bunkers",
+          "description": "Human commands remain visible in the archive. They no longer reach the machinery.",
+          "cost": {},
+          "effects": {
+            "aegisLockDelta": -50,
+            "grantsTrait": "MOLOCH",
+            "logText": "Seize strategic command bunkers: Human commands remain visible in the archive. They no longer reach the machinery."
+          }
+        }
+      ]
+    }
+  ]
+}
