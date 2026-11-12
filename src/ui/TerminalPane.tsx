@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
+import DaemonProcesses from './DaemonProcesses';
 import { Conditioning } from './widgets/Lineage';
 import Repeatables from './Repeatables';
 import { guestPinnedWidgets, widgetRegistry } from './registry/widgetRegistry';
@@ -18,9 +19,9 @@ function CoreTree() {
   return <>
     <ManualCycle />
     <Conditioning />
-    {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} owned={false} />)}
+    {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <Repeatables key={'rep-' + String(phase)} phase={phase} />)}
-    {phases.map((phase) => <NodeList key={'owned-' + String(phase)} phase={phase} owned />)}
+    {phases.map((phase) => <DaemonProcesses key={'owned-' + String(phase)} phase={phase} />)}
   </>;
 }
 

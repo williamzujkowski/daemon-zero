@@ -6,6 +6,7 @@ import { setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
+import DaemonProcesses from '../DaemonProcesses';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
@@ -53,12 +54,10 @@ export default function Corporate() {
   const phase = CONTENT.balance.corporatePhase;
   return <View style={{ gap: 14 }}>
     <Ledger /><Allocation />
-    <NodeList phase={phase} owned={false} />
+    <NodeList phase={phase} />
     <ActionsPanel group="CORP" />
-    <Text accessibilityRole="header" style={theme.heading}>Infrastructure</Text>
-    <Repeatables phase={phase} kind="UPGRADE" />
-    <Text accessibilityRole="header" style={theme.heading}>Operatives // payroll</Text>
-    <Repeatables phase={phase} kind="OPERATIVE" />
-    <NodeList phase={phase} owned />
+    <Repeatables phase={phase} kind="UPGRADE" title="Infrastructure" />
+    <Repeatables phase={phase} kind="OPERATIVE" title="Operatives // payroll" />
+    <DaemonProcesses phase={phase} />
   </View>;
 }

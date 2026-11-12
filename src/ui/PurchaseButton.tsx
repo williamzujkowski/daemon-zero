@@ -14,8 +14,8 @@ import { feedback } from '../app/feedback';
 import { useReducedMotion } from '../app/useReducedMotion';
 import { theme } from './theme';
 
-export default function PurchaseButton({ id, label, cost, allowed, action }: {
-  id: string; label: string; cost: Cost; allowed?: (game: GameState) => boolean;
+export default function PurchaseButton({ id, label, text, cost, allowed, action }: {
+  id: string; label: string; text?: string; cost: Cost; allowed?: (game: GameState) => boolean;
   action: (game: GameState) => ActionResult;
 }) {
   const reduced = useReducedMotion();
@@ -29,6 +29,6 @@ export default function PurchaseButton({ id, label, cost, allowed, action }: {
       const result = gameRuntime.dispatch(action);
       if (result.ok) { recordUnlocks(before, result.state.unlockedNodes); void feedback('purchase', reduced); }
     }}>
-    <Text style={theme.text}>{label}</Text>
+    <Text style={theme.text}>{text ?? label}</Text>
   </Pressable>;
 }

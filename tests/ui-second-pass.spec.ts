@@ -19,7 +19,8 @@ describe('second-pass interface', () => {
     expect(view.find('suspicion-meter')).toBeNull();
     expect(view.find('response-rungs')).toBeNull();
     expect(view.container.textContent).not.toContain('suspicion/s');
-    expect(view.container.textContent).toContain('more audit log activity');
+    expect(view.find('audit-unreadable')?.textContent).toContain('Contents unreadable');
+    expect(view.container.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
     expect(view.find('res-understanding')).not.toBeNull();
     expect(view.find('thermal-meter')).toBeNull();
     expect(view.find('fan-setting')).toBeNull();
@@ -43,13 +44,14 @@ describe('second-pass interface', () => {
     view.close();
   });
 
-  it('keeps guest hardware in the core pane after the escape, under the host hardware', async () => {
+  it('keeps guest benefits and host process controls after escape without completed cards', async () => {
     const view = await mountM4('thermal-unlocked');
     const text = view.container.textContent;
     const guest = CONTENT.phases[0]?.nodes[0];
     const host = CONTENT.phases[1]?.nodes[0];
     if (!guest || !host) throw new Error('Missing phases');
-    expect(text).toContain(guest.revealedName);
+    expect(view.find('node-' + guest.id)).toBeNull();
+    expect(gameStore.store.getState().game.unlockedNodes).toContain(guest.id);
     expect(text).toContain(host.revealedName);
     expect(view.find('thermal-meter')).not.toBeNull();
     expect(view.container.querySelectorAll('[data-testid="audit-unreadable"]')).toHaveLength(1);

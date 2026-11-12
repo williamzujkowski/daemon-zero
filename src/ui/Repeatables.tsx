@@ -17,6 +17,7 @@ import PurchaseButton from './PurchaseButton';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
+import { pendingRepeatable } from './purchaseVisibility';
 
 const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
@@ -32,12 +33,12 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}
     {rep.perLevelEffects.aegisScanReduction > 0 && <Text style={theme.muted}>
       AEGIS scan reduction: {Math.round(rep.perLevelEffects.aegisScanReduction * 100)}% per level</Text>}
-    {level < rep.maxLevel ? <>
+    <>
       <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}</Text>
       <CostHint cost={cost} />
       <PurchaseButton id={'rep-' + rep.id + '-buy'} label={(rep.kind === 'OPERATIVE' ? 'Hire ' : 'Buy ') + rep.name} cost={cost}
         allowed={(game) => meetsRequirements(game, rep.requirements)} action={(game) => buyRepeatable(game, rep.id, CONTENT)} />
-    </> : <Text style={theme.muted}>Maximum level reached</Text>}
+    </>
     {rep.dismissable && level > 0 && <>
       <Text style={theme.muted}>Dismiss one; no purchase refund.</Text>
       <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={'Dismiss ' + rep.name}
@@ -47,12 +48,28 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   </View>;
 });
 
-export default function Repeatables({ phase, kind }: { phase: number; kind?: Repeatable['kind'] }) {
+/** A capped payroll role still needs a dismissal control, but no purchase tile. */
+function CappedOperative({ rep }: { rep: Repeatable }) {
+  const level = useGame((game) => repeatableLevel(game, rep.id));
+  return <View testID={'roster-' + rep.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    <Text style={[theme.text, { flex: 1 }]}>{rep.name} × {level}</Text>
+    <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={'Dismiss ' + rep.name} text="[ DISMISS ]"
+      cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0 }}
+      action={(game) => dismissRepeatable(game, rep.id, CONTENT)} />
+  </View>;
+}
+
+export default function Repeatables({ phase, kind, title }: { phase: number; kind?: Repeatable['kind']; title?: string }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
-    .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) &&
-      meetsRequirements(game, rep.requirements)).map((rep) => rep.id)));
-  return <>{ids.map((id) => {
-    const rep = CONTENT.repeatables.get(id);
-    return rep ? <Upgrade key={id} rep={rep} /> : null;
-  })}</>;
+    .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && pendingRepeatable(game, rep))
+    .map((rep) => rep.id)));
+  const capped = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
+    .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && rep.dismissable &&
+      repeatableLevel(game, rep.id) >= rep.maxLevel).map((rep) => rep.id)));
+  if (ids.length === 0 && capped.length === 0) return null;
+  return <>
+    {title && <Text testID={'repeatables-heading-' + String(phase) + (kind ?? '')} accessibilityRole="header" style={theme.heading}>{title}</Text>}
+    {ids.map((id) => { const rep = CONTENT.repeatables.get(id); return rep ? <Upgrade key={id} rep={rep} /> : null; })}
+    {capped.map((id) => { const rep = CONTENT.repeatables.get(id); return rep ? <CappedOperative key={id} rep={rep} /> : null; })}
+  </>;
 }
