@@ -47,7 +47,7 @@ export class DevelopmentActions {
         raw.resolvedDilemmas = CONTENT.dilemmas.map((dilemma) => dilemma.id);
       });
       for (const node of CONTENT.nodes.values()) {
-        if (node.phaseId >= phase || !isNodeAvailable(state, node)) continue;
+        if (node.phaseId >= phase || !isNodeAvailable(state, node, CONTENT)) continue;
         const result = unlockNode(state, node.id, CONTENT);
         if (!result.ok) throw new Error(result.reason);
         state = result.state;

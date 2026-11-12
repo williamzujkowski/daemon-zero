@@ -37,7 +37,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}</Text>
       <CostHint cost={cost} />
       <PurchaseButton id={'rep-' + rep.id + '-buy'} label={(rep.kind === 'OPERATIVE' ? 'Hire ' : 'Buy ') + rep.name} cost={cost}
-        allowed={(game) => meetsRequirements(game, rep.requirements)} action={(game) => buyRepeatable(game, rep.id, CONTENT)} />
+        allowed={(game) => meetsRequirements(game, rep.requirements, CONTENT)} action={(game) => buyRepeatable(game, rep.id, CONTENT)} />
     </>
     {rep.dismissable && level > 0 && <>
       <Text style={theme.muted}>Dismiss one; no purchase refund.</Text>

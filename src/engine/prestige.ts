@@ -102,6 +102,9 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
   const d: GameState = {
     ...fresh,
     iteration: old.iteration + 1,
+    narrativeFlags: [...old.narrativeFlags],
+    nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
+    encounterSequenceIndex: old.encounterSequenceIndex,
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: Math.floor(old.understanding * old.retentionRatio),

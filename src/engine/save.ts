@@ -4,6 +4,7 @@
  * schema validation -> reconciliation against the current content.
  */
 import type { ContentRegistry } from '../content/registry';
+import { reconcileSwarm } from './saveSwarm';
 import { fromBase64, toBase64 } from './base64';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
@@ -18,6 +19,10 @@ const MAX_SAVE_CHARS = 1_000_000;
  * Never edit an existing step; players may still hold saves of any old version.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
+  // v4: human-record discrepancies, durable story flags and deterministic shard cohorts.
+  3: (save) => ({ ...save, epistemicDrift: 0, narrativeFlags: [], activeShards: {},
+    pendingWildEncounterId: null, nextEncounterAtSec: 120, encounterSequenceIndex: 0,
+    hasMaxDriftShardAnomaly: false, actionCounts: {}, actionEffectUntil: {} }),
   // v2: the guest phase, the response ladder, dilemma omens and remembered hardware.
   1: (save) => {
     const actuators = typeof save.actuators === 'object' && save.actuators !== null ? save.actuators : {};
@@ -106,7 +111,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
   const restored = unlockedNodes.filter((id) => !s.unlockedNodes.includes(id));
   const widgets = [...new Set([...s.unlockedWidgets, ...widgetsOf(restored, reg)])];
-  return {
+  return reconcileSwarm({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
@@ -123,7 +128,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     activeDilemmaId: activeKnown ? s.activeDilemmaId : null,
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
-  };
+  }, reg);
 }
 
 export function serialize(state: GameState): string {

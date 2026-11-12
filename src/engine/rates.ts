@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { TickDelta } from '../content/schema';
+import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
 import type { GameState, Rates } from './state';
 
@@ -101,6 +102,8 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const a = emptyAggregate();
   addNodes(a, s, reg);
   addRepeatables(a, s, reg);
+  for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
+  for (const output of actionOutputs(s, reg)) addDelta(a, output.delta, output.count, 1, 1);
 
   const short = a.mwConsumed > a.mwGenerated;
   const gridEfficiency = short ? Math.max(b.minGridEfficiency, a.mwGenerated / a.mwConsumed) : 1;

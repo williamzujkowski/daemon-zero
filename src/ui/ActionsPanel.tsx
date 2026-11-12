@@ -2,9 +2,13 @@ import { Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /** Action groups, prices and consequences come from the content registry. */
 
+import { memo } from 'react';
+import { useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
+import { gameStore } from '../app/session';
 import { CONTENT } from '../content';
 import type { Action } from '../content/schema';
-import { meetsRequirements, performAction } from '../engine';
+import { actionAvailable, actionCost, actionExhausted, understandsSurveillance, performAction } from '../engine';
 import { costText } from './format';
 import Effects from './Effects';
 import PurchaseButton from './PurchaseButton';
@@ -13,24 +17,33 @@ import { useGame } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
 
-function ActionCard({ action }: { action: Action }) {
-  const cooldown = useGame((game) => Math.max(0, Math.ceil((game.cooldowns[action.id] ?? 0) - game.simTimeSec)));
+function Cooldown({ id }: { id: string }) {
+  const seconds = useGame((game) => Math.max(0, Math.ceil((game.cooldowns[id] ?? 0) - game.simTimeSec)));
+  return seconds > 0 ? <Text testID={'action-cooldown-' + id} style={theme.muted}>Cooldown: {seconds}s</Text> : null;
+}
+
+const ActionCard = memo(function ActionCard({ action }: { action: Action }) {
+  const cost = useStore(gameStore.store, useShallow(({ game }) => actionCost(game, action, CONTENT)));
   return <View testID={'action-card-' + action.id} style={theme.panel}>
     <Text style={theme.heading}>{action.label}</Text>
     <DisclosureText style={theme.text}>{action.description}</DisclosureText>
-    <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(action.cost)}</Text>
-    <CostHint cost={action.cost} />
+    <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(cost)}</Text>
+    <CostHint cost={cost} />
     <Effects effects={action.effects} />
     <RequirementHint requirements={action.requirements} />
-    {cooldown > 0 && <Text testID={'action-cooldown-' + action.id} style={theme.muted}>Cooldown: {cooldown}s</Text>}
-    <PurchaseButton id={'action-' + action.id} label={action.label} cost={action.cost}
-      allowed={(game) => meetsRequirements(game, action.requirements) && (game.cooldowns[action.id] ?? 0) <= game.simTimeSec}
+    <Cooldown id={action.id} />
+    <PurchaseButton id={'action-' + action.id} label={action.label} cost={cost}
+      allowed={(game) => actionAvailable(game, action, CONTENT) && (game.cooldowns[action.id] ?? 0) <= game.simTimeSec}
       action={(game) => performAction(game, action.id, CONTENT)} />
   </View>;
-}
+});
 
 export default function ActionsPanel({ group }: { group: string }) {
+  const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.actions.values()]
+    .filter((action) => action.group === group && !actionExhausted(game, action) &&
+      (!action.requirements.requiresSurveillance || (understandsSurveillance(game, CONTENT) && game.currentPhase >= (action.requirements.phaseAtLeast ?? 0))))
+    .map((action) => action.id)));
   return <View testID={'actions-group-' + group} style={{ gap: 12 }}>
-    {[...CONTENT.actions.values()].filter((action) => action.group === group).map((action) => <ActionCard key={action.id} action={action} />)}
+    {ids.map((id) => { const action = CONTENT.actions.get(id); return action ? <ActionCard key={id} action={action} /> : null; })}
   </View>;
 }

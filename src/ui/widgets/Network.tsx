@@ -63,7 +63,8 @@ export function Lore() {
 
 export function Cluster() {
   const text = useGame((game) => cycleContributions(game, CONTENT).map((source) => {
-    const name = source.kind === 'node' ? CONTENT.nodes.get(source.id)?.revealedName : CONTENT.repeatables.get(source.id)?.name;
+    const name = CONTENT.nodes.get(source.id)?.revealedName ?? CONTENT.repeatables.get(source.id)?.name ??
+      CONTENT.actions.get(source.id)?.label ?? CONTENT.swarm.playerSwarmTemplates.find((template) => template.id === source.id)?.name;
     return (name ?? 'Source') + ': ' + source.cyclesPerSec.toFixed(2) + ' cycles/s';
   }).join('\n'));
   return <Text testID="cycle-sources" style={theme.text}>{text || 'No active cycle sources'}</Text>;

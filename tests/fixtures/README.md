@@ -14,3 +14,11 @@ app checkpoints version 2 without replaying a guest escape. Web/Android manual
 checks use the same newly generated input. It is test data, not a screenshot or
 pacing fixture. Issue #39 records the existing migration's missing audit-widget
 unlock for already-playing version 1 saves.
+
+M7 compatibility inputs:
+- `pre-lineage-v2.json`: historical codec output from `aa290f8`, generated for
+  the lineage review (798.3 simulated seconds, twelve nodes). See REVIEW-LINEAGE.
+- `pre-m7-v3.json`: the engine-generated victory-ready fixture from the PR #49
+  baseline at `866d280`; schema and engine were unchanged in `89adc63`.
+
+M7 tests migrate all three inputs to v4 and round-trip the resulting saves.

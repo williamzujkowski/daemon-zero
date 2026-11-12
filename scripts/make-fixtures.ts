@@ -40,7 +40,7 @@ export function makePhase1Fixtures(): Record<string, string> {
   const found: Record<string, string> = { 'tick-0': exportSave(game) };
   const t = reviewTargets();
   const ready = (state: GameState, node: RegistryNode): boolean =>
-    isNodeAvailable(state, node) && canAfford(state, nodeCost(state, node, CONTENT));
+    isNodeAvailable(state, node, CONTENT) && canAfford(state, nodeCost(state, node, CONTENT));
   const observe = (state: GameState): void => {
     const active = CONTENT.dilemmas.find((dilemma) => dilemma.id === state.activeDilemmaId);
     if (state.unlockedNodes.includes(t.skimmer.id)) found['guest-skimmer'] ??= exportSave(state);

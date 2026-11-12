@@ -194,3 +194,23 @@ engine's public actions or `advance`, not the store or UI.
 | Repeatables | The earlier tree had no repeatable purchases, so there was no incremental loop and Phase 1 could not be completed. |
 | Requirements/effects as shared data shapes | Faction trades and corporate operations become JSON instead of hand-written store functions. |
 | TypeScript 6.0.x, pnpm 10.x, Node 24 LTS | TypeScript 6.0 is the newest version that both the Expo SDK 58 template and typescript-eslint support. Node 24 is the conservative LTS choice; Node 26 LTS is also supported by the toolchain and is a one-line change in `mise.toml`. See `docs/REVIEW-FINDINGS.md` section E for exactly what was run on which versions. |
+
+## M7 engine extension (PR 1)
+
+Schema v4 adds epistemic drift, durable narrative flags, shard cohorts, a pending
+encounter and sequence/schedule counters, an anomaly flag, action purchase counts
+and temporary-effect expiry times. `save.ts` retains migrations; `state.ts` retains
+SCHEMA_VERSION. `saveSwarm.ts` reconciles cohort/content references and releases
+removed cohorts' memory reservations. Historical migration steps are unchanged.
+
+`schemaBalance.ts` extracts the unchanged balance schema to keep schema.ts below
+400 lines. `schemaSwarm.ts` validates shards.json; epistemic actions and narrative
+files are merged by the content entry point. Every new cross-reference integrity
+rule has a corruption test.
+
+`epistemic.ts` shares action caps, eligibility, dynamic prices and requirement
+failures. `swarmRates.ts` feeds cohort/action output into computeRates and source
+queries. The two new pipeline stages integrate epistemic drift and evaluate
+mutations/encounters after threats and before dilemmas; a threat wipe still halts
+the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
+the public engine API. Costs and one-shot outcomes still use transactions.

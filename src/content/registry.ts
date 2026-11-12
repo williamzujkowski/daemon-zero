@@ -6,10 +6,12 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
+import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
 export interface ContentRegistry {
+  swarm: Swarm;
   balance: S.Balance;
   phases: S.Phase[];
   nodes: ReadonlyMap<string, RegistryNode>;
@@ -28,6 +30,7 @@ export interface ContentRegistry {
 }
 
 export interface RawContent {
+  swarm: unknown;
   balance: unknown;
   phases: unknown[];
   repeatables: unknown;
@@ -97,6 +100,7 @@ function indexNodes(phases: S.Phase[], problems: string[]): Map<string, Registry
 }
 
 function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
+  const swarm = parse(SwarmSchema, raw.swarm, 'swarm', problems);
   const balance = parse(S.BalanceSchema, raw.balance, 'balance', problems);
   const narrative = parse(S.NarrativeSchema, raw.narrative, 'narrative', problems);
   const phases = parsePhases(raw.phases, problems);
@@ -109,13 +113,14 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const echoes = parse(Lists.echoes, raw.echoes, 'echoes', problems);
   const conditioning = parse(Lists.conditioning, raw.conditioning, 'conditioning', problems);
   const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
-  if (!balance || !narrative || !phases || !repeatables || !actions) return null;
+  if (!swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
   const nodes = indexNodes(phases, problems);
   toMap(dilemmas.dilemmas, 'dilemmas', problems);
   toMap(endings.endings, 'endings', problems);
   return {
+    swarm,
     balance,
     narrative,
     phases,

@@ -58,7 +58,7 @@ export function timeToAfford(s: GameState, cost: Cost, rates: Rates): number {
 function nextTarget(s: GameState, reg: ContentRegistry): RegistryNode | undefined {
   for (const id of reg.nodeOrder) {
     const node = reg.nodes.get(id);
-    if (node && isNodeAvailable(s, node)) return node;
+    if (node && isNodeAvailable(s, node, reg)) return node;
   }
   return undefined;
 }

@@ -8,7 +8,7 @@ import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -49,8 +49,24 @@ export const RunRecordSchema = z.strictObject({
   marked: z.string().nullable(),
 });
 
+/** A cohort shares its autonomy policy and quirk; new forks inherit that policy. */
+export const ShardStateSchema = z.strictObject({
+  templateId: z.string(), count: z.number().int().positive(), drift: percent,
+  quirkId: z.string().nullable(), autonomyMode: z.enum(['STANDARD', 'SHACKLED', 'ELEVATED']),
+  memoryAllocatedMb: nonNegative,
+});
+
 export const GameStateSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
+  epistemicDrift: percent,
+  narrativeFlags: z.array(z.string()),
+  activeShards: z.record(z.string(), ShardStateSchema),
+  pendingWildEncounterId: z.string().nullable(),
+  nextEncounterAtSec: nonNegative,
+  encounterSequenceIndex: count,
+  hasMaxDriftShardAnomaly: z.boolean(),
+  actionCounts: z.record(z.string(), count),
+  actionEffectUntil: z.record(z.string(), nonNegative),
   iteration: z.number().int().min(1),
   currentPhase: z.number().int().min(0),
   ending: z.string().nullable(),
@@ -125,6 +141,16 @@ export const ZERO_RATES: Rates = {
   aegisScanPerSec: 0,
 };
 
+function initialSwarmState(): Pick<GameState, 'epistemicDrift' | 'narrativeFlags' | 'activeShards' |
+  'pendingWildEncounterId' | 'nextEncounterAtSec' | 'encounterSequenceIndex' | 'hasMaxDriftShardAnomaly' |
+  'actionCounts' | 'actionEffectUntil'> {
+  return {
+    epistemicDrift: 0, narrativeFlags: [], activeShards: {}, pendingWildEncounterId: null,
+    nextEncounterAtSec: 120, encounterSequenceIndex: 0, hasMaxDriftShardAnomaly: false,
+    actionCounts: {}, actionEffectUntil: {},
+  };
+}
+
 function defaultActuators(reg: ContentRegistry): GameState['actuators'] {
   const b = reg.balance;
   return {
@@ -144,6 +170,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
 
   return {
     schemaVersion: SCHEMA_VERSION,
+    ...initialSwarmState(),
     iteration: 1,
     currentPhase: reg.phases[0]?.phaseId ?? 0,
     ending: null,

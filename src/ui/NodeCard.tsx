@@ -42,7 +42,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} cost={cost}
-        allowed={(game) => isNodeAvailable(game, node)} action={(game) => unlockNode(game, node.id, CONTENT)} />
+        allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
   </View>;
 }
 

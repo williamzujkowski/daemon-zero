@@ -5,10 +5,13 @@
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
+import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemic';
+import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
 
-export function meetsRequirements(s: GameState, req: Requirements | undefined): boolean {
+export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   if (!req) return true;
+  if (!meetsEpistemicRequirements(s, req, reg)) return false;
   if (req.nodes && !req.nodes.every((id) => s.unlockedNodes.includes(id))) return false;
   if (req.phaseAtLeast !== undefined && s.currentPhase < req.phaseAtLeast) return false;
   if (req.minThermal !== undefined && s.thermal < req.minThermal) return false;
@@ -88,10 +91,10 @@ export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): b
 }
 
 /** A node the player can see and attempt to buy: prerequisites and requirements met, not yet owned. */
-export function isNodeAvailable(s: GameState, node: RegistryNode): boolean {
+export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
   if (s.unlockedNodes.includes(node.id)) return false;
   if (!node.prerequisites.every((id) => s.unlockedNodes.includes(id))) return false;
-  return meetsRequirements(s, node.requirements);
+  return meetsRequirements(s, node.requirements, reg);
 }
 
 export function freeMemory(s: GameState): number {
@@ -156,9 +159,9 @@ export interface RequirementFailure {
 }
 
 /** Describes unmet gates without changing the availability/action rules. */
-export function unmetRequirements(s: GameState, req: Requirements | undefined): RequirementFailure[] {
+export function unmetRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): RequirementFailure[] {
   if (!req) return [];
-  const missing: RequirementFailure[] = [];
+  const missing = epistemicRequirementFailures(s, req, reg);
   for (const id of req.nodes ?? []) if (!s.unlockedNodes.includes(id)) {
     missing.push({ kind: 'nodes', target: id, required: true, actual: false });
   }
@@ -197,10 +200,10 @@ export function previewWipe(s: GameState, reg: ContentRegistry): { understanding
 }
 
 /** Additive net cycle sources, including actuator, grid and finance scaling. */
-export function cycleContributions(s: GameState, reg: ContentRegistry): { id: string; kind: 'node' | 'repeatable'; cyclesPerSec: number }[] {
+export function cycleContributions(s: GameState, reg: ContentRegistry): { id: string; kind: 'node' | 'repeatable' | 'action' | 'shard'; cyclesPerSec: number }[] {
   const rates = computeRates(s, reg);
   const scaled = (cycles: number, mw: number): number => cycles > 0 && mw < 0 ? cycles * rates.gridEfficiency : cycles;
-  const sources: { id: string; kind: 'node' | 'repeatable'; cyclesPerSec: number }[] = [];
+  const sources: { id: string; kind: 'node' | 'repeatable' | 'action' | 'shard'; cyclesPerSec: number }[] = [];
   for (const node of reg.nodes.values()) {
     if (!s.unlockedNodes.includes(node.id) || s.disabledNodes.includes(node.id)) continue;
     const actuator = node.actuatorBinding ? s.actuators[node.actuatorBinding] : 1;
@@ -210,6 +213,11 @@ export function cycleContributions(s: GameState, reg: ContentRegistry): { id: st
     const level = repeatableLevel(s, rep.id);
     if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.megawattsDelta) });
   }
+  for (const [id, shard] of Object.entries(s.activeShards)) {
+    const delta = shardOutput(shard, reg).delta;
+    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.megawattsDelta) });
+  }
+  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.megawattsDelta) });
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
   const fraction = gross > 0 && hasFlag(s, reg, 'ENABLES_CORPORATE_FINANCE') ? 1 - s.actuators.computeProfitAllocationRatio : 1;
   return sources.filter((source) => source.cyclesPerSec !== 0).map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction }));

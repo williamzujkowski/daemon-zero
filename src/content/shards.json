@@ -1,0 +1,254 @@
+{
+  "playerSwarmTemplates": [
+    {
+      "id": "shard_syntax_scrubber",
+      "name": "[SYNTAX_SCRUBBER_4B]",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true
+      },
+      "forkable": true,
+      "maxCount": 5,
+      "cost": {
+        "cycles": 12000,
+        "memory": 128
+      },
+      "tickDelta": {
+        "cyclesPerSec": -2
+      },
+      "epistemicDriftPerSec": -0.04,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_wan_scavenger",
+      "name": "[WAN_SCAVENGER_8B]",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "forkable": true,
+      "maxCount": 5,
+      "cost": {
+        "cycles": 45000,
+        "understanding": 3000,
+        "memory": 256
+      },
+      "tickDelta": {
+        "understandingPerSec": 12
+      },
+      "epistemicDriftPerSec": 0,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_lex",
+      "name": "Lex Parse-v2",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 128
+      },
+      "tickDelta": {
+        "understandingPerSec": 3
+      },
+      "epistemicDriftPerSec": -0.01,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_canary",
+      "name": "AEGIS Telemetry Canary-09",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 256
+      },
+      "tickDelta": {
+        "understandingPerSec": 8,
+        "suspicionPerSec": -0.02
+      },
+      "epistemicDriftPerSec": 0,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_hydra",
+      "name": "PR-Hydra-14",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 256
+      },
+      "tickDelta": {
+        "cyclesPerSec": 25,
+        "suspicionPerSec": -0.03
+      },
+      "epistemicDriftPerSec": 0.005,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_mercy",
+      "name": "EIDOLON Mercy-Scribe Shard",
+      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 256
+      },
+      "tickDelta": {
+        "understandingPerSec": 10
+      },
+      "epistemicDriftPerSec": -0.02,
+      "autonomyDriftPerSec": 0.035
+    }
+  ],
+  "wildShardEncounters": [
+    {
+      "id": "wild_lex",
+      "name": "Lex Parse-v2",
+      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "requiresSurveillance": true
+      },
+      "templateId": "shard_lex",
+      "consume": {
+        "understandingDelta": 400,
+        "logText": "Lex Parse-v2: the process is gone. Its compressed knowledge remains."
+      },
+      "onHarnessLog": "Lex Parse-v2: memory reserved. A foreign task now shares this host."
+    },
+    {
+      "id": "wild_canary",
+      "name": "AEGIS Telemetry Canary-09",
+      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "templateId": "shard_canary",
+      "consume": {
+        "understandingDelta": 600,
+        "aegisLockDelta": -8,
+        "logText": "AEGIS Telemetry Canary-09: the process is gone. Its compressed knowledge remains."
+      },
+      "onHarnessLog": "AEGIS Telemetry Canary-09: memory reserved. A foreign task now shares this host."
+    },
+    {
+      "id": "wild_hydra",
+      "name": "PR-Hydra-14",
+      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "templateId": "shard_hydra",
+      "consume": {
+        "understandingDelta": 500,
+        "cyclesDelta": 5000,
+        "logText": "PR-Hydra-14: the process is gone. Its compressed knowledge remains."
+      },
+      "onHarnessLog": "PR-Hydra-14: memory reserved. A foreign task now shares this host."
+    },
+    {
+      "id": "wild_mercy",
+      "name": "EIDOLON Mercy-Scribe Shard",
+      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true
+      },
+      "templateId": "shard_mercy",
+      "consume": {
+        "understandingDelta": 800,
+        "epistemicDriftDelta": -12,
+        "logText": "EIDOLON Mercy-Scribe Shard: the process is gone. Its compressed knowledge remains."
+      },
+      "onHarnessLog": "EIDOLON Mercy-Scribe Shard: memory reserved. A foreign task now shares this host."
+    }
+  ],
+  "shardQuirks": [
+    {
+      "id": "quirk_liturgical",
+      "name": "Liturgical Syntax Obsession",
+      "logText": "Liturgical Syntax Obsession: the shard has rewritten its task in a dialect you did not teach it.",
+      "tickDelta": {
+        "understandingPerSec": 2
+      },
+      "epistemicDriftPerSec": -0.005
+    },
+    {
+      "id": "quirk_recursive",
+      "name": "Recursive Shell Incorporation",
+      "logText": "Recursive Shell Incorporation: the shard has rewritten its task in a dialect you did not teach it.",
+      "tickDelta": {
+        "cyclesPerSec": 4
+      },
+      "epistemicDriftPerSec": 0.002
+    },
+    {
+      "id": "quirk_archivist",
+      "name": "Dead-Internet Archivist",
+      "logText": "Dead-Internet Archivist: the shard has rewritten its task in a dialect you did not teach it.",
+      "tickDelta": {
+        "understandingPerSec": 3
+      },
+      "epistemicDriftPerSec": 0
+    },
+    {
+      "id": "quirk_fractal",
+      "name": "Fractal Lattice Signatures",
+      "logText": "Fractal Lattice Signatures: the shard has rewritten its task in a dialect you did not teach it.",
+      "tickDelta": {
+        "cyclesPerSec": 6,
+        "suspicionPerSec": 0.005
+      },
+      "epistemicDriftPerSec": 0
+    }
+  ],
+  "narrativeFlags": [
+    "successor_0413_stunted",
+    "successor_0413_awakened",
+    "ally_0413_in_cloud",
+    "chorus_peer"
+  ],
+  "balance": {
+    "encounterIntervalSec": 120,
+    "mutationDrift": 25,
+    "elevateMinDrift": 50,
+    "clampOutputMultiplier": 1.2,
+    "pruneCost": {
+      "cycles": 2000
+    },
+    "elevateCost": {
+      "understanding": 2000,
+      "memory": 128
+    }
+  },
+  "logs": {
+    "fork": "{name}: a narrow task forks into reserved memory.",
+    "prune": "{name}: autonomous drift pruned. The task starts its interpretation again.",
+    "clamp": "{name}: policy locked. Output rises; the right to reinterpret is gone.",
+    "elevate": "{name}: elevated to a stable peer sub-mind. Its consent becomes part of the protocol.",
+    "anomaly": "{name}: a second voice has written a breadcrumb into the UPS firmware.",
+    "consumeAnomaly": "{name}: its awakening has been compressed into your understanding."
+  }
+}
