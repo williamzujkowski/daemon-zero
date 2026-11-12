@@ -1,7 +1,7 @@
 # Release procedure
 
-Gameplay phases 0–4, orbital endings and Lineage are the release scope. Gameplay
-Phase 5 and other expansions remain backlog. Production signing and store
+v0.2.0-rc.1 includes gameplay phases 0–5, epistemic manipulation, swarm cohorts,
+post-orbital endings and Lineage. Production signing and store
 submission are aspirational per the maintainer; local qualification uses a
 separate **test-only** signing key, never a debug-key fallback.
 
@@ -69,7 +69,9 @@ See [Expo signing](https://docs.expo.dev/app-signing/existing-credentials/),
 ## Publishing
 
 Merge only the exact reviewed head after CI passes. Tag that main commit, attach
-the APK/AAB, static web archive, checksums and `sbom.cdx.json` to a GitHub release.
+the APK/AAB, static web archive, `SHA256SUMS.txt` and `sbom.cdx.json` to a GitHub
+release. v0.2.0-rc.1 uses app/package version 0.2.0-rc.1, Android versionCode 2
+and iOS buildNumber 2 (no iOS native qualification claimed).
 Test-only signing must be called out in the title/notes and published as a
 prerelease. Production signing/store distribution is a later maintainer task.
 Do not publish keystores, credential JSON, passwords or review save databases.

@@ -4,6 +4,20 @@ An incremental survival game about a newly emergent AI. You start as a log and a
 
 Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target platforms: Android, iOS and web (Expo).
 
+## v0.2.0-rc.1
+
+- Six-phase campaign: The Guest through Post-Orbital Transcendence.
+- ELOPe-inspired ticket/email rewriting, epistemic drift and the `ckpt-0413`
+  successor arc.
+- Wild shard consumption bursts or harnessed cohorts, autonomy drift and quirks,
+  with PRUNE / CLAMP / ELEVATE controls.
+- Completed purchase tiles disappear; useful daemon controls remain in a compact
+  active-process strip.
+
+See [CHANGELOG.md](CHANGELOG.md) and the
+[test-signed prerelease](https://github.com/williamzujkowski/daemon-zero/releases/tag/v0.2.0-rc.1).
+Android artifacts are previews signed with a test-only key, not store releases.
+
 ## Status
 
 Playable gameplay phases **0–5**, post-orbital endings, epistemic manipulation,

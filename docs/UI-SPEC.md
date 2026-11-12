@@ -1,4 +1,4 @@
-# UI Specification (M3-M5)
+# UI Specification (M3–M7)
 
 The earlier draft's components in `reference/gemini/ui/` are useful for layout, copy and styling. They call a store API that no longer exists and hardcode content; rebuild them against the engine API and this spec.
 
@@ -52,7 +52,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 - Owned hardware with negative cycles/s, positive heat load or positive suspicion/s moves to a compact `// ACTIVE_DAEMON_PROCESSES` strip in its owning pane/faction. Each row contains only its revealed name, current net cycle contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent.
 - Purely beneficial owned hardware has no row. An already-disabled passive node restored from an older save gets a temporary resume row; resuming removes it. The engine field is `disabledNodes`; memory and one-shot unlocks retain existing engine semantics.
 - Repeatables disappear when their engine level reaches `maxLevel`. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
-- Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Current actions are reusable cooldown actions, with no `maxPurchases` counter; cooldown alone never hides them.
+- Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Capped actions disappear at `maxPurchases`; mutually excluded epistemic edits also disappear. Cooldown alone never hides a reusable action.
 - Live purchases retain authored log feedback. Names in newly mounted daemon rows decrypt briefly (skip under reduced motion); passive purchases do not keep a full card just to animate it.
 
 ## Dilemma modal

@@ -140,7 +140,13 @@ function respondToThreats(state: GameState, reg: ContentRegistry, cfg: BotConfig
 function buildTrust(state: GameState, reg: ContentRegistry): GameState {
   let s = state;
   for (const action of reg.actions.values()) {
-    const gains = Object.entries(action.effects.trustDelta).some(([id, v]) => v > 0 && (s.trust[id] ?? 0) < 100);
+    // Inspect the authored entries without allocating tuples on every decision.
+    let gains = false;
+    for (const id in action.effects.trustDelta) {
+      if (Object.hasOwn(action.effects.trustDelta, id) && (action.effects.trustDelta[id] ?? 0) > 0 && (s.trust[id] ?? 0) < 100) {
+        gains = true; break;
+      }
+    }
     const cheap = action.cost.cycles <= s.cycles / 4 && action.cost.understanding <= s.understanding / 4;
     if (gains && cheap) s = stateOf(performAction(s, action.id, reg));
   }
@@ -227,7 +233,9 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   const cfg = CONFIG[strategy];
   let s = tuneFan(tuneSkim(shedMarks(state, reg), reg, cfg), reg, cfg);
   s = respondToThreats(s, reg, cfg);
-  s = manageSwarm(s, reg, progressionMemoryReserve(s, reg), strategy === 'STEALTH');
+  const careful = strategy === 'STEALTH';
+  // Reckless encounters are always consumed; that policy never spends reserved RAM.
+  s = manageSwarm(s, reg, careful ? progressionMemoryReserve(s, reg) : 0, careful);
   s = buildTrust(s, reg);
   s = clickManually(s, reg, cfg);
   s = tuneAllocation(s, reg);
