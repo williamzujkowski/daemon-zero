@@ -62,8 +62,9 @@ resolved the dominant alignment and flags to Lineage Covenant.
 
 ## Epistemic and swarm observations
 
-The retained click trace records 14 epistemic actions, 66 encounter resolutions,
-two forks and seven shard commands. Six cohorts ended as elevated peers; each
+The retained click trace records 13 epistemic actions and one conventional log
+scrub, 66 encounter resolutions (62 consumed, four harnessed), two forks and
+seven shard commands (one prune, six elevations). Six cohorts ended as elevated peers; each
 had attached a quirk during STANDARD drift before elevation. Mutations were
 observed through the live roster; the first sampled mutation was Lex's Fractal
 Lattice Signatures by 3448.6 simulated seconds. No max-drift anomaly occurred in
