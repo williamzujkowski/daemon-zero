@@ -14,8 +14,10 @@ function affordableSpare(s: GameState, cost: Cost, reserve: number): boolean {
 
 function stabilize(state: GameState, reg: ContentRegistry, reserve: number): GameState {
   let s = state;
-  for (const [id, shard] of Object.entries(s.activeShards)) {
-    if (shard.autonomyMode !== 'STANDARD' || shard.drift < reg.swarm.balance.elevateMinDrift) continue;
+  for (const id in state.activeShards) {
+    if (!Object.hasOwn(state.activeShards, id)) continue;
+    const shard = state.activeShards[id];
+    if (!shard || shard.autonomyMode !== 'STANDARD' || shard.drift < reg.swarm.balance.elevateMinDrift) continue;
     const room = freeMemory(s) >= reserve + shardCommandCost(s, id, 'ELEVATE', reg).memory;
     const elevated = room ? executeShardCommand(s, id, 'ELEVATE', reg) : null;
     s = elevated?.ok ? elevated.state : executeShardCommand(s, id, 'PRUNE', reg).state;
@@ -24,6 +26,7 @@ function stabilize(state: GameState, reg: ContentRegistry, reserve: number): Gam
 }
 
 function encounter(s: GameState, reg: ContentRegistry, reserve: number, careful: boolean): GameState {
+  if (s.pendingWildEncounterId === null) return s;
   const found = reg.swarm.wildShardEncounters.find((entry) => entry.id === s.pendingWildEncounterId);
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === found?.templateId);
   if (!found || !template) return s;
