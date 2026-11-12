@@ -20,6 +20,29 @@ backend or runtime API configuration. Keep the origin stable to retain browser
 saves. `tests/production-export.spec.ts` freshly exports web and native JavaScript
 and rejects the development hook/drawer markers in every chunk.
 
+## GitHub Pages
+
+The playable web deployment is https://williamzujkowski.github.io/daemon-zero/.
+GitHub Pages uses the repository's GitHub Actions publishing source. On pushes
+to `main`, the `ci` workflow publishes only after its complete `verify` job passes,
+including security, SBOM and production E2E at both the root and Pages subpath.
+PRs run these checks but cannot deploy. Only the separate deployment job receives
+`pages: write` and `id-token: write`; verification retains read-only permissions.
+
+`make build-pages` sets `DAEMON_WEB_BASE_PATH=/daemon-zero` for Expo's
+`experiments.baseUrl` and writes `dist/daemon-zero/`. That directory alone becomes
+the Pages artifact. `make e2e-pages` serves it under the real subpath and runs all
+production scenarios at phone and desktop sizes, including asset-path checks.
+Ordinary `make build-web`, development and native builds keep the root base path;
+release web archives still package the ordinary root export. Always run a fresh
+`make build-web` before archiving `dist`, since Pages builds add a nested directory.
+
+Keep the hosting origin stable: browser saves are local to that origin, with no
+cloud sync. Use Save export/import to transfer from localhost or Android. The
+static app has no service worker, so offline page loading is not guaranteed.
+GitHub receives normal hosting requests, not gameplay saves (see PRIVACY.md).
+Roll back through a reviewed revert on `main` and the same quality gates.
+
 ## Local Android release
 
 Install the SDK/JDK with `scripts/bootstrap-ubuntu24.sh --android`, source

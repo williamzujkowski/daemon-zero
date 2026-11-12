@@ -27,6 +27,7 @@
     "scripts/**/*.ts",
     "vitest.config.mts",
     "App.tsx",
+    "app.config.ts",
     "index.ts",
     "src/**/*.tsx"
   ]

@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
 
-# Least privilege: the workflow only needs to read the repository.
+# Verification only reads the repository; the separate Pages job can deploy.
 permissions:
   contents: read
 
@@ -47,9 +47,34 @@ jobs:
       - name: SBOM
         run: make sbom
 
+      - name: GitHub Pages production web E2E
+        run: make e2e-pages
+
+      - name: Upload tested Pages export
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist/daemon-zero
+
       - name: Upload SBOM
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-cyclonedx
           path: sbom.cdx.json
           if-no-files-found: error
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy tested export
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

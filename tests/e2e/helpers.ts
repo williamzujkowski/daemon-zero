@@ -28,7 +28,7 @@ export async function boot(page: Page, fixture?: string): Promise<void> {
       if (!localStorage.getItem('daemon-zero.save.v1')) localStorage.setItem('daemon-zero.save.v1', JSON.stringify({ version: 1, savedAtMs: Date.now(), game: value }));
     }, game);
   }
-  await page.goto('/');
+  await page.goto('./');
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
   else await expect(page.getByTestId('manual-cycle')).toBeEnabled();
   await expect.poll(() => page.evaluate(() => '__daemon' in globalThis)).toBe(false);
