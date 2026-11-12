@@ -11,6 +11,8 @@ export const SIM_BUDGET_SEC = 10 * 3600;
 export const GATES = {
   /** A careful player must be able to finish within this much active play. */
   maxHoursToVictory: 6,
+  minTranscendenceSec: 900,
+  maxTranscendenceSec: 1800,
   /** The opening phase is a short first act, not a full phase (minutes). */
   minOpeningMinutes: 3,
   maxOpeningMinutes: 12,
@@ -50,6 +52,16 @@ function checkSpans(report: SimReport): string[] {
   return failures;
 }
 
+function checkTranscendence(report: SimReport): string[] {
+  const start = report.phaseReachedAtSec[5];
+  if (start === undefined || report.finalPhase < 5) return ['did not reach Phase 5 victory'];
+  const seconds = report.simSeconds - start;
+  const failures: string[] = [];
+  if (seconds < GATES.minTranscendenceSec || seconds > GATES.maxTranscendenceSec) failures.push(`Phase 5 lasted ${seconds.toFixed(1)} s (required 900–1800)`);
+  if (report.wipes !== 0) failures.push('Phase 5 careful victory requires zero wipes');
+  return failures;
+}
+
 /** Returns a list of violated gates; empty means the run is within budget. */
 export function checkGates(report: SimReport): string[] {
   const failures: string[] = [];
@@ -60,5 +72,5 @@ export function checkGates(report: SimReport): string[] {
   if (report.dilemmasResolved < GATES.minDilemmasResolved) {
     failures.push(`only ${String(report.dilemmasResolved)} dilemmas fired (min ${String(GATES.minDilemmasResolved)})`);
   }
-  return [...failures, ...checkSpans(report)];
+  return [...failures, ...checkSpans(report), ...checkTranscendence(report)];
 }

@@ -329,3 +329,21 @@ encounter rotation, 25/50/100 drift boundaries, commands, dormancy, all new dile
 choices, reference healing and immutable inputs. The swarm tick module has a
 100% branch-coverage target. Production E2E still has eight scenarios at each
 viewport (16 cases); dedicated M7 scenarios are PR 3 work.
+
+## M7 PR 2 progression checks
+
+Fixture generation now emits 56 saves. `victory-ready` keeps its historical
+Phase 4 pre-orbit meaning; `transcendence-ready` is Phase 5 before its final
+purchase. The nine new ending variants are reached through that real purchase.
+The five legacy orbital ending fixtures are controlled compatibility states,
+not reachable endings of a new run. Shipped remains a real guest evaluation.
+Run `mise exec -- pnpm exec tsx scripts/make-fixtures.ts` to regenerate codes;
+do not reuse output from an earlier content revision.
+
+Phase 5 tests cover all four omens and every choice, final-purchase decision
+gates, legacy/flagged ending selection, save round-trips, retained rates,
+capped purchases and compact daemon controls. Bot tests check progression RAM
+reservation and observed epistemic, shard and Lineage activity. Pacing adds an
+inclusive 900–1800-second Phase 5 range and zero careful wipes; earlier bounds
+remain in force. Dedicated M7 browser scenarios, fresh two-size visual audits,
+30-tick render counts and an Android Phase 5 ending relaunch remain PR 3.

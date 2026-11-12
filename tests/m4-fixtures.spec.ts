@@ -14,7 +14,7 @@ function state(name: string) {
 
 describe('M4 review fixtures', () => {
   it('emits round-trippable saves and preserves the early review states', () => {
-    expect(Object.keys(saves)).toHaveLength(46);
+    expect(Object.keys(saves)).toHaveLength(56);
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);
@@ -47,8 +47,8 @@ describe('M4 review fixtures', () => {
     expect(state('megawatt-shortfall').rates.gridEfficiency).toBeLessThan(1);
   });
 
-  it('uses engine victory selection for every ending, including the trait-free fallback', () => {
-    const ready = state('victory-ready');
+  it('preserves legacy endings and uses the new final purchase for Phase 5 variants', () => {
+    const ready = state('transcendence-ready');
     const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
     if (!victory) throw new Error('Missing victory');
     expect(isNodeAvailable(ready, victory) && canAfford(ready, victory.cost)).toBe(true);

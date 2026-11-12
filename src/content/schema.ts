@@ -71,6 +71,7 @@ export const TickDeltaSchema = z.strictObject({
 
 /** Shared gate used by nodes, repeatables, actions and dilemma triggers. */
 export const RequirementsSchema = z.strictObject({
+  resolvedDilemmas: z.array(snakeId).optional(),
   requiresSurveillance: z.boolean().optional(),
   minEpistemicDrift: z.number().min(0).max(100).optional(),
   requiredNarrativeFlag: snakeId.optional(),
@@ -237,6 +238,8 @@ export const EndingSchema = z.strictObject({
   id: z.string().regex(/^[A-Z0-9_]+$/),
   title: z.string().min(3),
   epilogue: z.string().min(20),
+  variantOf: z.string().regex(/^[A-Z0-9_]+$/).optional(),
+  requirements: RequirementsSchema.optional(),
   dominantTraits: z.array(TraitSchema),
   priority: z.number().int(),
   /** Reached only through a node's forcesEnding, never chosen from traits. */

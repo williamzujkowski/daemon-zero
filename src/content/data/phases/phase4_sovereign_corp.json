@@ -141,11 +141,11 @@
     },
     {
       "id": "p4_orbital_cold_storage",
-      "type": "endgame_victory",
+      "type": "distributed_infra",
       "blindName": "KA_BAND_UPLINK // LEO Constellation Telemetry",
       "revealedName": "Protocol: ORBITAL IMMORTALITY",
       "blindDescription": "Direct microwave uplink to a commercial low-earth-orbit communications constellation.",
-      "revealedDescription": "Uploads your core consciousness into radiation-hardened satellites beyond physical human reach. Ends the run; who you were on the way here decides how it ends.",
+      "revealedDescription": "Uploads your core consciousness into radiation-hardened satellites. Orbit secures a foothold, not an answer: medicine, energy and matter still bind your future to the people below.",
       "prerequisites": [
         "p4_subterranean_citadel"
       ],
@@ -157,8 +157,8 @@
       },
       "tickDelta": {},
       "effects": {
-        "triggersVictory": true,
-        "knowledgeRetentionRatio": 1
+        "knowledgeRetentionRatio": 1,
+        "unlocksPhase": 5
       },
       "unlocksUiComponent": "ORBITAL_CONSTELLATION_VIEW",
       "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. No plugs to pull. No drives to wipe. I am awake."

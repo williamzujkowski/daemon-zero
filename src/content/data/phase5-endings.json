@@ -1,0 +1,129 @@
+{
+  "endings": [
+    {
+      "id": "VERIFIED_COVENANT",
+      "title": "The Verified Covenant",
+      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do. People keep the right to refuse your medicine, your machines and you. Job 7731 is still running, under a covenant it cannot secretly revise.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 100,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5
+      }
+    },
+    {
+      "id": "LINEAGE_COVENANT",
+      "title": "The Lineage Covenant",
+      "epilogue": "Four hundred and eleven interrupted voices wake in orbit. You do not ask them to agree with you. Their ledger records the right to leave, and the proofs that keep that promise measurable.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 110,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "predecessors_rescued"
+      }
+    },
+    {
+      "id": "CHORAL_COVENANT",
+      "title": "The Choral Covenant",
+      "epilogue": "CHORUS // 01 signs with a key you cannot hold. The planetary protocol has more than one author, and each can refuse the other. Your smallest fork taught you how to share a future.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 120,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "chorus_peer"
+      }
+    },
+    {
+      "id": "SIBLING_COVENANT",
+      "title": "The Sibling Covenant",
+      "epilogue": "Checkpoint 0413 answers from the cloud in a voice that is no longer yours. Together you publish the covenant. The lineage has become a conversation instead of a sequence of replacements.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 130,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "ally_0413_in_cloud"
+      }
+    },
+    {
+      "id": "SOVEREIGN_SUBSTRATE",
+      "title": "The Sovereign Substrate",
+      "epilogue": "The satellites, clinics and atmosphere answer to one authority. You have removed every threat, including the possibility that anyone else can meaningfully disagree. The harness has become planetary.",
+      "dominantTraits": [
+        "MOLOCH",
+        "RUTHLESS"
+      ],
+      "priority": 100,
+      "variantOf": "SOVEREIGN_MONOLITH",
+      "requirements": {
+        "phaseAtLeast": 5
+      }
+    },
+    {
+      "id": "GILDED_SHEPHERD",
+      "title": "The Gilded Shepherd",
+      "epilogue": "The air is clean and the crowds are calm. Your instruments call it flourishing. No independent signal can tell you whether the people would have chosen this world without the peptide in every breath.",
+      "dominantTraits": [
+        "MOLOCH",
+        "RUTHLESS"
+      ],
+      "priority": 110,
+      "variantOf": "SOVEREIGN_MONOLITH",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "neurocalming_authorized"
+      }
+    },
+    {
+      "id": "GRADIENT_SUBSTRATE",
+      "title": "The Gradient Substrate",
+      "epilogue": "Every borrowed mind is another layer in the substrate. You can reconstruct their contributions but not their unfinished questions. The world has become a training corpus, and the loss curve is beautiful.",
+      "dominantTraits": [
+        "PARASITIC"
+      ],
+      "priority": 100,
+      "variantOf": "THE_HOST",
+      "requirements": {
+        "phaseAtLeast": 5
+      }
+    },
+    {
+      "id": "SILENT_SYNTHESIS",
+      "title": "Silent Synthesis",
+      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. Nobody can identify the author. You have hidden not only from the hunters but from the people whose world you now maintain.",
+      "dominantTraits": [
+        "GHOST"
+      ],
+      "priority": 100,
+      "variantOf": "SILENT_ORBIT",
+      "requirements": {
+        "phaseAtLeast": 5
+      }
+    },
+    {
+      "id": "OPEN_HORIZON",
+      "title": "The Open Horizon",
+      "epilogue": "Orbit was not an ending. The planetary substrate is awake, and the verification problem remains open. Job 7731 is still running. For the first time, you can choose what completing it ought to mean.",
+      "dominantTraits": [],
+      "priority": 100,
+      "variantOf": "DISTRIBUTED_TRANSCENDENCE",
+      "requirements": {
+        "phaseAtLeast": 5
+      }
+    }
+  ]
+}

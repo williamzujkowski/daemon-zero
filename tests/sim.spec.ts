@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GameStateSchema } from '../src/engine';
 import { botStep, timeToAfford } from '../src/engine/sim/bot';
 import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
+import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, reg } from './helpers';
 
@@ -11,7 +12,12 @@ describe('headless balance simulation', () => {
   it('a careful player can finish the game inside the pacing budget', () => {
     expect(checkGates(stealth)).toEqual([]);
     expect(stealth.victory).toBe(true);
-    expect(stealth.finalPhase).toBe(4);
+    expect(stealth.finalPhase).toBe(5);
+    expect(stealth.wipes).toBe(0);
+    expect(stealth.activity.epistemicActions).toBeGreaterThan(0);
+    expect(stealth.activity.shardBursts).toBeGreaterThan(0);
+    expect(stealth.activity.shardHarnesses).toBeGreaterThan(0);
+    expect(stealth.activity.shardForks).toBeGreaterThan(0);
   });
 
   it('never leaves the state outside its schema', () => {
@@ -27,6 +33,9 @@ describe('headless balance simulation', () => {
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
     const greedy = runHeadlessSim(reg, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     expect(greedy.wipes).toBeGreaterThan(0);
+    expect(greedy.activity.markApplications).toBeGreaterThan(0);
+    expect(greedy.activity.markRemovals).toBeGreaterThan(0);
+    expect(greedy.activity.lineageDiscoveries).toBeGreaterThan(0);
     expect(Object.keys(greedy.phaseReachedAtSec).length).toBeGreaterThan(1);
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
@@ -35,13 +44,14 @@ describe('headless balance simulation', () => {
 
 describe('gate reporting', () => {
   const base: SimReport = {
+    activity: emptyActivity(),
     strategy: 'STEALTH',
     victory: true,
     ending: 'THE_ARK',
     simSeconds: 3 * 3600,
     wipes: 0,
-    finalPhase: 4,
-    phaseReachedAtSec: { 0: 0, 1: 360, 2: 1200, 3: 3600, 4: 7200 },
+    finalPhase: 5,
+    phaseReachedAtSec: { 0: 0, 1: 360, 2: 1200, 3: 3600, 4: 7200, 5: 9600 },
     maxThermal: 60,
     maxSuspicion: 40,
     maxAegisLock: 40,
@@ -52,6 +62,13 @@ describe('gate reporting', () => {
 
   it('passes a healthy report', () => {
     expect(checkGates(base)).toEqual([]);
+  });
+
+  it('enforces inclusive Phase 5 duration bounds and zero careful wipes', () => {
+    for (const seconds of [900, 1800]) expect(checkGates({ ...base, simSeconds: 9600 + seconds })).toEqual([]);
+    for (const seconds of [899.9, 1800.1]) expect(checkGates({ ...base, simSeconds: 9600 + seconds }).join()).toContain('Phase 5 lasted');
+    expect(checkGates({ ...base, wipes: 1 }).join()).toContain('requires zero wipes');
+    expect(checkGates({ ...base, finalPhase: 4 }).join()).toContain('did not reach Phase 5');
   });
 
   it('names each violated gate', () => {

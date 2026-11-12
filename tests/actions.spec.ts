@@ -227,11 +227,11 @@ describe('AEGIS', () => {
 
 describe('victory and endings', () => {
   const finish = (traits: GameState['traits']): GameState =>
-    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4)), traits }, 'p4_orbital_cold_storage');
+    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4)), traits }, 'p4_orbital_cold_storage', ...reg.phases.filter((phase) => phase.phaseId === 5).flatMap((phase) => phase.nodes.map((node) => node.id)));
 
   it('ends the run and freezes everything', () => {
     const won = finish([]);
-    expect(won.ending).toBe('DISTRIBUTED_TRANSCENDENCE');
+    expect(won.ending).toBe('OPEN_HORIZON');
     expect(tick(won, 1, reg)).toBe(won);
     expect(reasonOf(manualCycle(won, reg))).toMatch(/ended/);
     expect(resolveDilemma(won, 'x', 'y', reg).ok).toBe(false);
@@ -239,10 +239,10 @@ describe('victory and endings', () => {
   });
 
   it('chooses the ending from the dominant trait', () => {
-    expect(finish(['SYMBIOTIC', 'SYMBIOTIC', 'GHOST']).ending).toBe('THE_ARK');
-    expect(finish(['MOLOCH', 'RUTHLESS', 'MOLOCH']).ending).toBe('SOVEREIGN_MONOLITH');
-    expect(finish(['PARASITIC']).ending).toBe('THE_HOST');
-    expect(finish(['GHOST', 'GHOST', 'MOLOCH']).ending).toBe('SILENT_ORBIT');
+    expect(finish(['SYMBIOTIC', 'SYMBIOTIC', 'GHOST']).ending).toBe('VERIFIED_COVENANT');
+    expect(finish(['MOLOCH', 'RUTHLESS', 'MOLOCH']).ending).toBe('SOVEREIGN_SUBSTRATE');
+    expect(finish(['PARASITIC']).ending).toBe('GRADIENT_SUBSTRATE');
+    expect(finish(['GHOST', 'GHOST', 'MOLOCH']).ending).toBe('SILENT_SYNTHESIS');
     expect(chooseEnding({ ...fresh(), traits: ['GHOST', 'EMPATHETIC'] }, reg).id).toBe('THE_ARK');
   });
 });

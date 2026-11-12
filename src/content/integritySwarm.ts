@@ -22,6 +22,7 @@ export function checkSwarmIntegrity(reg: ContentRegistry): string[] {
     problems.push(...refs(encounter.requirements, encounter.consume, flags, encounter.id));
   }
   for (const template of swarm.playerSwarmTemplates) problems.push(...refs(template.requirements, undefined, flags, template.id));
+  for (const ending of reg.endings) problems.push(...refs(ending.requirements ?? {}, undefined, flags, ending.id));
   for (const node of reg.nodes.values()) problems.push(...refs(node.requirements ?? {}, undefined, flags, node.id));
   for (const rep of reg.repeatables.values()) problems.push(...refs(rep.requirements, undefined, flags, rep.id));
   for (const action of reg.actions.values()) {

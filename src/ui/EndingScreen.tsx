@@ -26,7 +26,8 @@ function RunSummary() {
 
 export function EndingMarker() {
   const id = useGame((game) => game.ending);
-  return <Text style={theme.text}>{CONTENT.endings.find((ending) => ending.id === id)?.title ?? 'Uplink not completed'}</Text>;
+  const phase = useGame((game) => game.currentPhase);
+  return <Text style={theme.text}>{CONTENT.endings.find((ending) => ending.id === id)?.title ?? CONTENT.phases.find((entry) => entry.phaseId === phase)?.title}</Text>;
 }
 
 export default function EndingScreen() {

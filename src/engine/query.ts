@@ -12,6 +12,7 @@ import { computeRates } from './rates';
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   if (!req) return true;
   if (!meetsEpistemicRequirements(s, req, reg)) return false;
+  if (req.resolvedDilemmas?.some((id) => !s.resolvedDilemmas.includes(id))) return false;
   if (req.nodes && !req.nodes.every((id) => s.unlockedNodes.includes(id))) return false;
   if (req.phaseAtLeast !== undefined && s.currentPhase < req.phaseAtLeast) return false;
   if (req.minThermal !== undefined && s.thermal < req.minThermal) return false;
@@ -142,13 +143,13 @@ export function repeatableCost(rep: Repeatable, level: number): Cost {
  */
 export function chooseEnding(s: GameState, reg: ContentRegistry): Ending {
   const score = (ending: Ending): number => s.traits.filter((trait) => ending.dominantTraits.includes(trait)).length;
-  const open = reg.endings.filter((ending) => !ending.forcedOnly);
+  const open = reg.endings.filter((ending) => !ending.forcedOnly && ending.variantOf === undefined);
   const best = Math.max(0, ...open.map(score));
   const match = best > 0 ? open.find((ending) => score(ending) === best) : undefined;
   const fallback = open.find((ending) => ending.dominantTraits.length === 0);
   const ending = match ?? fallback ?? reg.endings[0];
   if (!ending) throw new Error('content has no endings');
-  return ending;
+  return reg.endings.find((variant) => variant.variantOf === ending.id && meetsRequirements(s, variant.requirements, reg)) ?? ending;
 }
 
 export interface RequirementFailure {
@@ -162,6 +163,7 @@ export interface RequirementFailure {
 export function unmetRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): RequirementFailure[] {
   if (!req) return [];
   const missing = epistemicRequirementFailures(s, req, reg);
+  for (const id of req.resolvedDilemmas ?? []) if (!s.resolvedDilemmas.includes(id)) missing.push({ kind: 'resolvedDilemmas', target: id, required: true, actual: false });
   for (const id of req.nodes ?? []) if (!s.unlockedNodes.includes(id)) {
     missing.push({ kind: 'nodes', target: id, required: true, actual: false });
   }

@@ -39,7 +39,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar | `factions`, `trust`, `aegisLock` |
-| `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives, Phase 4 nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable` |
+| `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
 
@@ -245,3 +245,15 @@ counts, mutual exclusion and dynamic discounted conditioning-recovery prices.
 Cooldown text is a separate leaf so the static action card does not render on
 countdown ticks. Dedicated drift, wild-encounter and cohort panels follow in M7
 PR 3; this engine PR does not claim those interactions are playable yet.
+
+
+## M7 PR 2 corporate compatibility
+
+CORP renders every unlocked phase assigned to its registry slot, newest first.
+Orbital cold storage opens Phase 5 without an ending overlay. Phase 5 uses the
+same completed-card hiding, capped-repeatable hiding, empty-header removal and
+compact daemon controls as earlier phases; effects remain active after hiding.
+The final protocol displays unmet dilemma decisions by their content titles.
+The unfinished ending marker displays the current phase title, since reaching
+orbit is now an intermediate step. Dedicated swarm panels and Phase 5 visual
+review remain PR 3 work.

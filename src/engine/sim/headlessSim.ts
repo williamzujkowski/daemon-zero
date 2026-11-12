@@ -3,6 +3,7 @@
  * no real time. Used by `make sim` and by tests to prove the content can be
  * finished and to report pacing after any balance change.
  */
+import { emptyActivity, observeActions, observeWipe, type SimActivity } from './activity';
 import type { ContentRegistry } from '../../content/registry';
 import { createInitialState, type GameState } from '../state';
 import { tick } from '../tick';
@@ -14,6 +15,7 @@ export interface SimOptions {
 }
 
 export interface SimReport {
+  activity: SimActivity;
   strategy: Strategy;
   victory: boolean;
   ending: string | null;
@@ -37,11 +39,10 @@ function observe(report: SimReport, s: GameState): void {
   report.maxAegisLock = Math.max(report.maxAegisLock, s.aegisLock);
 }
 
-export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimReport {
-  const step = 1 / reg.balance.tickHz;
-  let s = createInitialState(reg);
-  const report: SimReport = {
-    strategy: options.strategy,
+function createReport(strategy: Strategy, s: GameState): SimReport {
+  return {
+    activity: emptyActivity(),
+    strategy,
     victory: false,
     ending: null,
     simSeconds: 0,
@@ -56,10 +57,23 @@ export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimRe
     finalState: s,
   };
 
+}
+
+export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimReport {
+  const step = 1 / reg.balance.tickHz;
+  let s = createInitialState(reg);
+  const report = createReport(options.strategy, s);
+
   // Bounded by iteration count, not sim time, so a frozen clock can never hang the run.
   for (let second = 0; second < options.maxSimSec && s.ending === null; second++) {
+    const before = s;
     s = botStep(s, reg, options.strategy);
-    for (let i = 0; i < reg.balance.tickHz; i++) s = tick(s, step, reg);
+    observeActions(before, s, reg, report.activity);
+    for (let i = 0; i < reg.balance.tickHz; i++) {
+      const previous = s;
+      s = tick(s, step, reg);
+      observeWipe(previous, s, report.activity);
+    }
     observe(report, s);
   }
 

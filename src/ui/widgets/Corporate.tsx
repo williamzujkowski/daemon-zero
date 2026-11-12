@@ -51,13 +51,16 @@ function Allocation() {
 }
 
 export default function Corporate() {
-  const phase = CONTENT.balance.corporatePhase;
+  const current = useGame((game) => game.currentPhase);
+  const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORP' && phase.phaseId <= current).slice().reverse();
   return <View style={{ gap: 14 }}>
     <Ledger /><Allocation />
-    <NodeList phase={phase} />
+    {phases.map((phase) => <View key={phase.phaseId} style={{ gap: 14 }}>
+      <NodeList phase={phase.phaseId} />
+      <Repeatables phase={phase.phaseId} kind="UPGRADE" title="Infrastructure" />
+      <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll" />
+      <DaemonProcesses phase={phase.phaseId} />
+    </View>)}
     <ActionsPanel group="CORP" />
-    <Repeatables phase={phase} kind="UPGRADE" title="Infrastructure" />
-    <Repeatables phase={phase} kind="OPERATIVE" title="Operatives // payroll" />
-    <DaemonProcesses phase={phase} />
   </View>;
 }

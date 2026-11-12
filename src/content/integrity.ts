@@ -3,6 +3,7 @@
  * id references between manifests, and design rules that prevent soft-locks.
  * Every check returns human-readable problems; an empty list means valid.
  */
+import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
 import type { ContentRegistry } from './registry';
 import type { Cost, Requirements } from './schema';
@@ -48,6 +49,7 @@ function checkReachability(reg: ContentRegistry): string[] {
 function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
+  for (const id of req.resolvedDilemmas ?? []) if (!reg.dilemmas.some((dilemma) => dilemma.id === id)) problems.push(`${owner}: unknown required dilemma ${id}`);
   for (const id of [...(req.nodes ?? []), ...(req.forbidsNodes ?? [])]) {
     if (!reg.nodes.has(id)) problems.push(`${owner}: requirement references unknown node "${id}"`);
   }
@@ -147,10 +149,11 @@ function checkPhases(reg: ContentRegistry): string[] {
 
 function checkNarrativeRefs(reg: ContentRegistry): string[] {
   const problems: string[] = [];
+  for (const ending of reg.endings) problems.push(...checkRequirements(reg, ending.id, ending.requirements));
   for (const echo of reg.echoes) {
     if (!reg.nodes.has(echo.onNode)) problems.push(`echo "${echo.id}": unknown node "${echo.onNode}"`);
   }
-  const defaults = reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly);
+  const defaults = reg.endings.filter((ending) => ending.dominantTraits.length === 0 && !ending.forcedOnly && ending.variantOf === undefined);
   const noteIds = new Set(reg.lineage.notes.map((note) => note.id));
   if (noteIds.size !== reg.lineage.notes.length) problems.push('lineage: duplicate note ids');
   if (defaults.length !== 1) problems.push('endings: exactly one ending must have empty dominantTraits (the default)');
@@ -183,6 +186,7 @@ function checkSwarmReferences(reg: ContentRegistry): string[] {
 
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
+    ...checkEndingVariants(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

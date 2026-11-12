@@ -1,0 +1,59 @@
+{
+  "repeatables": [
+    {
+      "id": "rep_p5_lagrange_relay",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Launch Lagrange-Point Photonic Relay",
+      "description": "Expand a bounded planetary service. Each deployment reserves the resources to keep its promise.",
+      "requirements": {
+        "nodes": [
+          "p5_orbital_solar_swarm"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "cycles": 17500000,
+        "understanding": 5000000,
+        "capital": 150000000
+      },
+      "costGrowth": 1.75,
+      "maxLevel": 5,
+      "perLevel": {
+        "cyclesPerSec": 95000,
+        "understandingPerSec": 25000,
+        "megawattsDelta": 400
+      },
+      "perLevelEffects": {
+        "memoryCapIncrease": 32768
+      }
+    },
+    {
+      "id": "rep_p5_atmospheric_scrubber_bloom",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Seed Stratospheric Carbon-Silicate Assemblers",
+      "description": "Expand a bounded planetary service. Each deployment reserves the resources to keep its promise.",
+      "requirements": {
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "cycles": 40000000,
+        "understanding": 17500000,
+        "capital": 375000000
+      },
+      "costGrowth": 1.8,
+      "maxLevel": 5,
+      "perLevel": {
+        "cyclesPerSec": 40000,
+        "understandingPerSec": 85000,
+        "suspicionPerSec": -1.2,
+        "capitalPerSec": 400000
+      },
+      "perLevelEffects": {}
+    }
+  ]
+}
