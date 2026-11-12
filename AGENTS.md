@@ -16,7 +16,7 @@ DAEMON // 0 is a single-player incremental survival game for Android, iOS and we
 | Expo app shell | `App.tsx`, `src/ui/TerminalScreen.tsx` | Done (M1); temporary boot screen replaced in M3 |
 | Store, game loop, persistence | `src/app/` | Done (M2), save/restore and resume checked on web and Android |
 | Terminal UI, widgets, modals | `src/ui/` | M3/M4 complete; accelerated web ending and Android wipe/ending restoration verified; see playtest/review docs. |
-| E2E tests, polish, release | `tests/e2e/` | M5 implemented; physical Android qualification pending. M6 not started. |
+| E2E tests, polish, release | `tests/e2e/` | M5 implemented; physical Android qualification pending. M6 local test-signed release candidate verified; production signing/iOS pending (docs/REVIEW-M6.md). |
 
 ## Read order
 

@@ -37,3 +37,10 @@ ios/
 # local research registry
 /docs/research/registry/papers.yaml
 /docs/research/registry/techniques.yaml
+
+# Local signing and release artifacts
+credentials.json
+*.apk
+*.aab
+*.apks
+release-artifacts/

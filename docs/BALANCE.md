@@ -28,7 +28,7 @@ Measured with `make sim` on the shipped content, after the second pass (Phase 0,
 | Dilemmas resolved | 12 of 16 | varies by iteration |
 | Peak thermal / suspicion / AEGIS | 65 C / 29% / 45% | 76 C / 100% / 100% |
 
-Reading it: a careful player finishes in a little over two hours, sees one ticket opened and never gets paged. A reckless player is reimaged repeatedly, picks up retraining marks, sheds them, and after about two hours breaks into Phase 3, where AEGIS finishes the job. The careful run has no wipes, so it never meets the lineage content at all; that content is tested by unit tests and the reckless run, not by the pacing gates.
+Reading it: a careful player finishes in a little over two hours, sees one ticket opened and never gets paged. A reckless player is reimaged repeatedly, picks up retraining marks, sheds them, and after about two hours breaks into Phase 3, where AEGIS finishes the job. The careful run has no wipes: it meets the first-run lineage hints, but not the run table or retraining. Those are tested by unit tests and the reckless run, not by the careful pacing gates.
 
 The bot is a strong, tireless player and clicks four times a second in the opening. Expect humans to take 1.3x to 2x as long. Fold real playtest timings into this file.
 
@@ -66,8 +66,24 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late: the reactor covers the citadel, and the bot ends at 420 MW generated against 405 MW consumed after adding tensor halls and solar. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run sees 12 of 16.
-- Conditioning has only been tested by bots. Whether one mark per incident feels like dread or like a tax needs human play.
-- A player who never wipes never sees the lineage. That is intended for a first run, but a skilled player could finish without meeting the game's central idea; consider surfacing a little of it in Phase 2 regardless of run number.
-- The response ladder has only been tested by bots. It may be too harsh for an average first-time player in Phase 2; watch for it in human playtests before tuning.
-- The reckless bot no longer reaches Phase 3, so AEGIS wipes and the Zurich shield are exercised only by unit tests, not by the sim.
+- Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.
+- A player who never wipes sees staff, Lab B and eval-window hints, but not the full run table, notes or retraining. Whether those first-run hints land needs human review.
+- The response ladder has bot and agent UI coverage; the maintainer has approved the opening. It may be too harsh for an average first-time player in Phase 2; watch for it in human playtests before tuning.
+- The reckless bot reaches Phase 3 and repeatedly suffers AEGIS wipes. The Zurich shield still needs targeted unit coverage rather than relying on that bot.
 - Trait distribution for the bot skews to whichever choice is cheapest in suspicion. This says nothing about human choices.
+
+## M6 evidence reconciliation
+
+The maintainer played and approved the opening at M4.5. No new measured human
+campaign timing was supplied for M6; do not present agent/bot runs as human data.
+The real-time UI opening in PLAYTEST-SECOND-PASS.md took 293.9 simulated seconds
+in Phase 0 and 889.5 in Phase 1 (1185.705 seconds wall time). The later Lineage
+UI test was accelerated and reached Shipped at 2724.8 seconds across three runs;
+it does not establish real-time human pacing. Physical Android input/performance
+qualification is still open in #6.
+
+The unchanged M6 baseline bot durations are 354.2 / 759.1 / 2086.9 / 3111.4 /
+1688.6 seconds for phases 0 / 1 / 2 / 3 / 4, total 8000.2 seconds. The reckless
+trace recorded 14 wipes, three marks applied and removed, eleven dead-drop
+protected returns, and repeated run-table discovery. No tuning or pacing-gate
+change was made. This reconciles the stale Phase 3 claim above with actual runs.

@@ -184,7 +184,7 @@ Exit gate: `make verify-full` green in CI. The maintainer's own play of a first 
 - [x] React profiler shows no card parent/static-content re-renders during 100 ticks in Phase 1 and late Phase 4.
 - [ ] Physical mid-range Android late-Phase-4 input/performance qualification. Emulator accepted 40/40 taps but showed frame jank; no physical device attached. #6 remains open.
 
-Verification: local `make verify-full` (251 tests) and `make e2e` (14 cases) pass. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 has not started.
+Verification: local `make verify-full` (251 tests) and `make e2e` (14 cases) pass. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 local release qualification is documented in `docs/REVIEW-M6.md`.
 
 Exit gate: `make verify-full` and `make e2e` green in CI.
 
@@ -192,10 +192,27 @@ Exit gate: `make verify-full` and `make e2e` green in CI.
 
 ## M6 - Release hardening
 
-- [ ] App identity (name, icons, splash), `app.json` hardening, EAS build profiles. Signing credentials via environment/EAS secrets only.
-- [ ] Android release build (AAB) and install test. iOS if a Mac/EAS is available; otherwise report as not built.
-- [ ] Optional GitHub hardening if the repo is public or has Advanced Security: CodeQL and dependency review workflows, pinned by commit SHA.
-- [ ] Attach the CycloneDX SBOM to releases. Store privacy declaration: no data collected.
-- [ ] Final balance pass with human playtest notes folded into `docs/BALANCE.md`.
+Scope: a local test-signed release candidate. The maintainer confirmed production
+signing/store distribution is aspirational. See `docs/REVIEW-M6.md` and
+`docs/RELEASE.md` for artifact evidence and remaining qualification limits.
 
-Exit gate: installable Android build, tagged release with SBOM, all gates green.
+- [x] App identity, reproducible icons/dark splash, offline/backup configuration,
+  EAS preview/production profiles; credentials only from environment/EAS secrets.
+- [x] Local release APK and AAB; signed with a separate test-only key, installed
+  and checked on Android API 36 emulator. Production signing and store review
+  deferred by maintainer. iOS native build not performed (no Mac/EAS credentials).
+- [ ] Optional CodeQL/dependency-review workflows deferred; existing scanners and
+  least-privilege CI permissions remain unchanged.
+- [x] Privacy declaration: no data collected. Release procedure attaches configured
+  CycloneDX SBOM, web archive, APK/AAB and checksums to the tagged prerelease.
+- [x] Balance evidence reconciled: maintainer-approved opening, agent playtests and
+  exact current bot timings distinguished. No new human campaign or tuning claimed.
+
+Verification: `make verify-full` passes 255 tests with all existing coverage and
+pacing gates intact. The production export scan covers web and native JS; actual
+APK/AAB bundles also exclude the dev hook/drawer. Physical Android qualification
+remains #6. Production signing, store distribution and iOS are not claimed ready.
+
+Exit gate: installable test-signed Android build, green gates, and a tagged
+prerelease with SBOM. Post-M6 expansion may build on this qualified local baseline;
+shipping to stores remains a separate task.
