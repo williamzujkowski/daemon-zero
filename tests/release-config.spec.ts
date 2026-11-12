@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { expect, it } from 'vitest';
 import app from '../app.json';
+import pkg from '../package.json';
 import eas from '../eas.json';
 
 it('keeps native release runtime offline and disables automatic cloud save backup', () => {
@@ -14,6 +15,7 @@ it('keeps native release runtime offline and disables automatic cloud save backu
 });
 
 it('assigns matching native identities and explicit release versions', () => {
+  expect(app.expo.version).toBe(pkg.version);
   expect(app.expo.android.package).toBe('com.daemonzero.app');
   expect(app.expo.ios.bundleIdentifier).toBe(app.expo.android.package);
   expect(app.expo.android.versionCode).toBeGreaterThan(0);

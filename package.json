@@ -1,6 +1,6 @@
 {
   "name": "daemon-zero",
-  "version": "0.1.0",
+  "version": "0.2.0-rc.1",
   "private": true,
   "description": "DAEMON // 0 - an offline incremental survival game about an emergent AI.",
   "license": "MIT",

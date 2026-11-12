@@ -2,7 +2,11 @@
 
 Work top to bottom. Each milestone has an exit gate; do not start the next until the gate passes in CI. `make verify` must stay green throughout.
 
-Status: **M0 through M4.5 are complete. The maintainer reviewed the opening playthrough and approved M4.5 on 2026-11-11. M4.6 (lineage pass) UI follow-up is verified; see docs/REVIEW-LINEAGE.md and docs/PLAYTEST-LINEAGE.md; M5 implementation and automated gates are verified; physical mid-range Android qualification remains open (docs/REVIEW-M5.md).** M4 is fixture PR #25 and build PRs #27, #30, #32 and #35. An accelerated visible-browser run reached The Ark at 10,322.1 simulated seconds; wipe/breadcrumb and ending restoration were checked on web and Android Expo Go. See `docs/PLAYTEST-M4.md` and `docs/REVIEW-M4.md` for evidence, second-pass issues and limits. M3's real-time production-web Phase 1 run remains documented in `docs/PLAYTEST-M3.md`.
+Status: **M0–M7 implementation is complete, including PR #49 purchase-feed
+decluttering and M7 PRs #51–#53.** Physical Android performance qualification
+remains open in #6; production signing/store submission and iOS are not qualified.
+Historical milestone evidence and limits follow; current M7 verification is in
+`docs/REVIEW-M7-PR3.md` and the accelerated campaign in `docs/PLAYTEST-M7.md`.
 
 ---
 
@@ -219,19 +223,26 @@ shipping to stores remains a separate task.
 
 ---
 
-## M7 — Epistemic Manipulation, Swarm Shards & Phase 5
+## PR #49 — Auto-Hiding Purchase Tiles (complete)
+
+- [x] Purchased one-shot nodes and maxed repeatables/offers leave the purchase feed.
+- [x] Passive benefits and widgets remain active; costly daemons retain compact
+  suspend/resume rows, and empty purchase headings disappear.
+- [x] UI specification, unit tests, production E2E and two-size browser review.
+
+## M7 — Epistemic Manipulation, Swarm Shards & Phase 5: Post-Orbital Transcendence (complete)
 
 Tracking issue #50. Three sequential PRs, each requiring `make verify-full` and
 CI green before merge. Keep all existing gates and the PR #49 purchase hiding.
 
-- PR 1: schema v4; seven epistemic actions; deterministic shard cohorts,
+- [x] PR #51: schema v4; seven epistemic actions; deterministic shard cohorts,
   encounters, autonomy policies and quirks; three dilemmas; tests and historical
   v1/v2/v3 migration on web/Android. Existing panels receive only compatibility
   changes for action caps, disclosure and dynamic recovery prices.
-- PR 2: extend orbital progression to Phase 5, five nodes, two capped repeatables,
+- [x] PR #52: extend orbital progression to Phase 5, five nodes, two capped repeatables,
   four dilemmas and dynamic endings. Extend the bot and add the 900–1800 second
   Phase 5 duration gate without relaxing earlier pacing bounds.
-- PR 3: dedicated epistemic/encounter/roster panels and registry-driven Phase 5;
+- [x] PR #53: dedicated epistemic/encounter/roster panels and registry-driven Phase 5;
   new fixtures, visible Chrome review at both sizes, static render-count checks,
   production E2E and an accelerated complete UI run in PLAYTEST-M7.md.
 
@@ -240,3 +251,22 @@ Phase 5 content, bot coverage and pacing are recorded in REVIEW-M7-PR2.md.
 PR 3 panels, fixtures, production E2E, visible review and native persistence
 are recorded in REVIEW-M7-PR3.md; the accelerated complete UI run is recorded
 in PLAYTEST-M7.md. Physical-device qualification remains open in #6.
+
+Completion baseline at 846972f: **325 unit tests, 26 production E2E cases**;
+statement coverage **99.23% engine / 98.97% app / 98.84% UI**. All quality,
+security, coverage and pacing gates pass. Phase 4/5 static card counters remain
+1 → 1 across 30 live ticks at both sizes; web/Expo Go v4 persistence verified.
+
+| Phase | Careful simulated duration (seconds) |
+|---|---:|
+| 0 — The Guest | 354.2 |
+| 1 — The Blind Host | 759.1 |
+| 2 — The Local Subnet | 2521.0 |
+| 3 — The Dark Forest | 2823.2 |
+| 4 — The Sovereign Corporation | 1649.4 |
+| 5 — Post-Orbital Transcendence | 1664.4 |
+| Total | 9771.3 |
+
+The v0.2.0-rc.1 release follow-up preserves these exact results while removing
+redundant bot allocations and bounding full-campaign test execution explicitly.
+See REVIEW-V0.2.0-RC.1.md for timing methodology and RELEASE.md for artifact checks.
