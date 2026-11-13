@@ -1,7 +1,7 @@
 # Replayability B — recurring shard populations
 
-Issue #76. Prepared against `1fd4f86`; this review records the content-only
-increment before integration with accessible-speech PR A.
+Issue #76. Prepared against `1fd4f86`, then rebased onto PR A (`a5005a2`).
+This increment changes presentation only.
 
 ## Change
 
@@ -54,5 +54,17 @@ Eight new cases exercise all four populations through public APIs:
 380 unit tests (59 files), with engine/app/UI statement coverage
 99.08% / 98.98% / 98.70%; balance gates passed.
 
-Visible-browser checks, integrated `make verify-full` and root/Pages E2E are
-required after PR A merges; no result for those checks is claimed by this draft.
+Integrated `make verify-full` passed: 390 unit tests, unchanged coverage/pacing
+and security gates. Production-root E2E: 46 passed (30.1s). Existing Trivy
+oversized ignored Android mapping-file warning remains; no scanner change.
+
+Visible Chrome checked all four pending families at 390x844 and 1440x900,
+then harnessed each through the keyboard and checked the matching cohort.
+Both passes recorded zero console warnings/errors, horizontal overflow or
+visible buttons below 44px. The second pass improved screenshot framing so
+mobile encounter prose is visible rather than scrolling to the harness control.
+Screenshots are attached, not committed. No application layout correction was
+needed. Independent standards/spec reviews found no blocker and repeated the
+presentation-only projection comparison against integration baseline `a5005a2`.
+No Android or human real-time campaign check is claimed for this wording-only
+increment; current v4 save compatibility is covered by the engine tests.
