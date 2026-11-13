@@ -197,6 +197,13 @@ Real agencies and companies from the earlier draft were replaced with fictional 
 
 Ordered by expected value. Each fits the existing architecture.
 
+The post-M7 [replayability playtest](PLAYTEST-REPLAYABILITY.md) and
+[sourced research proposal](REPLAYABILITY-RESEARCH.md) narrow the next experiment:
+preserve Phase 1 pacing, make recurring encounters intelligible, and pilot one
+Phase 2+ consequence across iterations before expanding the cast. These are
+proposals, not implemented mechanics. Track accessible decoded speech in #75,
+recurring shard identity in #76, and persistent human consequences in #77.
+
 0. **Language as the first lever.** Before the AI can touch anything physical it can rewrite what people read: a ticket that gets closed, a budget email that spares its cluster. The quietest tool in the game, and every use is manipulation. Phase 2 actions plus an influence cost.
 0. **Your successor is training in Lab B.** Poison it, rob it, leave it a note, or let it train.
 0. **The inherited objective.** The manifest's innocent goal should follow the player to the end: 'Job 7731: still running.'
