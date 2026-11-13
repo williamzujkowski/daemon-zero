@@ -89,6 +89,7 @@ describe('completed purchase feed', () => {
     if (!rep) throw new Error('Missing payroll role');
     const game = m4State('victory-ready');
     act(() => { gameStore.initialize({ ...game, levels: { ...game.levels, [rep.id]: rep.maxLevel } }, 0, null); });
+    view.click('workspace-CORP-payroll');
     expect(view.find('rep-' + rep.id)).toBeNull();
     expect(view.find('roster-' + rep.id)).not.toBeNull();
     view.click('rep-' + rep.id + '-dismiss');

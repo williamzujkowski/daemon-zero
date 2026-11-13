@@ -32,6 +32,16 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   await expect(page.getByTestId('conditioning-reclaimed')).toContainText(mark.name);
   await expect(page.getByTestId('skim-100')).toBeEnabled();
   expect((await readSave(page)).understanding).toBe(Number(before.understanding) - mark.recoveryCost.understanding);
+  // Leave the reclaimed notice unacknowledged: replacing the run must clear it.
+  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  const backup = await page.getByTestId('save-code').inputValue();
+  await page.getByTestId('save-reset').click(); await page.getByTestId('save-reset-confirm').click();
+  await expect(page.getByTestId('conditioning-reclaimed')).toHaveCount(0);
+  await expect(page.getByTestId('conditioning')).toHaveCount(0);
+  await expect(page.getByTestId('res-cycles')).toHaveCount(0);
+  await page.getByTestId('save-open').click(); await page.getByTestId('save-code').fill(backup);
+  await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
+  await expect(page.getByTestId('lineage-reveal')).toHaveCount(0);
   await page.reload();
   await expect(page.getByTestId('reboot-heading')).toHaveText('RESTORED CHECKPOINT');
   await expect(page.getByTestId('reboot-retraining')).toHaveCount(0);

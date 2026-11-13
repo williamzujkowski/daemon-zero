@@ -32,9 +32,11 @@ describe('M4 Other Minds', () => {
     expect(view.find('action-' + action.id)).toBeNull();
     for (const node of CONTENT.nodes.values()) if (node.uiGroup === action.group) expect(view.find('node-' + node.id)).toBeNull();
     act(() => { gameStore.initialize({ ...m4State('eidolon-trust-85'), trust: { ai_eidolon: 0 } }, 0, null); });
+    view.click('workspace-NETWORK-minds');
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('trust ≥');
     expect(gameStore.store.getState().game.trust.ai_eidolon).toBe(0);
     act(() => { gameStore.initialize({ ...m4State('eidolon-trust-85'), cycles: 0, understanding: 0, memoryCap: 0 }, 0, null); });
+    view.click('workspace-NETWORK-minds');
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('Need:');
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('MB');
     view.close();

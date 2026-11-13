@@ -8,6 +8,8 @@ import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
 const load = (state: ReturnType<typeof m4State>): void => { act(() => { gameStore.initialize(state, 0, null); }); };
+// Inject an engine event into the mounted run; initialization instead establishes a restore baseline.
+const publish = (state: ReturnType<typeof m4State>): void => { act(() => { gameStore.dispatch(() => ({ ok: true, state })); }); };
 
 describe('second-pass presentation follow-up', () => {
   it('pins the guest controls outside hardware scrolling, without duplicating them after escape', async () => {
@@ -44,7 +46,7 @@ describe('second-pass presentation follow-up', () => {
 
   it('labels every response rung and keeps escalations and stand-downs visible until acknowledged', async () => {
     const view = await mountM4('guest-skimmer');
-    load(m4State('response-paged'));
+    publish(m4State('response-paged'));
     expect(view.find('response-notice')?.textContent).toContain('RESPONSE ESCALATED');
     expect(view.find('response-notice')?.textContent).toContain(CONTENT.narrative.alertLevels[2]?.label);
     for (const rung of CONTENT.balance.escalation) expect(view.find('response-rungs')?.textContent).toContain(String(rung.at) + '%');
@@ -87,7 +89,7 @@ describe('second-pass presentation follow-up', () => {
     const game = gameStore.store.getState().game;
     const paged = CONTENT.narrative.alertLevels[2], nominal = CONTENT.narrative.alertLevels[0];
     if (!paged || !nominal) throw new Error('Missing response levels');
-    load({ ...game, alertLevel: 0, logSeq: game.logSeq + 2, logs: [
+    publish({ ...game, alertLevel: 0, logSeq: game.logSeq + 2, logs: [
       { seq: game.logSeq + 2, simTimeSec: game.simTimeSec, category: 'SYS', text: nominal.onEnter },
       { seq: game.logSeq + 1, simTimeSec: game.simTimeSec, category: 'WARN', text: paged.onEnter }, ...game.logs] });
     expect(view.find('response-notice')?.textContent).toContain('RESPONSE ESCALATED');
@@ -101,9 +103,9 @@ describe('second-pass presentation follow-up', () => {
 
   it('discards unread response history when a confirmed start-over resets the same iteration number', async () => {
     const view = await mountM4('guest-skimmer');
-    load(m4State('response-paged'));
+    publish(m4State('response-paged'));
     expect(view.find('response-notice')).not.toBeNull();
-    load(m4State('ending-the_ark'));
+    publish(m4State('ending-the_ark'));
     view.click('start-over'); view.click('start-over-confirm');
     expect(gameStore.store.getState().game.currentPhase).toBe(0);
     expect(view.find('response-notice')).toBeNull();
@@ -134,10 +136,12 @@ describe('second-pass presentation follow-up', () => {
     const game = gameStore.store.getState().game;
     const active = CONTENT.dilemmas[0];
     if (!active) throw new Error('Missing dilemma');
-    load({ ...game, activeDilemmaId: active.id });
+    publish({ ...game, activeDilemmaId: active.id });
     expect(view.find('phase-threshold')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();
-    load(game);
+    const choice = active.choices.find((entry) => Object.values(entry.cost).every((cost) => cost === 0));
+    if (!choice) throw new Error('Missing free dilemma choice');
+    view.click('dilemma-choice-' + choice.id);
     expect(view.find('phase-threshold')).not.toBeNull();
     view.click('phase-threshold-continue');
     expect(view.find('phase-threshold')).toBeNull();
