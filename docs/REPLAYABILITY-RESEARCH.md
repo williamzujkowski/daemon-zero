@@ -120,3 +120,7 @@ documentation only; it does not implement or validate these proposed mechanics.
 See [the playtest report](PLAYTEST-REPLAYABILITY.md) for measured outcomes and
 limitations. Phase 1 timing, narrative wording, balance and simulation behavior
 are unchanged by this audit.
+
+Implementation boundaries and sequencing are now specified in
+[REPLAYABILITY-PLAN.md](REPLAYABILITY-PLAN.md); tool availability and review
+revisions are recorded in [REPLAYABILITY-PLAN-REVIEW.md](REPLAYABILITY-PLAN-REVIEW.md).
