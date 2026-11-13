@@ -161,7 +161,8 @@
         "requiredNarrativeFlag": "cryo_samples_preserved",
         "forbidsResolvedDilemmas": [
           "dil_05_cryo_lab_diversion"
-        ]
+        ],
+        "minIteration": 2
       }
     },
     {
@@ -178,7 +179,8 @@
         "requiredNarrativeFlag": "cryo_samples_lost",
         "forbidsResolvedDilemmas": [
           "dil_05_cryo_lab_diversion"
-        ]
+        ],
+        "minIteration": 2
       }
     }
   ]

@@ -23,10 +23,11 @@ describe('pure speech queries', () => {
     expect(eligibleAmbientSpeech({ ...state, currentPhase: 2, suspicion: 100 }, custom, decoder)).toEqual(custom.narrative.ambientChatter);
   });
   it('requires matching decoder, phase, source timing and outcome for records', () => {
-    const state = { ...fresh(), currentPhase: 2, unlockedWidgets: [decoder], unlockedNodes: record.requirements.nodes ?? [], narrativeFlags: [defined(record.requirements.requiredNarrativeFlag)] };
+    const state = { ...fresh(), iteration: 2, currentPhase: 2, unlockedWidgets: [decoder], unlockedNodes: record.requirements.nodes ?? [], narrativeFlags: [defined(record.requirements.requiredNarrativeFlag)] };
     const before = structuredClone(state);
     expect(recordedTransmissions(state, reg, decoder)).toEqual([record]);
     expect(recordedTransmissions({ ...state, currentPhase: 1 }, reg, decoder)).toEqual([]);
+    expect(recordedTransmissions({ ...state, iteration: 1 }, reg, decoder)).toEqual([]);
     expect(recordedTransmissions({ ...state, unlockedWidgets: ['another'] }, reg, 'another')).toEqual([]);
     expect(state).toEqual(before);
   });

@@ -20,6 +20,7 @@ it('rejects duplicate speech IDs and unknown speech requirement references', () 
 it('requires valid source, later-run exclusion, outcome and decoder gates on records', () => {
   expect(corrupt((raw) => raw.narrative.recordedTransmissions[0].sourceDilemmaId = 'missing')).toThrow(/unknown source dilemma/);
   expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.forbidsResolvedDilemmas)).toThrow(/later-run source gate/);
+  expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.minIteration)).toThrow(/return iteration gate/);
   expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.requiredNarrativeFlag)).toThrow(/outcome flag/);
   expect(corrupt((raw) => raw.narrative.recordedTransmissions[0].decoderWidgetId = 'MISSING')).toThrow(/missing decoder gate/);
   expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.nodes)).toThrow(/missing decoder gate/);

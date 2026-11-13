@@ -34,6 +34,7 @@ function checkSpeech(reg: ContentRegistry): string[] {
       if (!source.choices.some((choice) => choice.effects.setsNarrativeFlag === record.requirements.requiredNarrativeFlag)) errors.push(record.id + ': outcome is not produced by source');
       if ((record.requirements.phaseAtLeast ?? 0) < source.phaseId) errors.push(record.id + ': record reveals an earlier phase');
     }
+    if ((record.requirements.minIteration ?? 1) < 2) errors.push(record.id + ': record needs a return iteration gate');
     if (!record.requirements.forbidsResolvedDilemmas?.includes(record.sourceDilemmaId)) errors.push(record.id + ': record needs a later-run source gate');
     const decoders = [...reg.nodes.values()].filter((node) => node.unlocksUiComponent === record.decoderWidgetId);
     if (!reg.widgets.has(record.decoderWidgetId) || !decoders.some((node) => record.requirements.nodes?.includes(node.id))) errors.push(record.id + ': missing decoder gate');
