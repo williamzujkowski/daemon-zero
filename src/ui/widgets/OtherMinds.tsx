@@ -1,5 +1,6 @@
 import { Text, View } from '../PhaseTheme';
 import DisclosureText from '../DisclosureText';
+import CardDetails from '../CardDetails';
 /** Faction identity, actions and offers are all indexed by registry metadata. */
 
 import { CONTENT } from '../../content';
@@ -13,9 +14,13 @@ import Meter from './Meter';
 function FactionPanel({ faction }: { faction: Faction }) {
   const trust = useGame((game) => game.trust[faction.id] ?? faction.initialTrust);
   const phase = useGame((game) => game.currentPhase);
+  const permanentTradeRule = [...CONTENT.actions.values()].some((action) =>
+    action.group === faction.id && (action.requirements.forbidsTraits?.length ?? 0) > 0);
   return <View testID={'faction-' + faction.id} style={theme.panel}>
-    <Text accessibilityRole="header" style={theme.heading}>{faction.name}</Text>
-    <DisclosureText style={theme.text}>{faction.description}</DisclosureText>
+    {permanentTradeRule ? <>
+      <Text accessibilityRole="header" style={theme.heading}>{faction.name}</Text>
+      <DisclosureText style={theme.text}>{faction.description}</DisclosureText>
+    </> : <CardDetails id={'faction-' + faction.id} title={faction.name} description={faction.description} />}
     <Text style={theme.muted}>Disposition: {faction.disposition.replaceAll('_', ' ')}</Text>
     <Meter id={'trust-' + faction.id} label={faction.name + ' trust'} value={trust} />
     <ActionsPanel group={faction.id} />

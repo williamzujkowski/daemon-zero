@@ -1,5 +1,5 @@
 import { Text, View } from './PhaseTheme';
-import DisclosureText from './DisclosureText';
+import CardDetails from './CardDetails';
 /**
  * Content-driven upgrades appear only when their engine requirements are met.
  * Level changes update the price; affordability updates only the button leaf.
@@ -24,11 +24,12 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const cost = repeatableCost(rep, level);
   const surveillanceKnown = useSurveillanceKnown();
   return <View testID={'rep-' + rep.id} style={theme.panel}>
-    <Text style={theme.heading}>{rep.name}</Text>
-    <DisclosureText style={theme.text}>{rep.description}</DisclosureText>
+    <CardDetails id={'rep-' + rep.id} title={rep.name} description={rep.description} />
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
     <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${String(rep.perLevelEffects.memoryCapIncrease)} MB capacity` : ''}</Text>
+    {rep.perLevel.megawattsDelta < 0 && <Text style={theme.muted}>
+      Compute output is throttled during a power shortfall.</Text>}
     {rep.perLevelEffects.revenueMultiplierBonus > 0 && <Text style={theme.muted}>
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}
     {rep.perLevelEffects.aegisScanReduction > 0 && <Text style={theme.muted}>

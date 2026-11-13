@@ -11,6 +11,7 @@ import { driftProgress, executeShardCommand, forkShard, forkView, shardEntryView
 import { Text, View, Pressable } from '../PhaseTheme';
 import { useGame } from '../state';
 import { theme } from '../theme';
+import CardDetails from '../CardDetails';
 function ForkButton({ template }: { template: ShardTemplate }) {
   const encoded = useGame((game) => JSON.stringify(forkView(game, template, CONTENT)));
   const view = JSON.parse(encoded) as ReturnType<typeof forkView>;
@@ -41,9 +42,17 @@ function CohortDetails({ id }: { id: string }) {
     const view = shardEntryView(game, id, CONTENT);
     return view ? `${String(view.count)} members · ${String(view.allocatedMb)} MB · ${view.autonomyMode}\n${view.output}` : '';
   });
-  const quirk = useGame((game) => { const view = shardEntryView(game, id, CONTENT); return view?.quirk ? `${view.quirk.title}\n${view.quirk.description}\n${view.quirk.modifiers}` : 'No quirk attached'; });
   return <><Text testID={'shard-status-' + id} style={theme.text}>{label}</Text><Drift id={id} />
-    <Text testID={'shard-quirk-' + id} style={theme.muted}>{quirk}</Text></>;
+    <Quirk id={id} /></>;
+}
+function Quirk({ id }: { id: string }) {
+  const quirk = useStore(gameStore.store, useShallow(({ game }) => shardEntryView(game, id, CONTENT)?.quirk ?? null));
+  return <View testID={'shard-quirk-' + id} style={{ gap: 8 }}>
+    {quirk ? <>
+      <CardDetails id={'shard-quirk-' + id} title={quirk.title} description={quirk.description} />
+      <Text style={theme.muted}>{quirk.modifiers}</Text>
+    </> : <Text style={theme.muted}>No quirk attached</Text>}
+  </View>;
 }
 const Cohort = memo(function Cohort({ id }: { id: string }) {
   useEffect(() => { if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') recordNodeRender('shard:' + id); });
@@ -62,7 +71,7 @@ export default function Swarm() {
     {ids.map((id) => <Cohort key={id} id={id} />)}
     {CONTENT.swarm.playerSwarmTemplates.filter((t) => t.forkable && phase >= (t.requirements.phaseAtLeast ?? 0)).map((template) =>
       <View key={template.id} testID={'shard-template-' + template.id} style={theme.panel}>
-        <Text style={theme.heading}>{template.name}</Text><Text style={theme.muted}>{template.description}</Text><ForkButton template={template} />
+        <CardDetails id={'shard-template-' + template.id} title={template.name} description={template.description} /><ForkButton template={template} />
       </View>)}
   </View>;
 }
