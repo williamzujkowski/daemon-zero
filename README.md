@@ -109,3 +109,9 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 ## License
 
 MIT. See `LICENSE`.
+
+Current UI refinements keep daemon controls in the header’s PROC panel and put
+late-game purchases, operations, swarm and corporate management in focused
+sections. The kernel log stays visible and can expand; earlier upgrades and
+reference detail remain available on demand. See the
+[workspace review](docs/REVIEW-UI-WORKSPACES.md).

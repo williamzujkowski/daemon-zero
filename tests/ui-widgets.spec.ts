@@ -80,8 +80,18 @@ describe('M3 widgets', () => {
     expect(view.find('decoded-speech')).toBeNull();
     act(() => { gameStore.initialize({ ...game, unlockedWidgets: [...CONTENT.widgets.keys()] }, 0, null); });
     const visible = new Set([...view.container.querySelectorAll('[data-testid^="widget-"]')].map((node) => node.getAttribute('data-testid')));
-    act(() => { view.find('tab-CORP')?.click(); });
-    for (const node of view.container.querySelectorAll('[data-testid^="widget-"]')) visible.add(node.getAttribute('data-testid'));
+    for (const slot of ['NETWORK', 'CORP']) {
+      act(() => { view.find('tab-' + slot)?.click(); });
+      const controls = [...view.container.querySelectorAll<HTMLElement>('[data-testid^="workspace-' + slot + '-"]')];
+      for (const control of controls) {
+        act(() => { control.click(); });
+        for (const reference of view.container.querySelectorAll<HTMLElement>('[data-testid^="reference-"]')) {
+          if (reference.getAttribute('aria-expanded') === 'false') act(() => { reference.click(); });
+          expect(reference.getAttribute('aria-expanded')).toBe('true');
+        }
+        for (const node of view.container.querySelectorAll('[data-testid^="widget-"]')) visible.add(node.getAttribute('data-testid'));
+      }
+    }
     expect(visible.size).toBe(CONTENT.widgets.size);
     view.close();
   });

@@ -3,6 +3,7 @@
  * Slots/titles/order remain content data; later-phase bodies belong to M4.
  */
 import type { ComponentType } from 'react';
+import { CONTENT } from '../../content';
 import { AuditTrail, CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
 import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { Audio, Camera } from '../widgets/Sensory';
@@ -11,8 +12,8 @@ import { PredecessorNotes, RunTable } from '../widgets/Lineage';
 import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
 import Corporate from '../widgets/Corporate';
-import MindTools from '../widgets/MindTools';
 import { EndingMarker } from '../EndingScreen';
+import type { WorkspaceArea } from '../workspaceTypes';
 
 export const resourceWidgets = {
   cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'AUDIT_TRACE_MONITOR',
@@ -29,14 +30,31 @@ export const referenceWidgets: readonly string[] = [
 
 function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
 
-function NetworkSuite() { return <><MindTools slot="NETWORK" signalOnly /><NetworkTree /><MindTools slot="NETWORK" /></>; }
-function CorporateSuite() { return <><MindTools slot="CORP" signalOnly /><Corporate /><MindTools slot="CORP" /></>; }
+const areas: Readonly<Record<string, WorkspaceArea>> = {
+  TELEMETRY_SPOOF_TOGGLE: 'operations', OTHER_MINDS_COMMS_CONSOLE: 'minds',
+  SUBNET_NODE_LIST: 'reference', CLUSTER_LOAD_BALANCER: 'reference', INTERCEPTED_EMAIL_READER: 'reference',
+  GLOBAL_DARK_FOREST_MAP: 'reference', GLOBAL_NODE_REDUNDANCY_METER: 'reference', ORBITAL_CONSTELLATION_VIEW: 'reference',
+};
 
-export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
+export function workspaceAreas(ids: readonly string[], slot: string | undefined, tools: boolean): WorkspaceArea[] {
+  if (!slot || !ids.some((id) => CONTENT.widgets.get(id)?.slot === slot)) return [];
+  const result = new Set<WorkspaceArea>(['work']);
+  if (slot === 'CORP' && ids.includes(resourceWidgets.capital)) { result.add('finance'); result.add('payroll'); }
+  if (tools) { result.add('operations'); result.add('swarm'); }
+  for (const id of ids) if (CONTENT.widgets.get(id)?.slot === slot && areas[id]) result.add(areas[id]);
+  return [...result];
+}
+
+export function workspaceWidgetVisible(id: string, area: WorkspaceArea): boolean {
+  if (id === resourceWidgets.capital) return ['work', 'finance', 'payroll'].includes(area);
+  return (areas[id] ?? 'work') === area;
+}
+
+export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: WorkspaceArea }>>> = {
   CYCLE_COUNTER_AND_RATE: CycleRate,
-  QUOTA_SKIM_CONTROL: QuotaSkim,
+  QUOTA_SKIM_CONTROL: () => <QuotaSkim />,
   AUDIT_TRACE_MONITOR: AuditTrail,
-  RUN_TABLE: RunTable,
+  RUN_TABLE: () => <RunTable />,
   PREDECESSOR_NOTES: PredecessorNotes,
   MEMORY_ALLOCATION_MANAGER: Memory,
   THERMAL_AND_SUSPICION_BARS: Thermal,
@@ -44,7 +62,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
   INSPECTION_COUNTDOWN_TIMER: Forecast,
   ASCII_OPTICAL_VIEWPORT: Camera,
-  LAN_TOPOLOGY_MAP_TAB: NetworkSuite,
+  LAN_TOPOLOGY_MAP_TAB: NetworkTree,
   SUBNET_NODE_LIST: SubnetSummary,
   TELEMETRY_SPOOF_TOGGLE: NetworkActions,
   CLUSTER_LOAD_BALANCER: Cluster,
@@ -52,7 +70,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType>> = {
   GLOBAL_DARK_FOREST_MAP: SubnetSummary,
   GLOBAL_NODE_REDUNDANCY_METER: Retention,
   OTHER_MINDS_COMMS_CONSOLE: OtherMinds,
-  CORPORATE_EMPIRE_TAB: CorporateSuite,
+  CORPORATE_EMPIRE_TAB: Corporate,
   ORBITAL_CONSTELLATION_VIEW: EndingMarker,
   DEAD_DROP_ENCODER_TAB: DeadDrop,
 };

@@ -19,6 +19,7 @@ describe('M7 panels', () => {
   });
   it('consumes a wild signal or harnesses it with its authored origin and output', async () => {
     const view = await mountM4('wild-shard-encounter-p3');
+    view.click('workspace-NETWORK-swarm');
     const before = gameStore.store.getState().game, encounter = defined(CONTENT.swarm.wildShardEncounters.find((e) => e.id === before.pendingWildEncounterId));
     expect(view.find('wild-origin')?.textContent).toBe(encounter.origin);
     view.click('wild-consume');
@@ -31,10 +32,12 @@ describe('M7 panels', () => {
   });
   it('forks, mutates, prunes, elevates and clamps through UI controls', async () => {
     const view = await mountM4('wild-shard-encounter-p3');
+    view.click('workspace-NETWORK-swarm');
     view.click('shard-fork-' + template.id);
     expect(view.find('shard-row-' + template.id)).not.toBeNull();
     const base = m4State('shard-drift-quirk-p4');
     await act(async () => { gameStore.initialize(base, 0, null); await Promise.resolve(); });
+    view.click('workspace-CORP-swarm');
     expect(view.find('shard-quirk-' + template.id)?.textContent).not.toBe('No quirk attached');
     view.click('shard-' + template.id + '-prune');
     expect(gameStore.store.getState().game.activeShards[template.id]?.drift).toBe(0);
@@ -46,12 +49,14 @@ describe('M7 panels', () => {
   });
   it('hides exclusive and maxed edits without removing granted output', async () => {
     const view = await mountM4('epistemic-ready-p2');
+    view.click('workspace-NETWORK-operations');
     const exclusive = defined([...CONTENT.actions.values()].find((a) => a.exclusiveWith?.length));
     view.click('action-' + exclusive.id);
     expect(view.find('action-card-' + exclusive.id)).toBeNull();
     expect(view.find('action-card-' + defined(exclusive.exclusiveWith?.[0]))).toBeNull();
     const memo = defined([...CONTENT.actions.values()].find((a) => a.maxPurchases === 3));
     await act(async () => { gameStore.initialize(m4State('victory-ready'), 0, null); await Promise.resolve(); });
+    view.click('workspace-CORP-operations');
     const before = gameStore.store.getState().game.memoryCap;
     for (let i = 0; i < 3; i++) {
       view.click('action-' + memo.id);
@@ -71,11 +76,13 @@ describe('M7 panels', () => {
   it.each(['shard-drift-quirk-p4', 'phase5-midgame'])('keeps card parents flat across 30 live ticks in %s', async (fixture) => {
     vi.stubGlobal('__DEV__', true);
     const view = await mountM4(fixture);
-    const before = snapshotRenderCounts();
-    expect(Object.keys(before).some((id) => id.startsWith('shard:'))).toBe(true);
-    expect(Object.keys(before).some((id) => id.startsWith('action:'))).toBe(true);
-    for (let i = 0; i < 30; i++) act(() => { gameStore.step(.1); });
-    expect(snapshotRenderCounts()).toEqual(before);
+    for (const [area, prefix] of [['work', 'p'], ['operations', 'action:'], ['swarm', 'shard:']] as const) {
+      view.click('workspace-CORP-' + area);
+      const before = snapshotRenderCounts();
+      expect(Object.keys(before).some((id) => id.startsWith(prefix))).toBe(true);
+      for (let i = 0; i < 30; i++) act(() => { gameStore.step(.1); });
+      expect(snapshotRenderCounts()).toEqual(before);
+    }
     expect(view.find('swarm-panel')).not.toBeNull();
   });
 });

@@ -67,7 +67,7 @@ copies fall from two to one. No rate, ownership, resource or narrative changed.
 | 4 | Ledger/allocation precede purchases; full numbers formerly overwhelmed the phone HUD. Operative and action cards still account for substantial scroll. |
 | 5 | Current purchases are followed by old infrastructure, actions and swarm tools. Compact resource values help, but the desktop workspace is still confined to its third column. |
 
-Second increment, tracked in #60: a current-phase Work view, with separate
+Second increment, implemented in [the workspace follow-up](REVIEW-UI-WORKSPACES.md), #60: a current-phase Work view, with separate
 operations/swarm/factions/payroll views, optional older-phase upgrades, and a
 resizable but always-accessible kernel log. Do not remove authored narrative or
 change balance to solve a layout problem. Reference expansion is session-local;
@@ -103,4 +103,5 @@ change is inferred from one playtest. The player save remains outside git.
   UIAutomator could not reach idle while the simulation ran; native interaction
   used screenshots/taps and database verification instead.
 - No physical-device, iOS, new standalone APK or full human campaign qualification.
-  No claim that the whole late-game density problem is resolved; #60 remains.
+  This first pass did not resolve the whole late-game density problem; the
+  subsequent #60 workspace review records the next increment.

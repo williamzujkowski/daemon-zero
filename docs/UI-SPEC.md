@@ -10,8 +10,8 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 ## Layout
 
-- **Under 900 px wide (phones):** active pane, a fixed-height kernel log drawer, and a bottom tab bar. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
-- **900 px and wider:** three columns: CORE (manual button, tech nodes, repeatables) | SENSORS + CONTINGENCY | NETWORK + CORP + kernel log.
+- **Under 900 px wide (phones):** active pane, a compact/expandable kernel log, and a bottom tab bar. On hydration and phase changes, open the current phase’s unlocked registry slot; manual tab choices persist until the next phase. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
+- **900 px and wider:** responsive columns: CORE (manual button, tech nodes, repeatables) | unlocked SENSORS + CONTINGENCY | NETWORK + CORP + kernel log. Omit the empty sensor column before it unlocks. Give current CORE or NETWORK/CORP work twice the width of supporting columns. Before NETWORK unlocks, the log fills its column.
 
 Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGENCY`.
 
@@ -263,9 +263,9 @@ review remain PR 3 work.
 ## M7 tools and post-orbital presentation
 
 After the audit is decoded, the active phase's registry slot owns the mind tools:
-NETWORK in Phases 2–3 and CORP in Phases 4–5. A pending wild signal sits above
-purchases, so its invitation is not buried below the corporate upgrade feed.
-Epistemic actions and the swarm roster follow purchases. Blind openings mount
+NETWORK in Phases 2–3 and CORP in Phases 4–5. A compact pending-signal notice stays above
+the scroll in every section except Swarm, where the full encounter appears.
+Epistemic actions live in Operations; encounters and cohorts live in Swarm. Blind openings mount
 none of these tools. All titles, IDs, effects and requirements come from content.
 
 Epistemic manipulation shows numeric drift and a status label, formatted costs,
@@ -306,3 +306,28 @@ This prevents late-game numbers from turning the status strip into five tall row
 Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
 knowledge and cheaper remapping. No retention percentage, recovery price or
 conditioning behavior changes in this UI pass.
+
+
+## Post-M7 density review: focused workspaces
+
+NETWORK and CORP default to Work, containing unfinished nodes and current-phase
+upgrades. A wrapped, 44px navigation row stays above the pane scroll. Sections
+appear only through unlocked widget registration: Operations, Swarm, Factions,
+Finance, Payroll and Reference. Operations contains normal network actions and
+current-phase epistemic edits; Factions keeps authored descriptions, trust,
+offers and countermeasures together. Finance contains the capital/power ledger,
+allocation and corporate actions; Payroll contains hire/dismiss controls.
+Insolvency, power shortfall and brownout warnings stay visible throughout CORP.
+The existing AEGIS HUD remains visible outside Factions.
+
+Older-phase repeatable upgrades are folded under “Earlier upgrades”; unfinished
+one-shot purchases remain exposed. Reference holds the existing optional archive,
+source and topology panels. Switching sections changes presentation only; it
+never changes ownership, effects, simulation time or persistence. Navigation and
+fold state are session-local, not a new save field.
+
+KERNEL // LIVE is always present: mobile 120px compact / 280px expanded; desktop
+180px / 400px below NETWORK/CORP, or a full column before those unlock. The size
+control appears after the first discovery and has a keyboard-accessible name.
+The reason for these changes is measured late-game stacking, not reduced content:
+see docs/REVIEW-UI-WORKSPACES.md for the start/mid/end review.
