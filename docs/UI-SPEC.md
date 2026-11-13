@@ -319,19 +319,11 @@ use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.
 
 ## Post-M7 density review: first increment
 
-The careful campaign is sampled at the start, temporal midpoint and final
-pre-transition state of every phase by `scripts/make-ui-audit-fixtures.ts`.
-These are actual engine-played states, not funded approximations. Review both
-390x844 and 1440x900, including each unlocked tab and process maintenance.
-
-KERNEL // LIVE remains visible. The audio widget owns the sole decoded speech
-feed; the forecast widget owns only the forecast. Speech is ambient content,
-not a redundant kernel-log entry, so it is retained. Source breakdowns, external
-hardware summaries, retention reference and intercepted lore are collapsed by
-default behind labelled, keyboard-accessible controls. Thermal/audit controls,
-forecasts, camera, Lineage reveals, predecessor notes and choices remain exposed.
-The reference policy lives beside widget registration and cannot reveal a locked
-widget. Collapsing affects presentation only, never engine ownership or rates.
+Review actual careful start/mid/end states at 390x844 and 1440x900. Kernel,
+thermal/audit controls, forecasts, camera, Lineage and choices stay visible.
+Audio owns speech; forecast owns only forecast. Secondary source/topology/lore
+widgets fold behind labelled controls, never before unlock. Collapse changes
+only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
 On phones, large resource balances/rates use K/M/B/T abbreviations in a two-column
 strip; accessible labels retain full numeric values. Small rates retain their
@@ -397,3 +389,11 @@ no costs, effects, ownership, save fields or unlock rules change.
 Audio adds NEXT TRANSMISSION/FOLLOW LIVE; returned cryo outcomes appear in a
 collapsed RECORDED TRANSMISSIONS section after decoding. Unknown legacy outcomes
 are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
+
+## Compact optional card details
+
+Short optional prose folds behind a title-adjacent Details button on phone and
+desktop. Costs, effects, limits, requirements and permanent-choice warnings stay
+visible. Early node discovery prose, successor choices and lifetime trade rules
+remain exposed. No simulation pause or new saved preference is introduced.
+See REVIEW-COMPACT-DETAILS.md for the field audit, reset contract, density measurements and limits.

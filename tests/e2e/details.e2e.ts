@@ -1,6 +1,7 @@
 /** Optional prose is keyboard-readable while decisions remain visible in the production export. */
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
+import { importSave } from '../../src/engine';
 import { test, expect, boot, dismissBoot, readSave } from './helpers';
 
 async function pane(page: Page, slot: string, area: string): Promise<void> {
@@ -78,8 +79,18 @@ test('temporary action mechanics remain visible without opening prose', async ({
   await expect(page.getByTestId('action-mechanics-' + action.id)).toContainText('Reuse delay: 180s');
   await page.getByTestId('action-' + action.id).click();
   await expect(page.getByTestId('action-duration-' + action.id)).toContainText('90s remaining');
+  const started = await readSave(page);
   await page.clock.runFor(3000);
-  await expect(page.getByTestId('action-duration-' + action.id)).toContainText('87s remaining');
+  // Export reads the live state, avoiding autosave throttling and decimal tick-rounding assumptions.
+  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  const current = importSave(await page.getByTestId('save-code').inputValue(), CONTENT);
+  await page.getByTestId('save-close').click();
+  expect(current.simTimeSec - Number(started.simTimeSec)).toBeCloseTo(3, 1);
+  const deadline = current.actionEffectUntil[action.id];
+  if (deadline === undefined) throw new Error('Missing active effect deadline');
+  expect(deadline).toBe(Number(started.simTimeSec) + (action.durationSec ?? 0));
+  const remaining = Math.ceil(deadline - current.simTimeSec);
+  await expect(page.getByTestId('action-duration-' + action.id)).toContainText(String(remaining) + 's remaining');
 });
 
 test('blind opening nodes keep their purchase explanation and reveal no classified prose', async ({ page }) => {
