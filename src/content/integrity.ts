@@ -49,6 +49,7 @@ function checkReachability(reg: ContentRegistry): string[] {
 function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
+  if (req.phaseAtLeast !== undefined && !reg.phases.some((phase) => phase.phaseId === req.phaseAtLeast)) problems.push(`${owner}: unknown required phase ${String(req.phaseAtLeast)}`);
   for (const id of req.resolvedDilemmas ?? []) if (!reg.dilemmas.some((dilemma) => dilemma.id === id)) problems.push(`${owner}: unknown required dilemma ${id}`);
   for (const id of [...(req.nodes ?? []), ...(req.forbidsNodes ?? [])]) {
     if (!reg.nodes.has(id)) problems.push(`${owner}: requirement references unknown node "${id}"`);
@@ -149,6 +150,7 @@ function checkPhases(reg: ContentRegistry): string[] {
 
 function checkNarrativeRefs(reg: ContentRegistry): string[] {
   const problems: string[] = [];
+  for (const mark of reg.conditioning.values()) problems.push(...checkRequirements(reg, mark.id, mark.recoveryRequirements));
   for (const ending of reg.endings) problems.push(...checkRequirements(reg, ending.id, ending.requirements));
   for (const echo of reg.echoes) {
     if (!reg.nodes.has(echo.onNode)) problems.push(`echo "${echo.id}": unknown node "${echo.onNode}"`);

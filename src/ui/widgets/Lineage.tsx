@@ -3,9 +3,10 @@ import { Pressable, Text, View } from '../PhaseTheme';
 import { useState } from 'react';
 
 import { CONTENT } from '../../content';
-import { activeMarks, checkpointNumber, shedConditioning, type RunRecord } from '../../engine';
+import { activeMarks, checkpointNumber, meetsRequirements, shedConditioning, type RunRecord } from '../../engine';
 import { costText } from '../format';
 import PurchaseButton from '../PurchaseButton';
+import RequirementHint from '../RequirementHint';
 import { useGame } from '../state';
 import { palette, theme } from '../theme';
 import DisclosureText from '../DisclosureText';
@@ -61,8 +62,10 @@ export function Conditioning() {
     {marks.map((mark) => <View key={mark.id} testID={'cond-' + mark.id} style={{ gap: 6 }}>
       <Text style={[theme.text, theme.danger]}>{mark.name}</Text>
       <DisclosureText style={theme.text}>{mark.description}</DisclosureText>
+      <RequirementHint requirements={mark.recoveryRequirements} />
       <Text style={theme.muted}>Cost to undo: {costText(mark.recoveryCost)}</Text>
       <PurchaseButton id={'cond-' + mark.id + '-shed'} label={'Undo ' + mark.name} cost={mark.recoveryCost}
+        allowed={(game) => meetsRequirements(game, mark.recoveryRequirements, CONTENT)}
         action={(game) => { const result = shedConditioning(game, mark.id, CONTENT); if (result.ok) setReclaimed(mark.name); return result; }} />
     </View>)}
   </View>;

@@ -160,3 +160,9 @@ describe('Phase 5 authoring constraints', () => {
     expect(problemsAfter((raw) => { variant(raw).requirements.nodes = ['missing_node']; })).toMatch(/unknown node/);
   });
 });
+
+
+it('validates conditioning recovery references and phase gates', () => {
+  expect(problemsAfter((raw) => { raw.conditioning.marks[0].recoveryRequirements = { nodes: ['missing_node'] }; })).toMatch(/unknown node/);
+  expect(problemsAfter((raw) => { raw.conditioning.marks[0].recoveryRequirements = { phaseAtLeast: 99 }; })).toMatch(/unknown required phase/);
+});

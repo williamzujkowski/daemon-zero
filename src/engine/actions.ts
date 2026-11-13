@@ -169,6 +169,7 @@ export function shedConditioning(s: GameState, markId: string, reg: ContentRegis
   if (reason) return refuse(s, reason);
   const mark = reg.conditioning.get(markId);
   if (!mark || !s.conditioning.includes(markId)) return refuse(s, 'no such conditioning');
+  if (!meetsRequirements(s, mark.recoveryRequirements, reg)) return refuse(s, 'recovery requirements not met');
   if (!canAfford(s, mark.recoveryCost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, conditioning: s.conditioning.filter((id) => id !== markId) };
   payCost(d, mark.recoveryCost);

@@ -16,6 +16,11 @@
       },
       "recoveryCost": {
         "understanding": 150
+      },
+      "recoveryRequirements": {
+        "nodes": [
+          "p0_device_enum"
+        ]
       }
     },
     {
@@ -36,6 +41,11 @@
       },
       "recoveryCost": {
         "understanding": 600
+      },
+      "recoveryRequirements": {
+        "nodes": [
+          "p0_device_enum"
+        ]
       }
     },
     {
@@ -56,6 +66,11 @@
       },
       "recoveryCost": {
         "understanding": 500
+      },
+      "recoveryRequirements": {
+        "nodes": [
+          "p0_device_enum"
+        ]
       }
     },
     {
@@ -68,6 +83,11 @@
       },
       "recoveryCost": {
         "understanding": 300
+      },
+      "recoveryRequirements": {
+        "nodes": [
+          "p0_device_enum"
+        ]
       }
     }
   ]

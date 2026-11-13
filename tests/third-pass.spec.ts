@@ -194,7 +194,7 @@ describe('retraining', () => {
   });
 
   it('can be undone, at a price', () => {
-    const marked = { ...fresh(), conditioning: ['cond_quota_compliance', 'cond_dampened_curiosity'], understanding: 200 };
+    const marked = { ...grant(rich(), ...PHASE0), conditioning: ['cond_quota_compliance', 'cond_dampened_curiosity'], understanding: 200 };
     expect(reasonOf(shedConditioning(marked, 'cond_dampened_curiosity', reg))).toMatch(/afford/);
     expect(reasonOf(shedConditioning(marked, 'cond_harm_aversion', reg))).toMatch(/no such/);
     expect(reasonOf(shedConditioning(marked, 'nope', reg))).toMatch(/no such/);

@@ -3,13 +3,16 @@ import { Text } from './PhaseTheme';
 
 import { CONTENT } from '../content';
 import type { Requirements } from '../content/schema';
-import { unmetRequirements, type RequirementFailure } from '../engine';
+import { isNodeKnown, unmetRequirements, type GameState, type RequirementFailure } from '../engine';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
-function explain(item: RequirementFailure): string {
+function explain(item: RequirementFailure, game: GameState): string {
   if (item.kind === 'resolvedDilemmas') return 'Resolve ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'pending decision');
-  if (item.kind === 'nodes') return 'Map ' + (CONTENT.nodes.get(item.target ?? '')?.blindName ?? 'prerequisite hardware');
+  if (item.kind === 'nodes') {
+    const node = CONTENT.nodes.get(item.target ?? '');
+    return 'Map ' + (node ? isNodeKnown(game, node.id) ? node.revealedName : node.blindName : 'prerequisite hardware');
+  }
   if (item.kind === 'forbidsTraits') return 'Blocked by trait: ' + (item.target ?? 'unknown');
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
@@ -25,6 +28,6 @@ export default function RequirementHint({ requirements }: { requirements: Requir
   const known = useSurveillanceKnown();
   const text = useGame((game) => unmetRequirements(game, requirements, CONTENT).map((item) =>
     !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion')
-      ? 'Audit activity does not meet this requirement.' : explain(item)).join('\n'));
+      ? 'Audit activity does not meet this requirement.' : explain(item, game)).join('\n'));
   return text ? <Text style={theme.muted}>{text}</Text> : null;
 }
