@@ -5,7 +5,7 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 ## Principles
 
 - **Diegetic terminal.** Monospace, hard edges, ASCII meters, no icons, no rounded corners. The player is looking at the AI's own console.
-- **Progressive disclosure.** At tick 0 the screen shows only the kernel log and `[ EXECUTE_CLOCK_CYCLE ]`. A panel exists only once its widget id is in `state.unlockedWidgets`. Resource readouts appear only once relevant (understanding after the first sensor, memory after the memory manager, capital in Phase 4).
+- **Progressive disclosure.** At tick 0 the screen shows only the kernel log and `[ EXECUTE_CLOCK_CYCLE ]`. A panel exists only once its widget id is in `state.unlockedWidgets`. Resource readouts appear only once relevant (understanding after the audit-trace widget, memory after the memory manager, capital in Phase 4).
 - **Data-driven.** Node lists, repeatables, actions, faction panels and dilemma choices render from the `ContentRegistry`. Adding content must not require UI changes unless it introduces a new widget id.
 
 ## Layout
@@ -28,14 +28,14 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
 | `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
 | `AUDIT_TRACE_MONITOR` | suspicion meter, current rung of the response ladder, next threshold; gates the understanding readout | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
-| `MEMORY_ALLOCATION_MANAGER` | used / cap bar | `memoryUsed`, `memoryCap` |
+| `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal meter and overheat warning (suspicion moved to the audit trail) | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | five-step control | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
-| `INSPECTION_COUNTDOWN_TIMER` | decoded speech instead of raw phonemes; threat forecast | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
+| `INSPECTION_COUNTDOWN_TIMER` | threat forecast, inbound countdown and paid-response budgets; audio owns decoded speech | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
-| `TELEMETRY_SPOOF_TOGGLE` | suspend/resume for the spoofer plus the OPS actions | `toggleNode`, actions with `group: OPS` |
+| `TELEMETRY_SPOOF_TOGGLE` | OPS actions; spoofer suspend/resume lives in PROC | `toggleNode`, actions with `group: OPS` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar | `factions`, `trust`, `aegisLock` |
@@ -138,7 +138,13 @@ resource strip and wait for acknowledgement. Engine announcements are queued in
 sequence, including multiple changes inside one tick batch; acknowledging one
 does not discard the next. Hydration and new iterations establish a baseline.
 An inbound dilemma's authored omen appears outside the log even before decoding;
-the unlocked forecast displays its remaining simulation-time countdown.
+the unlocked forecast displays its remaining simulation-time countdown. Once surveillance
+is understood, the same forecast lists the pending dilemma’s actual nonzero
+choice prices as paid-response budgets. Equal prices appear once; distinct
+complete cost bundles are alternatives, never combined into a fictional price.
+A reminder says a free response remains available. No choice names, outcomes or
+traits appear before the interrupt. Budgets disappear when it fires or clears,
+and never create another panel or reveal a locked forecast.
 
 Crossing from the guest to the host presents the host phase's authored title and
 description behind an explicit Enter Host action. The notice says that the
@@ -205,7 +211,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Unreadable audit trail (before `understandsSurveillance`) | `audit-unreadable`, `audit-activity`; `suspicion-meter`, `response-rungs` and `response-notice` are absent |
 | Lineage | `run-table`, `run-row-{iteration}`, `run-row-current`, `predecessor-notes` |
 | Retraining | `conditioning`, `cond-{id}`, `cond-{id}-shed`, `reboot-retraining`, `{actuator id}-limit` |
-| Response ladder / interrupt forecast | `alert-level`, `inspection-forecast` |
+| Response ladder / interrupt forecast / preparation costs | `alert-level`, `inspection-forecast`, `interrupt-budget` |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel log | `kernel-log` |

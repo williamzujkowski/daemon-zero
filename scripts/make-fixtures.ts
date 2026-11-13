@@ -13,7 +13,7 @@ import { makeThirdPassFixtures } from './third-pass-fixtures';
 import { makeSecondPassFixtures } from './second-pass-fixtures';
 
 const EARLY_FIXTURES = ['tick-0', 'guest-skimmer', 'guest-omen', 'guest-dilemma', 'guest-exit-ready',
-  'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready'] as const;
+  'thermal-unlocked', 'dilemma-active', 'decoded-omen', 'phase-1-widgets', 'phase-2-ready'] as const;
 
 /** Review targets are found structurally: the opening phase, and the phase that reveals heat. */
 function reviewTargets() {
@@ -46,6 +46,7 @@ export function makePhase1Fixtures(): Record<string, string> {
     const active = CONTENT.dilemmas.find((dilemma) => dilemma.id === state.activeDilemmaId);
     if (state.unlockedNodes.includes(t.skimmer.id)) found['guest-skimmer'] ??= exportSave(state);
     if (state.pendingDilemma !== null) found['guest-omen'] ??= exportSave(state);
+    if (state.pendingDilemma !== null && state.unlockedWidgets.includes('INSPECTION_COUNTDOWN_TIMER')) found['decoded-omen'] ??= exportSave(state);
     if (active?.phaseId === t.guest.phaseId) found['guest-dilemma'] ??= exportSave(state);
     if (ready(state, t.guestExit)) found['guest-exit-ready'] ??= exportSave(state);
     if (state.unlockedNodes.includes(t.thermal.id)) found['thermal-unlocked'] ??= exportSave(state);

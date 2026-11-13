@@ -7,6 +7,7 @@ import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import Meter from './Meter';
 import ResponseRungs from './ResponseRungs';
+import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
 
 export function Thermal() {
@@ -66,8 +67,8 @@ export function Forecast() {
     : Math.max(0, Math.ceil(game.pendingDilemma.firesAtSimSec - game.simTimeSec)));
   const seconds = useGame((game) => game.rates.suspicionPerSec > 0
     ? Math.ceil((100 - game.suspicion) / game.rates.suspicionPerSec) : null);
-  return <Text testID="inspection-forecast" style={theme.text}>
+  return <><Text testID="inspection-forecast" style={theme.text}>
     {known ? seconds === null ? 'Suspicion stable or falling.' : 'At current rate: ' + String(seconds) + 's until suspicion 100.' : 'Audit trail unreadable.'}
     {'\n'}{inbound === null ? 'No interrupt inbound.' : 'Interrupt inbound in ' + String(inbound) + 's. Set resources aside.'}
-  </Text>;
+  </Text><InterruptBudget /></>;
 }

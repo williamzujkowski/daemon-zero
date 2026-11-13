@@ -9,7 +9,7 @@
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
-| End-to-end (M5) | Playwright against the web export | `tests/e2e/` | `make e2e` |
+| End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
 | Agent-driven exploratory testing | Playwright MCP | `.mcp.json` | on demand |
 
 ## Writing engine tests
@@ -21,14 +21,15 @@
 
 ## Balance simulation
 
-`make sim` plays the full game twice in about a second:
+`make sim` runs both bot strategies through the configured simulation budget and
+prints their results plus measured wall-clock time:
 
 - **STEALTH** plays carefully and must reach victory within the gates in `src/engine/sim/gates.ts`.
 - **GREEDY** ignores threats. It is expected to be wiped repeatedly; the test asserts it always recovers and keeps progressing (no soft-locks in the wipe loop).
 
 The bot buys whatever most shortens the wait for the next tech node. It only uses public engine actions.
 
-## End-to-end with Playwright (M5)
+## Current end-to-end suite with Playwright
 
 The web build is the E2E target because it runs the same code as native and needs no emulator.
 
@@ -40,8 +41,16 @@ repository permissions. No development hook is present in this target.
 
 Configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keeping them
 separate from the existing Vitest `.spec.ts` discovery. Vitest remains the sole
-component/unit runner. There are seven scenarios at each of 390x844 and
-1440x900 (14 cases); all controls and values are selected by test ID only.
+component/unit runner. Scenarios run at both 390x844 and 1440x900; controls and
+values are selected by test ID. List the current cases without executing them:
+
+```bash
+pnpm exec playwright test --config tests/e2e/config.ts --list
+```
+
+`make e2e-pages` builds and runs the same scenarios under `/daemon-zero/`, matching
+the GitHub Pages deployment. Counts in milestone sections below are historical,
+not the current suite size.
 
 Fixtures are regenerated in each test worker with the current engine. Focused
 states enter through the ordinary app storage envelope, not a production hook.
@@ -49,7 +58,16 @@ The opening starts empty and buys the process view and manifest through the UI.
 Other tests buy the first-run parser, trigger a real tick-driven wipe, recover
 its breadcrumb, and buy the second-run table. Dilemmas block and resume the
 clock; confirmed save transfer rejects invalid input and round-trips progress.
-Reduced motion and numeric accessible late-phase meters are covered too.
+The suite also covers epistemic actions, shard management, Phase 5 decisions and
+ending reloads, focused workspaces, purchase hiding, retraining recovery, and
+confirmed full restart with exported-backup restoration. Reduced motion, numeric
+accessible late-phase meters and exported asset paths are covered too.
+
+Daemon maintenance is accessed through the header's PROC launcher, not inline
+purchase tiles. `daemon-processes.e2e.ts` opens that panel and checks suspension
+and resumption without bringing back a completed purchase card. Mounted tests
+in `ui-density.spec.ts` also check that closing the panel preserves process state
+and that mandatory dilemmas take priority.
 
 The clock is installed **before navigation**. Playwright `runFor` delivers timer
 callbacks rather than dormant catch-up. Each case gets independent storage and
@@ -66,7 +84,16 @@ Start the app first (`make web`), then ask the agent to open `http://localhost:8
 
 ## What CI runs
 
-`make verify-full`: typecheck, lint, content validation, tests with coverage, balance sim, production web export, dependency audit, secret scan, vulnerability scan, SBOM. E2E is added to CI in M5.
+CI runs the gates from `make verify-full`: typecheck, lint, content validation,
+tests with coverage, balance sim, production web export, dependency audit,
+secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
+`make e2e-pages`; these browser suites are separate from `make verify-full`.
+Only a successful `main` run deploys the tested Pages export. See
+`.github/workflows/ci.yml` for the exact order and artifact steps.
+
+The milestone sections below retain their original verification procedures and
+counts; use the current commands above and the linked review documents when
+reporting new evidence.
 
 ## M1 shell verification
 

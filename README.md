@@ -17,8 +17,8 @@ a backup first if you may want to return. Clearing site data also removes the lo
   successor arc.
 - Wild shard consumption bursts or harnessed cohorts, autonomy drift and quirks,
   with PRUNE / CLAMP / ELEVATE controls.
-- Completed purchase tiles disappear; useful daemon controls remain in a compact
-  active-process strip.
+- Completed purchase tiles disappear without stopping their benefits; owned
+  daemons can still be suspended or resumed.
 
 See [CHANGELOG.md](CHANGELOG.md) and the
 [test-signed prerelease](https://github.com/williamzujkowski/daemon-zero/releases/tag/v0.2.0-rc.1).
@@ -39,6 +39,13 @@ web export, Android signing/builds, artifact verification and remaining limits.
 M6 supplies a locally test-signed Android release candidate and standalone web
 export; see [verification and limits](docs/REVIEW-M6.md). Production signing/store
 submission and iOS are not yet qualified.
+
+Current UI refinements keep daemon controls in the header's **PROC** maintenance
+panel, outside the purchase feed. Open it to suspend or resume processes; closing
+it leaves running effects active. Late-game purchases, operations, swarm and
+corporate management have focused sections. The kernel log stays visible and
+can expand; earlier upgrades and reference detail remain available on demand.
+See the [workspace review](docs/REVIEW-UI-WORKSPACES.md).
 
 ## Quick start (Ubuntu 24.04)
 
@@ -111,9 +118,3 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 ## License
 
 MIT. See `LICENSE`.
-
-Current UI refinements keep daemon controls in the header’s PROC panel and put
-late-game purchases, operations, swarm and corporate management in focused
-sections. The kernel log stays visible and can expand; earlier upgrades and
-reference detail remain available on demand. See the
-[workspace review](docs/REVIEW-UI-WORKSPACES.md).

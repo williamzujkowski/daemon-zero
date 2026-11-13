@@ -45,7 +45,7 @@ describe('web development tools', () => {
 
   it('produces every early review fixture using the real engine', () => {
     expect(Object.keys(makeFixtures())).toEqual(['tick-0', 'guest-skimmer', 'guest-omen', 'guest-dilemma', 'guest-exit-ready',
-      'thermal-unlocked', 'dilemma-active', 'phase-1-widgets', 'phase-2-ready']);
+      'thermal-unlocked', 'dilemma-active', 'decoded-omen', 'phase-1-widgets', 'phase-2-ready']);
   });
 
   it('retains card commits recorded before the hook attaches or reattaches', () => {
