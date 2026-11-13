@@ -270,3 +270,16 @@ security, coverage and pacing gates pass. Phase 4/5 static card counters remain
 The v0.2.0-rc.1 release follow-up preserves these exact results while removing
 redundant bot allocations and bounding full-campaign test execution explicitly.
 See REVIEW-V0.2.0-RC.1.md for timing methodology and RELEASE.md for artifact checks.
+
+## Post-M7 — replayability pilot (planned, not implemented)
+
+The maintainer approved the direction after the three-style replay audit (#78).
+[REPLAYABILITY-PLAN.md](REPLAYABILITY-PLAN.md) specifies three sequential PRs:
+accessible decoded speech (#75), recurring shard population wording (#76), and
+one durable Phase 2 cryo consequence (#77). Phase 1 pacing remains unchanged.
+The plan separates presentation-only changes from later-run economic changes;
+existing quality and pacing gates remain mandatory. Historical archive/discovery
+sites are deferred until the consequence pilot receives a human playtest.
+Research, Nexus's incomplete vote and independent refinements are recorded in
+[REPLAYABILITY-PLAN-REVIEW.md](REPLAYABILITY-PLAN-REVIEW.md). No completion or
+implementation claim is made by this planning entry.
