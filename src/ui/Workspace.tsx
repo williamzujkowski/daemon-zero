@@ -1,4 +1,4 @@
-/** Navigation stays above the scroll, and pending signals remain visible in every section. */
+/** Workspace navigation and pending signals precede content; mobile scrolls them in one flow. */
 import { useState } from 'react';
 import { CONTENT } from '../content';
 import { wildEncounterView } from '../engine';

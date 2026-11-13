@@ -28,25 +28,29 @@ function CoreTree() {
   </>;
 }
 
-export default function TerminalPane({ slots }: { slots: string[] }) {
+export default function TerminalPane({ slots, flow = false }: { slots: string[]; flow?: boolean }) {
   const ids = useWidgetIds();
   const phase = useGame((game) => game.currentPhase);
   const workspace = useWorkspace(slots, ids);
   const pinned = slots.includes('CORE') && phase === CONTENT.phases[0]?.phaseId
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
-  return <View style={styles.pane}>
-    <WorkspaceHeader workspace={workspace} />
-    {pinned.length > 0 && <View testID="guest-console" style={styles.pinned}>
-      {pinned.map((id) => <Widget key={id} id={id} compact />)}
-    </View>}
-    <ScrollView testID={'pane-scroll-' + slots.join('-')} style={styles.pane} contentContainerStyle={styles.content}>
+  const content = <>
     {slots.includes('CORE') && <CoreTree />}
     {ids.filter((id) => !pinned.includes(id) && !stripOnlyWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
       (!workspace.slot || workspaceWidgetVisible(id, workspace.active)))
       .map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}
-    </ScrollView>
+  </>;
+  return <View style={flow ? styles.flow : styles.pane}>
+    <WorkspaceHeader workspace={workspace} />
+    {pinned.length > 0 && <View testID="guest-console" style={styles.pinned}>
+      {pinned.map((id) => <Widget key={id} id={id} compact />)}
+    </View>}
+    {flow ? <View testID={'pane-scroll-' + slots.join('-')} style={styles.content}>{content}</View>
+      : <ScrollView testID={'pane-scroll-' + slots.join('-')} style={styles.pane} contentContainerStyle={styles.content}>
+        {content}
+      </ScrollView>}
   </View>;
 }
 
@@ -59,6 +63,7 @@ function Widget({ id, compact = false, area = 'work' }: { id: string; compact?: 
   </View> : null;
 }
 const styles = StyleSheet.create({
+  flow: { minWidth: 0, flexShrink: 0 },
   pane: { flex: 1, minWidth: 0, minHeight: 0 }, content: { padding: 16, gap: 14 },
   pinned: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderColor: '#315c3b', gap: 8 },
   compact: { gap: 4 },
