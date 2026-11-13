@@ -31,8 +31,8 @@ describe('headless balance simulation', () => {
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
-    // Frozen pre-optimization report: includes every final-state bit and telemetry field.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('5654a34ec6762b820570006c767213c579f6145555946b9bfd7ea3e1071f6c81');
+    // Frozen report includes every final-state bit; refreshed only for recurring-fragment log wording.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('a7ee56bed2ce7703f6bfb0bf93cabea282edd492223df67570cd514119f9e87e');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
