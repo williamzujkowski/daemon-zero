@@ -31,8 +31,8 @@ describe('headless balance simulation', () => {
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
-    // The persistent cryo flag is now part of the report; first-run mechanics are unchanged.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('3e4dd76f0b5e35b3723a760b1c33b3ff6ca85037c916328813b5567b24586174');
+    // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('69b3267f3b8f7bee54ac87ae4795c5ce97422db7642436cdc8bd32e236625894');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('847b009c29e39d18fbceefc295b017c2e83b6da1a9e50398ed0779fbe47386e5');

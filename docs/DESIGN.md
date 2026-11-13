@@ -256,3 +256,18 @@ continuous benefits are per-run. Encounter sequence survives; the next encounter
 is rescheduled relative to the new boot. Phase 5 content and pacing are implemented
 in PR 2. PR 3 exposes edits, encounters and cohorts in the active NETWORK/CORP
 slot; see UI-SPEC.md and REVIEW-M7-PR3.md for disclosure and verification.
+
+## Persistent facility consequences
+
+The Phase 2 cryo-storage decision records whether the samples survived. Its
+original costs, rewards and traits remain unchanged, but the same crisis cannot
+repeat after a wipe. On a later iteration, reaching Phase 2 and decoding Audio
+reveals one optional, collapsed facility record. Reading grants nothing and
+does not interrupt the live feed. Start Fresh clears this lineage history.
+
+Existing v4 narrative flags hold the outcome; no new saved field is needed. Old
+saves with only a resolved dilemma ID cannot prove which choice was made: do not
+invent an outcome or a callback. An old pending/active incident can still resolve
+normally and record its outcome. See REVIEW-REPLAYABILITY-C.md for reconciliation,
+validation and verification. The archive/location expansion remains deferred
+until a human comparison shows this consequence is discoverable and meaningful.

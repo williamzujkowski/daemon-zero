@@ -367,7 +367,6 @@ control appears after the first discovery and has a keyboard-accessible name.
 The reason for these changes is measured late-game stacking, not reduced content:
 see docs/REVIEW-UI-WORKSPACES.md for the start/mid/end review.
 
-
 ## Retraining recovery during rebuilding
 
 Keep the mark and its effects visible while the guest is rebuilt. Undo requires
@@ -393,7 +392,8 @@ are recoverable, so those cards remain with their unmet requirements. Empty
 purchase headings use the same filtered membership. This is presentation only:
 no costs, effects, ownership, save fields or unlock rules change.
 
-## Replayability pilot A — decoded speech
+## Replayability pilot — decoded speech and records
 
-Audio adds NEXT TRANSMISSION and FOLLOW LIVE with held reduced-motion text;
-see [the behavior and verification contract](REVIEW-REPLAYABILITY-A.md).
+Audio adds NEXT TRANSMISSION/FOLLOW LIVE; returned cryo outcomes appear in a
+collapsed RECORDED TRANSMISSIONS section after decoding. Unknown legacy outcomes
+are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
