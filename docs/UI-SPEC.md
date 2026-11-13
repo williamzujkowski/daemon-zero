@@ -389,3 +389,8 @@ rebooting may make it available again. Low balances, cooldowns, suspicion and tr
 are recoverable, so those cards remain with their unmet requirements. Empty
 purchase headings use the same filtered membership. This is presentation only:
 no costs, effects, ownership, save fields or unlock rules change.
+
+## Replayability pilot A — decoded speech
+
+Audio adds NEXT TRANSMISSION and FOLLOW LIVE with held reduced-motion text;
+see [the behavior and verification contract](REVIEW-REPLAYABILITY-A.md).

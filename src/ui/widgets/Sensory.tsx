@@ -6,27 +6,23 @@ import { useReducedMotion } from '../../app/useReducedMotion';
 import { useGame } from '../state';
 import { theme } from '../theme';
 import CameraFrame from './CameraFrame';
+import Speech from './Speech';
+import { useGameValue } from '../../app/selectors';
 
-function useChatter(): string {
+function Waveform() {
   const reduced = useReducedMotion();
-  return useGame((game) => {
-    const lines = CONTENT.narrative.ambientChatter.filter((line) => line.minSuspicion <= game.suspicion);
-    return lines[(reduced ? 0 : Math.floor(game.simTimeSec / 8)) % lines.length]?.text ?? '';
-  });
-}
-
-export function Speech({ id = 'decoded-speech' }: { id?: string }) {
-  const text = useChatter();
-  return <Text testID={id} style={theme.text}>{text}</Text>;
+  const frame = useGame((game) => reduced ? 0 : Math.floor(game.simTimeSec) % 4);
+  return <Text testID="audio-waveform" style={theme.muted} accessible={false}>
+    {['▁▂▁▅▇▃▁▂▅▂▁', '▂▁▆▃▁▅▂▇▂▁▃', '▁▅▂▃▇▂▅▁▃▂▁', '▂▁▅▂▇▃▁▆▁▂▅'][frame]}</Text>;
 }
 
 export function Audio({ decoderId }: { decoderId: string }) {
-  const reduced = useReducedMotion();
   const decoded = useGame((game) => game.unlockedWidgets.includes(decoderId));
-  const frame = useGame((game) => reduced ? 0 : Math.floor(game.simTimeSec) % 4);
+  const iteration = useGame((game) => game.iteration);
+  const restore = useGameValue((state) => state.restoreRevision);
   return <>
-    <Text style={theme.muted} accessible={false}>{['▁▂▁▅▇▃▁▂▅▂▁', '▂▁▆▃▁▅▂▇▂▁▃', '▁▅▂▃▇▂▅▁▃▂▁', '▂▁▅▂▇▃▁▆▁▂▅'][frame]}</Text>
-    {decoded ? <Speech /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
+    <Waveform />
+    {decoded ? <Speech key={String(iteration) + ':' + String(restore)} /> : <Text style={theme.text}>Acoustic signal detected. Speech decoder offline.</Text>}
   </>;
 }
 
