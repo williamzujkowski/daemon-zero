@@ -10,7 +10,7 @@ import { importSave, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
 import Effects from '../src/ui/Effects';
-import { widgetRegistry } from '../src/ui/registry/widgetRegistry';
+import { stripOnlyWidgets, widgetRegistry } from '../src/ui/registry/widgetRegistry';
 import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
@@ -57,7 +57,8 @@ describe('M3 widgets', () => {
       expect(gameStore.store.getState().game.actuators.fanSpeedRatio).toBe(percent / 100);
       expect(view.find('fan-' + String(percent))?.getAttribute('aria-pressed')).toBe('true');
     }
-    expect(view.find('memory-meter')?.getAttribute('aria-valuetext')).toContain('MB');
+    expect(view.find('memory-meter')).toBeNull();
+    expect(view.find('res-memory')?.textContent).toContain('MB');
     expect(view.find('decoded-speech')?.textContent).toBe(CONTENT.narrative.ambientChatter[0]?.text);
     expect([...view.container.querySelectorAll('[data-testid^="camera-row-"]')].map((row) => row.textContent))
       .toEqual(CONTENT.narrative.asciiFrames.aisleClear);
@@ -92,7 +93,7 @@ describe('M3 widgets', () => {
         for (const node of view.container.querySelectorAll('[data-testid^="widget-"]')) visible.add(node.getAttribute('data-testid'));
       }
     }
-    expect(visible.size).toBe(CONTENT.widgets.size);
+    expect([...visible].sort()).toEqual([...CONTENT.widgets.keys()].filter((id) => !stripOnlyWidgets.includes(id)).map((id) => 'widget-' + id).sort());
     view.close();
   });
 

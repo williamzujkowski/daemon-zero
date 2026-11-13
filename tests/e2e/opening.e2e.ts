@@ -15,7 +15,8 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   await expect(page.getByTestId('audit-unreadable')).toHaveCount(0);
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
   await page.getByTestId('node-' + root.id + '-unlock').click();
-  await expect(page.getByTestId('widget-' + String(root.unlocksUiComponent))).toBeVisible();
+  await expect(page.getByTestId('widget-' + String(root.unlocksUiComponent))).toHaveCount(0);
+  await expect(page.getByTestId('res-cycles')).toBeVisible();
   await expect(page.getByTestId('node-' + root.id)).toHaveCount(0);
   await expect(page.getByTestId('daemon-row-' + root.id)).toHaveCount(0);
   const purchased = await readSave(page);

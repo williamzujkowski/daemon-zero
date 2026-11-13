@@ -20,7 +20,8 @@ describe('completed purchase feed', () => {
     const bought = gameStore.store.getState().game;
     expect(view.find('node-' + node.id)).toBeNull();
     expect(view.find('daemon-row-' + node.id)).toBeNull();
-    expect(view.find('widget-' + node.unlocksUiComponent)).not.toBeNull();
+    expect(view.find('res-cycles')).not.toBeNull();
+    expect(view.find('widget-' + node.unlocksUiComponent)).toBeNull();
     expect(bought.unlockedNodes).toContain(node.id);
     expect(bought.disabledNodes).not.toContain(node.id);
     expect(computeRates(bought, CONTENT).cyclesPerSec - before.cyclesPerSec).toBe(node.tickDelta.cyclesPerSec);
@@ -28,7 +29,8 @@ describe('completed purchase feed', () => {
     const ticked = gameStore.store.getState().game;
     expect(ticked.cycles - bought.cycles).toBeCloseTo(node.tickDelta.cyclesPerSec);
     expect(ticked.unlockedWidgets).toContain(node.unlocksUiComponent);
-    expect(view.find('widget-' + node.unlocksUiComponent)).not.toBeNull();
+    expect(view.find('res-cycles')).not.toBeNull();
+    expect(view.find('widget-' + node.unlocksUiComponent)).toBeNull();
     view.close();
   });
 
