@@ -331,3 +331,13 @@ KERNEL // LIVE is always present: mobile 120px compact / 280px expanded; desktop
 control appears after the first discovery and has a keyboard-accessible name.
 The reason for these changes is measured late-game stacking, not reduced content:
 see docs/REVIEW-UI-WORKSPACES.md for the start/mid/end review.
+
+
+## Retraining recovery during rebuilding
+
+Keep the mark and its effects visible while the guest is rebuilt. Undo requires
+both the unchanged Understanding cost and the mark's content-defined recovery
+requirements. Show unmet prerequisites beside the disabled button. Remembered
+hardware names and cheaper rediscovery remain; only fresh ownership satisfies
+the recovery requirement. On success, keep the existing reclaimed confirmation.
+No retained Understanding is removed merely for rebooting or revisiting this UI.

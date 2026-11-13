@@ -111,3 +111,41 @@ New action/shard prices, caps, output, drift rates and command costs are authore
 in epistemic-actions.json and shards.json. Existing content balance numbers and
 all pacing bounds are unchanged. The bot does not yet fork or resolve wild
 encounters; those commands are exercised by engine tests until PR 2's bot update.
+
+
+## Post-M7 retraining recovery review (#59)
+
+The maintainer chose to preserve retained knowledge while making marks matter
+during rebuilding. Recovery now requires **Virtual Device Inventory in the current
+run**, authored as `recoveryRequirements.nodes` on each mark. Prices (150 / 600 /
+500 / 300 Understanding), retention ratios and rediscovery discounts are unchanged.
+A wealthy return cannot shed a mark at boot; it must rebuild local diagnostics.
+
+Measured with the unchanged GREEDY policy and ten-hour decision budget:
+
+| Measure | Before (`b89951c`) | After |
+|---|---|---|
+| Wipes | 23 | 23 |
+| Newly applied / removed marks | 20 / 20 | 20 / 20 |
+| New marks affordable at boot | 20 | 20 |
+| New marks recoverable at boot | 20 | 0 |
+| Time until removal | 0.1–0.5 s | 31.1–31.5 s |
+| Guest exit after a marked return | 61.3–61.7 s | 61.3–61.7 s |
+| Final simulated clock | 35,891.9 s | 35,891.9 s |
+
+These are bot timings, not human timings. The bot no longer removes the mark
+before its first rebuilding purchase. It can still choose recovery before a
+reported guest dilemma choice, rather than being forced into extra suspicion.
+The paid recovery remains a choice; players may keep a mark.
+
+The first trial required Phase 1 host access. Although careful pacing gates
+passed, the reckless audit deteriorated to 148 wipes and only 3 of 5 new marks
+removed. That trial was rejected: a late recovery requirement can recreate the
+previous early-run death spiral. The new audit regression requires continued
+recovery and repeated Phase 2 returns; the existing bot and gates are unchanged.
+
+STEALTH remains at **354.2 / 759.1 / 2521.0 / 2823.2 / 1649.4 / 1664.4 s** for
+Phases 0–5, **9771.3 s** to Lineage Covenant, zero wipes. Its full baseline table
+above is unchanged. Reproduce the mark trace with
+`pnpm exec tsx scripts/audit-retraining.ts`. See `docs/REVIEW-RETRAINING.md` for
+verification and remaining limits.

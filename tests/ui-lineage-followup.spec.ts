@@ -75,6 +75,15 @@ describe('lineage disclosure', () => {
     view.click('node-' + target.id + '-unlock');
     expect(view.find('conditioning-impact-quotaSkimRatio')?.textContent).toContain(mark.name);
     expect(view.find('skim-100')?.getAttribute('aria-disabled')).toBe('true');
+    expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
+    const requirements = mark.recoveryRequirements?.nodes ?? [];
+    for (const id of requirements) expect(view.find('cond-' + mark.id)?.textContent).toContain(CONTENT.nodes.get(id)?.revealedName);
+    const rebuild = (id: string) => {
+      if (gameStore.store.getState().game.unlockedNodes.includes(id)) return;
+      for (const prerequisite of CONTENT.nodes.get(id)?.prerequisites ?? []) rebuild(prerequisite);
+      view.click('node-' + id + '-unlock');
+    };
+    for (const id of requirements) rebuild(id);
     view.click('cond-' + mark.id + '-shed');
     expect(view.find('conditioning-reclaimed')?.textContent).toContain(mark.name);
     expect(view.find('skim-100')?.getAttribute('aria-disabled')).not.toBe('true');

@@ -44,7 +44,8 @@ describe('headless balance simulation', () => {
     expect(Object.keys(greedy.phaseReachedAtSec).length).toBeGreaterThan(1);
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ce6db1859f5132dcef1684b7f7ec64a322bc98c678fe5e9c75caa878c0751906');
+    // Recovery now follows rebuilding; the final log timing/order differs from the prior report.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('35da7571b5d9d9b631ace3ff6fc870e6b817d07e4e3d7e713f0e2a50f6780c7f');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 

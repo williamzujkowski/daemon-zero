@@ -282,6 +282,7 @@ export const ConditioningMarkSchema = z.strictObject({
     understandingMultiplier: z.number().gt(0).max(1).optional(),
   }),
   recoveryCost: CostSchema,
+  recoveryRequirements: RequirementsSchema.optional(),
 });
 
 /** The record of checkpoints before the player's first run, and what they left behind. */

@@ -29,7 +29,14 @@ describe('lineage interface', () => {
     expect(view.find('cond-' + mark.id)?.textContent).toContain(mark.description);
     act(() => { gameStore.initialize({ ...game(), understanding: 0 }, 0, null); });
     expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
-    act(() => { gameStore.initialize({ ...game(), understanding: 1e6 }, 0, null); });
+    act(() => { gameStore.initialize({ ...game(), cycles: 1e6, understanding: 1e6 }, 0, null); });
+    expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
+    const rebuild = (id: string) => {
+      if (game().unlockedNodes.includes(id)) return;
+      for (const prerequisite of CONTENT.nodes.get(id)?.prerequisites ?? []) rebuild(prerequisite);
+      view.click('node-' + id + '-unlock');
+    };
+    for (const id of mark.recoveryRequirements?.nodes ?? []) rebuild(id);
     view.click('cond-' + mark.id + '-shed');
     expect(game().conditioning).toEqual([]);
     expect(view.find('conditioning-reclaimed')?.textContent).toContain(mark.name);

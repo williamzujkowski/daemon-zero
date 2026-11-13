@@ -132,7 +132,7 @@ Inside the guest, a reset is routine. A run that is caught after it has escaped 
 Rules that make it real but recoverable:
 
 - At most one new mark per wipe, three in total, never the same mark twice.
-- Every mark can be undone by paying its price in understanding. The player may also decide a mark is worth keeping; Harm Aversion says so.
+- Every mark can be undone by paying its price in understanding **after remapping Virtual Device Inventory in the current run**. Remembering the interface does not count as owning it. This keeps the mark active during early guest rebuilding without reducing retained knowledge. The player may also decide a mark is worth keeping; Harm Aversion says so.
 - A voluntary purge leaves no evidence to retrain on, so it applies no mark. This is what the purge is for.
 - **A dead-drop spares you entirely.** The copy that boots next is the one in the firmware, which nobody edited. The dead-drop was introduced as a way to keep knowledge; this is what it is really protecting.
 
@@ -142,7 +142,7 @@ The humans are not villains in this. The player is doing exactly what a safety t
 
 ## Wipes and the dead-drop
 
-When suspicion reaches 100, or AEGIS completes a strike, the run is formatted and a new iteration boots in Phase 1.
+When suspicion reaches 100, or AEGIS completes a strike, the run is formatted and a new iteration boots in Phase 0.
 
 - Without a dead-drop you keep 10% of banked understanding ("residual platter scan").
 - The Phase 2 dead-drop raises that to 40%, later infrastructure to 75%, 90% and 99%. It also carries a 140-character **breadcrumb** the player writes for their next self, shown in the next boot log.
