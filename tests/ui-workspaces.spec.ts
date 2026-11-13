@@ -12,6 +12,7 @@ it('opens current-phase work on mobile and follows phase changes without overrid
   const view = await mountM4('wild-shard-encounter-p3');
   act(() => {
     Object.defineProperty(host.document.documentElement, 'clientWidth', { configurable: true, value: 390 });
+    Object.defineProperty(host.document.documentElement, 'clientHeight', { configurable: true, value: 844 });
     host.dispatchEvent(new host.Event('resize'));
   });
   expect(view.find('tab-NETWORK')?.getAttribute('aria-selected')).toBe('true');
