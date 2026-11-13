@@ -41,3 +41,18 @@ component/production E2E tests; visible final-build review is recorded below.
 No Android, physical-device screen reader or human pacing qualification is
 claimed for this UI-only increment. Nexus CI-health check reported healthy;
 expert provider quota limits from the planning review remain unresolved.
+
+Final checks: 382 unit tests; aggregate statement coverage engine 99.08%, app
+98.98%, UI 98.72%. `make verify-full` passed with unchanged pacing, coverage and
+security gates; Trivy retains its existing warning about the ignored generated
+Android mapping-file size. Production-root E2E: 46 passed (31.4s). The first E2E
+attempt assumed a mobile Sensors tab on desktop; the harness now navigates only
+when that tab exists. No application gate or assertion was weakened.
+
+Visible pass 2 repeated all six views after the focus refinement with the same
+zero-error/layout results and 1 -> 1 counts. Independent standards/spec reviews
+found no blocking issue. They prompted a safe zero/one-line FOLLOW LIVE guard,
+a real voluntary-wipe component test, and a Start Fresh/restore production test.
+Those final edge/lifecycle changes passed the full automated suite. No open
+visual finding remains from the two review passes. PR screenshots show decoded
+and locked states; development-only DEV controls are expected in those captures.

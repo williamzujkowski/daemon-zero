@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { importSave, type GameState } from '../src/engine';
+import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import { Audio } from '../src/ui/widgets/Sensory';
@@ -133,12 +133,22 @@ describe('decoded speech controls', () => {
     expect(view.text()).toBe(originalLines[0]?.text);
   });
 
+  it('removes held decoded speech when a real voluntary wipe resets the hardware', async () => {
+    const view = await mount(game);
+    view.click('speech-next');
+    act(() => { gameStore.dispatch((state) => ({ ok: true, state: wipe(state, CONTENT, 'Manual purge', 'VOLUNTARY') })); });
+    expect(gameStore.store.getState().game.iteration).toBe(game.iteration + 1);
+    expect(view.text()).toBeUndefined();
+    expect(view.find('speech-next')).toBeNull();
+    expect(view.find('speech-follow-live')).toBeNull();
+  });
+
   it.each([0, 1])('handles %s eligible lines without a misleading next control', async (count) => {
     CONTENT.narrative.ambientChatter.splice(0, Infinity, ...originalLines.slice(0, count));
     const view = await mount({ ...game, suspicion: 0 });
     expect(view.text()).toBe(count === 0 ? '' : originalLines[0]?.text);
     expect(view.find('speech-next')).toBeNull();
-    motion(false); motion(true);
+    motion(false); motion(true); motion(false);
     expect(view.find('speech-follow-live')).toBeNull();
   });
 

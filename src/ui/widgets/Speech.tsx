@@ -24,7 +24,7 @@ function useSpeech() {
   const next = () => { select({ reduced, held: indices[(indices.indexOf(current ?? -1) + 1) % indices.length] ?? null }); };
   return { text: current === null ? '' : CONTENT.narrative.ambientChatter[current]?.text ?? '',
     next, canStep: indices.length > 1,
-    canFollow: !reduced && selection.held !== null, follow: () => { select({ reduced, held: null }); } };
+    canFollow: indices.length > 1 && !reduced && selection.held !== null, follow: () => { select({ reduced, held: null }); } };
 }
 
 export default function Speech({ id = 'decoded-speech' }: { id?: string }) {
