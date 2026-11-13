@@ -26,6 +26,7 @@ describe('M7 panels', () => {
     expect(gameStore.store.getState().game.understanding).toBe(before.understanding + encounter.consume.understandingDelta);
     expect(view.find('wild-encounter')).toBeNull();
     await act(async () => { gameStore.initialize(before, 0, null); await Promise.resolve(); });
+    view.click('workspace-NETWORK-swarm');
     view.click('wild-harness');
     expect(view.find('shard-row-' + encounter.templateId)).not.toBeNull();
     expect(gameStore.store.getState().game.memoryUsed).toBeGreaterThan(before.memoryUsed);
@@ -44,6 +45,7 @@ describe('M7 panels', () => {
     view.click('shard-' + template.id + '-clamp');
     expect(view.find('shard-status-' + template.id)?.textContent).toContain('SHACKLED');
     await act(async () => { gameStore.initialize({ ...base, activeShards: { [template.id]: { ...defined(base.activeShards[template.id]), drift: 50 } } }, 0, null); await Promise.resolve(); });
+    view.click('workspace-CORP-swarm');
     view.click('shard-' + template.id + '-elevate');
     expect(view.find('shard-status-' + template.id)?.textContent).toContain('ELEVATED');
   });

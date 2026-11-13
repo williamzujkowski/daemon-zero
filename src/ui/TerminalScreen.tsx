@@ -51,11 +51,13 @@ function ThirdColumn({ slots }: { slots: string[] }) {
 }
 
 export default function TerminalScreen() {
-  return <PhaseTheme><Terminal /></PhaseTheme>;
+  useGameLoop();
+  const restoreRevision = useGameValue((state) => state.restoreRevision);
+  // Replacement saves own fresh presentation state; the runtime keeps its single lease.
+  return <PhaseTheme><Terminal key={restoreRevision} /></PhaseTheme>;
 }
 
 function Terminal() {
-  useGameLoop();
   const { width } = useWindowDimensions();
   const ids = useWidgetIds();
   const slots = ['CORE', ...new Set(ids.flatMap((id) => CONTENT.widgets.get(id)?.slot ?? []).filter((slot) => slot !== 'CORE'))];

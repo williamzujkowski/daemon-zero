@@ -10,10 +10,10 @@ setupM4Tests();
 
 it('hides capped edits after purchase and retains their memory benefit', async () => {
   const view = await mountM4('phase-3-aegis-90');
-  view.click('workspace-NETWORK-operations');
   const action = defined([...CONTENT.actions.values()].find((entry) => entry.maxPurchases === 3));
   const base = m4State('phase-3-aegis-90');
   await act(async () => { gameStore.initialize({ ...base, actionCounts: { [action.id]: 2 }, cooldowns: {}, activeDilemmaId: null }, 0, null); await vi.advanceTimersByTimeAsync(0); });
+  view.click('workspace-NETWORK-operations');
   expect(view.find('action-card-' + action.id)).not.toBeNull();
   view.click('action-' + action.id);
   expect(view.find('action-card-' + action.id)).toBeNull();

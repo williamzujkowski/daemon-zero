@@ -17,11 +17,12 @@ import type { WorkspaceArea } from './workspaceTypes';
 /** Hardware of every phase hosted in the core pane, newest first, available before owned. */
 function CoreTree() {
   const current = useGame((game) => game.currentPhase);
+  const iteration = useGame((game) => game.iteration);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
   return <>
     <ManualCycle />
-    <Conditioning />
+    <Conditioning key={iteration} />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}
   </>;

@@ -54,7 +54,7 @@ it('does not expose maintenance before ownership and yields its modal to a manda
   expect(view.find('processes-open')).toBeNull();
   act(() => { gameStore.initialize(m4State('thermal-unlocked'), 0, null); });
   view.click('processes-open');
-  act(() => { gameStore.initialize(m4State('dilemma-active'), 0, null); });
+  act(() => { gameStore.dispatch(() => ({ ok: true, state: m4State('dilemma-active') })); });
   expect(view.find('processes-dialog')).toBeNull();
   expect(view.find('processes-open')?.getAttribute('aria-disabled')).toBe('true');
   expect(view.find('dilemma-modal')).not.toBeNull();
@@ -65,7 +65,7 @@ it('does not expose maintenance before ownership and yields its modal to a manda
   if (!choice) throw new Error('Missing affordable choice');
   view.click('dilemma-choice-' + choice.id);
   expect(view.find('processes-dialog')).not.toBeNull();
-  act(() => { gameStore.initialize(wipe(gameStore.store.getState().game, CONTENT, 'test'), 0, null); });
+  act(() => { gameStore.dispatch((game) => ({ ok: true, state: wipe(game, CONTENT, 'test') })); });
   expect(view.find('reboot-recovery-explanation')?.textContent).toContain('cycles and purchases were reset');
   act(() => { gameStore.initialize(m4State('thermal-unlocked'), 0, null); });
   expect(view.find('processes-open')?.getAttribute('aria-expanded')).toBe('false');

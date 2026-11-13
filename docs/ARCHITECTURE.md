@@ -24,6 +24,12 @@ resource leaves from the rest of the screen. It replaces the M1/M2 boot screen.
   `setState`. Engine actions and `advance` supply every game-state change;
   initialization receives a state validated by the save codec. Input is blocked
   until loading completes.
+The terminal presentation is keyed by `restoreRevision`. Successful replacement
+remounts UI-only selections, dialogs and event baselines; `useGameLoop` lives
+above that key, retaining the runtime lease. Normal ticks, purchases and live
+wipes do not change the revision. Conditioning acknowledgements are separately
+scoped to the iteration so they cannot survive a live wipe.
+
 - `runtime.ts`: one interval at `CONTENT.balance.tickHz`, based on monotonic
   `performance.now()`. It accounts for elapsed live time before dispatching an
   action, then checkpoints accepted actions immediately. Iteration changes from

@@ -97,6 +97,15 @@ A removed mark never returns in the overlay. Restoration identity is local app
 state, so importing even the same iteration resets the presentation correctly
 without changing the game save format.
 
+Successful save replacement resets the terminal's local presentation state:
+open dialogs, acknowledgement queues, selected workspaces and expansion state
+belong to the replaced run. The imported phase starts in its normal pane;
+historical escape, audit and response events are not announced as new discoveries.
+The runtime stays mounted across this presentation reset, so clocks and save
+scheduling continue normally. Invalid imports preserve the current UI and show
+the validation error. Live wipes and purchases still use their normal reveals;
+a reclaimed-capability acknowledgement ends with its iteration.
+
 Once the Other Minds widget unlocks, the resource strip also shows a compact
 numeric AEGIS readout. Browser review found that the full console meter was too
 far below the network tree to keep an urgent lock visible. The full accessible

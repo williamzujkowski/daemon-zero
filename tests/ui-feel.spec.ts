@@ -72,6 +72,8 @@ describe('M5 feel', () => {
     act(() => { expect(importPlayerSave(code).ok).toBe(true); });
     expect(gameStore.store.getState().restoreRevision).toBe(revision + 1);
     expect(gameStore.store.getState().game.unlockedNodes).toEqual(owned);
+    expect(view.find('save-transfer')).toBeNull();
+    view.click('save-open'); view.click('save-export');
     view.click('save-import'); view.click('save-import-confirm');
     expect(view.find('save-transfer')).toBeNull();
     expect(CONTENT.nodes.size).toBeGreaterThan(0); view.close();

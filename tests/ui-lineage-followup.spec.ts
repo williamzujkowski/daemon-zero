@@ -15,8 +15,8 @@ describe('lineage disclosure', () => {
   it('shows a write pulse for one-off probes even with no ongoing log activity', async () => {
     const view = await mountM4('guest-skimmer');
     const game = gameStore.store.getState().game;
-    act(() => { gameStore.initialize({ ...game, suspicion: game.suspicion + 1,
-      rates: { ...game.rates, suspicionPerSec: 0 } }, 0, null); });
+    act(() => { gameStore.dispatch(() => ({ ok: true, state: { ...game, suspicion: game.suspicion + 1,
+      rates: { ...game.rates, suspicionPerSec: 0 } } })); });
     expect(view.find('audit-activity')?.textContent).toContain('occasional');
     expect(view.find('suspicion-meter')).toBeNull();
     view.close();
