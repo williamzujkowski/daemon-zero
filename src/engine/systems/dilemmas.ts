@@ -1,3 +1,4 @@
+import { excludedByNarrativeHistory } from '../narrativeHistory';
 import { meetsRequirements } from '../query';
 import { fmt, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -16,7 +17,7 @@ export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
     if (d.simTimeSec < pending.firesAtSimSec) return undefined;
     const due = reg.dilemmas.find((dilemma) => dilemma.id === pending.id);
     d.pendingDilemma = null;
-    if (!due) return undefined;
+    if (!due || excludedByNarrativeHistory(d, due.trigger)) return undefined;
     d.activeDilemmaId = due.id;
     pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: due.title }), 'WARN');
     return undefined;

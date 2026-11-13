@@ -9,6 +9,7 @@ import { theme } from './theme';
 
 function explain(item: RequirementFailure, game: GameState): string {
   if (item.kind === 'resolvedDilemmas') return 'Resolve ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'pending decision');
+  if (item.kind === 'forbidsResolvedDilemmas') return 'Already resolved this iteration: ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'previous decision');
   if (item.kind === 'nodes') {
     const node = CONTENT.nodes.get(item.target ?? '');
     return 'Map ' + (node ? isNodeKnown(game, node.id) ? node.revealedName : node.blindName : 'prerequisite hardware');

@@ -14,6 +14,7 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined, r
   if (!req) return true;
   if (!meetsEpistemicRequirements(s, req, reg)) return false;
   if (req.resolvedDilemmas?.some((id) => !s.resolvedDilemmas.includes(id))) return false;
+  if (req.forbidsResolvedDilemmas?.some((id) => s.resolvedDilemmas.includes(id))) return false;
   if (req.nodes && !req.nodes.every((id) => s.unlockedNodes.includes(id))) return false;
   if (req.phaseAtLeast !== undefined && s.currentPhase < req.phaseAtLeast) return false;
   if (req.minThermal !== undefined && s.thermal < req.minThermal) return false;
@@ -155,6 +156,7 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined, r
   if (!req) return [];
   const missing = epistemicRequirementFailures(s, req, reg);
   for (const id of req.resolvedDilemmas ?? []) if (!s.resolvedDilemmas.includes(id)) missing.push({ kind: 'resolvedDilemmas', target: id, required: true, actual: false });
+  for (const id of req.forbidsResolvedDilemmas ?? []) if (s.resolvedDilemmas.includes(id)) missing.push({ kind: 'forbidsResolvedDilemmas', target: id, required: false, actual: true });
   for (const id of req.nodes ?? []) if (!s.unlockedNodes.includes(id)) {
     missing.push({ kind: 'nodes', target: id, required: true, actual: false });
   }

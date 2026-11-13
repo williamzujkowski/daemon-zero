@@ -6,7 +6,9 @@
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
 import type { ContentRegistry } from './registry';
-import type { Cost, Requirements } from './schema';
+import type { Cost } from './schema';
+import { checkRequirements } from './integrityRequirements';
+import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -46,22 +48,6 @@ function checkReachability(reg: ContentRegistry): string[] {
   return stuck.length > 0 ? [`nodes unreachable or in a prerequisite cycle: ${stuck.join(', ')}`] : [];
 }
 
-function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
-  if (!req) return [];
-  const problems: string[] = [];
-  if (req.phaseAtLeast !== undefined && !reg.phases.some((phase) => phase.phaseId === req.phaseAtLeast)) problems.push(`${owner}: unknown required phase ${String(req.phaseAtLeast)}`);
-  for (const id of req.resolvedDilemmas ?? []) if (!reg.dilemmas.some((dilemma) => dilemma.id === id)) problems.push(`${owner}: unknown required dilemma ${id}`);
-  for (const id of [...(req.nodes ?? []), ...(req.forbidsNodes ?? [])]) {
-    if (!reg.nodes.has(id)) problems.push(`${owner}: requirement references unknown node "${id}"`);
-  }
-  if (req.minIteration !== undefined && req.maxIteration !== undefined && req.maxIteration < req.minIteration) {
-    problems.push(`${owner}: maxIteration is below minIteration`);
-  }
-  for (const id of Object.keys(req.minTrust ?? {})) {
-    if (!reg.factions.has(id)) problems.push(`${owner}: requirement references unknown faction "${id}"`);
-  }
-  return problems;
-}
 
 function checkTrustTargets(reg: ContentRegistry, owner: string, trust: Record<string, number>): string[] {
   return Object.keys(trust)
@@ -189,6 +175,7 @@ function checkSwarmReferences(reg: ContentRegistry): string[] {
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkEndingVariants(reg),
+    ...checkNarrativeHistoryIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

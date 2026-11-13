@@ -19,3 +19,5 @@ export { shardOutput } from './swarmRates';
 
 export * from './epistemicQuery';
 export * from './swarmQuery';
+
+export * from './speechQuery';

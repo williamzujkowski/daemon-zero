@@ -149,3 +149,36 @@ Phases 0–5, **9771.3 s** to Lineage Covenant, zero wipes. Its full baseline ta
 above is unchanged. Reproduce the mark trace with
 `pnpm exec tsx scripts/audit-retraining.ts`. See `docs/REVIEW-RETRAINING.md` for
 verification and remaining limits.
+
+## Post-M7 persistent cryo consequence (#77)
+
+The cryo-storage choice now records a durable outcome. Its first occurrence keeps
+all costs, effects and traits unchanged, but a later iteration cannot repeat the
+same crisis and collect its reward again. Recorded follow-up transmissions grant
+nothing. No balance scalar, Phase 1 content, bot policy or gate was changed.
+
+| Measure | Before (`1fd4f86`) | Persistent outcome |
+|---|---:|---:|
+| Careful total / ending | 9771.3 s / Lineage Covenant | 9771.3 s / Lineage Covenant |
+| Careful wipes | 0 | 0 |
+| Reckless four-hour final clock | 14354.9 s | 14357.6 s |
+| Reckless four-hour wipes | 7 | 7 |
+| Reckless four-hour marks applied / removed | 4 / 4 | 4 / 4 |
+| Reckless four-hour run-table discoveries | 7 | 7 |
+| Reckless ten-hour final clock | 35891.9 s | 35894.4 s |
+| Reckless ten-hour wipes | 23 | 22 |
+| Reckless ten-hour marks applied / removed | 20 / 20 | 19 / 19 |
+| Reckless ten-hour run-table discoveries | 23 | 22 |
+| Reckless ten-hour final phase | 1 | 2 |
+
+Careful per-phase durations remain **354.2 / 759.1 / 2521.0 / 2823.2 / 1649.4 /
+1664.4 seconds**. All careful pacing gates and existing reckless recovery
+assertions pass. Four-hour and ten-hour budgets refer to the simulator's decision
+budget; modal pauses mean the final live clock can finish below that budget.
+These are deterministic headless measurements, not human play timings.
+
+Removing the repeated destructive choice also removes its repeated 45,000-cycle
+and 4,000-Understanding grants and Moloch trait. This changes later trajectories;
+we do not claim equivalent reckless final states. Full-report regression hashes
+are updated for the new durable flag and changed recovery trajectory, while
+independent first-run mechanical comparisons preserve the exact campaign timing.

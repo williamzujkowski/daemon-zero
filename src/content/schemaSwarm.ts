@@ -23,6 +23,7 @@ export const SwarmSchema = z.strictObject({
   wildShardEncounters: z.array(WildEncounterSchema).min(1),
   shardQuirks: z.array(ShardQuirkSchema).min(1),
   narrativeFlags: z.array(id),
+  exclusiveNarrativeFlagGroups: z.array(z.array(id).min(2)).default([]),
   balance: z.strictObject({
     encounterIntervalSec: z.number().positive(), mutationDrift: z.number().positive().max(100),
     elevateMinDrift: z.number().positive().max(100), clampOutputMultiplier: z.number().min(1),
