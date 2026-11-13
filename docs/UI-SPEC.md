@@ -79,6 +79,13 @@ Continue action; acknowledgement is local presentation state and resets for a
 new iteration or a restarted run. Legacy echoes appear in the kernel log when
 the engine emits them on rediscovery, preserving their authored reveal timing.
 Wipe confirmation previews the engine's retained resources and stored breadcrumb.
+Restoration and save import use a RESTORED CHECKPOINT heading; only live iteration
+changes use REBOOT. Conditioning comes from the active mark list, not the prior
+run's historical `marked` field. Restored or carried marks say CURRENT RETRAINING;
+only a newly applied active mark during a live wipe says RETRAINING APPLIED.
+A removed mark never returns in the overlay. Restoration identity is local app
+state, so importing even the same iteration resets the presentation correctly
+without changing the game save format.
 
 Once the Other Minds widget unlocks, the resource strip also shows a compact
 numeric AEGIS readout. Browser review found that the full console meter was too

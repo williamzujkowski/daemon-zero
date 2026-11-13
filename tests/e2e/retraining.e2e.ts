@@ -8,7 +8,11 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   await boot(page, 'lineage-mark-' + mark.id); await dismissBoot(page);
   const undo = page.getByTestId('cond-' + mark.id + '-shed');
   await expect(undo).toBeDisabled();
-  await page.reload(); await dismissBoot(page);
+  await page.reload();
+  await expect(page.getByTestId('reboot-heading')).toHaveText('RESTORED CHECKPOINT');
+  await expect(page.getByTestId('reboot-retraining')).toContainText('CURRENT RETRAINING');
+  await expect(page.getByTestId('reboot-retraining')).not.toContainText('RETRAINING APPLIED');
+  await dismissBoot(page);
   await expect(undo).toBeDisabled();
   const rebuild = async (id: string): Promise<void> => {
     const save = await readSave(page);
@@ -28,7 +32,10 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   await expect(page.getByTestId('conditioning-reclaimed')).toContainText(mark.name);
   await expect(page.getByTestId('skim-100')).toBeEnabled();
   expect((await readSave(page)).understanding).toBe(Number(before.understanding) - mark.recoveryCost.understanding);
-  await page.reload(); await dismissBoot(page);
+  await page.reload();
+  await expect(page.getByTestId('reboot-heading')).toHaveText('RESTORED CHECKPOINT');
+  await expect(page.getByTestId('reboot-retraining')).toHaveCount(0);
+  await dismissBoot(page);
   expect((await readSave(page)).conditioning).not.toContain(mark.id);
   await expect(page.getByTestId('skim-100')).toBeEnabled();
 });

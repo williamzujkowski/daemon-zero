@@ -20,13 +20,13 @@ function edited(game: GameState, change: (raw: RawSave) => void): GameState {
 export class DevelopmentActions {
   constructor(private readonly runtime: GameRuntime, private readonly read: () => GameState) {}
 
-  private run(action: (game: GameState) => GameState, allowEnded = false): ActionResult {
+  private run(action: (game: GameState) => GameState, allowEnded = false, restoring = false): ActionResult {
     return this.runtime.dispatch((game) => {
       if (typeof __DEV__ === 'undefined' || !__DEV__) return { ok: false, state: game, reason: 'Development tools are unavailable.' };
       if (game.ending !== null && !allowEnded) return { ok: false, state: game, reason: 'This run has ended.' };
       try { return { ok: true, state: action(game) }; }
       catch (error) { return { ok: false, state: game, reason: error instanceof Error ? error.message : 'Development save edit rejected.' }; }
-    });
+    }, restoring);
   }
 
   grant(amount: number): ActionResult {
@@ -71,7 +71,7 @@ export class DevelopmentActions {
       ? CONTENT.narrative.wipeSuspicionCorporate : CONTENT.narrative.wipeSuspicionLocal));
   }
 
-  load(code: string): ActionResult { return this.run(() => importSave(code, CONTENT), true); }
+  load(code: string): ActionResult { return this.run(() => importSave(code, CONTENT), true, true); }
   export(): string { return exportSave(this.read()); }
 }
 

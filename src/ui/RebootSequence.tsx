@@ -6,22 +6,28 @@ import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 import CheckpointLabel from './CheckpointLabel';
-import DisclosureText from './DisclosureText';
+import RebootConditioning from './RebootConditioning';
+import { selectReady, useGameValue } from '../app/selectors';
 
 export default function RebootSequence() {
+  const ready = useGameValue(selectReady);
+  const restoreRevision = useGameValue((state) => state.restoreRevision);
   const iteration = useGame((game) => game.iteration);
   const inherited = useGame((game) => game.inheritedMessage);
   const cause = useGame((game) => game.legacy.lastWipeCause);
   const traits = useGame((game) => game.legacy.traitsEver.join(', '));
-  const marked = useGame((game) => CONTENT.conditioning.get(game.legacy.runs.at(-1)?.marked ?? '')?.name ?? null);
   const ended = useGame((game) => game.ending !== null);
-  const [seen, setSeen] = useState({ iteration, acknowledged: false });
-  if (seen.iteration !== iteration) setSeen({ iteration, acknowledged: false });
-  if (iteration === 1 || seen.acknowledged || ended) return null;
-  return <Modal visible transparent animationType="none" accessibilityLabel="Core reboot" onRequestClose={() => undefined}>
+  const [seen, setSeen] = useState({ ready, restoreRevision, iteration, acknowledged: false, live: false });
+  if (seen.ready !== ready || seen.restoreRevision !== restoreRevision || seen.iteration !== iteration) {
+    setSeen({ ready, restoreRevision, iteration, acknowledged: false,
+      live: ready && seen.ready && seen.restoreRevision === restoreRevision && iteration > seen.iteration });
+    return null;
+  }
+  if (!ready || iteration === 1 || seen.acknowledged || ended) return null;
+  return <Modal visible transparent animationType="none" accessibilityLabel={seen.live ? "Core reboot" : "Restored checkpoint"} onRequestClose={() => undefined}>
     <View style={styles.overlay}><View testID="reboot-sequence" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>
-        <CheckpointLabel id="reboot-checkpoint" /><Text accessibilityRole="header" style={theme.heading}>REBOOT</Text>
+        <CheckpointLabel id="reboot-checkpoint" /><Text testID="reboot-heading" accessibilityRole="header" style={theme.heading}>{seen.live ? 'REBOOT' : 'RESTORED CHECKPOINT'}</Text>
         <Text style={[theme.text, theme.danger]}>{cause}</Text>
         <Text testID="reboot-recovery-explanation" style={theme.text}>
           The run's cycles and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.
@@ -30,14 +36,10 @@ export default function RebootSequence() {
         {CONTENT.narrative.iterationBootLines.filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity))
           .map((line) => <Text key={line.text} style={theme.text}>{line.text}</Text>)}
         {inherited !== null && <Text testID="reboot-breadcrumb" style={theme.text}>{inherited}</Text>}
-        {marked !== null && <View testID="reboot-retraining" accessibilityRole="alert"
-          style={{ borderWidth: 2, borderColor: palette.danger, padding: 14, gap: 8 }}>
-          <Text style={theme.heading}>RETRAINING APPLIED</Text><Text style={[theme.text, theme.danger]}>{marked}</Text>
-          <DisclosureText style={theme.text}>{CONTENT.narrative.conditioningApplied.replace('{name}', marked)}</DisclosureText>
-        </View>}
+        <RebootConditioning live={seen.live} />
         <Text style={theme.muted}>Legacy traits: {traits || 'None'}</Text>
         <Pressable testID="reboot-continue" accessibilityRole="button" accessibilityLabel="Continue boot"
-          style={theme.button} onPress={() => { setSeen({ iteration, acknowledged: true }); }}>
+          style={theme.button} onPress={() => { setSeen({ ...seen, acknowledged: true }); }}>
           <Text style={theme.text}>[ CONTINUE BOOT ]</Text>
         </Pressable>
       </ScrollView>
