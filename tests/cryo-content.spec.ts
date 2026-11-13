@@ -27,6 +27,7 @@ it('requires valid source, later-run exclusion, outcome and decoder gates on rec
 it('rejects a current-run gate that requires an irreversible once-per-lineage incident', () => {
   expect(corrupt((raw) => raw.phases[5].nodes.at(-1).requirements.resolvedDilemmas.push('dil_05_cryo_lab_diversion'))).toThrow(/once-per-lineage dilemma/);
   expect(corrupt((raw) => raw.endings.endings[0].requirements = { resolvedDilemmas: ['dil_05_cryo_lab_diversion'] })).toThrow(/once-per-lineage dilemma/);
+  expect(corrupt((raw) => raw.dilemmas.dilemmas.find((d: Json) => d.id === 'dil_p5_01_panacea_paranoia').trigger.resolvedDilemmas = ['dil_05_cryo_lab_diversion'])).toThrow(/once-per-lineage dilemma/);
 });
 
 it('requires exclusion guards for exclusive choices and source-matched callback gates', () => {

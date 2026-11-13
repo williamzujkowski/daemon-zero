@@ -1,9 +1,9 @@
 /** Human outcomes persist without replay rewards or reconstructed historical choices. */
 import { describe, expect, it } from 'vitest';
-import { advance, deserialize, exportSave, importSave, meetsRequirements, recordedTransmissions, resolveDilemma, serialize, tick, unmetRequirements, wipe } from '../src/engine';
+import { advance, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, resolveDilemma, serialize, tick, unmetRequirements, wipe } from '../src/engine';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich } from './helpers';
 const source = defined(reg.dilemmas.find((d) => d.id === 'dil_05_cryo_lab_diversion'));
 const flags = defined(source.trigger.forbiddenNarrativeFlags);
 const decoder = defined(reg.narrative.recordedTransmissions[0]).decoderWidgetId;
@@ -71,6 +71,28 @@ describe('recorded cryo outcomes', () => {
     const next = must(resolveDilemma(active, source.id, defined(source.choices[1]).id, reg));
     expect(recordedTransmissions(importSave(exportSave(next), reg), reg, decoder)).toEqual([]);
     expect(recordedTransmissions(returned(next), reg, decoder)).toHaveLength(1);
+  });
+
+  it.each(source.choices)('keeps all four Phase 5 decisions reachable after $id and a wipe', (choice) => {
+    const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
+    const nodes = defined(reg.phases.find((phase) => phase.phaseId === 5)).nodes;
+    const final = defined(reg.nodes.get(defined(nodes.at(-1)).id));
+    let state = grant(returned(resolved(choice)), ...PHASE2.slice(3), ...PHASE3, ...PHASE4,
+      orbital.id, ...nodes.slice(0, -1).map((node) => node.id));
+    state = { ...state, resolvedDilemmas: reg.dilemmas.filter((d) => d.phaseId !== 5 && d.id !== source.id).map((d) => d.id) };
+    expect(state.resolvedDilemmas).not.toContain(source.id);
+    expect(isNodeAvailable(state, final, reg)).toBe(false);
+    for (let i = 0; i < 4; i++) {
+      state = tick(state, .1, reg);
+      const pending = defined(state.pendingDilemma);
+      expect(pending.firesAtSimSec - state.simTimeSec).toBeCloseTo(45);
+      state = tick(state, 45, reg);
+      const dilemma = defined(reg.dilemmas.find((d) => d.id === state.activeDilemmaId));
+      expect(dilemma.phaseId).toBe(5);
+      state = must(resolveDilemma(state, dilemma.id, defined(dilemma.choices[0]).id, reg));
+    }
+    expect(isNodeAvailable(state, final, reg)).toBe(true);
+    expect(grant(state, final.id).ending).not.toBeNull();
   });
 
   it('cannot reschedule the original after either outcome and a wipe', () => {

@@ -45,7 +45,8 @@ function checkSpeech(reg: ContentRegistry): string[] {
 function checkEndingGates(reg: ContentRegistry): string[] {
   const once = reg.dilemmas.filter((dilemma) => dilemma.choices.every((choice) => choice.effects.setsNarrativeFlag !== undefined &&
     dilemma.trigger.forbiddenNarrativeFlags?.includes(choice.effects.setsNarrativeFlag))).map((dilemma) => dilemma.id);
-  const targets = [...reg.nodes.values(), ...reg.endings];
+  const targets = [...reg.nodes.values(), ...reg.endings,
+    ...reg.dilemmas.map((dilemma) => ({ id: dilemma.id, requirements: dilemma.trigger }))];
   return targets.filter((target) => target.requirements?.resolvedDilemmas?.some((id) => once.includes(id)))
     .map((target) => target.id + ': current-run gate requires a once-per-lineage dilemma');
 }
