@@ -7,6 +7,7 @@ import { exportPlayerSave, importPlayerSave } from '../app/saveTransfer';
 import { selectReady, useGameValue } from '../app/selectors';
 import { Pressable, Text, View } from './PhaseTheme';
 import ConfirmDialog from './ConfirmDialog';
+import FreshStart from './FreshStart';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 
@@ -28,6 +29,7 @@ export default function SaveTransfer() {
             onPress={() => { setCode(exportPlayerSave()); setStatus('Backup code ready.'); }}><Text style={theme.text}>[ EXPORT ]</Text></Pressable>
           <Pressable testID="save-import" accessibilityRole="button" accessibilityLabel="Import save code" style={theme.button}
             onPress={() => { confirm(true); }}><Text style={theme.text}>[ IMPORT ]</Text></Pressable>
+          <FreshStart onReset={() => { setOpen(false); setCode(''); setStatus(''); }} />
           {status !== '' && <Text testID="save-transfer-status" accessibilityRole="alert" style={theme.text}>{status}</Text>}
           <Pressable testID="save-close" accessibilityRole="button" accessibilityLabel="Close save code transfer" style={theme.button}
             onPress={() => { setOpen(false); }}><Text style={theme.text}>[ CLOSE ]</Text></Pressable>

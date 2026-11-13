@@ -6,7 +6,9 @@ Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target pla
 
 **[Play in your browser](https://williamzujkowski.github.io/daemon-zero/).**
 Progress stays in this browser; use the Save panel's export/import to move between
-devices or from a local build. Clearing site data removes the local save.
+devices or from a local build. To restart completely, choose **SAVE → START FRESH**
+and confirm. This clears retained knowledge and run history too; export and copy
+a backup first if you may want to return. Clearing site data also removes the local save.
 
 ## v0.2.0-rc.1
 
