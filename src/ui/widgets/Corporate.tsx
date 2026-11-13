@@ -9,23 +9,31 @@ import NodeList from '../NodeList';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
+import UpgradeFeed from '../UpgradeFeed';
+import type { WorkspaceArea } from '../workspaceTypes';
 
 function Ledger() {
-  const known = useSurveillanceKnown();
   const capital = useGame((game) => Math.floor(game.capital));
   const income = useGame((game) => game.rates.capitalPerSec);
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   const efficiency = useGame((game) => Math.round(game.rates.gridEfficiency * 100));
-  const insolvent = useGame((game) => game.insolvent);
-  const brownout = useGame((game) => game.brownout);
   return <View style={{ gap: 8 }}>
     <Text testID="corp-capital" style={theme.text}>Capital: ${capital} ({income >= 0 ? '+' : ''}{income.toFixed(2)}/s net)</Text>
     <Text testID="power-ledger" style={theme.text}>Power: {generated} MW generated / {consumed} MW consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
+  </View>;
+}
+
+export function CorporateAlerts() {
+  const known = useSurveillanceKnown();
+  const insolvent = useGame((game) => game.insolvent);
+  const brownout = useGame((game) => game.brownout);
+  const shortfall = useGame((game) => game.rates.megawattsGenerated < game.rates.megawattsConsumed);
+  return <View>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'}</Text>}
-    {generated < consumed && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
+    {shortfall && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       POWER SHORTFALL: powered hardware is throttled.</Text>}
     {brownout && <Text testID="brownout-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       BROWNOUT: cycle deficit; understanding generation is halted.</Text>}
@@ -49,16 +57,14 @@ function Allocation() {
   </View>;
 }
 
-export default function Corporate() {
+export default function Corporate({ area = 'work' }: { area?: WorkspaceArea }) {
   const current = useGame((game) => game.currentPhase);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORP' && phase.phaseId <= current).slice().reverse();
+  if (area === 'finance') return <View style={{ gap: 14 }}><Ledger /><Allocation /><ActionsPanel group="CORP" /></View>;
   return <View style={{ gap: 14 }}>
-    <Ledger /><Allocation />
     {phases.map((phase) => <View key={phase.phaseId} style={{ gap: 14 }}>
-      <NodeList phase={phase.phaseId} />
-      <Repeatables phase={phase.phaseId} kind="UPGRADE" title="Infrastructure" />
-      <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll" />
+      {area === 'payroll' ? <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll" />
+        : <><NodeList phase={phase.phaseId} /><UpgradeFeed phase={phase.phaseId} title="Infrastructure" /></>}
     </View>)}
-    <ActionsPanel group="CORP" />
   </View>;
 }

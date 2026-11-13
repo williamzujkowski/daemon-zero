@@ -30,7 +30,7 @@ export async function boot(page: Page, fixture?: string): Promise<void> {
   }
   await page.goto('./');
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
-  else await expect(page.getByTestId('manual-cycle')).toBeEnabled();
+  else await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
   await expect.poll(() => page.evaluate(() => '__daemon' in globalThis)).toBe(false);
   await expect(page.getByTestId('dev-open')).toHaveCount(0);
 }

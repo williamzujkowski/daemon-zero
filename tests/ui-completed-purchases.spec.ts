@@ -82,6 +82,7 @@ describe('completed purchase feed', () => {
 
   it('preserves dismissal at the operative cap and restores the purchase tile after dismissal', async () => {
     const view = await mountM4('victory-ready');
+    view.click('workspace-CORP-payroll');
     const rep = [...CONTENT.repeatables.values()].find((r) => r.kind === 'OPERATIVE' && r.dismissable);
     if (!rep) throw new Error('Missing payroll role');
     const game = m4State('victory-ready');
@@ -97,6 +98,7 @@ describe('completed purchase feed', () => {
 
   it('removes bought faction offers while preserving their granted effects', async () => {
     const view = await mountM4('eidolon-trust-85');
+    view.click('workspace-NETWORK-minds');
     const offer = [...CONTENT.nodes.values()].find((n) => CONTENT.factions.has(n.uiGroup) && !gameStore.store.getState().game.unlockedNodes.includes(n.id));
     if (!offer) throw new Error('Missing faction offer');
     view.click('node-' + offer.id + '-unlock');

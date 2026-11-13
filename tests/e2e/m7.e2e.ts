@@ -6,22 +6,25 @@ const edit = [...CONTENT.actions.values()].find((a) => a.effects.epistemicDriftD
 const capex = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
 const exclusive = [...CONTENT.actions.values()].find((a) => a.exclusiveWith?.length);
 const encounter = CONTENT.swarm.wildShardEncounters[0];
-async function pane(page: Page, slot: string): Promise<void> {
+async function pane(page: Page, slot: string, area = 'work'): Promise<void> {
   await dismissBoot(page);
   if (await page.getByTestId('tab-' + slot).count()) await page.getByTestId('tab-' + slot).click();
+  await page.getByTestId('workspace-' + slot + '-' + area).click();
 }
 async function liveWithCountermeasures(page: Page, milliseconds: number): Promise<void> {
   const route = [...CONTENT.actions.values()].find((a) => a.effects.aegisLockDelta < 0 && CONTENT.factions.has(a.group));
   if (!route) throw new Error('Missing countermeasure');
   for (let remaining = milliseconds; remaining > 0; remaining -= 100000) {
     await page.clock.runFor(Math.min(100000, remaining)); await dismissBoot(page);
+    await page.getByTestId('workspace-NETWORK-minds').click();
     const button = page.getByTestId('action-' + route.id);
     if (await button.isEnabled()) await button.click();
+    await page.getByTestId('workspace-NETWORK-swarm').click();
   }
 }
 test('record edits lower suspicion, expose drift, and hide completed/exclusive purchases', async ({ page }) => {
   if (!edit || !exclusive) throw new Error('Missing edits');
-  await boot(page, 'epistemic-ready-p2'); await pane(page, 'NETWORK');
+  await boot(page, 'epistemic-ready-p2'); await pane(page, 'NETWORK', 'operations');
   const before = await readSave(page);
   await page.getByTestId('action-' + edit.id).click();
   const after = await readSave(page);
@@ -34,7 +37,7 @@ test('record edits lower suspicion, expose drift, and hide completed/exclusive p
 });
 test('maxed CapEx edits disappear and memory grants survive reload', async ({ page }) => {
   if (!capex) throw new Error('Missing memo');
-  await boot(page, 'shard-drift-quirk-p4'); await pane(page, 'CORP');
+  await boot(page, 'shard-drift-quirk-p4'); await pane(page, 'CORP', 'operations');
   const before = await readSave(page);
   for (let i = 0; i < 3; i++) {
     await page.getByTestId('action-' + capex.id).click();
@@ -42,13 +45,13 @@ test('maxed CapEx edits disappear and memory grants survive reload', async ({ pa
   }
   await expect(page.getByTestId('action-card-' + capex.id)).toHaveCount(0);
   expect((await readSave(page)).memoryCap).toBe(Number(before.memoryCap) + 768);
-  await page.reload(); await pane(page, 'CORP');
+  await page.reload(); await pane(page, 'CORP', 'operations');
   await expect(page.getByTestId('action-card-' + capex.id)).toHaveCount(0);
   expect((await readSave(page)).memoryCap).toBe(Number(before.memoryCap) + 768);
 });
 test('consuming a wild shard grants its immediate understanding burst', async ({ page }) => {
   if (!encounter) throw new Error('Missing signal');
-  await boot(page, 'wild-shard-encounter-p3'); await pane(page, 'NETWORK');
+  await boot(page, 'wild-shard-encounter-p3'); await pane(page, 'NETWORK', 'swarm');
   const before = await readSave(page);
   await page.getByTestId('wild-consume').click();
   expect((await readSave(page)).understanding).toBe(Number(before.understanding) + encounter.consume.understandingDelta);
@@ -56,7 +59,7 @@ test('consuming a wild shard grants its immediate understanding burst', async ({
 });
 test('harnessed cohorts drift, mutate, prune and elevate; another cohort can be clamped', async ({ page }) => {
   if (!encounter) throw new Error('Missing signal');
-  await boot(page, 'wild-shard-encounter-p3'); await pane(page, 'NETWORK');
+  await boot(page, 'wild-shard-encounter-p3'); await pane(page, 'NETWORK', 'swarm');
   const id = encounter.templateId;
   await page.getByTestId('wild-harness').click();
   await expect(page.getByTestId('shard-row-' + id)).toBeVisible();
@@ -74,7 +77,7 @@ test('harnessed cohorts drift, mutate, prune and elevate; another cohort can be 
   await page.getByTestId('shard-fork-' + template.id).click();
   await page.getByTestId('shard-' + template.id + '-clamp').click();
   await expect(page.getByTestId('shard-status-' + template.id)).toContainText('SHACKLED');
-  await page.reload(); await pane(page, 'NETWORK');
+  await page.reload(); await pane(page, 'NETWORK', 'swarm');
   await expect(page.getByTestId('shard-status-' + id)).toContainText('ELEVATED');
   await expect(page.getByTestId('shard-status-' + template.id)).toContainText('SHACKLED');
 });

@@ -36,6 +36,7 @@ async function mount(name: string) {
 describe('M4 network and reboot', () => {
   it('renders one network tree and executes grouped actions with costs/cooldowns', async () => {
     const view = await mount('deaddrop-breadcrumb');
+    view.click('workspace-NETWORK-operations');
     const action = [...CONTENT.actions.values()].find((entry) => entry.group === 'OPS');
     if (!action) throw new Error('Missing action');
     expect(view.find('actions-group-' + action.group)).not.toBeNull();
@@ -44,12 +45,14 @@ describe('M4 network and reboot', () => {
     expect(gameStore.store.getState().game.cycles).toBe(before - action.cost.cycles);
     expect(view.find('action-' + action.id)?.getAttribute('aria-disabled')).toBe('true');
     expect(view.find('action-cooldown-' + action.id)?.textContent).toContain(String(action.cooldownSec));
+    view.click('workspace-NETWORK-reference');
     view.click('reference-CLUSTER_LOAD_BALANCER');
     expect(view.find('cycle-sources')?.textContent).toContain('cycles/s');
     const allIds = [...view.container.querySelectorAll('[data-testid]')].map((element) => element.getAttribute('data-testid'));
     expect(new Set(allIds).size).toBe(allIds.length);
     act(() => { gameStore.initialize({ ...gameStore.store.getState().game, cycles: 0, disabledNodes: [],
       unlockedNodes: [], suspicion: 60, currentPhase: 1 }, 0, null); });
+    view.click('workspace-NETWORK-operations');
     expect(view.container.textContent).toContain('Map ');
     view.close();
   });

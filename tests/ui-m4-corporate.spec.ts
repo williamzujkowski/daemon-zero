@@ -12,22 +12,26 @@ describe('M4 corporate', () => {
     const view = await mountM4('corporate-insolvent');
     expect(view.find('tab-CORP')?.getAttribute('aria-selected')).toBe('true');
     expect(view.find('insolvency-warning')?.textContent).toContain('INSOLVENT');
+    view.click('workspace-CORP-payroll');
     const operatives = [...CONTENT.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE');
     for (const rep of operatives) {
       expect(view.find('rep-' + rep.id + '-buy')?.getAttribute('aria-disabled')).toBe('true');
       view.click('rep-' + rep.id + '-dismiss');
       expect(gameStore.store.getState().game.levels[rep.id]).toBe(0);
     }
+    view.click('workspace-CORP-finance');
     expect(view.find('corp-capital')?.textContent).toContain('$0');
     view.click('tab-NETWORK');
     expect(view.find('corp-capital')).toBeNull();
     view.click('tab-CORP');
+    view.click('workspace-CORP-finance');
     expect(view.find('corp-capital')).not.toBeNull();
     view.close();
   });
 
   it('hires and dismisses data-driven roles and changes allocation through all available steps', async () => {
     const view = await mountM4('victory-ready');
+    view.click('workspace-CORP-payroll');
     const rep = [...CONTENT.repeatables.values()].find((entry) => entry.kind === 'OPERATIVE');
     if (!rep) throw new Error('Missing operative');
     const before = gameStore.store.getState().game.capital;
@@ -36,19 +40,21 @@ describe('M4 corporate', () => {
     expect(gameStore.store.getState().game.capital).toBe(before - rep.baseCost.capital);
     view.click('rep-' + rep.id + '-dismiss');
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(0);
+    expect(view.container.textContent).toContain('Revenue multiplier:');
+    expect(view.container.textContent).toContain('AEGIS scan reduction:');
+    view.click('workspace-CORP-finance');
     for (const step of [0, 0.25, 0.5, 0.75, 1]) {
       const ratio = step * CONTENT.balance.maxProfitAllocation, percent = Math.round(ratio * 100);
       view.click('allocation-' + String(percent));
       expect(gameStore.store.getState().game.actuators.computeProfitAllocationRatio).toBe(ratio);
       expect(view.find('allocation-' + String(percent))?.getAttribute('aria-pressed')).toBe('true');
     }
-    expect(view.container.textContent).toContain('Revenue multiplier:');
-    expect(view.container.textContent).toContain('AEGIS scan reduction:');
     view.close();
   });
 
   it('shows exact megawatts/efficiency and a textual power shortfall warning', async () => {
     const view = await mountM4('megawatt-shortfall');
+    view.click('workspace-CORP-finance');
     expect(view.find('power-ledger')?.textContent).toContain('0 MW generated');
     expect(view.find('power-warning')?.textContent).toContain('POWER SHORTFALL');
     act(() => { gameStore.initialize({ ...m4State('victory-ready'), brownout: true }, 0, null); });

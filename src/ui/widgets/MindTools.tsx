@@ -5,9 +5,11 @@ import { View } from '../PhaseTheme';
 import Epistemic from './Epistemic';
 import WildEncounter from './WildEncounter';
 import Swarm from './Swarm';
-export default function MindTools({ slot, signalOnly = false }: { slot: 'NETWORK' | 'CORP'; signalOnly?: boolean }) {
+import type { WorkspaceArea } from '../workspaceTypes';
+export default function MindTools({ slot, area }: { slot: 'NETWORK' | 'CORP'; area: WorkspaceArea }) {
   const known = useSurveillanceKnown();
   const enabled = useGame((game) => CONTENT.phases.find((phase) => phase.phaseId === game.currentPhase)?.uiSlot === slot);
   if (!known || !enabled) return null;
-  return signalOnly ? <WildEncounter /> : <View style={{ gap: 16 }}><Epistemic /><Swarm /></View>;
+  if (area === 'operations') return <Epistemic />;
+  return area === 'swarm' ? <View style={{ gap: 16 }}><WildEncounter /><Swarm /></View> : null;
 }

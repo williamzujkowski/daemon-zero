@@ -38,6 +38,7 @@ it('renders one decoded speech feed and makes secondary reference bodies opt-in'
   expect(view.find('inspection-forecast')).not.toBeNull();
   expect(view.find('cycle-sources')).toBeNull();
   const before = gameStore.store.getState().game;
+  view.click('workspace-NETWORK-reference');
   view.click('reference-CLUSTER_LOAD_BALANCER');
   expect(view.find('reference-CLUSTER_LOAD_BALANCER')?.getAttribute('aria-expanded')).toBe('true');
   expect(view.find('cycle-sources')).not.toBeNull();

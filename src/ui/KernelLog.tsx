@@ -1,4 +1,4 @@
-import { Text, View } from './PhaseTheme';
+import { Pressable, Text, View } from './PhaseTheme';
 import DisclosureText from './DisclosureText';
 /**
  * Virtualizes engine log entries by their stable sequence number.
@@ -13,11 +13,16 @@ function LogLine({ item }: { item: LogEntry }) {
   return <DisclosureText testID={'log-' + String(item.seq)} style={[theme.muted, styles.line]}>{item.text}</DisclosureText>;
 }
 
-export default function KernelLog() {
+export default function KernelLog({ expanded = false, toggle }: { expanded?: boolean; toggle?: () => void }) {
   const logs = useGame((game) => game.logs);
   return (
     <View style={styles.log}>
-      <Text accessibilityRole="header" style={[theme.heading, styles.title]}>KERNEL // LIVE</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text accessibilityRole="header" style={[theme.heading, styles.title, { flex: 1 }]}>KERNEL // LIVE</Text>
+        {toggle && <Pressable testID="kernel-size-toggle" accessibilityRole="button" aria-expanded={expanded}
+          accessibilityLabel={expanded ? 'Compact kernel log' : 'Expand kernel log'} onPress={toggle}
+          style={[theme.button, { marginRight: 8 }]}><Text style={theme.muted}>{expanded ? '[ − ]' : '[ + ]'}</Text></Pressable>}
+      </View>
       <FlatList testID="kernel-log" data={logs} keyExtractor={(item) => String(item.seq)}
         renderItem={({ item }) => <LogLine item={item} />} contentContainerStyle={styles.entries}
         initialNumToRender={12} windowSize={5} />

@@ -7,7 +7,7 @@ import { cycleContributions } from '../../engine';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { hasPhasePurchases } from '../purchaseVisibility';
-import Repeatables from '../Repeatables';
+import UpgradeFeed from '../UpgradeFeed';
 import { useGame } from '../state';
 import { theme } from '../theme';
 
@@ -17,7 +17,7 @@ function NetworkPhase({ phase, title }: { phase: number; title: string }) {
   return <View style={{ gap: 14 }}>
     <Text testID={'purchase-phase-' + String(phase)} style={theme.heading}>{title}</Text>
     <NodeList phase={phase} group="TREE" />
-    <Repeatables phase={phase} />
+    <UpgradeFeed phase={phase} />
   </View>;
 }
 
@@ -30,7 +30,7 @@ export function NetworkTree() {
 
 export function NetworkActions() {
   const groups = [...new Set([...CONTENT.actions.values()]
-    .filter((action) => !CONTENT.factions.has(action.group) && action.group !== 'CORP').map((action) => action.group))];
+    .filter((action) => !action.requirements.requiresSurveillance && !CONTENT.factions.has(action.group) && action.group !== 'CORP').map((action) => action.group))];
   return <View style={{ gap: 14 }}>{groups.map((group) => <View key={group} style={{ gap: 10 }}>
     <Text style={theme.heading}>{group}</Text><ActionsPanel group={group} />
   </View>)}</View>;

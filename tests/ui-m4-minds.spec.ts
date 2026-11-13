@@ -10,6 +10,7 @@ setupM4Tests();
 describe('M4 Other Minds', () => {
   it('mounts every faction, its action group and matching offers exactly once', async () => {
     const view = await mountM4('eidolon-trust-85');
+    view.click('workspace-NETWORK-minds');
     for (const faction of CONTENT.factions.values()) {
       expect(view.find('faction-' + faction.id)?.textContent).toContain(faction.description);
       expect(view.find('actions-group-' + faction.id)).not.toBeNull();
@@ -25,6 +26,7 @@ describe('M4 Other Minds', () => {
 
   it('explains trait/trust/missing budget locks and refuses blocked input', async () => {
     const view = await mountM4('eidolon-moloch-0');
+    view.click('workspace-NETWORK-minds');
     const action = [...CONTENT.actions.values()].find((entry) => entry.group === 'ai_eidolon');
     if (!action) throw new Error('Missing action');
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('Blocked by trait: MOLOCH');
@@ -39,6 +41,7 @@ describe('M4 Other Minds', () => {
 
   it('shows the lock number and warning, and performs the registry threat action', async () => {
     const view = await mountM4('phase-3-aegis-90');
+    view.click('workspace-NETWORK-minds');
     expect(view.find('aegis-lock')?.getAttribute('aria-valuenow')).toBe('90');
     expect(view.find('aegis-hud')?.textContent).toContain('90.0 / 100%');
     expect(view.container.textContent).toContain('WARNING: hunter lock');
