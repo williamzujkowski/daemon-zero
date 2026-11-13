@@ -54,7 +54,7 @@ describe('M2 mounted app', () => {
   });
 
   it('selects primitives, including empty logs and recovery notices', () => {
-    const state = { game: { ...createInitialState(CONTENT), logs: [] }, ready: true, notice: 'backup kept' };
+    const state = { game: { ...createInitialState(CONTENT), logs: [] }, ready: true, restoreRevision: 0, notice: 'backup kept' };
     expect(selectCycles(state)).toBe(0);
     expect(selectSeconds(state)).toBe(0);
     expect(selectBootLine(state)).toBe('');

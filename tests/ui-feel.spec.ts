@@ -64,10 +64,13 @@ describe('M5 feel', () => {
     view.click('save-open'); view.click('save-export'); view.click('save-import'); view.click('save-import-cancel');
     expect(view.find('save-transfer')).not.toBeNull();
     const before = gameStore.store.getState().game;
+    const revision = gameStore.store.getState().restoreRevision;
     act(() => { expect(importPlayerSave('bad').ok).toBe(false); });
     expect(gameStore.store.getState().game).toBe(before);
+    expect(gameStore.store.getState().restoreRevision).toBe(revision);
     view.click('manual-cycle');
     act(() => { expect(importPlayerSave(code).ok).toBe(true); });
+    expect(gameStore.store.getState().restoreRevision).toBe(revision + 1);
     expect(gameStore.store.getState().game.unlockedNodes).toEqual(owned);
     view.click('save-import'); view.click('save-import-confirm');
     expect(view.find('save-transfer')).toBeNull();

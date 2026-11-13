@@ -18,7 +18,9 @@ and renders responsive panes, a virtualized kernel log and progressively unlocke
 resource readouts. Primitive and shallow collection subscriptions isolate the
 resource leaves from the rest of the screen. It replaces the M1/M2 boot screen.
 
-- `store.ts`: vanilla Zustand `{ game, ready, notice }`. Its read API omits
+- `store.ts`: vanilla Zustand `{ game, ready, notice, restoreRevision }`. The
+  non-persisted restore revision increments on initialization and successful save
+  imports, allowing presentation to distinguish restoration from live engine events. Its read API omits
   `setState`. Engine actions and `advance` supply every game-state change;
   initialization receives a state validated by the save codec. Input is blocked
   until loading completes.

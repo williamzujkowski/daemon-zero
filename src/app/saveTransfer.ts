@@ -10,5 +10,5 @@ export function importPlayerSave(code: string): ActionResult {
   return gameRuntime.dispatch((game) => {
     try { return { ok: true, state: importSave(code, CONTENT) }; }
     catch { return { ok: false, state: game, reason: 'Save code is invalid or unsupported.' }; }
-  });
+  }, true);
 }

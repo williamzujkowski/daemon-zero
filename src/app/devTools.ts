@@ -21,7 +21,7 @@ export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis
   host.__daemon = {
     loadSaveCode(code) {
       const state = importSave(code, CONTENT);
-      const result = runtime.dispatch(() => ({ ok: true, state }));
+      const result = runtime.dispatch(() => ({ ok: true, state }), true);
       if (!result.ok) throw new Error(result.reason);
     },
     fastForward(seconds) {

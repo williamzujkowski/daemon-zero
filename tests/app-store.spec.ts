@@ -16,6 +16,26 @@ describe('vanilla app store', () => {
     expect(app.store.getState().game).toBe(before);
     expect(app.store).not.toHaveProperty('setState');
     expect(app.store.getInitialState().ready).toBe(false);
+    expect(app.store.getState().restoreRevision).toBe(0);
+    expect(app.dispatch((game) => manualCycle(game, CONTENT), true).ok).toBe(false);
+    expect(app.store.getState().restoreRevision).toBe(0);
+  });
+
+  it('increments restoration identity only for initialization or successful explicit restores', () => {
+    const app = createGameStore();
+    const initial = createInitialState(CONTENT);
+    app.initialize(initial, 0, null);
+    expect(app.store.getState().restoreRevision).toBe(1);
+    app.dispatch((game) => manualCycle(game, CONTENT));
+    app.step(1); app.notify('notice');
+    expect(app.store.getState().restoreRevision).toBe(1);
+    app.dispatch((game) => unlockNode(game, 'missing', CONTENT), true);
+    expect(app.store.getState().restoreRevision).toBe(1);
+    app.dispatch(() => ({ ok: true, state: initial }), true);
+    expect(app.store.getState().restoreRevision).toBe(2);
+    expect(app.store.getState().game).not.toHaveProperty('restoreRevision');
+    app.initialize(initial, 0, null);
+    expect(app.store.getState().restoreRevision).toBe(3);
   });
 
   it('applies successful engine actions, rejects failed actions and advances time', () => {

@@ -56,12 +56,12 @@ export class GameRuntime {
     };
   }
 
-  dispatch(action: GameAction): ActionResult {
+  dispatch(action: GameAction, restoring = false): ActionResult {
     if (!this.active || !this.initialized || this.users === 0) {
       return { ok: false, state: this.game.store.getState().game, reason: 'The game is not active.' };
     }
     const wiped = this.sampleLive();
-    const result = this.game.dispatch(action);
+    const result = this.game.dispatch(action, restoring);
     if (result.ok || wiped) this.checkpoint();
     return result;
   }
