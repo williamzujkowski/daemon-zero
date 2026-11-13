@@ -6,7 +6,7 @@ import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
 import UpgradeFeed from './UpgradeFeed';
-import { guestPinnedWidgets, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
+import { guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
 import { theme } from './theme';
@@ -40,7 +40,7 @@ export default function TerminalPane({ slots }: { slots: string[] }) {
     </View>}
     <ScrollView testID={'pane-scroll-' + slots.join('-')} style={styles.pane} contentContainerStyle={styles.content}>
     {slots.includes('CORE') && <CoreTree />}
-    {ids.filter((id) => !pinned.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
+    {ids.filter((id) => !pinned.includes(id) && !stripOnlyWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
       (!workspace.slot || workspaceWidgetVisible(id, workspace.active)))
       .map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&

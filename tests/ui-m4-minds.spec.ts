@@ -24,14 +24,15 @@ describe('M4 Other Minds', () => {
     view.close();
   });
 
-  it('explains trait/trust/missing budget locks and refuses blocked input', async () => {
+  it('hides permanent trait exclusions but retains recoverable trust and budget locks', async () => {
     const view = await mountM4('eidolon-moloch-0');
     view.click('workspace-NETWORK-minds');
     const action = [...CONTENT.actions.values()].find((entry) => entry.group === 'ai_eidolon');
     if (!action) throw new Error('Missing action');
-    expect(view.find('faction-ai_eidolon')?.textContent).toContain('Blocked by trait: MOLOCH');
+    expect(view.find('action-' + action.id)).toBeNull();
+    for (const node of CONTENT.nodes.values()) if (node.uiGroup === action.group) expect(view.find('node-' + node.id)).toBeNull();
+    act(() => { gameStore.initialize({ ...m4State('eidolon-trust-85'), trust: { ai_eidolon: 0 } }, 0, null); });
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('trust ≥');
-    view.click('action-' + action.id);
     expect(gameStore.store.getState().game.trust.ai_eidolon).toBe(0);
     act(() => { gameStore.initialize({ ...m4State('eidolon-trust-85'), cycles: 0, understanding: 0, memoryCap: 0 }, 0, null); });
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('Need:');

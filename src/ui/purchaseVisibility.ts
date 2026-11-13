@@ -1,11 +1,18 @@
 /** UI-only purchase and process membership; no ownership or simulation state is changed. */
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import type { Repeatable } from '../content/schema';
-import { isNodeDiscoverable, meetsRequirements, repeatableLevel, type GameState } from '../engine';
+import type { Repeatable, Requirements } from '../content/schema';
+import { hasEverHeld, isNodeDiscoverable, meetsRequirements, repeatableLevel, type GameState } from '../engine';
+
+/** Only monotonic exclusions: affordability, trust and suspicion can recover. */
+export function permanentlyBlocked(game: GameState, requirements: Requirements | undefined): boolean {
+  return (requirements?.forbidsNodes?.some((id) => game.unlockedNodes.includes(id)) ?? false) ||
+    (requirements?.forbidsTraits?.some((trait) => hasEverHeld(game, trait)) ?? false) ||
+    game.iteration > (requirements?.maxIteration ?? Infinity);
+}
 
 export function pendingNode(game: GameState, node: RegistryNode, showLocked = false): boolean {
-  return !game.unlockedNodes.includes(node.id) && (showLocked ||
+  return !game.unlockedNodes.includes(node.id) && !permanentlyBlocked(game, node.requirements) && (showLocked ||
     ((game.cycles > 0 || game.unlockedNodes.length > 0) && isNodeDiscoverable(game, node)));
 }
 

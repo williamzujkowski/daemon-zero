@@ -341,3 +341,19 @@ requirements. Show unmet prerequisites beside the disabled button. Remembered
 hardware names and cheaper rediscovery remain; only fresh ownership satisfies
 the recovery requirement. On success, keep the existing reclaimed confirmation.
 No retained Understanding is removed merely for rebooting or revisiting this UI.
+
+## Post-M7 density review: redundant and impossible tiles
+
+Cycles/rate and memory used/cap render only in the top resource strip. Their
+widget unlocks still gate discovery and resource visibility, but create no second
+panel or heading below. Understanding already has one total/rate readout; retain
+the audit widget because it explains the response ladder, not Understanding.
+Optional source breakdowns remain available because they explain individual rates.
+
+Hide unowned purchase cards permanently excluded by owned `forbidsNodes`, lifetime
+`forbidsTraits`, or an expired iteration window. This applies to faction offers
+and actions too. Evaluation disappears once probing forfeits it for this run;
+rebooting may make it available again. Low balances, cooldowns, suspicion and trust
+are recoverable, so those cards remain with their unmet requirements. Empty
+purchase headings use the same filtered membership. This is presentation only:
+no costs, effects, ownership, save fields or unlock rules change.

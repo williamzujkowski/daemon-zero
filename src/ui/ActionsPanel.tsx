@@ -18,6 +18,7 @@ import RequirementHint from './RequirementHint';
 import { useGame } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
+import { permanentlyBlocked } from './purchaseVisibility';
 
 function Cooldown({ id }: { id: string }) {
   const seconds = useGame((game) => Math.max(0, Math.ceil((game.cooldowns[id] ?? 0) - game.simTimeSec)));
@@ -43,7 +44,8 @@ export const ActionCard = memo(function ActionCard({ action }: { action: Action 
 
 export default function ActionsPanel({ group }: { group: string }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.actions.values()]
-    .filter((action) => action.group === group && !action.requirements.requiresSurveillance && !actionExhausted(game, action))
+    .filter((action) => action.group === group && !action.requirements.requiresSurveillance && !actionExhausted(game, action) &&
+      !permanentlyBlocked(game, action.requirements))
     .map((action) => action.id)));
   return <View testID={'actions-group-' + group} style={{ gap: 12 }}>
     {ids.map((id) => { const action = CONTENT.actions.get(id); return action ? <ActionCard key={id} action={action} /> : null; })}

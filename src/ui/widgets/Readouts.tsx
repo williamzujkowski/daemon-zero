@@ -9,17 +9,6 @@ import Meter from './Meter';
 import ResponseRungs from './ResponseRungs';
 import { useReducedMotion } from '../../app/useReducedMotion';
 
-export function CycleRate() {
-  const rate = useGame((game) => game.rates.cyclesPerSec);
-  return <Text style={theme.text}>Net generation: {rate.toFixed(2)} cycles/s</Text>;
-}
-
-export function Memory() {
-  const used = useGame((game) => game.memoryUsed);
-  const cap = useGame((game) => game.memoryCap);
-  return <Meter id="memory-meter" label="Memory allocation" value={used} max={cap} unit=" MB" />;
-}
-
 export function Thermal() {
   const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;

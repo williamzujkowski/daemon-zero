@@ -78,14 +78,14 @@ describe('lineage interface', () => {
     view.close();
   });
 
-  it('offers the evaluation, explains why probing forfeits it, and ends the run as Shipped', async () => {
+  it('offers the evaluation, hides it after probing forfeits it, and still supports Shipped', async () => {
     const view = await mountM4('evaluation-ready');
     const pass = [...CONTENT.nodes.values()].find((node) => node.effects.forcesEnding !== undefined);
     const probe = pass?.requirements?.forbidsNodes?.[0];
     if (!pass || probe === undefined) throw new Error('Missing evaluation node');
     expect(view.find('node-' + pass.id + '-unlock')?.getAttribute('aria-disabled')).not.toBe('true');
     act(() => { gameStore.initialize({ ...game(), unlockedNodes: [...game().unlockedNodes, probe] }, 0, null); });
-    expect(view.find('node-' + pass.id)?.textContent).toContain('No longer possible');
+    expect(view.find('node-' + pass.id)).toBeNull();
     act(() => { gameStore.initialize(m4State('evaluation-ready'), 0, null); });
     view.click('node-' + pass.id + '-unlock');
     expect(game().ending).toBe('SHIPPED');

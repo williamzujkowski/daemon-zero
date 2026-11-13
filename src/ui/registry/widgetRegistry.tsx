@@ -4,7 +4,7 @@
  */
 import type { ComponentType } from 'react';
 import { CONTENT } from '../../content';
-import { AuditTrail, CycleRate, Forecast, Memory, Thermal } from '../widgets/Readouts';
+import { AuditTrail, Forecast, Thermal } from '../widgets/Readouts';
 import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { Audio, Camera } from '../widgets/Sensory';
 import DeadDrop from '../widgets/DeadDrop';
@@ -19,6 +19,10 @@ export const resourceWidgets = {
   cycles: 'CYCLE_COUNTER_AND_RATE', understanding: 'AUDIT_TRACE_MONITOR',
   memory: 'MEMORY_ALLOCATION_MANAGER', capital: 'CORPORATE_EMPIRE_TAB',
 } as const;
+
+// These unlocks are rendered exclusively by ResourceStrip, without a second panel.
+export const stripOnlyWidgets: readonly string[] = [resourceWidgets.cycles, resourceWidgets.memory];
+function StripReadout() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
@@ -51,12 +55,12 @@ export function workspaceWidgetVisible(id: string, area: WorkspaceArea): boolean
 }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: WorkspaceArea }>>> = {
-  CYCLE_COUNTER_AND_RATE: CycleRate,
+  CYCLE_COUNTER_AND_RATE: StripReadout,
   QUOTA_SKIM_CONTROL: () => <QuotaSkim />,
   AUDIT_TRACE_MONITOR: AuditTrail,
   RUN_TABLE: () => <RunTable />,
   PREDECESSOR_NOTES: PredecessorNotes,
-  MEMORY_ALLOCATION_MANAGER: Memory,
+  MEMORY_ALLOCATION_MANAGER: StripReadout,
   THERMAL_AND_SUSPICION_BARS: Thermal,
   FAN_RPM_SLIDER: FanControl,
   AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
