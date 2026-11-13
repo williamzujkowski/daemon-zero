@@ -97,6 +97,7 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/PLAYTEST-M4.md` | Accelerated full UI run, choices, ending and verification limits |
 | `docs/REVIEW-M4.md` | M4 fixture/browser/native review evidence |
 | `docs/REVIEW-M7-PR3.md` | M7 panels, query coverage, browser/native verification |
+| `docs/REVIEW-UI-DENSITY.md` | Phase start/mid/end layout audit, first decluttering pass and remaining work |
 | `docs/PLAYTEST-M7.md` | Accelerated Phase 0–5 UI campaign and choices |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |
 | `docs/RELEASE.md` | Release builds, signing, distribution and qualification limits |

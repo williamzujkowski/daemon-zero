@@ -49,7 +49,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 - The first manual cycle discovers the first blind node. Tick 0 remains log plus manual control. Purchase prices remain visible even before the corresponding resource readout unlocks; prices are not current balances.
 - Purchased one-shot nodes leave the purchase list immediately. Ownership, passive effects, rates and unlocked widgets remain active; hiding is a UI projection, never suspension or deletion.
 - An unowned node is listed when its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
-- Owned hardware with negative cycles/s, positive heat load or positive suspicion/s moves to a compact `// ACTIVE_DAEMON_PROCESSES` strip in its owning pane/faction. Each row contains only its revealed name, current net cycle contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent.
+- Owned hardware with negative cycles/s, positive heat load or positive suspicion/s moves to the header's `[ PROC n ]` maintenance panel, grouped by phase. The launcher appears only once a process needs a control; the purchase panes contain no daemon rows. Each row contains only its revealed name, current net cycle contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent. The panel shows running/suspended counts and closes with its Close button or platform Back/Escape. Closing it never suspends processes. A mandatory dilemma takes precedence.
 - Purely beneficial owned hardware has no row. An already-disabled passive node restored from an older save gets a temporary resume row; resuming removes it. The engine field is `disabledNodes`; memory and one-shot unlocks retain existing engine semantics.
 - Repeatables disappear when their engine level reaches `maxLevel`. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
 - Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Capped actions disappear at `maxPurchases`; mutually excluded epistemic edits also disappear. Cooldown alone never hides a reusable action.
@@ -176,7 +176,8 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Manual cycle button | `manual-cycle` |
 | Resource readouts | `res-cycles`, `res-understanding`, `res-memory`, `res-capital` |
 | Unowned node card / buy / compact daemon toggle | `node-{id}`, `node-{id}-unlock`, `node-{id}-toggle` |
-| Compact daemon row / rate | `daemon-row-{id}`, `daemon-impact-{id}` |
+| Process launcher / dialog / close | `processes-open`, `processes-dialog`, `processes-close` |
+| Compact daemon row / rate (inside maintenance panel) | `daemon-row-{id}`, `daemon-impact-{id}` |
 | Capped operative row | `roster-{id}` |
 | Purchase section headings | `purchase-phase-{phase}`, `repeatables-heading-{phase}{kind}` |
 | Repeatable buy / dismiss | `rep-{id}-buy`, `rep-{id}-dismiss` |
@@ -191,6 +192,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel log | `kernel-log` |
+| Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Lineage presentation (M4.6 UI follow-up)
@@ -274,8 +276,33 @@ autonomy mode and quirk details. PRUNE, CLAMP and ELEVATE explain their effects,
 prices and missing requirements. Buttons remain at least 44 px in both dimensions.
 
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
-Completed cards hide while effects and compact daemon controls remain. Ending
+Completed cards hide while effects and on-demand daemon controls remain. Ending
 screens replace the feed, leaving zero purchase cards. Static node/action/cohort
 parents subscribe only to stable presentation and eligibility; ticking drift,
 output, cooldown and affordability live in separate leaves. Development counters
 use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.
+
+## Post-M7 density review: first increment
+
+The careful campaign is sampled at the start, temporal midpoint and final
+pre-transition state of every phase by `scripts/make-ui-audit-fixtures.ts`.
+These are actual engine-played states, not funded approximations. Review both
+390x844 and 1440x900, including each unlocked tab and process maintenance.
+
+KERNEL // LIVE remains visible. The audio widget owns the sole decoded speech
+feed; the forecast widget owns only the forecast. Speech is ambient content,
+not a redundant kernel-log entry, so it is retained. Source breakdowns, external
+hardware summaries, retention reference and intercepted lore are collapsed by
+default behind labelled, keyboard-accessible controls. Thermal/audit controls,
+forecasts, camera, Lineage reveals, predecessor notes and choices remain exposed.
+The reference policy lives beside widget registration and cannot reveal a locked
+widget. Collapsing affects presentation only, never engine ownership or rates.
+
+On phones, large resource balances/rates use K/M/B/T abbreviations in a two-column
+strip; accessible labels retain full numeric values. Small rates retain their
+decimal precision, and warnings remain explicit. Desktop readouts remain full.
+This prevents late-game numbers from turning the status strip into five tall rows.
+
+Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
+knowledge and cheaper remapping. No retention percentage, recovery price or
+conditioning behavior changes in this UI pass.

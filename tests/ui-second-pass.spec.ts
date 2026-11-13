@@ -20,7 +20,8 @@ describe('second-pass interface', () => {
     expect(view.find('response-rungs')).toBeNull();
     expect(view.container.textContent).not.toContain('suspicion/s');
     expect(view.find('audit-unreadable')?.textContent).toContain('Contents unreadable');
-    expect(view.container.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
+    expect(view.container.querySelector('[data-testid^="daemon-row-"]')).toBeNull();
+    expect(view.find('processes-open')).not.toBeNull();
     expect(view.find('res-understanding')).not.toBeNull();
     expect(view.find('thermal-meter')).toBeNull();
     expect(view.find('fan-setting')).toBeNull();
@@ -52,7 +53,10 @@ describe('second-pass interface', () => {
     if (!guest || !host) throw new Error('Missing phases');
     expect(view.find('node-' + guest.id)).toBeNull();
     expect(gameStore.store.getState().game.unlockedNodes).toContain(guest.id);
-    expect(text).toContain(host.revealedName);
+    expect(text).not.toContain(host.revealedName);
+    view.click('processes-open');
+    expect(view.find('processes-dialog')?.textContent).toContain(host.revealedName);
+    view.click('processes-close');
     expect(view.find('thermal-meter')).not.toBeNull();
     expect(view.container.querySelectorAll('[data-testid="audit-unreadable"]')).toHaveLength(1);
     act(() => { gameStore.initialize(knowing(m4State('thermal-unlocked')), 0, null); });

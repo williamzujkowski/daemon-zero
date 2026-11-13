@@ -23,6 +23,9 @@ export default function RebootSequence() {
       <ScrollView contentContainerStyle={styles.content}>
         <CheckpointLabel id="reboot-checkpoint" /><Text accessibilityRole="header" style={theme.heading}>REBOOT</Text>
         <Text style={[theme.text, theme.danger]}>{cause}</Text>
+        <Text testID="reboot-recovery-explanation" style={theme.text}>
+          The run's cycles and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.
+        </Text>
         {CONTENT.narrative.bootLines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {CONTENT.narrative.iterationBootLines.filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity))
           .map((line) => <Text key={line.text} style={theme.text}>{line.text}</Text>)}

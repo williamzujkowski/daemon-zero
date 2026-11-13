@@ -4,10 +4,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
-import DaemonProcesses from './DaemonProcesses';
 import { Conditioning } from './widgets/Lineage';
 import Repeatables from './Repeatables';
-import { guestPinnedWidgets, widgetRegistry } from './registry/widgetRegistry';
+import { guestPinnedWidgets, referenceWidgets, widgetRegistry } from './registry/widgetRegistry';
+import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
 import { theme } from './theme';
 
@@ -21,7 +21,6 @@ function CoreTree() {
     <Conditioning />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <Repeatables key={'rep-' + String(phase)} phase={phase} />)}
-    {phases.map((phase) => <DaemonProcesses key={'owned-' + String(phase)} phase={phase} />)}
   </>;
 }
 
@@ -45,7 +44,9 @@ export default function TerminalPane({ slots }: { slots: string[] }) {
 function Widget({ id, compact = false }: { id: string; compact?: boolean }) {
   const widget = CONTENT.widgets.get(id), Component = widgetRegistry[id];
   return widget && Component ? <View testID={'widget-' + id} style={compact ? styles.compact : theme.panel}>
-    {!compact && <Text style={theme.heading}>{widget.title}</Text>}<Component />
+    {!compact && referenceWidgets.includes(id)
+      ? <ReferencePanel id={id} title={widget.title}><Component /></ReferencePanel>
+      : <>{!compact && <Text style={theme.heading}>{widget.title}</Text>}<Component /></>}
   </View> : null;
 }
 const styles = StyleSheet.create({

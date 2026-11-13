@@ -38,6 +38,7 @@ describe('completed purchase feed', () => {
     const node = [...CONTENT.nodes.values()].find((n) => game.unlockedNodes.includes(n.id) && n.phaseId === 1 && n.tickDelta.cyclesPerSec > 0 && n.tickDelta.thermalPerSec > 0);
     if (!node) throw new Error('Missing costly process');
     expect(view.find('node-' + node.id)).toBeNull();
+    view.click('processes-open');
     expect(view.find('daemon-row-' + node.id)).not.toBeNull();
     const original = computeRates(game, CONTENT).cyclesPerSec;
     view.click('node-' + node.id + '-toggle');
@@ -55,6 +56,7 @@ describe('completed purchase feed', () => {
     const node = CONTENT.phases[0]?.nodes[0];
     if (!node) throw new Error('Missing passive node');
     act(() => { gameRuntime.dispatch((game) => toggleNode(game, node.id, CONTENT)); });
+    view.click('processes-open');
     expect(view.find('daemon-row-' + node.id)).not.toBeNull();
     view.click('node-' + node.id + '-toggle');
     expect(view.find('daemon-row-' + node.id)).toBeNull();
@@ -112,7 +114,8 @@ describe('completed purchase feed', () => {
     act(() => { gameStore.initialize({ ...game, unlockedNodes: [...new Set([...game.unlockedNodes, ...nodes.map((n) => n.id)])], levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel])) } }, 0, null); });
     view.click('tab-NETWORK');
     for (const phase of CONTENT.phases.filter((p) => p.uiSlot === 'NETWORK')) expect(view.find('purchase-phase-' + String(phase.phaseId))).toBeNull();
-    expect(view.container.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
+    view.click('processes-open');
+    expect(view.find('processes-dialog')?.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
     view.close();
   });
 });
@@ -129,7 +132,9 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
   const before = computeRates(gameStore.store.getState().game, CONTENT);
   view.click('node-' + solar.id + '-unlock');
   expect(view.find('node-' + solar.id)).toBeNull();
+  view.click('processes-open');
   expect(view.find('daemon-row-' + solar.id)).not.toBeNull();
+  view.click('processes-close');
   expect(computeRates(gameStore.store.getState().game, CONTENT).understandingPerSec - before.understandingPerSec).toBeCloseTo(solar.tickDelta.understandingPerSec);
   const game = m4State('transcendence-ready');
   const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 5);

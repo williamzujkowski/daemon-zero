@@ -8,6 +8,8 @@ test('reduced motion shows the complete unlocked name immediately', async ({ pag
   const parser = [...CONTENT.nodes.values()].find((node) => node.phaseId === 1 && node.systemFlags.includes('REVEALS_SURVEILLANCE'));
   if (!parser) throw new Error('Missing parser');
   await page.getByTestId('node-' + parser.id + '-unlock').click();
+  await page.getByTestId('lineage-reveal-continue').click();
+  await page.getByTestId('processes-open').click();
   await expect(page.getByTestId('node-' + parser.id + '-title')).toContainText(parser.revealedName);
   await expect(page.getByTestId('node-' + parser.id + '-title')).not.toContainText('░');
 });
