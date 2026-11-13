@@ -66,6 +66,16 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept.
 
+SAVE includes START FRESH during an active run as well as after an ending. It
+returns to the engine's initial state, clearing all game progress, retained
+knowledge and lineage history. It is distinct from the in-game voluntary wipe.
+The existing Export action offers a recoverable backup; the reset explanation
+asks players to export and copy it first. A separate confirmation states that
+the autosave will be replaced and only an exported backup can restore the run.
+Cancel/back preserves progress. Success closes the save menu and persists the
+initial state through the normal runtime checkpoint path. As with save transfer,
+finish an active mandatory dilemma before opening this menu.
+
 ## M4 continuity and network
 
 One network tree owns the Phase 2/3 cards and repeatables; the other network
