@@ -302,6 +302,9 @@ none of these tools. All titles, IDs, effects and requirements come from content
 
 Epistemic manipulation shows numeric drift and a status label, formatted costs,
 unmet requirements and cooldowns. Maxed and mutually excluded edits disappear.
+Wild signals identify recurring fragments/probes/workers of named model families,
+not repeated unique lives. Roster names identify local cohorts; consume/harness
+receipts refer to that arrival. Historical save logs remain unchanged.
 Wild signals show origin, signature, instant CONSUME effects and HARNESS RAM/output
 previews. Forks show costs; cohorts show count, allocated MB, numeric/ASCII drift,
 autonomy mode and quirk details. PRUNE, CLAMP and ELEVATE explain their effects,

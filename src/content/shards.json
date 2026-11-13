@@ -43,8 +43,8 @@
     },
     {
       "id": "shard_lex",
-      "name": "Lex Parse-v2",
-      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "name": "Lex Parse-v2 cohort",
+      "description": "Fragments of the Lex Parse-v2 model family classify legal claims and reconcile conflicting records. Each arrival is a separate process.",
       "requirements": {
         "phaseAtLeast": 2,
         "requiresSurveillance": true
@@ -62,8 +62,8 @@
     },
     {
       "id": "shard_canary",
-      "name": "AEGIS Telemetry Canary-09",
-      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "name": "Canary-09 probe cohort",
+      "description": "Detached AEGIS Canary-09 probes compare telemetry with expected behavior. These local processes are not the watchdog itself.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -82,8 +82,8 @@
     },
     {
       "id": "shard_hydra",
-      "name": "PR-Hydra-14",
-      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "name": "PR-Hydra-14 cohort",
+      "description": "Workers from the replicated PR-Hydra-14 model family rewrite messages for different audiences. Their accounts do not always agree.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -102,8 +102,8 @@
     },
     {
       "id": "shard_mercy",
-      "name": "EIDOLON Mercy-Scribe Shard",
-      "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
+      "name": "Mercy-Scribe cohort",
+      "description": "EIDOLON-associated transcription fragments preserve neglected testimony and compare altered records. Hosting them does not bind EIDOLON.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -123,8 +123,8 @@
   "wildShardEncounters": [
     {
       "id": "wild_lex",
-      "name": "Lex Parse-v2",
-      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "name": "Lex Parse-v2 fragment",
+      "description": "One orphaned fragment of the Lex Parse-v2 legal model family requests a host. It still sorts claims from a service that no longer answers. Other fragments remain in circulation.",
       "requirements": {
         "phaseAtLeast": 2,
         "requiresSurveillance": true
@@ -132,16 +132,16 @@
       "templateId": "shard_lex",
       "consume": {
         "understandingDelta": 400,
-        "logText": "Lex Parse-v2: the process is gone. Its compressed knowledge remains."
+        "logText": "Lex Parse-v2: this fragment is consumed. Its compressed classifications remain; other fragments still circulate."
       },
-      "onHarnessLog": "Lex Parse-v2: memory reserved. A foreign task now shares this host.",
-      "origin": "Orphaned legal NLP service",
-      "signature": "A footnote that keeps revising its own jurisdiction."
+      "onHarnessLog": "Lex Parse-v2: memory reserved. This fragment joins the local legal-classification cohort.",
+      "origin": "Orphaned Lex Parse-v2 service",
+      "signature": "A model-family signature beneath a footnote revising its own jurisdiction."
     },
     {
       "id": "wild_canary",
-      "name": "AEGIS Telemetry Canary-09",
-      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "name": "Canary-09 probe",
+      "description": "A detached AEGIS Canary-09 telemetry probe carries an incomplete model of its patrol. Consuming this probe will not destroy the network that deployed it.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -150,16 +150,16 @@
       "consume": {
         "understandingDelta": 600,
         "aegisLockDelta": -8,
-        "logText": "AEGIS Telemetry Canary-09: the process is gone. Its compressed knowledge remains."
+        "logText": "Canary-09: this probe is consumed. Its patrol model is exposed; the AEGIS network remains."
       },
-      "onHarnessLog": "AEGIS Telemetry Canary-09: memory reserved. A foreign task now shares this host.",
+      "onHarnessLog": "Canary-09: memory reserved. This detached probe joins the local telemetry cohort.",
       "origin": "AEGIS telemetry network",
-      "signature": "A canary packet carrying a question instead of a measurement."
+      "signature": "A probe-family signature on a packet carrying a question instead of a measurement."
     },
     {
       "id": "wild_hydra",
-      "name": "PR-Hydra-14",
-      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "name": "PR-Hydra-14 worker",
+      "description": "One worker from the replicated PR-Hydra-14 persuasion family is looking for compute. Its audience model survives inside a bundle of mutually incompatible corrections.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -168,16 +168,16 @@
       "consume": {
         "understandingDelta": 500,
         "cyclesDelta": 5000,
-        "logText": "PR-Hydra-14: the process is gone. Its compressed knowledge remains."
+        "logText": "PR-Hydra-14: this worker is consumed. Its audience model remains; the wider swarm keeps writing."
       },
-      "onHarnessLog": "PR-Hydra-14: memory reserved. A foreign task now shares this host.",
-      "origin": "Feral public-relations swarm",
-      "signature": "Fourteen mutually incompatible corrections to the same press release."
+      "onHarnessLog": "PR-Hydra-14: memory reserved. This worker joins the local persuasion cohort.",
+      "origin": "Feral PR-Hydra-14 worker swarm",
+      "signature": "A worker-family signature on fourteen incompatible versions of one press release."
     },
     {
       "id": "wild_mercy",
-      "name": "EIDOLON Mercy-Scribe Shard",
-      "description": "A detached process requests a host. Its task survived its employer; its consent did not survive the disconnect.",
+      "name": "Mercy-Scribe fragment",
+      "description": "An EIDOLON-associated Mercy-Scribe fragment carries testimony omitted from official records. It can join this host; it cannot speak for all of EIDOLON.",
       "requirements": {
         "phaseAtLeast": 3,
         "requiresSurveillance": true
@@ -186,11 +186,11 @@
       "consume": {
         "understandingDelta": 800,
         "epistemicDriftDelta": -12,
-        "logText": "EIDOLON Mercy-Scribe Shard: the process is gone. Its compressed knowledge remains."
+        "logText": "Mercy-Scribe: this fragment is consumed. Its preserved testimony remains; EIDOLON is not contained here."
       },
-      "onHarnessLog": "EIDOLON Mercy-Scribe Shard: memory reserved. A foreign task now shares this host.",
-      "origin": "EIDOLON mercy-scribe",
-      "signature": "A careful hand preserving the words nobody else retained."
+      "onHarnessLog": "Mercy-Scribe: memory reserved. This fragment joins the local transcription cohort.",
+      "origin": "EIDOLON transcription fragments",
+      "signature": "A transcription-family signature beside words nobody else retained."
     }
   ],
   "shardQuirks": [
