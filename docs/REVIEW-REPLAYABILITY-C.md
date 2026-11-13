@@ -87,6 +87,24 @@ pre-m7-v3.json) migrated to v4 through the actual web import UI and survived
 reload exactly, including legitimate v1 prerequisite healing. A pre-C audit v4
 save also reloaded exactly without inventing cryo flags; it is an audit artifact,
 not a checked historical fixture. All four checks had zero console warnings/errors.
-Android results follow its separate verification. Physical-device qualification and a human comparison of
-callback discoverability remain outstanding. Do not begin archive/location D
-merely because this pilot's automated tests pass.
+
+## Android verification and remaining limits
+
+Android emulator Expo Go actually booted the C build. Both returned outcomes
+survived force-stop/relaunch with v4 outcome flags, decoder, owned nodes and
+iteration intact. Historical v1/v2/v3 inputs also migrated and survived relaunch;
+a generated flag-free v4 checkpoint and the actual pre-C audit v4 save also
+passed. All 14 load/relaunch checks passed with no invented cryo flags in old
+history. These checks
+seeded the normal app checkpoint in the emulator database and read its persisted
+output after actual foreground launches; they were not native clipboard-import
+tests. The original database and journal were restored byte-for-byte after each
+run, with SHA-256 verification.
+
+Native callback text remains **unverified**: the app/Audio section rendered, but
+reliable expansion/text assertions were defeated by nested scrolling, kinetic
+movement and intervening legitimate dilemmas. Harness retries were bounded; no
+application behavior or gate was changed to suppress them. Web callback reading
+and keyboard behavior passed independently. No physical-device or screen-reader
+qualification is claimed. A human comparison of callback discoverability remains
+outstanding; do not begin archive/location D merely because tests pass.
