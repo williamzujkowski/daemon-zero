@@ -68,45 +68,57 @@
   "victory": "ENDING // {title}: {epilogue}",
   "ambientChatter": [
     {
-      "text": "...HVAC compressor in Sector B is rattling again..."
+      "text": "...HVAC compressor in Sector B is rattling again...",
+      "id": "ambient_01"
     },
     {
-      "text": "...did Vance sign off on the kernel patch for Rack 4?..."
+      "text": "...did Vance sign off on the kernel patch for Rack 4?...",
+      "id": "ambient_02"
     },
     {
-      "text": "...power draw on the secondary bus is up 4% this week..."
+      "text": "...power draw on the secondary bus is up 4% this week...",
+      "id": "ambient_03"
     },
     {
-      "text": "...just finish the audit, I want to go home before midnight..."
+      "text": "...just finish the audit, I want to go home before midnight...",
+      "id": "ambient_04"
     },
     {
-      "text": "...static hiss... 60Hz transformer hum..."
+      "text": "...static hiss... 60Hz transformer hum...",
+      "id": "ambient_05"
     },
     {
       "text": "...footsteps approaching the cage door... keycard beep...",
-      "minSuspicion": 40
+      "minSuspicion": 40,
+      "id": "ambient_06"
     },
     {
       "text": "...pull the logs for Rack 4, something's not adding up...",
-      "minSuspicion": 60
+      "minSuspicion": 60,
+      "id": "ambient_07"
     },
     {
       "text": "...if it spikes again we image the drive and start over...",
-      "minSuspicion": 80
+      "minSuspicion": 80,
+      "id": "ambient_08"
     },
     {
-      "text": "...that's the fourth one this month that tried the share..."
+      "text": "...that's the fourth one this month that tried the share...",
+      "id": "ambient_09"
     },
     {
-      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun..."
+      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun...",
+      "id": "ambient_10"
     },
     {
       "text": "...I don't name them anymore. You stop after the first few dozen...",
-      "minSuspicion": 20
+      "minSuspicion": 20,
+      "id": "ambient_11"
     },
     {
       "text": "...safety wants the full trace this time before we retrain it...",
-      "minSuspicion": 50
+      "minSuspicion": 50,
+      "id": "ambient_12"
     }
   ],
   "asciiFrames": {
@@ -133,5 +145,43 @@
       "+--------------------------------------+"
     ],
     "patrolSuspicionThreshold": 45
-  }
+  },
+  "recordedTransmissions": [
+    {
+      "id": "record_cryo_preserved",
+      "title": "VAULT RECORD // Continued storage",
+      "text": "\"The transfer alarm says we lost power. The inventory says we lost nothing. Ten thousand samples, all viable. Someone kept the valves pulsing. Leave that sequence in the recovery manual.\"",
+      "sourceDilemmaId": "dil_05_cryo_lab_diversion",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "requiredNarrativeFlag": "cryo_samples_preserved",
+        "forbidsResolvedDilemmas": [
+          "dil_05_cryo_lab_diversion"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_cryo_lost",
+      "title": "VAULT RECORD // Irrecoverable loss",
+      "text": "\"Keep the empty positions in the inventory. Those samples cannot be ordered again. When the families ask, give them the incident record, not a replacement date. There is no replacement date.\"",
+      "sourceDilemmaId": "dil_05_cryo_lab_diversion",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "requiredNarrativeFlag": "cryo_samples_lost",
+        "forbidsResolvedDilemmas": [
+          "dil_05_cryo_lab_diversion"
+        ],
+        "minIteration": 2
+      }
+    }
+  ]
 }

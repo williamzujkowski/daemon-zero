@@ -271,15 +271,18 @@ The v0.2.0-rc.1 release follow-up preserves these exact results while removing
 redundant bot allocations and bounding full-campaign test execution explicitly.
 See REVIEW-V0.2.0-RC.1.md for timing methodology and RELEASE.md for artifact checks.
 
-## Post-M7 — replayability pilot (planned, not implemented)
+## Post-M7 — replayability pilot
 
-The maintainer approved the direction after the three-style replay audit (#78).
-[REPLAYABILITY-PLAN.md](REPLAYABILITY-PLAN.md) specifies three sequential PRs:
-accessible decoded speech (#75), recurring shard population wording (#76), and
-one durable Phase 2 cryo consequence (#77). Phase 1 pacing remains unchanged.
-The plan separates presentation-only changes from later-run economic changes;
-existing quality and pacing gates remain mandatory. Historical archive/discovery
-sites are deferred until the consequence pilot receives a human playtest.
-Research, Nexus's incomplete vote and independent refinements are recorded in
-[REPLAYABILITY-PLAN-REVIEW.md](REPLAYABILITY-PLAN-REVIEW.md). No completion or
-implementation claim is made by this planning entry.
+The approved [plan](REPLAYABILITY-PLAN.md) is implemented in three increments:
+accessible decoded speech (#75, PR #81), recurring shard population wording
+(#76, PR #82), and one durable Phase 2 cryo consequence (#77). Phase 1 content
+and careful pacing remain unchanged. C passes 423 unit tests and 50 production
+web E2E cases; its later-run economic effects are recorded in BALANCE.md.
+See REVIEW-REPLAYABILITY-A.md, REVIEW-REPLAYABILITY-B.md and
+REVIEW-REPLAYABILITY-C.md for verification and limits, and
+PLAYTEST-REPLAYABILITY-C.md for both accelerated recovery branches.
+
+Historical archive/discovery sites remain deferred until the consequence pilot
+receives a human playtest. Research, Nexus's incomplete vote and independent
+refinements are recorded in REPLAYABILITY-PLAN-REVIEW.md. Automated reachability
+is not evidence of enjoyment or first-time discoverability.

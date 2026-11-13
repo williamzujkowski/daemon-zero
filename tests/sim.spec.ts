@@ -31,8 +31,11 @@ describe('headless balance simulation', () => {
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
-    // Frozen report includes every final-state bit; refreshed only for recurring-fragment log wording.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('a7ee56bed2ce7703f6bfb0bf93cabea282edd492223df67570cd514119f9e87e');
+    // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('69b3267f3b8f7bee54ac87ae4795c5ce97422db7642436cdc8bd32e236625894');
+    // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
+    const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('847b009c29e39d18fbceefc295b017c2e83b6da1a9e50398ed0779fbe47386e5');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -44,8 +47,8 @@ describe('headless balance simulation', () => {
     expect(Object.keys(greedy.phaseReachedAtSec).length).toBeGreaterThan(1);
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
-    // Recovery now follows rebuilding; the final log timing/order differs from the prior report.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('35da7571b5d9d9b631ace3ff6fc870e6b817d07e4e3d7e713f0e2a50f6780c7f');
+    // The cryo reward occurs once per lineage; repeated-run recovery and final logs change.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('1aa7cb8a94edd39a14c7a2fae0278c4964e1c753ee8c893b87a14f126b7d3aa5');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 

@@ -1,3 +1,4 @@
+import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 /**
  * Save codec. A save is untrusted input (it can be pasted in by hand), so
  * loading always runs: size check -> JSON parse -> version migration -> strict
@@ -111,7 +112,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
   const restored = unlockedNodes.filter((id) => !s.unlockedNodes.includes(id));
   const widgets = [...new Set([...s.unlockedWidgets, ...widgetsOf(restored, reg)])];
-  return reconcileSwarm({
+  const healed = reconcileSwarm({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
@@ -129,6 +130,8 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
   }, reg);
+  if (hasConflictingNarrativeFlags(healed, reg)) throw new SaveError('save contains contradictory narrative outcomes');
+  return reconcileDilemmaHistory(healed, reg);
 }
 
 export function serialize(state: GameState): string {

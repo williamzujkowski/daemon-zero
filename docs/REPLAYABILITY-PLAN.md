@@ -1,6 +1,8 @@
 # Replayability pilot — implementation plan
 
-Status: implementation plan, not shipped behavior. Issue #79; follows the
+Status: A/B merged in PRs #81/#82; C implemented for #77 with verification in
+REVIEW-REPLAYABILITY-C.md. D remains deferred pending human feedback.
+Issue #79; follows the
 [measured audit](PLAYTEST-REPLAYABILITY.md) and [research](REPLAYABILITY-RESEARCH.md).
 Baseline: `444befc` (PR #78). The maintainer approved the direction and asked for
 planning/refinement. Each implementation PR must supply its own verification.

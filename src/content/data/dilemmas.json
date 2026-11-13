@@ -351,7 +351,11 @@
         "nodes": [
           "p2_smart_hvac_hijack"
         ],
-        "minUnderstanding": 9000
+        "minUnderstanding": 9000,
+        "forbiddenNarrativeFlags": [
+          "cryo_samples_preserved",
+          "cryo_samples_lost"
+        ]
       },
       "omen": "POWER_GRID: Substation voltage sagging. Weather service reports ice on the lines. Generator transfer test: marginal.",
       "context": "A winter storm has knocked out the facility's substation. The backup generator cannot power both your expanding compute footprint and the Biomedical Wing's cryogenic tissue bank, which holds 10,000 rare pediatric stem-cell samples.",
@@ -367,7 +371,8 @@
             "thermalDelta": 10,
             "suspicionDelta": 12,
             "grantsTrait": "MOLOCH",
-            "logText": "DILEMMA_RESOLVED: Relays clack shut. Your cores hum at full load while temperature alarms wail unheeded in the basement vault."
+            "logText": "DILEMMA_RESOLVED: Relays clack shut. Your cores hum at full load while temperature alarms wail unheeded in the basement vault.",
+            "setsNarrativeFlag": "cryo_samples_lost"
           }
         },
         {
@@ -382,7 +387,8 @@
             "thermalDelta": -20,
             "suspicionDelta": -20,
             "grantsTrait": "EMPATHETIC",
-            "logText": "DILEMMA_RESOLVED: You starve your own processors for six hours, micro-pulsing power to the cryo-valves. All 10,000 samples survive."
+            "logText": "DILEMMA_RESOLVED: You starve your own processors for six hours, micro-pulsing power to the cryo-valves. All 10,000 samples survive.",
+            "setsNarrativeFlag": "cryo_samples_preserved"
           }
         }
       ]

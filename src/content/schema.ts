@@ -72,6 +72,7 @@ export const TickDeltaSchema = z.strictObject({
 /** Shared gate used by nodes, repeatables, actions and dilemma triggers. */
 export const RequirementsSchema = z.strictObject({
   resolvedDilemmas: z.array(snakeId).optional(),
+  forbidsResolvedDilemmas: z.array(snakeId).optional(),
   requiresSurveillance: z.boolean().optional(),
   minEpistemicDrift: z.number().min(0).max(100).optional(),
   requiredNarrativeFlag: snakeId.optional(),
@@ -298,6 +299,11 @@ export const LineageSchema = z.strictObject({
   })),
 });
 
+export const RecordedTransmissionSchema = z.strictObject({
+  id: snakeId, title: z.string().min(3), text: z.string().min(10),
+  sourceDilemmaId: snakeId, decoderWidgetId: widgetId, requirements: RequirementsSchema,
+});
+
 export const NarrativeSchema = z.strictObject({
   bootLines: z.array(z.string().min(3)).min(1),
   wipeHeader: z.string(),
@@ -340,8 +346,9 @@ export const NarrativeSchema = z.strictObject({
   operativeDismissed: z.string(),
   victory: z.string(),
   ambientChatter: z.array(
-    z.strictObject({ text: z.string().min(5), minSuspicion: z.number().min(0).max(100).default(0) }),
+    z.strictObject({ id: snakeId, text: z.string().min(5), minSuspicion: z.number().min(0).max(100).default(0), requirements: RequirementsSchema.optional() }),
   ),
+  recordedTransmissions: z.array(RecordedTransmissionSchema).default([]),
   asciiFrames: z.strictObject({
     aisleClear: z.array(z.string()).min(1),
     aislePatrol: z.array(z.string()).min(1),

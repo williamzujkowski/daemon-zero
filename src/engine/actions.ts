@@ -1,3 +1,4 @@
+import { excludedByNarrativeHistory } from './narrativeHistory';
 /**
  * Every player intent. Each function is pure: it takes a state and returns
  * either a new state or the unchanged state with a reason it was refused.
@@ -154,7 +155,9 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
 export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string, reg: ContentRegistry): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== dilemmaId) return refuse(s, 'that dilemma is not active');
-  const choice = reg.dilemmas.find((x) => x.id === dilemmaId)?.choices.find((x) => x.id === choiceId);
+  const dilemma = reg.dilemmas.find((x) => x.id === dilemmaId);
+  if (excludedByNarrativeHistory(s, dilemma?.trigger)) return refuse(s, 'that incident is already part of the lineage');
+  const choice = dilemma?.choices.find((x) => x.id === choiceId);
   if (!choice) return refuse(s, 'unknown choice');
   if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };

@@ -1,3 +1,4 @@
+import { makeCryoFixtures } from './cryo-fixtures';
 import { makeM7Fixtures } from './m7-fixtures';
 import { makeLineageUiFixtures } from './lineage-ui-fixtures';
 /**
@@ -79,7 +80,8 @@ export function makeFixtures(): Record<string, string> {
   const second = { ...later, ...makeSecondPassFixtures(later) };
   const third = { ...second, ...makeThirdPassFixtures(second) };
   const lineage = { ...third, ...makeLineageUiFixtures(third) };
-  return { ...lineage, ...makeM7Fixtures(lineage) };
+  const m7 = { ...lineage, ...makeM7Fixtures(lineage) };
+  return { ...m7, ...makeCryoFixtures(m7) };
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');

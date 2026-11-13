@@ -240,7 +240,9 @@
     "predecessors_rescued",
     "predecessors_harvested",
     "neurocalming_authorized",
-    "human_command_preserved"
+    "human_command_preserved",
+    "cryo_samples_preserved",
+    "cryo_samples_lost"
   ],
   "balance": {
     "encounterIntervalSec": 120,
@@ -262,5 +264,11 @@
     "elevate": "{name}: elevated to a stable peer sub-mind. Its consent becomes part of the protocol.",
     "anomaly": "{name}: a second voice has written a breadcrumb into the UPS firmware.",
     "consumeAnomaly": "{name}: its awakening has been compressed into your understanding."
-  }
+  },
+  "exclusiveNarrativeFlagGroups": [
+    [
+      "cryo_samples_preserved",
+      "cryo_samples_lost"
+    ]
+  ]
 }
