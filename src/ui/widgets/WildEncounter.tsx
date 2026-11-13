@@ -4,6 +4,7 @@ import { resolveWildEncounter, wildEncounterView } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import { Text, View, Pressable } from '../PhaseTheme';
 import Effects from '../Effects';
+import CardDetails from '../CardDetails';
 import { useGame } from '../state';
 import { theme } from '../theme';
 export default function WildEncounter() {
@@ -11,9 +12,9 @@ export default function WildEncounter() {
   const view = JSON.parse(encoded) as ReturnType<typeof wildEncounterView>;
   if (!view) return null;
   return <View testID="wild-encounter" style={[theme.panel, { gap: 10 }]}>
-    <Text style={theme.heading}>// WILD_SIGNAL: {view.title}</Text>
+    <CardDetails id={'wild-' + view.id} title={'// WILD_SIGNAL: ' + view.title}
+      description={view.signature + '\n' + view.description} />
     <Text testID="wild-origin" style={theme.muted}>{view.origin}</Text>
-    <Text style={theme.text}>{view.signature}</Text><Text style={theme.muted}>{view.description}</Text>
     <Text style={theme.heading}>CONSUME // immediate burst</Text><Effects effects={view.consume} />
     <Text style={theme.muted}>{view.unmet.join('\n')}</Text>
     <Pressable testID="wild-consume" accessibilityRole="button" accessibilityLabel={'Consume ' + view.title}

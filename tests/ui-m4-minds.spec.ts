@@ -12,6 +12,13 @@ describe('M4 Other Minds', () => {
     const view = await mountM4('eidolon-trust-85');
     view.click('workspace-NETWORK-minds');
     for (const faction of CONTENT.factions.values()) {
+      const details = view.find('details-faction-' + faction.id);
+      if (details) {
+        expect(details.getAttribute('aria-expanded')).toBe('false');
+        expect(view.find('faction-' + faction.id)?.textContent).not.toContain(faction.description);
+        view.click('details-faction-' + faction.id);
+        expect(details.getAttribute('aria-expanded')).toBe('true');
+      }
       expect(view.find('faction-' + faction.id)?.textContent).toContain(faction.description);
       expect(view.find('actions-group-' + faction.id)).not.toBeNull();
       for (const node of CONTENT.nodes.values()) if (node.uiGroup === faction.id) expect(view.find('node-' + node.id)).not.toBeNull();
