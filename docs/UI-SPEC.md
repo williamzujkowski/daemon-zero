@@ -135,7 +135,7 @@ development tool is the only exception to the otherwise minimal opening screen.
 
 ## M4.5 opening and feedback
 
-During Phase 0 the unlocked quota skim and audit trail stay outside the CORE
+On desktop, Phase 0 quota skim and audit trail stay outside the CORE
 hardware scroll view. Their own labels replace redundant panel headings, and
 the phone log is 120 px high while in the guest so hardware still has room.
 Both widgets return to manifest placement after escaping. Nothing is pinned
@@ -265,8 +265,8 @@ This extends the former dev-only transfer path so production E2E exercises an
 actual player feature. Dev drawer, resource grants and the development hook
 remain absent from production exports.
 
-Card profiling separates the static identity/description from changing balance
-and eligibility leaves. Development metrics report parent render counts, React
+Card profiling isolates static identity/description from balance/eligibility.
+Development metrics report parent render counts, React
 Profiler commits/duration for static content, and accepted/attempted manual
 inputs; they do not change or persist game state.
 
@@ -279,7 +279,6 @@ counts, mutual exclusion and dynamic discounted conditioning-recovery prices.
 Cooldown text is a separate leaf so the static action card does not render on
 countdown ticks. Dedicated drift, wild-encounter and cohort panels follow in M7
 PR 3; this engine PR does not claim those interactions are playable yet.
-
 
 ## M7 PR 2 corporate compatibility
 
@@ -295,8 +294,8 @@ review remain PR 3 work.
 ## M7 tools and post-orbital presentation
 
 After the audit is decoded, the active phase's registry slot owns the mind tools:
-NETWORK in Phases 2–3 and CORP in Phases 4–5. A compact pending-signal notice stays above
-the scroll in every section except Swarm, where the full encounter appears.
+NETWORK in Phases 2–3 and CORP in Phases 4–5. A compact pending-signal notice precedes
+content in every section except Swarm, where the full encounter appears.
 Epistemic actions live in Operations; encounters and cohorts live in Swarm. Blind openings mount
 none of these tools. All titles, IDs, effects and requirements come from content.
 
@@ -334,18 +333,17 @@ Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
 knowledge and cheaper remapping. No retention percentage, recovery price or
 conditioning behavior changes in this UI pass.
 
-
 ## Post-M7 density review: focused workspaces
 
 NETWORK and CORP default to Work, containing unfinished nodes and current-phase
-upgrades. A wrapped, 44px navigation row stays above the pane scroll. Sections
+upgrades. A 44px workspace navigation row precedes pane content. Sections
 appear only through unlocked widget registration: Operations, Swarm, Factions,
 Finance, Payroll and Reference. Operations contains normal network actions and
 current-phase epistemic edits; Factions keeps authored descriptions, trust,
 offers and countermeasures together. Finance contains the capital/power ledger,
 allocation and corporate actions; Payroll contains hire/dismiss controls.
-Insolvency, power shortfall and brownout warnings stay visible throughout CORP.
-The existing AEGIS HUD remains visible outside Factions.
+Insolvency, power shortfall and brownout warnings appear in every CORP workspace.
+The AEGIS HUD remains available outside Factions, in the mobile scroll flow.
 
 Older-phase repeatable upgrades are folded under “Earlier upgrades”; unfinished
 one-shot purchases remain exposed. Reference holds the existing optional archive,
@@ -354,10 +352,10 @@ never changes ownership, effects, simulation time or persistence. Navigation and
 fold state are session-local, not a new save field.
 
 KERNEL // LIVE is always present: mobile 120px compact / 280px expanded; desktop
-180px / 400px below NETWORK/CORP, or a full column before those unlock. The size
+180px / 400px below NETWORK/CORP, or a full column before those unlock. Mobile
+log height is capped at 25% / 45% of window height on short screens. The size
 control appears after the first discovery and has a keyboard-accessible name.
-The reason for these changes is measured late-game stacking, not reduced content:
-see docs/REVIEW-UI-WORKSPACES.md for the start/mid/end review.
+See REVIEW-UI-WORKSPACES.md for the measured start/mid/end stacking review.
 
 ## Retraining recovery during rebuilding
 
@@ -392,8 +390,10 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Short optional prose folds behind a title-adjacent Details button on phone and
-desktop. Costs, effects, limits, requirements and permanent-choice warnings stay
-visible. Early node discovery prose, successor choices and lifetime trade rules
-remain exposed. No simulation pause or new saved preference is introduced.
-See REVIEW-COMPACT-DETAILS.md for the field audit, reset contract, density measurements and limits.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md.
+
+## Mobile large text
+
+Mobile header/HUD/notices/workspace use one primary scroll. Bounded kernel and
+horizontal pane navigation remain outside; text and warnings stay intact.
+Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.

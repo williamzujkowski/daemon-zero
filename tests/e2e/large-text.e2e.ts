@@ -77,6 +77,8 @@ test('200% text keeps Swarm commands and resource readouts reachable', async ({ 
   const id = Object.keys(shards)[0];
   if (!id) throw new Error('Missing cohort');
   expect((await page.getByTestId('pane-scroll-CORP').boundingBox())?.height).toBeGreaterThan(44);
+  // A large heading must retain a useful reading width instead of being squeezed beside Details.
+  expect((await page.getByTestId('details-title-shard-quirk-' + id).boundingBox())?.width).toBeGreaterThanOrEqual(150);
   const prune = page.getByTestId('shard-' + id + '-prune');
   await reachable(prune); await prune.focus(); await page.keyboard.press('Enter');
   await expect(page.getByTestId('shard-drift-' + id)).toContainText('0%');
@@ -84,6 +86,16 @@ test('200% text keeps Swarm commands and resource readouts reachable', async ({ 
   await expect(page.getByTestId('res-cycles')).toBeInViewport();
   await expect(page.getByTestId('res-cycles')).not.toBeEmpty();
   await reachable(page.getByTestId('workspace-CORP-work')); await page.getByTestId('workspace-CORP-work').click();
+  if (await page.getByTestId('terminal-tabs-scroll').count()) {
+    const core = page.getByTestId('tab-CORE');
+    await expect(core).not.toBeInViewport();
+    await core.focus(); await expect(core).toBeFocused();
+    await expect(core).toBeInViewport(); await page.keyboard.press('Enter');
+    await expect(core).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('pane-scroll-CORE')).toBeVisible();
+    await page.getByTestId('tab-CORP').click();
+    await expect(page.getByTestId('tab-CORP')).toHaveAttribute('aria-selected', 'true');
+  }
   await noHorizontalScroll(page);
 });
 

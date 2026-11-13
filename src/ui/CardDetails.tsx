@@ -14,8 +14,9 @@ type DetailsProps = { id: string; title: string; description: string };
 function Disclosure({ id, title, description }: DetailsProps) {
   const [expanded, setExpanded] = useState(false);
   return <>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Text accessibilityRole="header" style={[theme.heading, { flex: 1, minWidth: 0 }]}>{title}</Text>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+      <Text testID={'details-title-' + id} accessibilityRole="header"
+        style={[theme.heading, { flexGrow: 1, flexShrink: 1, flexBasis: 160, minWidth: 0 }]}>{title}</Text>
       <Pressable testID={'details-' + id} accessibilityRole="button" accessibilityLabel={'Details for ' + title}
         accessibilityState={{ expanded }} aria-expanded={expanded} style={[theme.button, { paddingHorizontal: 8 }]}
         onPress={() => { setExpanded(!expanded); }}>
