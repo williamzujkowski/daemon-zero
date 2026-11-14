@@ -222,3 +222,24 @@ queries. The two new pipeline stages integrate epistemic drift and evaluate
 mutations/encounters after threats and before dilemmas; a threat wipe still halts
 the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
 the public engine API. Costs and one-shot outcomes still use transactions.
+
+## Optional soundtrack foundation (#88)
+
+`musicSession.ts` mounts one app-owned `MusicController` beside the game runtime,
+above the terminal restore key. It filters game updates to readiness, phase,
+ending, iteration and restore identity; ordinary ticks never touch its player.
+The Expo backend loads lazily after explicit activation. One player loops the
+bundled Phase 0 asset, pauses on background, restarts deliberately on eligible
+wipe/import, stops on phase exit/ending, and releases on teardown. Player identity
+and session generations reject stale status/hydration results. Future phase music,
+crossfades, reveal motifs and spoken playback remain separate follow-ups.
+
+Strict bounded `{ version: 1, enabled, volume }` preferences live under
+`daemon-zero.audio.v1`, using the platform adapter and ordered save queue. They
+are independent of saves, imports and fresh starts. Every launch is silent until
+Enable or Resume, even when the enabled preference was retained. Playback status
+comes from Expo events; a rejected start leaves a visible recoverable paused state.
+The Audio menu preserves utility focus, Back and interruption behavior. Capture,
+background services and lock-screen controls are disabled; no runtime service or
+speech request is introduced. See `REVIEW-AUDIO-FOUNDATION.md` and the asset's
+`assets/audio/PROVENANCE.md` for qualification and licensing limits.

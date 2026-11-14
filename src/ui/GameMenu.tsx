@@ -7,7 +7,7 @@ import UtilityPages, { MenuButton } from './UtilityPages';
 import UtilityStatus from './UtilityStatus';
 import { useUtilityMenu, type UtilityMenu } from './useUtilityMenu';
 
-const titles = { root: 'GAME MENU', save: 'SAVE CODE', help: 'HELP // ABOUT', import: 'REPLACE RUN', reset: 'START FRESH' };
+const titles = { root: 'GAME MENU', save: 'SAVE CODE', help: 'HELP // ABOUT', audio: 'AUDIO', import: 'REPLACE RUN', reset: 'START FRESH' };
 
 export function MenuLauncher({ menu: { setTrigger, route, disabled, open } }: { menu: UtilityMenu }) {
   return <Pressable ref={setTrigger} testID="menu-open" accessibilityRole="button" accessibilityLabel="Game menu"

@@ -390,7 +390,7 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. MENU groups utilities in one surface; PROC and gameplay navigation remain direct. See REVIEW-UTILITY-MENU.md for routes, interruption and verification.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and no future-phase music. See REVIEW-UTILITY-MENU.md and REVIEW-AUDIO-FOUNDATION.md.
 
 ## Mobile large text
 

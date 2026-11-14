@@ -1,4 +1,5 @@
 /** Menu pages are ordinary content inside one utility surface, including confirmations. */
+import AudioSettings from './AudioSettings';
 import { TextInput } from 'react-native';
 import { version } from '../../package.json';
 import { Pressable, Text, View } from './PhaseTheme';
@@ -15,6 +16,7 @@ export function MenuButton({ id, label, press, danger = false, caption = label }
 function RootPage({ menu }: { menu: UtilityMenu }) {
   return <View testID="menu-root" style={{ gap: 14 }}>
     <MenuButton id="save-open" label="Save code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
+    <MenuButton id="menu-audio" label="Audio" press={() => { menu.navigate('audio'); }} />
     <MenuButton id="menu-help" label="Help and about" press={() => { menu.navigate('help'); }} />
     <Text style={theme.muted}>Progress is saved automatically. Export a code to keep a backup.</Text>
   </View>;
@@ -63,6 +65,7 @@ function Confirmation({ menu }: { menu: UtilityMenu }) {
 export default function UtilityPages({ menu }: { menu: UtilityMenu }) {
   if (menu.route === 'root') return <RootPage menu={menu} />;
   if (menu.route === 'save') return <SavePage menu={menu} />;
+  if (menu.route === 'audio') return <AudioSettings />;
   if (menu.route === 'help') return <HelpPage />;
   return <Confirmation menu={menu} />;
 }

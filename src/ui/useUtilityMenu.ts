@@ -9,7 +9,7 @@ import type { Pressable } from './PhaseTheme';
 import { useGame, useSurveillanceKnown } from './state';
 import { useUtilityFocus } from './UtilityFocus';
 
-export type UtilityRoute = 'root' | 'save' | 'help' | 'import' | 'reset';
+export type UtilityRoute = 'root' | 'save' | 'help' | 'audio' | 'import' | 'reset';
 interface MenuState { route: UtilityRoute | null; code: string; status: string; scope: string; confirmationScope: string }
 
 function useUtilityScope() {
