@@ -30,7 +30,10 @@ describe('mobile scroll flow', () => {
       expect(element, id).not.toBeNull(); expect(contains(primary, element), id).toBe(true);
     }
     expect(view.find('pane-scroll-CORP')?.style.flex).not.toBe('1');
+    expect(contains(primary, view.find('kernel-preview'))).toBe(true);
+    view.click('kernel-size-toggle');
     expect(contains(primary, view.find('kernel-log'))).toBe(false);
+    view.click('kernel-close');
     expect(contains(primary, view.find('terminal-tabs'))).toBe(false);
     expect(view.find('terminal-tabs-scroll')).not.toBeNull();
     const state = gameStore.store.getState().game;
@@ -42,17 +45,17 @@ describe('mobile scroll flow', () => {
     expect(gameStore.store.getState().game).toBe(state);
   });
 
-  it.each([256, 390])('bounds both log sizes on a %ipx high mobile screen and preserves game state', async (height) => {
+  it.each([256, 390])('separates bounded history from the primary flow on a %ipx high mobile screen and preserves game state', async (height) => {
     const view = await mountM4('phase5-midgame'); viewport(844, height);
     const state = gameStore.store.getState().game;
-    const compact = Number.parseFloat(view.find('kernel-dock')?.style.height ?? '0');
-    expect(compact).toBeGreaterThanOrEqual(44); expect(compact).toBeLessThan(height / 2);
+    expect(view.find('kernel-preview')).not.toBeNull();
+    expect(view.find('kernel-log')).toBeNull();
     view.click('kernel-size-toggle');
-    const expanded = Number.parseFloat(view.find('kernel-dock')?.style.height ?? '0');
-    expect(expanded).toBeGreaterThan(compact); expect(expanded).toBeLessThan(height / 2);
+    expect(view.find('kernel-history')).not.toBeNull();
     expect(view.find('kernel-size-toggle')?.getAttribute('aria-expanded')).toBe('true');
-    view.click('kernel-size-toggle');
-    expect(Number.parseFloat(view.find('kernel-dock')?.style.height ?? '0')).toBe(compact);
+    expect(contains(view.find('terminal-primary-scroll'), view.find('kernel-log'))).toBe(false);
+    view.click('kernel-close');
+    expect(view.find('kernel-history')).toBeNull();
     expect(gameStore.store.getState().game).toBe(state);
   });
 

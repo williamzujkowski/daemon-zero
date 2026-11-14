@@ -58,7 +58,7 @@ export default function EndingScreen() {
   </Modal>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: palette.background, alignItems: 'center', padding: 16 },
+  screen: { flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', padding: 16 },
   scroll: { width: '100%', maxWidth: 800 },
   content: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
 });

@@ -45,7 +45,7 @@ it('renders one decoded speech feed and makes secondary reference bodies opt-in'
   view.click('reference-CLUSTER_LOAD_BALANCER');
   expect(view.find('cycle-sources')).toBeNull();
   expect(gameStore.store.getState().game).toBe(before);
-  expect(view.find('kernel-log')).not.toBeNull();
+  expect(view.find('kernel-preview')).not.toBeNull();
   view.close();
 });
 

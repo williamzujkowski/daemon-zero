@@ -8,5 +8,6 @@ import { useSurveillanceKnown } from './state';
 
 export default function DisclosureText({ children, ...props }: TextProps & { children: string }) {
   const known = useSurveillanceKnown();
-  return <Text {...props}>{!known && /\bsuspicion\b/i.test(children) ? 'Audit entry unreadable.' : children}</Text>;
+  const text = !known && /\bsuspicion\b/i.test(children) ? 'Audit entry unreadable.' : children;
+  return <Text {...props} accessibilityLabel={text}>{text}</Text>;
 }

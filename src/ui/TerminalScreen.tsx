@@ -1,6 +1,6 @@
 import { Text, View } from './PhaseTheme';
 /**
- * Responsive terminal: one mobile pane with a log drawer, three desktop columns.
+ * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
 import { useState } from 'react';
@@ -39,9 +39,10 @@ function ThirdColumn({ slots }: { slots: string[] }) {
   if (selection.phase !== phase) select({ phase, slot: preferred });
   const available = slots.filter((slot) => slot === 'NETWORK' || slot === 'CORP');
   const active = available.some((slot) => slot === selection.slot) ? selection.slot : available[0] ?? 'NETWORK';
-  return <View style={[styles.third, { flex: available.length > 0 ? 2 : 1 }]}>
+  if (available.length === 0) return null;
+  return <View style={[styles.third, { flex: 2 }]}>
     <Tabs slots={available} active={active} select={(slot) => { select({ phase, slot }); }} />
-    {available.length > 0 && <Pane slots={[active]} />}<LogDock fill={available.length === 0} />
+    {available.length > 0 && <Pane slots={[active]} />}
   </View>;
 }
 
@@ -87,7 +88,7 @@ function TerminalChrome() {
     <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading}>DAEMON // 0</Text>
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
-    <ResourceStrip />
+    <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
     <BlindAuditStatus />
     <ResponseNotice /><OmenNotice />
   </>;
@@ -96,6 +97,7 @@ function TerminalChrome() {
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
+  hud: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
   notice: { padding: 12, color: palette.warning },

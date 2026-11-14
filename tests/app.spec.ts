@@ -15,10 +15,10 @@ describe('app shell server render', () => {
     const firstEntry = initial.logs.at(-1);
     expect(firstEntry?.text).toBe(CONTENT.narrative.bootLines[0]);
     const markup = renderToStaticMarkup(createElement(App));
-    expect(markup).toContain(firstEntry?.text);
+    expect(markup).not.toContain(firstEntry?.text);
     expect(markup).toContain(initial.logs[0]?.text);
     expect(markup).toContain('data-testid="terminal-screen"');
-    expect(markup).toContain('data-testid="kernel-log"');
+    expect(markup).toContain('data-testid="kernel-preview"');
     expect(markup).not.toContain('data-testid="resource-strip"');
     expect(markup).toContain('aria-disabled="true"');
   });

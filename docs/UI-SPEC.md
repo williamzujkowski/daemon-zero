@@ -10,8 +10,8 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 ## Layout
 
-- **Under 900 px wide (phones):** active pane, a compact/expandable kernel log, and a bottom tab bar. On hydration and phase changes, open the current phase’s unlocked registry slot; manual tab choices persist until the next phase. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
-- **900 px and wider:** responsive columns: CORE (manual button, tech nodes, repeatables) | unlocked SENSORS + CONTINGENCY | NETWORK + CORP + kernel log. Omit the empty sensor column before it unlocks. Give current CORE or NETWORK/CORP work twice the width of supporting columns. Before NETWORK unlocks, the log fills its column.
+- **Under 900 px wide (phones):** active pane with a latest-entry kernel preview in the primary scroll, and a bottom tab bar. Expand opens separate modal history. On hydration and phase changes, open the current phase’s unlocked registry slot; manual tab choices persist until the next phase. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
+- **900 px and wider:** responsive columns: CORE (manual button, tech nodes, repeatables) | unlocked SENSORS + CONTINGENCY | NETWORK + CORP. The kernel preview sits beside resources in the top HUD. Omit empty columns before they unlock. Give current CORE or NETWORK/CORP work twice the width of supporting columns.
 
 Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGENCY`.
 
@@ -27,9 +27,9 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `QUOTA_SKIM_CONTROL` | five-step control for the guest's quota skim | `actuators.quotaSkimRatio`, `setActuator` |
 | `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
 | `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
-| `AUDIT_TRACE_MONITOR` | suspicion meter, current rung of the response ladder, next threshold; gates the understanding readout | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
+| `AUDIT_TRACE_MONITOR` | decoded suspicion HUD readout, response ladder and next threshold; gates understanding | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
-| `THERMAL_AND_SUSPICION_BARS` | thermal meter and overheat warning (suspicion moved to the audit trail) | `thermal`, `balance.thermalThresholdForSuspicion` |
+| `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | five-step control | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
 | `INSPECTION_COUNTDOWN_TIMER` | threat forecast, inbound countdown and paid-response budgets; audio owns decoded speech | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
@@ -116,7 +116,7 @@ purchases ahead of completed earlier hardware.
 On desktop, the third column switches between NETWORK and CORP once both exist;
 entering Phase 4 selects CORP. Browser review showed that stacking the full
 network tree above the corporate ledger made the new controls hard to find.
-The kernel log stays below either choice. Wrapped resource rows use horizontal
+The latest kernel entry stays in the resource HUD. Wrapped resource rows use horizontal
 gaps without extra row gaps: large Phase 4 balances otherwise consumed too much
 of the phone viewport before any ledger/allocation controls were visible.
 
@@ -137,7 +137,7 @@ development tool is the only exception to the otherwise minimal opening screen.
 
 On desktop, Phase 0 quota skim and audit trail stay outside the CORE
 hardware scroll view. Their own labels replace redundant panel headings, and
-the phone log is 120 px high while in the guest so hardware still has room.
+the phone kernel preview shares the primary scroll so hardware keeps its viewport.
 Both widgets return to manifest placement after escaping. Nothing is pinned
 before its widget unlocks.
 
@@ -223,7 +223,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Response ladder / interrupt forecast / preparation costs | `alert-level`, `inspection-forecast`, `interrupt-budget` |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
-| Kernel log | `kernel-log` |
+| Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
@@ -351,11 +351,12 @@ source and topology panels. Switching sections changes presentation only; it
 never changes ownership, effects, simulation time or persistence. Navigation and
 fold state are session-local, not a new save field.
 
-KERNEL // LIVE is always present: mobile 120px compact / 280px expanded; desktop
-180px / 400px below NETWORK/CORP, or a full column before those unlock. Mobile
-log height is capped at 25% / 45% of window height on short screens. The size
-control appears after the first discovery and has a keyboard-accessible name.
-See REVIEW-UI-WORKSPACES.md for the measured start/mid/end stacking review.
+KERNEL // LIVE shows one ellipsized latest entry in the resource HUD, upper right
+on desktop and within the primary mobile scroll. A 44px Expand control exists
+from tick zero. It opens bounded virtualized history with Close/Escape/Android
+Back and focus return. Mandatory events discard stale history. Thermal °C and
+decoded suspicion % appear once in the HUD; threshold, fan and response context
+stay in their widgets. See REVIEW-KERNEL-HUD.md.
 
 ## Retraining recovery during rebuilding
 
@@ -394,6 +395,5 @@ Optional prose uses inline Details; decision information and blind node prose st
 
 ## Mobile large text
 
-Mobile header/HUD/notices/workspace use one primary scroll. Bounded kernel and
-horizontal pane navigation remain outside; text and warnings stay intact.
+Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane navigation remains outside; text and warnings stay intact.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.

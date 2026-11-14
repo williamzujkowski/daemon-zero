@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { CONTENT } from '../../content';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
-import Meter from './Meter';
 import ResponseRungs from './ResponseRungs';
 import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
@@ -15,7 +14,6 @@ export function Thermal() {
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;
   const known = useSurveillanceKnown();
   return <>
-    <Meter id="thermal-meter" label="Thermal" value={thermal} unit=" °C" />
     <Text style={[theme.muted, thermal > threshold && theme.danger]}>
       {thermal > threshold ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
     </Text>
@@ -49,11 +47,9 @@ export function AuditTrail() {
   return useSurveillanceKnown() ? <ReadableAuditTrail /> : <UnreadableAuditTrail />;
 }
 function ReadableAuditTrail() {
-  const suspicion = useGame((game) => Math.round(game.suspicion * 10) / 10);
   const level = useGame((game) => game.alertLevel);
   const next = CONTENT.balance.escalation[level];
   return <>
-    <Meter id="suspicion-meter" label="Suspicion" value={suspicion} unit="%" />
     <ResponseRungs />
     <Text testID="alert-level" style={[theme.text, level > 0 && theme.danger]}>
       Response: {CONTENT.narrative.alertLevels[level]?.label ?? 'UNKNOWN'}

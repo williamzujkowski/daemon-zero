@@ -1,11 +1,10 @@
 /** One primary mobile scroll keeps growing chrome from squeezing purchases away.
- * The bounded log remains a sibling, so its virtualized list has its own viewport.
+ * History opens separately so its virtualized list never nests in this scroll.
  */
 import { useEffect, useRef, type ComponentRef, type ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 import { View } from './PhaseTheme';
 import Pane from './TerminalPane';
-import LogDock from './LogDock';
 
 export default function MobileTerminal({ active, navigation, children }: {
   active: string; navigation: ReactNode; children: ReactNode;
@@ -17,7 +16,6 @@ export default function MobileTerminal({ active, navigation, children }: {
       contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       {children}<Pane slots={[active]} flow />
     </ScrollView>
-    <LogDock mobile />
     {navigation}
   </View>;
 }

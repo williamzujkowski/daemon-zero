@@ -12,7 +12,7 @@ import { useUtilityFocus } from './UtilityFocus';
 export type UtilityRoute = 'root' | 'save' | 'help' | 'audio' | 'import' | 'reset';
 interface MenuState { route: UtilityRoute | null; code: string; status: string; scope: string; confirmationScope: string }
 
-function useUtilityScope() {
+export function useUtilityScope() {
   const ready = useGameValue((state) => state.ready);
   const restore = useGameValue((state) => state.restoreRevision);
   const iteration = useGame((game) => game.iteration);
