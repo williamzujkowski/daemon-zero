@@ -8,7 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { isNodeAvailable, isNodeKnown, rediscoveryCost, unlockNode } from '../engine';
+import { isNodeAvailable, isNodeKnown, probeTrace, rediscoveryCost, unlockNode } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -32,7 +32,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
   const isEnding = node.effects.forcesEnding !== undefined || node.effects.triggersVictory === true;
   const title = known ? node.revealedName : node.blindName;
-  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown) : ''), [known, node, surveillanceKnown]);
+  // A primitive selector: the trace changes only with iteration, never per tick.
+  const trace = useGame((game) => probeTrace(game, node, CONTENT));
+  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace) : ''), [known, node, surveillanceKnown, trace]);
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}

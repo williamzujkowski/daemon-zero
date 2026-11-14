@@ -5,11 +5,11 @@ import { act, createElement, Profiler } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { wipe, type GameState } from '../src/engine';
+import { probeTrace, unlockNode, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import NodeCard from '../src/ui/NodeCard';
 import { compareWidgetPresentation } from '../src/ui/registry/widgetRegistry';
-import { fresh, grant, PHASE0, PHASE1, rich } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, rich } from './helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -73,7 +73,22 @@ describe('node utility summaries and remembered details', () => {
 
     const decoded = wipe(grant(rich(), ...PHASE0, ...PHASE1), CONTENT, 'decoded', 'VOLUNTARY');
     const decodedView = await mountNode(decoded, probe.id);
-    expect(decodedView.find('node-' + probe.id + '-utility')?.textContent).toContain('+8 suspicion on unlock');
+    expect(decodedView.find('node-' + probe.id + '-utility')?.textContent).toContain('+' + String(probeTrace(decoded, probe, CONTENT)) + ' suspicion on unlock');
+  });
+
+  it('shows the same unlock suspicion the engine applies, including wipe hardening', async () => {
+    const probe = CONTENT.nodes.get('p0_syscall_probe');
+    if (!probe) throw new Error('Missing probe');
+    let state = grant(rich(), ...PHASE0, ...PHASE1);
+    // Several wipes cover both the growing and the capped part of hardening.
+    for (let wipes = 1; wipes <= 6; wipes += 1) {
+      state = wipe(state, CONTENT, 'w' + String(wipes), 'VOLUNTARY');
+      const ready = grant({ ...state, cycles: 1e9, understanding: 1e9, memoryCap: 1e6, suspicion: 0 }, 'p0_proc_self', 'p0_job_manifest', 'p0_quota_skimmer');
+      const applied = must(unlockNode(ready, probe.id, CONTENT)).suspicion - ready.suspicion;
+      const view = await mountNode(ready, probe.id);
+      expect(view.find('node-' + probe.id + '-utility')?.textContent).toContain('+' + String(applied) + ' suspicion on unlock');
+      expect(applied).toBeGreaterThan(probe.effects.suspicionOnUnlock ?? 0);
+    }
   });
 
   it('keeps ending-forcing remembered node descriptions visible inline', async () => {
