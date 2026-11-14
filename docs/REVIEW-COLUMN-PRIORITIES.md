@@ -28,3 +28,14 @@ Two mounted regressions verify the forecast precedes retained chatter and the
 compact purchase retains its full accessible identity. Verification results and
 limits are recorded on the PR. Screenshots remain outside git. Physical Android,
 iOS, screen readers and a full campaign are not requalified by this UI pass.
+
+Final local verification: `make verify-full` passes with 466 unit tests, unchanged
+pacing gates, security scans and SBOM. Production E2E passes 74 cases (46.8s).
+Nine further visible production views cover Phase 1, Phase 4 and Phase 5 at
+390x844, 1440x900 and 320x844 with doubled text in the narrow cases: no console
+warnings/errors, document overflow or purchase controls below 44px. Existing
+large-text production tests also pass. Phase 4/5 node/action/cohort counters stay
+1 -> 1 across 30 live ticks. The inherited oversized generated Android mapping
+file scanner warning remains; no gate was weakened. No native test was run for
+this pass. A read-only independent review found no blocker and suggested moving
+the priority table to module scope, which was applied.
