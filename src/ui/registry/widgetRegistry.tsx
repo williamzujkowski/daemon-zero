@@ -1,6 +1,6 @@
 /**
  * The only UI boundary allowed to know widget identifiers.
- * Slots/titles/order remain content data; later-phase bodies belong to M4.
+ * Slots and titles remain content data; presentation priority stays at this boundary.
  */
 import type { ComponentType } from 'react';
 import { CONTENT } from '../../content';
@@ -53,6 +53,18 @@ export function workspaceAreas(ids: readonly string[], slot: string | undefined,
 export function workspaceWidgetVisible(id: string, area: WorkspaceArea): boolean {
   if (id === resourceWidgets.capital) return ['work', 'finance', 'payroll'].includes(area);
   return (areas[id] ?? 'work') === area;
+}
+
+const sensorPriority: readonly string[] = [thermalWidget, 'FAN_RPM_SLIDER',
+  'INSPECTION_COUNTDOWN_TIMER', 'AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG', 'ASCII_OPTICAL_VIEWPORT'];
+
+/** Actionable sensor feedback precedes optional narrative without reordering on ticks. */
+export function compareWidgetPresentation(left: string, right: string): number {
+  const rank = (id: string) => {
+    const index = sensorPriority.indexOf(id);
+    return index < 0 ? 100 + (CONTENT.widgets.get(id)?.order ?? 0) : index;
+  };
+  return rank(left) - rank(right);
 }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: WorkspaceArea }>>> = {
