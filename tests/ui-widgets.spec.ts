@@ -50,13 +50,13 @@ describe('M3 widgets', () => {
   it('gates widgets, exposes numeric meters, and dispatches each fan setting', async () => {
     const view = await mount(fixture('thermal-unlocked'));
     expect(view.find('thermal-meter')?.getAttribute('aria-valuetext')).toContain('°C');
-    expect(view.find('fan-25')).toBeNull();
+    expect(view.find('fan-increase')).toBeNull();
     act(() => { gameStore.initialize(fixture('phase-1-widgets'), 0, null); });
-    for (const percent of [25, 50, 75, 100, 0]) {
-      act(() => { view.find('fan-' + String(percent))?.click(); });
-      expect(gameStore.store.getState().game.actuators.fanSpeedRatio).toBe(percent / 100);
-      expect(view.find('fan-' + String(percent))?.getAttribute('aria-pressed')).toBe('true');
-    }
+    const initial = gameStore.store.getState().game.actuators.fanSpeedRatio;
+    act(() => { view.find('fan-increase')?.click(); });
+    expect(gameStore.store.getState().game.actuators.fanSpeedRatio).toBeCloseTo(initial + .1);
+    act(() => { view.find('fan-decrease')?.click(); });
+    expect(gameStore.store.getState().game.actuators.fanSpeedRatio).toBe(initial);
     expect(view.find('memory-meter')).toBeNull();
     expect(view.find('res-memory')?.textContent).toContain('MB');
     expect(view.find('decoded-speech')?.textContent).toBe(CONTENT.narrative.ambientChatter[0]?.text);

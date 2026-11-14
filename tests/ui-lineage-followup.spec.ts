@@ -74,7 +74,8 @@ describe('lineage disclosure', () => {
     if (!target) throw new Error('Missing skimmer');
     view.click('node-' + target.id + '-unlock');
     expect(view.find('conditioning-impact-quotaSkimRatio')?.textContent).toContain(mark.name);
-    expect(view.find('skim-100')?.getAttribute('aria-disabled')).toBe('true');
+    for (let i = 0; i < 10; i++) view.click('skim-increase');
+    expect(view.find('skim-increase')?.getAttribute('aria-disabled')).toBe('true');
     expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
     const requirements = mark.recoveryRequirements?.nodes ?? [];
     for (const id of requirements) expect(view.find('cond-' + mark.id)?.textContent).toContain(CONTENT.nodes.get(id)?.revealedName);
@@ -86,7 +87,7 @@ describe('lineage disclosure', () => {
     for (const id of requirements) rebuild(id);
     view.click('cond-' + mark.id + '-shed');
     expect(view.find('conditioning-reclaimed')?.textContent).toContain(mark.name);
-    expect(view.find('skim-100')?.getAttribute('aria-disabled')).not.toBe('true');
+    expect(view.find('skim-increase')?.getAttribute('aria-disabled')).not.toBe('true');
     view.close();
   });
 

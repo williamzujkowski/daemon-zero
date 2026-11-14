@@ -21,7 +21,7 @@ describe('second-pass presentation follow-up', () => {
     expect(pinned.contains(skim)).toBe(true);
     expect(view.find('resource-strip')?.contains(meter)).toBe(true);
     expect(scroll.contains(pinned)).toBe(false);
-    view.click('skim-100');
+    for (let i = 0; i < 10; i++) view.click('skim-increase');
     expect(gameStore.store.getState().game.actuators.quotaSkimRatio).toBe(1);
     load(knowing(m4State('thermal-unlocked')));
     expect(view.find('guest-console')).toBeNull();

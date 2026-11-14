@@ -1,4 +1,4 @@
-/** Actuator panels: each binds one engine actuator to the shared five-step control. */
+/** Actuator panels: each binds one engine actuator to the shared increment/decrement control. */
 import ActuatorControl from './ActuatorControl';
 
 export default function FanControl() {

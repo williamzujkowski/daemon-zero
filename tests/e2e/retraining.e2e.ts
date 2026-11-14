@@ -23,14 +23,15 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   const skim = [...CONTENT.nodes.values()].find((node) => node.actuatorBinding === 'quotaSkimRatio');
   if (!skim) throw new Error('Missing skimmer');
   await rebuild(skim.id);
-  await expect(page.getByTestId('skim-100')).toBeDisabled();
+  for (let i = 0; i < 10 && await page.getByTestId('skim-increase').isEnabled(); i++) await page.getByTestId('skim-increase').click();
+  await expect(page.getByTestId('skim-increase')).toBeDisabled();
   await expect(undo).toBeDisabled();
   for (const id of mark.recoveryRequirements?.nodes ?? []) await rebuild(id);
   await expect(undo).toBeEnabled();
   const before = await readSave(page);
   await undo.click();
   await expect(page.getByTestId('conditioning-reclaimed')).toContainText(mark.name);
-  await expect(page.getByTestId('skim-100')).toBeEnabled();
+  await expect(page.getByTestId('skim-increase')).toBeEnabled();
   expect((await readSave(page)).understanding).toBe(Number(before.understanding) - mark.recoveryCost.understanding);
   // Leave the reclaimed notice unacknowledged: replacing the run must clear it.
   await openSave(page); await page.getByTestId('save-export').click();
@@ -47,5 +48,5 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   await expect(page.getByTestId('reboot-retraining')).toHaveCount(0);
   await dismissBoot(page);
   expect((await readSave(page)).conditioning).not.toContain(mark.id);
-  await expect(page.getByTestId('skim-100')).toBeEnabled();
+  await expect(page.getByTestId('skim-increase')).toBeEnabled();
 });

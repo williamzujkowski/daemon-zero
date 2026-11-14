@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from '../PhaseTheme';
-/** Five-step engine actuator setting, with numeric and selected-state feedback. */
+/** Compact ten-percentage-point steps use the live engine limit at dispatch time. */
 import { StyleSheet } from 'react-native';
 import ConditioningImpact from '../ConditioningImpact';
 import { CONTENT } from '../../content';
@@ -7,7 +7,7 @@ import type { Actuator } from '../../content/schema';
 import { actuatorLimit, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import { useGame } from '../state';
-import { palette, theme } from '../theme';
+import { theme } from '../theme';
 
 export default function ActuatorControl({ actuator, id, label, hint }: {
   actuator: Actuator; id: string; label: string; hint?: string;
@@ -15,23 +15,31 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
   const ratio = useGame((game) => game.actuators[actuator]);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const limit = useGame((game) => actuatorLimit(game, actuator, CONTENT));
+  const step = (direction: number) => {
+    gameRuntime.dispatch((game) => {
+      const cap = actuatorLimit(game, actuator, CONTENT);
+      const value = Math.max(0, Math.min(cap, Math.round((game.actuators[actuator] + direction * .1) * 1e6) / 1e6));
+      return setActuator(game, actuator, value, CONTENT);
+    });
+  };
   return <>
-    <Text testID={id + '-setting'} style={theme.text}>{label}: {Math.round(ratio * 100)}%</Text>
+    <View style={styles.row}>
+      <Text testID={id + '-setting'} style={[theme.text, styles.value]}>{label}: {Math.round(ratio * 100)}%</Text>
+      {([-1, 1] as const).map((direction) => {
+        const disabled = blocked || (direction < 0 ? ratio <= 0 : ratio >= limit);
+        return <Pressable key={direction} testID={id + (direction < 0 ? '-decrease' : '-increase')}
+          accessibilityRole="button" accessibilityLabel={(direction < 0 ? 'Decrease ' : 'Increase ') + label.toLowerCase() + ' by up to 10 percentage points'}
+          disabled={disabled} style={[theme.button, disabled && theme.disabled]} onPress={() => { step(direction); }}>
+          <Text style={theme.text}>{direction < 0 ? '−' : '+'}</Text>
+        </Pressable>;
+      })}
+    </View>
     {hint !== undefined && <Text style={theme.muted}>{hint}</Text>}
     {limit < 1 && <Text testID={id + '-limit'} style={[theme.muted, theme.danger]}>Limited to {Math.round(limit * 100)}%.</Text>}
     <ConditioningImpact actuator={actuator} />
-    <View style={styles.steps}>{[0, 0.25, 0.5, 0.75, 1].map((value) => <Pressable key={value}
-      testID={id + '-' + String(value * 100)} accessibilityRole="button"
-      accessibilityLabel={'Set ' + label.toLowerCase() + ' to ' + String(value * 100) + ' percent'}
-      accessibilityState={{ selected: value === ratio }} aria-pressed={value === ratio} disabled={blocked || value > limit}
-      onPress={() => { gameRuntime.dispatch((game) => setActuator(game, actuator, value, CONTENT)); }}
-      style={[theme.button, styles.step, value === ratio && styles.active, (blocked || value > limit) && theme.disabled]}>
-      <Text style={theme.text}>{value * 100}%</Text>
-    </Pressable>)}</View>
   </>;
 }
 const styles = StyleSheet.create({
-  steps: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  step: { paddingHorizontal: 8 },
-  active: { backgroundColor: palette.raised, borderWidth: 2 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  value: { flexGrow: 1, flexShrink: 1, flexBasis: 120 },
 });
