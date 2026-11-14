@@ -23,3 +23,12 @@ Necessary descriptions, prices, requirements and purchasing semantics remain.
 
 Verification and limits will be recorded on the PR. Physical Android, iOS,
 screen-reader speech and a full campaign are not requalified by this increment.
+
+Final verification: `make verify-full` passes with 476 unit tests; production E2E
+passes 76 cases (50.5s). All strict/lint/coverage/security/pacing gates and SBOM
+remain intact. Nine visible production views cover Phase 1, Phase 4 and Phase 5
+at 390x844, 1440x900 and 320x844 with doubled text in the narrow cases. Reviewed
+views have zero console warnings/errors, document overflow or purchase targets
+below 44px. Phase 4/5 node/action/cohort counters remain 1 -> 1 over 30 live ticks.
+Screenshots are attached to the PR, not committed. The inherited oversized
+ignored generated Android mapping-file scanner warning remains.
