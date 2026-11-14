@@ -22,9 +22,10 @@ Embedded export metadata:
 - SHA-256: `3a3cd58be28d75d3ccf6fe1e53de317633eaa7bdf693c07954759943c8a74a6c`
 
 The bundled file is byte-for-byte the supplied original. There is no normalization,
-re-encoding, trimming or loop-cut derivative. The original local root file is
-preserved outside git. Repetition uses player looping; musical seam quality still
-requires human listening. Later phase tracks and predecessor variations are not
+re-encoding, trimming or loop-cut derivative. The identical local root duplicate
+was consolidated into this canonical phase-0 asset after byte and SHA-256
+comparison. Repetition uses player looping; musical seam quality still requires
+human listening. Later phase tracks and predecessor variations are not
 bundled or implied.
 
 Applicable rights reference: [Suno paid subscription rights](https://help.suno.com/en/articles/9601665).

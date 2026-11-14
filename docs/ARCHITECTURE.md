@@ -242,4 +242,4 @@ comes from Expo events; a rejected start leaves a visible recoverable paused sta
 The Audio menu preserves utility focus, Back and interruption behavior. Capture,
 background services and lock-screen controls are disabled; no runtime service or
 speech request is introduced. See `REVIEW-AUDIO-FOUNDATION.md` and the asset's
-`assets/audio/PROVENANCE.md` for qualification and licensing limits.
+`assets/audio/music/phase-0/PROVENANCE.md` for qualification and licensing limits.
