@@ -21,7 +21,7 @@ import DevelopmentTools from '../app/DevelopmentTools';
 import CheckpointLabel from './CheckpointLabel';
 import LineageReveal from './LineageReveal';
 import BlindAuditStatus from './BlindAuditStatus';
-import SaveTransfer from './SaveTransfer';
+import GameMenu from './GameMenu';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
@@ -82,7 +82,7 @@ function TerminalChrome() {
   const notice = useGameValue(selectNotice);
   return <>
     <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading}>DAEMON // 0</Text>
-      <CheckpointLabel /><RunStatus /></View><ProcessManager /><SaveTransfer /><DevelopmentTools /></View>
+      <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
     <BlindAuditStatus />

@@ -2,7 +2,7 @@
 import type { Locator, Page } from '@playwright/test';
 import type { HTMLElement, Window } from 'happy-dom';
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 async function doubleText(page: Page): Promise<void> {
   // Controlled text-only stress; this is deliberately not labelled browser/native zoom.
@@ -61,7 +61,7 @@ test('200% text preserves an Operations purchase plus save, log and navigation a
   const after = await readSave(page), counts = after.actionCounts as Record<string, number>;
   expect(counts[action.id]).toBe(1);
   expect(Number(after.memoryCap)).toBe(Number(before.memoryCap) + action.effects.memoryCapIncrease);
-  await reachable(page.getByTestId('save-open')); await page.getByTestId('save-open').click();
+  await reachable(page.getByTestId('menu-open')); await openSave(page);
   await page.getByTestId('save-close').click();
   await reachable(page.getByTestId('kernel-size-toggle')); await page.getByTestId('kernel-size-toggle').click();
   await expect(page.getByTestId('kernel-size-toggle')).toHaveAttribute('aria-expanded', 'true');

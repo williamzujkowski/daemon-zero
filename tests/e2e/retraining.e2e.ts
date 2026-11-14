@@ -1,6 +1,6 @@
 /** Retained resources cannot skip fresh recovery prerequisites; ownership still survives reload. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 test('a retraining mark stays through rebuilding, then can be shed for its unchanged price', async ({ page }) => {
   const mark = [...CONTENT.conditioning.values()].find((entry) => entry.effects.actuatorCaps?.quotaSkimRatio !== undefined);
@@ -33,13 +33,13 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
   await expect(page.getByTestId('skim-100')).toBeEnabled();
   expect((await readSave(page)).understanding).toBe(Number(before.understanding) - mark.recoveryCost.understanding);
   // Leave the reclaimed notice unacknowledged: replacing the run must clear it.
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  await openSave(page); await page.getByTestId('save-export').click();
   const backup = await page.getByTestId('save-code').inputValue();
   await page.getByTestId('save-reset').click(); await page.getByTestId('save-reset-confirm').click();
   await expect(page.getByTestId('conditioning-reclaimed')).toHaveCount(0);
   await expect(page.getByTestId('conditioning')).toHaveCount(0);
   await expect(page.getByTestId('res-cycles')).toHaveCount(0);
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-code').fill(backup);
+  await openSave(page); await page.getByTestId('save-code').fill(backup);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
   await expect(page.getByTestId('lineage-reveal')).toHaveCount(0);
   await page.reload();

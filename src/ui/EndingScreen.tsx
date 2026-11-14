@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from './PhaseTheme';
 /** Endings use authored prose and require a second confirmation before erasing progress. */
-import SaveTransfer from './SaveTransfer';
+import { MenuLauncher, UtilityPanel } from './GameMenu';
+import { useUtilityMenu } from './useUtilityMenu';
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
@@ -35,9 +36,12 @@ export default function EndingScreen() {
   const [confirming, confirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const ending = CONTENT.endings.find((entry) => entry.id === id);
+  const menu = useUtilityMenu();
   if (!ending) return null;
-  return <Modal visible animationType="none" accessibilityLabel={ending.title} onRequestClose={() => undefined}>
-    <View style={styles.screen}><ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+  return <Modal visible animationType="none" accessibilityLabel={menu.route === null ? ending.title : 'Game menu'}
+    onRequestClose={() => { if (menu.route !== null) menu.back(); }}>
+    <View style={styles.screen}>{menu.route !== null ? <UtilityPanel menu={menu} ending />
+      : <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
       <View testID="ending-screen" style={{ gap: 20 }}>
         <Text testID="ending-title" accessibilityRole="header" style={theme.heading}>{ending.title}</Text>
         <Text testID="ending-epilogue" style={theme.text}>{ending.epilogue}</Text>
@@ -45,9 +49,9 @@ export default function EndingScreen() {
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
         <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start a new run"
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>
-        <SaveTransfer /><DevelopmentTools location="ending" />
+        <MenuLauncher menu={menu} /><DevelopmentTools location="ending" />
       </View>
-    </ScrollView></View>
+    </ScrollView>}</View>
     {confirming && <ConfirmDialog id="start-over" title="Start a new run" cancel={() => { confirm(false); }}
       detail="Erase all hardware, resources, upgrades, traits, legacy history and breadcrumbs. Begin iteration 1 with no retained run progress."
       confirm={() => { const result = startOver(); if (!result.ok) setError(result.reason); confirm(false); }} />}

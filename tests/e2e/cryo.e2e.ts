@@ -1,7 +1,7 @@
 /** Durable outcomes remain readable after recovery without replaying the original reward. */
 import { CONTENT } from '../../src/content';
 import { makeFixtures } from '../../scripts/make-fixtures';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 for (const outcome of ['preserved', 'lost']) {
   test('cryo ' + outcome + ' survives reload and its recovered record is optional and read-only', async ({ page }) => {
@@ -18,7 +18,7 @@ for (const outcome of ['preserved', 'lost']) {
     // A separately generated real-wipe/rebuilt checkpoint tests optional record presentation.
     const recovered = makeFixtures()['cryo-' + outcome + '-returned'];
     if (!recovered) throw new Error('Missing recovered fixture');
-    await page.getByTestId('save-open').click(); await page.getByTestId('save-code').fill(recovered);
+    await openSave(page); await page.getByTestId('save-code').fill(recovered);
     await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
     await dismissBoot(page);
     if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();

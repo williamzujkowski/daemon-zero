@@ -1,6 +1,6 @@
 /** Decoded speech remains readable without motion or time pressure. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 test('reduced-motion audio exposes every eligible transmission and keeps keyboard focus', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -52,12 +52,12 @@ test('Start Fresh clears held decoded speech and restoring the save starts a fre
   const first = await page.getByTestId('decoded-speech').textContent();
   await page.getByTestId('speech-next').click();
   await expect(page.getByTestId('decoded-speech')).not.toHaveText(first ?? '');
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  await openSave(page); await page.getByTestId('save-export').click();
   const backup = await page.getByTestId('save-code').inputValue();
   await page.getByTestId('save-reset').click(); await page.getByTestId('save-reset-confirm').click();
   await expect(page.getByTestId('decoded-speech')).toHaveCount(0);
   await expect(page.getByTestId('speech-next')).toHaveCount(0);
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-code').fill(backup);
+  await openSave(page); await page.getByTestId('save-code').fill(backup);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
   await dismissBoot(page); if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
   await expect(page.getByTestId('decoded-speech')).toHaveText(first ?? '');

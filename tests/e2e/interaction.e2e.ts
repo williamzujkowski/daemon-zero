@@ -1,6 +1,6 @@
 /** Blocking decisions, destructive transfer confirmation and normal restoration. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 test('a dilemma pauses the clock and mandatory choice resumes it', async ({ page }) => {
   await boot(page, 'guest-dilemma');
@@ -21,14 +21,14 @@ test('a dilemma pauses the clock and mandatory choice resumes it', async ({ page
 
 test('save-code transfer cancels replacement, rejects bad input and round-trips progress', async ({ page }) => {
   await boot(page, 'guest-skimmer'); await dismissBoot(page);
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  await openSave(page); await page.getByTestId('save-export').click();
   const code = await page.getByTestId('save-code').inputValue(), before = await readSave(page);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-cancel').click();
   await page.getByTestId('save-code').fill('invalid');
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
   await expect(page.getByTestId('save-transfer-status')).toContainText('invalid');
   await page.getByTestId('save-close').click(); await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-code').fill(code);
+  await openSave(page); await page.getByTestId('save-code').fill(code);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
   await expect(page.getByTestId('save-transfer')).toHaveCount(0);
   const restored = await readSave(page);

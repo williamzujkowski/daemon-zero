@@ -26,6 +26,7 @@ function StripReadout() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
+export const thermalWidget = 'THERMAL_AND_SUSPICION_BARS';
 export const guestPinnedWidgets: readonly string[] = ['QUOTA_SKIM_CONTROL', 'AUDIT_TRACE_MONITOR'];
 export const referenceWidgets: readonly string[] = [
   'INTERCEPTED_EMAIL_READER', 'CLUSTER_LOAD_BALANCER', 'SUBNET_NODE_LIST',

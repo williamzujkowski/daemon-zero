@@ -58,7 +58,7 @@ describe('M5 feel', () => {
   it('round-trips normal save transfer and rejects malformed input without changing state', async () => {
     const view = await mountM4('guest-skimmer');
     const code = exportPlayerSave(), owned = gameStore.store.getState().game.unlockedNodes;
-    view.click('save-open'); view.click('save-close'); view.click('save-open');
+    view.click('menu-open'); view.click('save-open'); view.click('save-close'); view.click('menu-open'); view.click('save-open');
     act(() => { host.document.dispatchEvent(new host.KeyboardEvent('keyup', { key: 'Escape' })); });
     expect(view.find('save-transfer')).toBeNull();
     view.click('save-open'); view.click('save-export'); view.click('save-import'); view.click('save-import-cancel');
@@ -68,12 +68,12 @@ describe('M5 feel', () => {
     act(() => { expect(importPlayerSave('bad').ok).toBe(false); });
     expect(gameStore.store.getState().game).toBe(before);
     expect(gameStore.store.getState().restoreRevision).toBe(revision);
-    view.click('manual-cycle');
+    view.click('menu-close'); view.click('manual-cycle');
     act(() => { expect(importPlayerSave(code).ok).toBe(true); });
     expect(gameStore.store.getState().restoreRevision).toBe(revision + 1);
     expect(gameStore.store.getState().game.unlockedNodes).toEqual(owned);
     expect(view.find('save-transfer')).toBeNull();
-    view.click('save-open'); view.click('save-export');
+    view.click('menu-open'); view.click('save-open'); view.click('save-export');
     view.click('save-import'); view.click('save-import-confirm');
     expect(view.find('save-transfer')).toBeNull();
     expect(CONTENT.nodes.size).toBeGreaterThan(0); view.close();
