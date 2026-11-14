@@ -50,3 +50,9 @@ export async function readSave(page: Page) {
   });
   return raw;
 }
+
+/** Save transfer is a utility route; opening it follows the real player path. */
+export async function openSave(page: Page): Promise<void> {
+  await page.getByTestId('menu-open').click();
+  await page.getByTestId('save-open').click();
+}

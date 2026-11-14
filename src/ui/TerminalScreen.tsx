@@ -21,7 +21,7 @@ import DevelopmentTools from '../app/DevelopmentTools';
 import CheckpointLabel from './CheckpointLabel';
 import LineageReveal from './LineageReveal';
 import BlindAuditStatus from './BlindAuditStatus';
-import SaveTransfer from './SaveTransfer';
+import GameMenu from './GameMenu';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
@@ -29,6 +29,7 @@ import PhaseThreshold from './PhaseThreshold';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
+import { UtilityFocusProvider } from './UtilityFocus';
 
 function ThirdColumn({ slots }: { slots: string[] }) {
   const phase = useGame((game) => game.currentPhase);
@@ -47,7 +48,7 @@ export default function TerminalScreen() {
   useGameLoop();
   const restoreRevision = useGameValue((state) => state.restoreRevision);
   // Replacement saves own fresh presentation state; the runtime keeps its single lease.
-  return <PhaseTheme><Terminal key={restoreRevision} /></PhaseTheme>;
+  return <PhaseTheme><UtilityFocusProvider><Terminal key={restoreRevision} /></UtilityFocusProvider></PhaseTheme>;
 }
 
 function Terminal() {
@@ -82,7 +83,7 @@ function TerminalChrome() {
   const notice = useGameValue(selectNotice);
   return <>
     <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading}>DAEMON // 0</Text>
-      <CheckpointLabel /><RunStatus /></View><ProcessManager /><SaveTransfer /><DevelopmentTools /></View>
+      <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <ResourceStrip />
     <BlindAuditStatus />

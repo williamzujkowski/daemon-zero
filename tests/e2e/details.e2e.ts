@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import { importSave } from '../../src/engine';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 async function pane(page: Page, slot: string, area: string): Promise<void> {
   await dismissBoot(page);
@@ -82,7 +82,7 @@ test('temporary action mechanics remain visible without opening prose', async ({
   const started = await readSave(page);
   await page.clock.runFor(3000);
   // Export reads the live state, avoiding autosave throttling and decimal tick-rounding assumptions.
-  await page.getByTestId('save-open').click(); await page.getByTestId('save-export').click();
+  await openSave(page); await page.getByTestId('save-export').click();
   const current = importSave(await page.getByTestId('save-code').inputValue(), CONTENT);
   await page.getByTestId('save-close').click();
   expect(current.simTimeSec - Number(started.simTimeSec)).toBeCloseTo(3, 1);

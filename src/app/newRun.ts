@@ -2,6 +2,7 @@
 import { CONTENT } from '../content';
 import { createInitialState, type ActionResult } from '../engine';
 import { gameRuntime } from './session';
+import { replacePlayerGame } from './replacePlayerGame';
 
 export function startOver(): ActionResult {
   return gameRuntime.dispatch((game) => game.ending === null
@@ -10,6 +11,6 @@ export function startOver(): ActionResult {
 }
 
 /** Available mid-run only after the player's explicit destructive-action confirmation. */
-export function startFresh(): ActionResult {
-  return gameRuntime.dispatch(() => ({ ok: true, state: createInitialState(CONTENT) }), true);
+export function startFresh(expectedScope?: string): ActionResult {
+  return replacePlayerGame(() => ({ ok: true, state: createInitialState(CONTENT) }), expectedScope);
 }

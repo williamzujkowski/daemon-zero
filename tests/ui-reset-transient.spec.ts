@@ -31,7 +31,7 @@ async function reclaimedView() {
 
 it('clears an unacknowledged reclaimed capability when Start Fresh replaces the run', async () => {
   const view = await reclaimedView();
-  view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
+  view.click('menu-open'); view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
   expect(gameStore.store.getState().game).toEqual(createInitialState(CONTENT));
   expect.soft(view.find('conditioning-reclaimed')).toBeNull();
   expect.soft(view.find('conditioning')).toBeNull();
@@ -85,7 +85,7 @@ it('keeps live time progressing exactly once across imports and resets', async (
   const time = gameStore.store.getState().game.simTimeSec;
   await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
   expect(gameStore.store.getState().game.simTimeSec).toBeCloseTo(time + 1);
-  view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
+  view.click('menu-open'); view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
   view.click('manual-cycle');
   expect(gameStore.store.getState().game.cycles).toBe(1);
   await act(async () => { await vi.advanceTimersByTimeAsync(1000); });

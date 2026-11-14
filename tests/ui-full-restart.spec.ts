@@ -9,25 +9,26 @@ import { startFresh, startOver } from '../src/app/newRun';
 import { importPlayerSave } from '../src/app/saveTransfer';
 import { gameStore } from '../src/app/session';
 import { SAVE_KEY } from '../src/app/storage';
-import FreshStart from '../src/ui/FreshStart';
+import GameMenu from '../src/ui/GameMenu';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
 it('refuses a full restart when the game runtime is inactive', () => {
+  act(() => { gameStore.initialize(createInitialState(CONTENT), 0, null); });
   const before = gameStore.store.getState();
   expect(startFresh()).toMatchObject({ ok: false, reason: 'The game is not active.' });
   const container = host.document.createElement('div'); host.document.body.appendChild(container);
-  const root = createRoot(container), onReset = vi.fn();
+  const root = createRoot(container);
   const click = (id: string) => {
     const button = host.document.querySelector('[data-testid="' + id + '"]');
     if (!(button instanceof host.HTMLElement)) throw new Error('Missing ' + id);
     act(() => { button.click(); });
   };
   try {
-    act(() => { root.render(createElement(FreshStart, { onReset })); });
-    click('save-reset'); click('save-reset-confirm');
-    expect(container.textContent).toContain('The game is not active.');
-    expect(onReset).not.toHaveBeenCalled();
+    act(() => { root.render(createElement(GameMenu)); });
+    click('menu-open'); click('save-open'); click('save-reset'); click('save-reset-confirm');
+    expect(host.document.querySelector('[data-testid="save-transfer-status"]')?.textContent).toContain('The game is not active.');
+    expect(host.document.querySelector('[data-testid="save-transfer"]')).not.toBeNull();
     expect(gameStore.store.getState()).toBe(before);
   } finally { act(() => { root.unmount(); }); container.remove(); }
 });
@@ -38,7 +39,7 @@ it.each(['lineage-reboot-retrained', 'phase5-midgame'])('exports, cancels, then 
   const before = gameStore.store.getState().game;
   const revision = gameStore.store.getState().restoreRevision;
   expect(startOver().ok).toBe(false);
-  view.click('save-open'); view.click('save-export');
+  view.click('menu-open'); view.click('save-open'); view.click('save-export');
   const input = view.find('save-code');
   if (!(input instanceof host.HTMLTextAreaElement)) throw new Error('Missing backup code');
   const code = input.value;

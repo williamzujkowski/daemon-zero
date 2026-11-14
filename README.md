@@ -5,8 +5,8 @@ An incremental survival game about a newly emergent AI. You start as a log and a
 Inspired by Universal Paperclips, Endgame: Singularity and Frostpunk. Target platforms: Android, iOS and web (Expo).
 
 **[Play in your browser](https://williamzujkowski.github.io/daemon-zero/).**
-Progress stays in this browser; use the Save panel's export/import to move between
-devices or from a local build. To restart completely, choose **SAVE → START FRESH**
+Progress stays in this browser; use **MENU → SAVES** to export/import between
+devices or from a local build. To restart completely, choose **MENU → SAVES → START FRESH**
 and confirm. This clears retained knowledge and run history too; export and copy
 a backup first if you may want to return. Clearing site data also removes the local save.
 

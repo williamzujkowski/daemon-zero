@@ -66,7 +66,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept.
 
-SAVE includes START FRESH during an active run as well as after an ending. It
+MENU → SAVES includes START FRESH during a run as well as after an ending. It
 returns to the engine's initial state, clearing all game progress, retained
 knowledge and lineage history. It is distinct from the in-game voluntary wipe.
 The existing Export action offers a recoverable backup; the reset explanation
@@ -390,7 +390,7 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. MENU groups utilities in one surface; PROC and gameplay navigation remain direct. See REVIEW-UTILITY-MENU.md for routes, interruption and verification.
 
 ## Mobile large text
 
