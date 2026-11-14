@@ -40,3 +40,10 @@ it('refuses a local release build without signing credentials before prebuild', 
   expect(result.status).not.toBe(0);
   expect(result.stderr).toContain('DAEMON_ANDROID_KEYSTORE');
 });
+
+it('keeps soundtrack capture and background service capabilities explicitly disabled', () => {
+  expect(app.expo.plugins).toContainEqual(['expo-audio', {
+    microphonePermission: false, recordAudioAndroid: false,
+    enableBackgroundPlayback: false, enableBackgroundRecording: false,
+  }]);
+});

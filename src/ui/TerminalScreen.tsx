@@ -8,6 +8,7 @@ import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-nati
 import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
+import { useMusicRuntime } from '../app/musicSession';
 import LogDock from './LogDock';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
@@ -46,6 +47,7 @@ function ThirdColumn({ slots }: { slots: string[] }) {
 
 export default function TerminalScreen() {
   useGameLoop();
+  useMusicRuntime();
   const restoreRevision = useGameValue((state) => state.restoreRevision);
   // Replacement saves own fresh presentation state; the runtime keeps its single lease.
   return <PhaseTheme><UtilityFocusProvider><Terminal key={restoreRevision} /></UtilityFocusProvider></PhaseTheme>;
