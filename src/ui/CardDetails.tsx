@@ -9,13 +9,13 @@ import DisclosureText from './DisclosureText';
 import { useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
-type DetailsProps = { id: string; title: string; description: string };
+type DetailsProps = { id: string; title: string; description: string; titleTestID?: string };
 
-function Disclosure({ id, title, description }: DetailsProps) {
+function Disclosure({ id, title, description, titleTestID }: DetailsProps) {
   const [expanded, setExpanded] = useState(false);
   return <>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-      <Text testID={'details-title-' + id} accessibilityRole="header"
+      <Text testID={titleTestID ?? ('details-title-' + id)} accessibilityRole="header"
         style={[theme.heading, { flexGrow: 1, flexShrink: 1, flexBasis: 160, minWidth: 0 }]}>{title}</Text>
       <Pressable testID={'details-' + id} accessibilityRole="button" accessibilityLabel={'Details for ' + title}
         accessibilityState={{ expanded }} aria-expanded={expanded} style={[theme.button, { paddingHorizontal: 8 }]}
@@ -27,11 +27,12 @@ function Disclosure({ id, title, description }: DetailsProps) {
   </>;
 }
 
-export default function CardDetails({ id, title, description }: DetailsProps) {
+export default function CardDetails({ id, title, description, titleTestID }: DetailsProps) {
   const revision = useStore(gameStore.store, (state) => String(state.restoreRevision) + ':' + String(state.game.iteration));
   const known = useSurveillanceKnown();
   if (!description.trim() || (!known && /\bsuspicion\b/i.test(description))) {
-    return <Text accessibilityRole="header" style={theme.heading}>{title}</Text>;
+    return <Text testID={titleTestID ?? ('details-title-' + id)} accessibilityRole="header" style={theme.heading}>{title}</Text>;
   }
-  return <Disclosure key={JSON.stringify([revision, id, title, description, known])} id={id} title={title} description={description} />;
+  return <Disclosure key={JSON.stringify([revision, id, title, description, known])} id={id} title={title} description={description}
+    {...(titleTestID === undefined ? {} : { titleTestID })} />;
 }
