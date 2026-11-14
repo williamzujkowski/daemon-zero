@@ -25,11 +25,11 @@ describe('second-pass interface', () => {
     expect(view.find('res-understanding')).not.toBeNull();
     expect(view.find('thermal-meter')).toBeNull();
     expect(view.find('fan-setting')).toBeNull();
-    view.click('skim-100');
+    for (let i = 0; i < 10; i++) view.click('skim-increase');
     expect(gameStore.store.getState().game.actuators.quotaSkimRatio).toBe(1);
     await act(async () => { await vi.advanceTimersByTimeAsync(300); });
     expect(view.find('audit-activity')?.textContent).toContain('constant');
-    expect(view.find('skim-100')?.getAttribute('aria-pressed')).toBe('true');
+    expect(view.find('skim-increase')?.getAttribute('aria-disabled')).toBe('true');
     expect(view.find('skim-setting')?.textContent).toContain('100%');
     view.close();
   });

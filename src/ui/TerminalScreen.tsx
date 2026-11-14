@@ -30,6 +30,7 @@ import PhaseThreshold from './PhaseThreshold';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
+import TopForecast from './TopForecast';
 import { UtilityFocusProvider } from './UtilityFocus';
 
 function ThirdColumn({ slots }: { slots: string[] }) {
@@ -89,6 +90,7 @@ function TerminalChrome() {
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
+    <TopForecast />
     <BlindAuditStatus />
     <ResponseNotice /><OmenNotice />
   </>;

@@ -65,6 +65,6 @@ export function Forecast() {
     ? Math.ceil((100 - game.suspicion) / game.rates.suspicionPerSec) : null);
   return <><Text testID="inspection-forecast" style={theme.text}>
     {known ? seconds === null ? 'Suspicion stable or falling.' : 'At current rate: ' + String(seconds) + 's until suspicion 100.' : 'Audit trail unreadable.'}
-    {'\n'}{inbound === null ? 'No interrupt inbound.' : 'Interrupt inbound in ' + String(inbound) + 's. Set resources aside.'}
+    {' // '}{inbound === null ? 'No interrupt inbound.' : 'Interrupt inbound in ' + String(inbound) + 's. Set resources aside.'}
   </Text><InterruptBudget /></>;
 }

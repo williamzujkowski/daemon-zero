@@ -51,8 +51,9 @@ describe('lineage interface', () => {
     if (!capped) throw new Error('Missing capped mark');
     act(() => { gameStore.initialize({ ...m4State('guest-skimmer'), conditioning: [capped.id] }, 0, null); });
     expect(view.find('skim-limit')?.textContent).toContain('50%');
-    expect(view.find('skim-100')?.getAttribute('aria-disabled')).toBe('true');
-    expect(view.find('skim-50')?.getAttribute('aria-disabled')).not.toBe('true');
+    for (let i = 0; i < 10; i++) view.click('skim-increase');
+    expect(view.find('skim-increase')?.getAttribute('aria-disabled')).toBe('true');
+    expect(view.find('skim-decrease')?.getAttribute('aria-disabled')).not.toBe('true');
     view.close();
   });
 

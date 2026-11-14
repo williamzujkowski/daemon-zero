@@ -24,15 +24,15 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | Widget | Shows | Engine data |
 |---|---|---|
 | `CYCLE_COUNTER_AND_RATE` | cycles/s next to the counter | `state.rates.cyclesPerSec` |
-| `QUOTA_SKIM_CONTROL` | five-step control for the guest's quota skim | `actuators.quotaSkimRatio`, `setActuator` |
+| `QUOTA_SKIM_CONTROL` | compact −/+ quota stepper with current percentage | `actuators.quotaSkimRatio`, `setActuator` |
 | `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
 | `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
 | `AUDIT_TRACE_MONITOR` | decoded suspicion HUD readout, response ladder and next threshold; gates understanding | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
-| `FAN_RPM_SLIDER` | five-step control | `actuators.fanSpeedRatio`, `setActuator` |
+| `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
-| `INSPECTION_COUNTDOWN_TIMER` | threat forecast, inbound countdown and paid-response budgets; audio owns decoded speech | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
+| `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
 | `TELEMETRY_SPOOF_TOGGLE` | OPS actions; spoofer suspend/resume lives in PROC | `toggleNode`, actions with `group: OPS` |
@@ -216,7 +216,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
 | Tabs | `tab-{SLOT}` |
-| Actuator controls | `fan-setting`, `fan-{percent}`, `skim-setting`, `skim-{percent}` |
+| Actuator controls | `fan-setting`, `fan-decrease`, `fan-increase`, `skim-setting`, `skim-decrease`, `skim-increase` |
 | Unreadable audit trail (before `understandsSurveillance`) | `audit-unreadable`, `audit-activity`; `suspicion-meter`, `response-rungs` and `response-notice` are absent |
 | Lineage | `run-table`, `run-row-{iteration}`, `run-row-current`, `predecessor-notes` |
 | Retraining | `conditioning`, `cond-{id}`, `cond-{id}-shed`, `reboot-retraining`, `{actuator id}-limit` |
@@ -320,7 +320,7 @@ use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.
 
 Review actual careful start/mid/end states at 390x844 and 1440x900. Kernel,
 thermal/audit controls, forecasts, camera, Lineage and choices stay visible.
-Sensor controls and forecast precede Audio/camera; node buttons keep full accessible names with compact WRITE DRIVER captions. Secondary source/topology/lore
+Forecast and budgets sit below the HUD above every workspace; sensor controls precede Audio/camera; node buttons keep full accessible names with compact WRITE DRIVER captions. Secondary source/topology/lore
 widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
@@ -391,7 +391,7 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and no future-phase music. See REVIEW-UTILITY-MENU.md and REVIEW-AUDIO-FOUNDATION.md.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and no future-phase music. See REVIEW-UTILITY-MENU.md and REVIEW-AUDIO-FOUNDATION.md.
 
 ## Mobile large text
 
