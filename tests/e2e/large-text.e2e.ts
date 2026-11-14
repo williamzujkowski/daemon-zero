@@ -64,7 +64,9 @@ test('200% text preserves an Operations purchase plus save, log and navigation a
   await reachable(page.getByTestId('menu-open')); await openSave(page);
   await page.getByTestId('save-close').click();
   await reachable(page.getByTestId('kernel-size-toggle')); await page.getByTestId('kernel-size-toggle').click();
-  await expect(page.getByTestId('kernel-size-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByTestId('kernel-history')).toBeVisible();
+  await reachable(page.getByTestId('kernel-close')); await page.getByTestId('kernel-close').click();
+  await expect(page.getByTestId('kernel-size-toggle')).toBeFocused();
   await reachable(page.getByTestId('workspace-NETWORK-work')); await page.getByTestId('workspace-NETWORK-work').click();
   await expect(page.getByTestId('workspace-NETWORK-work')).toHaveAttribute('aria-selected', 'true');
   await noHorizontalScroll(page);

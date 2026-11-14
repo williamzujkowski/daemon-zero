@@ -4,9 +4,9 @@ import { Text, View } from './PhaseTheme';
  * Each readout subscribes independently to quantized amounts and engine rates.
  */
 import { StyleSheet, useWindowDimensions } from 'react-native';
-import { useGame } from './state';
-import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
-import { palette, theme } from './theme';
+import { useGame, useSurveillanceKnown } from './state';
+import { resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
+import { theme } from './theme';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { compactNumber } from './compactNumber';
@@ -32,14 +32,28 @@ function Amount({ resource, compact }: { resource: Resource; compact: boolean })
 
 export default function ResourceStrip() {
   const compact = useWindowDimensions().width < 900;
+  const thermalKnown = useGame((game) => game.unlockedWidgets.includes(thermalWidget));
+  const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
+  const known = useSurveillanceKnown();
   const threatKnown = useGame((game) => game.unlockedWidgets.includes(threatWidget));
   const gates = useGame((game) => Object.entries(resourceWidgets)
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
-  if (!gates && !threatKnown) return null;
+  if (!gates && !threatKnown && !thermalKnown) return null;
   return <View testID="resource-strip" style={styles.strip}>{gates.split(',').filter(Boolean).map((resource) =>
-    <Amount key={resource} resource={resource as Resource} compact={compact} />)}{threatKnown && <ThreatAmount />}
+    <Amount key={resource} resource={resource as Resource} compact={compact} />)}{thermalKnown && <SensorAmount thermal compact={compact} />}{auditKnown && known && <SensorAmount compact={compact} />}{threatKnown && <ThreatAmount />}
     {gates.split(',').includes('understanding') && <ConditioningImpact understanding />}
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
+}
+
+function SensorAmount({ thermal = false, compact }: { thermal?: boolean; compact: boolean }) {
+  const value = useGame((game) => Math.round((thermal ? game.thermal : game.suspicion) * 10) / 10);
+  const label = thermal ? 'Thermal' : 'Suspicion';
+  const text = value.toFixed(1) + (thermal ? ' °C' : '%');
+  return <View style={[styles.readout, compact && styles.sensorCompact]}>
+    <Text style={theme.muted}>{label.toUpperCase()}</Text>
+    <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} accessibilityRole="text"
+      accessibilityLabel={label + ': ' + text} aria-valuetext={text} style={theme.text}>{text}</Text>
+  </View>;
 }
 
 function ThreatAmount() {
@@ -49,7 +63,8 @@ function ThreatAmount() {
 }
 
 const styles = StyleSheet.create({
-  strip: { flexDirection: 'row', flexWrap: 'wrap', borderBottomWidth: 1, borderColor: palette.border, paddingHorizontal: 16, columnGap: 20, rowGap: 0 },
+  strip: { flexGrow: 2, flexShrink: 1, flexBasis: 800, flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, columnGap: 20, rowGap: 0 },
   readout: { paddingVertical: 8, minWidth: 135 },
+  sensorCompact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, paddingVertical: 4 },
   compact: { flexBasis: '45%', minWidth: 0 },
 });

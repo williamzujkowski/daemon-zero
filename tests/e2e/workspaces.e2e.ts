@@ -17,7 +17,7 @@ test('current work, pending signals and compact logs remain usable across manage
   await page.getByTestId('kernel-size-toggle').focus();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('kernel-size-toggle')).toHaveAttribute('aria-expanded', 'true');
-  await page.getByTestId('kernel-size-toggle').click();
+  await page.getByTestId('kernel-close').click();
   expect(await readSave(page)).toEqual(before);
   await page.reload();
   await expect(page.getByTestId('workspace-NETWORK-work')).toHaveAttribute('aria-selected', 'true');

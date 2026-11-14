@@ -19,7 +19,7 @@ describe('second-pass presentation follow-up', () => {
     const skim = view.find('skim-setting'), meter = view.find('suspicion-meter');
     if (!pinned || !scroll || !skim || !meter) throw new Error('Missing guest controls');
     expect(pinned.contains(skim)).toBe(true);
-    expect(pinned.contains(meter)).toBe(true);
+    expect(view.find('resource-strip')?.contains(meter)).toBe(true);
     expect(scroll.contains(pinned)).toBe(false);
     view.click('skim-100');
     expect(gameStore.store.getState().game.actuators.quotaSkimRatio).toBe(1);

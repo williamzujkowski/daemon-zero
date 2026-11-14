@@ -26,9 +26,9 @@ it('opens current-phase work on mobile and follows phase changes without overrid
   const before = gameStore.store.getState().game;
   view.click('kernel-size-toggle');
   expect(view.find('kernel-size-toggle')?.getAttribute('aria-expanded')).toBe('true');
-  expect(view.find('kernel-dock')?.style.height).toBe('280px');
-  view.click('kernel-size-toggle');
-  expect(view.find('kernel-dock')?.style.height).toBe('120px');
+  expect(view.find('kernel-history')).not.toBeNull();
+  view.click('kernel-close');
+  expect(view.find('kernel-history')).toBeNull();
   expect(gameStore.store.getState().game).toBe(before);
 });
 
@@ -58,7 +58,7 @@ it('keeps insolvency warnings visible while switching between purchases, finance
   }
   expect(view.find('kernel-size-toggle')?.getAttribute('aria-expanded')).toBe('false');
   view.click('kernel-size-toggle');
-  expect(view.find('kernel-dock')?.style.height).toBe('400px');
+  expect(view.find('kernel-history')).not.toBeNull();
 });
 
 it('folds older upgrades but keeps them buyable with their effects intact', async () => {

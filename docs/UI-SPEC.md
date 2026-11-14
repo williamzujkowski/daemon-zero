@@ -116,7 +116,7 @@ purchases ahead of completed earlier hardware.
 On desktop, the third column switches between NETWORK and CORP once both exist;
 entering Phase 4 selects CORP. Browser review showed that stacking the full
 network tree above the corporate ledger made the new controls hard to find.
-The kernel log stays below either choice. Wrapped resource rows use horizontal
+The latest kernel entry stays in the resource HUD. Wrapped resource rows use horizontal
 gaps without extra row gaps: large Phase 4 balances otherwise consumed too much
 of the phone viewport before any ledger/allocation controls were visible.
 
@@ -351,11 +351,12 @@ source and topology panels. Switching sections changes presentation only; it
 never changes ownership, effects, simulation time or persistence. Navigation and
 fold state are session-local, not a new save field.
 
-KERNEL // LIVE is always present: mobile 120px compact / 280px expanded; desktop
-180px / 400px below NETWORK/CORP, or a full column before those unlock. Mobile
-log height is capped at 25% / 45% of window height on short screens. The size
-control appears after the first discovery and has a keyboard-accessible name.
-See REVIEW-UI-WORKSPACES.md for the measured start/mid/end stacking review.
+KERNEL // LIVE shows one ellipsized latest entry in the resource HUD, upper right
+on desktop and within the primary mobile scroll. A 44px Expand control exists
+from tick zero. It opens bounded virtualized history with Close/Escape/Android
+Back and focus return. Mandatory events discard stale history. Thermal °C and
+decoded suspicion % appear once in the HUD; threshold, fan and response context
+stay in their widgets. See REVIEW-KERNEL-HUD.md.
 
 ## Retraining recovery during rebuilding
 
@@ -394,6 +395,5 @@ Optional prose uses inline Details; decision information and blind node prose st
 
 ## Mobile large text
 
-Mobile header/HUD/notices/workspace use one primary scroll. Bounded kernel and
-horizontal pane navigation remain outside; text and warnings stay intact.
+Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane navigation remains outside; text and warnings stay intact.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.
