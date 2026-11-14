@@ -1,5 +1,6 @@
 /** Controller tests exercise real preference validation and deterministic lifecycle/player boundaries. */
 import { describe, expect, it, vi } from 'vitest';
+import type { MusicPhase } from '../src/app/musicTracks';
 import { MusicController } from '../src/app/musicController';
 import { AUDIO_KEY, audioPreferences, silentPreferences } from '../src/app/audioPreferences';
 import { createGameStore } from '../src/app/store';
@@ -15,7 +16,7 @@ function harness(storage: KeyValueStorage = memoryStorage()) {
   let lifecycle: (active: boolean) => void = () => undefined;
   let update = (_playing: boolean, _error: boolean) => undefined;
   const player = { play: vi.fn(), pause: vi.fn(), remove: vi.fn(), volume: vi.fn() };
-  const backend = { prepareMusic: vi.fn(() => Promise.resolve()), createMusicPlayer: vi.fn((listener: typeof update) => { update = listener; return player; }) };
+  const backend = { prepareMusic: vi.fn(() => Promise.resolve()), createMusicPlayer: vi.fn((_phase: MusicPhase, listener: typeof update) => { update = listener; return player; }) };
   const load = vi.fn(() => Promise.resolve(backend));
   const controller = new MusicController(game, { current: () => true, subscribe: (listener) => { lifecycle = listener; return vi.fn(); } }, storage, load);
   const stop = controller.start();
@@ -38,7 +39,7 @@ describe('soundtrack foundation', () => {
     h.stop();
   });
 
-  it('pauses in background, resumes one player, restarts after import/wipe and stops on phase exit/ending', async () => {
+  it('pauses in background, resumes one player, restarts after import/wipe and switches phases and stops on ending', async () => {
     const h = harness(); await settle(); h.controller.toggle(); await settle();
     h.activity(false); expect(h.controller.state.getState().playing).toBe(false);
     h.activity(false); h.activity(true);
@@ -50,7 +51,7 @@ describe('soundtrack foundation', () => {
     h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 1 } }));
     expect(h.player.remove).toHaveBeenCalledTimes(3);
     h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 4, ending: 'evaluation' } }));
-    expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(3);
+    expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(4);
     h.stop();
   });
 
@@ -110,7 +111,7 @@ it('ignores removed-player status and delayed preparation after phase change or 
   const h = harness();
   h.controller.toggle(); expect(h.load).not.toHaveBeenCalled();
   await settle(); h.controller.toggle(); await settle();
-  const old = h.backend.createMusicPlayer.mock.calls[0]?.[0];
+  const old = h.backend.createMusicPlayer.mock.calls[0]?.[1];
   h.game.initialize(h.game.store.getState().game, 0, null);
   h.status(true); old?.(false, true);
   expect(h.controller.state.getState().playing).toBe(true);
@@ -122,7 +123,7 @@ it('ignores removed-player status and delayed preparation after phase change or 
   pending.controller.toggle(); await settle();
   pending.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 1 } }));
   resolve(); await settle();
-  expect(pending.backend.createMusicPlayer).not.toHaveBeenCalled(); pending.stop();
+  expect(pending.backend.createMusicPlayer).toHaveBeenCalledWith(1, expect.any(Function)); pending.stop();
 });
 
 it('rejects obsolete preparation failures after a newer start succeeds or music is disabled', async () => {
@@ -150,5 +151,52 @@ it('reconciles the latest eligible imported run after pending backend preparatio
   resolve(); await settle();
   expect(h.backend.createMusicPlayer).toHaveBeenCalledOnce();
   expect(h.player.play).toHaveBeenCalledOnce();
+  h.stop();
+});
+
+it('switches one current-phase player for all six phases and ignores every removed listener', async () => {
+  const h = harness(); await settle(); h.controller.toggle(); await settle();
+  for (const phase of [0, 1, 2, 3, 4, 5]) {
+    const old = h.backend.createMusicPlayer.mock.lastCall?.[1];
+    const before = h.backend.createMusicPlayer.mock.calls.length;
+    h.game.initialize({ ...h.game.store.getState().game, currentPhase: phase }, 0, null);
+    expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(before + 1);
+    expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(phase);
+    expect(h.controller.state.getState()).toMatchObject({ trackPhase: phase, playing: false });
+    h.status(true); old?.(false, true);
+    expect(h.controller.state.getState()).toMatchObject({ trackPhase: phase, playing: true, activated: true, status: '' });
+  }
+  h.game.initialize({ ...h.game.store.getState().game, currentPhase: 0, iteration: 2 }, 0, null);
+  expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(0);
+  h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 99 } }));
+  expect(h.controller.state.getState()).toMatchObject({ trackPhase: null, playing: false });
+  h.stop();
+});
+
+it('reconciles only the latest phase when preparation completes after several transitions and backgrounding', async () => {
+  const h = harness(); await settle();
+  let resolve: () => void = () => undefined;
+  h.backend.prepareMusic.mockImplementationOnce(() => new Promise<void>((done) => { resolve = done; }));
+  h.controller.toggle(); await settle();
+  for (const phase of [2, 4, 5]) h.game.initialize({ ...h.game.store.getState().game, currentPhase: phase }, 0, null);
+  h.activity(false); resolve(); await settle();
+  expect(h.backend.createMusicPlayer).not.toHaveBeenCalled();
+  h.activity(true);
+  expect(h.backend.createMusicPlayer).toHaveBeenCalledOnce();
+  expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(5);
+  h.stop();
+});
+
+it('does not let obsolete preparation failures pause a newer phase player', async () => {
+  const h = harness(); await settle();
+  let reject: (error: Error) => void = () => undefined;
+  h.backend.prepareMusic.mockImplementationOnce(() => new Promise<void>((_done, fail) => { reject = fail; }));
+  h.controller.toggle(); await settle();
+  h.game.initialize({ ...h.game.store.getState().game, currentPhase: 5 }, 0, null);
+  h.controller.resume(); await settle(); h.status(true);
+  reject(new Error('old phase initialization')); await settle();
+  expect(h.backend.createMusicPlayer).toHaveBeenCalledOnce();
+  expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(5);
+  expect(h.controller.state.getState()).toMatchObject({ trackPhase: 5, playing: true, status: '' });
   h.stop();
 });

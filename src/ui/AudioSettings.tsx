@@ -1,14 +1,13 @@
 /** Optional score controls remain separate from narrative waveform/transmission text. */
 import { music, useMusic } from '../app/musicSession';
 import { Pressable, Text, View } from './PhaseTheme';
-import { useGame } from './state';
 import { theme } from './theme';
 
 export default function AudioSettings() {
   const audio = useMusic();
-  const available = useGame((game) => game.currentPhase === 0 && game.ending === null);
-  const status = !audio.enabled ? 'Music is off.' : !available ? 'No music track is available here yet.'
-    : audio.playing ? (audio.volume === 0 ? 'Playing, muted at 0%.' : 'Playing Awareness Loop.')
+  const available = audio.trackPhase !== null;
+  const status = !audio.enabled ? 'Music is off.' : !available ? 'Music is stopped for this run.'
+    : audio.playing ? (audio.volume === 0 ? 'Playing, muted at 0%.' : 'Playing phase ' + String(audio.trackPhase) + ' score.')
     : !audio.activated ? 'Music is paused. Resume to start listening.' : 'Music is loading or paused.';
   return <View testID="menu-audio-page" style={{ gap: 14 }}>
     <Text style={theme.text}>Optional instrumental score. No spoken transmissions. Music starts only when you enable or resume it.</Text>
@@ -29,6 +28,6 @@ export default function AudioSettings() {
     </View>
     {audio.status !== '' && <Text testID="music-error" accessibilityRole="alert" style={theme.text}>{audio.status}</Text>}
     {audio.storageNotice !== '' && <Text testID="music-storage-notice" accessibilityRole="alert" style={theme.text}>{audio.storageNotice}</Text>}
-    <Text style={theme.muted}>Only the opening phase has a track. Device mute and volume still apply. Backgrounding pauses music; saved preferences remain separate from game saves.</Text>
+    <Text style={theme.muted}>The score follows the current phase. Device mute and volume still apply. Backgrounding pauses music; saved preferences remain separate from game saves.</Text>
   </View>;
 }
