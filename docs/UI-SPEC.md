@@ -320,7 +320,7 @@ use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.
 
 Review actual careful start/mid/end states at 390x844 and 1440x900. Kernel,
 thermal/audit controls, forecasts, camera, Lineage and choices stay visible.
-Audio owns speech; forecast owns only forecast. Secondary source/topology/lore
+Sensor controls and forecast precede Audio/camera; node buttons keep full accessible names with compact WRITE DRIVER captions. Secondary source/topology/lore
 widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
