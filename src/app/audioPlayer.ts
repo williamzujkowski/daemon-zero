@@ -1,6 +1,6 @@
 /** SDK-compatible local music playback. Recording and background playback remain disabled. */
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
-import source from '../../assets/audio/awareness-loop.mp3';
+import source from '../../assets/audio/music/phase-0/awareness-loop.mp3';
 import type { MusicPlayer } from './musicController';
 
 export async function prepareMusic(): Promise<void> {

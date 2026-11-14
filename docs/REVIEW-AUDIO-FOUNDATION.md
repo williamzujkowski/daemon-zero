@@ -9,7 +9,7 @@ actual playback, muted playback, paused/blocked startup and phases without track
 No additional always-visible terminal panel or narrative disclosure is introduced.
 
 The supplied Awareness Loop is bundled unchanged. Its metadata, hash, paid-plan
-confirmation and separate asset licensing are in `assets/audio/PROVENANCE.md`.
+confirmation and separate asset licensing are in `assets/audio/music/phase-0/PROVENANCE.md`.
 The original local root MP3 remains untouched and untracked. Measured peak is
 −3.8 dBFS and mean is −16.8 dBFS (`ffmpeg` volumedetect); no normalization or loop
 edit was made. The file is 3,998,691 bytes and 182.4 seconds long.
