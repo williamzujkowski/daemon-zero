@@ -64,7 +64,7 @@ export function workspaceWidgetVisible(id: string, area: WorkspaceArea): boolean
 }
 
 const sensorPriority: readonly string[] = [thermalWidget, 'FAN_RPM_SLIDER',
-  'INSPECTION_COUNTDOWN_TIMER', 'AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG', 'ASCII_OPTICAL_VIEWPORT'];
+  'INSPECTION_COUNTDOWN_TIMER', 'DEAD_DROP_ENCODER_TAB', 'AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG', 'ASCII_OPTICAL_VIEWPORT'];
 
 /** Actionable sensor feedback precedes optional narrative without reordering on ticks. */
 export function compareWidgetPresentation(left: string, right: string): number {
