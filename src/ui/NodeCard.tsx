@@ -5,7 +5,7 @@ import DisclosureText from './DisclosureText';
  * Purchase eligibility is isolated in a leaf; instrumentation records commits.
  */
 import { memo, Profiler, useEffect, useMemo } from 'react';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { isNodeAvailable, isNodeKnown, rediscoveryCost, unlockNode } from '../engine';
@@ -25,6 +25,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
     }
   });
   // Hardware mapped in an earlier iteration is remembered by name and costs less to map again.
+  const compact = useWindowDimensions().width < 900;
   const known = useGame((game) => isNodeKnown(game, node.id));
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
   const revealed = known;
@@ -35,7 +36,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
     <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />
     <DisclosureText style={theme.text}>{revealed ? node.revealedDescription : node.blindDescription}</DisclosureText>
     </Profiler>
-      <Text testID={'node-' + node.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}{known ? ' (remembered)' : ''}</Text>
+      <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
         First mapping: {costText(node.cost)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.
       </Text>}

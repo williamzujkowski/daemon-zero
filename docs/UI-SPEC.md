@@ -325,7 +325,7 @@ widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
 On phones, large resource balances/rates use K/M/B/T abbreviations in a two-column
-strip; accessible labels retain full numeric values. Small rates retain their
+strip; accessible labels retain full numeric values. Mobile node costs and missing amounts use lossless K/M/B/T abbreviations only; memory remains labelled MB. Small rates retain their
 decimal precision, and warnings remain explicit. Desktop readouts remain full.
 This prevents late-game numbers from turning the status strip into five tall rows.
 
