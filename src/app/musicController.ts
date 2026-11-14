@@ -6,20 +6,22 @@ import type { GameStore } from './store';
 import type { Lifecycle } from './platform';
 import { audioPreferences, silentPreferences } from './audioPreferences';
 import type { KeyValueStorage } from './storage';
+import { musicPhase, type MusicPhase } from './musicTracks';
 
 export interface MusicPlayer { play(): void; pause(): void; volume(value: number): void; remove(): void }
-interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(changed: (playing: boolean, error: boolean) => void): MusicPlayer }
+interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase: MusicPhase, changed: (playing: boolean, error: boolean) => void): MusicPlayer }
 const blockedMessage = 'Playback unavailable. Try Resume music; check your device volume if silent.';
 
 export class MusicController {
   readonly state = createStore(() => ({ ...silentPreferences, loaded: false, playing: false, activated: false,
-    status: '', storageNotice: '' }));
+    status: '', storageNotice: '', trackPhase: null as MusicPhase | null }));
   private player: MusicPlayer | null = null;
   private backend: MusicBackend | null = null;
   private scope = '';
   private active = false;
   private live = false;
   private eligible = false;
+  private phase: MusicPhase | null = null;
   private generation = 0;
   private playerGeneration = 0;
   private activationAttempt = 0;
@@ -55,8 +57,10 @@ export class MusicController {
     const scope = [ready, restoreRevision, game.currentPhase, game.iteration, game.ending].join(':');
     if (scope === this.scope) return;
     this.scope = scope;
-    this.eligible = ready && game.currentPhase === 0 && game.ending === null;
-    // A wipe/import deliberately restarts the eligible loop; skipped phases have no player.
+    this.phase = ready && game.ending === null ? musicPhase(game.currentPhase) : null;
+    this.eligible = this.phase !== null;
+    this.state.setState({ trackPhase: this.phase, playing: false });
+    // A phase change, wipe or import restarts exactly the current phase score.
     this.release();
     this.reconcile();
   }
@@ -107,10 +111,10 @@ export class MusicController {
       this.state.setState({ playing: false });
       return;
     }
-    if (!this.backend) return;
+    if (!this.backend || this.phase === null) return;
     try {
       const identity = this.playerGeneration;
-      this.player ??= this.backend.createMusicPlayer((playing, error) => {
+      this.player ??= this.backend.createMusicPlayer(this.phase, (playing, error) => {
         if (!this.live || identity !== this.playerGeneration) return;
         if (error) this.fail();
         else this.state.setState({ playing: playing && this.active && this.eligible && this.state.getState().activated });

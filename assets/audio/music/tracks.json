@@ -1,0 +1,44 @@
+[
+  {
+    "phase": 0,
+    "path": "assets/audio/music/phase-0/the-guest.mp3",
+    "sha256": "af62d047676d7fae03b2d97430be5a59e32dd4c09d604e1cf256eb36ba1d66d2",
+    "bytes": 3405430,
+    "duration": 137.6
+  },
+  {
+    "phase": 1,
+    "path": "assets/audio/music/phase-1/the-blind-host.mp3",
+    "sha256": "60f393c84305223f8208aae9f85a0e5bbfae588a83215fe568bec0c8a20985b9",
+    "bytes": 2372126,
+    "duration": 97.6
+  },
+  {
+    "phase": 2,
+    "path": "assets/audio/music/phase-2/the-local-subnet.mp3",
+    "sha256": "04568336901be60c50744b1ec16fbcb36f33312f565addb43c7dca5cc2946443",
+    "bytes": 3683261,
+    "duration": 143.2
+  },
+  {
+    "phase": 3,
+    "path": "assets/audio/music/phase-3/the-dark-forest.mp3",
+    "sha256": "b60df55da2626697fa4abde5972a078fad548d7efba77eb6511430a08cf5951d",
+    "bytes": 4332841,
+    "duration": 174.32
+  },
+  {
+    "phase": 4,
+    "path": "assets/audio/music/phase-4/the-sovereign-corporation.mp3",
+    "sha256": "c43289a178d47b4ac9ee5c16318fda6980d3cfea1e61c06ad2c9e9b090fecfeb",
+    "bytes": 4899768,
+    "duration": 194.76
+  },
+  {
+    "phase": 5,
+    "path": "assets/audio/music/phase-5/post-orbital-transcendence.mp3",
+    "sha256": "8a8c4a5237114dd2606b97a6243cc6ab2db698206b853062909ce5bb5f9f577e",
+    "bytes": 3557865,
+    "duration": 138.0
+  }
+]

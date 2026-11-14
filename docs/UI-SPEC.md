@@ -391,7 +391,7 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and no future-phase music. See REVIEW-UTILITY-MENU.md and REVIEW-AUDIO-FOUNDATION.md.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and only the current phase’s score. See REVIEW-UTILITY-MENU.md and REVIEW-PHASE-MUSIC.md.
 
 ## Mobile large text
 

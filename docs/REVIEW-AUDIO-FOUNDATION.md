@@ -1,5 +1,8 @@
 # Optional soundtrack foundation — #88
 
+Historical PR #93 evidence. Six supplied phase scores replace the opening asset
+and eligibility below; see REVIEW-PHASE-MUSIC.md and assets/audio/README.md.
+
 This slice adds optional, offline Phase 0 music through SDK-compatible
 `expo-audio` 58.0.12, installed using Expo's SDK resolver and pinned exactly.
 MENU → Audio offers Music On/Off, Resume and numeric 0–100% volume in 10% steps.
@@ -9,7 +12,7 @@ actual playback, muted playback, paused/blocked startup and phases without track
 No additional always-visible terminal panel or narrative disclosure is introduced.
 
 The supplied Awareness Loop is bundled unchanged. Its metadata, hash, paid-plan
-confirmation and separate asset licensing are in `assets/audio/music/phase-0/PROVENANCE.md`.
+confirmation and separate asset licensing are in [the original provenance](https://github.com/williamzujkowski/daemon-zero/blob/69926ee/assets/audio/music/phase-0/PROVENANCE.md).
 The original local root MP3 remains untouched and untracked. Measured peak is
 −3.8 dBFS and mean is −16.8 dBFS (`ffmpeg` volumedetect); no normalization or loop
 edit was made. The file is 3,998,691 bytes and 182.4 seconds long.

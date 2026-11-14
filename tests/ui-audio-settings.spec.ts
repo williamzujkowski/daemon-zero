@@ -28,12 +28,12 @@ it('routes Audio back through the root menu and exposes accessible numeric volum
   view.close();
 });
 
-it('preserves preferences across terminal restoration and explains missing later-phase tracks', async () => {
+it('preserves preferences across terminal restoration and offers the current later-phase score', async () => {
   const view = await mountM4('phase-2-unlocked');
   act(() => { music.state.setState({ enabled: true, activated: false, loaded: true, volume: 40, storageNotice: 'Storage denied', status: 'Resume required' }); });
   view.click('menu-open'); view.click('menu-audio');
-  expect(view.find('music-status')?.textContent).toContain('No music track');
-  expect(view.find('music-resume')).toBeNull();
+  expect(view.find('music-status')?.textContent).toContain('paused');
+  expect(view.find('music-resume')).not.toBeNull();
   expect(view.find('music-error')?.textContent).toContain('Resume required');
   expect(view.find('music-storage-notice')?.textContent).toContain('Storage denied');
   view.click('music-toggle');
