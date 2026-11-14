@@ -5,16 +5,16 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { palette, theme } from './theme';
 import type { UtilityMenu } from './useUtilityMenu';
 
-export function MenuButton({ id, label, press, danger = false }: {
-  id: string; label: string; press: () => void; danger?: boolean;
+export function MenuButton({ id, label, press, danger = false, caption = label }: {
+  id: string; label: string; press: () => void; danger?: boolean; caption?: string;
 }) {
   return <Pressable testID={id} accessibilityRole="button" accessibilityLabel={label}
-    style={theme.button} onPress={press}><Text style={[theme.text, danger && theme.danger]}>[ {label.toUpperCase()} ]</Text></Pressable>;
+    style={[theme.button, { maxWidth: '100%', flexShrink: 1 }]} onPress={press}><Text style={[theme.text, danger && theme.danger]}>[ {caption.toUpperCase()} ]</Text></Pressable>;
 }
 
 function RootPage({ menu }: { menu: UtilityMenu }) {
   return <View testID="menu-root" style={{ gap: 14 }}>
-    <MenuButton id="save-open" label="Save code transfer" press={() => { menu.navigate('save'); }} />
+    <MenuButton id="save-open" label="Save code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
     <MenuButton id="menu-help" label="Help and about" press={() => { menu.navigate('help'); }} />
     <Text style={theme.muted}>Progress is saved automatically. Export a code to keep a backup.</Text>
   </View>;

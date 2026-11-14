@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import { exportSave, importSave, unlockNode, wipe } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
-import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
 type View = Awaited<ReturnType<typeof mountM4>>;
@@ -93,6 +93,8 @@ describe('utility menu routes', () => {
     expect(gameStore.store.getState().game).toEqual(before.game);
     expect(gameStore.store.getState().restoreRevision).toBe(before.restoreRevision + 1);
     expect(view.find('menu-dialog')).toBeNull();
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(host.document.activeElement).toBe(view.find('menu-open'));
   });
 
   it('backs out with Escape and restores focus to the menu launcher', async () => {
@@ -105,6 +107,17 @@ describe('utility menu routes', () => {
     expect(view.find('menu-root')).not.toBeNull();
     await escape();
     expect(view.find('menu-dialog')).toBeNull();
+    expect(host.document.activeElement).toBe(view.find('menu-open'));
+  });
+
+  it('returns focus to the new launcher after a confirmed fresh start replaces the terminal', async () => {
+    const view = await mountM4('phase5-midgame');
+    const oldLauncher = view.find('menu-open');
+    view.click('menu-open'); view.click('save-open'); view.click('save-reset');
+    view.click('save-reset-confirm');
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.find('menu-dialog')).toBeNull();
+    expect(view.find('menu-open')).not.toBe(oldLauncher);
     expect(host.document.activeElement).toBe(view.find('menu-open'));
   });
 
@@ -132,6 +145,22 @@ describe('utility menu routes', () => {
 });
 
 describe('utility interruption and endings', () => {
+  it.each([
+    ['lineage-reboot-retrained', 'reboot-sequence'],
+    ['dilemma-active', 'dilemma-modal'],
+    ['ending-the_ark', 'ending-screen'],
+  ])('does not steal focus from the mandatory presentation when importing %s', async (fixture, overlay) => {
+    const view = await mountM4('tick-0');
+    view.click('menu-open'); view.click('save-open');
+    typeCode(view, exportSave(m4State(fixture)));
+    view.click('save-import'); view.click('save-import-confirm');
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.find(overlay)).not.toBeNull();
+    expect(view.find('menu-open')).not.toBeNull();
+    expect(host.document.activeElement).not.toBe(view.find('menu-open'));
+    expect(view.find('menu-dialog')).toBeNull();
+  });
+
   it('discards a pending destructive confirmation when a dilemma arrives and never resurrects it', async () => {
     const view = await mountM4('phase-2-unlocked');
     view.click('menu-open'); view.click('save-open'); view.click('save-reset');

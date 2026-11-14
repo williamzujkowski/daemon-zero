@@ -21,7 +21,7 @@ export function UtilityPanel({ menu, ending = false }: { menu: UtilityMenu; endi
   if (menu.route === null) return null;
   return <View testID="menu-dialog" style={styles.panel}>
     <View style={styles.navigation}>
-      {menu.route !== 'root' && <MenuButton id="menu-back" label="Back in game menu" press={menu.back} />}
+      {menu.route !== 'root' && <MenuButton id="menu-back" label="Back in game menu" caption="Back" press={menu.back} />}
       <Text accessibilityRole="header" style={[theme.heading, { flexShrink: 1 }]}>{titles[menu.route]}</Text>
       <Pressable ref={focus} testID="menu-close" accessibilityRole="button" accessibilityLabel="Close game menu"
         style={theme.button} onPress={menu.close}><Text style={theme.text}>[ CLOSE ]</Text></Pressable>

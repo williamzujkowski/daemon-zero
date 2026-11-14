@@ -29,6 +29,7 @@ import PhaseThreshold from './PhaseThreshold';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
+import { UtilityFocusProvider } from './UtilityFocus';
 
 function ThirdColumn({ slots }: { slots: string[] }) {
   const phase = useGame((game) => game.currentPhase);
@@ -47,7 +48,7 @@ export default function TerminalScreen() {
   useGameLoop();
   const restoreRevision = useGameValue((state) => state.restoreRevision);
   // Replacement saves own fresh presentation state; the runtime keeps its single lease.
-  return <PhaseTheme><Terminal key={restoreRevision} /></PhaseTheme>;
+  return <PhaseTheme><UtilityFocusProvider><Terminal key={restoreRevision} /></UtilityFocusProvider></PhaseTheme>;
 }
 
 function Terminal() {

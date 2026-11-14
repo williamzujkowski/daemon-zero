@@ -17,6 +17,7 @@ test('backs up a live campaign and resets all progress only after confirmation',
   await expect(page.getByTestId('save-transfer')).toHaveCount(0);
   await expect(page.getByTestId('res-cycles')).toHaveCount(0);
   await expect(page.getByTestId('manual-cycle')).toBeVisible();
+  await expect(page.getByTestId('menu-open')).toBeFocused();
   const fresh = JSON.parse(serialize(createInitialState(CONTENT))) as Record<string, unknown>;
   expect(await readSave(page)).toEqual(fresh);
   await page.reload();

@@ -1,5 +1,6 @@
 /** Utilities use one navigable surface without pausing or hiding mandatory decisions. */
 import { CONTENT } from '../../src/content';
+import type { HTMLElement, Window } from 'happy-dom';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { boot, dismissBoot, expect, openSave, readSave, test } from './helpers';
 
@@ -65,4 +66,29 @@ test('ending saves use the existing ending surface and return to its epilogue', 
   await expect(page.getByTestId('ending-title')).toHaveText(ending ?? '');
   await expect(page.getByTestId('menu-open')).toBeFocused();
   await page.reload(); await expect(page.getByTestId('ending-title')).toHaveText(ending ?? '');
+});
+
+test('narrow enlarged menu labels remain inside the dialog and Back stays reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await boot(page); await openSave(page);
+  await page.evaluate(() => {
+    const browser = globalThis as unknown as Window;
+    for (const element of browser.document.querySelectorAll<HTMLElement>('[data-testid="menu-dialog"] [dir="auto"]')) {
+      const style = browser.getComputedStyle(element);
+      element.style.fontSize = String(Number.parseFloat(style.fontSize) * 2) + 'px';
+      element.style.lineHeight = String(Number.parseFloat(style.lineHeight) * 2) + 'px';
+    }
+  });
+  const bounds = await page.getByTestId('menu-dialog').boundingBox();
+  if (!bounds) throw new Error('Missing utility dialog');
+  for (const control of await page.getByTestId('menu-dialog').getByRole('button').all()) {
+    const box = await control.boundingBox();
+    if (!box) throw new Error('Missing control geometry');
+    expect(box.x).toBeGreaterThanOrEqual(bounds.x);
+    expect(box.x + box.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+  }
+  await page.getByTestId('menu-back').click();
+  await expect(page.getByTestId('save-open')).toBeVisible();
+  await page.getByTestId('menu-close').click();
+  await expect(page.getByTestId('menu-open')).toBeFocused();
 });
