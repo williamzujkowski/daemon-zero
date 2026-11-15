@@ -3,7 +3,7 @@
  * through the browser matrix (#103 gaps 4-6).
  */
 import { describe, expect, it } from 'vitest';
-import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, isCompactViewport, isNarrowChrome, layoutFor } from '../src/ui/layout';
+import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, isCompactViewport, isNarrowChrome, isShortViewport, layoutFor } from '../src/ui/layout';
 
 describe('layoutFor', () => {
   it('keeps a phone in the single-scroll layout', () => {
@@ -74,5 +74,20 @@ describe('narrow chrome boundary (#108)', () => {
     expect(NARROW_CHROME_MAX_WIDTH).toBeLessThan(COMPACT_CAPTION_MAX_WIDTH);
     expect(isCompactViewport(500)).toBe(true);
     expect(isNarrowChrome(500)).toBe(false);
+  });
+});
+
+describe('short viewport boundary (#108)', () => {
+  it('treats a landscape phone as short and a tall phone as not', () => {
+    expect(isShortViewport(390)).toBe(true);
+    expect(isShortViewport(SHORT_VIEWPORT_MAX_HEIGHT)).toBe(true);
+    expect(isShortViewport(SHORT_VIEWPORT_MAX_HEIGHT + 1)).toBe(false);
+    expect(isShortViewport(844)).toBe(false);
+  });
+
+  it('is not evidence of a short viewport when the height is unmeasured', () => {
+    // happy-dom reports 0 before layout; classifying that as short put 12 column
+    // tests into the mobile tier once already.
+    expect(isShortViewport(0)).toBe(false);
   });
 });

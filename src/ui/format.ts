@@ -7,9 +7,26 @@ import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Cost, TickDelta } from '../content/schema';
 
+/**
+ * Thousands separators for a displayed amount. Lossless: no rounding, no locale
+ * data, no change to the value an accessible label or a test compares against.
+ * Without it the HUD prints 1000000000 at desktop widths, which is a wall of
+ * digits no one can scan (measured in the mid-game 1440 render).
+ */
+export function groupDigits(value: number): string {
+  if (!Number.isInteger(value)) return String(value);
+  const digits = String(Math.abs(value));
+  let grouped = '';
+  for (let end = digits.length; end > 0; end -= 3) {
+    const start = Math.max(0, end - 3);
+    grouped = grouped === '' ? digits.slice(start, end) : digits.slice(start, end) + ',' + grouped;
+  }
+  return (value < 0 ? '-' : '') + grouped;
+}
+
 export function costText(cost: Cost, compact = false): string {
   return Object.entries(cost).filter(([, value]) => value !== 0)
-    .map(([key, value]) => `${compact ? exactCompactNumber(value) : String(value)} ${key === 'memory' ? 'MB' : key}`).join(' · ') || 'Free';
+    .map(([key, value]) => `${compact ? exactCompactNumber(value) : groupDigits(value)} ${key === 'memory' ? 'MB' : key}`).join(' · ') || 'Free';
 }
 
 const deltaUnits: Record<keyof TickDelta, string> = {

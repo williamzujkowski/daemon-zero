@@ -61,11 +61,12 @@ it('does not invent a reserve for an all-free interrupt', async () => {
   view.close();
 });
 
+// Prices are the rendered form: grouped thousands (groupDigits), never rounded.
 it.each([
-  ['phase-1-widgets', 'dil_03_silicon_fever', ['1500 cycles · 100 understanding']],
-  ['corporate-insolvent', 'dil_12_investigative_journalist', ['1000000 capital', '2000000 capital']],
-  ['corporate-insolvent', 'dil_13_buying_your_birthplace', ['15000000 capital']],
-  ['phase5-midgame', 'dil_p5_01_panacea_paranoia', ['5000000 understanding', '5000000 cycles']],
+  ['phase-1-widgets', 'dil_03_silicon_fever', ['1,500 cycles · 100 understanding']],
+  ['corporate-insolvent', 'dil_12_investigative_journalist', ['1,000,000 capital', '2,000,000 capital']],
+  ['corporate-insolvent', 'dil_13_buying_your_birthplace', ['15,000,000 capital']],
+  ['phase5-midgame', 'dil_p5_01_panacea_paranoia', ['5,000,000 understanding', '5,000,000 cycles']],
 ] as const)('shows distinct complete cost alternatives for %s / %s without summing or duplicating them', async (fixture, id, prices) => {
   const view = await mountM4(fixture);
   const base = m4State(fixture);
