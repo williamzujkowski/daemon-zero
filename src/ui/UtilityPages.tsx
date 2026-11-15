@@ -1,5 +1,6 @@
 /** Menu pages are ordinary content inside one utility surface, including confirmations. */
 import AudioSettings from './AudioSettings';
+import KernelLog from './KernelLog';
 import { TextInput } from 'react-native';
 import { version } from '../../package.json';
 import { Pressable, Text, View } from './PhaseTheme';
@@ -18,7 +19,17 @@ function RootPage({ menu }: { menu: UtilityMenu }) {
     <MenuButton id="save-open" label="Save code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
     <MenuButton id="menu-audio" label="Audio" press={() => { menu.navigate('audio'); }} />
     <MenuButton id="menu-help" label="Help and about" press={() => { menu.navigate('help'); }} />
+    {/* The phone tier drops the kernel dock band to keep the first purchase above the fold
+        (nexus vote, 6 of 6), so the history needs a home that costs no chrome. */}
+    <MenuButton id="menu-kernel" label="Kernel log" press={() => { menu.navigate('log'); }} />
     <Text style={theme.muted}>Progress is saved automatically. Export a code to keep a backup.</Text>
+  </View>;
+}
+
+function KernelPage({ menu }: { menu: UtilityMenu }) {
+  return <View testID="menu-kernel-log" style={{ gap: 12, flex: 1, minHeight: 0 }}>
+    <MenuButton id="kernel-back" label="Back to menu" press={menu.back} />
+    <KernelLog />
   </View>;
 }
 
@@ -67,5 +78,6 @@ export default function UtilityPages({ menu }: { menu: UtilityMenu }) {
   if (menu.route === 'save') return <SavePage menu={menu} />;
   if (menu.route === 'audio') return <AudioSettings />;
   if (menu.route === 'help') return <HelpPage />;
+  if (menu.route === 'log') return <KernelPage menu={menu} />;
   return <Confirmation menu={menu} />;
 }

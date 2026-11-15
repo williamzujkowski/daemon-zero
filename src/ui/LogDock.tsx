@@ -7,7 +7,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { selectLatestLog, useGameValue } from '../app/selectors';
 import { useUtilityScope } from './useUtilityMenu';
 import { palette, theme } from './theme';
-import { isCompactViewport } from './layout';
+import { layoutFor } from './layout';
 
 export default function LogDock() {
   const { scope, disabled } = useUtilityScope();
@@ -15,14 +15,20 @@ export default function LogDock() {
   const trigger = useRef<ComponentRef<typeof Pressable>>(null);
   const restoreFocus = useRef(false);
   const latest = useGameValue(selectLatestLog) || 'No kernel entries.';
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  // The phone tier has no room for a 57px band: its 44px tap target sets the floor, so a
+  // one-line variant saves 1px (measured). The band is dropped there - and only there,
+  // because the tablet and desktop chrome sits outside the scroll and the band costs the
+  // pane nothing - while the history moves into the utility menu (nexus vote, 6 of 6).
+  const compact = layoutFor(width, height).mode === 'mobile';
   const open = opened === scope && !disabled;
   if (opened !== null && !open) setOpened(null);
   useEffect(() => {
     if (!open && restoreFocus.current) { restoreFocus.current = false; trigger.current?.focus(); }
   }, [open]);
   const close = () => { restoreFocus.current = true; setOpened(null); };
-  return <View testID="kernel-dock" style={[styles.preview, isCompactViewport(width) && styles.mobile]}>
+  if (compact) return null;
+  return <View testID="kernel-dock" style={styles.preview}>
     <View style={styles.row}><View style={styles.summary}>
       <Text accessibilityRole="header" style={theme.heading}>KERNEL // LIVE</Text>
       <DisclosureText testID="kernel-preview" numberOfLines={1} ellipsizeMode="tail" style={theme.muted}>{latest}</DisclosureText>
@@ -50,7 +56,8 @@ function History({ close }: { close: () => void }) {
 
 const styles = StyleSheet.create({
   preview: { flexGrow: 1, flexShrink: 1, flexBasis: 320, minWidth: 0, paddingHorizontal: 16, paddingVertical: 6, gap: 4 },
-  mobile: { flexBasis: '100%' },
+  // The band is only rendered above the compact breakpoint now, so the mobile row-break
+  // that used to force it full width is gone with it.
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   summary: { flex: 1, minWidth: 0, gap: 4 },
   title: { flexGrow: 1, flexShrink: 1 },

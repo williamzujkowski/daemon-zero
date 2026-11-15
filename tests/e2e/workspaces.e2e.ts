@@ -1,5 +1,5 @@
 /** Focused management remains discoverable without competing with current purchases. */
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { test, expect, boot, dismissBoot, readSave, openKernelHistory, closeKernelHistory } from './helpers';
 
 test('current work, pending signals and compact logs remain usable across management sections', async ({ page }) => {
   await boot(page, 'wild-shard-encounter-p3'); await dismissBoot(page);
@@ -14,10 +14,8 @@ test('current work, pending signals and compact logs remain usable across manage
   await expect(page.getByTestId('wild-signal-notice')).toBeVisible();
   await page.getByTestId('workspace-NETWORK-work').click();
   await expect(page.getByTestId('epistemic-panel')).toHaveCount(0);
-  await page.getByTestId('kernel-size-toggle').focus();
-  await page.keyboard.press('Enter');
-  await expect(page.getByTestId('kernel-size-toggle')).toHaveAttribute('aria-expanded', 'true');
-  await page.getByTestId('kernel-close').click();
+  const tier = await openKernelHistory(page);
+  await closeKernelHistory(page, tier);
   expect(await readSave(page)).toEqual(before);
   await page.reload();
   await expect(page.getByTestId('workspace-NETWORK-work')).toHaveAttribute('aria-selected', 'true');

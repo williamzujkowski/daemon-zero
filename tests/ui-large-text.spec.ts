@@ -42,10 +42,15 @@ describe('mobile scroll flow', () => {
     // The alert still has to precede the first meter in document order.
     expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('CYC'));
     expect(view.find('pane-scroll-CORP')?.style.flex).not.toBe('1');
-    expect(contains(primary, view.find('kernel-preview'))).toBe(true);
-    view.click('kernel-size-toggle');
+    // The phone tier drops the kernel band: its 44px tap target set a 57px floor the
+    // purchase could not afford (vote: menu-route-drops-the-band). History opens from the
+    // utility menu and stays outside the primary scroll.
+    expect(view.find('kernel-dock')).toBeNull();
+    view.click('menu-open');
+    view.click('menu-kernel');
+    expect(view.find('menu-kernel-log')).not.toBeNull();
     expect(contains(primary, view.find('kernel-log'))).toBe(false);
-    view.click('kernel-close');
+    view.click('menu-close');
     expect(contains(primary, view.find('terminal-tabs'))).toBe(false);
     expect(view.find('terminal-tabs-scroll')).not.toBeNull();
     const state = gameStore.store.getState().game;
@@ -60,14 +65,13 @@ describe('mobile scroll flow', () => {
   it.each([256, 390])('separates bounded history from the primary flow on a %ipx high mobile screen and preserves game state', async (height) => {
     const view = await mountM4('phase5-midgame'); viewport(844, height);
     const state = gameStore.store.getState().game;
-    expect(view.find('kernel-preview')).not.toBeNull();
-    expect(view.find('kernel-log')).toBeNull();
-    view.click('kernel-size-toggle');
-    expect(view.find('kernel-history')).not.toBeNull();
-    expect(view.find('kernel-size-toggle')?.getAttribute('aria-expanded')).toBe('true');
+    expect(view.find('kernel-dock')).toBeNull();
+    view.click('menu-open');
+    view.click('menu-kernel');
+    // Bounded history renders inside the menu surface, never inside the primary scroll.
     expect(contains(view.find('terminal-primary-scroll'), view.find('kernel-log'))).toBe(false);
-    view.click('kernel-close');
-    expect(view.find('kernel-history')).toBeNull();
+    view.click('menu-close');
+    expect(view.find('menu-kernel-log')).toBeNull();
     expect(gameStore.store.getState().game).toBe(state);
   });
 
