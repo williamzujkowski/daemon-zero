@@ -30,8 +30,14 @@ function Disclosure({ id, title, description, titleTestID }: DetailsProps) {
 export default function CardDetails({ id, title, description, titleTestID }: DetailsProps) {
   const revision = useStore(gameStore.store, (state) => String(state.restoreRevision) + ':' + String(state.game.iteration));
   const known = useSurveillanceKnown();
-  if (!description.trim() || (!known && /\bsuspicion\b/i.test(description))) {
-    return <Text testID={titleTestID ?? ('details-title-' + id)} accessibilityRole="header" style={theme.heading}>{title}</Text>;
+  const classified = !known && /\bsuspicion\b/i.test(description);
+  if (!description.trim() || classified) {
+    // A classified passage keeps the same held-entry notice it showed inline before it was folded,
+    // so folding never turns "why is this blank" into a silent gap. DisclosureText owns the wording.
+    return <>
+      <Text testID={titleTestID ?? ('details-title-' + id)} accessibilityRole="header" style={theme.heading}>{title}</Text>
+      {classified && <DisclosureText testID={'details-held-' + id} style={theme.muted}>{description}</DisclosureText>}
+    </>;
   }
   return <Disclosure key={JSON.stringify([revision, id, title, description, known])} id={id} title={title} description={description}
     {...(titleTestID === undefined ? {} : { titleTestID })} />;

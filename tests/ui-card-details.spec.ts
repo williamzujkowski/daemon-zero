@@ -57,8 +57,11 @@ describe('compact card details', () => {
     view.update({ ...initial, description: 'Suspicion is 99 here.' });
     expect(view.find('details-sample')).toBeNull();
     expect(view.container.textContent).not.toMatch(/suspicion|99/i);
+    expect(view.find('details-held-sample')?.textContent).toBe('Audit entry unreadable.');
+    expect(view.find('details-held-sample')?.getAttribute('aria-label')).toBe('Audit entry unreadable.');
     act(() => { gameStore.initialize(decoded(), 0, null); });
     expect(view.find('details-sample')).not.toBeNull();
+    expect(view.find('details-held-sample')).toBeNull();
     view.toggle();
     expect(view.find('details-body-sample')?.textContent).toBe('Suspicion is 99 here.');
     act(() => { gameStore.initialize(fresh(), 0, null); });

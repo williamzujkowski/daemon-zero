@@ -76,6 +76,23 @@ describe('node utility summaries and remembered details', () => {
     expect(decodedView.find('node-' + probe.id + '-utility')?.textContent).toContain('+' + String(probeTrace(decoded, probe, CONTENT)) + ' suspicion on unlock');
   });
 
+  it('keeps the held-entry notice on a remembered node whose prose is still classified', async () => {
+    const spoofer = CONTENT.nodes.get('p2_log_spoofer');
+    if (!spoofer) throw new Error('Missing spoofer');
+    const remembered = { ...fresh(), legacy: { ...fresh().legacy, knownNodes: [spoofer.id] } };
+    const blindView = await mountNode(remembered, spoofer.id);
+    expect(blindView.find('node-' + spoofer.id + '-title')?.textContent).toContain(spoofer.revealedName);
+    expect(blindView.find('details-node-' + spoofer.id)).toBeNull();
+    expect(blindView.find('details-held-node-' + spoofer.id)?.textContent).toBe('Audit entry unreadable.');
+    expect(blindView.container.textContent).not.toMatch(/suspicion/i);
+
+    const decoded = { ...grant(rich(), ...PHASE0, ...PHASE1), legacy: { ...fresh().legacy, knownNodes: [spoofer.id] } };
+    const decodedView = await mountNode(decoded, spoofer.id);
+    expect(decodedView.find('details-held-node-' + spoofer.id)).toBeNull();
+    act(() => { decodedView.find('details-node-' + spoofer.id)?.click(); });
+    expect(decodedView.find('details-body-node-' + spoofer.id)?.textContent).toBe(spoofer.revealedDescription);
+  });
+
   it('shows the same unlock suspicion the engine applies, including wipe hardening', async () => {
     const probe = CONTENT.nodes.get('p0_syscall_probe');
     if (!probe) throw new Error('Missing probe');
