@@ -69,6 +69,9 @@ function ThreatAmount() {
 const styles = StyleSheet.create({
   strip: { flexGrow: 2, flexShrink: 1, flexBasis: 800, flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, columnGap: 20, rowGap: 0 },
   readout: { paddingVertical: 8, minWidth: 135 },
-  sensorCompact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, paddingVertical: 4 },
-  compact: { flexBasis: '45%', minWidth: 0 },
+  sensorCompact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
+  // #108: label and value share a line at compact widths. Two lines per readout
+  // cost 3-5 rows of HUD before the pane even starts (144px at 320 against 57px
+  // when one row fits); the wrap keeps a long pair from clipping.
+  compact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
 });

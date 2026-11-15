@@ -68,12 +68,12 @@ core column width early → later phases (the phase's own slot takes the larger 
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
-| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 625 (**no**) | 731 (**no**) | 896 (**no**) |
-| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 625 (yes) | 687 (**no**) | 833 (**no**) |
-| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 572 (yes) | 634 (yes) | 710 (yes) |
-| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 553 (yes) | 615 (yes) | 710 (yes) |
-| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 531 (yes) | 657 (yes) | 733 (yes) |
-| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 509 (**no**) | 549 (**no**) | 625 (**no**) |
+| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 603 (**no**) | 709 (**no**) | 874 (**no**) |
+| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 603 (yes) | 665 (**no**) | 811 (**no**) |
+| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 531 (yes) | 593 (yes) | 688 (yes) |
+| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 512 (yes) | 574 (yes) | 688 (yes) |
+| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 673 (yes) |
+| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 449 (**no**) | 489 (**no**) | 565 (**no**) |
 | 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 646 (**no**) |
 | 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 646 (yes) |
 | 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 665 (yes) |
@@ -130,21 +130,71 @@ back entirely for the insolvency state.
 ### Still open
 
 1. **Narrow phones and short landscape still lose the decision**, but by much less.
-   At 320x568 the button is 57px past the fold (102px past the 523px the mobile tab
-   bar leaves) and at 844x390 it is 119px past. The remaining cost is app chrome,
-   not the card: the header and the wrapped resource strip together are 261px of the
-   405 at 320.
-2. **An active red alert can still be below the fold.** The insolvency warning sits
-   at 602px at 320x568 and 435px at 844x390. It is chrome-positioned, so the card
-   reorder cannot move it; it needs the alert rendered above the resource strip or
-   pinned to the viewport.
-3. **The worst narrow case is insolvent at 360x640** (833px), and 900x640 insolvency
+   At 320x568 the button is 35px past the fold (80px past the 523px the mobile tab
+   bar leaves) and at 844x390 it is 59px past. The remaining cost is app chrome, not
+   the card: the header (117px at 320, against 64px from 390 up) is now the single
+   biggest removable term, and `-53` from it would put 320x568 inside the usable
+   fold on its own.
+2. **An active red alert is still below the fold, but only just.** The insolvency
+   warning sits at 580px against a 568px viewport at 320x568, and 375px against 390
+   at 844x390 — inside, for the first time, after the strip compaction. At 320 it is
+   chrome-positioned, so it needs the alert above the resource strip or pinned to the
+   viewport rather than another card change.
+3. **The worst narrow case is insolvent at 360x640** (811px), and 900x640 insolvency
    is 6px over. Late-phase states add a second row of readouts and a longer cost
    hint, which is the same chrome problem seen from the other end.
 
 Gaps 1-3 are the remainders of the height increment (#108); the app-chrome
 compaction is the next increment because it is now measured at 51% of the offset.
 Every layout change updates the numbers above in the same PR that changes them.
+
+### The levers, measured
+
+Each term was isolated by measuring the blocks themselves, so an increment can be
+scoped by its expected gain rather than by guess. Gains are for the first purchase
+control's offset:
+
+| lever | target | taken |
+|---|---|---|
+| resource strip: label and value share a line at compact widths | -87 (idealised one-row) | **-22 at 320/360, -41 at 390/414, -60 at 768-899, 0 at 900+** |
+| header to one row at 320/360 (it wraps there; 117px against 64px) | -53 | not yet |
+| manual cycle out of the pre-card slot | -44 | not yet |
+| forecast notice to one line | -22 | not yet |
+| card body, 320/360 only (diminishing: -63 at 390, -44 at 414, 0 at 844+) | -85 | not yet |
+
+The strip's `-87` is an idealised target, and the measurement corrected it: one row
+of five readouts needs a ~900px strip, which is where the HUD already fits on one
+line. At 320px each of the two columns is 160px wide, so a label and its value sit
+on one line only when both are short — which is what the compaction took. The
+strip is 122px at 320 now (223 in the insolvency state, where the extra values
+wrap) against 57px at 900. The remaining ~50px at 320 would cost label
+abbreviation (`UNDERSTANDING` → something shorter), which trades legibility for
+height and is not obviously a win.
+
+320x568 needs **244** net to bring the control above the fold, and 844x390 needs
+**262**, which app chrome alone cannot reach — that case needs the card and the
+chrome together. 900x640 mid-game is the cheapest win in the set (57px) and it is
+pane chrome, not app chrome.
+
+### Two folds, 45px apart
+
+The mobile tab bar (`terminal-tabs-scroll`) docks over the bottom of the primary
+scroll, so the *usable* height is `innerHeight - 45`. At 320x568 the first purchase
+is 57px below `innerHeight` but **102px below the usable fold**. Fold verdicts in
+the table are against `innerHeight`, which is the more generous of the two.
+
+The insolvency warning is not in the scroll at all: it sits in the fixed
+`workspace-<slot>` block above it, so it cannot be reached by scrolling and about
+123px of chrome would have to move for it to be visible at 320x568.
+
+### Clock mode
+
+The table is measured through the E2E harness, which pauses the game clock: the
+state is frozen at hydration, so nothing that only appears in play is on screen.
+A live run agrees to within a few px in 13 of 18 sampled cases; in the five
+mid-game mobile cases the live run sits up to **70px lower** (48px at 844x390)
+because `wild-signal-notice` mounts while playing. Treat the table as a
+lower bound for those states, and re-measure live when a change targets them.
 
 ## Running it
 
