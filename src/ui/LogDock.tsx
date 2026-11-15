@@ -4,7 +4,7 @@ import { Modal, StyleSheet, useWindowDimensions } from 'react-native';
 import KernelLog from './KernelLog';
 import DisclosureText from './DisclosureText';
 import { Pressable, Text, View } from './PhaseTheme';
-import { useGame } from './state';
+import { selectLatestLog, useGameValue } from '../app/selectors';
 import { useUtilityScope } from './useUtilityMenu';
 import { palette, theme } from './theme';
 import { isCompactViewport } from './layout';
@@ -14,7 +14,7 @@ export default function LogDock() {
   const [opened, setOpened] = useState<string | null>(null);
   const trigger = useRef<ComponentRef<typeof Pressable>>(null);
   const restoreFocus = useRef(false);
-  const latest = useGame((game) => game.logs[0]?.text ?? 'No kernel entries.');
+  const latest = useGameValue(selectLatestLog) || 'No kernel entries.';
   const { width } = useWindowDimensions();
   const open = opened === scope && !disabled;
   if (opened !== null && !open) setOpened(null);
