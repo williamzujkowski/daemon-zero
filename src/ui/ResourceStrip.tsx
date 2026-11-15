@@ -11,6 +11,7 @@ import { isCompactViewport } from './layout';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { compactNumber } from './compactNumber';
+import { groupDigits } from './format';
 
 type Resource = keyof typeof resourceWidgets;
 function Amount({ resource, compact }: { resource: Resource; compact: boolean }) {
@@ -18,14 +19,19 @@ function Amount({ resource, compact }: { resource: Resource; compact: boolean })
   const cap = useGame((game) => resource === 'memory' ? game.memoryCap : 0);
   const rate = useGame((game) => resource === 'cycles' ? game.rates.cyclesPerSec
     : resource === 'understanding' ? game.rates.understandingPerSec : resource === 'capital' ? game.rates.capitalPerSec : 0);
-  const full = String(amount) + (resource === 'memory' ? ' / ' + String(cap) + ' MB' : ' (' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '/s)');
-  const short = compactNumber(amount) + (resource === 'memory' ? ' / ' + compactNumber(cap) + ' MB'
-    : ' (' + (rate >= 0 ? '+' : '') + compactNumber(rate, 2) + '/s)');
+  // #108: the readout abbreviates a large amount at every width. At desktop widths
+  // the precise value used to print ungrouped (1000000000), which scanned as a wall
+  // of digits; the accessible label and the engine still carry the exact number.
+  const shown = Math.abs(amount) >= 10000 ? compactNumber(amount) : groupDigits(amount);
+  const rateShown = (rate >= 0 ? '+' : '') + (compact ? compactNumber(rate, 2) : rate.toFixed(2)) + '/s';
+  const full = groupDigits(amount) + (resource === 'memory' ? ' / ' + groupDigits(cap) + ' MB' : ' (' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '/s)');
+  const display = resource === 'memory' ? shown + ' / ' + (Math.abs(cap) >= 10000 ? compactNumber(cap) : groupDigits(cap)) + ' MB'
+    : shown + ' (' + rateShown + ')';
   return (
     <View style={[styles.readout, compact && styles.compact]}>
       <Text style={theme.muted}>{resource.toUpperCase()}</Text>
       <Text testID={'res-' + resource} accessibilityLabel={resource + ': ' + full} style={theme.text}>
-        {compact ? short : full}
+        {display}
       </Text>
     </View>
   );
