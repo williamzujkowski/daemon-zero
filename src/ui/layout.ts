@@ -51,6 +51,19 @@ export function isCompactViewport(width: number): boolean {
   return width < COMPACT_CAPTION_MAX_WIDTH;
 }
 
+/**
+ * Narrow-chrome boundary. Below this width the header's three controls plus the
+ * title block cannot share a row at the 44pt touch minimum, so the header wraps
+ * and costs 117px against 64px - measured, and the largest removable term above
+ * the first purchase control (docs/UI-SIZES.md, levers). Distinct from the caption
+ * boundary: captions compact from 900, chrome only has to tighten below 400.
+ */
+export const NARROW_CHROME_MAX_WIDTH = 400;
+
+export function isNarrowChrome(width: number): boolean {
+  return width < NARROW_CHROME_MAX_WIDTH;
+}
+
 export interface TerminalLayout {
   readonly mode: LayoutMode;
   /** True only in the desktop tier, where the third column has room to exist. */

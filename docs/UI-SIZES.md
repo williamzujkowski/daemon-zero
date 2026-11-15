@@ -68,8 +68,8 @@ core column width early → later phases (the phase's own slot takes the larger 
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
-| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 603 (**no**) | 709 (**no**) | 874 (**no**) |
-| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 603 (yes) | 665 (**no**) | 811 (**no**) |
+| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 588 (**no**) | 694 (**no**) | 868 (**no**) |
+| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 550 (yes) | 628 (yes) | 758 (**no**) |
 | 390x844 | mobile | — | — | — | 358 / 328 / 328 | 531 (yes) | 593 (yes) | 688 (yes) |
 | 414x896 | mobile | — | — | — | 382 / 352 / 352 | 512 (yes) | 574 (yes) | 688 (yes) |
 | 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 673 (yes) |
@@ -129,12 +129,15 @@ back entirely for the insolvency state.
 
 ### Still open
 
-1. **Narrow phones and short landscape still lose the decision**, but by much less.
-   At 320x568 the button is 35px past the fold (80px past the 523px the mobile tab
-   bar leaves) and at 844x390 it is 59px past. The remaining cost is app chrome, not
-   the card: the header (117px at 320, against 64px from 390 up) is now the single
-   biggest removable term, and `-53` from it would put 320x568 inside the usable
-   fold on its own.
+1. **Narrow phones and short landscape still lose the decision.** 360x640 is now
+   inside the fold in every sampled state, including the insolvency one, and both
+   its forecast and its first purchase are fully visible. What remains: 320x568 is
+   20px past the fold (65px past the 523px the mobile tab bar leaves) and 844x390 is
+   59px past. At 320 three labelled controls plus the title cannot share a row at the
+   44pt touch minimum - the header still wraps to 102-111px against 64px - so that
+   cell now needs the two smaller levers (manual cycle out of the pre-card slot, -44,
+   and the forecast to one line, -22), which together clear the usable fold with
+   about 1px to spare. 844x390 needs chrome and card together.
 2. **An active red alert is still below the fold, but only just.** The insolvency
    warning sits at 580px against a 568px viewport at 320x568, and 375px against 390
    at 844x390 — inside, for the first time, after the strip compaction. At 320 it is
@@ -157,7 +160,7 @@ control's offset:
 | lever | target | taken |
 |---|---|---|
 | resource strip: label and value share a line at compact widths | -87 (idealised one-row) | **-22 at 320/360, -41 at 390/414, -60 at 768-899, 0 at 900+** |
-| header to one row at 320/360 (it wraps there; 117px against 64px) | -53 | not yet |
+| header to one row at 320/360 (it wraps there; 117px against 64px) | -53 | **-53 at 360, -15 at 320** (64px from 400 up, 80 when the run status takes a second line) |
 | manual cycle out of the pre-card slot | -44 | not yet |
 | forecast notice to one line | -22 | not yet |
 | card body, 320/360 only (diminishing: -63 at 390, -44 at 414, 0 at 844+) | -85 | not yet |

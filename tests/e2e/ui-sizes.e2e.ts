@@ -33,6 +33,7 @@ type Geometry = {
   mobileTabs: boolean;
   widestCard: number;
   columnWidths: { core: number; sensors: number; side: number };
+  headerHeight: number;
   firstUnlockTop: number | null;
   firstUnlockVisible: boolean;
   forecastVisible: boolean;
@@ -73,6 +74,7 @@ function readGeometry(): Geometry {
       side: Math.round((box(browser.document.querySelector('[data-testid="panel-third"]'))
         ?? box(browser.document.querySelector('[data-testid="panel-side"]')))?.width ?? 0),
     },
+    headerHeight: Math.round(box(browser.document.querySelector('[data-testid="terminal-header"]'))?.height ?? 0),
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockVisible: fullyVisible(first),
     forecastVisible: fullyVisible(forecast),
@@ -107,6 +109,14 @@ test.describe('size matrix invariants', () => {
           expect(geometry.columns, `${fixture} column mode at ${size.name}`).toBe(expected.mode !== 'mobile');
           expect(geometry.mobileTabs, `${fixture} mobile tabs at ${size.name}`).toBe(expected.mode === 'mobile');
           expect(geometry.widestCard, `${fixture} widest card at ${size.name}`).toBeLessThanOrEqual(expected.contentMaxWidth);
+          // The header holds one row (64px) from 400 up. Between 360 and 399 it can
+          // reach 80px when the run status takes a second line, and at 320 three
+          // labelled controls plus the title cannot share a row at the 44pt touch
+          // minimum, so it wraps to 102-111px. That wrap is still the largest term
+          // above the first purchase control at 320 (docs/UI-SIZES.md, levers).
+          const headerBudget = size.width >= 400 ? 64 : size.width >= 360 ? 80 : 120;
+          expect(geometry.headerHeight, `${fixture} header rows at ${size.name}`)
+            .toBeLessThanOrEqual(headerBudget);
           for (const [name, value] of Object.entries(geometry.columnWidths)) {
             if (value === 0) continue;
             expect(value, `${fixture} ${name} column below the floor at ${size.name}`)
@@ -135,6 +145,19 @@ test.describe('above-the-fold at baseline sizes', () => {
       expect(geometry.warningVisible, 'insolvency warning above the fold').toBe(true);
       expect(geometry.forecastVisible, 'forecast above the fold with a warning active').toBe(true);
     } finally { await warning.page.context().close(); }
+  });
+
+  test('phone-360 640 shows the forecast and the first purchase in every sampled state', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 360, height: 640 }, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    try {
+      for (const fixture of states) {
+        await boot(page, fixture); await dismissBoot(page);
+        const geometry = await page.evaluate(readGeometry);
+        expect(geometry.forecastVisible, `${fixture} forecast above the fold`).toBe(true);
+        expect(geometry.firstUnlockVisible, `${fixture} first purchase above the fold`).toBe(true);
+      }
+    } finally { await context.close(); }
   });
 
   test('desktop 1440x900 shows the forecast and the first purchase in every sampled state', async ({ browser }) => {
