@@ -65,6 +65,21 @@ export function isNarrowChrome(width: number): boolean {
 }
 
 /**
+ * Widths where the header cannot hold its whole status column beside the two
+ * controls. Measured: at 320 the title block is given 88px and its three stacked
+ * lines wrap into five, so the header is 102px against 64px from 360 up. Below this
+ * width the header becomes two rows - title beside the controls, then one status line
+ * across the full width - which was chosen by a nexus vote (4 of 5 selecting seats)
+ * over leaving the wrap in place. Distinct from NARROW_CHROME_MAX_WIDTH on purpose:
+ * 360-399 already fits on one row with tighter padding and must keep doing so.
+ */
+export const VERY_NARROW_CHROME_MAX_WIDTH = 360;
+
+export function isVeryNarrowChrome(width: number): boolean {
+  return width < VERY_NARROW_CHROME_MAX_WIDTH;
+}
+
+/**
  * A viewport whose height is what it lacks (a landscape phone). The layout policy
  * already treats these as the single-scroll tier; chrome that packs by width alone
  * still spends the scarce axis, because two readouts per row across 844px costs
