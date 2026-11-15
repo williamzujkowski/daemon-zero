@@ -39,10 +39,13 @@ The target exports production web and starts Python's static server on
 127.0.0.1:4173. CI installs Chromium and runs the same target with read-only
 repository permissions. No development hook is present in this target.
 
-Configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keeping them
+Scenario configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keeping them
 separate from the existing Vitest `.spec.ts` discovery. Vitest remains the sole
 component/unit runner. Scenarios run at both 390x844 and 1440x900; controls and
-values are selected by test ID. List the current cases without executing them:
+values are selected by test ID. A third project, `sizes`, runs
+`tests/e2e/ui-sizes.e2e.ts` once with its own viewports (320x568 through 2560x1440)
+and is measured against [UI-SIZES.md](UI-SIZES.md). List the current cases without
+executing them:
 
 ```bash
 pnpm exec playwright test --config tests/e2e/config.ts --list
