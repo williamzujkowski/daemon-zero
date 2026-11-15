@@ -38,7 +38,9 @@ describe('mobile scroll flow', () => {
     expect(alert).not.toBeNull();
     const order = primary?.textContent ?? '';
     expect(order.indexOf('INSOLVENT')).toBeGreaterThanOrEqual(0);
-    expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('CYCLES'));
+    // #139: the phone chrome abbreviates its meter labels, so this reads the short form.
+    // The alert still has to precede the first meter in document order.
+    expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('CYC'));
     expect(view.find('pane-scroll-CORP')?.style.flex).not.toBe('1');
     expect(contains(primary, view.find('kernel-preview'))).toBe(true);
     view.click('kernel-size-toggle');
