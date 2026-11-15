@@ -179,11 +179,95 @@ rather than near-black, and muted is 6.80).
    the interesting question (whether the identity itself should change) is the one
    still open below.
 
+## Tag-filtered shortlist
+
+The theme repository ships per-theme metadata, so the survey can be filtered rather
+than only computed. Each of the 908 entries carries `isDark`, `tags`, `contrast`
+(`fgOnBg`, `minAnsi`, `cursorOnBg`, …), `apca`, `cvd` (deuteranopia / protanopia /
+tritanopia distances), `accent` (which ANSI slot the accent came from) and a
+`dataviz` palette.
+
+Tag vocabulary and counts, dark themes only where noted:
+
+| tag | count | what it means |
+|---|---|---|
+| `ansi-legible` | 603 | every ANSI slot clears the repository's own legibility bar |
+| `wcag-aa` | 882 | **foreground on background** clears AA — nothing else |
+| `wcag-aaa` | 813 | same pair, AAA |
+| `dark` | 688 | dark background |
+| `high-contrast` | 646 | its own contrast tier |
+| `brightness-ordered` | 400 | ANSI slots ascend in brightness, as a terminal expects |
+| `muted` | 350 | low-chroma identity |
+| `light` | 220 | light background |
+| `popular` | 103 | curated as a widely used theme |
+| `low-contrast` | 35 | flagged, not recommended |
+| `cvd-safe` | 24 | colour-vision-deficiency safe, per its own simulation |
+| `vibrant` | 18 | high chroma |
+| `wcag-aa-large` | 16 / `wcag-fail` 10 | the exceptions |
+
+### `wcag-aa` alone would pick the wrong themes
+
+667 themes are dark and carry `wcag-aa`. Only **249 of those pass this game's
+six-pair mapping**, because the tag measures one pair and the game needs six. Where
+the other 418 fail:
+
+| pair | failures among the 667 |
+|---|---|
+| border (`brightBlack`) on background >= 3:1 | **354** |
+| muted on background >= 4.5:1 | 113 |
+| danger (`red`) on background >= 3:1 | 77 |
+| accent (`cursor`) on background >= 3:1 | 20 |
+| warning (`yellow`) on background >= 3:1 | 4 |
+| text (`foreground`) on background >= 4.5:1 | **0** |
+
+Every one of them passes the pair the tag measures, and more than half fail on the
+1px structural border — the same token this repository shipped below its bar for the
+whole project. Any shortlist that starts and ends at `wcag-aa` inherits that blind
+spot.
+
+Colour-vision safety is a similarly narrow filter: of the 249 that pass, **2 are
+`cvd-safe`** (`Jubi`, a desaturated slate with a pale-blue cursor; `Wild Cherry`, a
+violet cursor on deep purple). Both pass, neither is a phosphor terminal.
+
+### The shortlist, filtered on the game's own needs
+
+Taking the 249 that pass, restricting to the phosphor lineage (cursor hue 60-185
+degrees) and to a structural border in the comfortable 3-7:1 band — above the bar,
+below the glaring frame the survey rejects — leaves 19 themes. The best of them by
+accent-to-warning hue separation:
+
+| theme | cursor | background | border/bg | Δ accent-warning | Δ accent-danger |
+|---|---|---|---|---:|---:|
+| Cobalt Next Minimal | `#37b5b4` | `#0b1c24` | 3.59 | 139 | 172 |
+| SilkCircuit Soft | `#99ffee` | `#1a1626` | 3.76 | 125 | 177 |
+| SilkCircuit Glow | `#00ffff` | `#0a0816` | 5.09 | 120 | 171 |
+| SilkCircuit Vibrant | `#00ffcc` | `#0f0c1a` | 5.20 | 120 | 177 |
+| **Lit Cell** | `#3df2a0` | `#0c110e` | 4.94 | 111 | 153 |
+| SilkCircuit Neon | `#80ffea` | `#12101a` | 5.35 | 105 | 170 |
+| Dimidium | `#37e57b` | `#141414` | 4.58 | 102 | 145 |
+| Cool Night | `#38ff9d` | `#010c18` | 3.50 | 96 | 150 |
+| Nephrite Forest | `#4dbf74` | `#0d1c14` | 4.49 | 95 | 138 |
+
+This agrees with the earlier recommendation from a different direction, which is the
+useful part: **Lit Cell** is not simply the best of three hand-picked candidates, it
+survives a filter built from the repository's own metadata (dark, passes the full
+mapping, phosphor cursor, comfortable border, wide semantic separation). Its
+neighbours on raw separation are cyan-on-near-black variants of the same SilkCircuit
+family, which read as cooler and more generic terminal than this game's mint
+phosphor, and Cobalt Next Minimal, which has the widest separation but a teal cursor
+on a blue-green background.
+
+What the metadata does **not** decide is identity: every theme in that table passes,
+and choosing between a mint, a cyan and a teal is taste, not measurement.
+
 ## Limits of this review
 
 Ratios are WCAG 2.1 relative luminance on the sampled pairs, computed with the
-same code path the theme repository publishes in its own data. Not evaluated:
-colour-blind simulation, the phase-shift tokens, camera/audio UI accents, or how
-any candidate reads on a physical Android device (none was available). The
-appendix of all 908 themes with every ratio lives outside the repository, in the
-survey artifact.
+same code path the theme repository publishes in its own data. `muted` is the
+foreground blended 55% toward the background in linear light, matching the mapping
+section above; a different blend moves the muted column and therefore the 113-theme
+failure count. Not evaluated: colour-blind simulation beyond the repository's own
+`cvd` distances, the phase-shift tokens, camera/audio UI accents, or how any
+candidate reads on a physical Android device (none was available). The appendix of
+all 908 themes with every ratio lives outside the repository, in the survey
+artifact.
