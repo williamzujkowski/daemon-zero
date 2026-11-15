@@ -31,7 +31,7 @@ import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
-import { layoutFor, SIDE_COLUMN_MIN_WIDTH } from './layout';
+import { layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { UtilityFocusProvider } from './UtilityFocus';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
@@ -81,11 +81,13 @@ function Terminal() {
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal />}><TerminalChrome /></MobileTerminal>
       : <><TerminalChrome /><View testID="terminal-columns" style={styles.columns}>
-        <View style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: 0 }}><Pane slots={['CORE']} /></View>
+        <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
-          <Pane slots={['SENSORS', 'CONTINGENCY']} />}
+          <View testID="panel-sensors" style={{ flex: 1, minWidth: SIDE_COLUMN_MIN_WIDTH }}>
+            <Pane slots={['SENSORS', 'CONTINGENCY']} />
+          </View>}
         {layout.threeColumns
-          ? <SideColumn testID="panel-third" slots={slots} allowed={['NETWORK', 'CORP']} flex={2} minWidth={0} />
+          ? <SideColumn testID="panel-third" slots={slots} allowed={['NETWORK', 'CORP']} flex={2} minWidth={SIDE_COLUMN_MIN_WIDTH} />
           : <SideColumn testID="panel-side" slots={slots}
             allowed={['SENSORS', 'CONTINGENCY', 'NETWORK', 'CORP']} flex={1} minWidth={SIDE_COLUMN_MIN_WIDTH} />}
       </View></>}

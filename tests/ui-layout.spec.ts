@@ -10,6 +10,7 @@ import {
   SHORT_VIEWPORT_MAX_HEIGHT,
   SIDE_COLUMN_MIN_WIDTH,
   THREE_COLUMN_MIN_WIDTH,
+  COMPACT_CAPTION_MAX_WIDTH,
   isCompactViewport,
   layoutFor,
 } from '../src/ui/layout';
@@ -48,10 +49,10 @@ describe('layoutFor', () => {
     expect(layoutFor(768, 0).mode).toBe('tablet');
   });
 
-  it('compacts captions below the three-column tier and nowhere above it', () => {
-    expect(isCompactViewport(THREE_COLUMN_MIN_WIDTH - 1)).toBe(true);
+  it('compacts captions below the compaction boundary and nowhere above it', () => {
+    expect(isCompactViewport(COMPACT_CAPTION_MAX_WIDTH - 1)).toBe(true);
     expect(isCompactViewport(320)).toBe(true);
-    expect(isCompactViewport(THREE_COLUMN_MIN_WIDTH)).toBe(false);
+    expect(isCompactViewport(COMPACT_CAPTION_MAX_WIDTH)).toBe(false);
     expect(isCompactViewport(2560)).toBe(false);
   });
 

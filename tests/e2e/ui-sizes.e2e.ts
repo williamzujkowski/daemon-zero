@@ -5,7 +5,7 @@
 import type { Browser, Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
 import { boot, dismissBoot, expect, test } from './helpers';
-import { layoutFor } from '../../src/ui/layout';
+import { layoutFor, SIDE_COLUMN_MIN_WIDTH } from '../../src/ui/layout';
 
 const sizes = [
   { name: 'small-phone', width: 320, height: 568 },
@@ -16,6 +16,7 @@ const sizes = [
   { name: 'phone-landscape', width: 844, height: 390 },
   { name: 'breakpoint-edge', width: 900, height: 640 },
   { name: 'tablet-landscape', width: 1024, height: 768 },
+  { name: 'breakpoint-three', width: 1080, height: 800 },
   { name: 'laptop', width: 1440, height: 900 },
   { name: 'desktop', width: 1920, height: 1080 },
   { name: 'widescreen', width: 2560, height: 1440 },
@@ -31,6 +32,7 @@ type Geometry = {
   columns: boolean;
   mobileTabs: boolean;
   widestCard: number;
+  columnWidths: { core: number; sensors: number; side: number };
   firstUnlockTop: number | null;
   firstUnlockVisible: boolean;
   forecastVisible: boolean;
@@ -65,6 +67,12 @@ function readGeometry(): Geometry {
     widestCard: Math.round(Math.max(0, ...[...browser.document.querySelectorAll('[data-testid]')]
       .filter((element) => /^node-[A-Za-z0-9_]+$/.test(element.getAttribute('data-testid') ?? ''))
       .map((element) => element.getBoundingClientRect().width))),
+    columnWidths: {
+      core: Math.round(box(browser.document.querySelector('[data-testid="panel-core"]'))?.width ?? 0),
+      sensors: Math.round(box(browser.document.querySelector('[data-testid="panel-sensors"]'))?.width ?? 0),
+      side: Math.round((box(browser.document.querySelector('[data-testid="panel-third"]'))
+        ?? box(browser.document.querySelector('[data-testid="panel-side"]')))?.width ?? 0),
+    },
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockVisible: fullyVisible(first),
     forecastVisible: fullyVisible(forecast),
@@ -99,6 +107,11 @@ test.describe('size matrix invariants', () => {
           expect(geometry.columns, `${fixture} column mode at ${size.name}`).toBe(expected.mode !== 'mobile');
           expect(geometry.mobileTabs, `${fixture} mobile tabs at ${size.name}`).toBe(expected.mode === 'mobile');
           expect(geometry.widestCard, `${fixture} widest card at ${size.name}`).toBeLessThanOrEqual(expected.contentMaxWidth);
+          for (const [name, value] of Object.entries(geometry.columnWidths)) {
+            if (value === 0) continue;
+            expect(value, `${fixture} ${name} column below the floor at ${size.name}`)
+              .toBeGreaterThanOrEqual(expected.mode === 'mobile' ? 0 : SIDE_COLUMN_MIN_WIDTH);
+          }
           expect(errors, `${fixture} console output at ${size.name}`).toEqual([]);
         } finally { await page.context().close(); }
       }

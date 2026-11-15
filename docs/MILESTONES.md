@@ -75,7 +75,7 @@ every existing gate/strict flag is retained. No engine/content changes. Follow-u
 #19, #21, #22 and #23 remain open. Native real-time progression, iOS, physical devices,
 screen readers, signed builds and native profiling were not verified.
 
-- [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above).
+- [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above; superseded — the tier boundaries now live in `src/ui/layout.ts`, see `docs/UI-SPEC.md`).
 - [x] Kernel log as a virtualized list.
 - [x] Resource strip that reveals each readout only when its widget is unlocked.
 - [x] Node cards, data-driven from the registry: blind name/description until unlocked, revealed after; cost, deltas, suspend/resume.
