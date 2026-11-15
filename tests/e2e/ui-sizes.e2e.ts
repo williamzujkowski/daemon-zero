@@ -165,6 +165,47 @@ test.describe('size matrix invariants', () => {
   }
 });
 
+/** The insolvency state at the floor, pinned to the panel's acceptance criteria: the
+ *  warning keeps its full text and stays on screen at every scroll offset while the first
+ *  purchase is reachable by scrolling. Both halves failed before the alert band became a
+ *  direct sticky child of the primary scroll, because the chrome it sat inside scrolled
+ *  away (votes: sticky-alert-inside-the-scroll, then split-chrome-alert-above-strip). */
+test.describe('insolvency at the floor', () => {
+  test('keeps the alert visible while the purchase is scrolled into view', async ({ browser }) => {
+    const { page } = await openState(browser, 360, 640, 'corporate-insolvent');
+    try {
+      const atRest = await page.evaluate(readGeometry);
+      expect(atRest.warningVisible, 'warning visible at rest').toBe(true);
+      const fullText = await page.evaluate(() => {
+        const browser = globalThis as unknown as Window;
+        return browser.document.querySelector('[data-testid="insolvency-warning"]')?.textContent ?? '';
+      });
+      expect(fullText, 'warning keeps its consequence text').toContain('unpaid drains increase suspicion');
+      const scrolled = await page.evaluate(() => {
+        const browser = globalThis as unknown as Window;
+        // Phone tier: chrome and pane share terminal-primary-scroll. The per-pane testID
+        // only exists on the multi-column tiers.
+        const pane = browser.document.querySelector('[data-testid="terminal-primary-scroll"]')
+          ?? browser.document.querySelector('[data-testid="pane-scroll-CORE"]');
+        const control = browser.document.querySelector('[data-testid$="-unlock"]');
+        if (!pane || !control) return 0;
+        // Scroll the pane itself: scrollIntoView also scrolls ancestors, which would move
+        // the very band this test pins.
+        const paneBox = pane.getBoundingClientRect();
+        const controlBox = control.getBoundingClientRect();
+        const scrollable = pane as unknown as { scrollTop: number; clientHeight: number };
+        scrollable.scrollTop += controlBox.top - paneBox.top - (scrollable.clientHeight - controlBox.height) / 2;
+        return scrollable.scrollTop;
+      });
+      expect(scrolled, 'primary scroll moves').toBeGreaterThan(0);
+      await page.waitForTimeout(200);
+      const after = await page.evaluate(readGeometry);
+      expect(after.firstUnlockVisible, 'purchase reachable by scroll').toBe(true);
+      expect(after.warningVisible, 'warning still visible after scrolling').toBe(true);
+    } finally { await page.context().close(); }
+  });
+});
+
 /** The tolerated tier is asserted for what it does promise: a rendered, reachable,
  *  non-overflowing screen. Its fold position is deliberately not claimed (#136). */
 test.describe('tolerated tier below the supported floor', () => {
