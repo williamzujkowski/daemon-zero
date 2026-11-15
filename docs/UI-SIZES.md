@@ -41,24 +41,39 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 | Tolerated | 320x568 (and any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
 | Undefined | under 320 | nothing | nothing |
 
-The evidence, measured on the served export by the size matrix itself — first purchase
-control against the viewport and against the *usable* fold (the tab bar's top edge):
+The evidence, measured on the served export by the size matrix itself: the first purchase
+control's box against the **viewport** (`bottom <= innerHeight`, which is what the matrix
+asserts). The usable-fold figures quoted in the prose below come from a separate
+measurement against the tab bar's top edge, because on the phone tier the tab bar covers
+the last 45px of the viewport.
 
 | Viewport | opening state | mid-game | insolvency |
 |---|---|---|---|
-| 320x568 | 546, below | 652, below | 769, below |
-| 360x640 | 531-575, **clears** | 609-653, below | 732, below |
-| 390x844 | 531-575, clears | 593-637, clears | 684, clears |
-| 414x896 | 512-556, clears | 574, clears | 684, clears |
-| 768x1024 | 471, clears | 597, clears | 647, clears |
-| 1440x900 | 365, clears | 405, clears | 522, clears |
+| small-phone 320x568 | 512-556, viewport only | 618, below | 709, below |
+| phone-360 360x640 | **506-550**, clears | **584-628**, clears | 707, below |
+| phone-390 390x844 | **506-550**, clears | **568-612**, clears | **640-684**, clears |
+| phone-large 414x896 | **487-531**, clears | **549-593**, clears | **640-684**, clears |
+| tablet-portrait 768x1024 | **471-515**, clears | **597-641**, clears | **647-691**, clears |
+| phone-landscape 844x390 | 393, below | 433, below | 505, below |
+| breakpoint-edge 900x640 | **422-466**, clears | **529-573**, clears | 620, below |
+| tablet-landscape 1024x768 | **422-466**, clears | **529-573**, clears | **620-664**, clears |
+| breakpoint-three 1080x800 | **422-466**, clears | **525-569**, clears | **639-683**, clears |
+| laptop 1440x900 | **365-409**, clears | **405-449**, clears | **522-566**, clears |
+| desktop 1920x1080 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
+| widescreen 2560x1440 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
 
-**360 holds the fold for the opening state only.** Mid-game sits 13px past the viewport
-and the insolvency state 92px past it, so the floor is a real floor for a new run and a
-scroll for a mid-game one. #138 corrected the fold spec, which had been re-measuring the
-same fixture three times (`boot()` only seeds a fixture when storage is empty), and the
-matrix now asserts the opening claim at 360 and records the other two as reachable but
-below the fold.
+Bold means the control's box is inside the viewport. It is **not** a usable-fold claim: at
+320 the opening control ends at 556 inside a 568 viewport while the tab bar starts at 523,
+which is why 320 stays the tolerated tier.
+
+**360 holds the fold for the opening and mid-game states; the insolvency state does not.**
+#138 corrected the fold spec, which had been re-measuring the same fixture three times
+(`boot()` only seeds a fixture when storage is empty), and that fix exposed mid-game at
+609-653 - below even the viewport. #139's compact chrome band then reclaimed 60px and the
+matrix now measures mid-game at 584-628, inside 640 with 12px to spare. The insolvency
+state still starts 751, 111px past the viewport, because a run-ending alert adds its own
+band above everything else; that remains open work, and the matrix asserts the opening and
+mid-game claims at 360 while recording insolvency as reachable but below the fold.
 
 The chrome's state band moved twice. #137 kept label and value on one line (122px to 103px
 at 360 and 390), turning the opening state's 1px clearance into 20px. #139 then abbreviated
