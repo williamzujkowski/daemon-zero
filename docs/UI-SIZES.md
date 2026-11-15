@@ -210,6 +210,24 @@ previous table, the button moved up 54-76px on most sizes and 141-163px at
 900-1024 wide, which brought 360x640 and 900x640 back to the fold and 1024x768
 back entirely for the insolvency state.
 
+### Late-game phone play is a scroll, by decision
+
+Measured at 360x640 with a phase-5 mid-game save in the CORP workspace, on the served build:
+header 0-80; resource strip 80-234 (154px - seven meters, CYC 26, UND 26, MEM 45, CAP 45,
+THM 26, SUS 26, AEGIS LOCK 57); the interrupt forecast block about 234-404; the omen
+notice 404-477; the workspace nav 477-569 (two rows of 44px buttons); the wild-signal
+notice 573-639; and the first purchase control at **838-882**, against a 595 fold - 243px
+below it, and 198px below the viewport entirely.
+
+No single lever reaches the fold, and neither do the two biggest together: collapsing the
+forecast block (about 145px) and making the workspace nav one scroll row (about 48px) lands
+the control near 645, still 50px past the fold before the card's own header. Reaching it
+would mean hiding the forecast, the notices or the workspace buttons that the player is
+reading. A nexus vote (`accept-late-game-scroll-and-document`, 3 of 4 selecting,
+`thresholdMet` true) therefore records phase-5 phone play as a scroll rather than promising
+a fold it cannot keep. The strip at this state is 154px against 78px in phase 1; that
+growth is the number to watch if this is revisited.
+
 ### Still open
 
 1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
