@@ -6,6 +6,13 @@ import { createSaveQueue } from './saveQueue';
 export const AUDIO_KEY = 'daemon-zero.audio.v1';
 const AudioPreferences = z.strictObject({ version: z.literal(1), enabled: z.boolean(), volume: z.number().int().min(0).max(100) });
 export type AudioPreferences = z.infer<typeof AudioPreferences>;
+/**
+ * A fresh install starts with the soundtrack on: the board chose default-on with a
+ * first-gesture resume and a header toggle at 400 and wider (3 of 5 selecting seats,
+ * `default-on-gesture-resume-header-toggle-wide-only`). A stored choice always wins,
+ * and unreadable storage still falls back to silence rather than surprising anyone.
+ */
+export const defaultPreferences: AudioPreferences = { version: 1, enabled: true, volume: 30 };
 export const silentPreferences: AudioPreferences = { version: 1, enabled: false, volume: 30 };
 
 export function audioPreferences(storage: KeyValueStorage) {
@@ -13,7 +20,8 @@ export function audioPreferences(storage: KeyValueStorage) {
   return {
     async load(): Promise<AudioPreferences> {
       const raw = await storage.getItem(AUDIO_KEY);
-      if (raw === null || raw.length > 256) return { ...silentPreferences };
+      if (raw === null) return { ...defaultPreferences };
+      if (raw.length > 256) return { ...silentPreferences };
       try {
         const parsed = AudioPreferences.safeParse(JSON.parse(raw) as unknown);
         return parsed.success ? parsed.data : { ...silentPreferences };

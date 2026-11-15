@@ -10,7 +10,15 @@ import type { KeyValueStorage } from '../src/app/storage';
 import { memoryStorage } from './app-helpers';
 
 async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
-function harness(storage: KeyValueStorage = memoryStorage()) {
+/** Every case below starts from an explicit opt-out, so a default-on install is the one
+ *  thing a test has to ask for; the default itself is covered separately. */
+function optedOut(): KeyValueStorage {
+  const storage = memoryStorage();
+  storage.setItem(AUDIO_KEY, JSON.stringify(silentPreferences));
+  return storage;
+}
+
+function harness(storage: KeyValueStorage = optedOut()) {
   const game = createGameStore();
   game.initialize(createInitialState(CONTENT), 0, null);
   let lifecycle: (active: boolean) => void = () => undefined;
@@ -24,6 +32,20 @@ function harness(storage: KeyValueStorage = memoryStorage()) {
 }
 
 describe('soundtrack foundation', () => {
+  it('starts a fresh install with music enabled but silent until a gesture', async () => {
+    const storage = memoryStorage();
+    const preferences = audioPreferences(storage);
+    expect(await preferences.load()).toEqual({ version: 1, enabled: true, volume: 30 });
+    const h = harness(storage); await settle();
+    expect(h.controller.state.getState().enabled).toBe(true);
+    // Enabled is a preference, activation is the player's gesture: no audio yet.
+    expect(h.controller.state.getState().activated).toBe(false);
+    expect(h.backend.createMusicPlayer).not.toHaveBeenCalled();
+    h.controller.resume(); await settle();
+    expect(h.backend.createMusicPlayer).toHaveBeenCalledOnce();
+    h.stop();
+  });
+
   it('defaults silent, creates one player only after activation, and reports actual playback', async () => {
     const h = harness(); await settle();
     expect(h.load).not.toHaveBeenCalled();
@@ -76,6 +98,7 @@ describe('soundtrack foundation', () => {
       storage.setItem(AUDIO_KEY, raw); expect(await preferences.load()).toEqual(silentPreferences);
     }
     const h = harness(storage); await settle(); h.controller.setVolume(193.4); await settle();
+    // This storage held malformed entries, so it fell back to silence; the volume still clamps.
     expect(await preferences.load()).toEqual({ version: 1, enabled: false, volume: 100 });
     h.controller.setVolume(-10); h.controller.setVolume(Number.NaN); await settle();
     expect(h.controller.state.getState().volume).toBe(0);
