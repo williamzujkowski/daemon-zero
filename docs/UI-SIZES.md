@@ -68,12 +68,12 @@ core column width early → later phases (the phase's own slot takes the larger 
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
-| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 588 (**no**) | 694 (**no**) | 868 (**no**) |
-| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 550 (yes) | 628 (yes) | 758 (**no**) |
+| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 578 (**no**) | 684 (**no**) | 842 (**no**) |
+| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 550 (yes) | 628 (yes) | 736 (**no**) |
 | 390x844 | mobile | — | — | — | 358 / 328 / 328 | 531 (yes) | 593 (yes) | 688 (yes) |
 | 414x896 | mobile | — | — | — | 382 / 352 / 352 | 512 (yes) | 574 (yes) | 688 (yes) |
 | 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 673 (yes) |
-| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 449 (**no**) | 489 (**no**) | 565 (**no**) |
+| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 421 (**no**) | 461 (**no**) | 509 (**no**) |
 | 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 646 (**no**) |
 | 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 646 (yes) |
 | 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 665 (yes) |
@@ -132,8 +132,8 @@ back entirely for the insolvency state.
 1. **Narrow phones and short landscape still lose the decision.** 360x640 is now
    inside the fold in every sampled state, including the insolvency one, and both
    its forecast and its first purchase are fully visible. What remains: 320x568 is
-   20px past the fold (65px past the 523px the mobile tab bar leaves) and 844x390 is
-   59px past. At 320 three labelled controls plus the title cannot share a row at the
+   10px past the fold (55px past the 523px the mobile tab bar leaves) and 844x390 is
+   31px past (421 against 390, and its insolvency warning is now on screen at 319). At 320 three labelled controls plus the title cannot share a row at the
    44pt touch minimum - the header still wraps to 102-111px against 64px - so that
    cell now needs the two smaller levers (manual cycle out of the pre-card slot, -44,
    and the forecast to one line, -22), which together clear the usable fold with
@@ -160,6 +160,7 @@ control's offset:
 | lever | target | taken |
 |---|---|---|
 | resource strip: label and value share a line at compact widths | -87 (idealised one-row) | **-22 at 320/360, -41 at 390/414, -60 at 768-899, 0 at 900+** |
+| resource strip: pack by content in a short viewport | -57 | **-28 at 844x390 phase-1, -56 in the insolvency state** |
 | header to one row at 320/360 (it wraps there; 117px against 64px) | -53 | **-53 at 360, -15 at 320** (64px from 400 up, 80 when the run status takes a second line) |
 | manual cycle out of the pre-card slot | -44 | not yet |
 | forecast notice to one line | -22 | not yet |
@@ -178,6 +179,15 @@ height and is not obviously a win.
 **262**, which app chrome alone cannot reach — that case needs the card and the
 chrome together. 900x640 mid-game is the cheapest win in the set (57px) and it is
 pane chrome, not app chrome.
+
+### Short viewports pack the HUD by content
+
+A viewport whose *height* is what it lacks gets the packed strip: as many readouts
+per row as fit, one line each, instead of the two-per-row fraction that suits a tall
+phone. Two per row across an 844px landscape phone cost three rows of a 390px screen
+(84px, 141px in the insolvency state) where packing fits four across. The condition
+is `isShortViewport(height)`, the same 599px boundary the layout policy already uses
+for the tier, so a landscape phone is short for both purposes rather than for one.
 
 ### Two folds, 45px apart
 

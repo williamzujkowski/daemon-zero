@@ -64,6 +64,16 @@ export function isNarrowChrome(width: number): boolean {
   return width < NARROW_CHROME_MAX_WIDTH;
 }
 
+/**
+ * A viewport whose height is what it lacks (a landscape phone). The layout policy
+ * already treats these as the single-scroll tier; chrome that packs by width alone
+ * still spends the scarce axis, because two readouts per row across 844px costs
+ * three rows of a 390px screen. Short viewports pack the HUD by content instead.
+ */
+export function isShortViewport(height: number): boolean {
+  return height > 0 && height <= SHORT_VIEWPORT_MAX_HEIGHT;
+}
+
 export interface TerminalLayout {
   readonly mode: LayoutMode;
   /** True only in the desktop tier, where the third column has room to exist. */
