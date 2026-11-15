@@ -48,6 +48,15 @@ describe('accessibility structure of the custom primitives (#111)', () => {
     }
   });
 
+
+  it('exposes one main landmark and a level-1 heading', async () => {
+    const view = await mountM4('epistemic-ready-p2', { width: 1440, height: 900 });
+    const mains = [...view.container.querySelectorAll('[role="main"]')];
+    expect(mains.length).toBe(1);
+    const headings = [...view.container.querySelectorAll('[role="heading"]')];
+    expect(headings.some((heading) => heading.getAttribute('aria-level') === '1')).toBe(true);
+  });
+
   it('installs exactly one focus-ring style on web, however often it is called', async () => {
     const { installFocusRing } = await import('../src/ui/focusRing');
     installFocusRing();

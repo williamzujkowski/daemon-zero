@@ -11,7 +11,7 @@ export default function MobileTerminal({ active, navigation, children }: {
 }) {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [active]);
-  return <View testID="terminal-mobile" style={{ flex: 1, minHeight: 0 }}>
+  return <View testID="terminal-mobile" role="main" aria-label="Terminal panes" style={{ flex: 1, minHeight: 0 }}>
     <ScrollView ref={scroll} testID="terminal-primary-scroll" style={{ flex: 1, minHeight: 0 }}
       contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       {children}<Pane slots={[active]} flow />
