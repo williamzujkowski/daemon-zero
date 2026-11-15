@@ -72,8 +72,23 @@ which is why 320 stays the tolerated tier.
 609-653 - below even the viewport. #139's compact chrome band then reclaimed 60px and the
 matrix now measures mid-game at 584-628, inside 640 with 12px to spare. The insolvency
 state still starts 751, 111px past the viewport, because a run-ending alert adds its own
-band above everything else; that remains open work, and the matrix asserts the opening and
-mid-game claims at 360 while recording insolvency as reachable but below the fold.
+band above everything else; the matrix asserts the opening and mid-game claims at 360 and
+records insolvency as reachable by scrolling.
+
+**The insolvency state is accepted as a scroll, but the warning follows the player.**
+Two nexus votes settled it: `accept-scroll-during-ending` (6 of 6) after measuring that no
+chrome compression closes 111px, then `sticky-alert-inside-the-scroll` and
+`split-chrome-alert-above-strip` once the first choice was measured to be insufficient.
+The first vote's premise - that the alert sits in fixed chrome and is therefore always
+visible - was false on phones: `MobileTerminal` renders the chrome inside the single
+primary scroll, so scrolling to a recovery purchase took the warning off screen. The band
+is now a direct child of that scroll at `stickyHeaderIndices={[1]}`, which is also what
+native uses, since bare React Native has no sticky styling. `position: sticky` alone was
+measured and rejected: it is bounded by its containing block, so it held at `scrollTop`
+300 and left as soon as the ~300px chrome block scrolled past. The claim is asserted at
+360x640 by the `insolvency at the floor` case in `tests/e2e/ui-sizes.e2e.ts`: full
+consequence text at rest, purchase reachable by scrolling, **and the warning still visible
+at that offset**.
 
 The chrome's state band moved twice. #137 kept label and value on one line (122px to 103px
 at 360 and 390), turning the opening state's 1px clearance into 20px. #139 then abbreviated
@@ -197,15 +212,13 @@ back entirely for the insolvency state.
 
 ### Still open
 
-1. **Narrow phones and short landscape still lose the decision.** 360x640 is now
-   inside the fold in every sampled state, including the insolvency one, and both
-   its forecast and its first purchase are fully visible. What remains: 320x568 is
-   10px past the fold (55px past the 523px the mobile tab bar leaves) and 844x390 is
-   31px past (421 against 390, and its insolvency warning is now on screen at 319). At 320 three labelled controls plus the title cannot share a row at the
-   44pt touch minimum - the header still wraps to 102-111px against 64px - so that
-   cell now needs the two smaller levers (manual cycle out of the pre-card slot, -44,
-   and the forecast to one line, -22), which together clear the usable fold with
-   about 1px to spare. 844x390 needs chrome and card together.
+1. **Narrow phones and short landscape still lose the decision.** At 360x640 the
+   opening and mid-game states clear the viewport (mid-game 584-628), but mid-game still
+   sits below the 595px usable fold - the tab bar's top edge - by about 33px, and the
+   insolvency state starts at 751. 320x568 and 844x390 remain the tolerated tier and make
+   no above-the-fold promise. The header at 320 is 70px since #133 (it had wrapped to
+   102px before the two-row treatment); the older "102-111px" figure in this section was
+   stale and is removed rather than re-measured here.
 2. **An active red alert is still below the fold, but only just.** The insolvency
    warning sits at 580px against a 568px viewport at 320x568, and 375px against 390
    at 844x390 — inside, for the first time, after the strip compaction. At 320 it is
