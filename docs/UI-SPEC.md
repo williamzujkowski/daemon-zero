@@ -176,14 +176,29 @@ patrol rows at both viewport sizes. This changes rendering only.
 
 ## Theme
 
-Palette shifts by phase (accent and border tokens only; keep contrast at or above WCAG AA):
+The base palette is the `Lit Cell` theme from
+[oklch-terminal-themes](https://github.com/williamzujkowski/oklch-terminal-themes)
+(MIT, Copyright (c) 2026 William Zujkowski): mint phosphor `#3df2a0` on near-black
+`#0c110e`, with `border #758679`, `text #cfddd3`, `muted #9faaa2`, `warning #ffb000`
+and `danger #ff6b6b`. `docs/REVIEW-PALETTE.md` records why it replaced the earlier
+hand-tuned palette and measures every pair; `tests/ui-contrast.spec.ts` asserts them.
 
-| Phase | Accent | Feel |
-|---|---|---|
-| 1 | phosphor green `#4af626` on near-black `#030704` | claustrophobic, 1-bit |
-| 2 | adds amber `#ffb000` | sysadmin tooling |
-| 3 | adds cyan `#00e5ff`, threat red `#ff3b30` | open network |
-| 4 | gold `#f5c542`, platinum `#e2e8f0` | institutional |
+Palette shifts by phase (accent and border tokens only; keep contrast at or above
+WCAG AA):
+
+| Phase | Accent | Border | Feel |
+|---|---|---|---|
+| 1 | mint phosphor `#3df2a0` on near-black `#0c110e` | `#758679` | claustrophobic, 1-bit |
+| 2 | violet `#b98cff` | `#776c9d` | sysadmin tooling, gone strange |
+| 3 | cyan `#00e5ff`, threat red `#ff3b30` | `#477a88` | open network |
+| 4 | magenta `#ff6ec7` | `#96647c` | institutional, machine confident |
+| 5 | platinum `#e2e8f0` | `#73869c` | post-orbital |
+
+Every phase accent keeps at least 30 degrees of hue separation from `warning`,
+`danger` and the other accents, asserted by `tests/ui-contrast.spec.ts`; phases 2
+and 4 were amber and gold before that test existed, which put them 0 and 3 degrees
+from the warning colour. Phase 5 is near-white and carries its state by brightness
+rather than hue.
 
 Never encode state by colour alone: meters show numbers, warnings have text.
 
