@@ -1,6 +1,7 @@
 /** Mobile price compression preserves precise decision information and desktop formatting. */
 import { CONTENT } from '../../src/content';
 import { costText } from '../../src/ui/format';
+import { isCompactViewport } from '../../src/ui/layout';
 import { boot, dismissBoot, expect, test } from './helpers';
 
 test('node costs keep their exact accessible values at both widths', async ({ page }) => {
@@ -11,7 +12,8 @@ test('node costs keep their exact accessible values at both widths', async ({ pa
   if (!node) throw new Error('Missing visible phase node');
   const full = 'Cost: ' + costText(node.cost);
   await expect(price).toHaveAttribute('aria-label', full);
-  const compact = (page.viewportSize()?.width ?? 0) < 900;
+  // The compaction boundary is the policy's, not a copy of its old literal (#111 drift).
+  const compact = isCompactViewport(page.viewportSize()?.width ?? 0);
   await expect(price).toHaveText('Cost: ' + costText(node.cost, compact));
   await price.scrollIntoViewIfNeeded(); await expect(price).toBeInViewport();
 });
