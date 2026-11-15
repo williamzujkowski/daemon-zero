@@ -129,6 +129,8 @@ font-scaling qualification. No standard-size layout finding remains.
 No Android/iOS/device, native screen-reader, actual browser zoom or human shopping/
 discoverability check was performed for this pilot. Optional prose is accessible
 through tested web keyboard/touch-sized controls, but that is not evidence of
-human preference or improved retention. Node-summary redesign and the larger
-rollout remain tracked in #84; its complete plan is not claimed finished.
+human preference or improved retention. The node-summary follow-up this pilot
+deferred is now implemented in PR #102 and measured in
+[REVIEW-NODE-SUMMARIES.md](REVIEW-NODE-SUMMARIES.md); the larger rollout and the
+human shopping/discoverability check remain tracked in #84.
 Screenshots are attached to the PR, not committed.

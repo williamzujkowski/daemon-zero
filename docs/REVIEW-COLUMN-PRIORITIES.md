@@ -39,3 +39,8 @@ large-text production tests also pass. Phase 4/5 node/action/cohort counters sta
 file scanner warning remains; no gate was weakened. No native test was run for
 this pass. A read-only independent review found no blocker and suggested moving
 the priority table to module scope, which was applied.
+
+A later slice (PR #102) places `DEAD_DROP_ENCODER_TAB` after the thermal/fan
+controls and the inspection countdown but before sensory chatter and the camera,
+so a contingency control a player must answer precedes optional recorded content.
+That ordering is likewise static: it never re-sorts on a tick or on affordability.
