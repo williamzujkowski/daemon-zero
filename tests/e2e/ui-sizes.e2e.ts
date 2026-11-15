@@ -138,6 +138,8 @@ test.describe('size matrix invariants', () => {
           // Pins the phone tiers, where two readouts share a row: above 500 they are
           // content-sized or stacked on purpose, and a short viewport packs differently
           // again. The measured win this protects is 360x640 and 390x844.
+          // Supported tiers only: 320 is tolerated and makes no shape promises, which is
+          // also why its strip budget is asserted only in the phase-1 state.
           if (isSupported(size) && size.width <= 500) {
             expect(geometry.tallReadouts, `${fixture} readouts wrapping past two lines at ${size.name}`).toBe(0);
           }
@@ -178,6 +180,22 @@ test.describe('tolerated tier below the supported floor', () => {
           expect(errors, `${fixture} console output at ${size.name}`).toEqual([]);
         } finally { await page.context().close(); }
       }
+    });
+  }
+});
+
+/** The chrome's state band, pinned in the states where it is just the meters. Alert
+ *  states carry extra readouts on purpose and are covered by tallReadouts instead. */
+test.describe('chrome state band', () => {
+  for (const [width, height] of [[320, 568], [360, 640], [390, 844], [414, 896]] as const) {
+    test(`${String(width)}x${String(height)} keeps the resource strip near one band`, async ({ browser }) => {
+      const { page } = await openState(browser, width, height, 'phase-1-widgets');
+      try {
+        const geometry = await page.evaluate(readGeometry);
+        // #139: abbreviated labels and a bare signed rate took 112 -> 78 at 320 and
+        // 103 -> 78 at 360 and 390.
+        expect(geometry.stripHeight, 'resource strip height').toBeLessThanOrEqual(90);
+      } finally { await page.context().close(); }
     });
   }
 });
