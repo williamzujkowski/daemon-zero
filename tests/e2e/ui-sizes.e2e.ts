@@ -5,6 +5,7 @@
 import type { Browser, Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
 import { boot, dismissBoot, expect, test } from './helpers';
+import { layoutFor } from '../../src/ui/layout';
 
 const sizes = [
   { name: 'small-phone', width: 320, height: 568 },
@@ -29,6 +30,7 @@ type Geometry = {
   paneHeights: number[];
   columns: boolean;
   mobileTabs: boolean;
+  widestCard: number;
   firstUnlockTop: number | null;
   firstUnlockVisible: boolean;
   forecastVisible: boolean;
@@ -60,6 +62,9 @@ function readGeometry(): Geometry {
       .map((element) => Math.round(element.getBoundingClientRect().height)),
     columns: browser.document.querySelector('[data-testid="terminal-columns"]') !== null,
     mobileTabs: browser.document.querySelector('[data-testid="terminal-tabs-scroll"]') !== null,
+    widestCard: Math.round(Math.max(0, ...[...browser.document.querySelectorAll('[data-testid]')]
+      .filter((element) => /^node-[A-Za-z0-9_]+$/.test(element.getAttribute('data-testid') ?? ''))
+      .map((element) => element.getBoundingClientRect().width))),
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockVisible: fullyVisible(first),
     forecastVisible: fullyVisible(forecast),
@@ -90,8 +95,10 @@ test.describe('size matrix invariants', () => {
           expect(geometry.undersized, `${fixture} controls under 44px at ${size.name}`).toEqual([]);
           expect(geometry.paneHeights.length, `${fixture} rendered no pane at ${size.name}`).toBeGreaterThan(0);
           for (const height of geometry.paneHeights) expect(height, `${fixture} collapsed pane at ${size.name}`).toBeGreaterThan(44);
-          expect(geometry.columns, `${fixture} column mode at ${size.name}`).toBe(size.width >= 900);
-          expect(geometry.mobileTabs, `${fixture} mobile tabs at ${size.name}`).toBe(size.width < 900);
+          const expected = layoutFor(size.width, size.height);
+          expect(geometry.columns, `${fixture} column mode at ${size.name}`).toBe(expected.mode !== 'mobile');
+          expect(geometry.mobileTabs, `${fixture} mobile tabs at ${size.name}`).toBe(expected.mode === 'mobile');
+          expect(geometry.widestCard, `${fixture} widest card at ${size.name}`).toBeLessThanOrEqual(expected.contentMaxWidth);
           expect(errors, `${fixture} console output at ${size.name}`).toEqual([]);
         } finally { await page.context().close(); }
       }

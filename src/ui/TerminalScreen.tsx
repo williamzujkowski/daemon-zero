@@ -31,19 +31,26 @@ import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
+import { layoutFor, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { UtilityFocusProvider } from './UtilityFocus';
 
-function ThirdColumn({ slots }: { slots: string[] }) {
+/** One tabbed side column: whichever of the permitted slots exist, one at a time.
+ *  The tablet tier passes every non-core slot so a narrow panel still reaches all
+ *  of them (#103 gap 4); the desktop tier keeps the network/corporate pair, which
+ *  is all its flex share was ever sized for. */
+function SideColumn({ slots, allowed, flex, minWidth, testID }: {
+  slots: string[]; allowed: readonly string[]; flex: number; minWidth: number; testID: string;
+}) {
   const phase = useGame((game) => game.currentPhase);
   const preferred = phase >= CONTENT.balance.corporatePhase ? 'CORP' : 'NETWORK';
   const [selection, select] = useState<{ phase: number; slot: string }>({ phase, slot: preferred });
   if (selection.phase !== phase) select({ phase, slot: preferred });
-  const available = slots.filter((slot) => slot === 'NETWORK' || slot === 'CORP');
-  const active = available.some((slot) => slot === selection.slot) ? selection.slot : available[0] ?? 'NETWORK';
+  const available = slots.filter((slot) => allowed.includes(slot));
+  const active = available.some((slot) => slot === selection.slot) ? selection.slot : available[0] ?? '';
   if (available.length === 0) return null;
-  return <View style={[styles.third, { flex: 2 }]}>
+  return <View testID={testID} style={[styles.third, { flex, minWidth }]}>
     <Tabs slots={available} active={active} select={(slot) => { select({ phase, slot }); }} />
-    {available.length > 0 && <Pane slots={[active]} />}
+    <Pane slots={[active]} />
   </View>;
 }
 
@@ -56,7 +63,8 @@ export default function TerminalScreen() {
 }
 
 function Terminal() {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const layout = layoutFor(width, height);
   const ids = useWidgetIds();
   const slots = ['CORE', ...new Set(ids.flatMap((id) => CONTENT.widgets.get(id)?.slot ?? []).filter((slot) => slot !== 'CORE'))];
   const phase = useGame((game) => game.currentPhase);
@@ -69,12 +77,18 @@ function Terminal() {
   if (ended) return <View style={styles.screen}><EndingScreen /></View>;
   return <View testID="terminal-screen" aria-busy={!ready} style={styles.screen}>
     <StatusBar barStyle="light-content" />
-    {width >= 900 ? <><TerminalChrome /><View testID="terminal-columns" style={styles.columns}>
-      <View style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: 0 }}><Pane slots={['CORE']} /></View>
-      {slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') && <Pane slots={['SENSORS', 'CONTINGENCY']} />}
-      <ThirdColumn slots={slots} />
-    </View></> : <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
-      select={(slot) => { select({ phase, slot }); }} horizontal />}><TerminalChrome /></MobileTerminal>}
+    {layout.mode === 'mobile'
+      ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
+        select={(slot) => { select({ phase, slot }); }} horizontal />}><TerminalChrome /></MobileTerminal>
+      : <><TerminalChrome /><View testID="terminal-columns" style={styles.columns}>
+        <View style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: 0 }}><Pane slots={['CORE']} /></View>
+        {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
+          <Pane slots={['SENSORS', 'CONTINGENCY']} />}
+        {layout.threeColumns
+          ? <SideColumn testID="panel-third" slots={slots} allowed={['NETWORK', 'CORP']} flex={2} minWidth={0} />
+          : <SideColumn testID="panel-side" slots={slots}
+            allowed={['SENSORS', 'CONTINGENCY', 'NETWORK', 'CORP']} flex={1} minWidth={SIDE_COLUMN_MIN_WIDTH} />}
+      </View></>}
     <DilemmaModal />
     <PhaseThreshold />
     <LineageReveal />
