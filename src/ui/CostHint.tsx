@@ -19,5 +19,10 @@ export default function CostHint({ cost }: { cost: Cost }) {
       capital: Math.ceil(missing.capital), memory: Math.ceil(missing.memory) };
   }));
   const full = costText(missing);
-  return full === 'Free' ? null : <Text accessibilityLabel={'Need: ' + full} style={theme.muted}>Need: {costText(missing, compact)}</Text>;
+  // 'Need' beside the card's 'Cost' read as a second price when this is the SHORTFALL
+  // (costShortfall, quantized so it does not tick). Measured while playing: 'Cost: 40
+  // cycles' next to 'Need: 34 cycles' invited a second read. The accessible name keeps the
+  // whole sentence; the visible copy says 'short by' so the two numbers cannot be confused.
+  return full === 'Free' ? null
+    : <Text accessibilityLabel={'Short by ' + full + ' at the current rate'} style={theme.muted}>Short by {costText(missing, compact)}</Text>;
 }

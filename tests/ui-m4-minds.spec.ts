@@ -44,7 +44,9 @@ describe('M4 Other Minds', () => {
     expect(gameStore.store.getState().game.trust.ai_eidolon).toBe(0);
     act(() => { gameStore.initialize({ ...m4State('eidolon-trust-85'), cycles: 0, understanding: 0, memoryCap: 0 }, 0, null); });
     view.click('workspace-NETWORK-minds');
-    expect(view.find('faction-ai_eidolon')?.textContent).toContain('Need:');
+    // The shortfall used to read 'Need:', which sat beside the card's 'Cost:' and looked
+    // like a second price; it now says 'short by'.
+    expect(view.find('faction-ai_eidolon')?.textContent).toContain('Short by');
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('MB');
     view.close();
   });
