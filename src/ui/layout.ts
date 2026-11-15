@@ -14,12 +14,19 @@ export const MOBILE_MAX_WIDTH = 767;
  *  as a dead zone of phone layout on tablet-width glass (#103 gap 4). */
 export const COLUMN_MIN_WIDTH = 768;
 
-/** From here the third column earns its space; below it the panel is two columns. */
-export const THREE_COLUMN_MIN_WIDTH = 900;
+/** From here the third column earns its space. Three columns need three floors:
+ *  a 340px CORE, and one per supporting column — 1020px of floors plus room for
+ *  the core to breathe, so 1080 is the first width where the split is honest
+ *  (#103 gap 5, corrected after measurement showed a 225px CORE at 900). */
+export const THREE_COLUMN_MIN_WIDTH = 1080;
 
 /** A short viewport keeps the single scroll even when it is wide: height, not
  *  width, is what a landscape phone lacks, and that is the separate #103 gap 1. */
 export const SHORT_VIEWPORT_MAX_HEIGHT = 599;
+
+/** Narrowest the core column may be before the panel drops a tier; below it a
+ *  card cannot hold a readable line (340px is about 40 characters). */
+export const CORE_COLUMN_MIN_WIDTH = 340;
 
 /** Narrowest the supporting column may be before the core column gives way
  *  (#103 gap 5: it was 225-300px, roughly 200-260px of content). */
@@ -33,13 +40,15 @@ export const CONTENT_MAX_WIDTH = 760;
 export type LayoutMode = 'mobile' | 'tablet' | 'desktop';
 
 /**
- * Caption compaction boundary: below the three-column tier the core column is at
- * most two thirds of the viewport, so costs and resources abbreviate. Kept here
- * so the four components that need it read one number instead of four copies of
- * `width < 900` (docs/UI-SIZES.md, Limits).
+ * Caption compaction boundary. Independent of the tier boundary on purpose: the
+ * core column is at most two thirds of the viewport below it, so costs and
+ * resources abbreviate. One constant so the four components that need it read one
+ * number instead of four copies of `width < 900` (docs/UI-SIZES.md, Limits).
  */
+export const COMPACT_CAPTION_MAX_WIDTH = 900;
+
 export function isCompactViewport(width: number): boolean {
-  return width < THREE_COLUMN_MIN_WIDTH;
+  return width < COMPACT_CAPTION_MAX_WIDTH;
 }
 
 export interface TerminalLayout {
