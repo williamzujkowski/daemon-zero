@@ -7,6 +7,7 @@ import { StyleSheet, useWindowDimensions } from 'react-native';
 import { useGame, useSurveillanceKnown } from './state';
 import { resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { theme } from './theme';
+import { isCompactViewport } from './layout';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { compactNumber } from './compactNumber';
@@ -31,7 +32,7 @@ function Amount({ resource, compact }: { resource: Resource; compact: boolean })
 }
 
 export default function ResourceStrip() {
-  const compact = useWindowDimensions().width < 900;
+  const compact = isCompactViewport(useWindowDimensions().width);
   const thermalKnown = useGame((game) => game.unlockedWidgets.includes(thermalWidget));
   const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
   const known = useSurveillanceKnown();

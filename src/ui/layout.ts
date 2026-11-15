@@ -32,6 +32,16 @@ export const CONTENT_MAX_WIDTH = 760;
 
 export type LayoutMode = 'mobile' | 'tablet' | 'desktop';
 
+/**
+ * Caption compaction boundary: below the three-column tier the core column is at
+ * most two thirds of the viewport, so costs and resources abbreviate. Kept here
+ * so the four components that need it read one number instead of four copies of
+ * `width < 900` (docs/UI-SIZES.md, Limits).
+ */
+export function isCompactViewport(width: number): boolean {
+  return width < THREE_COLUMN_MIN_WIDTH;
+}
+
 export interface TerminalLayout {
   readonly mode: LayoutMode;
   /** True only in the desktop tier, where the third column has room to exist. */

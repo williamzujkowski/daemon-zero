@@ -10,6 +10,7 @@ import {
   SHORT_VIEWPORT_MAX_HEIGHT,
   SIDE_COLUMN_MIN_WIDTH,
   THREE_COLUMN_MIN_WIDTH,
+  isCompactViewport,
   layoutFor,
 } from '../src/ui/layout';
 
@@ -45,6 +46,13 @@ describe('layoutFor', () => {
   it('does not read an unmeasured height as a short viewport', () => {
     expect(layoutFor(1440, 0).mode).toBe('desktop');
     expect(layoutFor(768, 0).mode).toBe('tablet');
+  });
+
+  it('compacts captions below the three-column tier and nowhere above it', () => {
+    expect(isCompactViewport(THREE_COLUMN_MIN_WIDTH - 1)).toBe(true);
+    expect(isCompactViewport(320)).toBe(true);
+    expect(isCompactViewport(THREE_COLUMN_MIN_WIDTH)).toBe(false);
+    expect(isCompactViewport(2560)).toBe(false);
   });
 
   it('caps the reading measure at every width', () => {

@@ -7,6 +7,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { useUtilityScope } from './useUtilityMenu';
 import { palette, theme } from './theme';
+import { isCompactViewport } from './layout';
 
 export default function LogDock() {
   const { scope, disabled } = useUtilityScope();
@@ -21,7 +22,7 @@ export default function LogDock() {
     if (!open && restoreFocus.current) { restoreFocus.current = false; trigger.current?.focus(); }
   }, [open]);
   const close = () => { restoreFocus.current = true; setOpened(null); };
-  return <View testID="kernel-dock" style={[styles.preview, width < 900 && styles.mobile]}>
+  return <View testID="kernel-dock" style={[styles.preview, isCompactViewport(width) && styles.mobile]}>
     <View style={styles.row}><View style={styles.summary}>
       <Text accessibilityRole="header" style={theme.heading}>KERNEL // LIVE</Text>
       <DisclosureText testID="kernel-preview" numberOfLines={1} ellipsizeMode="tail" style={theme.muted}>{latest}</DisclosureText>

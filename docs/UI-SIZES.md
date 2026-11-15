@@ -134,7 +134,8 @@ the project.
   and committed PNG baselines would break the repository's no-screenshots rule.
 - The three sampled states are engine-played saves, not a human playthrough, and
   "above the fold" is measured at the initial scroll position only.
-- Caption compaction (`CostHint`, `ResourceStrip`, `NodeCard`, `LogDock`) still keys
-  on `width < 900`, so the 768-899 two-column tier renders compact captions even
-  where the core column has room for full text. Harmless today; recorded so it is not
-  mistaken for a second layout policy.
+- Caption compaction (`CostHint`, `ResourceStrip`, `NodeCard`, `LogDock`) reads
+  `isCompactViewport(width)` from the policy module — the same 900px three-column
+  boundary — so the 768-899 two-column tier renders compact captions even where the
+  core column has room for full text. That is deliberate: below the three-column
+  tier the core column is at most two thirds of the viewport.
