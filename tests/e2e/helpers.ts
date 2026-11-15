@@ -56,3 +56,26 @@ export async function openSave(page: Page): Promise<void> {
   await page.getByTestId('menu-open').click();
   await page.getByTestId('save-open').click();
 }
+
+/** Decoded-media probe shared by the soundtrack specs: counts players and exposes the
+ *  live state of the most recent one, without which "playing" would be a DOM guess. */
+export interface MusicMedia { currentTime: number; duration: number; paused: boolean; loop: boolean; src: string }
+export async function observeMusicMedia(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const browser = globalThis as unknown as { Audio: new (source?: string) => object; __musicMedia: object[] };
+    const OriginalAudio = browser.Audio;
+    browser.__musicMedia = [];
+    browser.Audio = class extends OriginalAudio {
+      constructor(source?: string) { super(source); browser.__musicMedia.push(this); }
+    };
+  });
+}
+export async function musicMediaState(page: Page) {
+  return page.evaluate(() => {
+    const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+    const current = media.at(-1);
+    return { count: media.length, active: media.filter((item) => !item.paused && item.src.includes('.mp3')).length,
+      source: current?.src ?? '', time: current?.currentTime ?? 0, duration: current?.duration ?? 0,
+      loop: current?.loop ?? false, paused: current?.paused ?? true };
+  });
+}

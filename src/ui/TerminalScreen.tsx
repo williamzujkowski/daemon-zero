@@ -75,7 +75,13 @@ function Terminal() {
     // The DOM lib is not in this tsconfig (see src/ui/focusRing.ts for the same dance).
     const doc = (globalThis as unknown as { document?: Parameters<typeof attachMusicGestureResume>[1] }).document;
     if (!doc) return;
-    return attachMusicGestureResume(() => { music.resume(); }, doc);
+    const detach = attachMusicGestureResume(() => { music.resume(); }, doc);
+    // Detach on activation, not on the first gesture. A gesture that arrives before the
+    // stored preference loads cannot start anything, and dropping the listener then
+    // would leave a default-on install silent until the player found the MENU switch.
+    if (music.state.getState().activated) detach();
+    const unsubscribe = music.state.subscribe((state) => { if (state.activated) detach(); });
+    return () => { unsubscribe(); detach(); };
   }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
