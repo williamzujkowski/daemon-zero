@@ -29,9 +29,42 @@ and a paused clock.
 Sampled states: `phase-1-widgets` (early, forecast active), `epistemic-ready-p2`
 (dense mid-game purchase pane) and `corporate-insolvent` (red alert plus a warning).
 
+## Supported floor
+
+Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
+`supported-360-tolerate-320-fix-margin`): the smallest screen this game *claims* is
+**360x640**. Below that it is tolerated, not supported.
+
+| Tier | Sizes | What is promised | What is asserted |
+|---|---|---|---|
+| Supported | 360 wide and 640 tall, and up | everything in the contract below, including budgets and above-the-fold placement | the full matrix |
+| Tolerated | 320x568 (and any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
+| Undefined | under 320 | nothing | nothing |
+
+The evidence, measured on the served export — first purchase control against the
+*usable* fold (the tab bar's top edge, which is where a phone's content really ends):
+
+| Viewport | first purchase | usable fold | result |
+|---|---|---|---|
+| 320x568 | 546-590 | 523 | **67px below** in all three sampled states |
+| 360x640 | 550-594 | 595 | clears by 1px |
+| 375x667 | 531-575 | 622 | 47px spare |
+| 390x844 | 531-575 | 799 | comfortable |
+
+320 is the iPhone SE 1st-generation / 2016-era Android class and the WCAG 1.4.10
+reflow width, which is why it stays *tolerated* rather than dropped: deleting its
+special cases risks overflow at the reference width. It has already cost the below-360
+header band (#133) and the phone art fold (#134) and still misses by 67px, so further
+increments are not spent on it by default.
+
+360 clearing by 1px is not margin, it is a coin flip: the next control added to the
+header re-breaks it. Widening that margin is the outstanding work on this tier.
+
 ## Contract
 
-Holds at every size, asserted by the matrix spec:
+Holds at every **supported** size (360x640 and up), asserted by the matrix spec. The
+tolerated tier below the floor is asserted for the first three items only, which is
+exactly what it promises:
 
 - No document-level horizontal overflow.
 - Every visible button/tab is at least 44x44 CSS px (project standard; WCAG 2.5.8

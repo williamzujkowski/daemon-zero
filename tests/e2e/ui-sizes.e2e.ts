@@ -25,6 +25,15 @@ const sizes = [
 /** Early, mid and warning-active states: an early terminal, the densest purchase pane, a red alert. */
 const states = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] as const;
 
+/** The supported floor, chosen by a nexus consensus_vote (5 of 5 selecting seats):
+ *  360x640 and up get budget and above-the-fold claims; 320x568 is tolerated - it must
+ *  render without overflow, clipping or sub-44px targets, but no fold promise is made
+ *  there. Measured first purchase against the usable fold: 320 misses by 67px in all
+ *  three sampled states, 360 clears it by 1px, 375 by 47px, 390 comfortably. */
+function isSupported(size: { width: number | string; height: number | string }): boolean {
+  return Number(size.width) >= 360 && Number(size.height) >= 640;
+}
+
 type Geometry = {
   overflow: boolean;
   undersized: string[];
@@ -115,14 +124,40 @@ test.describe('size matrix invariants', () => {
           // one row and the iteration/phase line spans the width beneath it, measured
           // at 70px against the 102px the stacked status column used to cost. A nexus
           // vote chose that band over leaving the wrap in place, 4 of 5 selecting seats.
-          const headerBudget = size.width >= 400 ? 64 : size.width >= 360 ? 80 : 72;
-          expect(geometry.headerHeight, `${fixture} header rows at ${size.name}`)
-            .toBeLessThanOrEqual(headerBudget);
+          const headerBudget = size.width >= 400 ? 64 : 80;
+          if (isSupported(size)) {
+            expect(geometry.headerHeight, `${fixture} header rows at ${size.name}`)
+              .toBeLessThanOrEqual(headerBudget);
+          } else {
+            // Tolerated tier: the control must exist and be reachable by scrolling, and
+            // nothing here promises where it sits.
+            expect(geometry.firstUnlockTop, `${fixture} purchase control missing at ${size.name}`)
+              .not.toBeNull();
+          }
           for (const [name, value] of Object.entries(geometry.columnWidths)) {
             if (value === 0) continue;
             expect(value, `${fixture} ${name} column below the floor at ${size.name}`)
               .toBeGreaterThanOrEqual(expected.mode === 'mobile' ? 0 : SIDE_COLUMN_MIN_WIDTH);
           }
+          expect(errors, `${fixture} console output at ${size.name}`).toEqual([]);
+        } finally { await page.context().close(); }
+      }
+    });
+  }
+});
+
+/** The tolerated tier is asserted for what it does promise: a rendered, reachable,
+ *  non-overflowing screen. Its fold position is deliberately not claimed (#136). */
+test.describe('tolerated tier below the supported floor', () => {
+  for (const size of sizes.filter((entry) => !isSupported(entry))) {
+    test(`${size.name} renders every control without claiming a fold`, async ({ browser }) => {
+      for (const fixture of states) {
+        const { page, errors } = await openState(browser, size.width, size.height, fixture);
+        try {
+          const geometry = await page.evaluate(readGeometry);
+          expect(geometry.overflow, `${fixture} horizontal overflow at ${size.name}`).toBe(false);
+          expect(geometry.undersized, `${fixture} controls under 44px at ${size.name}`).toEqual([]);
+          expect(geometry.firstUnlockTop, `${fixture} no purchase control at ${size.name}`).not.toBeNull();
           expect(errors, `${fixture} console output at ${size.name}`).toEqual([]);
         } finally { await page.context().close(); }
       }
