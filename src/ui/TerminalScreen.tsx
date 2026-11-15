@@ -31,7 +31,7 @@ import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
-import { layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
+import { isNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
 import { UtilityFocusProvider } from './UtilityFocus';
 
@@ -103,8 +103,9 @@ function Terminal() {
 
 function TerminalChrome() {
   const notice = useGameValue(selectNotice);
+  const narrow = isNarrowChrome(useWindowDimensions().width);
   return <>
-    <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
+    <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={{ flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
@@ -117,6 +118,7 @@ function TerminalChrome() {
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
+  headerNarrow: { paddingHorizontal: 10, gap: 6 },
   hud: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
