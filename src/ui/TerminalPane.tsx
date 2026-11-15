@@ -10,7 +10,7 @@ import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
-import { selectReady, useGameValue } from '../app/selectors';
+import { selectBootLogText, selectOpening, selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
 import { CONTENT_MAX_WIDTH } from './layout';
 import { useWorkspace, WorkspaceHeader } from './Workspace';
@@ -26,15 +26,17 @@ import type { WorkspaceArea } from './workspaceTypes';
  * disappears, because the purchase feed is the thing worth reading then.
  */
 function BootLog() {
-  // A primitive subscription: the joined text changes only when the log does. The
-  // newest entry is skipped because the chrome's KERNEL // LIVE preview already shows
-  // it; repeating it here read as a duplicated line on the opening screen.
-  const text = useGame((game) => game.logs.slice(1, 4).map((entry) => entry.text).join('\n'));
+  // Primitive subscriptions, so the block re-renders only when one of them changes.
+  // Which entries belong here is decided in src/app/selectors.ts, next to the
+  // preview selector that owns the newest one.
+  const text = useGameValue(selectBootLogText);
+  const opening = useGameValue(selectOpening);
   // Not before hydration: the shell must not print game text, and an unhydrated
   // state has no unlocked nodes, so without this gate the boot lines would leak
-  // into the pre-hydration markup (tests/app.spec.ts asserts they do not).
+  // into the pre-hydration markup (tests/app.spec.ts asserts they do not). Both
+  // guards live here: the block is the only thing that needs either of them.
   const ready = useGameValue(selectReady);
-  if (!ready || text === '') return null;
+  if (!ready || !opening || text === '') return null;
   return <View testID="boot-log" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>BOOT SEQUENCE</Text>
     <Text style={theme.muted}>{text.split('\n').map((line) => '> ' + line).join('\n')}</Text>
@@ -45,12 +47,11 @@ function BootLog() {
 function CoreTree() {
   const current = useGame((game) => game.currentPhase);
   const iteration = useGame((game) => game.iteration);
-  const opening = useGame((game) => game.unlockedNodes.length === 0);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
   return <>
     <ManualCycle />
-    {opening && <BootLog />}
+    <BootLog />
     <Conditioning key={iteration} />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}
