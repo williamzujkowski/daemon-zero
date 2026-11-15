@@ -24,11 +24,14 @@ it('opens current-phase work on mobile and follows phase changes without overrid
   expect(view.find('tab-CORP')?.getAttribute('aria-selected')).toBe('true');
   expect(view.find('workspace-CORP-work')?.getAttribute('aria-selected')).toBe('true');
   const before = gameStore.store.getState().game;
-  view.click('kernel-size-toggle');
-  expect(view.find('kernel-size-toggle')?.getAttribute('aria-expanded')).toBe('true');
-  expect(view.find('kernel-history')).not.toBeNull();
-  view.click('kernel-close');
-  expect(view.find('kernel-history')).toBeNull();
+  // The phone tier opens history from the utility menu: the band it used to carry set a
+  // 57px floor from its 44px tap target that the first purchase could not afford
+  // (vote: menu-route-drops-the-band, 6 of 6 selecting).
+  view.click('menu-open');
+  view.click('menu-kernel');
+  expect(view.find('menu-kernel-log')).not.toBeNull();
+  view.click('menu-close');
+  expect(view.find('menu-kernel-log')).toBeNull();
   expect(gameStore.store.getState().game).toBe(before);
 });
 

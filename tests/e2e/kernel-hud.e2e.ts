@@ -1,9 +1,17 @@
 /** One-line live events preserve disclosure and full keyboard-accessible history. */
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { test, expect, boot, dismissBoot, readSave, openKernelHistory, closeKernelHistory } from './helpers';
 
 test('boot previews one latest entry and expands complete history with focus return', async ({ page }) => {
   await boot(page);
   const state = await readSave(page), logs = state.logs as { text: string }[];
+  if (await page.getByTestId('kernel-preview').count() === 0) {
+    // Phone tier: no band to preview in; the newest entry reads in the menu's log page.
+    const tier = await openKernelHistory(page);
+    expect(tier).toBe('menu');
+    await expect(page.getByTestId('menu-kernel-log')).toContainText(logs.at(-1)?.text ?? '');
+    await closeKernelHistory(page, tier);
+    return;
+  }
   await expect(page.getByTestId('kernel-preview')).toHaveText(logs[0]?.text ?? '');
   await expect(page.getByTestId('kernel-log')).toHaveCount(0);
   const expand = page.getByTestId('kernel-size-toggle');
@@ -32,8 +40,8 @@ test('centers menu and keeps sensor units and context consolidated after unlocki
   expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
   expect(Math.abs(box.y + box.height / 2 - viewport.height / 2)).toBeLessThanOrEqual(1);
   await page.keyboard.press('Escape');
-  await page.getByTestId('kernel-size-toggle').click();
-  await page.getByTestId('kernel-close').click();
-  await expect(page.getByTestId('kernel-size-toggle')).toBeFocused();
+  const tier = await openKernelHistory(page);
+  await closeKernelHistory(page, tier);
+  if (tier === 'band') await expect(page.getByTestId('kernel-size-toggle')).toBeFocused();
   expect(await readSave(page)).toEqual(state);
 });

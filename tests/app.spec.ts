@@ -16,9 +16,16 @@ describe('app shell server render', () => {
     expect(firstEntry?.text).toBe(CONTENT.narrative.bootLines[0]);
     const markup = renderToStaticMarkup(createElement(App));
     expect(markup).not.toContain(firstEntry?.text);
-    expect(markup).toContain(initial.logs[0]?.text);
+    // Nothing log-shaped renders before hydration on the phone tier: the opening boot log
+    // is gated on selectReady (#130) and the kernel band only exists above the mobile
+    // layout (vote: menu-route-drops-the-band). The leak guard is the point of the test.
+    expect(markup).not.toContain('data-testid="boot-log"');
+    expect(markup).not.toContain('data-testid="kernel-dock"');
     expect(markup).toContain('data-testid="terminal-screen"');
-    expect(markup).toContain('data-testid="kernel-preview"');
+    // The kernel band renders only above the mobile layout; a phone opens the history
+    // from the utility menu instead (vote: menu-route-drops-the-band).
+    expect(markup).not.toContain('data-testid="kernel-dock"');
+    expect(markup).toContain('data-testid="menu-open"');
     expect(markup).not.toContain('data-testid="resource-strip"');
     expect(markup).toContain('aria-disabled="true"');
   });

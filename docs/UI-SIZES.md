@@ -212,13 +212,23 @@ back entirely for the insolvency state.
 
 ### Still open
 
-1. **Narrow phones and short landscape still lose the decision.** At 360x640 the
-   opening and mid-game states clear the viewport (mid-game 584-628), but mid-game still
-   sits below the 595px usable fold - the tab bar's top edge - by about 33px, and the
-   insolvency state starts at 751. 320x568 and 844x390 remain the tolerated tier and make
-   no above-the-fold promise. The header at 320 is 70px since #133 (it had wrapped to
-   102px before the two-row treatment); the older "102-111px" figure in this section was
-   stale and is removed rather than re-measured here.
+1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
+   At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
+   phone tier, mid-game does too: the band's 57px took the first purchase from 584-628 to
+   inside the usable fold. The insolvency state still starts at 751 and is accepted as a
+   scroll with a pinned warning. 320x568 and 844x390 remain the tolerated tier and make no
+   above-the-fold promise. The header at 320 is 70px since #133; the older "102-111px"
+   figure in this section was stale and is removed rather than re-measured here.
+
+   The kernel band was the last removable term above the purchase, and it could not be
+   compressed instead: the band is 57px (12px padding plus a 45px row), and that row is
+   dominated by its 44px tap target, so a one-line variant saves 1px and dropping the
+   target below 44px would break the touch minimum. A nexus vote (6 of 6 selecting,
+   `menu-route-drops-the-band`) therefore moved the history into the utility menu as a
+   Kernel log page, which costs no chrome, and the band now renders only above the mobile
+   layout. The claim is asserted by the `mid-game at the floor` case in
+   `tests/e2e/ui-sizes.e2e.ts`: the first purchase ends above the tab bar, the band is
+   absent, and the menu still opens the same `KernelLog`.
 2. **An active red alert is still below the fold, but only just.** The insolvency
    warning sits at 580px against a 568px viewport at 320x568, and 375px against 390
    at 844x390 — inside, for the first time, after the strip compaction. At 320 it is

@@ -206,6 +206,34 @@ test.describe('insolvency at the floor', () => {
   });
 });
 
+/** The mid-game state at the floor. The kernel dock band was dropped on the phone tier and
+ *  its history moved into the utility menu, because the band's 44px tap target set a 57px
+ *  floor that no line compression could beat (measured: a one-line variant saves 1px).
+ *  Vote: menu-route-drops-the-band, 6 of 6 selecting. This pins both halves: the purchase
+ *  inside the usable fold, and the history still reachable from the phone tier. */
+test.describe('mid-game at the floor', () => {
+  test('puts the first purchase inside the usable fold and keeps the log reachable', async ({ browser }) => {
+    const { page } = await openState(browser, 360, 640, 'epistemic-ready-p2');
+    try {
+      const geometry = await page.evaluate(() => {
+        const browser = globalThis as unknown as Window;
+        const control = browser.document.querySelector('[data-testid$="-unlock"]');
+        const tabs = browser.document.querySelector('[data-testid="terminal-tabs"]');
+        if (!control || !tabs) return null;
+        const box = control.getBoundingClientRect();
+        return { purchaseBottom: Math.round(box.bottom), usableFold: Math.round(tabs.getBoundingClientRect().top) };
+      });
+      expect(geometry, 'purchase and tab bar measured').not.toBeNull();
+      expect(geometry?.purchaseBottom ?? 0, 'purchase ends above the tab bar').toBeLessThanOrEqual(geometry?.usableFold ?? 0);
+      // The band is gone on the phone tier, and the menu still opens the history.
+      await expect(page.getByTestId('kernel-dock')).toHaveCount(0);
+      await page.getByTestId('menu-open').click();
+      await page.getByTestId('menu-kernel').click();
+      await expect(page.getByTestId('menu-kernel-log')).toBeVisible();
+    } finally { await page.context().close(); }
+  });
+});
+
 /** The tolerated tier is asserted for what it does promise: a rendered, reachable,
  *  non-overflowing screen. Its fold position is deliberately not claimed (#136). */
 test.describe('tolerated tier below the supported floor', () => {

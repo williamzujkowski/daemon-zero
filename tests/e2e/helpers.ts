@@ -3,6 +3,25 @@ import { expect, test as base, type Page } from '@playwright/test';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize } from '../../src/engine';
+/**
+ * The phone tier has no kernel band - its 44px tap target set a 57px floor the first
+ * purchase could not afford - so history opens from the utility menu there, while the
+ * wider tiers keep the dock. Callers use these and stay tier-agnostic.
+ */
+export async function openKernelHistory(page: Page): Promise<'band' | 'menu'> {
+  if (await page.getByTestId('kernel-size-toggle').count() > 0) {
+    await page.getByTestId('kernel-size-toggle').first().click();
+    return 'band';
+  }
+  await page.getByTestId('menu-open').click();
+  await page.getByTestId('menu-kernel').click();
+  return 'menu';
+}
+
+export async function closeKernelHistory(page: Page, opened: 'band' | 'menu'): Promise<void> {
+  await page.getByTestId(opened === 'band' ? 'kernel-close' : 'menu-close').click();
+}
+
 interface BrowserStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
 const fixtures = makeFixtures();
 

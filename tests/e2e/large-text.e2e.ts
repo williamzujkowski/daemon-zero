@@ -2,7 +2,7 @@
 import type { Locator, Page } from '@playwright/test';
 import type { HTMLElement, Window } from 'happy-dom';
 import { CONTENT } from '../../src/content';
-import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave, openKernelHistory, closeKernelHistory } from './helpers';
 
 async function doubleText(page: Page): Promise<void> {
   // Controlled text-only stress; this is deliberately not labelled browser/native zoom.
@@ -63,10 +63,10 @@ test('200% text preserves an Operations purchase plus save, log and navigation a
   expect(Number(after.memoryCap)).toBe(Number(before.memoryCap) + action.effects.memoryCapIncrease);
   await reachable(page.getByTestId('menu-open')); await openSave(page);
   await page.getByTestId('save-close').click();
-  await reachable(page.getByTestId('kernel-size-toggle')); await page.getByTestId('kernel-size-toggle').click();
-  await expect(page.getByTestId('kernel-history')).toBeVisible();
-  await reachable(page.getByTestId('kernel-close')); await page.getByTestId('kernel-close').click();
-  await expect(page.getByTestId('kernel-size-toggle')).toBeFocused();
+  const tier = await openKernelHistory(page);
+  await expect(page.getByTestId(tier === 'band' ? 'kernel-history' : 'menu-kernel-log')).toBeVisible();
+  await closeKernelHistory(page, tier);
+  if (tier === 'band') await expect(page.getByTestId('kernel-size-toggle')).toBeFocused();
   await reachable(page.getByTestId('workspace-NETWORK-work')); await page.getByTestId('workspace-NETWORK-work').click();
   await expect(page.getByTestId('workspace-NETWORK-work')).toHaveAttribute('aria-selected', 'true');
   await noHorizontalScroll(page);
