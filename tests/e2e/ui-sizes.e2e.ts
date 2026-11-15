@@ -110,11 +110,12 @@ test.describe('size matrix invariants', () => {
           expect(geometry.mobileTabs, `${fixture} mobile tabs at ${size.name}`).toBe(expected.mode === 'mobile');
           expect(geometry.widestCard, `${fixture} widest card at ${size.name}`).toBeLessThanOrEqual(expected.contentMaxWidth);
           // The header holds one row (64px) from 400 up. Between 360 and 399 it can
-          // reach 80px when the run status takes a second line, and at 320 three
-          // labelled controls plus the title cannot share a row at the 44pt touch
-          // minimum, so it wraps to 102-111px. That wrap is still the largest term
-          // above the first purchase control at 320 (docs/UI-SIZES.md, levers).
-          const headerBudget = size.width >= 400 ? 64 : size.width >= 360 ? 80 : 120;
+          // reach 80px when the run status takes a second line. Below 360 the header
+          // is two rows on purpose (isVeryNarrowChrome): the title, PROC and MENU share
+          // one row and the iteration/phase line spans the width beneath it, measured
+          // at 70px against the 102px the stacked status column used to cost. A nexus
+          // vote chose that band over leaving the wrap in place, 4 of 5 selecting seats.
+          const headerBudget = size.width >= 400 ? 64 : size.width >= 360 ? 80 : 72;
           expect(geometry.headerHeight, `${fixture} header rows at ${size.name}`)
             .toBeLessThanOrEqual(headerBudget);
           for (const [name, value] of Object.entries(geometry.columnWidths)) {

@@ -32,7 +32,7 @@ import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
-import { isNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
+import { isNarrowChrome, isVeryNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
 import { UtilityFocusProvider } from './UtilityFocus';
 
@@ -104,14 +104,20 @@ function Terminal() {
 
 function TerminalChrome() {
   const notice = useGameValue(selectNotice);
-  const narrow = isNarrowChrome(useWindowDimensions().width);
+  const width = useWindowDimensions().width;
+  const narrow = isNarrowChrome(width);
+  // Below 360 the status column cannot sit beside the controls without wrapping into
+  // five lines (measured: 102px header against 64px from 360 up), so it moves to its
+  // own full-width row instead of squeezing the title.
+  const veryNarrow = isVeryNarrowChrome(width);
   // axe's best-practice `region` rule wants every block inside a landmark: the
   // chrome (header, HUD, forecast, notices) had none, so four blocks per screen sat
   // outside every landmark while the panes were already inside `main`. One labelled
   // region covers them; the panes stay in `main`.
   return <View role="region" aria-label="Terminal status">
-    <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={{ flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
-      <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
+    <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={veryNarrow ? styles.titlePlain : { flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>{veryNarrow ? 'DAEMON//0' : 'DAEMON // 0'}</Text>
+      {!veryNarrow && <><CheckpointLabel /><RunStatus /></>}</View><ProcessManager /><GameMenu /><DevelopmentTools />
+      {veryNarrow && <View testID="header-status" style={styles.statusRow}><CheckpointLabel /><RunStatus /></View>}</View>
     {/* #125: the run-ending alerts belong to the chrome, not to one workspace. */}
     <CorporateAlerts />
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
@@ -126,6 +132,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
   headerNarrow: { paddingHorizontal: 10, gap: 6 },
+  // The title yields the row's spare width and the status line takes a full row
+  // below, so the title and both controls share one line and the header stops at the
+  // 64-70px the wider tiers already achieve.
+  titlePlain: { flexGrow: 1, flexBasis: 0, minWidth: 0 },
+  statusRow: { flexBasis: '100%', flexDirection: 'row', columnGap: 8, alignItems: 'center' },
   hud: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', borderBottomWidth: 1, borderColor: palette.border },
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },

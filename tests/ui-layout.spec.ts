@@ -3,7 +3,7 @@
  * through the browser matrix (#103 gaps 4-6).
  */
 import { describe, expect, it } from 'vitest';
-import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, isCompactViewport, isNarrowChrome, isShortViewport, layoutFor } from '../src/ui/layout';
+import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, VERY_NARROW_CHROME_MAX_WIDTH, isCompactViewport, isNarrowChrome, isShortViewport, isVeryNarrowChrome, layoutFor } from '../src/ui/layout';
 
 describe('layoutFor', () => {
   it('keeps a phone in the single-scroll layout', () => {
@@ -64,6 +64,13 @@ describe('narrow chrome boundary (#108)', () => {
     expect(isNarrowChrome(NARROW_CHROME_MAX_WIDTH - 1)).toBe(true);
     expect(isNarrowChrome(NARROW_CHROME_MAX_WIDTH)).toBe(false);
     expect(isNarrowChrome(360)).toBe(true);
+    // The header band is a separate boundary on purpose: 360-399 fits one row with
+    // tighter padding, and only below 360 does the status line take its own row.
+    expect(isVeryNarrowChrome(320)).toBe(true);
+    expect(isVeryNarrowChrome(VERY_NARROW_CHROME_MAX_WIDTH - 1)).toBe(true);
+    expect(isVeryNarrowChrome(VERY_NARROW_CHROME_MAX_WIDTH)).toBe(false);
+    expect(isVeryNarrowChrome(360)).toBe(false);
+    expect(VERY_NARROW_CHROME_MAX_WIDTH).toBeLessThan(NARROW_CHROME_MAX_WIDTH);
     expect(isNarrowChrome(390)).toBe(true);
     expect(isNarrowChrome(414)).toBe(false);
   });
