@@ -17,14 +17,19 @@ contrast bar the UI-SPEC sets — except one, which nobody had measured:
 | muted on raised (the 12px HUD case) | 8.14:1 | ≥4.5 | pass |
 | accent / warning / danger on background | 14.00 / 13.87 / 8.63 | ≥3 | pass |
 | accent / warning / danger on surface | 13.16 / 13.04 / 8.12 | ≥3 | pass |
-| **border on background** (`#315c3b` on `#030704`) | **2.63:1** | ≥3 | **fail** |
+| **border on background** (was `#315c3b` on `#030704`) | **2.63:1** | ≥3 | **fail → fixed** |
 | border on surface | 2.47:1 | — | — |
 
 Two corrections to earlier assumptions, both from measurement: the palette's
 weakest text pair is 8.14:1 (muted on `raised`), not 7.28:1; and the 1px structural
-border is **below** the 3:1 non-text bar, which is the one place the current
-identity is genuinely weak. Panel edges are how the player tells panes apart, so
-this is a real defect rather than a technicality.
+border was **below** the 3:1 non-text bar, which was the one place the current
+identity was genuinely weak. Panel edges are how the player tells panes apart, so
+this was a real defect rather than a technicality.
+
+That defect is fixed: `border` is now `#3f764c`, the same hue scaled 1.28x, which
+measures 3.77 / 3.55 / 3.18 on background / surface / raised. Every phase border
+already cleared the bar (3.10-5.42). `tests/ui-contrast.spec.ts` asserts all of it,
+so the claim is a gate rather than an audit. Nothing else in the palette changed.
 
 ## Source inventory
 
@@ -168,10 +173,11 @@ rather than near-black, and muted is 6.80).
    chosen, the decision is a visual one and wants a human eye on the export at
    390x844 and 1440x900 before merge — contrast tables cannot tell you a palette
    looks wrong.
-3. The one thing worth fixing regardless of the decision: **the current border is
-   2.63:1**, and a border-only change (`#315c3b` → something at 3:1+ on both
-   background and surface) would resolve the measured defect without touching the
-   identity at all.
+3. The one thing worth fixing regardless of the decision — done: **the border was
+   2.63:1**, and the border-only change resolved the measured defect without
+   touching the identity at all. It is now a shaded variant of the same hue, and
+   the interesting question (whether the identity itself should change) is the one
+   still open below.
 
 ## Limits of this review
 

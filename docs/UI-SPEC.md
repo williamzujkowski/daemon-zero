@@ -205,6 +205,11 @@ Never encode state by colour alone: meters show numbers, warnings have text.
 - One `main` landmark per screen and a level-1 title; cards and panels sit beneath it.
 - Respect reduced-motion (no scramble, no blinking) and font scaling.
 - Touch targets at least 44 pt.
+- Palette contrast is asserted, not maintained by eye: body text at or above 4.5:1
+  and every non-text token (border, accent, warning, danger) at or above 3:1, on
+  `background`, `surface` and `raised`, for the current palette and every phase
+  shift. `tests/ui-contrast.spec.ts` is the gate; the bar it enforces was violated
+  by the structural border at 2.63:1 until it was measured.
 
 `tests/e2e/a11y-audit.e2e.ts` runs axe-core over the production export at five
 viewports x three states with a **live** clock and fails on any WCAG A/AA
