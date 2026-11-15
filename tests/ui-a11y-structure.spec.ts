@@ -57,6 +57,20 @@ describe('accessibility structure of the custom primitives (#111)', () => {
     expect(headings.some((heading) => heading.getAttribute('aria-level') === '1')).toBe(true);
   });
 
+  it('puts the chrome inside a labelled region, beside the main landmark', async () => {
+    const view = await mountM4('epistemic-ready-p2', { width: 1440, height: 900 });
+    const regions = [...view.container.querySelectorAll('[role="region"]')];
+    expect(regions.length).toBe(1);
+    expect(regions[0]?.getAttribute('aria-label')).toBe('Terminal status');
+    // The chrome belongs to the region and the panes to main; a header inside main
+    // would put the HUD in the reading order of the purchase feed.
+    expect(regions[0]?.querySelector('[data-testid="terminal-header"]')).not.toBeNull();
+    const [region] = regions;
+    const main = view.container.querySelector('[role="main"]');
+    expect(region).not.toBeUndefined();
+    if (region !== undefined && main !== null) expect(main.contains(region)).toBe(false);
+  });
+
   it('installs exactly one focus-ring style on web, however often it is called', async () => {
     const { installFocusRing } = await import('../src/ui/focusRing');
     installFocusRing();
