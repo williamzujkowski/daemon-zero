@@ -104,7 +104,11 @@ function Terminal() {
 function TerminalChrome() {
   const notice = useGameValue(selectNotice);
   const narrow = isNarrowChrome(useWindowDimensions().width);
-  return <>
+  // axe's best-practice `region` rule wants every block inside a landmark: the
+  // chrome (header, HUD, forecast, notices) had none, so four blocks per screen sat
+  // outside every landmark while the panes were already inside `main`. One labelled
+  // region covers them; the panes stay in `main`.
+  return <View role="region" aria-label="Terminal status">
     <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={{ flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
@@ -112,7 +116,7 @@ function TerminalChrome() {
     <TopForecast />
     <BlindAuditStatus />
     <ResponseNotice /><OmenNotice />
-  </>;
+  </View>;
 }
 
 const styles = StyleSheet.create({

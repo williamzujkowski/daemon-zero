@@ -203,6 +203,8 @@ Never encode state by colour alone: meters show numbers, warnings have text.
 - Focus is visible: one injected `:focus-visible` rule draws a 2px accent outline.
   The browser default measures about 1.1:1 against this palette.
 - One `main` landmark per screen and a level-1 title; cards and panels sit beneath it.
+  The chrome (header, HUD, forecast, notices) sits in one labelled region beside it,
+  so every block is inside a landmark.
 - Respect reduced-motion (no scramble, no blinking) and font scaling.
 - Touch targets at least 44 pt.
 - Palette contrast is asserted, not maintained by eye: body text at or above 4.5:1
@@ -213,7 +215,8 @@ Never encode state by colour alone: meters show numbers, warnings have text.
 
 `tests/e2e/a11y-audit.e2e.ts` runs axe-core over the production export at five
 viewports x three states with a **live** clock and fails on any WCAG A/AA
-violation, so this section is a gate rather than a description. It deliberately
+**or best-practice** violation, so this section is a gate rather than a
+description. It deliberately
 does not install the suite's paused fake clock: axe's async work never settles
 against a frozen clock, and the live loop changes numbers, not structure. It runs
 as part of `make e2e`, which CI already requires.

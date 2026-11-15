@@ -19,7 +19,7 @@ import { importSave, serialize } from '../../src/engine';
 const fixtures = makeFixtures();
 const STATES = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] as const;
 const SIZES = [[320, 568], [390, 844], [768, 1024], [900, 640], [1440, 900]] as const;
-const RULES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+const RULES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
 
 interface AxeViolation { id: string; impact: string; nodes: { target: string[] }[]; help: string }
 interface AxeGlobal { axe: { run(context: unknown, options: unknown): Promise<{ violations: AxeViolation[] }> } }
