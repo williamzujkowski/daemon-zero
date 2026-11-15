@@ -61,3 +61,21 @@ describe('manual cycle demotion', () => {
     view.close();
   });
 });
+
+describe('manual cycle width', () => {
+  it('hugs its label at the column tiers and fills the phone', async () => {
+    // At 1440 the control stretched the whole core column (~730px) and read as a bar.
+    const wide = await mountM4('tick-0', { width: 1440, height: 900 });
+    const wideButton = wide.find('manual-cycle');
+    expect(wideButton).not.toBeNull();
+    expect(Number(wideButton?.style.maxWidth)).toBeLessThanOrEqual(360);
+    wide.close();
+
+    // The phone keeps the full width: there the width IS the touch target.
+    const phone = await mountM4('tick-0', { width: 360, height: 640 });
+    const phoneButton = phone.find('manual-cycle');
+    // react-native-web flattens an absent maxWidth to an empty string, not undefined.
+    expect(phoneButton?.style.maxWidth || undefined).toBeUndefined();
+    phone.close();
+  });
+});

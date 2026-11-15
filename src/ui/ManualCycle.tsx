@@ -1,4 +1,6 @@
+import { useWindowDimensions } from 'react-native';
 import { Pressable, Text, View } from './PhaseTheme';
+import { COLUMN_MIN_WIDTH } from './layout';
 /**
  * Keeps the initial probe available without exposing locked resource readouts.
  * All input is routed through the app runtime and the public engine action.
@@ -39,9 +41,13 @@ export default function ManualCycle() {
   const [feedback, setFeedback] = useState({ iteration, count: 0 });
   const count = feedback.iteration === iteration ? feedback.count : 0;
   // The accessible name contains the visible text either way (WCAG 2.5.3).
+  // At the column tiers the control otherwise stretches the whole core column (measured
+  // 730px at 1440) and reads as a green bar rather than a button; the phone keeps the full
+  // width because there the width is the touch target.
+  const wide = useWindowDimensions().width >= COLUMN_MIN_WIDTH;
   const label = demoted ? '[ cycle ] +1 — execute clock cycle' : '[ EXECUTE_CLOCK_CYCLE ] Execute clock cycle';
   return <View style={{ gap: 6 }}><Pressable testID="manual-cycle" accessibilityRole="button" accessibilityLabel={label}
-    disabled={!ready || blocked} style={[theme.button, demoted && styles.demoted, (!ready || blocked) && theme.disabled]}
+    disabled={!ready || blocked} style={[theme.button, demoted && styles.demoted, wide && !demoted && styles.wide, (!ready || blocked) && theme.disabled]}
     onPress={() => {
       const result = gameRuntime.dispatch((game) => manualCycle(game, CONTENT));
       if (typeof __DEV__ !== 'undefined' && __DEV__) recordManualInput(result.ok);
@@ -58,4 +64,5 @@ const styles = StyleSheet.create({
   // Not full width, muted label, tighter padding: the control stops claiming the
   // primary slot without dropping below the 44px touch minimum.
   demoted: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4 },
+  wide: { alignSelf: 'flex-start', maxWidth: 360 },
 });
