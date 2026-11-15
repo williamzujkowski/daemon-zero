@@ -10,7 +10,7 @@ import { useUtilityMenu, type UtilityMenu } from './useUtilityMenu';
 const titles = { root: 'GAME MENU', save: 'SAVE CODE', help: 'HELP // ABOUT', audio: 'AUDIO', import: 'REPLACE RUN', reset: 'START FRESH' };
 
 export function MenuLauncher({ menu: { setTrigger, route, disabled, open } }: { menu: UtilityMenu }) {
-  return <Pressable ref={setTrigger} testID="menu-open" accessibilityRole="button" accessibilityLabel="Game menu"
+  return <Pressable ref={setTrigger} testID="menu-open" accessibilityRole="button" accessibilityLabel="[ MENU ] Game menu"
     accessibilityState={{ expanded: route !== null, disabled }} aria-expanded={route !== null}
     disabled={disabled} style={theme.button} onPress={open}><Text style={theme.text}>[ MENU ]</Text></Pressable>;
 }

@@ -28,7 +28,7 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
       {([-1, 1] as const).map((direction) => {
         const disabled = blocked || (direction < 0 ? ratio <= 0 : ratio >= limit);
         return <Pressable key={direction} testID={id + (direction < 0 ? '-decrease' : '-increase')}
-          accessibilityRole="button" accessibilityLabel={(direction < 0 ? 'Decrease ' : 'Increase ') + label.toLowerCase() + ' by up to 10 percentage points'}
+          accessibilityRole="button" accessibilityLabel={(direction < 0 ? '− Decrease ' : '+ Increase ') + label.toLowerCase() + ' by up to 10 percentage points'}
           disabled={disabled} style={[theme.button, disabled && theme.disabled]} onPress={() => { step(direction); }}>
           <Text style={theme.text}>{direction < 0 ? '−' : '+'}</Text>
         </Pressable>;

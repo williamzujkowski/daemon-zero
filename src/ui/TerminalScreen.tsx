@@ -3,7 +3,7 @@ import { Text, View } from './PhaseTheme';
  * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
@@ -32,6 +32,7 @@ import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
 import { layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
+import { installFocusRing } from './focusRing';
 import { UtilityFocusProvider } from './UtilityFocus';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
@@ -63,6 +64,7 @@ export default function TerminalScreen() {
 }
 
 function Terminal() {
+  useEffect(() => { installFocusRing(); }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
   const ids = useWidgetIds();

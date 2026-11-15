@@ -75,7 +75,8 @@ describe('recorded speech disclosure', () => {
     const toggle = view.find('reference-recorded-transmissions');
     expect(toggle?.getAttribute('role')).toBe('button');
     expect(toggle?.getAttribute('tabindex')).toBe('0');
-    expect(toggle?.getAttribute('aria-label')).toBe('RECORDED TRANSMISSIONS');
+    // #111: the accessible name must contain the visible '[ + ] ' prefix.
+    expect(toggle?.getAttribute('aria-label')).toBe('[ + ] RECORDED TRANSMISSIONS');
     expect(toggle?.getAttribute('aria-expanded')).toBe('false');
     expect(view.find('recorded-speech-' + record.id)).toBeNull();
     expect(view.container.textContent).not.toContain(record.text);

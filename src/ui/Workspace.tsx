@@ -26,9 +26,9 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
   const signal = useGame((game) => wildEncounterView(game, CONTENT)?.title ?? null);
   if (!slot || areas.length === 0) return null;
   return <View style={{ paddingHorizontal: 16, gap: 4 }}>
-    <View testID={'workspace-' + slot} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+    <View testID={'workspace-' + slot} role="tablist" aria-label={slot.toLowerCase() + ' workspace areas'} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
       {areas.map((area) => <Pressable key={area} testID={'workspace-' + slot + '-' + area} accessibilityRole="tab"
-        accessibilityLabel={areaTitles[area].toLowerCase() + ' in ' + slot.toLowerCase()} aria-selected={area === active}
+        accessibilityLabel={areaTitles[area] + ' in ' + slot} aria-selected={area === active}
         accessibilityState={{ selected: area === active }} style={[theme.button, { paddingHorizontal: 8 }, area !== active && theme.disabled]}
         onPress={() => { select(area); }}><Text style={theme.muted}>{areaTitles[area]}</Text></Pressable>)}
     </View>

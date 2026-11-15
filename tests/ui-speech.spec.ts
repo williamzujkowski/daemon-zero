@@ -71,7 +71,8 @@ describe('decoded speech controls', () => {
     }
     expect(view.text()).toBe(eligible[0]?.text);
     expect(gameStore.store.getState().game).toBe(before);
-    expect(button?.getAttribute('aria-label')).toBe('Next transmission');
+    // #111: the accessible name must contain the visible text, so it carries the glyph prefix.
+    expect(button?.getAttribute('aria-label')).toBe('[ NEXT TRANSMISSION ] Next transmission');
     expect(view.find('speech-follow-live')).toBeNull();
     expect(view.find('decoded-speech')?.getAttribute('aria-live')).toBeNull();
     const wave = view.find('audio-waveform')?.textContent;
