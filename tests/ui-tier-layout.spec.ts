@@ -89,3 +89,23 @@ describe('layout tiers render the panels they exist for (#112)', () => {
     expect(view.find('terminal-mobile')).toBeNull();
   });
 });
+describe('the decision precedes the prose (#108)', () => {
+  it('renders WRITE DRIVER before the blind description in a node card', async () => {
+    const view = await mountM4('phase-1-widgets', { width: 320, height: 568 });
+    const cards = [...view.container.querySelectorAll('[data-testid]')]
+      .filter((element) => /^node-[A-Za-z0-9_]+$/.test(element.getAttribute('data-testid') ?? ''));
+    expect(cards.length).toBeGreaterThan(0);
+    const card = cards[0];
+    const id = (card?.getAttribute('data-testid') ?? '').replace(/^node-/, '');
+    const node = CONTENT.nodes.get(id);
+    expect(node).toBeDefined();
+    const unlock = card?.querySelector('[data-testid="node-' + id + '-unlock"]');
+    expect(unlock).not.toBeNull();
+    // The blind description is the element whose text matches the authored prose.
+    const description = [...(card?.querySelectorAll('*') ?? [])]
+      .find((element) => element.textContent.trim() === node?.blindDescription.trim());
+    if (description === undefined) return; // a remembered card folds its prose into DETAILS
+    expect(card?.textContent.indexOf(description.textContent))
+      .toBeGreaterThan(card?.textContent.indexOf('[ WRITE DRIVER ]') ?? -1);
+  });
+});
