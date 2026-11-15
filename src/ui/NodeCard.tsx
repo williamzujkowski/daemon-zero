@@ -40,20 +40,25 @@ function NodeCard({ node }: { node: RegistryNode }) {
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
     {known && !isEnding ? <CardDetails id={'node-' + node.id} titleTestID={'node-' + node.id + '-title'}
-      title={'[REMEMBERED] ' + title} description={node.revealedDescription} /> : <>
-      <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />
-      <DisclosureText style={theme.text}>{known ? node.revealedDescription : node.blindDescription}</DisclosureText>
-    </>}
-    {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
+      title={'[REMEMBERED] ' + title} description={node.revealedDescription} /> :
+      <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />}
+    {isEnding && <DisclosureText style={theme.text}>{known ? node.revealedDescription : node.blindDescription}</DisclosureText>}
     </Profiler>
+      {/* #108: the decision precedes the prose. The button used to be the last
+          element, so on a narrow column the wrapped description pushed it 155-723px
+          below the fold (measured: 51% of that offset was app chrome, 27% this card
+          body). Every element still renders - the description simply follows the
+          action, except on a node that ends the run, where it stays above it. */}
       <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
-      {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
-        First mapping: {costText(node.cost, compact)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.
-      </Text>}
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
         allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
+      {!isEnding && !known && <DisclosureText style={theme.text}>{node.blindDescription}</DisclosureText>}
+      {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
+      {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
+        First mapping: {costText(node.cost, compact)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.
+      </Text>}
   </View>;
 }
 

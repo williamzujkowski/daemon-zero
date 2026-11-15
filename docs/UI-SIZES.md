@@ -68,16 +68,16 @@ core column width early → later phases (the phase's own slot takes the larger 
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
-| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 723 (no) | 807 (no) | 994 (no) |
-| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 723 (no) | 763 (no) | 909 (no) |
-| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 648 (yes) | 688 (yes) | 786 (yes) |
-| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 629 (yes) | 669 (yes) | 786 (yes) |
-| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 607 (yes) | 733 (yes) | 809 (yes) |
-| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 563 (no) | 581 (no) | 679 (no) |
-| 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 563 (yes) | 670 (**no**) | 809 (**no**) |
-| 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 563 (yes) | 670 (yes) | 787 (**no**) |
-| 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 476 (yes) | 579 (yes) | 741 (yes) |
-| 1440x900 | three | 960 → 360 | 480 → 360 | 0 → 721 | 728 / 658 / 658 | 419 (yes) | 437 (yes) | 580 (yes) |
+| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 625 (**no**) | 731 (**no**) | 896 (**no**) |
+| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 625 (yes) | 687 (**no**) | 833 (**no**) |
+| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 572 (yes) | 634 (yes) | 710 (yes) |
+| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 553 (yes) | 615 (yes) | 710 (yes) |
+| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 531 (yes) | 657 (yes) | 733 (yes) |
+| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 509 (**no**) | 549 (**no**) | 625 (**no**) |
+| 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 646 (**no**) |
+| 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 646 (yes) |
+| 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 665 (yes) |
+| 1440x900 | three | 960 → 360 | 480 → 360 | 0 → 721 | 728 / 658 / 658 | 365 (yes) | 405 (yes) | 526 (yes) |
 | 1920x1080 | three | 1280 → 480 | 640 → 480 | 0 → 961 | 728 / 698 / 698 | 419 (yes) | 437 (yes) | 523 (yes) |
 | 2560x1440 | three | 1707 → 640 | 853 → 640 | 0 → 1281 | 728 / 698 / 698 | 419 (yes) | 437 (yes) | 523 (yes) |
 
@@ -102,26 +102,49 @@ Forecast and active-warning visibility in the same runs:
 - **Uncapped measure (was gap 6).** The widest card reached 1233px at 1920 and
   1659px at 2560; both now measure 698-728px, centred.
 
+### Where the vertical space goes
+
+Before changing anything (#108) every block above the first purchase control was
+measured at 320x568, 360x640, 390x844, 414x896, 844x390, 900x640 across the three
+sampled states. Averaged over the cases (the button sat at 723px in a 568px fold),
+four terms account for it:
+
+| term | px at 320x568 | share of the offset |
+|---|---|---|
+| app chrome: header + resource strip + kernel dock + forecast | 405-506 | 51% |
+| card body above the button: title, description, cost, hints | 197-244 | 27% |
+| pane chrome: workspace row + pane heading | 0-77 | 8% |
+| other: notices, previews, the gap to the button | 0-220 | 14% |
+
+Two app-chrome numbers set the ceiling: the header is 117px at 320 wide and 64px
+from 390 up because its controls wrap, and the resource strip is 144px at 320
+(five readouts across 3-5 rows) against 57px when one row fits.
+
+### What the card reorder recovered
+
+The purchase control now precedes the description (#108). Measured against the
+previous table, the button moved up 54-76px on most sizes and 141-163px at
+900-1024 wide, which brought 360x640 and 900x640 back to the fold and 1024x768
+back entirely for the insolvency state.
+
 ### Still open
 
-1. **Narrow phones and short landscape lose the decision.** The first purchase
-   control is 155-426px below the viewport at 320x568, 83-269px below at 360x640 and
-   173-289px below at 844x390. A short viewport is deliberately held in the single
-   scroll: height, not width, is what these lack.
-2. **An active red alert can be below the fold.** The insolvency warning is not on
-   screen at 320x568 or 844x390, even though the state is insolvent and the warning
-   is the only place that says so at that moment.
-3. **Late-phase states push the decision down, and the floor fix made 900-1024
-   worse.** Holding the 340px floor turned 900-1024 from three columns into two, so
-   the core column narrowed (560 → 450 at 900) and the wrapped card pushed the first
-   purchase further down: 809 vs 722 at 900x640 insolvency, 787 vs 700 at 1024x768,
-   and the dense mid-game state now misses the fold at 900 (670 vs 538). The floors
-   were the right trade — a 225px column cannot hold a sentence — but the height
-   increment now has to pay back ~90px at those widths too.
+1. **Narrow phones and short landscape still lose the decision**, but by much less.
+   At 320x568 the button is 57px past the fold (102px past the 523px the mobile tab
+   bar leaves) and at 844x390 it is 119px past. The remaining cost is app chrome,
+   not the card: the header and the wrapped resource strip together are 261px of the
+   405 at 320.
+2. **An active red alert can still be below the fold.** The insolvency warning sits
+   at 602px at 320x568 and 435px at 844x390. It is chrome-positioned, so the card
+   reorder cannot move it; it needs the alert rendered above the resource strip or
+   pinned to the viewport.
+3. **The worst narrow case is insolvent at 360x640** (833px), and 900x640 insolvency
+   is 6px over. Late-phase states add a second row of readouts and a longer cost
+   hint, which is the same chrome problem seen from the other end.
 
-Gaps 1-3 are the inputs to the height increment (#108). Fixing them is expected to
-change the numbers above, and this table is updated with the same PR that changes
-layout.
+Gaps 1-3 are the remainders of the height increment (#108); the app-chrome
+compaction is the next increment because it is now measured at 51% of the offset.
+Every layout change updates the numbers above in the same PR that changes them.
 
 ## Running it
 
