@@ -14,15 +14,11 @@ and a paused clock.
 | Name | Size | Band |
 |---|---|---|
 | small-phone | 320x568 | narrow phone, also WCAG 1.4.10 reflow width |
-| phone-360 | 360x640 | common small Android |
-| phone-390 | 390x844 | baseline phone (existing E2E project) |
-| phone-large | 414x896 | large phone |
-| tablet-portrait | 768x1024 | two columns: CORE + one tabbed supporting column |
-| phone-landscape | 844x390 | short, height-bound — stays single-scroll |
-| breakpoint-edge | 900x640 | two columns at the old column boundary |
-| tablet-landscape | 1024x768 | two columns, wide |
-| breakpoint-three | 1080x800 | first three-column layout |
-| laptop | 1440x900 | baseline desktop (existing E2E project) |
+| phone-360 | 360x640 | 506-550, **clears** | 584-628, **clears** | 751, below |
+| 390x844 | 506-550, clears | 568, clears | 707, clears |
+| 414x896 | 487, clears | 549, clears | 691, clears |
+| 768x1024 | 446, clears | 572, clears | 622, clears |
+| 1440x900 | 340, clears | 380, clears | 497, clears |
 | desktop | 1920x1080 | wide |
 | widescreen | 2560x1440 | very wide |
 
@@ -53,12 +49,14 @@ control against the viewport and against the *usable* fold (the tab bar's top ed
 | 768x1024 | 471, clears | 597, clears | 647, clears |
 | 1440x900 | 365, clears | 405, clears | 522, clears |
 
-**360 holds the fold for the opening state only.** Mid-game sits 13px past the viewport
-and the insolvency state 92px past it, so the floor is a real floor for a new run and a
-scroll for a mid-game one. #138 corrected the fold spec, which had been re-measuring the
-same fixture three times (`boot()` only seeds a fixture when storage is empty), and the
-matrix now asserts the opening claim at 360 and records the other two as reachable but
-below the fold.
+**360 holds the fold for the opening and mid-game states; the insolvency state does not.**
+#138 corrected the fold spec, which had been re-measuring the same fixture three times
+(`boot()` only seeds a fixture when storage is empty), and that fix exposed mid-game at
+609-653 - below even the viewport. #139's compact chrome band then reclaimed 60px and the
+matrix now measures mid-game at 584-628, inside 640 with 12px to spare. The insolvency
+state still starts 751, 111px past the viewport, because a run-ending alert adds its own
+band above everything else; that remains open work, and the matrix asserts the opening and
+mid-game claims at 360 while recording insolvency as reachable but below the fold.
 
 The chrome's state band moved twice. #137 kept label and value on one line (122px to 103px
 at 360 and 390), turning the opening state's 1px clearance into 20px. #139 then abbreviated
