@@ -1,8 +1,8 @@
 # UI sizes: contract, matrix and measured gaps
 
 Issue #103 (follow-up to #89). Measurement and gating shipped in #104; the first
-layout increment shipped in #106 and corrected in its follow-up after measurement
-showed the claimed column floor was only wired into the tablet tier. The policy itself is
+layout increment shipped in #106 and was corrected in #110 after measurement showed
+the claimed column floor was only wired into the tablet tier. The policy itself is
 `src/ui/layout.ts`, unit-tested in `tests/ui-layout.spec.ts`; the matrix only has to
 confirm the geometry that policy predicts.
 
