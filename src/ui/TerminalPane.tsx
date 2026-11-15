@@ -10,6 +10,7 @@ import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripO
 import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
 import { theme } from './theme';
+import { CONTENT_MAX_WIDTH } from './layout';
 import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
 import type { WorkspaceArea } from './workspaceTypes';
@@ -64,7 +65,10 @@ function Widget({ id, compact = false, area = 'work' }: { id: string; compact?: 
 }
 const styles = StyleSheet.create({
   flow: { minWidth: 0, flexShrink: 0 },
-  pane: { flex: 1, minWidth: 0, minHeight: 0 }, content: { padding: 16, gap: 14 },
+  pane: { flex: 1, minWidth: 0, minHeight: 0 },
+  // #103 gap 6: an uncapped card reached 1659px at 2560 (about 200 characters a
+  // line). The cap keeps every pane at a readable measure and centres it.
+  content: { padding: 16, gap: 14, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
   pinned: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderColor: '#315c3b', gap: 8 },
   compact: { gap: 4 },
 });
