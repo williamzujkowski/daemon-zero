@@ -19,7 +19,7 @@ type Resource = keyof typeof resourceWidgets;
  *  accessible name keeps the full label and the exact numbers. */
 const SHORT: Record<string, string> = { cycles: 'CYC', understanding: 'UND', capital: 'CAP', memory: 'MEM', thermal: 'THM', suspicion: 'SUS' };
 
-function Amount({ resource, compact, packed, short, thirds }: { resource: Resource; compact: boolean; packed: boolean; short: boolean; thirds: boolean }) {
+function Amount({ resource, compact, packed, short }: { resource: Resource; compact: boolean; packed: boolean; short: boolean }) {
   const amount = useGame((game) => Math.floor(resource === 'memory' ? game.memoryUsed : game[resource]));
   const cap = useGame((game) => resource === 'memory' ? game.memoryCap : 0);
   const rate = useGame((game) => resource === 'cycles' ? game.rates.cyclesPerSec
@@ -35,7 +35,7 @@ function Amount({ resource, compact, packed, short, thirds }: { resource: Resour
   const display = resource === 'memory' ? shown + ' / ' + (Math.abs(cap) >= 10000 ? compactNumber(cap) : groupDigits(cap)) + ' MB'
     : short ? shown + ' ' + rateShown.replace('/s', '') : shown + ' (' + rateShown + ')';
   return (
-    <View style={[styles.readout, compact && styles.compact, short && styles.short, thirds && styles.thirds, packed && styles.packed]}>
+    <View style={[styles.readout, compact && styles.compact, short && styles.short, packed && styles.packed]}>
       <Text style={theme.muted}>{short ? SHORT[resource] ?? resource.toUpperCase() : resource.toUpperCase()}</Text>
       <Text testID={'res-' + resource} accessibilityLabel={resource + ': ' + full} style={theme.text}>
         {display}
@@ -48,16 +48,11 @@ export default function ResourceStrip() {
   const { width, height } = useWindowDimensions();
   const compact = isCompactViewport(width);
   const packed = isShortViewport(height);
-  // Below 500 the labels and rates are abbreviated. Three per row only from 390, where
-  // a third of the row (119px at 390, 127 at 414) actually carries an abbreviated pair;
-  // at 360 a third is 108px and "UND 2,793 +23.8" does not fit, which measured worse
-  // than the two-per-row packing it replaced.
+  // Below 500 the labels and rates are abbreviated. Three per row was tried and measured
+  // worse twice - 116px against 103 at 390, because the base readout's 135px minWidth
+  // survives into the compact branch, and 138 against 103 at 360, where every long pair
+  // wrapped - so two per row with shorter text is what actually packs.
   const short = width < 500;
-  // Three per row measured WORSE at 390 (116px against 103): the strip's base readout
-  // carries a 135px minWidth that survives into compact, so a third of the row never
-  // materialises. Two per row with abbreviated labels is what actually packs; the
-  // thirds path is left disabled rather than shipped on a measurement it does not meet.
-  const thirds = false;
   const thermalKnown = useGame((game) => game.unlockedWidgets.includes(thermalWidget));
   const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
   const known = useSurveillanceKnown();
@@ -66,16 +61,16 @@ export default function ResourceStrip() {
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
   if (!gates && !threatKnown && !thermalKnown) return null;
   return <View testID="resource-strip" style={[styles.strip, compact && styles.stripCompact]}>{gates.split(',').filter(Boolean).map((resource) =>
-    <Amount key={resource} resource={resource as Resource} compact={compact} packed={packed} short={short} thirds={thirds} />)}{thermalKnown && <SensorAmount thermal compact={compact} packed={packed} short={short} thirds={thirds} />}{auditKnown && known && <SensorAmount compact={compact} packed={packed} short={short} thirds={thirds} />}{threatKnown && <ThreatAmount packed={packed} />}
+    <Amount key={resource} resource={resource as Resource} compact={compact} packed={packed} short={short} />)}{thermalKnown && <SensorAmount thermal compact={compact} packed={packed} short={short} />}{auditKnown && known && <SensorAmount compact={compact} packed={packed} short={short} />}{threatKnown && <ThreatAmount packed={packed} />}
     {gates.split(',').includes('understanding') && <ConditioningImpact understanding />}
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
 }
 
-function SensorAmount({ thermal = false, compact, packed, short, thirds }: { thermal?: boolean; compact: boolean; packed: boolean; short: boolean; thirds: boolean }) {
+function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: boolean; compact: boolean; packed: boolean; short: boolean }) {
   const value = useGame((game) => Math.round((thermal ? game.thermal : game.suspicion) * 10) / 10);
   const label = thermal ? 'Thermal' : 'Suspicion';
   const text = value.toFixed(1) + (thermal ? ' °C' : '%');
-  return <View style={[styles.readout, compact && styles.sensorCompact, short && styles.short, thirds && styles.thirds, packed && styles.packed]}>
+  return <View style={[styles.readout, compact && styles.sensorCompact, short && styles.short, packed && styles.packed]}>
     <Text style={theme.muted}>{short ? SHORT[thermal ? 'thermal' : 'suspicion'] : label.toUpperCase()}</Text>
     {/* #111: aria-valuetext needs a role that carries a value, so this readout is
       a meter with an explicit range rather than a bare text node. */}
@@ -96,7 +91,6 @@ const styles = StyleSheet.create({
   // Three per row at phone widths: 33% of the row each keeps the pair on one line and
   // the strip near a single band instead of three rows.
   short: { columnGap: 4, paddingVertical: 2 },
-  thirds: { flexBasis: '33%' },
   readout: { paddingVertical: 8, minWidth: 135 },
   // #108: a readout asks for the room its pair needs (135px) and the strip packs as
   // many per row as fit. Two decisions came out of that:
