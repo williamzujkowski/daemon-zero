@@ -1,4 +1,4 @@
-import { Text, View } from './PhaseTheme';
+import { Pressable, Text, View } from './PhaseTheme';
 /**
  * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
@@ -8,7 +8,7 @@ import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-nati
 import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
-import { useMusicRuntime } from '../app/musicSession';
+import { music, useMusic, useMusicRuntime } from '../app/musicSession';
 import LogDock from './LogDock';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
@@ -34,6 +34,7 @@ import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
 import { isNarrowChrome, isVeryNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
+import { attachMusicGestureResume } from '../app/musicGesture';
 import { UtilityFocusProvider } from './UtilityFocus';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
@@ -66,6 +67,22 @@ export default function TerminalScreen() {
 
 function Terminal() {
   useEffect(() => { installFocusRing(); }, []);
+  // A default-on soundtrack cannot play before a user gesture: browsers refuse it and
+  // the controller would surface a blocked message instead. Resume inside the first
+  // real input, once, then let the player own the toggle.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    // The DOM lib is not in this tsconfig (see src/ui/focusRing.ts for the same dance).
+    const doc = (globalThis as unknown as { document?: Parameters<typeof attachMusicGestureResume>[1] }).document;
+    if (!doc) return;
+    const detach = attachMusicGestureResume(() => { music.resume(); }, doc);
+    // Detach on activation, not on the first gesture. A gesture that arrives before the
+    // stored preference loads cannot start anything, and dropping the listener then
+    // would leave a default-on install silent until the player found the MENU switch.
+    if (music.state.getState().activated) detach();
+    const unsubscribe = music.state.subscribe((state) => { if (state.activated) detach(); });
+    return () => { unsubscribe(); detach(); };
+  }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
   const ids = useWidgetIds();
@@ -102,6 +119,19 @@ function Terminal() {
   </View>;
 }
 
+/** The soundtrack is on for a fresh install, so the chrome owes the player an obvious
+ *  off switch; below 400 a fourth header control would force a wrap (the phone row is
+ *  299 of 300px at 320), so the MENU switch stays the only control there. */
+function MusicToggle() {
+  const audio = useMusic();
+  const label = (audio.enabled ? 'Music on. Mute' : 'Music off. Unmute') + (audio.status ? ' (' + audio.status + ')' : '');
+  return <Pressable testID="header-music" accessibilityRole="switch" accessibilityLabel={label}
+    aria-checked={audio.enabled} accessibilityState={{ checked: audio.enabled, disabled: !audio.loaded }}
+    disabled={!audio.loaded} style={theme.button} onPress={() => { music.toggle(); }}>
+    <Text style={theme.text}>{audio.enabled ? '[♪ ON]' : '[♪ OFF]'}</Text>
+  </Pressable>;
+}
+
 function TerminalChrome() {
   const notice = useGameValue(selectNotice);
   const width = useWindowDimensions().width;
@@ -110,6 +140,11 @@ function TerminalChrome() {
   // five lines (measured: 102px header against 64px from 360 up), so it moves to its
   // own full-width row instead of squeezing the title.
   const veryNarrow = isVeryNarrowChrome(width);
+  // The switch needs 468px of header row at its tightest (title 144 + PROC 102 + MENU 97
+  // + this 89 + three 12px gaps) and the row has width minus 32px of padding, so 600 is
+  // where it starts fitting with room. Measured: rendering it from 400 wrapped the header
+  // to 117px at 400 and 414 against the 64px budget the size matrix asserts.
+  const headerMusic = width >= 600;
   // axe's best-practice `region` rule wants every block inside a landmark: the
   // chrome (header, HUD, forecast, notices) had none, so four blocks per screen sat
   // outside every landmark while the panes were already inside `main`. One labelled
@@ -117,6 +152,7 @@ function TerminalChrome() {
   return <View role="region" aria-label="Terminal status">
     <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={veryNarrow ? styles.titlePlain : { flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>{veryNarrow ? 'DAEMON//0' : 'DAEMON // 0'}</Text>
       {!veryNarrow && <><CheckpointLabel /><RunStatus /></>}</View><ProcessManager /><GameMenu /><DevelopmentTools />
+      {headerMusic && <MusicToggle />}
       {veryNarrow && <View testID="header-status" style={styles.statusRow}><CheckpointLabel /><RunStatus /></View>}</View>
     {/* #125: the run-ending alerts belong to the chrome, not to one workspace. */}
     <CorporateAlerts />

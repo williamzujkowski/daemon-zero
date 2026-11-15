@@ -13,6 +13,11 @@ it('routes Audio back through the root menu and exposes accessible numeric volum
   const view = await mountM4('tick-0');
   view.click('menu-open'); view.click('menu-audio');
   expect(view.find('menu-audio-page')?.textContent).not.toMatch(/suspicion|AEGIS|predecessor/i);
+  // A fresh install starts with music enabled (the voted default), so the switch is on
+  // and nothing plays until activation; toggling once turns the soundtrack off.
+  expect(view.find('music-toggle')?.getAttribute('aria-checked')).toBe('true');
+  view.click('music-toggle');
+  expect(view.find('music-toggle')?.getAttribute('aria-checked')).toBe('false');
   expect(view.find('music-status')?.textContent).toContain('off');
   view.click('music-toggle');
   await act(async () => { await vi.advanceTimersByTimeAsync(0); });
@@ -38,4 +43,17 @@ it('preserves preferences across terminal restoration and offers the current lat
   expect(view.find('music-storage-notice')?.textContent).toContain('Storage denied');
   view.click('music-toggle');
   expect(view.find('music-status')?.textContent).toContain('off');
+});
+
+it('offers the chrome switch only where the header row can hold it', async () => {
+  // 468px of row is the tightest case; the row is the viewport minus 32px of padding.
+  const wide = await mountM4('tick-0', { width: 600, height: 900 });
+  expect(wide.find('header-music')).not.toBeNull();
+  wide.close();
+  const phone = await mountM4('tick-0', { width: 414, height: 896 });
+  expect(phone.find('header-music')).toBeNull();
+  phone.close();
+  const tabletPortrait = await mountM4('tick-0', { width: 500, height: 900 });
+  expect(tabletPortrait.find('header-music')).toBeNull();
+  tabletPortrait.close();
 });
