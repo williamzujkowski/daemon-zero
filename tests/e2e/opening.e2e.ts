@@ -22,7 +22,9 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   const purchased = await readSave(page);
   await page.clock.runFor(1000);
   expect((await readSave(page)).unlockedNodes).toContain(root.id);
-  await expect(page.getByTestId('res-cycles')).toContainText('+1.00/s');
+  // #139: the visible rate is abbreviated on phone widths (no unit, one decimal); the
+  // accessible name keeps the exact value, so that is what is pinned.
+  await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', /\+1\.00\/s/);
   expect(purchased.disabledNodes).not.toContain(root.id);
   await page.clock.runFor(120_000);
   await page.getByTestId('node-' + manifest.id + '-unlock').click();

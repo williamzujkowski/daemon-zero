@@ -60,8 +60,16 @@ same fixture three times (`boot()` only seeds a fixture when storage is empty), 
 matrix now asserts the opening claim at 360 and records the other two as reachable but
 below the fold.
 
-The resource strip's row packing also moved: 122px to 103px at 360 and 390 (#137), which
-is what turned the opening state's 1px clearance into 20px.
+The chrome's state band moved twice. #137 kept label and value on one line (122px to 103px
+at 360 and 390), turning the opening state's 1px clearance into 20px. #139 then abbreviated
+the phone labels (`CYC`, `UND`, `MEM`, `THM`, `SUS`) and dropped the rate's unit and
+parentheses — the accessible name keeps the full label, the exact number and the unit — for
+78px at 320, 360 and 390, and 45px of clearance at the 360 floor.
+
+Three-per-row packing was tried and measured twice: at 390 it gave 116px against 103 because
+the base readout's 135px `minWidth` survives into the compact branch, and at 360 it wrapped
+every long pair for 138px. The path is disabled rather than shipped on a measurement it
+misses.
 
 320 is the iPhone SE 1st-generation / 2016-era Android class and the WCAG 1.4.10
 reflow width, which is why it stays *tolerated* rather than dropped: deleting its
