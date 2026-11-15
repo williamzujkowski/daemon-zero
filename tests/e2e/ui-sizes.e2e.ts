@@ -43,6 +43,8 @@ type Geometry = {
   widestCard: number;
   columnWidths: { core: number; sensors: number; side: number };
   headerHeight: number;
+  stripHeight: number;
+  tallReadouts: number;
   firstUnlockTop: number | null;
   firstUnlockVisible: boolean;
   forecastVisible: boolean;
@@ -84,6 +86,12 @@ function readGeometry(): Geometry {
         ?? box(browser.document.querySelector('[data-testid="panel-side"]')))?.width ?? 0),
     },
     headerHeight: Math.round(box(browser.document.querySelector('[data-testid="terminal-header"]'))?.height ?? 0),
+    stripHeight: Math.round(box(browser.document.querySelector('[data-testid="resource-strip"]'))?.height ?? 0),
+    // #137: a readout is 28px on one line and 47 on two; anything past 50 means its pair
+    // wrapped again and the strip is spending a row per meter.
+    tallReadouts: [...(browser.document.querySelectorAll('[data-testid="resource-strip"] > *'))]
+      .filter((child) => child.querySelector('[data-testid^="res-"], [role="meter"]') !== null)
+      .filter((child) => child.getBoundingClientRect().height > 50).length,
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockVisible: fullyVisible(first),
     forecastVisible: fullyVisible(forecast),
@@ -124,6 +132,15 @@ test.describe('size matrix invariants', () => {
           // one row and the iteration/phase line spans the width beneath it, measured
           // at 70px against the 102px the stacked status column used to cost. A nexus
           // vote chose that band over leaving the wrap in place, 4 of 5 selecting seats.
+          // #137: a readout that wraps past two lines means the strip is spending a row
+          // per meter. The state decides how many meters exist - corporate-insolvent shows
+          // the AEGIS lock and both notices - so this pins the readout shape, not a total.
+          // Pins the phone tiers, where two readouts share a row: above 500 they are
+          // content-sized or stacked on purpose, and a short viewport packs differently
+          // again. The measured win this protects is 360x640 and 390x844.
+          if (isSupported(size) && size.width <= 500) {
+            expect(geometry.tallReadouts, `${fixture} readouts wrapping past two lines at ${size.name}`).toBe(0);
+          }
           const headerBudget = size.width >= 400 ? 64 : 80;
           if (isSupported(size)) {
             expect(geometry.headerHeight, `${fixture} header rows at ${size.name}`)

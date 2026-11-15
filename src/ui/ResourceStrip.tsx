@@ -48,7 +48,7 @@ export default function ResourceStrip() {
   const gates = useGame((game) => Object.entries(resourceWidgets)
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
   if (!gates && !threatKnown && !thermalKnown) return null;
-  return <View testID="resource-strip" style={styles.strip}>{gates.split(',').filter(Boolean).map((resource) =>
+  return <View testID="resource-strip" style={[styles.strip, compact && styles.stripCompact]}>{gates.split(',').filter(Boolean).map((resource) =>
     <Amount key={resource} resource={resource as Resource} compact={compact} packed={packed} />)}{thermalKnown && <SensorAmount thermal compact={compact} packed={packed} />}{auditKnown && known && <SensorAmount compact={compact} packed={packed} />}{threatKnown && <ThreatAmount packed={packed} />}
     {gates.split(',').includes('understanding') && <ConditioningImpact understanding />}
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
@@ -84,8 +84,13 @@ const styles = StyleSheet.create({
   //   - the basis is a pixel floor, not 45% of the viewport. A percentage made an
   //     844x390 landscape phone lay out two readouts per row across 844px and spend
   //     84px of a 390px screen on the HUD, where a packed row costs half that.
-  sensorCompact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
-  compact: { flexBasis: '45%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
+  // #137: 45% left each readout 148px at 360 while its label and value need about 159,
+  // so four of five wrapped to two lines and the strip stood 122px. Two per row at 49%
+  // with a 6px gap fits the pair on one line: measured 122 -> 86px at 360 and 103 -> 86
+  // at 390, with nothing hidden - the rate stays in the strip.
+  sensorCompact: { flexBasis: '49%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
+  compact: { flexBasis: '49%', minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6, paddingVertical: 3 },
+  stripCompact: { columnGap: 6 },
   // A short viewport packs by content: as many readouts per row as fit, one line
   // each. Two per row across an 844px landscape phone cost three rows of a 390px
   // screen where two rows of four readouts carry the same numbers.
