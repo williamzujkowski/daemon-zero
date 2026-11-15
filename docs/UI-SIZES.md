@@ -38,7 +38,7 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 | Tier | Sizes | What is promised | What is asserted |
 |---|---|---|---|
 | Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up | the full matrix |
-| Tolerated | 320x568 (and any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
+| Tolerated | 320x568, and short landscape such as 844x390 (any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
 | Undefined | under 320 | nothing | nothing |
 
 The evidence, measured on the served export by the size matrix itself: the first purchase
@@ -217,9 +217,14 @@ back entirely for the insolvency state.
    phone tier (#143), mid-game does too: the first purchase reads 527-571 against 595 and
    clears by 24px. The insolvency state reads 650-694 and is accepted as a scroll with a
    pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
-   844x390 mid-game 376-420 and insolvency 448-492 against 345 - short landscape is the
-   worst case left, and it is not a supported size. 320x568 and 844x390 remain the tolerated tier and make no
-   above-the-fold promise. The header at 320 is 70px since #133; the older "102-111px"
+   844x390 mid-game 376-420 and insolvency 448-492 against 345. Short landscape is the
+   worst case left and is tolerated by decision, not by omission: a nexus vote
+   (accept-landscape-as-tolerated, 5 of 5 selecting, thresholdMet true) weighed folding the
+   network tree's phase title band and moving the purchase above the card name, and chose
+   to name the tier instead. That vote also corrected a number on the way in - the 48px band
+   above that purchase is widget padding 12 + heading 22 + gap 14, so a compact heading
+   recovers 8px, not 48; the full 48 costs the phase title outright. Neither 320x568 nor
+   844x390 makes an above-the-fold promise. The header at 320 is 70px since #133; the older "102-111px"
    figure in this section was stale and is removed rather than re-measured here.
 
    The kernel band was the last removable term above the purchase, and it could not be
