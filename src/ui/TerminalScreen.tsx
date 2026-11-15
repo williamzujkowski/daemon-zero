@@ -101,7 +101,7 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal />}
-        header={<ChromeHeader />} band={<AlertBand />} body={<ChromeBody />} />
+        header={<ChromeHeader landmark />} band={<AlertBand landmark />} body={<ChromeBody landmark />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
@@ -142,7 +142,15 @@ function TerminalChrome() {
   </View>;
 }
 
-function ChromeHeader() {
+/** The phone tier renders the blocks as siblings with no wrapping region (the alert band
+ *  has to be a direct scroll child to stick), so there each block carries its own
+ *  landmark. Inside TerminalChrome's region they must NOT: axe wants one labelled region
+ *  for the chrome, and `tests/ui-a11y-structure.spec.ts` asserts exactly that. */
+function landmarkAttrs(label: string, landmark: boolean | undefined) {
+  return landmark === true ? { role: 'region' as const, 'aria-label': label } : {};
+}
+
+function ChromeHeader({ landmark }: { landmark?: boolean }) {
   const width = useWindowDimensions().width;
   const narrow = isNarrowChrome(width);
   // Below 360 the status column cannot sit beside the controls without wrapping into
@@ -154,7 +162,7 @@ function ChromeHeader() {
   // where it starts fitting with room. Measured: rendering it from 400 wrapped the header
   // to 117px at 400 and 414 against the 64px budget the size matrix asserts.
   const headerMusic = width >= 600;
-  return <View testID="terminal-header" role="region" aria-label="Run status"
+  return <View testID="terminal-header" {...landmarkAttrs('Run status', landmark)}
     style={[styles.header, narrow && styles.headerNarrow]}><View style={veryNarrow ? styles.titlePlain : { flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>{veryNarrow ? 'DAEMON//0' : 'DAEMON // 0'}</Text>
     {!veryNarrow && <><CheckpointLabel /><RunStatus /></>}</View><ProcessManager /><GameMenu /><DevelopmentTools />
     {headerMusic && <MusicToggle />}
@@ -165,13 +173,13 @@ function ChromeHeader() {
  *  tier this band is a direct child of the primary scroll and sticks to its top, so a
  *  player scrolling to a recovery purchase keeps the reason on screen (nexus vote:
  *  sticky-alert-inside-the-scroll, then split-chrome-alert-above-strip, 6 of 6). */
-function AlertBand() {
-  return <View testID="alert-band" role="region" aria-label="Run ending alerts"><CorporateAlerts /></View>;
+function AlertBand({ landmark }: { landmark?: boolean }) {
+  return <View testID="alert-band" {...landmarkAttrs('Run ending alerts', landmark)}><CorporateAlerts /></View>;
 }
 
-function ChromeBody() {
+function ChromeBody({ landmark }: { landmark?: boolean }) {
   const notice = useGameValue(selectNotice);
-  return <View role="region" aria-label="Terminal status detail">
+  return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
     <TopForecast />
