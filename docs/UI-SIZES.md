@@ -214,9 +214,11 @@ back entirely for the insolvency state.
 
 1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
-   phone tier, mid-game does too: the band's 57px took the first purchase from 584-628 to
-   inside the usable fold. The insolvency state still starts at 751 and is accepted as a
-   scroll with a pinned warning. 320x568 and 844x390 remain the tolerated tier and make no
+   phone tier (#143), mid-game does too: the first purchase reads 527-571 against 595 and
+   clears by 24px. The insolvency state reads 650-694 and is accepted as a scroll with a
+   pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
+   844x390 mid-game 376-420 and insolvency 448-492 against 345 - short landscape is the
+   worst case left, and it is not a supported size. 320x568 and 844x390 remain the tolerated tier and make no
    above-the-fold promise. The header at 320 is 70px since #133; the older "102-111px"
    figure in this section was stale and is removed rather than re-measured here.
 
