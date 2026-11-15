@@ -37,19 +37,31 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 
 | Tier | Sizes | What is promised | What is asserted |
 |---|---|---|---|
-| Supported | 360 wide and 640 tall, and up | everything in the contract below, including budgets and above-the-fold placement | the full matrix |
+| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up | the full matrix |
 | Tolerated | 320x568 (and any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
 | Undefined | under 320 | nothing | nothing |
 
-The evidence, measured on the served export — first purchase control against the
-*usable* fold (the tab bar's top edge, which is where a phone's content really ends):
+The evidence, measured on the served export by the size matrix itself — first purchase
+control against the viewport and against the *usable* fold (the tab bar's top edge):
 
-| Viewport | first purchase | usable fold | result |
+| Viewport | opening state | mid-game | insolvency |
 |---|---|---|---|
-| 320x568 | 546-590 | 523 | **67px below** in all three sampled states |
-| 360x640 | 550-594 | 595 | clears by 1px |
-| 375x667 | 531-575 | 622 | 47px spare |
-| 390x844 | 531-575 | 799 | comfortable |
+| 320x568 | 546, below | 652, below | 769, below |
+| 360x640 | 531-575, **clears** | 609-653, below | 732, below |
+| 390x844 | 531-575, clears | 593-637, clears | 684, clears |
+| 414x896 | 512-556, clears | 574, clears | 684, clears |
+| 768x1024 | 471, clears | 597, clears | 647, clears |
+| 1440x900 | 365, clears | 405, clears | 522, clears |
+
+**360 holds the fold for the opening state only.** Mid-game sits 13px past the viewport
+and the insolvency state 92px past it, so the floor is a real floor for a new run and a
+scroll for a mid-game one. #138 corrected the fold spec, which had been re-measuring the
+same fixture three times (`boot()` only seeds a fixture when storage is empty), and the
+matrix now asserts the opening claim at 360 and records the other two as reachable but
+below the fold.
+
+The resource strip's row packing also moved: 122px to 103px at 360 and 390 (#137), which
+is what turned the opening state's 1px clearance into 20px.
 
 320 is the iPhone SE 1st-generation / 2016-era Android class and the WCAG 1.4.10
 reflow width, which is why it stays *tolerated* rather than dropped: deleting its

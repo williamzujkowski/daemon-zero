@@ -211,17 +211,25 @@ test.describe('above-the-fold at baseline sizes', () => {
     } finally { await warning.page.context().close(); }
   });
 
-  test('phone-360 640 shows the forecast and the first purchase in every sampled state', async ({ browser }) => {
-    const context = await browser.newContext({ viewport: { width: 360, height: 640 }, reducedMotion: 'reduce' });
-    const page = await context.newPage();
-    try {
-      for (const fixture of states) {
-        await boot(page, fixture); await dismissBoot(page);
+  test('phone-360 640 shows the forecast and the opening purchase, and records where mid-game does not fit', async ({ browser }) => {
+    // #138: this loop used to reuse one page, and boot() only seeds a fixture when
+    // localStorage is empty - so all three assertions re-measured the FIRST fixture and
+    // two of them were vacuous. Each state now gets a fresh context, and the claim is
+    // what the measurements actually support: the opening state clears the fold at 360,
+    // mid-game and the insolvency state do not (609-653 and 732 against 640).
+    for (const fixture of states) {
+      const { page } = await openState(browser, 360, 640, fixture);
+      try {
         const geometry = await page.evaluate(readGeometry);
         expect(geometry.forecastVisible, `${fixture} forecast above the fold`).toBe(true);
-        expect(geometry.firstUnlockVisible, `${fixture} first purchase above the fold`).toBe(true);
-      }
-    } finally { await context.close(); }
+        if (fixture === 'phase-1-widgets') {
+          expect(geometry.firstUnlockVisible, 'opening first purchase above the fold').toBe(true);
+        } else {
+          // Recorded, not claimed: the control must exist and be reachable by scrolling.
+          expect(geometry.firstUnlockTop, `${fixture} purchase control missing`).not.toBeNull();
+        }
+      } finally { await page.context().close(); }
+    }
   });
 
   test('desktop 1440x900 shows the forecast and the first purchase in every sampled state', async ({ browser }) => {
