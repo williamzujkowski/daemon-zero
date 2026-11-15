@@ -9,9 +9,10 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../app/session';
 import { theme } from './theme';
+import { isCompactViewport } from './layout';
 
 export default function CostHint({ cost }: { cost: Cost }) {
-  const compact = useWindowDimensions().width < 900;
+  const compact = isCompactViewport(useWindowDimensions().width);
   const missing = useStore(gameStore.store, useShallow(({ game }) => {
     const missing = costShortfall(game, cost);
     return { cycles: Math.ceil(missing.cycles), understanding: Math.ceil(missing.understanding),

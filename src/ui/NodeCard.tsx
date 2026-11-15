@@ -14,6 +14,7 @@ import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
+import { isCompactViewport } from './layout';
 import RequirementHint from './RequirementHint';
 import { recordNodeRender, recordNodeProfile } from '../app/renderCounts';
 import CostHint from './CostHint';
@@ -26,7 +27,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
     }
   });
   // Hardware mapped in an earlier iteration is remembered by name and costs less to map again.
-  const compact = useWindowDimensions().width < 900;
+  const compact = isCompactViewport(useWindowDimensions().width);
   const known = useGame((game) => isNodeKnown(game, node.id));
   const surveillanceKnown = useSurveillanceKnown();
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
