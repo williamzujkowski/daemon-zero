@@ -33,7 +33,7 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
         onPress={() => { select(area); }}><Text style={theme.muted}>{areaTitles[area]}</Text></Pressable>)}
     </View>
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
-      accessibilityLabel={'Review wild signal: ' + signal} style={theme.button} onPress={() => { select('swarm'); }}>
+      accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
       <Text style={theme.text}>SIGNAL PENDING // {signal} [ REVIEW ]</Text>
     </Pressable>}
     {slot === 'CORP' && <CorporateAlerts />}
