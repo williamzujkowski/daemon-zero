@@ -122,9 +122,10 @@ and measured short-card regressions were explicitly requested before merge.
 A controlled **200% CSS font/line-height stress test failed on mobile in both
 baseline and changed builds**: fixed chrome consumes the viewport and collapses
 the purchase pane to zero height in Phase 2 Operations and Phase 4 Swarm.
-Desktop panes remain available. This is tracked in [#85](https://github.com/williamzujkowski/daemon-zero/issues/85),
-with baseline/after screenshots; it is not a successful browser-zoom or native
-font-scaling qualification. No standard-size layout finding remains.
+Desktop panes remain available. It was fixed after this pilot by [#87](https://github.com/williamzujkowski/daemon-zero/pull/87)
+(single primary mobile scroll) and is now covered by `tests/e2e/large-text.e2e.ts`;
+the pilot's own screenshots remain the historical evidence. It is not a successful
+browser-zoom or native font-scaling qualification.
 
 No Android/iOS/device, native screen-reader, actual browser zoom or human shopping/
 discoverability check was performed for this pilot. Optional prose is accessible

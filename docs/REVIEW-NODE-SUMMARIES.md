@@ -102,8 +102,10 @@ restore, wipe, Start Fresh and identity-change resets.
 
 - Not run: physical Android or iOS, native screen readers, and a human
   shopping/discoverability pass. #84's human check therefore remains open.
-- No 200% text/zoom stress for this slice; the pre-existing mobile failure at
-  enlarged text is still tracked in #85.
+- No 200% text/zoom stress for this slice. The enlarged-text mobile failure this
+  work inherited was fixed by #87 after this pilot and is covered by
+  `tests/e2e/large-text.e2e.ts`; cross-size behaviour is measured in
+  [UI-SIZES.md](UI-SIZES.md).
 - The remembered fixtures set `legacy.knownNodes` from nodes the player could
   already see; they project a returning mind rather than replaying an actual
   wipe, and the sample is the careful campaign's one-or-two purchasable nodes.
