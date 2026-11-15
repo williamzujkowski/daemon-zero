@@ -79,8 +79,31 @@ These are enforced by ESLint and tests where possible. Do not work around them.
 
 - One GitHub issue per task; create them with `scripts/seed-issues.sh` or `gh issue create`. Reference the milestone.
 - Branch from `main`: `feat/m<N>-<slug>`, `fix/<slug>`, `chore/<slug>`. Conventional Commits. Small commits.
-- Open a PR with `gh pr create` using the template. CI must be green. Do not merge your own PR without the maintainer's approval unless told otherwise.
+- Open a PR with `gh pr create` using the template. CI must be green. Merge authority comes from a nexus panel, not from the maintainer — see [Approval and merging](#approval-and-merging).
 - Do not force-push shared branches, rewrite history on `main`, or change branch protection, CI permissions, or security tooling configuration without explicit instruction.
+
+## Approval and merging
+
+The maintainer has delegated approval to nexus-agents panels. Agents merge to GitHub on a panel verdict plus green CI; nobody waits for a human.
+
+| question | mechanism | authorised when |
+|---|---|---|
+| which option to take | `consensus_vote`, every alternative declared in `options` | `optionOutcome.thresholdMet` is true and the leading option holds a majority of approvers |
+| may this PR merge | `pr_review` on the real diff | verdict `approve` **and** `verified: true`; when the transport is degraded, **at least two explicit approvals** and zero `request_changes` |
+
+Rules that keep it honest:
+
+- **A `no_quorum` or `verified:false` result is not an approval, and abstention never counts.** Merge only when **at least two seats explicitly approved**, **no seat requested changes**, and CI is green. Anything less — including a run where every answering seat abstained — is no review at all: re-deal the dead seats and re-run. Put the counts in the PR body (`n of m seats responded, k approve, 0 request_changes, e errored`) and never describe a degraded panel as sign-off. Two approvals is the floor because the tool's own `verified:false` reason is "needs second reviewer".
+- **Any `request_changes` blocks the merge** until the finding is resolved by hand with a test, or the dead seat's transport is repaired and the panel re-run.
+- **Do not re-roll a panel to get a different answer**, and do not rewrite a proposal until it agrees. Re-deal the seat whose transport failed.
+- **Bind the artifact to the thing under change**: `artifactPath` is the file the decision alters, `project` is `owner/repo`, and `baseSha` is the real `git merge-base origin/main HEAD`. A fabricated or stale hash invalidates the audit record.
+- **Design decisions go to a vote before code is written** when they change a reviewed rule — layout policy, the phase table, the mobile one-scroll rule, a contrast bar. Record the outcome and any dissent in the doc the change touches.
+- **Panels do not authorise infrastructure actions.** Force-pushing shared branches, rewriting `main`, changing branch protection, CI permissions or security tooling still need explicit human instruction, as does anything that spends money.
+
+Operational detail (seat transport, model pins, why a seat dies) belongs in the
+agent's own runbook, not here; what belongs here is that a seat which never answered
+is not a vote, and a panel that lost seats is a reason to re-run, never a reason to
+lower the bar.
 
 ## Multi-agent split
 
