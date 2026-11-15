@@ -47,3 +47,14 @@ release-artifacts/
 
 # Local browser review artifacts
 .playwright-mcp/
+
+# Local session handoff and governance ledgers: per-machine working state that
+# is written during a session and must never be swept into a commit.
+/handoff.md
+/governance/
+
+# Compiler/lint caches and patch leftovers
+*.tsbuildinfo
+.eslintcache
+*.orig
+*.rej
