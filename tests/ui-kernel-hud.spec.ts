@@ -61,3 +61,23 @@ it('discards history when an interrupt preempts it and does not reopen after res
   act(() => { gameStore.dispatch(() => ({ ok: true, state: m4State('thermal-unlocked') })); });
   expect(view.find('kernel-history')).toBeNull();
 });
+
+it('pins the band to the wide tiers and the menu route to the phone tier', async () => {
+  // The band was dropped from the phone layout to buy back 57px above the first purchase
+  // (vote: menu-route-drops-the-band). Asserting only its absence in a mobile render would
+  // pass just as well if it never rendered at all, so both sides of the boundary are
+  // pinned: the wide tiers must still show the band with its preview.
+  const wide = await mountM4('thermal-unlocked', { width: 1440, height: 900 });
+  expect(wide.find('kernel-dock')).not.toBeNull();
+  expect(wide.find('kernel-preview')).not.toBeNull();
+  wide.close();
+
+  const phone = await mountM4('thermal-unlocked', { width: 390, height: 844 });
+  expect(phone.find('kernel-dock')).toBeNull();
+  expect(phone.find('kernel-preview')).toBeNull();
+  // The history is still reachable: the utility menu owns it on this tier.
+  phone.click('menu-open');
+  phone.click('menu-kernel');
+  expect(phone.find('menu-kernel-log')).not.toBeNull();
+  phone.close();
+});
