@@ -216,8 +216,16 @@ Measured at 360x640 with a phase-5 mid-game save in the CORP workspace, on the s
 header 0-80; resource strip 80-234 (154px - seven meters, CYC 26, UND 26, MEM 45, CAP 45,
 THM 26, SUS 26, AEGIS LOCK 57); the interrupt forecast block about 234-404; the omen
 notice 404-477; the workspace nav 477-569 (two rows of 44px buttons); the wild-signal
-notice 573-639; and the first purchase control at **838-882**, against a 595 fold - 243px
-below it, and 198px below the viewport entirely.
+notice 573-639; and the first purchase control against a 595 fold:
+
+| Save loaded | First purchase | Distance past the fold |
+| --- | --- | --- |
+| fresh (`savedAtMs` now) | 822-866 | 227px |
+| stale (`savedAtMs` 0, offline progression applied) | 838-882 | 243px |
+
+Both are real scenarios - the second is a returning player - and they differ by 16px because
+offline progression adds its own notices. Measure with a truthful `savedAtMs` when comparing
+against another cell, or the offline notices will be counted as live chrome.
 
 No single lever reaches the fold, and neither do the two biggest together: collapsing the
 forecast block (about 145px) and making the workspace nav one scroll row (about 48px) lands
