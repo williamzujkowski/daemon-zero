@@ -49,6 +49,20 @@ it('keeps a pending signal discoverable from work and other management sections'
   expect(computeRates(gameStore.store.getState().game, CONTENT)).toEqual(computeRates(before, CONTENT));
 });
 
+it('keeps the insolvency warning while switching workspace slots, not just areas (#125)', async () => {
+  // It used to render inside the CORP workspace block, so CORE, SENSORS and NETWORK
+  // showed no warning at all while the run was ending.
+  const view = await mountM4('corporate-insolvent');
+  expect(view.find('insolvency-warning')).not.toBeNull();
+  for (const slot of ['CORE', 'SENSORS', 'NETWORK', 'CORP']) {
+    const tab = view.find('tab-' + slot);
+    if (tab === null) continue;
+    view.click('tab-' + slot);
+    expect(view.find('insolvency-warning'), 'warning missing on ' + slot).not.toBeNull();
+  }
+  view.close();
+});
+
 it('keeps insolvency warnings visible while switching between purchases, finance and payroll', async () => {
   const view = await mountM4('corporate-insolvent');
   for (const area of ['work', 'finance', 'payroll', 'operations', 'swarm']) {

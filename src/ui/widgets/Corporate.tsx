@@ -25,6 +25,19 @@ function Ledger() {
   </View>;
 }
 
+/**
+ * Run-threatening alerts, rendered in the terminal chrome (#125).
+ *
+ * They used to render inside the CORP workspace block, so they appeared only while
+ * CORP was the slot in view: measured on main, switching to CORE, SENSORS or
+ * NETWORK removed the insolvency sentence from the document entirely, and the
+ * player read the purchase feed while the run ended without being told why. At
+ * 320x568 it also sat at 548px against a 523px usable edge, so it started life
+ * behind the tab bar and needed a scroll to read.
+ *
+ * In the chrome they are on screen in every slot and at every scroll position, at
+ * no vertical cost: the alert block already occupied chrome height where it was.
+ */
 export function CorporateAlerts() {
   const known = useSurveillanceKnown();
   const insolvent = useGame((game) => game.insolvent);

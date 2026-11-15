@@ -20,6 +20,7 @@ import Pane from './TerminalPane';
 import EndingScreen from './EndingScreen';
 import DevelopmentTools from '../app/DevelopmentTools';
 import CheckpointLabel from './CheckpointLabel';
+import { CorporateAlerts } from './widgets/Corporate';
 import LineageReveal from './LineageReveal';
 import BlindAuditStatus from './BlindAuditStatus';
 import GameMenu from './GameMenu';
@@ -111,6 +112,8 @@ function TerminalChrome() {
   return <View role="region" aria-label="Terminal status">
     <View testID="terminal-header" style={[styles.header, narrow && styles.headerNarrow]}><View style={{ flexGrow: 1, flexBasis: narrow ? 88 : 120, minWidth: narrow ? 88 : 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
+    {/* #125: the run-ending alerts belong to the chrome, not to one workspace. */}
+    <CorporateAlerts />
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
     <TopForecast />

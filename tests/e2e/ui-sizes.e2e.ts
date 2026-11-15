@@ -132,6 +132,17 @@ test.describe('size matrix invariants', () => {
 /** Above-the-fold properties that hold today. Sizes and states that do not yet hold them are
  * listed as budgets in docs/UI-SIZES.md and must be asserted here once fixed. */
 test.describe('above-the-fold at baseline sizes', () => {
+  test('small phone 320x568 shows the insolvency warning', async ({ browser }) => {
+    // #125: the warning used to render only while CORP was the slot in view, and at
+    // 568px it started life behind the tab bar. It is the only place the player is
+    // told why the run is ending, so both properties are held here.
+    const warning = await openState(browser, 320, 568, 'corporate-insolvent');
+    try {
+      const geometry = await warning.page.evaluate(readGeometry);
+      expect(geometry.warningVisible, 'insolvency warning on screen at 320x568').toBe(true);
+    } finally { await warning.page.context().close(); }
+  });
+
   test('phone 390x844 shows the forecast, the first purchase and an active warning', async ({ browser }) => {
     const early = await openState(browser, 390, 844, 'phase-1-widgets');
     try {

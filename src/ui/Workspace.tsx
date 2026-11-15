@@ -7,7 +7,6 @@ import { workspaceAreas } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
 import { areaTitles, type WorkspaceArea } from './workspaceTypes';
 import { theme } from './theme';
-import { CorporateAlerts } from './widgets/Corporate';
 
 export function useWorkspace(slots: string[], ids: readonly string[]) {
   const phase = useGame((game) => game.currentPhase);
@@ -36,6 +35,5 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
       <Text style={theme.text}>SIGNAL PENDING // {signal} [ REVIEW ]</Text>
     </Pressable>}
-    {slot === 'CORP' && <CorporateAlerts />}
   </View>;
 }

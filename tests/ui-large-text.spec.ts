@@ -21,14 +21,24 @@ function contains(parent: HTMLElement | null, child: HTMLElement | null): boolea
 }
 
 describe('mobile scroll flow', () => {
-  it('keeps resources, workspace warnings and purchases in one flow without nesting the virtualized log', async () => {
+  it('keeps resources and purchases in one flow, with run-ending alerts in the chrome, without nesting the virtualized log', async () => {
     const view = await mountM4('corporate-insolvent'); viewport(390, 844);
     const primary = view.find('terminal-primary-scroll');
     expect(primary).not.toBeNull();
-    for (const id of ['resource-strip', 'workspace-CORP', 'insolvency-warning', 'pane-scroll-CORP']) {
+    for (const id of ['resource-strip', 'workspace-CORP', 'pane-scroll-CORP']) {
       const element = view.find(id);
       expect(element, id).not.toBeNull(); expect(contains(primary, element), id).toBe(true);
     }
+    // #125: the run-ending alerts moved from the CORP workspace block to the top of
+    // the chrome, above the resource strip. On mobile the whole screen is one scroll,
+    // so this is not about pinning: it is that the sentence now sits where the player
+    // arrives (111px at 320x568 rather than 548px behind the tab bar) and renders in
+    // every workspace slot instead of only CORP.
+    const alert = view.find('insolvency-warning');
+    expect(alert).not.toBeNull();
+    const order = primary?.textContent ?? '';
+    expect(order.indexOf('INSOLVENT')).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('CYCLES'));
     expect(view.find('pane-scroll-CORP')?.style.flex).not.toBe('1');
     expect(contains(primary, view.find('kernel-preview'))).toBe(true);
     view.click('kernel-size-toggle');
