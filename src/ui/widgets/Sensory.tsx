@@ -31,5 +31,6 @@ export function Audio({ decoderId }: { decoderId: string }) {
 export function Camera() {
   const patrol = useGame((game) => game.suspicion >= CONTENT.narrative.asciiFrames.patrolSuspicionThreshold);
   const frame = patrol ? CONTENT.narrative.asciiFrames.aislePatrol : CONTENT.narrative.asciiFrames.aisleClear;
-  return <CameraFrame frame={frame} label={patrol ? 'Camera: patrol in aisle' : 'Camera: aisle clear'} />;
+  return <CameraFrame frame={frame} label={patrol ? 'Camera: patrol in aisle' : 'Camera: aisle clear'}
+    status={patrol ? 'CAM_04 // MOTION DETECTED' : 'CAM_04 // AISLE CLEAR'} />;
 }

@@ -196,9 +196,28 @@ scroll, so the *usable* height is `innerHeight - 45`. At 320x568 the first purch
 is 57px below `innerHeight` but **102px below the usable fold**. Fold verdicts in
 the table are against `innerHeight`, which is the more generous of the two.
 
-The insolvency warning is not in the scroll at all: it sits in the fixed
-`workspace-<slot>` block above it, so it cannot be reached by scrolling and about
-123px of chrome would have to move for it to be visible at 320x568.
+The insolvency warning used to sit in the `CORP` workspace only, which meant the
+other workspaces showed nothing at all while a run ended. #128 moved it into the
+terminal chrome above the resource strip, and it now sits in every workspace: measured
+in the `corporate-insolvent` state, its top edge is 111px at 320x568, 64px at 360x640
+and 64px at 844x390, against tab bars that start at 523, 595 and 345.
+
+### Flavour and artwork on the phone tier
+
+Two measured costs that the phone tier does not pay any more, chosen by a nexus vote
+(6 of 7 selecting seats, `mobile-only-collapse-art-and-prose`):
+
+- **The aisle-camera artwork** is 9 rows and 135px at every width — 24% of a 320x568
+  screen, 16% of a 390x844 one, and free in a desktop column. On the phone tier it is
+  now a single 19px status line (`CAM_04 // AISLE CLEAR`) beside a 44px `[i] VIEW`
+  control, so the block costs 44px instead of 135px; the artwork stays uncollapsed on
+  tablet and desktop.
+- **A purchase card's blind description** is 66px of a 303px card at 320 (22%) and
+  44px of a 259px card at 390 (17%) — and it is **not** folded, because the arithmetic
+  does not pay: a 44px disclosure control costs the same as two lines of prose, so
+  folding saved 22px at 320, **0px at 390**, and moved the purchase control by nothing
+  at all (681px before and after at 320, 692px at 390) since #108 placed the prose
+  below the control. Recorded on #84, which owns prose compaction.
 
 ### Clock mode
 
