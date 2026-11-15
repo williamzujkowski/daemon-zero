@@ -32,9 +32,9 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   const nextButton = useRef<ComponentRef<typeof Pressable>>(null);
   return <View style={{ gap: 8 }}>
     <Text testID={id} style={theme.text}>{speech.text}</Text>
-    {speech.canStep && <Pressable ref={nextButton} testID="speech-next" accessibilityRole="button" accessibilityLabel="Next transmission"
+    {speech.canStep && <Pressable ref={nextButton} testID="speech-next" accessibilityRole="button" accessibilityLabel="[ NEXT TRANSMISSION ] Next transmission"
       style={theme.button} onPress={speech.next}><Text style={theme.text}>[ NEXT TRANSMISSION ]</Text></Pressable>}
-    {speech.canFollow && <Pressable testID="speech-follow-live" accessibilityRole="button" accessibilityLabel="Follow live transmissions"
+    {speech.canFollow && <Pressable testID="speech-follow-live" accessibilityRole="button" accessibilityLabel="[ FOLLOW LIVE ] Follow live transmissions"
       style={theme.button} onPress={() => { speech.follow(); nextButton.current?.focus(); }}><Text style={theme.text}>[ FOLLOW LIVE ]</Text></Pressable>}
   </View>;
 }

@@ -3,7 +3,7 @@ import { Text, View } from './PhaseTheme';
  * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
@@ -32,6 +32,7 @@ import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
 import { layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
+import { installFocusRing } from './focusRing';
 import { UtilityFocusProvider } from './UtilityFocus';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
@@ -63,6 +64,7 @@ export default function TerminalScreen() {
 }
 
 function Terminal() {
+  useEffect(() => { installFocusRing(); }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
   const ids = useWidgetIds();
@@ -80,7 +82,7 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal />}><TerminalChrome /></MobileTerminal>
-      : <><TerminalChrome /><View testID="terminal-columns" style={styles.columns}>
+      : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
           <View testID="panel-sensors" style={{ flex: 1, minWidth: SIDE_COLUMN_MIN_WIDTH }}>
@@ -102,7 +104,7 @@ function Terminal() {
 function TerminalChrome() {
   const notice = useGameValue(selectNotice);
   return <>
-    <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading}>DAEMON // 0</Text>
+    <View style={styles.header}><View style={{ flexGrow: 1, flexBasis: 120, minWidth: 120 }}><Text style={theme.heading} accessibilityRole="header" aria-level={1}>DAEMON // 0</Text>
       <CheckpointLabel /><RunStatus /></View><ProcessManager /><GameMenu /><DevelopmentTools /></View>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>

@@ -17,7 +17,7 @@ function Disclosure({ id, title, description, titleTestID }: DetailsProps) {
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
       <Text testID={titleTestID ?? ('details-title-' + id)} accessibilityRole="header"
         style={[theme.heading, { flexGrow: 1, flexShrink: 1, flexBasis: 160, minWidth: 0 }]}>{title}</Text>
-      <Pressable testID={'details-' + id} accessibilityRole="button" accessibilityLabel={'Details for ' + title}
+      <Pressable testID={'details-' + id} accessibilityRole="button" accessibilityLabel={(expanded ? '[−] CLOSE for ' : '[i] DETAILS for ') + title}
         accessibilityState={{ expanded }} aria-expanded={expanded} style={[theme.button, { paddingHorizontal: 8 }]}
         onPress={() => { setExpanded(!expanded); }}>
         <Text style={theme.muted}>{expanded ? '[−] CLOSE' : '[i] DETAILS'}</Text>

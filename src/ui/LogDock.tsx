@@ -27,7 +27,7 @@ export default function LogDock() {
       <Text accessibilityRole="header" style={theme.heading}>KERNEL // LIVE</Text>
       <DisclosureText testID="kernel-preview" numberOfLines={1} ellipsizeMode="tail" style={theme.muted}>{latest}</DisclosureText>
     </View>
-      <Pressable ref={trigger} testID="kernel-size-toggle" accessibilityRole="button" accessibilityLabel="Expand kernel log"
+      <Pressable ref={trigger} testID="kernel-size-toggle" accessibilityRole="button" accessibilityLabel="[ EXPAND ] Expand kernel log"
         accessibilityState={{ expanded: open, disabled }} aria-expanded={open} disabled={disabled}
         style={theme.button} onPress={() => { setOpened(scope); }}><Text style={theme.text}>[ EXPAND ]</Text></Pressable>
     </View>

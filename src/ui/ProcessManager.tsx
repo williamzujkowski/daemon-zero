@@ -21,7 +21,7 @@ export default function ProcessManager() {
   }
   return <>
     <Pressable testID="processes-open" accessibilityRole="button"
-      accessibilityLabel={'Manage ' + String(count) + ' daemon processes, ' + String(suspended) + ' suspended'}
+      accessibilityLabel={'[ PROC ' + String(count) + ' ] Manage ' + String(count) + ' daemon processes, ' + String(suspended) + ' suspended'}
       accessibilityState={{ expanded: open }} aria-expanded={open} disabled={blocked}
       style={theme.button}
       onPress={() => { setOpen(true); }}>

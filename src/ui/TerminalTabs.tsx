@@ -11,8 +11,10 @@ export default function TerminalTabs({ slots, active, select, horizontal = false
   const positions = useRef<Record<string, number>>({});
   useEffect(() => { scroll.current?.scrollTo({ x: positions.current[active] ?? 0, animated: false }); }, [active]);
   if (slots.length < 2) return null;
-  const tabs = <View testID="terminal-tabs" style={[styles.tabs, horizontal && { flexWrap: 'nowrap', flexGrow: 1, flexShrink: 0 }]}>{slots.map((slot) =>
-    <Pressable key={slot} testID={'tab-' + slot} accessibilityRole="tab" accessibilityLabel={slot.toLowerCase() + ' pane'}
+  // role="tablist" is what makes the children's role="tab" legal (axe
+  // aria-required-parent, #111).
+  const tabs = <View testID="terminal-tabs" role="tablist" aria-label="terminal panes" style={[styles.tabs, horizontal && { flexWrap: 'nowrap', flexGrow: 1, flexShrink: 0 }]}>{slots.map((slot) =>
+    <Pressable key={slot} testID={'tab-' + slot} accessibilityRole="tab" accessibilityLabel={slot + ' pane'}
       accessibilityState={{ selected: slot === active }} aria-selected={slot === active}
       onLayout={(event) => {
         positions.current[slot] = event.nativeEvent.layout.x;

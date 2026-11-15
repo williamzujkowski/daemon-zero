@@ -52,8 +52,11 @@ function SensorAmount({ thermal = false, compact }: { thermal?: boolean; compact
   const text = value.toFixed(1) + (thermal ? ' °C' : '%');
   return <View style={[styles.readout, compact && styles.sensorCompact]}>
     <Text style={theme.muted}>{label.toUpperCase()}</Text>
-    <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} accessibilityRole="text"
-      accessibilityLabel={label + ': ' + text} aria-valuetext={text} style={theme.text}>{text}</Text>
+    {/* #111: aria-valuetext needs a role that carries a value, so this readout is
+      a meter with an explicit range rather than a bare text node. */}
+    <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} role="meter"
+      accessibilityLabel={label + ': ' + text} aria-valuetext={text}
+      aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} style={theme.text}>{text}</Text>
   </View>;
 }
 

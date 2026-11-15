@@ -21,7 +21,7 @@ export default function ManualCycle() {
   const counter = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.cycles));
   const [feedback, setFeedback] = useState({ iteration, count: 0 });
   const count = feedback.iteration === iteration ? feedback.count : 0;
-  return <View style={{ gap: 6 }}><Pressable testID="manual-cycle" accessibilityRole="button" accessibilityLabel="Execute clock cycle"
+  return <View style={{ gap: 6 }}><Pressable testID="manual-cycle" accessibilityRole="button" accessibilityLabel="[ EXECUTE_CLOCK_CYCLE ] Execute clock cycle"
     disabled={!ready || blocked} style={[theme.button, (!ready || blocked) && theme.disabled]}
     onPress={() => {
       const result = gameRuntime.dispatch((game) => manualCycle(game, CONTENT));
