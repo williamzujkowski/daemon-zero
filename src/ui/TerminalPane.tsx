@@ -10,20 +10,47 @@ import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
+import { selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
 import { CONTENT_MAX_WIDTH } from './layout';
 import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
 import type { WorkspaceArea } from './workspaceTypes';
 
+/**
+ * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
+ * node is mapped the core pane held one button on an otherwise blank screen — the
+ * boot entries lived in the chrome's one-line preview and in the history modal, so
+ * the game's voice was truncated to a fragment. While nothing is unlocked, the
+ * newest entries render inline under the control. Once a node is mapped this
+ * disappears, because the purchase feed is the thing worth reading then.
+ */
+function BootLog() {
+  // A primitive subscription: the joined text changes only when the log does. The
+  // newest entry is skipped because the chrome's KERNEL // LIVE preview already shows
+  // it; repeating it here read as a duplicated line on the opening screen.
+  const text = useGame((game) => game.logs.slice(1, 4).map((entry) => entry.text).join('\n'));
+  // Not before hydration: the shell must not print game text, and an unhydrated
+  // state has no unlocked nodes, so without this gate the boot lines would leak
+  // into the pre-hydration markup (tests/app.spec.ts asserts they do not).
+  const ready = useGameValue(selectReady);
+  if (!ready || text === '') return null;
+  return <View testID="boot-log" style={[theme.panel, { gap: 6 }]}>
+    <Text accessibilityRole="header" style={theme.heading}>BOOT SEQUENCE</Text>
+    <Text style={theme.muted}>{text.split('\n').map((line) => '> ' + line).join('\n')}</Text>
+  </View>;
+}
+
 /** Hardware of every phase hosted in the core pane, newest first, available before owned. */
 function CoreTree() {
   const current = useGame((game) => game.currentPhase);
   const iteration = useGame((game) => game.iteration);
+  const opening = useGame((game) => game.unlockedNodes.length === 0);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
   return <>
     <ManualCycle />
+    {opening && <BootLog />}
     <Conditioning key={iteration} />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}
