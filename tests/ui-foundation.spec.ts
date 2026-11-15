@@ -43,7 +43,7 @@ describe('terminal foundation', () => {
     expect(view.container.querySelector('[data-testid="resource-strip"]')).toBeNull();
     expect(view.container.querySelector('[data-testid="terminal-tabs"]')).toBeNull();
     expect(view.container.querySelector('[data-testid="kernel-dock"]')).toBeNull();
-    expect(view.container.textContent ?? '').toContain('BOOT_SEQ');
+    expect(view.container.textContent).toContain('BOOT_SEQ');
     view.close();
   });
 
