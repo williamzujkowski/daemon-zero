@@ -30,8 +30,16 @@ export function setupM4Tests(): void {
   afterEach(() => { for (const close of closes) close(); host.localStorage.clear(); vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 }
 
-export async function mountM4(name: string) {
-  Object.defineProperty(host.document.documentElement, 'clientWidth', { configurable: true, value: 1440 });
+export async function mountM4(
+  name: string,
+  viewport: { width: number; height: number } = { width: 1440, height: 900 }
+) {
+  Object.defineProperty(host.document.documentElement, 'clientWidth', { configurable: true, value: viewport.width });
+  Object.defineProperty(host.document.documentElement, 'clientHeight', { configurable: true, value: viewport.height });
+  // react-native-web's Dimensions reads the window, not documentElement, in some
+  // builds; set both so a mounted tier is the tier the test asked for (#112).
+  Object.defineProperty(host, 'innerWidth', { configurable: true, value: viewport.width });
+  Object.defineProperty(host, 'innerHeight', { configurable: true, value: viewport.height });
   host.dispatchEvent(new host.Event('resize'));
   const container = host.document.createElement('div');
   host.document.body.appendChild(container);
