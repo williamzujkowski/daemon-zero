@@ -16,6 +16,14 @@ export const test = base.extend<{ cleanConsole: undefined }>({
   }, { auto: true }],
 });
 export { expect };
+/**
+ * Boots the export, optionally seeding `fixture`.
+ *
+ * The fixture is only written when localStorage is empty, so a second `boot(page, other)`
+ * on the SAME page silently keeps the first save - a loop over states then re-measures
+ * one state and its extra assertions are vacuous (#138). Give each state its own context
+ * when looping.
+ */
 export async function boot(page: Page, fixture?: string): Promise<void> {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 1000);
