@@ -35,6 +35,27 @@ const BODY = 4.5;
 const BACKDROPS = ['background', 'surface', 'raised'] as const;
 const round = (value: number): number => Math.round(value * 100) / 100;
 
+function channels(hex: string): [number, number, number] {
+  const value = hex.replace('#', '');
+  return [parseInt(value.slice(0, 2), 16), parseInt(value.slice(2, 4), 16), parseInt(value.slice(4, 6), 16)];
+}
+function hue(hex: string): number {
+  const [r, g, b] = channels(hex).map((c) => c / 255) as [number, number, number];
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), span = max - min;
+  if (span === 0) return 0;
+  const raw = max === r ? ((g - b) / span) % 6 : max === g ? (b - r) / span + 2 : (r - g) / span + 4;
+  return ((raw * 60) + 360) % 360;
+}
+function saturation(hex: string): number {
+  const [r, g, b] = channels(hex).map((c) => c / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  return max === 0 ? 0 : (max - Math.min(r, g, b)) / max;
+}
+function hueDistance(a: number, b: number): number {
+  const raw = Math.abs(a - b) % 360;
+  return Math.min(raw, 360 - raw);
+}
+
 describe('palette contrast bars (#111)', () => {
   it('states the bars it enforces', () => {
     expect(NON_TEXT).toBe(3);
@@ -71,5 +92,38 @@ describe('palette contrast bars (#111)', () => {
     // The design relies on the amount reading brighter than its label; equality
     // would flatten the HUD even while both passed their contrast bars.
     expect(contrast(palette.text, palette.surface)).toBeGreaterThan(contrast(palette.muted, palette.surface) * 1.3);
+  });
+});
+
+describe('hue separation between semantic colours and phase accents (#124)', () => {
+  // 30 degrees is the smallest separation at which two saturated colours still read
+  // as different signals at 12px. Before this test, phases 2 and 4 sat 0 and 3
+  // degrees from the warning colour and no measurement noticed.
+  const MIN = 30;
+
+  it('keeps warning and danger apart from each other and from the base accent', () => {
+    expect(hueDistance(hue(palette.warning), hue(palette.danger))).toBeGreaterThanOrEqual(MIN);
+    expect(hueDistance(hue(palette.accent), hue(palette.warning))).toBeGreaterThanOrEqual(MIN);
+    expect(hueDistance(hue(palette.accent), hue(palette.danger))).toBeGreaterThanOrEqual(MIN);
+  });
+
+  it('gives every phase accent a hue of its own', () => {
+    const accents = PHASE_TOKENS.map((token, index) => ({ index, hex: token.accent, hue: hue(token.accent), saturation: saturation(token.accent) }));
+    for (const accent of accents) {
+      // A near-neutral accent conveys state by brightness, not hue; there is nothing
+      // for a hue bar to hold it to.
+      if (accent.saturation < 0.2) continue;
+      expect(hueDistance(accent.hue, hue(palette.warning)), `phase ${String(accent.index)} vs warning`).toBeGreaterThanOrEqual(MIN);
+      expect(hueDistance(accent.hue, hue(palette.danger)), `phase ${String(accent.index)} vs danger`).toBeGreaterThanOrEqual(MIN);
+    }
+    const saturated = accents.filter((accent) => accent.saturation >= 0.2);
+    for (const left of saturated) {
+      for (const right of saturated) {
+        // Phases 0 and 1 share the opening palette on purpose: that is one identity,
+        // not two that need separating.
+        if (left.index >= right.index || left.hex === right.hex) continue;
+        expect(hueDistance(left.hue, right.hue), `phase ${String(left.index)} vs phase ${String(right.index)}`).toBeGreaterThanOrEqual(MIN);
+      }
+    }
   });
 });

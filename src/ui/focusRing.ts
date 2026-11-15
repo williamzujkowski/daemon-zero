@@ -10,9 +10,10 @@
  * tsconfig has no DOM lib, so the few document calls are typed locally.
  */
 import { Platform } from 'react-native';
+import { palette } from './theme';
 
 const STYLE_ID = 'daemon-focus-ring';
-const RULE = ':focus-visible{outline:2px solid #4af626;outline-offset:2px;}';
+const RULE = ':focus-visible{outline:2px solid ' + palette.accent + ';outline-offset:2px;}';
 
 interface FocusRingDocument {
   getElementById(id: string): unknown;

@@ -179,6 +179,38 @@ rather than near-black, and muted is 6.80).
    the interesting question (whether the identity itself should change) is the one
    still open below.
 
+## Adopted: Lit Cell
+
+The base palette is now `Lit Cell` (see `src/ui/theme.ts`), chosen by two nexus
+panel votes and confirmed by the tag filter below. Recorded here because a palette
+is an identity decision, and the reasoning matters more than the hexes.
+
+- **First vote**, before the tag filter existed: `no_quorum` (3 of 7 seats died on
+  batch-endpoint model assignments), 3 approve / 1 reject; the three approving seats
+  chose `lit-cell` unanimously.
+- **Second vote**, after the filter: again `no_quorum` (same transport failures),
+  3 approve / 1 reject, and `optionOutcome` again unanimous for `lit-cell` among the
+  approving seats.
+- **The dissent**, from the scope steward both times, was "keep the current palette":
+  the one measurable defect was already fixed in #120, green phosphor is the game's
+  visual voice, and a 908-theme survey is not a mandate to restyle. That argument is
+  recorded rather than dismissed — it is why the change was made as a token swap in
+  one file with the phase table re-derived, rather than as a design overhaul.
+
+What actually changed in behaviour: nothing functional. What changed in appearance:
+the whole UI, which is the point of an identity decision.
+
+### Phases 2 and 4 were re-hued with it
+
+Adopting Lit Cell makes `warning` a more saturated amber (`#ffb000`) than the old
+`#ffcf66`, so the accent/warning collision in #124 would have survived the swap at
+phases 2 and 4 (they were amber and gold, 0 and 3 degrees away). Since the phase
+tokens had to be re-derived on the new base anyway, phases 2 and 4 moved to violet
+`#b98cff` and magenta `#ff6ec7`, and `tests/ui-contrast.spec.ts` now asserts 30
+degrees of hue separation between every saturated accent and `warning`/`danger`, and
+between the accents themselves. Phase 5 stays near-white and is exempt from the hue
+bar by saturation, which the test states.
+
 ## Tag-filtered shortlist
 
 The theme repository ships per-theme metadata, so the survey can be filtered rather

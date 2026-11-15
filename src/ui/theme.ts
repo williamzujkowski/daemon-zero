@@ -1,16 +1,26 @@
 /**
- * Shared terminal palette, type and spacing for the Phase 1 interface.
+ * Shared terminal palette, type and spacing.
  * Borders carry structure; text and numeric labels carry meaning without colour.
+ *
+ * The nine colours are the `Lit Cell` palette from oklch-terminal-themes
+ * (https://github.com/williamzujkowski/oklch-terminal-themes, MIT, Copyright (c)
+ * 2026 William Zujkowski). Its slots map as background/foreground/cursor/
+ * brightBlack/yellow/red -> background/text/accent/border/warning/danger.
+ * `surface`, `raised` and `muted` are derived: the background lifted +0.045 and
+ * +0.085 in OKLCH lightness, and the foreground blended 55% toward the background
+ * in linear light. docs/REVIEW-PALETTE.md measures every pair;
+ * tests/ui-contrast.spec.ts asserts them.
+ *
+ * Why it replaced the hand-tuned palette: mint phosphor on near-black keeps the
+ * game's voice, and every pair clears its bar on all three backdrops - including
+ * the 1px structural border the old palette shipped at 2.63:1 for the whole
+ * project.
  */
 import { Platform, StyleSheet } from 'react-native';
 
 export const palette = {
-  // #111: `border` was '#315c3b', which measures 2.63:1 on `background` and 2.22:1
-  // on `raised` - below the 3:1 bar for non-text UI, and the border is what tells
-  // panes apart. This is the same hue, scaled 1.28x: 3.77 / 3.55 / 3.18. Every
-  // phase border already cleared the bar; tests/ui-contrast.spec.ts holds all of it.
-  background: '#030704', surface: '#08120b', raised: '#101f14', border: '#3f764c',
-  accent: '#4af626', text: '#d5ead9', muted: '#a0b9a7', warning: '#ffcf66', danger: '#ff8585',
+  background: '#0c110e', surface: '#161b18', raised: '#1f2521', border: '#758679',
+  accent: '#3df2a0', text: '#cfddd3', muted: '#9faaa2', warning: '#ffb000', danger: '#ff6b6b',
 };
 export const mono = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
 export const theme = StyleSheet.create({

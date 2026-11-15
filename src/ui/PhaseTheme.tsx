@@ -7,11 +7,20 @@ import { useGame } from './state';
 import { palette } from './theme';
 
 const opening = { accent: palette.accent, border: palette.border };
+/**
+ * Phase accents, re-derived on the Lit Cell base (#124). Phases 2 and 4 used to be
+ * amber and gold - 0 and 3 degrees from the warning colour, so a warning surface
+ * differed from an ordinary accent surface only by border weight. They are now
+ * violet and magenta: every accent keeps 30+ degrees of hue separation from
+ * `warning` and `danger` and from each other, which tests/ui-contrast.spec.ts
+ * asserts. Phase 5 stays near-white and carries its state by brightness, not hue.
+ * Every border clears 3:1 on `raised`, the lightest plate it can land on.
+ */
 export const PHASE_TOKENS = [
   opening, opening,
-  { accent: '#ffb000', border: '#856325' },
-  { accent: '#00e5ff', border: '#267582' },
-  { accent: '#f5c542', border: '#82743f' },
+  { accent: '#b98cff', border: '#776c9d' },
+  { accent: '#00e5ff', border: '#477a88' },
+  { accent: '#ff6ec7', border: '#96647c' },
   { accent: '#e2e8f0', border: '#73869c' },
 ];
 type MutableStyle = { -readonly [K in keyof TextStyle]: TextStyle[K] };

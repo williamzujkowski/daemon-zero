@@ -6,6 +6,7 @@ import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
 import UpgradeFeed from './UpgradeFeed';
+import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import { useGame, useWidgetIds } from './state';
@@ -69,6 +70,6 @@ const styles = StyleSheet.create({
   // #103 gap 6: an uncapped card reached 1659px at 2560 (about 200 characters a
   // line). The cap keeps every pane at a readable measure and centres it.
   content: { padding: 16, gap: 14, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
-  pinned: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderColor: '#315c3b', gap: 8 },
+  pinned: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderColor: palette.border, gap: 8 },
   compact: { gap: 4 },
 });

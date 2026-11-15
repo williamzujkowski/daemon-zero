@@ -10,6 +10,7 @@ import { recordUnlocks } from '../src/app/unlockPresentation';
 import { snapshotNodeProfiles, snapshotRenderCounts } from '../src/app/renderCounts';
 import { exportPlayerSave, importPlayerSave } from '../src/app/saveTransfer';
 import NodeTitle from '../src/ui/NodeTitle';
+import { PHASE_TOKENS } from '../src/ui/PhaseTheme';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 afterEach(() => { vi.restoreAllMocks(); });
@@ -49,10 +50,18 @@ describe('M5 feel', () => {
     expect(snapshotRenderCounts()).toEqual(before); expect(snapshotNodeProfiles()).toEqual(profiles);
     view.close();
   });
-  it.each([['phase-2-unlocked', 'rgba(255, 176, 0, 1.00)'], ['phase-3-aegis-90', 'rgba(0, 229, 255, 1.00)'], ['corporate-insolvent', 'rgba(245, 197, 66, 1.00)']])('recolours accents in %s', async (fixture, colour) => {
+  it.each([['phase-2-unlocked', 2], ['phase-3-aegis-90', 3], ['corporate-insolvent', 4]] as const)('recolours accents in %s', async (fixture, phase) => {
+    const token = PHASE_TOKENS[phase];
+    expect(token, 'missing phase token ' + String(phase)).toBeDefined();
+    const accent = token?.accent ?? '';
+    // Derived from the token rather than copied as a literal: the phase table is the
+    // one place a phase colour is chosen, and a stale copy here passed once while the
+    // palette had already moved (#124).
+    const [r, g, b] = [1, 3, 5].map((offset) => parseInt(accent.slice(offset, offset + 2), 16)) as [number, number, number];
     const view = await mountM4(fixture);
     await act(async () => { await Promise.resolve(); });
-    expect(view.container.querySelector('[data-testid="manual-cycle"]')?.getAttribute('style')).toContain(colour);
+    expect(view.container.querySelector('[data-testid="manual-cycle"]')?.getAttribute('style'))
+      .toContain('rgba(' + String(r) + ', ' + String(g) + ', ' + String(b) + ', 1.00)');
     view.close();
   });
   it('round-trips normal save transfer and rejects malformed input without changing state', async () => {
