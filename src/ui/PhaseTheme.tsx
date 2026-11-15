@@ -7,7 +7,7 @@ import { useGame } from './state';
 import { palette } from './theme';
 
 const opening = { accent: palette.accent, border: palette.border };
-const phases = [
+export const PHASE_TOKENS = [
   opening, opening,
   { accent: '#ffb000', border: '#856325' },
   { accent: '#00e5ff', border: '#267582' },
@@ -18,7 +18,7 @@ type MutableStyle = { -readonly [K in keyof TextStyle]: TextStyle[K] };
 const Context = createContext(opening);
 export function PhaseTheme({ children }: { children: ReactNode }) {
   const phase = useGame((game) => game.currentPhase);
-  return <Context value={phases[phase] ?? opening}>{children}</Context>;
+  return <Context value={PHASE_TOKENS[phase] ?? opening}>{children}</Context>;
 }
 function useColour(style: StyleProp<TextStyle>): StyleProp<TextStyle> {
   const colours = useContext(Context);
