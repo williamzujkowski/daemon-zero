@@ -52,6 +52,26 @@ A task is done only when all of these hold:
 
 Never claim something works that you did not run. If you could not run it (no emulator, no device), say exactly that.
 
+## Watch the real app
+
+Agents may, and should, open the running app in a real browser session and look at it,
+rather than reasoning only from tests and source. A session you can watch shows what a
+mocked or paused-clock test cannot: what is on screen, what the console says, what was
+fetched, and what happens when time actually passes.
+
+- Use it to reproduce a report before fixing it, to check a UI change before calling it
+  done, and to investigate anything a test result does not explain.
+- Any browser you have will do: the Playwright MCP server in `.mcp.json`, a browser
+  extension or built-in browser tool, or the scripted suite run headed
+  (`--headed`, `--ui`, `--debug`, or a recorded trace). `docs/TESTING.md` has the commands.
+- Use an isolated profile and your own port. The game save lives in browser storage per
+  origin, so never drive a profile or origin that may hold the maintainer's save, and
+  never stop a dev server you did not start.
+- Say what kind of evidence it was. "Watched in headed Chromium on the production export"
+  is not "tested on a device", and something you saw once is not a gate: anything worth
+  checking twice becomes a spec in `tests/e2e/`.
+- Keep screenshots, traces and recordings out of git; attach the final ones to the PR.
+
 ## Architectural laws
 
 These are enforced by ESLint and tests where possible. Do not work around them.
