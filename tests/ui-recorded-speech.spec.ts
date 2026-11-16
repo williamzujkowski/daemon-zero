@@ -3,10 +3,14 @@
 import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, Profiler } from 'react';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+// Asserting on the player needs an inspectable stub; the config alias is the silent one.
+const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
 import { CONTENT } from '../src/content';
 import { resolveDilemma, understandsSurveillance, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
+import { music } from '../src/app/musicSession';
 import RecordedSpeech from '../src/ui/widgets/RecordedSpeech';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, PHASE2, rich } from './helpers';
@@ -16,7 +20,7 @@ host.IS_REACT_ACT_ENVIRONMENT = true;
 const source = defined(CONTENT.dilemmas.find((dilemma) => dilemma.id === 'dil_05_cryo_lab_diversion'));
 const decoder = defined(CONTENT.narrative.recordedTransmissions[0]).decoderWidgetId;
 const mounted = new Set<() => void>();
-afterEach(() => { for (const close of mounted) close(); });
+afterEach(() => { for (const close of mounted) close(); music.state.setState({ enabled: false, volume: 30 }); });
 
 function chosen(index = 0): GameState {
   const ready = grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
@@ -111,5 +115,53 @@ describe('recorded speech disclosure', () => {
     const before = view.commits();
     for (let index = 0; index < 30; index += 1) act(() => { gameStore.step(0.1); });
     expect(view.commits()).toBe(before);
+  });
+
+  it('reads a record aloud only on request, and stops the clip when audio is muted', async () => {
+    voice.create.mockReturnValue(voice.player); voice.create.mockClear(); voice.player.play.mockClear();
+    music.state.setState({ enabled: true, volume: 30 });
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    const read = view.find('recorded-speech-read-' + record.id);
+    expect(read).not.toBeNull();
+    expect(read?.getAttribute('aria-label')).toContain('[ ▶ READ ]');
+    // Nothing is created, and so nothing can play, until the player asks for it.
+    expect(voice.create).not.toHaveBeenCalled();
+    act(() => { read?.click(); });
+    expect(voice.create).toHaveBeenCalledTimes(1);
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    // Same rule as the live line: muting must silence a clip that is already talking.
+    voice.player.remove.mockClear();
+    act(() => { music.state.setState({ enabled: false }); });
+    expect(view.find('recorded-speech-read-' + record.id)).toBeNull();
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('stops a record that is talking when its panel is collapsed', async () => {
+    voice.create.mockReturnValue(voice.player);
+    music.state.setState({ enabled: true, volume: 30 });
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    act(() => { view.find('recorded-speech-read-' + record.id)?.click(); });
+    voice.player.remove.mockClear();
+    // Panel finding: the panel hides its rows without the widget unmounting, so a widget-level
+    // cleanup never ran and the record kept talking with no control left on screen.
+    view.toggle();
+    expect(view.find('recorded-speech-' + record.id)).toBeNull();
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('stops a record that is talking when a wipe remounts the panel', async () => {
+    voice.create.mockReturnValue(voice.player);
+    music.state.setState({ enabled: true, volume: 30 });
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    act(() => { view.find('recorded-speech-read-' + record.id)?.click(); });
+    voice.player.remove.mockClear();
+    act(() => { gameStore.dispatch((state) => ({ ok: true, state: wipe(state, CONTENT, 'Manual purge', 'VOLUNTARY') })); });
+    expect(voice.player.remove).toHaveBeenCalled();
   });
 });

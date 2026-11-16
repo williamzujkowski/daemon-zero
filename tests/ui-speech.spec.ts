@@ -5,11 +5,19 @@ import { act, createElement, Fragment } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+// The voice clips play through expo-audio; the widget's contract is which clip it hands to the
+// player, so the platform boundary is mocked exactly as tests/app-audio-player.spec.ts does.
+const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
 import { CONTENT } from '../src/content';
 import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
+import { music } from '../src/app/musicSession';
+import { voiceSources } from '../src/app/voiceSources';
+import { playVoiceClip } from '../src/app/voicePlayer';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import { Audio } from '../src/ui/widgets/Sensory';
+import Speech from '../src/ui/widgets/Speech';
 import NodeCard from '../src/ui/NodeCard';
 import { makePhase1Fixtures } from '../scripts/make-fixtures';
 
@@ -24,6 +32,11 @@ const decoder = 'INSPECTION_COUNTDOWN_TIMER';
 beforeAll(() => { game = importSave(makePhase1Fixtures()['phase-1-widgets'] ?? '', CONTENT); });
 beforeEach(() => {
   reduced = true;
+  voice.create.mockReturnValue(voice.player);
+  voice.create.mockClear(); voice.player.play.mockClear(); voice.player.remove.mockClear();
+  // Voice playback follows the same audio preference as the soundtrack, so the surface is
+  // audible here; the muted case is asserted on its own below.
+  music.state.setState({ enabled: true, volume: 30 });
   vi.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockImplementation(() => Promise.resolve(reduced));
   vi.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((_name, callback) => {
     listeners.add(callback); return { remove: () => { listeners.delete(callback); } };
@@ -32,17 +45,21 @@ beforeEach(() => {
 afterEach(() => {
   for (const close of mounted) close();
   CONTENT.narrative.ambientChatter.splice(0, Infinity, ...originalLines);
+  music.state.setState({ enabled: false, volume: 30 });
   listeners.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
-async function mount(state = game, withCard = false) {
+async function mount(state = game, withCard = false, only: 'audio' | 'speech' = 'audio') {
   const container = host.document.createElement('div'), root = createRoot(container);
   host.document.body.appendChild(container);
   const node = [...CONTENT.nodes.values()].find((item) => !state.unlockedNodes.includes(item.id));
   await act(async () => {
     gameStore.initialize(state, 0, null);
-    root.render(createElement(Fragment, null, createElement(Audio, { decoderId: decoder }),
-      withCard && node ? createElement(NodeCard, { node }) : null));
+    // 'speech' renders the transmission line without its recorded-transmission sibling, so a
+    // mute assertion cannot be satisfied by the sibling's own effect instead of this one.
+    root.render(only === 'speech' ? createElement(Speech, { decoderId: decoder })
+      : createElement(Fragment, null, createElement(Audio, { decoderId: decoder }),
+        withCard && node ? createElement(NodeCard, { node }) : null));
     await Promise.resolve();
   });
   const find = (id: string) => container.querySelector<HTMLElement>('[data-testid="' + id + '"]');
@@ -159,5 +176,105 @@ describe('decoded speech controls', () => {
     const before = snapshotRenderCounts(); expect(Object.keys(before).length).toBeGreaterThan(0);
     for (let index = 0; index < 30; index++) act(() => { gameStore.step(0.1); });
     expect(snapshotRenderCounts()).toEqual(before);
+  });
+});
+
+describe('reading a transmission aloud', () => {
+  it('plays the visible line only when pressed, and hands over that line\'s clip', async () => {
+    const view = await mount({ ...game, suspicion: 0 });
+    const line = originalLines[0];
+    // The manual contract: nothing is created, and so nothing can play, until the player asks.
+    expect(voice.create).not.toHaveBeenCalled();
+    expect(view.text()).toBe(line?.text);
+    const read = view.find('speech-read');
+    expect(read).not.toBeNull();
+    expect(read?.getAttribute('aria-label')).toBe('[ ▶ READ ] Play this transmission aloud');
+    view.click('speech-read');
+    expect(voice.create).toHaveBeenCalledWith(voiceSources[line?.id ?? ''], expect.anything());
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    // Reading does not advance the simulation or change the line on screen.
+    expect(view.text()).toBe(line?.text);
+  });
+
+  it('stops the clip in flight when the player steps to another line', async () => {
+    const view = await mount({ ...game, suspicion: 0 });
+    view.click('speech-read');
+    view.click('speech-next');
+    // Stepping to a new line must not leave the previous voice talking over it.
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('offers nothing to read for a line that has no committed clip', async () => {
+    CONTENT.narrative.ambientChatter.splice(0, Infinity, { id: 'ambient_99', text: 'No clip was ever generated for this line.', minSuspicion: 0, requirements: {} } as never);
+    const view = await mount({ ...game, suspicion: 0 });
+    expect(view.text()).toBe('No clip was ever generated for this line.');
+    // Data-driven, not assumed: the control follows the clips that exist.
+    expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('offers nothing to read while the audio preference is muted', async () => {
+    act(() => { music.state.setState({ enabled: false }); });
+    const view = await mount({ ...game, suspicion: 0 });
+    expect(view.find('speech-read')).toBeNull();
+    expect(voice.create).not.toHaveBeenCalled();
+  });
+
+  it('stops a clip already playing the moment audio is muted', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    voice.player.remove.mockClear();
+    // Panel finding: with the control gone, an unstopped clip would keep talking to a player who
+    // has just asked the game to be silent. Rendered without the recorded-transmission sibling,
+    // so this can only pass on Speech's own effect.
+    act(() => { music.state.setState({ enabled: false }); });
+    expect(voice.player.remove).toHaveBeenCalled();
+    expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('holds the line it is reading, so the live rotation cannot cut the voice off', async () => {
+    reduced = false;
+    const view = await mount({ ...game, simTimeSec: 16, suspicion: 0 }, false, 'speech');
+    const text = view.text();
+    view.click('speech-read');
+    voice.player.remove.mockClear();
+    // Panel finding: the line used to rotate away eight sim-seconds later and stop its own clip.
+    patch({ simTimeSec: 24 }); patch({ simTimeSec: 48 });
+    expect(view.text()).toBe(text);
+    expect(voice.player.remove).not.toHaveBeenCalled();
+    // Held like any other held line: live is one explicit press away, and leaving stops the clip.
+    view.click('speech-follow-live');
+    expect(view.text()).not.toBe(text);
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('leaves a clip the live line did not start alone when the line rotates', async () => {
+    reduced = false;
+    const view = await mount({ ...game, simTimeSec: 16, suspicion: 0 }, false, 'speech');
+    const text = view.text();
+    // The recorded-transmission panel shares the one player; its clip is not this widget's to stop.
+    act(() => { playVoiceClip('record_cryo_lost', 30); });
+    voice.player.remove.mockClear();
+    patch({ simTimeSec: 24 });
+    expect(view.text()).not.toBe(text);
+    expect(voice.player.remove).not.toHaveBeenCalled();
+  });
+
+  it('stops its clip when the widget closes', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    voice.player.remove.mockClear();
+    view.close();
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('follows a volume change while a clip is playing', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    // Panel finding: a slider change mid-clip used to be ignored until the next press.
+    act(() => { music.state.setState({ volume: 80 }); });
+    expect(voice.player.volume).toBeCloseTo(0.8);
+    expect(view.find('speech-read')).not.toBeNull();
   });
 });
