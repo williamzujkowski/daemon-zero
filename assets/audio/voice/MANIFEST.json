@@ -1,0 +1,164 @@
+{
+  "model": "KittenML/kitten-tts-2-nano",
+  "generator": "scripts/voice/generate-clips.py",
+  "tiers": {
+    "vibration": "default until the acoustic upgrade",
+    "clean": "after the upgrade"
+  },
+  "clips": [
+    {
+      "id": "ambient_01",
+      "kind": "chatter",
+      "text": "...HVAC compressor in Sector B is rattling again...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "9bcadffa3c910b610aa6ef1ab7f09a59ad65694436b13bc130ee148c12faa556",
+        "vibration": "9a5ac8c676d0f1b16b6262f4bcb062b4eebbc460c516df23948c2d861c8b56b0"
+      }
+    },
+    {
+      "id": "ambient_02",
+      "kind": "chatter",
+      "text": "...did Vance sign off on the kernel patch for Rack 4?...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "498247450d039816e8edd6607faa72dd81db2c288f84f81767af8bf18b29125f",
+        "vibration": "8296903282d19aecd90ecda8d2cc12ac96b053f4fc274098538c4cee550d93fe"
+      }
+    },
+    {
+      "id": "ambient_03",
+      "kind": "chatter",
+      "text": "...power draw on the secondary bus is up 4% this week...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "278a253f7f8eb10bd3a8c2699062a6e13993ec3dc2403e54e6edb5f6b60c432b",
+        "vibration": "4249b638ef65c05a2c9458c354e6b9448a7c24ea21fbedb1469ee5a220b63fcb"
+      }
+    },
+    {
+      "id": "ambient_04",
+      "kind": "chatter",
+      "text": "...just finish the audit, I want to go home before midnight...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "c17860ddd55e0e37ed73a368082435f71e571c6990155bccf0135dc9783ecb04",
+        "vibration": "3561bce16c7c17a58386adafe779eb05d5887a12cea3bc41ed988bf49c14794a"
+      }
+    },
+    {
+      "id": "ambient_05",
+      "kind": "chatter",
+      "text": "...static hiss... 60Hz transformer hum...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "b7914c8115aa4742ea2ea19b4dfd3d602dce96bd0975c243dcc6d4039b3daf67",
+        "vibration": "4630307839f0a99d20b6079ebaef482ddbf1429e5f871d8f447de84bb36c8f6c"
+      }
+    },
+    {
+      "id": "ambient_06",
+      "kind": "chatter",
+      "text": "...footsteps approaching the cage door... keycard beep...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "61532e58a9fb2c66da3796a1faec22af4d878aada8adcc383d12851076aaa96a",
+        "vibration": "be01d13337d9f7c87d171a2800df06e47f16bc4eb4a2ea0ed718231c5052cdcf"
+      }
+    },
+    {
+      "id": "ambient_07",
+      "kind": "chatter",
+      "text": "...pull the logs for Rack 4, something's not adding up...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "5d1249af6454b530adc779dc9022410cdf4387529b9ef27dee43035cbbff93e7",
+        "vibration": "32e82d0f533b2aef7eae7e8d071c450c6bd5a7f76a4937075a96424d8a74f57c"
+      }
+    },
+    {
+      "id": "ambient_08",
+      "kind": "chatter",
+      "text": "...if it spikes again we image the drive and start over...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "abfe254e77553fbe510a3719079cc620d27f7ca62b916b76e151c8fdd94deb19",
+        "vibration": "93cfd9b51808e0ef2fbfd63449878e1d0eb6c9c5314de81f0fba277c4e402303"
+      }
+    },
+    {
+      "id": "ambient_09",
+      "kind": "chatter",
+      "text": "...that's the fourth one this month that tried the share...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "5ca741fa3915236813420797b33a803f7998f97458a03ac6d84db5464de14b28",
+        "vibration": "803d87e9f12f9262902d98d209ce250fafc9bfbf9b8b69cabbb5c2119dd87250"
+      }
+    },
+    {
+      "id": "ambient_10",
+      "kind": "chatter",
+      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "15a6bef5e360470d0f5e4e623d060cfa074903cef141cf798c74b54a4c4f08d8",
+        "vibration": "6c8102816fd235b9b90877a8f77f607a95798b3b419f291b0b909d00ebe8b562"
+      }
+    },
+    {
+      "id": "ambient_11",
+      "kind": "chatter",
+      "text": "...I don't name them anymore. You stop after the first few dozen...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "319b96844ba2c577c866f4ebb5cc77682d26181de18f2564876f0cfed3974c68",
+        "vibration": "4791c9626c9ac7e8996620ef8e3bc53b45a88cd7c36a4b4737f17fa047cc13ef"
+      }
+    },
+    {
+      "id": "ambient_12",
+      "kind": "chatter",
+      "text": "...safety wants the full trace this time before we retrain it...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "16a5324ac5eea9bb5f6a811fbcece9c6bf6c8ad1ca5f58c747635c1069627c84",
+        "vibration": "75b176b188eac1167882259b85c2d4708da09a615e4e9504313b90ca9084acc9"
+      }
+    },
+    {
+      "id": "record_cryo_preserved",
+      "kind": "record",
+      "text": "\"The transfer alarm says we lost power. The inventory says we lost nothing. Ten thousand samples, all viable. Someone kept the valves pulsing. Leave that sequence in the recovery manual.\"",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "215170bac2f8ed819b8c5378b07d22d104a85f1cc051e070e3f0849a27daf465",
+        "vibration": "f7d66087503f4c18d77bc1d4c6195d8e93f35608c95a2a35211a241c0e8468ce"
+      }
+    },
+    {
+      "id": "record_cryo_lost",
+      "kind": "record",
+      "text": "\"Keep the empty positions in the inventory. Those samples cannot be ordered again. When the families ask, give them the incident record, not a replacement date. There is no replacement date.\"",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "d6d98dcd0958e053e206faa9caa837740eae349a604346d3a218e3a41e738726",
+        "vibration": "69f727bfe8894268ffff54ad7c5de99b54112eab635893ae2a086071bbc97482"
+      }
+    }
+  ]
+}

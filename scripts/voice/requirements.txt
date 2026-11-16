@@ -1,0 +1,21 @@
+# Voice clip build dependencies
+#
+# These are BUILD tools, not runtime dependencies: the game ships the mp3 files under
+# assets/audio/voice/, and nothing here is imported by src/. Install into a throwaway venv:
+#
+#   python3 -m venv /tmp/voice && /tmp/voice/bin/pip install -r scripts/voice/requirements.txt
+#   /tmp/voice/bin/python scripts/voice/generate-clips.py
+#
+# Pinned exactly, matching the repository's dependency policy. Verified working on
+# Python 3.12 with CPU-only inference (no GPU needed: 4.5s of speech generates in ~0.4s
+# warm, and the first call pays a one-off model fetch from Hugging Face).
+kittenml==0.9.8
+kitten-text-processing==0.1.0
+misaki==0.9.4
+numpy==2.5.5
+onnx==1.23.2
+onnxruntime==1.32.0
+soundfile==0.14.0
+torch==2.15.0
+torchaudio==2.11.1
+transformers==5.23.0
