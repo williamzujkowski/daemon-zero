@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import tracks from '../../assets/audio/music/tracks.json';
-import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, test } from './helpers';
+import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
+import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, soundtrackVolume, test } from './helpers';
 
 async function openAudio(page: Page) {
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
@@ -47,3 +48,37 @@ for (const [fixture, targetPhase] of [['guest-exit-ready', 1], ['victory-ready',
     expect((await musicMediaState(page)).source).toContain('/audio/music/phase-' + String(targetPhase) + '/');
   });
 }
+
+test('a live phase change fades the old score out and the new one in, one element throughout', async ({ page }) => {
+  // The cases above run on the paused clock that `boot()` installs, where a fade-in never
+  // advances: their players sit at level 0 and swap at once, which is the silent path. This one
+  // runs the clock, so the score is audible when the phase changes and both fades are real.
+  const level = 0.3;
+  await observeMusicMedia(page); await boot(page, 'guest-exit-ready', { audio: true }); await dismissBoot(page);
+  // The score starts on the first gesture; a press on nothing in particular is one on every tier.
+  await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
+  await expect.poll(async () => (await musicMediaState(page)).active).toBe(1);
+  await sampleScore(page, FADE_IN_MS);
+  expect(await soundtrackVolume(page)).toBe(level);
+  const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
+  if (!node) throw new Error('Missing phase transition');
+  await page.getByTestId('node-' + node.id + '-unlock').click(); await dismissBoot(page);
+  expect((await musicMediaState(page)).count, 'the next score is not created while the old one fades').toBe(1);
+  expect(await soundtrackVolume(page), 'the old score has not been cut').toBe(level);
+
+  const samples = await sampleScore(page, FADE_OUT_MS + FADE_IN_MS);
+  expect(samples.map((sample) => sample.active), 'never two scores and never none').toEqual(samples.map(() => 1));
+  const leaving = samples.filter((sample) => sample.source.includes('/audio/music/phase-0/')).map((sample) => sample.volume ?? Number.NaN);
+  const arriving = samples.filter((sample) => sample.source.includes('/audio/music/phase-1/')).map((sample) => sample.volume ?? Number.NaN);
+  expect(leaving.length + arriving.length).toBe(samples.length);
+  expect(leaving.filter((value) => value > 0 && value < level).length, 'the old score passes through intermediate levels').toBeGreaterThan(0);
+  expect(leaving.every((value, index) => index === 0 || value <= (leaving[index - 1] ?? 0)), 'down only: ' + leaving.join(', ')).toBe(true);
+  expect(arriving[0], 'the new score starts from silence').toBe(0);
+  expect(arriving.filter((value) => value > 0 && value < level).length, 'the new score passes through intermediate levels').toBeGreaterThan(0);
+  expect(arriving.every((value, index) => index === 0 || value >= (arriving[index - 1] ?? 0)), 'up only: ' + arriving.join(', ')).toBe(true);
+  expect(arriving.at(-1), 'and ends exactly on the preference level').toBe(level);
+  expect((await musicMediaState(page)).count).toBe(2);
+  // More clock moves nothing: no ramp is left running.
+  await page.clock.runFor(FADE_IN_MS);
+  expect(await soundtrackVolume(page)).toBe(level);
+});

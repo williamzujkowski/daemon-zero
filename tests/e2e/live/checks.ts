@@ -7,7 +7,7 @@ import { expect } from '@playwright/test';
 import { DUCK_RATIO } from '../../../src/app/musicController';
 import { CONTENT } from '../../../src/content';
 import { createInitialState, deserialize, exportSave, importSave, serialize, type GameState } from '../../../src/engine';
-import { musicMediaState, openKernelHistory, closeKernelHistory, openSave, soundtrackVolume, voiceClipsPlaying } from '../helpers';
+import { musicMediaState, openKernelHistory, closeKernelHistory, openSave, restingSoundtrackVolume, soundtrackVolume, voiceClipsPlaying } from '../helpers';
 import { describe, type LivePlayer } from './player';
 
 interface Sized { document: { documentElement: { scrollWidth: number; clientWidth: number } } }
@@ -132,7 +132,8 @@ export async function readsTransmission(player: LivePlayer): Promise<boolean> {
   const page = player.page;
   const read = await player.find('speech-read');
   if (!read) return false;
-  const level = await soundtrackVolume(page);
+  // At rest, not mid fade-in: a level read during a ramp would be the wrong baseline for the duck.
+  const level = await restingSoundtrackVolume(page);
   if (level === null) return false;
   const delivered = page.waitForResponse((response) => response.url().includes('/voice/'));
   await read.click();

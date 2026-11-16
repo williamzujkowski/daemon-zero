@@ -3,6 +3,7 @@ import { expect, test as base, type Page } from '@playwright/test';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize, type GameState } from '../../src/engine';
+import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 /**
  * The phone tier has no kernel band - its 44px tap target set a 57px floor the first
  * purchase could not afford - so history opens from the utility menu there, while the
@@ -144,4 +145,38 @@ export async function voiceClipsPlaying(page: Page): Promise<number> {
     const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
     return media.filter((item) => !item.paused && item.src.includes('/voice/')).length;
   });
+}
+
+/** One reading of the score between two ramp steps. `active` counts music elements that are not
+ *  paused, which is the claim that there is never a second score, even for one step. */
+export interface ScoreSample { volume: number | null; source: string; active: number }
+/**
+ * Reads the score's level over time. `boot()` leaves the page clock paused, so a ramp does not
+ * move until the clock is run: this runs it one ramp step at a time and reads after each, which
+ * makes every intermediate level observable and the sequence the same on every run. It
+ * measures numbers on a media element, like everything else here; nobody has heard a ramp.
+ */
+export async function sampleScore(page: Page, durationMs: number): Promise<ScoreSample[]> {
+  const samples: ScoreSample[] = [];
+  for (let elapsed = 0; elapsed < durationMs; elapsed += RAMP_STEP_MS) {
+    await page.clock.runFor(RAMP_STEP_MS);
+    samples.push(await page.evaluate(() => {
+      const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+      const live = media.filter((item) => !item.paused && item.src.includes('/audio/music/'));
+      return { volume: live[0]?.volume ?? null, source: live[0]?.src ?? '', active: live.length };
+    }));
+  }
+  return samples;
+}
+/** The score's level once no ramp is moving it, for a clock that is running by itself: two
+ *  readings several ramp steps apart that agree. */
+export async function restingSoundtrackVolume(page: Page): Promise<number | null> {
+  let last = await soundtrackVolume(page);
+  await expect.poll(async () => {
+    const now = await soundtrackVolume(page);
+    const same = now === last;
+    last = now;
+    return same;
+  }, { message: 'the score level comes to rest', intervals: [RAMP_STEP_MS * 6] }).toBe(true);
+  return last;
 }
