@@ -355,6 +355,11 @@ adb pull /sdcard/daemon-zero-m1.xml /tmp/daemon-zero-m1.xml
 adb exec-out screencap -p > /tmp/daemon-zero-m1.png
 ```
 
+`uiautomator dump` only works while the screen is idle: once the game clock runs it
+returns `ERROR: could not get idle state` and leaves any earlier file untouched, so
+delete the file first or use a driver that does not wait for idle. For a release build
+driven past the boot screen, see `REVIEW-ANDROID-EMULATOR-2026-11-16.md`.
+
 The property should be `1`; the UI hierarchy should contain resource id
 `boot-log` and the `BOOT_SEQ` line. Inspect the screenshot for the black screen
 and readable text. This verifies the development app in Expo Go, not a signed
