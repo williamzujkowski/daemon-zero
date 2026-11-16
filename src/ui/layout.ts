@@ -10,6 +10,16 @@
 /** Below this a single primary scroll and its tab bar are the whole layout. */
 export const MOBILE_MAX_WIDTH = 767;
 
+/**
+ * Phone-width prose. Width, not tier, on purpose: a short landscape phone is in the
+ * single-scroll tier too, but its line is long enough to hold a full sentence (the
+ * forecast measures one line at 844x390), so abbreviating there would spend
+ * legibility for no height. Reuses the tier's own boundary rather than adding one.
+ */
+export function isPhoneWidth(width: number): boolean {
+  return width <= MOBILE_MAX_WIDTH;
+}
+
 /** From here the column layout starts; the old single 900 boundary left 768-899
  *  as a dead zone of phone layout on tablet-width glass (#103 gap 4). */
 export const COLUMN_MIN_WIDTH = 768;
