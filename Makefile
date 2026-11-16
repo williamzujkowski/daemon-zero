@@ -63,12 +63,19 @@ android: ## Open the app on an Android emulator or device using Expo Go
 build-web: ## Export the production web app
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
 
-e2e: build-web ## Playwright scenarios against the production web export
-	env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts
+# Every Playwright target binds port 4173 (tests/e2e/config.ts), so each recipe takes the
+# machine-wide lock itself. $(E2E_LOCK) is re-entrant: under a caller's own
+# `flock /tmp/daemon-zero-e2e.lock make e2e` it reuses the inherited lock instead of waiting
+# on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
+E2E_LOCK := bash scripts/e2e-lock.sh
+E2E_ARGS ?=
+
+e2e: build-web ## Playwright scenarios against the production web export (takes the shared lock)
+	$(E2E_LOCK) env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
 
 # Not part of `e2e` or CI: several minutes per viewport. See docs/TESTING.md, "Live journey".
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
-	env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop
+	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh
@@ -77,4 +84,4 @@ build-pages: ## Export for the GitHub Pages project URL (keep root export separa
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec expo export --platform web --output-dir dist/daemon-zero
 
 e2e-pages: build-pages ## Run the production scenarios under the actual Pages base path
-	env -u NO_COLOR DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts
+	$(E2E_LOCK) env -u NO_COLOR DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)

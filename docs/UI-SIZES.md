@@ -38,8 +38,8 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 
 | Tier | Sizes | What is promised | What is asserted |
 |---|---|---|---|
-| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up **on a paused clock** (one exception, recorded as a gap rather than hidden: the insolvency purchase at 900x640, "Still open" item 3) - see the paused-clock section, where the mid-game state does not hold this at 360x640 or 900x640 once time passes | the full matrix |
-| Tolerated | 320x568, and short landscape such as 844x390 (any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
+| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening and mid-game states at the floor and for every sampled state from 390 up **on a paused clock** (one exception, recorded as a gap rather than hidden: the insolvency purchase at 900x640, "Still open" item 3; the floor's own insolvency state was never promised and is an accepted scroll) - see the paused-clock section, where the mid-game state does not hold this at 360x640 or 900x640 once time passes | the full matrix, including the paused-clock fold verdict of every cell: each promised cell as clearing and each exception as **not** clearing (`PAUSED_FOLD`) |
+| Tolerated | 320x568, and short landscape such as 844x390 (any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim. The six verdicts the table below records for 320x568 and 844x390 are pinned in `PAUSED_FOLD` as measured facts, so the table cannot go stale; a change there is a correction to make, not a broken promise |
 | Undefined | under 320 | nothing | nothing |
 
 The evidence, measured by the size matrix itself. **Basis:** app tree at `34160fc` (`main` after #169), production web export (`make build-web`), headless Chromium, reduced motion, initial scroll position, **paused
@@ -69,10 +69,14 @@ which is the stricter of the two folds and so implies the viewport one. `viewpor
 means the box is inside the viewport (`firstUnlockVisible`) but its bottom edge is behind
 the tab bar: at 320x568 the mid-game control ends at 561 inside a 568 viewport while the tab
 bar starts at 523, and at 844x390 the opening control ends at 380 against a bar at 345.
-`below` means it ends past the viewport. The matrix asserts the viewport verdict at the
-baseline cells listed under "Contract"; the usable fold is asserted in one cell only,
-360x640 mid-game, by the `mid-game at the floor` case. Everywhere else it is recorded in
-the annotation, not gated.
+`below` means it ends past the viewport. The matrix asserts this table cell by cell, on the
+paused clock: `PAUSED_FOLD` in `tests/e2e/ui-sizes.e2e.ts` holds one of the three verdicts
+for each of the 36 cells, read from the annotation's two fields and nothing else, and a cell
+that changes in **either** direction fails the run - a promised cell that stops clearing, or
+one of the two `below` cells in the supported tier (360x640 and 900x640 insolvency, the
+second being the promise's one exception) that starts clearing and so makes this document
+wrong the other way. "Contract" lists every gated cell. The running-clock verdicts are
+recorded in `geometry-running` and not gated; only the offset is.
 
 **360 holds the fold for the opening and mid-game states on a paused clock; the insolvency
 state does not.** #138 corrected the fold spec, which had been re-measuring the same fixture
@@ -157,11 +161,25 @@ exactly what it promises:
 viewport (`top >= 0`, `bottom <= innerHeight`, same horizontally). It is a geometry
 measure, not a claim that the player noticed it.
 
-Asserted at the two baseline sizes today:
+Above-the-fold cells the spec gates, all on the paused clock:
 
+- **First purchase control, every size and every sampled state** (`PAUSED_FOLD`, the first
+  table under "Supported floor"): clears the usable fold at 360x640 in the opening and
+  mid-game states, and in all three states at 390x844, 414x896, 768x1024, 1024x768, 1080x800,
+  1440x900, 1920x1080 and 2560x1440; clears in the opening and mid-game states at 900x640.
+  Asserted as **not** clearing, so a fix cannot leave this list stale: insolvency at 360x640
+  and at 900x640 (both end past the viewport). Pinned as facts without a promise: 320x568
+  (clears / viewport only / below) and 844x390 (viewport only / below / below).
+- 360x640, each sampled state again in its own case: forecast above the fold and at most
+  64px tall; the opening and mid-game purchase clearing, the insolvency purchase below.
+- 360x640 mid-game (`mid-game at the floor`): the purchase ends at or above the docked tab
+  bar, read through the same `usableFold` the annotation carries.
+- 360x640 insolvency (`insolvency at the floor`): the warning on screen at rest and still on
+  screen once the purchase is scrolled into view.
 - 390x844: forecast above the fold; first WRITE DRIVER above the fold in the early
   state; insolvency warning and forecast above the fold while that warning is active.
 - 1440x900: forecast and first WRITE DRIVER above the fold in every sampled state.
+- 320x568: the insolvency warning on screen at rest.
 
 ## Measured, and the gaps this contract does not yet meet
 
@@ -582,7 +600,8 @@ sampled state — including per-column widths — and a `geometry-running` one a
 clock has run, which is what the tables above are built from. Both carry the two folds:
 `firstUnlockTop`/`firstUnlockBottom`, `firstUnlockVisible` (inside the viewport),
 `usableFold` (the docked tab bar's top edge, or the viewport height without one) and
-`firstUnlockAboveUsableFold`. The usable-fold fields are recorded, not asserted. To collect
+`firstUnlockAboveUsableFold`. Both verdicts are asserted per cell on the paused clock
+(`PAUSED_FOLD`) and recorded only on the running one. To collect
 them, add `--reporter=json` and read each test's `annotations`. `make e2e` includes the project.
 
 ## Limits
