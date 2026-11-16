@@ -65,7 +65,16 @@ export class MusicController {
     this.preferences = audioPreferences(storage);
   }
 
+  /**
+   * One root holds the controller at a time, and the latest start is the holder. Roots can
+   * overlap: Android recreates the activity (a font-size change) and mounts the new root before
+   * the old root's effect cleanup runs. So a start takes over from one still in place, and the
+   * cleanup it returns tears down only while its own start is the current one; a superseded or
+   * repeated cleanup drops its two subscriptions and nothing else (#185).
+   */
   start(): () => void {
+    // The state below is reset for the new holder, so the previous holder's player goes too.
+    if (this.live) this.silence();
     this.state.setState({ ...silentPreferences, loaded: false, activated: false, playing: false, status: '', storageNotice: '' });
     this.live = true;
     this.active = this.lifecycle.current();
@@ -82,7 +91,21 @@ export class MusicController {
       this.reconcile();
     });
     this.syncGame();
-    return () => { this.live = false; ++this.generation; stopGame(); stopLife(); this.release(false); this.dropLeaving(); this.state.setState({ activated: false }); };
+    return () => {
+      stopGame(); stopLife();
+      // Teardown bumps the generation, so this also makes a second run of the same cleanup inert.
+      if (generation !== this.generation) return;
+      this.live = false;
+      ++this.generation;
+      this.silence();
+      this.state.setState({ activated: false });
+    };
+  }
+
+  /** Remove every player now, with no fade: the holder that asked for them is gone. */
+  private silence(): void {
+    this.release(false);
+    this.dropLeaving();
   }
 
   private syncGame(): void {
