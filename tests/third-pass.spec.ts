@@ -168,7 +168,8 @@ describe('retraining', () => {
   });
 
   it('quota compliance caps the skim control', () => {
-    const marked = { ...fresh(), conditioning: ['cond_quota_compliance'] };
+    // The skimmer has to be owned for the dial to exist at all (#172).
+    const marked = { ...escaped(), conditioning: ['cond_quota_compliance'] };
     expect(actuatorLimit(marked, 'quotaSkimRatio', reg)).toBe(0.5);
     expect(actuatorLimit(marked, 'fanSpeedRatio', reg)).toBe(1);
     expect(actuatorLimit(marked, 'computeProfitAllocationRatio', reg)).toBe(reg.balance.maxProfitAllocation);

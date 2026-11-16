@@ -237,6 +237,8 @@ export const WidgetSchema = z.strictObject({
   slot: WidgetSlotSchema,
   order: z.number().int(),
   title: z.string().min(2),
+  /** The actuator whose control this panel carries. setActuator is refused until the widget is unlocked. */
+  hostsActuator: ActuatorSchema.optional(),
 });
 
 export const EndingSchema = z.strictObject({

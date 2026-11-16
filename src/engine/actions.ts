@@ -13,6 +13,7 @@ import {
   canAfford,
   chooseEnding,
   hasFlag,
+  isActuatorAvailable,
   isNodeAvailable,
   meetsRequirements,
   nodeCost,
@@ -106,6 +107,9 @@ export function toggleNode(s: GameState, nodeId: string, reg: ContentRegistry): 
 export function setActuator(s: GameState, name: Actuator, value: number, reg: ContentRegistry): ActionResult {
   const reason = blocked(s);
   if (reason) return refuse(s, reason);
+  // The control is hidden until its widget is unlocked; refusing here keeps every caller
+  // (UI, sim bot, a hand-written dispatch) on the route a player can actually take.
+  if (!isActuatorAvailable(s, name, reg)) return refuse(s, 'actuator control is not available');
   if (!Number.isFinite(value)) return refuse(s, 'value must be a finite number');
   return accept({ ...s, actuators: { ...s.actuators, [name]: clamp(value, 0, actuatorLimit(s, name, reg)) } });
 }
