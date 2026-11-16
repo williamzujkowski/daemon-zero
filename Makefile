@@ -6,7 +6,7 @@ SHELL := /bin/bash
 .PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live build-pages e2e-pages android-release
 
 help: ## List targets
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
 
 setup: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
