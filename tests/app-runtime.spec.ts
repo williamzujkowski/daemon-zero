@@ -55,6 +55,22 @@ describe('app runtime', () => {
     restart();
   });
 
+  it('keeps running when an older lease is released after a newer one was taken, however often', async () => {
+    // The order an Android activity recreation produces: the new root starts first (#185).
+    const h = runtimeHarness();
+    const releaseOld = h.runtime.start();
+    await settle();
+    const releaseNew = h.runtime.start();
+    releaseOld(); releaseOld();
+    await settle();
+    expect(vi.getTimerCount()).toBe(1);
+    expect(h.runtime.dispatch((state) => ({ ok: true, state })).ok).toBe(true);
+    expect(h.storage.getItem).toHaveBeenCalledOnce();
+    releaseNew();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(h.runtime.dispatch((state) => ({ ok: true, state })).ok).toBe(false);
+  });
+
   it('rejects inactive input and saves successful actions immediately', async () => {
     const h = runtimeHarness();
     expect(h.runtime.dispatch((game) => engine.manualCycle(game, CONTENT)).ok).toBe(false);

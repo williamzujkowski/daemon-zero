@@ -18,7 +18,7 @@ export interface DevHost {
 }
 
 export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis as DevHost): () => void {
-  host.__daemon = {
+  const hook: NonNullable<DevHost['__daemon']> = {
     loadSaveCode(code) {
       const state = importSave(code, CONTENT);
       const result = runtime.dispatch(() => ({ ok: true, state }), true);
@@ -37,5 +37,8 @@ export function installDevTools(runtime: GameRuntime, host: DevHost = globalThis
     renderCounts: snapshotRenderCounts,
     cardProfiles: snapshotNodeProfiles,
   };
-  return () => { delete host.__daemon; };
+  host.__daemon = hook;
+  // Two roots can overlap, and the later install owns the hook: an earlier root's removal that
+  // runs afterwards must leave it in place (the order #185 found on the music controller).
+  return () => { if (host.__daemon === hook) delete host.__daemon; };
 }
