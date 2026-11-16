@@ -111,4 +111,20 @@ describe('voice clip playback', () => {
     fresh.playVoiceClip('ambient_08', 30);
     expect(voice.mode, 'prepared once for the app, not once per clip').toHaveBeenCalledTimes(1);
   });
+
+  it('maps the preference exactly as the soundtrack does, with real silence at zero', () => {
+    // A panel finding claimed the soundtrack maps the stored preference into an "audible UI
+    // range" that the voice path skips, so a preference at the floor would play at the floor.
+    // There is no such mapping: src/app/musicController.ts maps `value / 100` at :87 and :122,
+    // and the stored value is clamped to 0..100 with Math.round. This pins the parity so the two
+    // surfaces cannot drift apart, and pins 0 to silence rather than to an audible floor.
+    voice.create.mockReturnValue(voice.player);
+    stubListener();
+    playVoiceClip('ambient_09', 0);
+    expect(voice.player.volume, 'a silent preference means silence, not a floor').toBe(0);
+    setVoiceVolume(30);
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    setVoiceVolume(100);
+    expect(voice.player.volume).toBe(1);
+  });
 });
