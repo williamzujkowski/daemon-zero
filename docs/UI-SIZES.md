@@ -37,7 +37,7 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 
 | Tier | Sizes | What is promised | What is asserted |
 |---|---|---|---|
-| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up | the full matrix |
+| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up **on a paused clock** - see the paused-clock section, where the mid-game state does not hold this at 360x640 or 900x640 once time passes | the full matrix |
 | Tolerated | 320x568, and short landscape such as 844x390 (any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
 | Undefined | under 320 | nothing | nothing |
 
@@ -228,8 +228,29 @@ Measured at 360x640, from that run:
 | `corporate-insolvent` | 650 | 650 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
-by 66px once time passes, because time-gated notices appear above the purchase. The opening
-and insolvency states do not move. Treat every above-the-fold number in this document as a
+once time passes, because time-gated notices appear above the purchase. The opening and
+insolvency states do not move. Measured across the whole matrix, the shift is uniform and
+state-specific rather than size-specific:
+
+| Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
+| --- | --- | --- | --- | --- |
+| 320x568 | 561 | 695 | 134 | no / no |
+| 360x640 | 527 | 661 | 134 | yes / **no** |
+| 390x844 | 511 | 645 | 134 | yes / yes |
+| 414x896 | 492 | 626 | 134 | yes / yes |
+| 768x1024 | 597 | 731 | 134 | yes / yes |
+| 844x390 | 376 | 488 | 112 | no / no |
+| 900x640 | 529 | 663 | 134 | yes / **no** |
+| 1024x768 | 529 | 641 | 112 | yes / yes |
+| 1080x800 | 525 | 659 | 134 | yes / yes |
+| 1440x900 | 405 | 517 | 112 | yes / yes |
+| 1920x1080 | 405 | 517 | 112 | yes / yes |
+| 2560x1440 | 405 | 517 | 112 | yes / yes |
+
+Every sampled state other than mid-game moves by 0. So the promise row above is qualified rather
+than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
+as a cell where a running game does not clear. Note this table reads against the **viewport**
+(the annotation's own definition), not the stricter usable fold. Treat every above-the-fold number in this document as a
 frozen-clock budget, and read the running column before promising a player what they will
 see. The running figure is a sample at 1500ms, not a settled value: what matters is its
 scale, not its last digit.
