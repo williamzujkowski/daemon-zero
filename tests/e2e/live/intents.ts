@@ -32,7 +32,7 @@ const STRICT_BOT = process.env.DAEMON_E2E_LIVE_STRICT_BOT === '1';
  * The one place the player overrules the bot, and why. Entering phase 2 the bot buys suspicion
  * relief the moment suspicion reaches its alarm, at a price that is most of the bank; the next
  * device costs slightly more than the bank can reach between two such purchases, so played live
- * the run circles there until it is stopped (5 of 6 unmodified runs; see docs/TESTING.md). The
+ * the run circles there until it is stopped (6 of 7 unmodified runs; see docs/TESTING.md). The
  * headless sim leaves the same loop only after fifteen simulated minutes. A person would wait:
  * nobody has responded yet. So relief that costs over half the banked cycles is held back
  * until the first human-response rung is reached. Nothing else the bot decides is touched.

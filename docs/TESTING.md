@@ -123,8 +123,8 @@ first live runs (PR "live journey"):
 2. **One held purchase.** Entering phase 2 the bot buys suspicion relief
    (5,000 cycles, most of the bank) each time suspicion reaches its alarm at 20,
    while the next device costs 6,000 and income is about 18 cycles/s; the bank
-   never gets there between two purchases. Played live with every bot move, 5 of
-   6 runs circled there until the 25-minute stall guard stopped them (the headless
+   never gets there between two purchases. Played live with every bot move, 6 of
+   7 runs circled there until the 25-minute stall guard stopped them (the headless
    sim sits in the same loop for 14.9 simulated minutes before leaving it). The
    player therefore holds back pure suspicion relief that costs more than half the
    banked cycles while suspicion is under the first response rung (25). Set
@@ -184,7 +184,7 @@ What it does **not** prove:
   no Safari or Firefox, no real device.
 - Nobody heard anything. The audio assertions read media-element state (which
   asset, playing or not, volume); they are not a listening test.
-- Time is accelerated about 25–30×. Every loop callback runs, but nothing here is
+- Time is accelerated about 35×. Every loop callback runs, but nothing here is
   evidence about how the pacing feels, about rendering cost at real frame rates,
   or about a real ten-minute background (the absence is a cold start after a
   clock jump, not an OS suspending the tab).
