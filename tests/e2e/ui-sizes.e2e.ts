@@ -4,6 +4,8 @@
  */
 import type { Browser, Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
+import { CONTENT } from '../../src/content';
+import type { GameState } from '../../src/engine';
 import { boot, dismissBoot, expect, test } from './helpers';
 import { layoutFor, SIDE_COLUMN_MIN_WIDTH } from '../../src/ui/layout';
 
@@ -48,6 +50,7 @@ type Geometry = {
   firstUnlockTop: number | null;
   firstUnlockVisible: boolean;
   forecastVisible: boolean;
+  forecastHeight: number;
   warningVisible: boolean;
 };
 
@@ -99,17 +102,19 @@ function readGeometry(): Geometry {
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockVisible: fullyVisible(first),
     forecastVisible: fullyVisible(forecast),
+    forecastHeight: Math.round(forecast?.height ?? 0),
     warningVisible: fullyVisible(warning),
   };
 }
 
-async function openState(browser: Browser, width: number, height: number, fixture: string): Promise<{ page: Page; errors: string[] }> {
+async function openState(browser: Browser, width: number, height: number, fixture: string,
+  patch?: (game: GameState) => GameState): Promise<{ page: Page; errors: string[] }> {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (['warning', 'error'].includes(message.type())) errors.push(message.text()); });
-  await boot(page, fixture);
+  await boot(page, fixture, patch ? { patch } : {});
   await dismissBoot(page);
   return { page, errors };
 }
@@ -248,6 +253,44 @@ test.describe('mid-game at the floor', () => {
   });
 });
 
+/** #89: the forecast sentence wrapped to two lines on every phone width, so the block
+ *  stood 86px. The phone tier abbreviates it (vote: build-forecast-compaction-decline-
+ *  other-two, 6 of 7 selecting) and the block is 64px: 16 padding, a 22px heading, a 4px
+ *  gap and ONE 22px line. Pinned on the longest wording the component can render - a
+ *  rising rate with an interrupt inbound, which no engine-played fixture holds - because
+ *  the short variants would pass with any abbreviation. */
+test.describe('forecast notice', () => {
+  const inbound = (game: GameState): GameState => {
+    const dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === game.currentPhase);
+    if (!dilemma) throw new Error('No interrupt for this phase');
+    return { ...game, pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + CONTENT.balance.dilemmaOmenSec } };
+  };
+  const full = /^At current rate: \d+s until suspicion 100\. \/\/ Interrupt inbound in \d+s\. Set resources aside\.$/;
+
+  for (const [width, height] of [[360, 640], [390, 844], [414, 896]] as const) {
+    test(`${String(width)}x${String(height)} fits the longest forecast on one line and names it in full`, async ({ browser }) => {
+      const { page } = await openState(browser, width, height, 'epistemic-ready-p2', inbound);
+      try {
+        const sentence = page.getByTestId('inspection-forecast');
+        await expect(sentence).toHaveText(/^SUS 100 in ~\d+s \/\/ INT \d+s: set aside$/);
+        await expect(sentence).toHaveAttribute('aria-label', full);
+        expect((await sentence.boundingBox())?.height, 'forecast sentence is one 22px line').toBe(22);
+        // Abbreviated, never clipped: one line because it fits, not because it may not wrap.
+        await expect(sentence).not.toHaveCSS('white-space', 'nowrap');
+        await expect(sentence).not.toHaveCSS('text-overflow', 'ellipsis');
+      } finally { await page.context().close(); }
+    });
+  }
+
+  test('desktop 1440x900 keeps the reviewed sentence as its visible text', async ({ browser }) => {
+    const { page } = await openState(browser, 1440, 900, 'epistemic-ready-p2', inbound);
+    try {
+      await expect(page.getByTestId('inspection-forecast')).toHaveText(full);
+      await expect(page.getByTestId('inspection-forecast')).not.toHaveAttribute('aria-label');
+    } finally { await page.context().close(); }
+  });
+});
+
 /** The tolerated tier is asserted for what it does promise: a rendered, reachable,
  *  non-overflowing screen. Its fold position is deliberately not claimed (#136). */
 test.describe('tolerated tier below the supported floor', () => {
@@ -323,6 +366,8 @@ test.describe('above-the-fold at baseline sizes', () => {
       try {
         const geometry = await page.evaluate(readGeometry);
         expect(geometry.forecastVisible, `${fixture} forecast above the fold`).toBe(true);
+        // #89: 86px while the sentence wrapped; heading plus one line is 64.
+        expect(geometry.forecastHeight, `${fixture} forecast block height`).toBeLessThanOrEqual(64);
         if (fixture === 'phase-1-widgets') {
           expect(geometry.firstUnlockVisible, 'opening first purchase above the fold').toBe(true);
         } else {
