@@ -210,6 +210,30 @@ previous table, the button moved up 54-76px on most sizes and 141-163px at
 900-1024 wide, which brought 360x640 and 900x640 back to the fold and 1024x768
 back entirely for the insolvency state.
 
+### The contract is measured on a paused clock
+
+`tests/e2e/ui-sizes.e2e.ts` consumes fixtures through `boot()`, which installs a Playwright
+clock and pauses it, so no time passes while geometry is read. That is what makes the matrix
+reproducible, and it is the one thing the app never does: the simulation always runs. A nexus
+vote (`keep-frozen-add-a-running-column`, 6 of 6 selecting) kept the frozen matrix as the
+contract and added a second measurement per cell with the clock resumed for 1500ms, emitted
+as a `geometry-running` annotation beside `geometry`.
+
+Measured at 360x640, from that run:
+
+| State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
+| --- | --- | --- | --- | --- |
+| `phase-1-widgets` | 449 | 449 | 0 | yes / yes |
+| `epistemic-ready-p2` | 527 | 661 | **134** | **yes / no** |
+| `corporate-insolvent` | 650 | 650 | 0 | no / no |
+
+The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
+by 66px once time passes, because time-gated notices appear above the purchase. The opening
+and insolvency states do not move. Treat every above-the-fold number in this document as a
+frozen-clock budget, and read the running column before promising a player what they will
+see. The running figure is a sample at 1500ms, not a settled value: what matters is its
+scale, not its last digit.
+
 ### Late-game phone play is a scroll, by decision
 
 Measured at 360x640 with a phase-5 mid-game save in the CORP workspace, on the served build:
@@ -240,8 +264,9 @@ growth is the number to watch if this is revisited.
 
 1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
-   phone tier (#143), mid-game does too: the first purchase reads 527-571 against 595 and
-   clears by 24px. The insolvency state reads 650-694 and is accepted as a scroll with a
+   phone tier (#143), mid-game does too - **on a paused clock**: the first purchase reads 527
+   against 595. With the clock running the same cell reads 661 and does not clear, so that
+   claim is a budget rather than a promise (see the paused-clock section below). The insolvency state reads 650-694 and is accepted as a scroll with a
    pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
    844x390 mid-game 376-420 and insolvency 448-492 against 345. Short landscape is the
    worst case left and is tolerated by decision, not by omission: a nexus vote
