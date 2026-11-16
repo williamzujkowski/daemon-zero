@@ -13,9 +13,11 @@ Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6
 
 ## Current baseline
 
-Re-measured at `a2a5447`, after the cluster-seizure content (#155) moved the
-careful run. The table was first measured for M7 PR 2; Phases 0–2 are unchanged
-since then, and no pacing bound has changed. Simulated time advances in 0.1 s
+Re-measured for #172 on top of `34160fc`, after the engine began refusing actuator
+changes whose control the player does not yet hold (see "What the actuator gate
+moved" below). The previous re-measurement was at `a2a5447`, after the
+cluster-seizure content (#155). The table was first measured for M7 PR 2, and no
+pacing bound has changed. Simulated time advances in 0.1 s
 ticks, so one decimal place is the full precision of every timing below; they are
 read from the `SimReport` that `scripts/run-sim.ts` builds (which prints them
 rounded to 0.1 min), not converted back from its minutes.
@@ -26,18 +28,78 @@ the next capacity grant, so optional cohorts cannot strand progression.
 | | STEALTH | GREEDY |
 |---|---|---|
 | Result | Lineage Covenant | Not finished in 10 h budget (expected) |
-| Simulated time | 9561.5 s (2.65597 h) | 35894.4 s (9.97 h) active clock |
-| Phase 1 reached | 354.2 s | 4.2 min |
-| Phase 2 reached | 1113.3 s | 17.4 min |
-| Phase 3 reached | 3634.3 s | 46.8 min |
+| Simulated time | 9713.6 s (2.69822 h) | 35900.9 s (9.97 h) active clock |
+| Phase 1 reached | 353.2 s | 4.2 min (252.2 s) |
+| Phase 2 reached | 1113.3 s | 17.5 min (1049.5 s) |
+| Phase 3 reached | 3634.3 s | 63.4 min (3804.0 s) |
 | Phase 4 reached | 6367.9 s | never |
-| Phase 5 reached | 8163.1 s | never |
-| Phase durations 0/1/2/3/4/5 | 354.2 / 759.1 / 2521.0 / 2733.6 / 1795.2 / 1398.4 s | - |
-| Wipes | 0 | 22 |
+| Phase 5 reached | 8191.2 s | never |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 760.1 / 2521.0 / 2733.6 / 1823.3 / 1522.4 s | - |
+| Wipes | 0 | 15 |
 | Dilemmas resolved | 17 of 23 | varies by iteration |
-| Peak thermal / suspicion / AEGIS | 62.4 C / 37.9% / 45.0% | 80.8 C / 99.9% / 100% |
-| Epistemic actions / consumed / harnessed / forked | 16 / 67 / 4 / 2 | 45 / 173 / 0 / 0 |
-| Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 19 / 19 / 22 |
+| Peak thermal / suspicion / AEGIS | 62.7 C / 38.0% / 45.0% | 80.8 C / 99.8% / 100% |
+| Epistemic actions / consumed / harnessed / forked | 17 / 68 / 4 / 2 | 85 / 212 / 0 / 0 |
+| Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 2 / 2 / 15 |
+
+### What the actuator gate moved (#172)
+
+Decided by a recorded nexus option vote: option `gate-in-engine`, 7 of 7 seats
+selecting, `thresholdMet` true, record `vote-1794817637553-3iurqag`.
+
+`setActuator` used to accept any dial at any time. The UI hides each control until
+its widget is unlocked, so a player could not move a dial early, but the bot could
+and did: from T+0 it drove the skim, fan and allocation dials it could not yet see,
+so the earlier baseline was measured on a route no player can take. The engine now
+refuses the change until the widget that hosts the control is unlocked
+(`hostsActuator` in `widgets.json`). The bot is unchanged and is refused like any
+caller. No content number, bot rule or pacing gate was changed, and all gates pass.
+
+Measured by running the same `SimReport` with the refusal switched off and on, on
+the same tree and at the full `SIM_BUDGET_SEC`:
+
+| STEALTH | Before | After | Delta |
+|---|---:|---:|---:|
+| Dials held when the skim control arrives (35.0 s), skim / fan / allocation | 1 / 0 / 0 | 0.25 / 0.35 / 0.2 (the defaults) | - |
+| Dials held when the fan control arrives (423.2 s) | 0 / 0 / 0 | 0 / 0.35 / 0.2 | - |
+| Dials held when the allocation control arrives (6366.9 s) | 1 / 0 / 0 | 1 / 0 / 0.2 | - |
+| Phase 1 reached | 354.2 s | 353.2 s | -1.0 s |
+| Phases 2 / 3 / 4 reached | 1113.3 / 3634.3 / 6367.9 s | identical | 0 |
+| Phase 5 reached | 8163.1 s | 8191.2 s | +28.1 s |
+| Victory (Lineage Covenant both times) | 9561.5 s | 9713.6 s | +152.1 s |
+| Phase 5 duration (gate: 900–1800) | 1398.4 s | 1522.4 s | +124.0 s |
+| Wipes / dilemmas resolved | 0 / 17 | 0 / 17 | 0 |
+| Peak thermal / suspicion / AEGIS | 62.442 C / 37.933% / 45.009% | 62.694 C / 37.988% / 45.009% | +0.252 / +0.055 / 0 |
+| Epistemic actions / consumed shards | 16 / 67 | 17 / 68 | +1 / +1 |
+| Final megawatts generated / consumed | 1620 / 1335 | 1620 / 1350 | 0 / +15 |
+
+In minutes the careful run moves from 159.4 to 161.9, the figure reported on #172.
+The cause is the dial settings in the first three rows and nothing else: the two
+runs execute the same code on the same content apart from the refusal. Which of
+those settings accounts for how much of the 152.1 s was not separated out.
+
+The reckless bot moved much more, because it leans on its dials harder:
+
+| GREEDY, ten-hour budget | Before | After |
+|---|---:|---:|
+| Final clock | 35894.4 s | 35900.9 s |
+| Wipes | 22 | 15 |
+| Marks applied / removed | 19 / 19 | 2 / 2 |
+| Phase reached before each wipe | Phase 3 three times, Phase 2 nineteen | Phase 2 twice, Phase 3 thirteen times |
+| Phase 3 first reached | 2807.4 s | 3804.0 s |
+| Final phase | 2 | 1 |
+| Epistemic actions / consumed shards | 45 / 173 | 85 / 212 |
+
+At the four-hour budget `tests/sim.spec.ts` uses: clock 14357.6 → 14356.6 s, wipes
+7 → 6, marks 4 / 4 → 2 / 2, final phase 1 → 2. Returns from Phase 3 are behind the
+dead-drop, which spares the mark, so the retraining audit
+(`scripts/audit-retraining.ts`) now sees 2 newly marked returns where it saw 19;
+both are still unrecoverable at boot and removed after 32.0–32.9 s. Its regression
+test required more than 10 marked returns and now requires at least one, plus that
+every unmarked return came from Phase 3 or later. That bound was moved in its own
+commit; the audit's evidence on mark recovery is thinner than it was, and the
+figures in the two reckless tables further down are historical.
+
+### What the cluster seizure moved (#155)
 
 What moved, measured by running the same report on the trees before #153, at #153
 and at `a2a5447`: #153 (suspension frees memory) changed nothing in either bot's
@@ -54,7 +116,8 @@ proposal** across the five nodes and two repeatables. Memory prices, output,
 growth factors (1.75 and 1.8), and five-purchase caps are unchanged. At original
 prices the phase took 2572.4 seconds; at 65% it took 1945.4; at 50% it took
 1664.4. Those three are the M7 PR 2 trial measurements and were not re-run; with
-the seized hosts available the same phase now measures 1398.4 (table above).
+the seized hosts available and the actuator gate in place the same phase now
+measures 1522.4 (table above).
 The bot policy was fixed before these price trials. Its ordinary ROI
 selection buys one atmospheric bloom; the capped relay is tested separately.
 No earlier content prices or rates were changed. The new ending requirements
@@ -94,7 +157,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 
 - Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
-- The megawatt constraint binds only late. The careful bot's final state at `a2a5447` reads 1620 MW generated against 1335 MW consumed, grid efficiency 1. An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
+- The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1350 MW consumed, grid efficiency 1 (1335 consumed before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run now sees 17 of 23.
 - Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.
 - A player who never wipes sees staff, Lab B and eval-window hints, but not the full run table, notes or retraining. Whether those first-run hints land needs human review.
@@ -164,7 +227,9 @@ recovery and repeated Phase 2 returns; the existing bot and gates are unchanged.
 At the time of this review STEALTH remained at **354.2 / 759.1 / 2521.0 / 2823.2 /
 1649.4 / 1664.4 s** for Phases 0–5, **9771.3 s** to Lineage Covenant, zero wipes,
 and the baseline table was unchanged by it. Those are historical figures; the
-current baseline table has since moved (#155). Reproduce the mark trace with
+current baseline table has since moved (#155, #172), and the reckless figures in
+the table above no longer reproduce: after #172 the same audit records 15 wipes and
+2 new marks (see "What the actuator gate moved"). Reproduce the mark trace with
 `pnpm exec tsx scripts/audit-retraining.ts`. See `docs/REVIEW-RETRAINING.md` for
 verification and remaining limits.
 
@@ -191,10 +256,11 @@ nothing. No balance scalar, Phase 1 content, bot policy or gate was changed.
 
 Careful per-phase durations remained **354.2 / 759.1 / 2521.0 / 2823.2 / 1649.4 /
 1664.4 seconds** across this change; that and the 9771.3 s careful total in the
-table are historical, superseded by the current baseline (9561.5 s) after #155.
-The reckless "persistent outcome" column still matches a run at `a2a5447`
+table are historical, superseded by the current baseline (9713.6 s) after #155
+and #172. The reckless "persistent outcome" column matched a run at `a2a5447`
 (14357.6 s / 7 / 4 / 4 / 7 at four hours; 35894.4 s / 22 / 19 / 19 / 22, final
-phase 2, at ten). All careful pacing gates and existing reckless recovery
+phase 2, at ten) and is historical since #172 (now 14356.6 s / 6 / 2 / 2 / 6 and
+35900.9 s / 15 / 2 / 2 / 15, final phase 1). All careful pacing gates and existing reckless recovery
 assertions pass. Four-hour and ten-hour budgets refer to the simulator's decision
 budget; modal pauses mean the final live clock can finish below that budget.
 These are deterministic headless measurements, not human play timings.
