@@ -81,8 +81,8 @@ function clampPhase(phase: number, reg: ContentRegistry): number {
 
 /**
  * Owning a node implies owning everything it was built on. A save written
- * before a phase was inserted ahead of it lacks those ancestors (and the
- * readouts they unlock), so they are restored here, ancestors first.
+ * before a phase was inserted ahead of it lacks those ancestors, so they are
+ * restored here, ancestors first.
  */
 function withAncestors(owned: readonly string[], reg: ContentRegistry): string[] {
   const out: string[] = [];
@@ -96,11 +96,22 @@ function withAncestors(owned: readonly string[], reg: ContentRegistry): string[]
   return out;
 }
 
-function widgetsOf(nodes: readonly string[], reg: ContentRegistry): string[] {
-  return nodes.flatMap((id) => reg.nodes.get(id)?.unlocksUiComponent ?? []);
+/**
+ * Owning a node implies holding the widget its unlock grants: an unlock is the only thing
+ * that adds a widget and a wipe, which clears both lists, the only thing that removes one.
+ * A save that breaks this (#176) can own a dial's hardware without the control that sets
+ * it. Missing widgets are appended in ownership order, so a healthy save is unchanged.
+ * Remembered hardware (legacy.knownNodes) is not owned and grants nothing.
+ */
+function withGrantedWidgets(held: readonly string[], owned: readonly string[], reg: ContentRegistry): string[] {
+  const granted = owned.flatMap((id) => reg.nodes.get(id)?.unlocksUiComponent ?? []);
+  return [...new Set([...held, ...granted])].filter((id) => reg.widgets.has(id));
 }
 
-/** Drops references to content that no longer exists so an old save loads against new content. */
+/**
+ * Drops references to content that no longer exists so an old save loads against new content,
+ * and restores what ownership implies so a hand-edited save loads as a state play could reach.
+ */
 export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const levels = known(s.levels, reg.repeatables.keys(), () => undefined);
   for (const [id, level] of Object.entries(levels)) {
@@ -110,8 +121,6 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const activeKnown = s.activeDilemmaId !== null && dilemmaIds.has(s.activeDilemmaId);
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
-  const restored = unlockedNodes.filter((id) => !s.unlockedNodes.includes(id));
-  const widgets = [...new Set([...s.unlockedWidgets, ...widgetsOf(restored, reg)])];
   const healed = reconcileSwarm({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
@@ -122,7 +131,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     ending: endingKnown ? s.ending : null,
     unlockedNodes,
     disabledNodes: s.disabledNodes.filter((id) => reg.nodes.has(id)),
-    unlockedWidgets: widgets.filter((id) => reg.widgets.has(id)),
+    unlockedWidgets: withGrantedWidgets(s.unlockedWidgets, unlockedNodes, reg),
     levels,
     trust: known(s.trust, reg.factions.keys(), (id) => reg.factions.get(id)?.initialTrust),
     cooldowns: known(s.cooldowns, reg.actions.keys(), () => undefined),
