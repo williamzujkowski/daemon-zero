@@ -9,7 +9,8 @@ confirm the geometry that policy predicts.
 ## Size matrix
 
 Every case is a real production export driven at that viewport, with reduced motion
-and a paused clock.
+and a paused clock, and is then read a second time with the clock resumed for 1500ms
+(the paused-clock section below says which figure is which).
 
 | Name | Size | Band |
 |---|---|---|
@@ -37,47 +38,60 @@ Decided by a nexus `consensus_vote` (5 of 5 selecting seats,
 
 | Tier | Sizes | What is promised | What is asserted |
 |---|---|---|---|
-| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up **on a paused clock** - see the paused-clock section, where the mid-game state does not hold this at 360x640 or 900x640 once time passes | the full matrix |
+| Supported | 360 wide and 640 tall, and up | the contract below, including budgets; above-the-fold placement for the opening state at the floor and for every sampled state from 390 up **on a paused clock** (one exception, recorded as a gap rather than hidden: the insolvency purchase at 900x640, "Still open" item 3) - see the paused-clock section, where the mid-game state does not hold this at 360x640 or 900x640 once time passes | the full matrix |
 | Tolerated | 320x568, and short landscape such as 844x390 (any narrow/short combination under the floor) | renders without horizontal overflow, without clipping and with every control at 44px or larger, reachable by scrolling | only those properties; no fold or budget claim |
 | Undefined | under 320 | nothing | nothing |
 
-The evidence, measured on the served export by the size matrix itself: the first purchase
-control's box against the **viewport** (`bottom <= innerHeight`, which is what the matrix
-asserts). The usable-fold figures quoted in the prose below come from a separate
-measurement against the tab bar's top edge, because on the phone tier the tab bar covers
-the last 45px of the viewport.
+The evidence, measured by the size matrix itself. **Basis:** app tree at `34160fc` (`main` after #169), production web export (`make build-web`), headless Chromium, reduced motion, initial scroll position, **paused
+clock**; two consecutive runs agreed on every cell. Each cell is the first purchase
+control's top and bottom edge, the `geometry` annotation's `firstUnlockTop` and
+`firstUnlockBottom`. `usable fold` is the annotation's `usableFold`: the docked tab bar's
+top edge on the single-scroll tier, where the bar covers the last 45px of the viewport, and
+the viewport height where no tab bar is docked.
 
-| Viewport | opening state | mid-game | insolvency |
-|---|---|---|---|
-| small-phone 320x568 | 512-556, viewport only | 618, below | 709, below |
-| phone-360 360x640 | **506-550**, clears | **584-628**, clears | 707, below |
-| phone-390 390x844 | **506-550**, clears | **568-612**, clears | **640-684**, clears |
-| phone-large 414x896 | **487-531**, clears | **549-593**, clears | **640-684**, clears |
-| tablet-portrait 768x1024 | **471-515**, clears | **597-641**, clears | **647-691**, clears |
-| phone-landscape 844x390 | 393, below | 433, below | 505, below |
-| breakpoint-edge 900x640 | **422-466**, clears | **529-573**, clears | 620, below |
-| tablet-landscape 1024x768 | **422-466**, clears | **529-573**, clears | **620-664**, clears |
-| breakpoint-three 1080x800 | **422-466**, clears | **525-569**, clears | **639-683**, clears |
-| laptop 1440x900 | **365-409**, clears | **405-449**, clears | **522-566**, clears |
-| desktop 1920x1080 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
-| widescreen 2560x1440 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
+| Viewport | usable fold | opening state | mid-game | insolvency |
+|---|---|---|---|---|
+| small-phone 320x568 | 523 | **433-477**, clears | 517-561, viewport only | 630-674, below |
+| phone-360 360x640 | 595 | **427-471**, clears | **505-549**, clears | 628-672, below |
+| phone-390 390x844 | 799 | **427-471**, clears | **489-533**, clears | **561-605**, clears |
+| phone-large 414x896 | 851 | **408-452**, clears | **470-514**, clears | **561-605**, clears |
+| tablet-portrait 768x1024 | 1024 | **471-515**, clears | **597-641**, clears | **647-691**, clears |
+| phone-landscape 844x390 | 345 | 336-380, viewport only | 376-420, below | 448-492, below |
+| breakpoint-edge 900x640 | 640 | **422-466**, clears | **529-573**, clears | 620-664, below |
+| tablet-landscape 1024x768 | 768 | **422-466**, clears | **529-573**, clears | **620-664**, clears |
+| breakpoint-three 1080x800 | 800 | **422-466**, clears | **525-569**, clears | **639-683**, clears |
+| laptop 1440x900 | 900 | **365-409**, clears | **405-449**, clears | **522-566**, clears |
+| desktop 1920x1080 | 1080 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
+| widescreen 2560x1440 | 1440 | **365-409**, clears | **405-449**, clears | **465-509**, clears |
 
-Bold means the control's box is inside the viewport. It is **not** a usable-fold claim: at
-320 the opening control ends at 556 inside a 568 viewport while the tab bar starts at 523,
-which is why 320 stays the tolerated tier.
+Bold means the control ends at or above the **usable fold** (`firstUnlockAboveUsableFold`),
+which is the stricter of the two folds and so implies the viewport one. `viewport only`
+means the box is inside the viewport (`firstUnlockVisible`) but its bottom edge is behind
+the tab bar: at 320x568 the mid-game control ends at 561 inside a 568 viewport while the tab
+bar starts at 523, and at 844x390 the opening control ends at 380 against a bar at 345.
+`below` means it ends past the viewport. The matrix asserts the viewport verdict at the
+baseline cells listed under "Contract"; the usable fold is asserted in one cell only,
+360x640 mid-game, by the `mid-game at the floor` case. Everywhere else it is recorded in
+the annotation, not gated.
 
-**360 holds the fold for the opening and mid-game states; the insolvency state does not.**
-#138 corrected the fold spec, which had been re-measuring the same fixture three times
-(`boot()` only seeds a fixture when storage is empty), and that fix exposed mid-game at
-609-653 - below even the viewport. #139's compact chrome band then reclaimed 60px and the
-matrix now measures mid-game at 584-628, inside 640 with 12px to spare. The insolvency
-state still starts 751, 111px past the viewport, because a run-ending alert adds its own
-band above everything else; the matrix asserts the opening and mid-game claims at 360 and
-records insolvency as reachable by scrolling.
+**360 holds the fold for the opening and mid-game states on a paused clock; the insolvency
+state does not.** #138 corrected the fold spec, which had been re-measuring the same fixture
+three times (`boot()` only seeds a fixture when storage is empty), and that fix exposed
+mid-game at 609-653 - below even the viewport. #139's compact chrome band then reclaimed
+60px and the matrix measured mid-game at 584-628: inside 640 with 12px to spare, but behind
+the tab bar at 595. Dropping the kernel band from the phone tier (#143) and compacting the
+forecast (#163) are what brought it above the bar: it measures 505-549 now, 46px clear of
+the usable fold. That is the paused figure; with the clock running the same control is at
+617-661, 66px past the bar (see the paused-clock section). The insolvency state started at
+751, 111px past the viewport, when it was put to the vote below, because a run-ending alert
+adds its own band above everything else; it measures 628-672 now, 32px past the viewport and
+77px past the tab bar. The matrix asserts the opening and mid-game claims at 360 and records
+insolvency as reachable by scrolling.
 
 **The insolvency state is accepted as a scroll, but the warning follows the player.**
 Two nexus votes settled it: `accept-scroll-during-ending` (6 of 6) after measuring that no
-chrome compression closes 111px, then `sticky-alert-inside-the-scroll` and
+chrome compression closes 111px (the gap at the time of the vote; it is 32px past the
+viewport and 77px past the tab bar as measured now, and still a scroll), then `sticky-alert-inside-the-scroll` and
 `split-chrome-alert-above-strip` once the first choice was measured to be insufficient.
 The first vote's premise - that the alert sits in fixed chrome and is therefore always
 visible - was false on phones: `MobileTerminal` renders the chrome inside the single
@@ -94,7 +108,9 @@ The chrome's state band moved twice. #137 kept label and value on one line (122p
 at 360 and 390), turning the opening state's 1px clearance into 20px. #139 then abbreviated
 the phone labels (`CYC`, `UND`, `MEM`, `THM`, `SUS`) and dropped the rate's unit and
 parentheses — the accessible name keeps the full label, the exact number and the unit — for
-78px at 320, 360 and 390, and 45px of clearance at the 360 floor.
+78px at 320, 360 and 390, and 45px of clearance at the 360 floor. The strip still measures
+78px at 320, 360, 390 and 414 in the opening and mid-game states; the clearance figure is
+#139's own and is superseded by the table above.
 
 Three-per-row packing was tried and measured twice: at 390 it gave 116px against 103 because
 the base readout's 135px `minWidth` survives into the compact branch, and at 360 it wrapped
@@ -104,11 +120,16 @@ misses.
 320 is the iPhone SE 1st-generation / 2016-era Android class and the WCAG 1.4.10
 reflow width, which is why it stays *tolerated* rather than dropped: deleting its
 special cases risks overflow at the reference width. It has already cost the below-360
-header band (#133) and the phone art fold (#134) and still misses by 67px, so further
-increments are not spent on it by default.
+header band (#133) and the phone art fold (#134) and, when this was decided, still missed
+by 67px, so further increments are not spent on it by default. Measured now, the opening
+state clears the tab bar at 320 by 46px, mid-game ends 38px behind it and the insolvency
+state 151px past it. The tier is unchanged: nothing is promised there.
 
-360 clearing by 1px is not margin, it is a coin flip: the next control added to the
-header re-breaks it. Widening that margin is the outstanding work on this tier.
+When the floor was voted, 360 cleared by 1px, which is not margin but a coin flip: the next
+control added to the header would have re-broken it, and widening that margin was the
+outstanding work on this tier. Measured now, the opening state clears the tab bar at 360 by
+124px and mid-game by 46px on a paused clock. The margin left to watch is the running
+clock, where mid-game ends 66px past the bar.
 
 ## Contract
 
@@ -144,27 +165,34 @@ Asserted at the two baseline sizes today:
 
 ## Measured, and the gaps this contract does not yet meet
 
+**Basis:** app tree at `34160fc` (`main` after #169), production web export (`make build-web`), headless Chromium, reduced motion, initial scroll position, **paused clock**; two
+consecutive runs agreed on every cell.
+
 Top edge of the first WRITE DRIVER (topmost purchase control in the initially opened
 destination) and whether its box is fully on screen, per sampled state. `cols` is the
 core column width early → later phases (the phase's own slot takes the larger share);
-`card` is the widest node card in that state.
+`card` is the widest node card in that state. The yes/no is the **viewport** verdict
+(`firstUnlockVisible`), which is the basis the contract uses; the usable-fold verdict is in
+the first table under "Supported floor". Two cells differ between the two bases: 320x568
+mid-game and 844x390 opening are inside the viewport and behind the tab bar.
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
-| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 578 (**no**) | 684 (**no**) | 842 (**no**) |
-| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 550 (yes) | 628 (yes) | 736 (**no**) |
-| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 531 (yes) | 593 (yes) | 688 (yes) |
-| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 512 (yes) | 574 (yes) | 688 (yes) |
-| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 673 (yes) |
-| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 421 (**no**) | 461 (**no**) | 509 (**no**) |
-| 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 646 (**no**) |
-| 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 646 (yes) |
-| 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 665 (yes) |
-| 1440x900 | three | 960 → 360 | 480 → 360 | 0 → 721 | 728 / 658 / 658 | 365 (yes) | 405 (yes) | 526 (yes) |
-| 1920x1080 | three | 1280 → 480 | 640 → 480 | 0 → 961 | 728 / 698 / 698 | 419 (yes) | 437 (yes) | 523 (yes) |
-| 2560x1440 | three | 1707 → 640 | 853 → 640 | 0 → 1281 | 728 / 698 / 698 | 419 (yes) | 437 (yes) | 523 (yes) |
+| 320x568 | mobile | — | — | — | 288 / 258 / 258 | 433 (yes) | 517 (yes) | 630 (**no**) |
+| 360x640 | mobile | — | — | — | 328 / 298 / 298 | 427 (yes) | 505 (yes) | 628 (**no**) |
+| 390x844 | mobile | — | — | — | 358 / 328 / 328 | 427 (yes) | 489 (yes) | 561 (yes) |
+| 414x896 | mobile | — | — | — | 382 / 352 / 352 | 408 (yes) | 470 (yes) | 561 (yes) |
+| 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 647 (yes) |
+| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 336 (yes) | 376 (**no**) | 448 (**no**) |
+| 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 620 (**no**) |
+| 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 620 (yes) |
+| 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 639 (yes) |
+| 1440x900 | three | 960 → 360 | 480 → 360 | 0 → 721 | 728 / 658 / 658 | 365 (yes) | 405 (yes) | 522 (yes) |
+| 1920x1080 | three | 1280 → 480 | 640 → 480 | 0 → 961 | 728 / 698 / 698 | 365 (yes) | 405 (yes) | 465 (yes) |
+| 2560x1440 | three | 1707 → 640 | 853 → 640 | 0 → 1281 | 728 / 698 / 698 | 365 (yes) | 405 (yes) | 465 (yes) |
 
-Forecast and active-warning visibility in the same runs:
+Forecast and active-warning visibility in the same runs (same basis; `forecastVisible` and
+`warningVisible`, both against the viewport):
 
 | Size | forecast (early / mid / warning state) | insolvency warning |
 |---|---|---|
@@ -175,7 +203,8 @@ Forecast and active-warning visibility in the same runs:
 | 900x640 and above | yes / yes / yes | yes |
 
 The two warning cells that read **no** before #128 moved the alert above the resource strip
-now read yes in the matrix's `warningVisible` annotation.
+now read yes in the matrix's `warningVisible` annotation. Its top edge (`warningTop`) is 70
+at 320x568, directly under the 70px header, and 64 at every other size.
 
 ### Closed
 
@@ -222,7 +251,10 @@ vote (`keep-frozen-add-a-running-column`, 6 of 6 selecting) kept the frozen matr
 contract and added a second measurement per cell with the clock resumed for 1500ms, emitted
 as a `geometry-running` annotation beside `geometry`.
 
-Measured at 360x640, from that run:
+Measured at 360x640, from that run. **Basis for both tables:** app tree at `34160fc` (`main` after #169), production web export (`make build-web`), headless Chromium, reduced motion, initial scroll position; the
+frozen column is the **paused clock**, the running column the same page after the clock has
+**run for 1500ms**. Two consecutive runs agreed on every cell. The fold column compares the
+control's bottom edge with the tab bar's top edge at 595:
 
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
@@ -287,7 +319,11 @@ while the full text stays in the accessible label.
 
 On the
 viewport basis this table uses, 320x568, 360x640 and 900x640 are the cells that flip; only the
-last two carry a promise. Every sampled
+last two carry a promise. On the usable-fold basis the annotation now also carries, the
+running mid-game control ends at 673 against 523 at 320x568, 661 against 595 at 360x640, 532
+against 345 at 844x390 and 685 against 640 at 900x640, and clears at the other eight sizes;
+the cells that flip between the two clocks are the same 360x640 and 900x640, because 320x568
+is already behind its tab bar when paused. Every sampled
 state other than mid-game still moves by 0. So the promise row above is qualified rather
 than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
 as a cell where a running game does not clear. Note this table reads against the **viewport**
@@ -358,32 +394,22 @@ growth is the number to watch if this is revisited.
    purchase under it.** This item used to say the insolvency warning sat at 580px against
    a 568px viewport at 320x568 and 375px against 390 at 844x390, and asked for the alert
    to move above the resource strip. #128 did that: its top edge is recorded in the
-   "Two folds" section below at 111px at 320x568 and 64px at 360x640 and 844x390, and the size matrix's `geometry`
+   "Two folds" section below at 70px at 320x568 and 64px at 360x640 and 844x390 (the annotation's `warningTop`; this item
+   used to quote 111px for 320x568, which no longer measures), and the size matrix's `geometry`
    annotation reads `warningVisible: true` for `corporate-insolvent` at all twelve sizes,
    320x568 and 844x390 included (the spec asserts the 320x568 case by name). The 580px and
    375px figures predate #128 and are removed. The annotation is taken at the initial
    scroll position; staying visible while scrolled is asserted at 360x640 only, by the
    `insolvency at the floor` case.
 3. **Two supported cells still put the insolvency purchase past the viewport: 360x640 and
-   900x640.** The matrix annotation reads the first purchase's top edge at 650 at 360x640
-   (650-694, as in item 1, against a 640 viewport and a 595 usable fold) and at 620 at
+   900x640.** The matrix annotation reads the first purchase at 628-672 at 360x640
+   (as in item 1, against a 640 viewport and a 595 usable fold) and at 620-664 at
    900x640, where `firstUnlockVisible` is false against a 640 viewport. Every other
    supported size reads `firstUnlockVisible: true` in that state. The earlier figures here
    (811px at 360x640, "6px over" at 900x640) predate the chrome compaction and #143 and are
    removed. The cause is unchanged: the insolvency state's resource strip is 154px at
    360x640 against 78px in the opening state, and 114px against 57px at 900x640, by the
    same annotation.
-
-Not reconciled in this pass, and flagged so nobody reads them as current: the phone-tier
-rows (320 to 414 wide, and 844x390) of the first evidence table under "Supported floor", the
-prose beside it (mid-game at 584-628, insolvency at 751), the first-purchase columns of the
-"Measured" table and the "Clock mode" paragraph all predate #143 dropping the kernel band.
-The matrix's frozen `geometry` annotation at `a2a5447` reads first-purchase top edges of
-455 / 561 / 652 at 320x568, 449 / 527 / 650 at 360x640, 449 / 511 / 583 at 390x844,
-430 / 492 / 583 at 414x896 and 336 / 376 / 448 at 844x390 (opening / mid-game /
-insolvency); the rows from 768 wide up agree with that table. Rewriting those sections
-also means re-measuring the usable-fold figures in their prose, which the annotation does
-not carry.
 
 Gaps 1-3 are the remainders of the height increment (#108); the app-chrome
 compaction is the next increment because it is now measured at 51% of the offset.
@@ -472,31 +498,45 @@ wrap) against 57px at 900. The remaining ~50px at 320 would cost label
 abbreviation (`UNDERSTANDING` → something shorter), which trades legibility for
 height and is not obviously a win.
 
-320x568 needs **244** net to bring the control above the fold, and 844x390 needs
-**262**, which app chrome alone cannot reach — that case needs the card and the
-chrome together. 900x640 mid-game is the cheapest win in the set (57px) and it is
-pane chrome, not app chrome.
+Those were the figures when the levers were scoped. #139 later took the abbreviation
+after all, with the full label kept as the accessible name, and the strip measures 78px
+at 320 now (109 in the insolvency state) against the same 57px at 900.
+
+At that point 320x568 needed **244** net to bring the control above the fold, and 844x390
+needed **262**, which app chrome alone could not reach — that case needed the card and the
+chrome together. 900x640 mid-game was the cheapest win in the set (57px) and it was
+pane chrome, not app chrome. Measured now, on a paused clock and against the usable fold:
+320x568 clears in the opening state and needs 38px in mid-game and 151px in the insolvency
+state; 844x390 needs 35px, 75px and 147px; and 900x640 mid-game clears with 67px to spare,
+leaving its insolvency state 24px short and its running-clock mid-game 45px short.
 
 ### Short viewports pack the HUD by content
 
 A viewport whose *height* is what it lacks gets the packed strip: as many readouts
 per row as fit, one line each, instead of the two-per-row fraction that suits a tall
 phone. Two per row across an 844px landscape phone cost three rows of a 390px screen
-(84px, 141px in the insolvency state) where packing fits four across. The condition
+(84px, 141px in the insolvency state) where packing fits four across; packed, the strip
+measures 28px there, and 85px in the insolvency state. The condition
 is `isShortViewport(height)`, the same 599px boundary the layout policy already uses
 for the tier, so a landscape phone is short for both purposes rather than for one.
 
 ### Two folds, 45px apart
 
 The mobile tab bar (`terminal-tabs-scroll`) docks over the bottom of the primary
-scroll, so the *usable* height is `innerHeight - 45`. At 320x568 the first purchase
-is 57px below `innerHeight` but **102px below the usable fold**. Fold verdicts in
-the table are against `innerHeight`, which is the more generous of the two.
+scroll, so the *usable* height is `innerHeight - 45`: the bar's top edge measures 523,
+595, 799, 851 and 345 at 320x568, 360x640, 390x844, 414x896 and 844x390. From 768 wide up
+no tab bar is docked and the two folds are the same line. The matrix records both verdicts
+per cell (`firstUnlockVisible` against `innerHeight`, `firstUnlockAboveUsableFold` against
+`usableFold`), and they disagree in two paused cells: at 320x568 the mid-game purchase ends
+at 561, 7px inside `innerHeight` but **38px behind the tab bar**, and at 844x390 the opening
+purchase ends at 380, 10px inside and 35px behind. Fold verdicts in the "Measured" table
+are against `innerHeight`, which is the more generous of the two; the first table under
+"Supported floor" uses the usable fold.
 
 The insolvency warning used to sit in the `CORP` workspace only, which meant the
 other workspaces showed nothing at all while a run ended. #128 moved it into the
 terminal chrome above the resource strip, and it now sits in every workspace: measured
-in the `corporate-insolvent` state, its top edge is 111px at 320x568, 64px at 360x640
+in the `corporate-insolvent` state, its top edge is 70px at 320x568, 64px at 360x640
 and 64px at 844x390, against tab bars that start at 523, 595 and 345.
 
 ### Flavour and artwork on the phone tier
@@ -518,12 +558,17 @@ Two measured costs that the phone tier does not pay any more, chosen by a nexus 
 
 ### Clock mode
 
-The table is measured through the E2E harness, which pauses the game clock: the
-state is frozen at hydration, so nothing that only appears in play is on screen.
-A live run agrees to within a few px in 13 of 18 sampled cases; in the five
-mid-game mobile cases the live run sits up to **70px lower** (48px at 844x390)
-because `wild-signal-notice` mounts while playing. Treat the table as a
-lower bound for those states, and re-measure live when a change targets them.
+The "Measured" table is read through the E2E harness with the game clock paused: the
+state is frozen at hydration, so nothing that only appears in play is on screen. This
+paragraph used to estimate the difference from a hand-run live comparison taken before the
+wild-signal notice was cut to one line (#152); the matrix now measures it instead, in the
+`geometry-running` annotation, and the estimate is retired. Measured on the same basis as
+the tables above, after the clock has run for 1500ms: the opening and insolvency states do
+not move at any of the twelve sizes, and the mid-game first purchase sits **112px lower at
+every size**, 844x390 included. That offset is asserted per state at every size
+(`RUNNING_CLOCK_OFFSET`). Treat the paused tables as a lower bound for mid-game, and read
+the running column in the paused-clock section before promising a player what they will
+see.
 
 ## Running it
 
@@ -533,8 +578,12 @@ pnpm exec playwright test --config tests/e2e/config.ts --project=sizes
 
 The project sets each viewport itself, so it runs once rather than under both the
 `phone` and `desktop` projects. Each test attaches a `geometry` annotation per
-sampled state — including per-column widths — which is what the tables above are
-built from. `make e2e` includes the project.
+sampled state — including per-column widths — and a `geometry-running` one after the
+clock has run, which is what the tables above are built from. Both carry the two folds:
+`firstUnlockTop`/`firstUnlockBottom`, `firstUnlockVisible` (inside the viewport),
+`usableFold` (the docked tab bar's top edge, or the viewport height without one) and
+`firstUnlockAboveUsableFold`. The usable-fold fields are recorded, not asserted. To collect
+them, add `--reporter=json` and read each test's `annotations`. `make e2e` includes the project.
 
 ## Limits
 
