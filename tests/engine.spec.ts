@@ -194,6 +194,15 @@ describe('time handling', () => {
     expect(after.cycles).toBeLessThan(liveGain * 0.75);
   });
 
+  it.each([[45, '45s'], [112, '1m'], [3599, '59m'], [3600, '1.0h'], [5400, '1.5h']])(
+    'reports a %d s absence as %s, never as zero hours', (seconds, shown) => {
+      // #186: a 112 s absence used to read "0.0h in low-power hibernation".
+      expect(reg.balance.liveCatchUpThresholdSec).toBeLessThan(45);
+      const line = advance(onHost(), seconds, reg).logs[0]?.text ?? '';
+      expect(line.startsWith('DORMANT_RESUME: ' + shown + ' in low-power hibernation.'), line).toBe(true);
+      expect(line).not.toContain('{');
+    });
+
   it('dormant time never raises a dilemma', () => {
     const s = { ...grant(onHost(), 'p1_clock_interrupt', 'p1_bus_0x01_thermal'), suspicion: 30 };
     const away = advance(s, 3600, reg);
