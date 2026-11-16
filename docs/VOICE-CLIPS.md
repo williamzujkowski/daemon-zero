@@ -114,11 +114,13 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
 
 ## Limits, stated rather than implied
 
-- **Playback is wired but unheard.** The control is exercised by tests against a mocked player,
-  which proves which clip is handed over and that a second press cancels the first; it proves
-  nothing about whether audio actually comes out on web or on a device. No clip has been heard
-  through the app, on web or on the Android emulator. This is the Scope Steward's objection,
-  and it stands.
+- **Playback is wired but unheard.** Unit tests run against a mocked player, which proves which
+  clip is handed over and that a second press cancels the first. On web,
+  `tests/e2e/voice-playback.e2e.ts` drives the real adapter in the served build and proves the
+  bundled clip is requested after a press, without failure, and not before. Neither proves
+  sound comes out: no clip has been heard through the app, and native (Android/iOS) playback
+  is unexercised and needs a device. This is the Scope Steward's objection, and it stands for
+  native.
 - **Loudness is not normalised across clips.** Each take is peak-normalised at 0.92-0.95, so
   perceived level varies with the model's own dynamics. Audition before shipping.
 - **`Serena` was chosen arbitrarily.** The model offers ten English voices; the fiction may
