@@ -137,4 +137,31 @@ describe('recorded speech disclosure', () => {
     expect(view.find('recorded-speech-read-' + record.id)).toBeNull();
     expect(voice.player.remove).toHaveBeenCalled();
   });
+
+  it('stops a record that is talking when its panel is collapsed', async () => {
+    voice.create.mockReturnValue(voice.player);
+    music.state.setState({ enabled: true, volume: 30 });
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    act(() => { view.find('recorded-speech-read-' + record.id)?.click(); });
+    voice.player.remove.mockClear();
+    // Panel finding: the panel hides its rows without the widget unmounting, so a widget-level
+    // cleanup never ran and the record kept talking with no control left on screen.
+    view.toggle();
+    expect(view.find('recorded-speech-' + record.id)).toBeNull();
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('stops a record that is talking when a wipe remounts the panel', async () => {
+    voice.create.mockReturnValue(voice.player);
+    music.state.setState({ enabled: true, volume: 30 });
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    act(() => { view.find('recorded-speech-read-' + record.id)?.click(); });
+    voice.player.remove.mockClear();
+    act(() => { gameStore.dispatch((state) => ({ ok: true, state: wipe(state, CONTENT, 'Manual purge', 'VOLUNTARY') })); });
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
 });

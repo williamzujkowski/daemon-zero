@@ -69,7 +69,8 @@ line's clip once. The pieces:
 away mid-sentence; `FOLLOW LIVE` releases it. The live line's clip stops when that line leaves
 the screen (a step, a return to live, the widget closing) and the stop is scoped to that
 line's id, because both widgets share one player: the live rotation must never cut off a
-recorded transmission. Muting stops whatever is playing. A panel review found the earlier
+recorded transmission. A recorded transmission's clip belongs to its row, so it stops when the
+panel is collapsed, emptied, or remounted by a wipe or import. Muting stops whatever is playing. A panel review found the earlier
 version stopped *any* clip on *any* line change, which truncated every clip in the default
 motion setting; `tests/ui-speech.spec.ts` now pins both halves.
 
