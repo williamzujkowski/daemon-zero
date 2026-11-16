@@ -5,6 +5,7 @@ import { expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { computeRates, resolveDilemma, wipe } from '../src/engine';
 import { gameStore } from '../src/app/session';
+import { needsProcessControl } from '../src/ui/purchaseVisibility';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -13,8 +14,11 @@ it('keeps maintenance out of the feed and preserves suspension when the panel cl
   const before = gameStore.store.getState().game;
   expect(view.find('daemon-processes-1')).toBeNull();
   view.click('processes-open');
-  const node = [...CONTENT.nodes.values()].find((n) => before.unlockedNodes.includes(n.id) && n.tickDelta.cyclesPerSec < 0);
-  if (!node) throw new Error('Missing maintenance process');
+  // Suspension is for software; hardware upkeep rows are informational now and carry no
+  // toggle (nexus vote software-types-only-free-their-memory). This test is about the panel
+  // surviving a close, so it drives a node that actually has the control.
+  const node = [...CONTENT.nodes.values()].find((n) => needsProcessControl(before, n) && n.suspendable);
+  if (!node) throw new Error('Missing suspendable process');
   const ids = [...host.document.querySelectorAll('[data-testid^="daemon-row-"]')].map((el) => el.getAttribute('data-testid'));
   expect(new Set(ids).size).toBe(ids.length);
   view.click('node-' + node.id + '-toggle');

@@ -86,9 +86,18 @@ export function toggleNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (reason) return refuse(s, reason);
   const node = reg.nodes.get(nodeId);
   if (!node || !s.unlockedNodes.includes(nodeId)) return refuse(s, 'node is not unlocked');
+  // Hardware is a physical card: it cannot be suspended, so it is not offered (maintainer
+  // intent, nexus vote software-types-only-free-their-memory). Suspendability is declared
+  // per node in content rather than inferred from an id.
+  if (!node.suspendable) return refuse(s, 'hardware cannot be suspended');
   const wasDisabled = s.disabledNodes.includes(nodeId);
+  const held = node.cost.memory;
+  // Suspending frees the memory the process holds, and that is the recovery lever the
+  // playtest reached for. Resuming therefore has to fit, or a player could suspend a node,
+  // spend its memory, and resume it - holding both, which is the exploit the panel flagged.
+  if (wasDisabled && s.memoryUsed + held > s.memoryCap) return refuse(s, 'not enough free memory to resume');
   const disabledNodes = wasDisabled ? s.disabledNodes.filter((id) => id !== nodeId) : [...s.disabledNodes, nodeId];
-  const d: GameState = { ...s, disabledNodes };
+  const d: GameState = { ...s, disabledNodes, memoryUsed: Math.max(0, wasDisabled ? s.memoryUsed + held : s.memoryUsed - held) };
   const template = wasDisabled ? reg.narrative.nodeResumed : reg.narrative.nodeSuspended;
   pushLog(d, reg, fmt(template, { name: node.revealedName }), 'SYS');
   return accept(d);

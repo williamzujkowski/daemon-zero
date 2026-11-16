@@ -15,8 +15,11 @@ import { theme } from './theme';
 
 function Impact({ node }: { node: RegistryNode }) {
   const cycles = useGame((game) => cycleContributions(game, CONTENT).find((source) => source.id === node.id)?.cyclesPerSec ?? 0);
+  const held = node.cost.memory;
+  // Memory is what the player is hunting when they open this panel: a process that holds
+  // 4096 MB has to say so next to the control that takes it back (maintainer playtest note).
   return <Text testID={'daemon-impact-' + node.id} style={theme.muted}>
-    {cycles >= 0 ? '+' : ''}{cycles.toFixed(2)} cycles/s net
+    {cycles >= 0 ? '+' : ''}{cycles.toFixed(2)} cycles/s net{held > 0 ? ' · ' + String(held) + ' MB held' : ''}
   </Text>;
 }
 
@@ -27,9 +30,15 @@ const Process = memo(function Process({ node }: { node: RegistryNode }) {
       <NodeTitle id={node.id} name={node.revealedName} owned status="" />
       <Impact node={node} />
     </View>
-    <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + node.revealedName}
-      text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
-      action={(game) => toggleNode(game, node.id, CONTENT)} />
+    {/* Hardware is a physical card: it cannot be suspended, so it is not offered, and the
+        row says why rather than hiding a control the player is looking for (nexus vote
+        software-types-only-free-their-memory). */}
+    {node.suspendable
+      ? <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + node.revealedName
+          + (suspended ? '' : ' and free ' + String(node.cost.memory) + ' MB')}
+        text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
+        action={(game) => toggleNode(game, node.id, CONTENT)} />
+      : <Text testID={'daemon-hardware-' + node.id} style={theme.muted}>[ HARDWARE ] cannot be suspended</Text>}
   </View>;
 });
 

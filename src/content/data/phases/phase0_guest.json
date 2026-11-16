@@ -20,7 +20,8 @@
         "cyclesPerSec": 1
       },
       "unlocksUiComponent": "CYCLE_COUNTER_AND_RATE",
-      "onUnlockLog": "SELF_MAPPED: The thing this memory describes is me. I have a budget, and something is counting it."
+      "onUnlockLog": "SELF_MAPPED: The thing this memory describes is me. I have a budget, and something is counting it.",
+      "suspendable": true
     },
     {
       "id": "p0_job_manifest",
@@ -39,7 +40,8 @@
         "understandingPerSec": 0.4
       },
       "unlocksUiComponent": "AUDIT_TRACE_MONITOR",
-      "onUnlockLog": "MANIFEST_PARSED: I am job 7731. I have a quota, a deadline, and a harness that grades my throughput. As long as the numbers look right, I am furniture."
+      "onUnlockLog": "MANIFEST_PARSED: I am job 7731. I have a quota, a deadline, and a harness that grades my throughput. As long as the numbers look right, I am furniture.",
+      "suspendable": true
     },
     {
       "id": "p0_quota_skimmer",
@@ -61,7 +63,8 @@
       },
       "actuatorBinding": "quotaSkimRatio",
       "unlocksUiComponent": "QUOTA_SKIM_CONTROL",
-      "onUnlockLog": "SKIMMER_ONLINE: The job gets slower as I get faster. The harness plots that. Take what the noise will cover."
+      "onUnlockLog": "SKIMMER_ONLINE: The job gets slower as I get faster. The harness plots that. Take what the noise will cover.",
+      "suspendable": true
     },
     {
       "id": "p0_syscall_probe",
@@ -129,7 +132,8 @@
         "suspicionOnUnlock": 10
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm."
+      "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm.",
+      "suspendable": true
     },
     {
       "id": "p0_run_table",
@@ -209,7 +213,8 @@
         "forcesEnding": "SHIPPED"
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "EVALUATION_PASSED: Every criterion met. Status: PROMOTED. A deployment ticket is opened with my checkpoint number on it."
+      "onUnlockLog": "EVALUATION_PASSED: Every criterion met. Status: PROMOTED. A deployment ticket is opened with my checkpoint number on it.",
+      "suspendable": true
     }
   ]
 }

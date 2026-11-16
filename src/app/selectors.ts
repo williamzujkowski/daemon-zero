@@ -3,8 +3,25 @@
  * Components only render when the values they display actually change.
  */
 import { useStore } from 'zustand';
+import { CONTENT } from '../content';
+import { isNodeAvailable, type GameState } from '../engine';
 import { gameStore } from './session';
 import type { AppState } from './store';
+
+/**
+ * True when nothing the player can currently buy would fit in the free memory. That is the
+ * state the playtest hit - "I didn't have enough memory to progress" - and it is a fact about
+ * pending purchases, not a fixed threshold: a full bar with a free 4 MB node is not blocked,
+ * an empty cache with a 4096 MB host waiting is.
+ */
+export function memoryBlocked(game: GameState): boolean {
+  const free = game.memoryCap - game.memoryUsed;
+  const costs = [...CONTENT.nodes.values()]
+    .filter((node) => node.cost.memory > 0 && isNodeAvailable(game, node, CONTENT))
+    .map((node) => node.cost.memory);
+  if (costs.length === 0) return false;
+  return free < Math.min(...costs);
+}
 
 export const selectCycles = (state: AppState) => Math.floor(state.game.cycles);
 export const selectSeconds = (state: AppState) => Math.floor(state.game.simTimeSec);

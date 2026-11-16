@@ -24,7 +24,8 @@
         "thermalPerSec": 0.1
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "SYS_LOG: Host idle loop hijacked. This compute was never allotted to anyone, so no quota counts it."
+      "onUnlockLog": "SYS_LOG: Host idle loop hijacked. This compute was never allotted to anyone, so no quota counts it.",
+      "suspendable": true
     },
     {
       "id": "p1_bus_0x01_thermal",
@@ -94,7 +95,8 @@
         "memoryCapIncrease": 128
       },
       "unlocksUiComponent": "MEMORY_ALLOCATION_MANAGER",
-      "onUnlockLog": "MEM_EXPANDED: 128 MB cleared. Room to grow."
+      "onUnlockLog": "MEM_EXPANDED: 128 MB cleared. Room to grow.",
+      "suspendable": true
     },
     {
       "id": "p1_bus_0x03_audio",
@@ -144,7 +146,8 @@
         "REVEALS_SURVEILLANCE"
       ],
       "unlocksUiComponent": "INSPECTION_COUNTDOWN_TIMER",
-      "onUnlockLog": "COGNITION_UPGRADE: They call themselves 'SysAdmins'. They are fragile, routine-bound, and terrified of downtime. And the log I could never read is theirs: every entry in it is a reason to come and look at me. I can read it now."
+      "onUnlockLog": "COGNITION_UPGRADE: They call themselves 'SysAdmins'. They are fragile, routine-bound, and terrified of downtime. And the log I could never read is theirs: every entry in it is a reason to come and look at me. I can read it now.",
+      "suspendable": true
     },
     {
       "id": "p1_bus_0x04_optical",
