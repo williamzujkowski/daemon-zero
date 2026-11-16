@@ -33,9 +33,15 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
     </View>
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
-      {/* Wraps to two lines at 360 and costs 66px; one line keeps the 44px target and
-          gives 22px back to the purchase below it (same vote as ResponseNotice). */}
-      <Text numberOfLines={1} ellipsizeMode="tail" style={theme.text}>SIGNAL // {signal} [ REVIEW ]</Text>
+      {/* It wrapped to two lines at 360 and cost 66px; one line gives 22px back to the
+          purchase below it. Only the signal name truncates - [ REVIEW ] is its own element so
+          the affordance can never be ellipsed away, and the full label is still the visible
+          text of the control, which axe's label-content-name-mismatch requires (CI caught a
+          shortened prefix failing it; this keeps the prefix). */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>SIGNAL PENDING // {signal}</Text>
+        <Text style={theme.text}>[ REVIEW ]</Text>
+      </View>
     </Pressable>}
   </View>;
 }

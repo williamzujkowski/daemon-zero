@@ -224,32 +224,33 @@ Measured at 360x640, from that run:
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
 | `phase-1-widgets` | 449 | 449 | 0 | yes / yes |
-| `epistemic-ready-p2` | 527 | 661 | **134** | **yes / no** |
+| `epistemic-ready-p2` | 527 | 639 | **112** | **yes / no** |
 | `corporate-insolvent` | 650 | 650 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
 once time passes, because time-gated notices appear above the purchase. The opening and
-insolvency states do not move. Measured across the whole matrix, the shift is uniform and
-state-specific rather than size-specific:
+insolvency states do not move. Measured across the whole matrix, the shift is uniform in both
+senses - one state, one delta, at every size:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 561 | 673 | 134 | no / no |
-| 360x640 | 527 | 639 | 134 | yes / **no** |
-| 390x844 | 511 | 623 | 134 | yes / yes |
-| 414x896 | 492 | 604 | 134 | yes / yes |
-| 768x1024 | 597 | 709 | 134 | yes / yes |
+| 320x568 | 561 | 673 | 112 | no / no |
+| 360x640 | 527 | 639 | 112 | yes / **no** |
+| 390x844 | 511 | 623 | 112 | yes / yes |
+| 414x896 | 492 | 604 | 112 | yes / yes |
+| 768x1024 | 597 | 709 | 112 | yes / yes |
 | 844x390 | 376 | 488 | 112 | no / no |
-| 900x640 | 529 | 641 | 134 | yes / **no** |
+| 900x640 | 529 | 641 | 112 | yes / **no** |
 | 1024x768 | 529 | 641 | 112 | yes / yes |
-| 1080x800 | 525 | 637 | 134 | yes / yes |
+| 1080x800 | 525 | 637 | 112 | yes / yes |
 | 1440x900 | 405 | 517 | 112 | yes / yes |
 | 1920x1080 | 405 | 517 | 112 | yes / yes |
 | 2560x1440 | 405 | 517 | 112 | yes / yes |
 
 The mid-game running figures above are 22px lower than #151 first recorded, because the
-wild-signal notice now renders on one line instead of wrapping at narrow widths (see below).
-Every sampled state other than mid-game moves by 0. So the promise row above is qualified rather
+wild-signal notice now renders on one line instead of wrapping at narrow widths, so the delta
+is 112 at every size rather than 134 on tall cells and 112 on wide ones. Every sampled state
+other than mid-game still moves by 0. So the promise row above is qualified rather
 than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
 as a cell where a running game does not clear. Note this table reads against the **viewport**
 (the annotation's own definition), not the stricter usable fold. Treat every above-the-fold number in this document as a
@@ -288,7 +289,7 @@ growth is the number to watch if this is revisited.
 1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
    phone tier (#143), mid-game does too - **on a paused clock**: the first purchase reads 527
-   against 595. With the clock running the same cell reads 661 and does not clear, so that
+   against 595. With the clock running the same cell reads 639 and does not clear, so that
    claim is a budget rather than a promise (see the paused-clock section below). Compacting the
 two time-gated notices on the phone tier returned 22px, not the 78px estimated when the vote
 was taken, because both blocks are floored by their own 44px controls; the wild-signal notice
