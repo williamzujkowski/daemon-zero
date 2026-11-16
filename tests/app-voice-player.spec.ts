@@ -18,11 +18,13 @@ import { voiceSources } from '../src/app/voiceSources';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
 
+interface Status { didJustFinish: boolean; error?: string | null }
+
 function stubListener() {
-  let finish: (status: { didJustFinish: boolean }) => void = () => undefined;
+  let finish: (status: Status) => void = () => undefined;
   const remove = vi.fn();
   voice.player.addListener.mockImplementation((_event, listener: typeof finish) => { finish = listener; return { remove }; });
-  return { fire: (status: { didJustFinish: boolean }) => { finish(status); }, remove };
+  return { fire: (status: Status) => { finish(status); }, remove };
 }
 
 describe('voice clip playback', () => {
@@ -199,6 +201,79 @@ describe('voice activity signal', () => {
     h.stop();
   });
 
+  it('releases a clip whose media fails, once, and lets the score back up', () => {
+    const h = listen();
+    voice.player.remove.mockClear();
+    playVoiceClip('ambient_01', 30);
+    h.listener.fire({ didJustFinish: false, error: null });
+    expect(h.heard, 'a healthy status carries a null error and ends nothing').toEqual([true]);
+    // What expo-audio sends for a clip that cannot load: an error and no `didJustFinish`.
+    h.listener.fire({ didJustFinish: false, error: 'Playback error (code 4)' });
+    expect(h.listener.remove).toHaveBeenCalledTimes(1);
+    expect(voice.player.remove).toHaveBeenCalledTimes(1);
+    expect(h.heard).toEqual([true, false]);
+    // The web player reports one failure twice (the element's error and the rejected play()).
+    h.listener.fire({ didJustFinish: false, error: 'NotSupportedError' });
+    expect(voice.player.remove, 'released once').toHaveBeenCalledTimes(1);
+    expect(h.heard, 'inactivity is reported exactly once').toEqual([true, false]);
+    h.stop();
+  });
+
+  it('leaves nothing playing when play() throws, and never claims the clip was talking', () => {
+    const h = listen();
+    voice.player.remove.mockClear();
+    voice.player.play.mockImplementationOnce(() => { throw new Error('no playback'); });
+    expect(() => { playVoiceClip('ambient_01', 30); }).toThrow('no playback');
+    expect(h.listener.remove).toHaveBeenCalledTimes(1);
+    expect(voice.player.remove).toHaveBeenCalledTimes(1);
+    expect(h.heard, 'a clip that never started was never talking').toEqual([]);
+    // Nothing is owned any more: a stop has nothing to release and nothing to report.
+    stopVoiceClip();
+    expect(voice.player.remove).toHaveBeenCalledTimes(1);
+    expect(h.heard).toEqual([]);
+    h.stop();
+  });
+
+  it('reports silence when play() throws on a replacement for a clip that was talking', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    voice.player.play.mockImplementationOnce(() => { throw new Error('no playback'); });
+    expect(() => { playVoiceClip('ambient_02', 30); }).toThrow('no playback');
+    expect(h.heard).toEqual([true, false]);
+    h.stop();
+  });
+
+  it('plays the next clip normally after a failure', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    h.listener.fire({ didJustFinish: false, error: 'Playback error (code 4)' });
+    voice.player.play.mockClear(); voice.player.remove.mockClear();
+    const next = stubListener();
+    playVoiceClip('ambient_02', 30);
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    expect(h.heard).toEqual([true, false, true]);
+    next.fire({ didJustFinish: true });
+    expect(next.remove).toHaveBeenCalledTimes(1);
+    expect(voice.player.remove).toHaveBeenCalledTimes(1);
+    expect(h.heard).toEqual([true, false, true, false]);
+    h.stop();
+  });
+
+  it('ignores a late status from a clip that a newer take of the same line replaced', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    const stale = h.listener;
+    const next = stubListener();
+    playVoiceClip('ambient_01', 30);
+    voice.player.remove.mockClear();
+    stale.fire({ didJustFinish: false, error: 'late' });
+    expect(voice.player.remove, 'the newer take keeps playing').not.toHaveBeenCalled();
+    expect(h.heard).toEqual([true]);
+    next.fire({ didJustFinish: true });
+    expect(h.heard).toEqual([true, false]);
+    h.stop();
+  });
+
   it('tells a late subscriber about a clip already in flight, and nothing after unsubscribing', () => {
     const h = listen();
     h.stop();
@@ -225,6 +300,13 @@ describe('voice activity signal', () => {
     expect(ducked.mock.calls).toEqual([[true]]);
     listener.fire({ didJustFinish: true });
     expect(ducked.mock.calls).toEqual([[true], [false]]);
+    // A failed clip must hand the score back too, not only a finished one.
+    fresh.playVoiceClip('ambient_02', 30);
+    listener.fire({ didJustFinish: false, error: 'Playback error (code 4)' });
+    expect(ducked.mock.calls).toEqual([[true], [false], [true], [false]]);
+    voice.player.play.mockImplementationOnce(() => { throw new Error('no playback'); });
+    expect(() => { fresh.playVoiceClip('ambient_03', 30); }).toThrow('no playback');
+    expect(ducked.mock.calls, 'a clip that never started never ducks').toHaveLength(4);
     expect(readFileSync('src/app/voicePlayer.ts', 'utf8')).not.toMatch(/from '\.\/music/);
   });
 });
