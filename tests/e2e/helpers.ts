@@ -43,7 +43,7 @@ export { expect };
  * one state and its extra assertions are vacuous (#138). Give each state its own context
  * when looping.
  */
-export async function boot(page: Page, fixture?: string, options: { audio?: boolean } = {}): Promise<void> {
+export async function boot(page: Page, fixture?: string, options: { audio?: boolean | Record<string, unknown> } = {}): Promise<void> {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 1000);
   if (fixture) {
@@ -55,12 +55,16 @@ export async function boot(page: Page, fixture?: string, options: { audio?: bool
       if (!localStorage.getItem('daemon-zero.save.v1')) localStorage.setItem('daemon-zero.save.v1', JSON.stringify({ version: 1, savedAtMs: Date.now(), game: value }));
     }, game);
   }
-  if (options.audio === true) {
-    // Voice and soundtrack share one preference; the clips are silent without it.
-    await page.addInitScript(() => {
+  if (options.audio !== undefined && options.audio !== false) {
+    // `true` deliberately stores the old single-switch (version 1) value: an upgrading player
+    // is the common case, so every spec that turns audio on also proves the migration on the
+    // served build. A spec that needs the split passes the version 2 value it wants instead.
+    const stored = options.audio === true ? { version: 1, enabled: true, volume: 30 } : options.audio;
+    await page.addInitScript((value) => {
       const { localStorage } = globalThis as unknown as { localStorage: BrowserStorage };
-      localStorage.setItem('daemon-zero.audio.v1', JSON.stringify({ version: 1, enabled: true, volume: 30 }));
-    });
+      // Seeded once, so a choice made through the page survives a reload like a real one.
+      if (!localStorage.getItem('daemon-zero.audio.v1')) localStorage.setItem('daemon-zero.audio.v1', JSON.stringify(value));
+    }, stored);
   }
   await page.goto('./');
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
@@ -121,6 +125,13 @@ export async function soundtrackVolume(page: Page): Promise<number | null> {
   return page.evaluate(() => {
     const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
     return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.volume ?? null;
+  });
+}
+/** The level of the voice clip in flight, or null when none is talking. */
+export async function voiceClipVolume(page: Page): Promise<number | null> {
+  return page.evaluate(() => {
+    const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+    return media.find((item) => !item.paused && item.src.includes('/voice/'))?.volume ?? null;
   });
 }
 /** How many voice clips are audibly in flight, by the same probe. */
