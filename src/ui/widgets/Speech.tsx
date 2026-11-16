@@ -25,17 +25,21 @@ function useSpeech(decoderId: string) {
   else if (selection.held !== null && !indices.includes(selection.held)) select({ reduced, held: current });
   const next = () => { select({ reduced, held: indices[(indices.indexOf(current ?? '') + 1) % indices.length] ?? null }); };
   return { id: current, text: current === null ? '' : CONTENT.narrative.ambientChatter.find((line) => line.id === current)?.text ?? '',
-    next, canStep: indices.length > 1,
+    next, canStep: indices.length > 1, hold: () => { select({ reduced, held: current }); },
     canFollow: indices.length > 1 && !reduced && selection.held !== null, follow: () => { select({ reduced, held: null }); } };
 }
 
 export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId: string; id?: string }) {
+  // READ holds the line it reads: the live feed would otherwise rotate it off screen every
+  // eight seconds and take the voice with it mid-sentence.
   const speech = useSpeech(decoderId);
   const audio = useMusic();
   const nextButton = useRef<ComponentRef<typeof Pressable>>(null);
-  // Stepping to another line stops the clip in flight rather than letting two voices overlap.
+  // When this line leaves the screen - a step, a return to live, or the widget closing - its
+  // clip stops with it. Scoped to this line's id: the live rotation must not cut off a recorded
+  // transmission the sibling panel is reading. Panel finding, accepted.
   const clipId = speech.id;
-  useEffect(() => { stopVoiceClip(); }, [clipId]);
+  useEffect(() => () => { if (clipId !== null) stopVoiceClip(clipId); }, [clipId]);
   // A clip must not outlive the preference that allowed it: muting silences the voice with the
   // score, even though the control itself has already gone. Panel finding, accepted.
   useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
@@ -46,7 +50,7 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
     {clipId !== null && audio.enabled && hasVoiceClip(clipId) &&
       <Pressable testID="speech-read" accessibilityRole="button" accessibilityLabel="[ ▶ READ ] Play this transmission aloud"
         style={[theme.button, { minHeight: 44, justifyContent: 'center' }]}
-        onPress={() => { playVoiceClip(clipId, audio.volume); }}><Text style={theme.text}>[ ▶ READ ]</Text></Pressable>}
+        onPress={() => { speech.hold(); playVoiceClip(clipId, audio.volume); }}><Text style={theme.text}>[ ▶ READ ]</Text></Pressable>}
     {speech.canStep && <Pressable ref={nextButton} testID="speech-next" accessibilityRole="button" accessibilityLabel="[ NEXT TRANSMISSION ] Next transmission"
       style={theme.button} onPress={speech.next}><Text style={theme.text}>[ NEXT TRANSMISSION ]</Text></Pressable>}
     {speech.canFollow && <Pressable testID="speech-follow-live" accessibilityRole="button" accessibilityLabel="[ FOLLOW LIVE ] Follow live transmissions"

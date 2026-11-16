@@ -14,6 +14,7 @@ import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { music } from '../src/app/musicSession';
 import { voiceSources } from '../src/app/voiceSources';
+import { playVoiceClip } from '../src/app/voicePlayer';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import { Audio } from '../src/ui/widgets/Sensory';
 import Speech from '../src/ui/widgets/Speech';
@@ -229,6 +230,42 @@ describe('reading a transmission aloud', () => {
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).toHaveBeenCalled();
     expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('holds the line it is reading, so the live rotation cannot cut the voice off', async () => {
+    reduced = false;
+    const view = await mount({ ...game, simTimeSec: 16, suspicion: 0 }, false, 'speech');
+    const text = view.text();
+    view.click('speech-read');
+    voice.player.remove.mockClear();
+    // Panel finding: the line used to rotate away eight sim-seconds later and stop its own clip.
+    patch({ simTimeSec: 24 }); patch({ simTimeSec: 48 });
+    expect(view.text()).toBe(text);
+    expect(voice.player.remove).not.toHaveBeenCalled();
+    // Held like any other held line: live is one explicit press away, and leaving stops the clip.
+    view.click('speech-follow-live');
+    expect(view.text()).not.toBe(text);
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('leaves a clip the live line did not start alone when the line rotates', async () => {
+    reduced = false;
+    const view = await mount({ ...game, simTimeSec: 16, suspicion: 0 }, false, 'speech');
+    const text = view.text();
+    // The recorded-transmission panel shares the one player; its clip is not this widget's to stop.
+    act(() => { playVoiceClip('record_cryo_lost', 30); });
+    voice.player.remove.mockClear();
+    patch({ simTimeSec: 24 });
+    expect(view.text()).not.toBe(text);
+    expect(voice.player.remove).not.toHaveBeenCalled();
+  });
+
+  it('stops its clip when the widget closes', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    voice.player.remove.mockClear();
+    view.close();
+    expect(voice.player.remove).toHaveBeenCalled();
   });
 
   it('follows a volume change while a clip is playing', async () => {

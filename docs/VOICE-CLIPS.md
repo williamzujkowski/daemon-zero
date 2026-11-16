@@ -7,7 +7,7 @@ yet wired.
 Status: **clips exist, are committed, and play behind a manual control.** Issue #88's slice is
 wired for the default (vibration) tier: `src/ui/widgets/Speech.tsx` and `RecordedSpeech.tsx`
 each offer a `[ ▶ READ ]` control that plays that line's clip. Nothing autoplays, nothing
-queues, and stepping to another line stops the clip in flight.
+queues, and a clip stops when its own line leaves the screen.
 
 ## Why generated assets
 
@@ -63,6 +63,15 @@ line's clip once. The pieces:
 | `src/app/voiceSources.ts` | One literal import per clip, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree. |
 | `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished clip releases its player, volume follows the audio preference. |
 | `Speech.tsx` / `RecordedSpeech.tsx` | The control, 44px tall, shown only when a clip exists **and** audio is on. Stepping to another line stops the clip. |
+
+**What stops a clip, exactly.** Pressing READ on the live line *holds* that line, the same way
+`NEXT TRANSMISSION` does, so the eight-second live rotation cannot take the line and its voice
+away mid-sentence; `FOLLOW LIVE` releases it. The live line's clip stops when that line leaves
+the screen (a step, a return to live, the widget closing) and the stop is scoped to that
+line's id, because both widgets share one player: the live rotation must never cut off a
+recorded transmission. Muting stops whatever is playing. A panel review found the earlier
+version stopped *any* clip on *any* line change, which truncated every clip in the default
+motion setting; `tests/ui-speech.spec.ts` now pins both halves.
 
 **The manual contract won an option vote, but the vote did not ratify.** Two runs of the same
 question on the nexus gateway arm:

@@ -19,6 +19,7 @@ import { ensureAudioMode } from './audioPlayer';
 import { voiceSources } from './voiceSources';
 
 interface LiveClip {
+  id: string;
   player: { volume: number };
   remove(): void;
 }
@@ -31,12 +32,18 @@ function level(volume: number): number {
 
 /** True when a clip was generated for this content id. Data-driven: no id is hard-coded here. */
 export function hasVoiceClip(id: string): boolean {
-  return id in voiceSources;
+  // Own keys only: `in` would also answer yes for inherited names such as `constructor`.
+  return Object.hasOwn(voiceSources, id);
 }
 
-/** Stop the clip in flight, if any. Called before a new one starts and when audio is disabled. */
-export function stopVoiceClip(): void {
-  playing?.remove();
+/**
+ * Stop the clip in flight, if any. With an id, stop it only when it is that line's clip: two
+ * widgets share this one player, and a widget whose own line changed must not silence a clip
+ * the other one started.
+ */
+export function stopVoiceClip(id?: string): void {
+  if (playing === null || (id !== undefined && playing.id !== id)) return;
+  playing.remove();
   playing = null;
 }
 
@@ -51,7 +58,7 @@ export function setVoiceVolume(volume: number): void {
  * press cannot leave two voices overlapping; a finished clip releases its own player.
  */
 export function playVoiceClip(id: string, volume: number): void {
-  const source = voiceSources[id];
+  const source = hasVoiceClip(id) ? voiceSources[id] : undefined;
   if (source === undefined) return;
   stopVoiceClip();
   // The session is shared with the soundtrack but prepared by neither on the other's behalf.
@@ -60,8 +67,8 @@ export function playVoiceClip(id: string, volume: number): void {
   player.volume = level(volume);
   const subscription = player.addListener('playbackStatusUpdate', (status) => {
     if (!status.didJustFinish) return;
-    stopVoiceClip();
+    stopVoiceClip(id);
   });
-  playing = { player, remove: () => { subscription.remove(); player.remove(); } };
+  playing = { id, player, remove: () => { subscription.remove(); player.remove(); } };
   player.play();
 }

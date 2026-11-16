@@ -77,6 +77,24 @@ describe('voice clip playback', () => {
     expect(voice.player.volume).toBe(0);
   });
 
+  it('answers only for its own clips, not for names every object inherits', () => {
+    voice.create.mockClear();
+    expect(hasVoiceClip('constructor')).toBe(false);
+    playVoiceClip('toString', 30);
+    expect(voice.create).not.toHaveBeenCalled();
+  });
+
+  it('stops by id only the clip that id started', () => {
+    voice.create.mockReturnValue(voice.player);
+    stubListener();
+    playVoiceClip('ambient_01', 30);
+    voice.player.remove.mockClear();
+    stopVoiceClip('ambient_02');
+    expect(voice.player.remove, 'another line cannot stop this clip').not.toHaveBeenCalled();
+    stopVoiceClip('ambient_01');
+    expect(voice.player.remove).toHaveBeenCalledTimes(1);
+  });
+
   it('stops safely when nothing is playing', () => {
     stopVoiceClip();
     expect(() => { stopVoiceClip(); }).not.toThrow();
