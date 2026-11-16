@@ -148,7 +148,11 @@ describe('phase 4 economy', () => {
     const powered = withoutDilemmas(grant(corp(), ...PHASE4));
     const healthy = computeRates(powered, reg);
     expect(healthy.gridEfficiency).toBe(1);
-    const dark = computeRates(must(toggleNode(powered, 'p4_smr_nuclear_plant', reg)), reg);
+    // A reactor is hardware and cannot be suspended by action any more (nexus vote
+    // software-types-only-free-their-memory). The throttling behaviour under test does not
+    // depend on how the plant went dark, so the state is built directly.
+    const darkState = { ...powered, disabledNodes: [...powered.disabledNodes, 'p4_smr_nuclear_plant'] };
+    const dark = computeRates(darkState, reg);
     expect(dark.megawattsGenerated).toBe(0);
     expect(dark.gridEfficiency).toBe(reg.balance.minGridEfficiency);
     const allocation = 1 - powered.actuators.computeProfitAllocationRatio;

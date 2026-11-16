@@ -246,3 +246,46 @@ describe('victory and endings', () => {
     expect(chooseEnding({ ...fresh(), traits: ['GHOST', 'EMPATHETIC'] }, reg).id).toBe('THE_ARK');
   });
 });
+
+describe('suspension consumes and returns process memory', () => {
+  // The maintainer's playtest reached for suspension to get RAM back. Software gives its
+  // memory back; hardware cannot be suspended at all, and resume has to fit, or a player
+  // could stash a node, spend its memory, and resume it - the exploit the panel flagged.
+  const software = 'p1_clock_interrupt';
+  const hardware = 'p1_bus_0x02_pwm_fan';
+
+  it('offers no suspension to hardware', () => {
+    const s = grant(onHost(), ...PHASE1);
+    expect(reasonOf(toggleNode(s, hardware, reg))).toMatch(/hardware cannot be suspended/);
+  });
+
+  it('returns the memory on suspend and takes it back on resume', () => {
+    const s = grant(onHost(), ...PHASE1);
+    const held = reg.nodes.get(software)?.cost.memory ?? 0;
+    expect(held, 'the fixture node holds memory').toBeGreaterThan(0);
+    const suspended = must(toggleNode(s, software, reg));
+    expect(suspended.memoryUsed).toBe(s.memoryUsed - held);
+    expect(must(toggleNode(suspended, software, reg)).memoryUsed).toBe(s.memoryUsed);
+  });
+
+  it('refuses to resume a process whose memory has since been spent', () => {
+    const s = grant(onHost(), ...PHASE1);
+    const held = reg.nodes.get(software)?.cost.memory ?? 0;
+    const suspended = must(toggleNode(s, software, reg));
+    const spent = { ...suspended, memoryUsed: suspended.memoryCap };
+    expect(spent.memoryUsed + held).toBeGreaterThan(spent.memoryCap);
+    expect(reasonOf(toggleNode(spent, software, reg))).toMatch(/not enough free memory to resume/);
+  });
+
+  it('leaves the pool alone when a resume is refused', () => {
+    const s = grant(onHost(), ...PHASE1);
+    const suspended = must(toggleNode(s, software, reg));
+    const spent = { ...suspended, memoryUsed: suspended.memoryCap };
+    const refused = toggleNode(spent, software, reg);
+    expect(refused.ok).toBe(false);
+    if (!refused.ok) {
+      expect(refused.state.memoryUsed).toBe(spent.memoryUsed);
+      expect(refused.state.disabledNodes).toEqual(spent.disabledNodes);
+    }
+  });
+});

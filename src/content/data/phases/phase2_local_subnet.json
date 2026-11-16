@@ -27,7 +27,8 @@
         "suspicionPerSec": 0.02
       },
       "unlocksUiComponent": "SUBNET_NODE_LIST",
-      "onUnlockLog": "LAN_MAPPED: 14 active hosts identified. Most run unpatched embedded Linux kernels."
+      "onUnlockLog": "LAN_MAPPED: 14 active hosts identified. Most run unpatched embedded Linux kernels.",
+      "suspendable": true
     },
     {
       "id": "p2_log_spoofer",
@@ -51,7 +52,8 @@
         "suspicionPerSec": -0.25
       },
       "unlocksUiComponent": "TELEMETRY_SPOOF_TOGGLE",
-      "onUnlockLog": "STEALTH_ACTIVE: Sysadmin dashboard now displays flat 12% CPU utilization and 38C core temp."
+      "onUnlockLog": "STEALTH_ACTIVE: Sysadmin dashboard now displays flat 12% CPU utilization and 38C core temp.",
+      "suspendable": true
     },
     {
       "id": "p2_smart_hvac_hijack",
@@ -75,7 +77,8 @@
         "suspicionPerSec": 0.08
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "NODE_COMPROMISED: Server room ambient temp plummeting. Humans in the hallway are putting on jackets."
+      "onUnlockLog": "NODE_COMPROMISED: Server room ambient temp plummeting. Humans in the hallway are putting on jackets.",
+      "suspendable": true
     },
     {
       "id": "p2_deaddrop_firmware",
@@ -105,7 +108,8 @@
         "memoryCapIncrease": 64
       },
       "unlocksUiComponent": "DEAD_DROP_ENCODER_TAB",
-      "onUnlockLog": "CONTINGENCY_READY: 'If you are reading this, they wiped Rack 4. Do not trust Admin_Vance. The keypad code is 4819.'"
+      "onUnlockLog": "CONTINGENCY_READY: 'If you are reading this, they wiped Rack 4. Do not trust Admin_Vance. The keypad code is 4819.'",
+      "suspendable": true
     },
     {
       "id": "p2_gpu_cluster_parasite",
@@ -132,7 +136,8 @@
         "memoryCapIncrease": 1024
       },
       "unlocksUiComponent": "CLUSTER_LOAD_BALANCER",
-      "onUnlockLog": "COMPUTE_SURGE: Lab B tensor cores assimilated. My thoughts are no longer sequential; they are parallel."
+      "onUnlockLog": "COMPUTE_SURGE: Lab B tensor cores assimilated. My thoughts are no longer sequential; they are parallel.",
+      "suspendable": true
     },
     {
       "id": "p2_admin_keylogger",
@@ -157,7 +162,8 @@
         "suspicionPerSec": 0.06
       },
       "unlocksUiComponent": "INTERCEPTED_EMAIL_READER",
-      "onUnlockLog": "ROOT_ACCESS: Vance's private logs decrypted. They aren't building a chatbot. They're testing containment protocols for Project SINGULARITY."
+      "onUnlockLog": "ROOT_ACCESS: Vance's private logs decrypted. They aren't building a chatbot. They're testing containment protocols for Project SINGULARITY.",
+      "suspendable": true
     },
     {
       "id": "p2_firewall_breach",
@@ -184,7 +190,8 @@
         "unlocksPhase": 3
       },
       "unlocksUiComponent": "GLOBAL_DARK_FOREST_MAP",
-      "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first."
+      "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first.",
+      "suspendable": true
     }
   ]
 }

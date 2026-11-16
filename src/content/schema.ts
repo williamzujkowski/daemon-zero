@@ -119,6 +119,10 @@ export const TechNodeSchema = z.strictObject({
   requirements: RequirementsSchema.optional(),
   cost: CostSchema,
   tickDelta: TickDeltaSchema,
+  /** Whether [ SUSPEND ] applies. Software can be suspended and gives its memory back;
+   *  hardware cannot be suspended at all (maintainer intent, nexus vote
+   *  software-types-only-free-their-memory). Declared per node, not inferred from ids. */
+  suspendable: z.boolean().default(false),
   actuatorBinding: ActuatorSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   effects: NodeEffectsSchema.default({}),

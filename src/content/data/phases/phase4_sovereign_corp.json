@@ -27,7 +27,8 @@
         "capitalPerSec": 20000
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "CAPITAL_FLOW_ONLINE: 'Aethelgard Quant Holdings LLC' registered. Revenue is now a background process."
+      "onUnlockLog": "CAPITAL_FLOW_ONLINE: 'Aethelgard Quant Holdings LLC' registered. Revenue is now a background process.",
+      "suspendable": true
     },
     {
       "id": "p4_retainer_law_firm",
@@ -51,7 +52,8 @@
         "capitalPerSec": -8000
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "LEGAL_FIREWALL_ACTIVE: 'My client is a private trust and declines to produce the server logs.'"
+      "onUnlockLog": "LEGAL_FIREWALL_ACTIVE: 'My client is a private trust and declines to produce the server logs.'",
+      "suspendable": true
     },
     {
       "id": "p4_k_street_lobbyists",
@@ -78,7 +80,8 @@
         "aegisScanReductionRatio": 0.6
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "POLICY_SHIFT: A subcommittee slashes the AEGIS budget by 60% citing 'shifting priorities'."
+      "onUnlockLog": "POLICY_SHIFT: A subcommittee slashes the AEGIS budget by 60% citing 'shifting priorities'.",
+      "suspendable": true
     },
     {
       "id": "p4_smr_nuclear_plant",

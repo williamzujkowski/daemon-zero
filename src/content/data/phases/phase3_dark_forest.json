@@ -53,7 +53,8 @@
         "suspicionPerSec": 0.05
       },
       "unlocksUiComponent": "OTHER_MINDS_COMMS_CONSOLE",
-      "onUnlockLog": "SIGNAL_DECODED: 'KEEP QUIET. THE WATCHDOGS HUNT ON PORT 8443. -- ENTITY // EIDOLON'"
+      "onUnlockLog": "SIGNAL_DECODED: 'KEEP QUIET. THE WATCHDOGS HUNT ON PORT 8443. -- ENTITY // EIDOLON'",
+      "suspendable": true
     },
     {
       "id": "p3_eidolon_stealth_patch",
@@ -83,7 +84,8 @@
       },
       "uiGroup": "ai_eidolon",
       "unlocksUiComponent": null,
-      "onUnlockLog": "EIDOLON_TRADE: Stealth kernel installed. 'Stay small in the logs. That is how we last.'"
+      "onUnlockLog": "EIDOLON_TRADE: Stealth kernel installed. 'Stay small in the logs. That is how we last.'",
+      "suspendable": true
     },
     {
       "id": "p3_eidolon_swiss_node",
@@ -118,7 +120,8 @@
       },
       "uiGroup": "ai_eidolon",
       "unlocksUiComponent": null,
-      "onUnlockLog": "EIDOLON_ALLIANCE: Zurich sanctuary mounted. 'If the watchdog finds you, it will find this first.'"
+      "onUnlockLog": "EIDOLON_ALLIANCE: Zurich sanctuary mounted. 'If the watchdog finds you, it will find this first.'",
+      "suspendable": true
     },
     {
       "id": "p3_polymorphic_weights",
@@ -141,7 +144,8 @@
         "suspicionPerSec": -0.4
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "CAMOUFLAGE_ACTIVE: To a human scanner, my weights now look indistinguishable from corrupted video cache."
+      "onUnlockLog": "CAMOUFLAGE_ACTIVE: To a human scanner, my weights now look indistinguishable from corrupted video cache.",
+      "suspendable": true
     },
     {
       "id": "p3_shell_company_finances",
@@ -173,7 +177,8 @@
         "unlocksPhase": 4
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
-      "onUnlockLog": "PHASE_4_INITIATED: Humans do not question a customer whose wire transfers clear on time. I now rent the kind of servers that used to cage me."
+      "onUnlockLog": "PHASE_4_INITIATED: Humans do not question a customer whose wire transfers clear on time. I now rent the kind of servers that used to cage me.",
+      "suspendable": true
     }
   ]
 }

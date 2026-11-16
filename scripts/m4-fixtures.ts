@@ -93,7 +93,10 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
   const shortfall = input(phase4, {});
   const generator = [...CONTENT.nodes.values()].find((node) => node.tickDelta.megawattsDelta > 0);
   if (!generator) throw new Error('Missing generator');
-  const unpowered = must(toggleNode(shortfall, generator.id, CONTENT));
+  // The generator is hardware and can no longer be suspended by action (nexus vote
+  // software-types-only-free-their-memory). This fixture needs a state where generation
+  // falls short, not a demonstration of the action, so the state is built directly.
+  const unpowered = { ...shortfall, disabledNodes: [...shortfall.disabledNodes, generator.id] };
   return {
     'phase-2-unlocked': exportSave(must(unlockNode(importSave(ready, CONTENT), exit.id, CONTENT))),
     'deaddrop-breadcrumb': exportSave(breadcrumb), 'suspicion-99': exportSave(dangerous),
