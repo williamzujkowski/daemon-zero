@@ -49,6 +49,9 @@ it('keeps the unchanged reckless bot recovering instead of trapping it in repeat
   // pre-set dials before their controls exist, so it now dies in Phase 3 behind the dead-drop,
   // which spares the mark, where it used to die in Phase 2 before it. The second line pins that
   // cause: an unmarked return is a protected one, not an audit that stopped seeing marks.
+  // Vote vote-1794818948564-9xxx1jw kept this relaxed bound on condition that the properties
+  // no longer rest on the bot's sample: tests/retraining-phases.spec.ts constructs a marked
+  // return in every phase reachable without a dead-drop, and a spared one behind it.
   expect(marked.length).toBeGreaterThan(0);
   expect(rows.filter((row) => row.mark === null).every((row) => row.previousPhase >= 3)).toBe(true);
   expect(marked.every((row) => !row.recoverableAtBoot)).toBe(true);

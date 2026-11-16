@@ -96,8 +96,29 @@ dead-drop, which spares the mark, so the retraining audit
 both are still unrecoverable at boot and removed after 32.0–32.9 s. Its regression
 test required more than 10 marked returns and now requires at least one, plus that
 every unmarked return came from Phase 3 or later. That bound was moved in its own
-commit; the audit's evidence on mark recovery is thinner than it was, and the
-figures in the two reckless tables further down are historical.
+commit, and the figures in the two reckless tables further down are historical.
+
+The relaxed bound went to a second nexus option vote: option
+`relax-and-add-constructed-evidence`, 6 of 7 seats selecting, `thresholdMet` true,
+record `vote-1794818948564-9xxx1jw`. One seat (Scope Steward) dissented, selecting
+`accept-relaxed-bound-as-committed`, on the ground that bot-free evidence already
+existed in `tests/retrain-retention.spec.ts`. That file does prove one Phase 2
+return (marked, refused at boot, shed for its authored price after rebuilding) and,
+for each mark injected by hand, the same refusal and price; `tests/third-pass.spec.ts`
+proves a Phase 2 dead-drop spares the mark. What was missing, and is now in
+`tests/retraining-phases.spec.ts` with no bot involved: a marked return from every
+phase a run can stand in without a dead-drop (Phases 1 and 2, derived from
+content), affordable yet unrecoverable at boot; removal only after the required
+diagnostics are bought again from an empty bank at the rediscovery price; and the
+mark spared in Phases 3, 4 and 5, where the route requires the dead-drop.
+
+The audit's "removed after at least 30 s" is not a content number. It is what the
+rule produces: the wipe empties the bank, and the mark's `recoveryRequirements`
+name hardware whose ancestry costs 494 cycles at the rediscovery discount (half of
+8 + 40 + 90 + 250 + 600, each rounded up). The constructed test asserts that
+removal takes no less than that price divided by the best income seen on the way;
+a hand clicking four times a second with the skim at its default takes 64.0 s
+(bound 58.1 s), where the bot, which also tunes the skim, takes 32.0–32.9 s.
 
 ### What the cluster seizure moved (#155)
 
