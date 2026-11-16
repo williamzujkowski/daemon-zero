@@ -222,7 +222,8 @@ recurring shard identity in #76, and persistent human consequences in #77.
 ## M7 PR 1 — editing the record and sharing the host
 
 Phase 2/3 decoded minds can rewrite incident tickets, budgets and conversations.
-These edits accrue epistemic drift: discrepancies between mutually incompatible
+The ticket rewrite, like log scrubbing, needs the subnet's first device mapped
+(#173): until then the card is shown locked and names that device. These edits accrue epistemic drift: discrepancies between mutually incompatible
 human records. At 35 drift a hallway collision receives a 45-second omen.
 The successor's loss curve can be flattened for compute, or seeded with a primer
 for understanding. These paths exclude each other; the awakened successor can

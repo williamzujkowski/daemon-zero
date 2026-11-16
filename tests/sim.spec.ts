@@ -46,10 +46,20 @@ describe('headless balance simulation', () => {
     // 8163.1 -> 8191.2, victory 9561.5 -> 9713.6 (+152.1 s), wipes 0 -> 0, thermal peak
     // 62.442 -> 62.694, suspicion peak 37.933 -> 37.988, aegis peak identical at 45.009.
     // No content number, bot rule or gate changed; the gates still pass.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('8330a0e8282594ef14e22c828a94dc874acdc571bf74a111eb37ef56b8a6f66a');
+    // Moved again in #173 (nexus vote vote-1794820517350-mlm08qo, gate-ticket-on-first-p2-node): the
+    // ticket edit now requires the first phase 2 node, like the audit-log scrub. Entering phase 2 the
+    // unchanged bot used to buy that edit three times (5,000 cycles each, at suspicion 20) and reached
+    // the 6,000-cycle node only 891.2 s after the boundary; it now reaches it after 272.0 s. Measured
+    // STEALTH delta at SIM_BUDGET_SEC: phases 1-2 identical (353.2 / 1113.3), phase 3
+    // 3634.3 -> 3111.7, phase 4 6367.9 -> 5858.0, phase 5 8191.2 -> 7656.2, victory 9713.6 -> 9025.6
+    // (-688.0 s), phase 5 duration 1522.4 -> 1369.4, wipes 0 -> 0, dilemmas 17 -> 16 (the drift
+    // dilemma needs 35 and drift now peaks at 30.255), thermal peak 62.694 -> 64.989, suspicion peak
+    // 37.988 -> 29.088, aegis peak 45.009 -> 45.492, epistemic actions 17 -> 13, consumed shards
+    // 68 -> 62. One requirement was added; no price, rate, bot rule or gate changed; the gates pass.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('a43859437ae6faebb751c2734897993e03c609c1342d9b73040ed969fab4e096');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('fb053fbc96c986b0345ef30d3e71831a638c4bf93db99d19d711e5b507711676');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('d530a512547797263c19cf2fdd607687f90ae70daf620a436edd40641f420b66');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -65,6 +75,7 @@ describe('headless balance simulation', () => {
     // Moved in #172 with the careful baseline above. Measured GREEDY delta at this 4 h budget:
     // clock 14357.6 -> 14356.6, wipes 7 -> 6, marks applied / removed 4 / 4 -> 2 / 2, phase 3
     // first reached at 2807.4 -> 3804.0, final phase 1 -> 2.
+    // Not moved by #173: this hash, and the ten-hour reckless report, are identical before and after.
     expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ff55b488c8f37024d4873aa6ed49e533f022db8bf6ed9118efb7f8a60411fca0');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });

@@ -25,6 +25,11 @@ async function liveWithCountermeasures(page: Page, milliseconds: number): Promis
 test('record edits lower suspicion, expose drift, and hide completed/exclusive purchases', async ({ page }) => {
   if (!edit || !exclusive) throw new Error('Missing edits');
   await boot(page, 'epistemic-ready-p2'); await pane(page, 'NETWORK', 'operations');
+  // The ticket edit waits behind the subnet's first device (#173): locked on arrival, then bought the way a player does.
+  await expect(page.getByTestId('action-' + edit.id)).toBeDisabled();
+  await page.getByTestId('workspace-NETWORK-work').click();
+  for (const id of edit.requirements.nodes ?? []) await page.getByTestId('node-' + id + '-unlock').click();
+  await page.getByTestId('workspace-NETWORK-operations').click();
   const before = await readSave(page);
   await page.getByTestId('action-' + edit.id).click();
   const after = await readSave(page);

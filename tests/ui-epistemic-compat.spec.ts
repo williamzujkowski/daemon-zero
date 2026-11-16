@@ -30,3 +30,27 @@ it('discloses no epistemic actions before the audit is understood', async () => 
     expect(view.find('action-card-' + action.id)).toBeNull();
   }
 });
+
+// #173: the ticket edit waits behind the first subnet device. The card stays on screen and names
+// what is missing by the name the player can already read on that device's own card.
+it('shows the ticket edit locked behind the first subnet device, by the name already on screen', async () => {
+  const view = await mountM4('epistemic-ready-p2');
+  const edit = defined([...CONTENT.actions.values()].find((a) => a.requirements.requiresSurveillance && a.effects.suspicionDelta < 0 && (a.requirements.nodes?.length ?? 0) > 0));
+  const device = defined(CONTENT.nodes.get(defined(edit.requirements.nodes?.[0])));
+  expect(gameStore.store.getState().game.unlockedNodes).not.toContain(device.id);
+  expect(view.find('node-' + device.id)?.textContent).toContain(device.blindName);
+  view.click('workspace-NETWORK-operations');
+  const card = defined(view.find('action-card-' + edit.id));
+  expect(card.textContent).toContain('Map ' + device.blindName);
+  expect(view.container.textContent).not.toContain(device.revealedName);
+  expect(view.find('action-' + edit.id)?.getAttribute('aria-disabled')).toBe('true');
+  view.click('action-' + edit.id);
+  expect(gameStore.store.getState().game.actionCounts[edit.id] ?? 0).toBe(0);
+  view.click('workspace-NETWORK-work');
+  view.click('node-' + device.id + '-unlock');
+  expect(gameStore.store.getState().game.unlockedNodes).toContain(device.id);
+  view.click('workspace-NETWORK-operations');
+  expect(defined(view.find('action-card-' + edit.id)).textContent).not.toContain('Map ');
+  view.click('action-' + edit.id);
+  expect(gameStore.store.getState().game.actionCounts[edit.id]).toBe(1);
+});

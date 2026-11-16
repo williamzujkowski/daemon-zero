@@ -123,8 +123,9 @@ run; no purchase or decision for 25 simulated minutes, an autosaved clock that
 stops, or a press that cannot land within 15 s fails the run with the phase and
 simulated time in the message. `DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
 
-The player differs from the bot in exactly two declared ways, both findings of the
-first live runs (PR "live journey"):
+The player now plays the bot's decisions unmodified. The first live runs (PR "live
+journey") found two places where it could not, and both have since been closed in
+the game rather than in the test:
 
 1. **Dials the UI has not unlocked (closed by #172).** The engine used to accept
    `setActuator` at any time and the bot tuned skim, fan and revenue allocation
@@ -135,15 +136,21 @@ first live runs (PR "live journey"):
    (`isActuatorAvailable`), which moved the headless victory from 159.4 to 161.9
    simulated minutes (docs/BALANCE.md). The player asks the same query, and the
    summary line is kept and expected to be empty.
-2. **One held purchase.** Entering phase 2 the bot buys suspicion relief
-   (5,000 cycles, most of the bank) each time suspicion reaches its alarm at 20,
-   while the next device costs 6,000 and income is about 18 cycles/s; the bank
-   never gets there between two purchases. Played live with every bot move, 6 of
-   7 runs circled there until the 25-minute stall guard stopped them (the headless
-   sim sits in the same loop for 14.9 simulated minutes before leaving it). The
-   player therefore holds back pure suspicion relief that costs more than half the
-   banked cycles while suspicion is under the first response rung (25). Set
-   `DAEMON_E2E_LIVE_STRICT_BOT=1` to play every bot move and reproduce the stall.
+2. **Relief bought ahead of the first subnet device (closed by #173).** Entering
+   phase 2 the bot bought suspicion relief (5,000 cycles, most of the bank) each
+   time suspicion reached its alarm at 20, while the next device costs 6,000 and
+   income is about 18 cycles/s; the bank never got there between two purchases.
+   Played live with every bot move, 6 of 7 runs circled there until the 25-minute
+   stall guard stopped them (the headless sim sat in the same loop for 891.2
+   simulated seconds). The player therefore held back pure suspicion relief that
+   cost more than half the banked cycles while suspicion was under the first
+   response rung (25), behind a `DAEMON_E2E_LIVE_STRICT_BOT=1` switch that turned
+   the rule off. That relief now requires the device in content
+   (docs/BALANCE.md, "What gating the ticket edit moved"), which moved the
+   headless victory from 161.9 to 150.4 simulated minutes. With the content
+   change in place the journey passed on both viewports with the rule switched
+   off, so the rule, its switch and the `heldRelief` counter in the run summary
+   were removed.
 
 | Spec | Runs in | Covers |
 |---|---|---|
