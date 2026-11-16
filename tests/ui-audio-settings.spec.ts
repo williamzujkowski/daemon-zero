@@ -13,6 +13,9 @@ it('routes Audio back through the root menu and exposes accessible numeric volum
   const view = await mountM4('tick-0');
   view.click('menu-open'); view.click('menu-audio');
   expect(view.find('menu-audio-page')?.textContent).not.toMatch(/suspicion|AEGIS|predecessor/i);
+  // #156 added manual READ playback behind this same preference; the page must not deny it.
+  expect(view.find('menu-audio-page')?.textContent).not.toMatch(/no spoken transmissions/i);
+  expect(view.find('menu-audio-page')?.textContent).toContain('read aloud only when you press READ, and only while this is on');
   // A fresh install starts with music enabled (the voted default), so the switch is on
   // and nothing plays until activation; toggling once turns the soundtrack off.
   expect(view.find('music-toggle')?.getAttribute('aria-checked')).toBe('true');
