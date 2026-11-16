@@ -11,7 +11,7 @@ DAEMON // 0 is a single-player incremental survival game for Android, iOS and we
 | Layer | Path | Status |
 |---|---|---|
 | Content (JSON + Zod schemas + integrity checks) | `src/content/` | Done, validated |
-| Simulation engine (pure TypeScript) | `src/engine/` | Done, 71 tests, ~98% coverage |
+| Simulation engine (pure TypeScript) | `src/engine/` | Done, unit-tested; coverage held at the 90% floor in `vitest.config.mts` (`make test` prints the current counts) |
 | Headless balance sim + pacing gates | `src/engine/sim/`, `scripts/run-sim.ts` | Done, passing |
 | Expo app shell | `App.tsx`, `src/ui/TerminalScreen.tsx` | Done (M1); temporary boot screen replaced in M3 |
 | Store, game loop, persistence | `src/app/` | Done (M2), save/restore and resume checked on web and Android |

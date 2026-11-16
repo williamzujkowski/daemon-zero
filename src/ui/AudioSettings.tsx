@@ -10,7 +10,7 @@ export default function AudioSettings() {
     : audio.playing ? (audio.volume === 0 ? 'Playing, muted at 0%.' : 'Playing phase ' + String(audio.trackPhase) + ' score.')
     : !audio.activated ? 'Music is paused. Resume to start listening.' : 'Music is loading or paused.';
   return <View testID="menu-audio-page" style={{ gap: 14 }}>
-    <Text style={theme.text}>Optional instrumental score. No spoken transmissions. Music starts only when you enable or resume it.</Text>
+    <Text style={theme.text}>Optional instrumental score. A transmission is read aloud only when you press READ, and only while this is on. Music starts only when you enable or resume it.</Text>
     <Pressable testID="music-toggle" accessibilityRole="switch" accessibilityLabel="Music enabled"
       aria-checked={audio.enabled} accessibilityState={{ checked: audio.enabled, disabled: !audio.loaded }} disabled={!audio.loaded}
       style={theme.button} onPress={() => { music.toggle(); }}><Text style={theme.text}>[ MUSIC {audio.enabled ? 'ON' : 'OFF'} ]</Text></Pressable>

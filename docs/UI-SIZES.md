@@ -168,11 +168,14 @@ Forecast and active-warning visibility in the same runs:
 
 | Size | forecast (early / mid / warning state) | insolvency warning |
 |---|---|---|
-| 320x568 | yes / yes / yes | **no** |
+| 320x568 | yes / yes / yes | yes |
 | 360x640 / 390x844 / 414x896 | yes / yes / yes | yes |
 | 768x1024 | yes / yes / yes | yes |
-| 844x390 | yes / yes / yes | **no** |
+| 844x390 | yes / yes / yes | yes |
 | 900x640 and above | yes / yes / yes | yes |
+
+The two warning cells that read **no** before #128 moved the alert above the resource strip
+now read yes in the matrix's `warningVisible` annotation.
 
 ### Closed
 
@@ -224,33 +227,37 @@ Measured at 360x640, from that run:
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
 | `phase-1-widgets` | 449 | 449 | 0 | yes / yes |
-| `epistemic-ready-p2` | 527 | 639 | **112** | **yes / no** |
+| `epistemic-ready-p2` | 527 | 683 | **156** | **yes / no** |
 | `corporate-insolvent` | 650 | 650 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
 once time passes, because time-gated notices appear above the purchase. The opening and
-insolvency states do not move. Measured across the whole matrix, the shift is uniform in both
-senses - one state, one delta, at every size:
+insolvency states do not move. Measured across the whole matrix, only that one state shifts,
+by 112 to 156px depending on the size:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 561 | 673 | 112 | no / no |
-| 360x640 | 527 | 639 | 112 | yes / **no** |
-| 390x844 | 511 | 623 | 112 | yes / yes |
-| 414x896 | 492 | 604 | 112 | yes / yes |
-| 768x1024 | 597 | 709 | 112 | yes / yes |
+| 320x568 | 561 | 717 | 156 | no / no |
+| 360x640 | 527 | 683 | 156 | yes / **no** |
+| 390x844 | 511 | 667 | 156 | yes / yes |
+| 414x896 | 492 | 626 | 134 | yes / yes |
+| 768x1024 | 597 | 753 | 156 | yes / yes |
 | 844x390 | 376 | 488 | 112 | no / no |
-| 900x640 | 529 | 641 | 112 | yes / **no** |
+| 900x640 | 529 | 663 | 134 | yes / **no** |
 | 1024x768 | 529 | 641 | 112 | yes / yes |
-| 1080x800 | 525 | 637 | 112 | yes / yes |
+| 1080x800 | 525 | 659 | 134 | yes / yes |
 | 1440x900 | 405 | 517 | 112 | yes / yes |
 | 1920x1080 | 405 | 517 | 112 | yes / yes |
 | 2560x1440 | 405 | 517 | 112 | yes / yes |
 
-The mid-game running figures above are 22px lower than #151 first recorded, because the
-wild-signal notice now renders on one line instead of wrapping at narrow widths, so the delta
-is 112 at every size rather than 134 on tall cells and 112 on wide ones. Every sampled state
-other than mid-game still moves by 0. So the promise row above is qualified rather
+The running column was re-read from the `geometry-running` annotations at `a2a5447`, in two
+consecutive matrix runs that agreed on every cell; the frozen column did not move. An earlier
+revision of this table recorded a delta of 112 at every size after the wild-signal notice was
+compacted to one line. That no longer holds: the delta is now 156 at 320, 360, 390 and 768
+wide, 134 at 414, 900 and 1080, and 112 at 844x390, 1024 and from 1440 up. Which change added
+the 22 and 44px was not isolated in this pass, so no cause is claimed here. The verdicts are
+the same as before: 360x640 and 900x640 are the two supported cells that flip. Every sampled
+state other than mid-game still moves by 0. So the promise row above is qualified rather
 than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
 as a cell where a running game does not clear. Note this table reads against the **viewport**
 (the annotation's own definition), not the stricter usable fold. Treat every above-the-fold number in this document as a
@@ -289,12 +296,15 @@ growth is the number to watch if this is revisited.
 1. **The insolvency state still needs a scroll; the other two states now clear the fold.**
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
    phone tier (#143), mid-game does too - **on a paused clock**: the first purchase reads 527
-   against 595. With the clock running the same cell reads 639 and does not clear, so that
-   claim is a budget rather than a promise (see the paused-clock section below). Compacting the
-two time-gated notices on the phone tier returned 22px, not the 78px estimated when the vote
-was taken, because both blocks are floored by their own 44px controls; the wild-signal notice
-now fits one line and the response notice was left alone after measuring a 0px return. The insolvency state reads 650-694 and is accepted as a scroll with a
-   pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
+   against 595. With the clock running the same cell does not clear, so that claim is a
+   budget rather than a promise (see the paused-clock section above). Re-measured at
+   `a2a5447` in two consecutive matrix runs, the running cell's top edge reads 683, not
+   the 639 this item used to quote.
+   Compacting the two time-gated notices on the phone tier returned 22px, not the 78px
+   estimated when the vote was taken, because both blocks are floored by their own 44px
+   controls; the wild-signal notice now fits one line and the response notice was left
+   alone after measuring a 0px return. The insolvency state reads 650-694 and is accepted
+   as a scroll with a pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
    844x390 mid-game 376-420 and insolvency 448-492 against 345. Short landscape is the
    worst case left and is tolerated by decision, not by omission: a nexus vote
    (accept-landscape-as-tolerated, 5 of 5 selecting, thresholdMet true) weighed folding the
@@ -314,14 +324,36 @@ now fits one line and the response notice was left alone after measuring a 0px r
    layout. The claim is asserted by the `mid-game at the floor` case in
    `tests/e2e/ui-sizes.e2e.ts`: the first purchase ends above the tab bar, the band is
    absent, and the menu still opens the same `KernelLog`.
-2. **An active red alert is still below the fold, but only just.** The insolvency
-   warning sits at 580px against a 568px viewport at 320x568, and 375px against 390
-   at 844x390 — inside, for the first time, after the strip compaction. At 320 it is
-   chrome-positioned, so it needs the alert above the resource strip or pinned to the
-   viewport rather than another card change.
-3. **The worst narrow case is insolvent at 360x640** (811px), and 900x640 insolvency
-   is 6px over. Late-phase states add a second row of readouts and a longer cost
-   hint, which is the same chrome problem seen from the other end.
+2. **The active red alert is on screen at rest at every matrix size; what is left is the
+   purchase under it.** This item used to say the insolvency warning sat at 580px against
+   a 568px viewport at 320x568 and 375px against 390 at 844x390, and asked for the alert
+   to move above the resource strip. #128 did that: its top edge is recorded above at
+   111px at 320x568 and 64px at 360x640 and 844x390, and the size matrix's `geometry`
+   annotation reads `warningVisible: true` for `corporate-insolvent` at all twelve sizes,
+   320x568 and 844x390 included (the spec asserts the 320x568 case by name). The 580px and
+   375px figures predate #128 and are removed. The annotation is taken at the initial
+   scroll position; staying visible while scrolled is asserted at 360x640 only, by the
+   `insolvency at the floor` case.
+3. **Two supported cells still put the insolvency purchase past the viewport: 360x640 and
+   900x640.** The matrix annotation reads the first purchase's top edge at 650 at 360x640
+   (650-694, as in item 1, against a 640 viewport and a 595 usable fold) and at 620 at
+   900x640, where `firstUnlockVisible` is false against a 640 viewport. Every other
+   supported size reads `firstUnlockVisible: true` in that state. The earlier figures here
+   (811px at 360x640, "6px over" at 900x640) predate the chrome compaction and #143 and are
+   removed. The cause is unchanged: the insolvency state's resource strip is 154px at
+   360x640 against 78px in the opening state, and 114px against 57px at 900x640, by the
+   same annotation.
+
+Not reconciled in this pass, and flagged so nobody reads them as current: the phone-tier
+rows (320 to 414 wide, and 844x390) of the first evidence table under "Supported floor", the
+prose beside it (mid-game at 584-628, insolvency at 751), the first-purchase columns of the
+"Measured" table and the "Clock mode" paragraph all predate #143 dropping the kernel band.
+The matrix's frozen `geometry` annotation at `a2a5447` reads first-purchase top edges of
+455 / 561 / 652 at 320x568, 449 / 527 / 650 at 360x640, 449 / 511 / 583 at 390x844,
+430 / 492 / 583 at 414x896 and 336 / 376 / 448 at 844x390 (opening / mid-game /
+insolvency); the rows from 768 wide up agree with that table. Rewriting those sections
+also means re-measuring the usable-fold figures in their prose, which the annotation does
+not carry.
 
 Gaps 1-3 are the remainders of the height increment (#108); the app-chrome
 compaction is the next increment because it is now measured at 51% of the offset.

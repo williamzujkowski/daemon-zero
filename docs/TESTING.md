@@ -66,6 +66,18 @@ ending reloads, focused workspaces, purchase hiding, retraining recovery, and
 confirmed full restart with exported-backup restoration. Reduced motion, numeric
 accessible late-phase meters and exported asset paths are covered too.
 
+`tests/e2e/a11y-audit.e2e.ts` is the automated accessibility gate (#111). It loads
+`axe-core` (a pinned dev dependency) into the served production export and runs the
+rule sets tagged `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` and
+`best-practice`; any violation fails the case. It covers five viewports (320x568,
+390x844, 768x1024, 900x640, 1440x900 - a subset of the size matrix, not all of it)
+across the three sampled states `phase-1-widgets`, `epistemic-ready-p2` and
+`corporate-insolvent`, with the clock running rather than paused, because axe's
+own async work does not settle against a frozen clock. Each case sets its own
+viewport, and the spec is picked up by both the `phone` and `desktop` projects, so
+every case runs twice. Axe checks what a rule engine can decide from the DOM; it
+is not a screen-reader pass, and it does not open menus, modals or later phases.
+
 Daemon maintenance is accessed through the header's PROC launcher, not inline
 purchase tiles. `daemon-processes.e2e.ts` opens that panel and checks suspension
 and resumption without bringing back a completed purchase card. Mounted tests

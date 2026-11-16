@@ -72,7 +72,11 @@ per build PR (two for foundation), all eight card counts unchanged at 1→1 over
 three live seconds, a 20m 2.7s production-web playthrough without the dev hook,
 and actual Android Expo Go Back/choice/restore checks. `src/app` remains covered;
 every existing gate/strict flag is retained. No engine/content changes. Follow-ups
-#19, #21, #22 and #23 remain open. Native real-time progression, iOS, physical devices,
+#19, #21, #22 and #23 were open when M3 was verified; all four are closed as of
+2026-11-16 (#19 and #22 on 2026-11-11; #21 and #23 on 2026-11-16 as addressed, on
+the nexus option vote `close-both-as-addressed`, 7 of 7 seats, record
+`vote-1794807125043-z4enlda`, to be reopened if a human playtest disagrees).
+Native real-time progression, iOS, physical devices,
 screen readers, signed builds and native profiling were not verified.
 
 - [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above; superseded — the tier boundaries now live in `src/ui/layout.ts`, see `docs/UI-SPEC.md`).
@@ -184,11 +188,11 @@ Exit gate: `make verify-full` green in CI. The maintainer's own play of a first 
 
 - [x] Playwright E2E against the web export (`tests/e2e/`), selecting by `testID` only. Cover: boot, first unlock mounts a widget, dilemma blocks and resumes, wipe and breadcrumb recovery, save code round trip. Add `make e2e`. See `docs/TESTING.md`.
 - [x] Decryption text reveal on unlock, per-phase palettes, haptics (`expo-haptics`, no-op on web). All motion respects reduced-motion settings.
-- [x] Screen-reader pass on web and one native platform; meters must not rely on colour alone.
+- [x] Screen-reader pass on web and one native platform; meters must not rely on colour alone. Caveat: this was an agent-operated pass (Orca on Chrome, TalkBack in Android Expo Go, not a release build), with no judgement of audible quality and no iOS VoiceOver; see "Screen readers" in `docs/REVIEW-M5.md`.
 - [x] React profiler shows no card parent/static-content re-renders during 100 ticks in Phase 1 and late Phase 4.
 - [ ] Physical mid-range Android late-Phase-4 input/performance qualification. Emulator accepted 40/40 taps but showed frame jank; no physical device attached. #6 remains open.
 
-Verification: local `make verify-full` (251 tests) and `make e2e` (14 cases) pass. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 local release qualification is documented in `docs/REVIEW-M6.md`.
+Verification at M5 completion: local `make verify-full` (251 tests then) and `make e2e` (14 cases then) passed. Both counts are historical and both suites have grown; `make verify` and `pnpm exec playwright test --config tests/e2e/config.ts --list` print the current ones. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 local release qualification is documented in `docs/REVIEW-M6.md`.
 
 Exit gate: `make verify-full` and `make e2e` green in CI.
 
