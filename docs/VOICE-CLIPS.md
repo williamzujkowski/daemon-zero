@@ -4,10 +4,10 @@ The game's spoken transmissions are **pre-generated audio committed to the repos
 device synthesis. This document covers how they are made, how to add more, and what is not
 yet wired.
 
-Status: **clips exist and are committed; playback is not wired into the app.** Issue #88's
-second slice still owns the manual `READ TRANSMISSION` / `STOP` contract, the cancellation
-rules and the music ducking. What this document adds is the asset pipeline that slice was
-blocked on.
+Status: **clips exist, are committed, and play behind a manual control.** Issue #88's slice is
+wired for the default (vibration) tier: `src/ui/widgets/Speech.tsx` and `RecordedSpeech.tsx`
+each offer a `[ ▶ READ ]` control that plays that line's clip. Nothing autoplays, nothing
+queues, and stepping to another line stops the clip in flight.
 
 ## Why generated assets
 
@@ -49,9 +49,41 @@ mismatch. Use it when reviewing an asset change.
 
 The fiction is that transmissions arrive through **drive vibration** rather than a speaker, so
 the degraded take is the honest default: the AI is hearing hardware, not a recording studio.
-Both tiers are generated now so the upgrade becomes a content flag rather than a new asset
-pass. **The upgrade itself is not wired yet** — playback, the flag and the control are the
-remaining #88 work.
+Both tiers are generated so the upgrade becomes a content flag rather than a new asset pass.
+**The upgrade itself is not wired** — the clean tier has no source entry, no flag and no
+control; that remains #88 work.
+
+## How playback is wired, and the vote that chose it
+
+`[ ▶ READ ]` on the decoded-transmission line and on each recorded transmission plays that
+line's clip once. The pieces:
+
+| Piece | Job |
+| --- | --- |
+| `src/app/voiceSources.ts` | One literal import per clip, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree. |
+| `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished clip releases its player, volume follows the audio preference. |
+| `Speech.tsx` / `RecordedSpeech.tsx` | The control, 44px tall, shown only when a clip exists **and** audio is on. Stepping to another line stops the clip. |
+
+**The manual contract won an option vote, but the vote did not ratify.** Two runs of the same
+question on the nexus gateway arm:
+
+    run 1 ... 5 of 7 seats voted, manual 3 / defer 1 .. no_quorum (3 of 5 inspected the artifact)
+    run 2 ... 7 of 7 seats voted, manual 4 / autoplay 2 .. no_quorum (3 of 5 inspected the artifact)
+
+`no_quorum` is not an approval, and the tally is not a ratification — the manual option leads
+in both runs, which is why it was built, but the blocking reason was mechanical: seats answer
+the proposal without reading the artifact, so an option vote on this arm cannot pass. Filed as
+nexus #7756.
+
+**The dissent is real and is recorded, not dropped.** The Contrarian approved on the argument
+that these clips are unheard and any wiring ships an unverifiable feature; the Scope Steward
+rejected outright with `SCOPE_CREEP` and `YAGNI`, on the same grounds. The manual contract is
+partly an answer to them — it cannot startle a player, it costs one extra press, and it can be
+removed without touching the assets — but it does not answer the core of their objection, which
+is that nobody has confirmed the audio plays at all. See the limits below.
+
+The autoplay option was not built. It carried two hazards the manual one removes: a gesture
+rule that can silently swallow the first clip, and two lines talking over each other.
 
 ## The vibration chain, and one measured lesson
 
@@ -82,9 +114,11 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
 
 ## Limits, stated rather than implied
 
-- **Playback is unverified.** No clip has been heard through the app, on web or on the
-  Android emulator. The spectral measurements above show the processing does what it claims;
-  they say nothing about whether it sounds good. That needs ears.
+- **Playback is wired but unheard.** The control is exercised by tests against a mocked player,
+  which proves which clip is handed over and that a second press cancels the first; it proves
+  nothing about whether audio actually comes out on web or on a device. No clip has been heard
+  through the app, on web or on the Android emulator. This is the Scope Steward's objection,
+  and it stands.
 - **Loudness is not normalised across clips.** Each take is peak-normalised at 0.92-0.95, so
   perceived level varies with the model's own dynamics. Audition before shipping.
 - **`Serena` was chosen arbitrarily.** The model offers ten English voices; the fiction may

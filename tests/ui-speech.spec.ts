@@ -5,9 +5,15 @@ import { act, createElement, Fragment } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+// The voice clips play through expo-audio; the widget's contract is which clip it hands to the
+// player, so the platform boundary is mocked exactly as tests/app-audio-player.spec.ts does.
+const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn() }));
 import { CONTENT } from '../src/content';
 import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
+import { music } from '../src/app/musicSession';
+import { voiceSources } from '../src/app/voiceSources';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import { Audio } from '../src/ui/widgets/Sensory';
 import NodeCard from '../src/ui/NodeCard';
@@ -24,6 +30,11 @@ const decoder = 'INSPECTION_COUNTDOWN_TIMER';
 beforeAll(() => { game = importSave(makePhase1Fixtures()['phase-1-widgets'] ?? '', CONTENT); });
 beforeEach(() => {
   reduced = true;
+  voice.create.mockReturnValue(voice.player);
+  voice.create.mockClear(); voice.player.play.mockClear(); voice.player.remove.mockClear();
+  // Voice playback follows the same audio preference as the soundtrack, so the surface is
+  // audible here; the muted case is asserted on its own below.
+  music.state.setState({ enabled: true, volume: 30 });
   vi.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockImplementation(() => Promise.resolve(reduced));
   vi.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((_name, callback) => {
     listeners.add(callback); return { remove: () => { listeners.delete(callback); } };
@@ -32,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const close of mounted) close();
   CONTENT.narrative.ambientChatter.splice(0, Infinity, ...originalLines);
+  music.state.setState({ enabled: false, volume: 30 });
   listeners.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
@@ -159,5 +171,46 @@ describe('decoded speech controls', () => {
     const before = snapshotRenderCounts(); expect(Object.keys(before).length).toBeGreaterThan(0);
     for (let index = 0; index < 30; index++) act(() => { gameStore.step(0.1); });
     expect(snapshotRenderCounts()).toEqual(before);
+  });
+});
+
+describe('reading a transmission aloud', () => {
+  it('plays the visible line only when pressed, and hands over that line\'s clip', async () => {
+    const view = await mount({ ...game, suspicion: 0 });
+    const line = originalLines[0];
+    // The manual contract: nothing is created, and so nothing can play, until the player asks.
+    expect(voice.create).not.toHaveBeenCalled();
+    expect(view.text()).toBe(line?.text);
+    const read = view.find('speech-read');
+    expect(read).not.toBeNull();
+    expect(read?.getAttribute('aria-label')).toBe('[ ▶ READ ] Play this transmission aloud');
+    view.click('speech-read');
+    expect(voice.create).toHaveBeenCalledWith(voiceSources[line?.id ?? ''], expect.anything());
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    // Reading does not advance the simulation or change the line on screen.
+    expect(view.text()).toBe(line?.text);
+  });
+
+  it('stops the clip in flight when the player steps to another line', async () => {
+    const view = await mount({ ...game, suspicion: 0 });
+    view.click('speech-read');
+    view.click('speech-next');
+    // Stepping to a new line must not leave the previous voice talking over it.
+    expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('offers nothing to read for a line that has no committed clip', async () => {
+    CONTENT.narrative.ambientChatter.splice(0, Infinity, { id: 'ambient_99', text: 'No clip was ever generated for this line.', minSuspicion: 0, requirements: {} } as never);
+    const view = await mount({ ...game, suspicion: 0 });
+    expect(view.text()).toBe('No clip was ever generated for this line.');
+    // Data-driven, not assumed: the control follows the clips that exist.
+    expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('offers nothing to read while the audio preference is muted', async () => {
+    act(() => { music.state.setState({ enabled: false }); });
+    const view = await mount({ ...game, suspicion: 0 });
+    expect(view.find('speech-read')).toBeNull();
+    expect(voice.create).not.toHaveBeenCalled();
   });
 });
