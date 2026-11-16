@@ -16,6 +16,8 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGENCY`.
 
+Device safe-area insets pad the terminal root and every modal overlay through `src/ui/safeArea.tsx`; they are 0 on web. Unverified on hardware: see UI-SIZES.md, Limits.
+
 ## Widget registry
 
 `src/ui/registry/widgetRegistry.tsx` maps widget id -> React component. Slot and order come from `widgets.json`, not from code. Required test: every id in `widgets.json` has a component, and every registered id exists in `widgets.json`.

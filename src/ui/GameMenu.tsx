@@ -3,6 +3,7 @@ import { useEffect, useRef, type ComponentRef } from 'react';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { Pressable, Text, View } from './PhaseTheme';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 import UtilityPages, { MenuButton } from './UtilityPages';
 import UtilityStatus from './UtilityStatus';
 import { useUtilityMenu, type UtilityMenu } from './useUtilityMenu';
@@ -38,13 +39,13 @@ export default function GameMenu() {
   const menu = useUtilityMenu();
   return <><MenuLauncher menu={menu} />
     {menu.route !== null && <Modal visible transparent animationType="none" accessibilityLabel="Game menu" onRequestClose={menu.back}>
-      <View style={styles.overlay}><UtilityPanel menu={menu} /></View>
+      <SafeOverlay padding={12} style={styles.overlay}><UtilityPanel menu={menu} /></SafeOverlay>
     </Modal>}
   </>;
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, padding: 12, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' },
+  overlay: { flex: 1, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' },
   panel: { width: '100%', maxWidth: 680, maxHeight: '100%', flexShrink: 1, backgroundColor: palette.background, borderWidth: 1, borderColor: palette.border },
   navigation: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12, alignItems: 'center', borderBottomWidth: 1, borderColor: palette.border },
   content: { padding: 16, gap: 14 },

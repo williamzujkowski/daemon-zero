@@ -97,7 +97,7 @@ export async function openSave(page: Page): Promise<void> {
 
 /** Decoded-media probe shared by the soundtrack specs: counts players and exposes the
  *  live state of the most recent one, without which "playing" would be a DOM guess. */
-export interface MusicMedia { currentTime: number; duration: number; paused: boolean; loop: boolean; src: string }
+export interface MusicMedia { currentTime: number; duration: number; paused: boolean; loop: boolean; src: string; volume: number }
 export async function observeMusicMedia(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const browser = globalThis as unknown as { Audio: new (source?: string) => object; __musicMedia: object[] };
@@ -115,5 +115,22 @@ export async function musicMediaState(page: Page) {
     return { count: media.length, active: media.filter((item) => !item.paused && item.src.includes('.mp3')).length,
       source: current?.src ?? '', time: current?.currentTime ?? 0, duration: current?.duration ?? 0,
       loop: current?.loop ?? false, paused: current?.paused ?? true };
+  });
+}
+
+/** The level of the live score element, or null when no score is playing. The probe above
+ *  records every `Audio` the page builds, voice clips included, so "the most recent one" stops
+ *  meaning the score the moment a transmission is read; this picks it out by its asset path. */
+export async function soundtrackVolume(page: Page): Promise<number | null> {
+  return page.evaluate(() => {
+    const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+    return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.volume ?? null;
+  });
+}
+/** How many voice clips are audibly in flight, by the same probe. */
+export async function voiceClipsPlaying(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+    return media.filter((item) => !item.paused && item.src.includes('/voice/')).length;
   });
 }

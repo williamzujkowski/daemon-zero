@@ -1,7 +1,7 @@
 /** Controller tests exercise real preference validation and deterministic lifecycle/player boundaries. */
 import { describe, expect, it, vi } from 'vitest';
 import type { MusicPhase } from '../src/app/musicTracks';
-import { MusicController } from '../src/app/musicController';
+import { DUCK_RATIO, MusicController } from '../src/app/musicController';
 import { AUDIO_KEY, audioPreferences, silentPreferences } from '../src/app/audioPreferences';
 import { createGameStore } from '../src/app/store';
 import { CONTENT } from '../src/content';
@@ -222,4 +222,78 @@ it('does not let obsolete preparation failures pause a newer phase player', asyn
   expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(5);
   expect(h.controller.state.getState()).toMatchObject({ trackPhase: 5, playing: true, status: '' });
   h.stop();
+});
+
+/** Ducking under a spoken transmission (#88): the controller scales what it writes to the
+ *  player and nothing else, so the preference a player chose is what gets stored. */
+describe('ducking under speech', () => {
+  async function playing(volume = 40) {
+    const storage = memoryStorage();
+    storage.setItem(AUDIO_KEY, JSON.stringify({ version: 1, enabled: true, volume }));
+    const h = harness(storage); await settle();
+    h.controller.resume(); await settle();
+    return h;
+  }
+
+  it('drops the live player to the duck ratio and restores the preference level', async () => {
+    const h = await playing();
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    h.controller.setDucked(true);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * DUCK_RATIO);
+    const writes = h.player.volume.mock.calls.length;
+    h.controller.setDucked(true);
+    expect(h.player.volume, 'a repeated signal writes nothing').toHaveBeenCalledTimes(writes);
+    h.controller.setDucked(false);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    h.stop();
+  });
+
+  it('keeps a volume change made while ducked ducked, and stores the undiminished preference', async () => {
+    const h = await playing();
+    h.controller.setDucked(true);
+    h.controller.setVolume(80); await settle();
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * DUCK_RATIO);
+    expect(h.controller.state.getState().volume).toBe(80);
+    expect(await audioPreferences(h.storage).load()).toEqual({ version: 1, enabled: true, volume: 80 });
+    h.controller.setDucked(false);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.8);
+    h.stop();
+  });
+
+  it('never writes the ducked level to the saved preference', async () => {
+    const h = await playing();
+    const before = h.storage.getItem(AUDIO_KEY);
+    h.controller.setDucked(true); h.controller.setDucked(false); h.controller.setDucked(true); await settle();
+    expect(h.storage.getItem(AUDIO_KEY)).toBe(before);
+    expect(h.controller.state.getState().volume).toBe(40);
+    h.stop();
+  });
+
+  it('creates the next phase player already ducked, and one created idle at full level', async () => {
+    const h = await playing();
+    h.controller.setDucked(true);
+    h.player.volume.mockClear();
+    h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 1 } }));
+    expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(2);
+    // The only level the new player is ever given is the ducked one: no full-volume blip.
+    expect(h.player.volume.mock.calls).toEqual([[0.4 * DUCK_RATIO]]);
+    h.controller.setDucked(false);
+    h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 2 } }));
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    h.stop();
+  });
+
+  it('remembers a duck that arrives with no player, so music enabled mid-clip starts ducked', async () => {
+    const h = harness(); await settle();
+    h.controller.setDucked(true);
+    expect(h.player.volume).not.toHaveBeenCalled();
+    h.controller.toggle(); await settle();
+    expect(h.player.volume).toHaveBeenLastCalledWith(silentPreferences.volume / 100 * DUCK_RATIO);
+    h.stop();
+  });
+
+  it('ducks to a fraction that leaves the score audible', () => {
+    expect(DUCK_RATIO).toBeGreaterThan(0);
+    expect(DUCK_RATIO).toBeLessThan(1);
+  });
 });
