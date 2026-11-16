@@ -125,8 +125,12 @@ ramps, on **one player at a time**. There is no crossfade and never a second sco
 | Constant (`musicController.ts`) | Value | Ramp |
 | --- | ---: | --- |
 | `DUCK_RAMP_MS` | 200 ms | Down to the ducked level when a clip starts, and back up when it stops. |
-| `FADE_OUT_MS` | 500 ms | The outgoing score, before its player is released: phase change, wipe, import, ending, music switched off. |
-| `FADE_IN_MS` | 500 ms | Every start of a player from silence: a new phase score, the first start, a return from the background. |
+| `FADE_OUT_MS` | 500 ms | A score that nothing replaces, before its player is released: the ending, and music switched off. |
+| `FADE_IN_MS` | 500 ms | Every start of a player from silence: a new phase score, a restart after a wipe or import, the first start, a return from the background. |
+
+**A phase change, wipe or import is a cut followed by a fade-in, not a fade-out followed by a
+fade-in.** That is less than the vote chose, and it is deliberate: see "Why the outgoing score
+is cut on a phase change" below.
 
 **These durations are unheard defaults.** Each is the middle of the range the vote named.
 Nobody has listened to a single ramp; they are meant to be retuned by ear.
@@ -151,12 +155,23 @@ its own ramp and aims it; the rules that matter:
 
 - **A new target starts from the current level.** A clip that ends mid-duck turns the score
   round from where it had got to, not from the ducked level.
-- **Release waits for the fade-out, and creation waits for release.** The next phase's player
-  is not created until the old one has reached silence and been removed. Several phase changes
-  inside one fade-out produce one new player, for the latest phase.
-- **A fading player has no voice.** Its status callbacks are ignored from the moment the
-  fade-out starts, under the same guard that already ignored removed players, so it cannot
-  report the next phase as playing or fail it.
+- **A start is never left to a timer.** A new player is created and `play()` is called in the
+  same call that asked for it. A fade-out still in flight when a start arrives (music switched
+  back on, a new run during the ending) is cut short and its player removed first, so there is
+  still one player.
+- **A fading player has no voice, and the status reports the setting, not the tail.** Its
+  status callbacks are ignored from the moment the fade-out starts, under the same guard that
+  already ignored removed players. `playing` is false from that moment, and MENU > Audio reads
+  `Music is off.` (or `Music is stopped for this run.` at the ending) at once, while the
+  element is audible for up to 500 ms more. The alternative, reporting "playing" for a score
+  the player has just switched off, was judged the worse lie.
+- **A fade-out in flight still hears the volume control, downwards only.** Volume 0 removes
+  the fading player at once. A lower level clips it to that level at once and it carries on
+  to silence on its original deadline. A higher level writes nothing to it: nothing ever turns
+  a fading player up. A duck or its release does not touch it either, since bending it down
+  would be a step and letting it rise would be wrong. Switching music off during an ending's
+  fade-out changes nothing: the fade-out in flight is the one switching off would have
+  started.
 - **A released player is never written to.** Its ramp is closed before the player is removed,
   and a closed ramp refuses every write, including one a timer had already queued.
 - **The preference is never ramped.** Only the level handed to the player moves; the stored
@@ -169,8 +184,35 @@ its own ramp and aims it; the rules that matter:
 - **Nothing is scheduled for silence.** With music off there is no player; at volume 0 the
   level is set, not ramped, and a silent or paused player is released at once.
 
+**Why the outgoing score is cut on a phase change (panel round 1 on PR #183).** The first
+version faded the old score out for 500 ms and only then created the next player, from the
+ramp's last timer tick. A reviewer pointed out what that costs on WebKit. Traced through the
+code: a purchase is `Pressable.onPress` -> `gameRuntime.dispatch` -> the store's synchronous
+`setState` -> the controller's subscription -> `createMusicPlayer` -> `player.play()` ->
+`HTMLMediaElement.play()`, all in the call stack of the click. Deferring that `play()` to a
+timer takes it out of the gesture. If a browser refuses a `play()` made outside a gesture,
+expo-audio's web player reports the rejection as a status with `error` set, which the
+controller turns into `Playback unavailable` - after every phase change. Whether Safari would
+in fact refuse is **not known and could not be tested here**; the design below simply does not
+depend on the answer. The options weighed:
+
+- *Create and start the next player silently inside the gesture, fade it in after the old one
+  has faded out.* Rejected: two score elements would be playing for 500 ms, which is the one
+  thing this feature may not do, and on iOS browsers, where volume is ignored, the "silent"
+  one would be at full level over the old one.
+- *Keep the fade-out and defer only the fade-in.* The same thing: the `play()` either waits
+  for the timer or overlaps.
+- *Cut the old score, start the new one in the same call, fade it in.* **Chosen.** `play()`
+  stays exactly where it was before ramps existed, there is one element at every instant, and
+  what is lost is the 500 ms fade-out on a phase change, wipe or import. This is also what the
+  `build-duck-ramp-only` dissent asked for on phase changes, for a different reason.
+
+The fade-out is kept where no `play()` follows it: the ending and the music switch.
+
 **Paths that stay immediate, and why.**
 
+- **The outgoing score on a phase change, wipe or import.** Cut, so the new player's `play()`
+  stays in the call that caused it (above). The new score still fades in.
 - **Backgrounding.** The score is paused at once and any ramp is cancelled; a fade-out in
   flight is cut short and its player released there and then. A suspended app may never run
   the timer that would finish a ramp, and a score that kept playing in the background while
@@ -186,8 +228,9 @@ its own ramp and aims it; the rules that matter:
 in the repository treats audio as motion, so the ramps do not depend on that setting.
 
 **Platforms.** Browsers on iOS ignore programmatic volume, so no ramp happens there: the
-score neither ducks nor fades, and a phase change is a 500 ms wait at full level followed by
-a cut, then the new score at full level. Native (Android/iOS) ramps are unexercised.
+score neither ducks nor fades. A phase change behaves as it did before ramps. The one
+difference is that switching music off, or reaching the ending, leaves the score playing at
+full level for 500 ms before it stops. Native (Android/iOS) ramps are unexercised.
 
 **The manual contract won an option vote, but the vote did not ratify.** Two runs of the same
 question on the nexus gateway arm:
@@ -296,16 +339,22 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
 - **The ramps are unheard, and so are their durations.** `DUCK_RAMP_MS` (200 ms),
   `FADE_OUT_MS` and `FADE_IN_MS` (500 ms each) are defaults nobody has listened to; whether a
   linear ramp of a media element's volume in 25 ms steps sounds smooth or audibly stepped is
-  unknown. What is proven is numbers: `tests/app-volume-ramp.spec.ts` and
-  `tests/app-music-ramps.spec.ts` on fake timers against mocked players, and on the served web
-  build `tests/e2e/music-ducking.e2e.ts` and `tests/e2e/phase-music.e2e.ts` read the score
-  element's `volume` one ramp step at a time, down and up, with exactly one score element
-  throughout a phase change. The e2e suite's page clock is paused, so those two specs run it
-  explicitly; the older soundtrack specs never do, which means their players sit at level 0
-  and exercise the silent, immediate path. On iOS browsers no ramp happens at all, and there
-  a phase change costs a 500 ms delay with nothing audible to show for it. Native is
-  unexercised and needs a device: in particular, nobody has confirmed that a 25 ms timer and a
-  volume write per step are cheap enough there.
+  unknown. What is proven is numbers: `tests/app-volume-ramp.spec.ts`,
+  `tests/app-music-ramps.spec.ts` and `tests/app-music-fadeout.spec.ts` on fake timers against
+  mocked players, and on the served web build `tests/e2e/music-ducking.e2e.ts` and
+  `tests/e2e/phase-music.e2e.ts` read the score element's `volume` one ramp step at a time,
+  down and up, with exactly one score element throughout a phase change. The e2e suite's page
+  clock is paused, so those two specs run it explicitly; the older soundtrack specs never do,
+  which means their players sit at level 0 and exercise the silent, immediate path. On iOS
+  browsers no ramp happens at all, and there switching music off costs a 500 ms delay with
+  nothing audible to show for it. Native is unexercised and needs a device: in particular,
+  nobody has confirmed that a 25 ms timer and a volume write per step are cheap enough there.
+- **Safari is unverified, in both directions.** The phase-change `play()` was kept inside the
+  press because a deferred one might be refused by WebKit's gesture policy; nobody has run
+  this on Safari to learn whether it would have been, or to confirm that the in-gesture
+  `play()` is accepted there (it is the same call the app made before ramps, and that was
+  not qualified on Safari either). A wipe forced by the simulation rather than pressed has
+  never had a gesture behind its `play()`, before or after this change.
 - **The speech level is unheard too.** The split is proven on numbers: unit tests against a
   mocked player, and on the served web build a clip element whose `volume` equals the speech
   level while no music element exists. Nobody has listened to speech against the score at
