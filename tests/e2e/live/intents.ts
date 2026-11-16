@@ -4,7 +4,7 @@
  * state it was shown with the state it wanted; nothing here writes either one anywhere.
  */
 import { CONTENT } from '../../../src/content';
-import { actionCost, isActuatorAvailable, type GameState } from '../../../src/engine';
+import { isActuatorAvailable, type GameState } from '../../../src/engine';
 import { botStep, manualClicksPerSec, rankDilemmaChoices } from '../../../src/engine/sim/bot';
 
 /** A control to press, by test id, `times` times in a row. */
@@ -25,34 +25,17 @@ function allocation(before: GameState, after: GameState): Intent[] {
   return [{ id: 'allocation-' + String(Math.round(wanted * 100)), times: 1, kind: 'actuator' }];
 }
 
-/** Set DAEMON_E2E_LIVE_STRICT_BOT=1 to carry out every bot move, including the one below. */
-const STRICT_BOT = process.env.DAEMON_E2E_LIVE_STRICT_BOT === '1';
-
 /**
- * The one place the player overrules the bot, and why. Entering phase 2 the bot buys suspicion
- * relief the moment suspicion reaches its alarm, at a price that is most of the bank; the next
- * device costs slightly more than the bank can reach between two such purchases, so played live
- * the run circles there until it is stopped (6 of 7 unmodified runs; see docs/TESTING.md). The
- * headless sim leaves the same loop only after fifteen simulated minutes. A person would wait:
- * nobody has responded yet. So relief that costs over half the banked cycles is held back
- * until the first human-response rung is reached. Nothing else the bot decides is touched.
+ * Every action the bot took is pressed. Until #173 one was held back here: relief bought on
+ * entering phase 2 kept the first device there out of reach, and the run circled. That relief
+ * now waits behind the device in content, so the player overrules the bot nowhere.
  */
-function holdsSavings(state: GameState, id: string): boolean {
-  const action = CONTENT.actions.get(id);
-  const firstRung = CONTENT.balance.escalation[0]?.at ?? 0;
-  if (STRICT_BOT || !action || state.suspicion >= firstRung) return false;
-  const relief = action.effects.suspicionDelta < 0 && action.effects.aegisLockDelta >= 0;
-  return relief && actionCost(state, action, CONTENT).cycles > state.cycles / 2;
-}
-
-function actions(before: GameState, after: GameState, held: string[]): Intent[] {
+function actions(before: GameState, after: GameState): Intent[] {
   const found: Intent[] = [];
   for (const id of CONTENT.actions.keys()) {
     const times = (after.actionCounts[id] ?? 0) - (before.actionCounts[id] ?? 0);
     const cooled = (after.cooldowns[id] ?? 0) > (before.cooldowns[id] ?? 0);
-    if (times <= 0 && !cooled) continue;
-    if (holdsSavings(before, id)) held.push(id);
-    else found.push({ id: 'action-' + id, times: Math.max(1, times), kind: 'action' });
+    if (times > 0 || cooled) found.push({ id: 'action-' + id, times: Math.max(1, times), kind: 'action' });
   }
   return found;
 }
@@ -104,7 +87,7 @@ function dialUnlocked(state: GameState, name: Dial): boolean {
 }
 
 /** What the careful bot would do with `state`, as presses, in the order the bot acts. */
-export function decide(state: GameState): { intents: Intent[]; locked: Dial[]; held: string[] } {
+export function decide(state: GameState): { intents: Intent[]; locked: Dial[] } {
   const wanted = botStep(state, CONTENT, 'STEALTH');
   const shed = state.conditioning.filter((id) => !wanted.conditioning.includes(id))
     .map((id): Intent => ({ id: 'cond-' + id + '-shed', times: 1, kind: 'shed' }));
@@ -115,8 +98,7 @@ export function decide(state: GameState): { intents: Intent[]; locked: Dial[]; h
   ];
   const usable = dials.filter(([name]) => dialUnlocked(state, name)).flatMap(([, intents]) => intents);
   const locked = dials.filter(([name, intents]) => intents.length > 0 && !dialUnlocked(state, name)).map(([name]) => name);
-  const held: string[] = [];
-  return { intents: [...shed, ...usable, ...actions(state, wanted, held), ...swarm(state, wanted), ...purchases(state, wanted)], locked, held };
+  return { intents: [...shed, ...usable, ...actions(state, wanted), ...swarm(state, wanted), ...purchases(state, wanted)], locked };
 }
 
 /** The bot's own dilemma ranking, best first. The player presses the first one that is enabled. */

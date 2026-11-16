@@ -34,7 +34,7 @@ export class LivePlayer {
   readonly lockedWants = new Set<string>();
   /** Presses that were refused because something still covered the control after a dismissal. */
   readonly blocked: string[] = [];
-  readonly stats = { steps: 0, presses: 0, manual: 0, dilemmas: 0, freeChoices: 0, disabled: 0, sweeps: 0, lateReveals: 0, heldRelief: 0, overlays: {} as Record<string, number> };
+  readonly stats = { steps: 0, presses: 0, manual: 0, dilemmas: 0, freeChoices: 0, disabled: 0, sweeps: 0, lateReveals: 0, overlays: {} as Record<string, number> };
   private readonly routes = new Map<string, string[]>();
   private readonly misses = new Map<string, { sweeps: number; step: number; where: string }>();
   /** What the bot last asked for, and how many of each press landed; quoted when the run stalls. */
@@ -233,8 +233,7 @@ export class LivePlayer {
     this.watchProgress(state);
     if (state.ending === null && state.activeDilemmaId === null) {
       const where = describe(state);
-      const { intents, locked, held } = decide(state);
-      this.stats.heldRelief += held.length;
+      const { intents, locked } = decide(state);
       for (const name of locked) this.lockedWants.add(name);
       const landed: string[] = [];
       const carry = async (intent: Intent) => { landed.push(intent.id + ' ' + String(await this.press(intent, where)) + '/' + String(intent.times)); };
