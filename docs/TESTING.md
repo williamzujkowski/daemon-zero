@@ -89,6 +89,49 @@ callbacks rather than dormant catch-up. Each case gets independent storage and
 fails on browser console warnings, errors or page errors. Trace artifacts are
 retained on failure in ignored `test-results/`.
 
+## Live browser sessions
+
+Running the app in a browser you can observe is a supported way to work here, for
+agents and people alike (see "Watch the real app" in `AGENTS.md`). Pick the surface
+that matches the question:
+
+| You want to | Do this |
+| --- | --- |
+| Look at the development build with live reload | `make web`, then open `http://localhost:8081` |
+| Look at what ships (production export, no DEV code) | `make build-web`, then `python3 -m http.server <port> --bind 127.0.0.1 --directory dist` on a port of your own |
+| Watch a scripted scenario run | `pnpm exec playwright test --config tests/e2e/config.ts <spec> --project phone --headed` |
+| Step through a scenario, with locators and a timeline | add `--ui`, or `--debug` for the inspector |
+| Keep a replayable record of a run | add `--trace on`, then `pnpm exec playwright show-trace <test-results/.../trace.zip>` |
+| Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
+
+The scripted commands need the production export (`make build-web`) and start their own
+server on port 4173, so only one can run at a time on a machine; when several agents
+share it, serialise with `flock /tmp/daemon-zero-e2e.lock <command>`.
+
+What a session can tell you that the suite cannot:
+
+- **Time passing.** Most specs install a paused clock so geometry is reproducible. A
+  live session runs the real loop, which is how the running-clock offset in
+  `docs/UI-SIZES.md` was found.
+- **The console and the network.** Read both. A 404 is a response, not a failed
+  request, so check status as well as the absence of errors.
+- **What is actually drawn.** Wrapping, overlap and focus rings are visible in a
+  window and invisible in a unit test.
+
+Rules that keep it safe and honest:
+
+- **Isolate storage.** The save is `daemon-zero.save.v1` and the audio preference
+  `daemon-zero.audio.v1`, both in browser storage and both per origin. Use a fresh
+  profile or a port nobody else uses, and never a profile that may hold a real save.
+- **Do not kill what you did not start.** Port 8081 may be the maintainer's Metro.
+- **Name the evidence.** Record the build (dev or production export), the browser,
+  the viewport and whether the clock was running. Headed Chromium on Linux is not a
+  phone, a screen reader or a pair of ears.
+- **Turn findings into gates.** An observation is where a spec starts, not a
+  substitute for one.
+- **Keep artifacts out of git.** `test-results/` and `.playwright-mcp/` are ignored;
+  attach final screenshots to the PR.
+
 ## Agent-driven testing with Playwright MCP
 
 `.mcp.json` registers Microsoft's Playwright MCP server (`@playwright/mcp`) so an agent can drive the running web app: navigate, click by accessibility snapshot, read the page, take screenshots.
