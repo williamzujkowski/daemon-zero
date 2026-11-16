@@ -168,15 +168,31 @@ export async function sampleScore(page: Page, durationMs: number): Promise<Score
   }
   return samples;
 }
-/** The score's level once no ramp is moving it, for a clock that is running by itself: two
- *  readings several ramp steps apart that agree. */
+/** How far apart two readings must be before agreeing means anything: six ramp steps. */
+const REST_GAP_MS = RAMP_STEP_MS * 6;
+/**
+ * The score's level once no ramp is moving it: three readings in a row, each `REST_GAP_MS`
+ * after the one before, that all agree.
+ *
+ * The gap is real time (`waitForTimeout` sleeps in the test process), and every comparison
+ * comes after a full gap. An earlier version used `expect.poll`, which calls its callback
+ * immediately and applies its interval only between later attempts, so the first two readings
+ * were milliseconds apart, inside one ramp step, and a level in flight passed as resting.
+ *
+ * For a page clock that runs by itself, as the live journey's does: real time is then page
+ * time, and a ramp in flight takes several steps in each gap. On the PAUSED clock `boot()`
+ * leaves, nothing moves however long this waits, so it would report a pending ramp's level as
+ * resting; there, run the clock with `sampleScore` instead.
+ */
 export async function restingSoundtrackVolume(page: Page): Promise<number | null> {
+  const deadline = Date.now() + 10_000;
   let last = await soundtrackVolume(page);
-  await expect.poll(async () => {
+  for (let agreed = 0; agreed < 2;) {
+    if (Date.now() > deadline) throw new Error('The score level never came to rest; last reading ' + String(last));
+    await page.waitForTimeout(REST_GAP_MS);
     const now = await soundtrackVolume(page);
-    const same = now === last;
+    agreed = now === last ? agreed + 1 : 0;
     last = now;
-    return same;
-  }, { message: 'the score level comes to rest', intervals: [RAMP_STEP_MS * 6] }).toBe(true);
+  }
   return last;
 }

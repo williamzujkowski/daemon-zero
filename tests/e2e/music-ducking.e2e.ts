@@ -16,7 +16,7 @@
 import { test as bare } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
-import { boot, expect, observeMusicMedia, sampleScore, soundtrackVolume, test, voiceClipsPlaying, type ScoreSample } from './helpers';
+import { boot, expect, observeMusicMedia, restingSoundtrackVolume, sampleScore, soundtrackVolume, test, voiceClipsPlaying, type ScoreSample } from './helpers';
 
 // `boot(..., { audio: true })` seeds this preference; the test asserts against it, not a guess.
 const PREFERENCE = 0.3;
@@ -65,6 +65,25 @@ test('the score ducks while a transmission is read and returns when the clip end
   expect(await soundtrackVolume(page), 'the return is a ramp too').toBe(DUCKED);
   expectRamp(await sampleScore(page, DUCK_RAMP_MS), DUCKED, PREFERENCE);
   await expect.poll(() => soundtrackVolume(page), 'the score comes back').toBeCloseTo(PREFERENCE, 5);
+});
+
+test('the resting-level helper waits out a ramp instead of returning a level in flight', async ({ page }) => {
+  // The live journey takes its duck baseline from `restingSoundtrackVolume` on a clock that
+  // runs by itself. A baseline read mid-ramp makes it wait for a level the score never lands
+  // on, so this calls the real helper at the two worst moments: just after a start and just
+  // after a duck begins.
+  await observeMusicMedia(page);
+  await boot(page, 'decoded-omen', { audio: true });
+  if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
+  const read = page.getByTestId('speech-read');
+  await expect(read).toBeVisible();
+  // The journey's conditions: the page clock runs in real time, so ramps move unprompted.
+  await page.clock.resume();
+  await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
+  await expect.poll(() => soundtrackVolume(page), 'a score exists').not.toBeNull();
+  expect(await restingSoundtrackVolume(page), 'not 0 from just after the start, nor a level on the way up').toBe(PREFERENCE);
+  await read.click();
+  expect(await restingSoundtrackVolume(page), 'not a level on the way down').toBe(DUCKED);
 });
 
 bare('the score comes back when the clip fails to load instead of staying ducked under silence', async ({ page }) => {
