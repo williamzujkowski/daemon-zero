@@ -2,7 +2,7 @@
 import { expect, test as base, type Page } from '@playwright/test';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
-import { importSave, serialize } from '../../src/engine';
+import { importSave, serialize, type GameState } from '../../src/engine';
 /**
  * The phone tier has no kernel band - its 44px tap target set a 57px floor the first
  * purchase could not afford - so history opens from the utility menu there, while the
@@ -43,13 +43,17 @@ export { expect };
  * one state and its extra assertions are vacuous (#138). Give each state its own context
  * when looping.
  */
-export async function boot(page: Page, fixture?: string, options: { audio?: boolean } = {}): Promise<void> {
+export async function boot(page: Page, fixture?: string,
+  options: { audio?: boolean; patch?: (game: GameState) => GameState } = {}): Promise<void> {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 1000);
   if (fixture) {
     const code = fixtures[fixture];
     if (!code) throw new Error('Missing fixture ' + fixture);
-    const game = serialize(importSave(code, CONTENT));
+    // `patch` reaches states no engine-played fixture holds (a decoded forecast with an
+    // interrupt inbound). The result still goes through serialize and normal hydration.
+    const loaded = importSave(code, CONTENT);
+    const game = serialize(options.patch ? options.patch(loaded) : loaded);
     await page.addInitScript((value) => {
       const { localStorage } = globalThis as unknown as { localStorage: BrowserStorage };
       if (!localStorage.getItem('daemon-zero.save.v1')) localStorage.setItem('daemon-zero.save.v1', JSON.stringify({ version: 1, savedAtMs: Date.now(), game: value }));
