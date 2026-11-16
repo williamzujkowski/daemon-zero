@@ -70,7 +70,7 @@ line's clip once. The pieces:
 | Piece | Job |
 | --- | --- |
 | `src/app/voiceSources.ts` | One literal import per clip, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree. |
-| `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished clip releases its player, volume follows the speech preference. |
+| `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished or failed clip releases its player, volume follows the speech preference. |
 | `src/app/voicePlayer.ts` (`onVoiceActivity`) | Reports when a clip starts talking and when the last one stops. It does not import the soundtrack. |
 | `src/app/musicController.ts` (`setDucked`, `DUCK_RATIO`) | Scales the score to `DUCK_RATIO` of its preference level while ducked, at both places it writes a volume. |
 | `src/app/musicSession.ts` | The one joint between the two: voice activity drives `setDucked`. `useSpeechPreference()` hands the widgets the speech switch and level only. |
@@ -93,9 +93,16 @@ equal preference they compete. While a clip is in flight the score plays at `DUC
 (0.35, roughly -9 dB) of the music preference level, and returns to that level when the
 clip stops. The speech level plays no part in the duck. With music off there is no score
 player, so the signal is remembered and nothing else happens. "Stops" is every path above,
-because they all end in `stopVoiceClip`: the clip finishing, a step away from the line, a
-collapse or remount, and speech being turned off. Three details are pinned by tests rather
-than left to luck:
+because they all end in `stopVoiceClip`: the clip finishing or failing, a step away from the
+line, a collapse or remount, and speech being turned off. Four details are pinned by tests
+rather than left to luck:
+
+- **A failed clip gives the score back.** A clip whose media cannot load or play never reports
+  an ending, so waiting for `didJustFinish` alone left the score ducked under silence. The
+  player now releases the clip on any status whose `error` is set, the same field the
+  soundtrack reads for its own failures, and on a `play()` or player creation that throws; a
+  clip that never started is never reported as talking. The exception still propagates, as
+  it did before for a failed creation. No timer is involved: see the stall limit below.
 
 - **A replacement does not bounce.** Pressing READ on a second line while the first is talking
   is reported as one stretch of speech, so the score stays down instead of jumping up for an
@@ -219,6 +226,21 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
   level while no music element exists. Nobody has listened to speech against the score at
   unequal levels, and the native (Android/iOS) path for speech with music off, including the
   session READ prepares for itself, is unexercised and needs a device.
+- **A failed clip is released on web by test, on native by reading.** expo-audio 58.0.12
+  reports a failure as a status with `error` set and no `didJustFinish`. On web that is the
+  media element's `error` event and a rejected `play()` (`AudioPlayer.web.ts`), and
+  `tests/e2e/music-ducking.e2e.ts` feeds the real player a 404 and watches the score return
+  to the preference level. On Android it is `onPlayerError` (`AudioPlayer.kt`) and on iOS the
+  item's `.failed` status (`AudioPlayer.swift`); both were read, neither was run. Android
+  forwards the exception's message as the `error` value, so an exception with no message
+  would arrive as a status this code cannot tell from a healthy one.
+- **A stalled clip still holds the duck.** A clip that neither loads nor fails emits no status
+  on any platform, so nothing releases it: the same e2e holds the clip request open and the
+  score stays ducked for as long as it is held. The clips are bundled local files, so this
+  needs a broken or very slow asset fetch on web and should not arise on native. Nothing was
+  built for it, because the remedy is a timer in `src/app`. The smallest one would be a
+  single timeout armed in `playVoiceClip` and cleared by the first status and by `release`,
+  which stops the clip if no status has arrived at all.
 - **Loudness is peak-normalised, not loudness-normalised, and the measured spread is small.**
   Each take is scaled to a 0.92 (vibration) or 0.95 (clean) sample peak, with no loudness
   target. Measured on the committed files with ffmpeg 8.0.1 (EBU R128, measurement only —
