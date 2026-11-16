@@ -3,10 +3,10 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e build-pages e2e-pages android-release
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live build-pages e2e-pages android-release
 
 help: ## List targets
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
 
 setup: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
@@ -65,6 +65,10 @@ build-web: ## Export the production web app
 
 e2e: build-web ## Playwright scenarios against the production web export
 	env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts
+
+# Not part of `e2e` or CI: several minutes per viewport. See docs/TESTING.md, "Live journey".
+e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
+	env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh

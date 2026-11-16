@@ -63,6 +63,7 @@ make web       # open the app in the browser
 make dev       # start Expo without choosing a platform
 make build-web # export the production web app
 make e2e-pages # build and test the GitHub Pages subpath export
+make e2e-live  # play the whole game live in the browser, fresh profile to an ending (~6 min)
 ```
 
 For Android, run `bash scripts/bootstrap-ubuntu24.sh --android`, source

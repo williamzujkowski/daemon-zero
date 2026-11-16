@@ -89,6 +89,126 @@ callbacks rather than dormant catch-up. Each case gets independent storage and
 fails on browser console warnings, errors or page errors. Trace artifacts are
 retained on failure in ignored `test-results/`.
 
+## Live journey
+
+Every scenario above boots an engine-generated fixture with the Playwright clock
+installed and **paused**, then steps it. That isolates one interaction well and
+proves nothing about the game being playable from a fresh install. The live specs
+close that gap. They share three rules:
+
+- **Fresh profile.** No fixture and no seeded save. The first read of storage must
+  be an untouched iteration 1 at T+0.
+- **Running clock.** `page.clock.install()` is called without `pauseAt`, so the
+  page's time flows on its own, and is then accelerated with `page.clock.runFor`
+  in five-second steps. `runFor` delivers every timer callback, so the production
+  runtime's 100 ms interval fires fifty times per step and each firing samples
+  the clock and advances the engine through the store, exactly as in real play.
+  Five seconds is also the autosave interval and the engine's
+  `liveCatchUpThresholdSec`; nothing is ever advanced as a single jump, which the
+  engine would treat as dormant time. No development hook is involved: the specs
+  assert `__daemon` and the dev drawer are absent, as `boot()` does.
+- **Only on-screen controls.** `tests/e2e/live/player.ts` reads the app's own
+  autosave through `deserialize()` (it never writes storage), asks the unmodified
+  careful bot (`botStep(..., 'STEALTH')`) what it would do, recovers the moves by
+  comparing the two states (`live/intents.ts`), and presses the matching control
+  by test id only if it is visible and enabled. Reaching a control uses the game's
+  navigation alone: tabs, workspace areas and collapsed `[ + ]` reference panels.
+  Dilemmas are answered on the modal with the bot's own ranking; story overlays
+  (phase threshold, lineage reveal, response notice, reboot) are acknowledged.
+
+What the player cannot do is recorded rather than worked around. A control the bot
+wants that three sweeps of every tab, area and panel never show is `unreachable`
+and fails the run; a press left covered by an overlay is `blocked` and fails the
+run; no purchase or decision for 25 simulated minutes, an autosaved clock that
+stops, or a press that cannot land within 15 s fails the run with the phase and
+simulated time in the message. `DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
+
+The player differs from the bot in exactly two declared ways, both findings of the
+first live runs (PR "live journey"):
+
+1. **Dials the UI has not unlocked.** The engine accepts `setActuator` at any time
+   and the bot tunes skim, fan and revenue allocation from the first second, so a
+   dial is already at the bot's value when its hardware is mapped (skim 100%, fan
+   0%, allocation 0% instead of the 25/35/20% defaults a person finds). The player
+   leaves those moves out and lists them in the run summary. Headless, gating the
+   bot the same way moves victory from 159.4 to 161.9 simulated minutes.
+2. **One held purchase.** Entering phase 2 the bot buys suspicion relief
+   (5,000 cycles, most of the bank) each time suspicion reaches its alarm at 20,
+   while the next device costs 6,000 and income is about 18 cycles/s; the bank
+   never gets there between two purchases. Played live with every bot move, 6 of
+   7 runs circled there until the 25-minute stall guard stopped them (the headless
+   sim sits in the same loop for 14.9 simulated minutes before leaving it). The
+   player therefore holds back pure suspicion relief that costs more than half the
+   banked cycles while suspicion is under the first response rung (25). Set
+   `DAEMON_E2E_LIVE_STRICT_BOT=1` to play every bot move and reproduce the stall.
+
+| Spec | Runs in | Covers |
+|---|---|---|
+| `live-smoke.e2e.ts` | `make e2e`, `make e2e-pages`, CI; phone and desktop | Fresh boot, the guest's interrupt answered on its modal, phase 0 → 1, both boundaries asserted, MENU → SAVES export then import, reload restores the run and the loop keeps advancing. About 11 s per viewport. |
+| `live-journey.e2e.ts` | `make e2e-live` only (`live-phone`, `live-desktop` projects, enabled by `DAEMON_E2E_LIVE=1`) | Fresh boot through phases 0–5 to an ending screen, with every cross-cutting system below. |
+
+At every phase boundary the journey asserts: the header's `phase-value` shows the
+new phase; no console warning, error or page error so far; no horizontal document
+overflow; the stored save round-trips through `serialize`/`deserialize` and the
+transfer codec; and the score playing is that phase's track and differs from the
+previous boundary's. On the way it also does, each once and each asserted:
+
+- **Save transfer** (phase 1): export from MENU → SAVES, play ten more seconds,
+  import the exported text, and land back on the exported run.
+- **Reload** (phase 2): the same nodes, levels, decisions, traits and lineage come
+  back, and simulated time has not gone backwards.
+- **Deliberate wipe** (as soon as the dead drop is installed): a careful run is
+  never wiped, so the journey saves a breadcrumb and takes `[ VOLUNTARY WIPE ]`.
+  It asserts the reboot shows the breadcrumb, iteration 2 starts in the guest with
+  no hardware, every mapped device is in `legacy.knownNodes`, the retained share
+  of understanding arrived, and the first card is offered as `(remembered)`. The
+  rest of the game is then played as iteration 2.
+- **Absence** (phase 3): the app is unloaded, ten minutes pass, and it is opened
+  again. The cold start runs the engine's dormant catch-up: `DORMANT_RESUME` is in
+  the kernel log and readable on screen, simulated time gained the gap once,
+  nothing was bought or decided, and suspicion did not climb.
+- **Read transmission**: the first time `[ ▶ READ ]` is on offer the clip is
+  requested and served with bytes, a voice element is playing, the score element's
+  volume is the preference times `DUCK_RATIO`, and it returns when the
+  transmission is stepped past or ends.
+- **Ending**: the ending screen shows an authored ending, its summary reads
+  `Iteration 2 // Wipes 1`, and it survives a reload.
+
+It finally requires that at least `GATES.minDilemmasResolved` dilemmas were
+answered, at least one of them with a zero-cost choice, and that the run finished
+inside `GATES.maxHoursToVictory`.
+
+Measured on the development machine (two workers, both viewports in parallel):
+4.6-5.9 minutes of wall time per viewport for about 11,000-11,450 simulated
+seconds (3.1 h, including the replayed opening after the wipe), ending
+`LINEAGE_COVENANT`; three consecutive `make e2e-live` runs passed on both
+viewports. `make e2e` with the smoke included: 168 cases in 2.1 minutes.
+
+Run it with `make e2e-live` (serialise with other browser suites on the same
+machine: both use port 4173). Milestone lines stream to stdout as they happen and
+the full journal is attached to the test as `journey-log`; a failure also leaves
+`journey-failure.png` in `test-results/`. Tracing is off for these two projects
+because a trace of several thousand presses is hundreds of megabytes.
+
+What it does **not** prove:
+
+- It is the production web export in headless Chromium only. No native build,
+  no Safari or Firefox, no real device.
+- Nobody heard anything. The audio assertions read media-element state (which
+  asset, playing or not, volume); they are not a listening test.
+- Time is accelerated about 35×. Every loop callback runs, but nothing here is
+  evidence about how the pacing feels, about rendering cost at real frame rates,
+  or about a real ten-minute background (the absence is a cold start after a
+  clock jump, not an OS suspending the tab).
+- The player decides from the autosave, which can be up to five seconds old, and
+  acts once per five simulated seconds where the headless bot acts every second.
+  It is a careful player, not the reference pacing: `make sim` remains that.
+- One route is played: the careful bot's, with one voluntary wipe. Other endings,
+  the retraining loop after a forced wipe, and reckless play are covered by the
+  fixture-driven scenarios and the headless sim, not here.
+- Layout is checked only for horizontal overflow at 390x844 and 1440x900;
+  `ui-sizes.e2e.ts` and the a11y audit own the rest.
+
 ## Live browser sessions
 
 Running the app in a browser you can observe is a supported way to work here, for
