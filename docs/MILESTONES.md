@@ -188,11 +188,11 @@ Exit gate: `make verify-full` green in CI. The maintainer's own play of a first 
 
 - [x] Playwright E2E against the web export (`tests/e2e/`), selecting by `testID` only. Cover: boot, first unlock mounts a widget, dilemma blocks and resumes, wipe and breadcrumb recovery, save code round trip. Add `make e2e`. See `docs/TESTING.md`.
 - [x] Decryption text reveal on unlock, per-phase palettes, haptics (`expo-haptics`, no-op on web). All motion respects reduced-motion settings.
-- [x] Screen-reader pass on web and one native platform; meters must not rely on colour alone.
+- [x] Screen-reader pass on web and one native platform; meters must not rely on colour alone. Caveat: this was an agent-operated pass (Orca on Chrome, TalkBack in Android Expo Go, not a release build), with no judgement of audible quality and no iOS VoiceOver; see "Screen readers" in `docs/REVIEW-M5.md`.
 - [x] React profiler shows no card parent/static-content re-renders during 100 ticks in Phase 1 and late Phase 4.
 - [ ] Physical mid-range Android late-Phase-4 input/performance qualification. Emulator accepted 40/40 taps but showed frame jank; no physical device attached. #6 remains open.
 
-Verification: local `make verify-full` (251 tests) and `make e2e` (14 cases) pass. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 local release qualification is documented in `docs/REVIEW-M6.md`.
+Verification at M5 completion: local `make verify-full` (251 tests then) and `make e2e` (14 cases then) passed. Both counts are historical and both suites have grown; `make verify` and `pnpm exec playwright test --config tests/e2e/config.ts --list` print the current ones. Orca/Chrome and TalkBack/Android Expo Go agent passes are recorded with limits in `docs/REVIEW-M5.md`. M6 local release qualification is documented in `docs/REVIEW-M6.md`.
 
 Exit gate: `make verify-full` and `make e2e` green in CI.
 
