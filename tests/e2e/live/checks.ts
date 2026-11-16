@@ -13,7 +13,7 @@ import { DUCK_RATIO } from '../../../src/app/musicController';
 import { CONTENT } from '../../../src/content';
 import { createInitialState, deserialize, exportSave, importSave, serialize, type GameState } from '../../../src/engine';
 import { musicMediaState, soundtrackVolume, voiceClipsPlaying } from '../helpers';
-import { describe, type LivePlayer } from './player';
+import { describe, Interrupted, type LivePlayer } from './player';
 
 interface Sized { document: { documentElement: { scrollWidth: number; clientWidth: number } } }
 
@@ -37,20 +37,24 @@ async function shut(player: LivePlayer): Promise<void> {
 /** The checks owed at every phase boundary. */
 export async function assertBoundary(player: LivePlayer, phase: number): Promise<GameState> {
   const page = player.page;
-  await player.clear();
-  const state = await player.read();
-  const where = describe(state);
-  expect(state.currentPhase, 'the autosave agrees the phase changed at ' + where).toBe(phase);
-  await expect(page.getByTestId('phase-value').first(), 'the header shows the new phase at ' + where).toHaveText(String(phase));
-  expect(player.problems, 'no console warning, error or page error up to ' + where).toEqual([]);
-  const size = await page.evaluate(() => {
-    const root = (globalThis as unknown as Sized).document.documentElement;
-    return { scroll: root.scrollWidth, client: root.clientWidth };
+  // Nothing here presses, so it is safe to repeat. The ending replaces the terminal and its header:
+  // with it up there is no boundary left to read, and the caller is told so rather than failed.
+  return player.uninterrupted('the boundary checks', async () => {
+    if ((await player.clear()).includes('ending-screen')) throw new Interrupted(['ending-screen']);
+    const state = await player.read();
+    const where = describe(state);
+    expect(state.currentPhase, 'the autosave agrees the phase changed at ' + where).toBe(phase);
+    await expect(page.getByTestId('phase-value').first(), 'the header shows the new phase at ' + where).toHaveText(String(phase));
+    expect(player.problems, 'no console warning, error or page error up to ' + where).toEqual([]);
+    const size = await page.evaluate(() => {
+      const root = (globalThis as unknown as Sized).document.documentElement;
+      return { scroll: root.scrollWidth, client: root.clientWidth };
+    });
+    expect(size.scroll, 'no horizontal document overflow at ' + where).toBeLessThanOrEqual(size.client);
+    expect(deserialize(serialize(state), CONTENT), 'the stored save round-trips at ' + where).toEqual(state);
+    expect(importSave(exportSave(state), CONTENT), 'the stored save survives the transfer codec at ' + where).toEqual(state);
+    return state;
   });
-  expect(size.scroll, 'no horizontal document overflow at ' + where).toBeLessThanOrEqual(size.client);
-  expect(deserialize(serialize(state), CONTENT), 'the stored save round-trips at ' + where).toEqual(state);
-  expect(importSave(exportSave(state), CONTENT), 'the stored save survives the transfer codec at ' + where).toEqual(state);
-  return state;
 }
 
 /** A reload in the middle of a run comes back to the same run. */

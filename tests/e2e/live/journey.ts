@@ -22,6 +22,22 @@ function slowdown(): { cpu: number; lagMs: number } {
   return { cpu: read('DAEMON_E2E_LIVE_CPU_THROTTLE', 1), lagMs: read('DAEMON_E2E_LIVE_LAG_MS', 0) };
 }
 
+/**
+ * Runs a boundary check or an errand that the ending may cut off. Only the ending gets out of
+ * `player.uninterrupted` as `Interrupted`, and nothing is left to check under it: the work is
+ * reported as not done (`false`), the next step sees the ending, and the run finishes on it. What
+ * was left undone then fails the journey's closing assertions by name instead of by a stack trace.
+ */
+export async function unlessCutOff<T>(what: string, log: (line: string) => void, run: () => Promise<T>): Promise<T | false> {
+  try {
+    return await run();
+  } catch (error) {
+    if (!(error instanceof Interrupted)) throw error;
+    log(what + ' put off: ' + error.message);
+    return false;
+  }
+}
+
 /** Something to do once, the first time the run is in a fit state for it. */
 export interface Errand { name: string; when: (state: GameState, journey: Journey) => boolean; run: (journey: Journey) => Promise<boolean> }
 
@@ -97,28 +113,17 @@ export class Journey {
     for (;;) {
       const state = await this.player.step();
       this.status(state);
-      await this.boundary(state);
+      await unlessCutOff('BOUNDARY ' + describe(state), (line) => { this.player.log(line); }, () => this.boundary(state));
       // Nothing is slipped in while a decision is on its way: the interrupt would land on top of it.
       // `state` is what the step decided on, one step old by now, so this only keeps errands out of
       // the way of an interrupt that was already counting down; each errand guards its own presses.
       const quiet = state.pendingDilemma === null && state.activeDilemmaId === null && state.ending === null;
       for (const errand of errands) {
         if (!quiet || this.done.has(errand.name) || !errand.when(state, this)) continue;
-        if (await this.attempt(errand)) this.done.add(errand.name);
+        if (await unlessCutOff('ERRAND ' + errand.name, (line) => { this.player.log(line); }, () => errand.run(this))) this.done.add(errand.name);
         break;
       }
       if (finished(state, this)) return state;
-    }
-  }
-
-  /** An errand cut off by the ending is not done; the next step sees the ending and the run finishes. */
-  private async attempt(errand: Errand): Promise<boolean> {
-    try {
-      return await errand.run(this);
-    } catch (error) {
-      if (!(error instanceof Interrupted)) throw error;
-      this.player.log('ERRAND ' + errand.name + ' put off: ' + error.message);
-      return false;
     }
   }
 

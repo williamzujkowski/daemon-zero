@@ -33,8 +33,9 @@ const FROZEN_STEPS = 40;
 const PROMPT_PRESS_MS = 2000;
 /** With nothing covering it, navigation and errand presses get this long before the run fails. */
 export const PRESS_TIMEOUT_MS = 15_000;
-/** Layers come at most a few per phase; more than this in one decision or errand is a loop. */
-const MAX_INTERRUPTIONS = 4;
+/** Layers come at most a few per phase. One decision or errand piece may be interrupted this
+ *  many times and made again; the interruption after that is a loop and fails the run. */
+export const MAX_INTERRUPTIONS = 4;
 const CLEAR_ROUNDS = 8;
 
 interface Attr { getAttribute(name: string): string | null }
@@ -183,10 +184,21 @@ export class LivePlayer {
     await this.land(control, typeof target === 'string' ? target : String(target), { patient: true });
   }
 
-  /** Types into a field the way `tap` presses: only once nothing is in front of it. */
+  /** Types into a field the way `tap` presses: a look, a prompt try, a second look, then the full wait. */
   async fill(id: string, text: string): Promise<void> {
+    const field = this.page.getByTestId(id);
     await this.yieldToGame();
-    await this.page.getByTestId(id).fill(text);
+    if (await field.fill(text, { timeout: PROMPT_PRESS_MS }).then(() => true, () => false)) return;
+    await this.yieldToGame();
+    await field.fill(text, { timeout: PRESS_TIMEOUT_MS });
+  }
+
+  /** Counts the `count`-th interruption of `what` in a row; one past `MAX_INTERRUPTIONS` is a finding. */
+  private interruption(count: number, what: string, layers: readonly string[], cause: unknown): void {
+    if (count > MAX_INTERRUPTIONS) {
+      throw new Error('LIVE JOURNEY FINDING: ' + what + ' was interrupted ' + String(count) + ' times running at ' + this.where + ', last by ' + layers.join(', '), { cause });
+    }
+    this.stats.interrupted += 1;
   }
 
   /**
@@ -203,10 +215,7 @@ export class LivePlayer {
         if (layers.length === 0) throw error;
         // Nothing an errand does is left to do once the run has ended; the caller sees the ending.
         if (layers.includes('ending-screen')) throw new Interrupted(layers);
-        if (attempt >= MAX_INTERRUPTIONS) {
-          throw new Error('LIVE JOURNEY FINDING: ' + what + ' was interrupted ' + String(attempt) + ' times running at ' + this.where + ', last by ' + layers.join(', '), { cause: error });
-        }
-        this.stats.interrupted += 1;
+        this.interruption(attempt, what, layers, error);
         this.log('INTERRUPTED ' + what + ' by ' + layers.join(', ') + ' at ' + this.where + '; starting it again');
       }
     }
@@ -371,10 +380,7 @@ export class LivePlayer {
         await this.act(state);
       } catch (error) {
         if (!(error instanceof Interrupted)) throw error;
-        if (turn >= MAX_INTERRUPTIONS) {
-          throw new Error('LIVE JOURNEY FINDING: one decision was interrupted ' + String(turn) + ' times running at ' + this.where + ', last by ' + error.layers.join(', '), { cause: error });
-        }
-        this.stats.interrupted += 1;
+        this.interruption(turn, 'one decision', error.layers, error);
         this.log('INTERRUPTED by ' + error.layers.join(', ') + ' at ' + this.where + ' while carrying out ' + JSON.stringify(this.lastWanted) + '; deciding again from a fresh read');
         continue;
       }

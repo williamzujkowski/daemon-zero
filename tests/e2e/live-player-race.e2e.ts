@@ -4,9 +4,11 @@
  * Here the clock is paused and stepped by hand, so the modal arrives at an exact point every
  * time; the player under test is the same class the smoke and the full journey drive.
  */
-import { boot, expect, test } from './helpers';
-import { exportThenImport } from './live/checks';
-import { LivePlayer, PRESS_TIMEOUT_MS } from './live/player';
+import { makeFixtures } from '../../scripts/make-fixtures';
+import { boot, expect, openSave, test } from './helpers';
+import { assertBoundary, exportThenImport, scorePlaysPhase } from './live/checks';
+import { unlessCutOff } from './live/journey';
+import { Interrupted, LivePlayer, MAX_INTERRUPTIONS, PRESS_TIMEOUT_MS } from './live/player';
 
 const STEP_MS = 5000;
 const modal = 'dilemma-modal';
@@ -73,4 +75,69 @@ test('an errand cut into by a decision starts again once it is answered', async 
   expect(player.stats.dilemmas).toBe(1);
   expect(player.stats.interrupted).toBe(1);
   expect((await player.read()).resolvedDilemmas, 'the run that was exported and imported has the answer in it').toContain(id);
+});
+
+test('typing into a field looks again when it cannot land promptly', async ({ page }) => {
+  const player = new LivePlayer(page, { stepMs: STEP_MS });
+  const { firesInMs } = await bootBeforeInterrupt(player);
+  const short = 300;
+  await page.clock.runFor(firesInMs - short);
+  await expect(page.getByTestId(modal)).toHaveCount(0);
+  // The menu is shut, so the field is not there and the fill cannot land: it looks (nothing up),
+  // tries, and the interrupt fires while it is trying. The old fill then sat out the full timeout.
+  const started = Date.now();
+  const typing = player.fill('save-code', 'text').then(() => null, (error: unknown) => error);
+  // Real time, not the app's: long enough for the first look to be over, well inside the 2 s try.
+  await new Promise((resolve) => { setTimeout(resolve, 1000); });
+  await page.clock.runFor(short * 2);
+  const outcome = await typing;
+  const took = Date.now() - started;
+  expect(outcome, 'the second look found the decision and answered it').toBeInstanceOf(Interrupted);
+  expect(took, 'the first look saw nothing, so the prompt try was made and ran out').toBeGreaterThan(1900);
+  expect(took, 'the late layer cost the prompt wait, not the press timeout').toBeLessThan(PRESS_TIMEOUT_MS / 2);
+  await expect(page.getByTestId(modal)).toHaveCount(0);
+  expect(player.stats.dilemmas).toBe(1);
+});
+
+test('a piece may be interrupted exactly the stated number of times, and once more is a finding', async ({ page }) => {
+  const cutShort = (times: number) => {
+    const player = new LivePlayer(page, { stepMs: STEP_MS });
+    let calls = 0;
+    const result = player.uninterrupted('a staged piece', () => {
+      calls += 1;
+      return calls <= times ? Promise.reject(new Interrupted([modal])) : Promise.resolve(calls);
+    });
+    return { player, result };
+  };
+  const within = cutShort(MAX_INTERRUPTIONS);
+  expect(await within.result, 'made again after every tolerated interruption').toBe(MAX_INTERRUPTIONS + 1);
+  expect(within.player.stats.interrupted).toBe(MAX_INTERRUPTIONS);
+  const beyond = cutShort(MAX_INTERRUPTIONS + 1);
+  await expect(beyond.result).rejects.toThrow('LIVE JOURNEY FINDING: a staged piece was interrupted ' + String(MAX_INTERRUPTIONS + 1) + ' times');
+  expect(beyond.player.stats.interrupted, 'the one that failed the run is not counted as serviced').toBe(MAX_INTERRUPTIONS);
+});
+
+test('an ending over a boundary check is handed back as not done instead of thrown', async ({ page }) => {
+  // No tick ends a run (only a purchase does), so an ending cannot be made to arrive in the middle
+  // of a check on this clock. It is staged already up: the same path, entered at its first look.
+  const code = makeFixtures()['ending-shipped'];
+  if (!code) throw new Error('Missing ended fixture');
+  await boot(page);
+  await openSave(page);
+  await page.getByTestId('save-code').fill(code);
+  await page.getByTestId('save-import').click();
+  await page.getByTestId('save-import-confirm').click();
+  await expect(page.getByTestId('ending-screen')).toBeVisible();
+  const player = new LivePlayer(page, { stepMs: STEP_MS });
+  const phase = (await player.read()).currentPhase;
+  const cut = (error: unknown) => error instanceof Interrupted && error.layers.includes('ending-screen');
+  expect(cut(await assertBoundary(player, phase).catch((error: unknown) => error)), 'the boundary checks report the ending').toBe(true);
+  expect(cut(await scorePlaysPhase(player, phase).catch((error: unknown) => error)), 'the score check reports the ending').toBe(true);
+  const journal: string[] = [];
+  const log = (line: string) => { journal.push(line); };
+  expect(await unlessCutOff('BOUNDARY', log, () => scorePlaysPhase(player, phase)), 'the journey puts the check off').toBe(false);
+  expect(journal).toEqual(['BOUNDARY put off: interrupted by ending-screen']);
+  expect(await unlessCutOff('BOUNDARY', log, () => Promise.resolve('checked'))).toBe('checked');
+  await expect(unlessCutOff('BOUNDARY', log, () => Promise.reject(new Error('a real failure')))).rejects.toThrow('a real failure');
+  expect(player.stats.interrupted, 'an ending is not an interruption that was serviced').toBe(0);
 });

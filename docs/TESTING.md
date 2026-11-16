@@ -156,10 +156,19 @@ The rule in `live/player.ts` is that **every press looks first**:
   autosave, in the same step (`INTERRUPTED by ...` in the journal, counted in
   `stats.interrupted`). Inside an errand the piece of the errand that belongs
   together (`player.uninterrupted`) starts again from its top.
-- More than four interruptions of one decision or one errand piece fails the run
-  as a finding. An errand's comparison with an earlier read (reload, absence,
+- One decision or one errand piece may be interrupted four times and made again
+  (`MAX_INTERRUPTIONS`); the fifth interruption in a row fails the run as a
+  finding. Typing into a field (`player.fill`) follows the same look, 2 s, look
+  again rule as a press. An errand's comparison with an earlier read (reload, absence,
   transfer) is made before anything restored with the run is answered, so
   servicing a layer never changes what is compared.
+
+The ending is the one layer nothing clears. A boundary check or an errand it cuts
+off is reported as not done (`unlessCutOff` in `live/journey.ts`), the next step
+finishes the run on the ending, and whatever was left undone fails the closing
+assertions by name. In the current engine only a node purchase sets the phase or
+the ending (`unlockNode`), and no boundary check or errand buys a node, so this
+path is a guard, not something a run has taken.
 
 Nothing is forced, dispatched past an overlay, or given a longer timeout; no
 decision is skipped, and the coverage of the journey is unchanged. A dilemma
@@ -167,8 +176,10 @@ answered mid-press is counted in `stats.dilemmas` like any other.
 
 `live-player-race.e2e.ts` reproduces the race exactly, in `make e2e`: on a paused
 clock stepped by hand, an interrupt fires (a) between a step's decision and its
-first press, (b) while a tab is about to be pressed, and (c) in the middle of the
-save transfer, which closes the menu under the errand. Two switches reproduce it
+first press, (b) while a tab is about to be pressed, (c) in the middle of the
+save transfer, which closes the menu under the errand, and (d) after `fill` has
+already looked. It also pins the interruption limit at exactly four, and that the
+boundary checks and the score check hand an ending back as not done. Two switches reproduce it
 in the full journey:
 
 | Switch | Effect |
