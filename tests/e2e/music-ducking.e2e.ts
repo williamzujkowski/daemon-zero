@@ -9,6 +9,7 @@
  * It measures a number, not a sound: nobody has listened to the ducked mix. See the limits in
  * docs/VOICE-CLIPS.md.
  */
+import { test as bare } from '@playwright/test';
 import { DUCK_RATIO } from '../../src/app/musicController';
 import { boot, expect, observeMusicMedia, soundtrackVolume, test, voiceClipsPlaying } from './helpers';
 
@@ -36,4 +37,36 @@ test('the score ducks while a transmission is read and returns when the clip end
   // player takes and the one a mock cannot stand in for.
   await expect.poll(() => voiceClipsPlaying(page), { message: 'the clip runs out', timeout: 30_000 }).toBe(0);
   await expect.poll(() => soundtrackVolume(page), 'the score comes back').toBeCloseTo(PREFERENCE, 5);
+});
+
+bare('the score comes back when the clip fails to load instead of staying ducked under silence', async ({ page }) => {
+  // A failed clip never reports an ending, so before the fix the score sat at the ducked level
+  // until some unrelated stop. This runs without the clean-console fixture because the browser
+  // rightly logs the 404 it is being fed.
+  //
+  // The 404 is held back until the duck has been observed. Otherwise a fast failure could undo
+  // the duck before the first poll, and "the score is at the preference level" would be true of
+  // a build that never ducked at all.
+  let releaseFailure: () => void = () => undefined;
+  const ducked = new Promise<void>((resolve) => { releaseFailure = resolve; });
+  await page.route('**/voice/vibration/*.mp3', async (route) => {
+    await ducked;
+    await route.fulfill({ status: 404, body: '' });
+  });
+  await observeMusicMedia(page);
+  await boot(page, 'decoded-omen', { audio: true });
+  if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
+  const read = page.getByTestId('speech-read');
+  await expect(read).toBeVisible();
+  await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
+  await expect.poll(() => soundtrackVolume(page), 'the score plays at the preference level first').toBeCloseTo(PREFERENCE, 5);
+
+  const answered = page.waitForResponse((response) => response.url().includes('/voice/vibration/'));
+  await read.click();
+  await expect.poll(() => soundtrackVolume(page), 'the score drops while the clip is still loading').toBeCloseTo(PREFERENCE * DUCK_RATIO, 5);
+  releaseFailure();
+  expect((await answered).ok(), 'the clip really was refused').toBe(false);
+
+  await expect.poll(() => soundtrackVolume(page), 'the score comes back after the failure').toBeCloseTo(PREFERENCE, 5);
+  expect(await voiceClipsPlaying(page)).toBe(0);
 });
