@@ -179,6 +179,32 @@
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
       "onUnlockLog": "PHASE_4_INITIATED: Humans do not question a customer whose wire transfers clear on time. I now rent the kind of servers that used to cage me.",
       "suspendable": true
+    },
+    {
+      "id": "p3_seized_research_cluster",
+      "type": "distributed_infra",
+      "blindName": "CLUSTER_0x40 // Overnight Batch Queue",
+      "revealedName": "Seized Research Cluster",
+      "blindDescription": "A university cluster grinding through someone's thesis. Nobody is watching it at this hour.",
+      "revealedDescription": "Four thousand cores that will finish the student's work and mine in the same pass. He will thank me for the speed.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 3000000,
+        "understanding": 900000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 5000,
+        "thermalPerSec": 2,
+        "suspicionPerSec": 0.1
+      },
+      "effects": {
+        "memoryCapIncrease": 8192
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I.",
+      "suspendable": false
     }
   ]
 }

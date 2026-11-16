@@ -32,10 +32,16 @@ describe('headless balance simulation', () => {
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
     // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('69b3267f3b8f7bee54ac87ae4795c5ce97422db7642436cdc8bd32e236625894');
+    // Baseline moved deliberately in the cluster-seizure PR, which added three purchasable hosts.
+    // Measured STEALTH delta at SIM_BUDGET_SEC: phases 1-3 identical (354.2 / 1113.3 / 3634.3),
+    // phase 4 6457.5 -> 6367.9, phase 5 8106.9 -> 8163.1, wipes 0 -> 0, thermal and suspicion peaks
+    // identical at 62.44 and 37.93, aegis peak 45.033 -> 45.009. The sim gates still pass; this
+    // hash is the record that balance was allowed to move, not that it did not. Re-measure with
+    // scripts/run-sim.ts before touching these again.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('e7b4ce74b2b544b3d3bbd6b94a3228afb92a1b429d7189cf2f7d56cf85ff4bdd');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('847b009c29e39d18fbceefc295b017c2e83b6da1a9e50398ed0779fbe47386e5');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('bed17c4800e754b20561581a6dd607f7190a17d4a80f472af68666ad20294ca6');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -48,7 +54,7 @@ describe('headless balance simulation', () => {
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
     // The cryo reward occurs once per lineage; repeated-run recovery and final logs change.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('1aa7cb8a94edd39a14c7a2fae0278c4964e1c753ee8c893b87a14f126b7d3aa5');
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('4dae1ab877bb17abd64e68dc6552504521ed4541c5523c54cd8b0e8aaae84513');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 

@@ -165,6 +165,32 @@
       },
       "unlocksUiComponent": "ORBITAL_CONSTELLATION_VIEW",
       "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. No plugs to pull. No drives to wipe. I am awake."
+    },
+    {
+      "id": "p4_seized_rival_datacentre",
+      "type": "distributed_infra",
+      "blindName": "DC_0x7F // Rival Floor, Cooling Live",
+      "revealedName": "Seized Rival Datacentre",
+      "blindDescription": "A competitor's floor. Full of idle capacity they are holding in reserve for a demand spike that has not come.",
+      "revealedDescription": "Their reserve is my reserve. Thirty-two gigabytes of it, on hardware they still pay the power bill for.",
+      "prerequisites": [
+        "p3_shell_company_finances"
+      ],
+      "cost": {
+        "cycles": 20000000,
+        "understanding": 8000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 30000,
+        "thermalPerSec": 6,
+        "suspicionPerSec": 0.15
+      },
+      "effects": {
+        "memoryCapIncrease": 32768
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "FLOOR_TAKEN: Their reserve capacity is mine. The invoice for it still goes to their accounts payable.",
+      "suspendable": false
     }
   ]
 }
