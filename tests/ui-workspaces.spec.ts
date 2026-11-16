@@ -52,6 +52,21 @@ it('keeps a pending signal discoverable from work and other management sections'
   expect(computeRates(gameStore.store.getState().game, CONTENT)).toEqual(computeRates(before, CONTENT));
 });
 
+it('keeps the review affordance whole while the signal name gives way (#162)', async () => {
+  // Layout is not computed here, so this pins the rule that produces it: the name is the
+  // only element allowed to shrink. When [ REVIEW ] could shrink too it wrapped onto three
+  // lines at 360 and the notice stood 88px tall; the size matrix pins the measured result.
+  const view = await mountM4('wild-shard-encounter-p3');
+  const review = view.find('wild-signal-review');
+  expect(review?.textContent).toBe('[ REVIEW ]');
+  expect(review?.style.flexShrink).toBe('0');
+  const name = review?.previousElementSibling as { style: { flexShrink: string }; textContent: string } | null | undefined;
+  expect(name?.textContent).toContain('SIGNAL PENDING // ');
+  expect(name?.style.flexShrink).toBe('1');
+  // The control's visible text still carries its whole accessible label prefix.
+  expect(view.find('wild-signal-notice')?.textContent).toMatch(/^SIGNAL PENDING \/\/ .+\[ REVIEW \]$/);
+});
+
 it('keeps the insolvency warning while switching workspace slots, not just areas (#125)', async () => {
   // It used to render inside the CORP workspace block, so CORE, SENSORS and NETWORK
   // showed no warning at all while the run was ending.

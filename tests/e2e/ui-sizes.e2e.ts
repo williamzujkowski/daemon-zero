@@ -61,6 +61,13 @@ type DomElement = NonNullable<ReturnType<Window['document']['querySelector']>>;
  *  is a sample of a running game rather than a precise value - the point is its scale. */
 const RUNNING_CLOCK_SETTLE_MS = 1500;
 
+/** How far a running clock moves the first purchase, per state, at EVERY size (#162). Mid-game
+ *  mounts two time-gated notices above it: response-notice (64px) and the one-line
+ *  wild-signal-notice (44px control + 4px gap). It read 134-156 on seven cells while
+ *  [ REVIEW ] could shrink and wrap inside that notice; a multiple of 22 over this figure
+ *  means a notice is wrapping again, any other change means a block mounted or left. */
+const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'epistemic-ready-p2': 112, 'corporate-insolvent': 0 } as const;
+
 function readGeometry(): Geometry {
   const browser = globalThis as unknown as Window;
   const box = (element: DomElement | null) => (element ? element.getBoundingClientRect() : null);
@@ -128,15 +135,16 @@ test.describe('size matrix invariants', () => {
           const geometry = await page.evaluate(readGeometry);
           test.info().annotations.push({ type: 'geometry', description: JSON.stringify({ fixture, ...geometry }) });
           // The contract above is measured on a PAUSED clock, which is what makes it
-          // reproducible - and the game always runs. Running it moves the first purchase
-          // 112-134px further down (nexus vote: keep-frozen-add-a-running-column, 6 of 6),
-          // so the same cell is measured again with time passing and annotated separately.
-          // Assertions stay on the frozen contract; this column exists so no reader
-          // mistakes a budget for live behaviour.
+          // reproducible - and the game always runs (nexus vote:
+          // keep-frozen-add-a-running-column, 6 of 6), so the same cell is measured again
+          // with time passing and annotated separately. Fold assertions stay on the frozen
+          // contract; the running column is pinned only as an offset from it.
           await page.clock.resume();
           await page.waitForTimeout(RUNNING_CLOCK_SETTLE_MS);
           const running = await page.evaluate(readGeometry);
           test.info().annotations.push({ type: 'geometry-running', description: JSON.stringify({ fixture, ...running }) });
+          expect((running.firstUnlockTop ?? 0) - (geometry.firstUnlockTop ?? 0), `${fixture} running-clock offset at ${size.name}`)
+            .toBe(RUNNING_CLOCK_OFFSET[fixture]);
           expect(geometry.overflow, `${fixture} horizontal overflow at ${size.name}`).toBe(false);
           expect(geometry.undersized, `${fixture} controls under 44px at ${size.name}`).toEqual([]);
           expect(geometry.paneHeights.length, `${fixture} rendered no pane at ${size.name}`).toBeGreaterThan(0);

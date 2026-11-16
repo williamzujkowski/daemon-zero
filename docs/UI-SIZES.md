@@ -227,37 +227,65 @@ Measured at 360x640, from that run:
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
 | `phase-1-widgets` | 427 | 427 | 0 | yes / yes |
-| `epistemic-ready-p2` | 505 | 661 | **156** | **yes / no** |
+| `epistemic-ready-p2` | 505 | 617 | **112** | **yes / no** |
 | `corporate-insolvent` | 628 | 628 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
 once time passes, because time-gated notices appear above the purchase. The opening and
 insolvency states do not move. Measured across the whole matrix, only that one state shifts,
-by 112 to 156px depending on the size:
+and by the same 112px at every size:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 517 | 673 | 156 | yes / **no** |
-| 360x640 | 505 | 661 | 156 | yes / **no** |
-| 390x844 | 489 | 645 | 156 | yes / yes |
-| 414x896 | 470 | 604 | 134 | yes / yes |
-| 768x1024 | 597 | 753 | 156 | yes / yes |
+| 320x568 | 517 | 629 | 112 | yes / **no** |
+| 360x640 | 505 | 617 | 112 | yes / **no** |
+| 390x844 | 489 | 601 | 112 | yes / yes |
+| 414x896 | 470 | 582 | 112 | yes / yes |
+| 768x1024 | 597 | 709 | 112 | yes / yes |
 | 844x390 | 376 | 488 | 112 | no / no |
-| 900x640 | 529 | 663 | 134 | yes / **no** |
+| 900x640 | 529 | 641 | 112 | yes / **no** |
 | 1024x768 | 529 | 641 | 112 | yes / yes |
-| 1080x800 | 525 | 659 | 134 | yes / yes |
+| 1080x800 | 525 | 637 | 112 | yes / yes |
 | 1440x900 | 405 | 517 | 112 | yes / yes |
 | 1920x1080 | 405 | 517 | 112 | yes / yes |
 | 2560x1440 | 405 | 517 | 112 | yes / yes |
 
 Both tables carry the figures measured after #89's forecast compaction, which lowers the
 frozen and the running figure by the same 22px on 360-414 (44px at 320) and so changes no
-delta. Before that change the running column was re-read from the `geometry-running`
-annotations at `a2a5447`, in two consecutive matrix runs that agreed on every cell. An earlier
-revision of this table recorded a delta of 112 at every size after the wild-signal notice was
-compacted to one line. That no longer holds: the delta is now 156 at 320, 360, 390 and 768
-wide, 134 at 414, 900 and 1080, and 112 at 844x390, 1024 and from 1440 up. Which change added
-the 22 and 44px was not isolated, so no cause is claimed here; it is tracked as #162. On the
+delta, and after the fix for #162 below.
+
+The 112 is two blocks that mount once time passes, and nothing else moves: `response-notice`
+at 64px, and `wild-signal-notice` at 44px plus a 4px gap. Diffing every testID'd block before
+and after resuming the clock gives the same two at 360x640 and at 1440x900.
+
+**#162: the delta read 156 and 134 on seven cells, and the cause was one wrapped label.**
+Between #152 and this fix the matrix read 156 at 320, 360, 390 and 768 wide, 134 at 414, 900
+and 1080, and 112 elsewhere. Bisected with the matrix, building each tree:
+
+| Tree | 360x640 | 414x896 | 1440x900 | `wild-signal-notice` at 360 |
+| --- | --- | --- | --- | --- |
+| `d89b823`, before #152 | 134 | 134 | 112 | 66px, one text on two lines |
+| #152, first commit (`100661f`) | 112 | 112 | 112 | 44px, one shortened line |
+| #152, second commit (`92d3954`), and `afeccdb` as merged | **156** | **134** | 112 | **88px** |
+| #153, #154, #155, #156, and main before this fix | 156 | 134 | 112 | 88px |
+| with `[ REVIEW ]` unable to shrink | 112 | 112 | 112 | 44px |
+
+So nothing after #152 moved it - not the memory line (#153), the seized hosts (#155) or the
+`[ ▶ READ ]` control (#156). #152's review fix split `[ REVIEW ]` into its own element so the
+ellipsis could not take it, and restored the full `SIGNAL PENDING //` prefix for axe. On
+react-native-web every `Text` can shrink, so the name and the affordance shared the shortfall
+in proportion to their widths: at 360 the 84px `[ REVIEW ]` was squeezed to 60px and broke
+onto three lines (66px of text in an 88px control), and onto two at 414, 900 and 1080 where
+the column is a little wider. The 112 this table recorded at the time was the figure of the
+PR's first commit and does not match the tree that merged. The fix is `flexShrink: 0` on the
+affordance, which is what the one-line design already said: the name alone truncates. The
+matrix now asserts the offset per state at every size (`RUNNING_CLOCK_OFFSET` in
+`tests/e2e/ui-sizes.e2e.ts`), so a wrapped notice or a new block above the purchase fails
+the run instead of drifting into a table. The cost is in the name: at 320 the text has 168px of the
+329 it wants and at 360 208px, and the prefix takes the first 152, so the signal's own name is all but ellipsed at 320 and cut to a few letters at 360,
+while the full text stays in the accessible label.
+
+On the
 viewport basis this table uses, 320x568, 360x640 and 900x640 are the cells that flip; only the
 last two carry a promise. Every sampled
 state other than mid-game still moves by 0. So the promise row above is qualified rather
@@ -300,7 +328,7 @@ growth is the number to watch if this is revisited.
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
    phone tier (#143), mid-game does too - **on a paused clock**: the first purchase reads 505
    against 595 since the forecast compaction (#89). With the clock running the same cell
-   reads 661 and does not clear, so that claim is a budget rather than a promise (see the
+   reads 617 and does not clear, so that claim is a budget rather than a promise (see the
    paused-clock section above).
    Compacting the two time-gated notices on the phone tier returned 22px, not the 78px
    estimated when the vote was taken, because both blocks are floored by their own 44px
@@ -414,8 +442,9 @@ full sentence stays the accessible name; wide tiers keep the sentence unchanged.
   | 768x1024, 844x390, 900 and wider | unchanged | unchanged | unchanged | unchanged |
 
   The gain is the estimate, 22px, not more: it flips no supported cell. 360x640 insolvency
-  still ends at 672 against a 640 viewport, and 360x640 mid-game on a running clock ends at
-  705. The one verdict that moves is in the tolerated tier - 320x568 mid-game now ends at 561
+  still ends at 672 against a 640 viewport, and 360x640 mid-game on a running clock ended at
+  705 (661 since #162, when the running column dropped to 629, 617, 601 and 582 on the four
+  phone rows above). The one verdict that moves is in the tolerated tier - 320x568 mid-game now ends at 561
   inside its 568 viewport on a paused clock, still behind the tab bar at 523. With an
   interrupt inbound - a state no sampled fixture holds, measured by patching one in - the
   full sentence is three lines at 360 and the gain is 44px there (22-44px at 320, 390 and
