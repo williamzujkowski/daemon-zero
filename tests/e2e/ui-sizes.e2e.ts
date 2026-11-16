@@ -54,6 +54,10 @@ type Geometry = {
 /** The page context supplies the DOM; happy-dom's types are the project's typed stand-in. */
 type DomElement = NonNullable<ReturnType<Window['document']['querySelector']>>;
 
+/** How long the clock runs before the second read. Notices are time-gated, so the figure
+ *  is a sample of a running game rather than a precise value - the point is its scale. */
+const RUNNING_CLOCK_SETTLE_MS = 1500;
+
 function readGeometry(): Geometry {
   const browser = globalThis as unknown as Window;
   const box = (element: DomElement | null) => (element ? element.getBoundingClientRect() : null);
@@ -118,6 +122,16 @@ test.describe('size matrix invariants', () => {
         try {
           const geometry = await page.evaluate(readGeometry);
           test.info().annotations.push({ type: 'geometry', description: JSON.stringify({ fixture, ...geometry }) });
+          // The contract above is measured on a PAUSED clock, which is what makes it
+          // reproducible - and the game always runs. Running it moves the first purchase
+          // 112-134px further down (nexus vote: keep-frozen-add-a-running-column, 6 of 6),
+          // so the same cell is measured again with time passing and annotated separately.
+          // Assertions stay on the frozen contract; this column exists so no reader
+          // mistakes a budget for live behaviour.
+          await page.clock.resume();
+          await page.waitForTimeout(RUNNING_CLOCK_SETTLE_MS);
+          const running = await page.evaluate(readGeometry);
+          test.info().annotations.push({ type: 'geometry-running', description: JSON.stringify({ fixture, ...running }) });
           expect(geometry.overflow, `${fixture} horizontal overflow at ${size.name}`).toBe(false);
           expect(geometry.undersized, `${fixture} controls under 44px at ${size.name}`).toEqual([]);
           expect(geometry.paneHeights.length, `${fixture} rendered no pane at ${size.name}`).toBeGreaterThan(0);
