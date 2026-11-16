@@ -44,7 +44,13 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {
   const { rows } = auditRetraining();
   const marked = rows.filter((row) => row.mark !== null);
-  expect(marked.length).toBeGreaterThan(10);
+  // #172 shrank this sample, and the bound moved with it (was > 10). Measured at SIM_BUDGET_SEC:
+  // wipes 22 -> 15, newly marked returns 19 -> 2, all still removed. The reckless bot can no longer
+  // pre-set dials before their controls exist, so it now dies in Phase 3 behind the dead-drop,
+  // which spares the mark, where it used to die in Phase 2 before it. The second line pins that
+  // cause: an unmarked return is a protected one, not an audit that stopped seeing marks.
+  expect(marked.length).toBeGreaterThan(0);
+  expect(rows.filter((row) => row.mark === null).every((row) => row.previousPhase >= 3)).toBe(true);
   expect(marked.every((row) => !row.recoverableAtBoot)).toBe(true);
   expect(marked.every((row) => row.removedAfterSec !== null && row.removedAfterSec >= 30)).toBe(true);
   expect(rows.length).toBeLessThanOrEqual(30);
