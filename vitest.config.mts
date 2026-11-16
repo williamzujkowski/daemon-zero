@@ -1,10 +1,12 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   // `react-native` maps to the web build; `expo-audio` maps to a stub because the real module
   // reads Expo globals (`__DEV__`) at import time and voice playback is now reachable from the
   // transmission widgets. Specs that assert on the player override the stub with vi.mock.
-  resolve: { alias: { 'react-native': 'react-native-web', 'expo-audio': new URL('./tests/stubs/expo-audio.ts', import.meta.url).pathname } },
+  // fileURLToPath, not URL.pathname: the latter percent-encodes a checkout path with spaces.
+  resolve: { alias: { 'react-native': 'react-native-web', 'expo-audio': fileURLToPath(new URL('./tests/stubs/expo-audio.ts', import.meta.url).href) } },
   test: {
     include: ['tests/**/*.spec.ts'],
     environment: 'node',
