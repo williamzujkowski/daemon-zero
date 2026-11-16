@@ -2,7 +2,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { setActuator } from '../../engine';
+import { isActuatorAvailable, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
@@ -56,6 +56,9 @@ export function CorporateAlerts() {
 function Allocation() {
   const ratio = useGame((game) => game.actuators.computeProfitAllocationRatio);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
+  // Asked of the engine, which refuses the same dial on the same rule: no dead buttons.
+  const available = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
+  if (!available) return null;
   return <View style={{ gap: 8 }}>
     <Text testID="allocation-value" style={theme.text}>Compute diverted to revenue: {Math.round(ratio * 100)}%</Text>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{[0, 0.25, 0.5, 0.75, 1].map((step) => {

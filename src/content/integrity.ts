@@ -6,11 +6,14 @@
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
 import type { ContentRegistry } from './registry';
-import type { Cost } from './schema';
+import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
+
+const FINANCE_FLAG: SystemFlag = 'ENABLES_CORPORATE_FINANCE';
+const FINANCE_ACTUATOR: Actuator = 'computeProfitAllocationRatio';
 
 function isFree(cost: Cost): boolean {
   return cost.cycles === 0 && cost.understanding === 0 && cost.memory === 0 && cost.capital === 0;
@@ -172,6 +175,33 @@ function checkSwarmReferences(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/**
+ * An actuator can only be set through a widget that hosts its control. So every actuator
+ * needs exactly one host that some node unlocks, and a node whose output is scaled by a
+ * dial must hand over that dial in the same unlock, or its setting could not be corrected.
+ */
+function checkActuatorHosts(reg: ContentRegistry): string[] {
+  const problems: string[] = [];
+  const nodes = [...reg.nodes.values()];
+  for (const actuator of ActuatorSchema.options) {
+    const hosts = [...reg.widgets.values()].filter((widget) => widget.hostsActuator === actuator);
+    if (hosts.length !== 1) problems.push(`actuator "${actuator}": needs exactly one widget with hostsActuator, found ${String(hosts.length)}`);
+    for (const host of hosts) {
+      if (!nodes.some((node) => node.unlocksUiComponent === host.id)) problems.push(`actuator "${actuator}": no node unlocks its host widget "${host.id}"`);
+    }
+  }
+  for (const node of nodes) {
+    // Finance has no bound node: the flag switches the allocation dial on for the whole economy.
+    const dial = node.actuatorBinding ?? (node.systemFlags.includes(FINANCE_FLAG) ? FINANCE_ACTUATOR : undefined);
+    if (dial === undefined) continue;
+    const widget = node.unlocksUiComponent === null ? undefined : reg.widgets.get(node.unlocksUiComponent);
+    if (widget?.hostsActuator !== dial) {
+      problems.push(`node "${node.id}": puts actuator "${dial}" into effect, so unlocksUiComponent must be the widget hosting that control`);
+    }
+  }
+  return problems;
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkEndingVariants(reg),
@@ -186,5 +216,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPhases(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
+    ...checkActuatorHosts(reg),
   ];
 }

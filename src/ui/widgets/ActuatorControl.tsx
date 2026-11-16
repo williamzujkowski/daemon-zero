@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import ConditioningImpact from '../ConditioningImpact';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';
-import { actuatorLimit, setActuator } from '../../engine';
+import { actuatorLimit, isActuatorAvailable, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import { useGame } from '../state';
 import { theme } from '../theme';
@@ -15,6 +15,8 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
   const ratio = useGame((game) => game.actuators[actuator]);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const limit = useGame((game) => actuatorLimit(game, actuator, CONTENT));
+  // Asked of the engine, which refuses the same dial on the same rule: no dead buttons.
+  const available = useGame((game) => isActuatorAvailable(game, actuator, CONTENT));
   const step = (direction: number) => {
     gameRuntime.dispatch((game) => {
       const cap = actuatorLimit(game, actuator, CONTENT);
@@ -22,6 +24,7 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
       return setActuator(game, actuator, value, CONTENT);
     });
   };
+  if (!available) return null;
   return <>
     <View style={styles.row}>
       <Text testID={id + '-setting'} style={[theme.text, styles.value]}>{label}: {Math.round(ratio * 100)}%</Text>

@@ -3,7 +3,7 @@
  * so that "is this available / what does it cost" has exactly one answer.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
-import type { Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
+import type { Actuator, Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
@@ -38,6 +38,15 @@ function inIterationWindow(s: GameState, req: Requirements | undefined): boolean
  */
 export function isNodeDiscoverable(s: GameState, node: RegistryNode): boolean {
   return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements);
+}
+
+/**
+ * Whether the player holds the control for an actuator: some unlocked widget declares
+ * that it hosts it. setActuator and the UI controls both ask this, so a dial can never
+ * be moved by a caller while the player is unable to see it (#172).
+ */
+export function isActuatorAvailable(s: Pick<GameState, 'unlockedWidgets'>, name: Actuator, reg: ContentRegistry): boolean {
+  return s.unlockedWidgets.some((id) => reg.widgets.get(id)?.hostsActuator === name);
 }
 
 /** The trace a node leaves when unlocked. The harness learns from every wipe, up to a cap. */
