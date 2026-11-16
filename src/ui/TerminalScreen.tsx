@@ -5,6 +5,7 @@ import { Pressable, Text, View } from './PhaseTheme';
  */
 import { useEffect, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
+import { useEdgePadding } from './safeArea';
 import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
@@ -95,8 +96,13 @@ function Terminal() {
   const active = slots.includes(selection.slot) ? selection.slot : 'CORE';
   const ready = useGameValue(selectReady);
   const ended = useGame((game) => game.ending !== null);
+  // The root owns every edge: the header clears the notch or status bar, the bottom tab bar
+  // (or whichever pane reaches the bottom) clears the home indicator, and the background
+  // still paints underneath. Android's status bar arrives as the top inset under
+  // edge-to-edge, so the old StatusBar.currentHeight pad would now be counted twice.
+  const edges = useEdgePadding();
   if (ended) return <View style={styles.screen}><EndingScreen /></View>;
-  return <View testID="terminal-screen" aria-busy={!ready} style={styles.screen}>
+  return <View testID="terminal-screen" aria-busy={!ready} style={[styles.screen, edges]}>
     <StatusBar barStyle="light-content" />
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
@@ -189,7 +195,7 @@ function ChromeBody({ landmark }: { landmark?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, minHeight: 0, backgroundColor: palette.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  screen: { flex: 1, minHeight: 0, backgroundColor: palette.background },
   header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
   headerNarrow: { paddingHorizontal: 10, gap: 6 },
   // The title yields the row's spare width and the status line takes a full row

@@ -11,6 +11,7 @@ import { selectReady, useGameValue } from '../app/selectors';
 import ConfirmDialog from './ConfirmDialog';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 interface Request {
   id: string; title: string; detail: string; action: () => ActionResult; closeAfter?: boolean;
@@ -74,7 +75,7 @@ function Drawer({ close }: { close: () => void }) {
     if (result.ok && closeAfter) close();
   };
   return <Modal visible transparent animationType="none" accessibilityLabel="Development drawer" onRequestClose={close}>
-    <View style={styles.overlay}><View testID="dev-drawer" style={styles.dialog}>
+    <SafeOverlay padding={16} style={styles.overlay}><View testID="dev-drawer" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text accessibilityRole="header" style={theme.heading}>DEVELOPMENT // SAVE EDITOR</Text>
         <Text testID="dev-manual-stats" style={theme.muted}>Manual input: {snapshotManualInputs().accepted} accepted / {snapshotManualInputs().attempted} attempted</Text>
@@ -82,7 +83,7 @@ function Drawer({ close }: { close: () => void }) {
         {status !== null && <Text testID="dev-status" accessibilityRole="alert" style={theme.text}>{status}</Text>}
         <SaveEditor ask={ask} /><DrawerActions ask={ask} apply={apply} />
       </ScrollView>
-    </View></View>
+    </View></SafeOverlay>
     {request !== null && <ConfirmDialog id={request.id} title={request.title} detail={request.detail} cancel={() => { ask(null); }}
       confirm={() => { apply(request.action, request.closeAfter ?? false); ask(null); }} />}
   </Modal>;
@@ -97,7 +98,7 @@ export default function DevDrawer() {
   </>;
 }
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: '#000d' },
+  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000d' },
   dialog: { width: '100%', maxWidth: 760, maxHeight: '95%', backgroundColor: palette.background, borderWidth: 1, borderColor: palette.warning },
   content: { padding: 16, gap: 14 },
   input: { borderWidth: 1, borderColor: palette.border, minHeight: 44, padding: 10 },

@@ -1,6 +1,6 @@
 /** Shared mounted-app harness for M4 controls, using the real runtime and save codec. */
 import type { HTMLElement, Window } from 'happy-dom';
-import { act, createElement } from 'react';
+import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
@@ -32,7 +32,9 @@ export function setupM4Tests(): void {
 
 export async function mountM4(
   name: string,
-  viewport: { width: number; height: number } = { width: 1440, height: 900 }
+  viewport: { width: number; height: number } = { width: 1440, height: 900 },
+  // Lets a spec mount the screen inside a context it controls (safe-area insets).
+  wrap: (screen: ReactElement) => ReactElement = (screen) => screen
 ) {
   Object.defineProperty(host.document.documentElement, 'clientWidth', { configurable: true, value: viewport.width });
   Object.defineProperty(host.document.documentElement, 'clientHeight', { configurable: true, value: viewport.height });
@@ -44,7 +46,7 @@ export async function mountM4(
   const container = host.document.createElement('div');
   host.document.body.appendChild(container);
   const root = createRoot(container);
-  await act(async () => { root.render(createElement(TerminalScreen)); await vi.advanceTimersByTimeAsync(0); });
+  await act(async () => { root.render(wrap(createElement(TerminalScreen))); await vi.advanceTimersByTimeAsync(0); });
   await act(async () => { gameStore.initialize(m4State(name), 0, null); await vi.advanceTimersByTimeAsync(0); });
   const close = () => { act(() => { root.unmount(); }); container.remove(); closes.delete(close); };
   closes.add(close);

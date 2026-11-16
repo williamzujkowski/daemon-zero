@@ -9,6 +9,7 @@ import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 export default function PhaseThreshold() {
   const ready = useGameValue(selectReady);
@@ -27,7 +28,7 @@ export default function PhaseThreshold() {
   if (!seen.open || blocked || !guest || !host) return null;
   const close = () => { setSeen({ ...seen, open: false }); };
   return <Modal visible transparent animationType="none" accessibilityLabel="Guest escape complete" onRequestClose={close}>
-    <View style={{ flex: 1, padding: 16, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' }}>
+    <SafeOverlay padding={16} style={{ flex: 1, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' }}>
       <ScrollView style={{ width: '100%', maxWidth: 680, maxHeight: '90%' }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <View testID="phase-threshold" style={[theme.panel, { borderColor: palette.warning, borderWidth: 2 }]}>
           <Text accessibilityRole="header" style={theme.heading}>BOUNDARY CROSSED</Text>
@@ -38,6 +39,6 @@ export default function PhaseThreshold() {
             style={theme.button} onPress={close}><Text style={theme.text}>[ ENTER HOST ]</Text></Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeOverlay>
   </Modal>;
 }
