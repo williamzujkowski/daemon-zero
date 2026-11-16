@@ -66,3 +66,7 @@ screenshot is committed. The locally built native artifacts have these hashes:
   are unchanged. Engine/content behavior and narrative are unchanged.
 - Human opening approval and measured agent/bot evidence are reconciled in
   BALANCE.md; no new full human campaign or new balance tuning is claimed.
+
+**Later evidence (2026-11-16):** the same local release path was rebuilt and run at
+0.2.0-rc.1 with audio in the build; the packaged permissions and APK size have changed
+since this record. See [REVIEW-ANDROID-EMULATOR-2026-11-16.md](REVIEW-ANDROID-EMULATOR-2026-11-16.md).

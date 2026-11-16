@@ -205,6 +205,14 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
 
 ## Limits, stated rather than implied
 
+Native playback has since been observed once, as state and not as sound, on an Android
+emulator with a release build (REVIEW-ANDROID-EMULATOR-2026-11-16.md): a second player starts
+on READ and stops at the clip's length, the score's track gain drops by the duck ratio and
+returns, and READ plays with music off from a cold start. Each "unexercised and needs a
+device" below should be read as "unheard, and unexercised on a physical device". The same
+run found that audio controls stop working after a system font-size change while the app
+is open, and that a removed player is not released until garbage collection on Android.
+
 - **Playback is wired but unheard.** Unit tests run against a mocked player, which proves which
   clip is handed over and that a second press cancels the first. On web,
   `tests/e2e/voice-playback.e2e.ts` drives the real adapter in the served build and proves the

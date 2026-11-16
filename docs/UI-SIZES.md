@@ -606,9 +606,12 @@ them, add `--reporter=json` and read each test's `annotations`. `make e2e` inclu
 
 ## Limits
 
-- Web export only. Native font scaling (`adb shell settings put system font_scale`)
-  and rotation are not covered here; those Android/iOS gaps stay open.
-- Safe-area insets (#89) are handled in code and **unverified on hardware**.
+- Web export only. Rotation is not covered, and native font scaling was looked at once,
+  on an emulator: at `font_scale` 1.0 the phone forecast is one line on a 411 dp
+  display, at 1.3 and 2.0 it wraps to two, and nothing clipped (REVIEW-ANDROID-EMULATOR-2026-11-16.md).
+  Other screens at large native font sizes, and iOS, stay open.
+- Safe-area insets (#89) are handled in code, seen working on an Android emulator and
+  **unverified on hardware**.
   `react-native-safe-area-context` 5.11.1 wraps the app (`App.tsx`), and
   `src/ui/safeArea.tsx` is the only place an inset becomes padding: the terminal root
   pads all four edges, so the header clears the notch or status bar and the bottom tab
@@ -623,9 +626,13 @@ them, add `--reporter=json` and read each test's `annotations`. `make e2e` inclu
     provider already reads `env(safe-area-inset-*)`, but without `cover` a browser
     keeps the page inside the safe area itself and those values are 0. Opting in would
     draw under the notch on iOS Safari, which nothing here can measure.
-  - Not exercised: no iOS device or simulator exists here and no Android device or
-    emulator was used. Real inset values, an Android window that is not edge-to-edge,
-    insets inside a native `Modal` window, and landscape side insets are all unseen.
+  - Emulator only (API 36, release build, REVIEW-ANDROID-EMULATOR-2026-11-16.md): the header
+    starts exactly at the status-bar inset, so the removed pad was neither doubled nor
+    lost; the tab bar ends at the navigation inset for gesture and three-button bars and
+    a simulated bottom cutout; menu and dilemma `Modal` windows stay inside both.
+  - Not exercised: no iOS device or simulator exists here and no physical Android device.
+    A real notch, an Android window that is not edge-to-edge, and landscape side insets
+    are all unseen.
 - Geometry and console assertions, not pixel comparison: rendering differs by host
   and committed PNG baselines would break the repository's no-screenshots rule.
 - The three sampled states are engine-played saves, not a human playthrough, and
