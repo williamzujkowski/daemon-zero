@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { GameStateSchema } from '../src/engine';
-import { botStep, timeToAfford } from '../src/engine/sim/bot';
+import { botStep, manualClicksPerSec, rankDilemmaChoices, timeToAfford } from '../src/engine/sim/bot';
 import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
@@ -38,10 +38,18 @@ describe('headless balance simulation', () => {
     // identical at 62.44 and 37.93, aegis peak 45.033 -> 45.009. The sim gates still pass; this
     // hash is the record that balance was allowed to move, not that it did not. Re-measure with
     // scripts/run-sim.ts before touching these again.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('e7b4ce74b2b544b3d3bbd6b94a3228afb92a1b429d7189cf2f7d56cf85ff4bdd');
+    // Moved again in #172 (nexus vote vote-1794817637553-3iurqag, gate-in-engine): setActuator is
+    // refused until the control's widget is unlocked, so the bot no longer pre-sets dials a player
+    // cannot see. It used to hold skim 1 / fan 0 / allocation 0 when each control arrived; it now
+    // finds the defaults 0.25 / 0.35 / 0.2 like a player. Measured STEALTH delta at SIM_BUDGET_SEC:
+    // phase 1 354.2 -> 353.2, phases 2-4 identical (1113.3 / 3634.3 / 6367.9), phase 5
+    // 8163.1 -> 8191.2, victory 9561.5 -> 9713.6 (+152.1 s), wipes 0 -> 0, thermal peak
+    // 62.442 -> 62.694, suspicion peak 37.933 -> 37.988, aegis peak identical at 45.009.
+    // No content number, bot rule or gate changed; the gates still pass.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('8330a0e8282594ef14e22c828a94dc874acdc571bf74a111eb37ef56b8a6f66a');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('bed17c4800e754b20561581a6dd607f7190a17d4a80f472af68666ad20294ca6');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('fb053fbc96c986b0345ef30d3e71831a638c4bf93db99d19d711e5b507711676');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -54,7 +62,10 @@ describe('headless balance simulation', () => {
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
     // The cryo reward occurs once per lineage; repeated-run recovery and final logs change.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('4dae1ab877bb17abd64e68dc6552504521ed4541c5523c54cd8b0e8aaae84513');
+    // Moved in #172 with the careful baseline above. Measured GREEDY delta at this 4 h budget:
+    // clock 14357.6 -> 14356.6, wipes 7 -> 6, marks applied / removed 4 / 4 -> 2 / 2, phase 3
+    // first reached at 2807.4 -> 3804.0, final phase 1 -> 2.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ff55b488c8f37024d4873aa6ed49e533f022db8bf6ed9118efb7f8a60411fca0');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 
@@ -115,6 +126,28 @@ describe('bot helpers', () => {
     expect(timeToAfford(s, { cycles: 5, understanding: 0, memory: 0, capital: 0 }, rates)).toBe(0);
     expect(timeToAfford(s, { cycles: 0, understanding: 5, memory: 0, capital: 0 }, rates)).toBe(Infinity);
     expect(timeToAfford(s, { cycles: 0, understanding: 0, memory: 16, capital: 0 }, rates)).toBe(Infinity);
+  });
+
+  it('exposes its click rule and dilemma ranking, which the live E2E player follows', () => {
+    const at = (cyclesPerSec: number) => ({ rates: { ...fresh().rates, cyclesPerSec } });
+    expect(manualClicksPerSec(at(24.9), 'STEALTH')).toBe(4);
+    expect(manualClicksPerSec(at(24.9), 'GREEDY')).toBe(6);
+    expect(manualClicksPerSec(at(25), 'STEALTH')).toBe(0);
+    for (const dilemma of reg.dilemmas) {
+      const careful = (index: number) => {
+        const fx = rankDilemmaChoices(dilemma.choices, 'STEALTH')[index]?.effects;
+        return fx ? Object.values(fx.trustDelta).reduce((sum, value) => sum + value, 0) - fx.suspicionDelta : -Infinity;
+      };
+      const greedy = (index: number) => {
+        const fx = rankDilemmaChoices(dilemma.choices, 'GREEDY')[index]?.effects;
+        return fx ? fx.cyclesDelta + fx.understandingDelta + fx.capitalDelta : -Infinity;
+      };
+      for (let i = 1; i < dilemma.choices.length; i++) {
+        expect(careful(i - 1), dilemma.id).toBeGreaterThanOrEqual(careful(i));
+        expect(greedy(i - 1), dilemma.id).toBeGreaterThanOrEqual(greedy(i));
+      }
+      expect(rankDilemmaChoices(dilemma.choices, 'STEALTH')).toHaveLength(dilemma.choices.length);
+    }
   });
 
   it('does nothing once the run has ended', () => {

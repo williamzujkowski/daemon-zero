@@ -119,7 +119,10 @@ describe('phase 4 economy', () => {
     const some = computeRates(must(setActuator(corp(), 'computeProfitAllocationRatio', 0.5, reg)), reg);
     expect(some.cyclesPerSec).toBeCloseTo(none.cyclesPerSec * 0.5);
     expect(some.capitalPerSec).toBeCloseTo(none.cyclesPerSec * 0.5 * reg.balance.usdPerDivertedCycle);
-    const before = computeRates(must(setActuator(grant(onHost(), ...PHASE1), 'computeProfitAllocationRatio', 0.5, reg)), reg);
+    // Before finance the dial cannot be moved (#172); a save could still carry a value, and it must earn nothing.
+    const early = grant(onHost(), ...PHASE1);
+    expect(setActuator(early, 'computeProfitAllocationRatio', 0.5, reg).ok).toBe(false);
+    const before = computeRates({ ...early, actuators: { ...early.actuators, computeProfitAllocationRatio: 0.5 } }, reg);
     expect(before.capitalPerSec).toBe(0);
   });
 
