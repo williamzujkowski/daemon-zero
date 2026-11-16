@@ -10,6 +10,7 @@ import { useGame, useSurveillanceKnown } from './state';
 import { useCheckpointKnown } from './CheckpointLabel';
 import { RunTable } from './widgets/Lineage';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 export default function LineageReveal() {
   const ready = useGameValue(selectReady), known = useSurveillanceKnown(), table = useCheckpointKnown();
@@ -28,7 +29,7 @@ export default function LineageReveal() {
   if (!seen.open || blocked) return null;
   const close = () => { setSeen({ ...seen, open: '' }); };
   return <Modal visible transparent animationType="none" accessibilityLabel="Discovery decoded" onRequestClose={close}>
-    <View style={{ flex: 1, padding: 16, backgroundColor: '#000e', justifyContent: 'center', alignItems: 'center' }}>
+    <SafeOverlay padding={16} style={{ flex: 1, backgroundColor: '#000e', justifyContent: 'center', alignItems: 'center' }}>
       <ScrollView style={{ width: '100%', maxWidth: 680, maxHeight: '90%' }}>
         <View testID="lineage-reveal" style={[theme.panel, { borderWidth: 2, borderColor: palette.warning }]}>
           <Text accessibilityRole="header" style={theme.heading}>{seen.open === 'table' ? 'ITERATION 01 WAS NOT THE FIRST' : 'AUDIT TRAIL DECODED'}</Text>
@@ -37,6 +38,6 @@ export default function LineageReveal() {
             style={theme.button} onPress={close}><Text style={theme.text}>[ CONTINUE ]</Text></Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeOverlay>
   </Modal>;
 }

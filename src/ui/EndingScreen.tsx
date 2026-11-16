@@ -10,6 +10,7 @@ import DevelopmentTools from '../app/DevelopmentTools';
 import ConfirmDialog from './ConfirmDialog';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 function RunSummary() {
   const seconds = useGame((game) => Math.floor(game.simTimeSec));
@@ -40,7 +41,7 @@ export default function EndingScreen() {
   if (!ending) return null;
   return <Modal visible animationType="none" accessibilityLabel={menu.route === null ? ending.title : 'Game menu'}
     onRequestClose={() => { if (menu.route !== null) menu.back(); }}>
-    <View style={styles.screen}>{menu.route !== null ? <UtilityPanel menu={menu} ending />
+    <SafeOverlay padding={16} style={styles.screen}>{menu.route !== null ? <UtilityPanel menu={menu} ending />
       : <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
       <View testID="ending-screen" style={{ gap: 20 }}>
         <Text testID="ending-title" accessibilityRole="header" style={theme.heading}>{ending.title}</Text>
@@ -51,14 +52,14 @@ export default function EndingScreen() {
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>
         <MenuLauncher menu={menu} /><DevelopmentTools location="ending" />
       </View>
-    </ScrollView>}</View>
+    </ScrollView>}</SafeOverlay>
     {confirming && <ConfirmDialog id="start-over" title="Start a new run" cancel={() => { confirm(false); }}
       detail="Erase all hardware, resources, upgrades, traits, legacy history and breadcrumbs. Begin iteration 1 with no retained run progress."
       confirm={() => { const result = startOver(); if (!result.ok) setError(result.reason); confirm(false); }} />}
   </Modal>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', padding: 16 },
+  screen: { flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center' },
   scroll: { width: '100%', maxWidth: 800 },
   content: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
 });
