@@ -1,5 +1,7 @@
 /** Owns one player and its lifecycle outside the terminal's restore identity.
  * Game ticks never reach the audio backend unless phase/run identity changes.
+ * It also holds the whole stored audio preference, speech fields included, because the two
+ * halves share one storage slot and must be written together; it plays no speech itself.
  */
 import { createStore } from 'zustand/vanilla';
 import type { GameStore } from './store';
@@ -49,7 +51,7 @@ export class MusicController {
     void this.preferences.load().then((value) => {
       if (this.live && generation === this.generation) this.state.setState({ ...value, loaded: true });
     }).catch(() => {
-      if (this.live && generation === this.generation) this.state.setState({ loaded: true, storageNotice: 'Audio settings could not be loaded. Music remains off.' });
+      if (this.live && generation === this.generation) this.state.setState({ loaded: true, storageNotice: 'Audio settings could not be loaded. Music and speech remain off.' });
     });
     const stopGame = this.game.store.subscribe(() => { this.syncGame(); });
     const stopLife = this.lifecycle.subscribe((active) => {
@@ -94,6 +96,20 @@ export class MusicController {
     const value = Math.max(0, Math.min(100, Math.round(volume)));
     this.state.setState({ volume: value });
     this.player?.volume(this.level(value));
+    this.persist();
+  }
+
+  /** Speech has its own switch: it offers or withdraws READ and never touches the score. */
+  toggleSpeech(): void {
+    if (!this.state.getState().loaded) return;
+    this.state.setState({ speechEnabled: !this.state.getState().speechEnabled });
+    this.persist();
+  }
+
+  /** The clip in flight follows this through the widgets that subscribe to it. */
+  setSpeechVolume(volume: number): void {
+    if (!Number.isFinite(volume)) return;
+    this.state.setState({ speechVolume: Math.max(0, Math.min(100, Math.round(volume))) });
     this.persist();
   }
 
@@ -159,9 +175,9 @@ export class MusicController {
   }
 
   private persist(): void {
-    const { enabled, volume } = this.state.getState();
+    const { enabled, volume, speechEnabled, speechVolume } = this.state.getState();
     const generation = this.generation;
-    void this.preferences.save({ version: 1, enabled, volume }).then(() => {
+    void this.preferences.save({ version: 2, enabled, volume, speechEnabled, speechVolume }).then(() => {
       if (this.live && generation === this.generation) this.state.setState({ storageNotice: '' });
     }).catch(() => {
       if (this.live && generation === this.generation) this.state.setState({ storageNotice: 'Audio settings could not be saved. Changes apply for this session.' });
