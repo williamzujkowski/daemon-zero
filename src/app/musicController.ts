@@ -10,6 +10,14 @@ import { musicPhase, type MusicPhase } from './musicTracks';
 
 export interface MusicPlayer { play(): void; pause(): void; volume(value: number): void; remove(): void }
 interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase: MusicPhase, changed: (playing: boolean, error: boolean) => void): MusicPlayer }
+/**
+ * How much of its preference level the soundtrack keeps while a transmission is being read.
+ * Score and clips both measure about -15 LUFS, so at equal preference they compete; 0.35 is
+ * roughly -9 dB, the low end of the usual range for music under speech, chosen so the score
+ * stays present rather than cutting out. It is a reasoned starting value, not a tuned one:
+ * nobody has listened to it through the app.
+ */
+export const DUCK_RATIO = 0.35;
 const blockedMessage = 'Playback unavailable. Try Resume music; check your device volume if silent.';
 
 export class MusicController {
@@ -25,6 +33,7 @@ export class MusicController {
   private generation = 0;
   private playerGeneration = 0;
   private activationAttempt = 0;
+  private ducked = false;
   private readonly preferences;
 
   constructor(private readonly game: GameStore, private readonly lifecycle: Lifecycle, storage: KeyValueStorage,
@@ -84,8 +93,20 @@ export class MusicController {
     if (!Number.isFinite(volume)) return;
     const value = Math.max(0, Math.min(100, Math.round(volume)));
     this.state.setState({ volume: value });
-    this.player?.volume(value / 100);
+    this.player?.volume(this.level(value));
     this.persist();
+  }
+
+  /** Duck under speech. Session state only: the stored preference never sees the ducked level. */
+  setDucked(ducked: boolean): void {
+    if (ducked === this.ducked) return;
+    this.ducked = ducked;
+    this.player?.volume(this.level(this.state.getState().volume));
+  }
+
+  /** The one place a preference becomes a player level, so no write site can forget the duck. */
+  private level(volume: number): number {
+    return volume / 100 * (this.ducked ? DUCK_RATIO : 1);
   }
 
   private async activate(): Promise<void> {
@@ -119,7 +140,7 @@ export class MusicController {
         if (error) this.fail();
         else this.state.setState({ playing: playing && this.active && this.eligible && this.state.getState().activated });
       });
-      this.player.volume(volume / 100);
+      this.player.volume(this.level(volume));
       this.player.play();
     } catch { this.fail(); }
   }
