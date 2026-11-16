@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import tracks from '../../assets/audio/music/tracks.json';
-import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, test } from './helpers';
+import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
+import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, soundtrackVolume, test } from './helpers';
 
 async function openAudio(page: Page) {
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
@@ -47,3 +48,59 @@ for (const [fixture, targetPhase] of [['guest-exit-ready', 1], ['victory-ready',
     expect((await musicMediaState(page)).source).toContain('/audio/music/phase-' + String(targetPhase) + '/');
   });
 }
+
+test('a live phase change swaps the score at once and fades the new one in, one element throughout', async ({ page }) => {
+  // The cases above run on the paused clock that `boot()` installs, where a fade-in never
+  // advances: their players sit at level 0. This one runs the clock, so the score is audible
+  // when the phase changes. The old score is cut rather than faded (the new player's `play()`
+  // must stay in the press: docs/VOICE-CLIPS.md, "Ramps") and the new one fades in.
+  const level = 0.3;
+  await observeMusicMedia(page); await boot(page, 'guest-exit-ready', { audio: true }); await dismissBoot(page);
+  // The score starts on the first gesture; a press on nothing in particular is one on every tier.
+  await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
+  await expect.poll(async () => (await musicMediaState(page)).active).toBe(1);
+  await sampleScore(page, FADE_IN_MS);
+  expect(await soundtrackVolume(page)).toBe(level);
+  const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
+  if (!node) throw new Error('Missing phase transition');
+  await page.getByTestId('node-' + node.id + '-unlock').click(); await dismissBoot(page);
+  // Before the clock has moved at all: the swap needed no timer, and there is one score.
+  const swapped = await musicMediaState(page);
+  expect(swapped.count).toBe(2);
+  expect(swapped.active).toBe(1);
+  expect(swapped.source).toContain('/audio/music/phase-1/');
+  expect(await soundtrackVolume(page), 'the new score starts from silence').toBe(0);
+
+  const samples = await sampleScore(page, FADE_IN_MS);
+  expect(samples.map((sample) => sample.active), 'never two scores and never none').toEqual(samples.map(() => 1));
+  expect(samples.every((sample) => sample.source.includes('/audio/music/phase-1/'))).toBe(true);
+  const arriving = samples.map((sample) => sample.volume ?? Number.NaN);
+  expect(arriving.filter((value) => value > 0 && value < level).length, 'the new score passes through intermediate levels').toBeGreaterThan(0);
+  expect(arriving.every((value, index) => index === 0 || value >= (arriving[index - 1] ?? 0)), 'up only: ' + arriving.join(', ')).toBe(true);
+  expect(arriving.at(-1), 'and ends exactly on the preference level').toBe(level);
+  // More clock moves nothing: no ramp is left running.
+  await page.clock.runFor(FADE_IN_MS);
+  expect(await soundtrackVolume(page)).toBe(level);
+  expect((await musicMediaState(page)).count).toBe(2);
+});
+
+test('switching music off says so at once and fades the score out before releasing it', async ({ page }) => {
+  const level = 0.3;
+  await observeMusicMedia(page); await boot(page, 'tick-0', { audio: true }); await dismissBoot(page);
+  await openAudio(page);
+  await expect.poll(async () => (await musicMediaState(page)).active).toBe(1);
+  await sampleScore(page, FADE_IN_MS);
+  expect(await soundtrackVolume(page)).toBe(level);
+  await page.getByTestId('music-toggle').click();
+  // The status reports the setting, not the tail: off now, while the element is still fading.
+  await expect(page.getByTestId('music-status')).toHaveText('Music is off.');
+  expect(await soundtrackVolume(page), 'not cut: still at its level until the clock moves').toBe(level);
+  const samples = await sampleScore(page, FADE_OUT_MS);
+  const fading = samples.slice(0, -1).map((sample) => sample.volume ?? Number.NaN);
+  expect(fading.every((value) => value > 0 && value < level), 'intermediate levels all the way: ' + fading.join(', ')).toBe(true);
+  expect(fading.every((value, index) => index === 0 || value <= (fading[index - 1] ?? 0)), 'down only').toBe(true);
+  expect(samples.slice(0, -1).every((sample) => sample.active === 1)).toBe(true);
+  // The last step reaches silence and releases the player in the same tick.
+  expect(samples.at(-1)).toEqual({ volume: null, source: '', active: 0 });
+  expect((await musicMediaState(page)).count, 'nothing was created in its place').toBe(1);
+});

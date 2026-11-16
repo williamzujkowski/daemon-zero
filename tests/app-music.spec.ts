@@ -1,7 +1,7 @@
 /** Controller tests exercise real preference validation and deterministic lifecycle/player boundaries. */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MusicPhase } from '../src/app/musicTracks';
-import { DUCK_RATIO, MusicController } from '../src/app/musicController';
+import { DUCK_RATIO, FADE_IN_MS, FADE_OUT_MS, MusicController } from '../src/app/musicController';
 import { AUDIO_KEY, audioPreferences, silentPreferences } from '../src/app/audioPreferences';
 import { createGameStore } from '../src/app/store';
 import { CONTENT } from '../src/content';
@@ -10,6 +10,11 @@ import type { KeyValueStorage } from '../src/app/storage';
 import { memoryStorage } from './app-helpers';
 
 async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
+/** Levels now arrive by ramp (tests/app-music-ramps.spec.ts owns their shape); these cases are
+ *  about where a level ends up, so they let whatever ramp is in flight run out first. */
+function ramped() { vi.advanceTimersByTime(FADE_OUT_MS + FADE_IN_MS); }
+beforeEach(() => { vi.useFakeTimers(); });
+afterEach(() => { vi.useRealTimers(); });
 /** Every case below starts from an explicit opt-out, so a default-on install is the one
  *  thing a test has to ask for; the default itself is covered separately. */
 function optedOut(): KeyValueStorage {
@@ -231,19 +236,19 @@ describe('ducking under speech', () => {
     const storage = memoryStorage();
     storage.setItem(AUDIO_KEY, JSON.stringify({ version: 1, enabled: true, volume }));
     const h = harness(storage); await settle();
-    h.controller.resume(); await settle();
+    h.controller.resume(); await settle(); ramped();
     return h;
   }
 
   it('drops the live player to the duck ratio and restores the preference level', async () => {
     const h = await playing();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
-    h.controller.setDucked(true);
+    h.controller.setDucked(true); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * DUCK_RATIO);
     const writes = h.player.volume.mock.calls.length;
-    h.controller.setDucked(true);
+    h.controller.setDucked(true); ramped();
     expect(h.player.volume, 'a repeated signal writes nothing').toHaveBeenCalledTimes(writes);
-    h.controller.setDucked(false);
+    h.controller.setDucked(false); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
     h.stop();
   });
@@ -251,12 +256,12 @@ describe('ducking under speech', () => {
   it('keeps a volume change made while ducked ducked, and stores the undiminished preference', async () => {
     const h = await playing();
     h.controller.setDucked(true);
-    h.controller.setVolume(80); await settle();
+    h.controller.setVolume(80); await settle(); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * DUCK_RATIO);
     expect(h.controller.state.getState().volume).toBe(80);
     // The stored v1 value migrated with speech at the old shared level; only the music level moved.
     expect(await audioPreferences(h.storage).load()).toEqual({ version: 2, enabled: true, volume: 80, speechEnabled: true, speechVolume: 40 });
-    h.controller.setDucked(false);
+    h.controller.setDucked(false); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.8);
     h.stop();
   });
@@ -272,14 +277,17 @@ describe('ducking under speech', () => {
 
   it('creates the next phase player already ducked, and one created idle at full level', async () => {
     const h = await playing();
-    h.controller.setDucked(true);
+    h.controller.setDucked(true); ramped();
     h.player.volume.mockClear();
     h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 1 } }));
     expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(2);
-    // The only level the new player is ever given is the ducked one: no full-volume blip.
-    expect(h.player.volume.mock.calls).toEqual([[0.4 * DUCK_RATIO]]);
+    ramped();
+    // The new player never goes above the ducked level on its way in: no full-volume blip.
+    const levels = h.player.volume.mock.calls.map(([level]) => Number(level));
+    expect(Math.max(...levels)).toBe(0.4 * DUCK_RATIO);
+    expect(levels.at(-1)).toBe(0.4 * DUCK_RATIO);
     h.controller.setDucked(false);
-    h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 2 } }));
+    h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 2 } })); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
     h.stop();
   });
@@ -288,7 +296,7 @@ describe('ducking under speech', () => {
     const h = harness(); await settle();
     h.controller.setDucked(true);
     expect(h.player.volume).not.toHaveBeenCalled();
-    h.controller.toggle(); await settle();
+    h.controller.toggle(); await settle(); ramped();
     expect(h.player.volume).toHaveBeenLastCalledWith(silentPreferences.volume / 100 * DUCK_RATIO);
     h.stop();
   });

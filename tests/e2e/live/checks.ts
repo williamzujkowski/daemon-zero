@@ -12,7 +12,7 @@ import { expect } from '@playwright/test';
 import { DUCK_RATIO } from '../../../src/app/musicController';
 import { CONTENT } from '../../../src/content';
 import { createInitialState, deserialize, exportSave, importSave, serialize, type GameState } from '../../../src/engine';
-import { musicMediaState, soundtrackVolume, voiceClipsPlaying } from '../helpers';
+import { musicMediaState, restingSoundtrackVolume, soundtrackVolume, voiceClipsPlaying } from '../helpers';
 import { describe, Interrupted, type LivePlayer } from './player';
 
 interface Sized { document: { documentElement: { scrollWidth: number; clientWidth: number } } }
@@ -168,7 +168,8 @@ export async function readsTransmission(player: LivePlayer): Promise<boolean> {
   const started = await player.uninterrupted('starting a transmission', async () => {
     const read = await player.find('speech-read');
     if (!read) return null;
-    const level = await soundtrackVolume(page);
+    // At rest, not mid fade-in: a level read during a ramp would be the wrong baseline for the duck.
+    const level = await restingSoundtrackVolume(page);
     if (level === null) return null;
     const delivered = page.waitForResponse((response) => response.url().includes('/voice/'));
     // If the press is interrupted this wait is abandoned; it must not then fail the run by itself.
