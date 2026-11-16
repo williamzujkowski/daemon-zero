@@ -187,8 +187,8 @@ seconds (3.1 h, including the replayed opening after the wipe), ending
 `LINEAGE_COVENANT`; three consecutive `make e2e-live` runs passed on both
 viewports. `make e2e` with the smoke included: 168 cases in 2.1 minutes.
 
-Run it with `make e2e-live` (serialise with other browser suites on the same
-machine: both use port 4173). Milestone lines stream to stdout as they happen and
+Run it with `make e2e-live` (it takes the shared browser-suite lock itself and waits for other
+suites on the machine: all use port 4173). Milestone lines stream to stdout as they happen and
 the full journal is attached to the test as `journey-log`; a failure also leaves
 `journey-failure.png` in `test-results/`. Tracing is off for these two projects
 because a trace of several thousand presses is hundreds of megabytes.
@@ -228,8 +228,17 @@ that matches the question:
 | Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
 
 The scripted commands need the production export (`make build-web`) and start their own
-server on port 4173, so only one can run at a time on a machine; when several agents
-share it, serialise with `flock /tmp/daemon-zero-e2e.lock <command>`.
+server on port 4173, so only one can run at a time on a machine. `make e2e`, `make
+e2e-pages` and `make e2e-live` take the machine-wide lock themselves
+(`scripts/e2e-lock.sh`, on `/tmp/daemon-zero-e2e.lock`), wait with a notice while another
+suite holds it, and pass extra Playwright arguments through `E2E_ARGS`
+(`make e2e E2E_ARGS="--project sizes"`). Wrapping a make target in
+`flock /tmp/daemon-zero-e2e.lock` as before still works: the script finds the lock its
+caller holds on an inherited descriptor and reuses it instead of waiting on it. Two things
+are still yours to serialise: a bare `pnpm exec playwright test ...`, which needs
+`bash scripts/e2e-lock.sh <command>` (or the `flock` prefix), and a wrapper using
+`flock --close`, which hides the held lock from the script and would wait on itself.
+`tests/e2e-lock.spec.ts` covers the bare, wrapped, nested and contended cases.
 
 What a session can tell you that the suite cannot:
 

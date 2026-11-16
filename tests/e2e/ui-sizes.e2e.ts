@@ -1,6 +1,6 @@
-/** Viewport matrix: invariants that must hold at every size, plus above-the-fold checks
- * that already hold at the two baseline sizes. Layout defects at other sizes are recorded
- * in docs/UI-SIZES.md as budgets; this file must not be relaxed to hide one.
+/** Viewport matrix: invariants that must hold at every size, plus the paused-clock fold
+ * verdict of every cell docs/UI-SIZES.md states (PAUSED_FOLD). Layout defects are recorded
+ * there as named exceptions and pinned here; this file must not be relaxed to hide one.
  */
 import type { Browser, Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
@@ -37,6 +37,46 @@ function isSupported(size: { width: number | string; height: number | string }):
   return Number(size.width) >= 360 && Number(size.height) >= 640;
 }
 
+type Fixture = typeof states[number];
+type SizeName = typeof sizes[number]['name'];
+
+/** The three verdicts docs/UI-SIZES.md uses for the first purchase control, read from the
+ *  annotation and nothing else: `clears` is firstUnlockAboveUsableFold (ends at or above the
+ *  usable fold, which implies the viewport), `viewport only` is firstUnlockVisible without it
+ *  (on screen, bottom edge behind the docked tab bar), `below` is neither. */
+type FoldVerdict = 'clears' | 'viewport only' | 'below';
+const CLEARS = 'clears', BEHIND_TABS = 'viewport only', BELOW = 'below';
+
+/** The first table under "Supported floor" in docs/UI-SIZES.md, on the PAUSED clock (the
+ *  contract basis), asserted cell by cell. A change in either direction fails: a promised
+ *  cell that stops clearing is a regression, and an exception that starts clearing means the
+ *  document is now wrong the other way - correct this table and that one in the same PR.
+ *
+ *  Promise (tier table): at the 360x640 floor the opening and mid-game states clear; from 390
+ *  up every sampled state clears. The cells that do not are each named in the document: */
+const PAUSED_FOLD: Record<SizeName, Record<Fixture, FoldVerdict>> = {
+  // TOLERATED, no promise ("Neither 320x568 nor 844x390 makes an above-the-fold promise").
+  // Pinned only because the document states these six verdicts as measured facts, "Two
+  // folds" included; a change here is a stale table to correct, never a broken promise.
+  'small-phone': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': BEHIND_TABS, 'corporate-insolvent': BELOW },
+  'phone-landscape': { 'phase-1-widgets': BEHIND_TABS, 'epistemic-ready-p2': BELOW, 'corporate-insolvent': BELOW },
+  // SUPPORTED. Exception outside the promise: the floor never promised insolvency, which is
+  // accepted as a scroll under a pinned warning (vote accept-scroll-during-ending, "Still
+  // open" items 1 and 3; the scroll itself is the 'insolvency at the floor' case).
+  'phone-360': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': BELOW },
+  'phone-390': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  'phone-large': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  'tablet-portrait': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  // The ONE exception to "every sampled state from 390 up": insolvency at 900x640 ends past
+  // a 640 viewport, recorded as a gap rather than hidden ("Still open" item 3).
+  'breakpoint-edge': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': BELOW },
+  'tablet-landscape': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  'breakpoint-three': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  laptop: { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  desktop: { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+  widescreen: { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': CLEARS, 'corporate-insolvent': CLEARS },
+};
+
 type Geometry = {
   overflow: boolean;
   undersized: string[];
@@ -54,8 +94,8 @@ type Geometry = {
   /** Where the screen stops being usable: the docked mobile tab bar's top edge, or the
    *  viewport's bottom edge when no tab bar is docked (docs/UI-SIZES.md, "Two folds"). */
   usableFold: number;
-  /** Recorded, never asserted here: firstUnlockVisible is the viewport verdict the contract
-   *  uses, and this is the stricter one, so the tables can state both. */
+  /** The stricter of the two verdicts (firstUnlockVisible is the viewport one). Both are
+   *  asserted per cell on the paused clock through foldVerdict() and PAUSED_FOLD. */
   firstUnlockAboveUsableFold: boolean;
   forecastVisible: boolean;
   forecastHeight: number;
@@ -128,6 +168,13 @@ function readGeometry(): Geometry {
   };
 }
 
+/** The one reading of the fold in this file: both annotation verdicts folded into the
+ *  document's vocabulary, so no case measures the tab bar for itself. */
+function foldVerdict(geometry: Geometry): FoldVerdict {
+  if (geometry.firstUnlockAboveUsableFold) return CLEARS;
+  return geometry.firstUnlockVisible ? BEHIND_TABS : BELOW;
+}
+
 async function openState(browser: Browser, width: number, height: number, fixture: string,
   patch?: (game: GameState) => GameState): Promise<{ page: Page; errors: string[] }> {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
@@ -148,10 +195,14 @@ test.describe('size matrix invariants', () => {
         try {
           const geometry = await page.evaluate(readGeometry);
           test.info().annotations.push({ type: 'geometry', description: JSON.stringify({ fixture, ...geometry }) });
+          // Soft, so one layout change reports every cell it flips instead of the first.
+          expect.soft(foldVerdict(geometry), `${fixture} paused-clock fold verdict at ${size.name} (first purchase `
+            + `${String(geometry.firstUnlockTop)}-${String(geometry.firstUnlockBottom)}, usable fold ${String(geometry.usableFold)}, `
+            + `viewport ${String(size.height)}); docs/UI-SIZES.md states this cell`).toBe(PAUSED_FOLD[size.name][fixture]);
           // The contract above is measured on a PAUSED clock, which is what makes it
           // reproducible - and the game always runs (nexus vote:
           // keep-frozen-add-a-running-column, 6 of 6), so the same cell is measured again
-          // with time passing and annotated separately. Fold assertions stay on the frozen
+          // with time passing and annotated separately. The fold verdict above is the frozen
           // contract; the running column is pinned only as an offset from it.
           await page.clock.resume();
           await page.waitForTimeout(RUNNING_CLOCK_SETTLE_MS);
@@ -256,16 +307,14 @@ test.describe('mid-game at the floor', () => {
   test('puts the first purchase inside the usable fold and keeps the log reachable', async ({ browser }) => {
     const { page } = await openState(browser, 360, 640, 'epistemic-ready-p2');
     try {
-      const geometry = await page.evaluate(() => {
-        const browser = globalThis as unknown as Window;
-        const control = browser.document.querySelector('[data-testid$="-unlock"]');
-        const tabs = browser.document.querySelector('[data-testid="terminal-tabs"]');
-        if (!control || !tabs) return null;
-        const box = control.getBoundingClientRect();
-        return { purchaseBottom: Math.round(box.bottom), usableFold: Math.round(tabs.getBoundingClientRect().top) };
-      });
-      expect(geometry, 'purchase and tab bar measured').not.toBeNull();
-      expect(geometry?.purchaseBottom ?? 0, 'purchase ends above the tab bar').toBeLessThanOrEqual(geometry?.usableFold ?? 0);
+      // The annotation's fold, not a second reading of the tab bar: usableFold falls back to
+      // the viewport height when no bar is docked, so the bar is required first.
+      const geometry = await page.evaluate(readGeometry);
+      expect(geometry.mobileTabs, 'tab bar docked, so the usable fold is its top edge').toBe(true);
+      expect(geometry.usableFold, 'usable fold is above the viewport bottom').toBeLessThan(640);
+      expect(geometry.firstUnlockBottom, 'purchase measured').not.toBeNull();
+      expect(geometry.firstUnlockBottom ?? Infinity, 'purchase ends above the tab bar').toBeLessThanOrEqual(geometry.usableFold);
+      expect(foldVerdict(geometry), 'mid-game fold verdict at the floor').toBe(PAUSED_FOLD['phone-360']['epistemic-ready-p2']);
       // The band is gone on the phone tier, and the menu still opens the history.
       await expect(page.getByTestId('kernel-dock')).toHaveCount(0);
       await page.getByTestId('menu-open').click();
@@ -314,7 +363,8 @@ test.describe('forecast notice', () => {
 });
 
 /** The tolerated tier is asserted for what it does promise: a rendered, reachable,
- *  non-overflowing screen. Its fold position is deliberately not claimed (#136). */
+ *  non-overflowing screen. Its fold position is deliberately not claimed (#136); the matrix
+ *  pins the verdicts the document records for it as facts, which is not a promise. */
 test.describe('tolerated tier below the supported floor', () => {
   for (const size of sizes.filter((entry) => !isSupported(entry))) {
     test(`${size.name} renders every control without claiming a fold`, async ({ browser }) => {
@@ -348,8 +398,8 @@ test.describe('chrome state band', () => {
   }
 });
 
-/** Above-the-fold properties that hold today. Sizes and states that do not yet hold them are
- * listed as budgets in docs/UI-SIZES.md and must be asserted here once fixed. */
+/** Forecast and warning placement at the baseline sizes. The first purchase's fold verdict
+ * is asserted for every cell by the matrix (PAUSED_FOLD); these cases read the same table. */
 test.describe('above-the-fold at baseline sizes', () => {
   test('small phone 320x568 shows the insolvency warning', async ({ browser }) => {
     // #125: the warning used to render only while CORP was the slot in view, and at
@@ -367,7 +417,7 @@ test.describe('above-the-fold at baseline sizes', () => {
     try {
       const geometry = await early.page.evaluate(readGeometry);
       expect(geometry.forecastVisible, 'forecast above the fold').toBe(true);
-      expect(geometry.firstUnlockVisible, 'first purchase above the fold').toBe(true);
+      expect(foldVerdict(geometry), 'first purchase above the fold').toBe(CLEARS);
     } finally { await early.page.context().close(); }
     const warning = await openState(browser, 390, 844, 'corporate-insolvent');
     try {
@@ -377,14 +427,12 @@ test.describe('above-the-fold at baseline sizes', () => {
     } finally { await warning.page.context().close(); }
   });
 
-  test('phone-360 640 shows the forecast and the opening purchase, and records where mid-game does not fit', async ({ browser }) => {
+  test('phone-360 640 shows a one-line forecast in every state, the opening and mid-game purchase above the fold, and the insolvency purchase below it', async ({ browser }) => {
     // #138: this loop used to reuse one page, and boot() only seeds a fixture when
     // localStorage is empty - so all three assertions re-measured the FIRST fixture and
-    // two of them were vacuous. Each state now gets a fresh context, and the claim is
-    // what the measurements actually support: the opening state clears the fold at 360,
-    // mid-game and the insolvency state do not (609-653 and 732 against 640).
-    // Those were #138's figures. Mid-game has cleared since #143 and is pinned against the
-    // usable fold by 'mid-game at the floor'; this case still claims only the opening state.
+    // two of them were vacuous. Each state now gets a fresh context. #138 measured mid-game
+    // and insolvency past the fold (609-653 and 732 against 640); mid-game has cleared
+    // since #143, and insolvency is the accepted scroll, pinned as still below.
     for (const fixture of states) {
       const { page } = await openState(browser, 360, 640, fixture);
       try {
@@ -392,12 +440,8 @@ test.describe('above-the-fold at baseline sizes', () => {
         expect(geometry.forecastVisible, `${fixture} forecast above the fold`).toBe(true);
         // #89: 86px while the sentence wrapped; heading plus one line is 64.
         expect(geometry.forecastHeight, `${fixture} forecast block height`).toBeLessThanOrEqual(64);
-        if (fixture === 'phase-1-widgets') {
-          expect(geometry.firstUnlockVisible, 'opening first purchase above the fold').toBe(true);
-        } else {
-          // Recorded, not claimed: the control must exist and be reachable by scrolling.
-          expect(geometry.firstUnlockTop, `${fixture} purchase control missing`).not.toBeNull();
-        }
+        expect(geometry.firstUnlockTop, `${fixture} purchase control missing`).not.toBeNull();
+        expect(foldVerdict(geometry), `${fixture} first purchase fold verdict`).toBe(PAUSED_FOLD['phone-360'][fixture]);
       } finally { await page.context().close(); }
     }
   });
@@ -408,7 +452,7 @@ test.describe('above-the-fold at baseline sizes', () => {
       try {
         const geometry = await page.evaluate(readGeometry);
         expect(geometry.forecastVisible, `${fixture} forecast above the fold`).toBe(true);
-        expect(geometry.firstUnlockVisible, `${fixture} first purchase above the fold`).toBe(true);
+        expect(foldVerdict(geometry), `${fixture} first purchase above the fold`).toBe(CLEARS);
       } finally { await page.context().close(); }
     }
   });
