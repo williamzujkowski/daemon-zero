@@ -37,10 +37,13 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
           purchase below it. Only the signal name truncates - [ REVIEW ] is its own element so
           the affordance can never be ellipsed away, and the full label is still the visible
           text of the control, which axe's label-content-name-mismatch requires (CI caught a
-          shortened prefix failing it; this keeps the prefix). */}
+          shortened prefix failing it; this keeps the prefix).
+          [ REVIEW ] must not shrink (#162): react-native-web lets every Text give way, so the
+          two shared the shortfall in proportion to their widths and the affordance broke onto
+          three lines at 360 - an 88px notice where the one-line design promised 44. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 }}>
         <Text numberOfLines={1} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>SIGNAL PENDING // {signal}</Text>
-        <Text style={theme.text}>[ REVIEW ]</Text>
+        <Text testID="wild-signal-review" style={[theme.text, { flexShrink: 0 }]}>[ REVIEW ]</Text>
       </View>
     </Pressable>}
   </View>;

@@ -3,7 +3,7 @@
  * through the browser matrix (#103 gaps 4-6).
  */
 import { describe, expect, it } from 'vitest';
-import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, VERY_NARROW_CHROME_MAX_WIDTH, isCompactViewport, isNarrowChrome, isShortViewport, isVeryNarrowChrome, layoutFor } from '../src/ui/layout';
+import { COLUMN_MIN_WIDTH, COMPACT_CAPTION_MAX_WIDTH, CONTENT_MAX_WIDTH, MOBILE_MAX_WIDTH, NARROW_CHROME_MAX_WIDTH, SHORT_VIEWPORT_MAX_HEIGHT, SIDE_COLUMN_MIN_WIDTH, THREE_COLUMN_MIN_WIDTH, VERY_NARROW_CHROME_MAX_WIDTH, isCompactViewport, isNarrowChrome, isPhoneWidth, isShortViewport, isVeryNarrowChrome, layoutFor } from '../src/ui/layout';
 
 describe('layoutFor', () => {
   it('keeps a phone in the single-scroll layout', () => {
@@ -44,6 +44,15 @@ describe('layoutFor', () => {
     expect(isCompactViewport(320)).toBe(true);
     expect(isCompactViewport(COMPACT_CAPTION_MAX_WIDTH)).toBe(false);
     expect(isCompactViewport(2560)).toBe(false);
+  });
+
+  it('abbreviates prose by width alone, so a landscape phone keeps its full sentences (#89)', () => {
+    expect(isPhoneWidth(320)).toBe(true);
+    expect(isPhoneWidth(MOBILE_MAX_WIDTH)).toBe(true);
+    expect(isPhoneWidth(COLUMN_MIN_WIDTH)).toBe(false);
+    // 844x390 is in the single-scroll tier, and is not a phone width.
+    expect(layoutFor(844, 390).mode).toBe('mobile');
+    expect(isPhoneWidth(844)).toBe(false);
   });
 
   it('caps the reading measure at every width', () => {

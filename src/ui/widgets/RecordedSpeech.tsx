@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../../content';
 import { recordedTransmissions } from '../../engine';
 import { gameStore } from '../../app/session';
-import { useMusic } from '../../app/musicSession';
+import { useSpeechPreference } from '../../app/musicSession';
 import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../../app/voicePlayer';
 import { Pressable, Text, View } from '../PhaseTheme';
 import ReferencePanel from '../ReferencePanel';
@@ -32,8 +32,8 @@ function Record({ record, audible, volume }: { record: { id: string; title: stri
 export default function RecordedSpeech({ decoderId }: { decoderId: string }) {
   const records = useStore(gameStore.store, useShallow((state) => recordedTransmissions(state.game, CONTENT, decoderId)));
   const revision = useStore(gameStore.store, (state) => String(state.restoreRevision) + ':' + String(state.game.iteration));
-  const audio = useMusic();
-  // Muting silences a record that is already talking; each row stops its own clip when it goes.
+  const audio = useSpeechPreference();
+  // Turning speech off silences a record that is already talking; each row stops its own clip when it goes.
   useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
   useEffect(() => { setVoiceVolume(audio.volume); }, [audio.volume]);
   if (records.length === 0) return null;

@@ -40,9 +40,17 @@ function announce(): void {
   listener?.(talking);
 }
 
+/** State first, so a player that throws while being removed still leaves nothing "playing". */
 function release(): void {
-  playing?.remove();
+  const clip = playing;
   playing = null;
+  clip?.remove();
+}
+
+/** Release, and report the ending even if the player throws while being removed: a clip that
+ *  is gone must never leave the soundtrack believing it is still talking. */
+function end(): void {
+  try { release(); } finally { announce(); }
 }
 
 /**
@@ -73,8 +81,7 @@ export function hasVoiceClip(id: string): boolean {
  */
 export function stopVoiceClip(id?: string): void {
   if (playing === null || (id !== undefined && playing.id !== id)) return;
-  release();
-  announce();
+  end();
 }
 
 /** Follow the preference while a clip is talking, not only at the moment it starts. */
@@ -86,27 +93,43 @@ export function setVoiceVolume(volume: number): void {
 /**
  * Play one clip and release it. Starting a clip stops whatever was playing, so a rapid second
  * press cannot leave two voices overlapping; a finished clip releases its own player.
+ *
+ * A failed clip is released the same way. expo-audio reports a media failure as a status whose
+ * `error` is set (web: the element's `error` event and a rejected `play()`; Android:
+ * `onPlayerError`; iOS: the item's `.failed` status) and never follows it with `didJustFinish`,
+ * so waiting for the ending alone left the soundtrack ducked under silence. The soundtrack
+ * reads the same field for its own failures (`createMusicPlayer`).
  */
 export function playVoiceClip(id: string, volume: number): void {
   const source = hasVoiceClip(id) ? voiceSources[id] : undefined;
   if (source === undefined) return;
-  // Released without announcing: a replacement is one unbroken stretch of speech, and reporting
-  // the gap would bounce the soundtrack up and straight back down.
-  release();
   try {
+    // Released without announcing: a replacement is one unbroken stretch of speech, and
+    // reporting the gap would bounce the soundtrack up and straight back down. Inside the try
+    // so that an outgoing player that throws while being removed still reaches the report below.
+    release();
     // The session is shared with the soundtrack but prepared by neither on the other's behalf.
     void ensureAudioMode().catch(() => undefined);
     const player = createAudioPlayer(source, { updateInterval: 250, allowsExternalPlayback: false });
+    let subscription: { remove(): void } | null = null;
+    const clip: LiveClip = { id, player, remove: () => { subscription?.remove(); player.remove(); } };
+    // Owned before anything else can throw, so the failure path below has a player to release.
+    playing = clip;
     player.volume = level(volume);
-    const subscription = player.addListener('playbackStatusUpdate', (status) => {
-      if (!status.didJustFinish) return;
-      stopVoiceClip(id);
+    subscription = player.addListener('playbackStatusUpdate', (status) => {
+      // Scoped to this clip, not its id: a late status must not end a newer take of the same line.
+      if (playing !== clip || !(status.didJustFinish || Boolean(status.error))) return;
+      end();
     });
-    playing = { id, player, remove: () => { subscription.remove(); player.remove(); } };
     player.play();
+  } catch (error) {
+    // A clip that never started is not talking. Without this, a throwing `play()` left the
+    // player owned and the activity signal true until some unrelated stop.
+    try { release(); } catch { /* the original failure is the one worth reporting */ }
+    throw error;
   } finally {
-    // Also the failure path: if the replacement could not be created, nothing is talking, and
-    // the soundtrack must not stay ducked under silence.
+    // Also the failure path: if the replacement could not be created or started, nothing is
+    // talking, and the soundtrack must not stay ducked under silence.
     announce();
   }
 }

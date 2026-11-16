@@ -7,8 +7,9 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 // The voice clips play through expo-audio; the widget's contract is which clip it hands to the
 // player, so the platform boundary is mocked exactly as tests/app-audio-player.spec.ts does.
-const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
-vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
+const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn(),
+  mode: vi.fn(() => Promise.resolve()) }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
 import { CONTENT } from '../src/content';
 import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
@@ -34,9 +35,9 @@ beforeEach(() => {
   reduced = true;
   voice.create.mockReturnValue(voice.player);
   voice.create.mockClear(); voice.player.play.mockClear(); voice.player.remove.mockClear();
-  // Voice playback follows the same audio preference as the soundtrack, so the surface is
-  // audible here; the muted case is asserted on its own below.
-  music.state.setState({ enabled: true, volume: 30 });
+  // Voice playback follows the speech preference, not the soundtrack's. Music is off here on
+  // purpose: every READ assertion below then also proves the music switch no longer gates it.
+  music.state.setState({ enabled: false, volume: 60, speechEnabled: true, speechVolume: 30 });
   vi.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockImplementation(() => Promise.resolve(reduced));
   vi.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation((_name, callback) => {
     listeners.add(callback); return { remove: () => { listeners.delete(callback); } };
@@ -45,7 +46,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const close of mounted) close();
   CONTENT.narrative.ambientChatter.splice(0, Infinity, ...originalLines);
-  music.state.setState({ enabled: false, volume: 30 });
+  music.state.setState({ enabled: false, volume: 30, speechEnabled: false, speechVolume: 30 });
   listeners.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
@@ -192,6 +193,11 @@ describe('reading a transmission aloud', () => {
     view.click('speech-read');
     expect(voice.create).toHaveBeenCalledWith(voiceSources[line?.id ?? ''], expect.anything());
     expect(voice.player.play).toHaveBeenCalledTimes(1);
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    // Music is off in this file and its controller never started, so the only thing that can
+    // have prepared the shared audio session is READ itself.
+    expect(music.state.getState().enabled).toBe(false);
+    expect(voice.mode).toHaveBeenCalled();
     // Reading does not advance the simulation or change the line on screen.
     expect(view.text()).toBe(line?.text);
   });
@@ -212,14 +218,26 @@ describe('reading a transmission aloud', () => {
     expect(view.find('speech-read')).toBeNull();
   });
 
-  it('offers nothing to read while the audio preference is muted', async () => {
-    act(() => { music.state.setState({ enabled: false }); });
+  it('offers nothing to read while speech is off, whatever the music switch says', async () => {
+    act(() => { music.state.setState({ enabled: true, speechEnabled: false }); });
     const view = await mount({ ...game, suspicion: 0 });
     expect(view.find('speech-read')).toBeNull();
     expect(voice.create).not.toHaveBeenCalled();
   });
 
-  it('stops a clip already playing the moment audio is muted', async () => {
+  it('keeps READ and a clip in flight when only the music is switched', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    voice.player.remove.mockClear();
+    // The split (#88): the score's switch and level are no longer speech's.
+    act(() => { music.state.setState({ enabled: true, volume: 90 }); });
+    act(() => { music.state.setState({ enabled: false }); });
+    expect(voice.player.remove).not.toHaveBeenCalled();
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(view.find('speech-read')).not.toBeNull();
+  });
+
+  it('stops a clip already playing the moment speech is turned off', async () => {
     const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
     view.click('speech-read');
     expect(voice.player.play).toHaveBeenCalledTimes(1);
@@ -227,7 +245,7 @@ describe('reading a transmission aloud', () => {
     // Panel finding: with the control gone, an unstopped clip would keep talking to a player who
     // has just asked the game to be silent. Rendered without the recorded-transmission sibling,
     // so this can only pass on Speech's own effect.
-    act(() => { music.state.setState({ enabled: false }); });
+    act(() => { music.state.setState({ speechEnabled: false }); });
     expect(voice.player.remove).toHaveBeenCalled();
     expect(view.find('speech-read')).toBeNull();
   });
@@ -268,12 +286,12 @@ describe('reading a transmission aloud', () => {
     expect(voice.player.remove).toHaveBeenCalled();
   });
 
-  it('follows a volume change while a clip is playing', async () => {
+  it('follows a speech volume change while a clip is playing', async () => {
     const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
     view.click('speech-read');
     expect(voice.player.volume).toBeCloseTo(0.3);
     // Panel finding: a slider change mid-clip used to be ignored until the next press.
-    act(() => { music.state.setState({ volume: 80 }); });
+    act(() => { music.state.setState({ speechVolume: 80 }); });
     expect(voice.player.volume).toBeCloseTo(0.8);
     expect(view.find('speech-read')).not.toBeNull();
   });

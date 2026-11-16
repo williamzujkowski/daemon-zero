@@ -1,10 +1,13 @@
 import { Text } from '../PhaseTheme';
 /** Phase 1 readouts use engine values and clearly label extrapolated forecasts. */
 import { useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 
 import { CONTENT } from '../../content';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
+import { isPhoneWidth } from '../layout';
+import { forecastCompact, forecastSentence } from '../forecastText';
 import ResponseRungs from './ResponseRungs';
 import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
@@ -63,8 +66,13 @@ export function Forecast() {
     : Math.max(0, Math.ceil(game.pendingDilemma.firesAtSimSec - game.simTimeSec)));
   const seconds = useGame((game) => game.rates.suspicionPerSec > 0
     ? Math.ceil((100 - game.suspicion) / game.rates.suspicionPerSec) : null);
-  return <><Text testID="inspection-forecast" style={theme.text}>
-    {known ? seconds === null ? 'Suspicion stable or falling.' : 'At current rate: ' + String(seconds) + 's until suspicion 100.' : 'Audit trail unreadable.'}
-    {' // '}{inbound === null ? 'No interrupt inbound.' : 'Interrupt inbound in ' + String(inbound) + 's. Set resources aside.'}
+  const compact = isPhoneWidth(useWindowDimensions().width);
+  const full = forecastSentence({ known, seconds, inbound });
+  // #89: the sentence wrapped to two or three lines on every phone width. The
+  // phone tier abbreviates it and keeps the whole sentence as the accessible name, as the
+  // resource strip and the cost captions do. Wide tiers render the sentence itself, with
+  // no label, exactly as before.
+  return <><Text testID="inspection-forecast" style={theme.text} {...(compact ? { accessibilityLabel: full } : {})}>
+    {compact ? forecastCompact({ known, seconds, inbound }) : full}
   </Text><InterruptBudget /></>;
 }

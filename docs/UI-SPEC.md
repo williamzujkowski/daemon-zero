@@ -359,7 +359,7 @@ use node IDs, `action:<id>` and `shard:<id>`; production exposes none of them.
 
 Review actual careful start/mid/end states at 390x844 and 1440x900. Kernel,
 thermal/audit controls, forecasts, camera, Lineage and choices stay visible.
-Forecast and budgets sit below the HUD above every workspace; sensor controls precede Audio/camera; node buttons keep full accessible names with compact WRITE DRIVER captions. Secondary source/topology/lore
+Forecast and budgets sit below the HUD above every workspace; sensor controls precede Audio/camera; node buttons keep full accessible names with compact WRITE DRIVER captions. Below 768px wide the forecast sentence is abbreviated, with the full sentence as its accessible name (UI-SIZES.md, levers). Secondary source/topology/lore
 widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
@@ -430,7 +430,7 @@ are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and only the current phase’s score. See REVIEW-UTILITY-MENU.md and REVIEW-PHASE-MUSIC.md.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and only the current phase’s score; the same page holds a separate SPEECH switch and level that alone gate `[ ▶ READ ]` (VOICE-CLIPS.md). See REVIEW-UTILITY-MENU.md and REVIEW-PHASE-MUSIC.md.
 
 ## Mobile large text
 

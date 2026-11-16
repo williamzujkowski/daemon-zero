@@ -1,6 +1,7 @@
 /** Shared presentation-only soundtrack session; game save replacement never owns it. */
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { getPlatform } from './platform';
 import { gameStore } from './session';
 import { MusicController } from './musicController';
@@ -14,3 +15,10 @@ export const music = new MusicController(gameStore, platform.lifecycle, platform
 onVoiceActivity((talking) => { music.setDucked(talking); });
 export function useMusicRuntime(): void { useEffect(() => music.start(), []); }
 export function useMusic() { return useStore(music.state); }
+/**
+ * Only the speech half of the preference, so a transmission widget re-renders when its own
+ * switch or level moves and not on every soundtrack status change.
+ */
+export function useSpeechPreference() {
+  return useStore(music.state, useShallow((state) => ({ enabled: state.speechEnabled, volume: state.speechVolume })));
+}

@@ -66,6 +66,18 @@ ending reloads, focused workspaces, purchase hiding, retraining recovery, and
 confirmed full restart with exported-backup restoration. Reduced motion, numeric
 accessible late-phase meters and exported asset paths are covered too.
 
+`tests/e2e/a11y-audit.e2e.ts` is the automated accessibility gate (#111). It loads
+`axe-core` (a pinned dev dependency) into the served production export and runs the
+rule sets tagged `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` and
+`best-practice`; any violation fails the case. It covers five viewports (320x568,
+390x844, 768x1024, 900x640, 1440x900 - a subset of the size matrix, not all of it)
+across the three sampled states `phase-1-widgets`, `epistemic-ready-p2` and
+`corporate-insolvent`, with the clock running rather than paused, because axe's
+own async work does not settle against a frozen clock. Each case sets its own
+viewport, and the spec is picked up by both the `phone` and `desktop` projects, so
+every case runs twice. Axe checks what a rule engine can decide from the DOM; it
+is not a screen-reader pass, and it does not open menus, modals or later phases.
+
 Daemon maintenance is accessed through the header's PROC launcher, not inline
 purchase tiles. `daemon-processes.e2e.ts` opens that panel and checks suspension
 and resumption without bringing back a completed purchase card. Mounted tests
@@ -197,6 +209,49 @@ What it does **not** prove:
 - Layout is checked only for horizontal overflow at 390x844 and 1440x900;
   `ui-sizes.e2e.ts` and the a11y audit own the rest.
 
+## Live browser sessions
+
+Running the app in a browser you can observe is a supported way to work here, for
+agents and people alike (see "Watch the real app" in `AGENTS.md`). Pick the surface
+that matches the question:
+
+| You want to | Do this |
+| --- | --- |
+| Look at the development build with live reload | `make web`, then open `http://localhost:8081` |
+| Look at what ships (production export, no DEV code) | `make build-web`, then `python3 -m http.server <port> --bind 127.0.0.1 --directory dist` on a port of your own |
+| Watch a scripted scenario run | `pnpm exec playwright test --config tests/e2e/config.ts <spec> --project phone --headed` |
+| Step through a scenario, with locators and a timeline | add `--ui`, or `--debug` for the inspector |
+| Keep a replayable record of a run | add `--trace on`, then `pnpm exec playwright show-trace <test-results/.../trace.zip>` |
+| Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
+
+The scripted commands need the production export (`make build-web`) and start their own
+server on port 4173, so only one can run at a time on a machine; when several agents
+share it, serialise with `flock /tmp/daemon-zero-e2e.lock <command>`.
+
+What a session can tell you that the suite cannot:
+
+- **Time passing.** Most specs install a paused clock so geometry is reproducible. A
+  live session runs the real loop, which is how the running-clock offset in
+  `docs/UI-SIZES.md` was found.
+- **The console and the network.** Read both. A 404 is a response, not a failed
+  request, so check status as well as the absence of errors.
+- **What is actually drawn.** Wrapping, overlap and focus rings are visible in a
+  window and invisible in a unit test.
+
+Rules that keep it safe and honest:
+
+- **Isolate storage.** The save is `daemon-zero.save.v1` and the audio preference
+  `daemon-zero.audio.v1`, both in browser storage and both per origin. Use a fresh
+  profile or a port nobody else uses, and never a profile that may hold a real save.
+- **Do not kill what you did not start.** Port 8081 may be the maintainer's Metro.
+- **Name the evidence.** Record the build (dev or production export), the browser,
+  the viewport and whether the clock was running. Headed Chromium on Linux is not a
+  phone, a screen reader or a pair of ears.
+- **Turn findings into gates.** An observation is where a spec starts, not a
+  substitute for one.
+- **Keep artifacts out of git.** `test-results/` and `.playwright-mcp/` are ignored;
+  attach final screenshots to the PR.
+
 ## Agent-driven testing with Playwright MCP
 
 `.mcp.json` registers Microsoft's Playwright MCP server (`@playwright/mcp`) so an agent can drive the running web app: navigate, click by accessibility snapshot, read the page, take screenshots.
@@ -204,6 +259,10 @@ What it does **not** prove:
 Use it for exploratory passes ("play Phase 1 and tell me where the UI is confusing") and for verifying a milestone exit gate when no human is available. It does not replace the scripted E2E suite: anything worth checking twice belongs in `tests/e2e/`.
 
 Start the app first (`make web`), then ask the agent to open `http://localhost:8081`.
+
+The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
+server) and `localhost:8088`. To drive the production export through it, serve `dist` on
+8088; any other port is refused. Other browser tools are not limited this way.
 
 ## What CI runs
 
