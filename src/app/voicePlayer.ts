@@ -47,6 +47,12 @@ function release(): void {
   clip?.remove();
 }
 
+/** Release, and report the ending even if the player throws while being removed: a clip that
+ *  is gone must never leave the soundtrack believing it is still talking. */
+function end(): void {
+  try { release(); } finally { announce(); }
+}
+
 /**
  * Hear when a clip starts talking and when the last one stops. One listener, because there is
  * one soundtrack; a second subscription replaces the first. A late subscriber is told at once
@@ -75,8 +81,7 @@ export function hasVoiceClip(id: string): boolean {
  */
 export function stopVoiceClip(id?: string): void {
   if (playing === null || (id !== undefined && playing.id !== id)) return;
-  release();
-  announce();
+  end();
 }
 
 /** Follow the preference while a clip is talking, not only at the moment it starts. */
@@ -113,8 +118,7 @@ export function playVoiceClip(id: string, volume: number): void {
     subscription = player.addListener('playbackStatusUpdate', (status) => {
       // Scoped to this clip, not its id: a late status must not end a newer take of the same line.
       if (playing !== clip || !(status.didJustFinish || Boolean(status.error))) return;
-      release();
-      announce();
+      end();
     });
     player.play();
   } catch (error) {

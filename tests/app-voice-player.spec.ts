@@ -181,6 +181,21 @@ describe('voice activity signal', () => {
     h.stop();
   });
 
+  it('reports the ending even when the player throws while being removed', () => {
+    // Panel note on #167: with the report after the release, a throwing remove() skipped it and
+    // the score stayed ducked under a clip that was already gone.
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    voice.player.remove.mockImplementationOnce(() => { throw new Error('native player already released'); });
+    expect(() => { stopVoiceClip(); }).toThrow('native player already released');
+    expect(h.heard, 'the clip is gone, so the soundtrack is told').toEqual([true, false]);
+    playVoiceClip('ambient_02', 30);
+    voice.player.remove.mockImplementationOnce(() => { throw new Error('again'); });
+    expect(() => { h.listener.fire({ didJustFinish: true }); }).toThrow('again');
+    expect(h.heard).toEqual([true, false, true, false]);
+    h.stop();
+  });
+
   it('holds through a replacement instead of bouncing, and still ends when the second clip does', () => {
     const h = listen();
     playVoiceClip('ambient_01', 30);

@@ -140,6 +140,10 @@ Use it for exploratory passes ("play Phase 1 and tell me where the UI is confusi
 
 Start the app first (`make web`), then ask the agent to open `http://localhost:8081`.
 
+The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
+server) and `localhost:8088`. To drive the production export through it, serve `dist` on
+8088; any other port is refused. Other browser tools are not limited this way.
+
 ## What CI runs
 
 CI runs the gates from `make verify-full`: typecheck, lint, content validation,
