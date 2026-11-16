@@ -56,6 +56,14 @@ function advanceLive(state: GameState, elapsedSec: number, reg: ContentRegistry)
   return { ...s, tickAccumulatorSec: isPaused(s) ? 0 : Math.max(0, budget) };
 }
 
+/** An absence in the largest unit that does not read as zero: `0.0h` hid every gap under three
+ *  minutes (#186). Whole seconds and minutes are floored so the line never overstates. */
+function dormantSpan(seconds: number): string {
+  if (seconds < 60) return String(Math.floor(seconds)) + 's';
+  if (seconds < 3600) return String(Math.floor(seconds / 60)) + 'm';
+  return (seconds / 3600).toFixed(1) + 'h';
+}
+
 function advanceDormant(state: GameState, elapsedSec: number, reg: ContentRegistry): GameState {
   const b = reg.balance;
   const total = Math.min(elapsedSec, b.offlineCapSec);
@@ -64,7 +72,7 @@ function advanceDormant(state: GameState, elapsedSec: number, reg: ContentRegist
     s = tick(s, Math.min(b.offlineStepSec, total - done), reg, true);
   }
   const d: GameState = { ...s, tickAccumulatorSec: 0 };
-  const vars = { hours: (total / 3600).toFixed(1), percent: Math.round(b.offlineEfficiency * 100) };
+  const vars = { duration: dormantSpan(total), percent: Math.round(b.offlineEfficiency * 100) };
   pushLog(d, reg, fmt(reg.narrative.dormantResume, vars), 'SYS');
   return d;
 }

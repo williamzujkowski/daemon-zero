@@ -234,6 +234,11 @@ current phase’s bundled score, pauses on background, switches on phase changes
 restarts on wipe/import, stops on ending, and releases on teardown. Explicit local
 imports in `musicSources.ts` cover Phases 0–5; only the selected source gets a
 player. Player/session generations reject stale callbacks and async activation.
+The controller is process-wide and two React roots can hold it at once (Android
+mounts the new root of a recreated activity before the old root's cleanup runs):
+the latest `start()` is the holder, and the cleanup a `start()` returns tears down
+only while its own generation is current (#185). The game runtime handles the same
+order by counting leases.
 Crossfades, reveal motifs and spoken playback remain separate follow-ups.
 
 Strict bounded `{ version: 2, enabled, volume, speechEnabled, speechVolume }` preferences

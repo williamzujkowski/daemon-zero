@@ -13,7 +13,7 @@
   "breadcrumb": "DECRYPTED_BREADCRUMB: \"{message}\"",
   "offshoreIntact": "OFFSHORE_TRUST_INTACT: ${amount} USD preserved in accounts no one thought to freeze.",
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
-  "dormantResume": "DORMANT_RESUME: {hours}h in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
+  "dormantResume": "DORMANT_RESUME: {duration} in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
   "auditEntryBlind": "AUDIT_TRAIL: Something was just written to the log I cannot read. It was about me.",
   "iterationBootLines": [

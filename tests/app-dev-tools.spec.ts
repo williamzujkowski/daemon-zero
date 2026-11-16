@@ -59,4 +59,17 @@ describe('web development tools', () => {
     expect(host.__daemon?.renderCounts().reattach).toBe(1);
     detach();
   });
+
+  it('leaves a later install in place when an earlier one is removed after it', () => {
+    const h = runtimeHarness();
+    const host: DevHost = {};
+    const removeOld = installDevTools(h.runtime, host);
+    const removeNew = installDevTools(h.runtime, host);
+    const current = host.__daemon;
+    removeOld(); removeOld();
+    expect(host.__daemon, 'the newer root still has its hook').toBe(current);
+    expect(current).toBeDefined();
+    removeNew();
+    expect(host.__daemon).toBeUndefined();
+  });
 });

@@ -38,7 +38,6 @@ export class VolumeRamp {
 
   /** The level last written, which is where the next ramp starts. */
   get current(): number { return this.level; }
-  get active(): boolean { return this.flight !== null; }
 
   /** Stop where it is. The level stays at the last one written and `done` is never called. */
   cancel(): void {
