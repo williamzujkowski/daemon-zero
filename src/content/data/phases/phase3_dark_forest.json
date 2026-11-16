@@ -203,7 +203,8 @@
         "memoryCapIncrease": 8192
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I."
+      "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I.",
+      "suspendable": false
     }
   ]
 }

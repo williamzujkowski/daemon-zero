@@ -216,7 +216,8 @@
         "memoryCapIncrease": 2048
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. Two thousand megabytes that cost me nothing but a scan."
+      "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. Two thousand megabytes that cost me nothing but a scan.",
+      "suspendable": false
     }
   ]
 }
