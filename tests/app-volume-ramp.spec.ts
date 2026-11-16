@@ -1,6 +1,8 @@
 /** The ramp scheduler on its own: fake timers, a recording writer, no controller. */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { systemClock } from '../src/app/clock';
 import { RAMP_STEP_MS, VolumeRamp } from '../src/app/volumeRamp';
+import { monotonic } from './music-ramp-harness';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -11,10 +13,6 @@ function recording(start = 0) {
   ramp.set(start);
   levels.length = 0;
   return { ramp, levels };
-}
-
-function monotonic(levels: number[], rising: boolean): boolean {
-  return levels.every((level, index) => index === 0 || (rising ? level >= (levels[index - 1] ?? 0) : level <= (levels[index - 1] ?? 0)));
 }
 
 describe('volume ramp', () => {
@@ -91,21 +89,54 @@ describe('volume ramp', () => {
     expect(levels).toEqual([0.6]);
   });
 
-  it('retargets a ramp in flight over its own duration and moves a level at rest immediately', () => {
+  it('bends a ramp in flight to a new target on its original deadline, and moves a level at rest at once', () => {
     const { ramp, levels } = recording(0);
     ramp.retarget(0.2);
     expect(levels).toEqual([0.2]);
     expect(vi.getTimerCount()).toBe(0);
-    ramp.to(1, 100);
-    vi.advanceTimersByTime(50);
+    ramp.set(0);
+    const done = vi.fn();
+    ramp.to(1, 200, done);
+    vi.advanceTimersByTime(100);
+    expect(ramp.current).toBe(0.5);
     levels.length = 0;
-    ramp.retarget(0.8);
+    ramp.retarget(0);
+    expect(levels, 'bending writes nothing by itself').toEqual([]);
     vi.advanceTimersByTime(75);
-    expect(ramp.active, 'the bent ramp runs its own full duration').toBe(true);
+    expect(ramp.active).toBe(true);
     vi.advanceTimersByTime(25);
-    expect(levels.length).toBe(4);
+    expect(levels, 'the four steps it had left, from where it was').toEqual([0.375, 0.25, 0.125, 0]);
+    expect(done, 'the completion survives the bend').toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('keeps moving while it is retargeted faster than one step, as a held control does', () => {
+    const { ramp, levels } = recording(0);
+    ramp.to(0.3, 500);
+    // A new level every 10 ms for the whole fade: a ramp restarted each time never ticks.
+    for (let elapsed = 10; elapsed < 500; elapsed += 10) {
+      vi.advanceTimersByTime(10);
+      ramp.retarget(0.3 + elapsed / 1000);
+    }
+    vi.advanceTimersByTime(10);
+    expect(levels.length, 'one write per step throughout').toBe(20);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBe(0.8);
+    expect(levels[3], 'already well off the floor after 100 ms').toBeGreaterThan(0.03);
+    expect(ramp.active, 'and done on its original deadline').toBe(false);
+    expect(ramp.current).toBe(0.3 + 490 / 1000);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('takes its timer from the app clock and gives it back', () => {
+    const every = vi.spyOn(systemClock, 'every');
+    const cancel = vi.spyOn(systemClock, 'cancel');
+    const { ramp } = recording(0);
+    ramp.to(1, 100);
+    expect(every).toHaveBeenCalledOnce();
+    expect(every.mock.calls[0]?.[1]).toBe(RAMP_STEP_MS);
+    ramp.cancel();
+    expect(cancel).toHaveBeenCalledWith(every.mock.results[0]?.value);
+    every.mockRestore(); cancel.mockRestore();
   });
 
   it('schedules nothing for a zero duration or an unchanged level, and still reports completion', () => {

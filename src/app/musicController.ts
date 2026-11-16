@@ -124,9 +124,11 @@ export class MusicController {
     if (this.slot?.started === true && target > 0) this.slot.fader.retarget(target);
     else this.slot?.fader.set(target);
     // A player fading out has left `slot`, and must hear this too: zero ends it now, a lower
-    // level clips it, and a higher one is ignored because it is on its way to silence.
-    if (target === 0) this.dropLeaving();
-    else this.leaving?.fader.limit(target);
+    // level clips it, and a higher one is ignored because it is on its way to silence. The cap
+    // is the preference itself, not `target`: a duck never moves a fading player, so a volume
+    // change made while a clip is talking must not smuggle the duck in either.
+    if (value === 0) this.dropLeaving();
+    else this.leaving?.fader.limit(value / 100);
     this.persist();
   }
 
@@ -262,14 +264,23 @@ export class MusicController {
     slot.fader.to(0, FADE_OUT_MS, () => { this.dropLeaving(); });
   }
 
+  /**
+   * Release the fading player, if there is one. This never throws, on purpose. Its last step
+   * runs from a timer, where nothing could catch a `pause()` or `remove()` that threw, and its
+   * other callers (a start, volume 0, backgrounding) must not be stopped by the clean-up of a
+   * player nobody is listening for. It is not routed to `fail()` either: that tells the player
+   * the score they asked for is not playing and to press Resume, and here no score was asked
+   * for. The live player's own release still propagates, as it did before ramps.
+   */
   private dropLeaving(): void {
     const slot = this.leaving;
     this.leaving = null;
-    if (slot) this.remove(slot);
+    if (!slot) return;
+    try { this.remove(slot); } catch { /* already forgotten; `remove` has done what it could */ }
   }
 
   /** The ramp is closed before the player is removed, so nothing can write to a removed player.
-   *  A `pause()` that throws must not leave the player unremoved; the error still propagates. */
+   *  A `pause()` that throws must not leave the player unremoved. */
   private remove(slot: Slot): void {
     slot.fader.close();
     try { slot.player.pause(); } finally { slot.player.remove(); }

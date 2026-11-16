@@ -76,6 +76,20 @@ describe('a fade-out in flight', () => {
     raised.stop();
   });
 
+  it('is capped by the preference and not by the duck when the volume changes while a clip talks', async () => {
+    const h = await fading();
+    const levels = fresh(h.at(0));
+    h.controller.setDucked(true);
+    // 50% is above where it is; 50% ducked (0.175) is below. Only the first is the cap.
+    h.controller.setVolume(50);
+    expect(levels, 'the duck is not smuggled in through the volume control').toEqual([]);
+    h.controller.setVolume(20);
+    expect(levels, 'clipped to the preference itself').toEqual([0.2]);
+    expectOriginalDeadline(h);
+    expect(monotonic(levels, false)).toBe(true);
+    h.stop();
+  });
+
   it('carries on to silence when music is switched off during it, and creates nothing', async () => {
     const h = await fading();
     const levels = fresh(h.at(0));
@@ -179,19 +193,47 @@ describe('starting a player is never left to a timer', () => {
   });
 });
 
-describe('a player that throws while being released', () => {
-  it('is still removed and forgotten, so the next start is not left waiting', async () => {
+describe('a fading player that throws while being released', () => {
+  it('is removed and forgotten without an uncaught error from the timer, and is not reported as a playback failure', async () => {
     const h = await harness(); run(FADE_IN_MS);
     h.controller.toggle(); run(FADE_OUT_MS - RAMP_STEP_MS);
     h.at(0).throws = 'pause';
-    // The failure is not hidden: it leaves the timer as any uncaught error would.
-    expect(() => { run(RAMP_STEP_MS); }).toThrow('pause failed');
+    expect(() => { run(RAMP_STEP_MS); }, 'nothing can catch a throw from a timer tick').not.toThrow();
     expect(h.at(0).removed, 'a throwing pause must not skip the remove').toBe(true);
     expect(vi.getTimerCount()).toBe(0);
+    // Music was switched off: "playback unavailable, try Resume" would be advice for nothing.
+    expect(h.controller.state.getState()).toMatchObject({ enabled: false, playing: false, status: '' });
     h.controller.toggle(); await settle();
     expect(h.players.length).toBe(2);
     expect(h.at(1).log).toEqual(['volume', 'play']);
     expect(h.live()).toBe(1);
+    h.stop();
+  });
+
+  it('does not stop the start, the volume change or the backgrounding that released it', async () => {
+    for (const act of [
+      (h: Awaited<ReturnType<typeof harness>>) => { h.controller.toggle(); },
+      (h: Awaited<ReturnType<typeof harness>>) => { h.controller.setVolume(0); },
+      (h: Awaited<ReturnType<typeof harness>>) => { h.activity(false); },
+    ]) {
+      const h = await harness(); run(FADE_IN_MS);
+      h.controller.toggle(); run(FADE_OUT_MS / 2);
+      h.at(0).throws = 'remove';
+      expect(() => { act(h); }).not.toThrow();
+      expect(h.at(0).log.slice(-2)).toEqual(['pause', 'remove']);
+      expect(vi.getTimerCount() <= 1, 'at most the fade-in of a new start').toBe(true);
+      expect(h.controller.state.getState().status).toBe('');
+      run(5000);
+      expect(h.at(0).log.at(-1), 'and it is never touched again').toBe('remove');
+      h.stop();
+    }
+  });
+
+  it('still lets a live player that throws on release reach its caller, as before ramps', async () => {
+    const h = await harness(); run(FADE_IN_MS);
+    h.at(0).throws = 'pause';
+    expect(() => { h.phase(1); }).toThrow('pause failed');
+    expect(h.at(0).removed).toBe(true);
     h.stop();
   });
 });

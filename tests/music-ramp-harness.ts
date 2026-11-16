@@ -55,6 +55,7 @@ export async function harness(volume = 40, enabled = true) {
     live: () => players.filter((fake) => !fake.removed).length };
 }
 
+/** Shared with the scheduler's own spec: never a step against the direction of travel. */
 export function monotonic(levels: number[], rising: boolean): boolean {
   return levels.every((level, index) => index === 0 || (rising ? level >= (levels[index - 1] ?? 0) : level <= (levels[index - 1] ?? 0)));
 }
