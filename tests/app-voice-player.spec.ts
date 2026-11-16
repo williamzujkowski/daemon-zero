@@ -13,7 +13,7 @@ const voice = vi.hoisted(() => ({
 }));
 vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
 
-import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
+import { hasVoiceClip, onVoiceActivity, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
 import { voiceSources } from '../src/app/voiceSources';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
@@ -144,5 +144,87 @@ describe('voice clip playback', () => {
     expect(voice.player.volume).toBeCloseTo(0.3);
     setVoiceVolume(100);
     expect(voice.player.volume).toBe(1);
+  });
+});
+
+/** The activity signal is what the soundtrack ducks on, so its edges are the contract. */
+describe('voice activity signal', () => {
+  function listen() {
+    stopVoiceClip();
+    voice.create.mockReturnValue(voice.player);
+    const heard: boolean[] = [];
+    const stop = onVoiceActivity((talking) => { heard.push(talking); });
+    return { heard, stop, listener: stubListener() };
+  }
+
+  it('reports a clip starting and the same clip finishing', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    expect(h.heard).toEqual([true]);
+    h.listener.fire({ didJustFinish: false });
+    expect(h.heard, 'a progress update is not an ending').toEqual([true]);
+    h.listener.fire({ didJustFinish: true });
+    expect(h.heard).toEqual([true, false]);
+    h.stop();
+  });
+
+  it('reports a stop, which is also what a mute and an unmount call', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    stopVoiceClip('ambient_02');
+    expect(h.heard, 'another line stopping is not this clip ending').toEqual([true]);
+    stopVoiceClip();
+    stopVoiceClip();
+    expect(h.heard, 'an idle stop reports nothing').toEqual([true, false]);
+    h.stop();
+  });
+
+  it('holds through a replacement instead of bouncing, and still ends when the second clip does', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    playVoiceClip('ambient_02', 30);
+    expect(h.heard, 'one unbroken stretch of speech').toEqual([true]);
+    stopVoiceClip('ambient_02');
+    expect(h.heard).toEqual([true, false]);
+    h.stop();
+  });
+
+  it('reports silence when a replacement clip cannot be created', () => {
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    voice.create.mockImplementationOnce(() => { throw new Error('no player'); });
+    expect(() => { playVoiceClip('ambient_02', 30); }).toThrow('no player');
+    // The first clip was already released, so staying "talking" would duck music under nothing.
+    expect(h.heard).toEqual([true, false]);
+    h.stop();
+  });
+
+  it('tells a late subscriber about a clip already in flight, and nothing after unsubscribing', () => {
+    const h = listen();
+    h.stop();
+    playVoiceClip('ambient_01', 30);
+    expect(h.heard).toEqual([]);
+    const late: boolean[] = [];
+    const stop = onVoiceActivity((talking) => { late.push(talking); });
+    expect(late).toEqual([true]);
+    stop();
+    stopVoiceClip();
+    expect(late).toEqual([true]);
+  });
+
+  it('is joined to the soundtrack by the music session, which this module never imports', async () => {
+    // A fresh module graph: the cases above each took the single listener slot for themselves,
+    // and importing the session is the act that subscribes it.
+    vi.resetModules();
+    voice.create.mockReturnValue(voice.player);
+    const listener = stubListener();
+    const { music } = await import('../src/app/musicSession');
+    const fresh = await import('../src/app/voicePlayer');
+    const ducked = vi.spyOn(music, 'setDucked');
+    fresh.playVoiceClip('ambient_01', 30);
+    expect(ducked.mock.calls).toEqual([[true]]);
+    listener.fire({ didJustFinish: true });
+    expect(ducked.mock.calls).toEqual([[true], [false]]);
+    expect(readFileSync('src/app/voicePlayer.ts', 'utf8')).not.toMatch(/from '\.\/music/);
   });
 });

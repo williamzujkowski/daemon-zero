@@ -14,6 +14,7 @@ import Effects from './Effects';
 import { costText } from './format';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: string }) {
   const affordable = useGame((game) => canAfford(game, choice.cost));
@@ -41,7 +42,7 @@ export default function DilemmaModal() {
   if (!dilemma || ended) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
-    <View style={styles.overlay}>
+    <SafeOverlay padding={16} style={styles.overlay}>
       <View testID="dilemma-modal" accessibilityViewIsModal style={styles.dialog}>
         <ScrollView contentContainerStyle={styles.content}>
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
@@ -50,11 +51,11 @@ export default function DilemmaModal() {
           {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} />)}
         </ScrollView>
       </View>
-    </View>
+    </SafeOverlay>
   </Modal>;
 }
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: '#000d' },
+  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000d' },
   dialog: { width: '100%', maxWidth: 680, maxHeight: '95%', borderWidth: 1, borderColor: palette.warning, backgroundColor: palette.background },
   content: { padding: 16, gap: 14 },
 });

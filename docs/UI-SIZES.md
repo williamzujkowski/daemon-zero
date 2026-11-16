@@ -449,9 +449,26 @@ built from. `make e2e` includes the project.
 
 ## Limits
 
-- Web export only. Native font scaling (`adb shell settings put system font_scale`),
-  rotation and safe-area insets are not covered here; the Android/iOS gaps stay
-  open, including the missing safe-area handling on iOS noted in the issue.
+- Web export only. Native font scaling (`adb shell settings put system font_scale`)
+  and rotation are not covered here; those Android/iOS gaps stay open.
+- Safe-area insets (#89) are handled in code and **unverified on hardware**.
+  `react-native-safe-area-context` 5.11.1 wraps the app (`App.tsx`), and
+  `src/ui/safeArea.tsx` is the only place an inset becomes padding: the terminal root
+  pads all four edges, so the header clears the notch or status bar and the bottom tab
+  bar clears the home indicator, and every full-window modal overlay (dilemma, menu,
+  ending, reboot, reveals, processes, kernel history, confirm, dev drawer) adds the
+  inset to its ordinary gutter. The Android-only `StatusBar.currentHeight` pad is
+  gone, because edge-to-edge reports the status bar as the top inset.
+  - Every size in this document is unchanged: insets are 0 on the web export, and the
+    matrix passes without edits. `tests/ui-safe-area.spec.ts` asserts the padding with
+    mocked insets and its absence with none.
+  - The web viewport meta deliberately has no `viewport-fit=cover`. The library's web
+    provider already reads `env(safe-area-inset-*)`, but without `cover` a browser
+    keeps the page inside the safe area itself and those values are 0. Opting in would
+    draw under the notch on iOS Safari, which nothing here can measure.
+  - Not exercised: no iOS device or simulator exists here and no Android device or
+    emulator was used. Real inset values, an Android window that is not edge-to-edge,
+    insets inside a native `Modal` window, and landscape side insets are all unseen.
 - Geometry and console assertions, not pixel comparison: rendering differs by host
   and committed PNG baselines would break the repository's no-screenshots rule.
 - The three sampled states are engine-played saves, not a human playthrough, and

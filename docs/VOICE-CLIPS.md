@@ -62,6 +62,9 @@ line's clip once. The pieces:
 | --- | --- |
 | `src/app/voiceSources.ts` | One literal import per clip, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree. |
 | `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished clip releases its player, volume follows the audio preference. |
+| `src/app/voicePlayer.ts` (`onVoiceActivity`) | Reports when a clip starts talking and when the last one stops. It does not import the soundtrack. |
+| `src/app/musicController.ts` (`setDucked`, `DUCK_RATIO`) | Scales the score to `DUCK_RATIO` of its preference level while ducked, at both places it writes a volume. |
+| `src/app/musicSession.ts` | The one joint between the two: voice activity drives `setDucked`. |
 | `Speech.tsx` / `RecordedSpeech.tsx` | The control, 44px tall, shown only when a clip exists **and** audio is on. Stepping to another line stops the clip. |
 
 **What stops a clip, exactly.** Pressing READ on the live line *holds* that line, the same way
@@ -73,6 +76,25 @@ recorded transmission. A recorded transmission's clip belongs to its row, so it 
 panel is collapsed, emptied, or remounted by a wipe or import. Muting stops whatever is playing. A panel review found the earlier
 version stopped *any* clip on *any* line change, which truncated every clip in the default
 motion setting; `tests/ui-speech.spec.ts` now pins both halves.
+
+**The score ducks while a clip talks.** Score and clips both measure about -15 LUFS, so at an
+equal preference they compete. While a clip is in flight the score plays at `DUCK_RATIO`
+(0.35, roughly -9 dB) of the preference level, and returns to the preference level when the
+clip stops. "Stops" is every path above, because they all end in `stopVoiceClip`: the clip
+finishing, a step away from the line, a collapse or remount, and a mute. Three details are
+pinned by tests rather than left to luck:
+
+- **A replacement does not bounce.** Pressing READ on a second line while the first is talking
+  is reported as one stretch of speech, so the score stays down instead of jumping up for an
+  instant between the two.
+- **A duck survives a volume change and a phase change.** The ratio is applied where the
+  controller writes a level, not once at the moment the clip starts, so moving the slider
+  mid-clip stays ducked and a score created by a phase change mid-clip starts ducked.
+- **The preference is never ducked.** Only the level handed to the player is scaled; the value
+  shown in the audio settings and written to storage is the one the player chose.
+
+The change is a step, not a fade: the adapter has no ramp and the app layer adds no timer for
+one.
 
 **The manual contract won an option vote, but the vote did not ratify.** Two runs of the same
 question on the nexus gateway arm:
@@ -131,6 +153,15 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
   sound comes out: no clip has been heard through the app, and native (Android/iOS) playback
   is unexercised and needs a device. This is the Scope Steward's objection, and it stands for
   native.
+- **The duck depth is unheard.** `DUCK_RATIO` is 0.35 on reasoning (two sources at about the
+  same loudness, a conventional music-under-speech gap), not on listening: nobody has heard
+  the ducked mix, and the step down and back up has not been judged for abruptness against a
+  fade. Unit tests prove the level arithmetic against a mocked player;
+  `tests/e2e/music-ducking.e2e.ts` proves on the served web build that the score element's
+  `volume` falls after a press and returns when the clip ends by itself. That is a number on
+  a media element, not a sound. Native (Android/iOS) ducking is unexercised and needs a
+  device, and browsers on iOS ignore programmatic volume altogether, so there the score will
+  not duck at all.
 - **Loudness is peak-normalised, not loudness-normalised, and the measured spread is small.**
   Each take is scaled to a 0.92 (vibration) or 0.95 (clean) sample peak, with no loudness
   target. Measured on the committed files with ffmpeg 8.0.1 (EBU R128, measurement only —

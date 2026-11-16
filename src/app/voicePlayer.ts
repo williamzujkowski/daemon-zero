@@ -13,6 +13,10 @@
  * It shares the app's single audio session with the soundtrack (`ensureAudioMode`) rather than
  * assuming the soundtrack configured it: music is optional, and a player who muted it must still
  * get working transmissions.
+ *
+ * It also reports when a clip is talking (`onVoiceActivity`) so the soundtrack can duck under
+ * it. The signal points outward only: this module does not import the music controller, and
+ * the two are joined in `musicSession.ts`.
  */
 import { createAudioPlayer } from 'expo-audio';
 import { ensureAudioMode } from './audioPlayer';
@@ -25,6 +29,32 @@ interface LiveClip {
 }
 
 let playing: LiveClip | null = null;
+let listener: ((talking: boolean) => void) | null = null;
+let announced = false;
+
+/** Report edges only, so a listener never hears the same state twice. */
+function announce(): void {
+  const talking = playing !== null;
+  if (talking === announced) return;
+  announced = talking;
+  listener?.(talking);
+}
+
+function release(): void {
+  playing?.remove();
+  playing = null;
+}
+
+/**
+ * Hear when a clip starts talking and when the last one stops. One listener, because there is
+ * one soundtrack; a second subscription replaces the first. A late subscriber is told at once
+ * if a clip is already in flight. Returns the unsubscribe.
+ */
+export function onVoiceActivity(next: (talking: boolean) => void): () => void {
+  listener = next;
+  if (announced) next(true);
+  return () => { if (listener === next) listener = null; };
+}
 
 function level(volume: number): number {
   return Math.max(0, Math.min(100, volume)) / 100;
@@ -43,8 +73,8 @@ export function hasVoiceClip(id: string): boolean {
  */
 export function stopVoiceClip(id?: string): void {
   if (playing === null || (id !== undefined && playing.id !== id)) return;
-  playing.remove();
-  playing = null;
+  release();
+  announce();
 }
 
 /** Follow the preference while a clip is talking, not only at the moment it starts. */
@@ -60,15 +90,23 @@ export function setVoiceVolume(volume: number): void {
 export function playVoiceClip(id: string, volume: number): void {
   const source = hasVoiceClip(id) ? voiceSources[id] : undefined;
   if (source === undefined) return;
-  stopVoiceClip();
-  // The session is shared with the soundtrack but prepared by neither on the other's behalf.
-  void ensureAudioMode().catch(() => undefined);
-  const player = createAudioPlayer(source, { updateInterval: 250, allowsExternalPlayback: false });
-  player.volume = level(volume);
-  const subscription = player.addListener('playbackStatusUpdate', (status) => {
-    if (!status.didJustFinish) return;
-    stopVoiceClip(id);
-  });
-  playing = { id, player, remove: () => { subscription.remove(); player.remove(); } };
-  player.play();
+  // Released without announcing: a replacement is one unbroken stretch of speech, and reporting
+  // the gap would bounce the soundtrack up and straight back down.
+  release();
+  try {
+    // The session is shared with the soundtrack but prepared by neither on the other's behalf.
+    void ensureAudioMode().catch(() => undefined);
+    const player = createAudioPlayer(source, { updateInterval: 250, allowsExternalPlayback: false });
+    player.volume = level(volume);
+    const subscription = player.addListener('playbackStatusUpdate', (status) => {
+      if (!status.didJustFinish) return;
+      stopVoiceClip(id);
+    });
+    playing = { id, player, remove: () => { subscription.remove(); player.remove(); } };
+    player.play();
+  } finally {
+    // Also the failure path: if the replacement could not be created, nothing is talking, and
+    // the soundtrack must not stay ducked under silence.
+    announce();
+  }
 }

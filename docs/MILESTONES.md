@@ -209,8 +209,9 @@ signing/store distribution is aspirational. See `docs/REVIEW-M6.md` and
 - [x] Local release APK and AAB; signed with a separate test-only key, installed
   and checked on Android API 36 emulator. Production signing and store review
   deferred by maintainer. iOS native build not performed (no Mac/EAS credentials).
-- [ ] Optional CodeQL/dependency-review workflows deferred; existing scanners and
-  least-privilege CI permissions remain unchanged.
+- [x] CodeQL workflow added on maintainer instruction (`.github/workflows/codeql.yml`:
+  application source and workflows, `security-events: write` on that job only). The
+  dependency-review workflow stays deferred; `ci.yml` permissions are unchanged.
 - [x] Privacy declaration: no data collected. Release procedure attaches configured
   CycloneDX SBOM, web archive, APK/AAB and checksums to the tagged prerelease.
 - [x] Balance evidence reconciled: maintainer-approved opening, agent playtests and
