@@ -344,6 +344,8 @@ returns, and READ plays with music off from a cold start. Each "unexercised and 
 device" below should be read as "unheard, and unexercised on a physical device". The same
 run found that audio controls stop working after a system font-size change while the app
 is open, and that a removed player is not released until garbage collection on Android.
+The first of those is fixed (#185; the dated note under finding 1 of that review says how
+and what the emulator re-run did and did not show); the second is open (#186).
 
 - **Playback is wired but unheard.** Unit tests run against a mocked player, which proves which
   clip is handed over and that a second press cancels the first. On web,

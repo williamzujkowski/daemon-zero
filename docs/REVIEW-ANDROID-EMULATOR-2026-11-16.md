@@ -215,6 +215,56 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
      `start()` twice and then runs the first cleanup. Any other process-wide object
      started from a root effect deserves the same look; the game loop and save queue
      showed no symptom here.
+   - **Added 2026-11-16, later the same day (#185): fixed, and what "first face" and
+     "second face" mean.** The text above is left as written. Its two labels were
+     ambiguous, so, named by what the player sees:
+     - *Controls disabled* (`[ MUSIC OFF ]`, `[ SPEECH OFF ]`, every control disabled,
+       READ gone) is the result the steps describe, and is what the cause bullet calls
+       "the second face": the old root's cleanup ran before the new root's preference
+       load resolved, so the load was discarded and `loaded` stayed false.
+     - *Resume does nothing* (`[ MUSIC ON ]` enabled, `[ RESUME MUSIC ]` only ever gives
+       `Music is loading or paused.`) is the "first occurrence" in the steps, and is what
+       the cause bullet calls "the first face": the load had already resolved, and
+       `live` was false for good.
+
+     The cause is now proven by tests rather than inferred. `tests/app-music-overlap.spec.ts`
+     runs the order start (old root), start (new root), old root's cleanup on the
+     controller, and `tests/ui-audio-remount.spec.ts` mounts the real app in two
+     react-dom roots and unmounts the first; both reproduce both faces on the old code.
+     They model the order in happy-dom and do not exercise Android. The fix is the one
+     proposed: `MusicController.start()` takes over from a start still in place, and
+     the cleanup it returns tears down only while its own generation is current, so a
+     late or repeated cleanup from the old root drops its own subscriptions and nothing
+     else. The same order was checked on the other process-wide objects a root effect
+     starts: the development-only web hook had it and is fixed; the game runtime
+     already counts leases.
+
+     Re-run on an emulator, once, by the agent that made the fix: a new disposable AVD
+     (`pixel_7` profile, the same API 36 image, port 5580, `-no-audio`, private
+     `ANDROID_AVD_HOME`), release builds by the same documented path with another
+     throwaway key. `daemon-zero-m1` was not booted or addressed; its 33 files had
+     identical mtimes and sizes afterwards.
+     - The order is a race, not a constant. Over 13 font-scale changes, logcat showed
+       `Stopping surface` first four times (by 2 to 6 ms) and `Running "main"` first
+       nine times (by 6 to 190 ms).
+     - Before the fix (`main` at `3dedf9a`): after one change in the stop-first order,
+       `[ RESUME MUSIC ]` still played. After six more, five of them in the new-first
+       order, the Audio page showed `[ MUSIC ON ]` and `[ SPEECH ON ]` enabled, and
+       `[ RESUME MUSIC ]` produced `Music is loading or paused.` with the app's only
+       player `paused`: the *resume does nothing* face. The *controls disabled* face
+       did not occur in this run.
+     - After the fix (branch head `fd84971`): the score was started, then five changes,
+       four in the new-first order. The Audio page showed both switches on and enabled,
+       `READ is offered on transmissions that have a recording.`, and
+       `[ RESUME MUSIC ]` gave `Playing phase 0 score.` with a new `AudioTrack` in state
+       `started`. One more change and resume: the same. No `FATAL EXCEPTION` or
+       `ReactNativeJS` error line.
+     - Not shown by this re-run: the *controls disabled* face going away (it was never
+       provoked here; only the tests cover it), `[ ▶ READ ]` on the SENSORS pane (the
+       run stayed in phase 0, which has no transmission), any sound, and a physical
+       device. The score still stops when the activity is recreated and needs
+       `[ RESUME MUSIC ]` again, as after any cold start (finding 3); the fix restores
+       the controls, it does not carry playback across the recreation.
 2. **A finished clip's native player is not released when the app removes it. (Low.)**
    After each READ the clip's `AudioTrack` stays registered in state `stopped`: three
    were present after four presses and two eleven seconds later; in a later
@@ -237,6 +287,9 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
 4. **`DORMANT_RESUME` reports `0.0h` for short absences. (Cosmetic.)** A 112 s absence
    logs "0.0h in low-power hibernation". The one-decimal hour format rounds anything
    under three minutes to zero.
+   - Added 2026-11-16 (#186, item 2): the line now shows whole seconds below a minute
+     and whole minutes below an hour (`1m` for 112 s); an hour or more is unchanged.
+     Covered by `tests/engine.spec.ts`; not re-read on the emulator.
 5. **The app publishes an active media session. (Observation.)** expo-audio creates a
    media3 session per player (`ExpoAudioBasicMediaSession`); the app becomes the
    media-button session, hardware play/pause keys control the score (the Audio page
