@@ -33,7 +33,9 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
     </View>
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
-      <Text style={theme.text}>SIGNAL PENDING // {signal} [ REVIEW ]</Text>
+      {/* Wraps to two lines at 360 and costs 66px; one line keeps the 44px target and
+          gives 22px back to the purchase below it (same vote as ResponseNotice). */}
+      <Text numberOfLines={1} ellipsizeMode="tail" style={theme.text}>SIGNAL // {signal} [ REVIEW ]</Text>
     </Pressable>}
   </View>;
 }

@@ -234,19 +234,21 @@ state-specific rather than size-specific:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 561 | 695 | 134 | no / no |
-| 360x640 | 527 | 661 | 134 | yes / **no** |
-| 390x844 | 511 | 645 | 134 | yes / yes |
-| 414x896 | 492 | 626 | 134 | yes / yes |
-| 768x1024 | 597 | 731 | 134 | yes / yes |
+| 320x568 | 561 | 673 | 134 | no / no |
+| 360x640 | 527 | 639 | 134 | yes / **no** |
+| 390x844 | 511 | 623 | 134 | yes / yes |
+| 414x896 | 492 | 604 | 134 | yes / yes |
+| 768x1024 | 597 | 709 | 134 | yes / yes |
 | 844x390 | 376 | 488 | 112 | no / no |
-| 900x640 | 529 | 663 | 134 | yes / **no** |
+| 900x640 | 529 | 641 | 134 | yes / **no** |
 | 1024x768 | 529 | 641 | 112 | yes / yes |
-| 1080x800 | 525 | 659 | 134 | yes / yes |
+| 1080x800 | 525 | 637 | 134 | yes / yes |
 | 1440x900 | 405 | 517 | 112 | yes / yes |
 | 1920x1080 | 405 | 517 | 112 | yes / yes |
 | 2560x1440 | 405 | 517 | 112 | yes / yes |
 
+The mid-game running figures above are 22px lower than #151 first recorded, because the
+wild-signal notice now renders on one line instead of wrapping at narrow widths (see below).
 Every sampled state other than mid-game moves by 0. So the promise row above is qualified rather
 than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
 as a cell where a running game does not clear. Note this table reads against the **viewport**
@@ -287,7 +289,10 @@ growth is the number to watch if this is revisited.
    At 360x640 the opening state clears 595 and, since the kernel band was dropped from the
    phone tier (#143), mid-game does too - **on a paused clock**: the first purchase reads 527
    against 595. With the clock running the same cell reads 661 and does not clear, so that
-   claim is a budget rather than a promise (see the paused-clock section below). The insolvency state reads 650-694 and is accepted as a scroll with a
+   claim is a budget rather than a promise (see the paused-clock section below). Compacting the
+two time-gated notices on the phone tier returned 22px, not the 78px estimated when the vote
+was taken, because both blocks are floored by their own 44px controls; the wild-signal notice
+now fits one line and the response notice was left alone after measuring a 0px return. The insolvency state reads 650-694 and is accepted as a scroll with a
    pinned warning. Measured after #143: 320x568 mid-game 561-605 against a 523 fold, and
    844x390 mid-game 376-420 and insolvency 448-492 against 345. Short landscape is the
    worst case left and is tolerated by decision, not by omission: a nexus vote
