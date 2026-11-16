@@ -223,33 +223,36 @@ Measured at 360x640, from that run:
 
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
-| `phase-1-widgets` | 449 | 449 | 0 | yes / yes |
-| `epistemic-ready-p2` | 527 | 639 | **112** | **yes / no** |
-| `corporate-insolvent` | 650 | 650 | 0 | no / no |
+| `phase-1-widgets` | 427 | 427 | 0 | yes / yes |
+| `epistemic-ready-p2` | 505 | 661 | **156** | **yes / no** |
+| `corporate-insolvent` | 628 | 628 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
 once time passes, because time-gated notices appear above the purchase. The opening and
-insolvency states do not move. Measured across the whole matrix, the shift is uniform in both
-senses - one state, one delta, at every size:
+insolvency states do not move. Measured across the whole matrix, it is the same one state at
+every size:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 561 | 673 | 112 | no / no |
-| 360x640 | 527 | 639 | 112 | yes / **no** |
-| 390x844 | 511 | 623 | 112 | yes / yes |
-| 414x896 | 492 | 604 | 112 | yes / yes |
-| 768x1024 | 597 | 709 | 112 | yes / yes |
+| 320x568 | 517 | 673 | 156 | yes / **no** |
+| 360x640 | 505 | 661 | 156 | yes / **no** |
+| 390x844 | 489 | 645 | 156 | yes / yes |
+| 414x896 | 470 | 604 | 134 | yes / yes |
+| 768x1024 | 597 | 753 | 156 | yes / yes |
 | 844x390 | 376 | 488 | 112 | no / no |
-| 900x640 | 529 | 641 | 112 | yes / **no** |
+| 900x640 | 529 | 663 | 134 | yes / **no** |
 | 1024x768 | 529 | 641 | 112 | yes / yes |
-| 1080x800 | 525 | 637 | 112 | yes / yes |
+| 1080x800 | 525 | 659 | 134 | yes / yes |
 | 1440x900 | 405 | 517 | 112 | yes / yes |
 | 1920x1080 | 405 | 517 | 112 | yes / yes |
 | 2560x1440 | 405 | 517 | 112 | yes / yes |
 
-The mid-game running figures above are 22px lower than #151 first recorded, because the
-wild-signal notice now renders on one line instead of wrapping at narrow widths, so the delta
-is 112 at every size rather than 134 on tall cells and 112 on wide ones. Every sampled state
+Both tables were re-measured for #89, whose forecast compaction lowers the frozen and the
+running figure by the same 22px on 360-414 (44px at 320) and so changes no delta. The deltas
+themselves are no longer the uniform 112 this section recorded after #152: the build this
+change started from already read 683 running at 360x640, not 639, and 156, 134 or 112
+depending on the cell. Something merged since adds 22-44px of time-gated chrome on those
+cells; it was measured here, not investigated. Every sampled state
 other than mid-game still moves by 0. So the promise row above is qualified rather
 than rewritten: the contract still holds on the basis it is measured, and 900x640 joins 360x640
 as a cell where a running game does not clear. Note this table reads against the **viewport**
@@ -338,9 +341,67 @@ control's offset:
 | resource strip: label and value share a line at compact widths | -87 (idealised one-row) | **-22 at 320/360, -41 at 390/414, -60 at 768-899, 0 at 900+** |
 | resource strip: pack by content in a short viewport | -57 | **-28 at 844x390 phase-1, -56 in the insolvency state** |
 | header to one row at 320/360 (it wraps there; 117px against 64px) | -53 | **-53 at 360, -15 at 320** (64px from 400 up, 80 when the run status takes a second line) |
-| manual cycle out of the pre-card slot | -44 | not yet |
-| forecast notice to one line | -22 | not yet |
-| card body, 320/360 only (diminishing: -63 at 390, -44 at 414, 0 at 844+) | -85 | not yet |
+| manual cycle out of the pre-card slot | -44 | **declined** (vote below) |
+| forecast notice to one line | -22 | **-22 at 360/390/414 in every sampled state; -22 at 320 and -44 in its mid-game state; 0 at 768+ and at 844x390** |
+| card body, 320/360 only (diminishing: -63 at 390, -44 at 414, 0 at 844+) | -85 | **declined** (vote below) |
+
+**The last three levers were settled by one vote (#89).** A nexus `consensus_vote`, record
+`vote-1794807123274-zpaqr6s`: `build-forecast-compaction-decline-other-two`, 6 of 7 seats
+selecting, `thresholdMet` true. One seat (Scope Steward) selected
+`decline-all-three-and-close`. Its dissent, in substance: 22px flips no matrix cell; both
+clauses of the sentence carry live numbers and an instruction ("Set resources aside"), so
+abbreviating risks the legibility of gameplay-critical text; and it adds a second string
+variant to maintain. The measurement bears out the first point - no supported cell changes
+verdict (below) - and the build answers the other two with constraints the vote set:
+abbreviation only, never ellipsis or clipping; no number and no instruction dropped; the
+full sentence stays the accessible name; wide tiers keep the sentence unchanged.
+
+- **Forecast notice, built.** Below 768px wide (`isPhoneWidth`) the sentence is abbreviated
+  and `accessibilityLabel` carries the full one, as the resource strip and cost captions do:
+
+  | Full sentence (every tier's accessible name, and the visible text from 768 up) | Phone |
+  |---|---|
+  | `Audit trail unreadable.` | `Audit unreadable` |
+  | `Suspicion stable or falling.` | `SUS not rising` |
+  | `At current rate: 910s until suspicion 100.` | `SUS 100 in ~910s` |
+  | `No interrupt inbound.` | `No INT inbound` |
+  | `Interrupt inbound in 45s. Set resources aside.` | `INT 45s: set aside` |
+
+  `~` carries "at current rate", and `not rising` is the one clause that is reworded rather
+  than abbreviated: `SUS stable/falling // INT 45s: set aside` is 40 characters, and the
+  longest wording measured to fit one line at 360 is 38. Measured on the served build, the
+  block (`forecast-notice`) went from 86px to 64px at 360, 390 and 414 and from 86-108px to
+  64px at 320, and the first purchase moved by the same amount on the paused and the running
+  clock:
+
+  | Size | opening | mid-game | insolvency | mid-game, running clock |
+  |---|---|---|---|---|
+  | 320x568 | 455 → 433 | 561 → 517 | 652 → 630 | 717 → 673 |
+  | 360x640 | 449 → 427 | 527 → 505 | 650 → 628 | 683 → 661 |
+  | 390x844 | 449 → 427 | 511 → 489 | 583 → 561 | 667 → 645 |
+  | 414x896 | 430 → 408 | 492 → 470 | 583 → 561 | 626 → 604 |
+  | 768x1024, 844x390, 900 and wider | unchanged | unchanged | unchanged | unchanged |
+
+  The gain is the estimate, 22px, not more: it flips no supported cell. 360x640 insolvency
+  still ends at 672 against a 640 viewport, and 360x640 mid-game on a running clock ends at
+  705. The one verdict that moves is in the tolerated tier - 320x568 mid-game now ends at 561
+  inside its 568 viewport on a paused clock, still behind the tab bar at 523. With an
+  interrupt inbound - a state no sampled fixture holds, measured by patching one in - the
+  full sentence is three lines at 360 and the gain is 44px there (22-44px at 320, 390 and
+  414). At 320 a 34-character wording fits and a 36-character one wraps to a second line; at
+  360 a four-digit countdown beside an inbound interrupt is 39 characters, which was not
+  measured and is expected to wrap too. It wraps; it is never clipped.
+  844x390 is in the single-scroll tier but keeps the full sentence, which already measures
+  one line there. Pinned by the `forecast notice` cases in `tests/e2e/ui-sizes.e2e.ts` and by
+  `tests/ui-forecast-compact.spec.ts`.
+- **Manual cycle out of the pre-card slot, declined.** The control is hardcoded in
+  `src/ui/TerminalPane.tsx`, not a registry widget, and renders only in the CORE pane - the
+  phone's active pane in phases 0-1, where 360 already clears. The gain would land only on
+  320x568 and 844x390, both tolerated by recorded votes, and `docs/UI-SPEC.md` puts the
+  manual control first, with the #131 vote choosing demotion only past 200 cycles/s.
+- **Card body, declined.** The -85 figure has not been re-measured since #119; UI-SPEC fixes
+  the card order; the landscape vote already declined moving the purchase above the card
+  name; and folding the description measured 0-22px (see the phone-tier flavour section).
 
 The strip's `-87` is an idealised target, and the measurement corrected it: one row
 of five readouts needs a ~900px strip, which is where the HUD already fits on one
