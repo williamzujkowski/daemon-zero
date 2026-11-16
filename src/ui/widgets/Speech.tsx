@@ -36,6 +36,9 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   // Stepping to another line stops the clip in flight rather than letting two voices overlap.
   const clipId = speech.id;
   useEffect(() => { stopVoiceClip(); }, [clipId]);
+  // A clip must not outlive the preference that allowed it: muting silences the voice with the
+  // score, even though the control itself has already gone. Panel finding, accepted.
+  useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
   return <View style={{ gap: 8 }}>
     <Text testID={id} style={theme.text}>{speech.text}</Text>
     {clipId !== null && audio.enabled && hasVoiceClip(clipId) &&

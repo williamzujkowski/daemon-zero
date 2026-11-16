@@ -15,8 +15,10 @@ export default function RecordedSpeech({ decoderId }: { decoderId: string }) {
   const records = useStore(gameStore.store, useShallow((state) => recordedTransmissions(state.game, CONTENT, decoderId)));
   const revision = useStore(gameStore.store, (state) => String(state.restoreRevision) + ':' + String(state.game.iteration));
   const audio = useMusic();
-  // Records are held open while the player reads them; leaving the panel must not leave a clip running.
+  // Records are held open while the player reads them; leaving the panel must not leave a clip
+  // running, and neither must muting the audio while the panel stays open.
   useEffect(() => () => { stopVoiceClip(); }, []);
+  useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
   if (records.length === 0) return null;
   return <ReferencePanel key={revision} id="recorded-transmissions" title="RECORDED TRANSMISSIONS">
     {records.map((record) => <View key={record.id} testID={'recorded-speech-' + record.id} style={{ gap: 8 }}>

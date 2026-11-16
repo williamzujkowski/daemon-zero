@@ -16,6 +16,7 @@ import { music } from '../src/app/musicSession';
 import { voiceSources } from '../src/app/voiceSources';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import { Audio } from '../src/ui/widgets/Sensory';
+import Speech from '../src/ui/widgets/Speech';
 import NodeCard from '../src/ui/NodeCard';
 import { makePhase1Fixtures } from '../scripts/make-fixtures';
 
@@ -47,14 +48,17 @@ afterEach(() => {
   listeners.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
-async function mount(state = game, withCard = false) {
+async function mount(state = game, withCard = false, only: 'audio' | 'speech' = 'audio') {
   const container = host.document.createElement('div'), root = createRoot(container);
   host.document.body.appendChild(container);
   const node = [...CONTENT.nodes.values()].find((item) => !state.unlockedNodes.includes(item.id));
   await act(async () => {
     gameStore.initialize(state, 0, null);
-    root.render(createElement(Fragment, null, createElement(Audio, { decoderId: decoder }),
-      withCard && node ? createElement(NodeCard, { node }) : null));
+    // 'speech' renders the transmission line without its recorded-transmission sibling, so a
+    // mute assertion cannot be satisfied by the sibling's own effect instead of this one.
+    root.render(only === 'speech' ? createElement(Speech, { decoderId: decoder })
+      : createElement(Fragment, null, createElement(Audio, { decoderId: decoder }),
+        withCard && node ? createElement(NodeCard, { node }) : null));
     await Promise.resolve();
   });
   const find = (id: string) => container.querySelector<HTMLElement>('[data-testid="' + id + '"]');
@@ -212,5 +216,18 @@ describe('reading a transmission aloud', () => {
     const view = await mount({ ...game, suspicion: 0 });
     expect(view.find('speech-read')).toBeNull();
     expect(voice.create).not.toHaveBeenCalled();
+  });
+
+  it('stops a clip already playing the moment audio is muted', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    expect(voice.player.play).toHaveBeenCalledTimes(1);
+    voice.player.remove.mockClear();
+    // Panel finding: with the control gone, an unstopped clip would keep talking to a player who
+    // has just asked the game to be silent. Rendered without the recorded-transmission sibling,
+    // so this can only pass on Speech's own effect.
+    act(() => { music.state.setState({ enabled: false }); });
+    expect(voice.player.remove).toHaveBeenCalled();
+    expect(view.find('speech-read')).toBeNull();
   });
 });
