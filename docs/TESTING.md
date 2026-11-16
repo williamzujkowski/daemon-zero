@@ -296,8 +296,9 @@ Two other workflows run beside it. `codeql.yml` analyses the source and the work
 every push and pull request and weekly. `live-journey.yml` runs `make e2e-live` nightly and
 on demand (`gh workflow run live-journey`): the full journey takes about five minutes, too
 long for the 15-minute `ci` job, so it reports rather than gates. A red nightly run means the
-shipped web build no longer plays through to an ending; its journal and screenshot are
-uploaded as the `live-journey-results` artifact.
+shipped web build no longer plays through to an ending. The journey's milestone lines are in
+the job log, and `test-results/` (the failure screenshot) is uploaded as the
+`live-journey-results` artifact whenever the run does not succeed, a timeout included.
 
 The milestone sections below retain their original verification procedures and
 counts; use the current commands above and the linked review documents when
