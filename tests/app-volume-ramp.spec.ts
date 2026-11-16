@@ -24,7 +24,7 @@ describe('volume ramp', () => {
       expect(levels, 'nothing is written before the first step').toEqual([]);
       vi.advanceTimersByTime(durationMs - RAMP_STEP_MS);
       expect(done).not.toHaveBeenCalled();
-      expect(ramp.active).toBe(true);
+      expect(vi.getTimerCount(), 'still in flight').toBe(1);
       vi.advanceTimersByTime(RAMP_STEP_MS * 2);
       expect(levels.length).toBe(Math.ceil(durationMs / RAMP_STEP_MS));
       expect(monotonic(levels, to > from)).toBe(true);
@@ -33,7 +33,6 @@ describe('volume ramp', () => {
       expect(levels.at(-1)).toBe(to);
       expect(ramp.current).toBe(to);
       expect(done).toHaveBeenCalledOnce();
-      expect(ramp.active).toBe(false);
       expect(vi.getTimerCount()).toBe(0);
     });
 
@@ -103,7 +102,7 @@ describe('volume ramp', () => {
     ramp.retarget(0);
     expect(levels, 'bending writes nothing by itself').toEqual([]);
     vi.advanceTimersByTime(75);
-    expect(ramp.active).toBe(true);
+    expect(vi.getTimerCount(), 'still in flight').toBe(1);
     vi.advanceTimersByTime(25);
     expect(levels, 'the four steps it had left, from where it was').toEqual([0.375, 0.25, 0.125, 0]);
     expect(done, 'the completion survives the bend').toHaveBeenCalledOnce();
@@ -122,9 +121,8 @@ describe('volume ramp', () => {
     expect(levels.length, 'one write per step throughout').toBe(20);
     expect(monotonic(levels, true)).toBe(true);
     expect(levels[3], 'already well off the floor after 100 ms').toBeGreaterThan(0.03);
-    expect(ramp.active, 'and done on its original deadline').toBe(false);
     expect(ramp.current).toBe(0.3 + 490 / 1000);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount(), 'and done on its original deadline').toBe(0);
   });
 
   it('takes its timer from the app clock and gives it back', () => {

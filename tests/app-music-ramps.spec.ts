@@ -128,7 +128,8 @@ describe('soundtrack ramps', () => {
     const before = h.storage.getItem(AUDIO_KEY);
     const writes = h.storage.setItem.mock.calls.length;
     run(FADE_IN_MS); h.controller.setDucked(true); run(DUCK_RAMP_MS / 2); h.phase(1);
-    run(FADE_OUT_MS + FADE_IN_MS); h.controller.setDucked(false); run(DUCK_RAMP_MS); await settle();
+    // A phase change is a cut and a fade-in: there is no fade-out to wait for.
+    run(FADE_IN_MS); h.controller.setDucked(false); run(DUCK_RAMP_MS); await settle();
     expect(h.storage.setItem.mock.calls.length).toBe(writes);
     expect(h.storage.getItem(AUDIO_KEY)).toBe(before);
     expect(h.controller.state.getState().volume).toBe(40);

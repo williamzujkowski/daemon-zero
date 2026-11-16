@@ -11,8 +11,9 @@ import { memoryStorage } from './app-helpers';
 
 async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
 /** Levels now arrive by ramp (tests/app-music-ramps.spec.ts owns their shape); these cases are
- *  about where a level ends up, so they let whatever ramp is in flight run out first. */
-function ramped() { vi.advanceTimersByTime(FADE_OUT_MS + FADE_IN_MS); }
+ *  about where a level ends up, so they let whatever ramp is in flight run out first. One ramp at most: a fade-out is never
+ *  followed by a fade-in that waited for it, so the longest single ramp is long enough. */
+function ramped() { vi.advanceTimersByTime(Math.max(FADE_OUT_MS, FADE_IN_MS)); }
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
 /** Every case below starts from an explicit opt-out, so a default-on install is the one
