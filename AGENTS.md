@@ -146,4 +146,5 @@ The engine's public API (`src/engine/index.ts`) is the contract between them. If
 - `vitest.config.mts` is `.mts` on purpose (the package is not `"type": "module"` because Metro and Expo tooling expect CommonJS config files).
 - TypeScript is pinned to 6.0.x deliberately: it is what the Expo SDK 58 template uses and the newest version typescript-eslint supports. Do not bump to 7.x until both support it.
 - pnpm ignores dependency build scripts by default. `esbuild` is listed under `pnpm.ignoredBuiltDependencies` on purpose. When Expo adds native packages that need build scripts, allow them explicitly, one by one.
+- Playwright binds port 4173, so two browser suites on one machine collide. `make e2e`, `e2e-pages` and `e2e-live` take `/tmp/daemon-zero-e2e.lock` themselves (and are safe inside an outer `flock` on it); a bare `pnpm exec playwright test` is not, so run it as `bash scripts/e2e-lock.sh pnpm exec playwright test ...`.
 - The sim bot (`src/engine/sim/bot.ts`) is a test instrument. Do not tune the bot to make a balance change pass; tune the content.
