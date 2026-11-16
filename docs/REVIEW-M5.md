@@ -104,3 +104,8 @@ milestone's physical-device input/performance qualification remains open in #6;
 the emulator is not substituted for it. No signed native release build or
 physical haptic quality was tested. No new pacing/content/design finding was
 established, so no second-pass issue was filed in M5.
+
+**Later evidence (2026-11-16):** a test-signed release build of then-current `main` was
+run on an API 36 emulator with TalkBack, insets, font scaling and audio state checked;
+see [REVIEW-ANDROID-EMULATOR-2026-11-16.md](REVIEW-ANDROID-EMULATOR-2026-11-16.md). It is still an emulator: the
+physical-device item above is unchanged.

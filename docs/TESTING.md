@@ -118,10 +118,74 @@ close that gap. They share three rules:
 
 What the player cannot do is recorded rather than worked around. A control the bot
 wants that three sweeps of every tab, area and panel never show is `unreachable`
-and fails the run; a press left covered by an overlay is `blocked` and fails the
-run; no purchase or decision for 25 simulated minutes, an autosaved clock that
-stops, or a press that cannot land within 15 s fails the run with the phase and
-simulated time in the message. `DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
+and fails the run; a press that cannot land although no layer of the game's covers
+the control is `blocked` and fails the run; no purchase or decision for 25
+simulated minutes, an autosaved clock that stops, or a navigation or errand press
+that cannot land within 17 s (2 s, a look for a covering layer, then 15 s) with
+nothing over it fails the run with the phase and simulated time in the message.
+`DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
+
+### Layers that arrive mid-press
+
+The clock is running while the player works, so the game can put a full-window
+layer up between the read a decision was made on and the press that carries it
+out. The first nightly run on a GitHub runner failed exactly there (run
+43847867193, `live-phone`, phase 4, T+7867s): an interrupt fired after the step
+had decided, and the player spent its whole 15 s press timeout on a workspace tab
+behind `CLOCK PAUSED // DECISION REQUIRED`. That was the player's bug, not the
+game's; a decision is meant to block the tabs.
+
+The layers the game raises by itself, each a `<Modal>` over the whole window, are
+the dilemma (`DilemmaModal`), the reboot (`RebootSequence`), the guest-exit notice
+(`PhaseThreshold`), the two discoveries (`LineageReveal`) and the ending
+(`EndingScreen`). The menu, kernel history, process list and confirmations are
+full-window too, but only the player opens them (the live player never opens the
+process list), and the game closes the menu and the history itself when a decision
+arrives or the phase, iteration or discoveries change.
+
+The rule in `live/player.ts` is that **every press looks first**:
+
+- Before any press (a tab, a workspace area, a panel header, a control, an
+  errand's button) the player probes for those layers and services what it finds,
+  top first: a dilemma gets the bot's ranking, a notice is acknowledged. After
+  answering a dilemma it waits until the autosave has the answer in it.
+- A press is given 2 s. If it has not landed, the player looks again instead of
+  waiting: a layer that arrived after the first look is serviced the same way.
+- If a layer was serviced, the press is **not** replayed. Inside a step the rest
+  of that decision is dropped and a new one is made from a fresh read of the
+  autosave, in the same step (`INTERRUPTED by ...` in the journal, counted in
+  `stats.interrupted`). Inside an errand the piece of the errand that belongs
+  together (`player.uninterrupted`) starts again from its top.
+- One decision or one errand piece may be interrupted four times and made again
+  (`MAX_INTERRUPTIONS`); the fifth interruption in a row fails the run as a
+  finding. Typing into a field (`player.fill`) follows the same look, 2 s, look
+  again rule as a press. An errand's comparison with an earlier read (reload, absence,
+  transfer) is made before anything restored with the run is answered, so
+  servicing a layer never changes what is compared.
+
+The ending is the one layer nothing clears. A boundary check or an errand it cuts
+off is reported as not done (`unlessCutOff` in `live/journey.ts`), the next step
+finishes the run on the ending, and whatever was left undone fails the closing
+assertions by name. In the current engine only a node purchase sets the phase or
+the ending (`unlockNode`), and no boundary check or errand buys a node, so this
+path is a guard, not something a run has taken.
+
+Nothing is forced, dispatched past an overlay, or given a longer timeout; no
+decision is skipped, and the coverage of the journey is unchanged. A dilemma
+answered mid-press is counted in `stats.dilemmas` like any other.
+
+`live-player-race.e2e.ts` reproduces the race exactly, in `make e2e`: on a paused
+clock stepped by hand, an interrupt fires (a) between a step's decision and its
+first press, (b) while a tab is about to be pressed, (c) in the middle of the
+save transfer, which closes the menu under the errand, and (d) after `fill` has
+already looked. It also pins the interruption limit at exactly four, and that the
+boundary checks and the score check hand an ending back as not done. Two switches reproduce it
+in the full journey:
+
+| Switch | Effect |
+|---|---|
+| `DAEMON_E2E_LIVE_LAG_MS=<ms>` | Runs that much of the app's clock between a decision and each press that carries it out: what a slow machine does on its own, made repeatable. At 500 the unfixed player failed on both viewports the way the runner did. |
+| `DAEMON_E2E_LIVE_CPU_THROTTLE=<rate>` | Chromium's CPU throttle (`Emulation.setCPUThrottlingRate`) on the page, so every press and render costs that many times the wall time while the clock keeps flowing. |
 
 The player now plays the bot's decisions unmodified. The first live runs (PR "live
 journey") found two places where it could not, and both have since been closed in
@@ -155,6 +219,7 @@ the game rather than in the test:
 | Spec | Runs in | Covers |
 |---|---|---|
 | `live-smoke.e2e.ts` | `make e2e`, `make e2e-pages`, CI; phone and desktop | Fresh boot, the guest's interrupt answered on its modal, phase 0 → 1, both boundaries asserted, MENU → SAVES export then import, reload restores the run and the loop keeps advancing. About 11 s per viewport. |
+| `live-player-race.e2e.ts` | `make e2e`, `make e2e-pages`, CI; phone and desktop | The player itself: an interrupt that fires between deciding and pressing, behind a tab press (phone tier only; the wider tiers have no tabs at that point), and inside the save transfer is answered first and the move or errand is made again. About 1.5 s per case. |
 | `live-journey.e2e.ts` | `make e2e-live` only (`live-phone`, `live-desktop` projects, enabled by `DAEMON_E2E_LIVE=1`) | Fresh boot through phases 0–5 to an ending screen, with every cross-cutting system below. |
 
 At every phase boundary the journey asserts: the header's `phase-value` shows the
@@ -193,6 +258,23 @@ Measured on the development machine (two workers, both viewports in parallel):
 seconds (3.1 h, including the replayed opening after the wipe), ending
 `LINEAGE_COVENANT`; three consecutive `make e2e-live` runs passed on both
 viewports. `make e2e` with the smoke included: 168 cases in 2.1 minutes.
+
+Measured again with the layer rule in place (same machine, shared with another
+suite at the time; wall time of the Playwright run for both viewports):
+
+| Condition | Result | Wall | Interruptions serviced |
+|---|---|---|---|
+| `DAEMON_E2E_LIVE_LAG_MS=500`, player before the rule | both viewports fail in phase 4, `locator.click` 15 s timeout in `follow()` behind the decision modal | 9.6 min with the build | - |
+| `DAEMON_E2E_LIVE_LAG_MS=500` | 2 passed | 6.2 min | 3 desktop, 2 phone |
+| `DAEMON_E2E_LIVE_CPU_THROTTLE=4` | 2 passed | 9.4 min | 1 desktop, 1 phone |
+| no switch | 2 passed | 5.4 min | 1 desktop, 0 phone |
+
+The run with no switch still met one interrupt mid-press, which is the rate the
+runner saw: the race needs no slow machine, only a decision firing in the real
+time a step's presses take. At four times the CPU cost the journey uses about
+half of the workflow step's 18 minutes (the step also builds the export, about a
+minute), so no timeout was changed. `make e2e` with the race spec included: 183
+passed and 1 skipped (the tab case on the desktop project) in 2.1 minutes.
 
 Run it with `make e2e-live` (it takes the shared browser-suite lock itself and waits for other
 suites on the machine: all use port 4173). Milestone lines stream to stdout as they happen and
@@ -354,6 +436,11 @@ adb shell uiautomator dump /sdcard/daemon-zero-m1.xml
 adb pull /sdcard/daemon-zero-m1.xml /tmp/daemon-zero-m1.xml
 adb exec-out screencap -p > /tmp/daemon-zero-m1.png
 ```
+
+`uiautomator dump` only works while the screen is idle: once the game clock runs it
+returns `ERROR: could not get idle state` and leaves any earlier file untouched, so
+delete the file first or use a driver that does not wait for idle. For a release build
+driven past the boot screen, see `REVIEW-ANDROID-EMULATOR-2026-11-16.md`.
 
 The property should be `1`; the UI hierarchy should contain resource id
 `boot-log` and the `BOOT_SEQ` line. Inspect the screenshot for the black screen
