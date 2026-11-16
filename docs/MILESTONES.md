@@ -72,7 +72,11 @@ per build PR (two for foundation), all eight card counts unchanged at 1→1 over
 three live seconds, a 20m 2.7s production-web playthrough without the dev hook,
 and actual Android Expo Go Back/choice/restore checks. `src/app` remains covered;
 every existing gate/strict flag is retained. No engine/content changes. Follow-ups
-#19, #21, #22 and #23 remain open. Native real-time progression, iOS, physical devices,
+#19, #21, #22 and #23 were open when M3 was verified; all four are closed as of
+2026-11-16 (#19 and #22 on 2026-11-11; #21 and #23 on 2026-11-16 as addressed, on
+the nexus option vote `close-both-as-addressed`, 7 of 7 seats, record
+`vote-1794807125043-z4enlda`, to be reopened if a human playtest disagrees).
+Native real-time progression, iOS, physical devices,
 screen readers, signed builds and native profiling were not verified.
 
 - [x] `src/ui/theme.ts` and the responsive `TerminalScreen` (tabs under 900 px, three columns at or above; superseded — the tier boundaries now live in `src/ui/layout.ts`, see `docs/UI-SPEC.md`).
