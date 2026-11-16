@@ -167,7 +167,8 @@ its own ramp and aims it; the rules that matter:
   the player has just switched off, was judged the worse lie.
 - **A fade-out in flight still hears the volume control, downwards only.** Volume 0 removes
   the fading player at once. A lower level clips it to that level at once and it carries on
-  to silence on its original deadline. A higher level writes nothing to it: nothing ever turns
+  to silence on its original deadline. The cap is the preference itself, never the ducked
+  level, so a volume change made while a clip is talking cannot duck it by the back door. A higher level writes nothing to it: nothing ever turns
   a fading player up. A duck or its release does not touch it either, since bending it down
   would be a step and letting it rise would be wrong. Switching music off during an ending's
   fade-out changes nothing: the fade-out in flight is the one switching off would have
@@ -176,8 +177,11 @@ its own ramp and aims it; the rules that matter:
   and a closed ramp refuses every write, including one a timer had already queued.
 - **The preference is never ramped.** Only the level handed to the player moves; the stored
   value and the number in the audio settings are untouched.
-- **A volume change mid-ramp bends the ramp** to the new level; at rest it is immediate, as
-  before. A change to 0 is always immediate.
+- **A volume change mid-ramp bends the ramp** to the new level, from where it is, over the
+  steps it had left and on the timer it already has, so it still ends on its original
+  deadline. The timer is not restarted: a held or dragged control changes the level faster
+  than one step, and a ramp restarted each time would stand still until the input paused. At
+  rest a change is immediate, as before. A change to 0 is always immediate.
 - **Ducking and fades compose.** A duck during a fade-in carries on from the current level to
   the ducked one; a phase change while ducked fades out from the ducked level and the new
   score fades in to it.
@@ -208,6 +212,18 @@ depend on the answer. The options weighed:
   `build-duck-ramp-only` dissent asked for on phase changes, for a different reason.
 
 The fade-out is kept where no `play()` follows it: the ending and the music switch.
+
+**A fading player's release never throws.** Its last step runs from a timer, where nothing
+could catch a `pause()` or `remove()` that threw; and a start, a volume change or
+backgrounding that releases it early must not be stopped by the clean-up of a player nobody
+is listening for. The player is removed and forgotten and the error is dropped. It is not
+shown as `Playback unavailable`: that message says the score the player asked for is not
+playing and offers Resume, and at this point no score was asked for. The cost is that such a
+failure leaves no trace. The live player's own release still throws to its caller, as it did
+before ramps.
+
+**Timers.** The ramp takes its interval from `src/app/clock.ts` (`systemClock.every`), the
+app layer's one owner of real timers, and tests can hand it another clock.
 
 **Paths that stay immediate, and why.**
 
