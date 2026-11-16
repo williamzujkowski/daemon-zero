@@ -3,8 +3,10 @@
  *
  * The audit that opened #111 was run by hand against the export, so its result
  * could not be re-checked later. This runs the same axe-core rules against the
- * production export at the whole size matrix and every sampled state, and fails
- * on any violation - so a regression is a red gate rather than a rediscovery.
+ * production export at five viewports (SIZES below - a subset of the twelve in
+ * ui-sizes.e2e.ts: two phone, two two-column, one three-column) and every
+ * sampled state, and fails on
+ * any violation - so a regression is a red gate rather than a rediscovery.
  *
  * Deliberately does NOT install the suite's paused fake clock: axe's own async
  * work never settles against a frozen clock, and the live loop changes numbers,

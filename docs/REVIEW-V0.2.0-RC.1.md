@@ -81,6 +81,13 @@ budgeting) and #23 (camera-to-network waiting density), as well as #6. Their
 historical proposed fixes do not constitute maintainer closure of those feedback
 issues. This release does not close them or claim only #6 remains.
 
+> Note added 2026-11-16: the paragraph above is what was true at this release and
+> is left as written. #21 and #23 were closed as addressed on 2026-11-16, after
+> this review, on the nexus option vote `close-both-as-addressed` (7 of 7 seats,
+> record `vote-1794807125043-z4enlda`), to be reopened if a human playtest
+> disagrees. The measurements behind that vote are bot and agent-UI figures, not
+> human data; they are in the closing comments on the two issues. #6 is still open.
+
 ## Release qualification boundary
 
 Package/app version is 0.2.0-rc.1, Android versionCode 2 and iOS buildNumber 2.

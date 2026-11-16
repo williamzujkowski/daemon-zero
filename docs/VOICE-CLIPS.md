@@ -131,8 +131,27 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
   sound comes out: no clip has been heard through the app, and native (Android/iOS) playback
   is unexercised and needs a device. This is the Scope Steward's objection, and it stands for
   native.
-- **Loudness is not normalised across clips.** Each take is peak-normalised at 0.92-0.95, so
-  perceived level varies with the model's own dynamics. Audition before shipping.
+- **Loudness is peak-normalised, not loudness-normalised, and the measured spread is small.**
+  Each take is scaled to a 0.92 (vibration) or 0.95 (clean) sample peak, with no loudness
+  target. Measured on the committed files with ffmpeg 8.0.1 (EBU R128, measurement only —
+  nothing is rewritten):
+
+  ```bash
+  ffmpeg -hide_banner -nostats -i <file> -af loudnorm=print_format=json -f null -
+  ```
+
+  reading `input_i` (integrated loudness) and `input_tp` (true peak) from the JSON:
+
+  | Set | Files | Integrated, quietest to loudest | Spread | True peak |
+  | --- | ---: | --- | ---: | --- |
+  | `voice/vibration/` | 14 | -15.50 to -14.08 LUFS | 1.42 LU | -1.17 to -1.09 dBTP |
+  | `voice/clean/` | 14 | -15.13 to -13.51 LUFS | 1.62 LU | -0.93 to -0.73 dBTP |
+  | `music/phase-*/` | 6 | -15.77 to -14.66 LUFS | 1.11 LU | -4.22 to -3.04 dBTP |
+
+  So voice and music sit at about the same loudness as files: every one of the 34 is
+  between -15.77 and -13.51 LUFS. That is a statement about the encoded files, before the
+  player's volume setting, and about level only. Nobody has auditioned the clips, and a
+  regenerated take will measure differently, so re-run the command when the assets change.
 - **`Serena` was chosen arbitrarily.** The model offers ten English voices; the fiction may
   want a different one, or more than one for different speakers.
 - **No listening test of the clean tier against the vibration tier**, and no decision recorded
