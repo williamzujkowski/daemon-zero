@@ -1,60 +1,12 @@
 /**
- * The controller's ramps (#88): duck, fade-out before release, fade-in. Unlike the harness in
- * app-music.spec.ts this one hands out a separate mock per created player and logs every call
- * in order, because the claims here are about which player was written to, and when.
+ * The controller's ramps (#88): duck, fade-in, and the fade-out before a player that nothing
+ * replaces is released. What may happen to a fade-out in flight is in app-music-fadeout.spec.ts.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MusicPhase } from '../src/app/musicTracks';
-import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS, FADE_OUT_MS, MusicController } from '../src/app/musicController';
+import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS, FADE_OUT_MS } from '../src/app/musicController';
 import { RAMP_STEP_MS } from '../src/app/volumeRamp';
 import { AUDIO_KEY } from '../src/app/audioPreferences';
-import { createGameStore } from '../src/app/store';
-import { CONTENT } from '../src/content';
-import { createInitialState } from '../src/engine';
-import { memoryStorage } from './app-helpers';
-
-interface Fake { phase: MusicPhase; log: string[]; levels: number[]; removed: boolean; status: (playing: boolean, error: boolean) => void }
-
-async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
-const run = (ms: number) => { vi.advanceTimersByTime(ms); };
-
-async function harness(volume = 40, enabled = true) {
-  const storage = memoryStorage();
-  storage.setItem(AUDIO_KEY, JSON.stringify({ version: 2, enabled, volume, speechEnabled: true, speechVolume: 30 }));
-  const game = createGameStore();
-  game.initialize(createInitialState(CONTENT), 0, null);
-  const players: Fake[] = [];
-  const violations: string[] = [];
-  let lifecycle: (active: boolean) => void = () => undefined;
-  const backend = { prepareMusic: () => Promise.resolve(), createMusicPlayer: (phase: MusicPhase, status: Fake['status']) => {
-    const fake: Fake = { phase, log: [], levels: [], removed: false, status };
-    // Anything at all done to a removed player is the bug this file exists to catch.
-    const note = (call: string) => { if (fake.removed) violations.push(String(phase) + ':' + call); fake.log.push(call); };
-    players.push(fake);
-    return { play: () => { note('play'); }, pause: () => { note('pause'); },
-      volume: (level: number) => { note('volume'); fake.levels.push(level); },
-      remove: () => { note('remove'); fake.removed = true; } };
-  } };
-  const controller = new MusicController(game, { current: () => true, subscribe: (listener) => { lifecycle = listener; return () => undefined; } },
-    storage, () => Promise.resolve(backend));
-  const stop = controller.start();
-  await settle();
-  if (enabled) { controller.resume(); await settle(); }
-  const phase = (next: number) => { game.dispatch((state) => ({ ok: true, state: { ...state, currentPhase: next } })); };
-  const at = (index: number): Fake => {
-    const fake = players[index];
-    if (!fake) throw new Error('no player ' + String(index));
-    return fake;
-  };
-  return { controller, game, storage, players, violations, stop, phase, at, activity: (active: boolean) => { lifecycle(active); },
-    live: () => players.filter((fake) => !fake.removed).length };
-}
-
-function monotonic(levels: number[], rising: boolean): boolean {
-  return levels.every((level, index) => index === 0 || (rising ? level >= (levels[index - 1] ?? 0) : level <= (levels[index - 1] ?? 0)));
-}
-/** Drop what has been written so far, so a case reads only the levels its own action caused. */
-function fresh(fake: Fake): number[] { fake.levels.length = 0; return fake.levels; }
+import { fresh, harness, monotonic, run, settle } from './music-ramp-harness';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -109,86 +61,44 @@ describe('soundtrack ramps', () => {
     h.stop();
   });
 
-  it('fades the old score out before releasing it, and only then creates the next one', async () => {
-    const h = await harness(); run(FADE_IN_MS);
-    const old = h.at(0);
-    const levels = fresh(old);
-    h.phase(1);
-    expect(h.players.length, 'one player at a time: no crossfade').toBe(1);
-    expect(old.removed).toBe(false);
-    run(FADE_OUT_MS - RAMP_STEP_MS);
-    expect(h.players.length).toBe(1);
-    expect(old.removed).toBe(false);
-    run(RAMP_STEP_MS);
-    expect(monotonic(levels, false)).toBe(true);
-    expect(levels.at(-1)).toBe(0);
-    expect(old.log.slice(-3)).toEqual(['volume', 'pause', 'remove']);
-    expect(h.players.length).toBe(2);
-    expect(h.at(1).phase).toBe(1);
-    expect(h.at(1).levels).toEqual([0]);
-    run(FADE_IN_MS);
-    expect(h.at(1).levels.at(-1)).toBe(0.4);
-    expect(h.live()).toBe(1);
-    expect(h.violations).toEqual([]);
-    expect(vi.getTimerCount()).toBe(0);
-    h.stop();
+  it('fades a score that nothing replaces out before releasing it: the ending and the music switch', async () => {
+    for (const leave of [
+      (h: Awaited<ReturnType<typeof harness>>) => { h.end(); },
+      (h: Awaited<ReturnType<typeof harness>>) => { h.controller.toggle(); },
+    ]) {
+      const h = await harness(); run(FADE_IN_MS);
+      const old = h.at(0);
+      const levels = fresh(old);
+      leave(h);
+      expect(old.removed).toBe(false);
+      expect(levels, 'a ramp, not a cut').toEqual([]);
+      run(FADE_OUT_MS - RAMP_STEP_MS);
+      expect(old.removed).toBe(false);
+      run(RAMP_STEP_MS);
+      expect(levels.length).toBe(FADE_OUT_MS / RAMP_STEP_MS);
+      expect(monotonic(levels, false)).toBe(true);
+      expect(levels.at(-1)).toBe(0);
+      expect(old.log.slice(-3)).toEqual(['volume', 'pause', 'remove']);
+      expect(h.players.length, 'nothing is created in its place').toBe(1);
+      expect(h.violations).toEqual([]);
+      expect(vi.getTimerCount()).toBe(0);
+      h.stop();
+    }
   });
 
-  it('ignores the fading player status, so it cannot report the next phase as playing', async () => {
+  it('ignores the status of a player a phase change replaced, and keeps one player through several changes', async () => {
     const h = await harness(); run(FADE_IN_MS);
     h.at(0).status(true, false);
-    expect(h.controller.state.getState().playing).toBe(true);
     h.phase(1);
     expect(h.controller.state.getState()).toMatchObject({ trackPhase: 1, playing: false });
     h.at(0).status(true, false); h.at(0).status(false, true);
     expect(h.controller.state.getState()).toMatchObject({ playing: false, activated: true, status: '' });
-    run(FADE_OUT_MS); h.at(1).status(true, false);
+    h.at(1).status(true, false);
     expect(h.controller.state.getState().playing).toBe(true);
-    h.stop();
-  });
-
-  it('fades out for the ending, for music switched off and for an import, then stays silent or restarts', async () => {
-    const ending = await harness(); run(FADE_IN_MS);
-    ending.game.dispatch((state) => ({ ok: true, state: { ...state, ending: 'evaluation' } }));
-    expect(ending.at(0).removed).toBe(false);
-    run(FADE_OUT_MS);
-    expect(ending.at(0).levels.at(-1)).toBe(0);
-    expect(ending.at(0).removed).toBe(true);
-    expect(ending.players.length, 'the ending creates nothing').toBe(1);
-    expect(vi.getTimerCount()).toBe(0);
-    ending.stop();
-
-    const off = await harness(); run(FADE_IN_MS);
-    off.controller.toggle();
-    expect(off.at(0).removed).toBe(false);
-    run(FADE_OUT_MS);
-    expect(off.at(0).removed).toBe(true);
-    expect(off.players.length).toBe(1);
-    // Back on during the next fade-out: the new player waits for the old one to go.
-    off.controller.toggle(); await settle(); run(FADE_IN_MS);
-    off.controller.toggle(); off.controller.toggle(); await settle();
-    expect(off.players.length).toBe(2);
-    run(FADE_OUT_MS);
-    expect(off.players.length).toBe(3);
-    expect(off.live()).toBe(1);
-    expect(off.violations).toEqual([]);
-    off.stop();
-
-    const imported = await harness(); run(FADE_IN_MS);
-    imported.game.initialize(imported.game.store.getState().game, 0, null);
-    expect(imported.players.length).toBe(1);
-    run(FADE_OUT_MS);
-    expect(imported.players.length).toBe(2);
-    expect(imported.at(1).phase).toBe(0);
-    imported.stop();
-  });
-
-  it('follows only the latest phase when several changes arrive during one fade-out', async () => {
-    const h = await harness(); run(FADE_IN_MS);
-    h.phase(1); run(FADE_OUT_MS / 2); h.phase(2); h.phase(3);
-    run(FADE_OUT_MS / 2);
-    expect(h.players.map((fake) => fake.phase)).toEqual([0, 3]);
+    run(FADE_IN_MS / 2); h.phase(2); h.phase(3);
+    expect(h.players.map((fake) => fake.phase)).toEqual([0, 1, 2, 3]);
     expect(h.live()).toBe(1);
+    expect(h.violations).toEqual([]);
     h.stop();
   });
 
@@ -236,16 +146,13 @@ describe('soundtrack ramps', () => {
     expect(monotonic(levels, true)).toBe(true);
     expect(Math.min(...levels)).toBeGreaterThan(reached);
     expect(levels.at(-1)).toBe(0.4 * DUCK_RATIO);
-    // A phase change while ducked: out from the ducked level, the next one in to the ducked level.
-    fresh(h.at(0));
-    h.phase(1); run(FADE_OUT_MS);
-    expect(Math.max(...levels)).toBeLessThan(0.4 * DUCK_RATIO);
-    expect(levels.at(-1)).toBe(0);
-    run(FADE_IN_MS);
+    // A phase change while ducked: the next score fades in to the ducked level and no higher.
+    h.phase(1); run(FADE_IN_MS);
     expect(Math.max(...h.at(1).levels), 'no full-volume blip under the voice').toBe(0.4 * DUCK_RATIO);
     expect(h.at(1).levels.at(-1)).toBe(0.4 * DUCK_RATIO);
-    // The clip ends while the next score is on its way out: the one after starts unducked.
-    h.phase(2); run(FADE_OUT_MS / 2); h.controller.setDucked(false); run(FADE_OUT_MS / 2 + FADE_IN_MS);
+    // The clip ends while the one after is still fading in: it carries on up to the full level.
+    h.phase(2); run(FADE_IN_MS / 2); h.controller.setDucked(false); run(DUCK_RAMP_MS);
+    expect(monotonic(h.at(2).levels, true)).toBe(true);
     expect(h.at(2).levels.at(-1)).toBe(0.4);
     expect(h.violations).toEqual([]);
     h.stop();
@@ -253,7 +160,7 @@ describe('soundtrack ramps', () => {
 
   it('writes nothing to a player after removing it, whatever arrives afterwards', async () => {
     const h = await harness(); run(FADE_IN_MS);
-    h.phase(1); run(FADE_OUT_MS);
+    h.controller.toggle(); run(FADE_OUT_MS); h.controller.toggle(); await settle();
     const old = h.at(0);
     const calls = old.log.length;
     h.controller.setDucked(true); h.controller.setVolume(70); h.controller.setDucked(false);
@@ -281,14 +188,13 @@ describe('soundtrack ramps', () => {
     expect(levels[0]).toBe(0);
     expect(levels.at(-1)).toBe(0.4);
 
-    h.phase(1); run(FADE_OUT_MS / 2);
+    h.end(); run(FADE_OUT_MS / 2);
+    expect(h.at(0).removed).toBe(false);
     h.activity(false);
     expect(h.at(0).removed, 'the fade-out is cut short, not left pending').toBe(true);
     expect(vi.getTimerCount()).toBe(0);
-    expect(h.players.length).toBe(1);
     h.activity(true); run(FADE_IN_MS);
-    expect(h.at(1).phase).toBe(1);
-    expect(h.at(1).levels.at(-1)).toBe(0.4);
+    expect(h.players.length, 'the ending still plays nothing').toBe(1);
     expect(h.violations).toEqual([]);
     h.stop();
   });
@@ -323,7 +229,7 @@ describe('soundtrack ramps', () => {
     for (const midRamp of [
       (h: Awaited<ReturnType<typeof harness>>) => { run(FADE_IN_MS / 2); return h; },
       (h: Awaited<ReturnType<typeof harness>>) => { run(FADE_IN_MS); h.controller.setDucked(true); run(DUCK_RAMP_MS / 2); return h; },
-      (h: Awaited<ReturnType<typeof harness>>) => { run(FADE_IN_MS); h.phase(1); run(FADE_OUT_MS / 2); return h; },
+      (h: Awaited<ReturnType<typeof harness>>) => { run(FADE_IN_MS); h.end(); run(FADE_OUT_MS / 2); return h; },
     ]) {
       const h = midRamp(await harness());
       expect(vi.getTimerCount()).toBe(1);
@@ -339,13 +245,14 @@ describe('soundtrack ramps', () => {
 
   it('releases a fading player whose level write throws, and fails a live one visibly', async () => {
     const h = await harness(); run(FADE_IN_MS);
-    h.phase(1); run(FADE_OUT_MS / 2);
-    // Reach through the log to make the next write throw: the fake has no other seam.
-    h.at(0).levels.push = () => { throw new Error('gone'); };
+    h.controller.toggle(); run(FADE_OUT_MS / 2);
+    h.at(0).throws = 'volume';
     run(RAMP_STEP_MS);
     expect(h.at(0).removed).toBe(true);
-    expect(h.players.length, 'the next score is not left waiting').toBe(2);
-    h.at(1).levels.push = () => { throw new Error('gone'); };
+    expect(vi.getTimerCount()).toBe(0);
+    h.controller.toggle(); await settle();
+    expect(h.players.length, 'the next start is not left waiting').toBe(2);
+    h.at(1).throws = 'volume';
     run(RAMP_STEP_MS);
     expect(h.controller.state.getState()).toMatchObject({ playing: false, activated: false });
     expect(h.controller.state.getState().status).toContain('Playback unavailable');

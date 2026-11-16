@@ -31,10 +31,12 @@ export const DUCK_RATIO = 0.35;
  * score is out of the way within the clip's first syllable.
  */
 export const DUCK_RAMP_MS = 200;
-/** The outgoing score, before its player is released for a phase change, a wipe or import, the
- *  ending, or music being switched off. The next player is not created until this has run. */
+/** The outgoing score when nothing replaces it: the ending, and music being switched off. A
+ *  phase change, wipe or import is a cut followed by a fade-in, because the new player's
+ *  `play()` must not wait on a timer (docs/VOICE-CLIPS.md, "Ramps"). */
 export const FADE_OUT_MS = 500;
-/** Every start of a player from silence: a new phase score, and a return from the background. */
+/** Every start of a player from silence: a new phase score, a restart after a wipe or import,
+ *  and a return from the background. */
 export const FADE_IN_MS = 500;
 /** A player and the only writer of its level. `started` is false while it is paused. */
 interface Slot { player: MusicPlayer; fader: VolumeRamp; started: boolean }
@@ -44,7 +46,7 @@ export class MusicController {
   readonly state = createStore(() => ({ ...silentPreferences, loaded: false, playing: false, activated: false,
     status: '', storageNotice: '', trackPhase: null as MusicPhase | null }));
   private slot: Slot | null = null;
-  /** The previous score, fading out. While it exists no new player is created: one at a time. */
+  /** A score fading out with nothing replacing it. A start removes it first: one at a time. */
   private leaving: Slot | null = null;
   private backend: MusicBackend | null = null;
   private scope = '';
@@ -91,8 +93,10 @@ export class MusicController {
     this.phase = ready && game.ending === null ? musicPhase(game.currentPhase) : null;
     this.eligible = this.phase !== null;
     this.state.setState({ trackPhase: this.phase, playing: false });
-    // A phase change, wipe or import restarts exactly the current phase score.
-    this.release(true);
+    // A phase change, wipe or import restarts exactly the current phase score, in this call:
+    // the old player is cut, not faded, so the new one's `play()` stays in the call stack of
+    // the press that caused it. Only a score that nothing replaces (the ending) fades out.
+    this.release(!this.wanted());
     this.reconcile();
   }
 
@@ -119,6 +123,10 @@ export class MusicController {
     // A ramp in flight bends to the new level; silence is never ramped to, it is simply set.
     if (this.slot?.started === true && target > 0) this.slot.fader.retarget(target);
     else this.slot?.fader.set(target);
+    // A player fading out has left `slot`, and must hear this too: zero ends it now, a lower
+    // level clips it, and a higher one is ignored because it is on its way to silence.
+    if (target === 0) this.dropLeaving();
+    else this.leaving?.fader.limit(target);
     this.persist();
   }
 
@@ -141,7 +149,8 @@ export class MusicController {
     if (ducked === this.ducked) return;
     this.ducked = ducked;
     const target = this.level(this.state.getState().volume);
-    // A paused player (background, failure) is not ramped: its timers may never fire.
+    // A paused player (background, failure) is not ramped: its timers may never fire. A player
+    // fading out is left alone: bending it down would be a step, and it must never come back up.
     if (this.slot?.started === true) this.slot.fader.to(target, DUCK_RAMP_MS);
     else this.slot?.fader.set(target);
   }
@@ -167,9 +176,14 @@ export class MusicController {
     }
   }
 
+  /** Whether a score should be sounding now. */
+  private wanted(): boolean {
+    const { enabled, activated } = this.state.getState();
+    return this.live && this.active && this.eligible && enabled && activated;
+  }
+
   private reconcile(): void {
-    const { enabled, activated, volume } = this.state.getState();
-    if (!this.live || !this.active || !this.eligible || !enabled || !activated) {
+    if (!this.wanted()) {
       // Backgrounding and teardown stop at once, a fade-out in flight included: a suspended app
       // may never run the timer that would finish it. The ending and switching music off are
       // foreground events, so their fade-out is left to finish.
@@ -178,13 +192,17 @@ export class MusicController {
       this.state.setState({ playing: false });
       return;
     }
-    // Not while the old score is still fading: its last step calls back in here.
-    if (!this.backend || this.phase === null || this.leaving) return;
+    if (!this.backend || this.phase === null) return;
     try {
+      // A start is never left to a timer. A fade-out still in flight (music switched back on, a
+      // new run during the ending) is cut short here, so there is still one player at a time
+      // and `play()` below runs in the caller's stack: a browser that only honours `play()`
+      // inside a user gesture would otherwise refuse every start that waited for a fade.
+      this.dropLeaving();
       this.slot ??= this.open(this.backend, this.phase);
       const slot = this.slot;
       if (!slot.started) {
-        const target = this.level(volume);
+        const target = this.level(this.state.getState().volume);
         slot.started = true;
         slot.fader.set(0);
         if (target > 0) slot.fader.to(target, FADE_IN_MS);
@@ -201,10 +219,10 @@ export class MusicController {
       else this.state.setState({ playing: playing && this.active && this.eligible && this.state.getState().activated });
     });
     const fader = new VolumeRamp((level) => { player.volume(level); }, () => {
-      // A level write that threw mid-ramp. A fading-out player must still be released, or the
-      // next score would wait for ever; a live one fails like any other playback error, under
-      // the same stale-player guard as its status callback.
-      if (this.leaving?.player === player) { this.dropLeaving(); this.reconcile(); }
+      // A level write that threw mid-ramp. A fading-out player is released there and then; a
+      // live one fails like any other playback error, under the same stale-player guard as its
+      // status callback.
+      if (this.leaving?.player === player) this.dropLeaving();
       else if (this.live && identity === this.playerGeneration) this.fail();
     });
     return { player, fader, started: false };
@@ -224,9 +242,11 @@ export class MusicController {
   }
 
   /**
-   * Give up the live player. Its status callbacks are stale from this line on, faded or not.
+   * Give up the live player. Its status callbacks are stale from this line on, faded or not,
+   * and `playing` is false from here: the state reports what was asked for, not the tail.
    * With `fade` an audible player is handed to `leaving` and removed by the last step of its
-   * fade-out; anything silent, paused or backgrounded is removed now, as is teardown.
+   * fade-out; anything silent, paused or backgrounded is removed now, as is teardown. Nothing
+   * waits on that last step: a start that arrives first cuts the fade-out short (`reconcile`).
    */
   private release(fade: boolean): void {
     ++this.playerGeneration;
@@ -239,7 +259,7 @@ export class MusicController {
       return;
     }
     this.leaving = slot;
-    slot.fader.to(0, FADE_OUT_MS, () => { this.dropLeaving(); this.reconcile(); });
+    slot.fader.to(0, FADE_OUT_MS, () => { this.dropLeaving(); });
   }
 
   private dropLeaving(): void {
@@ -248,11 +268,11 @@ export class MusicController {
     if (slot) this.remove(slot);
   }
 
-  /** The ramp is closed before the player is removed, so nothing can write to a removed player. */
+  /** The ramp is closed before the player is removed, so nothing can write to a removed player.
+   *  A `pause()` that throws must not leave the player unremoved; the error still propagates. */
   private remove(slot: Slot): void {
     slot.fader.close();
-    slot.player.pause();
-    slot.player.remove();
+    try { slot.player.pause(); } finally { slot.player.remove(); }
   }
 
   private persist(): void {

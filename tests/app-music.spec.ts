@@ -278,12 +278,10 @@ describe('ducking under speech', () => {
   it('creates the next phase player already ducked, and one created idle at full level', async () => {
     const h = await playing();
     h.controller.setDucked(true); ramped();
+    h.player.volume.mockClear();
     h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 1 } }));
-    // The old score fades out first; this harness hands every phase the same mock player, so
-    // the new player's levels are the ones written after that fade-out has run.
-    vi.advanceTimersByTime(FADE_OUT_MS);
     expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(2);
-    h.player.volume.mockClear(); ramped();
+    ramped();
     // The new player never goes above the ducked level on its way in: no full-volume blip.
     const levels = h.player.volume.mock.calls.map(([level]) => Number(level));
     expect(Math.max(...levels)).toBe(0.4 * DUCK_RATIO);

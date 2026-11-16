@@ -133,6 +133,37 @@ describe('volume ramp', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('clips a ramp to a limit without moving its steps, its deadline or its completion', () => {
+    const { ramp, levels } = recording(1);
+    const done = vi.fn();
+    ramp.to(0, 200, done);
+    vi.advanceTimersByTime(50);
+    expect(levels).toEqual([0.875, 0.75]);
+    ramp.limit(0.25);
+    expect(levels.at(-1), 'down to the limit at once').toBe(0.25);
+    expect(ramp.current).toBe(0.25);
+    vi.advanceTimersByTime(125);
+    expect(done).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(25);
+    expect(done).toHaveBeenCalledOnce();
+    expect(levels.slice(2)).toEqual([0.25, 0.25, 0.25, 0.25, 0.25, 0.125, 0]);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('only ever tightens a limit, writes nothing for one above the level, and none once closed', () => {
+    const { ramp, levels } = recording(0.4);
+    ramp.to(0, 200);
+    vi.advanceTimersByTime(50);
+    levels.length = 0;
+    ramp.limit(0.9);
+    expect(levels, 'a limit above the level moves nothing').toEqual([]);
+    ramp.limit(0.1); ramp.limit(0.9);
+    vi.advanceTimersByTime(25);
+    expect(levels, 'loosening it again lifts nothing').toEqual([0.1, 0.1]);
+    ramp.close(); ramp.limit(0);
+    expect(levels).toEqual([0.1, 0.1]);
+  });
+
   it('runs on a supplied clock and step', () => {
     const ticks: Array<() => void> = [];
     const stop = vi.fn();

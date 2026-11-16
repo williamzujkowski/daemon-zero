@@ -23,6 +23,7 @@ export class VolumeRamp {
   private halt: (() => void) | null = null;
   private durationMs = 0;
   private closed = false;
+  private ceiling = Number.POSITIVE_INFINITY;
 
   /**
    * `failed` hears about a write that threw inside a timer tick, where there is no caller to
@@ -82,6 +83,18 @@ export class VolumeRamp {
     });
   }
 
+  /**
+   * Never write above `max` again, and come down to it now if the level is above it. A ramp in
+   * flight keeps its steps, its deadline and its `done`; it is only clipped. The cap can be
+   * tightened and never loosened, so nothing that calls this can turn a level up. It is for a
+   * ramp on its way down to silence: one that rises to a target above the cap stops at the cap.
+   */
+  limit(max: number): void {
+    if (this.closed) return;
+    this.ceiling = Math.min(this.ceiling, max);
+    if (this.level > this.ceiling) this.put(this.ceiling);
+  }
+
   /** A new destination for whatever is happening: a ramp in flight bends towards it over its
    *  own duration, and a level at rest simply moves. */
   retarget(target: number): void {
@@ -92,7 +105,7 @@ export class VolumeRamp {
   private put(level: number): void {
     // Checked here as well as at the entry points: this is the last line before the player.
     if (this.closed) return;
-    this.level = level;
-    this.write(level);
+    this.level = Math.min(level, this.ceiling);
+    this.write(this.level);
   }
 }
