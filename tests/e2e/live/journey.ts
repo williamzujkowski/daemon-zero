@@ -14,6 +14,16 @@ const STATUS_EVERY_SIM_SEC = process.env.DAEMON_E2E_LIVE_VERBOSE === '1' ? 30 : 
 
 const ACTION_TIMEOUT_MS = 15_000;
 
+/** Slow-machine switches for reproducing timing races (docs/TESTING.md, "Live journey"). */
+function slowdown(): { cpu: number; lagMs: number } {
+  const read = (name: string, floor: number) => {
+    const value = Number(process.env[name] ?? floor);
+    if (!Number.isFinite(value) || value < floor) throw new Error(name + ' must be a number of at least ' + String(floor));
+    return value;
+  };
+  return { cpu: read('DAEMON_E2E_LIVE_CPU_THROTTLE', 1), lagMs: read('DAEMON_E2E_LIVE_LAG_MS', 0) };
+}
+
 /** Something to do once, the first time the run is in a fit state for it. */
 export interface Errand { name: string; when: (state: GameState, journey: Journey) => boolean; run: (journey: Journey) => Promise<boolean> }
 
@@ -41,9 +51,14 @@ export class Journey {
     };
     // A press that cannot land must fail where it stands, not sit until the whole test times out.
     page.setDefaultTimeout(ACTION_TIMEOUT_MS);
+    const slow = slowdown();
+    // Chromium's own throttle: every press and render costs `cpu` times the wall time while the
+    // installed clock keeps flowing, so more simulated time passes inside each decision.
+    if (slow.cpu > 1) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: slow.cpu });
     await observeMusicMedia(page);
     await bootLive(page);
-    const player = new LivePlayer(page, { stepMs, log });
+    const player = new LivePlayer(page, { stepMs, lagMs: slow.lagMs, log });
+    if (slow.cpu > 1 || slow.lagMs > 0) log('SLOWED cpu x' + String(slow.cpu) + ', ' + String(slow.lagMs) + ' ms of clock before each press');
     const fresh = await player.read();
     expect(fresh.unlockedNodes, 'the profile starts with no progress').toEqual([]);
     expect(fresh.iteration).toBe(1);

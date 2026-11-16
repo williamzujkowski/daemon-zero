@@ -23,7 +23,13 @@ const FROZEN_STEPS = 40;
 interface Attr { getAttribute(name: string): string | null }
 interface Storage { getItem(key: string): string | null }
 
-export interface PlayerOptions { stepMs: number; log?: (line: string) => void }
+export interface PlayerOptions {
+  stepMs: number;
+  /** Clock time let through between a decision and each press that carries it out: what a slow
+   *  machine does on its own, made repeatable. Zero in a normal run. */
+  lagMs?: number;
+  log?: (line: string) => void;
+}
 
 export class LivePlayer {
   /** Browser console warnings/errors and page errors, in arrival order. */
@@ -57,6 +63,10 @@ export class LivePlayer {
     const envelope = JSON.parse(await stored() ?? '{}') as { version: number; savedAtMs: number; game: string };
     expect(envelope.version).toBe(1);
     return deserialize(envelope.game, CONTENT);
+  }
+
+  private async lag(): Promise<void> {
+    if ((this.options.lagMs ?? 0) > 0) await this.page.clock.runFor(this.options.lagMs ?? 0);
   }
 
   private async present(selector: string): Promise<string[]> {
@@ -189,6 +199,7 @@ export class LivePlayer {
 
   /** Presses a control up to `times`, stopping as soon as it is absent or disabled. */
   async press(intent: Intent, where: string): Promise<number> {
+    await this.lag();
     const control = await this.reach(intent.id, where);
     if (!control) return 0;
     let done = 0;
@@ -203,6 +214,7 @@ export class LivePlayer {
   }
 
   private async clickManually(times: number): Promise<void> {
+    await this.lag();
     const control = await this.reach('manual-cycle');
     if (!control || !(await control.isEnabled())) return;
     if (await this.click(control, 'manual-cycle', times)) this.stats.manual += times;
