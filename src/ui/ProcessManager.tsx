@@ -9,6 +9,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { needsProcessControl } from './purchaseVisibility';
 import { useGame } from './state';
 import { theme } from './theme';
+import { SafeOverlay } from './safeArea';
 
 export default function ProcessManager() {
   const count = useGame((game) => [...CONTENT.nodes.values()].filter((node) => needsProcessControl(game, node)).length);
@@ -29,7 +30,7 @@ export default function ProcessManager() {
     </Pressable>
     {open && !blocked && <Modal visible transparent animationType="none" accessibilityLabel="Daemon processes"
       onRequestClose={() => { setOpen(false); }}>
-      <View style={{ flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000e' }}>
+      <SafeOverlay padding={16} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000e' }}>
         <View testID="processes-dialog" style={[theme.panel, { width: '100%', maxWidth: 760, maxHeight: '90%' }]}>
           <Text accessibilityRole="header" style={theme.heading}>DAEMON PROCESSES</Text>
           <Text style={theme.muted}>{count - suspended} running // {suspended} suspended</Text>
@@ -40,7 +41,7 @@ export default function ProcessManager() {
           <Pressable testID="processes-close" accessibilityRole="button" accessibilityLabel="Close daemon processes"
             style={theme.button} onPress={() => { setOpen(false); }}><Text style={theme.text}>[ CLOSE ]</Text></Pressable>
         </View>
-      </View>
+      </SafeOverlay>
     </Modal>}
   </>;
 }

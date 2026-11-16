@@ -7,6 +7,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { selectLatestLog, useGameValue } from '../app/selectors';
 import { useUtilityScope } from './useUtilityMenu';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 import { layoutFor } from './layout';
 
 export default function LogDock() {
@@ -45,12 +46,12 @@ function History({ close }: { close: () => void }) {
   const focus = useRef<ComponentRef<typeof Pressable>>(null);
   useEffect(() => { focus.current?.focus(); }, []);
   return <Modal visible transparent animationType="none" accessibilityLabel="Kernel log history" onRequestClose={close}>
-    <View style={styles.overlay}><View testID="kernel-history" style={styles.history}>
+    <SafeOverlay padding={12} style={styles.overlay}><View testID="kernel-history" style={styles.history}>
       <View style={styles.row}><Text accessibilityRole="header" style={[theme.heading, styles.title]}>KERNEL // HISTORY</Text>
         <Pressable ref={focus} testID="kernel-close" accessibilityRole="button" accessibilityLabel="Close kernel log"
           style={theme.button} onPress={close}><Text style={theme.text}>[ CLOSE ]</Text></Pressable>
       </View><KernelLog />
-    </View></View>
+    </View></SafeOverlay>
   </Modal>;
 }
 
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   summary: { flex: 1, minWidth: 0, gap: 4 },
   title: { flexGrow: 1, flexShrink: 1 },
-  overlay: { flex: 1, padding: 12, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' },
+  overlay: { flex: 1, backgroundColor: '#000e', alignItems: 'center', justifyContent: 'center' },
   history: { width: '100%', maxWidth: 900, height: '85%', minHeight: 100, backgroundColor: palette.background,
     borderWidth: 1, borderColor: palette.border, padding: 12 },
 });

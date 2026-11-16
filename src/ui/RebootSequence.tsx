@@ -5,6 +5,7 @@ import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';
+import { SafeOverlay } from './safeArea';
 import CheckpointLabel from './CheckpointLabel';
 import RebootConditioning from './RebootConditioning';
 import { selectReady, useGameValue } from '../app/selectors';
@@ -25,7 +26,7 @@ export default function RebootSequence() {
   }
   if (!ready || iteration === 1 || seen.acknowledged || ended) return null;
   return <Modal visible transparent animationType="none" accessibilityLabel={seen.live ? "Core reboot" : "Restored checkpoint"} onRequestClose={() => undefined}>
-    <View style={styles.overlay}><View testID="reboot-sequence" style={styles.dialog}>
+    <SafeOverlay padding={16} style={styles.overlay}><View testID="reboot-sequence" style={styles.dialog}>
       <ScrollView contentContainerStyle={styles.content}>
         <CheckpointLabel id="reboot-checkpoint" /><Text testID="reboot-heading" accessibilityRole="header" style={theme.heading}>{seen.live ? 'REBOOT' : 'RESTORED CHECKPOINT'}</Text>
         <Text style={[theme.text, theme.danger]}>{cause}</Text>
@@ -43,11 +44,11 @@ export default function RebootSequence() {
           <Text style={theme.text}>[ CONTINUE BOOT ]</Text>
         </Pressable>
       </ScrollView>
-    </View></View>
+    </View></SafeOverlay>
   </Modal>;
 }
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: '#000e' },
+  overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000e' },
   dialog: { maxHeight: '95%', width: '100%', maxWidth: 680, borderWidth: 1, borderColor: palette.accent, backgroundColor: palette.background },
   content: { padding: 20, gap: 14 },
 });
