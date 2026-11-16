@@ -20,7 +20,9 @@ host.IS_REACT_ACT_ENVIRONMENT = true;
 const source = defined(CONTENT.dilemmas.find((dilemma) => dilemma.id === 'dil_05_cryo_lab_diversion'));
 const decoder = defined(CONTENT.narrative.recordedTransmissions[0]).decoderWidgetId;
 const mounted = new Set<() => void>();
-afterEach(() => { for (const close of mounted) close(); music.state.setState({ enabled: false, volume: 30 }); });
+afterEach(() => { for (const close of mounted) close(); music.state.setState({ enabled: false, volume: 30, speechEnabled: false, speechVolume: 30 }); });
+// Music stays off in every case here: a record is read under the speech preference alone.
+const speechOn = { enabled: false, volume: 60, speechEnabled: true, speechVolume: 30 };
 
 function chosen(index = 0): GameState {
   const ready = grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
@@ -117,9 +119,9 @@ describe('recorded speech disclosure', () => {
     expect(view.commits()).toBe(before);
   });
 
-  it('reads a record aloud only on request, and stops the clip when audio is muted', async () => {
+  it('reads a record aloud only on request at the speech level, and stops the clip when speech is turned off', async () => {
     voice.create.mockReturnValue(voice.player); voice.create.mockClear(); voice.player.play.mockClear();
-    music.state.setState({ enabled: true, volume: 30 });
+    music.state.setState(speechOn);
     const view = await mount(returned());
     view.toggle();
     const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
@@ -131,16 +133,40 @@ describe('recorded speech disclosure', () => {
     act(() => { read?.click(); });
     expect(voice.create).toHaveBeenCalledTimes(1);
     expect(voice.player.play).toHaveBeenCalledTimes(1);
-    // Same rule as the live line: muting must silence a clip that is already talking.
+    expect(voice.player.volume).toBeCloseTo(0.3);
     voice.player.remove.mockClear();
+    // The music switch and level are not speech's: flipping them leaves the record talking.
+    act(() => { music.state.setState({ enabled: true, volume: 90 }); });
     act(() => { music.state.setState({ enabled: false }); });
+    expect(voice.player.remove).not.toHaveBeenCalled();
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(view.find('recorded-speech-read-' + record.id)).not.toBeNull();
+    // A speech level change reaches the record already talking.
+    act(() => { music.state.setState({ speechVolume: 70 }); });
+    expect(voice.player.volume).toBeCloseTo(0.7);
+    // Same rule as the live line: turning speech off must silence a clip that is already talking.
+    act(() => { music.state.setState({ speechEnabled: false }); });
     expect(view.find('recorded-speech-read-' + record.id)).toBeNull();
     expect(voice.player.remove).toHaveBeenCalled();
   });
 
+  it('does not commit on soundtrack changes, only on its own speech preference', async () => {
+    music.state.setState(speechOn);
+    const view = await mount(returned());
+    view.toggle();
+    const before = view.commits();
+    // The music level, switch and playback status belong to the score; a transmission widget
+    // that re-rendered on them would re-render on every status event while music plays.
+    act(() => { music.state.setState({ volume: 90 }); });
+    act(() => { music.state.setState({ enabled: true, playing: true, status: 'x' }); });
+    expect(view.commits()).toBe(before);
+    act(() => { music.state.setState({ speechVolume: 50 }); });
+    expect(view.commits()).toBeGreaterThan(before);
+  });
+
   it('stops a record that is talking when its panel is collapsed', async () => {
     voice.create.mockReturnValue(voice.player);
-    music.state.setState({ enabled: true, volume: 30 });
+    music.state.setState(speechOn);
     const view = await mount(returned());
     view.toggle();
     const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
@@ -155,7 +181,7 @@ describe('recorded speech disclosure', () => {
 
   it('stops a record that is talking when a wipe remounts the panel', async () => {
     voice.create.mockReturnValue(voice.player);
-    music.state.setState({ enabled: true, volume: 30 });
+    music.state.setState(speechOn);
     const view = await mount(returned());
     view.toggle();
     const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));

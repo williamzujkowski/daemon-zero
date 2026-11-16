@@ -28,14 +28,17 @@ test('starts on and silent, plays after the first interaction, and keeps its con
   await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('music-status')).toContainText('Playing phase 0 score');
   await page.getByTestId('music-quieter').click();
-  await expect(page.getByTestId('music-volume')).toHaveText('Volume 20%');
+  await expect(page.getByTestId('music-volume')).toHaveText('Music volume 20%');
   await page.reload();
   await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
   // A reload is a new page: playback waits for the next gesture again, and the stored
   // volume survives it.
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
   await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-checked', 'true');
-  await expect(page.getByTestId('music-volume')).toHaveText('Volume 20%');
+  await expect(page.getByTestId('music-volume')).toHaveText('Music volume 20%');
+  // A fresh install that only ever touched the music level still has speech on at its default.
+  await expect(page.getByTestId('speech-toggle')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('speech-volume')).toHaveText('Speech volume 30%');
   await page.getByTestId('music-toggle').click();
   await expect(page.getByTestId('music-status')).toHaveText('Music is off.');
 });

@@ -35,7 +35,7 @@ describe('soundtrack foundation', () => {
   it('starts a fresh install with music enabled but silent until a gesture', async () => {
     const storage = memoryStorage();
     const preferences = audioPreferences(storage);
-    expect(await preferences.load()).toEqual({ version: 1, enabled: true, volume: 30 });
+    expect(await preferences.load()).toEqual({ version: 2, enabled: true, volume: 30, speechEnabled: true, speechVolume: 30 });
     const h = harness(storage); await settle();
     expect(h.controller.state.getState().enabled).toBe(true);
     // Enabled is a preference, activation is the player's gesture: no audio yet.
@@ -99,7 +99,7 @@ describe('soundtrack foundation', () => {
     }
     const h = harness(storage); await settle(); h.controller.setVolume(193.4); await settle();
     // This storage held malformed entries, so it fell back to silence; the volume still clamps.
-    expect(await preferences.load()).toEqual({ version: 1, enabled: false, volume: 100 });
+    expect(await preferences.load()).toEqual({ version: 2, enabled: false, volume: 100, speechEnabled: false, speechVolume: 30 });
     h.controller.setVolume(-10); h.controller.setVolume(Number.NaN); await settle();
     expect(h.controller.state.getState().volume).toBe(0);
     expect(storage.getItem('daemon-zero.save.v1')).toBeNull(); h.stop();
@@ -254,7 +254,8 @@ describe('ducking under speech', () => {
     h.controller.setVolume(80); await settle();
     expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * DUCK_RATIO);
     expect(h.controller.state.getState().volume).toBe(80);
-    expect(await audioPreferences(h.storage).load()).toEqual({ version: 1, enabled: true, volume: 80 });
+    // The stored v1 value migrated with speech at the old shared level; only the music level moved.
+    expect(await audioPreferences(h.storage).load()).toEqual({ version: 2, enabled: true, volume: 80, speechEnabled: true, speechVolume: 40 });
     h.controller.setDucked(false);
     expect(h.player.volume).toHaveBeenLastCalledWith(0.8);
     h.stop();
