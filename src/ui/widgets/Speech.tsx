@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../../content';
 import { eligibleAmbientSpeech } from '../../engine';
 import { useReducedMotion } from '../../app/useReducedMotion';
-import { useMusic } from '../../app/musicSession';
+import { useSpeechPreference } from '../../app/musicSession';
 import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../../app/voicePlayer';
 import { Pressable, Text, View } from '../PhaseTheme';
 import { useGame } from '../state';
@@ -33,15 +33,16 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   // READ holds the line it reads: the live feed would otherwise rotate it off screen every
   // eight seconds and take the voice with it mid-sentence.
   const speech = useSpeech(decoderId);
-  const audio = useMusic();
+  const audio = useSpeechPreference();
   const nextButton = useRef<ComponentRef<typeof Pressable>>(null);
   // When this line leaves the screen - a step, a return to live, or the widget closing - its
   // clip stops with it. Scoped to this line's id: the live rotation must not cut off a recorded
   // transmission the sibling panel is reading. Panel finding, accepted.
   const clipId = speech.id;
   useEffect(() => () => { if (clipId !== null) stopVoiceClip(clipId); }, [clipId]);
-  // A clip must not outlive the preference that allowed it: muting silences the voice with the
-  // score, even though the control itself has already gone. Panel finding, accepted.
+  // A clip must not outlive the preference that allowed it: turning speech off silences the
+  // voice even though the control itself has already gone. Panel finding, accepted. The music
+  // switch is not consulted: speech has its own (docs/VOICE-CLIPS.md).
   useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
   // A volume change reaches the clip that is already talking, not only the next one.
   useEffect(() => { setVoiceVolume(audio.volume); }, [audio.volume]);
