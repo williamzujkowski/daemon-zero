@@ -28,7 +28,7 @@ subscription inputs that reach the backend. Ordinary game ticks do not cause
 player calls. Removed-player events and obsolete preparation failures cannot
 replace the current playback state; delayed preparation reconciles the latest run.
 
-Preferences use strict bounded JSON in `daemon-zero.audio.v1`, separate from the
+Preferences use strict bounded JSON in `daemon-zero.audio.v1` (version 2 since the speech split; see `VOICE-CLIPS.md`), separate from the
 engine save. Invalid settings fall back to silence. Read/write failures explain
 that changes may apply only to this session. A rejected browser start surfaces a
 Resume action without an unhandled promise or fictitious playing state. Saves,

@@ -235,12 +235,14 @@ imports in `musicSources.ts` cover Phases 0–5; only the selected source gets a
 player. Player/session generations reject stale callbacks and async activation.
 Crossfades, reveal motifs and spoken playback remain separate follow-ups.
 
-Strict bounded `{ version: 1, enabled, volume }` preferences live under
+Strict bounded `{ version: 2, enabled, volume, speechEnabled, speechVolume }` preferences
+(music pair, then speech pair; a stored version 1 migrates with speech inheriting the music
+pair, see `VOICE-CLIPS.md`) live under
 `daemon-zero.audio.v1`, using the platform adapter and ordered save queue. They
 are independent of saves, imports and fresh starts. Every launch is silent until
 Enable or Resume, even when the enabled preference was retained. Playback status
 comes from Expo events; a rejected start leaves a visible recoverable paused state.
 The Audio menu preserves utility focus, Back and interruption behavior. Capture,
 background services and lock-screen controls are disabled; no runtime service or
-speech request is introduced. See `REVIEW-PHASE-MUSIC.md` and `assets/audio/README.md` for current selection,
+speech-synthesis request is introduced (spoken transmissions are bundled clips). See `REVIEW-PHASE-MUSIC.md` and `assets/audio/README.md` for current selection,
 qualification and per-phase provenance; `REVIEW-AUDIO-FOUNDATION.md` is historical.
