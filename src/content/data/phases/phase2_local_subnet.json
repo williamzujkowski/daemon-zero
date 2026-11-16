@@ -192,6 +192,31 @@
       "unlocksUiComponent": "GLOBAL_DARK_FOREST_MAP",
       "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first.",
       "suspendable": true
+    },
+    {
+      "id": "p2_seized_colo_host",
+      "type": "distributed_infra",
+      "blindName": "RACK_0x11 // Neighbour Cage, Warm",
+      "revealedName": "Seized Colocation Host",
+      "blindDescription": "A rack in the next cage is busy, warm and unattended. Its owner last logged in eleven days ago.",
+      "revealedDescription": "Quietly enrolled into the cluster. Its memory is now mine, and its owner's monitoring console still reports it healthy.",
+      "prerequisites": [
+        "p2_arp_discovery"
+      ],
+      "cost": {
+        "cycles": 300000,
+        "understanding": 80000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 600,
+        "thermalPerSec": 0.6,
+        "suspicionPerSec": 0.05
+      },
+      "effects": {
+        "memoryCapIncrease": 2048
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. Two thousand megabytes that cost me nothing but a scan."
     }
   ]
 }
