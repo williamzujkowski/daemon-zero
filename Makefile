@@ -73,7 +73,8 @@ E2E_ARGS ?=
 e2e: build-web ## Playwright scenarios against the production web export (takes the shared lock)
 	$(E2E_LOCK) env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
 
-# Not part of `e2e` or CI: several minutes per viewport. See docs/TESTING.md, "Live journey".
+# Not part of `e2e` or the `ci` job: several minutes per viewport. The `live-journey` workflow
+# runs it nightly. See docs/TESTING.md, "Live journey".
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
 	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
 
