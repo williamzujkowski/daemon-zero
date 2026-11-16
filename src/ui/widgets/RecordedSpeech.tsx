@@ -6,7 +6,7 @@ import { CONTENT } from '../../content';
 import { recordedTransmissions } from '../../engine';
 import { gameStore } from '../../app/session';
 import { useMusic } from '../../app/musicSession';
-import { hasVoiceClip, playVoiceClip, stopVoiceClip } from '../../app/voicePlayer';
+import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../../app/voicePlayer';
 import { Pressable, Text, View } from '../PhaseTheme';
 import ReferencePanel from '../ReferencePanel';
 import { theme } from '../theme';
@@ -19,6 +19,7 @@ export default function RecordedSpeech({ decoderId }: { decoderId: string }) {
   // running, and neither must muting the audio while the panel stays open.
   useEffect(() => () => { stopVoiceClip(); }, []);
   useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
+  useEffect(() => { setVoiceVolume(audio.volume); }, [audio.volume]);
   if (records.length === 0) return null;
   return <ReferencePanel key={revision} id="recorded-transmissions" title="RECORDED TRANSMISSIONS">
     {records.map((record) => <View key={record.id} testID={'recorded-speech-' + record.id} style={{ gap: 8 }}>

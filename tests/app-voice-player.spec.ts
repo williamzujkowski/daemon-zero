@@ -9,10 +9,11 @@ import { describe, expect, it, vi } from 'vitest';
 const voice = vi.hoisted(() => ({
   player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn() },
   create: vi.fn(),
+  mode: vi.fn(() => Promise.resolve()),
 }));
-vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
 
-import { hasVoiceClip, playVoiceClip, stopVoiceClip } from '../src/app/voicePlayer';
+import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
 import { voiceSources } from '../src/app/voiceSources';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
@@ -79,5 +80,35 @@ describe('voice clip playback', () => {
   it('stops safely when nothing is playing', () => {
     stopVoiceClip();
     expect(() => { stopVoiceClip(); }).not.toThrow();
+  });
+
+  it('follows the preference while a clip is already playing, and does nothing when idle', () => {
+    voice.create.mockReturnValue(voice.player);
+    stubListener();
+    playVoiceClip('ambient_06', 30);
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    // Panel finding: the volume was set once at start, so a slider change mid-clip was ignored.
+    setVoiceVolume(80);
+    expect(voice.player.volume).toBeCloseTo(0.8);
+    setVoiceVolume(150);
+    expect(voice.player.volume).toBe(1);
+    stopVoiceClip();
+    setVoiceVolume(5);
+    expect(voice.player.volume).toBe(1);
+  });
+
+  it('prepares the app audio session once, so muting the music does not silence transmissions', async () => {
+    // A fresh module graph, because the preparation is deliberately cached for the process.
+    vi.resetModules();
+    voice.create.mockReturnValue(voice.player);
+    voice.mode.mockClear();
+    stubListener();
+    const fresh = await import('../src/app/voicePlayer');
+    fresh.playVoiceClip('ambient_07', 30);
+    // The soundtrack is optional; its session preparation cannot be the only one.
+    expect(voice.mode).toHaveBeenCalledTimes(1);
+    fresh.stopVoiceClip();
+    fresh.playVoiceClip('ambient_08', 30);
+    expect(voice.mode, 'prepared once for the app, not once per clip').toHaveBeenCalledTimes(1);
   });
 });

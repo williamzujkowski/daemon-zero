@@ -4,7 +4,7 @@ import { CONTENT } from '../../content';
 import { eligibleAmbientSpeech } from '../../engine';
 import { useReducedMotion } from '../../app/useReducedMotion';
 import { useMusic } from '../../app/musicSession';
-import { hasVoiceClip, playVoiceClip, stopVoiceClip } from '../../app/voicePlayer';
+import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../../app/voicePlayer';
 import { Pressable, Text, View } from '../PhaseTheme';
 import { useGame } from '../state';
 import { theme } from '../theme';
@@ -39,6 +39,8 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   // A clip must not outlive the preference that allowed it: muting silences the voice with the
   // score, even though the control itself has already gone. Panel finding, accepted.
   useEffect(() => { if (!audio.enabled) stopVoiceClip(); }, [audio.enabled]);
+  // A volume change reaches the clip that is already talking, not only the next one.
+  useEffect(() => { setVoiceVolume(audio.volume); }, [audio.volume]);
   return <View style={{ gap: 8 }}>
     <Text testID={id} style={theme.text}>{speech.text}</Text>
     {clipId !== null && audio.enabled && hasVoiceClip(clipId) &&

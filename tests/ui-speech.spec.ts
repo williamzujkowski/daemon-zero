@@ -8,7 +8,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 // The voice clips play through expo-audio; the widget's contract is which clip it hands to the
 // player, so the platform boundary is mocked exactly as tests/app-audio-player.spec.ts does.
 const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
-vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn() }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
 import { CONTENT } from '../src/content';
 import { importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
@@ -229,5 +229,15 @@ describe('reading a transmission aloud', () => {
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).toHaveBeenCalled();
     expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('follows a volume change while a clip is playing', async () => {
+    const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
+    view.click('speech-read');
+    expect(voice.player.volume).toBeCloseTo(0.3);
+    // Panel finding: a slider change mid-clip used to be ignored until the next press.
+    act(() => { music.state.setState({ volume: 80 }); });
+    expect(voice.player.volume).toBeCloseTo(0.8);
+    expect(view.find('speech-read')).not.toBeNull();
   });
 });

@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 // Asserting on the player needs an inspectable stub; the config alias is the silent one.
 const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
-vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create }));
+vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
 import { CONTENT } from '../src/content';
 import { resolveDilemma, understandsSurveillance, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
