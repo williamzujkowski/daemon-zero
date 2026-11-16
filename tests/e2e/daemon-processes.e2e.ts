@@ -11,7 +11,9 @@ test('a compact daemon row suspends and resumes without restoring its purchase c
   await page.getByTestId('processes-open').click();
   await expect(page.getByTestId('daemon-row-' + node.id)).toBeVisible();
   const toggle = page.getByTestId('node-' + node.id + '-toggle');
-  await expect(toggle).toHaveAttribute('aria-label', 'Suspend ' + node.revealedName);
+  // The suspend label now names what suspending gives back, so the assertion matches the
+  // richer name rather than an exact string (nexus vote software-types-only-free-their-memory).
+  await expect(toggle).toHaveAttribute('aria-label', new RegExp('^Suspend ' + node.revealedName + ' and free [0-9]+ MB$'));
   await toggle.click();
   expect((await readSave(page)).disabledNodes).toContain(node.id);
   await expect(page.getByTestId('daemon-impact-' + node.id)).toContainText('+0.00 cycles/s');
