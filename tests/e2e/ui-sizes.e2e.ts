@@ -30,8 +30,9 @@ const states = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] 
 /** The supported floor, chosen by a nexus consensus_vote (5 of 5 selecting seats):
  *  360x640 and up get budget and above-the-fold claims; 320x568 is tolerated - it must
  *  render without overflow, clipping or sub-44px targets, but no fold promise is made
- *  there. Measured first purchase against the usable fold: 320 misses by 67px in all
- *  three sampled states, 360 clears it by 1px, 375 by 47px, 390 comfortably. */
+ *  there. Measured first purchase against the usable fold when the vote was taken: 320
+ *  misses by 67px in all three sampled states, 360 clears it by 1px, 375 by 47px, 390
+ *  comfortably. Current figures per cell are in docs/UI-SIZES.md, from this annotation. */
 function isSupported(size: { width: number | string; height: number | string }): boolean {
   return Number(size.width) >= 360 && Number(size.height) >= 640;
 }
@@ -48,10 +49,18 @@ type Geometry = {
   stripHeight: number;
   tallReadouts: number;
   firstUnlockTop: number | null;
+  firstUnlockBottom: number | null;
   firstUnlockVisible: boolean;
+  /** Where the screen stops being usable: the docked mobile tab bar's top edge, or the
+   *  viewport's bottom edge when no tab bar is docked (docs/UI-SIZES.md, "Two folds"). */
+  usableFold: number;
+  /** Recorded, never asserted here: firstUnlockVisible is the viewport verdict the contract
+   *  uses, and this is the stricter one, so the tables can state both. */
+  firstUnlockAboveUsableFold: boolean;
   forecastVisible: boolean;
   forecastHeight: number;
   warningVisible: boolean;
+  warningTop: number | null;
 };
 
 /** The page context supplies the DOM; happy-dom's types are the project's typed stand-in. */
@@ -78,6 +87,7 @@ function readGeometry(): Geometry {
   const first = box(unlocks[0] ?? null);
   const forecast = box(browser.document.querySelector('[data-testid="forecast-notice"]'));
   const warning = box(browser.document.querySelector('[data-testid="insolvency-warning"]'));
+  const usableFold = Math.round(box(browser.document.querySelector('[data-testid="terminal-tabs-scroll"]'))?.top ?? browser.innerHeight);
   const fullyVisible = (r: DOMRect | null) => r !== null && r.width > 0 && r.height > 0
     && r.top >= 0 && r.bottom <= browser.innerHeight && r.left >= 0 && r.right <= browser.innerWidth;
   return {
@@ -107,10 +117,14 @@ function readGeometry(): Geometry {
       .filter((child) => child.querySelector('[data-testid^="res-"], [role="meter"]') !== null)
       .filter((child) => child.getBoundingClientRect().height > 50).length,
     firstUnlockTop: first === null ? null : Math.round(first.top),
+    firstUnlockBottom: first === null ? null : Math.round(first.bottom),
     firstUnlockVisible: fullyVisible(first),
+    usableFold,
+    firstUnlockAboveUsableFold: fullyVisible(first) && first !== null && Math.round(first.bottom) <= usableFold,
     forecastVisible: fullyVisible(forecast),
     forecastHeight: Math.round(forecast?.height ?? 0),
     warningVisible: fullyVisible(warning),
+    warningTop: warning === null ? null : Math.round(warning.top),
   };
 }
 
@@ -369,6 +383,8 @@ test.describe('above-the-fold at baseline sizes', () => {
     // two of them were vacuous. Each state now gets a fresh context, and the claim is
     // what the measurements actually support: the opening state clears the fold at 360,
     // mid-game and the insolvency state do not (609-653 and 732 against 640).
+    // Those were #138's figures. Mid-game has cleared since #143 and is pinned against the
+    // usable fold by 'mid-game at the floor'; this case still claims only the opening state.
     for (const fixture of states) {
       const { page } = await openState(browser, 360, 640, fixture);
       try {
