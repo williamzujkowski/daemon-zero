@@ -292,6 +292,13 @@ secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
 Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
+Two other workflows run beside it. `codeql.yml` analyses the source and the workflows on
+every push and pull request and weekly. `live-journey.yml` runs `make e2e-live` nightly and
+on demand (`gh workflow run live-journey`): the full journey takes about five minutes, too
+long for the 15-minute `ci` job, so it reports rather than gates. A red nightly run means the
+shipped web build no longer plays through to an ending; its journal and screenshot are
+uploaded as the `live-journey-results` artifact.
+
 The milestone sections below retain their original verification procedures and
 counts; use the current commands above and the linked review documents when
 reporting new evidence.

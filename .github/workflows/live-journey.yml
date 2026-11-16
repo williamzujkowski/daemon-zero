@@ -1,0 +1,50 @@
+name: live-journey
+
+# The full live end-to-end journey (`make e2e-live`): a fresh profile on a running clock,
+# played through the UI to an ending on phone and desktop. It takes about five minutes, so it
+# runs nightly and on demand instead of inside the 15-minute `ci` job. A failure here means the
+# shipped web build no longer plays through; it is a report, not a merge gate.
+on:
+  schedule:
+    - cron: '41 7 * * *'
+  workflow_dispatch:
+
+# Reads the repository and nothing else.
+permissions:
+  contents: read
+
+concurrency:
+  group: live-journey
+  cancel-in-progress: true
+
+jobs:
+  journey:
+    name: live journey
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      # Third-party actions are pinned by commit SHA; the comment records the tag.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned toolchain (mise.toml)
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install E2E browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Live journey, fresh profile to an ending
+        run: make e2e-live
+
+      - name: Upload the journal and traces on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: live-journey-results
+          path: test-results/
+          retention-days: 7
