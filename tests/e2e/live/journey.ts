@@ -7,12 +7,10 @@ import type { Page, TestInfo } from '@playwright/test';
 import { expect, observeMusicMedia } from '../helpers';
 import type { GameState } from '../../../src/engine';
 import { assertBoundary, scorePlaysPhase } from './checks';
-import { bootLive, describe, LivePlayer } from './player';
+import { bootLive, describe, Interrupted, LivePlayer, PRESS_TIMEOUT_MS } from './player';
 
 /** Simulated seconds between journal status lines. */
 const STATUS_EVERY_SIM_SEC = process.env.DAEMON_E2E_LIVE_VERBOSE === '1' ? 30 : 300;
-
-const ACTION_TIMEOUT_MS = 15_000;
 
 /** Slow-machine switches for reproducing timing races (docs/TESTING.md, "Live journey"). */
 function slowdown(): { cpu: number; lagMs: number } {
@@ -50,7 +48,7 @@ export class Journey {
       if (!line.startsWith(' ') || process.env.DAEMON_E2E_LIVE_VERBOSE === '1') console.log('[' + info.project.name + '] ' + stamped);
     };
     // A press that cannot land must fail where it stands, not sit until the whole test times out.
-    page.setDefaultTimeout(ACTION_TIMEOUT_MS);
+    page.setDefaultTimeout(PRESS_TIMEOUT_MS);
     const slow = slowdown();
     // Chromium's own throttle: every press and render costs `cpu` times the wall time while the
     // installed clock keeps flowing, so more simulated time passes inside each decision.
@@ -101,13 +99,26 @@ export class Journey {
       this.status(state);
       await this.boundary(state);
       // Nothing is slipped in while a decision is on its way: the interrupt would land on top of it.
+      // `state` is what the step decided on, one step old by now, so this only keeps errands out of
+      // the way of an interrupt that was already counting down; each errand guards its own presses.
       const quiet = state.pendingDilemma === null && state.activeDilemmaId === null && state.ending === null;
       for (const errand of errands) {
         if (!quiet || this.done.has(errand.name) || !errand.when(state, this)) continue;
-        if (await errand.run(this)) this.done.add(errand.name);
+        if (await this.attempt(errand)) this.done.add(errand.name);
         break;
       }
       if (finished(state, this)) return state;
+    }
+  }
+
+  /** An errand cut off by the ending is not done; the next step sees the ending and the run finishes. */
+  private async attempt(errand: Errand): Promise<boolean> {
+    try {
+      return await errand.run(this);
+    } catch (error) {
+      if (!(error instanceof Interrupted)) throw error;
+      this.player.log('ERRAND ' + errand.name + ' put off: ' + error.message);
+      return false;
     }
   }
 

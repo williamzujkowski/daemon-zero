@@ -102,11 +102,11 @@ export function decide(state: GameState): { intents: Intent[]; locked: Dial[] } 
 }
 
 /** The bot's own dilemma ranking, best first. The player presses the first one that is enabled. */
-export function rankChoices(choiceIds: readonly string[]): { id: string; free: boolean }[] {
+export function rankChoices(choiceIds: readonly string[]): { dilemma: string; id: string; free: boolean }[] {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.choices.some((choice) => choiceIds.includes(choice.id)));
   if (!dilemma) return [];
   return rankDilemmaChoices(dilemma.choices, 'STEALTH')
-    .map((choice) => ({ id: choice.id, free: Object.values(choice.cost).every((value) => value === 0) }));
+    .map((choice) => ({ dilemma: dilemma.id, id: choice.id, free: Object.values(choice.cost).every((value) => value === 0) }));
 }
 
 /** The bot's own manual-click rule, scaled to one step of the live clock. */
