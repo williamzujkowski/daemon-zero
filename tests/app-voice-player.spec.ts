@@ -196,6 +196,18 @@ describe('voice activity signal', () => {
     h.stop();
   });
 
+  it('reports silence when the outgoing player throws during a replacement', () => {
+    // The third path of the same fault: the old clip is released before the new one exists.
+    const h = listen();
+    playVoiceClip('ambient_01', 30);
+    voice.player.remove.mockImplementationOnce(() => { throw new Error('outgoing player threw'); });
+    expect(() => { playVoiceClip('ambient_02', 30); }).toThrow('outgoing player threw');
+    expect(h.heard, 'nothing is talking, so the score comes back').toEqual([true, false]);
+    playVoiceClip('ambient_03', 30);
+    expect(h.heard, 'and the next press works').toEqual([true, false, true]);
+    h.stop();
+  });
+
   it('holds through a replacement instead of bouncing, and still ends when the second clip does', () => {
     const h = listen();
     playVoiceClip('ambient_01', 30);

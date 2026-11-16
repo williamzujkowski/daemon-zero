@@ -103,10 +103,11 @@ export function setVoiceVolume(volume: number): void {
 export function playVoiceClip(id: string, volume: number): void {
   const source = hasVoiceClip(id) ? voiceSources[id] : undefined;
   if (source === undefined) return;
-  // Released without announcing: a replacement is one unbroken stretch of speech, and reporting
-  // the gap would bounce the soundtrack up and straight back down.
-  release();
   try {
+    // Released without announcing: a replacement is one unbroken stretch of speech, and
+    // reporting the gap would bounce the soundtrack up and straight back down. Inside the try
+    // so that an outgoing player that throws while being removed still reaches the report below.
+    release();
     // The session is shared with the soundtrack but prepared by neither on the other's behalf.
     void ensureAudioMode().catch(() => undefined);
     const player = createAudioPlayer(source, { updateInterval: 250, allowsExternalPlayback: false });
