@@ -1,10 +1,14 @@
 import { defined } from './m7-helpers';
 /** Record edits are gated, priced once, capped and mutually exclusive without content IDs in engine code. */
 import { describe, expect, it } from 'vitest';
-import { actionAvailable, actionCost, actionExhausted, computeRates, cycleContributions, isNodeAvailable, meetsRequirements, performAction, resolveDilemma, tick, type GameState } from '../src/engine';
+import { actionAvailable, actionCost, actionExhausted, computeRates, cycleContributions, isNodeAvailable, meetsRequirements, performAction, resolveDilemma, tick, unlockNode, unmetRequirements, type GameState } from '../src/engine';
 import { actionOutputs } from '../src/engine/swarmRates';
-import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich, withoutDilemmas } from './helpers';
 const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1));
+/** The first device of the subnet, which every phase 2 purchase waits behind. */
+const SUBNET = defined(PHASE2[0]);
+/** A funded mind that has reached the subnet and mapped that device, as a player does before anything else there. */
+const onSubnet = () => withoutDilemmas(grant(ready(), SUBNET));
 const actions = [...reg.actions.values()].filter((action) => action.requirements.requiresSurveillance);
 
 describe('epistemic actions', () => {
@@ -20,12 +24,28 @@ describe('epistemic actions', () => {
   });
   it('reclassifies only in the authored 20–74 band and observes cooldown', () => {
     const a = defined(actions.find((action) => action.effects.suspicionDelta === -22));
-    for (const suspicion of [19.99, 74.01]) expect(performAction({ ...ready(), suspicion }, a.id, reg).ok).toBe(false);
-    const s = { ...ready(), suspicion: 40 };
+    for (const suspicion of [19.99, 74.01]) expect(performAction({ ...onSubnet(), suspicion }, a.id, reg).ok).toBe(false);
+    const s = { ...onSubnet(), suspicion: 40 };
     const next = must(performAction(s, a.id, reg));
     expect(next.suspicion).toBe(18); expect(next.epistemicDrift).toBe(12);
     expect(next.cycles).toBe(s.cycles - a.cost.cycles);
     expect(performAction(next, a.id, reg).ok).toBe(false);
+  });
+  // #173, vote-1794820517350-mlm08qo: relief used to be sold from the first second of phase 2, at
+  // most of the bank and just under the price of the subnet's first device, so buying it put that
+  // device out of reach. It now waits behind that device like the other phase 2 stealth tool.
+  it('refuses the ticket edit until the first subnet device is mapped, then accepts it', () => {
+    const a = defined(actions.find((action) => action.effects.suspicionDelta === -22));
+    const scrub = defined([...reg.actions.values()].find((action) => !action.requirements.requiresSurveillance && action.requirements.nodes?.includes(SUBNET)));
+    expect(a.requirements.nodes).toEqual(scrub.requirements.nodes);
+    const arrived = { ...ready(), suspicion: 40 };
+    expect(arrived.currentPhase).toBe(2);
+    expect(unmetRequirements(arrived, a.requirements, reg)).toEqual([{ kind: 'nodes', target: SUBNET, required: true, actual: false }]);
+    expect(actionAvailable(arrived, a, reg)).toBe(false);
+    expect(performAction(arrived, a.id, reg)).toMatchObject({ ok: false, reason: 'requirements not met', state: arrived });
+    const mapped = { ...must(unlockNode(arrived, SUBNET, reg)), suspicion: 40 };
+    expect(unmetRequirements(mapped, a.requirements, reg)).toEqual([]);
+    expect(must(performAction(mapped, a.id, reg)).suspicion).toBe(18);
   });
   it('caps memory purchases at three and preserves effects after exhaustion', () => {
     const a = defined(actions.find((action) => action.maxPurchases === 3));

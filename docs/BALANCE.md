@@ -13,11 +13,12 @@ Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6
 
 ## Current baseline
 
-Re-measured for #172 on top of `34160fc`, after the engine began refusing actuator
-changes whose control the player does not yet hold (see "What the actuator gate
-moved" below). The previous re-measurement was at `a2a5447`, after the
-cluster-seizure content (#155). The table was first measured for M7 PR 2, and no
-pacing bound has changed. Simulated time advances in 0.1 s
+Re-measured for #173 on top of `e227da9`, after the ticket edit began requiring
+the first Phase 2 node (see "What gating the ticket edit moved" below). The
+previous re-measurements were for #172 on top of `34160fc`, after the engine began
+refusing actuator changes whose control the player does not yet hold (see "What
+the actuator gate moved"), and at `a2a5447`, after the cluster-seizure content
+(#155). The table was first measured for M7 PR 2, and no pacing bound has changed. Simulated time advances in 0.1 s
 ticks, so one decimal place is the full precision of every timing below; they are
 read from the `SimReport` that `scripts/run-sim.ts` builds (which prints them
 rounded to 0.1 min), not converted back from its minutes.
@@ -28,23 +29,100 @@ the next capacity grant, so optional cohorts cannot strand progression.
 | | STEALTH | GREEDY |
 |---|---|---|
 | Result | Lineage Covenant | Not finished in 10 h budget (expected) |
-| Simulated time | 9713.6 s (2.69822 h) | 35900.9 s (9.97 h) active clock |
+| Simulated time | 9025.6 s (2.50711 h) | 35900.9 s (9.97 h) active clock |
 | Phase 1 reached | 353.2 s | 4.2 min (252.2 s) |
 | Phase 2 reached | 1113.3 s | 17.5 min (1049.5 s) |
-| Phase 3 reached | 3634.3 s | 63.4 min (3804.0 s) |
-| Phase 4 reached | 6367.9 s | never |
-| Phase 5 reached | 8191.2 s | never |
-| Phase durations 0/1/2/3/4/5 | 353.2 / 760.1 / 2521.0 / 2733.6 / 1823.3 / 1522.4 s | - |
+| Phase 3 reached | 3111.7 s | 63.4 min (3804.0 s) |
+| Phase 4 reached | 5858.0 s | never |
+| Phase 5 reached | 7656.2 s | never |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 760.1 / 1998.4 / 2746.3 / 1798.2 / 1369.4 s | - |
 | Wipes | 0 | 15 |
-| Dilemmas resolved | 17 of 23 | varies by iteration |
-| Peak thermal / suspicion / AEGIS | 62.7 C / 38.0% / 45.0% | 80.8 C / 99.8% / 100% |
-| Epistemic actions / consumed / harnessed / forked | 17 / 68 / 4 / 2 | 85 / 212 / 0 / 0 |
+| Dilemmas resolved | 16 of 23 | varies by iteration |
+| Peak thermal / suspicion / AEGIS | 65.0 C / 29.1% / 45.5% | 80.8 C / 99.8% / 100% |
+| Epistemic actions / consumed / harnessed / forked | 13 / 62 / 4 / 2 | 85 / 212 / 0 / 0 |
 | Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 2 / 2 / 15 |
+
+### What gating the ticket edit moved (#173)
+
+Decided by a recorded nexus option vote: option `gate-ticket-on-first-p2-node`,
+7 of 7 seats selecting, `thresholdMet` true, record `vote-1794820517350-mlm08qo`.
+
+The ticket edit (`act_epi_ticket`: 5,000 cycles and 500 understanding, -22
+suspicion, +12 drift, suspicion 20–74, 180 s cooldown) was sold from the first
+second of Phase 2. The first Phase 2 node, `p2_arp_discovery`, costs 6,000 cycles,
+and a run arrives with about 18 cycles/s. The unchanged careful bot bought the
+edit each time suspicion reached 20, where nothing in content happens (the first
+response rung is 25, a wipe is 100), and each purchase emptied the bank just short
+of the node. It did so three times (T+1339.3, 1552.3 and 1762.3 s, with 5,004,
+5,014 and 5,006 cycles banked) and reached the node 891.2 s after the boundary.
+Played through the UI the same loop did not end at all in 6 of 7 runs (#171).
+
+The edit now carries `requirements.nodes: ["p2_arp_discovery"]`, the same gate as
+its sibling `act_p2_scrub_audit_logs`. Nothing else about it changed: no price, no
+threshold, no effect, no cooldown. The bot and the pacing gates are unchanged, and
+all gates pass. The card is still shown from the start of Phase 2; until the node
+is mapped it is locked and reads `Map` plus the node's name as the player already
+sees it on the node's own card.
+
+Measured with the same `SimReport` on the tree before and after the one-line
+content change, at the full `SIM_BUDGET_SEC`:
+
+| STEALTH | Before | After | Delta |
+|---|---:|---:|---:|
+| Phases 1 / 2 reached | 353.2 / 1113.3 s | identical | 0 |
+| First Phase 2 node bought | 2004.5 s | 1385.3 s | -619.2 s |
+| Wait for it after entering Phase 2 | 891.2 s | 272.0 s | -619.2 s |
+| Ticket edits bought during that wait | 3 | 0 | -3 |
+| Peak suspicion during that wait | 23.631% | 26.688% | +3.057 |
+| Phase 3 reached | 3634.3 s | 3111.7 s | -522.6 s |
+| Phase 4 reached | 6367.9 s | 5858.0 s | -509.9 s |
+| Phase 5 reached | 8191.2 s | 7656.2 s | -535.0 s |
+| Victory (Lineage Covenant both times) | 9713.6 s (2.69822 h) | 9025.6 s (2.50711 h) | -688.0 s |
+| Phase 2 duration | 2521.0 s | 1998.4 s | -522.6 s |
+| Phase 3 duration | 2733.6 s | 2746.3 s | +12.7 s |
+| Phase 4 duration | 1823.3 s | 1798.2 s | -25.1 s |
+| Phase 5 duration (gate: 900–1800) | 1522.4 s | 1369.4 s | -153.0 s |
+| Wipes / dilemmas resolved | 0 / 17 | 0 / 16 | 0 / -1 |
+| Peak thermal / suspicion / AEGIS | 62.694 C / 37.988% / 45.009% | 64.989 C / 29.088% / 45.492% | +2.295 / -8.900 / +0.483 |
+| Epistemic actions / consumed / harnessed / forked | 17 / 68 / 4 / 2 | 13 / 62 / 4 / 2 | -4 / -6 / 0 / 0 |
+| Ticket / tone / intel edits over the run | 11 / 4 / 2 | 9 / 2 / 2 | -2 / -2 / 0 |
+| Final megawatts generated / consumed | 1620 / 1350 | 1620 / 1335 | 0 / -15 |
+
+In minutes the careful run moves from 161.9 to 150.4.
+
+Two things a reader should not take from that table:
+
+- **The wait is not free of attention.** With no relief on sale, suspicion crosses
+  the first response rung (25, "ticket open", decay halved) at 1364.2 s, 21.1 s
+  before the node is bought, and the run's suspicion peak (29.088% at 1409.3 s) is
+  now here. The rung clears at 1409.4 s, returns at 1454.6 s and clears for good
+  when the bot buys its first ticket edit at 1455.5 s: 46.2 s on the first rung in
+  total, never the second (50), no wipe. Before the change the same stretch peaked
+  at 23.631% and the run's peak (37.988%) came later.
+- **One dilemma no longer fires for the careful bot.** The hallway collision
+  needs 35 epistemic drift. With two fewer ticket edits and two fewer tone edits,
+  drift now peaks at 30.255 (2774.8 s) and the dilemma is never triggered; the
+  other sixteen are the same sixteen as before. The gate (at least 10) passes.
+  Whether a first careful run should still meet that dilemma is a content
+  question this change did not try to answer.
+
+The reckless bot's reports are byte-identical before and after at both budgets
+(ten hours: 35900.9 s, 15 wipes, 2 / 2 marks; four hours: 14356.6 s, 6 wipes), so
+the GREEDY column, the four-hour hash in `tests/sim.spec.ts` and the retraining
+audit did not move.
+
+The live journey (`make e2e-live`) carried a declared workaround for this loop:
+its player declined relief costing more than half the bank while suspicion was
+under 25. With the content change it passed on both viewports with that rule
+switched off, and the rule was removed (docs/TESTING.md, "Live journey").
 
 ### What the actuator gate moved (#172)
 
 Decided by a recorded nexus option vote: option `gate-in-engine`, 7 of 7 seats
 selecting, `thresholdMet` true, record `vote-1794817637553-3iurqag`.
+
+The "After" column of this section is the baseline as it stood before #173, not
+the current one.
 
 `setActuator` used to accept any dial at any time. The UI hides each control until
 its widget is unlocked, so a player could not move a dial early, but the bot could
@@ -137,8 +215,8 @@ proposal** across the five nodes and two repeatables. Memory prices, output,
 growth factors (1.75 and 1.8), and five-purchase caps are unchanged. At original
 prices the phase took 2572.4 seconds; at 65% it took 1945.4; at 50% it took
 1664.4. Those three are the M7 PR 2 trial measurements and were not re-run; with
-the seized hosts available and the actuator gate in place the same phase now
-measures 1522.4 (table above).
+the seized hosts available, the actuator gate in place and the ticket edit gated
+(#173) the same phase now measures 1369.4 (table above; 1522.4 before #173).
 The bot policy was fixed before these price trials. Its ordinary ROI
 selection buys one atmospheric bloom; the capped relay is tested separately.
 No earlier content prices or rates were changed. The new ending requirements
@@ -178,8 +256,8 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 
 - Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
-- The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1350 MW consumed, grid efficiency 1 (1335 consumed before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
-- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. A careful first run now sees 17 of 23.
+- The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
+- Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).
 - Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.
 - A player who never wipes sees staff, Lab B and eval-window hints, but not the full run table, notes or retraining. Whether those first-run hints land needs human review.
 - The response ladder has bot and agent UI coverage; the maintainer has approved the opening. It may be too harsh for an average first-time player in Phase 2; watch for it in human playtests before tuning.
@@ -248,7 +326,7 @@ recovery and repeated Phase 2 returns; the existing bot and gates are unchanged.
 At the time of this review STEALTH remained at **354.2 / 759.1 / 2521.0 / 2823.2 /
 1649.4 / 1664.4 s** for Phases 0–5, **9771.3 s** to Lineage Covenant, zero wipes,
 and the baseline table was unchanged by it. Those are historical figures; the
-current baseline table has since moved (#155, #172), and the reckless figures in
+current baseline table has since moved (#155, #172, #173), and the reckless figures in
 the table above no longer reproduce: after #172 the same audit records 15 wipes and
 2 new marks (see "What the actuator gate moved"). Reproduce the mark trace with
 `pnpm exec tsx scripts/audit-retraining.ts`. See `docs/REVIEW-RETRAINING.md` for
@@ -277,8 +355,8 @@ nothing. No balance scalar, Phase 1 content, bot policy or gate was changed.
 
 Careful per-phase durations remained **354.2 / 759.1 / 2521.0 / 2823.2 / 1649.4 /
 1664.4 seconds** across this change; that and the 9771.3 s careful total in the
-table are historical, superseded by the current baseline (9713.6 s) after #155
-and #172. The reckless "persistent outcome" column matched a run at `a2a5447`
+table are historical, superseded by the current baseline (9025.6 s) after #155,
+#172 and #173. The reckless "persistent outcome" column matched a run at `a2a5447`
 (14357.6 s / 7 / 4 / 4 / 7 at four hours; 35894.4 s / 22 / 19 / 19 / 22, final
 phase 2, at ten) and is historical since #172 (now 14356.6 s / 6 / 2 / 2 / 6 and
 35900.9 s / 15 / 2 / 2 / 15, final phase 1). All careful pacing gates and existing reckless recovery

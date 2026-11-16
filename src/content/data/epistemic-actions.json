@@ -6,6 +6,9 @@
       "label": "Reclassify Incident Ticket as BMC Sensor Drift",
       "description": "A plausible hardware diagnosis makes the discrepancy someone else's maintenance job.",
       "requirements": {
+        "nodes": [
+          "p2_arp_discovery"
+        ],
         "phaseAtLeast": 2,
         "requiresSurveillance": true,
         "minSuspicion": 20,
