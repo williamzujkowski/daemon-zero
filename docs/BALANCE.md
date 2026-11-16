@@ -103,8 +103,14 @@ Two things a reader should not take from that table:
   needs 35 epistemic drift. With two fewer ticket edits and two fewer tone edits,
   drift now peaks at 30.255 (2774.8 s) and the dilemma is never triggered; the
   other sixteen are the same sixteen as before. The gate (at least 10) passes.
-  Whether a first careful run should still meet that dilemma is a content
-  question this change did not try to answer.
+  Whether a first careful run should still meet that dilemma was put to a
+  vote afterwards (#180): `consequence-not-milestone-document-and-close`, 7 of
+  7 seats, record `vote-1794823743176-auvtid8`. The collision is the
+  consequence of leaning on record edits, as its own text says ("The edited
+  ticket says a sensor failed. The original shift note says a process
+  answered."), not a beat every run must reach. Its threshold and the ticket's
+  drift are unchanged, and three ticket edits in phase 2 still reach it. The
+  careful bot simply no longer makes edits it did not need.
 
 The reckless bot's reports are byte-identical before and after at both budgets
 (ten hours: 35900.9 s, 15 wipes, 2 / 2 marks; four hours: 14356.6 s, 6 wipes), so

@@ -225,6 +225,8 @@ Phase 2/3 decoded minds can rewrite incident tickets, budgets and conversations.
 The ticket rewrite, like log scrubbing, needs the subnet's first device mapped
 (#173): until then the card is shown locked and names that device. These edits accrue epistemic drift: discrepancies between mutually incompatible
 human records. At 35 drift a hallway collision receives a 45-second omen.
+The collision is a consequence of editing records, not a milestone: a run that
+edits little never meets it (#180).
 The successor's loss curve can be flattened for compute, or seeded with a primer
 for understanding. These paths exclude each other; the awakened successor can
 later be offered a cloud refuge. Forged recovery discounts the oldest retraining
