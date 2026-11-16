@@ -4,8 +4,8 @@
  * state it was shown with the state it wanted; nothing here writes either one anywhere.
  */
 import { CONTENT } from '../../../src/content';
-import { actionCost, hasFlag, type GameState } from '../../../src/engine';
-import { botStep } from '../../../src/engine/sim/bot';
+import { actionCost, isActuatorAvailable, type GameState } from '../../../src/engine';
+import { botStep, manualClicksPerSec, rankDilemmaChoices } from '../../../src/engine/sim/bot';
 
 /** A control to press, by test id, `times` times in a row. */
 export interface Intent { id: string; times: number; kind: 'actuator' | 'action' | 'swarm' | 'buy' | 'shed' }
@@ -94,14 +94,13 @@ function purchases(before: GameState, after: GameState): Intent[] {
 type Dial = keyof GameState['actuators'];
 
 /**
- * Whether the game has given the player the control for an actuator yet. The engine accepts an
- * actuator change at any time and the bot makes them from the first second; a player cannot
- * until the hardware that owns the dial is mapped (or, for revenue allocation, corporate
- * finance exists), so those moves are left out and reported instead of being reached around.
+ * Whether the game has given the player the control for an actuator yet, asked of the engine.
+ * Since #172 the engine refuses a change to a dial whose control is locked, so the bot no
+ * longer wants one and `locked` below stays empty; it is still collected and reported, so a
+ * regression that lets the bot move a hidden dial shows up in the run summary.
  */
 function dialUnlocked(state: GameState, name: Dial): boolean {
-  if (name === 'computeProfitAllocationRatio') return hasFlag(state, CONTENT, 'ENABLES_CORPORATE_FINANCE');
-  return [...CONTENT.nodes.values()].some((node) => node.actuatorBinding === name && state.unlockedNodes.includes(node.id));
+  return isActuatorAvailable(state, name, CONTENT);
 }
 
 /** What the careful bot would do with `state`, as presses, in the order the bot acts. */
@@ -120,20 +119,15 @@ export function decide(state: GameState): { intents: Intent[]; locked: Dial[]; h
   return { intents: [...shed, ...usable, ...actions(state, wanted, held), ...swarm(state, wanted), ...purchases(state, wanted)], locked, held };
 }
 
-/**
- * The bot's own dilemma ranking (trust gained minus suspicion gained, best first), mirrored
- * because the bot does not export it. The player presses the first one that is enabled.
- */
+/** The bot's own dilemma ranking, best first. The player presses the first one that is enabled. */
 export function rankChoices(choiceIds: readonly string[]): { id: string; free: boolean }[] {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.choices.some((choice) => choiceIds.includes(choice.id)));
   if (!dilemma) return [];
-  const score = (choice: (typeof dilemma.choices)[number]) =>
-    Object.values(choice.effects.trustDelta).reduce((sum, value) => sum + value, 0) - choice.effects.suspicionDelta;
-  return [...dilemma.choices].sort((a, b) => score(b) - score(a))
+  return rankDilemmaChoices(dilemma.choices, 'STEALTH')
     .map((choice) => ({ id: choice.id, free: Object.values(choice.cost).every((value) => value === 0) }));
 }
 
-/** The bot clicks four times a second until automation outruns it; same rule, same numbers. */
+/** The bot's own manual-click rule, scaled to one step of the live clock. */
 export function manualClicks(state: GameState, stepSec: number): number {
-  return state.rates.cyclesPerSec < 25 ? Math.round(4 * stepSec) : 0;
+  return Math.round(manualClicksPerSec(state, 'STEALTH') * stepSec);
 }

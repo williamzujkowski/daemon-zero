@@ -5,7 +5,7 @@
  */
 import { manageSwarm, progressionMemoryReserve } from './swarmStrategy';
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
-import type { Cost, EffectPayload, Repeatable } from '../../content/schema';
+import type { Cost, DilemmaChoice, EffectPayload, Repeatable } from '../../content/schema';
 import {
   buyRepeatable,
   manualCycle,
@@ -39,6 +39,8 @@ const CONFIG: Record<Strategy, BotConfig> = {
 };
 
 const MAX_PURCHASES_PER_STEP = 8;
+/** Cycle income at which the bot stops clicking by hand: automation has outrun it. */
+const MANUAL_CLICK_CEILING = 25;
 const stateOf = (result: ActionResult): GameState => result.state;
 
 function wait(need: number, rate: number): number {
@@ -70,11 +72,15 @@ function scoreChoice(fx: EffectPayload, strategy: Strategy): number {
   return trust - fx.suspicionDelta;
 }
 
+/** A dilemma's choices in the order the bot tries them, best first. Exported for the live E2E player. */
+export function rankDilemmaChoices(choices: readonly DilemmaChoice[], strategy: Strategy): DilemmaChoice[] {
+  return [...choices].sort((a, b) => scoreChoice(b.effects, strategy) - scoreChoice(a.effects, strategy));
+}
+
 function resolveActiveDilemma(s: GameState, reg: ContentRegistry, strategy: Strategy): GameState {
   const dilemma = reg.dilemmas.find((x) => x.id === s.activeDilemmaId);
   if (!dilemma) return s;
-  const ranked = [...dilemma.choices].sort((a, b) => scoreChoice(b.effects, strategy) - scoreChoice(a.effects, strategy));
-  for (const choice of ranked) {
+  for (const choice of rankDilemmaChoices(dilemma.choices, strategy)) {
     const result = resolveDilemma(s, dilemma.id, choice.id, reg);
     if (result.ok) return result.state;
   }
@@ -153,10 +159,15 @@ function buildTrust(state: GameState, reg: ContentRegistry): GameState {
   return s;
 }
 
-function clickManually(state: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
+/** How many times a second the bot clicks by hand in this state. Exported for the live E2E player. */
+export function manualClicksPerSec(s: Pick<GameState, 'rates'>, strategy: Strategy): number {
+  return s.rates.cyclesPerSec >= MANUAL_CLICK_CEILING ? 0 : CONFIG[strategy].clicksPerSec;
+}
+
+function clickManually(state: GameState, reg: ContentRegistry, strategy: Strategy): GameState {
   let s = state;
-  if (s.rates.cyclesPerSec >= 25) return s;
-  for (let i = 0; i < cfg.clicksPerSec; i++) s = stateOf(manualCycle(s, reg));
+  const clicks = manualClicksPerSec(s, strategy);
+  for (let i = 0; i < clicks; i++) s = stateOf(manualCycle(s, reg));
   return s;
 }
 
@@ -237,7 +248,7 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   // Reckless encounters are always consumed; that policy never spends reserved RAM.
   s = manageSwarm(s, reg, careful ? progressionMemoryReserve(s, reg) : 0, careful);
   s = buildTrust(s, reg);
-  s = clickManually(s, reg, cfg);
+  s = clickManually(s, reg, strategy);
   s = tuneAllocation(s, reg);
   return spend(s, reg, cfg);
 }

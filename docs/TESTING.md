@@ -126,12 +126,15 @@ simulated time in the message. `DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
 The player differs from the bot in exactly two declared ways, both findings of the
 first live runs (PR "live journey"):
 
-1. **Dials the UI has not unlocked.** The engine accepts `setActuator` at any time
-   and the bot tunes skim, fan and revenue allocation from the first second, so a
-   dial is already at the bot's value when its hardware is mapped (skim 100%, fan
-   0%, allocation 0% instead of the 25/35/20% defaults a person finds). The player
-   leaves those moves out and lists them in the run summary. Headless, gating the
-   bot the same way moves victory from 159.4 to 161.9 simulated minutes.
+1. **Dials the UI has not unlocked (closed by #172).** The engine used to accept
+   `setActuator` at any time and the bot tuned skim, fan and revenue allocation
+   from the first second, so a dial was already at the bot's value when its
+   hardware was mapped (skim 100%, fan 0%, allocation 0% instead of the 25/35/20%
+   defaults a person finds); the player left those moves out and listed them in
+   the run summary. The engine now refuses such a change itself
+   (`isActuatorAvailable`), which moved the headless victory from 159.4 to 161.9
+   simulated minutes (docs/BALANCE.md). The player asks the same query, and the
+   summary line is kept and expected to be empty.
 2. **One held purchase.** Entering phase 2 the bot buys suspicion relief
    (5,000 cycles, most of the bank) each time suspicion reaches its alarm at 20,
    while the next device costs 6,000 and income is about 18 cycles/s; the bank

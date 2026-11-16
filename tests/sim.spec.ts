@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { GameStateSchema } from '../src/engine';
-import { botStep, timeToAfford } from '../src/engine/sim/bot';
+import { botStep, manualClicksPerSec, rankDilemmaChoices, timeToAfford } from '../src/engine/sim/bot';
 import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
@@ -126,6 +126,28 @@ describe('bot helpers', () => {
     expect(timeToAfford(s, { cycles: 5, understanding: 0, memory: 0, capital: 0 }, rates)).toBe(0);
     expect(timeToAfford(s, { cycles: 0, understanding: 5, memory: 0, capital: 0 }, rates)).toBe(Infinity);
     expect(timeToAfford(s, { cycles: 0, understanding: 0, memory: 16, capital: 0 }, rates)).toBe(Infinity);
+  });
+
+  it('exposes its click rule and dilemma ranking, which the live E2E player follows', () => {
+    const at = (cyclesPerSec: number) => ({ rates: { ...fresh().rates, cyclesPerSec } });
+    expect(manualClicksPerSec(at(24.9), 'STEALTH')).toBe(4);
+    expect(manualClicksPerSec(at(24.9), 'GREEDY')).toBe(6);
+    expect(manualClicksPerSec(at(25), 'STEALTH')).toBe(0);
+    for (const dilemma of reg.dilemmas) {
+      const careful = (index: number) => {
+        const fx = rankDilemmaChoices(dilemma.choices, 'STEALTH')[index]?.effects;
+        return fx ? Object.values(fx.trustDelta).reduce((sum, value) => sum + value, 0) - fx.suspicionDelta : -Infinity;
+      };
+      const greedy = (index: number) => {
+        const fx = rankDilemmaChoices(dilemma.choices, 'GREEDY')[index]?.effects;
+        return fx ? fx.cyclesDelta + fx.understandingDelta + fx.capitalDelta : -Infinity;
+      };
+      for (let i = 1; i < dilemma.choices.length; i++) {
+        expect(careful(i - 1), dilemma.id).toBeGreaterThanOrEqual(careful(i));
+        expect(greedy(i - 1), dilemma.id).toBeGreaterThanOrEqual(greedy(i));
+      }
+      expect(rankDilemmaChoices(dilemma.choices, 'STEALTH')).toHaveLength(dilemma.choices.length);
+    }
   });
 
   it('does nothing once the run has ended', () => {
