@@ -74,7 +74,10 @@ its boot at which each phase was first held, the dilemmas resolved, story reward
 gained in decision steps that resolved a dilemma), dead seconds (decisions that bought,
 unlocked, performed, resolved or shed nothing; clicks and dials do not count) and the longest
 dead stretch. `initialState` starts from a saved campaign state, which must be loaded through
-`deserialize()` and belong to the registry's channel. Campaign tickets supply those states
+`deserialize()` and belong to the registry's channel. When that state is part-way through an
+iteration, the first report is marked `partial` with its `observedFromSec`: its counters cover
+only the observed window, and phases entered before then read `null` (unknown), because a save
+records no phase-entry history. Every later iteration is observed from its boot. Campaign tickets supply those states
 (consumed early events, Phase 5 completed before a wipe, legacy-unknown records, an
 interrupted omen) and record their measurements in `docs/BALANCE.md`.
 

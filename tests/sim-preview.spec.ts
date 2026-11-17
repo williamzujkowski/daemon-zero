@@ -68,6 +68,7 @@ describe('wipe sequences', () => {
       expect(entry.endedBy).toBe('wipe');
       expect(entry.wipeCause).not.toBeNull();
       expect(entry.phaseReachedAfterSec[0]).toBe(0);
+      expect(entry.partial).toBe(false);
       expect(entry.deadSec).toBeLessThanOrEqual(entry.endedAtSec - entry.startedAtSec + 1);
       expect(entry.longestDeadSec).toBeLessThanOrEqual(entry.deadSec);
       expect(entry.dilemmasMet.length).toBeGreaterThan(0);
@@ -96,6 +97,29 @@ describe('wipe sequences', () => {
     expect(resumed.iterations[0]?.iteration).toBe(2);
     expect(resumed.iterations[0]?.startedAtSec).toBe(saved.iterationStartedAtSimSec);
     expect(resumed.iterations.map((entry) => entry.iteration)).toEqual([2, 3, 4, 5]);
+    expect(resumed.iterations.map((entry) => entry.partial)).toEqual([true, false, false, false]);
+    expect(resumed.iterations[0]?.observedFromSec).toBe(saved.simTimeSec);
+    for (const entry of resumed.iterations.slice(1)) expect(entry.observedFromSec).toBe(entry.startedAtSec);
+  }, SLOW_MS);
+
+  it('marks a resumed first iteration as partly observed and does not invent its phase history', () => {
+    // Panel round 1 (#235): resuming mid-Phase-2 used to report Phase 2 at the save's own clock
+    // (1198.3 s instead of 1113.3 s) and a 10 s continuation as a whole 1208.3 s iteration.
+    const midway = runPolicySim(reg, STEALTH_POLICY, { maxSimSec: 1198 }).finalState;
+    const saved = deserialize(serialize(midway), reg);
+    expect(saved.currentPhase).toBe(2);
+    const resumed = runWipeSequence(reg, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: 10, initialState: saved });
+    const first = resumed.iterations[0];
+    expect(first?.partial).toBe(true);
+    expect(first?.observedFromSec).toBe(saved.simTimeSec);
+    expect(first?.startedAtSec).toBe(saved.iterationStartedAtSimSec);
+    expect(first?.phaseReachedAfterSec).toEqual({ 0: null, 1: null, 2: null });
+    expect(first?.endedBy).toBe('budget');
+    expect((first?.endedAtSec ?? 0) - (first?.observedFromSec ?? 0)).toBeCloseTo(10, 6);
+    expect(first?.deadSec).toBeLessThanOrEqual(10);
+    expect(first?.longestDeadSec).toBeLessThanOrEqual(10);
+    expect(formatWipeSequence(resumed)[1]).toContain('resumed: observed 10.0 s');
+    expect(formatWipeSequence(resumed)[1]).toContain('P2 unknown');
   }, SLOW_MS);
 
   it('ends on an ending or the budget when the policy is never wiped', () => {

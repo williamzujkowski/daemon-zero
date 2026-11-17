@@ -50,10 +50,15 @@ export function formatComparison(policy: string, rows: readonly ComparisonRow[])
   return lines;
 }
 
+function phaseTime(value: number | null | undefined): string {
+  return value === null ? 'unknown' : seconds(value);
+}
+
 function formatIteration(entry: IterationReport): string {
-  const phases = PHASES.map((phase) => `P${String(phase)} ${seconds(entry.phaseReachedAfterSec[phase])}`).join(' | ');
+  const phases = PHASES.map((phase) => `P${String(phase)} ${phaseTime(entry.phaseReachedAfterSec[phase])}`).join(' | ');
   const rewards = [entry.storyRewards.cycles, entry.storyRewards.understanding, entry.storyRewards.capital].map(fixed).join(' / ');
-  const span = seconds(entry.endedAtSec - entry.startedAtSec);
+  const length = seconds(entry.endedAtSec - entry.startedAtSec);
+  const span = entry.partial ? `resumed: observed ${seconds(entry.endedAtSec - entry.observedFromSec)} of ${length}` : length;
   // Wipe causes are a code and a sentence; the code is enough in a table.
   const cause = entry.wipeCause === null ? '' : ` (${entry.wipeCause.split(':')[0] ?? ''})`;
   const dead = `dead ${seconds(entry.deadSec)}, longest ${seconds(entry.longestDeadSec)}`;
