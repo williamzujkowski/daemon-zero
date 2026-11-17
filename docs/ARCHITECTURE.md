@@ -202,7 +202,7 @@ engine's public actions or `advance`, not the store or UI.
 | Dormant offline mode | Linear offline catch-up wiped players while away and could fire dilemmas with nobody present. |
 | Repeatables | The earlier tree had no repeatable purchases, so there was no incremental loop and Phase 1 could not be completed. |
 | Requirements/effects as shared data shapes | Faction trades and corporate operations become JSON instead of hand-written store functions. |
-| TypeScript 6.0.x, pnpm 10.x, Node 24 LTS | TypeScript 6.0 is the newest version that both the Expo SDK 58 template and typescript-eslint support. Node 24 is the conservative LTS choice; Node 26 LTS is also supported by the toolchain and is a one-line change in `mise.toml`. See `docs/REVIEW-FINDINGS.md` section E for exactly what was run on which versions. |
+| TypeScript 6.0.x, pnpm 10.x, Node 26 LTS | TypeScript 6.0 is the newest version that both the Expo SDK 58 template and typescript-eslint support. Node 26 is the active LTS (since 2026-10-28) and is declared supported by Expo, React Native, Metro, Vitest and ESLint; Node 24, the maintenance LTS, still satisfies `engines`. pnpm stays on 10.x until its build-script settings are migrated. `docs/REVIEW-CURRENCY-2026-11-16.md` is the dated audit; `docs/REVIEW-FINDINGS.md` section E records what the first verification ran on. |
 
 ## M7 engine extension (PR 1)
 
