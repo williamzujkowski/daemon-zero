@@ -132,8 +132,9 @@ ramps, on **one player at a time**. There is no crossfade and never a second sco
 fade-in.** That is less than the vote chose, and it is deliberate: see "Why the outgoing score
 is cut on a phase change" below.
 
-**These durations are unheard defaults.** Each is the middle of the range the vote named.
-Nobody has listened to a single ramp; they are meant to be retuned by ear.
+**These durations were not chosen by ear.** Each is the middle of the range the vote named.
+Their length and shape in the rendered signal are now measured ("Measured signal" below);
+nobody has listened to a single ramp, and they are meant to be retuned by ear.
 
 **The vote.** A nexus option vote chose `build-short-ramps-single-player`: 4 of 7 seats
 selecting, `thresholdMet` true, record `vote-1794823777700-jgjjamp`. Two dissents are recorded,
@@ -335,62 +336,208 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
    take each call, so a regeneration rewrites files that already existed. Regenerating only
    the new id keeps the diff honest; `--only` exists for that.
 
+## Measured signal
+
+Everything above was built on numbers that stand next to the sound: a mocked player's
+arguments, a media element's `volume`, an Android track gain in `dumpsys`. This section is
+what the **rendered samples** measure as. The method, its control measurement and how to
+re-run it are in [TESTING.md](TESTING.md), "Audio signal measurement".
+
+**None of it is a listening test.** Nobody has heard the score, a clip, a duck or a fade
+through the app, and nothing here says whether any of it sounds good. The numbers below are a
+baseline for the person who eventually listens.
+
+| | |
+| --- | --- |
+| App code | `main` at `56d5cfe`; the measuring branch changes comments only under `src/` |
+| Web | production export (`make build-web`) served by `python3 -m http.server`, Playwright 1.65.1, Chromium headless shell 159.0.8154.6 (Chrome for Testing), Linux x86_64 |
+| Web method | every media element routed through a 48 kHz `AudioContext` and tapped per element and at the output; real browser timers; gain read against the committed file in 5 ms blocks |
+| Web runs | `make e2e-audio` three times on an idle machine (the spread below), plus three while another Playwright suite ran (noted where it differed) |
+| Android | release APK (test-signed) on the API 36 `google_apis` x86_64 emulator, QEMU `wav` audio backend, 44.1 kHz capture, media volume 15 of 15; once, by hand, 2026-11-16 |
+| Files | ffmpeg 8.0.1, `tests/audio-assets.spec.ts` |
+
+### Web build, music and speech at 30% unless stated
+
+| What | Code or file says | Measured (three runs) | Test tolerance |
+| --- | --- | --- | --- |
+| Silence before the first gesture, after music off, after the ending, at volume 0, in the gap of a phase change | silence | every output sample exactly 0 | exactly 0 |
+| Each phase score is its own file (correlation with the committed file; with the next phase's file) | the phase mapping | 1.0000 for all six; -0.02 to 0.10 | > 0.999; < 0.3 |
+| Score gain against its file at rest | 0.30 = -10.46 dB | -10.46 dB, all six phases | +-0.05 dB |
+| Score true-peak estimate at rest (first 1.3 s after the fade-in) | below 0 dBTP | -23.89 to -15.48 dBTP by phase | < 0 dBTP |
+| Fade-in, first audible sample to the preference level | `FADE_IN_MS` 500, first write 25 ms after `play()` | 450 to 505 ms; largest jump 1 to 2 volume writes | 250 to 1000 ms; jump <= half the move |
+| Fade-out, music off | `FADE_OUT_MS` 500 | 430 to 455 ms, staircase of 0.015 gain, then zeros | 400 to 1000 ms |
+| Fade-out, ending | `FADE_OUT_MS` 500 | 455 ms, then zeros | 400 to 1000 ms |
+| Score gain before / during / after a clip | 0.30 / 0.105 / 0.30 | -10.46 / -19.58 / -10.46 dB | +-0.05 dB each |
+| Duck depth | `DUCK_RATIO` 0.35 = -9.12 dB | -9.12 dB | +-0.05 dB |
+| Duck down and back up, first change to resting level | `DUCK_RAMP_MS` 200, eight writes, first after 25 ms | 175 to 185 ms each way; largest step 1.6 to 1.8 dB (the last one, into the ducked level) | 150 to 400 ms; step <= half the move |
+| When the duck starts, relative to the first speech sample | at the press | from 21 ms before to 8 ms after (33 ms before in an earlier run) | reported |
+| When the score starts back, after the last speech sample | at the clip's end | 20 to 32 ms | reported |
+| Speech gain against its clip file | 0.30 = -10.46 dB | -10.46 dB (correlation 1.0000) | +-0.05 dB |
+| Speech at 60% against speech at 30%, music off | 6.02 dB | 6.02 dB; -4.44 and -10.46 dB absolute | +-0.05 dB |
+| Speech with music off | signal, and no score element | signal; the output is the clip and nothing else, zeros after it | exact |
+| Speech-to-music ratio while a clip talks (`ambient_05` over the first seconds of phase 1) | about 9 to 12 dB from whole-file levels | 15.9 to 16.1 dB (speech -24.9 dBFS RMS, ducked score -40.9) | speech above score |
+| Output is the sum of the tapped elements | | sample-exact (difference < 1e-6) | < 1e-6 |
+| Output true-peak estimate, both at 30% | | -11.4 to -11.1 dBTP | < 0 dBTP |
+| Output true-peak estimate, both at 100% | | -0.8 to -0.6 dBTP, no sample at full scale | reported |
+| Phase change: samples where both scores have signal | never two at once | 0 | exactly 0 |
+| Phase change: silence between the old score and the new | a cut, then a fade-in | 32 to 117 ms of zeros; old score at full gain to its last 5 ms; new one fades in over 440 to 450 ms | old stops before new starts |
+| One `volume` write, in the samples | | a single step within 1 ms | <= 5 ms |
+
+The speech-to-music figure is high because the passage is: the first seconds of the phase 1
+score are quieter than the file as a whole. From whole-file RMS, at equal preferences and
+ducked, the fourteen bundled clips sit 8.6 to 12.0 dB above the six scores
+(`tests/audio-assets.spec.ts`).
+
+On a busy machine the same build measured fade-ins of 450 to 590 ms with up to four volume
+writes landing in one 5 ms block (a jump of 0.06 in gain, a fifth of the fade), and passed.
+Late timer ticks bunch; they are not dropped.
+
+### Findings
+
+1. **A ramp is a staircase, and each step is a step.** Chromium applies a `volume` write to
+   the very next samples on this path, so the 200 ms duck is eight instantaneous gain steps
+   25 ms apart and a 500 ms fade is twenty. The largest duck step is 1.8 dB. Whether that can
+   be heard as a zipper is a listening question; the constants were left alone.
+2. **The fade-in is timed from the request, not from the first sample.** On web the first one
+   or two writes happen before the file produces audio, so the audible fade starts at 1.5% to
+   3% and is 450 ms rather than 475. If the file arrives later than `FADE_IN_MS`, the score
+   starts at full level in one step: with the MP3 held back 700 ms, a single 0.30 jump was
+   measured (`signal-transitions.audio.ts`, kept as an expected failure). On the Android
+   emulator, of two starts captured, one rose over about 480 ms and the other was at full
+   level within 40 ms of its first sample. **Not fixed here:** expo-audio's web player reports
+   `playing` at the request, before any data, and its first position update arrives after
+   `updateInterval` (500 ms), so the app has no prompt signal to start the fade on; starting
+   it on the first status with a position would hold the score silent for up to half a second.
+   That is a design decision, and it needs a phone to judge.
+3. **The old loop check never played the tail.** The suite's static server ignores `Range`, so
+   media were unseekable and the seek to the tail landed on 0 (`seekable` was `[0, 0]`).
+   Fixed: `music.e2e.ts` serves ranges and asserts the seek held; before the fix that
+   assertion reads 0 where it needs more than 135.6.
+4. **The loop seams are measurable discontinuities** (next table). They are properties of the
+   supplied files, which were not altered.
+5. **At 100% and 100% the mix can clip in principle.** Loudest clip true peak 0.88 plus the
+   ducked loudest score 0.35 x 0.70 is +1.0 dBFS, and +4.0 dBFS in the 200 ms before the duck
+   lands. One clip was measured at -0.6 dBTP with no sample at full scale; whether peaks ever
+   coincide depends on the passage. At the 30% defaults the worst case is -6.4 dBFS.
+6. **On the Android emulator the score comes out 3.0 dB lower than on web.** Its gain against
+   its file is 0.212 (-13.48 dB) where 30% is 0.300 and web renders 0.300; the clip, in the
+   same capture, is at 0.300. So speech sits 3 dB further above the score there. The cause was
+   not established (it is per track, before the mixer: the capture is still stereo), and an
+   emulator is not a phone.
+7. **On the Android emulator the score returns late.** It stayed at the ducked level for about
+   a quarter of a second after the clip's last sample (20 to 32 ms on web), consistent with
+   the clip player's 250 ms status interval, and the duck was fully down about 280 ms before
+   the first speech sample because the clip takes that long to start.
+
+### Loop seams
+
+The scores are whole pieces that end and restart, not authored loops. `tracks.json` pins the
+bytes; this is what looping them does. From the files (`tests/audio-assets.spec.ts`):
+
+| Phase | Jump, last sample to first | Jump over the usual sample-to-sample change | Last 50 ms | First 50 ms | Spectral difference across the seam (usual between neighbours) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | -27.8 dBFS | 38.0 dB | -36.4 dBFS | -69.1 dBFS | 30.3 dB (4.5) |
+| 1 | -47.6 | 34.7 | -63.6 | -58.3 | 13.8 (3.3) |
+| 2 | -51.6 | 17.0 | -42.2 | -49.6 | 27.6 (4.7) |
+| 3 | -37.2 | 21.6 | -35.4 | -67.1 | 31.8 (5.7) |
+| 4 | -57.5 | 33.6 | -73.9 | -52.9 | 12.9 (6.8) |
+| 5 | -53.8 | 15.0 | -36.7 | -53.1 | 34.4 (6.1) |
+
+As rendered by Chromium at 30% (`signal-loops.audio-full.ts`): the element stops 9 ms short of
+the decoded end (phase 0) or plays 4 to 21 ms past it (the others), inserts 3.6 to 11.6 ms of
+exact silence, and restarts from the file's first sample, with correlation 1.0000 on both
+sides. The largest sample jump at the seam is -39.5 dBFS for phase 0 (39 dB above the usual
+change before it), -48.6 for phase 3, and -60.9 to -67.7 for the rest.
+
+**Phase 0 is the one to listen to**: its file ends mid-decay, 28 dB below full scale, and the
+loop steps from there to silence. **Reported, not changed.** If it is audible, the smallest
+remedies are a fade of a few milliseconds on the last samples of a derived file (an asset
+edit, to be authorised and recorded in that phase's PROVENANCE.md), or a fade around the wrap
+in the player (which would mean looping by hand instead of `loop = true`).
+
+### Android emulator, release build
+
+| What | Measured |
+| --- | --- |
+| The score is its own file | correlation 0.9999 (phase 0) and 0.9996 (phase 1) with the committed file |
+| Score gain at rest | 0.212 = -13.48 dB at media volume 15 of 15 (-46.1 dB at 5 of 15); see finding 6 |
+| Clipping | none: peak -10.7 dBFS with a clip over the score |
+| Start | one of two faded in over about 480 ms; the other was at full level within 40 ms |
+| Music off | a monotone fade over about 650 ms, then digital silence |
+| Duck depth while a clip talks | to 35% of the level before it (-9.1 dB), read after the clip and between syllables |
+| Duck down / back up | about 240 ms / about 280 ms |
+| Clip gain against its file | 0.300 = -10.45 dB (`ambient_10`) |
+| Not measured there | a phase change, the ending, speech levels other than 30%, the loop, anything twice |
+
+### What is still not known
+
+- **How any of it sounds.** Whether the duck is deep enough, the ramps smooth, the steps
+  audible, the seams objectionable, the voice intelligible, the levels comfortable.
+- **Speakers and ears.** A phone speaker's response, headphones, a room.
+- **A physical device.** Everything native above is one emulator session.
+- **iOS and Safari**, in any form; and Chromium's direct element-to-device path, which the
+  capture replaces with Web Audio (the control shows the level is unchanged, not that
+  sub-millisecond behaviour is).
+- **Each native number's repeatability.** They were taken once.
+
 ## Limits, stated rather than implied
 
-Native playback has since been observed once, as state and not as sound, on an Android
-emulator with a release build (REVIEW-ANDROID-EMULATOR-2026-11-16.md): a second player starts
-on READ and stops at the clip's length, the score's track gain drops by the duck ratio and
-returns, and READ plays with music off from a cold start. Each "unexercised and needs a
-device" below should be read as "unheard, and unexercised on a physical device". The same
-run found that audio controls stop working after a system font-size change while the app
-is open, and that a removed player is not released until garbage collection on Android.
-The first of those is fixed (#185; the dated note under finding 1 of that review says how
-and what the emulator re-run did and did not show). The second is addressed: a clip's player
+Since this list was first written the rendered signal has been measured, on the web build
+by automated test and once on an Android emulator ("Measured signal" above). So each limit
+below now says what is measured and what is not. What no entry can say is how anything
+sounds: nobody has listened. Native (Android) results are one emulator session, not a
+physical device, and iOS is untouched.
+
+The earlier emulator run (REVIEW-ANDROID-EMULATOR-2026-11-16.md), which read playback state
+rather than samples, found that audio controls stop working after a system font-size change
+while the app is open, and that a removed player is not released until garbage collection on
+Android. The first of those is fixed (#185; the dated note under finding 1 of that review says
+how and what the emulator re-run did and did not show). The second is addressed: a clip's player
 is now released, not only removed, when the clip ends, is stopped or is replaced
 (`releasePlayer`; #186 item 1), seen on an emulator for the score's player and not for a
 clip's. A clip that something outside the app pauses on Android (a headset key landing on
 the clip's own media session) now ends like a stop, so the score comes back up. What media
 keys do, and what a lock screen shows, is in [SOUNDTRACK.md](SOUNDTRACK.md).
 
-- **Playback is wired but unheard.** Unit tests run against a mocked player, which proves which
-  clip is handed over and that a second press cancels the first. On web,
-  `tests/e2e/voice-playback.e2e.ts` drives the real adapter in the served build and proves the
-  bundled clip is requested after a press, without failure, and not before. Neither proves
-  sound comes out: no clip has been heard through the app, and native (Android/iOS) playback
-  is unexercised and needs a device. This is the Scope Steward's objection, and it stands for
-  native.
-- **The duck depth is unheard.** `DUCK_RATIO` is 0.35 on reasoning (two sources at about the
-  same loudness, a conventional music-under-speech gap), not on listening: nobody has heard
-  the ducked mix. Unit tests prove the level arithmetic against a mocked player;
-  `tests/e2e/music-ducking.e2e.ts` proves on the served web build that the score element's
-  `volume` falls after a press and returns when the clip ends by itself. That is a number on
-  a media element, not a sound. Native (Android/iOS) ducking is unexercised and needs a
-  device, and browsers on iOS ignore programmatic volume altogether, so there the score will
-  not duck at all.
-- **The ramps are unheard, and so are their durations.** `DUCK_RAMP_MS` (200 ms),
-  `FADE_OUT_MS` and `FADE_IN_MS` (500 ms each) are defaults nobody has listened to; whether a
-  linear ramp of a media element's volume in 25 ms steps sounds smooth or audibly stepped is
-  unknown. What is proven is numbers: `tests/app-volume-ramp.spec.ts`,
-  `tests/app-music-ramps.spec.ts` and `tests/app-music-fadeout.spec.ts` on fake timers against
-  mocked players, and on the served web build `tests/e2e/music-ducking.e2e.ts` and
-  `tests/e2e/phase-music.e2e.ts` read the score element's `volume` one ramp step at a time,
-  down and up, with exactly one score element throughout a phase change. The e2e suite's page
-  clock is paused, so those two specs run it explicitly; the older soundtrack specs never do,
-  which means their players sit at level 0 and exercise the silent, immediate path. On iOS
+- **Playback produces the right signal on web; nobody has heard it.** Unit tests run against
+  a mocked player, which proves which clip is handed over and that a second press cancels the
+  first. On web, `tests/e2e/voice-playback.e2e.ts` proves the bundled clip is requested after
+  a press and not before, and `tests/e2e/signal-speech.audio.ts` proves the samples that come
+  out are that clip (correlation 1.0000 with the committed file) at the speech level. On the
+  Android emulator a clip was captured at the expected level once. No clip has been heard
+  through the app, and a physical device is unexercised. The Scope Steward's objection, that
+  nobody had confirmed the audio plays at all, is answered for signal and stands for ears.
+- **The duck depth is measured, not judged.** `DUCK_RATIO` is 0.35 on reasoning (two sources
+  at about the same loudness, a conventional music-under-speech gap), not on listening. On
+  the web build the rendered score drops by -9.12 dB while a clip talks and returns to
+  -10.46 dB after it, and on the Android emulator it dropped to 35% as well. Whether that is
+  the right depth nobody has heard; the emulator also rendered the score 3 dB lower than the
+  clip to begin with ("Measured signal", finding 6). Browsers on iOS ignore programmatic
+  volume altogether, so there the score will not duck at all.
+- **The ramps are measured as staircases, and unheard.** `DUCK_RAMP_MS` (200 ms),
+  `FADE_OUT_MS` and `FADE_IN_MS` (500 ms each) are defaults nobody has listened to. In the
+  web build's rendered signal a duck takes 175 to 185 ms in eight instantaneous steps, a
+  fade-out 430 to 455 ms in twenty, and a fade-in 450 to 505 ms; whether a linear ramp in
+  25 ms steps sounds smooth or audibly stepped is still unknown. Two limits came out of
+  measuring: late timer ticks bunch on a busy main thread (four writes in one 5 ms block were
+  seen), and **a start whose file arrives after `FADE_IN_MS` is a step, not a fade** (finding
+  2). The element-level specs (`tests/app-volume-ramp.spec.ts`, `tests/app-music-ramps.spec.ts`,
+  `tests/app-music-fadeout.spec.ts`, `tests/e2e/music-ducking.e2e.ts`,
+  `tests/e2e/phase-music.e2e.ts`) still pin the sequence of levels on a stepped clock. On iOS
   browsers no ramp happens at all, and there switching music off costs a 500 ms delay with
-  nothing audible to show for it. Native is unexercised and needs a device: in particular,
-  nobody has confirmed that a 25 ms timer and a volume write per step are cheap enough there.
+  nothing audible to show for it. On the Android emulator a fade-out took about 650 ms and a
+  duck about 240 ms down and 280 ms up; a phone has not been tried.
 - **Safari is unverified, in both directions.** The phase-change `play()` was kept inside the
   press because a deferred one might be refused by WebKit's gesture policy; nobody has run
   this on Safari to learn whether it would have been, or to confirm that the in-gesture
   `play()` is accepted there (it is the same call the app made before ramps, and that was
   not qualified on Safari either). A wipe forced by the simulation rather than pressed has
   never had a gesture behind its `play()`, before or after this change.
-- **The speech level is unheard too.** The split is proven on numbers: unit tests against a
-  mocked player, and on the served web build a clip element whose `volume` equals the speech
-  level while no music element exists. Nobody has listened to speech against the score at
-  unequal levels, and the native (Android/iOS) path for speech with music off, including the
-  session READ prepares for itself, is unexercised and needs a device.
+- **The speech level is measured, not judged.** On the served web build a clip at 60% comes
+  out 6.02 dB above the same clip at 30%, each at exactly the gain the preference implies,
+  and with music off the output is the clip and nothing else. Nobody has listened to speech
+  against the score at unequal levels, and the native path for speech with music off,
+  including the session READ prepares for itself, has been seen only as playback state.
 - **A failed clip is released on web by test, on native by reading.** expo-audio 58.0.12
   reports a failure as a status with `error` set and no `didJustFinish`. On web that is the
   media element's `error` event and a rejected `play()` (`AudioPlayer.web.ts`), and

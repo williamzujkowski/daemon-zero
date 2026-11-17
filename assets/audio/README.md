@@ -19,7 +19,11 @@ Phase 0's embedded title is **Buffer Alignment**; its phase assignment follows
 the maintainer's uploaded filename. All six files contain stereo 48 kHz MP3 audio,
 a 360×360 JPEG cover and an instrumental tag. No transcoding, normalization,
 trimming, cover removal or custom loop cuts were performed. Player looping does
-not establish that the musical seam is inaudible; that requires listening.
+not establish that the musical seam is inaudible; that requires listening. The
+seams are measured, in the files and as rendered, in
+[docs/VOICE-CLIPS.md](../../docs/VOICE-CLIPS.md) ("Loop seams"): each loop is a
+piece ending and restarting, and Phase 0's file ends mid-decay, 28 dB below
+full scale, which is the seam most likely to tick.
 
 ## Bundling and selection
 

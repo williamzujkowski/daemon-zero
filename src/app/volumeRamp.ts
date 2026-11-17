@@ -5,8 +5,10 @@
  */
 import { systemClock } from './clock';
 
-/** How often a ramp writes a level. 25 ms gives a 200 ms duck eight steps, which is as fine as
- *  a media element's volume is worth stepping; like the durations, it is unheard. */
+/** How often a ramp writes a level. 25 ms gives a 200 ms duck eight steps. On the web build each
+ *  write is a step in the rendered samples, so a ramp is a staircase of that many steps
+ *  (measured: docs/VOICE-CLIPS.md, "Measured signal"); whether the steps can be heard, nobody
+ *  has judged. */
 export const RAMP_STEP_MS = 25;
 
 /** The one thing a ramp needs from time, so tests and callers can supply their own. */

@@ -6,8 +6,8 @@
  * or whether the level reaches a real media element. This reads the score element's own volume
  * before a press, while the clip talks, and after the clip has run out by itself.
  *
- * It measures a number, not a sound: nobody has listened to the ducked mix. See the limits in
- * docs/VOICE-CLIPS.md.
+ * It reads a property, not the samples: `signal-speech.audio.ts` measures the rendered score
+ * and clip themselves. Neither is a listening test; see the limits in docs/VOICE-CLIPS.md.
  *
  * Levels move by ramp, and `boot()` leaves the page clock paused, so a ramp stands still until
  * the clock is run. That is used rather than worked around: the level is read while the ramp
