@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 const UI_ONLY_IMPORTS = ['react', 'react-dom', 'react-native', 'react-native-*', 'expo', 'expo-*', 'zustand', 'zustand/*', '@react-native-*/*'];
 
 export default defineConfig(
-  { ignores: ['node_modules/', 'coverage/', 'dist/', '.expo/', 'reference/', 'android/', 'ios/'] },
+  { ignores: ['node_modules/', 'coverage/', 'dist/', 'dist-preview/', '.expo/', 'reference/', 'android/', 'ios/'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   security.configs.recommended,
@@ -90,4 +90,14 @@ export default defineConfig(
     },
   },
   { files: ['**/*.mjs'], ...tseslint.configs.disableTypeChecked },
+  {
+    // Metro loads its config with Node's require, so it is CommonJS and outside the TypeScript project.
+    files: ['metro.config.js'],
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable', __dirname: 'readonly', process: 'readonly' },
+    },
+    rules: { ...tseslint.configs.disableTypeChecked.rules, '@typescript-eslint/no-require-imports': 'off' },
+  },
 );

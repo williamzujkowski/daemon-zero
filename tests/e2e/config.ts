@@ -14,13 +14,24 @@ const live = process.env.DAEMON_E2E_LIVE === '1';
 // run only under `make e2e-audio`; the control, duck and transition measurements always run.
 const audioFull = process.env.DAEMON_E2E_AUDIO === '1';
 const ignored = ['**/ui-sizes.e2e.ts', JOURNEY];
+// `make e2e-preview` serves the preview export from its own folder and runs only the preview
+// scenarios (*.preview.ts); the production projects assert there is no preview marker at all.
+const channel = String(process.env.DAEMON_E2E_CHANNEL ?? 'production');
+if (channel !== 'production' && channel !== 'preview') throw new Error('DAEMON_E2E_CHANNEL must be production or preview, got ' + channel);
+const served = String(process.env.DAEMON_E2E_DIST ?? 'dist');
+if (!/^[a-z][a-z0-9-]*$/.test(served)) throw new Error('DAEMON_E2E_DIST must be a top-level folder name, got ' + served);
+if ((channel === 'preview') !== (served !== 'dist')) throw new Error('The preview channel is served from its own folder, and only the preview channel is');
+const preview = [
+  { name: 'preview-phone', testMatch: '**/*.preview.ts', use: { viewport: { width: 390, height: 844 } } },
+  { name: 'preview-desktop', testMatch: '**/*.preview.ts', use: { viewport: { width: 1440, height: 900 } } },
+];
 
 export default defineConfig({
   testDir: '.', testMatch: '**/*.e2e.ts', fullyParallel: true, forbidOnly: !!process.env.CI,
   retries: 0, workers: 2, timeout: 60_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL, testIdAttribute: 'data-testid', trace: 'retain-on-failure' },
-  projects: [
+  projects: channel === 'preview' ? preview : [
     { name: 'phone', testIgnore: ignored, use: { viewport: { width: 390, height: 844 } } },
     { name: 'desktop', testIgnore: ignored, use: { viewport: { width: 1440, height: 900 } } },
     // Captures rendered audio samples (signalTap.ts). One viewport: the signal does not depend on
@@ -37,6 +48,6 @@ export default defineConfig({
       { name: 'live-desktop', testMatch: JOURNEY, use: { viewport: { width: 1440, height: 900 }, trace: 'off' as const } },
     ] : []),
   ],
-  webServer: { command: 'python3 -m http.server ' + String(port) + ' --bind 127.0.0.1 --directory dist', cwd: '../..',
+  webServer: { command: 'python3 -m http.server ' + String(port) + ' --bind 127.0.0.1 --directory ' + served, cwd: '../..',
     url: baseURL, reuseExistingServer: false },
 });
