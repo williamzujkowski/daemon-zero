@@ -309,6 +309,9 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
      on Android (the session's title is the file's embedded tag, which the app cannot set
      without a foreground service) are in [SOUNDTRACK.md](SOUNDTRACK.md), with the emulator
      re-run that checked the keys.
+   - Added 2026-11-17 (#193): the six score files now carry neutral tags (`Phase N score`,
+     `DAEMON // 0`), so the embedded title seen here is gone from the bundle. Not re-run on
+     an emulator or device; see "Resolved on Android" in [SOUNDTRACK.md](SOUNDTRACK.md).
 6. **The release manifest carries more permissions than REVIEW-M6.md lists.
    (Documentation drift.)** Now: `VIBRATE`, `MODIFY_AUDIO_SETTINGS`,
    `ACCESS_NETWORK_STATE`, `WAKE_LOCK` and the signature-level

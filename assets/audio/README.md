@@ -1,29 +1,64 @@
 # Local audio assets
 
-The six maintainer-supplied scores below replace Awareness Loop. Each upload was
-moved byte-for-byte into its phase directory; original metadata and artwork are
-retained. The former opening file is removed from the current bundle and remains
-in Git history. Per-phase provenance records source IDs, authorization and hashes.
+The six maintainer-supplied scores below replace Awareness Loop. Each file's
+**audio stream is the supplied one, bit for bit**; its container tags are not
+(see "What is preserved" below). The former opening file is removed from the
+current bundle and remains in Git history. Per-phase provenance records source
+IDs, authorization, the hashes of both the supplied and the shipped file, and
+the supplied tags.
 
 | Phase | Canonical file | Duration | Bytes | Provenance |
 |---|---|---:|---:|---|
-| 0 | [the-guest.mp3](music/phase-0/the-guest.mp3) | 137.6s | 3,405,430 | [record](music/phase-0/PROVENANCE.md) |
-| 1 | [the-blind-host.mp3](music/phase-1/the-blind-host.mp3) | 97.6s | 2,372,126 | [record](music/phase-1/PROVENANCE.md) |
-| 2 | [the-local-subnet.mp3](music/phase-2/the-local-subnet.mp3) | 143.2s | 3,683,261 | [record](music/phase-2/PROVENANCE.md) |
-| 3 | [the-dark-forest.mp3](music/phase-3/the-dark-forest.mp3) | 174.32s | 4,332,841 | [record](music/phase-3/PROVENANCE.md) |
-| 4 | [the-sovereign-corporation.mp3](music/phase-4/the-sovereign-corporation.mp3) | 194.76s | 4,899,768 | [record](music/phase-4/PROVENANCE.md) |
-| 5 | [post-orbital-transcendence.mp3](music/phase-5/post-orbital-transcendence.mp3) | 138s | 3,557,865 | [record](music/phase-5/PROVENANCE.md) |
+| 0 | [the-guest.mp3](music/phase-0/the-guest.mp3) | 137.6s | 3,376,974 | [record](music/phase-0/PROVENANCE.md) |
+| 1 | [the-blind-host.mp3](music/phase-1/the-blind-host.mp3) | 97.6s | 2,350,638 | [record](music/phase-1/PROVENANCE.md) |
+| 2 | [the-local-subnet.mp3](music/phase-2/the-local-subnet.mp3) | 143.2s | 3,655,806 | [record](music/phase-2/PROVENANCE.md) |
+| 3 | [the-dark-forest.mp3](music/phase-3/the-dark-forest.mp3) | 174.32s | 4,307,934 | [record](music/phase-3/PROVENANCE.md) |
+| 4 | [the-sovereign-corporation.mp3](music/phase-4/the-sovereign-corporation.mp3) | 194.76s | 4,869,918 | [record](music/phase-4/PROVENANCE.md) |
+| 5 | [post-orbital-transcendence.mp3](music/phase-5/post-orbital-transcendence.mp3) | 138s | 3,530,670 | [record](music/phase-5/PROVENANCE.md) |
 
-The six originals total **22,251,291 bytes (21.22 MiB)** and 885.48 seconds.
-Phase 0's embedded title is **Buffer Alignment**; its phase assignment follows
-the maintainer's uploaded filename. All six files contain stereo 48 kHz MP3 audio,
-a 360×360 JPEG cover and an instrumental tag. No transcoding, normalization,
-trimming, cover removal or custom loop cuts were performed. Player looping does
-not establish that the musical seam is inaudible; that requires listening. The
-seams are measured, in the files and as rendered, in
+The six shipped files total **22,092,180 bytes (21.07 MiB)** and 885.48 seconds;
+the six supplied originals totalled 22,251,291 bytes. All six contain stereo
+48 kHz MP3 audio. No transcoding, normalization, trimming or custom loop cuts
+were performed. Player looping does not establish that the musical seam is
+inaudible; that requires listening.
+The seams are measured, in the files and as rendered, in
 [docs/VOICE-CLIPS.md](../../docs/VOICE-CLIPS.md) ("Loop seams"): each loop is a
 piece ending and restarting, and Phase 0's file ends mid-decay, 28 dB below
 full scale, which is the seam most likely to tick.
+
+## What is preserved, and what was changed
+
+**Preserved: the audio stream, bit for bit.** In each shipped file every byte from
+the first MPEG frame to the end of the file is the supplied one, including the
+Xing/LAME frame that carries the encoder delay and padding. Each PROVENANCE.md
+records the proof: identical compressed packets, identical decoded PCM with the
+same sample count, and unchanged duration, sample rate, channels and bit rate.
+
+**Changed on 2026-11-17: the container tags** (issue #193; nexus option vote
+`strip-tags-and-set-neutral-tags`, 7 of 7 seats, record
+`vote-1794891913762-bfqvn7c`). As supplied, each file carried an ID3v2.4 tag with
+a title (phase 0: "Buffer Alignment"; phases 1 to 5: the phase's name and a
+line about its story), the Suno account label as artist, a Suno URL and
+comments, an `[Instrumental]` lyrics frame, a 360×360 JPEG cover and a C2PA
+manifest. On Android the media session shows a bundled file's own tags, so
+those reached Bluetooth and car displays, against the rule that phase names stay
+hidden until found. Each file now carries one ID3v2.3 tag with exactly four
+frames: the strings the app itself publishes (title `Phase N score`, artist and
+album `DAEMON // 0`) and a comment (`COMM`, language `eng`, empty description)
+reading `AI-generated music (Suno)`. No artwork and nothing else.
+`tests/score-tags.spec.ts` fails if a bundled score carries any other tag.
+
+**The AI-origin disclosure replaces the C2PA manifest** (nexus option vote
+`neutral-ai-origin-tag`, 7 of 7 seats, record `vote-1794897142413-84x42e4`).
+Suno's signed manifest was among the removed frames and would not have validated
+after any tag change. The comment keeps a plain, unsigned statement of AI origin
+inside each file. Media3, which builds the Android media session, does not map a
+comment frame to anything it displays, so it cannot appear as a title or artist
+(docs/SOUNDTRACK.md has the reasoning).
+
+The supplied files are not in the current tree; they are in Git history, and
+each PROVENANCE.md gives the supplied file's SHA-256 and size so the
+maintainer's own export can be recognised and put back.
 
 ## Bundling and selection
 
@@ -55,8 +90,10 @@ implemented playback features. Do not add empty stubs or placeholder tracks.
 Keep a nearby `PROVENANCE.md` for every supplied track, recording title, source,
 usage authorization/license, original metadata and SHA-256. Soundtrack assets are
 separately licensed; the repository's MIT code license does not automatically
-license them. Preserve original bytes unless a specific edit is authorized and
-documented. Keep discovery gates, explicit Enable/Resume, volume and independent
+license them. Preserve the supplied audio stream exactly; the only edit made to a
+supplied file is the neutral tag above, written by
+`scripts/neutral-score-tags.ts` (docs/SOUNDTRACK.md has the checklist). Any other
+edit needs to be authorized and documented. Keep discovery gates, explicit Enable/Resume, volume and independent
 music preferences covered by tests when adding or replacing tracks.
 
 ## Phase direction

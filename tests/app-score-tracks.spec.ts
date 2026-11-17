@@ -4,32 +4,13 @@
  * code change beyond its import line. No audio is added: the drop-in cases use made-up bytes.
  */
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import manifest from '../assets/audio/music/tracks.json';
 import { musicSources, sourceFor } from '../src/app/musicSources';
 import { musicPhase, parseTracks, scoreTracks, trackFor, type ScoreTrack } from '../src/app/musicTracks';
 import { CONTENT } from '../src/content';
-import { provenancePath, trackProblems, type ScoreFiles } from './score-manifest';
-
-/**
- * The shipped files, read by literal path (the lint rule against computed file names applies
- * to tests too). A new track adds its two lines here; the first case fails until it does.
- */
-const shipped: ScoreFiles = new Map([
-  ['assets/audio/music/phase-0/the-guest.mp3', readFileSync('assets/audio/music/phase-0/the-guest.mp3')],
-  ['assets/audio/music/phase-0/PROVENANCE.md', readFileSync('assets/audio/music/phase-0/PROVENANCE.md')],
-  ['assets/audio/music/phase-1/the-blind-host.mp3', readFileSync('assets/audio/music/phase-1/the-blind-host.mp3')],
-  ['assets/audio/music/phase-1/PROVENANCE.md', readFileSync('assets/audio/music/phase-1/PROVENANCE.md')],
-  ['assets/audio/music/phase-2/the-local-subnet.mp3', readFileSync('assets/audio/music/phase-2/the-local-subnet.mp3')],
-  ['assets/audio/music/phase-2/PROVENANCE.md', readFileSync('assets/audio/music/phase-2/PROVENANCE.md')],
-  ['assets/audio/music/phase-3/the-dark-forest.mp3', readFileSync('assets/audio/music/phase-3/the-dark-forest.mp3')],
-  ['assets/audio/music/phase-3/PROVENANCE.md', readFileSync('assets/audio/music/phase-3/PROVENANCE.md')],
-  ['assets/audio/music/phase-4/the-sovereign-corporation.mp3', readFileSync('assets/audio/music/phase-4/the-sovereign-corporation.mp3')],
-  ['assets/audio/music/phase-4/PROVENANCE.md', readFileSync('assets/audio/music/phase-4/PROVENANCE.md')],
-  ['assets/audio/music/phase-5/post-orbital-transcendence.mp3', readFileSync('assets/audio/music/phase-5/post-orbital-transcendence.mp3')],
-  ['assets/audio/music/phase-5/PROVENANCE.md', readFileSync('assets/audio/music/phase-5/PROVENANCE.md')],
-]);
+import { shipped } from './score-files';
+import { provenancePath, trackProblems } from './score-manifest';
 
 /** A manifest entry and, optionally, the files it claims. */
 function dropIn(overrides: Partial<ScoreTrack> = {}, provenance: string | null = 'auto') {
