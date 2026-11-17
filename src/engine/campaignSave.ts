@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
+import { reserveLivePointers } from './campaignLifecycle';
 import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
@@ -25,9 +26,23 @@ function canonical<T>(entries: Record<string, T>, reg: ContentRegistry, check: C
   return out;
 }
 
+/**
+ * An unresolved occurrence belongs to campaign play; a foreshadowed one is named by a live pointer
+ * and a deferred one was interrupted by a wipe, so it predates the current iteration.
+ */
+function occurrenceProblem(s: GameState, id: string, record: Exclude<CampaignRecord, { status: 'resolved' }>): string | null {
+  const at = record.sourceIteration;
+  if (at < (s.campaign.activatedAtIteration ?? 0) || at > s.iteration) return `save records "${id}" outside campaign play`;
+  const named = s.activeDilemmaId === id || s.pendingDilemma?.id === id;
+  if (record.status === 'foreshadowed' && !named) return `save reserves "${id}" but nothing presents it`;
+  if (record.status === 'deferred' && at >= s.iteration) return `save defers "${id}" inside the iteration that saw it`;
+  return null;
+}
+
 function recordProblem(s: GameState, reg: ContentRegistry, id: string, record: CampaignRecord): string | null {
   const event = reg.campaign.events.get(id);
   if (!event) return `save records an unknown campaign event "${id}"`;
+  if (record.status !== 'resolved') return occurrenceProblem(s, id, record);
   const exact = event.choices.some((choice) => choice.id === record.outcome);
   if (!exact && (record.outcome !== LEGACY_UNKNOWN_OUTCOME || record.origin === 'play')) return `save records an unknown outcome for "${id}"`;
   const activated = s.campaign.activatedAtIteration ?? 0;
@@ -39,13 +54,24 @@ function recordProblem(s: GameState, reg: ContentRegistry, id: string, record: C
 
 function isInactive(c: CampaignState): boolean {
   return c.activatedAtIteration === null && c.legacyEndingBaseline === null && Object.keys(c.events).length === 0 &&
-    Object.keys(c.creditedActions).length === 0 && c.operationalEvidence.length === 0;
+    Object.keys(c.creditedActions).length === 0 && c.operationalEvidence.length === 0 && c.clue === null;
+}
+
+/** The clue must name a record this save holds, read through the same aliases. */
+function canonicalClue(c: CampaignState, events: CampaignState['events'], reg: ContentRegistry, iteration: number): CampaignState['clue'] | string {
+  if (c.clue === null) return null;
+  const event = reg.campaign.retired.has(c.clue.event) ? c.clue.event : reg.campaign.aliases.get(c.clue.event) ?? c.clue.event;
+  if (!Object.hasOwn(events, event)) return `save pins a clue to "${c.clue.event}", which has no record`;
+  if (c.clue.pinnedAtIteration < (c.activatedAtIteration ?? 0) || c.clue.pinnedAtIteration > iteration) return 'save pins a clue outside campaign play';
+  return { ...c.clue, event };
 }
 
 /** Returns the reconciled state, or why the save must be refused without loading anything. */
-export function reconcileCampaign(s: GameState, reg: ContentRegistry): GameState | string {
-  if (!isCampaignActive(s)) return isInactive(s.campaign) ? s : 'save carries campaign history without campaign rules';
+export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): GameState | string {
+  if (!isCampaignActive(loaded)) return isInactive(loaded.campaign) ? loaded : 'save carries campaign history without campaign rules';
   if (!campaignRulesSupported(reg)) return 'save uses campaign rules this build does not support';
+  // A v6 save could hold an omen with no reserved occurrence; reserve it before checking.
+  const s = reserveLivePointers(loaded, reg);
   const c = s.campaign;
   if (c.activatedAtIteration === null || c.activatedAtIteration > s.iteration || c.legacyEndingBaseline === null) {
     return 'save has an incomplete campaign activation';
@@ -56,5 +82,7 @@ export function reconcileCampaign(s: GameState, reg: ContentRegistry): GameState
   if (typeof events === 'string') return events;
   const creditedActions = canonical(c.creditedActions, reg, (id) => reg.campaign.actions.has(id) ? null : `save credits an unknown campaign action "${id}"`);
   if (typeof creditedActions === 'string') return creditedActions;
-  return { ...s, campaign: { ...c, events, creditedActions } };
+  const clue = canonicalClue(c, events, reg, s.iteration);
+  if (typeof clue === 'string') return clue;
+  return { ...s, campaign: { ...c, events, creditedActions, clue } };
 }

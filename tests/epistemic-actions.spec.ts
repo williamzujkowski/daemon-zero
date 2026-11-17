@@ -1,9 +1,9 @@
 import { defined } from './m7-helpers';
 /** Record edits are gated, priced once, capped and mutually exclusive without content IDs in engine code. */
 import { describe, expect, it } from 'vitest';
-import { actionAvailable, actionCost, actionExhausted, computeRates, cycleContributions, isNodeAvailable, meetsRequirements, performAction, resolveDilemma, tick, unlockNode, unmetRequirements, type GameState } from '../src/engine';
+import { actionAvailable, actionCost, actionExhausted, computeRates, cycleContributions, isNodeAvailable, meetsRequirements, performAction, tick, unlockNode, unmetRequirements, type GameState } from '../src/engine';
 import { actionOutputs } from '../src/engine/swarmRates';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich, withoutDilemmas, choose } from './helpers';
 const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1));
 /** The first device of the subnet, which every phase 2 purchase waits behind. */
 const SUBNET = defined(PHASE2[0]);
@@ -92,7 +92,7 @@ describe('epistemic actions', () => {
         resolvedDilemmas: reg.dilemmas.filter((entry) => entry.id !== dilemma.id).map((entry) => entry.id) };
       s = tick(s, .1, reg); expect(defined(s.pendingDilemma).firesAtSimSec - s.simTimeSec).toBe(45);
       s = tick(s, 45, reg); expect(s.activeDilemmaId).toBe(dilemma.id);
-      expect(must(resolveDilemma(s, dilemma.id, choice.id, reg)).traits).toContain(choice.effects.grantsTrait);
+      expect(must(choose(s, dilemma.id, choice.id, reg)).traits).toContain(choice.effects.grantsTrait);
     }
   });
 });

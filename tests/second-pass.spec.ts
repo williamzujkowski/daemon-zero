@@ -112,13 +112,18 @@ describe('dilemma omens', () => {
     expect(fired.logs[0]?.text).toMatch(/PRIORITY_INTERRUPT/);
   });
 
-  it('holds a pending interrupt while dormant and drops one whose dilemma no longer exists', () => {
+  // Contract reversed by nexus vote nh-d4 (shift-deadline-across-dormancy, vote-1794926242414-quhr0xw):
+  // the omen used to expire while the player was away and fire on the first foreground tick (H08).
+  it('holds a pending interrupt while dormant without spending its foreground time, and drops one whose dilemma no longer exists', () => {
     const s = grant(rich(), 'p0_proc_self', 'p0_job_manifest', 'p0_quota_skimmer', 'p0_syscall_probe');
     const warned = tick(s, STEP, reg);
+    const left = (state: GameState) => (state.pendingDilemma?.firesAtSimSec ?? NaN) - state.simTimeSec;
     const away = advance(warned, 3600, reg);
     expect(away.activeDilemmaId).toBeNull();
     expect(away.pendingDilemma?.id).toBe('dil_00_night_shift');
-    expect(tick(away, STEP, reg).activeDilemmaId).toBe('dil_00_night_shift');
+    expect(left(away)).toBeCloseTo(left(warned), 9);
+    expect(tick(away, STEP, reg).activeDilemmaId).toBeNull();
+    expect(untilDilemma(away).activeDilemmaId).toBe('dil_00_night_shift');
     const orphan = tick({ ...warned, simTimeSec: 1e6, pendingDilemma: { id: 'dil_gone', firesAtSimSec: 0 } }, STEP, reg);
     expect(orphan.pendingDilemma).toBeNull();
     expect(orphan.activeDilemmaId).toBeNull();
@@ -187,7 +192,7 @@ describe('save migration from version 1', () => {
     delete old.iterationStartedAtSimSec;
     Object.assign(old, { schemaVersion: 1 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded.schemaVersion).toBe(6);
+    expect(loaded.schemaVersion).toBe(7);
     expect(loaded.conditioning).toEqual([]);
     expect(loaded.legacy.runs).toEqual([]);
     expect(loaded.actuators.quotaSkimRatio).toBe(0.25);

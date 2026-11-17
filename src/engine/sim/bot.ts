@@ -16,7 +16,7 @@ import {
   unlockNode,
   type ActionResult,
 } from '../actions';
-import { isNodeAvailable, nodeCost } from '../query';
+import { isNodeAvailable, nodeCost, presentationToken } from '../query';
 import { computeRates } from '../rates';
 import type { GameState, Rates } from '../state';
 
@@ -79,9 +79,10 @@ export function rankDilemmaChoices(choices: readonly DilemmaChoice[], strategy: 
 
 function resolveActiveDilemma(s: GameState, reg: ContentRegistry, strategy: Strategy): GameState {
   const dilemma = reg.dilemmas.find((x) => x.id === s.activeDilemmaId);
-  if (!dilemma) return s;
+  const token = presentationToken(s);
+  if (!dilemma || token === null) return s;
   for (const choice of rankDilemmaChoices(dilemma.choices, strategy)) {
-    const result = resolveDilemma(s, dilemma.id, choice.id, reg);
+    const result = resolveDilemma(s, dilemma.id, choice.id, reg, token);
     if (result.ok) return result.state;
   }
   return s;

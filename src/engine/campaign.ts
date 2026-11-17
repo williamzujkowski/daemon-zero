@@ -1,13 +1,15 @@
 /**
  * Campaign-rule transitions: the single activation that captures legacy evidence once, the
- * record written when a once-per-campaign event resolves, source-scoped trait evidence, and what
- * survives a wipe. Every function is inert under legacy rules.
+ * record written when a once-per-campaign event resolves and source-scoped trait evidence. The
+ * occurrence lifecycle and what survives a wipe live in campaignLifecycle.ts. Every function is
+ * inert under legacy rules.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Action, Dilemma, DilemmaChoice, EffectPayload, Trait } from '../content/schema';
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import type { ActionResult } from './actions';
-import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
+import { campaignRecord, campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
+import { reserveLivePointers } from './campaignLifecycle';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
 
@@ -45,7 +47,10 @@ export function recordTraitEvidence(d: GameState, trait: Trait, source: Evidence
  */
 export function recordResolution(d: GameState, dilemma: Dilemma | undefined, choice: DilemmaChoice): EffectPayload {
   if (!isCampaignActive(d) || dilemma?.campaign?.recurrence !== 'once_per_campaign') return choice.effects;
-  const record: CampaignRecord = { status: 'resolved', outcome: choice.id, sourceIteration: d.iteration, origin: 'play' };
+  // A resumed occurrence keeps the source iteration its omen was first logged in (N5).
+  const reserved = campaignRecord(d, dilemma.id);
+  const sourceIteration = reserved?.status === 'foreshadowed' ? reserved.sourceIteration : d.iteration;
+  const record: CampaignRecord = { status: 'resolved', outcome: choice.id, sourceIteration, origin: 'play' };
   d.campaign = { ...d.campaign, events: { ...d.campaign.events, [dilemma.id]: record } };
   const effects = { ...choice.effects };
   delete effects.setsNarrativeFlag;
@@ -76,6 +81,7 @@ function legacyHistory(s: GameState, reg: ContentRegistry): CampaignState {
     events,
     creditedActions: Object.fromEntries(credited.map((id) => [id, 'legacy' as const])),
     operationalEvidence: [],
+    clue: null,
   };
 }
 
@@ -90,11 +96,7 @@ export function activateCampaignRules(s: GameState, reg: ContentRegistry): Actio
   if (isCampaignActive(s)) return { ok: false, state: s, reason: 'campaign rules are already active' };
   if (s.ending !== null) return { ok: false, state: s, reason: 'the run has ended' };
   const projected = projectableFlags(reg);
-  return { ok: true, state: { ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
-    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) } };
-}
-
-/** A wipe keeps the campaign and its rules; only this iteration's operational evidence resets. */
-export function carryCampaign(old: GameState): Pick<GameState, 'narrativeRules' | 'campaign'> {
-  return { narrativeRules: old.narrativeRules, campaign: { ...old.campaign, operationalEvidence: [] } };
+  // An omen already on its way becomes a reserved occurrence of this campaign.
+  return { ok: true, state: reserveLivePointers({ ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
+    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) }, reg) };
 }

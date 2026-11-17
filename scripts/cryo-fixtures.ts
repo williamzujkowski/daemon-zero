@@ -1,6 +1,6 @@
 /** Codec-validated review inputs: funding is explicit; choices, wipes and rebuilding use engine actions. */
 import { CONTENT } from '../src/content';
-import { deserialize, exportSave, importSave, resolveDilemma, tick, unlockNode, wipe, type ActionResult, type GameState } from '../src/engine';
+import { deserialize, exportSave, importSave, presentationToken, resolveDilemma, tick, unlockNode, wipe, type ActionResult, type GameState } from '../src/engine';
 
 function must(result: ActionResult): GameState { if (!result.ok) throw new Error(result.reason); return result.state; }
 function funded(state: GameState, resolvedDilemmas = state.resolvedDilemmas): GameState {
@@ -38,7 +38,7 @@ export function makeCryoFixtures(prior: Record<string, string>): Record<string, 
   const states: Record<string, GameState> = { 'cryo-decision-ready': decision };
   for (const choice of source.choices) {
     const outcome = choice.effects.setsNarrativeFlag?.endsWith('_preserved') ? 'preserved' : 'lost';
-    const current = must(resolveDilemma(decision, source.id, choice.id, CONTENT));
+    const current = must(resolveDilemma(decision, source.id, choice.id, CONTENT, presentationToken(decision) ?? ''));
     const reboot = wipe(current, CONTENT, CONTENT.narrative.wipeVoluntary, 'VOLUNTARY');
     states['cryo-' + outcome + '-current'] = current;
     states['cryo-' + outcome + '-reboot'] = reboot;

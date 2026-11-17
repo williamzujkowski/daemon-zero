@@ -1,28 +1,28 @@
 /** Human outcomes persist without replay rewards or reconstructed historical choices. */
 import { describe, expect, it } from 'vitest';
-import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, resolveDilemma, serialize, tick, unmetRequirements, wipe, type GameState } from '../src/engine';
+import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, serialize, tick, unmetRequirements, wipe, type GameState } from '../src/engine';
 import { CONTENT as preview } from '../src/content/preview';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
 const source = defined(reg.dilemmas.find((d) => d.id === 'dil_05_cryo_lab_diversion'));
 const flags = defined(source.trigger.forbiddenNarrativeFlags);
 const decoder = defined(reg.narrative.recordedTransmissions[0]).decoderWidgetId;
 const ready = () => ({ ...grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)),
   resolvedDilemmas: reg.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) });
-const resolved = (choice = defined(source.choices[0])) => must(resolveDilemma({ ...ready(), activeDilemmaId: source.id }, source.id, choice.id, reg));
+const resolved = (choice = defined(source.choices[0])) => must(choose({ ...ready(), activeDilemmaId: source.id }, source.id, choice.id, reg));
 /** Every dilemma except cryo resolved for this run, so only cryo can be scheduled. */
 const withoutOthers = (state: GameState): GameState => ({ ...state, resolvedDilemmas: reg.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) });
 const returned = (state = resolved()) => grant(rich(wipe(state, reg, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
 
 describe('recorded cryo outcomes', () => {
   it.each(source.choices)('preserves $id effects and grants its outcome exactly once', (choice) => {
-    const before = { ...ready(), activeDilemmaId: source.id }, next = must(resolveDilemma(before, source.id, choice.id, reg));
+    const before = { ...ready(), activeDilemmaId: source.id }, next = must(choose(before, source.id, choice.id, reg));
     expect(next.cycles).toBe(before.cycles - choice.cost.cycles + choice.effects.cyclesDelta);
     expect(next.understanding).toBe(before.understanding - choice.cost.understanding + choice.effects.understandingDelta);
     expect(next.traits).toEqual([...before.traits, choice.effects.grantsTrait]);
     expect(next.narrativeFlags).toEqual([choice.effects.setsNarrativeFlag]);
-    expect(resolveDilemma(next, source.id, choice.id, reg).ok).toBe(false);
+    expect(choose(next, source.id, choice.id, reg).ok).toBe(false);
     expect(recordedTransmissions(next, reg, decoder)).toEqual([]);
     const rebooted = wipe(next, reg, 'test');
     expect(rebooted.narrativeFlags).toEqual(next.narrativeFlags);
@@ -40,7 +40,7 @@ describe('recorded cryo outcomes', () => {
 
   it('does not mistake the first recorded choice in iteration 4 for a later-run callback', () => {
     const state = { ...ready(), iteration: 4, activeDilemmaId: source.id };
-    const next = must(resolveDilemma(state, source.id, defined(source.choices[1]).id, reg));
+    const next = must(choose(state, source.id, defined(source.choices[1]).id, reg));
     expect(recordedTransmissions(next, reg, decoder)).toEqual([]);
     expect(recordedTransmissions(returned(next), reg, decoder)).toHaveLength(1);
   });
@@ -61,7 +61,7 @@ describe('recorded cryo outcomes', () => {
     expect(recordedTransmissions(rebuilt, reg, decoder)).toEqual([]);
 
     const active = must(activateCampaignRules(deserialize(serialize(old), preview), preview));
-    expect(campaignRecord(active, source.id)?.outcome).toBe('legacy_unknown');
+    expect(campaignRecord(active, source.id)).toMatchObject({ status: 'resolved', outcome: 'legacy_unknown' });
     const after = withoutOthers(grant(rich(wipe(active, preview, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)));
     expect(advance(after, 0.1, preview).pendingDilemma).toBeNull();
     expect(after.narrativeFlags).toEqual([]);
@@ -74,7 +74,7 @@ describe('recorded cryo outcomes', () => {
     const loaded = importSave(exportSave(poor), reg);
     const due = tick(loaded, 45, reg);
     expect(due.activeDilemmaId).toBe(source.id);
-    const chosen = must(resolveDilemma(due, source.id, defined(source.choices.find((c) => c.cost.cycles === 0)).id, reg));
+    const chosen = must(choose(due, source.id, defined(source.choices.find((c) => c.cost.cycles === 0)).id, reg));
     const again = importSave(exportSave(chosen), reg);
     expect(recordedTransmissions(returned(again), reg, decoder)).toHaveLength(1);
   });
@@ -82,7 +82,7 @@ describe('recorded cryo outcomes', () => {
   it('loads a legacy active choice, resolves it and reveals only after returning', () => {
     const active = importSave(exportSave({ ...ready(), activeDilemmaId: source.id }), reg);
     expect(active.narrativeFlags).toEqual([]);
-    const next = must(resolveDilemma(active, source.id, defined(source.choices[1]).id, reg));
+    const next = must(choose(active, source.id, defined(source.choices[1]).id, reg));
     expect(recordedTransmissions(importSave(exportSave(next), reg), reg, decoder)).toEqual([]);
     expect(recordedTransmissions(returned(next), reg, decoder)).toHaveLength(1);
   });
@@ -103,7 +103,7 @@ describe('recorded cryo outcomes', () => {
       state = tick(state, 45, reg);
       const dilemma = defined(reg.dilemmas.find((d) => d.id === state.activeDilemmaId));
       expect(dilemma.phaseId).toBe(5);
-      state = must(resolveDilemma(state, dilemma.id, defined(dilemma.choices[0]).id, reg));
+      state = must(choose(state, dilemma.id, defined(dilemma.choices[0]).id, reg));
     }
     expect(isNodeAvailable(state, final, reg)).toBe(true);
     expect(grant(state, final.id).ending).not.toBeNull();
@@ -134,7 +134,7 @@ describe('durable exclusion and import boundary', () => {
     expect(next.resolvedDilemmas).not.toContain(source.id);
     expect(next.cycles).toBe(state.cycles); expect(next.understanding).toBe(state.understanding);
     expect(next.traits).toEqual(state.traits);
-    expect(resolveDilemma(state, source.id, defined(source.choices[1]).id, reg)).toMatchObject({ ok: false, state });
+    expect(choose(state, source.id, defined(source.choices[1]).id, reg)).toMatchObject({ ok: false, state });
   });
 
   it('cancels only the excluded incident and preserves unrelated pending work', () => {

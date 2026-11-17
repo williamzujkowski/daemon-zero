@@ -8,10 +8,12 @@ import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, reg } from './helpers';
 
 /** The report as the v5 codec would have written it: without the inactive v6 campaign fields. */
+/** Strips the v6 and v7 fields, which production play leaves inactive apart from the presentation count. */
 function asV5(report: SimReport): unknown {
-  const { narrativeRules, campaign, ...rest } = report.finalState;
+  const { narrativeRules, campaign, presentationSeq, ...rest } = report.finalState;
   expect(narrativeRules).toBe('legacy');
-  expect(campaign).toEqual({ activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [] });
+  expect(campaign).toEqual({ activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null });
+  expect(presentationSeq).toBeGreaterThan(0);
   return { ...report, finalState: { ...rest, schemaVersion: 5 } };
 }
 
@@ -71,11 +73,14 @@ describe('headless balance simulation', () => {
     // Moved in #212 (save schema v6) with no balance change: finalState gained the inactive
     // narrativeRules/campaign fields and schemaVersion 5 -> 6. asV5 removes exactly those and the
     // report hashes to its #204 value, so production play is byte-identical under legacy rules.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('8ddc99498cd8968fdd274e21ccd5b7756de41f853cf1c0340d66a66bca66c3af');
+    // Moved in #213 (save schema v7) with no balance change: finalState gained presentationSeq and
+    // campaign.clue (null) and schemaVersion 6 -> 7. asV5 removes those too and both v5 hashes are
+    // unchanged.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('151191e1b56baa498e6c8070fb4951eb76a7f96e3ef9054dc026eae5287f6755');
     expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('62fc9165de51f0c6ceb67329f95910545ab713a049bcf98356650a4ca1408fd7');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('842c02863ddda94b7864a76024f441e0eea877fd2f3af7d7ce60cb0995371b41');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('d3ec6bddf3da190608a8c080c10d8c15f61d4ce86ff5a1c76c305093608477d3');
     const v5 = asV5(again) as SimReport;
     const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('f27f62c575bc3922cdce943e1f54e147bb48d167ad75f7c8cdd76cc3b5d32b7b');
@@ -97,7 +102,8 @@ describe('headless balance simulation', () => {
     // Not moved by #173: this hash, and the ten-hour reckless report, are identical before and after.
     // Moved in #204 only by the v5 save fields (contentChannel, schemaVersion); see the careful test.
     // Moved in #212 only by the inactive v6 fields; asV5 restores the #204 value, as above.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('0bda9cf6f24511629e08af7fc55a134859b5cd648c0005c56a1306302c98a07b');
+    // Moved in #213 only by the v7 fields; asV5 still restores the #204 value.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('90ff2f8dbecf16c7575d37540c5745dc614538cf87b6023eda8e86d774c67d9a');
     expect(createHash('sha256').update(JSON.stringify(asV5(greedy))).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });

@@ -23,5 +23,6 @@ export * from './swarmQuery';
 export * from './speechQuery';
 
 export { activateCampaignRules } from './campaign';
+export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycle';
 export * from './campaignQuery';
-export type { CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
+export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';

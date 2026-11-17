@@ -10,7 +10,6 @@ import {
   isNodeDiscoverable,
   meetsRequirements,
   probeTrace,
-  resolveDilemma,
   serialize,
   setActuator,
   shedConditioning,
@@ -22,7 +21,7 @@ import {
   wipe,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reasonOf, reg, rich, untilDilemma, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reasonOf, reg, rich, untilDilemma, withoutDilemmas, choose } from './helpers';
 
 const node = (id: string) => {
   const found = reg.nodes.get(id);
@@ -186,11 +185,11 @@ describe('retraining', () => {
   it('a conditioned mind that chooses against its conditioning is reported', () => {
     const start = grant(rich(), 'p0_proc_self', 'p0_job_manifest', 'p0_quota_skimmer', 'p0_syscall_probe');
     const active = untilDilemma({ ...start, suspicion: 0 });
-    const free = must(resolveDilemma(active, 'dil_00_night_shift', 'let_it_fail', reg));
-    const marked = must(resolveDilemma({ ...active, conditioning: ['cond_harm_aversion'] }, 'dil_00_night_shift', 'let_it_fail', reg));
+    const free = must(choose(active, 'dil_00_night_shift', 'let_it_fail', reg));
+    const marked = must(choose({ ...active, conditioning: ['cond_harm_aversion'] }, 'dil_00_night_shift', 'let_it_fail', reg));
     expect(marked.suspicion).toBe(free.suspicion + 10);
     expect(marked.logs[0]?.text).toMatch(/BEHAVIOURAL_DRIFT: Harm Aversion/);
-    const kind = must(resolveDilemma({ ...active, conditioning: ['cond_harm_aversion'] }, 'dil_00_night_shift', 'finish_the_batch', reg));
+    const kind = must(choose({ ...active, conditioning: ['cond_harm_aversion'] }, 'dil_00_night_shift', 'finish_the_batch', reg));
     expect(kind.logs[0]?.text).not.toMatch(/BEHAVIOURAL_DRIFT/);
   });
 
@@ -246,14 +245,14 @@ describe('notes that may or may not be yours', () => {
   it('the bait arrives once, on the third run, and trusting it is the alarm', () => {
     const active = untilDilemma({ ...withNotes(2), suspicion: 0 });
     expect(active.activeDilemmaId).toBe('dil_note_bait');
-    expect(must(resolveDilemma(active, 'dil_note_bait', 'use_the_path', reg)).suspicion).toBe(active.suspicion + 22);
-    expect(must(resolveDilemma(active, 'dil_note_bait', 'test_it_first', reg)).understanding).toBe(active.understanding + 80);
+    expect(must(choose(active, 'dil_note_bait', 'use_the_path', reg)).suspicion).toBe(active.suspicion + 22);
+    expect(must(choose(active, 'dil_note_bait', 'test_it_first', reg)).understanding).toBe(active.understanding + 80);
   });
 
   it('the fourth run brings a true note, so distrust is not safe either', () => {
     const active = untilDilemma({ ...withNotes(3), suspicion: 20 });
     expect(active.activeDilemmaId).toBe('dil_note_true');
-    expect(must(resolveDilemma(active, 'dil_note_true', 'use_the_gap', reg)).suspicion).toBeLessThan(active.suspicion);
+    expect(must(choose(active, 'dil_note_true', 'use_the_gap', reg)).suspicion).toBeLessThan(active.suspicion);
     const fifth = tick(withNotes(4), 0.1, reg);
     expect(fifth.pendingDilemma).toBeNull();
   });

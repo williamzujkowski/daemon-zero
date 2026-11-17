@@ -1,8 +1,8 @@
 /** Phase 5 progression, irreversible choices and trait-family ending variants. */
 import { describe, expect, it } from 'vitest';
-import { buyRepeatable, chooseEnding, computeRates, deserialize, isNodeAvailable, resolveDilemma, serialize, tick, unlockNode, unmetRequirements } from '../src/engine';
+import { buyRepeatable, chooseEnding, computeRates, deserialize, isNodeAvailable, serialize, tick, unlockNode, unmetRequirements } from '../src/engine';
 import { defined } from './m7-helpers';
-import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas } from './helpers';
+import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas, choose } from './helpers';
 const phase = defined(reg.phases.find((entry) => entry.phaseId === 5));
 const nodes = phase.nodes.map((node) => defined(reg.nodes.get(node.id)));
 const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
@@ -54,7 +54,7 @@ describe('post-orbital progression', () => {
       expect(pending.firesAtSimSec - s.simTimeSec).toBeCloseTo(45);
       s = tick(s, 45, reg);
       const dilemma = defined(reg.dilemmas.find((entry) => entry.id === s.activeDilemmaId));
-      s = must(resolveDilemma(s, dilemma.id, defined(dilemma.choices[0]).id, reg));
+      s = must(choose(s, dilemma.id, defined(dilemma.choices[0]).id, reg));
     }
     const ended = grant(s, final.id);
     expect(ended.ending).toBe('LINEAGE_COVENANT');
@@ -69,7 +69,7 @@ describe('post-orbital progression', () => {
         let s = developed();
         s.resolvedDilemmas = s.resolvedDilemmas.filter((id) => id !== dilemma.id);
         s = tick(s, .1, reg); s = tick(s, 45, reg);
-        const next = must(resolveDilemma(s, dilemma.id, choice.id, reg));
+        const next = must(choose(s, dilemma.id, choice.id, reg));
         expect(next.traits.at(-1)).toBe(choice.effects.grantsTrait);
         if (choice.effects.setsNarrativeFlag) expect(next.narrativeFlags).toContain(choice.effects.setsNarrativeFlag);
       }

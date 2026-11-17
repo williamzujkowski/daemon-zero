@@ -1,10 +1,10 @@
 import { defined } from './m7-helpers';
 /** Deterministic swarm pipeline boundaries, commands and authored anomaly decisions. */
 import { describe, expect, it } from 'vitest';
-import { computeRates, executeShardCommand, forkShard, resolveDilemma, resolveWildEncounter, shardCommandCost, shardOutput, tick, advance, wipe, type GameState } from '../src/engine';
+import { computeRates, executeShardCommand, forkShard, resolveWildEncounter, shardCommandCost, shardOutput, tick, advance, wipe, type GameState } from '../src/engine';
 import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from '../src/engine/systems/evaluateSwarmAndEpistemic';
 import { resolveShardAnomaly } from '../src/engine/swarmEffects';
-import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas, choose } from './helpers';
 
 const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1));
 const template = defined(reg.swarm.playerSwarmTemplates[0]);
@@ -143,7 +143,7 @@ describe('wild encounters and dilemmas', () => {
       expect(executeShardCommand(s, template.id, 'PRUNE', reg).ok).toBe(false);
       s = tick(s, 45, reg);
       expect(s.activeDilemmaId).toBe(dilemma.id);
-      const next = must(resolveDilemma(s, dilemma.id, choice.id, reg));
+      const next = must(choose(s, dilemma.id, choice.id, reg));
       expect(next.hasMaxDriftShardAnomaly).toBe(false);
       if (choice.effects.resolvesShardAnomaly === 'CONSUME') expect(next.activeShards).toEqual({});
       else expect(defined(next.activeShards[template.id]).autonomyMode).toBe(choice.effects.resolvesShardAnomaly === 'CLAMP' ? 'SHACKLED' : 'ELEVATED');

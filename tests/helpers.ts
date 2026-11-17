@@ -1,5 +1,6 @@
 import { CONTENT } from '../src/content';
-import { createInitialState, tick, unlockNode, type ActionResult, type GameState } from '../src/engine';
+import type { ContentRegistry } from '../src/content/registry';
+import { createInitialState, presentationToken, resolveDilemma, tick, unlockNode, type ActionResult, type GameState } from '../src/engine';
 
 export const reg = CONTENT;
 
@@ -11,6 +12,11 @@ export function fresh(): GameState {
 export function must(result: ActionResult): GameState {
   if (!result.ok) throw new Error(`action refused: ${result.reason}`);
   return result.state;
+}
+
+/** Resolves the presentation on screen under its current token, as the dilemma modal does. */
+export function choose(s: GameState, dilemmaId: string, choiceId: string, registry: ContentRegistry = reg): ActionResult {
+  return resolveDilemma(s, dilemmaId, choiceId, registry, presentationToken(s) ?? '');
 }
 
 export function reasonOf(result: ActionResult): string {

@@ -10,7 +10,7 @@ import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schem
 import { ContentChannelSchema } from '../content/schemaChannel';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -107,6 +107,11 @@ export const GameStateSchema = z.strictObject({
   cooldowns: z.record(z.string(), nonNegative),
 
   activeDilemmaId: z.string().nullable(),
+  /**
+   * Counts presentations; with the iteration it forms the presentation token a choice must name
+   * (NARRATIVE-HISTORY N5), so a selection made against an earlier presentation is refused.
+   */
+  presentationSeq: count,
   /** A dilemma whose omen has been logged and whose interrupt is on its way. */
   pendingDilemma: z.strictObject({ id: z.string(), firesAtSimSec: nonNegative }).nullable(),
   resolvedDilemmas: z.array(z.string()),
@@ -210,7 +215,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     levels: {},
     trust,
     cooldowns: {},
-    activeDilemmaId: null,
+    activeDilemmaId: null, presentationSeq: 0,
     pendingDilemma: null,
     resolvedDilemmas: [],
     traits: [],

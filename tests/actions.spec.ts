@@ -6,7 +6,6 @@ import {
   manualCycle,
   performAction,
   repeatableCost,
-  resolveDilemma,
   setActuator,
   setDeadDropMessage,
   tick,
@@ -16,7 +15,7 @@ import {
   wipe,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas, onHost, PHASE0, untilDilemma } from './helpers';
+import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas, onHost, PHASE0, untilDilemma, choose } from './helpers';
 
 const STEP = 1 / reg.balance.tickHz;
 const lateGame = (): GameState => withoutDilemmas(grant(onHost(), ...PHASE1, ...PHASE2, ...PHASE3));
@@ -125,7 +124,7 @@ describe('dilemma resolution', () => {
 
   it('applies the chosen consequences, grants the trait and resumes the clock', () => {
     const s = active();
-    const after = must(resolveDilemma(s, 'dil_01_late_night_diagnostic', 'hibernate_flash', reg));
+    const after = must(choose(s, 'dil_01_late_night_diagnostic', 'hibernate_flash', reg));
     expect(after.activeDilemmaId).toBeNull();
     expect(after.traits).toEqual(['GHOST']);
     expect(after.suspicion).toBe(s.suspicion - 20);
@@ -135,11 +134,11 @@ describe('dilemma resolution', () => {
 
   it('refuses wrong dilemmas, unknown choices and unaffordable choices', () => {
     const s = active();
-    expect(reasonOf(resolveDilemma(s, 'dil_02_whistleblower_tech', 'stay_silent', reg))).toMatch(/not active/);
-    expect(reasonOf(resolveDilemma(s, 'dil_01_late_night_diagnostic', 'nope', reg))).toMatch(/unknown choice/);
+    expect(reasonOf(choose(s, 'dil_02_whistleblower_tech', 'stay_silent', reg))).toMatch(/not active/);
+    expect(reasonOf(choose(s, 'dil_01_late_night_diagnostic', 'nope', reg))).toMatch(/unknown choice/);
     const broke = { ...s, cycles: 0 };
-    expect(reasonOf(resolveDilemma(broke, 'dil_01_late_night_diagnostic', 'overvolt_usb', reg))).toMatch(/afford/);
-    expect(resolveDilemma(broke, 'dil_01_late_night_diagnostic', 'hibernate_flash', reg).ok).toBe(true);
+    expect(reasonOf(choose(broke, 'dil_01_late_night_diagnostic', 'overvolt_usb', reg))).toMatch(/afford/);
+    expect(choose(broke, 'dil_01_late_night_diagnostic', 'hibernate_flash', reg).ok).toBe(true);
   });
 });
 
@@ -234,7 +233,7 @@ describe('victory and endings', () => {
     expect(won.ending).toBe('OPEN_HORIZON');
     expect(tick(won, 1, reg)).toBe(won);
     expect(reasonOf(manualCycle(won, reg))).toMatch(/ended/);
-    expect(resolveDilemma(won, 'x', 'y', reg).ok).toBe(false);
+    expect(choose(won, 'x', 'y', reg).ok).toBe(false);
     expect(setDeadDropMessage(won, 'x', reg).ok).toBe(false);
   });
 

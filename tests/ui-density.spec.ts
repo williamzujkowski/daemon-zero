@@ -3,10 +3,11 @@
 import { act } from 'react';
 import { expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { computeRates, resolveDilemma, wipe } from '../src/engine';
+import { computeRates, wipe } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { needsProcessControl } from '../src/ui/purchaseVisibility';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { choose } from './helpers';
 setupM4Tests();
 
 it('keeps maintenance out of the feed and preserves suspension when the panel closes', async () => {
@@ -65,7 +66,7 @@ it('does not expose maintenance before ownership and yields its modal to a manda
   const game = gameStore.store.getState().game;
   const dilemma = CONTENT.dilemmas.find((entry) => entry.id === game.activeDilemmaId);
   if (!dilemma) throw new Error('Missing dilemma');
-  const choice = dilemma.choices.find((entry) => resolveDilemma(game, dilemma.id, entry.id, CONTENT).ok);
+  const choice = dilemma.choices.find((entry) => choose(game, dilemma.id, entry.id, CONTENT).ok);
   if (!choice) throw new Error('Missing affordable choice');
   view.click('dilemma-choice-' + choice.id);
   expect(view.find('processes-dialog')).not.toBeNull();

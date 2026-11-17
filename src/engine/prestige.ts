@@ -1,14 +1,15 @@
 /**
  * The wipe loop. A wipe resets the run to a fresh iteration in the guest while
  * carrying over what survives: a share of Understanding, offshore capital, a
- * breadcrumb, the memory of hardware already mapped, and a record of the run.
+ * breadcrumb and its pinned clue, the memory of hardware already mapped, a record of the run,
+ * and campaign history, whose unresolved occurrence follows its authored interruption policy.
  * A run that is caught outside the guest is also retrained: the next iteration
  * boots with a conditioning mark, unless a dead-drop held an unedited copy.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import { hasFlag } from './query';
-import { carryCampaign } from './campaign';
+import { carryCampaign } from './campaignLifecycle';
 import { createInitialState, type GameState, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
@@ -103,7 +104,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
   const d: GameState = {
     ...fresh,
     iteration: old.iteration + 1,
-    ...carryCampaign(old),
+    ...carryCampaign(old, reg, hadDeadDrop),
     narrativeFlags: [...old.narrativeFlags],
     nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
     encounterSequenceIndex: old.encounterSequenceIndex,
