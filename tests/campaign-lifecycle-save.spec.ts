@@ -6,8 +6,8 @@ import { describe, expect, it } from 'vitest';
 import { RAW_CONTENT } from '../src/content/preview';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { buildRegistry } from '../src/content/registry';
-import { campaignRecord, deserialize, MIGRATIONS, presentationToken, serialize, type GameState } from '../src/engine';
-import { activeGame, chooseCryo, cryo, preview } from './campaign-helpers';
+import { campaignRecord, deserialize, MIGRATIONS, presentationToken, serialize, wipe, type GameState } from '../src/engine';
+import { activeGame, chooseCryo, cryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
 import { caught, note, noteOmen, readShare, status, ticks, untilPresented } from './interruption-helpers';
 
@@ -86,6 +86,13 @@ describe('the clue in a save', () => {
   it('reads a clue through the same aliases as its record', () => {
     const text = withCampaign(chosen, { events: { [OLD]: defined(chosen.campaign.events[cryo.id]) }, clue: { event: OLD, pinnedAtIteration: 1 } });
     expect(deserialize(text, evolved).campaign.clue).toEqual({ event: cryo.id, pinnedAtIteration: 1 });
+  });
+
+  it('is carried by a wipe only through a supported dead-drop', () => {
+    const pinned = deserialize(withCampaign(chosen, { clue: { event: cryo.id, pinnedAtIteration: 1 } }), preview);
+    expect(wipe(pinned, preview, 'test', 'SUSPICION').campaign.clue).toBeNull();
+    const supported = pgrant(pinned, 'p2_deaddrop_firmware');
+    expect(wipe(supported, preview, 'test', 'SUSPICION').campaign.clue).toEqual({ event: cryo.id, pinnedAtIteration: 1 });
   });
 
   it('refuses a clue without a record, or pinned outside campaign play', () => {
