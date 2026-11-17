@@ -50,6 +50,8 @@ describe('pinning one disclosed clue (H21, H22)', () => {
     expect(pinnableClues(omen, preview)).toEqual([note.id]);
     const pinned = must(pinClue(omen, note.id, preview));
     expect(pinned.campaign.clue).toEqual({ event: note.id, pinnedAtIteration: 3 });
+    // Pinned now, it is not yet a retained clue: only a wipe it survives makes it one.
+    expect(lines(pinned)).toEqual([]);
     expect(without(pinned)).toEqual(omen);
     expect(pinClue(pinned, note.id, preview).state).toBe(pinned);
     expect(must(pinClue(pinned, null, preview)).campaign.clue).toBeNull();
