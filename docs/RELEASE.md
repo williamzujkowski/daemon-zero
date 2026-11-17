@@ -102,6 +102,7 @@ Do not publish keystores, credential JSON, passwords or review save databases.
 The existing audit, secret, OSV and Trivy scans remain required. CodeQL runs as a
 separate workflow (`.github/workflows/codeql.yml`, added 2026-11-16 on maintainer
 instruction, after the v0.2.0-rc.1 review); check its code-scanning alerts before
-tagging. The dependency-review workflow is still deferred. [PRIVACY.md](PRIVACY.md)
+tagging. A dependency-review workflow checks every pull request's dependency changes
+for known vulnerabilities and disallowed licenses. [PRIVACY.md](PRIVACY.md)
 is the store disclosure. Physical Android qualification (#6), iOS and store
 review remain separate from an emulator-tested local release candidate.
