@@ -273,4 +273,9 @@ saves with only a resolved dilemma ID cannot prove which choice was made: do not
 invent an outcome or a callback. An old pending/active incident can still resolve
 normally and record its outcome. See REVIEW-REPLAYABILITY-C.md for reconciliation,
 validation and verification. The archive/location expansion remains deferred
-until a human comparison shows this consequence is discoverable and meaningful.
+until the autonomous validation gate described in MILESTONES.md ("Post-M7 —
+replayability pilot") passes: recorded agent-run browser evidence that this
+consequence is discoverable and meaningful in play, a Nexus proceed decision on
+that evidence, and a separate scope vote. Optional human feedback can add to it;
+agent observations never stand in for it. (Until 2026-11-17 this required a human
+comparison.)

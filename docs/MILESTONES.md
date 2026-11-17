@@ -288,7 +288,18 @@ See REVIEW-REPLAYABILITY-A.md, REVIEW-REPLAYABILITY-B.md and
 REVIEW-REPLAYABILITY-C.md for verification and limits, and
 PLAYTEST-REPLAYABILITY-C.md for both accelerated recovery branches.
 
-Historical archive/discovery sites remain deferred until the consequence pilot
-receives a human playtest. Research, Nexus's incomplete vote and independent
-refinements are recorded in REPLAYABILITY-PLAN-REVIEW.md. Automated reachability
-is not evidence of enjoyment or first-time discoverability.
+Historical archive/discovery sites remain deferred until the campaign-history
+and Earned Access work passes its autonomous validation gate (plan ticket DZ-09):
+recorded agent-run browser and gameplay evidence, then a real Nexus proceed/revise
+decision on that evidence. Expanding the archive or cast beyond that also needs the
+roadmap's promotion criteria and its own Nexus scope vote. Human feedback is
+welcome but optional, and is never stood in for by agent observations.
+Automated reachability is still not evidence of enjoyment or first-time
+discoverability. Research, Nexus's incomplete vote and independent refinements
+are recorded in REPLAYABILITY-PLAN-REVIEW.md.
+
+Until 2026-11-17 this paragraph deferred the sites until the consequence pilot
+received a human playtest. The maintainer's standing authorization of that date
+replaced mandatory human playtests with the autonomous gate above (Nexus vote
+`rewrite-to-autonomous-gate`, 7 of 7, record vote-1794924620484-3wn387e; every
+seat was served by one model because the others were out of quota).
