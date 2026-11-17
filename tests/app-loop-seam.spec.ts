@@ -101,6 +101,20 @@ describe('loop seam dip', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('stops and reports a gain write that throws inside the timer, instead of throwing out of it', () => {
+    // Panel finding on PR #208: the trim is the player's volume write, and a write that throws
+    // in a timer tick has no caller to catch it.
+    const failed = vi.fn();
+    const playhead = looping(1, 0.5);
+    let writes = 0;
+    const seam = new LoopSeam(playhead, () => { writes += 1; throw new Error('volume failed'); }, failed);
+    seam.start();
+    expect(() => { vi.advanceTimersByTime(1000); }, 'nothing escapes the timer').not.toThrow();
+    expect(writes, 'the first write that threw was the last one tried').toBe(1);
+    expect(failed).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount(), 'the watch is stopped').toBe(0);
+  });
+
   it('reads a late tick further down the dip rather than running behind it', () => {
     let at = 9.5;
     const ticks: (() => void)[] = [];

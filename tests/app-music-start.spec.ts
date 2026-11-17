@@ -111,6 +111,36 @@ describe('the dip around the loop wrap', () => {
   });
 });
 
+describe('a loop dip whose volume write throws', () => {
+  /** A ten-second file entered at `from` seconds; the position moves with the fake clock. */
+  const looping = (from: number) => { const begun = Date.now(); return () => ({ position: () => (from + (Date.now() - begun) / 1000) % 10, duration: () => 10 }); };
+
+  it('fails the live player visibly, as a ramp write that throws does, and leaves no timer', async () => {
+    const h = await harness(40, true, looping(9));
+    run(FADE_IN_MS);
+    h.at(0).throws = 'volume';
+    expect(() => { run(1000); }, 'nothing escapes the seam timer').not.toThrow();
+    expect(h.controller.state.getState()).toMatchObject({ playing: false, activated: false });
+    expect(h.controller.state.getState().status).toContain('Playback unavailable');
+    expect(h.at(0).log.at(-1)).toBe('pause');
+    expect(vi.getTimerCount()).toBe(0);
+    h.stop();
+  });
+
+  it('releases a fading-out player there and then, without reporting a failure', async () => {
+    const h = await harness(40, true, looping(9.3));
+    run(FADE_IN_MS);
+    h.end();
+    h.at(0).throws = 'volume';
+    expect(() => { run(1000); }).not.toThrow();
+    expect(h.at(0).removed).toBe(true);
+    expect(h.controller.state.getState().status).toBe('');
+    expect(vi.getTimerCount()).toBe(0);
+    expect(h.violations).toEqual([]);
+    h.stop();
+  });
+});
+
 describe('headroom', () => {
   it('keeps the loudest score and the loudest clip under full scale together at 100% each, before the duck lands', () => {
     expect(OUTPUT_SCALE * (SCORE_PEAK_CEILING + SPEECH_PEAK_CEILING)).toBeLessThan(1);

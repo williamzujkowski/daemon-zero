@@ -397,7 +397,10 @@ the position: down over `SEAM_FALL_MS` (75 ms) to reach its floor `SEAM_GUARD_MS
 before the end the player reports, and after the wrap back up with the position over
 `SEAM_RISE_MS` (75 ms). The trim multiplies whatever level the ramp holds (`VolumeRamp.trim`),
 so a duck, a fade or a volume change carries on underneath and the player hears their
-product. It stops with the player (pause, background, release). Two things were found while
+product. It stops with the player (pause, background, release). A position read or a volume
+write that throws inside its timer stops the watch and takes the same path as a ramp write
+that throws: a live player fails visibly (`Playback unavailable`), a fading-out one is released
+(panel round on PR #208, which found the write escaping the timer). Two things were found while
 building it, both measured:
 
 - **The floor is -60 dB, not zero.** With the dip going to exactly 0, Chromium restarted

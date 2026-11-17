@@ -67,7 +67,7 @@ export class LoopSeam {
   private rising = false;
   private gain = 1;
 
-  /** `failed` hears about a position read that threw inside a timer tick. */
+  /** `failed` hears about a position read or a gain write that threw inside a timer tick. */
   constructor(private readonly playhead: Playhead, private readonly trim: (gain: number) => void,
     private readonly failed: () => void, private readonly clock: RampClock = appClock) {}
 
@@ -101,7 +101,19 @@ export class LoopSeam {
   private schedule(fast: boolean): void {
     this.stop?.();
     this.fast = fast;
-    this.stop = this.clock.every(fast ? SEAM_STEP_MS : FAR_POLL_MS, () => { this.tick(); });
+    this.stop = this.clock.every(fast ? SEAM_STEP_MS : FAR_POLL_MS, () => { this.guarded(); });
+  }
+
+  /**
+   * A tick runs from a timer, where nothing can catch what it throws: a position read or a
+   * volume write (the trim) that fails stops the watch and is reported through `failed`, the
+   * controller's path for a failed write. It is not rethrown (panel finding on PR #208).
+   */
+  private guarded(): void {
+    try { this.tick(); } catch {
+      this.end();
+      this.failed();
+    }
   }
 
   /**
@@ -110,12 +122,8 @@ export class LoopSeam {
    * seek); from there the gain comes back up with the position, over the start of the file.
    */
   private tick(): void {
-    let position: number; let duration: number;
-    try { position = this.playhead.position() * 1000; duration = this.playhead.duration() * 1000; } catch {
-      this.end();
-      this.failed();
-      return;
-    }
+    const position = this.playhead.position() * 1000;
+    const duration = this.playhead.duration() * 1000;
     if (!Number.isFinite(position) || !Number.isFinite(duration) || !(duration > 0)) return;
     if (position < this.last) this.rising = true;
     this.last = position;
