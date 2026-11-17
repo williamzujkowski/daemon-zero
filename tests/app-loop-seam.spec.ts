@@ -1,7 +1,6 @@
 /** The loop-seam dip on its own: a scripted playhead, a recording trim, fake timers. */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LoopSeam, SEAM_FALL_MS, SEAM_FLOOR, SEAM_GUARD_MS, SEAM_RISE_MS } from '../src/app/loopSeam';
-import { RAMP_STEP_MS } from '../src/app/volumeRamp';
+import { LoopSeam, SEAM_FALL_MS, SEAM_FLOOR, SEAM_GUARD_MS, SEAM_RISE_MS, SEAM_STEP_MS } from '../src/app/loopSeam';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -30,16 +29,16 @@ describe('loop seam dip', () => {
     expect(gains, 'nothing moves far from the end').toEqual([]);
     // Into the last stretch: down to zero by the guard (give or take a step of tick phase),
     // never back up before the wrap.
-    vi.advanceTimersByTime(1000 - SEAM_GUARD_MS + RAMP_STEP_MS - 5);
+    vi.advanceTimersByTime(1000 - SEAM_GUARD_MS + SEAM_STEP_MS - 5);
     const falling = gains.map((entry) => entry.gain);
-    expect(falling.length, 'several steps, not one').toBeGreaterThanOrEqual(2);
+    expect(falling.length, 'a fine staircase, not a few large steps').toBeGreaterThanOrEqual(SEAM_FALL_MS / SEAM_STEP_MS - 1);
     expect(falling.every((gain, index) => index === 0 || gain <= (falling[index - 1] ?? 1))).toBe(true);
     expect(falling.at(-1), 'down to the floor, not to zero').toBe(SEAM_FLOOR);
     const firstMove = gains[0]?.at ?? 0;
-    expect(10 - firstMove, 'it starts within one fall and one step of the end').toBeLessThanOrEqual((SEAM_FALL_MS + SEAM_GUARD_MS + RAMP_STEP_MS) / 1000);
+    expect(10 - firstMove, 'it starts within one fall and one step of the end').toBeLessThanOrEqual((SEAM_FALL_MS + SEAM_GUARD_MS + SEAM_STEP_MS) / 1000);
     gains.length = 0;
     // Through the wrap and the rise.
-    vi.advanceTimersByTime(SEAM_GUARD_MS + SEAM_RISE_MS + RAMP_STEP_MS * 2);
+    vi.advanceTimersByTime(SEAM_GUARD_MS + SEAM_RISE_MS + SEAM_STEP_MS * 2);
     const rising = gains.map((entry) => entry.gain);
     expect(rising.every((gain, index) => index === 0 || gain >= (rising[index - 1] ?? 0))).toBe(true);
     expect(rising.at(-1)).toBe(1);
@@ -53,7 +52,7 @@ describe('loop seam dip', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('polls slowly far from the end and every ramp step near it', () => {
+  it('polls slowly far from the end and every fine step near it', () => {
     let reads = 0;
     const playhead = looping(10, 0);
     const counted = { position: () => { reads += 1; return playhead.position(); }, duration: playhead.duration };
@@ -64,7 +63,7 @@ describe('loop seam dip', () => {
     reads = 0;
     vi.advanceTimersByTime(4800);
     const near = reads;
-    expect(near, 'every 25 ms once it is close').toBeGreaterThan(10);
+    expect(near, 'every SEAM_STEP_MS once it is close').toBeGreaterThan(20);
     seam.end();
   });
 

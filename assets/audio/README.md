@@ -23,7 +23,8 @@ not establish that the musical seam is inaudible; that requires listening. The
 seams are measured, in the files and as rendered, in
 [docs/VOICE-CLIPS.md](../../docs/VOICE-CLIPS.md) ("Loop seams"): each loop is a
 piece ending and restarting, and Phase 0's file ends mid-decay, 28 dB below
-full scale, which is the seam most likely to tick.
+full scale, which is the seam most likely to tick. Since #198 the player dips its
+own gain around each wrap (`src/app/loopSeam.ts`); the files stay byte-identical.
 
 ## Bundling and selection
 

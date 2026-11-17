@@ -85,7 +85,7 @@ test('speech works with music off: the clip is fetched and no score is ever crea
   await read.click();
   expect((await delivered).ok()).toBe(true);
   await expect.poll(() => voiceClipsPlaying(page), 'the clip is really talking').toBe(1);
-  await expect.poll(() => voiceClipVolume(page)).toBeCloseTo(0.7, 5);
+  await expect.poll(() => voiceClipVolume(page)).toBeCloseTo(0.7 * OUTPUT_SCALE, 5);
 
   // Both sets of controls live on the one Audio page, each a full touch target.
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();

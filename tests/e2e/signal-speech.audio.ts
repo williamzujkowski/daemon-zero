@@ -12,7 +12,7 @@
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
-import { OUTPUT_SCALE } from '../../src/app/outputLevel';
+import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../../src/app/outputLevel';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { median, mono, peak, ramp, rms, sum, toDb, truePeak } from '../audio/dsp';
 import { boot, expect, test } from './helpers';
@@ -153,7 +153,11 @@ test('speech follows its own level and is rendered with music off', async ({ pag
   expect(toDb(high.gain / low.gain), 'half the speech level is 6.02 dB less signal').toBeCloseTo(6.02, 1);
 });
 
-test('at full music and speech levels the output mix is measured for clipping', async ({ page }, info) => {
+/** How far the in-page true-peak estimate may read above ffmpeg's meter on the same file. */
+const ESTIMATOR_DB = 0.15;
+const withEstimator = (bound: number) => bound * 10 ** (ESTIMATOR_DB / 20);
+
+test('at full music and speech levels the output mix stays under full scale', async ({ page }, info) => {
   await installSignalTap(page);
   await boot(page, 'decoded-omen', { audio: { version: 2, enabled: true, volume: 100, speechEnabled: true, speechVolume: 100 }, realTimers: true });
   await signalTapReady(page);
@@ -169,5 +173,12 @@ test('at full music and speech levels the output mix is measured for clipping', 
   let over = 0;
   for (const channel of [result.mix.left, result.mix.right]) for (const sample of channel) if (Math.abs(sample) >= 1) over += 1;
   report(info, 'output mix samples at or over full scale, both at 100%', over, 'samples');
-  expect(clipPeak, 'the clip alone stays under full scale').toBeLessThan(1);
+  // The clip is at most the loudest clip's ceiling times the output scale: -5.2 dBTP, not
+  // merely under 0 dBTP as before the scale existed.
+  expect(clipPeak, 'the clip at 100% is inside its scaled ceiling').toBeLessThanOrEqual(withEstimator(OUTPUT_SCALE * SPEECH_PEAK_CEILING));
+  // The mix is what reaches the output, so it is the thing gated: never over the scaled sum of
+  // the two ceilings (the worst case, before the duck lands), never a sample at full scale.
+  expect(mixPeak, 'the mix is inside the scaled worst case').toBeLessThanOrEqual(withEstimator(OUTPUT_SCALE * (SCORE_PEAK_CEILING + SPEECH_PEAK_CEILING)));
+  expect(mixPeak, 'the mix stays under full scale').toBeLessThan(1);
+  expect(over, 'no sample at or over full scale').toBe(0);
 });

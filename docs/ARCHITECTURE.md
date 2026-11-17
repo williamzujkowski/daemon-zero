@@ -230,7 +230,8 @@ the public engine API. Costs and one-shot outcomes still use transactions.
 above the terminal restore key. It filters game updates to readiness, phase,
 ending, iteration and restore identity; ordinary ticks never touch its player.
 The Expo backend loads lazily after explicit activation. One player loops the
-current phase’s bundled score, pauses on background, switches on phase changes,
+current phase’s bundled score (with a short gain dip around each wrap, read off the
+playhead by `loopSeam.ts`; its fade-in waits for that playhead to move), pauses on background, switches on phase changes,
 restarts on wipe/import, stops on ending, and releases on teardown. Explicit local
 imports in `musicSources.ts` cover Phases 0–5; only the selected source gets a
 player. Player/session generations reject stale callbacks and async activation.

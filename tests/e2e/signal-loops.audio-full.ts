@@ -3,6 +3,10 @@
  * the output, what sits between them, and how large the discontinuity is, both at the wrap and
  * across the player's dip around it (`loopSeam.ts`). A seam is where a click hides.
  *
+ * The seek goes three seconds before the end, not less: after a seek on this server Chromium
+ * corrected its timeline about a second later by half to one MP3 frame, and a correction that
+ * lands in the measured stretch reads as a jump that is not in the file.
+ *
  * Clock: real browser timers (`realTimers`).
  */
 import tracks from '../../assets/audio/music/tracks.json';
@@ -19,6 +23,9 @@ const ms = (value: number) => Math.round(value / 1000 * SAMPLE_RATE);
 const RESHAPED = ms(200);
 /** The wide window a seam is judged over: the dip's fall before the wrap and its rise after. */
 const BEFORE = ms(200); const AFTER = ms(150);
+/** Gates on the seam, from the before/after measurements in docs/VOICE-CLIPS.md, "Loop seams". */
+const SEAM_AT_WRAP_DBFS = -65;
+const SEAM_WINDOW_DB = 32;
 /** Where the steady level is read, well before anything near the end could have moved it. */
 const STEADY = ms(400);
 
@@ -100,5 +107,11 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' loop seam, a
   report(info, name + ': level in the 50 ms before the seam', toDb(rms(signal, restart - ms(50), restart)), 'dBFS RMS');
   report(info, name + ': level in the 50 ms after the seam', toDb(rms(signal, restart, restart + ms(50))), 'dBFS RMS');
   expect(narrow.jump, 'the seam is not a full-scale click').toBeLessThan(0.1);
+  // The dip (vote-1794894573488-8i55z3v), measured at 30% x OUTPUT_SCALE. Before it, the wrap
+  // itself stepped by up to -39.5 dBFS (phase 0) and the 200 ms window peaked 43 dB above the
+  // usual change (phases 3 and 5); with it, at most -74 dBFS at the wrap and 27 dB across the
+  // window. The thresholds leave a few dB for run-to-run spread and fail on the old build.
+  expect(toDb(narrow.jump), 'the step at the wrap is gone into the floor').toBeLessThanOrEqual(SEAM_AT_WRAP_DBFS);
+  expect(toDb(fall.jump / fall.usual), 'the dip itself steps by less than the seam did').toBeLessThanOrEqual(SEAM_WINDOW_DB);
   expect(correlation(signal, head, -restart, restart + RESHAPED, restart + head.length - 4096), 'and plays on').toBeGreaterThan(0.999);
 });

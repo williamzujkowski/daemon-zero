@@ -7,7 +7,7 @@ import { CONTENT } from '../../src/content';
 import tracks from '../../assets/audio/music/tracks.json';
 import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
 import { OUTPUT_SCALE } from '../../src/app/outputLevel';
-import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, soundtrackVolume, test } from './helpers';
+import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, scoreFlowing, soundtrackVolume, test } from './helpers';
 
 async function openAudio(page: Page) {
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
@@ -60,6 +60,7 @@ test('a live phase change swaps the score at once and fades the new one in, one 
   // The score starts on the first gesture; a press on nothing in particular is one on every tier.
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(async () => (await musicMediaState(page)).active).toBe(1);
+  await scoreFlowing(page);
   await sampleScore(page, FADE_IN_MS);
   expect(await soundtrackVolume(page)).toBe(level);
   const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
@@ -71,7 +72,8 @@ test('a live phase change swaps the score at once and fades the new one in, one 
   expect(swapped.active).toBe(1);
   expect(swapped.source).toContain('/audio/music/phase-1/');
   expect(await soundtrackVolume(page), 'the new score starts from silence').toBe(0);
-
+  // The fade-in waits for the new file's first samples (#198), which arrive in real time.
+  await scoreFlowing(page);
   const samples = await sampleScore(page, FADE_IN_MS);
   expect(samples.map((sample) => sample.active), 'never two scores and never none').toEqual(samples.map(() => 1));
   expect(samples.every((sample) => sample.source.includes('/audio/music/phase-1/'))).toBe(true);
@@ -90,6 +92,7 @@ test('switching music off says so at once and fades the score out before releasi
   await observeMusicMedia(page); await boot(page, 'tick-0', { audio: true }); await dismissBoot(page);
   await openAudio(page);
   await expect.poll(async () => (await musicMediaState(page)).active).toBe(1);
+  await scoreFlowing(page);
   await sampleScore(page, FADE_IN_MS);
   expect(await soundtrackVolume(page)).toBe(level);
   await page.getByTestId('music-toggle').click();

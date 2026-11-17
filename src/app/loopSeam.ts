@@ -1,7 +1,8 @@
 /**
- * A short dip in one player's gain around each loop wrap, so a score that ends mid-note does
- * not step from that note to silence when the player restarts it. The supplied files are not
- * touched: the dip is applied as a trim on top of whatever level the player's ramp holds.
+ * What the soundtrack reads from a player's playhead. A short dip in its gain around each loop
+ * wrap, so a score that ends mid-note does not step from that note to silence when the player
+ * restarts it (the supplied files are not touched: the dip is a trim on top of whatever level
+ * the ramp holds); and the signal that audio is flowing, which a fade-in waits for.
  */
 import { appClock, RAMP_STEP_MS, type RampClock } from './volumeRamp';
 
@@ -10,14 +11,20 @@ import { appClock, RAMP_STEP_MS, type RampClock } from './volumeRamp';
  *  the main thread, so the dip is down with room to spare. */
 export const SEAM_GUARD_MS = 30;
 /** How long the dip takes to come down before that point, and to go back up after the restart.
- *  Three ramp steps each way. Nobody chose these by ear: docs/VOICE-CLIPS.md, "Loop seams". */
+ *  Nobody chose these by ear: docs/VOICE-CLIPS.md, "Loop seams". */
 export const SEAM_FALL_MS = 75;
 export const SEAM_RISE_MS = 75;
-/** Far from the end the position is read four times a second; inside this it is read every
- *  ramp step. On Android each read is a synchronous call to the main thread, so it is not done
- *  forty times a second for the whole of a track. */
-const NEAR_MS = 600;
+/**
+ * How often the position is read, and the gain rewritten, near the end. Each write is a step
+ * in the rendered signal, so the dip is a staircase of about fifteen 5 ms steps each way. At
+ * the ramps' 25 ms it was three, and on a score whose tail is still loud (phase 5) each of
+ * those steps measured larger than the seam it replaced. Far from the end the position is
+ * read four times a second: on Android each read is a synchronous call to the main thread.
+ */
+export const SEAM_STEP_MS = 5;
 const FAR_POLL_MS = 250;
+/** Close enough to switch to the fine reads: past one far poll, a fall and a guard, with room. */
+const NEAR_MS = 450;
 
 /**
  * The bottom of the dip: -60 dB, inaudible under a tail already 30 dB or more down, but not
@@ -28,6 +35,28 @@ const FAR_POLL_MS = 250;
 export const SEAM_FLOOR = 0.001;
 
 export interface Playhead { position(): number; duration(): number }
+
+/**
+ * The longest a fade-in waits for the position to move before it starts anyway, so a player
+ * that never reports progress (a platform whose position is stuck, say) is not left silent for
+ * good. A file later than this still starts as part of a fade, not at full level, but the part
+ * that ran before it arrived is lost. Counted in ramp steps, as the ramp itself is.
+ */
+export const FADE_IN_WAIT_MS = 1500;
+
+/**
+ * A gate for `VolumeRamp.to`: true once the position has moved from where it was when this was
+ * made (forward, or back past a wrap), or once `FADE_IN_WAIT_MS` worth of asks have gone by.
+ */
+export function audioFlowing(playhead: Playhead): () => boolean {
+  const from = playhead.position();
+  let asked = 0;
+  return () => {
+    const now = playhead.position();
+    asked += 1;
+    return (Number.isFinite(now) && now !== from) || asked * RAMP_STEP_MS >= FADE_IN_WAIT_MS;
+  };
+}
 
 const clamp = (value: number) => Math.max(SEAM_FLOOR, Math.min(1, value));
 
@@ -44,7 +73,7 @@ export class LoopSeam {
 
   /**
    * Watch from now. A watch already running is restarted; the trim starts at full gain. The
-   * first read is one ramp step away, not a far poll, because a start can be close to the end
+   * first read is one fine step away, not a far poll, because a start can be close to the end
    * (a return from the background). It is not read here and now: a read that threw would fail
    * the player in the middle of the call that is starting it.
    */
@@ -72,7 +101,7 @@ export class LoopSeam {
   private schedule(fast: boolean): void {
     this.stop?.();
     this.fast = fast;
-    this.stop = this.clock.every(fast ? RAMP_STEP_MS : FAR_POLL_MS, () => { this.tick(); });
+    this.stop = this.clock.every(fast ? SEAM_STEP_MS : FAR_POLL_MS, () => { this.tick(); });
   }
 
   /**

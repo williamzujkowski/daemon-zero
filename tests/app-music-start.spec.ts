@@ -5,7 +5,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../src/app/musicController';
-import { SEAM_FLOOR, SEAM_GUARD_MS, SEAM_RISE_MS } from '../src/app/loopSeam';
+import { FADE_IN_WAIT_MS, SEAM_FLOOR, SEAM_GUARD_MS, SEAM_RISE_MS } from '../src/app/loopSeam';
 import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../src/app/outputLevel';
 import { RAMP_STEP_MS } from '../src/app/volumeRamp';
 import { fresh, harness, monotonic, run } from './music-ramp-harness';
@@ -63,6 +63,19 @@ describe('the fade-in starts with the audio', () => {
     expect(levels.length).toBe(DUCK_RAMP_MS / RAMP_STEP_MS);
     expect(levels[0]).toBeLessThan(0.4 * OUTPUT_SCALE * DUCK_RATIO / 4);
     expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
+    h.stop();
+  });
+
+  it('stops waiting after FADE_IN_WAIT_MS for a player whose position never moves, and fades in anyway', async () => {
+    const stuck = held(0);
+    const h = await harness(40, true, stuck.playhead);
+    run(FADE_IN_WAIT_MS - RAMP_STEP_MS);
+    expect(h.at(0).levels).toEqual([0]);
+    run(RAMP_STEP_MS);
+    expect(h.at(0).levels.length, 'the first step lands on the last ask').toBe(2);
+    run(FADE_IN_MS);
+    expect(h.at(0).levels.length).toBe(1 + FADE_IN_MS / RAMP_STEP_MS);
+    expect(h.at(0).levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
     h.stop();
   });
 

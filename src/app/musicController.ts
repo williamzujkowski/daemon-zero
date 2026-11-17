@@ -11,7 +11,7 @@ import type { KeyValueStorage } from './storage';
 import { musicPhase, type MusicPhase } from './musicTracks';
 import { VolumeRamp } from './volumeRamp';
 import { OutsideWatch } from './outsideControl';
-import { LoopSeam, type Playhead } from './loopSeam';
+import { audioFlowing, LoopSeam, type Playhead } from './loopSeam';
 import { OUTPUT_SCALE } from './outputLevel';
 
 /** `position` and `duration` are in seconds, as the player reports them. */
@@ -268,8 +268,7 @@ export class MusicController {
         slot.fader.set(0);
         // The fade waits for the position to move: a file that arrives late must not have spent
         // its fade-in before the first sample, and then start as a step.
-        const from = slot.player.position();
-        if (target > 0) slot.fader.to(target, FADE_IN_MS, undefined, () => { const now = slot.player.position(); return Number.isFinite(now) && now !== from; });
+        if (target > 0) slot.fader.to(target, FADE_IN_MS, undefined, audioFlowing(slot.player));
         slot.seam.start();
       }
       slot.player.play();
