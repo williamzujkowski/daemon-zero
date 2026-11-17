@@ -4,7 +4,7 @@
  * All objects are strict, so a typo in a JSON key fails validation.
  */
 import { z } from 'zod';
-import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema } from './schemaCampaign';
+import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema, ChoiceEvidenceSchema } from './schemaCampaign';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -213,6 +213,8 @@ export const DilemmaChoiceSchema = z.strictObject({
   description: z.string().min(10),
   cost: CostSchema,
   effects: EffectPayloadSchema,
+  /** 'none': a free honest answer that grants no trait. Only review, receipt and requalification events. */
+  evidence: ChoiceEvidenceSchema.optional(),
 });
 
 export const DilemmaSchema = z.strictObject({

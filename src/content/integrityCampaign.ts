@@ -5,6 +5,25 @@
  */
 import type { ContentRegistry } from './registry';
 import type { Dilemma } from './schema';
+import { NO_EVIDENCE_CLASSES } from './schemaCampaign';
+
+/**
+ * A choice may add no ending evidence only when it is a free answer in a review, receipt or
+ * requalification event (nexus vote trait-rule-free-choices). Every other choice grants a trait.
+ */
+function checkNoEvidenceChoices(reg: ContentRegistry): string[] {
+  const problems: string[] = [];
+  for (const dilemma of reg.dilemmas) {
+    const eventClass = dilemma.campaign?.eventClass;
+    for (const choice of dilemma.choices.filter((entry) => entry.evidence === 'none')) {
+      const owner = `dilemma "${dilemma.id}" choice "${choice.id}"`;
+      if (eventClass === undefined || !NO_EVIDENCE_CLASSES.includes(eventClass)) problems.push(`${owner}: evidence 'none' needs a review, receipt or requalification event`);
+      if (Object.values(choice.cost).some((amount) => amount !== 0)) problems.push(`${owner}: evidence 'none' is only for a free choice`);
+      if (choice.effects.grantsTrait !== undefined) problems.push(`${owner}: evidence 'none' cannot grant a trait`);
+    }
+  }
+  return problems;
+}
 
 function checkDeclarations(reg: ContentRegistry): string[] {
   const problems: string[] = [];
@@ -78,7 +97,7 @@ function checkIds(reg: ContentRegistry): string[] {
 
 export function checkCampaignIntegrity(reg: ContentRegistry): string[] {
   const setters = flagSetters(reg);
-  const problems = [...checkDeclarations(reg), ...checkActionEvidence(reg), ...checkIds(reg)];
+  const problems = [...checkDeclarations(reg), ...checkNoEvidenceChoices(reg), ...checkActionEvidence(reg), ...checkIds(reg)];
   for (const event of reg.campaign.events.values()) problems.push(...checkOutcomeFlags(reg, event, setters));
   return problems;
 }

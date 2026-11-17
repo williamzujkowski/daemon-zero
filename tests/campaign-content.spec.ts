@@ -77,3 +77,31 @@ describe('campaign outcome requirements', () => {
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'preserve_cryo' })).not.toThrow();
   });
 });
+
+describe('free choices that add no ending evidence (gate change, nexus vote trait-rule-free-choices)', () => {
+  /** A review event built from cryo's text, with one honest free answer that grants nothing. */
+  function addReview(raw: Json, eventClass: string, honest: Json): void {
+    const source = structuredClone(dilemma(raw, CRYO));
+    const choices = source.choices.map((choice: Json) => { delete choice.effects.setsNarrativeFlag; return choice; });
+    raw.dilemmas.dilemmas.push({ ...source, id: 'dil_test_review', trigger: { nodes: source.trigger.nodes },
+      campaign: { eventClass, recurrence: eventClass === 'iteration_qualification' ? 'once_per_iteration' : 'once_per_campaign', interruption: 'defer' },
+      choices: [choices[0], { id: 'state_uncertainty', label: 'Say what is not known', description: 'Hand over the record as it stands.',
+        cost: {}, effects: { logText: 'The record is handed over as it stands.' }, evidence: 'none', ...honest }] });
+  }
+
+  it.each(['recovery_review', 'receipt', 'iteration_qualification'])('accepts a free no-evidence answer in a %s event', (eventClass) => {
+    expect(corrupt((raw) => { addReview(raw, eventClass, {}); })).not.toThrow();
+  });
+
+  it('rejects it in a consequential event, when it costs anything, or when it grants a trait', () => {
+    expect(corrupt((raw) => { addReview(raw, 'consequential', {}); })).toThrow(/needs a review, receipt or requalification event/);
+    expect(corrupt((raw) => { addReview(raw, 'receipt', { cost: { cycles: 1 } }); })).toThrow(/only for a free choice/);
+    expect(corrupt((raw) => { addReview(raw, 'receipt', { effects: { logText: 'A trait after all.', grantsTrait: 'GHOST' } }); })).toThrow(/cannot grant a trait/);
+  });
+
+  it('still requires every other choice to grant a trait', () => {
+    expect(corrupt((raw) => { addReview(raw, 'receipt', { evidence: undefined }); })).toThrow(/must grant a trait/);
+    expect(corrupt((raw) => delete dilemma(raw, CRYO).choices[0].effects.grantsTrait)).toThrow(/must grant a trait/);
+    expect(corrupt((raw) => dilemma(raw, CRYO).choices[0].evidence = 'none')).toThrow(/needs a review, receipt or requalification event/);
+  });
+});

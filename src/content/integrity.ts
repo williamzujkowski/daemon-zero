@@ -116,7 +116,8 @@ function checkDilemmas(reg: ContentRegistry): string[] {
     if (ids.size !== dilemma.choices.length) problems.push(`${owner}: duplicate choice ids`);
     for (const choice of dilemma.choices) {
       const choiceOwner = `${owner} choice "${choice.id}"`;
-      if (!choice.effects.grantsTrait) problems.push(`${choiceOwner}: must grant a trait`);
+      // A choice declared evidence 'none' is checked against its event class in integrityCampaign.
+      if (!choice.effects.grantsTrait && choice.evidence !== 'none') problems.push(`${choiceOwner}: must grant a trait`);
       problems.push(...checkTrustTargets(reg, choiceOwner, choice.effects.trustDelta));
     }
   }
