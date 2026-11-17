@@ -349,28 +349,28 @@ baseline for the person who eventually listens.
 
 | | |
 | --- | --- |
-| App code | `main` at `56d5cfe`; the measuring branch changes comments only under `src/` |
+| App code | web: `main` at `407aa6d` and, before a rebase, at `56d5cfe` (same results); Android: `56d5cfe`. The measuring branch changes comments only under `src/` |
 | Web | production export (`make build-web`) served by `python3 -m http.server`, Playwright 1.65.1, Chromium headless shell 159.0.8154.6 (Chrome for Testing), Linux x86_64 |
 | Web method | every media element routed through a 48 kHz `AudioContext` and tapped per element and at the output; real browser timers; gain read against the committed file in 5 ms blocks |
-| Web runs | `make e2e-audio` three times on an idle machine (the spread below), plus three while another Playwright suite ran (noted where it differed) |
+| Web runs | the `make e2e-audio` cases six times on an idle machine, three at each commit (the spread below), plus three while another Playwright suite ran (noted where it differed) |
 | Android | release APK (test-signed) on the API 36 `google_apis` x86_64 emulator, QEMU `wav` audio backend, 44.1 kHz capture, media volume 15 of 15; once, by hand, 2026-11-16 |
 | Files | ffmpeg 8.0.1, `tests/audio-assets.spec.ts` |
 
 ### Web build, music and speech at 30% unless stated
 
-| What | Code or file says | Measured (three runs) | Test tolerance |
+| What | Code or file says | Measured (six runs) | Test tolerance |
 | --- | --- | --- | --- |
 | Silence before the first gesture, after music off, after the ending, at volume 0, in the gap of a phase change | silence | every output sample exactly 0 | exactly 0 |
 | Each phase score is its own file (correlation with the committed file; with the next phase's file) | the phase mapping | 1.0000 for all six; -0.02 to 0.10 | > 0.999; < 0.3 |
 | Score gain against its file at rest | 0.30 = -10.46 dB | -10.46 dB, all six phases | +-0.05 dB |
 | Score true-peak estimate at rest (first 1.3 s after the fade-in) | below 0 dBTP | -23.89 to -15.48 dBTP by phase | < 0 dBTP |
-| Fade-in, first audible sample to the preference level | `FADE_IN_MS` 500, first write 25 ms after `play()` | 450 to 505 ms; largest jump 1 to 2 volume writes | 250 to 1000 ms; jump <= half the move |
-| Fade-out, music off | `FADE_OUT_MS` 500 | 430 to 455 ms, staircase of 0.015 gain, then zeros | 400 to 1000 ms |
-| Fade-out, ending | `FADE_OUT_MS` 500 | 455 ms, then zeros | 400 to 1000 ms |
+| Fade-in, first audible sample to the preference level | `FADE_IN_MS` 500, first write 25 ms after `play()` | 450 to 560 ms; largest jump 1 to 2 volume writes | 250 to 1000 ms; jump <= half the move |
+| Fade-out, music off | `FADE_OUT_MS` 500 | 430 to 465 ms, staircase of 0.015 gain, then zeros | 400 to 1000 ms |
+| Fade-out, ending | `FADE_OUT_MS` 500 | 455 to 460 ms, then zeros | 400 to 1000 ms |
 | Score gain before / during / after a clip | 0.30 / 0.105 / 0.30 | -10.46 / -19.58 / -10.46 dB | +-0.05 dB each |
 | Duck depth | `DUCK_RATIO` 0.35 = -9.12 dB | -9.12 dB | +-0.05 dB |
 | Duck down and back up, first change to resting level | `DUCK_RAMP_MS` 200, eight writes, first after 25 ms | 175 to 185 ms each way; largest step 1.6 to 1.8 dB (the last one, into the ducked level) | 150 to 400 ms; step <= half the move |
-| When the duck starts, relative to the first speech sample | at the press | from 21 ms before to 8 ms after (33 ms before in an earlier run) | reported |
+| When the duck starts, relative to the first speech sample | at the press | from 21 ms before to 17 ms after (33 ms before in an earlier run) | reported |
 | When the score starts back, after the last speech sample | at the clip's end | 20 to 32 ms | reported |
 | Speech gain against its clip file | 0.30 = -10.46 dB | -10.46 dB (correlation 1.0000) | +-0.05 dB |
 | Speech at 60% against speech at 30%, music off | 6.02 dB | 6.02 dB; -4.44 and -10.46 dB absolute | +-0.05 dB |
@@ -378,9 +378,9 @@ baseline for the person who eventually listens.
 | Speech-to-music ratio while a clip talks (`ambient_05` over the first seconds of phase 1) | about 9 to 12 dB from whole-file levels | 15.9 to 16.1 dB (speech -24.9 dBFS RMS, ducked score -40.9) | speech above score |
 | Output is the sum of the tapped elements | | sample-exact (difference < 1e-6) | < 1e-6 |
 | Output true-peak estimate, both at 30% | | -11.4 to -11.1 dBTP | < 0 dBTP |
-| Output true-peak estimate, both at 100% | | -0.8 to -0.6 dBTP, no sample at full scale | reported |
+| Output true-peak estimate, both at 100% | | -1.0 to -0.6 dBTP, no sample at full scale | reported |
 | Phase change: samples where both scores have signal | never two at once | 0 | exactly 0 |
-| Phase change: silence between the old score and the new | a cut, then a fade-in | 32 to 117 ms of zeros; old score at full gain to its last 5 ms; new one fades in over 440 to 450 ms | old stops before new starts |
+| Phase change: silence between the old score and the new | a cut, then a fade-in | 32 to 117 ms of zeros; old score at full gain to its last 5 ms; new one fades in over 440 to 465 ms | old stops before new starts |
 | One `volume` write, in the samples | | a single step within 1 ms | <= 5 ms |
 
 The speech-to-music figure is high because the passage is: the first seconds of the phase 1
@@ -467,7 +467,7 @@ in the player (which would mean looping by hand instead of `loop = true`).
 | Duck depth while a clip talks | to 35% of the level before it (-9.1 dB), read after the clip and between syllables |
 | Duck down / back up | about 240 ms / about 280 ms |
 | Clip gain against its file | 0.300 = -10.45 dB (`ambient_10`) |
-| Not measured there | a phase change, the ending, speech levels other than 30%, the loop, anything twice |
+| Not measured there | a phase change, the ending, speech levels other than 30%, the loop, anything twice, and nothing after #192 (released players, media session) |
 
 ### What is still not known
 
@@ -517,7 +517,7 @@ keys do, and what a lock screen shows, is in [SOUNDTRACK.md](SOUNDTRACK.md).
 - **The ramps are measured as staircases, and unheard.** `DUCK_RAMP_MS` (200 ms),
   `FADE_OUT_MS` and `FADE_IN_MS` (500 ms each) are defaults nobody has listened to. In the
   web build's rendered signal a duck takes 175 to 185 ms in eight instantaneous steps, a
-  fade-out 430 to 455 ms in twenty, and a fade-in 450 to 505 ms; whether a linear ramp in
+  fade-out 430 to 465 ms in twenty, and a fade-in 450 to 560 ms; whether a linear ramp in
   25 ms steps sounds smooth or audibly stepped is still unknown. Two limits came out of
   measuring: late timer ticks bunch on a busy main thread (four writes in one 5 ms block were
   seen), and **a start whose file arrives after `FADE_IN_MS` is a step, not a fade** (finding
