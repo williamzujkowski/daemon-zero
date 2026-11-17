@@ -1,4 +1,3 @@
-import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 /**
  * Save codec. A save is untrusted input (it can be pasted in by hand), so
  * loading always runs: size check -> JSON parse -> content channel check ->
@@ -6,6 +5,8 @@ import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrati
  */
 import type { ContentRegistry } from '../content/registry';
 import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
+import { reconcileCampaign } from './campaignSave';
+import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { fromBase64, toBase64 } from './base64';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
@@ -44,6 +45,10 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   },
   // v5: the content channel. Every earlier build was production.
   4: (save) => ({ ...save, contentChannel: 'production' }),
+  // v6: campaign history, inactive. Activation is a separate public transition, never a migration.
+  // Written out in full so a later change to the inactive shape cannot alter this step.
+  5: (save) => ({ ...save, narrativeRules: 'legacy', campaign: { activatedAtIteration: null,
+    legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [] } }),
 };
 
 export class SaveError extends Error {
@@ -175,8 +180,10 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
   }, reg);
-  if (hasConflictingNarrativeFlags(healed, reg)) throw new SaveError('save contains contradictory narrative outcomes');
-  return reconcileDilemmaHistory(healed, reg);
+  const campaign = reconcileCampaign(healed, reg);
+  if (typeof campaign === 'string') throw new SaveError(campaign);
+  if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError('save contains contradictory narrative outcomes');
+  return reconcileDilemmaHistory(campaign, reg);
 }
 
 export function serialize(state: GameState): string {

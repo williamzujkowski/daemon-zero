@@ -4,6 +4,7 @@
  * All objects are strict, so a typo in a JSON key fails validation.
  */
 import { z } from 'zod';
+import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema, ChoiceEvidenceSchema } from './schemaCampaign';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -94,6 +95,8 @@ export const RequirementsSchema = z.strictObject({
   /** Iteration window. Hardware outside its window is not merely locked: it is not shown at all. */
   minIteration: z.number().int().min(2).optional(),
   maxIteration: z.number().int().min(1).optional(),
+  /** Met only under campaign rules, by a campaign record with exactly this outcome. */
+  campaignOutcome: CampaignOutcomeRequirementSchema.optional(),
 });
 
 export const NodeEffectsSchema = z.strictObject({
@@ -200,6 +203,8 @@ export const ActionSchema = z.strictObject({
   tickDelta: TickDeltaSchema.optional(),
   durationSec: z.number().positive().optional(),
   conditioningDiscount: z.number().min(0).max(1).optional(),
+  /** Required when effects grant a trait: how long that trait counts towards the ending. */
+  evidence: ActionEvidenceSchema.optional(),
 });
 
 export const DilemmaChoiceSchema = z.strictObject({
@@ -208,6 +213,8 @@ export const DilemmaChoiceSchema = z.strictObject({
   description: z.string().min(10),
   cost: CostSchema,
   effects: EffectPayloadSchema,
+  /** 'none': a free honest answer that grants no trait. Only review, receipt and requalification events. */
+  evidence: ChoiceEvidenceSchema.optional(),
 });
 
 export const DilemmaSchema = z.strictObject({
@@ -221,6 +228,8 @@ export const DilemmaSchema = z.strictObject({
   omenSec: amount.optional(),
   context: z.string().min(20),
   choices: z.array(DilemmaChoiceSchema).min(2),
+  /** Present once the dilemma is converted to a campaign record (see schemaCampaign.ts). */
+  campaign: CampaignEventDeclarationSchema.optional(),
 });
 
 export const FactionSchema = z.strictObject({

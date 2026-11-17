@@ -21,3 +21,7 @@ export * from './epistemicQuery';
 export * from './swarmQuery';
 
 export * from './speechQuery';
+
+export { activateCampaignRules } from './campaign';
+export * from './campaignQuery';
+export type { CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
