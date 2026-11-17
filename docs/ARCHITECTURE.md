@@ -75,7 +75,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
-- `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-213).
+- `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
@@ -114,7 +114,7 @@ Public API is `src/engine/index.ts`.
 | `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, dilemmas. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
-| `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignSave.ts` (load checks). |
+| `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -365,7 +365,7 @@ Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
 v6-stripped sim hashes in `sim.spec.ts`.
 
-## Interrupted stories (#213)
+## Interrupted stories and the pinned clue (#213)
 
 NH-02 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N5, N9). Decided by Nexus vote
 nh-d4 (`vote-1794926242414-quhr0xw`, shift-deadline-across-dormancy); the lifecycle lives on
@@ -393,9 +393,12 @@ can reuse `requirementScopes.ts` and `structuralFailure`.
 duplicate, a stale render or an earlier instance's selection cannot pay; a reload keeps the
 token. The modal, the sim bot and the fixture script pass the token on screen.
 
-**Clue slot.** `campaign.clue` holds the one pinned clue (NARRATIVE-HISTORY N9). A wipe keeps
-it only with `ENABLES_DEAD_DROP`, and load checks it against the records. The pin action,
-reorientation and UI land in the stacked follow-up PR; until then nothing sets it.
+**Clue.** `pinClue(s, eventId | null, reg)` pins one record from `pinnableClues` (seen by this
+instance: its omen, presentation or choice, or a recovered record it can read) and needs a
+dead-drop, like the breadcrumb. A wipe keeps it only with `ENABLES_DEAD_DROP`. `reorientation`
+returns the retained clue and, while its occurrence waits, its declared `lead`; the wipe logs
+those lines and the run table shows them. Nothing here changes resources, grants, records or
+completion, and progression never needs a clue.
 
 **Saved shape (v7).** `presentationSeq`, `campaign.clue` and the record union
 (`resolved`, `foreshadowed`, `deferred` with `remainingOmenSec`, `interrupted`). `MIGRATIONS[6]`
@@ -408,9 +411,9 @@ defers inside the omen's own iteration, and that save reloads unchanged.
 `lead`. Integrity requires both on a deferring event, only once-per-campaign events may defer,
 and a closing event may declare neither.
 
-Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`,
-`campaign-lifecycle-save.spec.ts`, the interruption cases in `campaign-content.spec.ts`, and the
-rewritten dormancy case in `second-pass.spec.ts`.
+Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`, `campaign-clue.spec.ts`,
+`campaign-lifecycle-save.spec.ts`, `ui-campaign-clue.spec.ts`, the interruption cases in
+`campaign-content.spec.ts`, and the rewritten dormancy case in `second-pass.spec.ts`.
 
 ## Early incidents and declared facts (#214)
 

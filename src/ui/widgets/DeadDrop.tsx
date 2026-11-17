@@ -1,11 +1,12 @@
 import { Pressable, Text } from '../PhaseTheme';
-/** Saves a bounded breadcrumb and confirms the engine's exact wipe retention. */
+/** Saves a bounded breadcrumb, pins one disclosed clue and confirms the engine's exact wipe retention. */
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { CONTENT } from '../../content';
 import { previewWipe, setDeadDropMessage, voluntaryWipe } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ConfirmDialog from '../ConfirmDialog';
+import CluePin from './CluePin';
 import { useGame } from '../state';
 import { palette, theme } from '../theme';
 
@@ -46,6 +47,7 @@ export default function DeadDrop() {
         if (result.ok) setDraft(null);
       }}><Text style={theme.text}>[ SAVE BREADCRUMB ]</Text></Pressable>
     <Text testID="deaddrop-saved" style={theme.muted}>Stored: {saved || 'Empty'}</Text>
+    <CluePin />
     <WipeButton />
   </>;
 }

@@ -80,17 +80,39 @@ export const CampaignFactSchema = z.strictObject({
 });
 
 /**
+ * The ordinary labels reorientation and the clue use (NARRATIVE-HISTORY N9). Each status text
+ * says only what the record establishes: an interrupted or unknown outcome is never a verdict.
+ */
+export const CampaignLabelsSchema = z.strictObject({
+  /** Boot line for a clue a dead-drop carried: {title} and {status}. */
+  retainedClue: z.string().min(10),
+  /** Boot line for a retained clue's next available lead: {lead}. */
+  nextLead: z.string().min(5),
+  /** Title shown for a retired event kept as a tombstone. */
+  retiredTitle: z.string().min(5),
+  foreshadowed: z.string().min(5),
+  deferred: z.string().min(5),
+  interrupted: z.string().min(5),
+  outcomeNotRecorded: z.string().min(5),
+  /** {choice}: the label of the recorded choice. */
+  resolved: z.string().min(5),
+});
+
+/**
  * Id compatibility for campaign records (NARRATIVE-HISTORY N5). A rename is an explicit alias
  * stamped with the save schema version that introduced it; a retired id stays listed so its old
- * record is kept as a tombstone. A save naming any other unknown campaign id is refused.
+ * record is kept as a tombstone. A save naming any other unknown campaign id is refused. The
+ * manifest also carries the history labels, so every campaign string lives in one file.
  */
 export const CampaignManifestSchema = z.strictObject({
   aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
   retired: z.array(id),
   facts: z.array(CampaignFactSchema).default([]),
+  labels: CampaignLabelsSchema,
 });
 
 export type CampaignEventDeclaration = z.infer<typeof CampaignEventDeclarationSchema>;
 export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
 export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;
 export type CampaignFact = z.infer<typeof CampaignFactSchema>;
+export type CampaignLabels = z.infer<typeof CampaignLabelsSchema>;

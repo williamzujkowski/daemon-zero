@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
-import { CampaignManifestSchema, type CampaignFact, type CampaignManifest } from './schemaCampaign';
+import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
@@ -24,6 +24,8 @@ export interface CampaignIndex {
   retired: ReadonlySet<string>;
   /** Declared facts later scenes read, by id. Not save keys: each is derived from one event's record. */
   facts: ReadonlyMap<string, CampaignFact>;
+  /** Reorientation and clue labels. */
+  labels: CampaignLabels;
 }
 
 export interface ContentRegistry {
@@ -131,6 +133,7 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
     aliases: new Map(manifest.aliases.map((alias) => [alias.from, alias.to])),
     retired: new Set(manifest.retired),
     facts: new Map(manifest.facts.map((fact) => [fact.id, fact])),
+    labels: manifest.labels,
   };
 }
 
