@@ -621,7 +621,7 @@ check does not introduce the M5 E2E suite.
 On Ubuntu x86_64, install the JDK, SDK and KVM prerequisites:
 
 ```bash
-bash scripts/bootstrap-ubuntu24.sh --android
+bash scripts/bootstrap-ubuntu.sh --android
 . "$HOME/.config/daemon-zero/android-env.sh"
 emulator -accel-check
 sdkmanager --sdk_root="$ANDROID_HOME" 'system-images;android-36;google_apis;x86_64'

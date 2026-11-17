@@ -45,7 +45,7 @@ Roll back through a reviewed revert on `main` and the same quality gates.
 
 ## Local Android release
 
-Install the SDK/JDK with `scripts/bootstrap-ubuntu24.sh --android`, source
+Install the SDK/JDK with `scripts/bootstrap-ubuntu.sh --android`, source
 `~/.config/daemon-zero/android-env.sh`, and supply these environment variables
 from the local credential store (never a tracked file or command-line password):
 
