@@ -166,7 +166,7 @@ a credited artist, so there is no credit to show and none was invented.
 | A player that something else starts in the background is paused again at once | `app-music-remote.spec.ts` "stops a player that something started…" |
 | The session is cleared, handlers included, when music is switched off, at an ending and at teardown | `app-score-session.spec.ts` "is cleared when…"; `media-session.e2e.ts` |
 | After a wipe or an import it shows the new run's phase, never the old one | `app-score-session.spec.ts` "follows playing, a pause, a phase change and a wipe…" |
-| A spoken clip does not change the session: same title, still `playing`, score ducked. With music off there is no session while a clip talks | `app-score-session.spec.ts` "is untouched by a clip…"; `media-session.e2e.ts` READ step |
+| A spoken clip does not change the session: same title, still `playing`, score ducked. With music off the app publishes nothing while a clip talks (a browser may still list the page under its own name) | `app-score-session.spec.ts` "is untouched by a clip…"; `media-session.e2e.ts` READ step |
 | A removed player is released, so no session is left for a key to wake | `app-audio-player.spec.ts`, `app-voice-player.spec.ts` (#186) |
 | Background playback, recording and the foreground service stay disabled; no permission was added | `release-config.spec.ts`, `release-permissions.spec.ts` |
 
@@ -192,6 +192,8 @@ intercept it; it recognises it and brings its own state into line (`src/app/outs
 - A clip is a separate player with its own session, and a headset's pause can land on it.
   A clip paused that way ends like a stop, so the score comes back up. (There is no in-app
   pause for a clip, so nothing would ever have resumed it.)
+  The clip files carry no title tag (only an encoder tag), so by the same mechanism a clip's
+  session has no title to show; that was read from the files, not seen on a device.
 
 **iOS.** Nothing is published and nothing was changed. Unverified in every respect.
 
