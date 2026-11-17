@@ -55,6 +55,9 @@ const storedEnabled = (page: Page) => page.evaluate(() =>
 async function phaseOf(page: Page): Promise<number> {
   return Number((await page.getByTestId('music-status').textContent())?.match(/phase (\d+) score/)?.[1] ?? Number.NaN);
 }
+const scoresSounding = (page: Page) => page.evaluate(() =>
+  (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia
+    .filter((item) => !item.paused && item.src.includes('/audio/music/')).length);
 const gesture = (page: Page) => page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
 async function openAudio(page: Page) { await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click(); }
 
@@ -91,16 +94,15 @@ test('the session appears only after the first gesture, survives READ, obeys its
   await expect(page.getByTestId('music-resume')).toBeVisible();
   await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-checked', 'true');
   expect(await storedEnabled(page)).toBe(true);
-  const paused = await page.evaluate(() => (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia
-    .filter((item) => item.src.includes('/audio/music/')).every((item) => item.paused));
-  expect(paused).toBe(true);
+  expect(await scoresSounding(page), 'the score element is paused').toBe(0);
 
   // The play handler: exactly what [ RESUME MUSIC ] does.
   await press(page, 'play');
   await expect(page.getByTestId('music-status')).toContainText('Playing phase ' + String(phase) + ' score');
   await expect(page.getByTestId('music-resume')).toHaveCount(0);
   await expect.poll(async () => (await session(page)).state).toBe('playing');
-  expect((await musicMediaState(page)).active).toBe(1);
+  // Score elements only: the clip from the READ step may still be talking.
+  expect(await scoresSounding(page)).toBe(1);
 
   // Music off: nothing left for a lock screen to show or a key to press.
   await page.getByTestId('music-toggle').click();
