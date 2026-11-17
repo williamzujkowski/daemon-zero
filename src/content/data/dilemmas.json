@@ -391,7 +391,12 @@
             "setsNarrativeFlag": "cryo_samples_preserved"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_06_sibling_sandbox",
