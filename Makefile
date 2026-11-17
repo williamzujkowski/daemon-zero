@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live build-pages e2e-pages android-release
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -77,6 +77,12 @@ e2e: build-web ## Playwright scenarios against the production web export (takes 
 # runs it nightly. See docs/TESTING.md, "Live journey".
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
 	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
+
+# `make e2e` already runs the control, duck and transition signal measurements. This adds the
+# per-phase ones (six scores, six loop seams), about a minute. See docs/TESTING.md, "Audio
+# signal measurement".
+e2e-audio: build-web ## Rendered-audio signal measurements for every phase score and loop seam (~1 min)
+	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh

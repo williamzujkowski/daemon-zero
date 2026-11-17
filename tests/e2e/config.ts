@@ -6,6 +6,9 @@ const baseURL = 'http://127.0.0.1:4173' + (process.env.DAEMON_WEB_BASE_PATH ?? '
 // exists when asked for (`make e2e-live`); `make e2e` neither lists nor runs it.
 const JOURNEY = '**/live-journey.e2e.ts';
 const live = process.env.DAEMON_E2E_LIVE === '1';
+// The per-phase signal measurements (six scores, six loop seams) take about a minute, so they
+// run only under `make e2e-audio`; the control, duck and transition measurements always run.
+const audioFull = process.env.DAEMON_E2E_AUDIO === '1';
 const ignored = ['**/ui-sizes.e2e.ts', JOURNEY];
 
 export default defineConfig({
@@ -16,6 +19,11 @@ export default defineConfig({
   projects: [
     { name: 'phone', testIgnore: ignored, use: { viewport: { width: 390, height: 844 } } },
     { name: 'desktop', testIgnore: ignored, use: { viewport: { width: 1440, height: 900 } } },
+    // Captures rendered audio samples (signalTap.ts). One viewport: the signal does not depend on
+    // layout. The flag lets the capture context run before the first gesture, so a score's first
+    // samples are caught; the app still waits for a gesture, as the other projects prove.
+    { name: 'audio', testMatch: audioFull ? ['**/*.audio.ts', '**/*.audio-full.ts'] : '**/*.audio.ts', use: { viewport: { width: 390, height: 844 },
+      launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } } },
     // Sets its own viewport per case; running it under the two projects would duplicate every load.
     { name: 'sizes', testMatch: '**/ui-sizes.e2e.ts', use: { viewport: { width: 390, height: 844 } } },
     // A trace of several thousand presses is hundreds of megabytes; the journey keeps its own
