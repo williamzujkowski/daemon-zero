@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
-  activateCampaignRules, advance, campaignHistory, campaignRecord, createInitialState, deserialize, endingEvidence,
+  activateCampaignRules, advance, baseEndingScores, campaignHistory, campaignRecord, chooseEnding, createInitialState, deserialize, endingEvidence,
   executeShardCommand, holdsNarrativeFlag, importSave, exportSave, performAction, recordedTransmissions, resolveDilemma,
   SaveError, serialize, wipe, type GameState,
 } from '../src/engine';
@@ -150,6 +150,18 @@ describe('source-scoped ending evidence (H12, H13)', () => {
     expect(clamped.campaign.operationalEvidence).toEqual(clamped.traits);
     expect(clamped.traits).toHaveLength(1);
     expect(wipe(clamped, preview, 'test').campaign.operationalEvidence).toEqual([]);
+  });
+
+  it('chooses the ending from campaign evidence after a wipe, keeping family priorities', () => {
+    const chosen = chooseCryo(activeGame(), 0);
+    const back = returnTo(returnTo(chosen));
+    expect(back.traits).toEqual([]);
+    expect(baseEndingScores(back, preview)).toEqual(baseEndingScores(chosen, preview));
+    expect(chooseEnding(back, preview).id).toBe(chooseEnding(chosen, preview).id);
+    expect(chooseEnding(back, preview).dominantTraits).toContain(traitOf(0));
+    // On legacy rules the same history leaves no ending evidence after a wipe, as before.
+    const legacyBack = returnTo(returnTo(chooseCryo(rich(createInitialState(preview)), 0)));
+    expect(chooseEnding(legacyBack, preview).dominantTraits).toEqual([]);
   });
 
   it('retrains on current traits only, never on campaign history', () => {

@@ -32,10 +32,25 @@ describe('legacy completion without a stored choice (H09)', () => {
     let state = active;
     for (let i = 0; i < 3; i++) {
       state = returnTo(state);
+      expect(advance(state, 0.1, preview).pendingDilemma).toBeNull();
       expect(advance(state, 120, preview).pendingDilemma).toBeNull();
       expect(campaignRecord(state, cryo.id)?.outcome).toBe('legacy_unknown');
     }
     expect(endingEvidence(state, preview)).toEqual(active.campaign.legacyEndingBaseline);
+  });
+
+  it('refuses a forged presentation of a legacy_unknown event at resolve, omen expiry and import', () => {
+    const back = returnTo(activate(deserialize(V3, preview)));
+    const forged = { ...back, activeDilemmaId: cryo.id };
+    const refused = resolveDilemma(forged, cryo.id, choiceOf(0).id, preview);
+    expect(refused).toMatchObject({ ok: false, reason: 'that incident is already part of the lineage' });
+    expect(refused.state).toBe(forged);
+    const due = advance({ ...back, pendingDilemma: { id: cryo.id, firesAtSimSec: back.simTimeSec } }, 0.1, preview);
+    expect(due.activeDilemmaId).toBeNull();
+    const loaded = reload({ ...forged, pendingDilemma: { id: cryo.id, firesAtSimSec: 0 } });
+    expect(loaded.activeDilemmaId).toBeNull();
+    expect(loaded.pendingDilemma).toBeNull();
+    expect(campaignRecord(loaded, cryo.id)?.outcome).toBe('legacy_unknown');
   });
 
   it('keeps the pilot behaviour while the same save stays on legacy rules', () => {
