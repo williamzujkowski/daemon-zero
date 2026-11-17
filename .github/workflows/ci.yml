@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     name: verify
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       # Third-party actions are pinned by commit SHA; the comment records the tag.
@@ -66,7 +66,7 @@ jobs:
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verify
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       pages: write

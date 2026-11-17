@@ -88,19 +88,22 @@ describe('app entry', () => {
     // happy-dom cannot evaluate env(safe-area-inset-*), so the probe element the library's web
     // provider reads is answered here; everything from that read to the root's style is real.
     const real = host.getComputedStyle.bind(host);
+    // The answer is the real computed style of a real element carrying the insets a notched
+    // phone reports, not an object shaped like one: a computed declaration is read-only.
+    const notch = host.document.createElement('div');
+    notch.style.padding = '47px 0px 34px 0px';
+    host.document.body.appendChild(notch);
     const spy = vi.spyOn(host, 'getComputedStyle').mockImplementation((element) => {
       const probe = element instanceof host.HTMLElement && element.parentElement === host.document.body && element.style.position === 'fixed';
-      if (!probe) return real(element);
-      // The provider reads only the four paddings; a computed declaration is read-only.
-      return { paddingTop: '47px', paddingRight: '0px', paddingBottom: '34px', paddingLeft: '0px' } as ReturnType<typeof real>;
+      return real(probe ? notch : element);
     });
     // The provider clamps each inset to its own overlap with the window edge, and happy-dom
     // lays nothing out, so give it the rectangle a root-filling provider has in a browser.
     const width = host.innerWidth, height = host.innerHeight;
     const rect = vi.spyOn(host.HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
-      { x: 0, y: 0, top: 0, left: 0, right: width, bottom: height, width, height } as ReturnType<HTMLElement['getBoundingClientRect']>);
+      new host.DOMRect(0, 0, width, height));
     const app = await mountApp();
-    spy.mockRestore(); rect.mockRestore();
+    spy.mockRestore(); rect.mockRestore(); notch.remove();
     expect(padding(app.screen)).toEqual(['47px', '0px', '34px', '0px']);
     app.close();
   });

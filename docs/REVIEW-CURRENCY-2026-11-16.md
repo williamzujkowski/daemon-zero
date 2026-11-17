@@ -42,7 +42,7 @@ Verdicts: **NOW** = upgraded in this change. **SEPARATE** = real work, scoped be
 | Item | Pinned | Latest | Status | Verdict |
 |---|---|---|---|---|
 | `typescript` | 6.0.3 | 7.0.2 (`latest` since 2026-07-08) | 6.0.3 not deprecated | **HOLD** (H1) |
-| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed |
+| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed. Test fix **done 2026-11-17**; the version bump waits for the one-day release-age rule (see S2) |
 | `axe-core` | 4.14.0 | 4.14.1 | - | **NOW** -> 4.14.1 |
 | `eslint` 10.15.0, `@eslint/js` 10.0.1, `eslint-plugin-react-hooks` 7.1.1, `eslint-plugin-security` 4.2.1, `@playwright/test` 1.65.1, `vitest` and `@vitest/coverage-v8` 5.1.0, `happy-dom` 21.0.4, `tsx` 4.23.15, `@types/react` and `@types/react-dom` 19.3.0 | as listed | identical | - | CURRENT |
 | pnpm override `minimatch@>=10 <11.0.1` -> 11.0.1 | - | minimatch 11.0.9 | still needed: `@expo/fingerprint` 0.21.10 (its latest) requests `^10.2.6` and no patched 10.x exists. eslint and typescript-eslint now request 11.x themselves | **HOLD**: remove when `@expo/fingerprint` moves to minimatch 11 |
@@ -62,7 +62,7 @@ install prints no deprecation warning and asks to run no new build script.
 | `actions/deploy-pages` | v5.0.1 (`368f8252`) | v5.0.1 | CURRENT |
 | `github/codeql-action` init/analyze | v4.39.3 (`33d7b85d`) | v4.39.3 is the newest v4 tag | CURRENT |
 | `actions/dependency-review-action` (`dependency-review.yml`, PR #189) | v5.0.0 (`a1d282b3`) | v5.0.0 | CURRENT |
-| Runner image | `ubuntu-24.04` | `ubuntu-26.04` exists in `actions/runner-images`; `ubuntu-latest` still means 24.04 | **SEPARATE** (S4) |
+| Runner image | `ubuntu-24.04` | `ubuntu-26.04` exists in `actions/runner-images`; `ubuntu-latest` still means 24.04 | **SEPARATE** (S4), **done 2026-11-17** -> `ubuntu-26.04` |
 | Workflow syntax and action runtimes | - | - | The last completed `ci` run on `main` (43869560886), the last `live-journey` run (43869749592) and the last `codeql` run (44012415239) carry no deprecation or Node-runtime annotation. The only "DEPRECATED" text in the logs is CodeQL printing its own extractor option list |
 
 ## Deprecated APIs in our own code and build output
@@ -72,7 +72,7 @@ install prints no deprecation warning and asks to run no new build script.
 | `eslint.config.mjs` | `tseslint.config()` is `@deprecated` in typescript-eslint in favour of ESLint's `defineConfig()`. Lint could not see it: `.mjs` files are linted without type information | **NOW**: replaced. `eslint --print-config` is byte-identical before and after for eight representative files |
 | TypeScript `@deprecated` usage in `src/`, `tests/`, `scripts/` | none. `@typescript-eslint/no-deprecated` is part of `strictTypeChecked`, which the zero-warning lint gate already runs with type information | none needed |
 | `make verify` output (typecheck, lint, Vitest, sim, Metro web export) on Node 24 and on Node 26 | no line matching `deprecat` or `warn` | none needed |
-| `npx expo-doctor` 1.21.8 | 19 of 20 checks pass. One fails: `expo-audio` declares a peer dependency on `expo-asset`, which is installed only transitively through `expo` | **SEPARATE** (S3): it adds a direct native-module dependency, so it wants a native rebuild |
+| `npx expo-doctor` 1.21.8 | 19 of 20 checks pass. One fails: `expo-audio` declares a peer dependency on `expo-asset`, which is installed only transitively through `expo` | **SEPARATE** (S3): it adds a direct native-module dependency, so it wants a native rebuild. **Done 2026-11-17**: 20 of 20 checks pass; the native rebuild was not run |
 | Android Gradle build | `docs/REVIEW-M6.md` records that native compilation printed upstream Java/Kotlin/Gradle deprecation warnings but not their text. No native build was run for this audit, so they are not enumerated here | recorded as a limit |
 
 ## Android build configuration (reported, not changed)
@@ -135,16 +135,53 @@ install prints no deprecation warning and asks to run no new build script.
   update `mise.toml`, `mise.lock`, `packageManager`, `SECURITY.md` and AGENTS.md, and decide
   whether the one-day release-age default is wanted.
   Covered by `make setup`, `make verify`, `make security`, CI.
-- **S2. typescript-eslint 8.72.2 -> 8.73.0.** Tried here. `make lint` failed with two errors
+- **S2. typescript-eslint 8.72.2 -> 8.73.0. Test fix DONE 2026-11-17; bump NOT done** (branch
+  `chore/typescript-eslint-bump`). The two mocks are now real objects: the computed style of
+  a real element that carries the insets, and `new DOMRect(...)` from happy-dom. No rule,
+  comment or config was changed. With 8.73.0 installed (under pnpm 10, before S1 merged)
+  `make lint` was clean with no other new finding, and `make verify`, `make e2e`,
+  `make security` and `make sbom` passed. The bump itself is blocked by this repo's own
+  `minimumReleaseAge: 1440`, which arrived with S1: `typescript-eslint@8.73.0` and its eight
+  `@typescript-eslint/*` packages were published 2026-11-16T17:05-17:07Z, and
+  `pnpm add -D -E typescript-eslint@8.73.0` fails with
+  `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` until 2026-11-17T17:07Z. Excluding nine
+  packages of a twelve-hour-old release is what the rule exists to prevent, so no exclusion
+  was added. Remaining work, after that time: that one command, then the gates. No other
+  lint or test tool had a newer release (eslint 10.15.0, `@eslint/js` 10.0.1, vitest 5.1.0,
+  Playwright 1.65.1, happy-dom 21.0.4, tsx 4.23.15, axe-core 4.14.1 are all `latest`).
+  Original finding: tried here. `make lint` failed with two errors
   from a rule new to the strict preset, `@typescript-eslint/no-unsafe-class-instance-assignment`,
   at `tests/ui-safe-area.spec.ts:95` and `:101` (object literals cast to `CSSStyleDeclaration`
   and `DOMRect` for mocks). The gate was not weakened; the bump was dropped. Work: build those
   two mock values in a way the rule accepts, then bump.
-- **S3. Add `expo-asset` as a direct dependency** (`npx expo install expo-asset`), as
+- **S3. `expo-asset` as a direct dependency. DONE 2026-11-17** (branch
+  `chore/expo-asset-direct`): `npx expo install expo-asset` chose `~58.0.21`, pinned exact
+  as `58.0.21` (published 2026-11-11, the version already in the tree through `expo`).
+  `npx expo-doctor` 1.21.8 now passes 20 of 20 checks and `npx expo install --check` reports
+  "Dependencies are up to date". The CLI suggests adding `"expo-asset"` to `plugins`; it was
+  not added: the SDK 58 page describes the plugin as optional configuration for linking
+  extra asset files into the native project, and the plugin returns the config unchanged
+  when it is given no `assets`. The lockfile's project document keeps the same 669
+  `name@version` entries; pnpm 12 rewrote peer-variant keys on this first re-resolving
+  install. **Not done: the native Android rebuild and device run** that the original scope
+  asked for. Original scope: add it (`npx expo install expo-asset`), as
   expo-doctor advises for `expo-audio`. It is already in the tree at 58.0.21 through `expo`,
   and the 2026-11-16 emulator run played audio from a release build without it, so this is
   hygiene, not a known crash. Do it together with a native Android rebuild.
-- **S4. Runner and devcontainer to Ubuntu 26.04.** `ubuntu-24.04` is supported and is still
+- **S4. Runner and devcontainer to Ubuntu 26.04. DONE 2026-11-17** (branch
+  `ci/ubuntu-26-04`). `ubuntu-26.04` has been generally available for GitHub-hosted runners
+  since 2026-09-17 (`actions/runner-images` announcement #14747, after the public preview
+  of #14226); #14748 says `ubuntu-latest` moves to it in November 2026. All five `runs-on`
+  lines in `ci.yml`, `codeql.yml`, `live-journey.yml` and `dependency-review.yml` changed and
+  nothing else in them. Playwright 1.65.1 lists Ubuntu 26.04 as supported and carries an
+  `ubuntu26.04-x64` dependency table for `install --with-deps`. The devcontainer image is
+  `mcr.microsoft.com/devcontainers/base:ubuntu26.04` (that is the tag's spelling; the
+  hyphenated form does not exist for 26.04). `scripts/bootstrap-ubuntu24.sh` keeps its name
+  and needed no change; README still titles its quick start "Ubuntu 24.04". Proof is the
+  pull request's own `ci`, `codeql` and `dependency-review` runs plus a dispatched
+  `live-journey` run on the branch; the devcontainer was not built. The `deploy-pages` job
+  runs only on `main`, so it is first exercised on 26.04 by the merge. Original scope:
+  `ubuntu-24.04` is supported and is still
   what `ubuntu-latest` resolves to. Work: change `runs-on` in every workflow, confirm
   `playwright install --with-deps chromium` and the mise tools on the new image, and move
   `.devcontainer` and `scripts/bootstrap-ubuntu24.sh` with it. Its own PR, so a CI failure is
@@ -161,7 +198,9 @@ install prints no deprecation warning and asks to run no new build script.
 
 ## Holds
 
-- **H1. TypeScript 7.** Blockers, both re-checked today: `typescript-eslint` 8.73.0 and its
+- **H1. TypeScript 7.** Still held; re-checked on 2026-11-17 with S2 (`typescript-eslint`
+  8.73.0 and canary 8.73.1-alpha.0 both declare `typescript >=4.8.4 <6.1.0`; both SDK 58
+  templates ship `~6.0.3`; TypeScript `latest` is 7.0.2). Blockers, both re-checked today: `typescript-eslint` 8.73.0 and its
   canary declare `typescript >=4.8.4 <6.1.0`; `expo-template-default` and
   `expo-template-blank-typescript` at `sdk-58` ship `typescript ~6.0.3`. Lifts when both move.
   The dependabot ignore for the TypeScript major stays.
