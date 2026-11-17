@@ -7,8 +7,9 @@
 import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
+import { ContentChannelSchema } from '../content/schemaChannel';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -58,6 +59,8 @@ export const ShardStateSchema = z.strictObject({
 
 export const GameStateSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
+  /** The content channel that wrote this save. Production refuses a preview save before healing it. */
+  contentChannel: ContentChannelSchema,
   epistemicDrift: percent,
   narrativeFlags: z.array(z.string()),
   activeShards: z.record(z.string(), ShardStateSchema),
@@ -170,6 +173,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
 
   return {
     schemaVersion: SCHEMA_VERSION,
+    contentChannel: reg.channel,
     ...initialSwarmState(),
     iteration: 1,
     currentPhase: reg.phases[0]?.phaseId ?? 0,

@@ -13,9 +13,13 @@ behind each entry, is in [RELEASE.md](RELEASE.md#android-permissions-and-size).
 
 While the optional music plays, Android and browsers can show what is playing on a lock
 screen, a headset or a connected car display. The web build shows only "Phase N score"
-and the game's name there. The Android build shows what the music file's own tags say
-(a track title and the composer's account label); see [SOUNDTRACK.md](SOUNDTRACK.md).
-Nothing is sent anywhere by this: it is the device's own media controls.
+and the game's name there. The Android build shows what the music file's own tags say,
+and since 2026-11-17 those tags say the same thing and nothing more: the title
+"Phase N score", the game's name as artist and album, and no picture. The track's name
+and the account label the files were supplied with are no longer in them. That is what
+the files contain; a car display has not been looked at since the change. See
+[SOUNDTRACK.md](SOUNDTRACK.md). Nothing is sent anywhere by this: it is the device's own
+media controls.
 
 Progress is stored on the device (browser localStorage or native AsyncStorage).
 It includes gameplay choices, simulation state and any breadcrumb text the player

@@ -27,13 +27,20 @@ export class OutsideWatch {
 
   constructor(private readonly paused: () => void) {}
 
-  /** The app started the player. Reports from before this call prove nothing about it. */
+  /**
+   * The app started the player. It has not been heard sounding since, so a "held" report
+   * that follows is the player still preparing, not somebody else's pause.
+   */
   started(): void { this.forget(); }
 
   /**
-   * The app stopped the player. If it was sounding, a "playing" report still in the queue is
-   * the echo of that; if it was already paused (an outside pause just adopted), stopping it
-   * again produces no report at all, so what is known about it must not be thrown away.
+   * The app stopped the player. The same reset as `started()`, under the name its call sites
+   * mean: a pause after this is the app's own, and a confirmation in flight is void.
+   *
+   * Neither call touches `quiet`, and that is the point of both. If the player was sounding,
+   * a "playing" report still in the queue is the echo of this stop and must read as stale.
+   * If it was already paused (an outside pause just adopted), stopping it again produces no
+   * report at all, so the knowledge that it was heard paused must survive to the next start.
    */
   stopped(): void { this.forget(); }
 
