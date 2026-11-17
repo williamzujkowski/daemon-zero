@@ -1,7 +1,11 @@
 /** Production web E2E, kept separate from the single Vitest component runner. */
 import { defineConfig } from '@playwright/test';
 
-const baseURL = 'http://127.0.0.1:4173' + (process.env.DAEMON_WEB_BASE_PATH ?? '') + '/';
+// scripts/e2e-lock.sh hands each suite its own port, so suites in different checkouts can run
+// at once. A bare `playwright test` gets the default.
+const port = Number(process.env.DAEMON_E2E_PORT ?? 4173);
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('DAEMON_E2E_PORT must be a port number, got ' + String(process.env.DAEMON_E2E_PORT));
+const baseURL = 'http://127.0.0.1:' + String(port) + (process.env.DAEMON_WEB_BASE_PATH ?? '') + '/';
 // The full live playthrough takes minutes per viewport, so it has its own projects and only
 // exists when asked for (`make e2e-live`); `make e2e` neither lists nor runs it.
 const JOURNEY = '**/live-journey.e2e.ts';
@@ -33,6 +37,6 @@ export default defineConfig({
       { name: 'live-desktop', testMatch: JOURNEY, use: { viewport: { width: 1440, height: 900 }, trace: 'off' as const } },
     ] : []),
   ],
-  webServer: { command: 'python3 -m http.server 4173 --bind 127.0.0.1 --directory dist', cwd: '../..',
+  webServer: { command: 'python3 -m http.server ' + String(port) + ' --bind 127.0.0.1 --directory dist', cwd: '../..',
     url: baseURL, reuseExistingServer: false },
 });
