@@ -1,12 +1,13 @@
 // ESLint flat config. Architectural rules live here so they are enforced, not just documented.
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import security from 'eslint-plugin-security';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 const UI_ONLY_IMPORTS = ['react', 'react-dom', 'react-native', 'react-native-*', 'expo', 'expo-*', 'zustand', 'zustand/*', '@react-native-*/*'];
 
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['node_modules/', 'coverage/', 'dist/', '.expo/', 'reference/', 'android/', 'ios/'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
