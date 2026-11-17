@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
+import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
@@ -49,6 +50,12 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // Written out in full so a later change to the inactive shape cannot alter this step.
   5: (save) => ({ ...save, narrativeRules: 'legacy', campaign: { activatedAtIteration: null,
     legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [] } }),
+  // v7: presentation tokens, the occurrence lifecycle and the pinned clue. A v6 record is always
+  // resolved, which v7 still reads, so only the two new fields are added.
+  6: (save) => {
+    const campaign = typeof save.campaign === 'object' && save.campaign !== null ? save.campaign : {};
+    return { ...save, presentationSeq: 0, campaign: { ...campaign, clue: null } };
+  },
 };
 
 export class SaveError extends Error {
@@ -183,7 +190,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError('save contains contradictory narrative outcomes');
-  return reconcileDilemmaHistory(campaign, reg);
+  return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);
 }
 
 export function serialize(state: GameState): string {

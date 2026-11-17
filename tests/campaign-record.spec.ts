@@ -7,12 +7,12 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
   activateCampaignRules, advance, baseEndingScores, campaignHistory, campaignRecord, chooseEnding, createInitialState, deserialize, endingEvidence,
-  executeShardCommand, holdsNarrativeFlag, importSave, exportSave, performAction, recordedTransmissions, resolveDilemma,
+  executeShardCommand, holdsNarrativeFlag, importSave, exportSave, performAction, recordedTransmissions,
   SaveError, serialize, wipe, type GameState,
 } from '../src/engine';
 import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo } from './campaign-helpers';
 import { defined } from './m7-helpers';
-import { must, rich } from './helpers';
+import { must, rich, choose } from './helpers';
 
 const flagOf = (index: number) => defined(choiceOf(index).effects.setsNarrativeFlag);
 const traitOf = (index: number) => defined(choiceOf(index).effects.grantsTrait);
@@ -90,7 +90,7 @@ describe('cryo resolves once per campaign (H01)', () => {
 describe('duplicate and stale choices (H02)', () => {
   it('refuses a repeat without paying, and reading records changes nothing', () => {
     const chosen = chooseCryo(activeGame(), 0);
-    const repeat = resolveDilemma(chosen, cryo.id, choiceOf(1).id, preview);
+    const repeat = choose(chosen, cryo.id, choiceOf(1).id, preview);
     expect(repeat.ok).toBe(false);
     expect(repeat.state).toBe(chosen);
     const returned = returnTo(chosen), copy = structuredClone(returned);
@@ -101,7 +101,7 @@ describe('duplicate and stale choices (H02)', () => {
 
   it('refuses a forged re-presentation of a recorded event and drops it on import', () => {
     const forged = { ...returnTo(chooseCryo(activeGame(), 0)), activeDilemmaId: cryo.id };
-    const refused = resolveDilemma(forged, cryo.id, choiceOf(1).id, preview);
+    const refused = choose(forged, cryo.id, choiceOf(1).id, preview);
     expect(refused).toMatchObject({ ok: false, reason: 'that incident is already part of the lineage' });
     expect(refused.state).toBe(forged);
     const loaded = reload({ ...forged, pendingDilemma: { id: cryo.id, firesAtSimSec: 0 } });
@@ -119,7 +119,7 @@ describe('source-scoped ending evidence (H12, H13)', () => {
 
   it('counts a campaign event once, an unconverted dilemma for this iteration only', () => {
     const start = activeGame();
-    const local = must(resolveDilemma({ ...start, activeDilemmaId: unconverted.id }, unconverted.id, defined(unconverted.choices[0]).id, preview));
+    const local = must(choose({ ...start, activeDilemmaId: unconverted.id }, unconverted.id, defined(unconverted.choices[0]).id, preview));
     const localTrait = defined(unconverted.choices[0]?.effects.grantsTrait);
     expect(local.campaign.operationalEvidence).toEqual([localTrait]);
     const both = chooseCryo(local, 0);

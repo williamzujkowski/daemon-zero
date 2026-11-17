@@ -67,6 +67,15 @@ export function hasEverHeld(s: GameState, trait: Trait): boolean {
   return s.traits.includes(trait) || s.legacy.traitsEver.includes(trait);
 }
 
+/**
+ * The token of the presentation on screen, or null when nothing is presented. A choice names it
+ * (NARRATIVE-HISTORY N5): it changes with every presentation and iteration and survives a reload,
+ * so a resumed occurrence gets a current token while a stale selection does not match.
+ */
+export function presentationToken(s: Pick<GameState, 'activeDilemmaId' | 'iteration' | 'presentationSeq'>): string | null {
+  return s.activeDilemmaId === null ? null : `${s.activeDilemmaId}@${String(s.iteration)}#${String(s.presentationSeq)}`;
+}
+
 /** Hardware this mind mapped in an earlier iteration. */
 export function isNodeKnown(s: GameState, nodeId: string): boolean {
   return s.legacy.knownNodes.includes(nodeId);

@@ -8,13 +8,13 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
   activateCampaignRules, advance, baseEndingScores, campaignRecord, chooseEnding, createInitialState, deserialize,
-  endingEvidence, exportSave, holdsNarrativeFlag, importSave, recordedTransmissions, resolveDilemma, serialize, wipe,
+  endingEvidence, exportSave, holdsNarrativeFlag, importSave, recordedTransmissions, serialize, wipe,
   type GameState,
 } from '../src/engine';
 import { createGameStore } from '../src/app/store';
 import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo } from './campaign-helpers';
 import { defined } from './m7-helpers';
-import { must, rich } from './helpers';
+import { must, rich, choose } from './helpers';
 
 const V3 = readFileSync('tests/fixtures/pre-m7-v3.json', 'utf8');
 const V4 = readFileSync('tests/fixtures/pre-channel-v4.json', 'utf8');
@@ -34,7 +34,7 @@ describe('legacy completion without a stored choice (H09)', () => {
       state = returnTo(state);
       expect(advance(state, 0.1, preview).pendingDilemma).toBeNull();
       expect(advance(state, 120, preview).pendingDilemma).toBeNull();
-      expect(campaignRecord(state, cryo.id)?.outcome).toBe('legacy_unknown');
+      expect(campaignRecord(state, cryo.id)).toMatchObject({ status: 'resolved', outcome: 'legacy_unknown' });
     }
     expect(endingEvidence(state, preview)).toEqual(active.campaign.legacyEndingBaseline);
   });
@@ -42,7 +42,7 @@ describe('legacy completion without a stored choice (H09)', () => {
   it('refuses a forged presentation of a legacy_unknown event at resolve, omen expiry and import', () => {
     const back = returnTo(activate(deserialize(V3, preview)));
     const forged = { ...back, activeDilemmaId: cryo.id };
-    const refused = resolveDilemma(forged, cryo.id, choiceOf(0).id, preview);
+    const refused = choose(forged, cryo.id, choiceOf(0).id, preview);
     expect(refused).toMatchObject({ ok: false, reason: 'that incident is already part of the lineage' });
     expect(refused.state).toBe(forged);
     const due = advance({ ...back, pendingDilemma: { id: cryo.id, firesAtSimSec: back.simTimeSec } }, 0.1, preview);
@@ -50,7 +50,7 @@ describe('legacy completion without a stored choice (H09)', () => {
     const loaded = reload({ ...forged, pendingDilemma: { id: cryo.id, firesAtSimSec: 0 } });
     expect(loaded.activeDilemmaId).toBeNull();
     expect(loaded.pendingDilemma).toBeNull();
-    expect(campaignRecord(loaded, cryo.id)?.outcome).toBe('legacy_unknown');
+    expect(campaignRecord(loaded, cryo.id)).toMatchObject({ status: 'resolved', outcome: 'legacy_unknown' });
   });
 
   it('keeps the pilot behaviour while the same save stays on legacy rules', () => {
@@ -129,12 +129,12 @@ describe('legacy ending compatibility (H11)', () => {
 describe('inactive migration, legacy play, then activation (H36)', () => {
   it('captures the then-current evidence, not the evidence at migration', () => {
     const migrated = deserialize(V4, preview);
-    expect(migrated).toMatchObject({ schemaVersion: 6, narrativeRules: 'legacy' });
+    expect(migrated).toMatchObject({ schemaVersion: 7, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
     const incident = defined(preview.dilemmas.find((dilemma) => dilemma.phaseId === 0 && dilemma.campaign === undefined));
     const choice = defined(incident.choices.find((entry) => entry.cost.cycles === 0));
-    const playedOn = must(resolveDilemma({ ...wiped, activeDilemmaId: incident.id }, incident.id, choice.id, preview));
+    const playedOn = must(choose({ ...wiped, activeDilemmaId: incident.id }, incident.id, choice.id, preview));
     expect(playedOn.traits).toEqual([choice.effects.grantsTrait]);
     const active = activate(playedOn);
     expect(active.campaign.legacyEndingBaseline).toEqual(playedOn.traits);

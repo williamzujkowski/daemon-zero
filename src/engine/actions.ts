@@ -7,6 +7,7 @@ import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
 import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
+import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
@@ -18,6 +19,7 @@ import {
   isNodeAvailable,
   meetsRequirements,
   nodeCost,
+  presentationToken,
   probeTrace,
   repeatableCost,
   repeatableLevel,
@@ -166,11 +168,19 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
   return accept(d);
 }
 
-export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string, reg: ContentRegistry): ActionResult {
+/**
+ * Commits one choice of the presentation on screen. `presentation` is the presentationToken the choice
+ * was offered under (NARRATIVE-HISTORY N5): a duplicate, a stale presentation or an earlier
+ * instance's selection is refused before anything is paid, and so is a campaign occurrence whose
+ * structure no longer holds. Transient triggers are not rechecked; affordability is.
+ */
+export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string, reg: ContentRegistry, presentation: string): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== dilemmaId) return refuse(s, 'that dilemma is not active');
+  if (presentation !== presentationToken(s)) return refuse(s, 'that presentation is no longer current');
   const dilemma = reg.dilemmas.find((x) => x.id === dilemmaId);
   if (excludedByHistory(s, dilemma, reg)) return refuse(s, 'that incident is already part of the lineage');
+  if (structuralFailure(s, dilemma, reg) !== null) return refuse(s, 'the circumstances of that decision no longer hold');
   const choice = dilemma?.choices.find((x) => x.id === choiceId);
   if (!choice) return refuse(s, 'unknown choice');
   if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');

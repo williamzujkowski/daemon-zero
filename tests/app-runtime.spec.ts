@@ -235,7 +235,7 @@ describe('app runtime', () => {
     const choice = dilemma.choices.find((item) => item.cost.cycles === 0 && item.cost.understanding === 0);
     if (!choice) throw new Error('free choice missing');
     h.game.initialize({ ...funded, activeDilemmaId: dilemma.id }, 0, null);
-    h.runtime.dispatch((game) => engine.resolveDilemma(game, dilemma.id, choice.id, CONTENT));
+    h.runtime.dispatch((game) => engine.resolveDilemma(game, dilemma.id, choice.id, CONTENT, engine.presentationToken(game) ?? ''));
     await settle();
     expect((await h.persistence.load()).game.resolvedDilemmas).toContain(dilemma.id);
     h.runtime.dispatch((game) => engine.voluntaryWipe(game, CONTENT));

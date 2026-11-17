@@ -4,10 +4,10 @@
  */
 import { CONTENT as PREVIEW } from '../src/content/preview';
 import {
-  activateCampaignRules, createInitialState, exportSave, importSave, resolveDilemma, unlockNode, wipe, type GameState,
+  activateCampaignRules, createInitialState, exportSave, importSave, unlockNode, wipe, type GameState,
 } from '../src/engine';
 import { defined } from './m7-helpers';
-import { must, PHASE0, PHASE1, PHASE2, rich } from './helpers';
+import { must, PHASE0, PHASE1, PHASE2, rich, choose } from './helpers';
 
 export const preview = PREVIEW;
 export const cryo = defined(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_05_cryo_lab_diversion'));
@@ -33,7 +33,7 @@ export function nearCryo(s: GameState): GameState {
 
 /** Resolves cryo with the given choice through the public action. */
 export function chooseCryo(s: GameState, index: number): GameState {
-  return must(resolveDilemma({ ...nearCryo(s), activeDilemmaId: cryo.id }, cryo.id, choiceOf(index).id, PREVIEW));
+  return must(choose({ ...nearCryo(s), activeDilemmaId: cryo.id }, cryo.id, choiceOf(index).id, PREVIEW));
 }
 
 /** Wipes and regains cryo's trigger hardware in the new iteration, keeping other dilemmas out of the way. */

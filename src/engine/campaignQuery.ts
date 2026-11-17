@@ -31,6 +31,7 @@ export function campaignRecord(s: History, eventId: string): CampaignRecord | nu
 
 /** The outcome flag a record implies, if its outcome is a known choice that sets one. */
 function projectedFlag(reg: ContentRegistry, eventId: string, record: CampaignRecord): string | undefined {
+  if (record.status !== 'resolved') return undefined;
   return reg.campaign.events.get(eventId)?.choices.find((choice) => choice.id === record.outcome)?.effects.setsNarrativeFlag;
 }
 
@@ -51,12 +52,42 @@ export function holdsNarrativeFlag(s: Pick<GameState, 'narrativeRules' | 'campai
 }
 
 export function hasCampaignOutcome(s: History, gate: CampaignOutcomeRequirement): boolean {
-  return campaignRecord(s, gate.event)?.outcome === gate.outcome;
+  const record = campaignRecord(s, gate.event);
+  return record?.status === 'resolved' && record.outcome === gate.outcome;
 }
 
-/** A once-per-campaign event that already has a record never becomes an original crisis again. */
+/**
+ * A once-per-campaign event that already has a record never becomes an original crisis again:
+ * from the omen on, its occurrence is reserved, and a deferred one returns only by resuming.
+ */
 export function isCampaignConsumed(s: History, dilemma: Dilemma): boolean {
   return dilemma.campaign?.recurrence === 'once_per_campaign' && campaignRecord(s, dilemma.id) !== null;
+}
+
+/**
+ * Whether a live pointer may name this dilemma: always under legacy rules or for an unconverted
+ * dilemma; for a campaign event only while its occurrence is unreserved or foreshadowed. A
+ * resolved, interrupted or deferred occurrence cannot be on screen.
+ */
+export function isOccurrenceOpen(s: History, dilemma: Dilemma): boolean {
+  if (dilemma.campaign?.recurrence !== 'once_per_campaign') return true;
+  const record = campaignRecord(s, dilemma.id);
+  return record === null || record.status === 'foreshadowed';
+}
+
+/** The N4 lifecycle of one occurrence, as the player experienced it. */
+export type OccurrenceStatus = 'eligible' | 'foreshadowed' | 'presented' | 'deferred' | 'resolved' | 'interrupted';
+
+/**
+ * Where an event's occurrence stands in this campaign, or null under legacy rules. Eligibility
+ * alone creates nothing: 'eligible' means no occurrence exists yet.
+ */
+export function occurrenceStatus(s: Pick<GameState, 'narrativeRules' | 'campaign' | 'activeDilemmaId'>, eventId: string): OccurrenceStatus | null {
+  if (!isCampaignActive(s)) return null;
+  const record = campaignRecord(s, eventId);
+  if (record === null) return 'eligible';
+  if (record.status === 'foreshadowed' && s.activeDilemmaId === eventId) return 'presented';
+  return record.status;
 }
 
 export interface CampaignHistoryEntry {
@@ -73,7 +104,7 @@ export function campaignHistory(s: History, reg: ContentRegistry): CampaignHisto
 }
 
 function eventEvidence(reg: ContentRegistry, eventId: string, record: CampaignRecord): Trait[] {
-  if (record.origin !== 'play') return [];
+  if (record.status !== 'resolved' || record.origin !== 'play') return [];
   const trait = reg.campaign.events.get(eventId)?.choices.find((choice) => choice.id === record.outcome)?.effects.grantsTrait;
   return trait === undefined ? [] : [trait];
 }

@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../../content/registry';
 import type { Cost } from '../../content/schema';
 import { resolveDilemma } from '../actions';
+import { presentationToken } from '../query';
 import type { GameState } from '../state';
 import type { SimPolicy } from './policy';
 
@@ -15,10 +16,11 @@ function isFree(cost: Cost): boolean {
 
 function answerFree(state: GameState, reg: ContentRegistry): GameState {
   const dilemma = reg.dilemmas.find((entry) => entry.id === state.activeDilemmaId);
-  if (!dilemma) return state;
+  const token = presentationToken(state);
+  if (!dilemma || token === null) return state;
   for (const choice of dilemma.choices) {
     if (!isFree(choice.cost)) continue;
-    const result = resolveDilemma(state, dilemma.id, choice.id, reg);
+    const result = resolveDilemma(state, dilemma.id, choice.id, reg, token);
     if (result.ok) return result.state;
   }
   return state;

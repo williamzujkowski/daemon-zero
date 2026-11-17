@@ -7,7 +7,7 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, resolveDilemma } from '../engine';
+import { canAfford, presentationToken, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -16,7 +16,8 @@ import { useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
 
-function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: string }) {
+/** `token` is the presentation this choice was rendered for; a press against any other is refused. */
+function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId: string; token: string }) {
   const affordable = useGame((game) => canAfford(game, choice.cost));
   return <View style={theme.panel}>
     <Text style={theme.heading}>{choice.label}</Text>
@@ -27,7 +28,7 @@ function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: strin
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
     <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button" accessibilityLabel={choice.label}
       disabled={!affordable} style={[theme.button, !affordable && theme.disabled]}
-      onPress={() => { gameRuntime.dispatch((game) => resolveDilemma(game, dilemmaId, choice.id, CONTENT)); }}>
+      onPress={() => { gameRuntime.dispatch((game) => resolveDilemma(game, dilemmaId, choice.id, CONTENT, token)); }}>
       <Text style={theme.text}>{affordable ? '[ COMMIT DIRECTIVE ]' : '[ UNAVAILABLE ]'}</Text>
     </Pressable>
   </View>;
@@ -36,10 +37,11 @@ function Choice({ choice, dilemmaId }: { choice: DilemmaChoice; dilemmaId: strin
 export default function DilemmaModal() {
   const reduced = useReducedMotion();
   const id = useGame((game) => game.activeDilemmaId);
+  const token = useGame(presentationToken);
   const ended = useGame((game) => game.ending !== null);
   useEffect(() => { if (id && !ended) void feedback('interrupt', reduced); }, [id, ended, reduced]);
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
-  if (!dilemma || ended) return null;
+  if (!dilemma || ended || token === null) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
     <SafeOverlay padding={16} style={styles.overlay}>
@@ -48,7 +50,7 @@ export default function DilemmaModal() {
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
           <Text style={theme.muted}>CLOCK PAUSED // DECISION REQUIRED</Text>
           <DisclosureText style={theme.text}>{dilemma.context}</DisclosureText>
-          {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} />)}
+          {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
         </ScrollView>
       </View>
     </SafeOverlay>

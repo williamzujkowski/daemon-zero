@@ -93,7 +93,7 @@ Climbing is immediate. Standing down needs suspicion to fall 8 points below the 
 
 ## Omens
 
-A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown.
+A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown. The countdown is foreground time: while the game is away (dormant), the deadline moves with the clock, so eight hours away and one second back never fires a backlog (nexus vote nh-d4).
 
 ## The lineage: a wipe is selection, not death
 
@@ -154,7 +154,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Campaigns and iterations
 
-**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today only the cryo crisis follows it, and only in preview builds.
+**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis and the bait note follow it, and only in preview builds.
 
 - A **campaign** is the continuing world and AI lineage, from Start Fresh to an ending. An **iteration** is one instance within it. "Once per playthrough" means once per campaign, across every wipe and retraining. Start Fresh begins a new campaign; a wipe does not.
 - **Campaign history** says what actually happened and survives wipes. **Current iteration** state (grants, resources, hosting, current traits) resets under the existing recovery rules. **Retained clues** are only what a supported mechanism carries over. **Disclosure** decides what this instance may read now; it never decides what happened.
@@ -162,6 +162,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - A **record** is one bounded fact per event: resolved with a choice, or `legacy_unknown` when an old save proves the event happened without recording the choice. Reading a record never pays, grants a trait or resolves anything.
 - **Activation.** Saves start on legacy rules. One explicit transition enters campaign rules, capturing the then-current traits once as an opaque legacy ending baseline and mapping what the save can prove. Production stays on legacy rules until public release; preview activates every game it loads or starts.
 - **Ending evidence has its own lifetime.** Under campaign rules the ending is scored from the legacy baseline, plus each campaign choice once (it survives wipes: a wipe cannot erase a betrayal), plus campaign actions once, plus this iteration's operational evidence (ordinary cohort commands, unconverted dilemmas, repeat purchases), which a wipe clears. Current traits keep their job for conditioning and retraining and are not counted again. A first run without wipes scores exactly as before.
+- **An omen is not a decision** (#213). The omen reserves the occurrence; it is not completed or chosen. If a wipe or a change in established facts makes an unresolved scene unavailable, its declared policy applies and never picks a branch: a live incident (cryo) **closes as interrupted**, contact lost before a decision, with no rescue, harm, trait or reward, and it does not restart; a discoverable artifact (the bait note) is **deferred**, keeping its iteration and remaining omen time, and resumes with a short reorientation once the share is read again, even after its first-discovery iteration. A note never seen is never invented. Spending resources during an omen never cancels it.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again; one whose completion is known cannot. Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
 
 ## Dilemmas and traits

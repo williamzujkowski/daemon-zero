@@ -160,7 +160,7 @@ except where a row names campaign rules. See ARCHITECTURE.md "Campaign records".
 | Neither outcome flag, source unresolved | History unknown; next eligible incident may establish the first **recorded** outcome |
 | Source already resolved this iteration, no outcome flag | Keep it resolved; do not invent its choice; no outcome-specific callback |
 | Subsequent wipe of that unknown-history save | Legacy rules: original may become eligible once to establish a recorded outcome; acknowledge this legacy limitation. Campaign rules (nexus vote nh-d5, `vote-1794925989193-ef6tf9i`): activation records it as `legacy_unknown`, the original never recurs in that campaign, and a neutral "Outcome not recorded" record replaces the outcome-specific callback |
-| Valid pending/active original, no outcome flag | Keep IDs, choices and remaining omen; resolve normally |
+| Valid pending/active original, no outcome flag | Keep IDs, choices and remaining omen; resolve normally. Campaign rules (#213): the omen is a reserved `foreshadowed` record; a wipe before the decision closes cryo as `interrupted` (no outcome, no flag, no restart), and a load whose structure no longer holds applies that policy instead of presenting it |
 | Known outcome plus conflicting pending/active original | Cancel only that contradictory incident; no rewards or invented resolution; keep game playable |
 | Both exclusive outcome flags | Reject import explicitly and atomically; no guessed past |
 | Known outcome after wipe/reload | Suppress original; reveal matching record only after its disclosure gates. Campaign rules: the flag moves into the record at activation and is read back as its projection |

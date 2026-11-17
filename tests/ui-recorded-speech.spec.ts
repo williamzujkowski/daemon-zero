@@ -8,13 +8,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), release: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn() }));
 vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: vi.fn(() => Promise.resolve()) }));
 import { CONTENT } from '../src/content';
-import { resolveDilemma, understandsSurveillance, wipe, type GameState } from '../src/engine';
+import { understandsSurveillance, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { music } from '../src/app/musicSession';
 import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import RecordedSpeech from '../src/ui/widgets/RecordedSpeech';
 import { defined } from './m7-helpers';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, rich } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, rich, choose } from './helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -27,7 +27,7 @@ const speechOn = { enabled: false, volume: 60, speechEnabled: true, speechVolume
 
 function chosen(index = 0): GameState {
   const ready = grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
-  return must(resolveDilemma({ ...ready, activeDilemmaId: source.id }, source.id,
+  return must(choose({ ...ready, activeDilemmaId: source.id }, source.id,
     defined(source.choices[index]).id, CONTENT));
 }
 function returned(index = 0): GameState {

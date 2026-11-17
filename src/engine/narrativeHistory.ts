@@ -4,16 +4,19 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, Requirements } from '../content/schema';
-import { holdsNarrativeFlag, isCampaignConsumed } from './campaignQuery';
+import { holdsNarrativeFlag, isOccurrenceOpen } from './campaignQuery';
 import type { GameState } from './state';
 
 export function excludedByNarrativeHistory(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   return req?.forbiddenNarrativeFlags?.some((flag) => holdsNarrativeFlag(s, flag, reg)) ?? false;
 }
 
-/** An incident already in this lineage: a durable outcome flag, or a campaign record of any outcome. */
+/**
+ * An incident already in this lineage: a durable outcome flag, or a campaign occurrence that is
+ * resolved, interrupted or deferred. A foreshadowed occurrence is the one being presented.
+ */
 export function excludedByHistory(s: GameState, dilemma: Dilemma | undefined, reg: ContentRegistry): boolean {
-  return dilemma !== undefined && (excludedByNarrativeHistory(s, dilemma.trigger, reg) || isCampaignConsumed(s, dilemma));
+  return dilemma !== undefined && (excludedByNarrativeHistory(s, dilemma.trigger, reg) || !isOccurrenceOpen(s, dilemma));
 }
 
 export function hasConflictingNarrativeFlags(s: GameState, reg: ContentRegistry): boolean {
