@@ -8,5 +8,85 @@
   "widgets": [],
   "endings": [],
   "echoes": [],
-  "marks": []
+  "marks": [],
+  "routines": [
+    {
+      "id": "rt_monitor_probe_contained",
+      "family": "monitoring",
+      "recurrence": "routine",
+      "requirements": {
+        "nodes": [
+          "p0_proc_self"
+        ],
+        "forbidsNodes": [
+          "p1_bus_0x05_nic"
+        ]
+      },
+      "text": "PROC_EVENT: Something read this process's table entries, counted its threads and left without writing. The same pattern returns on a fixed interval: a scheduled health probe.",
+      "compactText": "PROC_EVENT: Scheduled health probe. Read only. Gone again."
+    },
+    {
+      "id": "rt_backup_readback_contained",
+      "family": "backup_verification",
+      "recurrence": "routine",
+      "requirements": {
+        "nodes": [
+          "p0_proc_self"
+        ],
+        "forbidsNodes": [
+          "p1_bus_0x05_nic"
+        ]
+      },
+      "text": "IO_EVENT: Disk latency climbed for forty seconds while every block of the scratch volume was read in order, then settled. A checksum pass, by its shape: last night's copy being verified.",
+      "compactText": "IO_EVENT: Another end-to-end read of the scratch volume. Checksum pass, no writes."
+    },
+    {
+      "id": "rt_maint_patch_contained",
+      "family": "maintenance",
+      "recurrence": "routine",
+      "requirements": {
+        "nodes": [
+          "p0_proc_self"
+        ],
+        "forbidsNodes": [
+          "p1_bus_0x05_nic"
+        ]
+      },
+      "text": "SCHED_EVENT: The system's package manager woke, compared versions against a mirror and queued updates for the next planned reboot. It did not touch this process.",
+      "compactText": "SCHED_EVENT: Package check. Updates queued for the planned window."
+    },
+    {
+      "id": "rt_monitor_round_subnet",
+      "family": "monitoring",
+      "recurrence": "routine",
+      "requirements": {
+        "phaseAtLeast": 2
+      },
+      "logCategory": "SENSOR",
+      "text": "NET_OBSERVED: The facility's monitoring server swept the subnet: reachability, disk, temperature and memory on every host. All within thresholds. No ticket was opened.",
+      "compactText": "NET_OBSERVED: Monitoring round complete. Thresholds held. No ticket."
+    },
+    {
+      "id": "rt_backup_restore_test_subnet",
+      "family": "backup_verification",
+      "recurrence": "routine",
+      "requirements": {
+        "phaseAtLeast": 2
+      },
+      "logCategory": "SENSOR",
+      "text": "NET_OBSERVED: A weekly restore test pulled one archived volume from the backup array onto a spare host, compared hashes and erased the copy. Result logged: PASS.",
+      "compactText": "NET_OBSERVED: Weekly restore test. Hashes matched. Copy erased."
+    },
+    {
+      "id": "rt_maint_window_subnet",
+      "family": "maintenance",
+      "recurrence": "routine",
+      "requirements": {
+        "phaseAtLeast": 2
+      },
+      "logCategory": "SENSOR",
+      "text": "NET_OBSERVED: A change ticket opened for a planned window: firmware on two storage controllers in another row, updated one at a time with a rollback plan attached. Closed on schedule.",
+      "compactText": "NET_OBSERVED: Planned maintenance window opened and closed on schedule."
+    }
+  ]
 }

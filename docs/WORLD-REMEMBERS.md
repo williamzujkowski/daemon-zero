@@ -80,7 +80,7 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | NH-04b corporate world | #216 | DZ-09 autonomous validation gate | #229 |
 | NH-05 obligations, endings | #217 | DZ-10 lawful economics | #230 |
 | NH-06 Elena follow-up | #218 | DZ-11 deliberate departure | #231 |
-| NH-07 routine activity | #219 | DZ-12 cooperative ending | #232 |
+| NH-07 routine activity | #219 (in review) | DZ-12 cooperative ending | #232 |
 | DZ-02 truthful run context | #220 | DZ-13 release qualification | #233 |
 | DZ-03 Nightly Regression | #221 | | |
 

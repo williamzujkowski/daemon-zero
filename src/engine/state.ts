@@ -9,8 +9,9 @@ import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
 import { ContentChannelSchema } from '../content/schemaChannel';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
+import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -66,6 +67,8 @@ export const GameStateSchema = z.strictObject({
   narrativeRules: NarrativeRulesSchema,
   /** Campaign history: survives a wipe, cleared by Start Fresh. Inactive under legacy rules. */
   campaign: CampaignStateSchema,
+  /** Routine-activity scheduling evidence (#219): kept across a wipe, cleared by Start Fresh. */
+  routine: RoutineStateSchema,
   epistemicDrift: percent,
   narrativeFlags: z.array(z.string()),
   activeShards: z.record(z.string(), ShardStateSchema),
@@ -165,8 +168,8 @@ function initialSwarmState(): Pick<GameState, 'epistemicDrift' | 'narrativeFlags
 }
 
 /** A new game is a new campaign under legacy rules; activateCampaignRules is the only way in. */
-function initialHistory(): Pick<GameState, 'narrativeRules' | 'campaign'> {
-  return { narrativeRules: 'legacy', campaign: inactiveCampaign() };
+function initialHistory(): Pick<GameState, 'narrativeRules' | 'campaign' | 'routine'> {
+  return { narrativeRules: 'legacy', campaign: inactiveCampaign(), routine: initialRoutine() };
 }
 
 function defaultActuators(reg: ContentRegistry): GameState['actuators'] {
