@@ -9,6 +9,7 @@ import { computeRates } from './rates';
 import type { GameState } from './state';
 import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from './systems/evaluateSwarmAndEpistemic';
 import { evaluateDilemmas } from './systems/dilemmas';
+import { scheduleRoutineActivity } from './systems/routine';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
@@ -25,6 +26,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   applySwarmTickDeltas,
   evaluateShardMutationsAndEncounters,
   evaluateDilemmas,
+  // After dilemmas, so a story scheduled this tick takes the narrative channel before routine.
+  scheduleRoutineActivity,
 ];
 
 function isPaused(s: GameState): boolean {
