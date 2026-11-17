@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
+import { accessProblem } from './accessSave';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -18,6 +19,10 @@ export type RawSave = Record<string, unknown>;
 export type Migration = (save: RawSave) => RawSave;
 
 const MAX_SAVE_CHARS = 1_000_000;
+
+function isRecord(value: unknown): value is RawSave {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /**
  * MIGRATIONS[n] upgrades a version-n save to version n+1. When GameState
@@ -60,6 +65,16 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   },
   // v8: routine-activity scheduling evidence (#219), written out in full. No notice has been shown.
   7: (save) => ({ ...save, routine: { quietSec: 0, sequence: 0, recent: [], exposed: [] } }),
+  // v9: run access and route provenance (DZ-02, nexus vote dz-d1). Every earlier build ran only
+  // the guest job, so access is the guest record and the route record is empty. A finished run's
+  // route provenance was never recorded, so its exit is UNKNOWN; it is never guessed from `outside`.
+  8: (save) => {
+    const campaign = isRecord(save.campaign) ? save.campaign : {};
+    const legacy = isRecord(save.legacy) ? save.legacy : {};
+    const runs = Array.isArray(legacy.runs) ? legacy.runs.map((run: unknown) => isRecord(run) ? { ...run, exit: 'UNKNOWN' } : run) : legacy.runs;
+    return { ...save, access: { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null },
+      campaign: { ...campaign, route: [] }, legacy: { ...legacy, runs } };
+  },
 };
 
 export class SaveError extends Error {
@@ -196,6 +211,8 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
+  const access = accessProblem(campaign);
+  if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);
 }

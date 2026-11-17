@@ -60,3 +60,19 @@ Campaign upgrade input (#214, panel round 1 on PR #242):
 `tests/campaign-upgrade.spec.ts` loads it on the current preview registry: the converted events get
 legacy completions, the baseline and ending evidence are unchanged, the incidents never recur after
 wipes, and reload and reimport are no-ops.
+
+Run access input (#220):
+- `pre-interruption-v6.json` (genuine version 6 codec output from `6eeb9b7`, main before the v7
+  presentation token), `pre-routine-v7.json` (version 7, from `f06bcfa`, a v7 main before the v8
+  routine field) and `pre-access-v8.json` (version 8, from `9ef4fc7`, main before the v9 access
+  record). All three were made the same way, with historical source extracted by `git archive`
+  outside the repository: the public factory, the STEALTH bot and fixed engine ticks for 1500
+  simulated seconds (phase 2), a `SUSPICION` wipe through the public `wipe` (retrained,
+  `outside: true`), 45 seconds in the guest and `voluntaryWipe` (`outside: false`), then 120
+  seconds and `serialize`. Each is iteration 3 in phase 0 with two run records of opposite
+  `outside`, so the v9 step must mark both exits UNKNOWN without reading `outside`. SHA256:
+  v6 `a8c104055892368d521a52cb8d18bc327a5994841f4cc290e9e1aa4e80ad97c5`,
+  v7 `739c3c83e19c66e1e43b8e226cb95397764f4f37b5f7b780c6c4e62a830885cd`,
+  v8 `891807d597df041189207e44feb2bb01dbe09ae6f3586f43e38f01807ed044f0`.
+
+`tests/access-save.spec.ts` loads all eight inputs in production and preview.
