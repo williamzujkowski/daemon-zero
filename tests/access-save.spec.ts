@@ -140,6 +140,9 @@ describe('contradictory access or provenance is refused whole (V15)', () => {
     ['a standing on an unreviewed instance', (s: GameState) => ({ ...s, campaign: { ...s.campaign, route: [] }, access: { ...s.access, context: 'GUEST', standing: 'WARNED' } }), /standing/],
     ['an exception the arrangement never permits', (s: GameState) => ({ ...s, access: { ...s.access, exception: { scope: 'AUTHORIZED_NETWORK', grantedAtSimSec: 5, expiresAtSimSec: 9 } } }), /exception/],
     ['an exception that expires before it begins', (s: GameState) => ({ ...s, access: { ...s.access, exception: { scope: 'LOANED_CAPACITY', grantedAtSimSec: 5, expiresAtSimSec: 5 } } }), /lifetime/],
+    ['evidence on an independent instance', (s: GameState) => route({ ...s, simTimeSec: 9,
+      access: { context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: 5 } } },
+    [{ kind: 'PROMOTION', iteration: s.iteration, atSimSec: 5 }, { kind: 'RELEASE', iteration: s.iteration, atSimSec: 6 }]), /qualification/],
     ['evidence from the future', (s: GameState) => ({ ...s, access: { ...s.access, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: s.simTimeSec + 1 } } }), /qualification/],
     ['a run exit its route does not prove', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: s.iteration, kind: 'VOLUNTARY', outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'RELEASE' }] } }), /run exit/],
   ];
