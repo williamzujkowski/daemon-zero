@@ -106,8 +106,13 @@ install prints no deprecation warning and asks to run no new build script.
     included, and rejected `axe-core@4.14.1`, which #190 pinned about four hours after its
     release (published 2026-11-16T11:52Z). Handled with the documented exact-version
     exclusion `minimumReleaseAgeExclude: [axe-core@4.14.1]`; the one-day rule stays on for
-    everything else. The entry is redundant from 2026-11-17T11:52Z and should be deleted in
-    the next dependency change.
+    everything else. The entry is redundant from 2026-11-17T11:52Z. **Removed 2026-11-17**
+    (branch `chore/release-age-and-docs-drift`): with no exclusion, a frozen install passes at
+    `minimumReleaseAge: 1440` and fails with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` on
+    `axe-core@4.14.1` at 1700 minutes, so the check still runs and the pin now clears it.
+    The same change states Dependabot's `cooldown` (`default-days: 3`, Dependabot's documented
+    default when unset, at least the one-day pnpm window) for both ecosystems in
+    `.github/dependabot.yml`.
   - Lockfile: `lockfileVersion` stays `'9.0'`. pnpm 12 prepends a boot document (pnpm 12.21.0
     and its 15 platform binaries) because `packageManager` pins pnpm 12; the project document
     is byte-identical to the one pnpm 10 wrote. pnpm's own documentation warns that a scanner
@@ -176,16 +181,18 @@ install prints no deprecation warning and asks to run no new build script.
   nothing else in them. Playwright 1.65.1 lists Ubuntu 26.04 as supported and carries an
   `ubuntu26.04-x64` dependency table for `install --with-deps`. The devcontainer image is
   `mcr.microsoft.com/devcontainers/base:ubuntu26.04` (that is the tag's spelling; the
-  hyphenated form does not exist for 26.04). `scripts/bootstrap-ubuntu24.sh` keeps its name
-  and needed no change; README still titles its quick start "Ubuntu 24.04". Proof is the
-  pull request's own `ci`, `codeql` and `dependency-review` runs plus a dispatched
+  hyphenated form does not exist for 26.04). The bootstrap script needed no change. Proof is
+  the pull request's own `ci`, `codeql` and `dependency-review` runs plus a dispatched
   `live-journey` run on the branch; the devcontainer was not built. The `deploy-pages` job
   runs only on `main`, so it is first exercised on 26.04 by the merge. Original scope:
   `ubuntu-24.04` is supported and is still
   what `ubuntu-latest` resolves to. Work: change `runs-on` in every workflow, confirm
   `playwright install --with-deps chromium` and the mise tools on the new image, and move
-  `.devcontainer` and `scripts/bootstrap-ubuntu24.sh` with it. Its own PR, so a CI failure is
-  attributable.
+  `.devcontainer` and the bootstrap script with it. Its own PR, so a CI failure is
+  attributable. Follow-up 2026-11-17 (branch `chore/release-age-and-docs-drift`): the script
+  was renamed from `scripts/bootstrap-ubuntu24.sh` to `scripts/bootstrap-ubuntu.sh`, since it
+  uses no release-specific package, and the README quick start now says "Ubuntu 26.04 or
+  24.04".
 - **S5. Next Expo SDK (React Native 0.89+).** Nothing to do until it is published. Then:
   `npx expo install --fix`, read the SDK and React Native release notes, re-check the JDK,
   TypeScript and async-storage holds (the template may move them), rebuild Android natively
@@ -198,10 +205,9 @@ install prints no deprecation warning and asks to run no new build script.
 
 ## Holds
 
-- **H1. TypeScript 7.** Still held; re-checked on 2026-11-17 with S2 (`typescript-eslint`
-  8.73.0 and canary 8.73.1-alpha.0 both declare `typescript >=4.8.4 <6.1.0`; both SDK 58
-  templates ship `~6.0.3`; TypeScript `latest` is 7.0.2). Blockers, both re-checked today: `typescript-eslint` 8.73.0 and its
-  canary declare `typescript >=4.8.4 <6.1.0`; `expo-template-default` and
+- **H1. TypeScript 7.** Still held; TypeScript `latest` is 7.0.2. Both blockers were
+  re-checked on 2026-11-17 with S2: `typescript-eslint` 8.73.0 and its canary 8.73.1-alpha.0
+  declare `typescript >=4.8.4 <6.1.0`, and `expo-template-default` and
   `expo-template-blank-typescript` at `sdk-58` ship `typescript ~6.0.3`. Lifts when both move.
   The dependabot ignore for the TypeScript major stays.
 - **H2. React 19.3.1 and async-storage 3.** Expo pins these (`bundledNativeModules.json`:
