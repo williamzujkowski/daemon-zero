@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Bootstrap an Ubuntu LTS x86_64 host or devcontainer for DAEMON // 0. Written for 24.04
-# (noble), hence the file name; CI and the devcontainer are on 26.04 (resolute) and the script
-# has run on a 26.04 host (docs/REVIEW-FINDINGS.md). It uses no release-specific package.
+# Bootstrap an Ubuntu LTS x86_64 host or devcontainer for DAEMON // 0. Verified on 24.04
+# (noble) and 26.04 (resolute), the release CI and the devcontainer use (docs/REVIEW-FINDINGS.md).
+# It uses no release-specific package; it was named bootstrap-ubuntu24.sh until 2026-11-17.
 # Installs OS packages and mise, then the exact tool versions pinned in mise.toml.
 # Safe to re-run. Pass --android to add the Android SDK and emulator prerequisites.
 set -euo pipefail
@@ -12,10 +12,10 @@ ANDROID=false
 case "${1:-}" in
   "") ;;
   --android) ANDROID=true ;;
-  *) echo "Usage: bash scripts/bootstrap-ubuntu24.sh [--android]" >&2; exit 2 ;;
+  *) echo "Usage: bash scripts/bootstrap-ubuntu.sh [--android]" >&2; exit 2 ;;
 esac
 if [ "$#" -gt 1 ]; then
-  echo "Usage: bash scripts/bootstrap-ubuntu24.sh [--android]" >&2
+  echo "Usage: bash scripts/bootstrap-ubuntu.sh [--android]" >&2
   exit 2
 fi
 

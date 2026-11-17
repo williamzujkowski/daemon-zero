@@ -12,7 +12,7 @@
     "EXPO_NO_TELEMETRY": "1"
   },
   "forwardPorts": [8081],
-  "postCreateCommand": "bash scripts/bootstrap-ubuntu24.sh && make setup && make verify",
+  "postCreateCommand": "bash scripts/bootstrap-ubuntu.sh && make setup && make verify",
   "remoteUser": "vscode",
   "customizations": {
     "vscode": {
