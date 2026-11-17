@@ -276,6 +276,12 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
    not free the decoder or track promptly on Android. Bounded by the garbage collector,
    and nothing failed in this run. Possible fix, untested: also call the shared object's
    `release()` in the two `remove` wrappers.
+   - Added 2026-11-16 (#186, item 1): both wrappers now call `release()` after `remove()`
+     (`releasePlayer` in `src/app/audioPlayer.ts`); it is the documented shared-object call
+     and what expo-audio's own `useAudioPlayer` hook runs on unmount. Re-run on a disposable
+     emulator with a release build: switching music off left no media session and no
+     `AudioTrack` for the app one second later. The clip path uses the same function but was
+     not re-observed, because that run stayed in phase 0. See [SOUNDTRACK.md](SOUNDTRACK.md).
 3. **On Android a default-on soundtrack is silent until the player finds MENU > Audio >
    `[ RESUME MUSIC ]`, on every cold start. (Behaviour to decide, not a crash.)** The
    first-gesture resume is attached only when `Platform.OS === 'web'`
@@ -298,6 +304,11 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
    Timeout while waiting for metadata to sync for com.daemonzero.app` 34 times. Whether a
    headset button should be able to start the score, and what it does during a READ clip,
    has not been decided or tested.
+   - Added 2026-11-16 (#186, item 4): decided by the maintainer, keep it. What was built on
+     that, what a key press now does, what the web build publishes, and the part still open
+     on Android (the session's title is the file's embedded tag, which the app cannot set
+     without a foreground service) are in [SOUNDTRACK.md](SOUNDTRACK.md), with the emulator
+     re-run that checked the keys.
 6. **The release manifest carries more permissions than REVIEW-M6.md lists.
    (Documentation drift.)** Now: `VIBRATE`, `MODIFY_AUDIO_SETTINGS`,
    `ACCESS_NETWORK_STATE`, `WAKE_LOCK` and the signature-level
@@ -306,6 +317,10 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
    `ACCESS_NETWORK_STATE` and `WAKE_LOCK` come in through dependencies and are worth a
    deliberate keep-or-block decision in `app.json`. The APK is also 92 MB against M6's 67
    MB (the scores and clips account for about 23 MB).
+   - Added 2026-11-16 (#186, item 3): each permission's source and reason, the size
+     breakdown and a test that fails when the list drifts are in
+     [RELEASE.md](RELEASE.md#android-permissions-and-size). `WAKE_LOCK` is now blocked
+     (nothing uses it); `MODIFY_AUDIO_SETTINGS` and `ACCESS_NETWORK_STATE` are kept.
 7. **`adb shell uiautomator dump` stops working once the game clock runs. (Tooling.)** It
    returns `ERROR: could not get idle state` and leaves any earlier file in place, so a
    script that does not delete the file first reads a stale tree. The procedure in

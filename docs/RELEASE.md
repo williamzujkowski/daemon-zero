@@ -63,7 +63,7 @@ debug signing for the release variant without writing passwords to a file.
 Install the APK with `adb install -r <apk>`. Verify a cold launch with no Metro
 connection, manual input, a purchase, background/foreground and force-stop/
 relaunch. Inspect the packaged manifest for no INTERNET permission, disabled
-backup and no debuggable flag. Check APK signatures with SDK `apksigner verify`.
+backup and no debuggable flag, and compare its permissions with the table below. Check APK signatures with SDK `apksigner verify`.
 Inspect the APK/AAB embedded JS/Hermes bundle for forbidden development markers.
 The APK and AAB must come from the same source, version and signing configuration.
 
@@ -71,6 +71,71 @@ A local test key is not a production upload key. Do not submit its artifacts to 
 store or promise updates signed by it. A future production key must be retained
 securely by the maintainer; losing it can prevent updates. Native version codes
 and iOS build numbers are explicit in app.json and must increase for store updates.
+
+## Android permissions and size
+
+Recorded 2026-11-16 for 0.2.0-rc.1 (versionCode 2), from a test-signed release APK built by
+`make android-release` and installed on an emulator (`dumpsys package com.daemonzero.app`,
+"requested permissions"). This replaces the permission line in REVIEW-M6.md, which predates
+audio (#186 item 3). The app asks for nothing itself (`android.permissions` is `[]`); every
+entry comes from a library.
+
+| Permission | Declared by | Why it is there, and whether the app needs it |
+|---|---|---|
+| `android.permission.VIBRATE` | `expo-haptics` (its AndroidManifest.xml) | Needed: haptic feedback on presses |
+| `android.permission.MODIFY_AUDIO_SETTINGS` | `expo-audio` (its AndroidManifest.xml and its config plugin, unconditionally) | Kept: `setAudioModeAsync`, which the app calls before any playback, sets the audio mode and speaker routing through `AudioManager` (`AudioModule.kt`, `updatePlaySoundThroughEarpiece`). Normal-level, no prompt |
+| `android.permission.ACCESS_NETWORK_STATE` | `androidx.media3:media3-common` and `media3-exoplayer` 1.9.1, the player inside `expo-audio` (manifests inside the AARs) | Kept: the player library declares it for itself, and removing it was not shown safe. It lets the app see *whether* the device has a connection. It cannot open one: see `INTERNET` below. Normal-level, no prompt |
+| `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | A signature-level permission the app defines for its own unexported broadcast receivers; grants nothing to anyone else |
+
+Removed from the build by `android.blockedPermissions` in `app.json`:
+
+- `INTERNET`, `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`: declared by `expo-file-system`
+  (linked through `expo`); the game uses none of them. `INTERNET` being absent is what
+  PRIVACY.md rests on.
+- `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW`: belt and braces; `expo-audio`'s plugin is also
+  configured with `recordAudioAndroid: false`.
+- `WAKE_LOCK`, blocked on 2026-11-16: declared by `media3-exoplayer` for its optional wake
+  mode. Nothing in this app uses it: `expo-audio` never calls `setWakeMode` (no `WakeLock`,
+  `PowerManager` or `setWakeMode` anywhere in its Android sources or in the other linked
+  modules), the app plays nothing in the background, and it runs no headless JS task. On the
+  emulator the build without it played, paused, resumed and switched the score normally.
+
+No foreground service, notification, microphone or storage permission is present, and
+background playback stays disabled in the `expo-audio` plugin options.
+
+**Keeping this true.** `tests/release-permissions.spec.ts` runs
+`scripts/android-permissions.sh`, which lists every permission declared by a library the
+build links (Expo-autolinked modules and direct dependencies) without a native build, adds
+the AAR permissions above, subtracts the block list, and fails unless the result is exactly
+the first table. It cannot read manifests inside Maven AARs, so those are listed by hand in
+the test and pinned to media3 1.9.1; when `expo-audio` moves to another media3 the pin fails.
+Then, and before any release, read the real thing:
+
+```bash
+mise exec -- make android-release
+"$ANDROID_HOME"/build-tools/*/aapt2 dump permissions android/app/build/outputs/apk/release/app-release.apk
+# which library contributed each line:
+grep -n 'uses-permission' -A2 android/app/build/outputs/logs/manifest-merger-release-report.txt
+```
+
+**Size.** The same APK is 92,206,340 bytes, against 67,193,386 at M6: 25,012,954 more.
+Read from the APK's own file table (`unzip -lv`):
+
+| In the APK | Bytes | Share |
+|---|---|---|
+| Native libraries, four ABIs (x86 17.7 MB, x86_64 17.1 MB, arm64-v8a 16.6 MB, armeabi-v7a 11.4 MB) | 62,748,796 | 68.6% |
+| The six scores (`res/*.mp3`, stored uncompressed, byte-for-byte the manifest total) | 22,251,291 | 24.3% |
+| The fourteen voice clips | 591,400 | 0.6% |
+| Dex (Java/Kotlin code) | 2,782,566 | 3.0% |
+| Hermes JavaScript bundle | 2,196,828 | 2.4% |
+| Everything else (resources, manifest, signature) | 957,265 | 1.0% |
+
+Audio assets are 22,842,691 bytes, 91% of the growth since M6. The remaining 2.2 MB was not
+attributed file by file, because the M6 APK was not rebuilt for comparison; it is the size of
+the audio library's code (media3 arrives with `expo-audio`) plus dependency updates since.
+The universal APK carries every ABI; the AAB from the same build is 70,910,022 bytes and a
+store would deliver one ABI's libraries from it, roughly 17 MB instead of 63. Each further
+score adds its file size once: MP3 is not compressed again inside the package.
 
 ## EAS and iOS
 

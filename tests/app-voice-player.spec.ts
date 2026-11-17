@@ -7,18 +7,25 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 const voice = vi.hoisted(() => ({
-  player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn() },
+  player: { volume: 1, play: vi.fn(), remove: vi.fn(), release: vi.fn(), addListener: vi.fn() },
   create: vi.fn(),
   mode: vi.fn(() => Promise.resolve()),
 }));
 vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
+// An outside pause is only believed on Android; every other case here runs as the web.
+const os = vi.hoisted(() => ({ android: false }));
+vi.mock('../src/app/pauseSignal', async (original) => {
+  const real = await original<typeof PauseSignal>();
+  return { heldBy: (status: { playing: boolean }) => real.heldBy(status, os.android ? 'android' : 'web') };
+});
 
+import type * as PauseSignal from '../src/app/pauseSignal';
 import { hasVoiceClip, onVoiceActivity, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
 import { voiceSources } from '../src/app/voiceSources';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
 
-interface Status { didJustFinish: boolean; error?: string | null }
+interface Status { didJustFinish: boolean; error?: string | null; playing?: boolean }
 
 function stubListener() {
   let finish: (status: Status) => void = () => undefined;
@@ -68,6 +75,44 @@ describe('voice clip playback', () => {
     listener.fire({ didJustFinish: true });
     expect(listener.remove).toHaveBeenCalled();
     expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('releases the native player as well as removing it, so no finished clip lingers (#186)', () => {
+    voice.create.mockReturnValue(voice.player); voice.player.remove.mockClear(); voice.player.release.mockClear();
+    const listener = stubListener();
+    playVoiceClip('ambient_03', 30);
+    expect(voice.player.release).not.toHaveBeenCalled();
+    listener.fire({ didJustFinish: true });
+    expect(voice.player.release).toHaveBeenCalledOnce();
+    // A stop and a replacement release too: every way a clip ends.
+    playVoiceClip('ambient_03', 30); stopVoiceClip();
+    playVoiceClip('ambient_03', 30); playVoiceClip('ambient_04', 30);
+    expect(voice.player.release).toHaveBeenCalledTimes(3);
+    stopVoiceClip();
+  });
+
+  it('ends a clip that something outside the app paused, and lets the score back up', () => {
+    voice.create.mockReturnValue(voice.player); voice.player.release.mockClear();
+    const heard: boolean[] = [];
+    const stop = onVoiceActivity((talking) => { heard.push(talking); });
+    const listener = stubListener();
+    playVoiceClip('ambient_05', 30);
+    // Not playing yet: the status every player sends while it prepares is not a pause.
+    os.android = true;
+    listener.fire({ didJustFinish: false, playing: false });
+    os.android = false;
+    expect(voice.player.release).not.toHaveBeenCalled();
+    listener.fire({ didJustFinish: false, playing: true });
+    // On the web "not playing" is also what a clip reports before it has buffered: ignored.
+    listener.fire({ didJustFinish: false, playing: false });
+    expect(voice.player.release).not.toHaveBeenCalled();
+    // Android: a headset's pause landing on the clip's own media session.
+    os.android = true;
+    listener.fire({ didJustFinish: false, playing: false });
+    os.android = false;
+    expect(voice.player.release).toHaveBeenCalledOnce();
+    expect(heard).toEqual([true, false]);
+    stop();
   });
 
   it('holds volume inside the preference range rather than trusting the caller', () => {

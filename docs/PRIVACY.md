@@ -4,7 +4,18 @@ DAEMON // 0 is an offline, single-player game. The app collects and transmits no
 personal data. It has no accounts, advertising, analytics, tracking, remote
 service, or in-app purchases. The release Android app requests no internet,
 microphone, photo-library or external-storage access. Haptic feedback may use
-the device's vibration permission.
+the device's vibration permission. The audio player it is built with adds two more
+install-time permissions that show no prompt: changing audio settings (how sound is
+routed), and reading the network *state*. The second means the app could tell whether
+the device has a connection; it cannot use one, because internet access is removed from
+the build, and the game reads that state for nothing. The full list, with the library
+behind each entry, is in [RELEASE.md](RELEASE.md#android-permissions-and-size).
+
+While the optional music plays, Android and browsers can show what is playing on a lock
+screen, a headset or a connected car display. The web build shows only "Phase N score"
+and the game's name there. The Android build shows what the music file's own tags say
+(a track title and the composer's account label); see [SOUNDTRACK.md](SOUNDTRACK.md).
+Nothing is sent anywhere by this: it is the device's own media controls.
 
 Progress is stored on the device (browser localStorage or native AsyncStorage).
 It includes gameplay choices, simulation state and any breadcrumb text the player
