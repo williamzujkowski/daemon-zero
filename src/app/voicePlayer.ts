@@ -19,7 +19,8 @@
  * the two are joined in `musicSession.ts`.
  */
 import { createAudioPlayer } from 'expo-audio';
-import { ensureAudioMode } from './audioPlayer';
+import { ensureAudioMode, releasePlayer } from './audioPlayer';
+import { heldBy } from './pauseSignal';
 import { voiceSources } from './voiceSources';
 
 interface LiveClip {
@@ -112,14 +113,22 @@ export function playVoiceClip(id: string, volume: number): void {
     void ensureAudioMode().catch(() => undefined);
     const player = createAudioPlayer(source, { updateInterval: 250, allowsExternalPlayback: false });
     let subscription: { remove(): void } | null = null;
-    const clip: LiveClip = { id, player, remove: () => { subscription?.remove(); player.remove(); } };
+    // Released, not merely removed: a finished clip's native player and its media session
+    // must not outlive it (#186; `releasePlayer`).
+    const clip: LiveClip = { id, player, remove: () => { subscription?.remove(); releasePlayer(player); } };
+    let heard = false;
     // Owned before anything else can throw, so the failure path below has a player to release.
     playing = clip;
     player.volume = level(volume);
     subscription = player.addListener('playbackStatusUpdate', (status) => {
       // Scoped to this clip, not its id: a late status must not end a newer take of the same line.
-      if (playing !== clip || !(status.didJustFinish || Boolean(status.error))) return;
-      end();
+      if (playing !== clip) return;
+      if (status.playing) heard = true;
+      // The third way out: a clip that was talking and has been paused by something outside
+      // the app. There is no in-app pause for a clip, so nothing would ever resume it, and on
+      // Android each clip has its own media session that a headset's pause can land on. It
+      // ends like a STOP, which also lets the score back up. Android only: see `heldBy`.
+      if (status.didJustFinish || Boolean(status.error) || (heard && heldBy(status))) end();
     });
     player.play();
   } catch (error) {

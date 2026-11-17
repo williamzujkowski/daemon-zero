@@ -12,7 +12,7 @@ import { CONTENT } from '../src/content';
 import { createInitialState } from '../src/engine';
 import { memoryStorage } from './app-helpers';
 
-export interface Fake { throws: string | null; phase: MusicPhase; log: string[]; levels: number[]; removed: boolean; status: (playing: boolean, error: boolean) => void }
+export interface Fake { throws: string | null; phase: MusicPhase; log: string[]; levels: number[]; removed: boolean; status: (playing: boolean, error: boolean, held?: boolean) => void }
 
 export async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
 export const run = (ms: number) => { vi.advanceTimersByTime(ms); };

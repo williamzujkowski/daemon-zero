@@ -10,9 +10,12 @@ import { audioPreferences, silentPreferences } from './audioPreferences';
 import type { KeyValueStorage } from './storage';
 import { musicPhase, type MusicPhase } from './musicTracks';
 import { VolumeRamp } from './volumeRamp';
+import { OutsideWatch } from './outsideControl';
 
 export interface MusicPlayer { play(): void; pause(): void; volume(value: number): void; remove(): void }
-interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase: MusicPhase, changed: (playing: boolean, error: boolean) => void): MusicPlayer }
+/** `held`: the player says it is neither playing nor about to. Buffering is not held. */
+export type MusicStatus = (playing: boolean, error: boolean, held?: boolean) => void;
+interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase: MusicPhase, changed: MusicStatus): MusicPlayer }
 /**
  * How much of its preference level the soundtrack keeps while a transmission is being read.
  * Score and clips both measure about -15 LUFS, so at equal preference they compete; 0.35 is
@@ -39,7 +42,7 @@ export const FADE_OUT_MS = 500;
  *  and a return from the background. */
 export const FADE_IN_MS = 500;
 /** A player and the only writer of its level. `started` is false while it is paused. */
-interface Slot { player: MusicPlayer; fader: VolumeRamp; started: boolean }
+interface Slot { player: MusicPlayer; fader: VolumeRamp; watch: OutsideWatch; started: boolean }
 const blockedMessage = 'Playback unavailable. Try Resume music; check your device volume if silent.';
 
 export class MusicController {
@@ -138,6 +141,30 @@ export class MusicController {
     void this.activate();
   }
 
+  /**
+   * Stop for this session and leave the preference alone: the state the Audio page already
+   * shows as "Music is paused. Resume to start listening." This is what a media key's pause
+   * means. It is not `toggle()`: a headset button is easy to press by accident and may have
+   * been meant for another app, so it must not rewrite what the player chose in the menu.
+   */
+  pause(): void {
+    if (!this.state.getState().activated) return;
+    // An activation still loading its backend finds nothing wanted when it lands.
+    this.state.setState({ activated: false, status: '' });
+    this.reconcile();
+  }
+
+  /**
+   * A media key, lock screen or headset button. Pause is `pause()`; play is `resume()`, the
+   * same path as `[ RESUME MUSIC ]`, so it fades in, respects the duck and does nothing while
+   * music is switched off. A play that arrives while the app is in the background is dropped,
+   * not remembered: music never starts there, and it must not start by itself on return.
+   */
+  remote(action: 'play' | 'pause'): void {
+    if (action === 'pause') this.pause();
+    else if (this.active) this.resume();
+  }
+
   setVolume(volume: number): void {
     if (!Number.isFinite(volume)) return;
     const value = Math.max(0, Math.min(100, Math.round(volume)));
@@ -229,6 +256,7 @@ export class MusicController {
       if (!slot.started) {
         const target = this.level(this.state.getState().volume);
         slot.started = true;
+        slot.watch.started();
         slot.fader.set(0);
         if (target > 0) slot.fader.to(target, FADE_IN_MS);
       }
@@ -238,10 +266,13 @@ export class MusicController {
 
   private open(backend: MusicBackend, phase: MusicPhase): Slot {
     const identity = this.playerGeneration;
-    const player = backend.createMusicPlayer(phase, (playing, error) => {
+    const player = backend.createMusicPlayer(phase, (playing, error, held = false) => {
       if (!this.live || identity !== this.playerGeneration) return;
       if (error) this.fail();
-      else this.state.setState({ playing: playing && this.active && this.eligible && this.state.getState().activated });
+      else this.heard(playing, held);
+    });
+    const watch = new OutsideWatch(() => {
+      if (this.live && identity === this.playerGeneration && this.wanted()) this.pause();
     });
     const fader = new VolumeRamp((level) => { player.volume(level); }, () => {
       // A level write that threw mid-ramp. A fading-out player is released there and then; a
@@ -250,13 +281,36 @@ export class MusicController {
       if (this.leaving?.player === player) this.dropLeaving();
       else if (this.live && identity === this.playerGeneration) this.fail();
     });
-    return { player, fader, started: false };
+    return { player, fader, watch, started: false };
+  }
+
+  /**
+   * A status report from the live player. Mostly it only says whether the score is sounding,
+   * but on Android a media key reaches the native player without passing through this class
+   * (expo-audio gives every player a media session), so a report can also be the first news of
+   * a pause or a start nobody here asked for. A pause is adopted as `pause()`. A start is
+   * adopted as `resume()` when resuming is all it would take; otherwise the player is stopped
+   * again, which is what keeps a key pressed in the background from leaving the score running.
+   */
+  private heard(playing: boolean, held: boolean): void {
+    const watch = this.slot?.watch;
+    if (this.wanted()) {
+      this.state.setState({ playing });
+      watch?.wanted(playing, held);
+      return;
+    }
+    this.state.setState({ playing: false });
+    const start = watch?.unwanted(playing, held) ?? null;
+    if (start === null) return;
+    if (start === 'started' && this.active && this.eligible && this.state.getState().enabled) this.resume();
+    else this.halt();
   }
 
   /** Pause the live player where it is. Its ramp stops with it; the next start fades in. */
   private halt(): void {
     if (!this.slot) return;
     this.slot.fader.cancel();
+    this.slot.watch.stopped();
     this.slot.player.pause();
     this.slot.started = false;
   }
@@ -306,6 +360,7 @@ export class MusicController {
    *  A `pause()` that throws must not leave the player unremoved. */
   private remove(slot: Slot): void {
     slot.fader.close();
+    slot.watch.stopped();
     try { slot.player.pause(); } finally { slot.player.remove(); }
   }
 
