@@ -114,7 +114,7 @@ describe('duplicate and stale choices (H02)', () => {
 
 describe('source-scoped ending evidence (H12, H13)', () => {
   const primer = defined([...preview.campaign.actions.values()][0]);
-  const unconverted = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined && dilemma.phaseId === 0));
+  const unconverted = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
   const withPrimer = (s: GameState): GameState => must(performAction({ ...s, epistemicDrift: 0 }, primer.id, preview));
 
   it('counts a campaign event once, an unconverted dilemma for this iteration only', () => {

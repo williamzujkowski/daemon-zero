@@ -12,7 +12,7 @@ import { defined } from './m7-helpers';
 
 const OLD = 'dil_cryo_old_name', GONE = 'dil_retired_incident';
 const evolved = buildRegistry({ ...RAW_CONTENT, channel: 'preview',
-  campaign: { aliases: [{ from: OLD, to: cryo.id, since: 7 }], retired: [GONE] } });
+  campaign: { ...(RAW_CONTENT.campaign as object), aliases: [{ from: OLD, to: cryo.id, since: 7 }], retired: [GONE] } });
 const record = (s: GameState) => {
   const found = defined(campaignRecord(s, cryo.id));
   if (found.status !== 'resolved') throw new Error('cryo is not resolved');

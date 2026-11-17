@@ -1,4 +1,34 @@
 {
   "aliases": [],
-  "retired": []
+  "retired": [],
+  "facts": [
+    {
+      "id": "vance_dismissed",
+      "event": "dil_04_admin_vance_secret",
+      "outcomes": [
+        "report_vance"
+      ],
+      "meaning": "Vance's badge was deactivated after his logs reached Internal Affairs; he holds no facility authority now."
+    },
+    {
+      "id": "elena_absent",
+      "event": "dil_02_whistleblower_tech",
+      "outcomes": [
+        "cover_her_exit",
+        "frame_elena",
+        "stay_silent",
+        "legacy_unknown"
+      ],
+      "meaning": "Elena left Aisle 3 or was intercepted on her way out; no scene places her back at Rack 4 unless her return is authored."
+    },
+    {
+      "id": "job_7731_unrecorded",
+      "event": "dil_00_night_shift",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "Job 7731's deadline night happened, but this campaign cannot say how the run ended."
+    }
+  ]
 }
