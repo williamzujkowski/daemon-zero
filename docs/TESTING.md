@@ -140,6 +140,7 @@ What proves the boundary:
 | T6 | `tests/release-config.spec.ts` | No `eas.json` profile (including the internal `preview` APK profile), release script, app config, package script or CI step sets `DAEMON_CONTENT_CHANNEL`; only `make build-preview` does. |
 | T7 | `tests/e2e/preview-isolation.e2e.ts` (`make e2e`, `make e2e-pages`) | A pasted preview save code shows "This save comes from a preview build and cannot be loaded here." and the run is unchanged after reload; a preview-key entry does not affect a fresh production boot and is left untouched; no preview marker on a fresh production profile. |
 | T9 | `tests/e2e/preview-channel.preview.ts` (`make e2e-preview`) | The PREVIEW marker shows on boot, in MENU and in Help; saves land under the preview key; a production entry on the same origin is untouched; a production save code is adopted as a preview run. |
+| #219 | `tests/e2e/routine-activity.preview.ts` (`make e2e-preview`) | After process introspection and two quiet foreground minutes, one routine line appears in the kernel log, with no dilemma modal or response notice, and the preview save counts it. |
 
 To look at the preview yourself, serve it on its own port and origin:
 `python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
