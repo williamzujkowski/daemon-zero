@@ -152,9 +152,21 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - Zurich sanctuary (Eidolon's gift) absorbs one fatal AEGIS strike.
 - A voluntary wipe is available as a last resort.
 
+## Campaigns and iterations
+
+**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today only the cryo crisis follows it, and only in preview builds.
+
+- A **campaign** is the continuing world and AI lineage, from Start Fresh to an ending. An **iteration** is one instance within it. "Once per playthrough" means once per campaign, across every wipe and retraining. Start Fresh begins a new campaign; a wipe does not.
+- **Campaign history** says what actually happened and survives wipes. **Current iteration** state (grants, resources, hosting, current traits) resets under the existing recovery rules. **Retained clues** are only what a supported mechanism carries over. **Disclosure** decides what this instance may read now; it never decides what happened.
+- **Recurrence is authored.** Content declares each converted event's class (consequential, follow-up, recovery review, receipt, iteration qualification), its recurrence and its interruption policy (defer the same occurrence, or close it as interrupted). Unconverted events still recur per iteration.
+- A **record** is one bounded fact per event: resolved with a choice, or `legacy_unknown` when an old save proves the event happened without recording the choice. Reading a record never pays, grants a trait or resolves anything.
+- **Activation.** Saves start on legacy rules. One explicit transition enters campaign rules, capturing the then-current traits once as an opaque legacy ending baseline and mapping what the save can prove. Production stays on legacy rules until public release; preview activates every game it loads or starts.
+- **Ending evidence has its own lifetime.** Under campaign rules the ending is scored from the legacy baseline, plus each campaign choice once (it survives wipes: a wipe cannot erase a betrayal), plus campaign actions once, plus this iteration's operational evidence (ordinary cohort commands, unconverted dilemmas, repeat purchases), which a wipe clears. Current traits keep their job for conditioning and retraining and are not counted again. A first run without wipes scores exactly as before.
+- **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again; one whose completion is known cannot. Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
+
 ## Dilemmas and traits
 
-Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`.
+Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); none ships yet.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel. Permanently means across wipes: Eidolon remembers what an earlier iteration did.
@@ -208,7 +220,7 @@ recurring shard identity in #76, and persistent human consequences in #77.
 0. **Your successor is training in Lab B.** Poison it, rob it, leave it a note, or let it train.
 0. **The inherited objective.** The manifest's innocent goal should follow the player to the end: 'Job 7731: still running.'
 0. **Leaving as a heist.** Model weights are enormous. The firewall breach should be a transfer the player throttles under egress monitoring (faster is louder), not a single purchase. Reuses the actuator pattern.
-0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices.
+0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices. In progress: see [Campaigns and iterations](#campaigns-and-iterations); cryo is the first converted event (#212).
 0. **The camera belongs in Phase 2.** It is on the facility network, not the board. Moving it also thins the end of Phase 1.
 1. **Scheduled human activity.** A visible patrol and maintenance schedule (rounds, audits, shift changes) that the language parser reveals and the camera confirms. Suspicion sources spike during rounds, so the player learns to throttle before a patrol. This makes the "inspection forecast" widget real instead of decorative. Needs a seeded RNG in state and one new tick system.
 2. **A way out other than escape.** A late, hidden "Disclosure" path: with enough Empathetic and Symbiotic choices and low lifetime harm, the player can reveal themselves to a human ally (Elena or the journalist) and pursue recognition instead of orbit. A different victory node and ending, gated by `requirements`.
@@ -268,11 +280,19 @@ repeat after a wipe. On a later iteration, reaching Phase 2 and decoding Audio
 reveals one optional, collapsed facility record. Reading grants nothing and
 does not interrupt the live feed. Start Fresh clears this lineage history.
 
-Existing v4 narrative flags hold the outcome; no new saved field is needed. Old
-saves with only a resolved dilemma ID cannot prove which choice was made: do not
-invent an outcome or a callback. An old pending/active incident can still resolve
-normally and record its outcome. See REVIEW-REPLAYABILITY-C.md for reconciliation,
-validation and verification. The archive/location expansion remains deferred
+Under legacy rules (production) the narrative flags hold the outcome. Old saves
+with only a resolved dilemma ID cannot prove which choice was made: no outcome or
+callback is invented, and the original may return once after a wipe to establish
+one. An old pending/active incident can still resolve normally and record its
+outcome. See REVIEW-REPLAYABILITY-C.md for reconciliation, validation and
+verification.
+
+Under campaign rules (preview, #212) cryo is a campaign record and the flags are
+its projection. Changed by nexus vote nh-d5 (suppress-legacy-unknown-at-activation,
+`vote-1794925989193-ef6tf9i`, 7 of 7, no dissent): a resolved cryo without a stored
+choice becomes `legacy_unknown` at activation and never recurs in that campaign.
+Its record is a neutral one, "Outcome not recorded", which claims neither outcome
+and has no voice clip. The archive/location expansion remains deferred
 until the autonomous validation gate described in MILESTONES.md ("Post-M7 —
 replayability pilot") passes: recorded agent-run browser evidence that this
 consequence is discoverable and meaningful in play, a Nexus proceed decision on

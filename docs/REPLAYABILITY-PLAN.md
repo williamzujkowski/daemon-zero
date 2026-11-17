@@ -149,15 +149,21 @@ unchanged unless implementation actually needs a new state shape. In that case,
 revise this plan and add the next migration before shipping; never smuggle state
 into logs or infer a choice from resources, traits or prose.
 
+**Revised by #212 (schema v6).** Campaign continuity needed a state shape: cryo is
+now a campaign record (`campaign.events`), behind an explicit activation marker
+(`narrativeRules`). The v5->v6 migration adds the inactive shape only. Production
+stays on legacy rules, so the table below still describes production exactly,
+except where a row names campaign rules. See ARCHITECTURE.md "Campaign records".
+
 | Imported state | Required behavior |
 |---|---|
 | Neither outcome flag, source unresolved | History unknown; next eligible incident may establish the first **recorded** outcome |
 | Source already resolved this iteration, no outcome flag | Keep it resolved; do not invent its choice; no outcome-specific callback |
-| Subsequent wipe of that unknown-history save | Original may become eligible once to establish a recorded outcome; acknowledge this legacy limitation |
+| Subsequent wipe of that unknown-history save | Legacy rules: original may become eligible once to establish a recorded outcome; acknowledge this legacy limitation. Campaign rules (nexus vote nh-d5, `vote-1794925989193-ef6tf9i`): activation records it as `legacy_unknown`, the original never recurs in that campaign, and a neutral "Outcome not recorded" record replaces the outcome-specific callback |
 | Valid pending/active original, no outcome flag | Keep IDs, choices and remaining omen; resolve normally |
 | Known outcome plus conflicting pending/active original | Cancel only that contradictory incident; no rewards or invented resolution; keep game playable |
 | Both exclusive outcome flags | Reject import explicitly and atomically; no guessed past |
-| Known outcome after wipe/reload | Suppress original; reveal matching record only after its disclosure gates |
+| Known outcome after wipe/reload | Suppress original; reveal matching record only after its disclosure gates. Campaign rules: the flag moves into the record at activation and is read back as its projection |
 | Start Fresh | Both outcomes clear with the rest of the lineage |
 
 Unknown does not mean preserved, lost or never encountered. Copy must not assert

@@ -72,7 +72,8 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `data/*.json` - all game data. `data/phases/*.json` hold the tech tree, one file per phase. Phases are numbered from 0 (the guest); each declares the `uiSlot` whose pane hosts its hardware.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
-- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`).
+- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
+- `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations and their rules. See [Campaign records](#campaign-records-212).
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
 - `preview/` - production plus `preview/overlay.json`, composed by `overlay.ts` and built through the same `buildRegistry` with channel `preview`. See [Content channels and preview saves](#content-channels-and-preview-saves-204).
@@ -86,7 +87,7 @@ Only `production.ts` and `preview/` import content JSON.
 | Tech node | `phases/*.json` | One-time unlock. Blind and revealed names, cost, continuous `tickDelta`, optional `requirements`, `effects`, `systemFlags`, `actuatorBinding`, widget id. |
 | Repeatable | `repeatables.json` | Levelled purchase with geometric cost. `kind: UPGRADE` (incremental growth) or `OPERATIVE` (human payroll, dismissable). |
 | Action | `actions.json` | Instant, repeatable, optional cooldown. Faction interactions and corporate operations. |
-| Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait. |
+| Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). An optional `campaign` declaration converts it to a campaign record. |
 | Faction | `factions.json` | Other AIs. Trust is stored per faction and used in `requirements.minTrust`. |
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
 | Ending | `endings.json` | Chosen at victory from the player's most frequent trait. |
@@ -109,7 +110,8 @@ Public API is `src/engine/index.ts`.
 | `tick.ts` | `tick` (one fixed step through `TICK_PIPELINE`) and `advance` (elapsed seconds to ticks). |
 | `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, dilemmas. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
-| `transactions.ts` | `payCost`, `applyEffects`. |
+| `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
+| `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, ending evidence), `campaign.ts` (activation, record writes, evidence, wipe carry-over), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -192,7 +194,9 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v5; `tests/fixtures/` holds genuine v1-v4 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v6; `tests/fixtures/` holds genuine v1-v5 codec outputs.
+
+**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
@@ -267,6 +271,67 @@ save as damaged until #205 gives preview its own keys.
 Tests: `tests/content-channel.spec.ts` (T1) and `tests/save-channel.spec.ts` (T2,
 T3) of the decision note, the v4 fixture in `tests/swarm-save.spec.ts`, and the
 import reason in `tests/app-replacement-guard.spec.ts`.
+
+## Campaign records (#212)
+
+NH-01 of the campaign-continuity plan. Decided by Nexus votes nh-d1
+(`vote-1794925758447-5x5hy42`, per-event record), nh-d2 (`vote-1794925742365-wfazn8x`,
+explicit activation marker), nh-d5 (`vote-1794925989193-ef6tf9i`, suppress legacy-unknown
+cryo at activation), nh-d6 (`vote-1794926255017-4o45fa3`, evidence scope) and
+trait-rule-free-choices (`vote-1794926000594-26kmg1g`). Vocabulary: DESIGN.md
+["Campaigns and iterations"](DESIGN.md#campaigns-and-iterations).
+
+**Content declares, the engine obeys.** A dilemma's optional `campaign` block declares its
+event class, recurrence (`once_per_campaign` or, for requalification, `once_per_iteration`)
+and interruption policy (`close` or `defer`; enforced by NH-02, declared now). An action that
+grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
+renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
+`campaignOutcome` requirement gates content on a record. The engine mentions no content id.
+Only cryo is converted; the other 22 dilemmas are unconverted and recur per iteration.
+
+**Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
+`contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
+`status`, `outcome` = choice id or `legacy_unknown`, `sourceIteration` or null, `origin`
+`play` or `legacy`), `legacyEndingBaseline`, `activatedAtIteration`, `creditedActions` and
+`operationalEvidence`. The v5->v6 migration writes the inactive shape and never activates.
+
+**Activation.** `activateCampaignRules(state, reg)` is the only way in. It captures the
+then-current `traits` as an opaque baseline and maps what the save proves: an outcome flag
+gives the exact choice, a resolved id without one gives `legacy_unknown`, and those flags move
+into the record so each fact has one owner. Campaign actions already taken this iteration are
+credited `legacy`. An active save refuses a second activation, so reloads and imports never
+recapture. `campaignRulesSupported(reg)` is true only for the preview channel until public
+release; production refuses activation and refuses an active save on load. The app store
+passes every entering game through the transition, which is a no-op in production.
+
+**Under campaign rules.** Resolving a once-per-campaign event writes its record with the
+payment and effects in one returned state; its outcome flag is not stored but projected by
+`holdsNarrativeFlag`, which every flag reader uses. The scheduler, omen expiry, `resolveDilemma`
+and save reconciliation treat a recorded event as consumed (`isCampaignConsumed`,
+`excludedByHistory`). A wipe keeps rules and records and clears only operational evidence.
+
+**Ending evidence.** `endingEvidence` returns current `traits` under legacy rules. Under
+campaign rules it is the baseline, plus the trait of each `play` record (once, across wipes),
+plus credited `play` campaign actions, plus this iteration's operational evidence. `legacy`
+records add nothing: the baseline already holds them. Current `traits` still drive
+conditioning and retraining and are not added again. `baseEndingScores` and `chooseEnding`
+use it, keeping family ids, priorities and the #36 tie rule. Every trait-granting path passes
+an `EvidenceSource`: campaign events through their record, campaign actions once, unconverted
+dilemmas, ordinary cohort commands and encounters as operational.
+
+**Loading.** `reconcileCampaign` refuses, never filters: campaign state on a legacy save, an
+incomplete activation, a stored outcome flag that a record owns, an unknown event, outcome or
+action, an impossible source iteration, or an id recorded twice. Aliased ids are re-keyed;
+retired ids stay as tombstones (they add no score). Importing a save replaces the campaign
+snapshot wholesale; there is no merge and no anti-rollback claim.
+
+**Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle are NH-02.
+Only one interruption-free state (`resolved`) exists. Converting the other dilemmas, Phase 5
+obligations and the CHORUS `elevate` campaign scope are later NH tickets.
+
+Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
+`campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
+v6-stripped sim hashes in `sim.spec.ts`.
 
 ## Optional soundtrack foundation (#88)
 
