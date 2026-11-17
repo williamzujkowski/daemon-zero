@@ -55,7 +55,8 @@ instrument (AGENTS.md).
 
 `make sim-preview` (`scripts/run-sim-preview.ts`) plays each selected policy on the production
 registry and on the preview registry (`src/content/preview`) and prints a row per metric, with
-`*` on rows that differ, then a GREEDY wipe sequence on each channel. It prints the overlay's
+`*` on rows that differ, then a GREEDY wipe sequence on each channel and one more on preview
+with campaign rules active from a fresh campaign (#214). It prints the overlay's
 sentinel and item counts so a report names the overlay it measured. Choose policies with
 `make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY
 and IDLE.

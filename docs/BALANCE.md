@@ -407,5 +407,34 @@ count), so for this buy-when-able bot they are mostly waiting to afford the next
 
 No capital was earned from story rewards in these iterations. Pending: honest, low-resource
 and violation-then-recovery policies (route tickets), and starts from saved campaign states
-with consumed early events, Phase 5 completed before a wipe, legacy-unknown records and an
-interrupted omen (campaign tickets).
+with Phase 5 completed before a wipe, legacy-unknown records and an interrupted omen (campaign
+tickets).
+
+### Early incidents once per campaign: GREEDY under campaign rules (#214)
+
+The same sequence on the preview registry, started from `activateCampaignRules(createInitialState(PREVIEW))`,
+as the last block of `make sim-preview` prints it. Measured on `fcf960a` (NH-03), overlay
+`daemon-zero:preview-overlay:5b1e0c7a` with no items. Production and its gates are unchanged
+(`make sim` is byte-identical, and the sim hashes in `tests/sim.spec.ts` did not move), because
+production stays on legacy rules. Before NH-03 the campaign-rule sequence matched the legacy table
+above to the tenth of a second: only cryo and the bait note were converted, and both already happen
+once per lineage under legacy rules (cryo's outcome flag, the note's iteration window). The bot was
+not changed.
+
+| Iteration | Length | Ended by | P1 / P2 / P3 reached | Dilemmas met | Story rewards (cycles / understanding) | Dead / longest stretch |
+|---|---:|---|---|---|---|---|
+| 1 | 1343.8 s | wipe (INCIDENT_CLOSED) | 252.2 / 1049.5 / - s | 5: Night Shift, diagnostic, Elena, coolant, Vance | 25,950 / 630 | 1300 / 249 s |
+| 2 | 5110.2 s | wipe (AEGIS_KILL_CHAIN_COMPLETE) | 65.9 / 538.9 / 4430.3 s | 4: cryo, sibling, cable pull, hallway | 185,000 / 39,000 | 4992 / 253 s |
+| 3 | 3927.5 s | wipe (INCIDENT_CLOSED) | 65.1 / 754.2 / - s | 1: bait note | 0 / 0 | 3860 / 195 s |
+| 4 | 3865.2 s | wipe (AEGIS_KILL_CHAIN_COMPLETE) | 65.7 / 553.8 / 3205.9 s | 3: true note, sibling, hallway | 50,000 / 35,120 | 3757 / 297 s |
+
+Measured loss of repeat bounties over iterations 2 to 4: story cycles 402,850 -> 235,000
+(-167,850), story understanding 75,990 -> 74,120. Iteration 2 no longer re-earns the five early
+incidents (the largest is `report_vance`'s 25,000 cycles), iteration 3 none of them, and iteration 4
+neither those nor the cable pull's 90,000. Phase 3 comes later (2460.2 -> 4430.3 s in iteration 2,
+1812.9 -> 3205.9 s in iteration 4) and iterations last longer, mostly in dead seconds spent waiting
+to afford the next node. No iteration stalls: each later one reaches Phase 2 within 760 s and is ended by the
+ordinary suspicion or AEGIS threat (H30; `tests/early-return-sim.spec.ts`). Each once-per-campaign
+event is met in one iteration only. STEALTH is never wiped, so its campaign run equals its legacy
+run. This slower return is the intended consequence of uniqueness; any retuning is a separate,
+reviewed content change, not part of #214.
