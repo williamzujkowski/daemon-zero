@@ -6,13 +6,19 @@ import { describe, expect, it } from 'vitest';
 import { RAW_CONTENT } from '../src/content/preview';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { buildRegistry } from '../src/content/registry';
-import { campaignRecord, deserialize, MIGRATIONS, presentationToken, serialize, wipe, type GameState } from '../src/engine';
-import { activeGame, chooseCryo, cryo, pgrant, preview } from './campaign-helpers';
+import {
+  activateCampaignRules, advance, campaignRecord, createInitialState, deserialize, MIGRATIONS, presentationToken, serialize, tick, wipe, type GameState,
+} from '../src/engine';
+import { activeGame, chooseCryo, cryo, nearCryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
-import { caught, note, noteOmen, readShare, status, ticks, untilPresented } from './interruption-helpers';
+import {
+  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, stableThroughReloads, status, STEP, ticks, untilPresented,
+} from './interruption-helpers';
+import { must, rich } from './helpers';
 
 const OLD = 'dil_cryo_old_name';
 const evolved = buildRegistry({ ...RAW_CONTENT, campaign: { ...(RAW_CONTENT.campaign as object), aliases: [{ from: OLD, to: cryo.id, since: 7 }] } });
+const withoutShare = (s: GameState): GameState => ({ ...s, unlockedNodes: s.unlockedNodes.filter((id) => id !== 'p0_note_cache') });
 const withCampaign = (s: GameState, campaign: Partial<GameState['campaign']>, extra: Partial<GameState> = {}): string =>
   serialize({ ...s, ...extra, campaign: { ...s.campaign, ...campaign } });
 
@@ -44,11 +50,6 @@ describe('lifecycle contradictions are refused atomically', () => {
     expect(() => deserialize(withCampaign(omen, {}, { pendingDilemma: null }), preview)).toThrow(/reserves "dil_note_bait" but nothing presents it/);
   });
 
-  it('refuses a deferral inside the iteration that saw the omen', () => {
-    const text = withCampaign(omen, { events: { [note.id]: { ...reserved, status: 'deferred', remainingOmenSec: 3 } } }, { pendingDilemma: null });
-    expect(() => deserialize(text, preview)).toThrow(/defers "dil_note_bait" inside the iteration that saw it/);
-  });
-
   it('refuses an open occurrence outside campaign play', () => {
     expect(() => deserialize(withCampaign(omen, { events: { [note.id]: { ...reserved, sourceIteration: 9 } } }), preview)).toThrow(/outside campaign play/);
   });
@@ -68,15 +69,52 @@ describe('lifecycle contradictions are refused atomically', () => {
   });
 
   it('defers a loaded omen whose access is missing instead of presenting it', () => {
-    const lostAccess = deserialize(serialize({ ...omen, unlockedNodes: omen.unlockedNodes.filter((id) => id !== 'p0_note_cache') }), preview);
+    const lostAccess = deserialize(serialize(withoutShare(omen)), preview);
     expect(lostAccess.pendingDilemma).toBeNull();
     expect(campaignRecord(lostAccess, note.id)).toMatchObject({ status: 'deferred', sourceIteration: 3 });
+  });
+
+  // Regression (panel on #238): a structural deferral inside the omen's own iteration was
+  // accepted on the first load and refused on the next, so the save it produced was unloadable.
+  it('keeps a same-iteration structural deferral loadable through repeated reloads, and resumes it when access returns', () => {
+    const first = deserialize(serialize(withoutShare(omen)), preview);
+    const second = deserialize(serialize(first), preview);
+    const third = deserialize(serialize(second), preview);
+    expect(third).toEqual(first);
+    expect(first.iteration).toBe(3);
+    const resumed = ticks(readShare(third), 1);
+    expect(resumed.pendingDilemma?.id).toBe(note.id);
+    expect(campaignRecord(resumed, note.id)).toEqual({ status: 'foreshadowed', sourceIteration: 3, origin: 'play' });
   });
 
   it('keeps a presented occurrence and its token through a load', () => {
     const shown = untilPresented(readShare(deferred));
     const loaded = deserialize(serialize(shown), preview);
     expect(presentationToken(loaded)).toBe(presentationToken(shown));
+  });
+});
+
+describe('every lifecycle transition leaves a save that reloads unchanged', () => {
+  it('holds for omen, presentation, wipe, resumption, resolution, structural deferral, closure, activation and dormancy', () => {
+    const omen = noteOmen();
+    const shown = untilPresented(omen);
+    const deferred = caught(ticks(omen, 5));
+    const resumed = ticks(readShare(deferred), 1);
+    const resumedShown = untilPresented(resumed);
+    const resolved = must(commit(resumedShown, leaveIt.id));
+    const expiredWithoutAccess = ticks(withoutShare(omen), 60);
+    expect(campaignRecord(expiredWithoutAccess, note.id)).toMatchObject({ status: 'deferred', sourceIteration: 3 });
+    const loadedWithoutAccess = deserialize(serialize(withoutShare(omen)), preview);
+    const cryoLost = caught(cryoOmen());
+    const cryoShownLost = wipe(untilPresented(cryoOmen()), preview, 'test', 'SUSPICION');
+    const activatedMidOmen = must(activateCampaignRules(tick(nearCryo(rich(createInitialState(preview))), STEP, preview), preview));
+    const away = advance(advance(omen, 8 * 3600, preview), 1, preview);
+    const states = { omen, shown, deferred, resumed, resumedShown, resolved, expiredWithoutAccess, loadedWithoutAccess,
+      cryoLost, cryoShownLost, activatedMidOmen, away };
+    for (const [name, state] of Object.entries(states)) {
+      expect(() => stableThroughReloads(state), name).not.toThrow();
+      expect(stableThroughReloads(state).campaign, name).toEqual(state.campaign);
+    }
   });
 });
 

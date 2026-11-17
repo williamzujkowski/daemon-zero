@@ -27,15 +27,15 @@ function canonical<T>(entries: Record<string, T>, reg: ContentRegistry, check: C
 }
 
 /**
- * An unresolved occurrence belongs to campaign play; a foreshadowed one is named by a live pointer
- * and a deferred one was interrupted by a wipe, so it predates the current iteration.
+ * An unresolved occurrence belongs to campaign play, and a foreshadowed one is named by a live
+ * pointer. A deferred one may come from a wipe or from a structural failure in the iteration that
+ * saw its omen (lost access at omen expiry or on load), so its source iteration may be the current one.
  */
 function occurrenceProblem(s: GameState, id: string, record: Exclude<CampaignRecord, { status: 'resolved' }>): string | null {
   const at = record.sourceIteration;
   if (at < (s.campaign.activatedAtIteration ?? 0) || at > s.iteration) return `save records "${id}" outside campaign play`;
   const named = s.activeDilemmaId === id || s.pendingDilemma?.id === id;
   if (record.status === 'foreshadowed' && !named) return `save reserves "${id}" but nothing presents it`;
-  if (record.status === 'deferred' && at >= s.iteration) return `save defers "${id}" inside the iteration that saw it`;
   return null;
 }
 

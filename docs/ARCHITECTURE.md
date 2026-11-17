@@ -372,8 +372,9 @@ reorientation and UI land in the stacked follow-up PR; until then nothing sets i
 **Saved shape (v7).** `presentationSeq`, `campaign.clue` and the record union
 (`resolved`, `foreshadowed`, `deferred` with `remainingOmenSec`, `interrupted`). `MIGRATIONS[6]`
 adds the two fields; a v6 omen without a record is reserved on load. Load refuses a reservation
-nothing presents, a deferral inside its own iteration, an occurrence outside campaign play and
-a clue without a record; aliases re-key the clue with its record.
+nothing presents, an occurrence outside campaign play and a clue without a record; aliases re-key
+the clue with its record. A deferral need not cross a wipe: lost access at omen expiry or on load
+defers inside the omen's own iteration, and that save reloads unchanged.
 
 **Content.** Cryo declares `close`; the bait note declares `defer` with `reorientation` and
 `lead`. Integrity requires both on a deferring event, only once-per-campaign events may defer,

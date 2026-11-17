@@ -3,8 +3,9 @@
  * artifact and cryo the closing incident; everything goes through public actions, ticks, wipes and
  * the save codec.
  */
+import type { ContentRegistry } from '../src/content/registry';
 import {
-  campaignRecord, presentationToken, resolveDilemma, tick, wipe, type ActionResult, type GameState,
+  campaignRecord, deserialize, presentationToken, resolveDilemma, serialize, tick, wipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { activeGame, cryo, nearCryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
@@ -65,6 +66,18 @@ export function cryoOmen(base: GameState = activeGame()): GameState {
 /** Commits a choice under the presentation token on screen now. */
 export function commit(s: GameState, choiceId: string, dilemmaId = note.id): ActionResult {
   return resolveDilemma(s, dilemmaId, choiceId, preview, presentationToken(s) ?? '');
+}
+
+/**
+ * Fails unless a state survives load -> save -> load -> save -> load unchanged, so no transition can
+ * leave a save the validator refuses on a later load. Returns the first reload.
+ */
+export function stableThroughReloads(s: GameState, reg: ContentRegistry = preview): GameState {
+  const first = deserialize(serialize(s), reg);
+  const second = deserialize(serialize(first), reg);
+  const third = deserialize(serialize(second), reg);
+  if (JSON.stringify(third) !== JSON.stringify(first) || JSON.stringify(second) !== JSON.stringify(first)) throw new Error('state changed across reloads');
+  return first;
 }
 
 export const status = (s: GameState, id = note.id) => campaignRecord(s, id)?.status ?? null;
