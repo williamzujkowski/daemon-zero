@@ -7,7 +7,7 @@
 # Playwright all declare support for it in `engines`. Node 24 is the maintenance LTS; package.json
 # `engines` still admits it. See docs/REVIEW-CURRENCY-2026-11-16.md.
 node = "26.13.1"
-pnpm = "10.28.0"
+pnpm = "10.34.9"
 
 # Security tooling used by `make security` and `make sbom`.
 gitleaks = "8.30.1"
