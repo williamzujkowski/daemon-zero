@@ -42,7 +42,7 @@ Verdicts: **NOW** = upgraded in this change. **SEPARATE** = real work, scoped be
 | Item | Pinned | Latest | Status | Verdict |
 |---|---|---|---|---|
 | `typescript` | 6.0.3 | 7.0.2 (`latest` since 2026-07-08) | 6.0.3 not deprecated | **HOLD** (H1) |
-| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed |
+| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed. Test fix **done 2026-11-17**; the version bump waits for the one-day release-age rule (see S2) |
 | `axe-core` | 4.14.0 | 4.14.1 | - | **NOW** -> 4.14.1 |
 | `eslint` 10.15.0, `@eslint/js` 10.0.1, `eslint-plugin-react-hooks` 7.1.1, `eslint-plugin-security` 4.2.1, `@playwright/test` 1.65.1, `vitest` and `@vitest/coverage-v8` 5.1.0, `happy-dom` 21.0.4, `tsx` 4.23.15, `@types/react` and `@types/react-dom` 19.3.0 | as listed | identical | - | CURRENT |
 | pnpm override `minimatch@>=10 <11.0.1` -> 11.0.1 | - | minimatch 11.0.9 | still needed: `@expo/fingerprint` 0.21.10 (its latest) requests `^10.2.6` and no patched 10.x exists. eslint and typescript-eslint now request 11.x themselves | **HOLD**: remove when `@expo/fingerprint` moves to minimatch 11 |
@@ -135,7 +135,21 @@ install prints no deprecation warning and asks to run no new build script.
   update `mise.toml`, `mise.lock`, `packageManager`, `SECURITY.md` and AGENTS.md, and decide
   whether the one-day release-age default is wanted.
   Covered by `make setup`, `make verify`, `make security`, CI.
-- **S2. typescript-eslint 8.72.2 -> 8.73.0.** Tried here. `make lint` failed with two errors
+- **S2. typescript-eslint 8.72.2 -> 8.73.0. Test fix DONE 2026-11-17; bump NOT done** (branch
+  `chore/typescript-eslint-bump`). The two mocks are now real objects: the computed style of
+  a real element that carries the insets, and `new DOMRect(...)` from happy-dom. No rule,
+  comment or config was changed. With 8.73.0 installed (under pnpm 10, before S1 merged)
+  `make lint` was clean with no other new finding, and `make verify`, `make e2e`,
+  `make security` and `make sbom` passed. The bump itself is blocked by this repo's own
+  `minimumReleaseAge: 1440`, which arrived with S1: `typescript-eslint@8.73.0` and its eight
+  `@typescript-eslint/*` packages were published 2026-11-16T17:05-17:07Z, and
+  `pnpm add -D -E typescript-eslint@8.73.0` fails with
+  `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` until 2026-11-17T17:07Z. Excluding nine
+  packages of a twelve-hour-old release is what the rule exists to prevent, so no exclusion
+  was added. Remaining work, after that time: that one command, then the gates. No other
+  lint or test tool had a newer release (eslint 10.15.0, `@eslint/js` 10.0.1, vitest 5.1.0,
+  Playwright 1.65.1, happy-dom 21.0.4, tsx 4.23.15, axe-core 4.14.1 are all `latest`).
+  Original finding: tried here. `make lint` failed with two errors
   from a rule new to the strict preset, `@typescript-eslint/no-unsafe-class-instance-assignment`,
   at `tests/ui-safe-area.spec.ts:95` and `:101` (object literals cast to `CSSStyleDeclaration`
   and `DOMRect` for mocks). The gate was not weakened; the bump was dropped. Work: build those
@@ -161,7 +175,9 @@ install prints no deprecation warning and asks to run no new build script.
 
 ## Holds
 
-- **H1. TypeScript 7.** Blockers, both re-checked today: `typescript-eslint` 8.73.0 and its
+- **H1. TypeScript 7.** Still held; re-checked on 2026-11-17 with S2 (`typescript-eslint`
+  8.73.0 and canary 8.73.1-alpha.0 both declare `typescript >=4.8.4 <6.1.0`; both SDK 58
+  templates ship `~6.0.3`; TypeScript `latest` is 7.0.2). Blockers, both re-checked today: `typescript-eslint` 8.73.0 and its
   canary declare `typescript >=4.8.4 <6.1.0`; `expo-template-default` and
   `expo-template-blank-typescript` at `sdk-58` ship `typescript ~6.0.3`. Lifts when both move.
   The dependabot ignore for the TypeScript major stays.
