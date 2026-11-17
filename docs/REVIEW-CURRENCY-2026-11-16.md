@@ -203,6 +203,20 @@ install prints no deprecation warning and asks to run no new build script.
   the pin cannot be exercised here; bump it with the first authenticated build and update
   `docs/RELEASE.md` in the same change.
 
+## Security-scan exceptions
+
+- **E1. picomatch ReDoS, GHSA-fc5q-39xc-vjpf (high, CVSS 8.7).** The advisory (updated
+  2026-11-17 15:56 UTC) covers every picomatch up to 4.0.7, the latest release, with no
+  patched version. osv-scanner began failing `make security`, and so the required `verify`
+  check, on every branch that afternoon. picomatch 2.3.2 and 4.0.7 arrive only through
+  build and test tooling (expo CLI -> `@expo/metro-file-map` -> `jest-worker`/`jest-util`),
+  not the shipped game, and exploitation needs attacker-supplied glob patterns. The
+  maintainer approved a scoped exception on 2026-11-17: `osv-scanner.toml` ignores exactly
+  this id until 2026-12-17, when the scan fails again. Remove it when a fixed picomatch
+  ships. `pnpm audit --audit-level=high` did not report it at the time; trivy reported 0
+  findings for `pnpm-lock.yaml` (see S1 on scanners and the two-document lockfile before
+  reading that as a clean result).
+
 ## Holds
 
 - **H1. TypeScript 7.** Still held; TypeScript `latest` is 7.0.2. Both blockers were
