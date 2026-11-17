@@ -10,6 +10,7 @@
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
+| Published build smoke | Playwright against the live Pages site, plus its deployment commit | `tests/e2e/pages-smoke.remote.ts`, `scripts/pages-deployment.ts` | `make e2e-remote` (opt-in) |
 | Agent-driven exploratory testing | Playwright MCP | `.mcp.json` | on demand |
 
 ## Writing engine tests
@@ -88,6 +89,80 @@ The clock is installed **before navigation**. Playwright `runFor` delivers timer
 callbacks rather than dormant catch-up. Each case gets independent storage and
 fails on browser console warnings, errors or page errors. Trace artifacts are
 retained on failure in ignored `test-results/`.
+
+## Published build smoke check
+
+`make e2e` and `make e2e-pages` test the export this checkout builds. Neither looks at what
+GitHub Pages actually serves, or says which commit that is. `make e2e-remote` does both,
+read-only:
+
+```bash
+git fetch origin                     # the identity line compares with origin/main as last fetched
+make e2e-remote                      # https://williamzujkowski.github.io/daemon-zero/
+make e2e-remote PAGES_ARGS=--require-current   # also fail when Pages is not serving origin/main
+make e2e-remote DAEMON_E2E_REMOTE_URL=https://example.org/other-copy/   # any other published copy
+make pages-deployment                # only the identity report
+```
+
+It first runs `scripts/pages-deployment.ts`, which asks `gh api` for the repository's
+`github-pages` deployments, walks them newest first to the first whose latest status is
+`success` (a failed or in-flight deploy leaves the previous one serving; both are printed),
+and prints that deployment's commit beside `git rev-parse origin/main`, ending in
+`CURRENT`, `DIFFERS` or `UNKNOWN`. A difference is only a report unless
+`--require-current` is passed; a lookup that cannot be made (no `gh` login, a malformed
+reply) exits 2 and stops the target. It needs an authenticated `gh` and makes GET
+requests only.
+
+Then Playwright runs `tests/e2e/pages-smoke.remote.ts` at 390x844 and 1440x900. Setting
+`DAEMON_E2E_REMOTE_URL` switches `tests/e2e/config.ts` to the `remote-phone` and
+`remote-desktop` projects only and drops the `webServer`, so nothing is built, served or
+locked: there is no port, so the target does not go through `scripts/e2e-lock.sh`. The
+local targets unset the variable, so an exported value cannot turn `make e2e` into this.
+Each case, in Playwright's own fresh context (empty storage, checked before the first
+navigation):
+
+- loads the site at its subpath and checks every script and stylesheet comes from inside it;
+- waits for the terminal, and finds no development drawer and no development hook;
+- opens MENU, sees the save entry, and closes it;
+- reads the autosave from its own storage: iteration 1, phase 0, no wipes;
+- reloads and gets the same run back (iteration, phase, nodes, levels, wipes), clock not behind;
+- fails on any console warning or error, uncaught page error, failed request, HTTP status of
+  400 or more, or request to another origin. Nothing is allow-listed.
+
+The one failure seen while writing it was the test's own: the MENU press is the first
+gesture, which starts the default-on score, and reloading while its 3 MB file was still
+arriving aborted it (`net::ERR_ABORTED`). The spec therefore waits for the network to be idle
+for two seconds before the reload instead of excusing aborted requests. The spec does not
+import the local engine or fixtures, because the deployed build need not match the checkout;
+it reads the stored save as plain JSON. It writes only to its browser context and to the
+ignored `test-results/` (traces on failure).
+
+CI does not run it. The `deploy-pages` job holds only `pages: write` and `id-token: write`;
+listing deployments needs `deployments: read` and running the spec needs a checkout
+(`contents: read`) plus the toolchain and Chromium, so a report step there would mean
+widening that job's permissions. Run it by hand after a deploy, and paste its output where
+you claim the live site works.
+
+### Driving the live site through Playwright MCP
+
+The repository's `.mcp.json` lets the Playwright MCP server reach only `localhost:8081` and
+`localhost:8088`, and that default stays as it is. To look at the published site through MCP,
+use a configuration your task owns, in a directory of your own, and start your agent with it.
+For Claude Code:
+
+```bash
+dir=$(mktemp -d)
+cat > "$dir/mcp-live.json" <<'JSON'
+{ "mcpServers": { "playwright-live": { "command": "npx", "args": [
+  "-y", "@playwright/mcp@0.0.85", "--browser", "chrome", "--isolated",
+  "--allowed-origins", "https://williamzujkowski.github.io", "--snapshot-mode", "none" ] } } }
+JSON
+claude --mcp-config "$dir/mcp-live.json"
+```
+
+Other harnesses have an equivalent per-session option. Keep `--isolated`, so the browser
+profile is fresh and thrown away: the live site's origin may hold a player's real save in any
+profile that has visited it. Do not commit the override or widen `.mcp.json`.
 
 ## Live journey
 
@@ -512,6 +587,7 @@ that matches the question:
 | Step through a scenario, with locators and a timeline | add `--ui`, or `--debug` for the inspector |
 | Keep a replayable record of a run | add `--trace on`, then `pnpm exec playwright show-trace <test-results/.../trace.zip>` |
 | Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
+| Check what GitHub Pages serves, and from which commit | `make e2e-remote` (see "Published build smoke check") |
 
 The scripted commands need the production export (`make build-web`) and start their own
 server. `make e2e`, `make e2e-pages`, `make e2e-live` and `make e2e-audio` each take a slot
@@ -565,7 +641,9 @@ Start the app first (`make web`), then ask the agent to open `http://localhost:8
 
 The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
 server) and `localhost:8088`. To drive the production export through it, serve `dist` on
-8088; any other port is refused. Other browser tools are not limited this way.
+8088; any other port is refused. Other browser tools are not limited this way. For the
+published site, use a task-owned override instead of editing `.mcp.json` (see "Driving the
+live site through Playwright MCP").
 
 ## What CI runs
 
@@ -575,7 +653,8 @@ secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
 `make e2e-pages`; these browser suites are separate from `make verify-full`.
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) and the ffmpeg-based file checks are not
-run by CI. Only a successful `main` run deploys the tested Pages export. See
+run by CI, and neither is `make e2e-remote` (see "Published build smoke check" for why). Only
+a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on
