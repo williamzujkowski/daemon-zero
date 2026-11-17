@@ -215,9 +215,11 @@ install prints no deprecation warning and asks to run no new build script.
   this id until 2026-12-17, when the scan fails again, and `pnpm-workspace.yaml`
   `auditConfig.ignoreGhsas` carries the same id for `pnpm audit` (which began reporting it
   the same day). `tests/security-exceptions.spec.ts` fails if a pnpm exception has no dated
-  osv entry or once the date passes. Remove both when a fixed picomatch ships. trivy reported 0
-  findings for `pnpm-lock.yaml` (see S1 on scanners and the two-document lockfile before
-  reading that as a clean result).
+  osv entry or once the date passes. trivy reports the same flaw as CVE-2026-112366
+  once its database has it (that evening in CI); `.trivyignore` carries that id with
+  `exp:2026-12-17`, also checked by the test. So all three scanners read the two-document
+  lockfile and saw the advisory; none of them was passing vacuously. Remove all three entries
+  when a fixed picomatch ships.
 
 ## Holds
 

@@ -51,3 +51,17 @@ it('keeps exceptions few and specific', () => {
   expect(osv.size).toBeLessThanOrEqual(3);
   for (const id of osv.keys()) expect(id).toMatch(/^(GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|CVE-\d{4}-\d+)$/);
 });
+
+it('gives every .trivyignore entry an expiry that has not passed', () => {
+  const entries = readFileSync('.trivyignore', 'utf8')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '' && !line.startsWith('#'));
+  expect(entries.length).toBeLessThanOrEqual(3);
+  for (const entry of entries) {
+    const [id, exp] = entry.split(/\s+/);
+    expect(exp?.startsWith('exp:'), `${String(id)} in .trivyignore has an exp: date`).toBe(true);
+    const until = Date.parse(String(exp).slice(4));
+    expect(Number.isFinite(until) && Date.now() < until, `${String(id)} in .trivyignore expired`).toBe(true);
+  }
+});
