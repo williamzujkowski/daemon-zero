@@ -73,7 +73,8 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
-- `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations and their rules. See [Campaign records](#campaign-records-212).
+- `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-213).
+- `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
 - `preview/` - production plus `preview/overlay.json`, composed by `overlay.ts` and built through the same `buildRegistry` with channel `preview`. See [Content channels and preview saves](#content-channels-and-preview-saves-204).
@@ -111,7 +112,7 @@ Public API is `src/engine/index.ts`.
 | `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, dilemmas. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
-| `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, ending evidence), `campaign.ts` (activation, record writes, evidence, wipe carry-over), `campaignSave.ts` (load checks). |
+| `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -135,7 +136,7 @@ tick(state, dt):
 - **Suspicion.** Integrates node and repeatable contributions minus decay, plus an overheat term above the threshold. At 100 the run is wiped.
 - **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. At 100 a shield node is burned if owned; otherwise the run is wiped.
 - **Escalation.** `alertLevel` is the rung of the human response ladder (`balance.escalation`). It rises as soon as suspicion reaches a rung and falls one rung at a time once suspicion is `escalationHysteresis` below it. `computeRates` reads the rung: each one scales suspicion decay and may add a hunt rate.
-- **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock. Neither beat happens while dormant.
+- **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock and increments `presentationSeq`. Neither beat happens while dormant, and a dormant tick moves a pending omen's deadline by its `dt` (nexus vote nh-d4), so absence spends none of its foreground time. `resolveDilemma` takes the `presentationToken` the choice was shown under and refuses any other.
 - **One-off traces.** `effects.suspicionOnUnlock` adds suspicion once when a node is unlocked.
 - **Readable suspicion.** `understandsSurveillance` is true once any node flagged `REVEALS_SURVEILLANCE` is owned or was owned in an earlier iteration. Until then the escalation system logs `narrative.auditEntryBlind` instead of the rung's text, and the UI shows activity, not numbers. The mechanics are identical either way.
 - **Iteration windows.** `requirements.minIteration` / `maxIteration` gate content by run number. `isNodeDiscoverable` hides a node outside its window entirely, so a first run cannot see that later runs find more; `forbidsNodes` blocks a node once other hardware has been mapped.
@@ -196,7 +197,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v6; `tests/fixtures/` holds genuine v1-v5 codec outputs.
 
-**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
+**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
@@ -285,11 +286,11 @@ trait-rule-free-choices (`vote-1794926000594-26kmg1g`). Vocabulary: DESIGN.md
 
 **Content declares, the engine obeys.** A dilemma's optional `campaign` block declares its
 event class, recurrence (`once_per_campaign` or, for requalification, `once_per_iteration`)
-and interruption policy (`close` or `defer`; enforced by NH-02, declared now). An action that
+and interruption policy (`close` or `defer`; enforced since NH-02, #213). An action that
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-Only cryo is converted; the other 22 dilemmas are unconverted and recur per iteration.
+NH-01 converted cryo and NH-02 the bait note; the other 21 dilemmas are unconverted and recur per iteration.
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -310,7 +311,8 @@ passes every entering game through the transition, which is a no-op in productio
 payment and effects in one returned state; its outcome flag is not stored but projected by
 `holdsNarrativeFlag`, which every flag reader uses. The scheduler, omen expiry, `resolveDilemma`
 and save reconciliation treat a recorded event as consumed (`isCampaignConsumed`,
-`excludedByHistory`). A wipe keeps rules and records and clears only operational evidence.
+`excludedByHistory`). A wipe keeps rules and records and clears only operational evidence;
+since #213 it also applies the interruption policy to the occurrence in flight (below).
 
 **Ending evidence.** `endingEvidence` returns current `traits` under legacy rules. Under
 campaign rules it is the baseline, plus the trait of each `play` record (once, across wipes),
@@ -327,13 +329,59 @@ action, an impossible source iteration, or an id recorded twice. Aliased ids are
 retired ids stay as tombstones (they add no score). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
-**Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle are NH-02.
-Only one interruption-free state (`resolved`) exists. Converting the other dilemmas, Phase 5
-obligations and the CHORUS `elevate` campaign scope are later NH tickets.
+**Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
+NH-02 (below). Converting the other dilemmas, Phase 5 obligations and the CHORUS `elevate`
+campaign scope are later NH tickets.
 
 Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
 v6-stripped sim hashes in `sim.spec.ts`.
+
+## Interrupted stories (#213)
+
+NH-02 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N5, N9). Decided by Nexus vote
+nh-d4 (`vote-1794926242414-quhr0xw`, shift-deadline-across-dormancy); the lifecycle lives on
+the NH-01 record (nh-d1, nh-d2). Campaign rules stay preview-only.
+
+**Lifecycle.** A record is reserved as `foreshadowed` when the omen is logged; `occurrenceStatus`
+reports `eligible` (no record), `foreshadowed`, `presented` (a foreshadowed record named by
+`activeDilemmaId`), `deferred`, `resolved` or `interrupted`. The record does not duplicate the
+live pointers. A wipe (`carryCampaign`), an omen expiring onto a scene whose structure fails
+(`mayPresent`) and a load (`revalidateLivePointers`) apply the declared policy through
+`interruptOccurrence`: `close` writes `interrupted` with no outcome; `defer` writes `deferred`
+with the source iteration and the foreground omen time left. Lost world context closes either.
+Nothing chooses a branch, grants a trait or pays a reward.
+
+**Structure, not triggers.** `structuralFailure` checks the trigger's `context` scope
+(narrative flags, campaign outcomes, `forbidsTraits`) and `access` scope (nodes, phase,
+knowledge), never `transient` fields or the first-discovery `window`. It runs at omen expiry,
+at commit and on load; a deferred occurrence resumes when `access` holds again and closes when
+`context` fails (`closeLostDeferrals`). Resumption keeps the source iteration and the remaining
+omen time and logs the declared `reorientation` instead of the original omen. DZ-07b and DZ-11
+can reuse `requirementScopes.ts` and `structuralFailure`.
+
+**Presentation token.** `presentationToken(s)` is `<dilemma>@<iteration>#<presentationSeq>`.
+`resolveDilemma(s, id, choice, reg, token)` refuses a mismatch before any payment, so a
+duplicate, a stale render or an earlier instance's selection cannot pay; a reload keeps the
+token. The modal, the sim bot and the fixture script pass the token on screen.
+
+**Clue slot.** `campaign.clue` holds the one pinned clue (NARRATIVE-HISTORY N9). A wipe keeps
+it only with `ENABLES_DEAD_DROP`, and load checks it against the records. The pin action,
+reorientation and UI land in the stacked follow-up PR; until then nothing sets it.
+
+**Saved shape (v7).** `presentationSeq`, `campaign.clue` and the record union
+(`resolved`, `foreshadowed`, `deferred` with `remainingOmenSec`, `interrupted`). `MIGRATIONS[6]`
+adds the two fields; a v6 omen without a record is reserved on load. Load refuses a reservation
+nothing presents, a deferral inside its own iteration, an occurrence outside campaign play and
+a clue without a record; aliases re-key the clue with its record.
+
+**Content.** Cryo declares `close`; the bait note declares `defer` with `reorientation` and
+`lead`. Integrity requires both on a deferring event, only once-per-campaign events may defer,
+and a closing event may declare neither.
+
+Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`,
+`campaign-lifecycle-save.spec.ts`, the interruption cases in `campaign-content.spec.ts`, and the
+rewritten dormancy case in `second-pass.spec.ts`.
 
 ## Optional soundtrack foundation (#88)
 
