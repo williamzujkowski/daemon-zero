@@ -60,6 +60,26 @@ export const LEGACY_UNKNOWN_OUTCOME = 'legacy_unknown';
 export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outcome: id });
 
 /**
+ * The fact outcome a closed occurrence states: contact was lost before a decision, so nothing about
+ * the branch is known. Only a fact may name it; it is never a choice id or a recorded outcome.
+ */
+export const INTERRUPTED_FACT_OUTCOME = 'interrupted';
+
+/**
+ * A declared campaign fact (NARRATIVE-HISTORY N5, N6): a named question later scenes ask about one
+ * event, true when its record holds one of these outcomes. Scenes gate on the fact rather than on
+ * each outcome, so "Vance no longer holds his post" or "Elena is not on the floor" has one owner.
+ * Outcomes are choice ids, legacy_unknown or interrupted; integrity keeps them honest.
+ */
+export const CampaignFactSchema = z.strictObject({
+  id,
+  event: id,
+  outcomes: z.array(id).min(1),
+  /** What the fact establishes, in a sentence. Documentation for authors; never shown. */
+  meaning: z.string().min(10),
+});
+
+/**
  * Id compatibility for campaign records (NARRATIVE-HISTORY N5). A rename is an explicit alias
  * stamped with the save schema version that introduced it; a retired id stays listed so its old
  * record is kept as a tombstone. A save naming any other unknown campaign id is refused.
@@ -67,8 +87,10 @@ export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outc
 export const CampaignManifestSchema = z.strictObject({
   aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
   retired: z.array(id),
+  facts: z.array(CampaignFactSchema).default([]),
 });
 
 export type CampaignEventDeclaration = z.infer<typeof CampaignEventDeclarationSchema>;
 export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
 export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;
+export type CampaignFact = z.infer<typeof CampaignFactSchema>;

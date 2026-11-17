@@ -8,6 +8,7 @@ import { checkSwarmIntegrity } from './integritySwarm';
 import type { ContentRegistry } from './registry';
 import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
+import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 
@@ -209,6 +210,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkCampaignIntegrity(reg),
+    ...checkCampaignFactIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),
