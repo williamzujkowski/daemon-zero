@@ -5,6 +5,8 @@ import { expect, it, vi } from 'vitest';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { defined } from './m7-helpers';
 import { music } from '../src/app/musicSession';
+import { scoreTracks } from '../src/app/musicTracks';
+import { scoreMetadata } from '../src/app/scoreSession';
 
 setupM4Tests();
 vi.mock('../src/app/audioPlayer', () => ({ prepareMusic: () => Promise.resolve(),
@@ -113,4 +115,19 @@ it('offers the chrome switch only where the header row can hold it', async () =>
   const tabletPortrait = await mountM4('tick-0', { width: 500, height: 900 });
   expect(tabletPortrait.find('header-music')).toBeNull();
   tabletPortrait.close();
+});
+
+it('shows on the page, for every phase, the exact words the media session uses as its title', async () => {
+  // The disclosure rule for the lock screen is "no more than the Audio page says". This is the
+  // half of it that reads the page: the session's title must be text the page is showing.
+  const view = await mountM4('tick-0');
+  view.click('menu-open'); view.click('menu-audio');
+  for (const track of scoreTracks) {
+    act(() => { music.state.setState({ enabled: true, loaded: true, activated: true, playing: true, volume: 30, trackPhase: track.phase }); });
+    const page = view.find('menu-audio-page')?.textContent.toLowerCase() ?? '';
+    expect(page, track.id).toContain(scoreMetadata(track.phase).title.toLowerCase());
+    // And the page itself stays silent on the track's own name.
+    expect(page, track.id).not.toContain(track.title.toLowerCase());
+  }
+  view.close();
 });

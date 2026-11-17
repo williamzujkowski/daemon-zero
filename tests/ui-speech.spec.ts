@@ -7,7 +7,7 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 // The voice clips play through expo-audio; the widget's contract is which clip it hands to the
 // player, so the platform boundary is mocked exactly as tests/app-audio-player.spec.ts does.
-const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn(),
+const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi.fn(), release: vi.fn(), addListener: vi.fn(() => ({ remove: vi.fn() })) }, create: vi.fn(),
   mode: vi.fn(() => Promise.resolve()) }));
 vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
 import { CONTENT } from '../src/content';

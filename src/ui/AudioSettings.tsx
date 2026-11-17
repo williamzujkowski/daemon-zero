@@ -1,5 +1,6 @@
 /** Score and spoken-transmission preferences, kept apart from the narrative text they affect. */
 import { music, useMusic } from '../app/musicSession';
+import { scoreLabel } from '../app/scoreSession';
 import { Pressable, Text, View } from './PhaseTheme';
 import { theme } from './theme';
 
@@ -32,9 +33,9 @@ export default function AudioSettings() {
   // Subscribed here, on a page that exists only while MENU > Audio is open, so a level change
   // re-renders this page and never the terminal behind it.
   const audio = useMusic();
-  const available = audio.trackPhase !== null;
-  const status = !audio.enabled ? 'Music is off.' : !available ? 'Music is stopped for this run.'
-    : audio.playing ? (audio.volume === 0 ? 'Playing, muted at 0%.' : 'Playing phase ' + String(audio.trackPhase) + ' score.')
+  const phase = audio.trackPhase, available = phase !== null;
+  const status = !audio.enabled ? 'Music is off.' : phase === null ? 'Music is stopped for this run.'
+    : audio.playing ? (audio.volume === 0 ? 'Playing, muted at 0%.' : 'Playing ' + scoreLabel(phase) + '.')
     : !audio.activated ? 'Music is paused. Resume to start listening.' : 'Music is loading or paused.';
   const speech = !audio.speechEnabled ? 'Speech is off. READ is hidden.'
     : audio.speechVolume === 0 ? 'READ is offered, muted at 0%.' : 'READ is offered on transmissions that have a recording.';
