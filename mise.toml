@@ -2,9 +2,11 @@
 # Versions were checked against upstream releases on 2026-11-11.
 
 [tools]
-# Node 24 is the maintenance LTS line and is what Expo SDK 58 and Vitest 5 support.
-# Node 26 (active LTS since October 2026) is also supported: change this one line to move.
-node = "24.22.2"
+# Node 26 "Lithium" is the active LTS line (LTS since 2026-10-28, maintenance from 2027-10-20,
+# end of life 2029-04-30). Expo SDK 58, React Native 0.88, Metro, Vitest 5, ESLint 10 and
+# Playwright all declare support for it in `engines`. Node 24 is the maintenance LTS; package.json
+# `engines` still admits it. See docs/REVIEW-CURRENCY-2026-11-16.md.
+node = "26.13.1"
 pnpm = "10.28.0"
 
 # Security tooling used by `make security` and `make sbom`.
