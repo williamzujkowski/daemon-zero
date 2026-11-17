@@ -4,7 +4,7 @@
  * was (VALIDATION V15). A save that passes is returned unchanged, which keeps reconciling idempotent.
  */
 import { isCampaignActive } from './campaignQuery';
-import { contextPermits, isReviewed, routeTarget } from './accessQuery';
+import { contextPermits, holdsQualification, isReviewed, routeTarget } from './accessQuery';
 import type { OperatingContext, RouteEvent } from './accessState';
 import type { GameState } from './state';
 
@@ -22,7 +22,7 @@ function recordProblem(s: GameState): string | null {
     if (!isReviewed(context) || !contextPermits(context, exception.scope)) return 'save holds an access exception the arrangement cannot have';
     if (!now(exception.grantedAtSimSec) || exception.expiresAtSimSec <= exception.grantedAtSimSec) return 'save holds an access exception with an impossible lifetime';
   }
-  if (qualification !== null && (context === 'INDEPENDENT' || !now(qualification.recordedAtSimSec))) return 'save holds qualification evidence it cannot have';
+  if (qualification !== null && (!holdsQualification(context) || !now(qualification.recordedAtSimSec))) return 'save holds qualification evidence it cannot have';
   return null;
 }
 

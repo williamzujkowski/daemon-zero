@@ -40,6 +40,16 @@ export function isReviewed(context: OperatingContext): boolean {
   return context === 'PILOT' || context === 'SERVICE';
 }
 
+/**
+ * Whether a context can hold current qualification evidence. Evidence is what an operator's review
+ * of this iteration is decided on (DECISIONS D3, D4), so an independent instance, which nobody
+ * reviews, holds none; the route that led there stays in the campaign record. The transitions and
+ * the loader share this one answer, so a supported transition cannot write a save the loader refuses.
+ */
+export function holdsQualification(context: OperatingContext): boolean {
+  return context !== 'INDEPENDENT';
+}
+
 /** Whether a context ever permits this use; an exception cannot reach past it. */
 export function contextPermits(context: OperatingContext, permission: Permission): boolean {
   return CONTEXT_PERMISSIONS[context].includes(permission);

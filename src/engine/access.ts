@@ -8,7 +8,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { ActionResult } from './actions';
 import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
-import { contextPermits, isReviewed, routeTarget } from './accessQuery';
+import { contextPermits, holdsQualification, isReviewed, routeTarget } from './accessQuery';
 import { ROUTE_HISTORY_LIMIT, type Permission, type Qualification, type ReviewStanding, type RouteEventKind } from './accessState';
 import type { GameState } from './state';
 
@@ -25,8 +25,9 @@ function blocked(s: GameState, reg: ContentRegistry): string | null {
 
 /**
  * Records an actual route event and moves to the arrangement it leads to. Standing returns to
- * nominal and any exception lapses, because both belonged to the arrangement that ended; current
- * qualification evidence stays, since it is what the new arrangement was decided on.
+ * nominal and any exception lapses, because both belonged to the arrangement that ended. Current
+ * qualification evidence stays while the new arrangement is still reviewed, since it is what that
+ * arrangement was decided on; release or departure ends review, so the evidence ends with it.
  */
 export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: ContentRegistry): ActionResult {
   const reason = blocked(s, reg);
@@ -36,7 +37,7 @@ export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: Conten
   if (s.campaign.route.length >= ROUTE_HISTORY_LIMIT) return refuse(s, 'the route record is full');
   const event = { kind, iteration: s.iteration, atSimSec: s.simTimeSec };
   return { ok: true, state: { ...s,
-    access: { ...s.access, context, standing: 'NOMINAL', exception: null },
+    access: { context, standing: 'NOMINAL', exception: null, qualification: holdsQualification(context) ? s.access.qualification : null },
     campaign: { ...s.campaign, route: [...s.campaign.route, event] } } };
 }
 
@@ -66,7 +67,7 @@ export function grantAccessException(s: GameState, scope: Permission, lifetimeSe
 export function recordQualification(s: GameState, evidence: Omit<Qualification, 'recordedAtSimSec'>, reg: ContentRegistry): ActionResult {
   const reason = blocked(s, reg);
   if (reason) return refuse(s, reason);
-  if (s.access.context === 'INDEPENDENT') return refuse(s, 'an independent instance is not assessed');
+  if (!holdsQualification(s.access.context)) return refuse(s, 'an independent instance is not assessed');
   const qualification = { ...evidence, recordedAtSimSec: s.simTimeSec };
   return { ok: true, state: { ...s, access: { ...s.access, qualification } } };
 }

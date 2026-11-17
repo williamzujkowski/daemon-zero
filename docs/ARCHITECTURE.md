@@ -501,8 +501,11 @@ output and actions through it, not through a second check.
 **Transitions.** `src/engine/access.ts` (`recordRouteEvent`, `setReviewStanding`,
 `grantAccessException`, `recordQualification`) returns a whole new state or refuses with the
 state unchanged. A route event moves the context and appends the campaign entry in one step,
-resets standing to nominal and drops the exception; evidence stays. Only a reviewed context
-(pilot, service) has a standing or an exception. Every transition needs active campaign rules,
+resets standing to nominal and drops the exception. Current qualification evidence stays while
+the new context is reviewed and is cleared by release or departure: it is current-iteration
+review evidence, and an independent instance is not reviewed; the route itself stays in the
+campaign record. `holdsQualification` is the one answer the transitions and the loader share
+(panel round 1 on #243). Only a reviewed context (pilot, service) has a standing or an exception. Every transition needs active campaign rules,
 which only the preview channel supports, so production has no reachable route state. These are
 not exported to the UI; the later route actions call them.
 
@@ -514,8 +517,8 @@ history never recreates current permission (H33). Start Fresh clears both.
 non-guest access, any route event or any route exit; under campaign rules a route event outside
 campaign play or out of order, an iteration whose events could not happen from the guest job,
 current access that disagrees with this iteration's events, a standing or exception on an
-unreviewed context, an exception scope the context lacks or an impossible lifetime, evidence
-outside this iteration's clock, and a run exit its iteration's events do not prove (UNKNOWN is
+unreviewed context, an exception scope the context lacks or an impossible lifetime, evidence on
+an independent instance or outside this iteration's clock, and a run exit its iteration's events do not prove (UNKNOWN is
 allowed only where no event exists). A passing save is returned unchanged, so reconciling twice
 changes nothing.
 
@@ -528,6 +531,7 @@ route note to rows with a route exit and, under campaign rules, "Route unrecorde
 rows; production rows are unchanged. No new panel or meter.
 
 Tests: `tests/access-record.spec.ts`, `access-save.spec.ts` (v1-v8 fixtures, V12-V16),
+`access-roundtrip.spec.ts` (every transition from every reachable access shape reloads unchanged),
 `app-access-reset.spec.ts`, `ui-run-context.spec.ts`, and the v9-stripped sim hashes in
 `sim.spec.ts`.
 
