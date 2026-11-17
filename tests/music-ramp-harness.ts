@@ -3,21 +3,38 @@
  * separate mock per created player and logs every call in order, because the claims those
  * specs make are about which player was written to, and when.
  */
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import type { MusicPhase } from '../src/app/musicTracks';
+import type { Playhead } from '../src/app/loopSeam';
 import { MusicController } from '../src/app/musicController';
 import { AUDIO_KEY } from '../src/app/audioPreferences';
 import { createGameStore } from '../src/app/store';
 import { CONTENT } from '../src/content';
 import { createInitialState } from '../src/engine';
-import { memoryStorage } from './app-helpers';
+import { memoryStorage, movingPlayhead } from './app-helpers';
 
 export interface Fake { throws: string | null; phase: MusicPhase; log: string[]; levels: number[]; removed: boolean; status: (playing: boolean, error: boolean, held?: boolean) => void }
+
+/** Every fake made in the current case, across harnesses. */
+let made: Fake[] = [];
+beforeEach(() => { made = []; });
+
+/**
+ * Pending timers other than the loop-seam watch: a started player keeps one slow position poll
+ * for as long as it plays (`loopSeam.ts`), so the plain timer count no longer says whether a
+ * ramp is left scheduled. A fake is being watched when the last of its play, pause and remove
+ * calls was a play: the controller starts the watch with `play()` and ends it with the others.
+ */
+export function rampTimers(): number {
+  const watched = made.filter((fake) => fake.log.filter((call) => call !== 'volume').at(-1) === 'play').length;
+  return vi.getTimerCount() - watched;
+}
 
 export async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
 export const run = (ms: number) => { vi.advanceTimersByTime(ms); };
 
-export async function harness(volume = 40, enabled = true) {
+/** `playhead` makes each player's position and length; by default the fade-in opens on its first tick. */
+export async function harness(volume = 40, enabled = true, playhead: () => Playhead = movingPlayhead) {
   const storage = memoryStorage();
   storage.setItem(AUDIO_KEY, JSON.stringify({ version: 2, enabled, volume, speechEnabled: true, speechVolume: 30 }));
   const game = createGameStore();
@@ -34,8 +51,8 @@ export async function harness(volume = 40, enabled = true) {
       // Set by a case that needs the backend to fail at one call.
       if (fake.throws === call) throw new Error(call + ' failed');
     };
-    players.push(fake);
-    return { play: () => { note('play'); }, pause: () => { note('pause'); },
+    players.push(fake); made.push(fake);
+    return { ...playhead(), play: () => { note('play'); }, pause: () => { note('pause'); },
       volume: (level: number) => { note('volume'); fake.levels.push(level); },
       remove: () => { note('remove'); fake.removed = true; } };
   } };

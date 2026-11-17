@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: make setup
 
+      # tests/audio-assets.spec.ts measures the committed audio with ffmpeg and ffprobe, and fails
+      # rather than skips when CI is set and they are missing.
+      - name: Install ffmpeg (audio file checks)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Typecheck, lint, content, tests, balance
         run: make verify
 

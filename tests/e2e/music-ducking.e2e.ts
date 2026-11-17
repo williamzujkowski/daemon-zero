@@ -16,10 +16,11 @@
 import { test as bare } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
-import { boot, expect, observeMusicMedia, restingSoundtrackVolume, sampleScore, soundtrackVolume, test, voiceClipsPlaying, type ScoreSample } from './helpers';
+import { OUTPUT_SCALE } from '../../src/app/outputLevel';
+import { boot, expect, observeMusicMedia, restingSoundtrackVolume, sampleScore, scoreFlowing, soundtrackVolume, test, voiceClipsPlaying, type ScoreSample } from './helpers';
 
-// `boot(..., { audio: true })` seeds this preference; the test asserts against it, not a guess.
-const PREFERENCE = 0.3;
+// `boot(..., { audio: true })` seeds 30%; the player is handed that times the output scale.
+const PREFERENCE = 0.3 * OUTPUT_SCALE;
 const DUCKED = PREFERENCE * DUCK_RATIO;
 
 /** Runs the clock a whole duck per look, so a poll waits on the event that starts a ramp and
@@ -49,6 +50,7 @@ test('the score ducks while a transmission is read and returns when the clip end
   // at the preference level, no clip talking.
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(() => soundtrackVolume(page), 'the score starts silent and waits for its fade-in').toBe(0);
+  await scoreFlowing(page);
   expectRamp(await sampleScore(page, FADE_IN_MS), 0, PREFERENCE);
   await expect.poll(() => soundtrackVolume(page), 'the score plays at the preference level first').toBeCloseTo(PREFERENCE, 5);
   expect(await voiceClipsPlaying(page)).toBe(0);
@@ -107,6 +109,7 @@ bare('the score comes back when the clip fails to load instead of staying ducked
   await expect(read).toBeVisible();
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(() => soundtrackVolume(page), 'the score starts silent and waits for its fade-in').toBe(0);
+  await scoreFlowing(page);
   await page.clock.runFor(FADE_IN_MS);
   await expect.poll(() => soundtrackVolume(page), 'the score plays at the preference level first').toBeCloseTo(PREFERENCE, 5);
 

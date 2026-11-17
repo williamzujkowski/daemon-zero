@@ -6,7 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS, FADE_OUT_MS } from '../src/app/musicController';
 import { RAMP_STEP_MS } from '../src/app/volumeRamp';
 import { AUDIO_KEY } from '../src/app/audioPreferences';
-import { fresh, harness, monotonic, run, settle } from './music-ramp-harness';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
+import { fresh, harness, monotonic, rampTimers, run, settle } from './music-ramp-harness';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -18,12 +19,12 @@ describe('soundtrack ramps', () => {
     expect(levels, 'silent before it is started').toEqual([0]);
     expect(h.at(0).log.slice(0, 2)).toEqual(['volume', 'play']);
     run(FADE_IN_MS - RAMP_STEP_MS);
-    expect(levels.at(-1)).toBeLessThan(0.4);
+    expect(levels.at(-1)).toBeLessThan(0.4 * OUTPUT_SCALE);
     run(RAMP_STEP_MS);
     expect(levels.length).toBe(1 + FADE_IN_MS / RAMP_STEP_MS);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBe(0.4);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
+    expect(rampTimers()).toBe(0);
     h.stop();
   });
 
@@ -35,15 +36,15 @@ describe('soundtrack ramps', () => {
     run(DUCK_RAMP_MS);
     expect(levels.length).toBe(DUCK_RAMP_MS / RAMP_STEP_MS);
     expect(monotonic(levels, false)).toBe(true);
-    expect(levels[0]).toBeLessThan(0.4);
-    expect(levels[0]).toBeGreaterThan(0.4 * DUCK_RATIO);
-    expect(levels.at(-1)).toBe(0.4 * DUCK_RATIO);
+    expect(levels[0]).toBeLessThan(0.4 * OUTPUT_SCALE);
+    expect(levels[0]).toBeGreaterThan(0.4 * OUTPUT_SCALE * DUCK_RATIO);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     fresh(h.at(0));
     h.controller.setDucked(false); run(DUCK_RAMP_MS);
     expect(levels.length).toBe(DUCK_RAMP_MS / RAMP_STEP_MS);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBe(0.4);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
+    expect(rampTimers()).toBe(0);
     h.stop();
   });
 
@@ -51,13 +52,13 @@ describe('soundtrack ramps', () => {
     const h = await harness(); run(FADE_IN_MS);
     h.controller.setDucked(true); run(DUCK_RAMP_MS / 2);
     const reached = h.at(0).levels.at(-1) ?? 0;
-    expect(reached).toBeGreaterThan(0.4 * DUCK_RATIO);
+    expect(reached).toBeGreaterThan(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     const levels = fresh(h.at(0));
     h.controller.setDucked(false); run(DUCK_RAMP_MS);
     // Starting again from the old target would have dipped to the ducked level first.
     expect(Math.min(...levels)).toBeGreaterThan(reached);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBe(0.4);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
     h.stop();
   });
 
@@ -81,7 +82,7 @@ describe('soundtrack ramps', () => {
       expect(old.log.slice(-3)).toEqual(['volume', 'pause', 'remove']);
       expect(h.players.length, 'nothing is created in its place').toBe(1);
       expect(h.violations).toEqual([]);
-      expect(vi.getTimerCount()).toBe(0);
+      expect(rampTimers()).toBe(0);
       h.stop();
     }
   });
@@ -110,15 +111,15 @@ describe('soundtrack ramps', () => {
     expect(levels, 'the fade-in bends rather than jumping').toEqual([]);
     run(FADE_IN_MS);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBe(0.8);
+    expect(levels.at(-1)).toBe(0.8 * OUTPUT_SCALE);
     h.controller.setDucked(true); run(DUCK_RAMP_MS / 2);
     h.controller.setVolume(50); await settle(); run(DUCK_RAMP_MS);
-    expect(h.at(0).levels.at(-1)).toBe(0.5 * DUCK_RATIO);
+    expect(h.at(0).levels.at(-1)).toBe(0.5 * OUTPUT_SCALE * DUCK_RATIO);
     // At rest a volume change is immediate, as it always was.
     fresh(h.at(0));
     h.controller.setVolume(60);
-    expect(levels).toEqual([0.6 * DUCK_RATIO]);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(levels).toEqual([0.6 * OUTPUT_SCALE * DUCK_RATIO]);
+    expect(rampTimers()).toBe(0);
     expect(JSON.parse(h.storage.getItem(AUDIO_KEY) ?? '')).toMatchObject({ enabled: true, volume: 60 });
     h.stop();
   });
@@ -140,21 +141,21 @@ describe('soundtrack ramps', () => {
     const h = await harness();
     run(FADE_IN_MS / 5);
     const reached = h.at(0).levels.at(-1) ?? 0;
-    expect(reached).toBeLessThan(0.4 * DUCK_RATIO);
+    expect(reached).toBeLessThan(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     const levels = fresh(h.at(0));
     // Ducked while still fading in: it carries on up from where it is, to the ducked level.
     h.controller.setDucked(true); run(FADE_IN_MS);
     expect(monotonic(levels, true)).toBe(true);
     expect(Math.min(...levels)).toBeGreaterThan(reached);
-    expect(levels.at(-1)).toBe(0.4 * DUCK_RATIO);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     // A phase change while ducked: the next score fades in to the ducked level and no higher.
     h.phase(1); run(FADE_IN_MS);
-    expect(Math.max(...h.at(1).levels), 'no full-volume blip under the voice').toBe(0.4 * DUCK_RATIO);
-    expect(h.at(1).levels.at(-1)).toBe(0.4 * DUCK_RATIO);
+    expect(Math.max(...h.at(1).levels), 'no full-volume blip under the voice').toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
+    expect(h.at(1).levels.at(-1)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     // The clip ends while the one after is still fading in: it carries on up to the full level.
     h.phase(2); run(FADE_IN_MS / 2); h.controller.setDucked(false); run(DUCK_RAMP_MS);
     expect(monotonic(h.at(2).levels, true)).toBe(true);
-    expect(h.at(2).levels.at(-1)).toBe(0.4);
+    expect(h.at(2).levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
     expect(h.violations).toEqual([]);
     h.stop();
   });
@@ -179,21 +180,21 @@ describe('soundtrack ramps', () => {
     h.controller.setDucked(true); run(DUCK_RAMP_MS / 2);
     h.activity(false);
     expect(h.at(0).log.at(-1)).toBe('pause');
-    expect(vi.getTimerCount(), 'no ramp is left waiting on a suspended app').toBe(0);
+    expect(rampTimers(), 'no ramp is left waiting on a suspended app').toBe(0);
     // A duck edge while paused is remembered without a timer.
     h.controller.setDucked(false);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     const levels = fresh(h.at(0));
     h.activity(true); run(FADE_IN_MS);
     expect(h.players.length).toBe(1);
     expect(levels[0]).toBe(0);
-    expect(levels.at(-1)).toBe(0.4);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
 
     h.end(); run(FADE_OUT_MS / 2);
     expect(h.at(0).removed).toBe(false);
     h.activity(false);
     expect(h.at(0).removed, 'the fade-out is cut short, not left pending').toBe(true);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     h.activity(true); run(FADE_IN_MS);
     expect(h.players.length, 'the ending still plays nothing').toBe(1);
     expect(h.violations).toEqual([]);
@@ -204,25 +205,25 @@ describe('soundtrack ramps', () => {
     const off = await harness(40, false);
     off.controller.setDucked(true); off.controller.setVolume(50); off.phase(1); off.controller.setDucked(false);
     expect(off.players.length).toBe(0);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     off.stop();
 
     const mute = await harness(0);
     expect(mute.at(0).levels).toEqual([0]);
     mute.controller.setDucked(true); mute.controller.setDucked(false);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     // Nothing audible to fade: the old player goes at once and the new one starts silent.
     mute.phase(1);
     expect(mute.at(0).removed).toBe(true);
     expect(mute.players.length).toBe(2);
     expect(mute.at(1).log, 'started once, not once per pass through a zero-length fade').toEqual(['volume', 'play']);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     expect(new Set(mute.players.flatMap((fake) => fake.levels))).toEqual(new Set([0]));
     // Turning the level down to zero mid-ramp is a set, not a ramp to silence.
     const loud = await harness(); run(FADE_IN_MS / 2);
     loud.controller.setVolume(0);
     expect(loud.at(0).levels.at(-1)).toBe(0);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     mute.stop(); loud.stop();
   });
 
@@ -233,9 +234,9 @@ describe('soundtrack ramps', () => {
       (h: Awaited<ReturnType<typeof harness>>) => { run(FADE_IN_MS); h.end(); run(FADE_OUT_MS / 2); return h; },
     ]) {
       const h = midRamp(await harness());
-      expect(vi.getTimerCount()).toBe(1);
+      expect(rampTimers()).toBe(1);
       h.stop();
-      expect(vi.getTimerCount()).toBe(0);
+      expect(rampTimers()).toBe(0);
       const calls = h.players.map((fake) => fake.log.length);
       run(5000);
       expect(h.players.map((fake) => fake.log.length)).toEqual(calls);
@@ -250,14 +251,14 @@ describe('soundtrack ramps', () => {
     h.at(0).throws = 'volume';
     run(RAMP_STEP_MS);
     expect(h.at(0).removed).toBe(true);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     h.controller.toggle(); await settle();
     expect(h.players.length, 'the next start is not left waiting').toBe(2);
     h.at(1).throws = 'volume';
     run(RAMP_STEP_MS);
     expect(h.controller.state.getState()).toMatchObject({ playing: false, activated: false });
     expect(h.controller.state.getState().status).toContain('Playback unavailable');
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     h.stop();
   });
 });

@@ -3,11 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MusicPhase } from '../src/app/musicTracks';
 import { DUCK_RATIO, FADE_IN_MS, FADE_OUT_MS, MusicController } from '../src/app/musicController';
 import { AUDIO_KEY, audioPreferences, silentPreferences } from '../src/app/audioPreferences';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import { createGameStore } from '../src/app/store';
 import { CONTENT } from '../src/content';
 import { createInitialState } from '../src/engine';
 import type { KeyValueStorage } from '../src/app/storage';
-import { memoryStorage } from './app-helpers';
+import { memoryStorage, movingPlayhead } from './app-helpers';
 
 async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
 /** Levels now arrive by ramp (tests/app-music-ramps.spec.ts owns their shape); these cases are
@@ -29,7 +30,7 @@ function harness(storage: KeyValueStorage = optedOut()) {
   game.initialize(createInitialState(CONTENT), 0, null);
   let lifecycle: (active: boolean) => void = () => undefined;
   let update = (_playing: boolean, _error: boolean) => undefined;
-  const player = { play: vi.fn(), pause: vi.fn(), remove: vi.fn(), volume: vi.fn() };
+  const player = { ...movingPlayhead(), play: vi.fn(), pause: vi.fn(), remove: vi.fn(), volume: vi.fn() };
   const backend = { prepareMusic: vi.fn(() => Promise.resolve()), createMusicPlayer: vi.fn((_phase: MusicPhase, listener: typeof update) => { update = listener; return player; }) };
   const load = vi.fn(() => Promise.resolve(backend));
   const controller = new MusicController(game, { current: () => true, subscribe: (listener) => { lifecycle = listener; return vi.fn(); } }, storage, load);
@@ -243,14 +244,14 @@ describe('ducking under speech', () => {
 
   it('drops the live player to the duck ratio and restores the preference level', async () => {
     const h = await playing();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * OUTPUT_SCALE);
     h.controller.setDucked(true); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * DUCK_RATIO);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     const writes = h.player.volume.mock.calls.length;
     h.controller.setDucked(true); ramped();
     expect(h.player.volume, 'a repeated signal writes nothing').toHaveBeenCalledTimes(writes);
     h.controller.setDucked(false); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * OUTPUT_SCALE);
     h.stop();
   });
 
@@ -258,12 +259,12 @@ describe('ducking under speech', () => {
     const h = await playing();
     h.controller.setDucked(true);
     h.controller.setVolume(80); await settle(); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * DUCK_RATIO);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * OUTPUT_SCALE * DUCK_RATIO);
     expect(h.controller.state.getState().volume).toBe(80);
     // The stored v1 value migrated with speech at the old shared level; only the music level moved.
     expect(await audioPreferences(h.storage).load()).toEqual({ version: 2, enabled: true, volume: 80, speechEnabled: true, speechVolume: 40 });
     h.controller.setDucked(false); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.8);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.8 * OUTPUT_SCALE);
     h.stop();
   });
 
@@ -285,11 +286,11 @@ describe('ducking under speech', () => {
     ramped();
     // The new player never goes above the ducked level on its way in: no full-volume blip.
     const levels = h.player.volume.mock.calls.map(([level]) => Number(level));
-    expect(Math.max(...levels)).toBe(0.4 * DUCK_RATIO);
-    expect(levels.at(-1)).toBe(0.4 * DUCK_RATIO);
+    expect(Math.max(...levels)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
+    expect(levels.at(-1)).toBe(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     h.controller.setDucked(false);
     h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 2 } })); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(0.4);
+    expect(h.player.volume).toHaveBeenLastCalledWith(0.4 * OUTPUT_SCALE);
     h.stop();
   });
 
@@ -298,7 +299,7 @@ describe('ducking under speech', () => {
     h.controller.setDucked(true);
     expect(h.player.volume).not.toHaveBeenCalled();
     h.controller.toggle(); await settle(); ramped();
-    expect(h.player.volume).toHaveBeenLastCalledWith(silentPreferences.volume / 100 * DUCK_RATIO);
+    expect(h.player.volume).toHaveBeenLastCalledWith(silentPreferences.volume / 100 * OUTPUT_SCALE * DUCK_RATIO);
     h.stop();
   });
 

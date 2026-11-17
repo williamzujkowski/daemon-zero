@@ -12,6 +12,7 @@
  */
 import { test as bare } from '@playwright/test';
 import { boot, expect, observeMusicMedia, test, voiceClipsPlaying, voiceClipVolume } from './helpers';
+import { OUTPUT_SCALE } from '../../src/app/outputLevel';
 
 const AUDIO_KEY = 'daemon-zero.audio.v1';
 
@@ -69,7 +70,7 @@ test('a stored single-switch preference migrates: speech inherits it and READ pl
   if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
   await page.getByTestId('speech-read').click();
   await expect.poll(() => voiceClipsPlaying(page)).toBe(1);
-  await expect.poll(() => voiceClipVolume(page), 'the clip plays at the speech level, not the music level').toBeCloseTo(0.6, 5);
+  await expect.poll(() => voiceClipVolume(page), 'the clip plays at the speech level, not the music level').toBeCloseTo(0.6 * OUTPUT_SCALE, 5);
 });
 
 test('speech works with music off: the clip is fetched and no score is ever created', async ({ page }) => {
@@ -84,7 +85,7 @@ test('speech works with music off: the clip is fetched and no score is ever crea
   await read.click();
   expect((await delivered).ok()).toBe(true);
   await expect.poll(() => voiceClipsPlaying(page), 'the clip is really talking').toBe(1);
-  await expect.poll(() => voiceClipVolume(page)).toBeCloseTo(0.7, 5);
+  await expect.poll(() => voiceClipVolume(page)).toBeCloseTo(0.7 * OUTPUT_SCALE, 5);
 
   // Both sets of controls live on the one Audio page, each a full touch target.
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
