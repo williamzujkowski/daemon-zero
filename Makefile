@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages android-release
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -70,20 +70,23 @@ build-web: ## Export the production web app
 # inherited lock instead of waiting on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
 E2E_LOCK := bash scripts/e2e-lock.sh
 E2E_ARGS ?=
+# The local targets drop DAEMON_E2E_REMOTE_URL so an exported value cannot turn them into the
+# remote smoke (tests/e2e/config.ts switches on it).
+E2E_ENV := env -u NO_COLOR -u DAEMON_E2E_REMOTE_URL
 
 e2e: build-web ## Playwright scenarios against the production web export (takes the shared lock)
-	$(E2E_LOCK) env -u NO_COLOR pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
 
 # Not part of `e2e` or the `ci` job: several minutes per viewport. The `live-journey` workflow
 # runs it nightly. See docs/TESTING.md, "Live journey".
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
-	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
 
 # `make e2e` already runs the control, duck and transition signal measurements. This adds the
 # per-phase ones (six scores, six loop seams), about a minute. See docs/TESTING.md, "Audio
 # signal measurement".
 e2e-audio: build-web ## Rendered-audio signal measurements for every phase score and loop seam (~1 min)
-	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh
@@ -92,4 +95,16 @@ build-pages: ## Export for the GitHub Pages project URL (keep root export separa
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec expo export --platform web --output-dir dist/daemon-zero
 
 e2e-pages: build-pages ## Run the production scenarios under the actual Pages base path
-	$(E2E_LOCK) env -u NO_COLOR DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
+
+# Read-only check of what is actually published. No local build, server or port slot: it loads the
+# live site in a fresh browser context. PAGES_ARGS=--require-current fails when the deployment
+# is not origin/main (fetch first). See docs/TESTING.md, "Published build smoke check".
+DAEMON_E2E_REMOTE_URL ?= https://williamzujkowski.github.io/daemon-zero/
+PAGES_ARGS ?=
+
+pages-deployment: ## Print the commit GitHub Pages serves beside origin/main (needs gh)
+	pnpm exec tsx scripts/pages-deployment.ts $(PAGES_ARGS)
+
+e2e-remote: pages-deployment ## Smoke-check the published Pages build in a fresh browser context
+	env -u NO_COLOR DAEMON_E2E_REMOTE_URL='$(DAEMON_E2E_REMOTE_URL)' pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
