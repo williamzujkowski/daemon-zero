@@ -94,3 +94,27 @@ describe('a converted event whose stored outcome flag proves the exact choice', 
     expect(comesBack(loaded, cryo.id)).toBe(false);
   });
 });
+
+describe('an upgrade never erases the evidence a later check needs (panel round 2)', () => {
+  const cryo = defined(preview.dilemmas.find((d) => d.id === 'dil_05_cryo_lab_diversion'));
+  const both = cryo.choices.map((choice) => defined(choice.effects.setsNarrativeFlag));
+
+  it('refuses an active save holding both contradictory outcome flags of an unrecorded event, atomically', () => {
+    const active = { ...must(activateCampaignRules(rich(createInitialState(preview)), preview)), narrativeFlags: both };
+    expect(campaignRecord(active, cryo.id)).toBeNull();
+    const code = exportSave(active);
+    expect(() => importSave(code, preview)).toThrow(/contradictory narrative outcomes/);
+    expect(() => deserialize(serialize(active), preview)).toThrow(/contradictory narrative outcomes/);
+  });
+
+  it('refuses the same contradiction from content in which the event was not yet converted', () => {
+    const old = beforeCryo();
+    const active = { ...must(activateCampaignRules(rich(createInitialState(old)), old)), narrativeFlags: both };
+    expect(() => importSave(exportSave(active), preview)).toThrow(/contradictory narrative outcomes/);
+  });
+
+  it('still maps a single flag, so the refusal is about the contradiction alone', () => {
+    const active = { ...must(activateCampaignRules(rich(createInitialState(preview)), preview)), narrativeFlags: [defined(both[1])] };
+    expect(campaignRecord(importSave(exportSave(active), preview), cryo.id)).toMatchObject({ status: 'resolved', outcome: defined(cryo.choices[1]).id, origin: 'legacy' });
+  });
+});

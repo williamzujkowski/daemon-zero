@@ -74,13 +74,19 @@ function canonicalClue(c: CampaignState, events: CampaignState['events'], reg: C
  * activation reads it: a guarded outcome flag gives the choice and moves into the record, otherwise
  * legacy_unknown. Origin 'legacy' adds no ending evidence and the baseline is not recaptured; the
  * trait already sits in this iteration's operational evidence. A recorded event is never touched,
- * so a flag stored beside its record is still refused, and a second load finds nothing to do.
+ * so a flag stored beside its record is still refused, and a second load finds nothing to do. Two
+ * stored outcomes of one event are refused, never resolved by picking one: the upgrade must not
+ * consume evidence a later check depends on.
  */
-function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: CampaignState['events']): Pick<GameState, 'narrativeFlags'> & { events: CampaignState['events'] } {
+function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: CampaignState['events']): (Pick<GameState, 'narrativeFlags'> & { events: CampaignState['events'] }) | string {
   const added: CampaignState['events'] = {};
   const claimed = new Set<string>();
   for (const event of reg.campaign.events.values()) {
-    const record = Object.hasOwn(events, event.id) ? null : legacyRecord(s, event);
+    if (Object.hasOwn(events, event.id)) continue;
+    // Two stored outcomes of one event are a contradiction, never a choice to make here.
+    const stored = event.choices.filter((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
+    if (stored.length > 1) return 'save contains contradictory narrative outcomes';
+    const record = legacyRecord(s, event);
     if (!record) continue;
     added[event.id] = record;
     for (const choice of event.choices) if (choice.effects.setsNarrativeFlag) claimed.add(choice.effects.setsNarrativeFlag);
@@ -100,7 +106,9 @@ export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): Game
   }
   const checked = canonical(c.events, reg, (id, record) => recordProblem(s, reg, id, record));
   if (typeof checked === 'string') return checked;
-  const { events, narrativeFlags } = upgradeConvertedEvents(s, reg, checked);
+  const upgraded = upgradeConvertedEvents(s, reg, checked);
+  if (typeof upgraded === 'string') return upgraded;
+  const { events, narrativeFlags } = upgraded;
   const projected = projectableFlags(reg);
   if (narrativeFlags.some((flag) => projected.has(flag))) return 'save stores an outcome flag that its campaign record owns';
   const creditedActions = canonical(c.creditedActions, reg, (id) => reg.campaign.actions.has(id) ? null : `save credits an unknown campaign action "${id}"`);
