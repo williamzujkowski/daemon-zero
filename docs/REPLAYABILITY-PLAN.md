@@ -1,7 +1,8 @@
 # Replayability pilot — implementation plan
 
 Status: A/B merged in PRs #81/#82; C implemented for #77 with verification in
-REVIEW-REPLAYABILITY-C.md. D remains deferred pending human feedback.
+REVIEW-REPLAYABILITY-C.md. D remains deferred until the autonomous validation
+gate in MILESTONES.md passes (until 2026-11-17: pending human feedback).
 Issue #79; follows the
 [measured audit](PLAYTEST-REPLAYABILITY.md) and [research](REPLAYABILITY-RESEARCH.md).
 Baseline: `444befc` (PR #78). The maintainer approved the direction and asked for
@@ -16,8 +17,10 @@ consequence that survives a wipe. Do not add a narrative framework, runtime LLM,
 network service, random scheduler, currency, relationship meter or permanent tab.
 
 The hypothesis is that recognizable consequences encourage a different next
-choice. Automated reachability cannot prove that hypothesis. A small human
-comparison follows the pilot before more characters/sites are commissioned.
+choice. Automated reachability cannot prove that hypothesis. Before more
+characters/sites are commissioned, the autonomous validation gate (MILESTONES.md)
+evaluates the pilot through recorded agent-run play; a small human comparison
+remains welcome but is optional since the maintainer's 2026-11-17 authorization.
 
 ## PR sequence and ownership
 
@@ -229,12 +232,14 @@ block a phase or require failure to unlock. Budget two openings, two branches
 per site, one callback per branch and one repeat-visit summary per site; optional
 records <=100 words and visible receipts <=two short sentences.
 
-Do not ship D simply because C's tests pass. In a small human comparison, check:
-can the player find the collapsed callback without guidance, explain what changed
-because of their previous choice, find the
+Do not ship D simply because C's tests pass. The autonomous gate (and any
+optional human comparison) checks: can the player find the collapsed callback
+without guidance, explain what changed because of their previous choice, find the
 next purchase without opening archives, and voluntarily investigate another
-route? Keep observations qualitative and record sample size; do not claim a
-retention effect. If callbacks are missed, first improve discoverability inside
+route? Agent-run sessions can show whether the callback is findable and legible
+through normal controls; they cannot show that a person finds it meaningful, so
+label them as agent observations. Keep observations qualitative and record sample
+size; do not claim a retention effect. If callbacks are missed, first improve discoverability inside
 existing surfaces; if they feel repetitive, shorten or remove them.
 
 ## Research and review evidence
