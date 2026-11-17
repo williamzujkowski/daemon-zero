@@ -196,6 +196,8 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
+**Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-preview` reports a policy's preview-versus-production numbers without gating; see `docs/TESTING.md`, "Sim policies".
+
 ## Decisions
 
 | Decision | Reason |
