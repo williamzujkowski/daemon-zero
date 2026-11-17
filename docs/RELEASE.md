@@ -130,8 +130,8 @@ Read from the APK's own file table (`unzip -lv`):
 | Hermes JavaScript bundle | 2,196,828 | 2.4% |
 | Everything else (resources, manifest, signature) | 957,265 | 1.0% |
 
-Since 2026-11-17 the six scores total 22,091,940 bytes, 159,351 fewer: their container tags
-were replaced with neutral ones and the audio is unchanged (#193,
+Since 2026-11-17 the six scores total 22,092,180 bytes, 159,111 fewer: their container tags
+were replaced with neutral ones plus an AI-origin comment, and the audio is unchanged (#193,
 [SOUNDTRACK.md](SOUNDTRACK.md)). The APK was not rebuilt or re-measured for that change, so
 the table above is still the 2026-11-16 measurement.
 

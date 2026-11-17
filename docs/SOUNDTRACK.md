@@ -42,9 +42,11 @@ No audio is generated here. Scores are maintainer-supplied files with recorded p
    ```bash
    pnpm exec tsx scripts/neutral-score-tags.ts <phase> < supplied.mp3 > assets/audio/music/<folder>/<name>.mp3
    ```
-   (lower-case file name with hyphens). It replaces the ID3v2 tag with exactly three frames,
+   (lower-case file name with hyphens). It replaces the ID3v2 tag with exactly four frames:
    the strings the app publishes for that phase (title `Phase <phase> score`, artist and
-   album `DAEMON // 0`), drops everything else including artwork, and copies every byte from
+   album `DAEMON // 0`) and a comment, `AI-generated music (Suno)`, that discloses the
+   music's AI origin without being shown by a media session. It drops everything else,
+   including artwork, and copies every byte from
    the first MPEG frame on, so the audio and its encoder delay and padding are the supplied
    ones. It writes nothing if it cannot show that, or if the file ends in a tag it does not
    handle (ID3v1, APE). It prints both hashes. Do not use `ffmpeg -c copy` for this: its MP3
@@ -66,8 +68,8 @@ No audio is generated here. Scores are maintainer-supplied files with recorded p
    file under the same `id` and path needs no code edit at all.
 6. Run `make verify`. `tests/app-score-tracks.spec.ts` fails if the file, size, hash,
    provenance or import line is missing or disagrees; `tests/score-tags.spec.ts` fails if
-   the file carries any tag but the three neutral ones, or a title or artist other than what
-   the app publishes for its phase; and `tests/e2e/phase-music.e2e.ts` then plays every
+   the file carries any tag but the three neutral ones and the disclosure comment, or a
+   title or artist other than what the app publishes for its phase; and `tests/e2e/phase-music.e2e.ts` then plays every
    manifest entry on the web export and compares the served bytes to the manifest.
 7. Listen to it in the game. Nothing above is a listening test.
 
@@ -288,6 +290,24 @@ What was done, to all six files:
   cover and a C2PA manifest) was replaced by an ID3v2.3 tag with three frames: title
   `Phase N score`, artist `DAEMON // 0`, album `DAEMON // 0`. These are `scoreMetadata(N)`,
   the web session's own strings. There is no artwork: the cover was Suno's, not the game's.
+- One more frame was added by a second vote, after the C2PA manifest's removal was noticed:
+  **`neutral-ai-origin-tag`, 7 of 7 seats, record `vote-1794897142413-84x42e4`.** Each file
+  keeps an unsigned, plain AI-origin disclosure in place of Suno's signed manifest: a `COMM`
+  frame, language `eng`, empty description, text `AI-generated music (Suno)`
+  (`AI_DISCLOSURE` in `scripts/score-tags.ts`). A comment with an empty description is
+  ID3v2.3's conventional human-readable note; ffprobe shows it as the file's `comment`.
+  It was chosen over `TXXX` (a user-defined key that readers label
+  inconsistently) and over any `T...` text frame because of what the Android session reads:
+  in media3 1.9.1 (the version `expo-audio` 58.0.12 links), only `TextInformationFrame`
+  (title, artist, album, album artist, composer, genre, track, year and the like) and
+  `ApicFrame` override `Metadata.Entry.populateMediaMetadata`; `CommentFrame` inherits the
+  default, which does nothing, so the disclosure cannot become a session title or artist.
+  The one other reader of a comment in media3's extractor, `GaplessInfoHolder`, takes only
+  a comment described `iTunSMPB`; this one's description is empty, so gapless playback
+  still reads the untouched Xing/LAME frame. Read from the library's compiled classes
+  (`javap`), not seen on a device. On the web the session shows the metadata the app sets.
+  Unlike the manifest, the disclosure is not signed and proves nothing about who made the
+  file; it says what the file is.
 - Nothing else. Every byte from the first MPEG frame to the end of each file is the supplied
   one, Xing/LAME frame included, so the encoder delay and padding that a gapless loop reads
   are untouched. For each file the compressed packets are identical, the decoded PCM is
@@ -304,10 +324,12 @@ What was done, to all six files:
   `ended` and no error, at the same reported duration as the supplied file. A one-off check,
   not a committed test, and nobody listened to the seam.
 - `tests/score-tags.spec.ts` reads the tags of every bundled score without any audio tool
-  and fails on anything but those three frames with those values.
+  and fails on anything but those three frames and the disclosure comment, with those
+  values, that language and an empty description.
 
 What a media session can now read from a score is therefore the same on Android as on the
-web, minus artwork. One string is still inside each file and is not a tag: the Xing/LAME
+web, minus artwork; the disclosure comment is in the file for anyone who reads its tags,
+not in the session. One string is still inside each file and is not a tag: the Xing/LAME
 frame names its encoder, `Lavc60.31`. ffprobe shows it as the stream's `encoder`; media3
 builds its metadata from ID3 frames, so it is not expected in a session. That expectation
 comes from reading, not from a device.

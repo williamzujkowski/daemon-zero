@@ -16,7 +16,7 @@ the supplied tags.
 | 4 | [the-sovereign-corporation.mp3](music/phase-4/the-sovereign-corporation.mp3) | 194.76s | 4,869,918 | [record](music/phase-4/PROVENANCE.md) |
 | 5 | [post-orbital-transcendence.mp3](music/phase-5/post-orbital-transcendence.mp3) | 138s | 3,530,670 | [record](music/phase-5/PROVENANCE.md) |
 
-The six shipped files total **22,091,940 bytes (21.07 MiB)** and 885.48 seconds;
+The six shipped files total **22,092,180 bytes (21.07 MiB)** and 885.48 seconds;
 the six supplied originals totalled 22,251,291 bytes. All six contain stereo
 48 kHz MP3 audio. No transcoding, normalization, trimming or custom loop cuts
 were performed. Player looping does not establish that the musical seam is
@@ -42,10 +42,19 @@ line about its story), the Suno account label as artist, a Suno URL and
 comments, an `[Instrumental]` lyrics frame, a 360×360 JPEG cover and a C2PA
 manifest. On Android the media session shows a bundled file's own tags, so
 those reached Bluetooth and car displays, against the rule that phase names stay
-hidden until found. Each file now carries one ID3v2.3 tag with exactly three
-frames, the strings the app itself publishes: title `Phase N score`, artist and
-album `DAEMON // 0`. No artwork and nothing else. `tests/score-tags.spec.ts`
-fails if a bundled score carries any other tag.
+hidden until found. Each file now carries one ID3v2.3 tag with exactly four
+frames: the strings the app itself publishes (title `Phase N score`, artist and
+album `DAEMON // 0`) and a comment (`COMM`, language `eng`, empty description)
+reading `AI-generated music (Suno)`. No artwork and nothing else.
+`tests/score-tags.spec.ts` fails if a bundled score carries any other tag.
+
+**The AI-origin disclosure replaces the C2PA manifest** (nexus option vote
+`neutral-ai-origin-tag`, 7 of 7 seats, record `vote-1794897142413-84x42e4`).
+Suno's signed manifest was among the removed frames and would not have validated
+after any tag change. The comment keeps a plain, unsigned statement of AI origin
+inside each file. Media3, which builds the Android media session, does not map a
+comment frame to anything it displays, so it cannot appear as a title or artist
+(docs/SOUNDTRACK.md has the reasoning).
 
 The supplied files are not in the current tree; they are in Git history, and
 each PROVENANCE.md gives the supplied file's SHA-256 and size so the

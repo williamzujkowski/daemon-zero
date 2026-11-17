@@ -1,6 +1,7 @@
 /**
  * Reads and writes the container tags of an MP3 without touching its audio: an ID3v2 parser,
- * the one neutral tag a bundled score may carry, and a splice that swaps the tag and copies
+ * the one neutral tag a bundled score may carry (the app's own three strings plus a plain
+ * AI-origin disclosure), and a splice that swaps the tag and copies
  * every byte from the first MPEG frame on unchanged. Pure: bytes in, bytes out, no file
  * access. `scripts/neutral-score-tags.ts` is the command; tests/score-tags.spec.ts holds the
  * shipped files to it. Why it exists: on Android the media session shows the file's own tags
@@ -9,8 +10,11 @@
 
 export interface TagFrame {
   id: string;
-  /** Decoded text for a text frame (`T...`, except `TXXX`); null for everything else. */
+  /** Decoded text for a text frame (`T...`, except `TXXX`) or a comment (`COMM`); null for everything else. */
   text: string | null;
+  /** A comment's language and content description; null for every other frame. */
+  language: string | null;
+  description: string | null;
   bytes: number;
 }
 
@@ -29,6 +33,16 @@ export interface TagReport {
 }
 
 export interface NeutralTags { title: string; artist: string; album: string }
+
+/**
+ * The AI-origin disclosure every shipped score carries in place of Suno's signed C2PA manifest
+ * (nexus vote `vote-1794897142413-84x42e4`). It goes in a comment frame because media3, which
+ * builds the Android media session, maps only text frames and artwork to what it displays;
+ * a `COMM` frame contributes nothing there (docs/SOUNDTRACK.md).
+ */
+export const AI_DISCLOSURE = 'AI-generated music (Suno)';
+/** ISO 639-2 language of the disclosure comment; its content description is empty. */
+const DISCLOSURE_LANGUAGE = 'eng';
 
 const HEADER = 10;
 
@@ -62,6 +76,18 @@ function decodeText(body: Uint8Array): string {
   return text.replace(/\0+$/, '');
 }
 
+/** A `COMM` body: encoding, three-letter language, a terminated description, then the text. */
+function decodeComment(body: Uint8Array): Pick<TagFrame, 'text' | 'language' | 'description'> {
+  const encoding = body[0] ?? 0;
+  const rest = body.subarray(4);
+  // UTF-16 strings end at an aligned pair of zero bytes; the other encodings at one.
+  const width = encoding === 1 || encoding === 2 ? 2 : 1;
+  let end = 0;
+  while (end + width <= rest.length && !(rest[end] === 0 && (width === 1 || rest[end + 1] === 0))) end += width;
+  const segment = (from: number, to: number) => decodeText(Buffer.concat([Buffer.from([encoding]), rest.subarray(from, to)]));
+  return { language: ascii(body, 1, 4), description: segment(0, end), text: segment(end + width, rest.length) };
+}
+
 function readFrames(data: Uint8Array, start: number, end: number, version: number): TagFrame[] {
   // v2.2 has three-letter ids and three-byte sizes; v2.4 sizes are syncsafe, v2.3 are not.
   const idLength = version === 2 ? 3 : 4;
@@ -73,7 +99,8 @@ function readFrames(data: Uint8Array, start: number, end: number, version: numbe
     const size = version === 2 ? plain(data, at + 3, 3) : version === 4 ? syncsafe(data, at + 4) : plain(data, at + 4, 4);
     const body = data.subarray(at + head, Math.min(at + head + size, end));
     const isText = id.startsWith('T') && id !== 'TXXX' && id !== 'TXX';
-    frames.push({ id, text: isText ? decodeText(body) : null, bytes: size });
+    const decoded = id === 'COMM' ? decodeComment(body) : { text: isText ? decodeText(body) : null, language: null, description: null };
+    frames.push({ id, ...decoded, bytes: size });
     at += head + size;
   }
   return frames;
@@ -109,19 +136,30 @@ export function readTags(data: Uint8Array): TagReport {
   return { versions, flags, frames, audioOffset: at, audioSync, trailers: trailersOf(data) };
 }
 
-function textFrame(id: string, text: string): Buffer {
-  // Latin-1 (encoding 0) is the form every ID3v2.3 reader accepts; the neutral strings are ASCII.
-  if (!/^[\x20-\x7e]+$/.test(text)) throw new Error('Neutral tag text must be printable ASCII: ' + text);
-  const body = Buffer.concat([Buffer.from([0]), Buffer.from(text, 'latin1')]);
+function id3Frame(id: string, body: Buffer): Buffer {
   const head = Buffer.alloc(HEADER);
   head.write(id, 0, 'latin1');
   head.writeUInt32BE(body.length, 4);
   return Buffer.concat([head, body]);
 }
 
-/** The whole tag a bundled score carries: ID3v2.3, no flags, title, artist, album, no padding. */
+function latin1(text: string): Buffer {
+  // Latin-1 (encoding 0) is the form every ID3v2.3 reader accepts; the neutral strings are ASCII.
+  if (!/^[\x20-\x7e]+$/.test(text)) throw new Error('Neutral tag text must be printable ASCII: ' + text);
+  return Buffer.from(text, 'latin1');
+}
+
+const textFrame = (id: string, text: string) => id3Frame(id, Buffer.concat([Buffer.from([0]), latin1(text)]));
+/** Latin-1, the disclosure language, an empty description (one terminating zero), the text. */
+const commentFrame = (text: string) => id3Frame('COMM', Buffer.concat([Buffer.from([0]), latin1(DISCLOSURE_LANGUAGE), Buffer.from([0]), latin1(text)]));
+
+/**
+ * The whole tag a bundled score carries: ID3v2.3, no flags, title, artist, album, the AI-origin
+ * disclosure comment, no padding.
+ */
 export function neutralTag(tags: NeutralTags): Buffer {
-  const frames = Buffer.concat([textFrame('TIT2', tags.title), textFrame('TPE1', tags.artist), textFrame('TALB', tags.album)]);
+  const frames = Buffer.concat([textFrame('TIT2', tags.title), textFrame('TPE1', tags.artist), textFrame('TALB', tags.album),
+    commentFrame(AI_DISCLOSURE)]);
   const size = frames.length;
   const head = Buffer.from([0x49, 0x44, 0x33, 3, 0, 0, (size >> 21) & 0x7f, (size >> 14) & 0x7f, (size >> 7) & 0x7f, size & 0x7f]);
   return Buffer.concat([head, frames]);
@@ -148,10 +186,13 @@ export function tagProblems(data: Uint8Array, expected: NeutralTags): string[] {
   if (report.flags.some((flag) => flag !== 0)) problems.push('ID3v2 header flags are set');
   if (!report.audioSync) problems.push('no MPEG audio frame directly after the ID3v2 tag');
   for (const trailer of report.trailers) problems.push('trailing ' + trailer + ' tag');
-  const wanted: Record<string, string> = { TIT2: expected.title, TPE1: expected.artist, TALB: expected.album };
-  for (const frame of report.frames) {
-    if (!Object.hasOwn(wanted, frame.id)) problems.push('unexpected frame ' + frame.id);
-    else if (frame.text !== wanted[frame.id]) problems.push(frame.id + ' is "' + String(frame.text) + '", not "' + String(wanted[frame.id]) + '"');
+  const wanted: Record<string, string> = { TIT2: expected.title, TPE1: expected.artist, TALB: expected.album, COMM: AI_DISCLOSURE };
+  for (const found of report.frames) {
+    if (!Object.hasOwn(wanted, found.id)) problems.push('unexpected frame ' + found.id);
+    else if (found.text !== wanted[found.id]) problems.push(found.id + ' is "' + String(found.text) + '", not "' + String(wanted[found.id]) + '"');
+    else if (found.id === 'COMM' && (found.language !== DISCLOSURE_LANGUAGE || found.description !== '')) {
+      problems.push('COMM is not language "' + DISCLOSURE_LANGUAGE + '" with an empty description');
+    }
   }
   for (const id of Object.keys(wanted)) {
     const count = report.frames.filter((frame) => frame.id === id).length;

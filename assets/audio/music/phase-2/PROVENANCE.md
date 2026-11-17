@@ -41,13 +41,15 @@ file is the supplied one. On Android the media session shows a bundled file's ow
 the supplied title, account label and cover reached Bluetooth and car displays, which the
 game's disclosure rule forbids (docs/SOUNDTRACK.md). Decision: nexus option vote
 `strip-tags-and-set-neutral-tags`, 7 of 7 seats, `thresholdMet: true`, record
-`vote-1794891913762-bfqvn7c`.
+`vote-1794891913762-bfqvn7c`. A second vote, `neutral-ai-origin-tag` (7 of 7 seats, record
+`vote-1794897142413-84x42e4`), added one comment frame that says the music is AI-generated,
+in place of the removed signed C2PA manifest.
 
 | | Supplied original | Shipped file |
 |---|---|---|
-| Bytes | 3,683,261 | 3,655,806 |
-| SHA-256 | `04568336901be60c50744b1ec16fbcb36f33312f565addb43c7dca5cc2946443` | `cada44ba91518b357ebcfe9ac9784831ce571ad2e34ad85600c703071b1f9a46` |
-| Container tag | ID3v2.4, 27,533 bytes | ID3v2.3, 78 bytes |
+| Bytes | 3,683,261 | 3,655,846 |
+| SHA-256 | `04568336901be60c50744b1ec16fbcb36f33312f565addb43c7dca5cc2946443` | `ed45d841a3f2789af7ca5b2c8f858dc0608d7418c33f3316841e07e7cf7cf33c` |
+| Container tag | ID3v2.4, 27,533 bytes | ID3v2.3, 118 bytes |
 | MPEG stream, first frame to end of file | 3,655,728 bytes, SHA-256 `ed771510e44feb41652adc6b1998d282139b66ceea8c64fe35f69b7dd5b23f77` | the same 3,655,728 bytes, same SHA-256 |
 
 The original's hash and size stay on record so the change can be audited, and undone by
@@ -73,13 +75,21 @@ No ID3v1, APE or Lyrics3 tag was present.
 - `TIT2` title: `Phase 2 score`
 - `TPE1` artist: `DAEMON // 0`
 - `TALB` album: `DAEMON // 0`
+- `COMM` comment, language `eng`, empty description: `AI-generated music (Suno)`
 
-These are the strings the app publishes for this phase (`scoreMetadata` in
-`src/app/scoreSession.ts`). No artwork, comment, URL, lyrics or encoder frame is written.
+The first three are the strings the app publishes for this phase (`scoreMetadata` in
+`src/app/scoreSession.ts`). The comment is the AI-origin disclosure (`AI_DISCLOSURE` in
+`scripts/score-tags.ts`). No artwork, URL, lyrics, encoder or other frame is written.
 
 The C2PA manifest is among the removed frames. A C2PA data hash covers the file outside the
 manifest, so it is not expected to validate once any tag changes; that was not checked with
-a validator. That this is Suno output stays recorded in this file.
+a validator. In its place, by nexus vote `vote-1794897142413-84x42e4`, the file carries the
+unsigned, plain disclosure above: anyone reading the tags (`ffprobe` shows it as `comment`)
+learns the music is AI-generated, but unlike the manifest it is not signed and proves
+nothing about who made it. The comment frame was chosen because media3 1.9.1, which builds
+the Android media session, takes its displayed fields only from text frames and artwork;
+its `CommentFrame` contributes nothing (docs/SOUNDTRACK.md). That this is Suno output, with
+its track id, stays recorded in this file.
 
 Not a container tag and not changed: the Xing/LAME info frame at the head of the MPEG stream
 (encoder string `Lavc60.31`, 5,968 frames, encoder delay 576 samples, end padding 960
@@ -113,7 +123,7 @@ Each line was computed for the supplied original and for the shipped file, and c
 | (c) `ffprobe` duration, start time | 143.200000 s, 0.023021 s | identical |
 
 The same sample count means the same duration and the same start and end padding. The one
-`ffprobe` number that moved is the container bit rate (205,768 to 204,234 bit/s): it is file
+`ffprobe` number that moved is the container bit rate (205,768 to 204,237 bit/s): it is file
 size over duration, and the file is smaller by the size of the removed tag.
 
 Not shown by any of this: how the loop sounds, and what an Android device displays. The

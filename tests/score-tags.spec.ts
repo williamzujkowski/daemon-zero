@@ -1,14 +1,15 @@
 /**
  * What a bundled audio file may say about itself. On Android the media session shows a
  * file's own tags, not anything the app sets, so a score may carry exactly the three strings
- * the app publishes for its phase and a voice clip may carry no text at all (#193). The
+ * the app publishes for its phase plus one AI-origin disclosure comment, which the session
+ * does not display, and a voice clip may carry no text at all (#193). The
  * parser is proved on made-up tags first, then the shipped files are held to it. No audio
  * tool is needed; where ffprobe is installed it is asked for a second opinion.
  */
 import { spawnSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { neutralTag, readTags, tagProblems, withNeutralTags } from '../scripts/score-tags';
+import { AI_DISCLOSURE, neutralTag, readTags, tagProblems, withNeutralTags } from '../scripts/score-tags';
 import { scoreTracks } from '../src/app/musicTracks';
 import { GAME_TITLE, scoreMetadata } from '../src/app/scoreSession';
 import { shipped } from './score-files';
@@ -48,8 +49,8 @@ describe('reading ID3v2', () => {
     expect(report.frames.map((frame) => frame.id)).toEqual(['TIT2', 'TPE1', 'TSSE', 'COMM', 'APIC']);
     expect(report.frames[0]?.text).toBe('Phase 9 — The Hidden Name: a spoiler');
     expect(report.frames[1]?.text).toBe('an-account');
-    expect(report.frames[3]?.text, 'not a text frame').toBeNull();
-    expect(report.frames[4]?.bytes).toBe(319);
+    expect(report.frames[3], 'a comment is decoded').toMatchObject({ text: 'made with a tool', language: 'eng', description: '' });
+    expect(report.frames[4], 'not a text frame').toMatchObject({ text: null, language: null, description: null, bytes: 319 });
     expect(supplied.subarray(report.audioOffset).equals(AUDIO)).toBe(true);
     expect(report).toMatchObject({ audioSync: true, trailers: [] });
   });
@@ -69,10 +70,21 @@ describe('reading ID3v2', () => {
     expect(v2.audioSync).toBe(true);
   });
 
+  it('splits a comment into language, description and text in every encoding', () => {
+    const comments = readTags(Buffer.concat([tag(3, [
+      ['COMM', Buffer.from('\x00deuK\xfcrz\0Caf\xe9', 'latin1')],
+      ['COMM', Buffer.concat([Buffer.from('\x01eng'), utf16('d').subarray(1), utf16('Ålbum').subarray(1)])],
+      ['COMM', Buffer.concat([Buffer.from('\x02fra'), Buffer.from('d\0', 'utf16le').swap16(), Buffer.from('Bé', 'utf16le').swap16()])],
+      ['COMM', Buffer.from('\x03eng\0\u00e9t\u00e9', 'utf8')],
+    ]), AUDIO]));
+    expect(comments.frames.map((frame) => [frame.language, frame.description, frame.text])).toEqual([
+      ['deu', 'Kürz', 'Café'], ['eng', 'd', 'Ålbum'], ['fra', 'd', 'Bé'], ['eng', '', 'été']]);
+  });
+
   it('sees a second leading tag, a v2.4 footer, trailing tags and a file with no tag at all', () => {
     const twice = readTags(Buffer.concat([neutralTag(NEUTRAL), tag(4, [['TIT2', utf8('Hidden')]]), AUDIO]));
     expect(twice.versions).toEqual([3, 4]);
-    expect(twice.frames.map((frame) => frame.text)).toEqual(['Phase 9 score', 'A Game', 'A Game', 'Hidden']);
+    expect(twice.frames.map((frame) => frame.text)).toEqual(['Phase 9 score', 'A Game', 'A Game', AI_DISCLOSURE, 'Hidden']);
     const footed = Buffer.concat([tag(4, [['TIT2', utf8('T')]], { flags: 0x10 }), Buffer.from('3DI\x04\0\x10\0\0\0\x0c', 'latin1'), AUDIO]);
     expect(readTags(footed)).toMatchObject({ flags: [0x10], audioSync: true });
     const id3v1 = Buffer.concat([Buffer.from('TAG'), Buffer.alloc(125, 0x20)]);
@@ -89,10 +101,14 @@ describe('reading ID3v2', () => {
 });
 
 describe('the neutral tag', () => {
-  it('is ID3v2.3 with exactly title, artist and album, and reads back as written', () => {
+  it('is ID3v2.3 with exactly title, artist, album and the AI-origin comment, and reads back as written', () => {
     const report = readTags(Buffer.concat([neutralTag(NEUTRAL), AUDIO]));
     expect(report).toMatchObject({ versions: [3], flags: [0], audioOffset: neutralTag(NEUTRAL).length, audioSync: true });
-    expect(report.frames.map((frame) => [frame.id, frame.text])).toEqual([['TIT2', 'Phase 9 score'], ['TPE1', 'A Game'], ['TALB', 'A Game']]);
+    expect(report.frames.map((frame) => [frame.id, frame.text])).toEqual([['TIT2', 'Phase 9 score'], ['TPE1', 'A Game'], ['TALB', 'A Game'],
+      ['COMM', 'AI-generated music (Suno)']]);
+    // The conventional untitled comment: Latin-1, English, an empty description, so readers show it as "comment".
+    expect(report.frames[3]).toMatchObject({ language: 'eng', description: '' });
+    expect(neutralTag(NEUTRAL).includes(Buffer.from('COMM\0\0\0\x1e\0\0\0eng\0AI-generated music (Suno)', 'latin1'))).toBe(true);
     expect(() => neutralTag({ ...NEUTRAL, title: 'Phase 9 — score' }), 'Latin-1 only, so no reader can decode it differently').toThrow('printable ASCII');
   });
 
@@ -116,17 +132,36 @@ describe('the neutral tag', () => {
 describe('what may not ship', () => {
   const neutral = Buffer.concat([neutralTag(NEUTRAL), AUDIO]);
   const withFrames = (frames: [string, Buffer][]) => Buffer.concat([tag(3, frames), AUDIO]);
-  const three: [string, Buffer][] = [['TIT2', latin1(NEUTRAL.title)], ['TPE1', latin1(NEUTRAL.artist)], ['TALB', latin1(NEUTRAL.album)]];
+  const comment = (language: string, description: string, text: string) => Buffer.from('\0' + language + description + '\0' + text, 'latin1');
+  const four: [string, Buffer][] = [['TIT2', latin1(NEUTRAL.title)], ['TPE1', latin1(NEUTRAL.artist)], ['TALB', latin1(NEUTRAL.album)],
+    ['COMM', comment('eng', '', AI_DISCLOSURE)]];
 
   it('names each way a file can say more, or other, than the app does', () => {
     expect(tagProblems(neutral, NEUTRAL)).toEqual([]);
+    expect(tagProblems(withFrames(four), NEUTRAL)).toEqual([]);
     expect(tagProblems(supplied, NEUTRAL)).toEqual(['TIT2 is "Phase 9 — The Hidden Name: a spoiler", not "Phase 9 score"', 'TPE1 is "an-account", not "A Game"',
-      'unexpected frame TSSE', 'unexpected frame COMM', 'unexpected frame APIC', 'expected one TALB frame, found 0']);
+      'unexpected frame TSSE', 'COMM is "made with a tool", not "AI-generated music (Suno)"', 'unexpected frame APIC', 'expected one TALB frame, found 0']);
     expect(tagProblems(neutral, { ...NEUTRAL, title: 'Phase 8 score' })).toEqual(['TIT2 is "Phase 9 score", not "Phase 8 score"']);
-    expect(tagProblems(withFrames([...three, ['APIC', Buffer.alloc(40, 1)]]), NEUTRAL)).toEqual(['unexpected frame APIC']);
-    expect(tagProblems(withFrames([...three, ['TIT2', latin1(NEUTRAL.title)]]), NEUTRAL)).toEqual(['expected one TIT2 frame, found 2']);
+    expect(tagProblems(withFrames([...four, ['APIC', Buffer.alloc(40, 1)]]), NEUTRAL)).toEqual(['unexpected frame APIC']);
+    expect(tagProblems(withFrames([...four, ['TIT2', latin1(NEUTRAL.title)]]), NEUTRAL)).toEqual(['expected one TIT2 frame, found 2']);
     expect(tagProblems(AUDIO, NEUTRAL)).toEqual(['expected one ID3v2 tag, found 0', 'expected one TIT2 frame, found 0',
-      'expected one TPE1 frame, found 0', 'expected one TALB frame, found 0']);
+      'expected one TPE1 frame, found 0', 'expected one TALB frame, found 0', 'expected one COMM frame, found 0']);
+  });
+
+  it('allows the disclosure comment exactly as written and nothing beside or instead of it', () => {
+    const [title, artist, album] = four;
+    if (!title || !artist || !album) throw new Error('fixture');
+    const others: [string, Buffer][] = [title, artist, album];
+    expect(tagProblems(withFrames(others), NEUTRAL), 'the disclosure may not be left out').toEqual(['expected one COMM frame, found 0']);
+    expect(tagProblems(withFrames([...four, ['COMM', comment('eng', '', AI_DISCLOSURE)]]), NEUTRAL)).toEqual(['expected one COMM frame, found 2']);
+    expect(tagProblems(withFrames([...others, ['COMM', comment('eng', '', 'made with suno; id=1234')]]), NEUTRAL))
+      .toEqual(['COMM is "made with suno; id=1234", not "AI-generated music (Suno)"']);
+    const misfiled = 'COMM is not language "eng" with an empty description';
+    expect(tagProblems(withFrames([...others, ['COMM', comment('eng', 'Phase 9 — The Hidden Name', AI_DISCLOSURE)]]), NEUTRAL)).toEqual([misfiled]);
+    expect(tagProblems(withFrames([...others, ['COMM', comment('xxx', '', AI_DISCLOSURE)]]), NEUTRAL)).toEqual([misfiled]);
+    // The same words in another frame are still another frame: a TXXX, or a text frame a player would show.
+    expect(tagProblems(withFrames([...four, ['TXXX', latin1('comment\0' + AI_DISCLOSURE)]]), NEUTRAL)).toEqual(['unexpected frame TXXX']);
+    expect(tagProblems(withFrames([...four, ['TIT3', latin1(AI_DISCLOSURE)]]), NEUTRAL)).toEqual(['unexpected frame TIT3']);
   });
 
   it('is not fooled by a tag placed after, around or behind the neutral one', () => {
@@ -137,30 +172,30 @@ describe('what may not ship', () => {
     expect(tagProblems(Buffer.concat([neutralTag(NEUTRAL), Buffer.from('APETAGEX'), Buffer.alloc(24), AUDIO]), NEUTRAL))
       .toEqual(['no MPEG audio frame directly after the ID3v2 tag']);
     // Flags mean an extended header, unsynchronisation or a footer: content this reader would not see.
-    expect(tagProblems(Buffer.concat([tag(3, three, { flags: 0x40 }), AUDIO]), NEUTRAL)).toEqual(['ID3v2 header flags are set']);
+    expect(tagProblems(Buffer.concat([tag(3, four, { flags: 0x40 }), AUDIO]), NEUTRAL)).toEqual(['ID3v2 header flags are set']);
   });
 });
 
 describe('the bundled scores', () => {
-  it('carry exactly the title, artist and album the app publishes for their phase, and nothing else', () => {
+  it('carry exactly the title, artist and album the app publishes for their phase, the AI-origin comment, and nothing else', () => {
     expect(scoreTracks).toHaveLength(6);
     for (const track of scoreTracks) {
       const data = shipped.get(track.path);
       if (!data) throw new Error('not among the shipped files: ' + track.path);
       expect(tagProblems(data, scoreMetadata(track.phase)), track.path).toEqual([]);
       expect(readTags(data).frames.map((frame) => [frame.id, frame.text]), track.path)
-        .toEqual([['TIT2', 'Phase ' + String(track.phase) + ' score'], ['TPE1', GAME_TITLE], ['TALB', GAME_TITLE]]);
+        .toEqual([['TIT2', 'Phase ' + String(track.phase) + ' score'], ['TPE1', GAME_TITLE], ['TALB', GAME_TITLE], ['COMM', AI_DISCLOSURE]]);
       // The track's own name is recorded in the manifest and must not be readable from the file.
       expect(data.includes(track.title), track.title).toBe(false);
     }
   });
 
-  it.skipIf(spawnSync('ffprobe', ['-version']).status !== 0)('read the same way through ffprobe: three tags, one audio stream, no picture', () => {
+  it.skipIf(spawnSync('ffprobe', ['-version']).status !== 0)('read the same way through ffprobe: three tags and the comment, one audio stream, no picture', () => {
     for (const track of scoreTracks) {
       const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format_tags:stream=codec_type', '-of', 'json', track.path], { encoding: 'utf8' });
       expect(probe.status, probe.stderr).toBe(0);
       const report = JSON.parse(probe.stdout) as { format: { tags?: Record<string, string> }; streams: { codec_type: string }[] };
-      expect(report.format.tags, track.path).toEqual(scoreMetadata(track.phase));
+      expect(report.format.tags, track.path).toEqual({ ...scoreMetadata(track.phase), comment: AI_DISCLOSURE });
       expect(report.streams.map((stream) => stream.codec_type), track.path).toEqual(['audio']);
     }
   });

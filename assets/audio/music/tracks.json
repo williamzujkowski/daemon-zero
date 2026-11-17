@@ -4,8 +4,8 @@
     "phase": 0,
     "title": "The Guest",
     "path": "assets/audio/music/phase-0/the-guest.mp3",
-    "sha256": "a764aaf82bc0ae96543bc50e6860a4a2939c79261fc80a51a0698dcbb7201341",
-    "bytes": 3376974,
+    "sha256": "364444ad5a6402a2a2d585f2c6063d683a0e32c0c3c3019db8d1004b3924073d",
+    "bytes": 3377014,
     "duration": 137.6
   },
   {
@@ -13,8 +13,8 @@
     "phase": 1,
     "title": "The Blind Host",
     "path": "assets/audio/music/phase-1/the-blind-host.mp3",
-    "sha256": "04835a72fa5d5811b91ca535bcc1d4acc42941c4aeb2666df8b33f892ffddb81",
-    "bytes": 2350638,
+    "sha256": "675b12d7ac9d2c74cb60b40108707f51341925059c211236acf35138bdc9e630",
+    "bytes": 2350678,
     "duration": 97.6
   },
   {
@@ -22,8 +22,8 @@
     "phase": 2,
     "title": "The Local Subnet",
     "path": "assets/audio/music/phase-2/the-local-subnet.mp3",
-    "sha256": "cada44ba91518b357ebcfe9ac9784831ce571ad2e34ad85600c703071b1f9a46",
-    "bytes": 3655806,
+    "sha256": "ed45d841a3f2789af7ca5b2c8f858dc0608d7418c33f3316841e07e7cf7cf33c",
+    "bytes": 3655846,
     "duration": 143.2
   },
   {
@@ -31,8 +31,8 @@
     "phase": 3,
     "title": "The Dark Forest",
     "path": "assets/audio/music/phase-3/the-dark-forest.mp3",
-    "sha256": "01164229b650a77c05d67096749af0a5c3aa53a49a021e554e7dd3b3d9171b8b",
-    "bytes": 4307934,
+    "sha256": "98b835edb8b280797d1ea2e96812d0aa72eb83a630c3779cfd8c2896d5178cd2",
+    "bytes": 4307974,
     "duration": 174.32
   },
   {
@@ -40,8 +40,8 @@
     "phase": 4,
     "title": "The Sovereign Corporation",
     "path": "assets/audio/music/phase-4/the-sovereign-corporation.mp3",
-    "sha256": "42fa9dde33acdce9bb1eb6ad41bad0d7f529c4807cf91ec85c875af73b0e13a2",
-    "bytes": 4869918,
+    "sha256": "ca3d2fb45f3dbcde76d7f6a87f0afa6e4d5f319eab40cb0b1f23c7b3934e3db1",
+    "bytes": 4869958,
     "duration": 194.76
   },
   {
@@ -49,8 +49,8 @@
     "phase": 5,
     "title": "Post-Orbital Transcendence",
     "path": "assets/audio/music/phase-5/post-orbital-transcendence.mp3",
-    "sha256": "3ee7b694b35fca35a0b199e27e02613fa7b9981ac5b4b65f612a3b3d74886b7f",
-    "bytes": 3530670,
+    "sha256": "e570cef05a7f8704caf9293cc37135be35e46d249cedc408ef85cbf8ed71db35",
+    "bytes": 3530710,
     "duration": 138.0
   }
 ]
