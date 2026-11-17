@@ -7,7 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DUCK_RAMP_MS, FADE_IN_MS, FADE_OUT_MS } from '../src/app/musicController';
 import { RAMP_STEP_MS } from '../src/app/volumeRamp';
 import { AUDIO_KEY } from '../src/app/audioPreferences';
-import { fresh, harness, monotonic, run, settle } from './music-ramp-harness';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
+import { fresh, harness, monotonic, rampTimers, run, settle } from './music-ramp-harness';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -16,7 +17,7 @@ afterEach(() => { vi.useRealTimers(); });
 async function fading() {
   const h = await harness(); run(FADE_IN_MS);
   h.end(); run(FADE_OUT_MS / 5);
-  expect(h.at(0).levels.at(-1)).toBeCloseTo(0.32, 10);
+  expect(h.at(0).levels.at(-1)).toBeCloseTo(0.32 * OUTPUT_SCALE, 10);
   expect(h.at(0).removed).toBe(false);
   return h;
 }
@@ -28,7 +29,7 @@ function expectOriginalDeadline(h: Awaited<ReturnType<typeof harness>>, spentMs 
   run(RAMP_STEP_MS);
   expect(h.at(0).levels.at(-1)).toBe(0);
   expect(h.at(0).log.slice(-3)).toEqual(['volume', 'pause', 'remove']);
-  expect(vi.getTimerCount()).toBe(0);
+  expect(rampTimers()).toBe(0);
 }
 
 describe('a fade-out in flight', () => {
@@ -37,7 +38,7 @@ describe('a fade-out in flight', () => {
     ended.controller.setVolume(0); await settle();
     expect(ended.at(0).removed, 'volume 0 is immediate for the outgoing player too').toBe(true);
     expect(ended.at(0).log.slice(-2)).toEqual(['pause', 'remove']);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     expect(JSON.parse(ended.storage.getItem(AUDIO_KEY) ?? '')).toMatchObject({ volume: 0 });
     run(5000);
     expect(ended.violations).toEqual([]);
@@ -47,7 +48,7 @@ describe('a fade-out in flight', () => {
     off.controller.toggle(); run(FADE_OUT_MS / 5);
     off.controller.setVolume(0);
     expect(off.at(0).removed).toBe(true);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     off.stop();
   });
 
@@ -55,12 +56,12 @@ describe('a fade-out in flight', () => {
     const h = await fading();
     const levels = fresh(h.at(0));
     h.controller.setVolume(10);
-    expect(levels, 'not left louder than the preference just chosen').toEqual([0.1]);
+    expect(levels, 'not left louder than the preference just chosen').toEqual([0.1 * OUTPUT_SCALE]);
     h.controller.setVolume(90);
-    expect(levels, 'a higher level writes nothing to a player on its way out').toEqual([0.1]);
+    expect(levels, 'a higher level writes nothing to a player on its way out').toEqual([0.1 * OUTPUT_SCALE]);
     run(RAMP_STEP_MS * 3);
     // Raising it again must not lift the cap the lower level set.
-    expect(Math.max(...levels)).toBe(0.1);
+    expect(Math.max(...levels)).toBe(0.1 * OUTPUT_SCALE);
     expect(monotonic(levels, false)).toBe(true);
     expectOriginalDeadline(h, RAMP_STEP_MS * 3);
     expect(monotonic(levels, false)).toBe(true);
@@ -71,7 +72,7 @@ describe('a fade-out in flight', () => {
     const raised = await fading();
     const untouched = fresh(raised.at(0));
     raised.controller.setVolume(100); run(FADE_OUT_MS);
-    expect(Math.max(...untouched), 'only ever downwards from where it was').toBeLessThan(0.32);
+    expect(Math.max(...untouched), 'only ever downwards from where it was').toBeLessThan(0.32 * OUTPUT_SCALE);
     expect(monotonic(untouched, false)).toBe(true);
     raised.stop();
   });
@@ -80,11 +81,11 @@ describe('a fade-out in flight', () => {
     const h = await fading();
     const levels = fresh(h.at(0));
     h.controller.setDucked(true);
-    // 50% is above where it is; 50% ducked (0.175) is below. Only the first is the cap.
+    // 50% is above where it is; 50% ducked is below. Only the first is the cap.
     h.controller.setVolume(50);
     expect(levels, 'the duck is not smuggled in through the volume control').toEqual([]);
     h.controller.setVolume(20);
-    expect(levels, 'clipped to the preference itself').toEqual([0.2]);
+    expect(levels, 'clipped to the preference itself').toEqual([0.2 * OUTPUT_SCALE]);
     expectOriginalDeadline(h);
     expect(monotonic(levels, false)).toBe(true);
     h.stop();
@@ -155,8 +156,8 @@ describe('starting a player is never left to a timer', () => {
     expect(h.live(), 'one player at a time').toBe(1);
     run(FADE_IN_MS);
     expect(monotonic(h.at(1).levels, true)).toBe(true);
-    expect(h.at(1).levels.at(-1)).toBe(0.4);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(h.at(1).levels.at(-1)).toBe(0.4 * OUTPUT_SCALE);
+    expect(rampTimers()).toBe(0);
     h.stop();
   });
 
@@ -200,7 +201,7 @@ describe('a fading player that throws while being released', () => {
     h.at(0).throws = 'pause';
     expect(() => { run(RAMP_STEP_MS); }, 'nothing can catch a throw from a timer tick').not.toThrow();
     expect(h.at(0).removed, 'a throwing pause must not skip the remove').toBe(true);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(rampTimers()).toBe(0);
     // Music was switched off: "playback unavailable, try Resume" would be advice for nothing.
     expect(h.controller.state.getState()).toMatchObject({ enabled: false, playing: false, status: '' });
     h.controller.toggle(); await settle();
@@ -221,7 +222,7 @@ describe('a fading player that throws while being released', () => {
       h.at(0).throws = 'remove';
       expect(() => { act(h); }).not.toThrow();
       expect(h.at(0).log.slice(-2)).toEqual(['pause', 'remove']);
-      expect(vi.getTimerCount() <= 1, 'at most the fade-in of a new start').toBe(true);
+      expect(rampTimers() <= 1, 'at most the fade-in of a new start').toBe(true);
       expect(h.controller.state.getState().status).toBe('');
       run(5000);
       expect(h.at(0).log.at(-1), 'and it is never touched again').toBe('remove');

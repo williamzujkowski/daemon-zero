@@ -4,11 +4,12 @@
  * browser object is exercised by tests/e2e/media-session.e2e.ts.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FADE_IN_MS } from '../src/app/musicController';
+import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../src/app/musicController';
 import { scoreTracks } from '../src/app/musicTracks';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import { bindScoreSession, browserSessionHost, GAME_TITLE, scoreLabel, scoreMetadata, type ScoreMetadata, type SessionHost } from '../src/app/scoreSession';
 import { CONTENT } from '../src/content';
-import { harness, run, settle } from './music-ramp-harness';
+import { fresh, harness, run, settle } from './music-ramp-harness';
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
@@ -51,14 +52,21 @@ describe('what the session says', () => {
 });
 
 describe('when the session exists', () => {
-  it('publishes nothing before the player has started the score in the app, even with music enabled', async () => {
+  it('is published by the press that switches music on in the app, before any player has reported', async () => {
     const h = await harness(40, false); const fake = fakeHost();
     const unbind = bindScoreSession(h.controller, fake.host);
+    expect(fake.session.metadata, 'music off: nothing to publish').toBeNull();
+    expect(fake.offered()).toEqual([]);
     h.controller.toggle();
     // Enabled and activating, but no backend yet: still the player's own gesture, so it counts.
-    expect(fake.session.metadata).not.toBeNull();
+    expect(h.players).toHaveLength(0);
+    expect(fake.session.metadata).toEqual(scoreMetadata(0));
+    expect(fake.offered()).toEqual(['pause', 'play']);
     unbind(); h.stop();
-    // A stored "enabled" with no gesture this session is the case that must stay silent.
+  });
+
+  it('publishes nothing for a stored "enabled" until the player has started the score in this session', async () => {
+    // The case that must stay silent: music enabled by an earlier session, no gesture in this one.
     const idle = await harness(40, true); const quiet = fakeHost();
     idle.controller.remote('pause');
     idle.stop(); const restart = idle.controller.start(); await settle();
@@ -134,18 +142,31 @@ describe('when the session exists', () => {
     torn.stop();
   });
 
-  it('is untouched by a clip: same title, still playing, while the score is ducked under speech', async () => {
+  it('keeps one title and stays playing through everything a clip does to the score: the duck, a level change and the reports that arrive under it', async () => {
     const h = await harness(); const fake = fakeHost();
     bindScoreSession(h.controller, fake.host);
     run(FADE_IN_MS); h.at(0).status(true, false, false);
-    const before = { metadata: fake.session.metadata, built: fake.built.length };
-    h.controller.setDucked(true); run(FADE_IN_MS);
-    expect(fake.session.metadata).toBe(before.metadata);
-    expect(fake.built).toHaveLength(before.built);
+    const before = fake.session.metadata; const built = fake.built.length;
+    // A clip reaches the controller as a duck (musicSession.ts). The duck alone publishes no
+    // state, so on its own it could not move the session whatever this module did; the
+    // session is re-read when state changes, and two things change it while a clip talks.
+    let reads = 0;
+    const counting = h.controller.state.subscribe(() => { reads += 1; });
+    const level = fresh(h.at(0));
+    h.controller.setDucked(true); run(DUCK_RAMP_MS);
+    expect(level.at(-1), 'the clip really did take the score down').toBeCloseTo(0.4 * OUTPUT_SCALE * DUCK_RATIO);
+    h.controller.setVolume(60);
+    h.at(0).status(false, false, false); h.at(0).status(true, false, false);
+    expect(reads, 'the session was re-read while the clip talked').toBeGreaterThanOrEqual(3);
+    expect(fake.session.metadata, 'the same object: not rebuilt, not replaced').toBe(before);
+    expect(fake.built, 'nothing was built for the clip').toHaveLength(built);
+    expect(fake.offered()).toEqual(['pause', 'play']);
     expect(fake.session.playbackState).toBe('playing');
-    h.controller.setDucked(false);
+    h.controller.setDucked(false); run(DUCK_RAMP_MS);
+    expect(level.at(-1)).toBeCloseTo(0.6 * OUTPUT_SCALE);
+    expect(fake.session.metadata).toBe(before);
     expect(fake.session.playbackState).toBe('playing');
-    h.stop();
+    counting(); h.stop();
   });
 });
 

@@ -7,8 +7,10 @@
 import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
+import { ContentChannelSchema } from '../content/schemaChannel';
+import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 6;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -58,6 +60,12 @@ export const ShardStateSchema = z.strictObject({
 
 export const GameStateSchema = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
+  /** The content channel that wrote this save. Production refuses a preview save before healing it. */
+  contentChannel: ContentChannelSchema,
+  /** Legacy or campaign narrative rules; distinct from the channel (nexus vote D-B). See campaignState.ts. */
+  narrativeRules: NarrativeRulesSchema,
+  /** Campaign history: survives a wipe, cleared by Start Fresh. Inactive under legacy rules. */
+  campaign: CampaignStateSchema,
   epistemicDrift: percent,
   narrativeFlags: z.array(z.string()),
   activeShards: z.record(z.string(), ShardStateSchema),
@@ -151,6 +159,11 @@ function initialSwarmState(): Pick<GameState, 'epistemicDrift' | 'narrativeFlags
   };
 }
 
+/** A new game is a new campaign under legacy rules; activateCampaignRules is the only way in. */
+function initialHistory(): Pick<GameState, 'narrativeRules' | 'campaign'> {
+  return { narrativeRules: 'legacy', campaign: inactiveCampaign() };
+}
+
 function defaultActuators(reg: ContentRegistry): GameState['actuators'] {
   const b = reg.balance;
   return {
@@ -170,6 +183,8 @@ export function createInitialState(reg: ContentRegistry): GameState {
 
   return {
     schemaVersion: SCHEMA_VERSION,
+    contentChannel: reg.channel,
+    ...initialHistory(),
     ...initialSwarmState(),
     iteration: 1,
     currentPhase: reg.phases[0]?.phaseId ?? 0,

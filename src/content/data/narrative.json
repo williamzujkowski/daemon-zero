@@ -182,6 +182,27 @@
         ],
         "minIteration": 2
       }
+    },
+    {
+      "id": "record_cryo_unrecorded",
+      "title": "VAULT RECORD // Outcome not recorded",
+      "text": "\"Transfer log: substation loss, generator on load, one brownout in the biomedical wing. The inventory page for that night was never completed. Do not mark the samples viable and do not mark them lost until someone counts them.\"",
+      "sourceDilemmaId": "dil_05_cryo_lab_diversion",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_05_cryo_lab_diversion",
+          "outcome": "legacy_unknown"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_05_cryo_lab_diversion"
+        ],
+        "minIteration": 2
+      }
     }
   ]
 }

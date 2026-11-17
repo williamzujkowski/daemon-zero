@@ -8,6 +8,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import { hasFlag } from './query';
+import { carryCampaign } from './campaign';
 import { createInitialState, type GameState, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
@@ -102,6 +103,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
   const d: GameState = {
     ...fresh,
     iteration: old.iteration + 1,
+    ...carryCampaign(old),
     narrativeFlags: [...old.narrativeFlags],
     nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
     encounterSequenceIndex: old.encounterSequenceIndex,

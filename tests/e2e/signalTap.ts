@@ -15,7 +15,22 @@ import path from 'node:path';
 import type { Page } from '@playwright/test';
 
 export const SAMPLE_RATE = 48_000;
-const REPO = path.resolve(__dirname, '../..');
+const ASSETS = path.resolve(__dirname, '../../assets');
+
+/**
+ * The committed file a `__reference/<path>` request names, or null for anything that would
+ * resolve outside `assets/` (`..` segments, encoded or not, or an absolute path). The route is
+ * test-only, but it serves files from the developer's disk to a page, so it serves only the
+ * directory it exists for.
+ */
+export function referenceFile(url: string): string | null {
+  const name = new URL(url).pathname.split('/__reference/')[1];
+  if (name === undefined || name === '') return null;
+  let decoded: string;
+  try { decoded = decodeURIComponent(name); } catch { return null; }
+  const file = path.resolve(ASSETS, decoded);
+  return file.startsWith(ASSETS + path.sep) ? file : null;
+}
 
 /** One tapped source, on the context's frame timeline. `source` is the element's first `src`. */
 export interface Capture {
@@ -52,7 +67,10 @@ interface TapGlobal { context: Context; ready: Promise<void>; mix: TapRecord; ta
 /** Must run before `boot()`: the context and its worklet have to exist before the first element. */
 export async function installSignalTap(page: Page): Promise<void> {
   // The reference a capture is compared with is the committed file, not whatever was served.
-  await page.route('**/__reference/**', (route) => route.fulfill({ path: path.join(REPO, 'assets', new URL(route.request().url()).pathname.split('/__reference/')[1] ?? '') }));
+  await page.route('**/__reference/**', (route) => {
+    const file = referenceFile(route.request().url());
+    return file === null ? route.fulfill({ status: 403, body: 'outside assets/' }) : route.fulfill({ path: file });
+  });
   await page.addInitScript((rate) => {
     const browser = globalThis as unknown as Browser;
     const context = new browser.AudioContext({ sampleRate: rate });

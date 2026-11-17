@@ -1,4 +1,5 @@
-import { excludedByNarrativeHistory } from '../narrativeHistory';
+import { isCampaignConsumed } from '../campaignQuery';
+import { excludedByHistory } from '../narrativeHistory';
 import { meetsRequirements } from '../query';
 import { fmt, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -17,7 +18,7 @@ export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
     if (d.simTimeSec < pending.firesAtSimSec) return undefined;
     const due = reg.dilemmas.find((dilemma) => dilemma.id === pending.id);
     d.pendingDilemma = null;
-    if (!due || excludedByNarrativeHistory(d, due.trigger)) return undefined;
+    if (!due || excludedByHistory(d, due, reg)) return undefined;
     d.activeDilemmaId = due.id;
     pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: due.title }), 'WARN');
     return undefined;
@@ -26,6 +27,7 @@ export const evaluateDilemmas: TickSystem = (d, { reg, dormant }) => {
     (dilemma) =>
       dilemma.phaseId <= d.currentPhase &&
       !d.resolvedDilemmas.includes(dilemma.id) &&
+      !isCampaignConsumed(d, dilemma) &&
       meetsRequirements(d, dilemma.trigger, reg),
   );
   if (!next) return undefined;

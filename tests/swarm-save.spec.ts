@@ -1,5 +1,5 @@
 import { defined } from './m7-helpers';
-/** Historical codec outputs and tampered cohort references exercise the v4 boundary. */
+/** Historical codec outputs (v1-v4) and tampered cohort references exercise the v4 and v5 boundaries. */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { deserialize, serialize, forkShard, reconcile, understandsSurveillance } from '../src/engine';
@@ -10,17 +10,22 @@ describe('v4 migration and healing', () => {
     ['v1', readFileSync('tests/fixtures/pre-second-pass-v1.json', 'utf8')],
     ['v2', readFileSync('tests/fixtures/pre-lineage-v2.json', 'utf8')],
     ['v3', readFileSync('tests/fixtures/pre-m7-v3.json', 'utf8')],
+    ['v4', readFileSync('tests/fixtures/pre-channel-v4.json', 'utf8')],
   ] as const;
   it.each(samples)('upgrades %s and preserves the old run', (file, raw) => {
-    const old = JSON.parse(raw) as { unlockedNodes: string[]; conditioning?: string[]; currentPhase: number };
+    const old = JSON.parse(raw) as { unlockedNodes: string[]; conditioning?: string[]; currentPhase: number } & Record<string, unknown>;
     const next = deserialize(raw, reg);
-    expect(next.schemaVersion).toBe(4);
+    expect(next.schemaVersion).toBe(6);
+    expect(next.contentChannel).toBe('production');
     expect(next.currentPhase).toBe(old.currentPhase);
     expect(next.unlockedNodes).toEqual(expect.arrayContaining(old.unlockedNodes));
     expect(next.conditioning).toEqual(old.conditioning ?? []);
-    expect(next).toMatchObject({ epistemicDrift: 0, narrativeFlags: [], activeShards: {},
+    const v4Fields = { epistemicDrift: 0, narrativeFlags: [], activeShards: {},
       pendingWildEncounterId: null, nextEncounterAtSec: 120, encounterSequenceIndex: 0,
-      hasMaxDriftShardAnomaly: false, actionCounts: {}, actionEffectUntil: {} });
+      hasMaxDriftShardAnomaly: false, actionCounts: {}, actionEffectUntil: {} };
+    // A v4 save already holds its own swarm state; the v5 step must carry it over untouched.
+    const kept = file === 'v4' ? Object.fromEntries(Object.keys(v4Fields).map((key) => [key, old[key]])) : v4Fields;
+    expect(next).toMatchObject(kept);
     expect(deserialize(serialize(next), reg)).toEqual(next);
     if (file !== 'v1') expect(understandsSurveillance(next, reg)).toBe(true);
   });

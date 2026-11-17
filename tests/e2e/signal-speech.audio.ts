@@ -12,6 +12,7 @@
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
+import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../../src/app/outputLevel';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { median, mono, peak, ramp, rms, sum, toDb, truePeak } from '../audio/dsp';
 import { boot, expect, test } from './helpers';
@@ -53,7 +54,8 @@ async function speechGain(page: Page, clip: Capture, info: TestInfo, label: stri
 }
 
 test('the score ducks under a transmission by the duck ratio, by ramps, and comes back', async ({ page }, info) => {
-  const preference = 0.3;
+  // 30% of each, as the players are handed them.
+  const level = 0.3 * OUTPUT_SCALE;
   await installSignalTap(page);
   await boot(page, 'decoded-omen', { audio: true, realTimers: true });
   await signalTapReady(page);
@@ -84,9 +86,9 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
   report(info, 'score gain while the clip talks', toDb(during), 'dB');
   report(info, 'score gain after the clip', toDb(after), 'dB');
   report(info, 'duck depth on the signal', toDb(during / before), 'dB');
-  expect(toDb(before)).toBeCloseTo(toDb(preference), 1);
+  expect(toDb(before)).toBeCloseTo(toDb(level), 1);
   expect(toDb(during / before), 'DUCK_RATIO on the signal').toBeCloseTo(toDb(DUCK_RATIO), 1);
-  expect(toDb(after)).toBeCloseTo(toDb(preference), 1);
+  expect(toDb(after)).toBeCloseTo(toDb(level), 1);
 
   // The moves are staircases of DUCK_RAMP_MS / RAMP_STEP_MS volume writes, one way only.
   for (const [label, move] of [['down', down], ['up', up]] as const) {
@@ -104,7 +106,7 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
 
   // Speech against the ducked score, over the stretch where the clip has samples and the duck is down.
   const { gain } = await speechGain(page, clip, info, 'default levels:');
-  expect(toDb(gain), 'the speech level, on the signal').toBeCloseTo(toDb(preference), 1);
+  expect(toDb(gain), 'the speech level, on the signal').toBeCloseTo(toDb(level), 1);
   const from = Math.max(talking.from, (down.endBlock + 2) * BLOCK);
   const speech = toDb(rms(mono(clip.left, clip.right), from, talking.to));
   const under = toDb(rms(music.signal, from, talking.to));
@@ -133,7 +135,7 @@ test('speech follows its own level and is rendered with music off', async ({ pag
   expect(loud.elements.filter((element) => element.source.includes('/audio/music/')), 'no score element with music off').toHaveLength(0);
   const first = find(loud, '/voice/');
   const high = await speechGain(page, first, info, 'speech 60%, music off:');
-  expect(toDb(high.gain)).toBeCloseTo(toDb(0.6), 1);
+  expect(toDb(high.gain)).toBeCloseTo(toDb(0.6 * OUTPUT_SCALE), 1);
   expect(toDb(rms(first.left)), 'audible signal with music off').toBeGreaterThan(-50);
   // With music off the output is the clip and nothing else, and silent once it has ended.
   const ended = span(first).to;
@@ -151,7 +153,11 @@ test('speech follows its own level and is rendered with music off', async ({ pag
   expect(toDb(high.gain / low.gain), 'half the speech level is 6.02 dB less signal').toBeCloseTo(6.02, 1);
 });
 
-test('at full music and speech levels the output mix is measured for clipping', async ({ page }, info) => {
+/** How far the in-page true-peak estimate may read above ffmpeg's meter on the same file. */
+const ESTIMATOR_DB = 0.15;
+const withEstimator = (bound: number) => bound * 10 ** (ESTIMATOR_DB / 20);
+
+test('at full music and speech levels the output mix stays under full scale', async ({ page }, info) => {
   await installSignalTap(page);
   await boot(page, 'decoded-omen', { audio: { version: 2, enabled: true, volume: 100, speechEnabled: true, speechVolume: 100 }, realTimers: true });
   await signalTapReady(page);
@@ -167,5 +173,12 @@ test('at full music and speech levels the output mix is measured for clipping', 
   let over = 0;
   for (const channel of [result.mix.left, result.mix.right]) for (const sample of channel) if (Math.abs(sample) >= 1) over += 1;
   report(info, 'output mix samples at or over full scale, both at 100%', over, 'samples');
-  expect(clipPeak, 'the clip alone stays under full scale').toBeLessThan(1);
+  // The clip is at most the loudest clip's ceiling times the output scale: -5.2 dBTP, not
+  // merely under 0 dBTP as before the scale existed.
+  expect(clipPeak, 'the clip at 100% is inside its scaled ceiling').toBeLessThanOrEqual(withEstimator(OUTPUT_SCALE * SPEECH_PEAK_CEILING));
+  // The mix is what reaches the output, so it is the thing gated: never over the scaled sum of
+  // the two ceilings (the worst case, before the duck lands), never a sample at full scale.
+  expect(mixPeak, 'the mix is inside the scaled worst case').toBeLessThanOrEqual(withEstimator(OUTPUT_SCALE * (SCORE_PEAK_CEILING + SPEECH_PEAK_CEILING)));
+  expect(mixPeak, 'the mix stays under full scale').toBeLessThan(1);
+  expect(over, 'no sample at or over full scale').toBe(0);
 });

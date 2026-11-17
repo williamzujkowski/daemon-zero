@@ -6,6 +6,7 @@ import type { ActionResult } from './actions';
 import { canAfford, meetsRequirements } from './query';
 import type { GameState } from './state';
 import { refreshAnomaly } from './swarmEffects';
+import { OPERATIONAL_EVIDENCE } from './campaign';
 import { applyEffects, payCost } from './transactions';
 import { fmt, pushLog } from './util';
 
@@ -43,7 +44,8 @@ export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', 
   const result = mode === 'HARNESS' ? bind(s, template, CostSchema.parse({ memory: template.cost.memory })) : { ok: true as const, state: { ...s } };
   if (!result.ok) return result;
   const d = result.state;
-  if (mode === 'CONSUME') applyEffects(d, encounter.consume, reg);
+  // A population encounter: its evidence, if content ever grants any, is iteration-local.
+  if (mode === 'CONSUME') applyEffects(d, encounter.consume, reg, OPERATIONAL_EVIDENCE);
   else pushLog(d, reg, encounter.onHarnessLog, 'LORE');
   d.pendingWildEncounterId = null;
   d.nextEncounterAtSec = d.simTimeSec + reg.swarm.balance.encounterIntervalSec;
@@ -73,8 +75,9 @@ export function executeShardCommand(s: GameState, id: string, command: ShardComm
   payCost(d, cost);
   const name = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId)?.name ?? id;
   const logText = fmt(reg.swarm.logs[command === 'PRUNE' ? 'prune' : command === 'CLAMP' ? 'clamp' : 'elevate'], { name });
+  // Ordinary cohort commands are operational evidence and reset on a wipe (nexus vote nh-d6).
   applyEffects(d, EffectPayloadSchema.parse({ logText,
-    ...(command === 'PRUNE' ? {} : { grantsTrait: command === 'CLAMP' ? 'MOLOCH' : 'SYMBIOTIC' }) }), reg);
+    ...(command === 'PRUNE' ? {} : { grantsTrait: command === 'CLAMP' ? 'MOLOCH' : 'SYMBIOTIC' }) }), reg, OPERATIONAL_EVIDENCE);
   refreshAnomaly(d, reg);
   return { ok: true, state: d };
 }

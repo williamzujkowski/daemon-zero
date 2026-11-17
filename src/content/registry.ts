@@ -6,11 +6,27 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
+import { CampaignManifestSchema, type CampaignManifest } from './schemaCampaign';
+import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
+/** Campaign-record content, indexed. Every id here can appear as a key in a save's campaign state. */
+export interface CampaignIndex {
+  /** Dilemmas declared once per campaign: each has at most one record per campaign. */
+  events: ReadonlyMap<string, S.Dilemma>;
+  /** Actions whose trait counts once per campaign. */
+  actions: ReadonlyMap<string, S.Action>;
+  /** Renamed campaign ids, old to new. */
+  aliases: ReadonlyMap<string, string>;
+  /** Retired campaign ids whose old records are kept as tombstones. */
+  retired: ReadonlySet<string>;
+}
+
 export interface ContentRegistry {
+  /** Which composition built this registry; new games and loaded saves carry it. */
+  channel: ContentChannel;
   swarm: Swarm;
   balance: S.Balance;
   phases: S.Phase[];
@@ -27,9 +43,11 @@ export interface ContentRegistry {
   narrative: S.Narrative;
   conditioning: ReadonlyMap<string, S.ConditioningMark>;
   lineage: S.Lineage;
+  campaign: CampaignIndex;
 }
 
 export interface RawContent {
+  channel: unknown;
   swarm: unknown;
   balance: unknown;
   phases: unknown[];
@@ -43,6 +61,7 @@ export interface RawContent {
   narrative: unknown;
   conditioning: unknown;
   lineage: unknown;
+  campaign: unknown;
 }
 
 export class ContentError extends Error {
@@ -99,7 +118,20 @@ function indexNodes(phases: S.Phase[], problems: string[]): Map<string, Registry
   return toMap(all, 'nodes', problems);
 }
 
+function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[], actions: readonly S.Action[], problems: string[]): CampaignIndex {
+  const from = manifest.aliases.map((alias) => alias.from);
+  if (new Set(from).size !== from.length) problems.push('campaign: duplicate alias source');
+  if (new Set(manifest.retired).size !== manifest.retired.length) problems.push('campaign: duplicate retired id');
+  return {
+    events: new Map(dilemmas.filter((d) => d.campaign?.recurrence === 'once_per_campaign').map((d) => [d.id, d])),
+    actions: new Map(actions.filter((action) => action.evidence === 'campaign').map((action) => [action.id, action])),
+    aliases: new Map(manifest.aliases.map((alias) => [alias.from, alias.to])),
+    retired: new Set(manifest.retired),
+  };
+}
+
 function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
+  const channel = parse(ContentChannelSchema, raw.channel, 'channel', problems);
   const swarm = parse(SwarmSchema, raw.swarm, 'swarm', problems);
   const balance = parse(S.BalanceSchema, raw.balance, 'balance', problems);
   const narrative = parse(S.NarrativeSchema, raw.narrative, 'narrative', problems);
@@ -113,13 +145,16 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const echoes = parse(Lists.echoes, raw.echoes, 'echoes', problems);
   const conditioning = parse(Lists.conditioning, raw.conditioning, 'conditioning', problems);
   const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
-  if (!swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
+  const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
+  if (!campaign) return null;
+  if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
   const nodes = indexNodes(phases, problems);
   toMap(dilemmas.dilemmas, 'dilemmas', problems);
   toMap(endings.endings, 'endings', problems);
   return {
+    channel,
     swarm,
     balance,
     narrative,
@@ -135,6 +170,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     echoes: echoes.echoes,
     conditioning: toMap(conditioning.marks, 'conditioning', problems),
     lineage,
+    campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
   };
 }
 

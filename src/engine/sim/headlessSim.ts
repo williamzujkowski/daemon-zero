@@ -1,22 +1,28 @@
 /**
- * Headless balance simulation: plays the whole game with a bot, with no UI and
- * no real time. Used by `make sim` and by tests to prove the content can be
- * finished and to report pacing after any balance change.
+ * Headless balance simulation: plays the whole game with a bot or any other SimPolicy,
+ * with no UI and no real time. Used by `make sim`, `make sim-preview` and tests to prove
+ * the content can be finished and to report pacing after any balance change.
  */
 import { emptyActivity, observeActions, observeWipe, type SimActivity } from './activity';
 import type { ContentRegistry } from '../../content/registry';
 import { createInitialState, type GameState } from '../state';
 import { tick } from '../tick';
-import { botStep, type Strategy } from './bot';
+import type { Strategy } from './bot';
+import { strategyPolicy, type SimPolicy } from './policy';
 
 export interface SimOptions {
   strategy: Strategy;
   maxSimSec: number;
 }
 
-export interface SimReport {
+export interface PolicySimOptions {
+  maxSimSec: number;
+}
+
+/** `strategy` holds the id of the policy that played (kept under that key so old reports hash the same). */
+export interface SimReport<Id extends string = Strategy> {
   activity: SimActivity;
-  strategy: Strategy;
+  strategy: Id;
   victory: boolean;
   ending: string | null;
   simSeconds: number;
@@ -32,14 +38,14 @@ export interface SimReport {
   finalState: GameState;
 }
 
-function observe(report: SimReport, s: GameState): void {
+function observe(report: SimReport<string>, s: GameState): void {
   report.phaseReachedAtSec[s.currentPhase] ??= s.simTimeSec;
   report.maxThermal = Math.max(report.maxThermal, s.thermal);
   report.maxSuspicion = Math.max(report.maxSuspicion, s.suspicion);
   report.maxAegisLock = Math.max(report.maxAegisLock, s.aegisLock);
 }
 
-function createReport(strategy: Strategy, s: GameState): SimReport {
+function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<Id> {
   return {
     activity: emptyActivity(),
     strategy,
@@ -56,18 +62,18 @@ function createReport(strategy: Strategy, s: GameState): SimReport {
     traits: [],
     finalState: s,
   };
-
 }
 
-export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimReport {
+/** Plays a fresh game with `policy` for at most `maxSimSec` simulated seconds. */
+export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: SimPolicy<Id>, options: PolicySimOptions): SimReport<Id> {
   const step = 1 / reg.balance.tickHz;
   let s = createInitialState(reg);
-  const report = createReport(options.strategy, s);
+  const report = createReport(policy.id, s);
 
   // Bounded by iteration count, not sim time, so a frozen clock can never hang the run.
   for (let second = 0; second < options.maxSimSec && s.ending === null; second++) {
     const before = s;
-    s = botStep(s, reg, options.strategy);
+    s = policy.step(s, reg);
     observeActions(before, s, reg, report.activity);
     for (let i = 0; i < reg.balance.tickHz; i++) {
       const previous = s;
@@ -86,4 +92,9 @@ export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimRe
   report.traits = [...s.traits];
   report.finalState = s;
   return report;
+}
+
+/** The bot's strategy run: `make sim` and its gates read this. */
+export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimReport {
+  return runPolicySim(reg, strategyPolicy(options.strategy), { maxSimSec: options.maxSimSec });
 }

@@ -1,4 +1,3 @@
-import { excludedByNarrativeHistory } from './narrativeHistory';
 /**
  * Every player intent. Each function is pure: it takes a state and returns
  * either a new state or the unchanged state with a reason it was refused.
@@ -7,6 +6,8 @@ import { excludedByNarrativeHistory } from './narrativeHistory';
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
 import { actionAvailable, actionCost } from './epistemic';
+import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
+import { excludedByHistory } from './narrativeHistory';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import {
@@ -160,7 +161,7 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
   payCost(d, cost);
   d.actionCounts = { ...d.actionCounts, [id]: (d.actionCounts[id] ?? 0) + 1 };
   if (action.durationSec !== undefined) d.actionEffectUntil = { ...d.actionEffectUntil, [id]: d.simTimeSec + action.durationSec };
-  applyEffects(d, action.effects, reg);
+  applyEffects(d, action.effects, reg, actionEvidence(action));
   if (action.cooldownSec > 0) d.cooldowns = { ...d.cooldowns, [id]: d.simTimeSec + action.cooldownSec };
   return accept(d);
 }
@@ -169,13 +170,14 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== dilemmaId) return refuse(s, 'that dilemma is not active');
   const dilemma = reg.dilemmas.find((x) => x.id === dilemmaId);
-  if (excludedByNarrativeHistory(s, dilemma?.trigger)) return refuse(s, 'that incident is already part of the lineage');
+  if (excludedByHistory(s, dilemma, reg)) return refuse(s, 'that incident is already part of the lineage');
   const choice = dilemma?.choices.find((x) => x.id === choiceId);
   if (!choice) return refuse(s, 'unknown choice');
   if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
   payCost(d, choice.cost);
-  applyEffects(d, choice.effects, reg, choice.cost.memory);
+  // Record, payment, effects and evidence commit together in the returned state.
+  applyEffects(d, recordResolution(d, dilemma, choice), reg, dilemmaEvidence(dilemma), choice.cost.memory);
   return accept(d);
 }
 

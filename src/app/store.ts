@@ -5,7 +5,7 @@
 import { createStore } from 'zustand/vanilla';
 import { CONTENT } from '../content';
 import type { ContentRegistry } from '../content/registry';
-import { advance, createInitialState, type ActionResult, type GameState } from '../engine';
+import { activateCampaignRules, advance, campaignRulesSupported, createInitialState, type ActionResult, type GameState } from '../engine';
 
 export interface AppState {
   game: GameState;
@@ -17,6 +17,17 @@ export interface AppState {
 
 export type GameAction = (game: GameState) => ActionResult;
 
+/**
+ * Every game that enters the store passes the public activation transition. In production it is
+ * refused (legacy rules stay); in preview a legacy game enters campaign rules on its first entry
+ * and an already-active one is refused, so nothing is ever captured twice.
+ */
+function admit(game: GameState, content: ContentRegistry): GameState {
+  if (!campaignRulesSupported(content)) return game;
+  const result = activateCampaignRules(game, content);
+  return result.ok ? result.state : game;
+}
+
 export function createGameStore(content: ContentRegistry = CONTENT) {
   const state = createStore<AppState>(() => ({
     game: createInitialState(content), ready: false, restoreRevision: 0, notice: null,
@@ -27,14 +38,16 @@ export function createGameStore(content: ContentRegistry = CONTENT) {
   return {
     store,
     initialize(game: GameState, elapsedSec: number, notice: string | null) {
-      state.setState(({ restoreRevision }) => ({ game: advance(game, elapsedSec, content), ready: true, notice, restoreRevision: restoreRevision + 1 }));
+      state.setState(({ restoreRevision }) => ({ game: advance(admit(game, content), elapsedSec, content), ready: true, notice, restoreRevision: restoreRevision + 1 }));
     },
     dispatch(action: GameAction, restoring = false): ActionResult {
       const { game, ready } = state.getState();
       if (!ready) return { ok: false, state: game, reason: 'The save is still loading.' };
       const result = action(game);
-      if (result.ok) state.setState(({ restoreRevision }) => ({ game: result.state, restoreRevision: restoreRevision + Number(restoring) }));
-      return result;
+      if (!result.ok) return result;
+      const admitted = admit(result.state, content);
+      state.setState(({ restoreRevision }) => ({ game: admitted, restoreRevision: restoreRevision + Number(restoring) }));
+      return admitted === result.state ? result : { ok: true, state: admitted };
     },
     step(elapsedSec: number) {
       if (!state.getState().ready) return;

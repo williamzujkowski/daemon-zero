@@ -9,6 +9,7 @@ import type { ContentRegistry } from './registry';
 import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
+import { checkCampaignIntegrity } from './integrityCampaign';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -115,7 +116,8 @@ function checkDilemmas(reg: ContentRegistry): string[] {
     if (ids.size !== dilemma.choices.length) problems.push(`${owner}: duplicate choice ids`);
     for (const choice of dilemma.choices) {
       const choiceOwner = `${owner} choice "${choice.id}"`;
-      if (!choice.effects.grantsTrait) problems.push(`${choiceOwner}: must grant a trait`);
+      // A choice declared evidence 'none' is checked against its event class in integrityCampaign.
+      if (!choice.effects.grantsTrait && choice.evidence !== 'none') problems.push(`${choiceOwner}: must grant a trait`);
       problems.push(...checkTrustTargets(reg, choiceOwner, choice.effects.trustDelta));
     }
   }
@@ -206,6 +208,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
+    ...checkCampaignIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

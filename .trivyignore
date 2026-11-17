@@ -1,0 +1,4 @@
+# Dated, maintainer-approved exceptions (2026-11-17). Each entry expires (`exp:`), after which
+# trivy reports it again; tests/security-exceptions.spec.ts also fails past the date.
+# picomatch ReDoS (GHSA-fc5q-39xc-vjpf): no patched release; build/test tooling only.
+CVE-2026-112366 exp:2026-12-17

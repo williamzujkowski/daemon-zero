@@ -1,10 +1,12 @@
-import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 /**
  * Save codec. A save is untrusted input (it can be pasted in by hand), so
- * loading always runs: size check -> JSON parse -> version migration -> strict
- * schema validation -> reconciliation against the current content.
+ * loading always runs: size check -> JSON parse -> content channel check ->
+ * version migration -> strict schema validation -> reconciliation against the current content.
  */
 import type { ContentRegistry } from '../content/registry';
+import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
+import { reconcileCampaign } from './campaignSave';
+import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { fromBase64, toBase64 } from './base64';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
@@ -41,6 +43,12 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     const legacy = typeof save.legacy === 'object' && save.legacy !== null ? save.legacy : {};
     return { ...save, conditioning: [], iterationStartedAtSimSec: 0, legacy: { runs: [], ...legacy } };
   },
+  // v5: the content channel. Every earlier build was production.
+  4: (save) => ({ ...save, contentChannel: 'production' }),
+  // v6: campaign history, inactive. Activation is a separate public transition, never a migration.
+  // Written out in full so a later change to the inactive shape cannot alter this step.
+  5: (save) => ({ ...save, narrativeRules: 'legacy', campaign: { activatedAtIteration: null,
+    legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [] } }),
 };
 
 export class SaveError extends Error {
@@ -48,6 +56,39 @@ export class SaveError extends Error {
     super(message);
     this.name = 'SaveError';
   }
+}
+
+/** A save written by a content channel this build may not load. Thrown before any healing. */
+export class SaveChannelError extends SaveError {
+  readonly saveChannel: ContentChannel;
+  readonly buildChannel: ContentChannel;
+
+  constructor(saveChannel: ContentChannel, buildChannel: ContentChannel) {
+    super(`save comes from the ${saveChannel} content channel and cannot be loaded by a ${buildChannel} build`);
+    this.name = 'SaveChannelError';
+    this.saveChannel = saveChannel;
+    this.buildChannel = buildChannel;
+  }
+}
+
+/**
+ * Which save channels each build may load. Preview starts from real production saves;
+ * production never loads preview, because reconcile would strip the preview facts.
+ */
+const LOADABLE_CHANNELS: Readonly<Record<ContentChannel, readonly ContentChannel[]>> = {
+  production: ['production'],
+  preview: ['production', 'preview'],
+};
+
+/**
+ * Reads the channel marker from the raw parsed save, before migration or reconciliation can
+ * change anything. A save written before v5 has no marker and came from production.
+ */
+function admitChannel(raw: RawSave, reg: ContentRegistry): void {
+  if (!Object.hasOwn(raw, 'contentChannel')) return;
+  const marker = ContentChannelSchema.safeParse(raw.contentChannel);
+  if (!marker.success) throw new SaveError('save has an unknown content channel');
+  if (!LOADABLE_CHANNELS[reg.channel].includes(marker.data)) throw new SaveChannelError(marker.data, reg.channel);
 }
 
 export function migrate(raw: RawSave, migrations = MIGRATIONS, target = SCHEMA_VERSION): RawSave {
@@ -139,8 +180,10 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
   }, reg);
-  if (hasConflictingNarrativeFlags(healed, reg)) throw new SaveError('save contains contradictory narrative outcomes');
-  return reconcileDilemmaHistory(healed, reg);
+  const campaign = reconcileCampaign(healed, reg);
+  if (typeof campaign === 'string') throw new SaveError(campaign);
+  if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError('save contains contradictory narrative outcomes');
+  return reconcileDilemmaHistory(campaign, reg);
 }
 
 export function serialize(state: GameState): string {
@@ -161,15 +204,21 @@ function parseObject(text: string): RawSave {
   return parsed as RawSave;
 }
 
-/** Parses, migrates, validates and reconciles a serialized save. Throws SaveError. */
+/**
+ * Parses, checks the channel, migrates, validates and reconciles a serialized save. Throws
+ * SaveError, or SaveChannelError when this build may not load the save's channel. An admitted
+ * save is re-marked with this build's channel, so a production save loaded by preview becomes
+ * a preview save once.
+ */
 export function deserialize(text: string, reg: ContentRegistry): GameState {
-  const migrated = migrate(parseObject(text));
-  const result = GameStateSchema.safeParse(migrated);
+  const raw = parseObject(text);
+  admitChannel(raw, reg);
+  const result = GameStateSchema.safeParse(migrate(raw));
   if (!result.success) {
     const first = result.error.issues[0];
     throw new SaveError(`save failed validation: ${first?.path.join('.') ?? ''} ${first?.message ?? ''}`.trim());
   }
-  return reconcile(result.data, reg);
+  return reconcile({ ...result.data, contentChannel: reg.channel }, reg);
 }
 
 /** Copy/paste save string for moving a run between devices. */

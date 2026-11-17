@@ -1,7 +1,8 @@
 # Replayability pilot — implementation plan
 
 Status: A/B merged in PRs #81/#82; C implemented for #77 with verification in
-REVIEW-REPLAYABILITY-C.md. D remains deferred pending human feedback.
+REVIEW-REPLAYABILITY-C.md. D remains deferred until the autonomous validation
+gate in MILESTONES.md passes (until 2026-11-17: pending human feedback).
 Issue #79; follows the
 [measured audit](PLAYTEST-REPLAYABILITY.md) and [research](REPLAYABILITY-RESEARCH.md).
 Baseline: `444befc` (PR #78). The maintainer approved the direction and asked for
@@ -16,8 +17,10 @@ consequence that survives a wipe. Do not add a narrative framework, runtime LLM,
 network service, random scheduler, currency, relationship meter or permanent tab.
 
 The hypothesis is that recognizable consequences encourage a different next
-choice. Automated reachability cannot prove that hypothesis. A small human
-comparison follows the pilot before more characters/sites are commissioned.
+choice. Automated reachability cannot prove that hypothesis. Before more
+characters/sites are commissioned, the autonomous validation gate (MILESTONES.md)
+evaluates the pilot through recorded agent-run play; a small human comparison
+remains welcome but is optional since the maintainer's 2026-11-17 authorization.
 
 ## PR sequence and ownership
 
@@ -140,20 +143,27 @@ claim to be newly received each time. No unread-state tracking is required.
 ### Old saves, pending choices and conflict handling
 
 GameState already has durable narrativeFlags; this plan adds content/query
-capabilities, not GameState fields. Keep schema v4 and historical migrations
+capabilities, not GameState fields. Keep the schema (v4 when this plan was written;
+v5 since #204 added only the content channel marker) and historical migrations
 unchanged unless implementation actually needs a new state shape. In that case,
 revise this plan and add the next migration before shipping; never smuggle state
 into logs or infer a choice from resources, traits or prose.
+
+**Revised by #212 (schema v6).** Campaign continuity needed a state shape: cryo is
+now a campaign record (`campaign.events`), behind an explicit activation marker
+(`narrativeRules`). The v5->v6 migration adds the inactive shape only. Production
+stays on legacy rules, so the table below still describes production exactly,
+except where a row names campaign rules. See ARCHITECTURE.md "Campaign records".
 
 | Imported state | Required behavior |
 |---|---|
 | Neither outcome flag, source unresolved | History unknown; next eligible incident may establish the first **recorded** outcome |
 | Source already resolved this iteration, no outcome flag | Keep it resolved; do not invent its choice; no outcome-specific callback |
-| Subsequent wipe of that unknown-history save | Original may become eligible once to establish a recorded outcome; acknowledge this legacy limitation |
+| Subsequent wipe of that unknown-history save | Legacy rules: original may become eligible once to establish a recorded outcome; acknowledge this legacy limitation. Campaign rules (nexus vote nh-d5, `vote-1794925989193-ef6tf9i`): activation records it as `legacy_unknown`, the original never recurs in that campaign, and a neutral "Outcome not recorded" record replaces the outcome-specific callback |
 | Valid pending/active original, no outcome flag | Keep IDs, choices and remaining omen; resolve normally |
 | Known outcome plus conflicting pending/active original | Cancel only that contradictory incident; no rewards or invented resolution; keep game playable |
 | Both exclusive outcome flags | Reject import explicitly and atomically; no guessed past |
-| Known outcome after wipe/reload | Suppress original; reveal matching record only after its disclosure gates |
+| Known outcome after wipe/reload | Suppress original; reveal matching record only after its disclosure gates. Campaign rules: the flag moves into the record at activation and is read back as its projection |
 | Start Fresh | Both outcomes clear with the rest of the lineage |
 
 Unknown does not mean preserved, lost or never encountered. Copy must not assert
@@ -229,12 +239,14 @@ block a phase or require failure to unlock. Budget two openings, two branches
 per site, one callback per branch and one repeat-visit summary per site; optional
 records <=100 words and visible receipts <=two short sentences.
 
-Do not ship D simply because C's tests pass. In a small human comparison, check:
-can the player find the collapsed callback without guidance, explain what changed
-because of their previous choice, find the
+Do not ship D simply because C's tests pass. The autonomous gate (and any
+optional human comparison) checks: can the player find the collapsed callback
+without guidance, explain what changed because of their previous choice, find the
 next purchase without opening archives, and voluntarily investigate another
-route? Keep observations qualitative and record sample size; do not claim a
-retention effect. If callbacks are missed, first improve discoverability inside
+route? Agent-run sessions can show whether the callback is findable and legible
+through normal controls; they cannot show that a person finds it meaningful, so
+label them as agent observations. Keep observations qualitative and record sample
+size; do not claim a retention effect. If callbacks are missed, first improve discoverability inside
 existing surfaces; if they feel repetitive, shorten or remove them.
 
 ## Research and review evidence

@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
+.PHONY: help setup typecheck lint validate test sim sim-preview verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -25,6 +25,12 @@ test: ## Unit tests with coverage thresholds
 
 sim: ## Headless full-game balance simulation and pacing gates
 	pnpm sim
+
+# Report-only until release: never part of `verify`, never a gate. SIM_ARGS picks policies,
+# e.g. SIM_ARGS="--policy=STEALTH --policy=IDLE". See docs/TESTING.md, "Preview simulation".
+SIM_ARGS ?=
+sim-preview: ## Compare preview-channel sim runs with production (report only, no gates)
+	pnpm sim:preview $(SIM_ARGS)
 
 verify: typecheck lint validate test sim build-web ## The gate every change must pass
 	@echo "[PASS] verify: typecheck, lint, content, tests, balance, web export"

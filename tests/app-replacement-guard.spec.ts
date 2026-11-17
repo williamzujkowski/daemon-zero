@@ -2,7 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
-import { createInitialState, deserialize, exportSave, importSave, type GameState } from '../src/engine';
+import { CONTENT as PREVIEW } from '../src/content/preview';
+import { createInitialState, deserialize, exportSave, importSave, tick, type GameState } from '../src/engine';
 import { systemClock } from '../src/app/clock';
 import { startFresh } from '../src/app/newRun';
 import { captureReplacementScope } from '../src/app/replacePlayerGame';
@@ -114,6 +115,18 @@ describe('player replacement race guard', () => {
     const result = importPlayerSave('invalid save', captureReplacementScope());
     expect(result).toMatchObject({ ok: false, reason: 'Save code is invalid or unsupported.' });
     expect(result.state).toBe(before.game);
+    expect(gameStore.store.getState().restoreRevision).toBe(before.restoreRevision);
+  });
+
+  it('names a preview-build save code and keeps the current run', () => {
+    gameStore.initialize(fixture('guest-skimmer'), 0, null);
+    const before = gameStore.store.getState();
+    const preview = tick(createInitialState(PREVIEW), 1, PREVIEW);
+    expect(preview.contentChannel).toBe('preview');
+    const result = importPlayerSave(exportSave(preview), captureReplacementScope());
+    expect(result).toMatchObject({ ok: false, reason: 'This save comes from a preview build and cannot be loaded here.' });
+    expect(result.state).toBe(before.game);
+    expect(gameStore.store.getState().game).toBe(before.game);
     expect(gameStore.store.getState().restoreRevision).toBe(before.restoreRevision);
   });
 });
