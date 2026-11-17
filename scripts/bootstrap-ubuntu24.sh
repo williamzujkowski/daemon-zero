@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Bootstrap an Ubuntu 24.04 (noble) x86_64 host or devcontainer for DAEMON // 0.
+# Bootstrap an Ubuntu LTS x86_64 host or devcontainer for DAEMON // 0. Written for 24.04
+# (noble), hence the file name; CI and the devcontainer are on 26.04 (resolute) and the script
+# has run on a 26.04 host (docs/REVIEW-FINDINGS.md). It uses no release-specific package.
 # Installs OS packages and mise, then the exact tool versions pinned in mise.toml.
 # Safe to re-run. Pass --android to add the Android SDK and emulator prerequisites.
 set -euo pipefail

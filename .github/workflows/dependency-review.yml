@@ -18,7 +18,7 @@ concurrency:
 jobs:
   review:
     name: dependency review
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       # Third-party actions are pinned by commit SHA; the comment records the tag.

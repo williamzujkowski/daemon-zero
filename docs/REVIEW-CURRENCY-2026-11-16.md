@@ -62,7 +62,7 @@ install prints no deprecation warning and asks to run no new build script.
 | `actions/deploy-pages` | v5.0.1 (`368f8252`) | v5.0.1 | CURRENT |
 | `github/codeql-action` init/analyze | v4.39.3 (`33d7b85d`) | v4.39.3 is the newest v4 tag | CURRENT |
 | `actions/dependency-review-action` (`dependency-review.yml`, PR #189) | v5.0.0 (`a1d282b3`) | v5.0.0 | CURRENT |
-| Runner image | `ubuntu-24.04` | `ubuntu-26.04` exists in `actions/runner-images`; `ubuntu-latest` still means 24.04 | **SEPARATE** (S4) |
+| Runner image | `ubuntu-24.04` | `ubuntu-26.04` exists in `actions/runner-images`; `ubuntu-latest` still means 24.04 | **SEPARATE** (S4), **done 2026-11-17** -> `ubuntu-26.04` |
 | Workflow syntax and action runtimes | - | - | The last completed `ci` run on `main` (43869560886), the last `live-journey` run (43869749592) and the last `codeql` run (44012415239) carry no deprecation or Node-runtime annotation. The only "DEPRECATED" text in the logs is CodeQL printing its own extractor option list |
 
 ## Deprecated APIs in our own code and build output
@@ -168,7 +168,20 @@ install prints no deprecation warning and asks to run no new build script.
   expo-doctor advises for `expo-audio`. It is already in the tree at 58.0.21 through `expo`,
   and the 2026-11-16 emulator run played audio from a release build without it, so this is
   hygiene, not a known crash. Do it together with a native Android rebuild.
-- **S4. Runner and devcontainer to Ubuntu 26.04.** `ubuntu-24.04` is supported and is still
+- **S4. Runner and devcontainer to Ubuntu 26.04. DONE 2026-11-17** (branch
+  `ci/ubuntu-26-04`). `ubuntu-26.04` has been generally available for GitHub-hosted runners
+  since 2026-09-17 (`actions/runner-images` announcement #14747, after the public preview
+  of #14226); #14748 says `ubuntu-latest` moves to it in November 2026. All five `runs-on`
+  lines in `ci.yml`, `codeql.yml`, `live-journey.yml` and `dependency-review.yml` changed and
+  nothing else in them. Playwright 1.65.1 lists Ubuntu 26.04 as supported and carries an
+  `ubuntu26.04-x64` dependency table for `install --with-deps`. The devcontainer image is
+  `mcr.microsoft.com/devcontainers/base:ubuntu26.04` (that is the tag's spelling; the
+  hyphenated form does not exist for 26.04). `scripts/bootstrap-ubuntu24.sh` keeps its name
+  and needed no change; README still titles its quick start "Ubuntu 24.04". Proof is the
+  pull request's own `ci`, `codeql` and `dependency-review` runs plus a dispatched
+  `live-journey` run on the branch; the devcontainer was not built. The `deploy-pages` job
+  runs only on `main`, so it is first exercised on 26.04 by the merge. Original scope:
+  `ubuntu-24.04` is supported and is still
   what `ubuntu-latest` resolves to. Work: change `runs-on` in every workflow, confirm
   `playwright install --with-deps chromium` and the mise tools on the new image, and move
   `.devcontainer` and `scripts/bootstrap-ubuntu24.sh` with it. Its own PR, so a CI failure is
