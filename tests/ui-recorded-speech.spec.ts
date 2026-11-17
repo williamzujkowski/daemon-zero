@@ -11,6 +11,7 @@ import { CONTENT } from '../src/content';
 import { resolveDilemma, understandsSurveillance, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { music } from '../src/app/musicSession';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import RecordedSpeech from '../src/ui/widgets/RecordedSpeech';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, PHASE2, rich } from './helpers';
@@ -133,17 +134,17 @@ describe('recorded speech disclosure', () => {
     act(() => { read?.click(); });
     expect(voice.create).toHaveBeenCalledTimes(1);
     expect(voice.player.play).toHaveBeenCalledTimes(1);
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     voice.player.remove.mockClear();
     // The music switch and level are not speech's: flipping them leaves the record talking.
     act(() => { music.state.setState({ enabled: true, volume: 90 }); });
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).not.toHaveBeenCalled();
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     expect(view.find('recorded-speech-read-' + record.id)).not.toBeNull();
     // A speech level change reaches the record already talking.
     act(() => { music.state.setState({ speechVolume: 70 }); });
-    expect(voice.player.volume).toBeCloseTo(0.7);
+    expect(voice.player.volume).toBeCloseTo(0.7 * OUTPUT_SCALE);
     // Same rule as the live line: turning speech off must silence a clip that is already talking.
     act(() => { music.state.setState({ speechEnabled: false }); });
     expect(view.find('recorded-speech-read-' + record.id)).toBeNull();

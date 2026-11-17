@@ -4,6 +4,7 @@
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { FADE_IN_MS } from '../../src/app/musicController';
+import { OUTPUT_SCALE } from '../../src/app/outputLevel';
 import { boot, dismissBoot, expect } from './helpers';
 import { align, gainEnvelope, mono, type Alignment } from '../audio/dsp';
 import { assetPath, installSignalTap, playing, reference, SAMPLE_RATE, signalTapReady, type Capture } from './signalTap';
@@ -41,6 +42,8 @@ export function report(info: TestInfo, name: string, value: number, unit: string
 export const PHASE_FIXTURES = ['tick-0', 'phase-1-widgets', 'phase-2-unlocked', 'wild-shard-encounter-p3', 'shard-drift-quirk-p4', 'phase5-midgame'];
 /** `boot(..., { audio: true })` stores this music level. */
 export const PREFERENCE = 0.3;
+/** The gain that preference asks the player for: the output scale keeps headroom for speech. */
+export const LEVEL = PREFERENCE * OUTPUT_SCALE;
 /** How long a level is left alone before it is called resting. */
 export const REST_MS = 400;
 /**

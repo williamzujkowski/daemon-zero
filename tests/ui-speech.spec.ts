@@ -21,6 +21,7 @@ import { Audio } from '../src/ui/widgets/Sensory';
 import Speech from '../src/ui/widgets/Speech';
 import NodeCard from '../src/ui/NodeCard';
 import { makePhase1Fixtures } from '../scripts/make-fixtures';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -193,7 +194,7 @@ describe('reading a transmission aloud', () => {
     view.click('speech-read');
     expect(voice.create).toHaveBeenCalledWith(voiceSources[line?.id ?? ''], expect.anything());
     expect(voice.player.play).toHaveBeenCalledTimes(1);
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     // Music is off in this file and its controller never started, so the only thing that can
     // have prepared the shared audio session is READ itself.
     expect(music.state.getState().enabled).toBe(false);
@@ -233,7 +234,7 @@ describe('reading a transmission aloud', () => {
     act(() => { music.state.setState({ enabled: true, volume: 90 }); });
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).not.toHaveBeenCalled();
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     expect(view.find('speech-read')).not.toBeNull();
   });
 
@@ -289,10 +290,10 @@ describe('reading a transmission aloud', () => {
   it('follows a speech volume change while a clip is playing', async () => {
     const view = await mount({ ...game, suspicion: 0 }, false, 'speech');
     view.click('speech-read');
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     // Panel finding: a slider change mid-clip used to be ignored until the next press.
     act(() => { music.state.setState({ speechVolume: 80 }); });
-    expect(voice.player.volume).toBeCloseTo(0.8);
+    expect(voice.player.volume).toBeCloseTo(0.8 * OUTPUT_SCALE);
     expect(view.find('speech-read')).not.toBeNull();
   });
 });

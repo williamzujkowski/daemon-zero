@@ -71,7 +71,12 @@ No audio is generated here. Scores are maintainer-supplied files with recorded p
    the file carries any tag but the three neutral ones and the disclosure comment, or a
    title or artist other than what the app publishes for its phase; and `tests/e2e/phase-music.e2e.ts` then plays every
    manifest entry on the web export and compares the served bytes to the manifest.
-7. Listen to it in the game. Nothing above is a listening test.
+   `tests/audio-assets.spec.ts` also fails if the file's true peak is above
+   `SCORE_PEAK_CEILING` (0.71, `src/app/outputLevel.ts`): the headroom at 100% music and 100%
+   speech is computed from that ceiling (#198). A louder score means raising the ceiling and
+   lowering `OUTPUT_SCALE` to match, not editing the file.
+7. Listen to it in the game, through a loop wrap (the player dips its gain there, #198).
+   Nothing above is a listening test.
 
 That covers exactly two cases without design work: **replacing a phase's score**, and
 **scoring a phase number that does not have one** (a future phase 6).
