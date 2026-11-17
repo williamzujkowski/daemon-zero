@@ -23,6 +23,8 @@ export const PreviewOverlaySchema = z.strictObject({
   echoes: items,
   /** Conditioning marks. */
   marks: items,
+  /** Routine operation templates (#219). */
+  routines: items,
 });
 
 export type PreviewOverlay = z.infer<typeof PreviewOverlaySchema>;
@@ -41,8 +43,8 @@ function idOf(item: unknown): string | null {
 
 /** Every id an overlay adds, in overlay order. Tests use it to prove production holds none of them. */
 export function overlayIds(overlay: PreviewOverlay): string[] {
-  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks } = overlay;
-  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks]
+  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines } = overlay;
+  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines]
     .flatMap((list: readonly unknown[]) => list.map(idOf))
     .filter((id): id is string => id !== null);
 }
@@ -105,6 +107,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     endings: append(base.endings, 'endings', overlay.endings, problems),
     echoes: append(base.echoes, 'echoes', overlay.echoes, problems),
     conditioning: append(base.conditioning, 'marks', overlay.marks, problems),
+    routines: append(base.routines, 'routines', overlay.routines, problems),
   };
   if (problems.length > 0) throw new ContentError(problems);
   return composed;
