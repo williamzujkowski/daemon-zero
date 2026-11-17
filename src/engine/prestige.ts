@@ -10,6 +10,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import { hasFlag } from './query';
 import { carryCampaign } from './campaignLifecycle';
+import { reorientation } from './campaignClue';
 import { createInitialState, type GameState, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
@@ -65,6 +66,7 @@ function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDead
   if (d.inheritedMessage !== null) {
     pushLog(d, reg, fmt(n.breadcrumb, { message: d.inheritedMessage }), 'LORE');
   }
+  for (const line of reorientation(d, reg)) pushLog(d, reg, line.text, 'LORE');
 }
 
 function logBoot(d: GameState, reg: ContentRegistry, reason: string, retraining: Retraining): void {
