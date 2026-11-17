@@ -72,8 +72,12 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `data/*.json` - all game data. `data/phases/*.json` hold the tech tree, one file per phase. Phases are numbered from 0 (the guest); each declares the `uiSlot` whose pane hosts its hardware.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
-- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem.
-- `index.ts` - imports the JSON and exports `CONTENT`. The only module that imports JSON.
+- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`).
+- `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
+- `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
+- `preview/` - production plus `preview/overlay.json`, composed by `overlay.ts` and built through the same `buildRegistry` with channel `preview`. See [Content channels and preview saves](#content-channels-and-preview-saves-204).
+
+Only `production.ts` and `preview/` import content JSON.
 
 ### Content model
 
@@ -108,7 +112,7 @@ Public API is `src/engine/index.ts`.
 | `transactions.ts` | `payCost`, `applyEffects`. |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
-| `save.ts`, `base64.ts` | Serialize, validate, migrate, reconcile, paste codes. |
+| `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
 | `sim/` | Bot, headless simulation, pacing gates. |
 
 ### State and purity
@@ -174,7 +178,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add a repeatable, action, dilemma, ending or echo.** Add an object to the matching JSON file. No code changes. A dilemma needs one zero-cost choice and a trait on every choice.
 
-**Add a phase.** Create `data/phases/phase5_*.json`, import it in `src/content/index.ts`, and give a Phase 4 node `effects.unlocksPhase: 5`. Move `triggersVictory` to the new final node. Extend the pacing gates.
+**Add a phase.** Create `data/phases/phase5_*.json`, import it in `src/content/production.ts`, and give a Phase 4 node `effects.unlocksPhase: 5`. Move `triggersVictory` to the new final node. Extend the pacing gates.
 
 **Add a faction.** Add it to `factions.json`; give actions `group: <faction id>` and nodes `uiGroup: <faction id>`. The Other Minds console (M4) renders from this data.
 
@@ -188,7 +192,9 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v5; `tests/fixtures/` holds genuine v1-v4 codec outputs.
+
+**Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
 ## Decisions
 
@@ -223,6 +229,44 @@ queries. The two new pipeline stages integrate epistemic drift and evaluate
 mutations/encounters after threats and before dilemmas; a threat wipe still halts
 the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
 the public engine API. Costs and one-shot outcomes still use transactions.
+
+## Content channels and preview saves (#204)
+
+Decided by Nexus votes `vote-1794924364010-e91diez` (content alias) and
+`vote-1794924408874-lpby4dj` (save marker). Unfinished content can merge to main
+without reaching players.
+
+**Composition.** `src/content/production.ts` is the shipped composition and
+`index.ts` re-exports it. `src/content/preview/index.ts` takes production's raw
+content, appends `preview/overlay.json` through `overlay.ts`, and builds it with the
+same `buildRegistry`. The overlay only adds: an item whose id production already
+defines is a `ContentError`, as is a node for a phase that does not exist or an
+unknown overlay key. Preview exports the same names and types as production (a
+`satisfies` check fails to compile otherwise), plus `PREVIEW_OVERLAY` and
+`PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
+Nothing under `src/content/` reads the environment. A build picks preview by
+resolving `src/content/index` to `preview/index.ts` at bundle time; that resolver,
+the preview storage keys and the visible marker are #205, not part of this change.
+The overlay is empty today.
+
+**Saves.** Schema v5 adds `contentChannel` to `GameState`. `createInitialState`
+and `wipe` write the registry's channel. The v4->v5 migration marks every older
+save `production`. `deserialize` reads the raw marker immediately after JSON parse,
+before migration, validation or reconciliation: a save with no marker predates v5
+and is production; an unknown marker is a `SaveError`; a channel this build may not
+load throws `SaveChannelError` (a `SaveError` with `saveChannel` and
+`buildChannel`). Production loads only production saves, because `reconcile()`
+would otherwise strip a preview save's unknown ids and heal it into the old route.
+Preview loads production and preview saves, and re-marks an admitted save with its
+own channel, so a production save becomes a preview save once and a second load
+changes nothing. `importPlayerSave` reports a channel refusal as "This save comes
+from a preview build and cannot be loaded here." and leaves the current run as it
+was; other bad codes keep the generic reason. `storage.load` still treats a refused
+save as damaged until #205 gives preview its own keys.
+
+Tests: `tests/content-channel.spec.ts` (T1) and `tests/save-channel.spec.ts` (T2,
+T3) of the decision note, the v4 fixture in `tests/swarm-save.spec.ts`, and the
+import reason in `tests/app-replacement-guard.spec.ts`.
 
 ## Optional soundtrack foundation (#88)
 

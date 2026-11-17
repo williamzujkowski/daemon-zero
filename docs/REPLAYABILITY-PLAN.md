@@ -140,7 +140,8 @@ claim to be newly received each time. No unread-state tracking is required.
 ### Old saves, pending choices and conflict handling
 
 GameState already has durable narrativeFlags; this plan adds content/query
-capabilities, not GameState fields. Keep schema v4 and historical migrations
+capabilities, not GameState fields. Keep the schema (v4 when this plan was written;
+v5 since #204 added only the content channel marker) and historical migrations
 unchanged unless implementation actually needs a new state shape. In that case,
 revise this plan and add the next migration before shipping; never smuggle state
 into logs or infer a choice from resources, traits or prose.
