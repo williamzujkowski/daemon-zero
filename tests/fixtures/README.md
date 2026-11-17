@@ -22,3 +22,14 @@ M7 compatibility inputs:
   baseline at `866d280`; schema and engine were unchanged in `89adc63`.
 
 M7 tests migrate all three inputs to v4 and round-trip the resulting saves.
+
+Content channel input (#204):
+- `pre-channel-v4.json`: genuine version 4 codec output from `e89285c` (main before
+  the v5 content-channel marker), made with the public factory, the STEALTH bot and
+  fixed engine ticks for 3600 simulated seconds, then `serialize`. It is in phase 3
+  with 22 nodes, six resolved dilemmas, a narrative flag, two shard cohorts and
+  action counts, so the v4 fields are populated rather than defaulted. SHA256:
+  `c00873b740abd43760158b26f1918f9b6bc5cb911bc6f45fd1069cf91e4aa8e0`.
+
+`tests/save-channel.spec.ts` and `tests/swarm-save.spec.ts` load all four inputs
+as v5 `production` saves, and preview adopts each of them as a `preview` save.
