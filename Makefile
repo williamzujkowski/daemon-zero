@@ -91,7 +91,7 @@ e2e-audio: build-web ## Rendered-audio signal measurements for every phase score
 	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
-	env -u DAEMON_CONTENT_CHANNEL bash scripts/build-android-release.sh
+	bash scripts/build-android-release.sh
 
 build-pages: ## Export for the GitHub Pages project URL (keep root export separate)
 	env -u NO_COLOR -u DAEMON_CONTENT_CHANNEL EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec expo export --platform web --output-dir dist/daemon-zero
