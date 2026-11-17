@@ -58,3 +58,6 @@ release-artifacts/
 .eslintcache
 *.orig
 *.rej
+
+# Preview channel web export (make build-preview); never deployed
+dist-preview/

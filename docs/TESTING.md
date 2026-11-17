@@ -11,6 +11,7 @@
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
+| Published build smoke | Playwright against the live Pages site, plus its deployment commit | `tests/e2e/pages-smoke.remote.ts`, `scripts/pages-deployment.ts` | `make e2e-remote` (opt-in) |
 | Agent-driven exploratory testing | Playwright MCP | `.mcp.json` | on demand |
 
 ## Writing engine tests
@@ -107,6 +108,43 @@ pnpm exec playwright test --config tests/e2e/config.ts --list
 the GitHub Pages deployment. Counts in milestone sections below are historical,
 not the current suite size.
 
+### Preview build (#205)
+
+Unfinished content lives in the `src/content/preview/` overlay. It merges to `main` but never
+reaches a production export: `metro.config.js` swaps `src/content/index.ts` for
+`src/content/preview/index.ts` only when `DAEMON_CONTENT_CHANNEL=preview` and the platform is
+web (nexus votes `metro-content-alias`, vote-1794924364010-e91diez, and
+`local-ci-preview-in-verify`, vote-1794924668784-7v1q790). Vitest, the sim and content
+validation never go through Metro, so they always load production content.
+
+```bash
+make build-preview   # web only, into dist-preview/ (never dist/ or dist/daemon-zero)
+make e2e-preview     # build-preview, then the *.preview.ts scenarios on their own port slot
+```
+
+`make e2e-preview` serves `dist-preview/` through `scripts/e2e-lock.sh`
+(`DAEMON_E2E_CHANNEL=preview DAEMON_E2E_DIST=dist-preview`); in that mode
+`tests/e2e/config.ts` defines only the `preview-phone` and `preview-desktop` projects, which
+run `*.preview.ts` and nothing else. The production projects never match `*.preview.ts`.
+The preview is not deployed anywhere: CI builds and tests it inside the required `verify` job
+and discards it. A native export with the channel set fails in the resolver, and
+`build-web`/`build-pages` clear the variable, so a preview value left in a shell cannot reach
+`dist/` or the Pages artifact.
+
+What proves the boundary:
+
+| Test | Where | Proves |
+|---|---|---|
+| T4 | `tests/app-storage-channel.spec.ts` | Production keeps `daemon-zero.save.v1` / `daemon-zero.save.corrupt-backup` byte for byte; preview uses `daemon-zero.preview.save.v1` / `daemon-zero.preview.save.corrupt-backup`; each ignores the other's entry; a preview save under the production key is backed up with a notice naming the preview build, not "damaged". The audio slot `daemon-zero.audio.v1` is shared (it holds no content). |
+| T5 | `tests/production-export.spec.ts` | No production web, android or ios chunk contains the overlay sentinel or an overlay id; the preview web export does contain the sentinel (the known positive); android and ios exports with the channel set fail, and so does an unknown channel value. |
+| T6 | `tests/release-config.spec.ts` | No `eas.json` profile (including the internal `preview` APK profile), release script, app config, package script or CI step sets `DAEMON_CONTENT_CHANNEL`; only `make build-preview` does. |
+| T7 | `tests/e2e/preview-isolation.e2e.ts` (`make e2e`, `make e2e-pages`) | A pasted preview save code shows "This save comes from a preview build and cannot be loaded here." and the run is unchanged after reload; a preview-key entry does not affect a fresh production boot and is left untouched; no preview marker on a fresh production profile. |
+| T9 | `tests/e2e/preview-channel.preview.ts` (`make e2e-preview`) | The PREVIEW marker shows on boot, in MENU and in Help; saves land under the preview key; a production entry on the same origin is untouched; a production save code is adopted as a preview run. |
+
+To look at the preview yourself, serve it on its own port and origin:
+`python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
+`localhost:8089`). Use a fresh isolated profile, as for any session.
+
 Fixtures are regenerated in each test worker with the current engine. Focused
 states enter through the ordinary app storage envelope, not a production hook.
 The opening starts empty and buys the process view and manifest through the UI.
@@ -140,6 +178,102 @@ The clock is installed **before navigation**. Playwright `runFor` delivers timer
 callbacks rather than dormant catch-up. Each case gets independent storage and
 fails on browser console warnings, errors or page errors. Trace artifacts are
 retained on failure in ignored `test-results/`.
+
+## Published build smoke check
+
+`make e2e` and `make e2e-pages` test the export this checkout builds. Neither looks at what
+GitHub Pages actually serves, or says which commit that is. `make e2e-remote` does both,
+read-only:
+
+```bash
+git fetch origin                     # the identity line compares with origin/main as last fetched
+make e2e-remote                      # https://williamzujkowski.github.io/daemon-zero/
+make e2e-remote PAGES_ARGS=--require-current   # also fail when Pages is not serving origin/main
+make e2e-remote DAEMON_E2E_REMOTE_URL=https://example.org/other-copy/   # any other published copy
+make pages-deployment                # only the identity report
+```
+
+It first runs `scripts/pages-deployment.ts`, which asks `gh api` for the repository's
+`github-pages` deployments, walks them newest first to the first whose latest status is
+`success` (a failed or in-flight deploy leaves the previous one serving; both are printed),
+and prints that deployment's commit beside `git rev-parse origin/main`, ending in
+`CURRENT`, `DIFFERS` or `UNKNOWN`. A difference is only a report unless
+`--require-current` is passed; a lookup that cannot be made (no `gh` login, a malformed
+reply) exits 2 and stops the target. It needs an authenticated `gh` and makes GET
+requests only.
+
+Then Playwright runs `tests/e2e/pages-smoke.remote.ts` at 390x844 and 1440x900. Setting
+`DAEMON_E2E_REMOTE_URL` switches `tests/e2e/config.ts` to the `remote-phone` and
+`remote-desktop` projects only and drops the `webServer`, so nothing is built, served or
+locked: there is no port, so the target does not go through `scripts/e2e-lock.sh`. The
+local targets unset the variable, so an exported value cannot turn `make e2e` into this.
+Each case, in Playwright's own fresh context (empty storage, checked before the first
+navigation):
+
+- loads the site at its subpath and checks every script and stylesheet comes from inside it;
+- waits for the terminal, and finds no development drawer and no development hook;
+- opens MENU, sees the save entry, and closes it;
+- buys the opening's first driver the way a player does (manual cycles until its card is
+  offered and affordable, then its button), reading the driver off the page rather than from
+  local content, and sees the cycle counter appear and the card go;
+- reads the checkpoint written after the purchase: iteration 1, phase 0, no wipes, driver owned;
+- reloads, then requires the progress twice: on screen (counter shown, card gone), and in a
+  checkpoint stamped after the reloaded page was up, which must hold the same run
+  (iteration, phase, nodes, levels, wipes) with the clock not behind;
+- fails on any console warning or error, uncaught page error, failed request, HTTP status of
+  400 or more, or request to another origin.
+
+Why the reload is judged that way: when loading the save fails, `GameRuntime.load()` starts a
+fresh run and disables saving, but the terminal still renders and the old save stays in
+storage. So "a save exists after the reload" proves nothing. A fresh run shows no cycle
+counter, and a disabled save never writes again. The old page's own last write is stamped
+before the new page is up, so it cannot pass for a new checkpoint. Both checks were shown to
+fail in throwaway runs against the live site: once with the app's first save read made to
+throw (the counter check failed; with the screen check removed, no checkpoint newer than the
+reload arrived), and once with the stored save corrupted before the reload (the counter check
+failed; without it, the new checkpoint held no nodes).
+
+One request failure is excused, by rule rather than by URL, and printed as a `note:` line and
+a `cut by reload` annotation whenever it happens. The MENU press is the first gesture, so it
+starts the default-on score. Chromium paces a playing media file: the response arrives in
+milliseconds, but the body streams for most of a minute (44 s measured for the 3.4 MB phase-0
+score on a CDN hit). A reload in that window aborts it with `net::ERR_ABORTED`, as it would
+for a player. So a `media` request that already had a successful response and fails with
+`net::ERR_ABORTED` while the test itself is reloading is not counted. Every other request
+failure is. Before the reload the spec also waits until nothing except such a streaming body
+is in flight and the network has been quiet for two seconds, so a reload cannot cut off a
+script, style or data request.
+
+The spec does not import the local engine or fixtures, because the deployed build need not
+match the checkout; it reads the stored save as plain JSON. It writes only to its browser
+context and to the ignored `test-results/` (traces on failure).
+
+CI does not run it. The `deploy-pages` job holds only `pages: write` and `id-token: write`;
+listing deployments needs `deployments: read` and running the spec needs a checkout
+(`contents: read`) plus the toolchain and Chromium, so a report step there would mean
+widening that job's permissions. Run it by hand after a deploy, and paste its output where
+you claim the live site works.
+
+### Driving the live site through Playwright MCP
+
+The repository's `.mcp.json` lets the Playwright MCP server reach only `localhost:8081` and
+`localhost:8088`, and that default stays as it is. To look at the published site through MCP,
+use a configuration your task owns, in a directory of your own, and start your agent with it.
+For Claude Code:
+
+```bash
+dir=$(mktemp -d)
+cat > "$dir/mcp-live.json" <<'JSON'
+{ "mcpServers": { "playwright-live": { "command": "npx", "args": [
+  "-y", "@playwright/mcp@0.0.85", "--browser", "chrome", "--isolated",
+  "--allowed-origins", "https://williamzujkowski.github.io", "--snapshot-mode", "none" ] } } }
+JSON
+claude --mcp-config "$dir/mcp-live.json"
+```
+
+Other harnesses have an equivalent per-session option. Keep `--isolated`, so the browser
+profile is fresh and thrown away: the live site's origin may hold a player's real save in any
+profile that has visited it. Do not commit the override or widen `.mcp.json`.
 
 ## Live journey
 
@@ -569,6 +703,7 @@ that matches the question:
 | Step through a scenario, with locators and a timeline | add `--ui`, or `--debug` for the inspector |
 | Keep a replayable record of a run | add `--trace on`, then `pnpm exec playwright show-trace <test-results/.../trace.zip>` |
 | Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
+| Check what GitHub Pages serves, and from which commit | `make e2e-remote` (see "Published build smoke check") |
 
 The scripted commands need the production export (`make build-web`) and start their own
 server. `make e2e`, `make e2e-pages`, `make e2e-live` and `make e2e-audio` each take a slot
@@ -621,8 +756,11 @@ Use it for exploratory passes ("play Phase 1 and tell me where the UI is confusi
 Start the app first (`make web`), then ask the agent to open `http://localhost:8081`.
 
 The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
-server) and `localhost:8088`. To drive the production export through it, serve `dist` on
-8088; any other port is refused. Other browser tools are not limited this way.
+server), `localhost:8088` and `localhost:8089`. To drive the production export through it,
+serve `dist` on 8088; to drive the preview export, serve `dist-preview` on 8089. Any other
+port is refused. Other browser tools are not limited this way. For the published site, use
+a task-owned override instead of editing `.mcp.json` (see "Driving the live site through
+Playwright MCP").
 
 ## Validation evidence records (DZ-09)
 
@@ -747,10 +885,13 @@ human evidence. An agent's behaviour is not spontaneous human recognition or emo
 
 CI runs the gates from `make verify-full`: typecheck, lint, content validation,
 tests with coverage, balance sim, production web export, dependency audit,
-secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
-`make e2e-pages`; these browser suites are separate from `make verify-full`.
+secret scan, vulnerability scan and SBOM. It also runs `make e2e`,
+`make e2e-pages` and `make e2e-preview`; these browser suites are separate from
+`make verify-full`. All of it runs in the one required `verify` job, whose limit is
+20 minutes.
 Both include the `audio` project's default signal measurements (the control, the duck and the
-transitions); the per-phase ones (`make e2e-audio`) are not run by CI. The ffmpeg-based file
+transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
+`make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file
 checks are: the job installs ffmpeg, and those checks fail rather than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
@@ -759,7 +900,7 @@ every push and pull request and weekly. `dependency-review.yml` checks what a pu
 changes in the dependency tree: it fails on a newly introduced vulnerability of moderate
 severity or worse and on a copyleft or source-available license. `live-journey.yml` runs `make e2e-live` nightly and
 on demand (`gh workflow run live-journey`): the full journey takes about five minutes, too
-long for the 15-minute `ci` job, so it reports rather than gates. A red nightly run means the
+long for the `ci` job's budget, so it reports rather than gates. A red nightly run means the
 shipped web build no longer plays through to an ending. The journey's milestone lines are in
 the job log, and `test-results/` (the failure screenshot) is uploaded as the
 `live-journey-results` artifact whenever the run does not succeed, a timeout included.

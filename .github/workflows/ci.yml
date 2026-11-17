@@ -17,7 +17,7 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       # Third-party actions are pinned by commit SHA; the comment records the tag.
       - name: Checkout
@@ -54,6 +54,11 @@ jobs:
 
       - name: GitHub Pages production web E2E
         run: make e2e-pages
+
+      # Preview content is built only here and locally, into dist-preview/, never into the Pages
+      # artifact (nexus vote local-ci-preview-in-verify, vote-1794924668784-7v1q790).
+      - name: Preview web E2E
+        run: make e2e-preview
 
       - name: Upload tested Pages export
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
