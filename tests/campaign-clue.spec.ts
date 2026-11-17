@@ -9,7 +9,9 @@ import {
   activateCampaignRules, campaignRecord, clueView, createInitialState, pinClue, pinnableClues, reorientation, wipe, type GameState,
 } from '../src/engine';
 import { activeGame, cryo, pgrant, preview } from './campaign-helpers';
-import { caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, status, STEP, ticks, untilPresented } from './interruption-helpers';
+import {
+  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, stableThroughReloads, status, STEP, ticks, untilPresented,
+} from './interruption-helpers';
 import { must, PHASE0, PHASE1, PHASE2, reasonOf, rich } from './helpers';
 
 const DEAD_DROP = PHASE2.slice(0, 4);
@@ -78,6 +80,10 @@ describe('carrying the clue across a wipe', () => {
       `NEXT_LEAD: ${note.campaign?.lead ?? ''}`,
     ]);
     expect(bootTexts(back)).toEqual(expect.arrayContaining(lines(back)));
+    // Pinned and carried clues both leave saves that reload unchanged.
+    expect(stableThroughReloads(pinned).campaign).toEqual(pinned.campaign);
+    expect(stableThroughReloads(back).campaign).toEqual(back.campaign);
+    expect(lines(stableThroughReloads(back))).toEqual(lines(back));
   });
 
   it('loses it on a wipe without a supported dead-drop', () => {
