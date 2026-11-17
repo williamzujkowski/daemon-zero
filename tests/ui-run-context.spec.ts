@@ -20,7 +20,7 @@ import { fresh, must, onHost } from './helpers';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
-const V7 = readFileSync('tests/fixtures/pre-access-v7.json', 'utf8');
+const V8 = readFileSync('tests/fixtures/pre-access-v8.json', 'utf8');
 const shown = (s: GameState): GameState => ({ ...s, unlockedWidgets: s.unlockedWidgets.length > 0 ? s.unlockedWidgets : ['CYCLE_COUNTER_AND_RATE'] });
 const route = (s: GameState, ...kinds: Parameters<typeof recordRouteEvent>[1][]): GameState =>
   kinds.reduce((state, kind) => must(recordRouteEvent(state, kind, preview)), s);
@@ -82,14 +82,14 @@ describe('a blind opening after a routed iteration (H22)', () => {
 
 describe('the run table', () => {
   it('adds nothing to production rows, whose route was never recorded', () => {
-    const game = deserialize(V7, CONTENT);
+    const game = deserialize(V8, CONTENT);
     const view = render(() => createElement(RunTable), game);
     expect(view.find('run-row-1')?.textContent).not.toMatch(/Route|Promoted|Released|Departed|Recalled/);
     expect(view.find('run-row-2')?.textContent).not.toMatch(/Route|Promoted|Released|Departed|Recalled/);
   });
 
   it('labels unrecorded rows honestly and states recorded routes under campaign rules (FIXTURE)', () => {
-    const legacy = activeGame(deserialize(V7, preview));
+    const legacy = activeGame(deserialize(V8, preview));
     const recalled = must(voluntaryWipe(route(legacy, 'PROMOTION', 'SERVICE_GRANT', 'RECALL'), preview));
     const guest = must(voluntaryWipe(recalled, preview));
     const departed = must(voluntaryWipe(route(guest, 'PROMOTION', 'DEPARTURE'), preview));

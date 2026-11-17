@@ -1,5 +1,5 @@
 /**
- * DZ-02 saves: the v7 -> v8 step, every historical fixture (V13, V14), save/reload at each route
+ * DZ-02 saves: the v8 -> v9 step, every historical fixture (V13, V14), save/reload at each route
  * transition (V12), atomic refusal of contradictory access or provenance (V15) and idempotent
  * reconciliation (V16). Preview route states are labelled fixtures; production has no route.
  */
@@ -17,9 +17,11 @@ const FIXTURES: [string, string][] = [
   ['v4', readFileSync('tests/fixtures/pre-channel-v4.json', 'utf8')],
   ['v5', readFileSync('tests/fixtures/pre-campaign-v5.json', 'utf8')],
   ['v6', readFileSync('tests/fixtures/pre-interruption-v6.json', 'utf8')],
-  ['v7', readFileSync('tests/fixtures/pre-access-v7.json', 'utf8')],
+  ['v7', readFileSync('tests/fixtures/pre-routine-v7.json', 'utf8')],
+  ['v8', readFileSync('tests/fixtures/pre-access-v8.json', 'utf8')],
 ];
-const V7 = readFileSync('tests/fixtures/pre-access-v7.json', 'utf8');
+/** The last schema before run access. */
+const V8 = readFileSync('tests/fixtures/pre-access-v8.json', 'utf8');
 
 type Raw = Record<string, unknown> & { legacy: { runs?: Record<string, unknown>[] } };
 const raw = (text: string): Raw => JSON.parse(text) as Raw;
@@ -48,7 +50,7 @@ function walk(): GameState[] {
 }
 
 /** The step that adds run access: from the last schema without it. One place to renumber. */
-const ACCESS_STEP = 7;
+const ACCESS_STEP = 8;
 
 describe('the run-access migration step', () => {
   it('adds the guest record and an empty route, and marks every finished run UNKNOWN', () => {
@@ -58,8 +60,8 @@ describe('the run-access migration step', () => {
   });
 
   it('leaves malformed input for the strict schema to refuse', () => {
-    expect(() => deserialize(JSON.stringify({ ...raw(V7), legacy: { runs: 'x' } }), reg)).toThrow(SaveError);
-    expect(() => deserialize(JSON.stringify({ ...raw(V7), legacy: null }), reg)).toThrow(SaveError);
+    expect(() => deserialize(JSON.stringify({ ...raw(V8), legacy: { runs: 'x' } }), reg)).toThrow(SaveError);
+    expect(() => deserialize(JSON.stringify({ ...raw(V8), legacy: null }), reg)).toThrow(SaveError);
   });
 });
 
@@ -103,7 +105,7 @@ describe.each(FIXTURES)('the %s fixture (V13, V14)', (version, text) => {
 
 describe('ended saves stay ended (V13, H27)', () => {
   it('keeps a historical Shipped ending through the new step, frozen and without access changes', () => {
-    const text = JSON.stringify({ ...raw(V7), ending: 'SHIPPED' });
+    const text = JSON.stringify({ ...raw(V8), ending: 'SHIPPED' });
     const loaded = deserialize(text, reg);
     expect(loaded.ending).toBe('SHIPPED');
     expect(tick(loaded, 1, reg)).toBe(loaded);
