@@ -286,8 +286,9 @@ What it does **not** prove:
 
 - It is the production web export in headless Chromium only. No native build,
   no Safari or Firefox, no real device.
-- Nobody heard anything. The audio assertions read media-element state (which
-  asset, playing or not, volume); they are not a listening test.
+- Nobody heard anything. The journey's audio assertions read media-element state
+  (which asset, playing or not, volume). The rendered samples are measured by a
+  separate project ("Audio signal measurement" below); neither is a listening test.
 - Time is accelerated about 35×. Every loop callback runs, but nothing here is
   evidence about how the pacing feels, about rendering cost at real frame rates,
   or about a real ten-minute background (the absence is a cold start after a
@@ -300,6 +301,202 @@ What it does **not** prove:
   fixture-driven scenarios and the headless sim, not here.
 - Layout is checked only for horizontal overflow at 390x844 and 1440x900;
   `ui-sizes.e2e.ts` and the a11y audit own the rest.
+
+## Audio signal measurement
+
+Until this section existed every audio check in the repository read a number that stands next
+to the sound: a mocked player's arguments, a media element's `volume` / `paused` /
+`currentTime`, a network request for an MP3, or Android `dumpsys` playback state. None of
+them is the audio. These checks measure the **rendered samples**.
+
+They are still not a listening test. Nothing below says how anything sounds, whether a level
+is pleasant, or what a phone speaker does with it. Results and limits are in
+[VOICE-CLIPS.md](VOICE-CLIPS.md), "Measured signal".
+
+### Capture method (web)
+
+`tests/e2e/signalTap.ts` installs an init script, before the app loads, that wraps the `Audio`
+constructor (expo-audio's web player builds its elements detached from the DOM, so this is
+the only place to catch them) and routes every element through one 48 kHz `AudioContext`:
+
+    element -> MediaElementAudioSourceNode -+-> bus (GainNode, gain 1) -> destination
+                                             |                         \-> AudioWorklet tap ("mix")
+                                             \-> AudioWorklet tap (that element only)
+
+Each tap posts every 128-frame render quantum with the context's frame number, so the
+captures of two elements and of the mix are aligned to the sample. The mix tap sits on the
+only path to `destination`, so it is what the page hands to the audio output; a constant-zero
+source keeps the bus rendering so silence is reported as zeros rather than as no data.
+Captures cross to the test process as base64 float32 and are analysed there by
+`tests/audio/dsp.ts`.
+
+Routes considered and why not:
+
+| Route | Outcome |
+| --- | --- |
+| `createMediaElementSource` + `AudioWorklet` | **Used.** Sample-exact, per element, and `element.volume` is applied before the node (control below). |
+| `ScriptProcessorNode` | Works, but runs on the main thread and logs a deprecation warning, which the suite's clean-console fixture rejects. |
+| `HTMLMediaElement.captureStream()` | **Rejected by measurement:** the captured stream ignores `element.volume` in Chromium (a -15.05 dBFS tone read -15.05 dBFS at volume 1, 0.5, 0.35 and 0), so it cannot see a duck or a fade. |
+| `MediaRecorder` on a `MediaStreamAudioDestinationNode` | Lossy (Opus) and not sample-aligned; nothing it adds over the worklet. |
+| Tab or screen capture (`getDisplayMedia`) | **Do not use.** Headless Chromium returned a silent track, and outside the old headless shell the request goes to the desktop's screen-share portal: on a developer's machine that is a prompt to share their screen. |
+
+**The control, which runs in every `make e2e`** (`signal-control.audio.ts`). Re-routing an
+element through Web Audio changes its output path, so the tap has to be shown not to change
+what is measured. A 1 kHz sine of amplitude 0.25 (a 16-bit WAV built in the page, so its
+level is known exactly: -15.05 dBFS RMS) is played through the same tap with no app loaded:
+
+| `element.volume` | Expected | Measured | |
+| ---: | ---: | ---: | --- |
+| 1 | -15.05 dBFS | -15.05 dBFS | the tap adds no gain |
+| 0.5 | -21.07 | -21.07 | -6.02 dB |
+| 0.35 (`DUCK_RATIO`) | -24.17 | -24.17 | -9.12 dB |
+| 0.3 | -25.51 | -25.51 | |
+| 0.105 (0.3 x 0.35) | -34.63 | -34.63 | |
+| 0, and paused | silence | every sample exactly 0 | |
+
+The same spec measures the instrument's time response: one `volume` write reaches the samples
+as a single step in under a millisecond. Chromium does not smooth it on this path. That is
+why a ramp built from volume writes is reported as a staircase, and it is the resolution
+floor under every duration below.
+
+What the control does not show: that Chromium's direct element-to-device path (no Web Audio)
+treats `volume` identically at sub-millisecond scale. Nothing in this repository captures the
+device stream.
+
+### What is compared with what
+
+A capture is matched against the **committed file** (`assets/audio/...`, served to the page
+from the repository through a test-only route and decoded there by `decodeAudioData`, the
+same decoder at the same rate). `align()` finds the capture's position by normalised
+cross-correlation, and `gainEnvelope()` then gives, for every 5 ms block, the least-squares
+gain that turns the file's samples into the samples that came out. Two things follow:
+
+- **Identity is by waveform.** A score capture correlates with its own file at 1.0000 and with
+  the next phase's file at under 0.1, so "the right track is playing" is a statement about
+  samples, not about a URL.
+- **Level is read with the music divided out.** A duck or a fade is a gain number whatever
+  the passage is doing, to a few thousandths of a dB, at 5 ms resolution (a fifth of one
+  25 ms ramp step).
+
+`tests/audio-dsp.spec.ts` calibrates these functions on synthetic signals: a sine of known
+amplitude reads the right dBFS, an inter-sample peak is found, a 200 ms and a 500 ms ramp
+read their length, the app's own eight-step staircase reads 175 ms, and a step reads as a
+step.
+
+### Clocks
+
+Audio renders on the audio clock regardless of the page clock. The signal specs pass
+`boot(page, fixture, { realTimers: true })`, which skips `page.clock.install()` altogether, so
+the app's ramp timer (`setInterval`, 25 ms) is the browser's own and runs in the same real
+time as the audio. A *resumed* Playwright clock is not equivalent: after a main-thread stall
+it fires every interval tick it missed back to back (measured: up to eight volume steps
+landing in one 5 ms block during a first start), where a real browser drops them. The older
+element-level specs keep the paused clock and step it by hand; they assert the sequence of
+levels, these assert what was rendered and when.
+
+### Running it
+
+| Command | Runs | Time |
+| --- | --- | --- |
+| `make e2e` | project `audio`: the control, the duck/speech measurements and the transitions (`*.audio.ts`), once, at 390x844 | 10 cases, 53 s of test time across two workers |
+| `make e2e-audio` | the same plus every phase score and every loop seam (`*.audio-full.ts`) | 22 cases, about 1 min |
+| `make test` | `tests/audio-dsp.spec.ts`, `tests/audio-assets.spec.ts` | about 7 s |
+
+The `audio` project launches Chromium with `--autoplay-policy=no-user-gesture-required` so the
+capture context can exist before the first press and catch a score's first samples. The app
+still waits for a gesture; the `phone` and `desktop` projects keep proving that under the
+default policy. Headless only: no audio device, screen or host stream is touched.
+
+Every measured number is attached to its test as a `signal` annotation. To collect them:
+
+```bash
+make build-web
+PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/audio.json DAEMON_E2E_AUDIO=1 bash scripts/e2e-lock.sh \
+  pnpm exec playwright test --config tests/e2e/config.ts --project audio --reporter=list,json
+# then read suites[].specs[].tests[].annotations where type == "signal"
+```
+
+`tests/audio-assets.spec.ts` measures the committed files with **ffmpeg and ffprobe**, which
+are tools on the machine, not package dependencies. Where they are missing the file-level
+checks are skipped with a console warning (`[audio-assets] ffmpeg/ffprobe not found`); the CI
+workflow does not install them, so on CI those checks do not run unless the runner image
+happens to carry ffmpeg. The measurement-function tests in the same file always run.
+
+### Seeking on the test server
+
+`python3 -m http.server` ignores `Range`, and Chromium then reports media as unseekable
+(`seekable` is `[0, 0]`): assigning `currentTime` lands on 0. The old loop check in
+`music.e2e.ts` sought to the tail and watched the position fall below 2 s, which the failed
+seek satisfied by itself; the tail never played. `serveByteRanges()` (in `signalTap.ts`) answers
+Range requests from the served bytes for the specs that seek, and those specs assert that the
+seek held before they assert anything about the loop.
+
+### Native: the Android emulator's output, captured to a file
+
+The emulator can write everything the guest renders to a WAV on the host, with no host audio
+device involved, through QEMU's `wav` audio backend:
+
+```bash
+export ANDROID_AVD_HOME="$scratch/avd"                 # a private, disposable AVD; never daemon-zero-m1
+export QEMU_AUDIO_DRV=wav QEMU_WAV_PATH="$scratch/emu.wav"
+emulator -avd <your-avd> -port 5590 -no-window -no-snapshot -no-boot-anim -gpu swiftshader_indirect
+adb -s emulator-5590 shell settings put system sound_effects_enabled 0   # touch sounds would be captured too
+adb -s emulator-5590 shell input keyevent 24                            # repeat until media volume is 15 of 15
+```
+
+The file is 44.1 kHz stereo 16-bit and grows only while an output stream is open, so its
+length is not a clock; bracket an action by reading the file size before and after it. The
+guest renders at 48 kHz and the two sample clocks differ by a few hundred parts per million,
+so alignment against a committed file (resampled to 44.1 kHz) has to follow a drifting offset;
+the first second of a stream also slips by a few samples at a time, which reads as a drop in
+correlation, not in gain. Levels are therefore good to about 0.1 dB and ramp times to about
+20 ms, against 0.01 dB and 5 ms on web. This was done once, by hand, on 2026-11-16 (results in
+[VOICE-CLIPS.md](VOICE-CLIPS.md), "Measured signal"); it is not automated and not a gate.
+
+Two things that session needed and a player never does: the save was written straight into
+the app's AsyncStorage database as root (`adb root`, on the disposable emulator only), because
+typing a 6,904-character save code through `adb shell input text` took over three minutes and
+arrived corrupted; and every tap was placed from a screenshot, because `uiautomator dump`
+does not work once the game clock runs (REVIEW-ANDROID-EMULATOR-2026-11-16.md, finding 7).
+
+### What a session with a phone should measure
+
+An emulator is not a phone, and neither capture says how anything sounds. With a physical
+Android phone, in this order, a release build (`make android-release`) and music and speech
+at their 30% defaults unless a step says otherwise:
+
+1. **Sound at all.** MENU > Audio > RESUME MUSIC. Is the phase score audible on the speaker
+   and on headphones? Note the phone's media volume step.
+2. **The start.** Switch music off and on five times. Does the score swell in over about half
+   a second each time, or does it sometimes start abruptly at full level? (Emulator: one start
+   of two was abrupt.)
+3. **Music off and the ending.** Does the score fade away over about half a second, with no
+   click at the end? (Emulator: a smooth fade of about 650 ms.)
+4. **READ over the score.** In phase 1 or later press `[ ▶ READ ]` with the score playing.
+   Is the voice clearly intelligible over the score? Does the score duck before the voice
+   starts and come back after it stops, without a pumping or zipper sound? Is the pause
+   between the voice ending and the score returning (emulator: about a quarter of a second)
+   noticeable?
+5. **Balance.** Is the score too quiet, about right, or too loud *under* the voice, and
+   *without* the voice? The emulator rendered the score 3 dB lower than the clip at equal
+   settings; a phone is the place to find out whether that is the emulator or Android.
+6. **Both at 100%.** Raise music and speech to 100% and READ several lines. Any crackle or
+   distortion on loud syllables? (Arithmetic says coincident peaks can exceed full scale by
+   about 1 dB while ducked and about 4 dB in the first 200 ms of a clip.)
+7. **Phase change.** Buy the node that opens the next phase with the score playing. One score
+   stops and the next fades in; is the cut objectionable? Are two scores ever audible at once?
+8. **The loop.** Leave phase 0 playing through its end (2 min 18 s). Is there a tick or a
+   lurch where it restarts? (Measured: the file ends 28 dB below full scale mid-decay and
+   restarts from near silence.) Then phases 3 and 1, the next largest seams.
+9. **Steps.** During a duck or fade on headphones, is a staircase audible (a faint buzz or
+   zipper), or does it sound smooth?
+10. **Things no capture here covers.** Phone speaker frequency response (is the 60 Hz hum of
+    the vibration clips audible at all, is anything painfully sharp), silent mode, a headset
+    unplugged mid-clip, a call or another app taking audio focus, Bluetooth latency.
+
+A capture that would turn most of these into numbers: record the phone's output with a line
+cable into any recorder at 44.1 kHz or more and run it through `tests/audio/dsp.ts` the way
+the emulator capture was.
 
 ## Live browser sessions
 
@@ -371,7 +568,9 @@ CI runs the gates from `make verify-full`: typecheck, lint, content validation,
 tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
 `make e2e-pages`; these browser suites are separate from `make verify-full`.
-Only a successful `main` run deploys the tested Pages export. See
+Both include the `audio` project's default signal measurements (the control, the duck and the
+transitions); the per-phase ones (`make e2e-audio`) and the ffmpeg-based file checks are not
+run by CI. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on

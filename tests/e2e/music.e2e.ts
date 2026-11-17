@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import tracks from '../../assets/audio/music/tracks.json';
 import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, test } from './helpers';
+import { serveByteRanges } from './signalTap';
 
 function watchMusic(page: Page): Set<string> {
   const requested = new Set<string>();
@@ -63,20 +64,38 @@ test('autoplay denial is visible and a user retry recovers without a phantom pla
   await expect(page.getByTestId('music-status')).toContainText('Playing phase 0 score');
 });
 
-test('loops the score and survives an offline toggle without a phantom player', async ({ page }) => {
-  // Restored after a panel request_changes: the rewrite had dropped the phase-0 loop
-  // and cached-playback coverage rather than moving it.
+test('plays the tail of the score and loops back to the top', async ({ page }) => {
+  // This used to seek to the tail on the suite's static server and watch the position fall
+  // below 2 s. That server ignores Range, so the media was unseekable (`seekable` [0, 0]) and the
+  // seek itself landed on 0: the "loop" passed without the tail ever playing. Ranges are served
+  // here, and the seek is checked to have held before the wrap means anything. The rendered seam
+  // is measured in signal-loops.audio-full.ts.
+  await serveByteRanges(page, '**/audio/music/**/*.mp3');
   await observeMusicMedia(page);
   await boot(page, 'tick-0'); await dismissBoot(page);
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
   await expect.poll(async () => (await musicMediaState(page)).time).toBeGreaterThan(.05);
-  await page.evaluate(() => {
+  const landed = await page.evaluate(() => {
     const media = (globalThis as unknown as { __musicMedia: Array<{ currentTime: number; duration: number }> }).__musicMedia;
     const current = media.at(-1);
-    if (current) current.currentTime = current.duration - .15;
+    if (!current) return -1;
+    current.currentTime = current.duration - .5;
+    return current.currentTime;
   });
-  // Loop discipline: seeking to the tail returns the score to the top, not to silence.
+  expect(landed, 'the seek reached the tail rather than snapping to the start').toBeGreaterThan((tracks[0]?.duration ?? 0) - 2);
+  // Loop discipline: the tail plays out and the score returns to the top, not to silence.
   await expect.poll(async () => (await musicMediaState(page)).time).toBeLessThan(2);
+  await expect.poll(async () => (await musicMediaState(page)).time, 'and keeps playing').toBeGreaterThan(.05);
+  expect((await musicMediaState(page)).active).toBe(1);
+});
+
+test('survives an offline toggle without a phantom player', async ({ page }) => {
+  // Restored after a panel request_changes: the rewrite had dropped the cached-playback
+  // coverage rather than moving it.
+  await observeMusicMedia(page);
+  await boot(page, 'tick-0'); await dismissBoot(page);
+  await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
+  await expect.poll(async () => (await musicMediaState(page)).time).toBeGreaterThan(.05);
   expect((await musicMediaState(page)).active).toBe(1);
   await page.getByTestId('music-toggle').click();
   expect((await musicMediaState(page)).active).toBe(0);
