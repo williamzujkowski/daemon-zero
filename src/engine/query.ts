@@ -8,6 +8,7 @@ import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
+import { endingEvidence } from './campaignQuery';
 export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
@@ -137,14 +138,26 @@ export function repeatableCost(rep: Repeatable, level: number): Cost {
   };
 }
 
+/** Base endings that traits can choose, in priority order. */
+function openEndings(reg: ContentRegistry): Ending[] {
+  return reg.endings.filter((ending) => !ending.forcedOnly && ending.variantOf === undefined);
+}
+
+/** Each base ending's score: how much of the ending evidence falls in its trait group. */
+export function baseEndingScores(s: GameState, reg: ContentRegistry): Record<string, number> {
+  const evidence = endingEvidence(s, reg);
+  return Object.fromEntries(openEndings(reg).map((ending) => [ending.id, evidence.filter((trait) => ending.dominantTraits.includes(trait)).length]));
+}
+
 /**
  * Each ending owns a group of traits. The ending whose group the player chose
  * most often wins; ties go to the higher-priority ending. Content orders the
  * priorities so that a tie never resolves to the kindest outcome.
  */
 export function chooseEnding(s: GameState, reg: ContentRegistry): Ending {
-  const score = (ending: Ending): number => s.traits.filter((trait) => ending.dominantTraits.includes(trait)).length;
-  const open = reg.endings.filter((ending) => !ending.forcedOnly && ending.variantOf === undefined);
+  const scores = baseEndingScores(s, reg);
+  const score = (ending: Ending): number => scores[ending.id] ?? 0;
+  const open = openEndings(reg);
   const best = Math.max(0, ...open.map(score));
   const match = best > 0 ? open.find((ending) => score(ending) === best) : undefined;
   const fallback = open.find((ending) => ending.dominantTraits.length === 0);

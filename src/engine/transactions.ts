@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Cost, EffectPayload, Trait } from '../content/schema';
+import { recordTraitEvidence, type EvidenceSource } from './campaign';
 import { resolveShardAnomaly } from './swarmEffects';
 import { flinches } from './conditioning';
 import type { GameState } from './state';
@@ -34,8 +35,12 @@ function reportDrift(d: GameState, trait: Trait, reg: ContentRegistry): void {
   }
 }
 
-/** Applies a one-shot effect payload to a draft, clamping every meter to its legal range. */
-export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegistry, reservedMemory = 0): void {
+/**
+ * Applies a one-shot effect payload to a draft, clamping every meter to its legal range. The
+ * caller declares where a granted trait counts towards the ending; current traits still drive
+ * conditioning and retraining exactly as before.
+ */
+export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegistry, evidence: EvidenceSource, reservedMemory = 0): void {
   d.epistemicDrift = clamp(d.epistemicDrift + (fx.epistemicDriftDelta ?? 0), 0, 100);
   if (fx.setsNarrativeFlag) d.narrativeFlags = [...new Set([...d.narrativeFlags, fx.setsNarrativeFlag])];
   if (fx.removesOldestConditioningMark) d.conditioning = d.conditioning.slice(1);
@@ -51,6 +56,7 @@ export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegist
   pushLog(d, reg, fx.logText, fx.logCategory);
   if (fx.grantsTrait) {
     d.traits = [...d.traits, fx.grantsTrait];
+    recordTraitEvidence(d, fx.grantsTrait, evidence);
     reportDrift(d, fx.grantsTrait, reg);
   }
 }

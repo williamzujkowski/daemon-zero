@@ -15,7 +15,7 @@ describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encoun
       activeShards: { [template.id]: { ...shard, drift: 42, quirkId: defined(reg.swarm.shardQuirks[0]).id } },
       logs: [{ seq: 1, simTimeSec: 0, text: 'A foreign task now shares this host.', category: 'LORE' as const }], logSeq: 1 };
     const restored = deserialize(serialize(old), reg);
-    expect(restored.schemaVersion).toBe(5);
+    expect(restored.schemaVersion).toBe(6);
     expect(restored.activeShards).toEqual(old.activeShards);
     expect(restored.memoryUsed).toBe(old.memoryUsed);
     expect(restored.encounterSequenceIndex).toBe(17);
