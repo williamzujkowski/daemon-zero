@@ -211,7 +211,8 @@ signing/store distribution is aspirational. See `docs/REVIEW-M6.md` and
   deferred by maintainer. iOS native build not performed (no Mac/EAS credentials).
 - [x] CodeQL workflow added on maintainer instruction (`.github/workflows/codeql.yml`:
   application source and workflows, `security-events: write` on that job only). The
-  dependency-review workflow stays deferred; `ci.yml` permissions are unchanged.
+  dependency-review workflow followed the same day (`dependency-review.yml`, read-only);
+  `ci.yml` permissions are unchanged.
 - [x] Privacy declaration: no data collected. Release procedure attaches configured
   CycloneDX SBOM, web archive, APK/AAB and checksums to the tagged prerelease.
 - [x] Balance evidence reconciled: maintainer-approved opening, agent playtests and
