@@ -111,6 +111,7 @@ reference/gemini/ the earlier AI draft (prior art, not a spec)
 | `docs/PLAYTEST-M7.md` | Accelerated Phase 0–5 UI campaign and choices |
 | `docs/TESTING.md` | Unit, simulation, Playwright E2E, Playwright MCP |
 | `docs/RELEASE.md` | Release builds, signing, distribution and qualification limits |
+| `docs/SOUNDTRACK.md` | Score manifest, media-session behaviour, and the checklist for adding a track |
 | `docs/PRIVACY.md` | No-data-collection declaration and local save behavior |
 | `docs/REVIEW-COHESION.md` | Phase 0–4 / Lineage audit and issue closure |
 | `docs/BALANCE.md` | Current pacing numbers and how to tune |
