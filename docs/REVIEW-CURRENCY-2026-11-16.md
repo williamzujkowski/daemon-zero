@@ -72,7 +72,7 @@ install prints no deprecation warning and asks to run no new build script.
 | `eslint.config.mjs` | `tseslint.config()` is `@deprecated` in typescript-eslint in favour of ESLint's `defineConfig()`. Lint could not see it: `.mjs` files are linted without type information | **NOW**: replaced. `eslint --print-config` is byte-identical before and after for eight representative files |
 | TypeScript `@deprecated` usage in `src/`, `tests/`, `scripts/` | none. `@typescript-eslint/no-deprecated` is part of `strictTypeChecked`, which the zero-warning lint gate already runs with type information | none needed |
 | `make verify` output (typecheck, lint, Vitest, sim, Metro web export) on Node 24 and on Node 26 | no line matching `deprecat` or `warn` | none needed |
-| `npx expo-doctor` 1.21.8 | 19 of 20 checks pass. One fails: `expo-audio` declares a peer dependency on `expo-asset`, which is installed only transitively through `expo` | **SEPARATE** (S3): it adds a direct native-module dependency, so it wants a native rebuild |
+| `npx expo-doctor` 1.21.8 | 19 of 20 checks pass. One fails: `expo-audio` declares a peer dependency on `expo-asset`, which is installed only transitively through `expo` | **SEPARATE** (S3): it adds a direct native-module dependency, so it wants a native rebuild. **Done 2026-11-17**: 20 of 20 checks pass; the native rebuild was not run |
 | Android Gradle build | `docs/REVIEW-M6.md` records that native compilation printed upstream Java/Kotlin/Gradle deprecation warnings but not their text. No native build was run for this audit, so they are not enumerated here | recorded as a limit |
 
 ## Android build configuration (reported, not changed)
@@ -154,7 +154,17 @@ install prints no deprecation warning and asks to run no new build script.
   at `tests/ui-safe-area.spec.ts:95` and `:101` (object literals cast to `CSSStyleDeclaration`
   and `DOMRect` for mocks). The gate was not weakened; the bump was dropped. Work: build those
   two mock values in a way the rule accepts, then bump.
-- **S3. Add `expo-asset` as a direct dependency** (`npx expo install expo-asset`), as
+- **S3. `expo-asset` as a direct dependency. DONE 2026-11-17** (branch
+  `chore/expo-asset-direct`): `npx expo install expo-asset` chose `~58.0.21`, pinned exact
+  as `58.0.21` (published 2026-11-11, the version already in the tree through `expo`).
+  `npx expo-doctor` 1.21.8 now passes 20 of 20 checks and `npx expo install --check` reports
+  "Dependencies are up to date". The CLI suggests adding `"expo-asset"` to `plugins`; it was
+  not added: the SDK 58 page describes the plugin as optional configuration for linking
+  extra asset files into the native project, and the plugin returns the config unchanged
+  when it is given no `assets`. The lockfile's project document keeps the same 669
+  `name@version` entries; pnpm 12 rewrote peer-variant keys on this first re-resolving
+  install. **Not done: the native Android rebuild and device run** that the original scope
+  asked for. Original scope: add it (`npx expo install expo-asset`), as
   expo-doctor advises for `expo-audio`. It is already in the tree at 58.0.21 through `expo`,
   and the 2026-11-16 emulator run played audio from a release build without it, so this is
   hygiene, not a known crash. Do it together with a native Android rebuild.
