@@ -8,10 +8,11 @@
 # Playwright all declare support for it in `engines`. Node 24 is the maintenance LTS; package.json
 # `engines` still admits it. See docs/REVIEW-CURRENCY-2026-11-16.md.
 node = "26.13.1"
-# pnpm 10.x is held on purpose. pnpm 11 removes `pnpm.ignoredBuiltDependencies` (replaced by
-# `allowBuilds`), moves settings out of package.json and changes `pnpm audit`; 12 is the current
-# major. Moving is a separate, scoped change. Keep `packageManager` in package.json in step.
-pnpm = "10.34.9"
+# pnpm 12 is the current major (12.21.0 was npm `latest` on 2026-11-16). Its settings live in
+# pnpm-workspace.yaml. Keep `packageManager` in package.json in step, then run `pnpm install`
+# so the boot document of pnpm-lock.yaml records the same version; a frozen install fails
+# when they differ.
+pnpm = "12.21.0"
 
 # Security tooling used by `make security` and `make sbom`.
 gitleaks = "8.30.1"

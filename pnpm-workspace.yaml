@@ -1,0 +1,32 @@
+# pnpm settings. Since pnpm 11 these are read from here, not from the `pnpm` field of
+# package.json or from .npmrc (which now carries registry and auth settings only).
+# pnpm 12 fails the command on a key it does not recognise, so a typo here is an error.
+
+# Refuse to install when a package's `engines` excludes the pinned Node (was `.npmrc`).
+engineStrict: true
+
+# Dependency build scripts are denied unless a package is listed here with `true`.
+# `esbuild` has a postinstall that only re-checks its platform binary, which the optional
+# dependency already supplies, so it is denied explicitly; with `strictDepBuilds` an
+# undecided build script fails the install instead of being skipped with a warning.
+strictDepBuilds: true
+allowBuilds:
+  esbuild: false
+
+# Do not install a version published less than a day ago (pnpm's default since 11, stated
+# here so that it is a reviewed setting; stating it also makes it strict, so pnpm fails
+# instead of falling back to a too-new version). pnpm 12 checks the committed lockfile
+# against it on every install, frozen ones included.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  # Pinned by the 2026-11-16 currency audit (#190) hours after its release
+  # (published 2026-11-16T11:52Z). Exact version only. Redundant from 2026-11-17T11:52Z;
+  # delete this entry in the next dependency change.
+  - axe-core@4.14.1
+
+# Transitive dependencies may not come from git or tarball URLs.
+blockExoticSubdeps: true
+
+overrides:
+  # @expo/fingerprint requests minimatch ^10.2.6 and no patched 10.x exists.
+  minimatch@>=10 <11.0.1: 11.0.1
