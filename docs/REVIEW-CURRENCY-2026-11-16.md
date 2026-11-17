@@ -17,8 +17,8 @@ Verdicts: **NOW** = upgraded in this change. **SEPARATE** = real work, scoped be
 | Node.js | 24.22.2 | 26.13.1 (active LTS "Lithium" since 2026-10-28; maintenance 2027-10-20; EOL 2029-04-30). 24.22.3 is the head of 24 | 24 has been maintenance LTS since 2026-10-20, and 24.22.2 was one security release behind (24.22.3 and 26.13.1 are both 2026-11-10 security releases) | **NOW** -> 26.13.1. `engines`: expo 58.0.25 `^22.13.0 \|\| ^24.3.0 \|\| ^26.0.0 \|\| >=27`, react-native 0.88.1 and metro `^22.13.0 \|\| ^24.3.0 \|\| >=26`, vitest 5.1.0 `^22.12.0 \|\| ^24 \|\| >=26`, eslint 10.15.0 `>=24`, Playwright `>=20` |
 | `@types/node` | 24.19.2 | 26.6.6 | not deprecated; one major behind the runtime | **NOW** -> 26.6.6 (follows the pinned Node major) |
 | `engines.node` | `>=22.13.0` | - | admitted Node 22, which nothing here is run on | **NOW** -> `>=24.3.0` (both current LTS lines; the Node 24 floor Expo, React Native and Metro declare) |
-| pnpm | 10.28.0 (2026-01-09) | 12.21.0 (`latest`, 2026-11-13); 11.28.12; 10.34.9 (`latest-10`, 2026-10-25) | 10.x is still released; not deprecated | **NOW** -> 10.34.9. Majors 11/12: **SEPARATE** (S1) |
-| `packageManager` | `pnpm@10.28.0` | - | - | **NOW** -> `pnpm@10.34.9` |
+| pnpm | 10.28.0 (2026-01-09) | 12.21.0 (`latest`, 2026-11-13); 11.28.12; 10.34.9 (`latest-10`, 2026-10-25) | 10.x is still released; not deprecated | **NOW** -> 10.34.9. Majors 11/12: **SEPARATE** (S1), **done 2026-11-16** -> 12.21.0 |
+| `packageManager` | `pnpm@10.28.0` | - | - | **NOW** -> `pnpm@10.34.9`; `pnpm@12.21.0` with S1 |
 | JDK | temurin-21.0.13+9.0.LTS | temurin-25.0.5+8.0.LTS is the newer LTS; 21.0.13+9 is the head of 21 | 21 is a supported LTS | **HOLD** (H3) |
 | gitleaks | 8.30.1 | 8.30.1 | - | CURRENT |
 | osv-scanner | 2.7.1 | 2.7.1 | - | CURRENT |
@@ -89,7 +89,42 @@ install prints no deprecation warning and asks to run no new build script.
 
 ## Upgrade separately, ranked by value
 
-- **S1. pnpm 10 -> 12.** pnpm 11 removed `ignoredBuiltDependencies` (and the other
+- **S1. pnpm 10 -> 12. DONE 2026-11-16** (branch `chore/pnpm-12`): 10.34.9 -> 12.21.0, the
+  npm `latest` and `latest-12` tag that day (11.28.12 is `latest-11`). What was done and
+  what was proved:
+  - Settings moved from `package.json#pnpm` and `.npmrc` to `pnpm-workspace.yaml`:
+    `ignoredBuiltDependencies: [esbuild]` became `allowBuilds: { esbuild: false }`,
+    `overrides` moved unchanged, `.npmrc` `engine-strict=true` became `engineStrict: true`
+    and `.npmrc` was deleted (pnpm 12 reads only registry and auth settings from it).
+    `strictDepBuilds`, `blockExoticSubdeps` and `minimumReleaseAge: 1440` are pnpm's
+    defaults and are written out so that they are reviewed settings.
+  - Build scripts: in a scratch project, a dependency with an undecided build script fails
+    the install (`ERR_PNPM_IGNORED_BUILDS`, exit 1); with `esbuild: false` it installs and
+    the script does not run. A mistyped setting fails with
+    `ERR_PNPM_UNRECOGNIZED_WORKSPACE_SETTINGS`.
+  - `minimumReleaseAge`: pnpm 12 verifies the committed lockfile on every install, frozen
+    included, and rejected `axe-core@4.14.1`, which #190 pinned about four hours after its
+    release (published 2026-11-16T11:52Z). Handled with the documented exact-version
+    exclusion `minimumReleaseAgeExclude: [axe-core@4.14.1]`; the one-day rule stays on for
+    everything else. The entry is redundant from 2026-11-17T11:52Z and should be deleted in
+    the next dependency change.
+  - Lockfile: `lockfileVersion` stays `'9.0'`. pnpm 12 prepends a boot document (pnpm 12.21.0
+    and its 15 platform binaries) because `packageManager` pins pnpm 12; the project document
+    is byte-identical to the one pnpm 10 wrote. pnpm's own documentation warns that a scanner
+    reading only the first document passes with nothing scanned, so each scanner was run
+    against a scratch project with `minimist@1.2.5` (GHSA-xvch-5gv4-984h, critical) and a
+    two-document lockfile: `pnpm audit --audit-level=high` exit 1, `osv-scanner` 2.7.1 exit 1,
+    `trivy` 0.76.2 `--severity HIGH,CRITICAL --exit-code 1` exit 1. Threshold: `semver@7.5.1`
+    (high only) exit 1; `word-wrap@1.2.3` (moderate only) exit 0 at `--audit-level=high` and
+    exit 1 at the default level. On this repo osv-scanner reads 685 packages (669 project
+    + 16 boot), trivy the same 501 components as before.
+  - `pnpm audit` now uses the bulk advisory endpoint; this repo has no ignore list, so there
+    was nothing to convert from CVE to GHSA ids.
+  - Dependabot: `dependabot-core` lists pnpm 12 in `SUPPORTED_VERSIONS` and its image ships
+    12.10.1. Not exercised: no Dependabot run happens before merge. Expo CLI:
+    `npx expo install --check` and the Metro web export run under pnpm 12. EAS: not run (no
+    account, see S6).
+  Original scope, kept for the record: pnpm 11 removed `ignoredBuiltDependencies` (and the other
   build-script settings) in favour of an `allowBuilds` map, made `.npmrc` auth-only with
   settings moving to `pnpm-workspace.yaml`, turned on `minimumReleaseAge` (one day),
   `strictDepBuilds` and `blockExoticSubdeps` by default, and moved `pnpm audit` to the bulk

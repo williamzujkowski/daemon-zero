@@ -13,10 +13,11 @@ Any change that adds network access, a third-party SDK or data collection needs 
 ## Supply chain
 
 - Exact dependency versions and a committed lockfile; installs use `--frozen-lockfile`.
-- pnpm does not run dependency build scripts unless a package is explicitly allowed.
+- pnpm does not run dependency build scripts unless a package is explicitly allowed (`allowBuilds` in `pnpm-workspace.yaml`), and an install fails on a build script nobody has decided about (`strictDepBuilds`).
+- pnpm refuses versions published less than one day ago (`minimumReleaseAge`), on resolution and when verifying the committed lockfile, and refuses transitive dependencies from git or tarball URLs (`blockExoticSubdeps`). An exception is one exact version with a dated comment.
 - Tool versions (Node, pnpm, scanners) are pinned in `mise.toml`.
 - GitHub Actions are pinned by full commit SHA.
-- `make security` runs `pnpm audit`, `gitleaks`, `osv-scanner` and `trivy`; `make sbom` writes a CycloneDX SBOM.
+- `make security` runs `pnpm audit` (fails on high or critical), `gitleaks`, `osv-scanner` and `trivy`; `make sbom` writes a CycloneDX SBOM.
 - Dependabot proposes updates weekly; updates go through the same gates as any other change.
 
 ## Secrets
