@@ -203,4 +203,87 @@ describe('volume ramp', () => {
     expect(levels).toEqual([0.5, 1]);
     expect(stop).toHaveBeenCalledOnce();
   });
+  it('holds a gated ramp at its start until the gate opens, then takes the whole ramp from there', () => {
+    const { ramp, levels } = recording(0);
+    let flowing = false;
+    const ready = vi.fn(() => flowing);
+    ramp.to(0.3, 100, undefined, ready);
+    vi.advanceTimersByTime(RAMP_STEP_MS * 10);
+    expect(levels, 'nothing moves while the audio has not started').toEqual([]);
+    expect(ready).toHaveBeenCalledTimes(10);
+    flowing = true;
+    vi.advanceTimersByTime(RAMP_STEP_MS);
+    expect(levels, 'the first step is the first step, not a catch-up').toEqual([0.075]);
+    vi.advanceTimersByTime(RAMP_STEP_MS * 3);
+    expect(levels.length).toBe(4);
+    levels.forEach((level, index) => { expect(level).toBeCloseTo(0.075 * (index + 1), 10); });
+    expect(levels.at(-1)).toBe(0.3);
+    expect(ready, 'asked no more once open').toHaveBeenCalledTimes(11);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('passes an unopened gate on to the ramp that replaces it, and drops it with a set', () => {
+    const { ramp, levels } = recording(0);
+    let flowing = false;
+    ramp.to(0.4, 500, undefined, () => flowing);
+    vi.advanceTimersByTime(RAMP_STEP_MS * 4);
+    // A duck lands before the first sample: still a ramp from silence once the audio flows.
+    ramp.to(0.14, 200);
+    vi.advanceTimersByTime(RAMP_STEP_MS * 4);
+    expect(levels).toEqual([]);
+    flowing = true;
+    vi.advanceTimersByTime(200);
+    expect(levels.length).toBe(8);
+    expect(levels[0]).toBeCloseTo(0.0175, 10);
+    expect(levels.at(-1)).toBe(0.14);
+    // An opened gate is not inherited, and a set abandons a waiting one.
+    ramp.to(0.3, 50);
+    vi.advanceTimersByTime(50);
+    expect(levels.at(-1)).toBe(0.3);
+    flowing = false;
+    ramp.to(0, 50, undefined, () => flowing);
+    ramp.set(0.2);
+    ramp.to(0.1, 50);
+    vi.advanceTimersByTime(50);
+    expect(levels.at(-1), 'the set left no wait behind').toBe(0.1);
+  });
+
+  it('reports a gate that throws as a failed write, and leaks no timer', () => {
+    const failed = vi.fn();
+    const ramp = new VolumeRamp(() => undefined, failed);
+    ramp.to(0.3, 100, undefined, () => { throw new Error('position failed'); });
+    vi.advanceTimersByTime(RAMP_STEP_MS);
+    expect(failed).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('waits on a gate even for a ramp to its current level or of a single step', () => {
+    const { ramp, levels } = recording(0.2);
+    let flowing = false;
+    const done = vi.fn();
+    ramp.to(0.2, 10, done, () => flowing);
+    vi.advanceTimersByTime(100);
+    expect(done).not.toHaveBeenCalled();
+    flowing = true;
+    vi.advanceTimersByTime(RAMP_STEP_MS);
+    expect(levels).toEqual([0.2]);
+    expect(done).toHaveBeenCalledOnce();
+  });
+
+  it('multiplies every level by the trim, without moving the level a ramp starts from', () => {
+    const { ramp, levels } = recording(0.4);
+    ramp.trim(0.5);
+    expect(levels, 'a trim change is written at once').toEqual([0.2]);
+    ramp.trim(0.5);
+    expect(levels, 'an unchanged trim writes nothing').toEqual([0.2]);
+    expect(ramp.current, 'the level underneath is untouched').toBe(0.4);
+    ramp.to(0.2, 50);
+    vi.advanceTimersByTime(50);
+    expect(levels[1]).toBeCloseTo(0.15, 10);
+    expect(levels[2]).toBe(0.1);
+    ramp.trim(1);
+    expect(levels.at(-1)).toBe(0.2);
+    ramp.close(); ramp.trim(0);
+    expect(levels.at(-1), 'closed: no write').toBe(0.2);
+  });
 });

@@ -3,20 +3,28 @@
  * and length its manifest says, does not clip, has no dead air beyond a stated bound, and the
  * numbers the docs quote (loudness, peaks, loop seams, mix headroom) are the numbers measured.
  *
- * Needs ffmpeg and ffprobe on the machine. Where they are missing the whole file is skipped and
- * says so; see docs/TESTING.md, "Audio signal measurement".
+ * Needs ffmpeg and ffprobe on the machine. Where they are missing the file checks are skipped
+ * and say so, except under CI (`CI` set), where a missing tool fails the run: the workflow
+ * installs ffmpeg, so a skip there would be a gate that quietly stopped running. See
+ * docs/TESTING.md, "Audio signal measurement".
  */
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import tracks from '../assets/audio/music/tracks.json';
 import manifest from '../assets/audio/voice/MANIFEST.json';
 import { DUCK_RATIO } from '../src/app/musicController';
+import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../src/app/outputLevel';
 import { decode, hasFfmpeg, probe } from './audio/decode';
 import { mono, peak, rms, sine, toDb, truePeak } from './audio/dsp';
 import { quietEdges, seam, spectralDistance, bandLevels } from './audio/seam';
 
 const available = hasFfmpeg();
+const onCi = Boolean(process.env.CI);
 if (!available) console.warn('[audio-assets] ffmpeg/ffprobe not found: the committed audio files were NOT measured in this run.');
+
+it('has ffmpeg and ffprobe wherever CI is set, so the file checks below cannot be skipped there', () => {
+  expect(available || !onCi, 'CI is set but ffmpeg/ffprobe are missing: install them (.github/workflows/ci.yml)').toBe(true);
+});
 
 interface Measured { file: string; rate: number; channels: number; seconds: number; frames: number; warnings: string;
   samplePeak: number; truePeak: number; rmsDb: number; lufs: number; mono: Float32Array }
@@ -38,7 +46,7 @@ const vibration = manifest.clips.map((clip) => 'assets/audio/voice/vibration/' +
 const clean = manifest.clips.map((clip) => 'assets/audio/voice/clean/' + clip.id + '.mp3');
 const range = (values: number[]) => [Math.min(...values), Math.max(...values)] as const;
 
-describe.skipIf(!available)('committed audio files', () => {
+describe.skipIf(!available && !onCi)('committed audio files', () => {
   it('every file decodes without a decoder warning and is the documented format', { timeout: 60_000 }, () => {
     for (const track of tracks) {
       const file = measure(track.path);
@@ -66,6 +74,10 @@ describe.skipIf(!available)('committed audio files', () => {
       expect(file.samplePeak, file.file).toBeLessThan(1);
       expect(file.truePeak, file.file + ' true peak').toBeLessThan(1);
     }
+    // The ceilings the output scale is computed from (src/app/outputLevel.ts). A louder file
+    // fails here rather than silently taking the 100%/100% mix over full scale.
+    for (const file of scores.map(measure)) expect(file.truePeak, file.file + ' under SCORE_PEAK_CEILING').toBeLessThanOrEqual(SCORE_PEAK_CEILING);
+    for (const file of [...vibration, ...clean].map(measure)) expect(file.truePeak, file.file + ' under SPEECH_PEAK_CEILING').toBeLessThanOrEqual(SPEECH_PEAK_CEILING);
     // docs/VOICE-CLIPS.md quotes these ranges from ffmpeg's meter; this estimator agrees to 0.15 dB.
     const peaks = (files: string[]) => range(files.map((file) => toDb(measure(file).truePeak)));
     for (const [files, low, high] of [[scores, -4.22, -3.04], [vibration, -1.17, -1.09], [clean, -0.93, -0.73]] as const) {
@@ -140,13 +152,17 @@ describe.skipIf(!available)('committed audio files', () => {
     expect(least, 'lowest speech-to-music ratio ' + least.toFixed(2)).toBeGreaterThan(8.5);
     expect(most, 'highest speech-to-music ratio ' + most.toFixed(2)).toBeLessThan(12.1);
     const loudestClip = Math.max(...speech.map((clip) => clip.truePeak)); const loudestScore = Math.max(...music.map((score) => score.truePeak));
-    // At the default 30% / 30% the two cannot clip even before the duck has come down.
-    expect(toDb(0.3 * loudestClip + 0.3 * loudestScore)).toBeLessThan(-6);
-    // At 100% / 100% coincident peaks would exceed full scale: by about 1 dB once ducked and
-    // about 4 dB in the 200 ms before the duck lands. Whether they coincide depends on the
-    // passage; the web build measured -0.8 dBTP on one clip (docs/VOICE-CLIPS.md).
+    // Unscaled, coincident peaks at 100% / 100% would exceed full scale by about 1 dB once
+    // ducked and about 4 dB in the 200 ms before the duck lands; that is why OUTPUT_SCALE exists.
     expect(toDb(loudestClip + DUCK_RATIO * loudestScore)).toBeCloseTo(1.03, 1);
     expect(toDb(loudestClip + loudestScore)).toBeCloseTo(4.0, 1);
+    // Scaled, as the players are handed them: under full scale at 100% / 100% before the duck,
+    // and well under at the 30% defaults (docs/VOICE-CLIPS.md, "Headroom").
+    const worst = toDb(OUTPUT_SCALE * (loudestClip + loudestScore));
+    expect(worst, 'both at 100%, before the duck lands ' + worst.toFixed(2)).toBeLessThan(0);
+    expect(worst).toBeCloseTo(-0.44, 1);
+    expect(toDb(OUTPUT_SCALE * (loudestClip + DUCK_RATIO * loudestScore))).toBeCloseTo(-3.41, 1);
+    expect(toDb(0.3 * OUTPUT_SCALE * (loudestClip + loudestScore))).toBeLessThan(-10);
   });
 });
 

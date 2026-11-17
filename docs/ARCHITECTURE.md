@@ -200,6 +200,8 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
+**Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-preview` reports a policy's preview-versus-production numbers without gating; see `docs/TESTING.md`, "Sim policies".
+
 ## Decisions
 
 | Decision | Reason |
@@ -339,7 +341,8 @@ v6-stripped sim hashes in `sim.spec.ts`.
 above the terminal restore key. It filters game updates to readiness, phase,
 ending, iteration and restore identity; ordinary ticks never touch its player.
 The Expo backend loads lazily after explicit activation. One player loops the
-current phase’s bundled score, pauses on background, switches on phase changes,
+current phase’s bundled score (with a short gain dip around each wrap, read off the
+playhead by `loopSeam.ts`; its fade-in waits for that playhead to move), pauses on background, switches on phase changes,
 restarts on wipe/import, stops on ending, and releases on teardown. Explicit local
 imports in `musicSources.ts` cover Phases 0–5; only the selected source gets a
 player. Player/session generations reject stale callbacks and async activation.

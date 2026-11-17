@@ -6,6 +6,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AUDIO_KEY } from '../src/app/audioPreferences';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import { DUCK_RATIO, FADE_IN_MS } from '../src/app/musicController';
 import { OUTSIDE_PAUSE_CONFIRM_MS, OutsideWatch } from '../src/app/outsideControl';
 import { fresh, harness, monotonic, run, settle } from './music-ramp-harness';
@@ -43,7 +44,7 @@ describe('remote play and pause', () => {
     run(FADE_IN_MS);
     expect(levels[0]).toBe(0);
     expect(monotonic(levels, true)).toBe(true);
-    expect(levels.at(-1)).toBeCloseTo(0.4 * DUCK_RATIO);
+    expect(levels.at(-1)).toBeCloseTo(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     h.stop();
   });
 
@@ -143,7 +144,7 @@ describe('a key the platform applied to the native player first', () => {
     expect(state(h)).toMatchObject({ activated: true, status: '' });
     run(FADE_IN_MS);
     expect(levels[0]).toBe(0);
-    expect(levels.at(-1)).toBeCloseTo(0.4);
+    expect(levels.at(-1)).toBeCloseTo(0.4 * OUTPUT_SCALE);
     h.at(0).status(true, false, false);
     expect(state(h).playing).toBe(true);
     h.stop();

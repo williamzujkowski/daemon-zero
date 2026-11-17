@@ -6,15 +6,15 @@
  * for that phase (decoded by the same browser from the repository's bytes) and, as a control,
  * with a neighbouring phase's file, which must not match.
  *
- * Clock: `boot()` installs and pauses Playwright's page clock; these cases resume it, so page
- * timers (the ramp's 25 ms steps) run in real time alongside the audio clock the capture is on.
+ * Clock: real browser timers (`boot(..., { realTimers: true })` installs no page clock at all),
+ * so the ramp's 25 ms steps run in the same real time as the audio clock the capture is on.
  */
 import tracks from '../../assets/audio/music/tracks.json';
 import { FADE_IN_MS } from '../../src/app/musicController';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { correlation, median, peak, ramp, rms, toDb, truePeak } from '../audio/dsp';
 import { boot, dismissBoot, expect, test } from './helpers';
-import { BLOCK, BLOCK_MS, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, PHASE_FIXTURES, PREFERENCE, report } from './signalMeasure';
+import { BLOCK, BLOCK_MS, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, PHASE_FIXTURES, LEVEL, report } from './signalMeasure';
 import { assetPath, captured, installSignalTap, SAMPLE_RATE, signalTapReady } from './signalTap';
 
 const LISTEN_MS = 1800;
@@ -47,15 +47,15 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   const own = await matched(page, score);
   const other = await matched(page, score, (tracks[(track.phase + 1) % tracks.length]?.path ?? '').replace('assets/', ''));
   // The fade-in: from zero to the preference level, in steps, upwards only.
-  const fade = ramp(own.envelope, 0, PREFERENCE, BLOCK_MS);
+  const fade = ramp(own.envelope, 0, LEVEL, BLOCK_MS);
   if (!fade) throw new Error('No fade-in was found in the gain envelope.');
   report(info, name + ' fade-in, first audible sample to preference level', fade.durationMs, 'ms');
-  report(info, name + ' fade-in largest single step', fade.largestStep * PREFERENCE, 'gain');
+  report(info, name + ' fade-in largest single step', fade.largestStep * LEVEL, 'gain');
   expect(fade.reversals, 'upwards only').toBe(0);
   report(info, name + ' fade-in largest single step, in volume writes', fade.largestStep / STEP, 'steps');
   expect(fade.largestStep, 'a ramp in the signal, not a step').toBeLessThanOrEqual(LARGEST_RAMP_JUMP);
-  // The ramp starts when `play()` is asked for, and the file's first samples arrive a step or
-  // more later, so the audible part is shorter than the constant by however long loading took.
+  // The ramp waits for the player's position to move, so the audible part is close to the
+  // whole constant; the floor stays loose because a busy main thread bunches late ticks.
   expect(fade.durationMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
   expect(fade.durationMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
 
@@ -70,7 +70,7 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   expect(Math.abs(otherMatch), 'and not another score').toBeLessThan(0.3);
   const gain = median(own.envelope, fade.endBlock + 2);
   report(info, name + ' steady gain applied to the file', toDb(gain), 'dB');
-  expect(toDb(gain), 'the preference level, on the signal').toBeCloseTo(toDb(PREFERENCE), 1);
+  expect(toDb(gain), 'the preference level, on the signal').toBeCloseTo(toDb(LEVEL), 1);
   expect(steadyFrom, 'at least half a second at rest was captured').toBeLessThan(score.left.length - SAMPLE_RATE / 2);
 
   const level = toDb(rms(own.signal, steadyFrom));

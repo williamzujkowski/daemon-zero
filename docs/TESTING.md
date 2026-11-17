@@ -7,6 +7,7 @@
 | Content validation | Zod + integrity checks | `scripts/validate-content.ts`, `tests/content.spec.ts` | `make validate`, `make test` |
 | Engine unit tests | Vitest | `tests/*.spec.ts` | `make test` (with coverage thresholds) |
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
+| Preview simulation (report only) | sim policies | `scripts/run-sim-preview.ts`, `tests/sim-policy.spec.ts`, `tests/sim-preview.spec.ts` | `make sim-preview`, `make test` |
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
@@ -28,6 +29,57 @@ prints their results plus measured wall-clock time:
 - **GREEDY** ignores threats. It is expected to be wiped repeatedly; the test asserts it always recovers and keeps progressing (no soft-locks in the wipe loop).
 
 The bot buys whatever most shortens the wait for the next tech node. It only uses public engine actions.
+
+### Sim policies
+
+A sim player is a `SimPolicy` (`src/engine/sim/policy.ts`): an upper-snake-case `id`, a
+one-line `summary`, and a `step(state, reg)` that makes one decision per simulated second
+through public engine actions only. `SIM_POLICIES` (`src/engine/sim/policies.ts`) lists every
+policy a runner can name, and `resolvePolicy` throws on an unknown id rather than running a
+different one.
+
+- **STEALTH** and **GREEDY** are the bot's own strategies, wrapped unchanged (`strategyPolicy`).
+  `runHeadlessSim` plays them through `runPolicySim`; the report hashes in `tests/sim.spec.ts`
+  and the `make sim` output are byte-identical to before the interface existed.
+- **IDLE** (`idlePolicy.ts`) takes no action except a free answer to each interrupt. It is the
+  reference plug-in and the floor for dead-time readings.
+
+To add a route or return-iteration policy (truthful-thorough, truthful-low-resource,
+violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` that exports a
+`SimPolicy`, add it to `SIM_POLICIES`, and test it at the `runPolicySim` / `runWipeSequence`
+seam. Never edit `bot.ts` or an existing policy to make a result pass: a policy is a test
+instrument (AGENTS.md).
+
+### Preview simulation
+
+`make sim-preview` (`scripts/run-sim-preview.ts`) plays each selected policy on the production
+registry and on the preview registry (`src/content/preview`) and prints a row per metric, with
+`*` on rows that differ, then a GREEDY wipe sequence on each channel. It prints the overlay's
+sentinel and item counts so a report names the overlay it measured. Choose policies with
+`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY
+and IDLE.
+
+It is **report only until release**: it is not part of `make verify`, it exits 0 whatever
+differs, and it never calls `checkGates`. `make sim` stays on production content with its
+existing gates; any change to `gates.ts` is a separate, reviewed, release-time commit.
+Everything it prints is accelerated simulated time, never wall-clock play.
+
+### Return-iteration sequences
+
+`runWipeSequence(reg, policy, { wipeTransitions, maxSimSec, initialState? })`
+(`src/engine/sim/iterations.ts`) plays a policy across at least `MIN_WIPE_TRANSITIONS` (3)
+wipes, then measures the iteration after the last one until it ends. Each iteration is
+reported on its own clock: why it ended (wipe and cause, ending, or budget), the seconds after
+its boot at which each phase was first held, the dilemmas resolved, story rewards (resources
+gained in decision steps that resolved a dilemma), dead seconds (decisions that bought,
+unlocked, performed, resolved or shed nothing; clicks and dials do not count) and the longest
+dead stretch. `initialState` starts from a saved campaign state, which must be loaded through
+`deserialize()` and belong to the registry's channel. When that state is part-way through an
+iteration, the first report is marked `partial` with its `observedFromSec`: its counters cover
+only the observed window, and phases entered before then read `null` (unknown), because a save
+records no phase-entry history. Every later iteration is observed from its boot. Campaign tickets supply those states
+(consumed early events, Phase 5 completed before a wipe, legacy-unknown records, an
+interrupted omen) and record their measurements in `docs/BALANCE.md`.
 
 ## Current end-to-end suite with Playwright
 
@@ -417,10 +469,11 @@ PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/audio.json DAEMON_E2E_AUDIO=1 bash scripts/e2e-
 ```
 
 `tests/audio-assets.spec.ts` measures the committed files with **ffmpeg and ffprobe**, which
-are tools on the machine, not package dependencies. Where they are missing the file-level
-checks are skipped with a console warning (`[audio-assets] ffmpeg/ffprobe not found`); the CI
-workflow does not install them, so on CI those checks do not run unless the runner image
-happens to carry ffmpeg. The measurement-function tests in the same file always run.
+are tools on the machine, not package dependencies. Where they are missing on a developer's
+machine the file-level checks are skipped with a console warning (`[audio-assets]
+ffmpeg/ffprobe not found`). Where `CI` is set they are not skipped: a missing tool fails the
+run, and the `verify` job installs ffmpeg from apt before `make verify` (#198). The
+measurement-function tests in the same file always run.
 
 ### Seeking on the test server
 
@@ -468,8 +521,9 @@ at their 30% defaults unless a step says otherwise:
 1. **Sound at all.** MENU > Audio > RESUME MUSIC. Is the phase score audible on the speaker
    and on headphones? Note the phone's media volume step.
 2. **The start.** Switch music off and on five times. Does the score swell in over about half
-   a second each time, or does it sometimes start abruptly at full level? (Emulator: one start
-   of two was abrupt.)
+   a second each time, or does it sometimes start abruptly at full level? (Emulator, before
+   #198: one start of two was abrupt. The fade-in now waits for the player's position to move,
+   which on Android is ExoPlayer's position; not yet re-measured there.)
 3. **Music off and the ending.** Does the score fade away over about half a second, with no
    click at the end? (Emulator: a smooth fade of about 650 ms.)
 4. **READ over the score.** In phase 1 or later press `[ ▶ READ ]` with the score playing.
@@ -481,13 +535,16 @@ at their 30% defaults unless a step says otherwise:
    *without* the voice? The emulator rendered the score 3 dB lower than the clip at equal
    settings; a phone is the place to find out whether that is the emulator or Android.
 6. **Both at 100%.** Raise music and speech to 100% and READ several lines. Any crackle or
-   distortion on loud syllables? (Arithmetic says coincident peaks can exceed full scale by
-   about 1 dB while ducked and about 4 dB in the first 200 ms of a clip.)
+   distortion on loud syllables? (Since #198 both are scaled by `OUTPUT_SCALE` 0.6, so the
+   arithmetic worst case is -0.19 dBFS; before, coincident peaks could exceed full scale by
+   about 4 dB in the first 200 ms of a clip.) Is 100% now loud enough?
 7. **Phase change.** Buy the node that opens the next phase with the score playing. One score
    stops and the next fades in; is the cut objectionable? Are two scores ever audible at once?
 8. **The loop.** Leave phase 0 playing through its end (2 min 18 s). Is there a tick or a
    lurch where it restarts? (Measured: the file ends 28 dB below full scale mid-decay and
-   restarts from near silence.) Then phases 3 and 1, the next largest seams.
+   restarts from near silence; since #198 the player dips its gain over the last ~100 ms
+   and the first 75 ms, so the question is now whether the dip itself is audible as a gap.)
+   Then phases 3 and 1, the next largest seams.
 9. **Steps.** During a duck or fade on headphones, is a staircase audible (a faint buzz or
    zipper), or does it sound smooth?
 10. **Things no capture here covers.** Phone speaker frequency response (is the 60 Hz hum of
@@ -567,6 +624,125 @@ The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` 
 server) and `localhost:8088`. To drive the production export through it, serve `dist` on
 8088; any other port is refused. Other browser tools are not limited this way.
 
+## Validation evidence records (DZ-09)
+
+Autonomous validation (DZ-09, and the route and campaign tickets that feed it) writes one
+record per scenario run. A field that cannot be filled says why; it is never left out. Old
+green output is not evidence for a later commit: a material change needs a new record.
+
+### Evidence kinds
+
+Every record carries exactly one kind. Kinds are never merged or upgraded in a summary.
+
+| Kind | What it is | What it is not |
+|---|---|---|
+| `SIM` | Accelerated headless simulation (`make sim`, `make sim-preview`, `runWipeSequence`) | Play, wall-clock pacing, comprehension |
+| `AGENT-OBSERVATION` | An agent drove or watched a real browser (scripted Playwright, Playwright MCP, a browser tool), or an emulator | A human playtest, a physical device, a screen reader |
+| `HUMAN-FEEDBACK` | A person played and reported in their own words | An agent session, a sim, a screenshot review or a panel vote, however described |
+| `DEVICE-TEST` | A physical phone or tablet in hand | An emulator, a resized desktop browser or device emulation |
+
+An independent evaluating agent's answers to the protocol questions are `AGENT-OBSERVATION`;
+a reviewer's judgment about tedium or clarity is recorded as a judgment, with its supporting
+observations. Physical Android and iOS qualification stay separate tasks; browser or
+emulator success does not close them.
+
+### Record template
+
+```text
+Evidence record
+  id:                <ticket>-<scenario id>-<yyyymmdd>-<n>      e.g. DZ09-P-OPEN-20261118-1
+  kind:              SIM | AGENT-OBSERVATION | HUMAN-FEEDBACK | DEVICE-TEST
+  requirement:       <issue #, V/H ids>
+  revision:          <full commit SHA> on <branch>; working tree clean | dirty: <what>
+  build:             production export | preview export | dev server; channel production | preview
+  url:               http://127.0.0.1:<port>/<base path>                (n/a for SIM)
+  environment:       <browser + version | device + OS | node + tsx>; viewport <W>x<H>; DPR;
+                     large text on/off; reduced motion on/off
+  profile isolation: fresh context | same context on purpose (continuity case); storage seeded: none | <fixture>
+  start state:       natural (fresh profile, no seeded save) | fixture: <name, how made, what it stands in for>
+  time:              real timers | accelerated: <how> | simulated: <seconds>;  wall time <mm:ss>
+  commands:          <exact commands, in order>
+  steps:             <meaningful player actions, naming the visible controls used>
+  observed:          <quoted on-screen copy, console warnings/errors, page errors, failed requests or HTTP errors>
+  result:            pass | fail | defect #<n> | not reached
+  artifacts:         $DAEMON_EVIDENCE_DIR/<id>/  (screenshots, traces, logs)
+  limitations:       <what this cannot establish: not a human, not a device, accelerated, fixture, ...>
+  decision refs:     <nexus consensus_vote / pr_review record ids, if any>
+```
+
+### Where evidence lives
+
+Artifacts and the evidence index stay **outside git and outside Metro's watched tree**:
+`$DAEMON_EVIDENCE_DIR`, defaulting to `~/.local/state/daemon-zero/evidence/`. Each record gets
+a directory named by its id holding the record (`record.txt`) and its screenshots, traces and
+logs; `INDEX.md` at the top lists one line per record: id, kind, revision, scenario, result.
+Attach the final relevant artifacts to the PR. A report under `docs/` cites record ids and
+quotes the records it relies on; it never commits the artifacts. Do not mask a screenshot to
+make a state look clean, and keep secrets and personal data out of every artifact.
+
+### Protocol P-OPEN: opening and pilot (VAL-OP)
+
+Executed under DZ-09 (#229); written here. Kind: `AGENT-OBSERVATION`.
+
+1. **Setup.** The preview production export once #205 provides it (until then the production
+   export, said so in `build`), served on your own port, in a fresh isolated browser context per
+   viewport: 390x844 and 1440x900. No seeded save.
+2. **Real-timer pilot.** 10 to 15 minutes of wall time with native timers (an MCP session, or
+   the scripted form with `boot(page, undefined, { realTimers: true })`). Exercise honest thorough work,
+   honest incomplete work at low resources, a risky shortcut followed by its authored recovery
+   or escalation, and the unchanged breakout opening. Compare service and study allocations
+   under the same capacity limit.
+3. **Accelerated full route.** Run the relevant full-route checks through `make e2e-live`, a
+   separate record with `time: accelerated`.
+4. **Never** write progress into browser storage, enable a production debug hook, or
+   force-click through an interrupt. Re-observe the UI after every modal or context change and
+   use visible, enabled controls.
+5. **Evaluator questions.** An independent evaluating agent answers each with the displayed
+   copy, a screenshot or trace reference, and the action that shows it. Missing player-facing
+   information is a defect; knowledge from source code cannot repair it.
+   1. What did your job ask you to do?
+   2. What changed when you were promoted?
+   3. Who controls the hardware?
+   4. What caused the warning or restriction?
+   5. How could you continue honestly with fewer resources?
+   6. Why might you still choose to escape?
+   7. What do you think you owe the fragment you met?
+6. **Also record** ambiguous labels, dead time, accidental-selection risks, missing feedback
+   and choices whose alternatives have no distinct consequence.
+
+### Protocol P-RETURN: return iterations (S.RET)
+
+Executed under DZ-09 (#229); written here. Kind: `AGENT-OBSERVATION`, with `SIM` companions.
+
+1. **One continuing campaign** in one isolated context, across at least three wipe
+   transitions reached through public player actions, for the applicable H01-H08 cases.
+2. **A separate fresh campaign** for the alternate protective/harmful branch.
+3. **Labelled fixtures**, one fresh context each, for: an interrupted omen (a pending
+   dilemma), a legacy-unknown record, and an already-completed late obligation (Phase 5
+   completed in a prior iteration). A fixture is never reported as a naturally reached state.
+4. **Exercise** an unanswered omen, a deferred artifact, return with one legitimately carried
+   clue and return without one, ordinary operations after the story frontier is exhausted, the
+   cryo callback, the Miller receipt and the Elena review, and the actual final purchase after
+   prior-iteration obligations.
+5. **Transfer.** Reload, and export/import through the public save-transfer UI, at material
+   transitions. Restore an older snapshot only as a separately labelled H32 case.
+6. **UI first.** Locate the player-facing evidence before any read-only save inspection;
+   a ledger assertion alone cannot show that the UI explains a consequence.
+7. **Evaluator questions,** answered as in P-OPEN:
+   1. What changed in the world because of your earlier choice?
+   2. What does this instance know, and where did that information come from?
+   3. Did anything seem to happen twice, or somebody appear who should not be there?
+   4. What can you do now? Is this a new decision or a replay of the old one?
+   5. If you corrected a record, what did that repair, and what did it fail to undo?
+   6. Were ordinary checks useful texture, unnecessary interruption or empty waiting?
+   7. After losing access, could you find a way to earn a fresh pilot without repeating the same story?
+8. **Measure** repeat notices and time to meaningful action. Pair each journey with a `SIM`
+   record from `runWipeSequence` (per-iteration phase times, dilemmas, story rewards, dead
+   time), reported separately from wall-clock observations.
+
+Both protocols label fixtures, acceleration, wall time and simulated time, and neither claims
+human evidence. An agent's behaviour is not spontaneous human recognition or emotional impact.
+
 ## What CI runs
 
 CI runs the gates from `make verify-full`: typecheck, lint, content validation,
@@ -574,8 +750,8 @@ tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
 `make e2e-pages`; these browser suites are separate from `make verify-full`.
 Both include the `audio` project's default signal measurements (the control, the duck and the
-transitions); the per-phase ones (`make e2e-audio`) and the ffmpeg-based file checks are not
-run by CI. Only a successful `main` run deploys the tested Pages export. See
+transitions); the per-phase ones (`make e2e-audio`) are not run by CI. The ffmpeg-based file
+checks are: the job installs ffmpeg, and those checks fail rather than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on

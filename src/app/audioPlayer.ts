@@ -45,5 +45,6 @@ export function createMusicPlayer(phase: MusicPhase, changed: MusicStatus): Musi
   });
   return { play: () => { player.play(); }, pause: () => { player.pause(); },
     volume: (value) => { player.volume = value; },
+    position: () => player.currentTime, duration: () => player.duration,
     remove: () => { subscription.remove(); releasePlayer(player); } };
 }

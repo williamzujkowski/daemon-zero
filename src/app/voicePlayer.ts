@@ -21,6 +21,7 @@
 import { createAudioPlayer } from 'expo-audio';
 import { ensureAudioMode, releasePlayer } from './audioPlayer';
 import { heldBy } from './pauseSignal';
+import { OUTPUT_SCALE } from './outputLevel';
 import { voiceSources } from './voiceSources';
 
 interface LiveClip {
@@ -65,8 +66,9 @@ export function onVoiceActivity(next: (talking: boolean) => void): () => void {
   return () => { if (listener === next) listener = null; };
 }
 
+/** The same output scale as the score, so the two together keep their headroom (`outputLevel.ts`). */
 function level(volume: number): number {
-  return Math.max(0, Math.min(100, volume)) / 100;
+  return Math.max(0, Math.min(100, volume)) / 100 * OUTPUT_SCALE;
 }
 
 /** True when a clip was generated for this content id. Data-driven: no id is hard-coded here. */

@@ -12,7 +12,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 const audio = vi.hoisted(() => ({ players: [] as { play: () => void; status: (playing: boolean, error: boolean) => void }[] }));
 vi.mock('../src/app/audioPlayer', () => ({ prepareMusic: () => Promise.resolve(), ensureAudioMode: () => Promise.resolve(),
   createMusicPlayer: (_phase: number, status: (playing: boolean, error: boolean) => void) => {
-    const player = { play: vi.fn(), pause: vi.fn(), volume: vi.fn(), remove: vi.fn(), status };
+    let at = 0;
+    const player = { play: vi.fn(), pause: vi.fn(), volume: vi.fn(), remove: vi.fn(), position: () => (at += 0.025), duration: () => 0, status };
     audio.players.push(player);
     return player;
   } }));

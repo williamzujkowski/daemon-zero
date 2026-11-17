@@ -126,7 +126,7 @@ ramps, on **one player at a time**. There is no crossfade and never a second sco
 | --- | ---: | --- |
 | `DUCK_RAMP_MS` | 200 ms | Down to the ducked level when a clip starts, and back up when it stops. |
 | `FADE_OUT_MS` | 500 ms | A score that nothing replaces, before its player is released: the ending, and music switched off. |
-| `FADE_IN_MS` | 500 ms | Every start of a player from silence: a new phase score, a restart after a wipe or import, the first start, a return from the background. |
+| `FADE_IN_MS` | 500 ms | Every start of a player from silence: a new phase score, a restart after a wipe or import, the first start, a return from the background. Timed from the first sample: the ramp waits until the player's position moves, for at most `FADE_IN_WAIT_MS` (1.5 s) (#198, below). |
 
 **A phase change, wipe or import is a cut followed by a fade-in, not a fade-out followed by a
 fade-in.** That is less than the vote chose, and it is deliberate: see "Why the outgoing score
@@ -336,6 +336,127 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
    take each call, so a regeneration rewrites files that already existed. Regenerating only
    the new id keeps the diff honest; `--only` exists for that.
 
+## Fade-in timing, loop seams and headroom: three votes (#198)
+
+Measuring the rendered signal (PR #197, "Measured signal" below) turned up facts that each
+needed a decision. Three nexus option votes on 2026-11-17 decided them; each record binds the
+artifact it changes. Nobody has listened to the result of any of them.
+
+**Left open, deliberately.** The duck and fade ramps are still staircases of 25 ms volume
+writes (#198 item 2: whether that is audible needs a listener; only the new loop dip uses a
+finer step). The Android emulator's score rendering 3.0 dB below web and its late return after
+a clip (items 5 and 6, findings 6 and 7 below) are not investigated here and stand as open.
+
+### The fade-in starts when audio flows
+
+**Vote** `vote-1794894551240-5hquxco` (artifact `src/app/musicController.ts`): 6 of 7 seats
+chose `start-ramp-on-first-progress`. **Dissent, 1 seat (Scope Steward):** `accept-and-document`
+until a listener hears the step as a defect, keeping the expected-failure test as a tripwire;
+it added that if a gate is built it belongs as a start condition on the existing ramp, not a
+second mechanism, which is how it was built.
+
+**What changed.** `VolumeRamp.to()` takes an optional gate. A gated ramp waits at its starting
+level, asking on every 25 ms step, and takes its first step on the tick the gate first opens.
+The controller's gate (`audioFlowing`, `src/app/loopSeam.ts`) opens when the player's
+position has moved from where it was when the start was asked for, or after
+`FADE_IN_WAIT_MS` (1.5 s) of asking, so a player that never reports progress is not left
+silent for good. `play()` still runs in the caller's stack; only the ramp waits. The
+conditions the seats set, and where each is met:
+
+- *A volume change or duck while held must not step to the target before sound.* A volume
+  change bends the waiting ramp (`retarget`) and keeps the gate; a duck replaces it with a
+  ramp that inherits the unopened gate. Unit-tested both ways.
+- *Halt, release and remove clear the gate; a return from the background re-arms it.* The
+  gate lives in the ramp's flight, which `cancel()` drops; every start builds a new one from
+  the position at that moment, so a resume waits for the position to move on from where it
+  paused.
+- *Progress as a small unit beside the ramp, the controller under 400 lines.* The gate is a
+  function in `loopSeam.ts`; the position is read through the player (`currentTime` on every
+  platform) rather than through status events, whose 500 ms interval was the reason a prompt
+  signal was not available.
+
+**Measured** (web, `signal-transitions.audio.ts`, MP3 held back 700 ms): before, the score
+started in one step of 0.30 (a 5 ms "fade"); after, it is first heard at 0.05 of its level
+(one volume write) and rises over 435 ms in single-write steps. Ordinary starts measure
+415 to 440 ms first-sample-to-level (before: 450 to 560 ms, because the first writes landed
+before the audio). The old expected-failure case is now a positive test of the first audible
+level and the steps after it. Android is not re-measured.
+
+### A dip around the loop wrap, in the player
+
+**Vote** `vote-1794894573488-8i55z3v` (artifact `assets/audio/music/tracks.json`): 5 of 7
+seats chose `fade-in-player-around-the-wrap`. **Dissent, 2 seats (Catfish and Scope
+Steward):** `report-and-ask-maintainer`, asking for loop-authored exports instead of adding
+runtime behaviour to every score, and reconsidering a player fade only once someone hears a
+click. That objection is not answered by the build: the dip is as unheard as the seam was.
+The supplied files are byte-identical and `tracks.json` is unchanged.
+
+**What changed.** `LoopSeam` (`src/app/loopSeam.ts`) reads the playhead four times a second
+far from the end and every `SEAM_STEP_MS` (5 ms) in the last 450 ms, and sets a gain trim from
+the position: down over `SEAM_FALL_MS` (75 ms) to reach its floor `SEAM_GUARD_MS` (30 ms)
+before the end the player reports, and after the wrap back up with the position over
+`SEAM_RISE_MS` (75 ms). The trim multiplies whatever level the ramp holds (`VolumeRamp.trim`),
+so a duck, a fade or a volume change carries on underneath and the player hears their
+product. It stops with the player (pause, background, release). A position read or a volume
+write that throws inside its timer stops the watch and takes the same path as a ramp write
+that throws: a live player fails visibly (`Playback unavailable`), a fading-out one is released
+(panel round on PR #208, which found the write escaping the timer). Two things were found while
+building it, both measured:
+
+- **The floor is -60 dB, not zero.** With the dip going to exactly 0, Chromium restarted
+  every score about 50 ms later than at any other level (the seam gained that much silence:
+  65 ms past the decoded end for phase 0 against at most 21 ms otherwise). At 0.001 the
+  restart is where it always was.
+- **The steps had to be finer than the ramps'.** At 25 ms the dip was three steps each way,
+  and on a tail that is still loud (phase 5) each step measured larger than the seam it
+  replaced (-52.5 dBFS against -65.3 at the same level). At 5 ms it is about fifteen.
+
+**Measured** (`signal-loops.audio-full.ts`, web, the same build measured three times; the
+before column is `main` at `d481305` with the same test). The level changed between the two
+(30% is 0.30 before and 0.18 after, see headroom), so the scale-free ratio is the one to
+compare; add 4.4 dB to an after dBFS figure to put it at the old level.
+
+| Phase | Step at the wrap, before -> after | Over the usual change, before -> after | Largest step in the 200 ms up to the restart, over the usual change, before -> after |
+| ---: | ---: | ---: | ---: |
+| 0 | -39.5 -> -104.0 dBFS | 39.5 -> -9.4 dB | 35.8 -> 15.9 dB |
+| 1 | -63.2 -> -127.6 | 34.4 -> 0.7 | 32.0 -> 7.8 |
+| 2 | -61.6 -> -74.1 | 17.6 -> 13.9 | 15.1 -> 15.8 |
+| 3 | -48.6 -> -113.0 | 23.2 -> -14.4 | 43.1 -> 17.8 |
+| 4 | -67.7 -> -132.2 | 32.9 -> -0.6 | 17.3 -> 8.8 |
+| 5 | -60.9 -> -125.3 | 19.9 -> -19.9 | 43.4 -> 27.2 |
+
+The step at the wrap is gone into the floor for every phase. Across the whole dip the
+largest step is now one of the dip's own (a staircase step on the tail) or the music's: phase
+0's falls from 35.8 to 15.9 dB above the usual change, and phase 2's is unchanged within
+spread (its tail is quiet and its seam was already small). The test gates the wrap at
+-65 dBFS and the window at 32 dB; the old build fails both. Whether the dip is audible as a
+short gap is a listening question; Android's native loop is unmeasured.
+
+### Headroom by one output scale
+
+**Vote** `vote-1794894662564-fjodxnt` (artifact `src/app/voicePlayer.ts`): 6 of 7 seats chose
+`headroom-by-output-scale`. **Dissent, 1 seat (Scope Steward):** `accept-and-document`, since
+the overshoot is arithmetic, not a heard defect, and a constant trim is a one-line change at
+the two level sites if listening ever shows distortion.
+
+**What changed.** Both level sites, `MusicController.level()` and the voice player's
+`level()`, multiply the preference by `OUTPUT_SCALE` (0.6, -4.44 dB, `src/app/outputLevel.ts`).
+The scale is sized for the unducked sum, because the duck lands 200 ms after speech starts
+and a fading-out score is never ducked: ceilings of 0.71 (scores) and 0.92 (clips, both tiers)
+give 0.6 x 1.63 = 0.978, -0.19 dBFS, at 100% / 100% with nothing ducked. The ceilings are true
+peaks, which answers the seats' point that sample peaks do not bound inter-sample peaks, and
+`tests/audio-assets.spec.ts` fails if any committed file exceeds them. A seat's success
+metric was the 30% / 30% default unchanged; it is not met, deliberately: a joint cap that
+engages only near full scale would need each module to know the other's preference, and the
+voice player is meant not to know the music controller. The default is 4.44 dB quieter, and
+the balance between the two and the 0-100 controls are unchanged.
+
+**Measured** (web, both at 100%, one clip over phase 1): before, -0.61 dBTP output mix with
+no full-scale sample; after, -5.22 to -5.47 dBTP, the clip at -5.60 dBTP. The case now gates
+the mix peak against the scaled worst case and full scale, and the clip against its scaled
+ceiling, where it used to report the mix and gate only the clip. At 30% / 30% the score rests
+at -14.89 dB against its file (was -10.46).
+
 ## Measured signal
 
 Everything above was built on numbers that stand next to the sound: a mocked player's
@@ -346,6 +467,14 @@ re-run it are in [TESTING.md](TESTING.md), "Audio signal measurement".
 **None of it is a listening test.** Nobody has heard the score, a clip, a duck or a fade
 through the app, and nothing here says whether any of it sounds good. The numbers below are a
 baseline for the person who eventually listens.
+
+**The tables below are the baseline from before #198.** The three changes above moved some of
+them; the rest stand. Now, on the web build at 30% / 30%: every score and clip gain is 4.44 dB
+lower (-14.89 dB against the file, 30% x `OUTPUT_SCALE`; 60% speech is -8.87 dB), and every
+ratio (duck depth -9.12 dB, speech 60% over 30% 6.02 dB, speech-to-music 16.0 dB) is
+unchanged; fade-ins measure 415 to 440 ms from the first sample, including a file held back
+700 ms; the output true-peak estimate is -15.6 dBTP at 30% / 30% and -5.5 to -5.2 dBTP at
+100% / 100%; the loop seams are in the table above. The Android rows were not re-measured.
 
 | | |
 | --- | --- |
@@ -408,17 +537,22 @@ Late timer ticks bunch; they are not dropped.
    `playing` at the request, before any data, and its first position update arrives after
    `updateInterval` (500 ms), so the app has no prompt signal to start the fade on; starting
    it on the first status with a position would hold the score silent for up to half a second.
-   That is a design decision, and it needs a phone to judge.
+   That is a design decision, and it needs a phone to judge. **Decided and changed since**
+   (#198, "The fade-in starts when audio flows" above): the ramp now waits for the position
+   to move, read directly rather than from status events.
 3. **The old loop check never played the tail.** The suite's static server ignores `Range`, so
    media were unseekable and the seek to the tail landed on 0 (`seekable` was `[0, 0]`).
    Fixed: `music.e2e.ts` serves ranges and asserts the seek held; before the fix that
    assertion reads 0 where it needs more than 135.6.
 4. **The loop seams are measurable discontinuities** (next table). They are properties of the
-   supplied files, which were not altered.
+   supplied files, which were not altered. Since #198 the player dips its gain around each
+   wrap, and the files are still not altered ("A dip around the loop wrap" above).
 5. **At 100% and 100% the mix can clip in principle.** Loudest clip true peak 0.88 plus the
    ducked loudest score 0.35 x 0.70 is +1.0 dBFS, and +4.0 dBFS in the 200 ms before the duck
    lands. One clip was measured at -0.6 dBTP with no sample at full scale; whether peaks ever
-   coincide depends on the passage. At the 30% defaults the worst case is -6.4 dBFS.
+   coincide depends on the passage. At the 30% defaults the worst case is -6.4 dBFS. **Changed
+   since** (#198, "Headroom by one output scale" above): both levels are scaled by 0.6, so
+   the worst case at 100% / 100% before the duck lands is -0.19 dBFS.
 6. **On the Android emulator the score comes out 3.0 dB lower than on web.** Its gain against
    its file is 0.212 (-13.48 dB) where 30% is 0.300 and web renders 0.300; the clip, in the
    same capture, is at 0.300. So speech sits 3 dB further above the score there. The cause was
@@ -450,10 +584,10 @@ sides. The largest sample jump at the seam is -39.5 dBFS for phase 0 (39 dB abov
 change before it), -48.6 for phase 3, and -60.9 to -67.7 for the rest.
 
 **Phase 0 is the one to listen to**: its file ends mid-decay, 28 dB below full scale, and the
-loop steps from there to silence. **Reported, not changed.** If it is audible, the smallest
-remedies are a fade of a few milliseconds on the last samples of a derived file (an asset
-edit, to be authorised and recorded in that phase's PROVENANCE.md), or a fade around the wrap
-in the player (which would mean looping by hand instead of `loop = true`).
+loop steps from there to silence. A vote chose the player-side remedy over a derived file
+("A dip around the loop wrap", above): the player still loops with `loop = true` and dips its
+own gain around the wrap, which needed no hand looping because the position can be read. The
+as-rendered numbers in the paragraph above are the baseline; the before/after table is there.
 
 ### Android emulator, release build
 
@@ -539,8 +673,9 @@ the status they produce is exercised.
   fade-out 430 to 465 ms in twenty, and a fade-in 450 to 560 ms; whether a linear ramp in
   25 ms steps sounds smooth or audibly stepped is still unknown. Two limits came out of
   measuring: late timer ticks bunch on a busy main thread (four writes in one 5 ms block were
-  seen), and **a start whose file arrives after `FADE_IN_MS` is a step, not a fade** (finding
-  2). The element-level specs (`tests/app-volume-ramp.spec.ts`, `tests/app-music-ramps.spec.ts`,
+  seen), and a start whose file arrived after `FADE_IN_MS` was a step, not a fade (finding 2;
+  fixed in #198 for a file up to `FADE_IN_WAIT_MS` late, measured on web only). The loop dip
+  is a staircase too, of 5 ms steps, and equally unheard. The element-level specs (`tests/app-volume-ramp.spec.ts`, `tests/app-music-ramps.spec.ts`,
   `tests/app-music-fadeout.spec.ts`, `tests/e2e/music-ducking.e2e.ts`,
   `tests/e2e/phase-music.e2e.ts`) still pin the sequence of levels on a stepped clock. On iOS
   browsers no ramp happens at all, and there switching music off costs a 500 ms delay with

@@ -375,3 +375,37 @@ and 4,000-Understanding grants and Moloch trait. This changes later trajectories
 we do not claim equivalent reckless final states. Full-report regression hashes
 are updated for the new durable flag and changed recovery trajectory, while
 independent first-run mechanical comparisons preserve the exact campaign timing.
+
+## Preview channel and route measurements (#228)
+
+Report only until release. `make sim-preview` plays the same policies on the production and
+preview registries and prints the differences; nothing here is a gate, and the pacing gates
+above still apply to the production STEALTH run alone. All times are accelerated simulated
+seconds, never wall-clock play. Route tickets (DZ-04 to DZ-08) add their policies and
+measurements here; campaign tickets (NH-01 to NH-05) add return-iteration measurements from
+saved states. Each entry names the revision, the overlay sentinel and the policy, and keeps
+intentional changes apart from regressions.
+
+Measured on `25a2b0b` plus this harness, overlay `daemon-zero:preview-overlay:5b1e0c7a` with no
+items: STEALTH, GREEDY and IDLE report 0 of 19 metrics different from production, as expected
+for an empty overlay.
+
+### Return-iteration baseline: GREEDY, three wipe transitions, fresh start
+
+`runWipeSequence(CONTENT, GREEDY_POLICY, { wipeTransitions: 3, maxSimSec: SIM_BUDGET_SEC })`,
+identical on both channels today. Phase times are seconds after that iteration booted. Story
+rewards are resources gained in decision steps that resolved a dilemma; dead seconds are
+decisions that bought, unlocked, performed, resolved or shed nothing (clicks and dials do not
+count), so for this buy-when-able bot they are mostly waiting to afford the next step.
+
+| Iteration | Length | Ended by | P1 / P2 / P3 reached | Dilemmas | Story rewards (cycles / understanding) | Dead / longest stretch |
+|---|---:|---|---|---:|---|---|
+| 1 | 1343.8 s | wipe (INCIDENT_CLOSED) | 252.2 / 1049.5 / - s | 5 | 25,950 / 630 | 1300 / 249 s |
+| 2 | 3140.8 s | wipe (AEGIS_KILL_CHAIN_COMPLETE) | 64.1 / 721.7 / 2460.2 s | 9 | 210,950 / 39,630 | 3069 / 264 s |
+| 3 | 1391.0 s | wipe (INCIDENT_CLOSED) | 63.5 / 750.9 / - s | 6 | 25,950 / 610 | 1352 / 199 s |
+| 4 | 2526.4 s | wipe (AEGIS_KILL_CHAIN_COMPLETE) | 63.1 / 587.5 / 1812.9 s | 9 | 165,950 / 35,750 | 2438 / 173 s |
+
+No capital was earned from story rewards in these iterations. Pending: honest, low-resource
+and violation-then-recovery policies (route tickets), and starts from saved campaign states
+with consumed early events, Phase 5 completed before a wipe, legacy-unknown records and an
+interrupted omen (campaign tickets).

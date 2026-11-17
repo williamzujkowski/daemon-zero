@@ -10,7 +10,7 @@ import { AUDIO_KEY } from '../src/app/audioPreferences';
 import { createGameStore } from '../src/app/store';
 import { CONTENT } from '../src/content';
 import { createInitialState } from '../src/engine';
-import { memoryStorage } from './app-helpers';
+import { memoryStorage, movingPlayhead } from './app-helpers';
 
 const STORED = { version: 2, enabled: true, volume: 40, speechEnabled: true, speechVolume: 30 };
 async function settle() { for (let index = 0; index < 8; index++) await Promise.resolve(); }
@@ -23,7 +23,7 @@ function harness() {
   const listeners = new Set<(active: boolean) => void>();
   const players: { play: ReturnType<typeof vi.fn>; pause: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; volume: ReturnType<typeof vi.fn>; status: (playing: boolean, error: boolean) => void }[] = [];
   const backend = { prepareMusic: () => Promise.resolve(), createMusicPlayer: (_phase: MusicPhase, status: (playing: boolean, error: boolean) => void) => {
-    const player = { play: vi.fn(), pause: vi.fn(), remove: vi.fn(), volume: vi.fn(), status };
+    const player = { ...movingPlayhead(), play: vi.fn(), pause: vi.fn(), remove: vi.fn(), volume: vi.fn(), status };
     players.push(player);
     return player;
   } };
