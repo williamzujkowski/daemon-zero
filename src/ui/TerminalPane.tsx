@@ -9,6 +9,7 @@ import UpgradeFeed from './UpgradeFeed';
 import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
+import PreviewMarker from './PreviewMarker';
 import { useGame, useWidgetIds } from './state';
 import { selectBootLogText, selectOpening, selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
@@ -39,6 +40,7 @@ function BootLog() {
   if (!ready || !opening || text === '') return null;
   return <View testID="boot-log" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>BOOT SEQUENCE</Text>
+    <PreviewMarker id="preview-marker-boot" />
     <Text style={theme.muted}>{text.split('\n').map((line) => '> ' + line).join('\n')}</Text>
   </View>;
 }
