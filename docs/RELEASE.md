@@ -45,7 +45,7 @@ Roll back through a reviewed revert on `main` and the same quality gates.
 
 ## Local Android release
 
-Install the SDK/JDK with `scripts/bootstrap-ubuntu24.sh --android`, source
+Install the SDK/JDK with `scripts/bootstrap-ubuntu.sh --android`, source
 `~/.config/daemon-zero/android-env.sh`, and supply these environment variables
 from the local credential store (never a tracked file or command-line password):
 
@@ -85,7 +85,7 @@ entry comes from a library.
 | `android.permission.VIBRATE` | `expo-haptics` (its AndroidManifest.xml) | Needed: haptic feedback on presses |
 | `android.permission.MODIFY_AUDIO_SETTINGS` | `expo-audio` (its AndroidManifest.xml and its config plugin, unconditionally) | Kept: `setAudioModeAsync`, which the app calls before any playback, sets the audio mode and speaker routing through `AudioManager` (`AudioModule.kt`, `updatePlaySoundThroughEarpiece`). Normal-level, no prompt |
 | `android.permission.ACCESS_NETWORK_STATE` | `androidx.media3:media3-common` and `media3-exoplayer` 1.9.1, the player inside `expo-audio` (manifests inside the AARs) | Kept: the player library declares it for itself, and removing it was not shown safe. It lets the app see *whether* the device has a connection. It cannot open one: see `INTERNET` below. Normal-level, no prompt |
-| `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | A signature-level permission the app defines for its own unexported broadcast receivers; grants nothing to anyone else |
+| `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` 1.17.0 (manifest inside the AAR) | A signature-level permission the app defines for its own unexported broadcast receivers; grants nothing to anyone else |
 
 Removed from the build by `android.blockedPermissions` in `app.json`:
 
@@ -129,6 +129,11 @@ Read from the APK's own file table (`unzip -lv`):
 | Dex (Java/Kotlin code) | 2,782,566 | 3.0% |
 | Hermes JavaScript bundle | 2,196,828 | 2.4% |
 | Everything else (resources, manifest, signature) | 957,265 | 1.0% |
+
+Since 2026-11-17 the six scores total 22,092,180 bytes, 159,111 fewer: their container tags
+were replaced with neutral ones plus an AI-origin comment, and the audio is unchanged (#193,
+[SOUNDTRACK.md](SOUNDTRACK.md)). The APK was not rebuilt or re-measured for that change, so
+the table above is still the 2026-11-16 measurement.
 
 Audio assets are 22,842,691 bytes, 91% of the growth since M6. The remaining 2.2 MB was not
 attributed file by file, because the M6 APK was not rebuilt for comparison; it is the size of

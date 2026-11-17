@@ -2,7 +2,8 @@
 
 How the score is declared, what the app tells the platform's media controls, and what it
 takes to add a track. Voice clips, ducking and ramps are in [VOICE-CLIPS.md](VOICE-CLIPS.md);
-the scores' musical brief is issue #88. Dated 2026-11-16.
+the scores' musical brief is issue #88. Dated 2026-11-16; the Android title was resolved on
+2026-11-17 (#193, [below](#resolved-on-android-2026-11-17-the-files-tags-are-neutral)).
 
 ## Decision
 
@@ -23,7 +24,7 @@ can expand the soundtrack." This document records what was built from that, and 
 | `phase` | the phase whose score this is. One entry per phase, enforced |
 | `title` | the track's own name, as its PROVENANCE.md gives it. Recorded, not shown (see below) |
 | `path` | `assets/audio/music/<folder>/<file>.mp3` |
-| `sha256`, `bytes`, `duration` | of the file exactly as supplied |
+| `sha256`, `bytes`, `duration` | of the shipped file: the supplied audio, bit for bit, under the neutral tag (step 2 below) |
 
 `src/app/musicTracks.ts` parses it with a strict schema when the app starts, so an unknown
 field, a malformed hash or a second entry for a phase is an error, not a silent wrong choice.
@@ -34,26 +35,47 @@ code any more. A phase with no entry plays in silence.
 
 No audio is generated here. Scores are maintainer-supplied files with recorded provenance.
 
-1. Put the file at `assets/audio/music/<folder>/<name>.mp3`, lower-case with hyphens, bytes
-   exactly as supplied (no re-encode, no tag edits).
-2. Write `PROVENANCE.md` in the same folder, following the existing six: who supplied it and
-   when, the licence position, and the inspected metadata. It must contain the track's title,
-   a line `Duration: <seconds> seconds` and the file's SHA-256, each matching the manifest.
-3. Add or edit the entry in `assets/audio/music/tracks.json`:
+1. Keep the supplied file somewhere outside the repository and note its
+   `sha256sum` and `stat -c %s`. Never re-encode, normalise or trim it.
+2. **Tag it neutrally.** On Android the media session shows the file's own tags, so a supplied
+   title, artist or cover would reach a car display. Write the bundled copy with
+   ```bash
+   pnpm exec tsx scripts/neutral-score-tags.ts <phase> < supplied.mp3 > assets/audio/music/<folder>/<name>.mp3
+   ```
+   (lower-case file name with hyphens). It replaces the ID3v2 tag with exactly four frames:
+   the strings the app publishes for that phase (title `Phase <phase> score`, artist and
+   album `DAEMON // 0`) and a comment, `AI-generated music (Suno)`, that discloses the
+   music's AI origin without being shown by a media session. It drops everything else,
+   including artwork, and copies every byte from
+   the first MPEG frame on, so the audio and its encoder delay and padding are the supplied
+   ones. It writes nothing if it cannot show that, or if the file ends in a tag it does not
+   handle (ID3v1, APE). It prints both hashes. Do not use `ffmpeg -c copy` for this: its MP3
+   muxer replaces the Xing/LAME frame.
+3. Write `PROVENANCE.md` in the same folder, following the existing six: who supplied it and
+   when, the licence position, the supplied file's hash, size and tags, and the tagging
+   command. It must contain the track's title, a line `Duration: <seconds> seconds` and the
+   shipped file's SHA-256, each matching the manifest. If ffmpeg is to hand, record that the
+   decoded audio is unchanged:
+   `ffmpeg -v error -i <file> -map 0:a:0 -c:a pcm_s16le -f s16le - | sha256sum` gives the same
+   line for the supplied and the bundled file.
+4. Add or edit the entry in `assets/audio/music/tracks.json`, from the bundled file:
    `sha256sum <file>`, `stat -c %s <file>`, and the duration from
    `ffprobe -v error -show_entries format=duration -of csv=p=0 <file>` rounded as the others are.
-4. Add one import line and one table entry, keyed by the manifest `id`, in
-   `src/app/musicSources.ts`. This is the only code edit and it cannot be removed: Metro
-   bundles assets from literal imports, so the table cannot be built from the manifest at run
-   time. Replacing a phase's file under the same `id` and path needs no code edit at all.
-5. Run `make verify`. `tests/app-score-tracks.spec.ts` fails if the file, size, hash,
-   provenance or import line is missing or disagrees, and
-   `tests/e2e/phase-music.e2e.ts` then plays every manifest entry on the web export and
-   compares the served bytes to the manifest. `tests/audio-assets.spec.ts` also fails if the
-   file's true peak is above `SCORE_PEAK_CEILING` (0.71, `src/app/outputLevel.ts`): the
-   headroom at 100% music and 100% speech is computed from that ceiling (#198). A louder
-   score means raising the ceiling and lowering `OUTPUT_SCALE` to match, not editing the file.
-6. Listen to it in the game, through a loop wrap (the player dips its gain there, #198).
+5. Add one import line and one table entry, keyed by the manifest `id`, in
+   `src/app/musicSources.ts`, and the file's two lines in `tests/score-files.ts`. The import
+   is the only product-code edit and it cannot be removed: Metro bundles assets from literal
+   imports, so the table cannot be built from the manifest at run time. Replacing a phase's
+   file under the same `id` and path needs no code edit at all.
+6. Run `make verify`. `tests/app-score-tracks.spec.ts` fails if the file, size, hash,
+   provenance or import line is missing or disagrees; `tests/score-tags.spec.ts` fails if
+   the file carries any tag but the three neutral ones and the disclosure comment, or a
+   title or artist other than what the app publishes for its phase; and `tests/e2e/phase-music.e2e.ts` then plays every
+   manifest entry on the web export and compares the served bytes to the manifest.
+   `tests/audio-assets.spec.ts` also fails if the file's true peak is above
+   `SCORE_PEAK_CEILING` (0.71, `src/app/outputLevel.ts`): the headroom at 100% music and 100%
+   speech is computed from that ceiling (#198). A louder score means raising the ceiling and
+   lowering `OUTPUT_SCALE` to match, not editing the file.
+7. Listen to it in the game, through a loop wrap (the player dips its gain there, #198).
    Nothing above is a listening test.
 
 That covers exactly two cases without design work: **replacing a phase's score**, and
@@ -127,9 +149,10 @@ Absent where there is no `navigator.mediaSession` or `MediaMetadata` (older brow
 every native build).
 
 **Android and iOS: no session call was added.** On Android the library's own session stays,
-which is what keeps the media keys working. A deliberate title there needs the foreground
-service and two new permissions, and this change was told to add none unless strictly
-required; media keys do not require them. See "Open on Android" below.
+which is what keeps the media keys working. Setting a title from the app there needs the
+foreground service and two new permissions, and media keys do not require them. Since
+2026-11-17 the title is right anyway, because the files' own tags now say what the web
+session says: see "Resolved on Android" below.
 
 ### Disclosure rule for titles
 
@@ -165,14 +188,15 @@ a credited artist, so there is no credit to show and none was invented.
 
 | Rule | Test |
 |---|---|
-| Nothing is published, and no handler exists, until the player has started the score in the app once. A stored "enabled" is not enough, so a media key can never be what first fetches or plays audio | `app-score-session.spec.ts` "publishes nothing before…"; `media-session.e2e.ts` first assertion |
+| Nothing is published, and no handler exists, until the player has started the score in the app once. A stored "enabled" is not enough, so a media key can never be what first fetches or plays audio | `app-score-session.spec.ts` "publishes nothing for a stored "enabled"…" and "is published by the press that switches music on…"; `media-session.e2e.ts` first assertion |
 | A play that arrives while the app is in the background is dropped, and is not remembered for the return | `app-music-remote.spec.ts` "drops a play that arrives in the background…" |
 | A player that something else starts in the background is paused again at once | `app-music-remote.spec.ts` "stops a player that something started…" |
 | The session is cleared, handlers included, when music is switched off, at an ending and at teardown | `app-score-session.spec.ts` "is cleared when…"; `media-session.e2e.ts` |
 | After a wipe or an import it shows the new run's phase, never the old one | `app-score-session.spec.ts` "follows playing, a pause, a phase change and a wipe…" |
-| A spoken clip does not change the session: same title, still `playing`, score ducked. With music off the app publishes nothing while a clip talks (a browser may still list the page under its own name) | `app-score-session.spec.ts` "is untouched by a clip…"; `media-session.e2e.ts` READ step |
+| A spoken clip does not change the session: same title, still `playing`, score ducked. With music off the app publishes nothing while a clip talks (a browser may still list the page under its own name) | `app-score-session.spec.ts` "keeps one title and stays playing through everything a clip does…"; `media-session.e2e.ts` READ step |
 | A removed player is released, so no session is left for a key to wake | `app-audio-player.spec.ts`, `app-voice-player.spec.ts` (#186) |
 | Background playback, recording and the foreground service stay disabled; no permission was added | `release-config.spec.ts`, `release-permissions.spec.ts` |
+| A bundled score's own tags are exactly the title, artist and album the app publishes for its phase: no other frame, no artwork, no trailing tag. A voice clip carries an encoder frame and no text | `score-tags.spec.ts` "the bundled scores…", "the voice clips…" |
 
 ### How a key reaches the app, by platform
 
@@ -196,8 +220,10 @@ intercept it; it recognises it and brings its own state into line (`src/app/outs
 - A clip is a separate player with its own session, and a headset's pause can land on it.
   A clip paused that way ends like a stop, so the score comes back up. (There is no in-app
   pause for a clip, so nothing would ever have resumed it.)
-  The clip files carry no title tag (only an encoder tag), so by the same mechanism a clip's
-  session has no title to show; that was read from the files, not seen on a device.
+  The clip files carry no title tag: all 28 have one ID3v2.4 frame, `TSSE` (the muxer's
+  name, `Lavf62.3.100`), no artwork and no trailing tag, so by the same mechanism a clip's
+  session has no title to show. `tests/score-tags.spec.ts` holds them to that; it was read
+  from the files, not seen on a device.
 
 **iOS.** Nothing is published and nothing was changed. Unverified in every respect.
 
@@ -237,10 +263,10 @@ adb -s <serial> shell input keyevent KEYCODE_MEDIA_PLAY
 adb -s <serial> shell input keyevent KEYCODE_HOME          # then the play key again
 ```
 
-### Open on Android: the title is the file's tag
+### Resolved on Android, 2026-11-17: the files' tags are neutral
 
 On Android the session's metadata is whatever is embedded in the MP3, and the app cannot set
-it with what this build enables. Today that is:
+it with what this build enables. Until 2026-11-17 the supplied files said:
 
 | Phase | Embedded title (from each PROVENANCE.md) |
 |---|---|
@@ -251,30 +277,76 @@ it with what this build enables. Today that is:
 | 4 | Phase 4 — The Sovereign Corporation: coordinated power |
 | 5 | Phase 5 — Post-Orbital Transcendence: unfamiliar dimensions |
 
-with artist `williamzujkowski` and the file's embedded artwork. **This breaks the disclosure
-rule above**: it names the phase and hints at its story. It is narrower than it sounds,
-because the build posts no notification, so nothing appears on the lock screen or in the
-shade; the text reaches whatever reads media sessions directly, which is a Bluetooth headset
-or car display (AVRCP), a watch, and apps with notification-listener access. It was already
-true before this change and is not made worse by it. Fixing it is a choice with a cost, so
-it is left for a vote:
+with artist `williamzujkowski` and the file's embedded artwork. **That broke the disclosure
+rule above**: it named the phase and hinted at its story. It was narrower than it sounds,
+because the build posts no notification, so nothing appeared on the lock screen or in the
+shade; the text reached whatever reads media sessions directly, which is a Bluetooth headset
+or car display (AVRCP), a watch, and apps with notification-listener access.
 
-1. **Enable the library's lock-screen path on Android** (`enableBackgroundPlayback: true`,
-   then `setActiveForLockScreen` with the same metadata as the web). Gives a proper title,
-   artwork and a notification with play and pause. Costs two permissions
-   (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, the second needing a Play
-   Console declaration), a foreground service, a persistent media notification, the iOS
-   `audio` background mode from the same plugin flag, and, per the library's documentation,
-   `interruptionMode: 'doNotMix'`, which means the game would pause other apps' audio. It
-   also weakens "music does not play in the background" from a platform property to
-   something the app has to enforce against its own service.
-2. **Ship tag-stripped derivatives of the six files** (`ffmpeg -map_metadata -1 -c copy`,
-   audio stream untouched). No permission, no service: the session would then show no title
-   at all. Costs a derivative of maintainer-supplied files, which the provenance files say
-   has not been made and which needs the maintainer's authorisation, new hashes, and updated
-   provenance.
-3. **Leave it.** Accept that a paired car display can show the current phase's track title.
+Three ways out were put to a nexus option vote (issue #193): enable the library's lock-screen
+path (two permissions, a foreground service, a persistent notification, and `doNotMix`,
+which pauses other apps' audio); ship the files with neutral tags; or leave it. Outcome:
+**`strip-tags-and-set-neutral-tags`, 7 of 7 seats, `thresholdMet: true`, record
+`vote-1794891913762-bfqvn7c`.**
 
-Option 2 is the one that restores the rule at no cost to the player; it was not done here
-because altering the supplied bytes was out of scope for this change.
+What was done, to all six files:
 
+- The ID3v2.4 tag (title, artist, encoder, lyrics, Suno URL, two comments, a 360x360 JPEG
+  cover and a C2PA manifest) was replaced by an ID3v2.3 tag with three frames: title
+  `Phase N score`, artist `DAEMON // 0`, album `DAEMON // 0`. These are `scoreMetadata(N)`,
+  the web session's own strings. There is no artwork: the cover was Suno's, not the game's.
+- One more frame was added by a second vote, after the C2PA manifest's removal was noticed:
+  **`neutral-ai-origin-tag`, 7 of 7 seats, record `vote-1794897142413-84x42e4`.** Each file
+  keeps an unsigned, plain AI-origin disclosure in place of Suno's signed manifest: a `COMM`
+  frame, language `eng`, empty description, text `AI-generated music (Suno)`
+  (`AI_DISCLOSURE` in `scripts/score-tags.ts`). A comment with an empty description is
+  ID3v2.3's conventional human-readable note; ffprobe shows it as the file's `comment`.
+  It was chosen over `TXXX` (a user-defined key that readers label
+  inconsistently) and over any `T...` text frame because of what the Android session reads:
+  in media3 1.9.1 (the version `expo-audio` 58.0.12 links), only `TextInformationFrame`
+  (title, artist, album, album artist, composer, genre, track, year and the like) and
+  `ApicFrame` override `Metadata.Entry.populateMediaMetadata`; `CommentFrame` inherits the
+  default, which does nothing, so the disclosure cannot become a session title or artist.
+  The one other reader of a comment in media3's extractor, `GaplessInfoHolder`, takes only
+  a comment described `iTunSMPB`; this one's description is empty, so gapless playback
+  still reads the untouched Xing/LAME frame. Read from the library's compiled classes
+  (`javap`), not seen on a device. On the web the session shows the metadata the app sets.
+  Unlike the manifest, the disclosure is not signed and proves nothing about who made the
+  file; it says what the file is.
+- Nothing else. Every byte from the first MPEG frame to the end of each file is the supplied
+  one, Xing/LAME frame included, so the encoder delay and padding that a gapless loop reads
+  are untouched. For each file the compressed packets are identical, the decoded PCM is
+  identical sample for sample with the same sample count, and ffprobe's duration, sample
+  rate, channels and bit rate are unchanged. The numbers, the supplied files' hashes and the
+  before and after tag listings are in each `assets/audio/music/phase-*/PROVENANCE.md`.
+- `ffmpeg -c:a copy` was tried and rejected: under stream copy its MP3 muxer writes its own
+  Xing/LAME frame. On the phase 0 file the packets, the decoded audio and the delay and
+  padding values survived, but the frame itself (size, seek table, encoder string) did not.
+  `scripts/neutral-score-tags.ts` writes the tag and copies the rest of the file instead.
+- In headless Chromium 159 each supplied and shipped pair decoded (`decodeAudioData`) to the
+  same number of frames with every sample equal, and each shipped file, played in an
+  `<audio loop>` from 0.6 s before its end, wrapped to the start once and kept playing with no
+  `ended` and no error, at the same reported duration as the supplied file. A one-off check,
+  not a committed test, and nobody listened to the seam.
+- `tests/score-tags.spec.ts` reads the tags of every bundled score without any audio tool
+  and fails on anything but those three frames and the disclosure comment, with those
+  values, that language and an empty description.
+
+What a media session can now read from a score is therefore the same on Android as on the
+web, minus artwork; the disclosure comment is in the file for anyone who reads its tags,
+not in the session. One string is still inside each file and is not a tag: the Xing/LAME
+frame names its encoder, `Lavc60.31`. ffprobe shows it as the stream's `encoder`; media3
+builds its metadata from ID3 frames, so it is not expected in a session. That expectation
+comes from reading, not from a device.
+
+**Not re-observed on Android.** No emulator or device was run for this change. That the
+session now reads `Phase 0 score, DAEMON // 0` is inferred from the 2026-11-16 run (which
+showed the session carrying the file's ID3 title and artist) and from the files' new
+contents. The check, on a release build with the score playing:
+
+```bash
+adb -s <serial> shell dumpsys media_session | grep -E 'metadata:|state='
+```
+
+Expected: a `metadata:` line whose description begins `Phase 0 score, DAEMON // 0`, and no trace of the
+old title or account label. Also unobserved: what a real car display or headset shows.

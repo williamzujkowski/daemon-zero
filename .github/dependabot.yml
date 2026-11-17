@@ -1,9 +1,16 @@
+# Cooldown: a version-update PR is opened only once the release is older than pnpm's
+# `minimumReleaseAge: 1440` (one day, pnpm-workspace.yaml), so its lockfile passes the
+# frozen install. 3 days is Dependabot's documented default when `cooldown` is unset; it is
+# stated here so it is a reviewed setting, and not lowered to 1 because that would shorten
+# the wait. Allowed range is 1-90 days. Cooldown never delays security updates.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 5
     groups:
       dev-tooling:
@@ -17,3 +24,6 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      # github-actions takes only `default-days`; the semver-*-days keys are not supported.
+      default-days: 3

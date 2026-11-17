@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Installs the Android SDK and KVM prerequisites on Ubuntu x86_64.
-# Invoked by bootstrap-ubuntu24.sh --android; SDK/JDK paths stay outside the repo.
+# Invoked by bootstrap-ubuntu.sh --android; SDK/JDK paths stay outside the repo.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

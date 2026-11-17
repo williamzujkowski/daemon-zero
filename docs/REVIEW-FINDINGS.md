@@ -82,8 +82,9 @@ was changed.
 
 Verified locally on Ubuntu 26.04.1 x86_64 with the pinned toolchain:
 
-- `bash scripts/bootstrap-ubuntu24.sh` completed successfully with mise already
-  installed. All required apt packages were already present.
+- `bash scripts/bootstrap-ubuntu24.sh` (now `scripts/bootstrap-ubuntu.sh`)
+  completed successfully with mise already installed. All required apt packages
+  were already present.
 - `mise install` completed. Node 24.22.2, pnpm 10.28.0, gitleaks 8.30.1,
   osv-scanner 2.7.1 and trivy 0.76.2 were checked by running each binary.
 - mise 2026.1.5 initially generated an incomplete lockfile without pnpm's URL.
@@ -109,9 +110,10 @@ Verified in a fresh isolated Ubuntu 24.04 environment:
 
 - Docker's launcher on this host is broken. Used debootstrap to create a Noble
   root filesystem and systemd-nspawn to run a separate clone of the M0 branch.
-- `bash scripts/bootstrap-ubuntu24.sh` passed as root, including OS package
-  installation, mise 2026.11.6 installation through its signed apt repository,
-  and installation of all five pinned tools from the committed lockfile.
+- `bash scripts/bootstrap-ubuntu24.sh` (now `bootstrap-ubuntu.sh`) passed as
+  root, including OS package installation, mise 2026.11.6 installation through
+  its signed apt repository, and installation of all five pinned tools from the
+  committed lockfile.
 - `mise exec -- make setup` and `mise exec -- make verify-full` passed, including
   all 71 tests, security scans and SBOM generation.
 - [PR CI run 42970593265](https://github.com/williamzujkowski/daemon-zero/actions/runs/42970593265)
@@ -187,9 +189,9 @@ behavior in this milestone.
   Desktop and 390 x 844 viewports show `BOOT_SEQ` on an `rgb(0, 0, 0)` background,
   with no horizontal overflow on the narrow viewport. No console warnings or
   errors were recorded.
-- `bootstrap-ubuntu24.sh --android` passed on the Ubuntu 26.04 host and inside
-  isolated Ubuntu 24.04. This installs pinned Temurin 21.0.13+9 through mise,
-  SHA-256-verified Android command-line tools 22.0 (archive build 15859902),
+- `bootstrap-ubuntu24.sh --android` (now `bootstrap-ubuntu.sh`) passed on the
+  Ubuntu 26.04 host and inside isolated Ubuntu 24.04. This installs pinned
+  Temurin 21.0.13+9 through mise, SHA-256-verified Android command-line tools 22.0 (archive build 15859902),
   platform `android-37.0`, build tools 37.0.0, platform tools and the emulator.
   `qemu-system-x86` is used because `qemu-kvm` has multiple providers on the host.
 - `/dev/kvm` exists and `emulator -accel-check` confirms KVM is usable. Enabled

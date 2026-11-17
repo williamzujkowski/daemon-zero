@@ -116,6 +116,36 @@ describe('voice clip playback', () => {
     stop();
   });
 
+  it('on Android ends a READ clip that has been heard as soon as anything outside the app holds it: a background pause, a transient focus loss or a headset key', () => {
+    // Intended, not incidental (docs/VOICE-CLIPS.md, "A held clip ends"). All three reach
+    // JavaScript as the same report, "not playing", and the app has no control that could
+    // resume a clip, so the clip ends there and READ plays it again from the start.
+    for (const cause of ['the platform pausing every player as the app leaves the foreground', 'a transient loss of audio focus', 'a headset pause key']) {
+      voice.create.mockClear(); voice.create.mockReturnValue(voice.player); voice.player.release.mockClear();
+      const heard: boolean[] = [];
+      const stop = onVoiceActivity((talking) => { heard.push(talking); });
+      const listener = stubListener();
+      os.android = true;
+      playVoiceClip('ambient_06', 30);
+      listener.fire({ didJustFinish: false, playing: true });
+      expect(voice.player.release, cause).not.toHaveBeenCalled();
+      listener.fire({ didJustFinish: false, playing: false });
+      expect(voice.player.release, cause).toHaveBeenCalledOnce();
+      expect(heard, 'and the score is let back up: ' + cause).toEqual([true, false]);
+      // It is over, not suspended: the hold ending (focus returning, the app coming back)
+      // does not bring it back, and the listener that would hear of it is gone.
+      expect(listener.remove, cause).toHaveBeenCalledOnce();
+      listener.fire({ didJustFinish: false, playing: true });
+      expect(heard, cause).toEqual([true, false]);
+      // Pressing READ again is a new clip from the beginning, on a new player.
+      playVoiceClip('ambient_06', 30);
+      expect(voice.create, cause).toHaveBeenCalledTimes(2);
+      expect(heard, cause).toEqual([true, false, true]);
+      stopVoiceClip(); stop();
+      os.android = false;
+    }
+  });
+
   it('holds volume inside the preference range rather than trusting the caller', () => {
     voice.create.mockReturnValue(voice.player);
     stubListener();
