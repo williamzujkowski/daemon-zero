@@ -20,15 +20,18 @@ interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase:
  * How much of its preference level the soundtrack keeps while a transmission is being read.
  * Score and clips both measure about -15 LUFS, so at equal preference they compete; 0.35 is
  * roughly -9 dB, the low end of the usual range for music under speech, chosen so the score
- * stays present rather than cutting out. It is a reasoned starting value, not a tuned one:
- * nobody has listened to it through the app.
+ * stays present rather than cutting out. It is a reasoned starting value, not a tuned one.
+ * On the web build the rendered score does drop by exactly this ratio (-9.12 dB on the signal,
+ * docs/VOICE-CLIPS.md, "Measured signal"); whether that depth is right is a listening question
+ * nobody has answered.
  */
 export const DUCK_RATIO = 0.35;
 /**
- * The three ramps below are unheard defaults: a nexus option vote chose to build short ramps
- * on the single player before anyone had listened to one (docs/VOICE-CLIPS.md records the vote
- * and both dissents). Each sits mid-range of what the vote named and is meant to be retuned by
- * ear.
+ * The three ramps below are defaults nobody chose by ear: a nexus option vote chose to build
+ * short ramps on the single player before anyone had listened to one (docs/VOICE-CLIPS.md
+ * records the vote and both dissents). Each sits mid-range of what the vote named. Their shape
+ * and length in the rendered signal are measured (same section); how they sound is not known,
+ * and they are meant to be retuned by ear.
  *
  * Down to the ducked level when a clip starts talking and back up when it stops. Short, so the
  * score is out of the way within the clip's first syllable.

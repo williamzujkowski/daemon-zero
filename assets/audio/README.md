@@ -21,6 +21,10 @@ the six supplied originals totalled 22,251,291 bytes. All six contain stereo
 48 kHz MP3 audio. No transcoding, normalization, trimming or custom loop cuts
 were performed. Player looping does not establish that the musical seam is
 inaudible; that requires listening.
+The seams are measured, in the files and as rendered, in
+[docs/VOICE-CLIPS.md](../../docs/VOICE-CLIPS.md) ("Loop seams"): each loop is a
+piece ending and restarting, and Phase 0's file ends mid-decay, 28 dB below
+full scale, which is the seam most likely to tick.
 
 ## What is preserved, and what was changed
 

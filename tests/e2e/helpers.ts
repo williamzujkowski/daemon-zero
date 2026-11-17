@@ -45,9 +45,14 @@ export { expect };
  * when looping.
  */
 export async function boot(page: Page, fixture?: string,
-  options: { audio?: boolean | Record<string, unknown>; patch?: (game: GameState) => GameState } = {}): Promise<void> {
-  await page.clock.install();
-  await page.clock.pauseAt(Date.now() + 1000);
+  options: { audio?: boolean | Record<string, unknown>; patch?: (game: GameState) => GameState; realTimers?: boolean } = {}): Promise<void> {
+  // `realTimers` leaves the browser's own timers in place. A resumed Playwright clock is not the
+  // same thing: after a stall it fires every interval tick it missed at once, where a browser
+  // drops them, and the audio-signal specs measure exactly that difference.
+  if (options.realTimers !== true) {
+    await page.clock.install();
+    await page.clock.pauseAt(Date.now() + 1000);
+  }
   if (fixture) {
     const code = fixtures[fixture];
     if (!code) throw new Error('Missing fixture ' + fixture);
@@ -153,8 +158,9 @@ export interface ScoreSample { volume: number | null; source: string; active: nu
 /**
  * Reads the score's level over time. `boot()` leaves the page clock paused, so a ramp does not
  * move until the clock is run: this runs it one ramp step at a time and reads after each, which
- * makes every intermediate level observable and the sequence the same on every run. It
- * measures numbers on a media element, like everything else here; nobody has heard a ramp.
+ * makes every intermediate level observable and the sequence the same on every run. It reads
+ * the element's `volume` property; what that does to the rendered samples is measured
+ * separately, on real timers, by the `signal-*.audio.ts` specs.
  */
 export async function sampleScore(page: Page, durationMs: number): Promise<ScoreSample[]> {
   const samples: ScoreSample[] = [];

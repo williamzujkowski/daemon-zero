@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live build-pages e2e-pages android-release
+.PHONY: help setup typecheck lint validate test sim verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -63,10 +63,11 @@ android: ## Open the app on an Android emulator or device using Expo Go
 build-web: ## Export the production web app
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
 
-# Every Playwright target binds port 4173 (tests/e2e/config.ts), so each recipe takes the
-# machine-wide lock itself. $(E2E_LOCK) is re-entrant: under a caller's own
-# `flock /tmp/daemon-zero-e2e.lock make e2e` it reuses the inherited lock instead of waiting
-# on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
+# Each Playwright target runs in its own slot: scripts/e2e-lock.sh picks a free port from 4173
+# up (DAEMON_E2E_PORT, read by tests/e2e/config.ts) and holds that port's lock, so suites in
+# different checkouts run side by side, at most DAEMON_E2E_SLOTS (default 3) at once. It is
+# re-entrant: under a caller's own `flock /tmp/daemon-zero-e2e.lock make e2e` it reuses the
+# inherited lock instead of waiting on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
 E2E_LOCK := bash scripts/e2e-lock.sh
 E2E_ARGS ?=
 
@@ -77,6 +78,12 @@ e2e: build-web ## Playwright scenarios against the production web export (takes 
 # runs it nightly. See docs/TESTING.md, "Live journey".
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
 	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
+
+# `make e2e` already runs the control, duck and transition signal measurements. This adds the
+# per-phase ones (six scores, six loop seams), about a minute. See docs/TESTING.md, "Audio
+# signal measurement".
+e2e-audio: build-web ## Rendered-audio signal measurements for every phase score and loop seam (~1 min)
+	$(E2E_LOCK) env -u NO_COLOR DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
 
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh
