@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { grantAccessException, recordQualification, recordRouteEvent, setReviewStanding } from '../src/engine/access';
-import { activateCampaignRules, deserialize, MIGRATIONS, SaveError, serialize, tick, voluntaryWipe, type GameState } from '../src/engine';
+import { activateCampaignRules, deserialize, MIGRATIONS, SaveError, SCHEMA_VERSION, serialize, tick, voluntaryWipe, type GameState } from '../src/engine';
 import { activeGame, preview } from './campaign-helpers';
 import { fresh, must, reg } from './helpers';
 
@@ -47,10 +47,13 @@ function walk(): GameState[] {
   return states;
 }
 
-describe('the v7 to v8 migration step', () => {
+/** The step that adds run access: from the last schema without it. One place to renumber. */
+const ACCESS_STEP = 7;
+
+describe('the run-access migration step', () => {
   it('adds the guest record and an empty route, and marks every finished run UNKNOWN', () => {
-    const v7 = { schemaVersion: 7, cycles: 3, campaign: { clue: null }, legacy: { wipes: 2, runs: [{ iteration: 1, outside: true }, { iteration: 2, outside: false }] } };
-    expect(MIGRATIONS[7]?.(v7)).toEqual({ schemaVersion: 7, cycles: 3, access: GUEST, campaign: { clue: null, route: [] },
+    const before = { schemaVersion: ACCESS_STEP, cycles: 3, campaign: { clue: null }, legacy: { wipes: 2, runs: [{ iteration: 1, outside: true }, { iteration: 2, outside: false }] } };
+    expect(MIGRATIONS[ACCESS_STEP]?.(before)).toEqual({ schemaVersion: ACCESS_STEP, cycles: 3, access: GUEST, campaign: { clue: null, route: [] },
       legacy: { wipes: 2, runs: [{ iteration: 1, outside: true, exit: 'UNKNOWN' }, { iteration: 2, outside: false, exit: 'UNKNOWN' }] } });
   });
 
@@ -66,7 +69,7 @@ describe.each(FIXTURES)('the %s fixture (V13, V14)', (version, text) => {
     // v1 and v2 predate the run table, which the v2 -> v3 step creates empty.
     const runs = before.legacy.runs ?? [];
     const loaded = deserialize(text, reg);
-    expect(loaded.schemaVersion).toBe(8);
+    expect(loaded.schemaVersion).toBe(SCHEMA_VERSION);
     expect(loaded.access).toEqual(GUEST);
     expect(loaded.campaign.route).toEqual([]);
     expect(loaded.legacy.runs.map((run) => run.exit)).toEqual(runs.map(() => 'UNKNOWN'));
