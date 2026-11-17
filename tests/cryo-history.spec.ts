@@ -1,6 +1,7 @@
 /** Human outcomes persist without replay rewards or reconstructed historical choices. */
 import { describe, expect, it } from 'vitest';
-import { advance, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, resolveDilemma, serialize, tick, unmetRequirements, wipe } from '../src/engine';
+import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, resolveDilemma, serialize, tick, unmetRequirements, wipe, type GameState } from '../src/engine';
+import { CONTENT as preview } from '../src/content/preview';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich } from './helpers';
@@ -10,6 +11,8 @@ const decoder = defined(reg.narrative.recordedTransmissions[0]).decoderWidgetId;
 const ready = () => ({ ...grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)),
   resolvedDilemmas: reg.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) });
 const resolved = (choice = defined(source.choices[0])) => must(resolveDilemma({ ...ready(), activeDilemmaId: source.id }, source.id, choice.id, reg));
+/** Every dilemma except cryo resolved for this run, so only cryo can be scheduled. */
+const withoutOthers = (state: GameState): GameState => ({ ...state, resolvedDilemmas: reg.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) });
 const returned = (state = resolved()) => grant(rich(wipe(state, reg, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
 
 describe('recorded cryo outcomes', () => {
@@ -42,7 +45,11 @@ describe('recorded cryo outcomes', () => {
     expect(recordedTransmissions(returned(next), reg, decoder)).toHaveLength(1);
   });
 
-  it('keeps legacy resolved history unknown, then records an actual future choice', () => {
+  // Rewritten under nexus vote nh-d5 (suppress-legacy-unknown-at-activation, vote-1794925989193-ef6tf9i).
+  // Legacy rules, which production still plays, keep the pilot behaviour: a resolved cryo with no
+  // stored choice may return once after a wipe. Campaign rules map it to legacy_unknown at
+  // activation and suppress the original for good; no outcome is invented either way.
+  it('keeps legacy resolved history unknown: it may recur under legacy rules, never under campaign rules', () => {
     const old = { ...ready(), resolvedDilemmas: [...ready().resolvedDilemmas, source.id] };
     const loaded = deserialize(serialize(old), reg);
     expect(loaded.narrativeFlags).toEqual([]);
@@ -50,7 +57,14 @@ describe('recorded cryo outcomes', () => {
     expect(recordedTransmissions(loaded, reg, decoder)).toEqual([]);
     const rebuilt = returned(loaded);
     expect(meetsRequirements(rebuilt, source.trigger, reg)).toBe(true);
+    expect(advance(withoutOthers(rebuilt), 0.1, reg).pendingDilemma?.id).toBe(source.id);
     expect(recordedTransmissions(rebuilt, reg, decoder)).toEqual([]);
+
+    const active = must(activateCampaignRules(deserialize(serialize(old), preview), preview));
+    expect(campaignRecord(active, source.id)?.outcome).toBe('legacy_unknown');
+    const after = withoutOthers(grant(rich(wipe(active, preview, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)));
+    expect(advance(after, 0.1, preview).pendingDilemma).toBeNull();
+    expect(after.narrativeFlags).toEqual([]);
   });
 
   it('keeps a legitimate omen after its Understanding trigger becomes unaffordable', () => {

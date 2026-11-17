@@ -1,0 +1,68 @@
+/**
+ * Campaign declarations. A campaign is the continuing world across wipes; an iteration is one
+ * instance in it. Content, never the engine, says which narrative events are campaign records,
+ * how often they may happen, what interrupts them and what kind of ending evidence they leave.
+ */
+import { z } from 'zod';
+
+const id = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
+
+/** NARRATIVE-HISTORY N3. Routine operations and population encounters are not dilemmas. */
+export const CampaignEventClassSchema = z.enum([
+  'consequential',
+  'follow_up',
+  'recovery_review',
+  'receipt',
+  'iteration_qualification',
+]);
+
+/**
+ * Declared on a dilemma that has been converted to campaign history. An undeclared dilemma is
+ * unconverted: it recurs per iteration and, under campaign rules, its traits are iteration-local.
+ * The interruption policy is declared now and enforced by the interruption slice (NH-02).
+ */
+export const CampaignEventDeclarationSchema = z.strictObject({
+  eventClass: CampaignEventClassSchema,
+  recurrence: z.enum(['once_per_campaign', 'once_per_iteration']),
+  interruption: z.enum(['close', 'defer']),
+});
+
+/**
+ * Classes whose free choices may declare that they add no ending evidence: an honest review,
+ * receipt or requalification answer is not a moral vote (nexus vote trait-rule-free-choices).
+ */
+export const NO_EVIDENCE_CLASSES: readonly z.infer<typeof CampaignEventClassSchema>[] = [
+  'recovery_review',
+  'receipt',
+  'iteration_qualification',
+];
+
+/** A dilemma choice that deliberately grants no trait. Allowed only in NO_EVIDENCE_CLASSES. */
+export const ChoiceEvidenceSchema = z.enum(['none']);
+
+/**
+ * How long a trait granted by an action counts towards the ending. 'campaign': the first
+ * purchase in the campaign counts once, across wipes; later purchases are operational.
+ * 'operational': it counts for the current iteration only.
+ */
+export const ActionEvidenceSchema = z.enum(['campaign', 'operational']);
+
+/** The outcome id a save records when it proves an event happened but not which choice was made. */
+export const LEGACY_UNKNOWN_OUTCOME = 'legacy_unknown';
+
+/** Gate on a campaign record: the event's recorded outcome is this choice id, or legacy_unknown. */
+export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outcome: id });
+
+/**
+ * Id compatibility for campaign records (NARRATIVE-HISTORY N5). A rename is an explicit alias
+ * stamped with the save schema version that introduced it; a retired id stays listed so its old
+ * record is kept as a tombstone. A save naming any other unknown campaign id is refused.
+ */
+export const CampaignManifestSchema = z.strictObject({
+  aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
+  retired: z.array(id),
+});
+
+export type CampaignEventDeclaration = z.infer<typeof CampaignEventDeclarationSchema>;
+export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
+export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;

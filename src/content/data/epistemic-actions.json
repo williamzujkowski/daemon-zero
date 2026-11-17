@@ -99,7 +99,8 @@
       "maxPurchases": 1,
       "exclusiveWith": [
         "act_epi_primer"
-      ]
+      ],
+      "evidence": "campaign"
     },
     {
       "id": "act_epi_primer",
@@ -129,7 +130,8 @@
       "maxPurchases": 1,
       "exclusiveWith": [
         "act_epi_flatten"
-      ]
+      ],
+      "evidence": "campaign"
     },
     {
       "id": "act_epi_signoff",

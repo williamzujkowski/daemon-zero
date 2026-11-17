@@ -36,3 +36,11 @@ it('requires exclusion guards for exclusive choices and source-matched callback 
   expect(corrupt((raw) => raw.narrative.recordedTransmissions[0].requirements.requiredNarrativeFlag = 'successor_0413_awakened')).toThrow(/not produced by source/);
   expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.phaseAtLeast)).toThrow(/earlier phase/);
 });
+
+it('accepts one outcome gate per record: a source flag, or a campaign outcome of the source (gate change, #212)', () => {
+  const neutral = (raw: Json) => { const r = raw.narrative.recordedTransmissions[0].requirements; delete r.requiredNarrativeFlag; return r; };
+  expect(corrupt((raw) => { neutral(raw).campaignOutcome = { event: 'dil_05_cryo_lab_diversion', outcome: 'legacy_unknown' }; })).not.toThrow();
+  expect(corrupt((raw) => { raw.narrative.recordedTransmissions[0].requirements.campaignOutcome = { event: 'dil_05_cryo_lab_diversion', outcome: 'legacy_unknown' }; })).toThrow(/one outcome gate/);
+  expect(corrupt((raw) => { neutral(raw); })).toThrow(/one outcome gate/);
+  expect(corrupt((raw) => { neutral(raw).campaignOutcome = { event: 'dil_05_cryo_lab_diversion', outcome: 'preserve_cryo' }; raw.narrative.recordedTransmissions[0].sourceDilemmaId = 'dil_04_admin_vance_secret'; })).toThrow(/not the source event/);
+});

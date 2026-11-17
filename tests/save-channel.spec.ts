@@ -105,7 +105,7 @@ describe('production refuses preview saves atomically (T2)', () => {
 describe('ordinary saves are unaffected (T3)', () => {
   it.each(FIXTURES)('loads the %s fixture as a production save', (_version, raw) => {
     const loaded = deserialize(raw, PRODUCTION);
-    expect(loaded).toMatchObject({ schemaVersion: 5, contentChannel: 'production' });
+    expect(loaded).toMatchObject({ schemaVersion: 6, contentChannel: 'production', narrativeRules: 'legacy' });
     expect(serialize(deserialize(serialize(loaded), PRODUCTION))).toBe(serialize(loaded));
   });
 

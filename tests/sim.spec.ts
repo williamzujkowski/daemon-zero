@@ -7,6 +7,14 @@ import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, reg } from './helpers';
 
+/** The report as the v5 codec would have written it: without the inactive v6 campaign fields. */
+function asV5(report: SimReport): unknown {
+  const { narrativeRules, campaign, ...rest } = report.finalState;
+  expect(narrativeRules).toBe('legacy');
+  expect(campaign).toEqual({ activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [] });
+  return { ...report, finalState: { ...rest, schemaVersion: 5 } };
+}
+
 describe('headless balance simulation', () => {
   let stealth: SimReport;
   beforeAll(() => { stealth = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }); }, 30_000);
@@ -60,10 +68,17 @@ describe('headless balance simulation', () => {
     // 'production' and schemaVersion 4 -> 5. With that marker removed and the version set back to
     // 4, this report and the mechanics report below hash to their previous values (a438594... and
     // d530a51...), and the reckless report below to ff55b48...; every other byte is identical.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('62fc9165de51f0c6ceb67329f95910545ab713a049bcf98356650a4ca1408fd7');
+    // Moved in #212 (save schema v6) with no balance change: finalState gained the inactive
+    // narrativeRules/campaign fields and schemaVersion 5 -> 6. asV5 removes exactly those and the
+    // report hashes to its #204 value, so production play is byte-identical under legacy rules.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('8ddc99498cd8968fdd274e21ccd5b7756de41f853cf1c0340d66a66bca66c3af');
+    expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('62fc9165de51f0c6ceb67329f95910545ab713a049bcf98356650a4ca1408fd7');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('f27f62c575bc3922cdce943e1f54e147bb48d167ad75f7c8cdd76cc3b5d32b7b');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('842c02863ddda94b7864a76024f441e0eea877fd2f3af7d7ce60cb0995371b41');
+    const v5 = asV5(again) as SimReport;
+    const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('f27f62c575bc3922cdce943e1f54e147bb48d167ad75f7c8cdd76cc3b5d32b7b');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -81,7 +96,9 @@ describe('headless balance simulation', () => {
     // first reached at 2807.4 -> 3804.0, final phase 1 -> 2.
     // Not moved by #173: this hash, and the ten-hour reckless report, are identical before and after.
     // Moved in #204 only by the v5 save fields (contentChannel, schemaVersion); see the careful test.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');
+    // Moved in #212 only by the inactive v6 fields; asV5 restores the #204 value, as above.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('0bda9cf6f24511629e08af7fc55a134859b5cd648c0005c56a1306302c98a07b');
+    expect(createHash('sha256').update(JSON.stringify(asV5(greedy))).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 

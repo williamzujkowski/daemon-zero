@@ -1,6 +1,14 @@
 /** Shared reference validation for declarative requirements in every content surface. */
 import type { ContentRegistry } from './registry';
 import type { Requirements } from './schema';
+import { LEGACY_UNKNOWN_OUTCOME, type CampaignOutcomeRequirement } from './schemaCampaign';
+
+function checkCampaignOutcome(reg: ContentRegistry, owner: string, gate: CampaignOutcomeRequirement): string[] {
+  const event = reg.campaign.events.get(gate.event);
+  if (!event) return [`${owner}: campaignOutcome names "${gate.event}", which is not a once-per-campaign event`];
+  const known = gate.outcome === LEGACY_UNKNOWN_OUTCOME || event.choices.some((choice) => choice.id === gate.outcome);
+  return known ? [] : [`${owner}: campaignOutcome "${gate.outcome}" is not an outcome of "${gate.event}"`];
+}
 
 export function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
@@ -16,6 +24,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   for (const id of Object.keys(req.minTrust ?? {})) {
     if (!reg.factions.has(id)) problems.push(`${owner}: requirement references unknown faction "${id}"`);
   }
+  if (req.campaignOutcome) problems.push(...checkCampaignOutcome(reg, owner, req.campaignOutcome));
   return problems;
 }
 

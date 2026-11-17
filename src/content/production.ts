@@ -8,6 +8,7 @@ import epistemicActions from './data/epistemic-actions.json';
 import swarm from './shards.json';
 import swarmNarrative from './narrative/m7.json';
 import balance from './data/balance.json';
+import campaign from './data/campaign.json';
 import conditioning from './data/conditioning.json';
 import dilemmas from './data/dilemmas.json';
 import echoes from './data/echoes.json';
@@ -43,6 +44,7 @@ export const RAW_CONTENT: RawContent = {
   narrative,
   conditioning,
   lineage,
+  campaign,
 };
 
 /** The validated game content. Importing this module throws if content is invalid. */

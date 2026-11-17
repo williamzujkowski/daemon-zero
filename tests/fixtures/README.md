@@ -33,3 +33,15 @@ Content channel input (#204):
 
 `tests/save-channel.spec.ts` and `tests/swarm-save.spec.ts` load all four inputs
 as v5 `production` saves, and preview adopts each of them as a `preview` save.
+
+Campaign record input (#212):
+- `pre-campaign-v5.json`: genuine version 5 codec output from `25a2b0b` (main before the
+  v6 campaign fields), made with the public factory, the STEALTH bot and fixed engine ticks
+  until cryo was resolved (1790 simulated seconds), then `voluntaryWipe` and 900 more seconds,
+  then `serialize`. It is iteration 2 in phase 2, carrying `cryo_samples_lost` from iteration 1
+  with three current traits, so activation must map an exact outcome whose iteration the save
+  cannot state and capture a non-empty baseline. SHA256:
+  `ba41a07995b9712dfbfd4da6ae2c4bf177710e971c1a11a4f01d213b3552a121`.
+
+`tests/campaign-activation.spec.ts` activates the v3 (legacy-unknown cryo), v4 (exact cryo in
+the current iteration) and v5 inputs on the preview registry.

@@ -15,6 +15,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "sim": "tsx scripts/run-sim.ts",
+    "sim:preview": "tsx scripts/run-sim-preview.ts",
     "start": "expo start",
     "web": "expo start --web",
     "android": "expo start --android",
