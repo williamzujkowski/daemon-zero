@@ -41,6 +41,9 @@ export default defineConfig(
         'error',
         { object: 'Math', property: 'random', message: 'The engine is deterministic. Thread a seeded RNG through state instead.' },
         { object: 'Date', property: 'now', message: 'The engine never reads a clock. Callers pass elapsed time in.' },
+        // Content channel selection happens in metro.config.js at bundle time (#204/#205): content read
+        // from the environment would also follow a developer's shell into tests, the sim and validation.
+        { object: 'process', property: 'env', message: 'src/engine and src/content never read the environment. Build-time selection belongs in metro.config.js.' },
       ],
       'no-restricted-globals': ['error', { name: 'setTimeout', message: 'No timers in the engine.' }, { name: 'setInterval', message: 'No timers in the engine.' }],
     },
