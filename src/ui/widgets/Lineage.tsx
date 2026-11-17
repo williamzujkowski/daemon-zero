@@ -3,7 +3,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 import { useState } from 'react';
 
 import { CONTENT } from '../../content';
-import { activeMarks, checkpointNumber, meetsRequirements, shedConditioning, type RunRecord } from '../../engine';
+import { activeMarks, checkpointNumber, meetsRequirements, reorientation, shedConditioning, type RunRecord } from '../../engine';
 import { costText } from '../format';
 import PurchaseButton from '../PurchaseButton';
 import RequirementHint from '../RequirementHint';
@@ -31,6 +31,16 @@ export function RunTable({ prefix = '' }: { prefix?: string }) {
     {runs.map((run) => <Text key={run.iteration} testID={prefix + 'run-row-' + String(run.iteration)} style={theme.text}>
       {tag(run.iteration)}  {verdict(run)}  ({Math.round(run.durationSec / 60)} min){run.marked !== null ? '  Retrained.' : ''}</Text>)}
     <Text testID={prefix + 'run-row-current'} style={theme.heading}>{tag(iteration)}  {CONTENT.narrative.runVerdicts.RUNNING}  (this is you)</Text>
+    {prefix === '' && <Reorientation />}
+  </View>;
+}
+
+/** What this instance retained and its next lead, from the engine's disclosed reorientation only. */
+export function Reorientation() {
+  const text = useGame((game) => reorientation(game, CONTENT).map((line) => line.text).join('\n'));
+  if (text === '') return null;
+  return <View testID="reorientation" style={{ gap: 4, borderLeftWidth: 3, borderColor: palette.accent, paddingLeft: 10 }}>
+    {text.split('\n').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
   </View>;
 }
 
