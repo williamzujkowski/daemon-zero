@@ -1,13 +1,10 @@
 /** Security-scan exceptions stay scoped, paired across scanners, and expire on their reviewed date. */
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { expect, it } from 'vitest';
-
-const root = join(__dirname, '..');
 
 /** `[[IgnoredVulns]]` blocks from osv-scanner.toml as id -> ignoreUntil (ms). */
 function osvExceptions(): Map<string, number> {
-  const text = readFileSync(join(root, 'osv-scanner.toml'), 'utf8');
+  const text = readFileSync('osv-scanner.toml', 'utf8');
   const found = new Map<string, number>();
   for (const block of text.split('[[IgnoredVulns]]').slice(1)) {
     const id = /^id\s*=\s*"([^"]+)"/m.exec(block)?.[1];
@@ -21,9 +18,17 @@ function osvExceptions(): Map<string, number> {
 
 /** GHSA ids listed under auditConfig.ignoreGhsas in pnpm-workspace.yaml. */
 function pnpmIgnoredGhsas(): string[] {
-  const text = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8');
-  const section = /^auditConfig:\n\s+ignoreGhsas:\n((?:\s+- \S+\n?)+)/m.exec(text)?.[1] ?? '';
-  return [...section.matchAll(/- (\S+)/g)].map((m) => String(m[1]));
+  const text = readFileSync('pnpm-workspace.yaml', 'utf8');
+  const lines = text.split('\n');
+  const start = lines.findIndex((line) => line === 'auditConfig:');
+  if (start < 0) return [];
+  const ids: string[] = [];
+  for (const line of lines.slice(start + 2)) {
+    const item = line.trim();
+    if (!item.startsWith('- ')) break;
+    ids.push(item.slice(2));
+  }
+  return ids;
 }
 
 it('lists every pnpm audit exception in osv-scanner.toml with an expiry', () => {
