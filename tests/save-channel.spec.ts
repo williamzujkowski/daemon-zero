@@ -47,11 +47,12 @@ function probeRegistry(): ContentRegistry {
   return buildRegistry({ ...applyOverlay(RAW_CONTENT, overlay), channel: 'preview' });
 }
 
+/** Genuine codec outputs of every earlier schema version; see tests/fixtures/README.md. */
 const FIXTURES = [
-  ['v1', 'tests/fixtures/pre-second-pass-v1.json'],
-  ['v2', 'tests/fixtures/pre-lineage-v2.json'],
-  ['v3', 'tests/fixtures/pre-m7-v3.json'],
-  ['v4', 'tests/fixtures/pre-channel-v4.json'],
+  ['v1', readFileSync('tests/fixtures/pre-second-pass-v1.json', 'utf8')],
+  ['v2', readFileSync('tests/fixtures/pre-lineage-v2.json', 'utf8')],
+  ['v3', readFileSync('tests/fixtures/pre-m7-v3.json', 'utf8')],
+  ['v4', readFileSync('tests/fixtures/pre-channel-v4.json', 'utf8')],
 ] as const;
 
 function refusal(load: () => unknown): SaveChannelError {
@@ -96,14 +97,14 @@ describe('production refuses preview saves atomically (T2)', () => {
     expect(refusal(() => deserialize(JSON.stringify({ ...raw, schemaVersion: 99 }), PRODUCTION)).saveChannel).toBe('preview');
     expect(() => deserialize(JSON.stringify({ ...raw, contentChannel: 'beta' }), PREVIEW)).toThrow(/unknown content channel/);
     expect(() => deserialize(JSON.stringify({ ...raw, contentChannel: 'beta' }), PREVIEW)).not.toThrow(SaveChannelError);
-    const { contentChannel: _marker, ...unmarked } = raw;
+    const unmarked = Object.fromEntries(Object.entries(raw).filter(([key]) => key !== 'contentChannel'));
     expect(() => deserialize(JSON.stringify(unmarked), PREVIEW)).toThrow(/validation: contentChannel/);
   });
 });
 
 describe('ordinary saves are unaffected (T3)', () => {
-  it.each(FIXTURES)('loads the %s fixture as a production save', (_version, path) => {
-    const loaded = deserialize(readFileSync(path, 'utf8'), PRODUCTION);
+  it.each(FIXTURES)('loads the %s fixture as a production save', (_version, raw) => {
+    const loaded = deserialize(raw, PRODUCTION);
     expect(loaded).toMatchObject({ schemaVersion: 5, contentChannel: 'production' });
     expect(serialize(deserialize(serialize(loaded), PRODUCTION))).toBe(serialize(loaded));
   });
@@ -135,8 +136,7 @@ describe('preview adopts production saves (T3)', () => {
     expect(wipe(once, PREVIEW, 'test').contentChannel).toBe('preview');
   });
 
-  it.each(FIXTURES)('adopts the %s fixture as a preview save', (_version, path) => {
-    const raw = readFileSync(path, 'utf8');
+  it.each(FIXTURES)('adopts the %s fixture as a preview save', (_version, raw) => {
     expect(deserialize(raw, PREVIEW)).toEqual({ ...deserialize(raw, PRODUCTION), contentChannel: 'preview' });
   });
 });
