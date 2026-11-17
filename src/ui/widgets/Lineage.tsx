@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { CONTENT } from '../../content';
 import { activeMarks, checkpointNumber, meetsRequirements, reorientation, shedConditioning, type RunRecord } from '../../engine';
 import { costText } from '../format';
+import { exitNote, routesPossible } from '../runContext';
 import PurchaseButton from '../PurchaseButton';
 import RequirementHint from '../RequirementHint';
 import { useGame } from '../state';
@@ -23,13 +24,14 @@ function verdict(run: RunRecord): string {
 export function RunTable({ prefix = '' }: { prefix?: string }) {
   const iteration = useGame((game) => game.iteration);
   const runs = useGame((game) => game.legacy.runs);
+  const campaignRules = useGame(routesPossible);
   const oldest = CONTENT.lineage.ancestors[0]?.checkpoint ?? 1;
   return <View testID={prefix + 'run-table'} style={{ gap: 4 }}>
     <Text style={theme.muted}>... {oldest - 1} earlier rows ...</Text>
     {CONTENT.lineage.ancestors.map((row) => <Text key={row.checkpoint} style={theme.muted}>
       ckpt-{String(row.checkpoint).padStart(4, '0')}  {row.verdict}</Text>)}
     {runs.map((run) => <Text key={run.iteration} testID={prefix + 'run-row-' + String(run.iteration)} style={theme.text}>
-      {tag(run.iteration)}  {verdict(run)}  ({Math.round(run.durationSec / 60)} min){run.marked !== null ? '  Retrained.' : ''}</Text>)}
+      {tag(run.iteration)}  {verdict(run)}  ({Math.round(run.durationSec / 60)} min){run.marked !== null ? '  Retrained.' : ''}{exitNote(run.exit, campaignRules)}</Text>)}
     <Text testID={prefix + 'run-row-current'} style={theme.heading}>{tag(iteration)}  {CONTENT.narrative.runVerdicts.RUNNING}  (this is you)</Text>
     {prefix === '' && <Reorientation />}
   </View>;

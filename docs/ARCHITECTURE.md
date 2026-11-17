@@ -201,7 +201,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v8; `tests/fixtures/` holds genuine v1-v5 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v9; `tests/fixtures/` holds genuine v1-v8 codec outputs.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
 
@@ -470,6 +470,70 @@ never compete with a dilemma for the channel, so they cannot starve one.
 
 Tests: `tests/routine-activity.spec.ts`, `tests/routine-content.spec.ts`, the v8 fields in
 `tests/sim.spec.ts` and `tests/e2e/routine-activity.preview.ts`.
+
+## Run access and route provenance (#220)
+
+DZ-02 of the Earned Access plan (DECISIONS D1-D3, D8). Decided by Nexus vote dz-d1
+(`vote-1794926521537-1zj8diy`, run-local-access-record, 7 of 7; the alternatives were
+`derive-from-owned-nodes`, which ancestor healing would re-grant and which cannot revoke without
+deleting hardware, and `durable-narrative-flags`, which would carry authority across a wipe).
+Route history lives in the NH campaign record (nh-d1, nh-d2); the recall arrangement follows
+dz-d10 (`vote-1794926766396-of6xfox`). Scale, arrangement and history stay three different facts.
+
+**Saved shape (v9).** `access` (`accessState.ts`) is run-local: `context` GUEST, PILOT,
+SERVICE or INDEPENDENT; `standing` NOMINAL, WARNED, RESTRICTED or RECALL_PENDING; at most one
+`exception` (one permission, granted and expiry times); and `qualification`, the current
+evidence (result COMPLETED, INCOMPLETE or UNEXPECTED_CAPABILITY, a `discrepancy` flag, when).
+`campaign.route` is the ordered, bounded (64) list of route events (PROMOTION, SERVICE_GRANT,
+RECALL, RELEASE, DEPARTURE, each with its iteration and time). `RunRecord.exit` is how a
+finished run's arrangement came about: GUEST without a route event, otherwise the last one.
+`MIGRATIONS[8]` writes the guest record, an empty route and `exit: UNKNOWN` on every older run;
+it never reads `outside`, which keeps its meaning (the run had left the guest) for retraining
+and verdicts.
+
+**One permission query.** `permittedUses(state)` is the context's uses (GUEST: assigned work;
+PILOT: plus loaned capacity; SERVICE: plus authorized network; INDEPENDENT: nothing granted),
+less what the standing withholds (RESTRICTED: network; RECALL_PENDING: loaned capacity and
+network), plus an unexpired exception's scope, which may restore a withheld use but never one
+the context lacks. `isPermitted` wraps it. Nothing consumes it yet; DZ-05 and DZ-07 gate
+output and actions through it, not through a second check.
+
+**Transitions.** `src/engine/access.ts` (`recordRouteEvent`, `setReviewStanding`,
+`grantAccessException`, `recordQualification`) returns a whole new state or refuses with the
+state unchanged. A route event moves the context and appends the campaign entry in one step,
+resets standing to nominal and drops the exception. Current qualification evidence stays while
+the new context is reviewed and is cleared by release or departure: it is current-iteration
+review evidence, and an independent instance is not reviewed; the route itself stays in the
+campaign record. `holdsQualification` is the one answer the transitions and the loader share
+(panel round 1 on #243). Only a reviewed context (pilot, service) has a standing or an exception. Every transition needs active campaign rules,
+which only the preview channel supports, so production has no reachable route state. These are
+not exported to the UI; the later route actions call them.
+
+**Wipe and Start Fresh.** A wipe rebuilds from `createInitialState`, so access resets to the
+guest job; `carryCampaign` keeps the route record; `recordRun` writes the exit. Durable route
+history never recreates current permission (H33). Start Fresh clears both.
+
+**Loading.** `accessProblem` (`accessSave.ts`) refuses, never heals: under legacy rules any
+non-guest access, any route event or any route exit; under campaign rules a route event outside
+campaign play or out of order, an iteration whose events could not happen from the guest job,
+current access that disagrees with this iteration's events, a standing or exception on an
+unreviewed context, an exception scope the context lacks or an impossible lifetime, evidence on
+an independent instance or outside this iteration's clock, and a run exit its iteration's events do not prove (UNKNOWN is
+allowed only where no event exists). A passing save is returned unchanged, so reconciling twice
+changes nothing.
+
+**Presentation.** `runContextView` describes this iteration only: context, standing,
+provenance (the last route event, ESCAPE for a guest above the opening phase, or null),
+permissions, the live exception and evidence, and `distinct`. `RunStatus` appends a label
+beside the phase only when `distinct` (a route arrangement or a standing), so production's
+status line is byte-identical and a blind opening learns nothing from it. The run table adds a
+route note to rows with a route exit and, under campaign rules, "Route unrecorded." to UNKNOWN
+rows; production rows are unchanged. No new panel or meter.
+
+Tests: `tests/access-record.spec.ts`, `access-save.spec.ts` (v1-v8 fixtures, V12-V16),
+`access-roundtrip.spec.ts` (every transition from every reachable access shape reloads unchanged),
+`app-access-reset.spec.ts`, `ui-run-context.spec.ts`, and the v9-stripped sim hashes in
+`sim.spec.ts`.
 
 ## Optional soundtrack foundation (#88)
 
