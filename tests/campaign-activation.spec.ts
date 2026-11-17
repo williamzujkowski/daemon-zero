@@ -8,10 +8,11 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
   activateCampaignRules, advance, baseEndingScores, campaignRecord, chooseEnding, createInitialState, deserialize,
-  endingEvidence, exportSave, holdsNarrativeFlag, importSave, resolveDilemma, serialize, wipe, type GameState,
+  endingEvidence, exportSave, holdsNarrativeFlag, importSave, recordedTransmissions, resolveDilemma, serialize, wipe,
+  type GameState,
 } from '../src/engine';
 import { createGameStore } from '../src/app/store';
-import { activeGame, choiceOf, chooseCryo, cryo, nearCryo, preview, reload, returnTo } from './campaign-helpers';
+import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo } from './campaign-helpers';
 import { defined } from './m7-helpers';
 import { must, rich } from './helpers';
 
@@ -154,5 +155,34 @@ describe('the app store enters campaign rules only on the preview channel', () =
     expect(productionStore.store.getState().game.narrativeRules).toBe('legacy');
     const result = { ok: true as const, state: createInitialState(PRODUCTION) };
     expect(productionStore.dispatch(() => result)).toBe(result);
+  });
+});
+
+describe('recovered cryo records on the existing gated surface (NH-01.7, H22)', () => {
+  const ids = (s: GameState): string[] => recordedTransmissions(s, preview, decoder).map((record) => record.id);
+  const neutral = defined(preview.narrative.recordedTransmissions.find((record) => record.requirements.campaignOutcome?.outcome === 'legacy_unknown'));
+
+  it('shows the neutral record for legacy_unknown history, only after returning with the decoder', () => {
+    const active = activate(deserialize(V3, preview));
+    expect(ids(nearCryo(active))).toEqual([]);
+    const back = returnTo(active), copy = structuredClone(back);
+    expect(ids(back)).toEqual([neutral.id]);
+    expect(back).toEqual(copy);
+    const blind = { ...back, unlockedNodes: back.unlockedNodes.filter((id) => !(neutral.requirements.nodes ?? []).includes(id)) };
+    expect(ids(blind)).toEqual([]);
+    expect(ids({ ...back, currentPhase: 1 })).toEqual([]);
+  });
+
+  it('shows only the exact record once an outcome is known', () => {
+    for (const index of [0, 1]) {
+      const back = returnTo(chooseCryo(activeGame(), index));
+      expect(ids(back)).toHaveLength(1);
+      expect(ids(back)).not.toContain(neutral.id);
+    }
+  });
+
+  it('never shows the neutral record on legacy rules', () => {
+    const legacy = nearCryo(rich(wipe(deserialize(V3, PRODUCTION), PRODUCTION, 'test', 'VOLUNTARY')));
+    expect(recordedTransmissions(legacy, PRODUCTION, decoder)).toEqual([]);
   });
 });

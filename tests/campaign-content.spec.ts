@@ -11,7 +11,7 @@ function corrupt(change: (raw: Json) => void): () => unknown {
 }
 const dilemma = (raw: Json, id: string): Json => raw.dilemmas.dilemmas.find((d: Json) => d.id === id);
 const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Json) => a.id === id);
-const record = (raw: Json): Json => raw.narrative.recordedTransmissions[0];
+const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
   it('convert exactly cryo, on both channels, with primer and flatten as campaign evidence', () => {
