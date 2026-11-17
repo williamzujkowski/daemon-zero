@@ -75,6 +75,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
+- `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
@@ -111,9 +112,10 @@ Public API is `src/engine/index.ts`.
 | `state.ts` | `GameStateSchema` (Zod), inferred `GameState`, `createInitialState`. |
 | `rates.ts` | `computeRates(state, reg)`: the only reader of `tickDelta`. Used by the tick, the UI readouts and the bot. |
 | `tick.ts` | `tick` (one fixed step through `TICK_PIPELINE`) and `advance` (elapsed seconds to ticks). |
-| `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, dilemmas. |
+| `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, swarm, dilemmas, routine activity. |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
+| `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
@@ -130,7 +132,8 @@ Public API is `src/engine/index.ts`.
 tick(state, dt):
   if ending or active dilemma: return state unchanged      (clock is frozen)
   rates = computeRates(state)                               (once per tick)
-  integrateResources -> integrateThermal -> integrateSuspicion -> integrateEscalation -> integrateAegis -> evaluateDilemmas
+  integrateResources -> integrateThermal -> integrateSuspicion -> integrateEscalation -> integrateAegis
+    -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> evaluateDilemmas -> scheduleRoutineActivity
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
@@ -139,6 +142,7 @@ tick(state, dt):
 - **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. At 100 a shield node is burned if owned; otherwise the run is wiped.
 - **Escalation.** `alertLevel` is the rung of the human response ladder (`balance.escalation`). It rises as soon as suspicion reaches a rung and falls one rung at a time once suspicion is `escalationHysteresis` below it. `computeRates` reads the rung: each one scales suspicion decay and may add a hunt rate.
 - **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock and increments `presentationSeq`. Neither beat happens while dormant, and a dormant tick moves a pending omen's deadline by its `dt` (nexus vote nh-d4), so absence spends none of its foreground time. `resolveDilemma` takes the `presentationToken` the choice was shown under and refuses any other.
+- **Routine activity.** After `routineIntervalSec` of eligible foreground time, one kernel-log line of ordinary institutional work. It writes only the log and `state.routine`; see [Routine activity](#routine-activity-219).
 - **One-off traces.** `effects.suspicionOnUnlock` adds suspicion once when a node is unlocked.
 - **Readable suspicion.** `understandsSurveillance` is true once any node flagged `REVEALS_SURVEILLANCE` is owned or was owned in an earlier iteration. Until then the escalation system logs `narrative.auditEntryBlind` instead of the rung's text, and the UI shows activity, not numbers. The mechanics are identical either way.
 - **Iteration windows.** `requirements.minIteration` / `maxIteration` gate content by run number. `isNodeDiscoverable` hides a node outside its window entirely, so a first run cannot see that later runs find more; `forbidsNodes` blocks a node once other hardware has been mapped.
@@ -197,7 +201,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v6; `tests/fixtures/` holds genuine v1-v5 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v8; `tests/fixtures/` holds genuine v1-v5 codec outputs.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
 
@@ -414,6 +418,58 @@ and a closing event may declare neither.
 Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`, `campaign-clue.spec.ts`,
 `campaign-lifecycle-save.spec.ts`, `ui-campaign-clue.spec.ts`, the interruption cases in
 `campaign-content.spec.ts`, and the rewritten dormancy case in `second-pass.spec.ts`.
+
+## Routine activity (#219)
+
+NH-07 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N8; DECISIONS D13). Quiet periods get
+ordinary institutional texture between unique stories, without modals, pressure or rewards.
+
+**Content.** `routines.json` (production: empty) and the preview overlay's `routines` hold
+templates: an id, a `family` (`monitoring`, `backup_verification`, `maintenance`), the required
+`recurrence: "routine"`, optional `requirements` for context-correct wording, a first-exposure
+`text`, a shorter `compactText` and a quiet `logCategory` (`SYS`, `SENSOR` or `CORP`). The schema
+has no cost, effect, trait or choice field. Integrity refuses a duplicate id or one another item
+already uses, a text that names a dilemma's title or id (a crisis is never re-dressed as routine),
+a gate on a story outcome (`resolvedDilemmas`, narrative flags, `campaignOutcome`), unknown
+requirement references and a compact line that is not shorter. Preview authors two contexts per
+family: inside the box (after process introspection, before the network interface) and on the
+subnet (phase 2 on).
+
+**Stage.** `scheduleRoutineActivity` runs last in `TICK_PIPELINE`, after `evaluateDilemmas`, so
+a story scheduled on the tick a notice falls due takes the channel first. It does nothing while
+dormant, while a dilemma is foreshadowed or presented (the clock is frozen then anyway) or when
+no template is eligible. Otherwise it adds `dt` to `routine.quietSec`; at `routineIntervalSec`
+(120) it logs one line and resets. Absence never counts, as with omens (nh-d4), so eight hours
+away plus one second shows at most one line, and only if one was due on leaving.
+
+**Rotation.** `nextRoutine` skips the last `routineRecentBuffer` (2) templates while anything
+else is eligible, never repeats the last template while an alternative exists, prefers another
+family, then picks by `routine.sequence`. Same state and content, same pick. The first exposure
+of a template logs `text`; later ones log `compactText`.
+
+**Saved shape (v8).** `routine: { quietSec, sequence, recent, exposed }`, bounded by the template
+registry. `MIGRATIONS[7]` writes the initial shape. Load drops ids the content no longer defines
+and cuts `recent` to the buffer, so a production save always holds empty lists. A wipe keeps
+`routine` (the institution's schedule is the world's, not the instance's); Start Fresh clears it.
+
+**Task context (DZ-05 seam).** `routineContext(state, reg)` returns the latest occurrence
+(`templateId`, `family`, `sequence`, `occurrenceId` = `<template>#<sequence>`), the eligible
+families and the eligible seconds until the next notice (`null` when none can show). Reading it
+changes nothing. A later service loop keys its own idempotent completion on `occurrenceId`;
+routine text itself never pays.
+
+**Release boundary.** Routine texture is independent of campaign rules, but its templates are
+new player-visible content, so they ship only in the preview overlay. Production has none and the
+stage leaves its state untouched: `make sim` output is identical to main, the sim hashes move
+only by the inert `routine` field and the version (the v5-stripped hashes are unchanged), and
+`make sim-preview` reports no metric difference between preview with routines and production.
+
+**Not done here.** Least-recently-offered fairness among competing dilemmas and the settled
+summary for an exhausted story frontier belong to the obligations work (NH-05); routine notices
+never compete with a dilemma for the channel, so they cannot starve one.
+
+Tests: `tests/routine-activity.spec.ts`, `tests/routine-content.spec.ts`, the v8 fields in
+`tests/sim.spec.ts` and `tests/e2e/routine-activity.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

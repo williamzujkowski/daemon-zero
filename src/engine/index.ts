@@ -27,3 +27,6 @@ export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycl
 export * from './campaignClue';
 export * from './campaignQuery';
 export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
+
+export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';
+export type { RoutineState } from './routineState';

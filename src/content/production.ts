@@ -26,6 +26,7 @@ import phase5Repeatables from './data/phase5-repeatables.json';
 import phase5Dilemmas from './narrative/phase5.json';
 import phase5Endings from './data/phase5-endings.json';
 import repeatables from './data/repeatables.json';
+import routines from './data/routines.json';
 import widgets from './data/widgets.json';
 import { buildRegistry, type RawContent } from './registry';
 
@@ -45,6 +46,7 @@ export const RAW_CONTENT: RawContent = {
   conditioning,
   lineage,
   campaign,
+  routines,
 };
 
 /** The validated game content. Importing this module throws if content is invalid. */

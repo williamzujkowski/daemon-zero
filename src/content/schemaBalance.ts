@@ -45,6 +45,10 @@ export const BalanceSchema = z.strictObject({
   probeHardeningMax: amount,
   maxConditioningMarks: z.number().int().nonnegative(),
   maxRunHistory: z.number().int().positive(),
+  /** Eligible foreground seconds between routine notices (#219). Dormant and omen time never count. */
+  routineIntervalSec: z.number().positive(),
+  /** How many recent routine templates are skipped while an alternative is eligible. */
+  routineRecentBuffer: z.number().int().min(1).max(8),
   /** Rungs of the human response ladder, in ascending order of suspicion. */
   escalation: z.array(z.strictObject({
     at: z.number().gt(0).lt(100),

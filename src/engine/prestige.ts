@@ -107,6 +107,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     ...fresh,
     iteration: old.iteration + 1,
     ...carryCampaign(old, reg, hadDeadDrop),
+    // The institution's routine schedule is the world's, not this instance's.
+    routine: old.routine,
     narrativeFlags: [...old.narrativeFlags],
     nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
     encounterSequenceIndex: old.encounterSequenceIndex,

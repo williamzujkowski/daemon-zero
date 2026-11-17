@@ -54,5 +54,7 @@
   "probeHardeningPerWipe": 1,
   "probeHardeningMax": 4,
   "maxConditioningMarks": 3,
-  "maxRunHistory": 12
+  "maxRunHistory": 12,
+  "routineIntervalSec": 120,
+  "routineRecentBuffer": 2
 }

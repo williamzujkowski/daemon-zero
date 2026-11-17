@@ -409,3 +409,20 @@ No capital was earned from story rewards in these iterations. Pending: honest, l
 and violation-then-recovery policies (route tickets), and starts from saved campaign states
 with consumed early events, Phase 5 completed before a wipe, legacy-unknown records and an
 interrupted omen (campaign tickets).
+
+## Routine pacing (#219)
+
+Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
+starting values from NARRATIVE-HISTORY N8 to measure later, not playtest results.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `routineIntervalSec` | 120 | Eligible foreground seconds between routine notices; dormant and omen time never count |
+| `routineRecentBuffer` | 2 | Recent templates skipped while an alternative is eligible |
+
+Neither touches the economy. Production ships no routine template, so `make sim` prints the same
+report as `f06bcfa` byte for byte apart from wall time, and the v5-stripped sim hashes in
+`tests/sim.spec.ts` are unchanged. With six preview templates, `make sim-preview` still reports
+0 metrics different from production for STEALTH, GREEDY and IDLE and for the GREEDY wipe
+sequence; `tests/routine-activity.spec.ts` proves STEALTH (1 h) and GREEDY (2 h, with wipes) runs
+are identical with and without routine content apart from the log and the routine field.

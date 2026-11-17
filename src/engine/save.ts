@@ -9,6 +9,7 @@ import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
+import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
@@ -56,6 +57,8 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     const campaign = typeof save.campaign === 'object' && save.campaign !== null ? save.campaign : {};
     return { ...save, presentationSeq: 0, campaign: { ...campaign, clue: null } };
   },
+  // v8: routine-activity scheduling evidence (#219), written out in full. No notice has been shown.
+  7: (save) => ({ ...save, routine: { quietSec: 0, sequence: 0, recent: [], exposed: [] } }),
 };
 
 export class SaveError extends Error {
@@ -169,7 +172,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const activeKnown = s.activeDilemmaId !== null && dilemmaIds.has(s.activeDilemmaId);
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
-  const healed = reconcileSwarm({
+  const healed = reconcileSwarm(reconcileRoutine({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
@@ -186,7 +189,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     activeDilemmaId: activeKnown ? s.activeDilemmaId : null,
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
-  }, reg);
+  }, reg), reg);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError('save contains contradictory narrative outcomes');

@@ -10,6 +10,7 @@ import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './sch
 import { checkRequirements } from './integrityRequirements';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
+import { checkRoutineIntegrity } from './integrityRoutine';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -209,6 +210,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkCampaignIntegrity(reg),
+    ...checkRoutineIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

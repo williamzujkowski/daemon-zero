@@ -8,6 +8,7 @@ import { checkIntegrity } from './integrity';
 import * as S from './schema';
 import { CampaignManifestSchema, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
+import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
@@ -46,6 +47,8 @@ export interface ContentRegistry {
   conditioning: ReadonlyMap<string, S.ConditioningMark>;
   lineage: S.Lineage;
   campaign: CampaignIndex;
+  /** Routine operation templates in authoring order (#219). Production ships none. */
+  routines: readonly RoutineTemplate[];
 }
 
 export interface RawContent {
@@ -64,6 +67,7 @@ export interface RawContent {
   conditioning: unknown;
   lineage: unknown;
   campaign: unknown;
+  routines: unknown;
 }
 
 export class ContentError extends Error {
@@ -149,7 +153,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const conditioning = parse(Lists.conditioning, raw.conditioning, 'conditioning', problems);
   const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
   const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
-  if (!campaign) return null;
+  const routines = parse(RoutinesManifestSchema, raw.routines, 'routines', problems);
+  if (!campaign || !routines) return null;
   if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -174,6 +179,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     conditioning: toMap(conditioning.marks, 'conditioning', problems),
     lineage,
     campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
+    routines: routines.routines,
   };
 }
 
