@@ -12,6 +12,7 @@ import {
   activateCampaignRules, campaignRecord, createInitialState, deserialize, endingEvidence, exportSave, holdsNarrativeFlag, importSave, serialize,
   type GameState,
 } from '../src/engine';
+import { reconcileCampaign } from '../src/engine/campaignSave';
 import { preview } from './campaign-helpers';
 import { comesBack, ELENA, MILLER, near, nextIteration, NIGHT } from './early-helpers';
 import { stableThroughReloads } from './interruption-helpers';
@@ -111,6 +112,11 @@ describe('an upgrade never erases the evidence a later check needs (panel round 
     const old = beforeCryo();
     const active = { ...must(activateCampaignRules(rich(createInitialState(old)), old)), narrativeFlags: both };
     expect(() => importSave(exportSave(active), preview)).toThrow(/contradictory narrative outcomes/);
+  });
+
+  it('the upgrade step itself refuses rather than choosing, whatever checks run around it', () => {
+    const active = { ...must(activateCampaignRules(rich(createInitialState(preview)), preview)), narrativeFlags: both };
+    expect(reconcileCampaign(active, preview)).toBe('save contains contradictory narrative outcomes');
   });
 
   it('still maps a single flag, so the refusal is about the contradiction alone', () => {
