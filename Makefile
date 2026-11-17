@@ -63,10 +63,11 @@ android: ## Open the app on an Android emulator or device using Expo Go
 build-web: ## Export the production web app
 	env -u NO_COLOR EXPO_NO_TELEMETRY=1 pnpm build:web
 
-# Every Playwright target binds port 4173 (tests/e2e/config.ts), so each recipe takes the
-# machine-wide lock itself. $(E2E_LOCK) is re-entrant: under a caller's own
-# `flock /tmp/daemon-zero-e2e.lock make e2e` it reuses the inherited lock instead of waiting
-# on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
+# Each Playwright target runs in its own slot: scripts/e2e-lock.sh picks a free port from 4173
+# up (DAEMON_E2E_PORT, read by tests/e2e/config.ts) and holds that port's lock, so suites in
+# different checkouts run side by side, at most DAEMON_E2E_SLOTS (default 3) at once. It is
+# re-entrant: under a caller's own `flock /tmp/daemon-zero-e2e.lock make e2e` it reuses the
+# inherited lock instead of waiting on it. E2E_ARGS passes extra Playwright arguments, e.g. E2E_ARGS="--project sizes".
 E2E_LOCK := bash scripts/e2e-lock.sh
 E2E_ARGS ?=
 

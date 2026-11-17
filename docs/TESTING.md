@@ -36,7 +36,7 @@ The web build is the E2E target because it runs the same code as native and need
 `@playwright/test` is pinned in the lockfile. Install its Chromium once with
 `pnpm exec playwright install --with-deps chromium`, then run `make e2e`.
 The target exports production web and starts Python's static server on
-127.0.0.1:4173. CI installs Chromium and runs the same target with read-only
+127.0.0.1, on port 4173 or the next free slot (see "Live browser sessions"). CI installs Chromium and runs the same target with read-only
 repository permissions. No development hook is present in this target.
 
 Scenario configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keeping them
@@ -276,8 +276,8 @@ half of the workflow step's 18 minutes (the step also builds the export, about a
 minute), so no timeout was changed. `make e2e` with the race spec included: 183
 passed and 1 skipped (the tab case on the desktop project) in 2.1 minutes.
 
-Run it with `make e2e-live` (it takes the shared browser-suite lock itself and waits for other
-suites on the machine: all use port 4173). Milestone lines stream to stdout as they happen and
+Run it with `make e2e-live` (it takes a browser-suite slot itself: its own port, waiting only
+when every slot on the machine is busy). Milestone lines stream to stdout as they happen and
 the full journal is attached to the test as `journey-log`; a failure also leaves
 `journey-failure.png` in `test-results/`. Tracing is off for these two projects
 because a trace of several thousand presses is hundreds of megabytes.
@@ -514,10 +514,15 @@ that matches the question:
 | Drive the app by hand as an agent | the Playwright MCP server below, or any browser tool your harness provides |
 
 The scripted commands need the production export (`make build-web`) and start their own
-server on port 4173, so only one can run at a time on a machine. `make e2e`, `make
-e2e-pages` and `make e2e-live` take the machine-wide lock themselves
-(`scripts/e2e-lock.sh`, on `/tmp/daemon-zero-e2e.lock`), wait with a notice while another
-suite holds it, and pass extra Playwright arguments through `E2E_ARGS`
+server. `make e2e`, `make e2e-pages`, `make e2e-live` and `make e2e-audio` each take a slot
+through `scripts/e2e-lock.sh`: the first free port from 4173 up, exported as
+`DAEMON_E2E_PORT` for `tests/e2e/config.ts`, plus that port's lock
+(`/tmp/daemon-zero-e2e.lock` for 4173, `/tmp/daemon-zero-e2e.lock.<port>` above it). So
+suites in different checkouts run at the same time; at most `DAEMON_E2E_SLOTS` run at once
+(default 3, because the wall-clock-timed audio cases get flaky on a saturated machine) and
+the next one waits with a notice. Set `DAEMON_E2E_PORT` to ask for one specific port. Two
+runs in the same checkout still collide, because they share `dist/` and `test-results/`.
+The targets pass extra Playwright arguments through `E2E_ARGS`
 (`make e2e E2E_ARGS="--project sizes"`). Wrapping a make target in
 `flock /tmp/daemon-zero-e2e.lock` as before still works: the script finds the lock its
 caller holds on an inherited descriptor and reuses it instead of waiting on it. Two things
