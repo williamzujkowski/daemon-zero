@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
-import { CampaignManifestSchema, type CampaignManifest } from './schemaCampaign';
+import { CampaignManifestSchema, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
@@ -22,6 +22,8 @@ export interface CampaignIndex {
   aliases: ReadonlyMap<string, string>;
   /** Retired campaign ids whose old records are kept as tombstones. */
   retired: ReadonlySet<string>;
+  /** Reorientation and clue labels. */
+  labels: CampaignLabels;
 }
 
 export interface ContentRegistry {
@@ -127,6 +129,7 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
     actions: new Map(actions.filter((action) => action.evidence === 'campaign').map((action) => [action.id, action])),
     aliases: new Map(manifest.aliases.map((alias) => [alias.from, alias.to])),
     retired: new Set(manifest.retired),
+    labels: manifest.labels,
   };
 }
 

@@ -1,4 +1,14 @@
 {
   "aliases": [],
-  "retired": []
+  "retired": [],
+  "labels": {
+    "retainedClue": "RETAINED_CLUE: {title} // {status}",
+    "nextLead": "NEXT_LEAD: {lead}",
+    "retiredTitle": "A record this build no longer describes",
+    "foreshadowed": "Omen seen. Not answered yet.",
+    "deferred": "Not answered. It may still be answered if its circumstances hold.",
+    "interrupted": "Contact was lost before a decision. Outcome not recorded.",
+    "outcomeNotRecorded": "Outcome not recorded.",
+    "resolved": "Answered: {choice}."
+  }
 }

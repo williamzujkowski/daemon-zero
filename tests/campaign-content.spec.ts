@@ -39,6 +39,10 @@ describe('interruption policies (NH-02)', () => {
     expect(corrupt((raw) => { Object.assign(dilemma(raw, NOTE).campaign, { eventClass: 'iteration_qualification', recurrence: 'once_per_iteration' }); }))
       .toThrow(/only a once-per-campaign event can defer/);
   });
+
+  it('requires every history label', () => {
+    expect(corrupt((raw) => delete raw.campaign.labels.interrupted)).toThrow(/labels/);
+  });
 });
 
 describe('campaign declarations', () => {
