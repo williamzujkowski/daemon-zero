@@ -366,7 +366,10 @@ the record), otherwise `legacy_unknown`; origin `legacy`, with a source iteratio
 not after activation. The baseline is not recaptured and a `legacy` record adds no ending evidence
 (the trait already sits in that iteration's operational evidence). Recorded events are never
 touched, so a flag stored beside its record is still refused, and a second load is a no-op
-(`tests/campaign-upgrade.spec.ts`, on a genuine pre-#242 active save). Importing a save replaces the campaign
+(`tests/campaign-upgrade.spec.ts`, on a genuine pre-#242 active save). An upgrade never consumes
+evidence a later check needs: `deserialize` checks the stored flags for contradictions before
+`reconcileCampaign` runs, and the upgrade refuses two stored outcomes of one event rather than
+choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
