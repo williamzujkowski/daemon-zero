@@ -1,8 +1,8 @@
-// Reproducible Ubuntu 24.04 environment. Tool versions come from mise.toml, not from this file,
+// Reproducible Ubuntu 26.04 LTS environment, the same release as the CI runners. Tool versions come from mise.toml, not from this file,
 // so the container, a bare-metal Ubuntu host and CI all run the same toolchain.
 {
-  "name": "daemon-zero (Ubuntu 24.04)",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "name": "daemon-zero (Ubuntu 26.04)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu26.04",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
