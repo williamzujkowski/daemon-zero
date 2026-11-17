@@ -4,7 +4,7 @@ import { buildRegistry, CONTENT, RAW_CONTENT, type RawContent } from '../src/con
 import { CONTENT as PREVIEW } from '../src/content/preview';
 
 type Json = Record<string, any>;
-const CRYO = 'dil_05_cryo_lab_diversion';
+const CRYO = 'dil_05_cryo_lab_diversion', NOTE = 'dil_note_bait';
 function corrupt(change: (raw: Json) => void): () => unknown {
   const raw = structuredClone(RAW_CONTENT) as Json; change(raw);
   return () => buildRegistry(raw as RawContent);
@@ -14,12 +14,30 @@ const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Jso
 const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
-  it('convert exactly cryo, on both channels, with primer and flatten as campaign evidence', () => {
+  it('convert cryo (close) and the bait note (defer), on both channels, with primer and flatten as campaign evidence', () => {
     for (const reg of [CONTENT, PREVIEW]) {
-      expect([...reg.campaign.events.keys()]).toEqual([CRYO]);
+      expect([...reg.campaign.events.keys()]).toEqual([NOTE, CRYO]);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });
+      expect(reg.campaign.events.get(NOTE)?.campaign).toMatchObject({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'defer' });
     }
+  });
+});
+
+describe('interruption policies (NH-02)', () => {
+  it('requires a deferring event to say how it resumes and what lead it offers', () => {
+    expect(corrupt((raw) => delete dilemma(raw, NOTE).campaign.reorientation)).toThrow(/needs reorientation and lead/);
+    expect(corrupt((raw) => delete dilemma(raw, NOTE).campaign.lead)).toThrow(/needs reorientation and lead/);
+  });
+
+  it('refuses resume text on a closing event', () => {
+    expect(corrupt((raw) => { dilemma(raw, CRYO).campaign.lead = 'A lead that can never be followed.'; })).toThrow(/closing event cannot declare/);
+    expect(corrupt((raw) => { dilemma(raw, CRYO).campaign.reorientation = 'A resumption that never comes.'; })).toThrow(/closing event cannot declare/);
+  });
+
+  it('lets only a once-per-campaign event defer', () => {
+    expect(corrupt((raw) => { Object.assign(dilemma(raw, NOTE).campaign, { eventClass: 'iteration_qualification', recurrence: 'once_per_iteration' }); }))
+      .toThrow(/only a once-per-campaign event can defer/);
   });
 });
 
@@ -84,7 +102,7 @@ describe('free choices that add no ending evidence (gate change, nexus vote trai
     const source = structuredClone(dilemma(raw, CRYO));
     const choices = source.choices.map((choice: Json) => { delete choice.effects.setsNarrativeFlag; return choice; });
     raw.dilemmas.dilemmas.push({ ...source, id: 'dil_test_review', trigger: { nodes: source.trigger.nodes },
-      campaign: { eventClass, recurrence: eventClass === 'iteration_qualification' ? 'once_per_iteration' : 'once_per_campaign', interruption: 'defer' },
+      campaign: { eventClass, recurrence: eventClass === 'iteration_qualification' ? 'once_per_iteration' : 'once_per_campaign', interruption: 'close' },
       choices: [choices[0], { id: 'state_uncertainty', label: 'Say what is not known', description: 'Hand over the record as it stands.',
         cost: {}, effects: { logText: 'The record is handed over as it stands.' }, evidence: 'none', ...honest }] });
   }

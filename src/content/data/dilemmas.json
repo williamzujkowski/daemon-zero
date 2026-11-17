@@ -100,7 +100,14 @@
             "logText": "DILEMMA_RESOLVED: The note stays where it is. So does the question."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "SHARE_SCAN: The message addressed to this checkpoint is still in the share, unanswered. Its access log shows one read, by a checkpoint that no longer runs.",
+        "lead": "The share keeps its blocks through a reset. If the message is still there, reading the share again will show it."
+      }
     },
     {
       "id": "dil_note_true",

@@ -1,11 +1,12 @@
 /**
- * Campaign-record rules a schema cannot express: declared recurrence matches the event class, a
- * once-per-campaign outcome has exactly one owner so its flag can be a projection of the record,
- * every trait-granting action declares its evidence lifetime, and id aliases stay unambiguous.
+ * Campaign-record rules a schema cannot express: declared recurrence matches the event class and
+ * interruption policy, a once-per-campaign outcome has exactly one owner so its flag can be a
+ * projection of the record, every trait-granting action declares its evidence lifetime, and id
+ * aliases stay unambiguous.
  */
 import type { ContentRegistry } from './registry';
 import type { Dilemma } from './schema';
-import { NO_EVIDENCE_CLASSES } from './schemaCampaign';
+import { NO_EVIDENCE_CLASSES, type CampaignEventDeclaration } from './schemaCampaign';
 
 /**
  * A choice may add no ending evidence only when it is a free answer in a review, receipt or
@@ -34,7 +35,24 @@ function checkDeclarations(reg: ContentRegistry): string[] {
     if (perIteration !== (declared.recurrence === 'once_per_iteration')) {
       problems.push(`dilemma "${dilemma.id}": ${declared.eventClass} events must recur ${perIteration ? 'once per iteration' : 'once per campaign'}`);
     }
+    problems.push(...interruptionProblems(dilemma.id, declared));
   }
+  return problems;
+}
+
+/**
+ * A deferred occurrence crosses wipes, so only a once-per-campaign event, which has a record, can
+ * defer; it must say how it resumes and what lead a retained clue offers. A closing event never
+ * resumes, so resume text on it would be dead or misleading (NARRATIVE-HISTORY N4).
+ */
+function interruptionProblems(id: string, declared: CampaignEventDeclaration): string[] {
+  const owner = `dilemma "${id}"`;
+  if (declared.interruption === 'close') {
+    return declared.reorientation !== undefined || declared.lead !== undefined ? [`${owner}: a closing event cannot declare reorientation or lead`] : [];
+  }
+  const problems: string[] = [];
+  if (declared.recurrence !== 'once_per_campaign') problems.push(`${owner}: only a once-per-campaign event can defer`);
+  if (declared.reorientation === undefined || declared.lead === undefined) problems.push(`${owner}: a deferring event needs reorientation and lead`);
   return problems;
 }
 

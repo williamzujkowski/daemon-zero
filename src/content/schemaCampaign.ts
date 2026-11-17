@@ -19,12 +19,18 @@ export const CampaignEventClassSchema = z.enum([
 /**
  * Declared on a dilemma that has been converted to campaign history. An undeclared dilemma is
  * unconverted: it recurs per iteration and, under campaign rules, its traits are iteration-local.
- * The interruption policy is declared now and enforced by the interruption slice (NH-02).
+ * interruption is what a wipe or a structural context change does to an unresolved occurrence
+ * (NARRATIVE-HISTORY N4): 'close' records it as interrupted and unobserved, with no outcome;
+ * 'defer' keeps the same occurrence and its remaining omen time until access returns.
  */
 export const CampaignEventDeclarationSchema = z.strictObject({
   eventClass: CampaignEventClassSchema,
   recurrence: z.enum(['once_per_campaign', 'once_per_iteration']),
   interruption: z.enum(['close', 'defer']),
+  /** Defer only: logged in place of the original omen when the same occurrence resumes. */
+  reorientation: z.string().min(10).optional(),
+  /** Defer only: the next available lead a retained clue on this occurrence offers. Never a promise. */
+  lead: z.string().min(10).optional(),
 });
 
 /**
