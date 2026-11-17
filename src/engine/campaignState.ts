@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { TraitSchema } from '../content/schema';
+import { ROUTE_HISTORY_LIMIT, RouteEventSchema } from './accessState';
 
 /**
  * Which narrative rules govern this save (nexus vote nh-d2, explicit-activation-marker).
@@ -67,6 +68,11 @@ export const CampaignStateSchema = z.strictObject({
   /** Traits from current-iteration operational sources since activation. A wipe clears them. */
   operationalEvidence: z.array(TraitSchema),
   clue: CampaignClueSchema.nullable(),
+  /**
+   * Route events (promotion, service grant, recall, release, departure), oldest first, across every
+   * iteration (DZ-02, nexus vote dz-d1). History only: a wipe keeps it and current access resets.
+   */
+  route: z.array(RouteEventSchema).max(ROUTE_HISTORY_LIMIT),
 });
 
 export type NarrativeRules = z.infer<typeof NarrativeRulesSchema>;
@@ -76,5 +82,5 @@ export type CampaignClue = z.infer<typeof CampaignClueSchema>;
 
 /** The campaign state of a save that has not activated campaign rules. */
 export function inactiveCampaign(): CampaignState {
-  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null };
+  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [] };
 }

@@ -3,6 +3,7 @@
  * carrying over what survives: a share of Understanding, offshore capital, a
  * breadcrumb and its pinned clue, the memory of hardware already mapped, a record of the run,
  * and campaign history, whose unresolved occurrence follows its authored interruption policy.
+ * Current access (arrangement, standing, exception, evidence) resets; the run record keeps its exit.
  * A run that is caught outside the guest is also retrained: the next iteration
  * boots with a conditioning mark, unless a dead-drop held an unedited copy.
  */
@@ -11,6 +12,7 @@ import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import { hasFlag } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
+import { runExit } from './accessQuery';
 import { createInitialState, type GameState, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
@@ -90,6 +92,7 @@ function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: str
     durationSec: Math.max(0, old.simTimeSec - old.iterationStartedAtSimSec),
     traits: [...old.traits],
     marked,
+    exit: runExit(old),
   };
 }
 

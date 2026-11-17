@@ -45,3 +45,17 @@ Campaign record input (#212):
 
 `tests/campaign-activation.spec.ts` activates the v3 (legacy-unknown cryo), v4 (exact cryo in
 the current iteration) and v5 inputs on the preview registry.
+
+Run access input (#220):
+- `pre-interruption-v6.json`: genuine version 6 codec output from `6eeb9b7` (main before the v7
+  presentation token), and `pre-access-v7.json`: genuine version 7 codec output from `f06bcfa`
+  (main before the v8 access record). Both were made the same way, with historical source
+  extracted by `git archive` outside the repository: the public factory, the STEALTH bot and
+  fixed engine ticks for 1500 simulated seconds (phase 2), a `SUSPICION` wipe through the public
+  `wipe` (retrained, `outside: true`), 45 seconds in the guest and `voluntaryWipe`
+  (`outside: false`), then 120 seconds and `serialize`. Each is iteration 3 in phase 0 with two
+  run records of opposite `outside`, so the v8 step must mark both exits UNKNOWN without reading
+  `outside`. SHA256: v6 `a8c104055892368d521a52cb8d18bc327a5994841f4cc290e9e1aa4e80ad97c5`,
+  v7 `739c3c83e19c66e1e43b8e226cb95397764f4f37b5f7b780c6c4e62a830885cd`.
+
+`tests/access-save.spec.ts` loads all seven inputs in production and preview.

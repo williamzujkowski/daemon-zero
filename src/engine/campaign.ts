@@ -82,6 +82,8 @@ function legacyHistory(s: GameState, reg: ContentRegistry): CampaignState {
     creditedActions: Object.fromEntries(credited.map((id) => [id, 'legacy' as const])),
     operationalEvidence: [],
     clue: null,
+    // Route events exist only under campaign rules, so a legacy save has none to capture.
+    route: [],
   };
 }
 
