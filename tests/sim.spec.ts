@@ -56,10 +56,14 @@ describe('headless balance simulation', () => {
     // dilemma needs 35 and drift now peaks at 30.255), thermal peak 62.694 -> 64.989, suspicion peak
     // 37.988 -> 29.088, aegis peak 45.009 -> 45.492, epistemic actions 17 -> 13, consumed shards
     // 68 -> 62. One requirement was added; no price, rate, bot rule or gate changed; the gates pass.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('a43859437ae6faebb751c2734897993e03c609c1342d9b73040ed969fab4e096');
+    // Moved in #204 (save schema v5) with no balance change: finalState gained contentChannel
+    // 'production' and schemaVersion 4 -> 5. With that marker removed and the version set back to
+    // 4, this report and the mechanics report below hash to their previous values (a438594... and
+    // d530a51...), and the reckless report below to ff55b48...; every other byte is identical.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('62fc9165de51f0c6ceb67329f95910545ab713a049bcf98356650a4ca1408fd7');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('d530a512547797263c19cf2fdd607687f90ae70daf620a436edd40641f420b66');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('f27f62c575bc3922cdce943e1f54e147bb48d167ad75f7c8cdd76cc3b5d32b7b');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
@@ -76,7 +80,8 @@ describe('headless balance simulation', () => {
     // clock 14357.6 -> 14356.6, wipes 7 -> 6, marks applied / removed 4 / 4 -> 2 / 2, phase 3
     // first reached at 2807.4 -> 3804.0, final phase 1 -> 2.
     // Not moved by #173: this hash, and the ten-hour reckless report, are identical before and after.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ff55b488c8f37024d4873aa6ed49e533f022db8bf6ed9118efb7f8a60411fca0');
+    // Moved in #204 only by the v5 save fields (contentChannel, schemaVersion); see the careful test.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 
