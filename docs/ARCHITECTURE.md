@@ -358,7 +358,15 @@ dilemmas, ordinary cohort commands and encounters as operational.
 **Loading.** `reconcileCampaign` refuses, never filters: campaign state on a legacy save, an
 incomplete activation, a stored outcome flag that a record owns, an unknown event, outcome or
 action, an impossible source iteration, or an id recorded twice. Aliased ids are re-keyed;
-retired ids stay as tombstones (they add no score). Importing a save replaces the campaign
+retired ids stay as tombstones (they add no score). **Upgrade path** (#214 panel round 1): when
+content converts more events after a campaign was activated, activation cannot run again, so load
+gives each converted event the save proves resolved, but holds no record for, a completed record
+read exactly as activation reads it: a guarded outcome flag gives the choice (the flag moves into
+the record), otherwise `legacy_unknown`; origin `legacy`, with a source iteration only when it is
+not after activation. The baseline is not recaptured and a `legacy` record adds no ending evidence
+(the trait already sits in that iteration's operational evidence). Recorded events are never
+touched, so a flag stored beside its record is still refused, and a second load is a no-op
+(`tests/campaign-upgrade.spec.ts`, on a genuine pre-#242 active save). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in

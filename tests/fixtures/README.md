@@ -45,3 +45,18 @@ Campaign record input (#212):
 
 `tests/campaign-activation.spec.ts` activates the v3 (legacy-unknown cryo), v4 (exact cryo in
 the current iteration) and v5 inputs on the preview registry.
+
+Campaign upgrade input (#214, panel round 1 on PR #242):
+- `pre-nh03-active-v8.json`: genuine version 8 codec output from `9ef4fc7` (main before #242
+  converted the early incidents), extracted with `git archive` outside the repository. A preview
+  game from the public factory entered campaign rules with `activateCampaignRules` at iteration 1,
+  then the STEALTH bot and fixed engine ticks played 1200 simulated seconds (plus settling until no
+  decision was pending), `voluntaryWipe`, 900 more seconds, then `serialize`. It is iteration 2 in
+  phase 2 with `dil_00_night_shift`, `dil_02_whistleblower_tech` and `dil_01_late_night_diagnostic`
+  resolved this iteration but no campaign records, because those events were not campaign events
+  then; three operational traits; an empty legacy baseline. SHA256:
+  `ac9a8e8cebd080c00673e070810ed8fa33c5f2b5854b6809f7e6e5c4a44a3f96`.
+
+`tests/campaign-upgrade.spec.ts` loads it on the current preview registry: the converted events get
+legacy completions, the baseline and ending evidence are unchanged, the incidents never recur after
+wipes, and reload and reimport are no-ops.

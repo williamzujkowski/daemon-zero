@@ -27,7 +27,8 @@ describe('renamed, retired and unknown campaign ids', () => {
   it('reads a renamed record under its new id, so the event stays consumed', () => {
     const loaded = deserialize(withEvents(chosen, { [OLD]: record(chosen) }), evolved);
     expect(campaignRecord(loaded, cryo.id)).toEqual(record(chosen));
-    expect(Object.keys(loaded.campaign.events)).toEqual([cryo.id]);
+    // Other events the setup marked resolved this run come back as legacy completions (the upgrade path).
+    expect(Object.keys(loaded.campaign.events).filter((id) => !chosen.resolvedDilemmas.includes(id))).toEqual([cryo.id]);
     expect(advance(loaded, 120, evolved).pendingDilemma).toBeNull();
   });
 
