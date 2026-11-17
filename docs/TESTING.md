@@ -124,18 +124,40 @@ navigation):
 - loads the site at its subpath and checks every script and stylesheet comes from inside it;
 - waits for the terminal, and finds no development drawer and no development hook;
 - opens MENU, sees the save entry, and closes it;
-- reads the autosave from its own storage: iteration 1, phase 0, no wipes;
-- reloads and gets the same run back (iteration, phase, nodes, levels, wipes), clock not behind;
+- buys the opening's first driver the way a player does (manual cycles until its card is
+  offered and affordable, then its button), reading the driver off the page rather than from
+  local content, and sees the cycle counter appear and the card go;
+- reads the checkpoint written after the purchase: iteration 1, phase 0, no wipes, driver owned;
+- reloads, then requires the progress twice: on screen (counter shown, card gone), and in a
+  checkpoint stamped after the reloaded page was up, which must hold the same run
+  (iteration, phase, nodes, levels, wipes) with the clock not behind;
 - fails on any console warning or error, uncaught page error, failed request, HTTP status of
-  400 or more, or request to another origin. Nothing is allow-listed.
+  400 or more, or request to another origin.
 
-The one failure seen while writing it was the test's own: the MENU press is the first
-gesture, which starts the default-on score, and reloading while its 3 MB file was still
-arriving aborted it (`net::ERR_ABORTED`). The spec therefore waits for the network to be idle
-for two seconds before the reload instead of excusing aborted requests. The spec does not
-import the local engine or fixtures, because the deployed build need not match the checkout;
-it reads the stored save as plain JSON. It writes only to its browser context and to the
-ignored `test-results/` (traces on failure).
+Why the reload is judged that way: when loading the save fails, `GameRuntime.load()` starts a
+fresh run and disables saving, but the terminal still renders and the old save stays in
+storage. So "a save exists after the reload" proves nothing. A fresh run shows no cycle
+counter, and a disabled save never writes again. The old page's own last write is stamped
+before the new page is up, so it cannot pass for a new checkpoint. Both checks were shown to
+fail in throwaway runs against the live site: once with the app's first save read made to
+throw (the counter check failed; with the screen check removed, no checkpoint newer than the
+reload arrived), and once with the stored save corrupted before the reload (the counter check
+failed; without it, the new checkpoint held no nodes).
+
+One request failure is excused, by rule rather than by URL, and printed as a `note:` line and
+a `cut by reload` annotation whenever it happens. The MENU press is the first gesture, so it
+starts the default-on score. Chromium paces a playing media file: the response arrives in
+milliseconds, but the body streams for most of a minute (44 s measured for the 3.4 MB phase-0
+score on a CDN hit). A reload in that window aborts it with `net::ERR_ABORTED`, as it would
+for a player. So a `media` request that already had a successful response and fails with
+`net::ERR_ABORTED` while the test itself is reloading is not counted. Every other request
+failure is. Before the reload the spec also waits until nothing except such a streaming body
+is in flight and the network has been quiet for two seconds, so a reload cannot cut off a
+script, style or data request.
+
+The spec does not import the local engine or fixtures, because the deployed build need not
+match the checkout; it reads the stored save as plain JSON. It writes only to its browser
+context and to the ignored `test-results/` (traces on failure).
 
 CI does not run it. The `deploy-pages` job holds only `pages: write` and `id-token: write`;
 listing deployments needs `deployments: read` and running the spec needs a checkout
