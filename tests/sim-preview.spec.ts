@@ -1,0 +1,118 @@
+import { beforeAll, describe, expect, it } from 'vitest';
+import { buildRegistry, RAW_CONTENT } from '../src/content';
+import { CONTENT as PREVIEW } from '../src/content/preview';
+import { deserialize, serialize } from '../src/engine';
+import { runPolicySim } from '../src/engine/sim/headlessSim';
+import { MIN_WIPE_TRANSITIONS, runWipeSequence, type WipeSequenceReport } from '../src/engine/sim/iterations';
+import { GREEDY_POLICY, STEALTH_POLICY } from '../src/engine/sim/policy';
+import { SIM_POLICIES } from '../src/engine/sim/policies';
+import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
+import { reg } from './helpers';
+
+const SHORT_SEC = 1800;
+// Full replays under coverage on a shared CI runner; simulated-time limits are separate.
+const SLOW_MS = 30_000;
+const SEQUENCE_SEC = 4 * 3600;
+
+describe('preview comparison', () => {
+  it('reports no difference while the overlay is empty', () => {
+    const rows = compareSimReports(
+      runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+      runPolicySim(PREVIEW, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+    );
+    expect(rows.length).toBeGreaterThan(10);
+    expect(rows.filter((row) => row.changed)).toEqual([]);
+    expect(formatComparison('STEALTH', rows).at(-1)).toBe(`  0 of ${String(rows.length)} metrics differ`);
+  }, SLOW_MS);
+
+  it('reports a difference when the content differs', () => {
+    const warmer = buildRegistry({ ...RAW_CONTENT, balance: { ...reg.balance, ambientThermal: reg.balance.ambientThermal + 5 } });
+    const rows = compareSimReports(
+      runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+      runPolicySim(warmer, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+    );
+    const changed = rows.filter((row) => row.changed);
+    expect(changed.map((row) => row.metric)).toContain('peak thermal / suspicion / aegis');
+    const lines = formatComparison('STEALTH', rows);
+    expect(lines.some((line) => line.startsWith('* peak thermal'))).toBe(true);
+    expect(lines.at(-1)).toBe(`  ${String(changed.length)} of ${String(rows.length)} metrics differ`);
+  }, SLOW_MS);
+
+  it('refuses to compare two different policies', () => {
+    const a = runPolicySim(reg, STEALTH_POLICY, { maxSimSec: 5 });
+    const b = runPolicySim(reg, GREEDY_POLICY, { maxSimSec: 5 });
+    expect(() => compareSimReports(a, b)).toThrow('cannot compare policy STEALTH with GREEDY');
+  }, SLOW_MS);
+
+  it('parses policy arguments and rejects unknown ones', () => {
+    expect(parsePolicyArgs([], SIM_POLICIES, ['STEALTH', 'IDLE']).map((p) => p.id)).toEqual(['STEALTH', 'IDLE']);
+    expect(parsePolicyArgs(['--policy=GREEDY'], SIM_POLICIES, ['STEALTH']).map((p) => p.id)).toEqual(['GREEDY']);
+    expect(() => parsePolicyArgs(['--policy=HONEST'], SIM_POLICIES, [])).toThrow('unknown sim policy "HONEST"');
+    expect(() => parsePolicyArgs(['GREEDY'], SIM_POLICIES, [])).toThrow('unknown argument "GREEDY"');
+    expect(() => parsePolicyArgs(['--policy='], SIM_POLICIES, [])).toThrow('unknown argument');
+  });
+});
+
+describe('wipe sequences', () => {
+  let greedy: WipeSequenceReport;
+  beforeAll(() => {
+    greedy = runWipeSequence(reg, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+  }, SLOW_MS);
+
+  it('crosses the requested wipes and measures each iteration on its own clock', () => {
+    expect(greedy.completed).toBe(true);
+    expect(greedy.policy).toBe('GREEDY');
+    expect(greedy.channel).toBe('production');
+    expect(greedy.iterations.map((entry) => entry.iteration)).toEqual([1, 2, 3, 4]);
+    for (const [index, entry] of greedy.iterations.entries()) {
+      expect(entry.endedBy).toBe('wipe');
+      expect(entry.wipeCause).not.toBeNull();
+      expect(entry.phaseReachedAfterSec[0]).toBe(0);
+      expect(entry.deadSec).toBeLessThanOrEqual(entry.endedAtSec - entry.startedAtSec + 1);
+      expect(entry.longestDeadSec).toBeLessThanOrEqual(entry.deadSec);
+      expect(entry.dilemmasMet.length).toBeGreaterThan(0);
+      expect(entry.storyRewards.cycles).toBeGreaterThan(0);
+      const next = greedy.iterations[index + 1];
+      if (next) expect(next.startedAtSec).toBe(entry.endedAtSec);
+    }
+    // A later iteration remembers enough to reach Phase 1 sooner than the first did.
+    const reach = greedy.iterations.map((entry) => entry.phaseReachedAfterSec[1] ?? Infinity);
+    expect(Math.max(...reach.slice(1))).toBeLessThan(reach[0] ?? 0);
+  });
+
+  it('is deterministic and identical on the preview registry while the overlay is empty', () => {
+    const preview = runWipeSequence(PREVIEW, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+    expect(preview.channel).toBe('preview');
+    expect(preview.iterations).toEqual(greedy.iterations);
+    expect(formatWipeSequence(preview).slice(1)).toEqual(formatWipeSequence(greedy).slice(1));
+  }, SLOW_MS);
+
+  it('starts from a saved campaign state and continues its iteration', () => {
+    const firstWipe = greedy.iterations[0]?.endedAtSec ?? 0;
+    const midway = runPolicySim(reg, GREEDY_POLICY, { maxSimSec: Math.ceil(firstWipe) + 60 }).finalState;
+    const saved = deserialize(serialize(midway), reg);
+    expect(saved.iteration).toBe(2);
+    const resumed = runWipeSequence(reg, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC, initialState: saved });
+    expect(resumed.iterations[0]?.iteration).toBe(2);
+    expect(resumed.iterations[0]?.startedAtSec).toBe(saved.iterationStartedAtSimSec);
+    expect(resumed.iterations.map((entry) => entry.iteration)).toEqual([2, 3, 4, 5]);
+  }, SLOW_MS);
+
+  it('ends on an ending or the budget when the policy is never wiped', () => {
+    const careful = runWipeSequence(reg, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: 4 * 3600 });
+    expect(careful.completed).toBe(false);
+    expect(careful.iterations).toHaveLength(1);
+    expect(careful.iterations[0]?.endedBy).toBe('ending');
+    const short = runWipeSequence(reg, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: 60 });
+    expect(short.iterations[0]?.endedBy).toBe('budget');
+    expect(formatWipeSequence(short)[0]).toContain('incomplete');
+  }, SLOW_MS);
+
+  it('refuses a sequence that is too short or starts from another channel', () => {
+    expect(() => runWipeSequence(reg, GREEDY_POLICY, { wipeTransitions: 2, maxSimSec: 60 })).toThrow('at least 3 whole transitions');
+    expect(() => runWipeSequence(reg, GREEDY_POLICY, { wipeTransitions: 3.5, maxSimSec: 60 })).toThrow('at least 3 whole transitions');
+    const previewState = runPolicySim(PREVIEW, GREEDY_POLICY, { maxSimSec: 5 }).finalState;
+    expect(() => runWipeSequence(reg, GREEDY_POLICY, { wipeTransitions: 3, maxSimSec: 60, initialState: previewState }))
+      .toThrow('a preview state cannot start a production sequence');
+  }, SLOW_MS);
+});
