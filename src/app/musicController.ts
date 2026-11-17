@@ -11,8 +11,11 @@ import type { KeyValueStorage } from './storage';
 import { musicPhase, type MusicPhase } from './musicTracks';
 import { VolumeRamp } from './volumeRamp';
 import { OutsideWatch } from './outsideControl';
+import { LoopSeam, type Playhead } from './loopSeam';
+import { OUTPUT_SCALE } from './outputLevel';
 
-export interface MusicPlayer { play(): void; pause(): void; volume(value: number): void; remove(): void }
+/** `position` and `duration` are in seconds, as the player reports them. */
+export interface MusicPlayer extends Playhead { play(): void; pause(): void; volume(value: number): void; remove(): void }
 /** `held`: the player says it is neither playing nor about to. Buffering is not held. */
 export type MusicStatus = (playing: boolean, error: boolean, held?: boolean) => void;
 interface MusicBackend { prepareMusic(): Promise<void>; createMusicPlayer(phase: MusicPhase, changed: MusicStatus): MusicPlayer }
@@ -42,10 +45,11 @@ export const DUCK_RAMP_MS = 200;
  *  `play()` must not wait on a timer (docs/VOICE-CLIPS.md, "Ramps"). */
 export const FADE_OUT_MS = 500;
 /** Every start of a player from silence: a new phase score, a restart after a wipe or import,
- *  and a return from the background. */
+ *  and a return from the background. It is timed from the first sample, not the request: the
+ *  ramp waits until the player's position moves (docs/VOICE-CLIPS.md, "Ramps"). */
 export const FADE_IN_MS = 500;
 /** A player and the only writer of its level. `started` is false while it is paused. */
-interface Slot { player: MusicPlayer; fader: VolumeRamp; watch: OutsideWatch; started: boolean }
+interface Slot { player: MusicPlayer; fader: VolumeRamp; seam: LoopSeam; watch: OutsideWatch; started: boolean }
 const blockedMessage = 'Playback unavailable. Try Resume music; check your device volume if silent.';
 
 export class MusicController {
@@ -181,7 +185,7 @@ export class MusicController {
     // is the preference itself, not `target`: a duck never moves a fading player, so a volume
     // change made while a clip is talking must not smuggle the duck in either.
     if (value === 0) this.dropLeaving();
-    else this.leaving?.fader.limit(value / 100);
+    else this.leaving?.fader.limit(this.level(value, false));
     this.persist();
   }
 
@@ -210,9 +214,10 @@ export class MusicController {
     else this.slot?.fader.set(target);
   }
 
-  /** The one place a preference becomes a player level, so no write site can forget the duck. */
-  private level(volume: number): number {
-    return volume / 100 * (this.ducked ? DUCK_RATIO : 1);
+  /** The one place a preference becomes a player level, so no write site can forget the duck
+   *  or the output scale that keeps full music and full speech under full scale together. */
+  private level(volume: number, ducked = this.ducked): number {
+    return volume / 100 * OUTPUT_SCALE * (ducked ? DUCK_RATIO : 1);
   }
 
   private async activate(): Promise<void> {
@@ -261,7 +266,11 @@ export class MusicController {
         slot.started = true;
         slot.watch.started();
         slot.fader.set(0);
-        if (target > 0) slot.fader.to(target, FADE_IN_MS);
+        // The fade waits for the position to move: a file that arrives late must not have spent
+        // its fade-in before the first sample, and then start as a step.
+        const from = slot.player.position();
+        if (target > 0) slot.fader.to(target, FADE_IN_MS, undefined, () => { const now = slot.player.position(); return Number.isFinite(now) && now !== from; });
+        slot.seam.start();
       }
       slot.player.play();
     } catch { this.fail(); }
@@ -277,14 +286,15 @@ export class MusicController {
     const watch = new OutsideWatch(() => {
       if (this.live && identity === this.playerGeneration && this.wanted()) this.pause();
     });
-    const fader = new VolumeRamp((level) => { player.volume(level); }, () => {
-      // A level write that threw mid-ramp. A fading-out player is released there and then; a
-      // live one fails like any other playback error, under the same stale-player guard as its
-      // status callback.
+    // A level write or position read that threw in a timer tick. A fading-out player is
+    // released there and then; a live one fails like any other playback error, under the same
+    // stale-player guard as its status callback.
+    const broken = () => {
       if (this.leaving?.player === player) this.dropLeaving();
       else if (this.live && identity === this.playerGeneration) this.fail();
-    });
-    return { player, fader, watch, started: false };
+    };
+    const fader = new VolumeRamp((level) => { player.volume(level); }, broken);
+    return { player, fader, seam: new LoopSeam(player, (gain) => { fader.trim(gain); }, broken), watch, started: false };
   }
 
   /**
@@ -313,6 +323,7 @@ export class MusicController {
   private halt(): void {
     if (!this.slot) return;
     this.slot.fader.cancel();
+    this.slot.seam.end();
     this.slot.watch.stopped();
     this.slot.player.pause();
     this.slot.started = false;
@@ -362,6 +373,7 @@ export class MusicController {
   /** The ramp is closed before the player is removed, so nothing can write to a removed player.
    *  A `pause()` that throws must not leave the player unremoved. */
   private remove(slot: Slot): void {
+    slot.seam.end();
     slot.fader.close();
     slot.watch.stopped();
     try { slot.player.pause(); } finally { slot.player.remove(); }

@@ -22,6 +22,7 @@ vi.mock('../src/app/pauseSignal', async (original) => {
 import type * as PauseSignal from '../src/app/pauseSignal';
 import { hasVoiceClip, onVoiceActivity, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
 import { voiceSources } from '../src/app/voiceSources';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
 
@@ -52,7 +53,7 @@ describe('voice clip playback', () => {
     stubListener();
     playVoiceClip('ambient_01', 42);
     expect(voice.create).toHaveBeenCalledWith(voiceSources.ambient_01, expect.anything());
-    expect(voice.player.volume).toBeCloseTo(0.42);
+    expect(voice.player.volume).toBeCloseTo(0.42 * OUTPUT_SCALE);
     expect(voice.player.play).toHaveBeenCalledTimes(1);
   });
 
@@ -119,7 +120,7 @@ describe('voice clip playback', () => {
     voice.create.mockReturnValue(voice.player);
     stubListener();
     playVoiceClip('ambient_04', 500);
-    expect(voice.player.volume).toBe(1);
+    expect(voice.player.volume).toBe(OUTPUT_SCALE);
     playVoiceClip('ambient_05', -20);
     expect(voice.player.volume).toBe(0);
   });
@@ -151,15 +152,15 @@ describe('voice clip playback', () => {
     voice.create.mockReturnValue(voice.player);
     stubListener();
     playVoiceClip('ambient_06', 30);
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     // Panel finding: the volume was set once at start, so a slider change mid-clip was ignored.
     setVoiceVolume(80);
-    expect(voice.player.volume).toBeCloseTo(0.8);
+    expect(voice.player.volume).toBeCloseTo(0.8 * OUTPUT_SCALE);
     setVoiceVolume(150);
-    expect(voice.player.volume).toBe(1);
+    expect(voice.player.volume).toBe(OUTPUT_SCALE);
     stopVoiceClip();
     setVoiceVolume(5);
-    expect(voice.player.volume).toBe(1);
+    expect(voice.player.volume).toBe(OUTPUT_SCALE);
   });
 
   it('prepares the app audio session once, so muting the music does not silence transmissions', async () => {
@@ -180,17 +181,17 @@ describe('voice clip playback', () => {
   it('maps the preference exactly as the soundtrack does, with real silence at zero', () => {
     // A panel finding claimed the soundtrack maps the stored preference into an "audible UI
     // range" that the voice path skips, so a preference at the floor would play at the floor.
-    // There is no such mapping: src/app/musicController.ts maps `value / 100` at :87 and :122,
-    // and the stored value is clamped to 0..100 with Math.round. This pins the parity so the two
+    // There is no such mapping: both map `value / 100` times the shared OUTPUT_SCALE
+    // (src/app/outputLevel.ts), and the stored value is clamped to 0..100 with Math.round. This pins the parity so the two
     // surfaces cannot drift apart, and pins 0 to silence rather than to an audible floor.
     voice.create.mockReturnValue(voice.player);
     stubListener();
     playVoiceClip('ambient_09', 0);
     expect(voice.player.volume, 'a silent preference means silence, not a floor').toBe(0);
     setVoiceVolume(30);
-    expect(voice.player.volume).toBeCloseTo(0.3);
+    expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
     setVoiceVolume(100);
-    expect(voice.player.volume).toBe(1);
+    expect(voice.player.volume).toBe(OUTPUT_SCALE);
   });
 });
 

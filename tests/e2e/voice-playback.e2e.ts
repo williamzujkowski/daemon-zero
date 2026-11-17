@@ -12,6 +12,7 @@
  */
 import { test as bare } from '@playwright/test';
 import { boot, expect, observeMusicMedia, test, voiceClipsPlaying, voiceClipVolume } from './helpers';
+import { OUTPUT_SCALE } from '../../src/app/outputLevel';
 
 const AUDIO_KEY = 'daemon-zero.audio.v1';
 
@@ -69,7 +70,7 @@ test('a stored single-switch preference migrates: speech inherits it and READ pl
   if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
   await page.getByTestId('speech-read').click();
   await expect.poll(() => voiceClipsPlaying(page)).toBe(1);
-  await expect.poll(() => voiceClipVolume(page), 'the clip plays at the speech level, not the music level').toBeCloseTo(0.6, 5);
+  await expect.poll(() => voiceClipVolume(page), 'the clip plays at the speech level, not the music level').toBeCloseTo(0.6 * OUTPUT_SCALE, 5);
 });
 
 test('speech works with music off: the clip is fetched and no score is ever created', async ({ page }) => {

@@ -16,10 +16,11 @@
 import { test as bare } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
+import { OUTPUT_SCALE } from '../../src/app/outputLevel';
 import { boot, expect, observeMusicMedia, restingSoundtrackVolume, sampleScore, soundtrackVolume, test, voiceClipsPlaying, type ScoreSample } from './helpers';
 
-// `boot(..., { audio: true })` seeds this preference; the test asserts against it, not a guess.
-const PREFERENCE = 0.3;
+// `boot(..., { audio: true })` seeds 30%; the player is handed that times the output scale.
+const PREFERENCE = 0.3 * OUTPUT_SCALE;
 const DUCKED = PREFERENCE * DUCK_RATIO;
 
 /** Runs the clock a whole duck per look, so a poll waits on the event that starts a ramp and
