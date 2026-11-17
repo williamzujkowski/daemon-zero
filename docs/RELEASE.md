@@ -18,7 +18,27 @@ mise exec -- make build-web
 The static web export is `dist/`; serve its files from an HTTPS host. There is no
 backend or runtime API configuration. Keep the origin stable to retain browser
 saves. `tests/production-export.spec.ts` freshly exports web and native JavaScript
-and rejects the development hook/drawer markers in every chunk.
+and rejects the development hook/drawer markers in every chunk, and the preview
+overlay's sentinel and ids as well (it also exports the preview web build to prove the
+scan finds the sentinel when it is there).
+
+### Preview content never ships
+
+Unfinished content merges to `main` in the `src/content/preview/` overlay and reaches only
+a preview build (#205, nexus votes `metro-content-alias` vote-1794924364010-e91diez and
+`local-ci-preview-in-verify` vote-1794924668784-7v1q790). Release rules:
+
+- Never set `DAEMON_CONTENT_CHANNEL` for a release. `make build-web` and `make build-pages`
+  clear it; `metro.config.js` refuses an android or ios bundle with it set; no `eas.json`
+  profile sets it. `tests/release-config.spec.ts` checks all of these.
+- The EAS profile named `preview` is an internal Android APK of **production** content. It
+  has nothing to do with the preview content channel.
+- `make build-preview` writes `dist-preview/`, which is never archived, attached to a
+  release or deployed. Do not copy it into `dist/`.
+- A preview build stores saves under `daemon-zero.preview.save.v1` and
+  `daemon-zero.preview.save.corrupt-backup`; production keeps `daemon-zero.save.v1`,
+  `daemon-zero.save.corrupt-backup` and `daemon-zero.audio.v1`. A production build refuses
+  a preview save code by name and leaves the run unchanged.
 
 ## GitHub Pages
 
@@ -144,7 +164,8 @@ score adds its file size once: MP3 is not compressed again inside the package.
 
 ## EAS and iOS
 
-`eas.json` pins CLI 27.7.2, with preview APK and production AAB profiles. Authenticate
+`eas.json` pins CLI 27.7.2, with preview APK and production AAB profiles (both carry
+production content; see "Preview content never ships"). Authenticate
 and link a maintainer-owned EAS project before running
 `pnpm dlx eas-cli@27.7.2 build --platform android --profile production`.
 Use EAS-managed signing secrets; local `credentials.json` is ignored. Never put
