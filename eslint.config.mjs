@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 const UI_ONLY_IMPORTS = ['react', 'react-dom', 'react-native', 'react-native-*', 'expo', 'expo-*', 'zustand', 'zustand/*', '@react-native-*/*'];
 
 export default defineConfig(
-  { ignores: ['node_modules/', 'coverage/', 'dist/', '.expo/', 'reference/', 'android/', 'ios/'] },
+  { ignores: ['node_modules/', 'coverage/', 'dist/', 'dist-preview/', '.expo/', 'reference/', 'android/', 'ios/'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   security.configs.recommended,
@@ -41,6 +41,9 @@ export default defineConfig(
         'error',
         { object: 'Math', property: 'random', message: 'The engine is deterministic. Thread a seeded RNG through state instead.' },
         { object: 'Date', property: 'now', message: 'The engine never reads a clock. Callers pass elapsed time in.' },
+        // Content channel selection happens in metro.config.js at bundle time (#204/#205): content read
+        // from the environment would also follow a developer's shell into tests, the sim and validation.
+        { object: 'process', property: 'env', message: 'src/engine and src/content never read the environment. Build-time selection belongs in metro.config.js.' },
       ],
       'no-restricted-globals': ['error', { name: 'setTimeout', message: 'No timers in the engine.' }, { name: 'setInterval', message: 'No timers in the engine.' }],
     },
@@ -87,4 +90,14 @@ export default defineConfig(
     },
   },
   { files: ['**/*.mjs'], ...tseslint.configs.disableTypeChecked },
+  {
+    // Metro loads its config with Node's require, so it is CommonJS and outside the TypeScript project.
+    files: ['metro.config.js'],
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable', __dirname: 'readonly', process: 'readonly' },
+    },
+    rules: { ...tseslint.configs.disableTypeChecked.rules, '@typescript-eslint/no-require-imports': 'off' },
+  },
 );

@@ -46,11 +46,13 @@ scoped to the iteration so they cannot survive a live wipe.
   starts synchronously before returning to the browser.
 
 The strict app envelope is `{ version: 1, savedAtMs, game: serialize(game) }` under
-`daemon-zero.save.v1`. `GameState` itself is unchanged. Reads validate the bounded
+`daemon-zero.save.v1` (a preview build uses `daemon-zero.preview.save.v1`; see
+[Content channels](#content-channels-and-preview-saves-204)). `GameState` itself is unchanged. Reads validate the bounded
 JSON envelope and use engine `deserialize` to validate/migrate/reconcile the game.
 The loader also bounds pending live time before passing untrusted state to catch-up.
 On `SaveError`, the original raw value is stored at
-`daemon-zero.save.corrupt-backup` before a fresh run can replace it. A backup or
+`daemon-zero.save.corrupt-backup` (preview: `daemon-zero.preview.save.corrupt-backup`)
+before a fresh run can replace it. A backup or
 read failure preserves the original slot and disables autosave for that session,
 with a visible notice. Write failures are reported and retried; a successful
 retry clears only the write-error notice, preserving corruption-recovery notices.
@@ -250,10 +252,31 @@ defines is a `ContentError`, as is a node for a phase that does not exist or an
 unknown overlay key. Preview exports the same names and types as production (a
 `satisfies` check fails to compile otherwise), plus `PREVIEW_OVERLAY` and
 `PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
-Nothing under `src/content/` reads the environment. A build picks preview by
-resolving `src/content/index` to `preview/index.ts` at bundle time; that resolver,
-the preview storage keys and the visible marker are #205, not part of this change.
-The overlay is empty today.
+Nothing under `src/content/` or `src/engine/` reads the environment; ESLint's purity
+rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay is empty today
+apart from its sentinel.
+
+**Build selection (#205).** `metro.config.js` keeps Expo's defaults. When
+`DAEMON_CONTENT_CHANNEL=preview` and the platform is web, its `resolveRequest` hands
+every importer *outside* `src/content/` `preview/index.ts` in place of
+`src/content/index.ts`; inside `src/content/` the composition modules import each other
+as written. Any other platform with the channel set throws, and an unknown channel value
+fails config load. Without the variable the resolver is not installed and the production
+export is byte-identical to the export before the file existed. Vitest, `tsx` (sim,
+validation) and Playwright's Node side never go through Metro, so they load production
+unless a test imports `src/content/preview` directly. `make build-preview` writes
+`dist-preview/`; it is built and tested locally and in CI (`make e2e-preview`, inside the
+required `verify` job) and never deployed (vote `local-ci-preview-in-verify`,
+vote-1794924668784-7v1q790).
+
+**App storage and marker (#205).** `src/app/storage.ts` takes its keys from the
+registry's channel (`STORAGE_KEYS`): production keeps `daemon-zero.save.v1` and
+`daemon-zero.save.corrupt-backup` byte for byte, preview uses
+`daemon-zero.preview.save.v1` and `daemon-zero.preview.save.corrupt-backup`, so a preview
+build on the same origin cannot read or overwrite a production run. The audio slot
+`daemon-zero.audio.v1` is shared because it holds no content. `src/ui/PreviewMarker.tsx`
+renders "PREVIEW BUILD" in the boot log, at the top of MENU and under the version line
+in Help when `CONTENT.channel` is `preview`, and nothing otherwise.
 
 **Saves.** Schema v5 adds `contentChannel` to `GameState`. `createInitialState`
 and `wipe` write the registry's channel. The v4->v5 migration marks every older
@@ -267,12 +290,17 @@ Preview loads production and preview saves, and re-marks an admitted save with i
 own channel, so a production save becomes a preview save once and a second load
 changes nothing. `importPlayerSave` reports a channel refusal as "This save comes
 from a preview build and cannot be loaded here." and leaves the current run as it
-was; other bad codes keep the generic reason. `storage.load` still treats a refused
-save as damaged until #205 gives preview its own keys.
+was; other bad codes keep the generic reason. `storage.load` backs a channel-refused
+save up like a damaged one but says where it came from: "The save here comes from a
+preview build and cannot be loaded by this one. A backup was kept and a new run started."
 
 Tests: `tests/content-channel.spec.ts` (T1) and `tests/save-channel.spec.ts` (T2,
 T3) of the decision note, the v4 fixture in `tests/swarm-save.spec.ts`, and the
-import reason in `tests/app-replacement-guard.spec.ts`.
+import reason in `tests/app-replacement-guard.spec.ts`. #205 adds T4
+(`tests/app-storage-channel.spec.ts`), T5 (`tests/production-export.spec.ts`), T6
+(`tests/release-config.spec.ts`), T7 (`tests/e2e/preview-isolation.e2e.ts`) and T9
+(`tests/e2e/preview-channel.preview.ts`); [TESTING.md](TESTING.md#preview-build-205)
+lists what each proves.
 
 ## Campaign records (#212)
 
