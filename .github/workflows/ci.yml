@@ -17,7 +17,7 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       # Third-party actions are pinned by commit SHA; the comment records the tag.
       - name: Checkout
