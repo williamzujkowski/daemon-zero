@@ -137,6 +137,18 @@ export async function soundtrackVolume(page: Page): Promise<number | null> {
     return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.volume ?? null;
   });
 }
+/**
+ * Waits until the live score's position has moved: the moment the soundtrack's fade-in waits
+ * for (#198). On the paused page clock a ramp moves only when the clock is run, but the media
+ * element plays in real time, so a case that runs the clock straight after a start must first
+ * let the file arrive, or every step it runs would find the fade still waiting.
+ */
+export async function scoreFlowing(page: Page): Promise<void> {
+  await expect.poll(() => page.evaluate(() => {
+    const media = (globalThis as unknown as { __musicMedia: MusicMedia[] }).__musicMedia;
+    return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.currentTime ?? 0;
+  }), 'the live score is playing audio').toBeGreaterThan(0.05);
+}
 /** The level of the voice clip in flight, or null when none is talking. */
 export async function voiceClipVolume(page: Page): Promise<number | null> {
   return page.evaluate(() => {

@@ -1,17 +1,47 @@
 /**
  * The loop seam of each score, as rendered: where the file's last samples and its first land in
- * the output, what sits between them, and how large the discontinuity is. Player looping was
- * never shown to be inaudible, and a seam is where a click hides; this reports the numbers.
+ * the output, what sits between them, and how large the discontinuity is, both at the wrap and
+ * across the player's dip around it (`loopSeam.ts`). A seam is where a click hides.
+ *
+ * The seek goes three seconds before the end, not less: after a seek on this server Chromium
+ * corrected its timeline about a second later by half to one MP3 frame, and a correction that
+ * lands in the measured stretch reads as a jump that is not in the file.
  *
  * Clock: real browser timers (`realTimers`).
  */
 import tracks from '../../assets/audio/music/tracks.json';
-import { align, correlation, mono, rms, toDb } from '../audio/dsp';
+import { align, correlation, mono, rms, toDb, type Samples } from '../audio/dsp';
 import { expect, test } from './helpers';
-import { isScore as music, PHASE_FIXTURES, report, startScore } from './signalMeasure';
+import { isScore as music, PHASE_FIXTURES, LEVEL, report, startScore } from './signalMeasure';
 import { assetPath, captured, reference, SAMPLE_RATE, serveByteRanges, signalFrame } from './signalTap';
 
 interface Seekable { __signalTap: { taps: { element: { currentTime: number; duration: number } | null }[] } }
+
+const ms = (value: number) => Math.round(value / 1000 * SAMPLE_RATE);
+/** Kept out of the alignment on both sides: the stretch where a dip around the wrap reshapes the
+ *  level, so the waveform match is made on samples at the steady level. */
+const RESHAPED = ms(200);
+/** The wide window a seam is judged over: the dip's fall before the wrap and its rise after. */
+const BEFORE = ms(200); const AFTER = ms(150);
+/** Gates on the seam, from the before/after measurements in docs/VOICE-CLIPS.md, "Loop seams". */
+const SEAM_AT_WRAP_DBFS = -65;
+const SEAM_WINDOW_DB = 32;
+/** Where the steady level is read, well before anything near the end could have moved it. */
+const STEADY = ms(400);
+
+/** The least-squares gain that turns `ref[from - offset ..]` into `signal[from ..]`, over `length`. */
+function gainOver(signal: Samples, ref: Samples, offset: number, from: number, length: number): number {
+  let dot = 0; let energy = 0;
+  for (let at = from; at < from + length; at++) { const value = ref[at - offset] ?? 0; dot += (signal[at] ?? 0) * value; energy += value * value; }
+  return energy > 0 ? dot / energy : Number.NaN;
+}
+
+/** The largest sample-to-sample change in [from, to), and the RMS of that change over [usualFrom, usualFrom + usual). */
+function jumps(signal: Samples, from: number, to: number, usualFrom: number, usual: number): { jump: number; usual: number } {
+  let jump = 0;
+  for (let at = from; at < to; at++) jump = Math.max(jump, Math.abs((signal[at] ?? 0) - (signal[at - 1] ?? 0)));
+  return { jump, usual: rms(Float32Array.from({ length: usual }, (_, at) => (signal[usualFrom + at] ?? 0) - (signal[usualFrom + at - 1] ?? 0))) };
+}
 
 for (const track of tracks) test('phase ' + String(track.phase) + ' loop seam, as rendered', async ({ page }, info) => {
   const name = 'phase ' + String(track.phase) + ' loop';
@@ -23,25 +53,26 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' loop seam, a
   const landed = await page.evaluate(async () => {
     const element = (globalThis as unknown as Seekable).__signalTap.taps.at(-1)?.element;
     if (!element) return -1;
-    element.currentTime = element.duration - 0.8;
+    element.currentTime = element.duration - 3;
     await new Promise((resolve) => { setTimeout(resolve, 100); });
     return element.duration - element.currentTime;
   });
   // A seek lands on a frame boundary near the target, and 100 ms then play.
-  expect(landed, 'the seek reached the tail instead of snapping to the start').toBeGreaterThan(0.2);
-  expect(landed).toBeLessThan(2);
-  await page.waitForTimeout(2200);
+  expect(landed, 'the seek reached the tail instead of snapping to the start').toBeGreaterThan(2);
+  expect(landed).toBeLessThan(4);
+  await page.waitForTimeout(4400);
   const score = (await captured(page, from)).elements.filter(music).at(-1);
   if (!score) throw new Error('No score was captured.');
   const signal = mono(score.left, score.right);
   const asset = assetPath(score.source);
-  const head = await reference(page, asset, 0, 0.5);
-  const tail = await reference(page, asset, track.duration - 0.5, 0.5);
-  expect(tail.length, 'the decoded file is as long as tracks.json says').toBe(SAMPLE_RATE / 2);
-  // Where the file's first sample landed in the capture, and where its last one did.
-  const start = align(head, signal, signal.length / 2 - head.length / 2, signal.length / 2, 4096);
-  const restart = start.offset;
-  const endOffset = align(tail, signal, restart - tail.length, SAMPLE_RATE / 2, 4096);
+  const head = await reference(page, asset, 0, 0.6);
+  const tail = await reference(page, asset, track.duration - 0.8, 0.8);
+  expect(tail.length, 'the decoded file is as long as tracks.json says').toBe(ms(800));
+  // Where the file's first sample landed in the capture, and where its last one did, each found
+  // from the part of the file that is clear of the dip.
+  const start = align(head.subarray(RESHAPED), signal, signal.length / 2 - head.length / 2, signal.length / 2, 4096);
+  const restart = start.offset - RESHAPED;
+  const endOffset = align(tail.subarray(0, tail.length - RESHAPED), signal, restart - tail.length, ms(500), 4096);
   const lastSample = endOffset.offset + tail.length;
   report(info, name + ': correlation of the restart with the file head', start.correlation, '(1 = identical)');
   report(info, name + ': correlation before the seam with the file tail', endOffset.correlation, '(1 = identical)');
@@ -51,19 +82,36 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' loop seam, a
   // milliseconds short or play a little decoder padding. Positive is extra, negative is cut.
   const trim = restart - lastSample;
   report(info, name + ': samples rendered past the decoded end before restarting', trim / SAMPLE_RATE * 1000, 'ms');
-  expect(Math.abs(trim), 'the loop ends within an MP3 frame or so of the file end').toBeLessThanOrEqual(SAMPLE_RATE * 0.04);
+  expect(Math.abs(trim), 'the loop ends within an MP3 frame or so of the file end').toBeLessThanOrEqual(ms(40));
   let silent = 0;
   while (signal[restart - 1 - silent] === 0) silent += 1;
   report(info, name + ': exact silence inserted at the seam', silent / SAMPLE_RATE * 1000, 'ms');
-  // The largest sample-to-sample jump in the 25 ms up to the restart, against the usual one in
-  // the 50 ms before that: how much of a discontinuity the seam is, at this volume.
-  let jump = 0;
-  for (let at = restart - 1200; at <= restart; at++) jump = Math.max(jump, Math.abs((signal[at] ?? 0) - (signal[at - 1] ?? 0)));
-  const usual = rms(Float32Array.from({ length: 2400 }, (_, at) => (signal[restart - 3600 + at] ?? 0) - (signal[restart - 3601 + at] ?? 0)));
-  report(info, name + ': largest sample jump at the seam, at 30% volume', toDb(jump), 'dBFS');
-  report(info, name + ': seam jump over the usual sample-to-sample change before it', toDb(jump / usual), 'dB');
-  report(info, name + ': level in the 50 ms before the seam', toDb(rms(signal, restart - 2400, restart)), 'dBFS RMS');
-  report(info, name + ': level in the 50 ms after the seam', toDb(rms(signal, restart, restart + 2400)), 'dBFS RMS');
-  expect(jump, 'the seam is not a full-scale click').toBeLessThan(0.1);
-  expect(correlation(signal, head, -restart, restart, restart + head.length - 4096), 'and plays on').toBeGreaterThan(0.999);
+
+  // The level is the preference until the dip, which starts no earlier than a fall and a guard
+  // and a couple of late ticks before the end.
+  const steady = gainOver(signal, tail, endOffset.offset, lastSample - STEADY - ms(50), ms(50));
+  expect(toDb(steady), 'the steady level is the preference').toBeCloseTo(toDb(LEVEL), 1);
+
+  // At the wrap: the largest step in the 25 ms up to the restart, against the usual one in the
+  // 50 ms before that (the measure the first report used, kept so the numbers compare).
+  const narrow = jumps(signal, restart - ms(25), restart + 1, restart - ms(75), ms(50));
+  report(info, name + ': largest sample jump at the seam', toDb(narrow.jump), 'dBFS');
+  report(info, name + ': seam jump over the usual sample-to-sample change before it', toDb(narrow.jump / narrow.usual), 'dB');
+  // Across the dip's fall and the wrap, against the usual change before the dip; and over the
+  // rise into the file's first notes, which is music as much as seam.
+  const fall = jumps(signal, restart - BEFORE, restart + 1, restart - BEFORE - ms(100), ms(100));
+  const rise = jumps(signal, restart + 1, restart + AFTER, restart - BEFORE - ms(100), ms(100));
+  report(info, name + ': largest sample jump in the 200 ms up to the restart', toDb(fall.jump), 'dBFS');
+  report(info, name + ': that jump over the usual change before it', toDb(fall.jump / fall.usual), 'dB');
+  report(info, name + ': largest sample jump in the 150 ms after the restart', toDb(rise.jump), 'dBFS');
+  report(info, name + ': level in the 50 ms before the seam', toDb(rms(signal, restart - ms(50), restart)), 'dBFS RMS');
+  report(info, name + ': level in the 50 ms after the seam', toDb(rms(signal, restart, restart + ms(50))), 'dBFS RMS');
+  expect(narrow.jump, 'the seam is not a full-scale click').toBeLessThan(0.1);
+  // The dip (vote-1794894573488-8i55z3v), measured at 30% x OUTPUT_SCALE. Before it, the wrap
+  // itself stepped by up to -39.5 dBFS (phase 0) and the 200 ms window peaked 43 dB above the
+  // usual change (phases 3 and 5); with it, at most -74 dBFS at the wrap and 27 dB across the
+  // window. The thresholds leave a few dB for run-to-run spread and fail on the old build.
+  expect(toDb(narrow.jump), 'the step at the wrap is gone into the floor').toBeLessThanOrEqual(SEAM_AT_WRAP_DBFS);
+  expect(toDb(fall.jump / fall.usual), 'the dip itself steps by less than the seam did').toBeLessThanOrEqual(SEAM_WINDOW_DB);
+  expect(correlation(signal, head, -restart, restart + RESHAPED, restart + head.length - 4096), 'and plays on').toBeGreaterThan(0.999);
 });

@@ -1,0 +1,12 @@
+# osv-scanner configuration. Every entry here is a dated, maintainer-approved exception;
+# `ignoreUntil` makes the scan fail again on that date so the exception cannot go stale.
+
+# picomatch ReDoS (single-branch repeated extglobs). No patched release exists: every version
+# up to 4.0.7 (the latest) is affected. picomatch reaches this repo only through build and test
+# tooling (expo CLI -> @expo/metro-file-map -> jest-worker / jest-util), never the shipped game,
+# and exploitation needs attacker-supplied glob patterns, which the build never takes.
+# Approved by the maintainer on 2026-11-17. Remove as soon as a fixed picomatch is available.
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2026-12-17T00:00:00Z
+reason = "picomatch ReDoS; no fix released; build/test tooling only; maintainer-approved 2026-11-17; revisit by 2026-12-17"

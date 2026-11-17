@@ -12,7 +12,7 @@ import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { median, peak, ramp, toDb } from '../audio/dsp';
 import { boot, dismissBoot, expect, test } from './helpers';
-import { BLOCK, BLOCK_MS, isScore as music, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, PREFERENCE, report, REST_MS, span, startScore } from './signalMeasure';
+import { BLOCK, BLOCK_MS, isScore as music, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, LEVEL, report, REST_MS, span, startScore } from './signalMeasure';
 import { assetPath, captured, installSignalTap, playing, SAMPLE_RATE, signalFrame, signalTapReady } from './signalTap';
 
 const lead = Math.round(REST_MS / 1000 * SAMPLE_RATE);
@@ -45,11 +45,11 @@ test('a phase change never renders two scores at once: the old one is cut, then 
   expect(before.correlation, 'the old signal is the phase 0 file').toBeGreaterThan(0.999);
   const lastBlock = Math.floor(leaving.to / BLOCK) - 1;
   report(info, 'phase change: old score gain in its last 5 ms (a cut, not a fade)', toDb(before.envelope[lastBlock - 1] ?? Number.NaN), 'dB');
-  expect(toDb(median(before.envelope, lastBlock - 10, lastBlock)), 'cut from the full preference level').toBeCloseTo(toDb(PREFERENCE), 1);
+  expect(toDb(median(before.envelope, lastBlock - 10, lastBlock)), 'cut from the full preference level').toBeCloseTo(toDb(LEVEL), 1);
 
   const after = await matched(page, next);
   expect(after.correlation, 'the new signal is the phase 1 file').toBeGreaterThan(0.999);
-  const fade = ramp(after.envelope, 0, PREFERENCE, BLOCK_MS);
+  const fade = ramp(after.envelope, 0, LEVEL, BLOCK_MS);
   if (!fade) throw new Error('The new score never reached the preference level.');
   report(info, 'phase change: new score fade-in', fade.durationMs, 'ms');
   expect(fade.reversals).toBe(0);
@@ -68,11 +68,11 @@ async function expectFadeOut(page: Page, from: number, label: string, info: Para
   const score = result.elements.filter(music).at(-1);
   if (!score) throw new Error('No score was captured.');
   const match = await matched(page, score);
-  const fade = ramp(match.envelope, PREFERENCE, 0, BLOCK_MS);
+  const fade = ramp(match.envelope, LEVEL, 0, BLOCK_MS);
   if (!fade) throw new Error('The score never reached silence.');
   report(info, label + ': fade-out, first change to silence', fade.durationMs, 'ms');
-  report(info, label + ': fade-out largest single step', fade.largestStep * PREFERENCE, 'gain');
-  expect(toDb(median(match.envelope, 0, fade.startBlock)), 'at the preference level first').toBeCloseTo(toDb(PREFERENCE), 1);
+  report(info, label + ': fade-out largest single step', fade.largestStep * LEVEL, 'gain');
+  expect(toDb(median(match.envelope, 0, fade.startBlock)), 'at the preference level first').toBeCloseTo(toDb(LEVEL), 1);
   expect(fade.reversals, 'downwards only').toBe(0);
   expect(fade.largestStep, 'a ramp, not a step').toBeLessThanOrEqual(LARGEST_RAMP_JUMP);
   // The first write lands one step after the press and the last on the deadline, and with
@@ -118,12 +118,10 @@ test('the ending fades the score out and leaves silence', async ({ page }, info)
   await expectFadeOut(page, from, 'ending', info);
 });
 
-test('a score whose file arrives late still fades in', async ({ page }, info) => {
-  // Known limit, kept as an expected failure so that fixing it turns this case red until the
-  // annotation is removed. The fade-in is timed from the `play()` request, not from the first
-  // sample, so whatever part of it elapses while the file loads is never rendered; a file that
-  // takes longer than FADE_IN_MS starts at full level, as a step. docs/VOICE-CLIPS.md, "Limits".
-  test.fail(true, 'the fade-in runs on the request, not on the first sample');
+test('a score whose file arrives late waits for its first sample, then fades in from low, in steps', async ({ page }, info) => {
+  // The fade-in waits until the player's position moves (vote-1794894551240-5hquxco), so a file
+  // held back longer than the whole fade still starts quiet. Before that decision this start
+  // was one step to full level (docs/VOICE-CLIPS.md, "Measured signal").
   const delayMs = FADE_IN_MS + 200;
   await page.route('**/audio/music/**/*.mp3', async (route) => { await new Promise((resolve) => { setTimeout(resolve, delayMs); }); await route.continue(); });
   await installSignalTap(page);
@@ -132,12 +130,24 @@ test('a score whose file arrives late still fades in', async ({ page }, info) =>
   await dismissBoot(page);
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(async () => (await captured(page)).elements[0]?.audible ?? null, { timeout: 10_000 }).not.toBeNull();
-  await page.waitForTimeout(FADE_IN_MS + REST_MS);
+  await page.waitForTimeout(FADE_IN_MS * LONGEST_RAMP + REST_MS);
   const score = (await captured(page)).elements.filter(music).at(-1);
   if (!score) throw new Error('No score was captured.');
-  const fade = ramp((await matched(page, score)).envelope, 0, PREFERENCE, BLOCK_MS);
+  const { envelope } = await matched(page, score);
+  // The first whole 5 ms block of signal: how loud the score is when it is first heard.
+  const firstBlock = Math.ceil(span(score).from / BLOCK);
+  const first = envelope[firstBlock] ?? Number.NaN;
+  const fade = ramp(envelope, 0, LEVEL, BLOCK_MS);
   if (!fade) throw new Error('The score never reached the preference level.');
-  report(info, 'fade-in when the file arrives ' + String(delayMs) + ' ms after play()', fade.durationMs, 'ms');
-  report(info, 'largest single step of that start', fade.largestStep * PREFERENCE, 'gain');
-  expect(fade.durationMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
+  report(info, 'file held back ' + String(delayMs) + ' ms: first audible gain, as a fraction of the level', first / LEVEL, '');
+  report(info, 'file held back ' + String(delayMs) + ' ms: fade-in, first audible sample to the level', fade.durationMs, 'ms');
+  report(info, 'file held back ' + String(delayMs) + ' ms: largest single step, as a fraction of the level', fade.largestStep, '');
+  // Low: no more than two volume writes of the fade (each is RAMP_STEP_MS / FADE_IN_MS of it).
+  expect(first / LEVEL, 'heard first at a step or two of the fade, not at the level').toBeLessThanOrEqual(2 * RAMP_STEP_MS / FADE_IN_MS + 0.01);
+  expect(first, 'but heard').toBeGreaterThan(0);
+  // Then up in steps, one way, over about the whole fade.
+  expect(fade.reversals, 'upwards only').toBe(0);
+  expect(fade.largestStep, 'a ramp, not a step').toBeLessThanOrEqual(LARGEST_RAMP_JUMP);
+  expect(fade.durationMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.8);
+  expect(fade.durationMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
 });

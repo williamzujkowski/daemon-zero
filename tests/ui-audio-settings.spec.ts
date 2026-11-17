@@ -10,7 +10,7 @@ import { scoreMetadata } from '../src/app/scoreSession';
 
 setupM4Tests();
 vi.mock('../src/app/audioPlayer', () => ({ prepareMusic: () => Promise.resolve(),
-  createMusicPlayer: () => ({ play: vi.fn(), pause: vi.fn(), volume: vi.fn(), remove: vi.fn() }) }));
+  createMusicPlayer: () => { let at = 0; return { play: vi.fn(), pause: vi.fn(), volume: vi.fn(), remove: vi.fn(), position: () => (at += 0.025), duration: () => 0 }; } }));
 
 it('routes Audio back through the root menu and exposes accessible numeric volume and actual playback status', async () => {
   const view = await mountM4('tick-0');

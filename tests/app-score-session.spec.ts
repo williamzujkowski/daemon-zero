@@ -6,6 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../src/app/musicController';
 import { scoreTracks } from '../src/app/musicTracks';
+import { OUTPUT_SCALE } from '../src/app/outputLevel';
 import { bindScoreSession, browserSessionHost, GAME_TITLE, scoreLabel, scoreMetadata, type ScoreMetadata, type SessionHost } from '../src/app/scoreSession';
 import { CONTENT } from '../src/content';
 import { fresh, harness, run, settle } from './music-ramp-harness';
@@ -153,7 +154,7 @@ describe('when the session exists', () => {
     const counting = h.controller.state.subscribe(() => { reads += 1; });
     const level = fresh(h.at(0));
     h.controller.setDucked(true); run(DUCK_RAMP_MS);
-    expect(level.at(-1), 'the clip really did take the score down').toBeCloseTo(0.4 * DUCK_RATIO);
+    expect(level.at(-1), 'the clip really did take the score down').toBeCloseTo(0.4 * OUTPUT_SCALE * DUCK_RATIO);
     h.controller.setVolume(60);
     h.at(0).status(false, false, false); h.at(0).status(true, false, false);
     expect(reads, 'the session was re-read while the clip talked').toBeGreaterThanOrEqual(3);
@@ -162,7 +163,7 @@ describe('when the session exists', () => {
     expect(fake.offered()).toEqual(['pause', 'play']);
     expect(fake.session.playbackState).toBe('playing');
     h.controller.setDucked(false); run(DUCK_RAMP_MS);
-    expect(level.at(-1)).toBeCloseTo(0.6);
+    expect(level.at(-1)).toBeCloseTo(0.6 * OUTPUT_SCALE);
     expect(fake.session.metadata).toBe(before);
     expect(fake.session.playbackState).toBe('playing');
     counting(); h.stop();

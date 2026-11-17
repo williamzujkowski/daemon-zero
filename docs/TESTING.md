@@ -469,10 +469,11 @@ PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/audio.json DAEMON_E2E_AUDIO=1 bash scripts/e2e-
 ```
 
 `tests/audio-assets.spec.ts` measures the committed files with **ffmpeg and ffprobe**, which
-are tools on the machine, not package dependencies. Where they are missing the file-level
-checks are skipped with a console warning (`[audio-assets] ffmpeg/ffprobe not found`); the CI
-workflow does not install them, so on CI those checks do not run unless the runner image
-happens to carry ffmpeg. The measurement-function tests in the same file always run.
+are tools on the machine, not package dependencies. Where they are missing on a developer's
+machine the file-level checks are skipped with a console warning (`[audio-assets]
+ffmpeg/ffprobe not found`). Where `CI` is set they are not skipped: a missing tool fails the
+run, and the `verify` job installs ffmpeg from apt before `make verify` (#198). The
+measurement-function tests in the same file always run.
 
 ### Seeking on the test server
 
@@ -520,8 +521,9 @@ at their 30% defaults unless a step says otherwise:
 1. **Sound at all.** MENU > Audio > RESUME MUSIC. Is the phase score audible on the speaker
    and on headphones? Note the phone's media volume step.
 2. **The start.** Switch music off and on five times. Does the score swell in over about half
-   a second each time, or does it sometimes start abruptly at full level? (Emulator: one start
-   of two was abrupt.)
+   a second each time, or does it sometimes start abruptly at full level? (Emulator, before
+   #198: one start of two was abrupt. The fade-in now waits for the player's position to move,
+   which on Android is ExoPlayer's position; not yet re-measured there.)
 3. **Music off and the ending.** Does the score fade away over about half a second, with no
    click at the end? (Emulator: a smooth fade of about 650 ms.)
 4. **READ over the score.** In phase 1 or later press `[ ▶ READ ]` with the score playing.
@@ -533,13 +535,16 @@ at their 30% defaults unless a step says otherwise:
    *without* the voice? The emulator rendered the score 3 dB lower than the clip at equal
    settings; a phone is the place to find out whether that is the emulator or Android.
 6. **Both at 100%.** Raise music and speech to 100% and READ several lines. Any crackle or
-   distortion on loud syllables? (Arithmetic says coincident peaks can exceed full scale by
-   about 1 dB while ducked and about 4 dB in the first 200 ms of a clip.)
+   distortion on loud syllables? (Since #198 both are scaled by `OUTPUT_SCALE` 0.6, so the
+   arithmetic worst case is -0.19 dBFS; before, coincident peaks could exceed full scale by
+   about 4 dB in the first 200 ms of a clip.) Is 100% now loud enough?
 7. **Phase change.** Buy the node that opens the next phase with the score playing. One score
    stops and the next fades in; is the cut objectionable? Are two scores ever audible at once?
 8. **The loop.** Leave phase 0 playing through its end (2 min 18 s). Is there a tick or a
    lurch where it restarts? (Measured: the file ends 28 dB below full scale mid-decay and
-   restarts from near silence.) Then phases 3 and 1, the next largest seams.
+   restarts from near silence; since #198 the player dips its gain over the last ~100 ms
+   and the first 75 ms, so the question is now whether the dip itself is audible as a gap.)
+   Then phases 3 and 1, the next largest seams.
 9. **Steps.** During a duck or fade on headphones, is a staircase audible (a faint buzz or
    zipper), or does it sound smooth?
 10. **Things no capture here covers.** Phone speaker frequency response (is the 60 Hz hum of
@@ -745,8 +750,8 @@ tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e` and
 `make e2e-pages`; these browser suites are separate from `make verify-full`.
 Both include the `audio` project's default signal measurements (the control, the duck and the
-transitions); the per-phase ones (`make e2e-audio`) and the ffmpeg-based file checks are not
-run by CI. Only a successful `main` run deploys the tested Pages export. See
+transitions); the per-phase ones (`make e2e-audio`) are not run by CI. The ffmpeg-based file
+checks are: the job installs ffmpeg, and those checks fail rather than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on
