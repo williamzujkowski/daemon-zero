@@ -25,3 +25,11 @@ blockExoticSubdeps: true
 overrides:
   # @expo/fingerprint requests minimatch ^10.2.6 and no patched 10.x exists.
   minimatch@>=10 <11.0.1: 11.0.1
+
+# Dated, maintainer-approved audit exceptions (2026-11-17). Each id here is also in
+# osv-scanner.toml with the same expiry; tests/security-exceptions.spec.ts fails once the
+# expiry passes, so an exception cannot outlive its review.
+# GHSA-fc5q-39xc-vjpf: picomatch ReDoS, no patched release; build/test tooling only.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-fc5q-39xc-vjpf

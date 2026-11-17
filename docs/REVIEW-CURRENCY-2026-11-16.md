@@ -212,8 +212,10 @@ install prints no deprecation warning and asks to run no new build script.
   build and test tooling (expo CLI -> `@expo/metro-file-map` -> `jest-worker`/`jest-util`),
   not the shipped game, and exploitation needs attacker-supplied glob patterns. The
   maintainer approved a scoped exception on 2026-11-17: `osv-scanner.toml` ignores exactly
-  this id until 2026-12-17, when the scan fails again. Remove it when a fixed picomatch
-  ships. `pnpm audit --audit-level=high` did not report it at the time; trivy reported 0
+  this id until 2026-12-17, when the scan fails again, and `pnpm-workspace.yaml`
+  `auditConfig.ignoreGhsas` carries the same id for `pnpm audit` (which began reporting it
+  the same day). `tests/security-exceptions.spec.ts` fails if a pnpm exception has no dated
+  osv entry or once the date passes. Remove both when a fixed picomatch ships. trivy reported 0
   findings for `pnpm-lock.yaml` (see S1 on scanners and the two-document lockfile before
   reading that as a clean result).
 
