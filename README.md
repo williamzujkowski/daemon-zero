@@ -47,10 +47,10 @@ corporate management have focused sections. The kernel log stays visible and
 can expand; earlier upgrades and reference detail remain available on demand.
 See the [workspace review](docs/REVIEW-UI-WORKSPACES.md).
 
-## Quick start (Ubuntu 24.04)
+## Quick start (Ubuntu 26.04 or 24.04)
 
 ```bash
-bash scripts/bootstrap-ubuntu24.sh   # installs mise and the pinned toolchain
+bash scripts/bootstrap-ubuntu.sh     # installs mise and the pinned toolchain
 make setup                           # install dependencies from the lockfile
 make verify                          # typecheck, lint, content validation, tests, balance sim
 ```
@@ -67,7 +67,7 @@ make e2e-live  # play the whole game live in the browser, fresh profile to an en
 make e2e-audio # measure the rendered audio signal for every phase score and loop seam (~1 min)
 ```
 
-For Android, run `bash scripts/bootstrap-ubuntu24.sh --android`, source
+For Android, run `bash scripts/bootstrap-ubuntu.sh --android`, source
 `~/.config/daemon-zero/android-env.sh`, create/start an AVD, then run `make android`.
 See `docs/TESTING.md` for commands and the distinction between Expo Go verification
 and a standalone release build.

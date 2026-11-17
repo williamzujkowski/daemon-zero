@@ -14,7 +14,7 @@ Historical milestone evidence and limits follow; current M7 verification is in
 
 Goal: the seed runs green on the maintainer's machine and in CI.
 
-- [x] `bash scripts/bootstrap-ubuntu24.sh` on Ubuntu 24.04 (fresh isolated systemd-nspawn environment, including signed-apt mise installation and the pinned toolchain).
+- [x] `bash scripts/bootstrap-ubuntu.sh` (then named `bootstrap-ubuntu24.sh`) on Ubuntu 24.04 (fresh isolated systemd-nspawn environment, including signed-apt mise installation and the pinned toolchain).
 - [x] `make setup && make verify` passes locally (Ubuntu 26.04 host and isolated Ubuntu 24.04, pinned Node 24.22.2 and pnpm 10.28.0).
 - [x] Run `mise install` and commit the generated `mise.lock` if the installed mise version produces one. Generated with mise 2026.11.5 using `mise lock --upgrade --platform linux-x64`; includes URLs and checksums for all five tools.
 - [x] `git init`, first commit, create the GitHub repo (`gh repo create`), push.
@@ -38,7 +38,7 @@ Local verification: 72 tests and `make verify-full` pass. Production web boots a
 - [x] Add React lint rules: `eslint-plugin-react-hooks` (the optional Expo preset was tested and omitted: its import/react plugins exclude ESLint 10). All existing rules are retained.
 - [x] `App.tsx` renders a black screen with the first boot log line read from `createInitialState(CONTENT)`. This proves Metro resolves the JSON content and the engine.
 - [x] Add `make dev`, `make web`, `make android` targets and `make build-web` (`npx expo export --platform web`). Add `build-web` to `verify`.
-- [x] Extend `scripts/bootstrap-ubuntu24.sh --android` to install the JDK via mise (`java = temurin-21`, pinned), Android command-line tools and KVM packages. Enable the `/dev/kvm` line in `.devcontainer/devcontainer.json` only after confirming the host has KVM.
+- [x] Extend `scripts/bootstrap-ubuntu.sh --android` to install the JDK via mise (`java = temurin-21`, pinned), Android command-line tools and KVM packages. Enable the `/dev/kvm` line in `.devcontainer/devcontainer.json` only after confirming the host has KVM.
 - [x] Update Vitest coverage `include` so UI code added later is measured (floor 80% for `src/app`, `src/ui`).
 
 Exit gate: `make verify` green including `build-web`; app boots in a browser and shows the boot line; Android boot verified on an emulator or device, or explicitly reported as not verified.
