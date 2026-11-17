@@ -499,6 +499,25 @@ clip's. A clip that something outside the app pauses on Android (a headset key l
 the clip's own media session) now ends like a stop, so the score comes back up. What media
 keys do, and what a lock screen shows, is in [SOUNDTRACK.md](SOUNDTRACK.md).
 
+**A held clip ends. This is intended.** On Android a READ clip that has been heard playing
+ends the moment anything outside the app holds it, and it does not resume:
+
+- the platform pausing every player as the app leaves the foreground,
+- a transient loss of audio focus (a notification sound, a call, another app's audio),
+- a headset or keyboard pause key landing on the clip's own media session.
+
+All three reach JavaScript as the same status, "not playing", and the app cannot tell them
+apart. There is no in-app pause for a clip, so nothing could ever resume one; a clip left
+held would keep the score ducked under silence. So the clip is released, the score comes
+back up, and pressing READ plays the line again from the start. A report of "not playing"
+before the clip has been heard is not a hold (every player sends one while it prepares) and
+is ignored. Web and iOS do not do this: there, "not playing" is also what buffering looks
+like (`heldBy` in `src/app/pauseSignal.ts`). The cost is accepted: a one-second focus loss
+ends a clip that could have continued. Test: `tests/app-voice-player.spec.ts`, "on Android
+ends a READ clip that has been heard as soon as anything outside the app holds it…". Seen
+on no device: the three causes are known from how Android and the library behave, and only
+the status they produce is exercised.
+
 - **Playback produces the right signal on web; nobody has heard it.** Unit tests run against
   a mocked player, which proves which clip is handed over and that a second press cancels the
   first. On web, `tests/e2e/voice-playback.e2e.ts` proves the bundled clip is requested after

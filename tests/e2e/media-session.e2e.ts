@@ -76,7 +76,7 @@ test('the session appears only after the first gesture, survives READ, obeys its
   const playing = await session(page);
   expect(playing.metadata).toMatchObject({ ...scoreMetadata(phase), artist: GAME_TITLE, album: GAME_TITLE });
   // The page's own icon, same origin, or none: never a remote image.
-  for (const image of playing.metadata?.artwork ?? []) expect(image.startsWith(new URL('./', page.url()).origin)).toBe(true);
+  for (const image of playing.metadata?.artwork ?? []) expect(new URL(image).origin, image).toBe(new URL(page.url()).origin);
   expect(playing.offered).toEqual(['pause', 'play']);
   expect(playing.refused).toEqual(expect.arrayContaining(['nexttrack', 'previoustrack', 'seekbackward', 'seekforward', 'seekto']));
 
