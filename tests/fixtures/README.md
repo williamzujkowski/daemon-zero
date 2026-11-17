@@ -49,8 +49,8 @@ the current iteration) and v5 inputs on the preview registry.
 Run access input (#220):
 - `pre-interruption-v6.json`: genuine version 6 codec output from `6eeb9b7` (main before the v7
   presentation token), and `pre-access-v7.json`: genuine version 7 codec output from `f06bcfa`
-  (main before the v8 access record). Both were made the same way, with historical source
-  extracted by `git archive` outside the repository: the public factory, the STEALTH bot and
+  (v7 main before the v8 access record; #239 later changed no saved shape). Both were made the
+  same way, with historical source extracted by `git archive` outside the repository: the public factory, the STEALTH bot and
   fixed engine ticks for 1500 simulated seconds (phase 2), a `SUSPICION` wipe through the public
   `wipe` (retrained, `outside: true`), 45 seconds in the guest and `voluntaryWipe`
   (`outside: false`), then 120 seconds and `serialize`. Each is iteration 3 in phase 0 with two
