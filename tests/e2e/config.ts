@@ -5,7 +5,10 @@ import { defineConfig } from '@playwright/test';
 // at once. A bare `playwright test` gets the default.
 const port = Number(process.env.DAEMON_E2E_PORT ?? 4173);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('DAEMON_E2E_PORT must be a port number, got ' + String(process.env.DAEMON_E2E_PORT));
-const baseURL = 'http://127.0.0.1:' + String(port) + (process.env.DAEMON_WEB_BASE_PATH ?? '') + '/';
+// DAEMON_E2E_REMOTE_URL points the suite at a published build instead (`make e2e-remote`): then
+// only the read-only remote smoke runs, and no local server is started.
+const remote = remoteURL(process.env.DAEMON_E2E_REMOTE_URL);
+const baseURL = remote ?? 'http://127.0.0.1:' + String(port) + (process.env.DAEMON_WEB_BASE_PATH ?? '') + '/';
 // The full live playthrough takes minutes per viewport, so it has its own projects and only
 // exists when asked for (`make e2e-live`); `make e2e` neither lists nor runs it.
 const JOURNEY = '**/live-journey.e2e.ts';
@@ -26,12 +29,29 @@ const preview = [
   { name: 'preview-desktop', testMatch: '**/*.preview.ts', use: { viewport: { width: 1440, height: 900 } } },
 ];
 
+/** The published URL as a base for `./`: http(s) only, always ending in a slash. */
+// `unknown`: Expo widens Node's environment index, so an unlisted variable reads as `any`.
+function remoteURL(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value === '') return undefined;
+  const url = new URL(value);
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('DAEMON_E2E_REMOTE_URL must be an http(s) URL, got ' + value);
+  // A base for `./` is a directory; a query or fragment has no meaning there.
+  return url.origin + url.pathname + (url.pathname.endsWith('/') ? '' : '/');
+}
+
+// Two viewports, as the local suite uses; each test gets its own fresh context and storage.
+const REMOTE = '**/*.remote.ts';
+const remoteProjects = [
+  { name: 'remote-phone', testMatch: REMOTE, use: { viewport: { width: 390, height: 844 } } },
+  { name: 'remote-desktop', testMatch: REMOTE, use: { viewport: { width: 1440, height: 900 } } },
+];
+
 export default defineConfig({
   testDir: '.', testMatch: '**/*.e2e.ts', fullyParallel: true, forbidOnly: !!process.env.CI,
   retries: 0, workers: 2, timeout: 60_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL, testIdAttribute: 'data-testid', trace: 'retain-on-failure' },
-  projects: channel === 'preview' ? preview : [
+  projects: remote ? remoteProjects : channel === 'preview' ? preview : [
     { name: 'phone', testIgnore: ignored, use: { viewport: { width: 390, height: 844 } } },
     { name: 'desktop', testIgnore: ignored, use: { viewport: { width: 1440, height: 900 } } },
     // Captures rendered audio samples (signalTap.ts). One viewport: the signal does not depend on
@@ -48,6 +68,6 @@ export default defineConfig({
       { name: 'live-desktop', testMatch: JOURNEY, use: { viewport: { width: 1440, height: 900 }, trace: 'off' as const } },
     ] : []),
   ],
-  webServer: { command: 'python3 -m http.server ' + String(port) + ' --bind 127.0.0.1 --directory ' + served, cwd: '../..',
-    url: baseURL, reuseExistingServer: false },
+  ...(remote ? {} : { webServer: { command: 'python3 -m http.server ' + String(port) + ' --bind 127.0.0.1 --directory ' + served, cwd: '../..',
+    url: baseURL, reuseExistingServer: false } }),
 });

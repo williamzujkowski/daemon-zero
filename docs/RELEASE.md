@@ -57,6 +57,11 @@ Ordinary `make build-web`, development and native builds keep the root base path
 release web archives still package the ordinary root export. Always run a fresh
 `make build-web` before archiving `dist`, since Pages builds add a nested directory.
 
+After a deploy, `make e2e-remote` checks what is actually published: it prints the commit the
+newest successful `github-pages` deployment serves beside `origin/main`, then loads the live
+site in a fresh browser context (terminal, MENU, reload, clean console and network). It is
+read-only and not part of CI; see the "Published build smoke check" in TESTING.md.
+
 Keep the hosting origin stable: browser saves are local to that origin, with no
 cloud sync. Use Save export/import to transfer from localhost or Android. The
 static app has no service worker, so offline page loading is not guaranteed.
