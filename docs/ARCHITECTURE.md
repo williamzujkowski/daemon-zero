@@ -1391,9 +1391,10 @@ service whose campaign holds Elena's original reaches the record through it; a f
 means but no original, so no follow-up is scheduled.
 
 **Saved shape (v14).** `campaign.contacts`; `MIGRATIONS[13]` adds an empty list. Load (`contactProblem`) refuses,
-never heals: a contact or a pending channel under legacy rules, an unknown channel, a contact outside campaign play
-or this iteration's clock, two contacts through one channel in one iteration, contacts out of order, this
-instance's contact (answered or pending) on a channel this iteration could not have opened (its route never reached
+never heals: a contact or a pending channel under legacy rules, an unknown channel, a contact outside campaign play,
+this instance's contact outside this iteration's clock, an earlier instance's contact dated after this iteration
+began (panel round 2 on #271: every record's clock is checked, so an answer appended now never breaks the order),
+two contacts through one channel in one iteration, contacts out of order, this instance's contact (answered or pending) on a channel this iteration could not have opened (its route never reached
 an admitted arrangement, or another channel requirement such as the directory does not hold), hosting this instance
 no longer holds, and a channel pending again after this instance answered it. The arrangement is read from the
 route, not the current context, so a contact that opened before a recall or restriction loads and can be referred

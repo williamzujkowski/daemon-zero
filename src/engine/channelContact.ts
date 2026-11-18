@@ -185,12 +185,23 @@ function openedProblem(s: GameState, encounter: ChannelEncounter, reg: ContentRe
   return meetsRequirements(s, rest, reg) ? null : 'save holds a channel contact whose channel it never opened';
 }
 
+/**
+ * Every record's time against the save's clock, whichever iteration made it (panel round 2 on #271): an
+ * earlier instance's contact happened before this iteration began, and this instance's happened inside
+ * it. With the ordering check, a contact appended now (at simTimeSec) can never break either rule, so
+ * what the loader admits stays loadable after an answer.
+ */
+function clockProblem(s: GameState, entry: ChannelContact): string | null {
+  if (entry.iteration < s.iteration) return entry.atSimSec > s.iterationStartedAtSimSec ? 'save records an earlier contact after this iteration began' : null;
+  return entry.atSimSec < s.iterationStartedAtSimSec || entry.atSimSec > s.simTimeSec ? 'save records a contact outside this iteration' : null;
+}
+
 function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry): string | null {
   const encounter = channelEncounter(reg, entry.encounter);
   if (!encounter) return `save records a contact through an unknown channel "${entry.encounter}"`;
   if (entry.iteration < (s.campaign.activatedAtIteration ?? Infinity) || entry.iteration > s.iteration) return 'save records a contact outside campaign play';
-  if (entry.iteration !== s.iteration) return null;
-  if (entry.atSimSec < s.iterationStartedAtSimSec || entry.atSimSec > s.simTimeSec) return 'save records a contact outside this iteration';
+  const clock = clockProblem(s, entry);
+  if (clock !== null || entry.iteration !== s.iteration) return clock;
   const opened = openedProblem(s, encounter, reg);
   if (opened !== null) return opened;
   if (entry.response === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1) return 'save records hosting this instance does not hold';

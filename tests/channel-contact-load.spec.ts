@@ -14,13 +14,18 @@ import {
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
 import { offered, preview, roundTrip } from './assignment-helpers';
-import { answer, CHANNEL, contactPending, delivered, directoryMapped, lawfulService, withMemory } from './contact-helpers';
+import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
 import { must } from './helpers';
 
 const pendingOn = (s: GameState): GameState => ({ ...s, pendingWildEncounterId: CHANNEL });
 const loadsThrough = (s: GameState): GameState => importSave(exportSave(s), preview);
 
 const pending = contactPending();
+/** Iteration two with the channel pending again, after iteration one hosted (FIXTURE memory) through it: public play. */
+const second = laterContact(must(answer(withMemory(pending), 'HOST')));
+/** Moves the earlier iteration's record to `atSimSec`, leaving everything else as play left it. */
+const earlierAt = (atSimSec: number): GameState => ({ ...second,
+  campaign: { ...second.campaign, contacts: second.campaign.contacts.map((entry, index) => (index === 0 ? { ...entry, atSimSec } : entry)) } });
 const recalledPending = must(recordRouteEvent(pending, 'RECALL', preview));
 const restrictedPending = must(setReviewStanding(pending, 'RESTRICTED', preview));
 
@@ -34,6 +39,22 @@ describe('a forged pending channel is refused whole (V15)', () => {
     const text = serialize(build());
     expect(() => deserialize(text, preview)).toThrow(message);
     expect(() => importSave(exportSave(build()), preview)).toThrow(message);
+  });
+});
+
+describe('every record\'s clock is checked, whichever iteration made it (panel round 2)', () => {
+  it('play leaves the earlier record before this iteration began, and the save loads', () => {
+    expect(second.iteration).toBe(2);
+    expect(second.campaign.contacts[0]?.atSimSec).toBeLessThanOrEqual(second.iterationStartedAtSimSec);
+    expect(serialize(loadsThrough(second))).toBe(serialize(second));
+  });
+
+  it.each([
+    ['in the future', () => earlierAt(second.simTimeSec + 100)],
+    ['after this iteration began', () => earlierAt(second.iterationStartedAtSimSec + 1)],
+  ])('refuses an earlier record dated %s', (_name, build) => {
+    expect(() => deserialize(serialize(build()), preview)).toThrow('save records an earlier contact after this iteration began');
+    expect(() => importSave(exportSave(build()), preview)).toThrow('save records an earlier contact after this iteration began');
   });
 });
 
@@ -77,6 +98,12 @@ describe('every accepted DZ-08 state stays loadable through every public action 
     // Hand-edited saves: if the loader ever admits one, what it admits must stay loadable too.
     ['forged: pending on a pilot', () => pendingOn(delivered())],
     ['forged: pending on a service without the directory', () => pendingOn(lawfulService())],
+    ['iteration two with the channel pending again', () => second],
+    ['forged: earlier record in the future', () => earlierAt(second.simTimeSec + 100)],
+    ['forged: earlier record after this iteration began', () => earlierAt(second.iterationStartedAtSimSec + 1)],
+    ['forged: records out of order', () => ({ ...second, campaign: { ...second.campaign,
+      contacts: [{ encounter: CHANNEL, iteration: 1, atSimSec: second.simTimeSec }, { encounter: CHANNEL, iteration: 1, atSimSec: 0, response: 'REFERRED' as const }]
+        .map((entry) => ({ response: 'REFERRED' as const, ...entry })) } })],
   ];
   it.each(states)('%s', (_name, build) => {
     let loaded: GameState;
