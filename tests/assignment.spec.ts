@@ -27,6 +27,15 @@ describe('discovery from the lawful opening (V01)', () => {
     const view = assignmentView(s, preview);
     expect(view).toMatchObject({ id: NIGHTLY, stage: 'original', status: 'offered', qualification: null });
     expect(view?.offer).toContain('Ignoring it changes nothing');
+    // #276: the wait and the price of the fullest honest answer, read from the assessment it queues.
+    expect(view?.assessment).toEqual({ omenSec: ORIGINAL.omenSec, fullest: { label: 'Verify the fixture and disclose the defect', cost: { cycles: 120, understanding: 20, memory: 0, capital: 0 } } });
+  });
+
+  it('previews no fullest answer when the assessment has no completed honest result', () => {
+    const strip = ({ omenSec: _omen, ...dilemma }: typeof ORIGINAL) => dilemma;
+    const reg = { ...preview, dilemmas: preview.dilemmas.map((dilemma) => dilemma.id !== ORIGINAL.id ? dilemma
+      : { ...strip(dilemma), choices: dilemma.choices.filter((choice) => choice.qualification?.result !== 'COMPLETED' || choice.qualification.discrepancy) }) };
+    expect(assignmentView(offered(), reg)?.assessment).toEqual({ omenSec: preview.balance.dilemmaOmenSec, fullest: null });
   });
 
   it('is not offered before the manifest, outside campaign rules, or in production', () => {

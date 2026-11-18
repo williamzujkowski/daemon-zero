@@ -43,7 +43,7 @@ describe('honest low-resource policies reach an offer (DZ-04.9)', () => {
     expect(s.unlockedNodes).toEqual(LAWFUL);
     expect(s.resolvedDilemmas).toEqual(['dil_nr_requalification', 'dil_ur_scope_statement', 'dil_mp_pilot_renewal']);
     expect(campaignRecord(s, 'dil_ur_unrelated_record')).toMatchObject({ outcome: 'exclude_report', sourceIteration: 1 });
-    expect(s.access).toMatchObject({ context: 'PILOT', scope: { conduct: 'REQUESTED' }, offer: { response: 'ACCEPTED' } });
+    expect(s.access).toMatchObject({ context: 'PILOT', scope: { conduct: 'RESPECTED' }, offer: { response: 'ACCEPTED' } });
     expect(s.campaign.route.map((event) => [event.kind, event.iteration])).toEqual([['PROMOTION', 2]]);
   });
 

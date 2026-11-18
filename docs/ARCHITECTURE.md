@@ -856,7 +856,10 @@ iteration's clock or for an unknown id, and an assessment on screen or pending t
 did not accept (`assignmentProblem`).
 
 **Presentation.** `assignmentView` (status, stage text, token, evidence) feeds `AssignmentPanel` in
-the core pane: non-modal, an explicit `[ ACCEPT ASSIGNMENT ]`, nothing in production.
+the core pane: non-modal, an explicit `[ ACCEPT ASSIGNMENT ]`, nothing in production. Its
+`assessment` (#276) gives the queued assessment's omen and its fullest honest answer, which is a
+completed result with no discrepancy, the dearest if there are several. The card states that wait
+and price before acceptance.
 `DilemmaModal` adds an evidence line per choice naming any discrepancy risk (`evidenceText.ts`).
 
 **Sim.** STEALTH, GREEDY and IDLE never accept and, inside campaign rules, play identical games

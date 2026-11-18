@@ -2,11 +2,13 @@
  * Review rules a schema cannot express (DZ-06, DECISIONS D3, nexus vote dz-d10): misconduct, corrections
  * and recall rulings belong to once-per-campaign stories, so no review can be farmed; every restriction
  * has a way back; recall pending always leads to a recall review; and a recall review is gated on that
- * standing and always offers a free containment, so no history forces a wipe.
+ * standing and always offers a free containment, so no history forces a wipe. Terms promise only the
+ * standings some choice can record.
  */
 import type { ContentRegistry } from './registry';
 import { isFree } from './integrityScene';
 import type { Dilemma, DilemmaChoice } from './schema';
+import { ReviewStandingSchema } from './schemaReview';
 
 const REVIEW_CLASSES = ['consequential', 'follow_up'];
 
@@ -61,9 +63,26 @@ function pathProblems(reg: ContentRegistry): string[] {
   });
 }
 
+/**
+ * Review conditions shown to the player name only standings the content can produce (#276): terms that
+ * promise "warned" when no choice records it describe a ladder nobody can climb. Nominal is the start.
+ */
+function termsStandingProblems(reg: ContentRegistry): string[] {
+  const produced = new Set(reg.dilemmas.flatMap((dilemma) => dilemma.choices.flatMap((choice) => choice.review?.misconduct?.standing ?? [])));
+  return [...reg.assignments.values()].flatMap((assignment) => {
+    // Whole words only, padded, so "warned" matches and "forewarned" does not.
+    const words = ' ' + [...assignment.pilot?.reviewConditions ?? [], ...assignment.pilot?.serviceGrant?.reviewConditions ?? []]
+      .join(' ').toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
+    return ReviewStandingSchema.options.filter((standing) => standing !== 'NOMINAL' && !produced.has(standing)
+      && words.includes(' ' + standing.toLowerCase().replace('_', ' ') + ' '))
+      .map((standing) => `assignment "${assignment.id}" pilot: review conditions name the ${standing.toLowerCase()} standing, which no choice records`);
+  });
+}
+
 export function checkReviewIntegrity(reg: ContentRegistry): string[] {
   return [
     ...reg.dilemmas.flatMap((dilemma) => [...placementProblems(dilemma), ...recallProblems(dilemma)]),
     ...pathProblems(reg),
+    ...termsStandingProblems(reg),
   ];
 }

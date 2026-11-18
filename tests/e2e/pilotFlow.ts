@@ -54,4 +54,6 @@ export async function toOffer(page: Page, scopeChoice: string): Promise<void> {
   await expect(page.getByTestId('pilot-capacity')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
   for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
   await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
+  // #276: the terms promise only standings the content can record.
+  await expect(page.getByTestId('pilot-review')).not.toContainText('warned');
 }

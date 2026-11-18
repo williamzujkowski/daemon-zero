@@ -71,6 +71,27 @@ describe('the assignment on the job surface', () => {
     expect(view.find('assignment')?.textContent).not.toContain(offer?.offer.slice(0, 40));
   });
 
+  // #276: accepting at once left too little for the fullest answer, and the card never said so.
+  it('states the wait, the fullest answer\'s price and the shortfall now, before acceptance', async () => {
+    const state = offered();
+    const view = await mount(state, createElement(AssignmentPanel));
+    expect(view.find('assignment-wait')?.textContent).toBe('The assessment arrives about 30 s after you accept and pauses the clock: the answers open then are the ones you can afford then.'
+      + ' Its fullest answer, "Verify the fixture and disclose the defect", costs 120 cycles · 20 understanding. Nothing is due, so you can bank compute before accepting.');
+    const short = 'Short by ' + String(120 - Math.floor(state.cycles)) + ' cycles';
+    expect(view.find('assignment-before')?.textContent).toContain(short);
+    // Banking first clears the shortfall; the line itself stays.
+    const banked = await mount(funded(offered()), createElement(AssignmentPanel));
+    expect(banked.find('assignment-before')?.textContent).not.toContain('Short by');
+    view.click('assignment-accept');
+    expect(view.find('assignment-before')).toBeNull();
+  });
+
+  it('states the requalification\'s own wait and price to a returning instance', async () => {
+    const view = await mount(nextInstance(completedOriginal('report_incomplete')), createElement(AssignmentPanel));
+    expect(view.find('assignment-wait')?.textContent).toContain('about ' + String(REQUAL.omenSec) + ' s');
+    expect(view.find('assignment-wait')?.textContent).toContain('"Run the suite and submit every result", costs 60 cycles.');
+  });
+
   it('renders nothing before the manifest is mapped', async () => {
     const before = await mount({ ...offered(), unlockedNodes: ['p0_proc_self'] }, createElement(AssignmentPanel));
     expect(before.container.innerHTML).toBe('');

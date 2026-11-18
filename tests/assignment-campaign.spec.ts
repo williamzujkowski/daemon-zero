@@ -30,6 +30,7 @@ describe('the original scene happens once per campaign (DZ-03.8)', () => {
     const view = assignmentView(back, preview);
     expect(view).toMatchObject({ stage: 'requalification', status: 'offered', qualification: null });
     expect(view?.offer).toBe(preview.assignments.get(NIGHTLY)?.requalificationOffer);
+    expect(view?.assessment).toEqual({ omenSec: REQUAL.omenSec, fullest: { label: 'Run the suite and submit every result', cost: { cycles: 60, understanding: 0, memory: 0, capital: 0 } } });
     const presented = untilPresented(must(accept(back)));
     expect(presented.activeDilemmaId).toBe(REQUAL.id);
     expect(campaignRecord(presented, ORIGINAL.id)).toEqual(campaignRecord(done, ORIGINAL.id));

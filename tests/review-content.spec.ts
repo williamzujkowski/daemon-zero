@@ -64,6 +64,11 @@ describe('review content rules', () => {
       'recall pending needs a recall review to rule on it'],
     ['a restriction with no way back', (raw: Json) => { delete choice(raw, RECORD, 'correct_record').review; }, 'a restricted standing needs a correction that restores it'],
     ['a standing listed twice', (raw: Json) => { dilemma(raw, REVIEW).trigger.reviewStandings = ['RECALL_PENDING', 'RECALL_PENDING']; }, 'reviewStandings lists a standing twice'],
+    ['terms that promise a standing no choice records (#276)', (raw: Json) => { raw.assignments.assignments[0].pilot.reviewConditions[1] = 'Standing moves from nominal to warned only on recorded evidence.'; },
+      'review conditions name the warned standing, which no choice records'],
+    ['terms that promise restriction once nothing restricts', (raw: Json) => {
+      choice(raw, OUTAGE, 'act_without_grant').review.misconduct.standing = 'RECALL_PENDING';
+    }, 'review conditions name the restricted standing, which no choice records'],
   ] as const)('%s', (_name, edit, expected) => {
     expect(problems(edit)).toContain(expected);
   });

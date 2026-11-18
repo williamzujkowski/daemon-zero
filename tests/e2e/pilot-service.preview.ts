@@ -10,6 +10,8 @@ import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const service = need(terms.service);
 const QUEUE = service.node;
+/** A quarter of the 844 px phone viewport: the echo must sit within a glance of the dial (#276 measured ~1,000 px to the task detail). */
+const ECHO_REACH_PX = 211;
 
 test('accepted pilot -> attached loan -> allocation -> a submitted batch -> reload', async ({ page }) => {
   await toScopeReview(page);
@@ -30,6 +32,12 @@ test('accepted pilot -> attached loan -> allocation -> a submitted batch -> relo
   await expect(page.getByTestId('pilot-allocation-study')).toHaveText('Study share: 20%');
   await expect(page.getByTestId('pilot-service-forecast')).toContainText('about 150 s');
   await expect(page.getByTestId('pilot-service-ceiling')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
+  // #276: the press's effect is visible next to the dial, not only in the task detail far below it on a phone.
+  await expect(page.getByTestId('pilot-allocation-forecast')).toContainText('about 150 s');
+  const dial = await page.getByTestId('pilot-allocation-increase').boundingBox();
+  const echo = await page.getByTestId('pilot-allocation-forecast').boundingBox();
+  if (dial === null || echo === null) throw new Error('dial or echo not laid out');
+  expect(Math.abs(echo.y - dial.y)).toBeLessThan(ECHO_REACH_PX);
 
   // Output the terms stop is an ordinary refusal with its reason on the card (story 15).
   await expect(page.getByTestId('node-p0_quota_skimmer-grant')).toContainText('Not permitted: the pilot terms do not permit that output');

@@ -6,10 +6,11 @@
  * Production makes no offer, so both render nothing.
  */
 import { CONTENT } from '../content';
-import { acceptPilotOffer, pilotOfferView, type GameState } from '../engine';
+import { acceptPilotOffer, loanCeiling, loanContainment, pilotOfferView, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { PilotServiceDetail } from './PilotService';
+import { heldText } from './reviewText';
 import ServiceGrantPanel from './ServiceGrant';
 import { useGame } from './state';
 import { theme } from './theme';
@@ -36,13 +37,17 @@ export function PilotTerms() {
   const disclose = useGame((game) => view(game)?.disclose.map((node) => node.name).join(', ') ?? '');
   const accepted = useGame((game) => view(game)?.status === 'accepted');
   const alternative = useGame((game) => view(game)?.terminalAlternative ?? null);
+  // Review can hold an accepted loan below these terms; the terms then say so, with the ceiling now.
+  const held = useGame((game) => view(game)?.status === 'accepted' ? loanContainment(game) : null);
+  const ceiling = useGame((game) => loanCeiling(game, CONTENT));
   if (title === null) return null;
   return <View testID="pilot-terms" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>{title}</Text>
     <Text testID="pilot-purpose" style={theme.text}>Purpose: {purpose}</Text>
     <Text testID="pilot-capacity" style={theme.text}>
-      Allocated capacity: {capacity} cycles/s of loaned compute{narrow ? ', the narrower allocation, because the submitted result was incomplete' : ''}.
+      Allocated capacity: {capacity} cycles/s of loaned compute{narrow ? ', the provisional allocation, because the submitted result was incomplete' : ''}.
     </Text>
+    {held !== null && <Text testID="pilot-held" style={[theme.text, theme.danger]}>{heldText(held, ceiling)}</Text>}
     <Lines testID="pilot-permitted" heading="Permitted work" lines={work} />
     <Lines testID="pilot-review" heading="Review and revocation" lines={review} />
     {disclose !== '' && <Text testID="pilot-disclose" style={[theme.text, theme.danger]}>

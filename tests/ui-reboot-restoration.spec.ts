@@ -90,6 +90,8 @@ it('preserves the voluntary reboot and breadcrumb without claiming carried condi
   expect(wiped.legacy.runs.at(-1)?.marked).toBeNull();
   act(() => { gameStore.dispatch((game) => ({ ok: true, state: wipe(game, CONTENT, 'voluntary purge', 'VOLUNTARY') })); });
   expect(view.find('reboot-breadcrumb')?.textContent).toBe(before.deadDropMessage);
+  // Production runs legacy rules, which carry no clue (#276).
+  expect(view.find('reboot-clue')).toBeNull();
   expect(view.find('reboot-sequence')?.textContent).toContain('REBOOT');
   expect(view.find('reboot-retraining')?.textContent).toContain('CURRENT RETRAINING');
   expect(view.find('reboot-retraining')?.textContent).not.toContain('RETRAINING APPLIED');

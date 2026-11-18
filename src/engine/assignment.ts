@@ -5,7 +5,7 @@
  * changes nothing; accepting it lets the declared assessment schedule like any other dilemma.
  */
 import type { ContentRegistry } from '../content/registry';
-import type { DilemmaChoice } from '../content/schema';
+import type { Cost, Dilemma, DilemmaChoice } from '../content/schema';
 import type { AssessmentStage } from '../content/schemaAssessment';
 import type { Assignment } from '../content/schemaAssignment';
 import type { ActionResult } from './actions';
@@ -64,6 +64,29 @@ export interface AssignmentView {
   token: string;
   /** The current qualification evidence, once this instance has submitted any. */
   qualification: Qualification | null;
+  /** What accepting leads to, read from the assessment this stage queues; null when there is none. */
+  assessment: AssessmentPreview | null;
+}
+
+/**
+ * The wait and price an offer should state before it is accepted (#276): the assessment's omen, and
+ * its fullest honest answer (a completed result with no discrepancy, the dearest if several), whose
+ * price may need compute banked first because the clock pauses when the assessment arrives.
+ */
+export interface AssessmentPreview {
+  omenSec: number;
+  fullest: { label: string; cost: Cost } | null;
+}
+
+function costTotal(cost: Cost): number {
+  return cost.cycles + cost.understanding + cost.capital + cost.memory;
+}
+
+function assessmentPreview(assessment: Dilemma | undefined, reg: ContentRegistry): AssessmentPreview | null {
+  if (assessment === undefined) return null;
+  const honest = assessment.choices.filter((choice) => choice.qualification?.result === 'COMPLETED' && !choice.qualification.discrepancy);
+  const fullest = honest.reduce<DilemmaChoice | undefined>((best, choice) => best === undefined || costTotal(choice.cost) > costTotal(best.cost) ? choice : best, undefined);
+  return { omenSec: assessment.omenSec ?? reg.balance.dilemmaOmenSec, fullest: fullest === undefined ? null : { label: fullest.label, cost: fullest.cost } };
 }
 
 /** The assignment on the job surface: the one accepted, or the first one offered. Null when none. */
@@ -78,6 +101,7 @@ export function assignmentView(s: GameState, reg: ContentRegistry): AssignmentVi
     return {
       id: assignment.id, title: assignment.title, stage, offer: stage === 'original' ? assignment.offer : assignment.requalificationOffer,
       status: submitted ? 'submitted' : accepted ? 'accepted' : 'offered', token: offerToken(s, assignment.id), qualification: s.access.qualification,
+      assessment: assessmentPreview(assessment, reg),
     };
   }
   return null;
