@@ -4,16 +4,23 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { cycleContributions, toggleNode } from '../engine';
+import { cycleContributions, nodeUseBlocker, toggleNode } from '../engine';
 import { gameStore } from '../app/session';
 import { Text, View } from './PhaseTheme';
 import NodeTitle from './NodeTitle';
+import GrantNote from './GrantNote';
 import PurchaseButton from './PurchaseButton';
 import { needsProcessControl } from './purchaseVisibility';
 import { useGame } from './state';
 import { theme } from './theme';
 
 function Impact({ node }: { node: RegistryNode }) {
+  // A loan adds no cycles of the player's own, so its row says what it is instead (story 12); any
+  // row the permitted-use rule refuses also says why (story 15).
+  return <>{node.grant === undefined && <CycleImpact node={node} />}<GrantNote node={node} /></>;
+}
+
+function CycleImpact({ node }: { node: RegistryNode }) {
   const cycles = useGame((game) => cycleContributions(game, CONTENT).find((source) => source.id === node.id)?.cyclesPerSec ?? 0);
   const held = node.cost.memory;
   // Memory is what the player is hunting when they open this panel: a process that holds
@@ -37,6 +44,7 @@ const Process = memo(function Process({ node }: { node: RegistryNode }) {
       ? <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + node.revealedName
           + (suspended ? '' : ' and free ' + String(node.cost.memory) + ' MB')}
         text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
+        allowed={(game) => !game.disabledNodes.includes(node.id) || nodeUseBlocker(game, node, CONTENT) === null}
         action={(game) => toggleNode(game, node.id, CONTENT)} />
       : <Text testID={'daemon-hardware-' + node.id} style={theme.muted}>[ HARDWARE ] cannot be suspended</Text>}
   </View>;

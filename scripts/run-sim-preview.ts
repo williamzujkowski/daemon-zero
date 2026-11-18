@@ -17,9 +17,15 @@ import { voluntaryWipe } from '../src/engine/actions';
 import { untilObligationsComplete } from '../src/engine/sim/obligationRun';
 import { STEALTH_RETURN_POLICY } from '../src/engine/sim/returnPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
+import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
+import { pilotServiceView } from '../src/engine/pilotService';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
-const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE'];
+/** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
+const PILOT_BUDGET_SEC = 900;
+
+const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE',
+  'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST'];
 
 const overlayItems = Object.entries(PREVIEW_OVERLAY)
   .filter(([key]) => key !== 'sentinel')
@@ -78,6 +84,15 @@ else {
   const back = runWipeSequence(PREVIEW, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: RETURN_BUDGET_SEC, initialState: left.state });
   for (const line of formatWipeSequence(back)) console.log(line);
   console.log(`  ending ${back.finalState.ending ?? 'none'}`);
+}
+
+// DZ-05 (V30): two allocations of the same loaned ceiling, from a fresh preview game to the budget.
+console.log('\n-- preview, the pilot loop under two allocations of one ceiling --');
+for (const policy of [PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY]) {
+  const { finalState: s } = runPolicySim(PREVIEW, policy, { maxSimSec: PILOT_BUDGET_SEC });
+  const view = pilotServiceView(s, PREVIEW);
+  console.log(`  ${policy.id.padEnd(20)} ceiling ${String(view?.ceilingCyclesPerSec ?? 0)} cycles/s | share ${String(s.actuators.serviceAllocationRatio)}` +
+    ` | batches ${String(s.access.work.batches)} | progress ${(view?.progressCycles ?? 0).toFixed(1)} | understanding ${s.understanding.toFixed(1)} | cycles ${s.cycles.toFixed(1)}`);
 }
 
 console.log(`\nsimulated in ${((performance.now() - started) / 1000).toFixed(1)} s of wall time`);

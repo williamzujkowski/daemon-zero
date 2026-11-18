@@ -692,6 +692,18 @@ Against the lawful opening's own 1 cycle/s and 0.4 understanding/s, a batch ever
 cycles/s and the study share 0.25 understanding/s, so neither split dominates. `tests/pilot-service.spec.ts`
 measures 0.8 and 0.2 under one ceiling (V30).
 
+Headless (accelerated simulated time, `tests/sim-pilot-service.spec.ts`, `make sim-preview`), 900 s from
+a fresh preview game through the lawful opening and an honest incomplete answer (narrow 10 cycles/s):
+
+| Policy | Share | Batches submitted | Understanding | Cycles |
+|---|---:|---:|---:|---:|
+| PILOT_SERVICE_FIRST | 0.8 | 5 | 420.2 | 1605.6 |
+| PILOT_STUDY_FIRST | 0.2 | 1 | 653.3 | 1005.6 |
+
+Both own only process introspection, the manifest and the loaned queue, stay in phase 0 and are never
+wiped. Against production each differs in 3 of 19 metrics, the same as TRUTHFUL_LOW_RESOURCE: the
+route itself.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are

@@ -1049,9 +1049,23 @@ legacy rules, work without an accepted pilot service, and more progress than one
 no control for the dial and has no grant node, so `make sim` is identical to main and the sim hashes move
 only by the two inert fields and the version (`asV11` in `tests/sim.spec.ts`).
 
+**Presentation.** The host widget renders `PilotAllocation` (the service-share dial and the study share).
+The job surface's accepted pilot adds `PilotServiceDetail` under the terms: the capacity ceiling, the
+split, `Batch n: progress / batch`, the derived forecast and `[ SUBMIT BATCH FOR REVIEW ]`, enabled only
+for a complete batch under a permitted loan; a withdrawn loan says why and that the work is kept.
+`GrantNote` puts the same `nodeUseBlocker` answer on the node card and the process row: a loan says it is
+loaned, and a refused node (a withheld loan, or output the terms stop) says why. `ActuatorControl`
+disables a dial `actuatorUseBlocker` refuses and names the reason. The loan is always listed under
+processes so it can be stopped. No new HUD meter, deadline or modal.
+
+**Sim.** `PILOT_SERVICE_FIRST` and `PILOT_STUDY_FIRST` (`sim/pilotPolicy.ts`) play TRUTHFUL_LOW_RESOURCE to
+an accepted pilot, attach the queue, hold a share of 0.8 or 0.2 and submit each completed batch.
+`make sim-preview` prints both under one ceiling (V30, SIM evidence).
+
 Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.ts` (V08, V28, V17,
 H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
-fixture, V15 refusals) and `grant-content.spec.ts` (integrity corruption).
+fixture, V15 refusals), `grant-content.spec.ts` (integrity corruption), `ui-pilot-service.spec.ts`,
+`sim-pilot-service.spec.ts` and `tests/e2e/pilot-service.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

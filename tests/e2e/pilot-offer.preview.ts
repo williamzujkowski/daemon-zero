@@ -5,58 +5,8 @@
  * a reload. Paused, advanced browser clock: accelerated time, not wall-clock play.
  */
 import path from 'node:path';
-import type { Page } from '@playwright/test';
-import { CONTENT as PREVIEW } from '../../src/content/preview';
-import { boot, core, expect, test } from './helpers';
-
-function need<T>(value: T | undefined): T {
-  if (value === undefined) throw new Error('DZ-04 contract missing');
-  return value;
-}
-const scene = (id: string) => need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === id));
-const ASSESSMENT = scene('dil_nr_stale_fixture');
-const RECORD = scene('dil_ur_unrelated_record');
-const OFFER = scene('dil_mp_pilot_offer');
-const terms = need([...PREVIEW.assignments.values()][0]?.pilot);
-const root = need(PREVIEW.nodes.get('p0_proc_self'));
-const manifest = need(PREVIEW.nodes.get('p0_job_manifest'));
-const omenMs = (dilemma: typeof OFFER): number => ((dilemma.omenSec ?? PREVIEW.balance.dilemmaOmenSec) + 2) * 1000;
-
-async function modal(page: Page, title: string, after: typeof OFFER): Promise<void> {
-  await page.clock.runFor(omenMs(after));
-  await expect(page.getByTestId('dilemma-modal')).toContainText(title);
-}
-
-async function choose(page: Page, choiceId: string): Promise<void> {
-  await page.getByTestId('dilemma-choice-' + choiceId).click();
-  await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
-}
-
-/** Fresh profile to the scope review: map by hand, accept, answer the assessment honestly. */
-async function toScopeReview(page: Page): Promise<void> {
-  await boot(page);
-  await core(page);
-  for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('node-p0_proc_self-unlock').click();
-  await page.clock.runFor(manifest.cost.cycles * 1000 + 2000);
-  await page.getByTestId('node-p0_job_manifest-unlock').click();
-  // Bank a little compute for the bounded request's price.
-  await page.clock.runFor(30_000);
-  await page.getByTestId('assignment-accept').click();
-  await modal(page, ASSESSMENT.title, ASSESSMENT);
-  await choose(page, 'report_incomplete');
-  await modal(page, RECORD.title, RECORD);
-}
-
-/** From the scope review to the offer on screen, its terms checked before any answer. */
-async function toOffer(page: Page, scopeChoice: string): Promise<void> {
-  await choose(page, scopeChoice);
-  await modal(page, OFFER.title, OFFER);
-  await expect(page.getByTestId('pilot-purpose')).toContainText(terms.purpose);
-  await expect(page.getByTestId('pilot-capacity')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
-  for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
-  await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
-}
+import { core, expect, test } from './helpers';
+import { choose, OFFER, omenMs, terms, toOffer, toScopeReview } from './pilotFlow';
 
 test('the scope review states each handling before selection; respecting scope leads to an offer that is accepted', async ({ page }) => {
   await toScopeReview(page);
