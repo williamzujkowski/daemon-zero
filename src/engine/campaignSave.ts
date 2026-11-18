@@ -75,8 +75,9 @@ function canonicalClue(c: CampaignState, events: CampaignState['events'], reg: C
  * legacy_unknown. Origin 'legacy' adds no ending evidence and the baseline is not recaptured; the
  * trait already sits in this iteration's operational evidence. A recorded event is never touched,
  * so a flag stored beside its record is still refused, and a second load finds nothing to do. Two
- * stored outcomes of one event are refused, never resolved by picking one: the upgrade must not
- * consume evidence a later check depends on.
+ * stored outcomes that content declares exclusive are refused, never resolved by picking one: the
+ * upgrade must not consume evidence a later check depends on. Outcomes content allows together
+ * (set in different iterations under the old rules) are old ambiguity and become legacy_unknown.
  */
 function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: CampaignState['events']): (Pick<GameState, 'narrativeFlags'> & { events: CampaignState['events'] }) | string {
   const added: CampaignState['events'] = {};
@@ -84,8 +85,8 @@ function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: Camp
   for (const event of reg.campaign.events.values()) {
     if (Object.hasOwn(events, event.id)) continue;
     // Two stored outcomes of one event are a contradiction, never a choice to make here.
-    const stored = event.choices.filter((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
-    if (stored.length > 1) return 'save contains contradictory narrative outcomes';
+    const stored = event.choices.flatMap((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag) ? [choice.effects.setsNarrativeFlag] : []);
+    if (reg.swarm.exclusiveNarrativeFlagGroups.some((group) => stored.filter((flag) => group.includes(flag)).length > 1)) return 'save contains contradictory narrative outcomes';
     const record = legacyRecord(s, event);
     if (!record) continue;
     added[event.id] = record;

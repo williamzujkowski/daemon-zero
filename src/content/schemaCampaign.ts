@@ -31,6 +31,13 @@ export const CampaignEventDeclarationSchema = z.strictObject({
   reorientation: z.string().min(10).optional(),
   /** Defer only: the next available lead a retained clue on this occurrence offers. Never a promise. */
   lead: z.string().min(10).optional(),
+  /**
+   * The old rules let different iterations set more than one of this event's outcome flags (the
+   * predecessor pair), so an old save holding several is legitimate ambiguity: it reads as
+   * legacy_unknown, never as one branch (NARRATIVE-HISTORY N11, H10). Integrity keeps the flags out
+   * of every exclusive group.
+   */
+  ambiguousLegacyOutcomes: z.literal(true).optional(),
 });
 
 /**

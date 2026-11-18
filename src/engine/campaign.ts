@@ -58,15 +58,19 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
 }
 
 /**
- * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): an exclusive
- * outcome flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing
- * gives nothing. Legacy history cannot postdate activation, so an event resolved in a later
- * iteration of an already-active campaign (content converted it since) keeps no source iteration.
+ * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): one outcome
+ * flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing gives
+ * nothing. Several outcome flags of one event that content allows together (the predecessor pair,
+ * set by different iterations of a legacy save) are legitimate old ambiguity, so they give
+ * legacy_unknown, never the most flattering or latest-looking branch (H10). Legacy history cannot
+ * postdate activation, so an event resolved in a later iteration of an already-active campaign
+ * (content converted it since) keeps no source iteration.
  */
 export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
   const current = s.resolvedDilemmas.includes(event.id);
-  const exact = event.choices.find((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
-  if (!exact && !current) return null;
+  const held = event.choices.filter((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
+  const exact = held.length === 1 ? held[0] : undefined;
+  if (held.length === 0 && !current) return null;
   const attributable = current && s.iteration <= (s.campaign.activatedAtIteration ?? s.iteration);
   return { status: 'resolved', outcome: exact?.id ?? LEGACY_UNKNOWN_OUTCOME, sourceIteration: attributable ? s.iteration : null, origin: 'legacy' };
 }
