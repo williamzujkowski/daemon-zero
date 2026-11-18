@@ -29,6 +29,8 @@ export const PreviewOverlaySchema = z.strictObject({
   assignments: items,
   /** Declared campaign facts about overlay events (NH-06), appended to campaign.json's facts. */
   campaignFacts: items.default([]),
+  /** Campaign-rules rediscovery discounts (#262), appended to campaign.json's rediscovery list. */
+  campaignRediscovery: items.default([]),
   /** Authorized-channel encounters (DZ-08), appended to shards.json's empty list. */
   channelEncounters: items.default([]),
   /** Context copy lists (nexus vote dz-d11), each appended to production's context-copy.json list. */
@@ -123,7 +125,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     conditioning: append(base.conditioning, 'marks', overlay.marks, problems),
     routines: append(base.routines, 'routines', overlay.routines, problems),
     assignments: append(base.assignments, 'assignments', overlay.assignments, problems),
-    campaign: append(base.campaign, 'facts', overlay.campaignFacts, problems),
+    campaign: append(append(base.campaign, 'facts', overlay.campaignFacts, problems), 'rediscovery', overlay.campaignRediscovery, problems),
     swarm: append(base.swarm, 'channelEncounters', overlay.channelEncounters, problems),
     contextCopy: appendCopy(base.contextCopy, overlay.contextCopy, problems),
   };

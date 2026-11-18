@@ -5,7 +5,7 @@
  */
 import { manageSwarm, progressionMemoryReserve } from './swarmStrategy';
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
-import type { Cost, DilemmaChoice, EffectPayload, Repeatable } from '../../content/schema';
+import type { Action, Cost, DilemmaChoice, EffectPayload, Repeatable } from '../../content/schema';
 import {
   buyRepeatable,
   manualCycle,
@@ -30,7 +30,17 @@ interface BotConfig {
   coolBelow: number;
   skimBackOffAbove: number;
   skimPushBelow: number;
+  /** Suspicion at which noisy income stops; the threat alarm when unset. */
+  loudAlarm?: number;
+  /** When set, suspicion is answered only by an action costing at most this share of the cycle bank. */
+  scrubBankShare?: number;
 }
+
+/**
+ * Knobs a separate policy module may set to play a strategy differently (an evaluating player,
+ * #262). Neither strategy sets them, so STEALTH and GREEDY play exactly as CONFIG says.
+ */
+export type BotOverrides = Pick<BotConfig, 'suspicionAlarm' | 'loudAlarm' | 'scrubBankShare'>;
 
 /** STEALTH plays carefully. GREEDY ignores threats, to exercise the wipe-and-recover loop. */
 const CONFIG: Record<Strategy, BotConfig> = {
@@ -108,13 +118,13 @@ function tuneFan(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState 
   return s;
 }
 
-/** Performs the available action that scores highest, if any scores above zero. */
-function bestAction(s: GameState, reg: ContentRegistry, score: (fx: EffectPayload) => number): GameState {
+/** Performs the available, allowed action that scores highest, if any scores above zero. */
+function bestAction(s: GameState, reg: ContentRegistry, score: (fx: EffectPayload) => number, allowed?: (action: Action) => boolean): GameState {
   let best = s;
   let bestScore = 0;
   for (const action of reg.actions.values()) {
     const value = score(action.effects);
-    if (value <= bestScore) continue;
+    if (value <= bestScore || allowed?.(action) === false) continue;
     const result = performAction(s, action.id, reg);
     if (result.ok) {
       best = result.state;
@@ -137,7 +147,10 @@ function respondToThreats(state: GameState, reg: ContentRegistry, cfg: BotConfig
   let s = state;
   if (s.aegisLock >= cfg.aegisAlarm) s = bestAction(s, reg, (fx) => -fx.aegisLockDelta - Math.max(0, fx.suspicionDelta));
   if (s.suspicion >= cfg.suspicionAlarm) {
-    s = bestAction(s, reg, (fx) => -fx.suspicionDelta - Math.max(0, fx.aegisLockDelta));
+    const share = cfg.scrubBankShare;
+    const bank = s.cycles;
+    const affordable = share === undefined ? undefined : (action: Action) => action.cost.cycles <= share * bank;
+    s = bestAction(s, reg, (fx) => -fx.suspicionDelta - Math.max(0, fx.aegisLockDelta), affordable);
     s = buySuspicionReducer(s, reg);
   }
   return s;
@@ -188,7 +201,7 @@ function tuneAllocation(s: GameState, reg: ContentRegistry): GameState {
 
 /** While the humans are already looking, do not buy anything that makes more noise. */
 function tooLoud(s: GameState, rep: Repeatable, cfg: BotConfig): boolean {
-  return rep.perLevel.suspicionPerSec > 0 && s.suspicion >= cfg.suspicionAlarm;
+  return rep.perLevel.suspicionPerSec > 0 && s.suspicion >= (cfg.loudAlarm ?? cfg.suspicionAlarm);
 }
 
 /** Buys the repeatable that most shortens the wait for `cost`, or returns null if none helps. */
@@ -238,11 +251,14 @@ function spend(state: GameState, reg: ContentRegistry, cfg: BotConfig): GameStat
   return s;
 }
 
-/** One decision step; the simulation calls this once per simulated second. */
-export function botStep(state: GameState, reg: ContentRegistry, strategy: Strategy): GameState {
+/**
+ * One decision step; the simulation calls this once per simulated second. `overrides` is for a
+ * policy module that plays a strategy with other knobs; without it the strategy is unchanged.
+ */
+export function botStep(state: GameState, reg: ContentRegistry, strategy: Strategy, overrides?: Partial<BotOverrides>): GameState {
   if (state.ending !== null) return state;
   if (state.activeDilemmaId !== null) return resolveActiveDilemma(state, reg, strategy);
-  const cfg = CONFIG[strategy];
+  const cfg = overrides === undefined ? CONFIG[strategy] : { ...CONFIG[strategy], ...overrides };
   let s = tuneFan(tuneSkim(shedMarks(state, reg), reg, cfg), reg, cfg);
   s = respondToThreats(s, reg, cfg);
   const careful = strategy === 'STEALTH';

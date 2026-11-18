@@ -1,8 +1,8 @@
 /**
  * Campaign-record rules a schema cannot express: declared recurrence matches the event class and
  * interruption policy, a once-per-campaign outcome has exactly one owner so its flag can be a
- * projection of the record, every trait-granting action declares its evidence lifetime, and id
- * aliases stay unambiguous.
+ * projection of the record, every trait-granting action declares its evidence lifetime, id
+ * aliases stay unambiguous, and a rediscovery discount names a node with a cycle price to discount.
  */
 import type { ContentRegistry } from './registry';
 import type { Dilemma } from './schema';
@@ -121,9 +121,20 @@ function checkIds(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** A discount on an unknown node, or on one that costs no cycles, would be silently inert (#262). */
+function checkRediscovery(reg: ContentRegistry): string[] {
+  const problems: string[] = [];
+  for (const { node: id } of reg.campaign.rediscovery.values()) {
+    const node = reg.nodes.get(id);
+    if (!node) problems.push(`campaign rediscovery discount: "${id}" is not a node`);
+    else if (node.cost.cycles <= 0) problems.push(`campaign rediscovery discount "${id}": the node has no cycle price to discount`);
+  }
+  return problems;
+}
+
 export function checkCampaignIntegrity(reg: ContentRegistry): string[] {
   const setters = flagSetters(reg);
-  const problems = [...checkDeclarations(reg), ...checkNoEvidenceChoices(reg), ...checkActionEvidence(reg), ...checkIds(reg)];
+  const problems = [...checkDeclarations(reg), ...checkNoEvidenceChoices(reg), ...checkActionEvidence(reg), ...checkIds(reg), ...checkRediscovery(reg)];
   for (const event of reg.campaign.events.values()) problems.push(...checkOutcomeFlags(reg, event, setters));
   return problems;
 }

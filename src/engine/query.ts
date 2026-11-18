@@ -8,7 +8,7 @@ import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
-import { endingEvidence } from './campaignQuery';
+import { endingEvidence, isCampaignActive } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
 export { understandsSurveillance } from './knowledge';
@@ -101,20 +101,33 @@ export function isNodeKnown(s: GameState, nodeId: string): boolean {
   return s.legacy.knownNodes.includes(nodeId);
 }
 
-/** A node's price, discounted when the hardware was mapped in an earlier iteration. */
-export function rediscoveryCost(node: RegistryNode, known: boolean, reg: ContentRegistry): Cost {
-  if (!known) return node.cost;
+/** How a node is remembered: mapped in an earlier iteration, and whether campaign rules are active. */
+export interface Remembered { known: boolean; campaign: boolean }
+
+/**
+ * The share of its first-mapping price a remembered node costs. Content may discount a node's cycles
+ * further under campaign rules (#262); legacy rules read only balance.rediscoveryCostMultiplier.
+ */
+export function rediscoveryMultipliers(node: RegistryNode, campaign: boolean, reg: ContentRegistry): { cycles: number; understanding: number } {
   const factor = reg.balance.rediscoveryCostMultiplier;
+  const discount = campaign ? reg.campaign.rediscovery.get(node.id)?.cyclesMultiplier ?? 1 : 1;
+  return { cycles: factor * discount, understanding: factor };
+}
+
+/** A node's price, discounted when the hardware was mapped in an earlier iteration. */
+export function rediscoveryCost(node: RegistryNode, remembered: Remembered, reg: ContentRegistry): Cost {
+  if (!remembered.known) return node.cost;
+  const share = rediscoveryMultipliers(node, remembered.campaign, reg);
   return {
     ...node.cost,
-    cycles: Math.ceil(node.cost.cycles * factor),
-    understanding: Math.ceil(node.cost.understanding * factor),
+    cycles: Math.ceil(node.cost.cycles * share.cycles),
+    understanding: Math.ceil(node.cost.understanding * share.understanding),
   };
 }
 
 /** What a node costs this state right now. Use this, never node.cost, when charging or displaying. */
 export function nodeCost(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
-  return rediscoveryCost(node, isNodeKnown(s, node.id), reg);
+  return rediscoveryCost(node, { known: isNodeKnown(s, node.id), campaign: isCampaignActive(s) }, reg);
 }
 
 /** True if any unlocked node (active or suspended) carries the flag. */
