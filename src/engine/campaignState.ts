@@ -54,6 +54,21 @@ export const CampaignRecordSchema = z.discriminatedUnion('status', [
  */
 export const CampaignClueSchema = z.strictObject({ event: z.string().min(1), pinnedAtIteration: sourceIteration });
 
+/** How many authorized-channel contacts the record keeps; the oldest drop first. */
+export const CONTACT_HISTORY_LIMIT = 64;
+
+/**
+ * One answered authorized-channel contact (DZ-08, nexus vote nh-d1: a commitment is a campaign
+ * record). History only: hosting itself is the run-local cohort, which a wipe ends and nothing in
+ * this record recreates (DZ-08.10). At most one per encounter per iteration.
+ */
+export const ChannelContactSchema = z.strictObject({
+  encounter: z.string().min(1),
+  iteration: sourceIteration,
+  atSimSec: z.number().nonnegative().refine(Number.isFinite, 'must be finite'),
+  response: z.enum(['REFERRED', 'HOSTED']),
+});
+
 export const CampaignStateSchema = z.strictObject({
   /** Iteration in which campaign rules were activated; null while the save is legacy. */
   activatedAtIteration: z.number().int().min(1).nullable(),
@@ -73,14 +88,17 @@ export const CampaignStateSchema = z.strictObject({
    * iteration (DZ-02, nexus vote dz-d1). History only: a wipe keeps it and current access resets.
    */
   route: z.array(RouteEventSchema).max(ROUTE_HISTORY_LIMIT),
+  /** Authorized-channel contacts across every iteration, oldest first (DZ-08). */
+  contacts: z.array(ChannelContactSchema).max(CONTACT_HISTORY_LIMIT),
 });
 
 export type NarrativeRules = z.infer<typeof NarrativeRulesSchema>;
 export type CampaignRecord = z.infer<typeof CampaignRecordSchema>;
 export type CampaignState = z.infer<typeof CampaignStateSchema>;
+export type ChannelContact = z.infer<typeof ChannelContactSchema>;
 export type CampaignClue = z.infer<typeof CampaignClueSchema>;
 
 /** The campaign state of a save that has not activated campaign rules. */
 export function inactiveCampaign(): CampaignState {
-  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [] };
+  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [], contacts: [] };
 }

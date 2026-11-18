@@ -21,6 +21,7 @@ export function checkSwarmIntegrity(reg: ContentRegistry): string[] {
     if (!swarm.playerSwarmTemplates.some((template) => template.id === encounter.templateId)) problems.push(`${encounter.id}: unknown shard template`);
     problems.push(...refs(encounter.requirements, encounter.consume, flags, encounter.id));
   }
+  for (const encounter of swarm.channelEncounters) problems.push(...refs(encounter.requirements, undefined, flags, encounter.id));
   for (const template of swarm.playerSwarmTemplates) problems.push(...refs(template.requirements, undefined, flags, template.id));
   for (const ending of reg.endings) problems.push(...refs(ending.requirements ?? {}, undefined, flags, ending.id));
   for (const node of reg.nodes.values()) problems.push(...refs(node.requirements ?? {}, undefined, flags, node.id));

@@ -57,7 +57,7 @@ function recordProblem(s: GameState, reg: ContentRegistry, id: string, record: C
 
 function isInactive(c: CampaignState): boolean {
   return c.activatedAtIteration === null && c.legacyEndingBaseline === null && Object.keys(c.events).length === 0 &&
-    Object.keys(c.creditedActions).length === 0 && c.operationalEvidence.length === 0 && c.clue === null && c.route.length === 0;
+    Object.keys(c.creditedActions).length === 0 && c.operationalEvidence.length === 0 && c.clue === null && c.route.length === 0 && c.contacts.length === 0;
 }
 
 /** The clue must name a record this save holds, read through the same aliases. */
