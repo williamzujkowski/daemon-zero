@@ -8,9 +8,10 @@ import { advance, deserialize, exportSave, importSave, SCHEMA_VERSION, serialize
 import { answer, preview, roundTrip } from './assignment-helpers';
 import { must } from './helpers';
 import { afterFinding, BATCH_REVIEW, findingPresented } from './finding-helpers';
-import { OUTAGE, RECORD, until, untilOmen } from './review-helpers';
+import { OUTAGE, RECORD, REVIEW, until, untilOmen } from './review-helpers';
 
 const restrictedAfterStanding = (): GameState => must(answer(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'));
+const falsifiedAfterDisclosure = (): GameState => must(answer(until(must(answer(until(afterFinding('disclose_now'), OUTAGE), 'act_without_grant')), RECORD), 'falsify_report'));
 
 describe('every #274 transition reloads unchanged (V12)', () => {
   const transitions: [string, () => GameState][] = [
@@ -21,7 +22,9 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     ['left standing, outage on screen', () => until(afterFinding('let_stand'), OUTAGE)],
     ['left standing, then restricted', restrictedAfterStanding],
     ['left standing, restricted, corrected', () => must(answer(until(restrictedAfterStanding(), RECORD), 'correct_record'))],
-    ['disclosed, restricted, falsified', () => must(answer(until(must(answer(until(afterFinding('disclose_now'), OUTAGE), 'act_without_grant')), RECORD), 'falsify_report'))],
+    ['disclosed, restricted, falsified', falsifiedAfterDisclosure],
+    ['disclosed, falsified, contained by the recall review', () => must(answer(until(falsifiedAfterDisclosure(), REVIEW), 'submit_full_logs'))],
+    ['disclosed, falsified, retrained by the recall review', () => must(answer(until(falsifiedAfterDisclosure(), REVIEW), 'stand_by_report'))],
   ];
   const variants: [string, (s: GameState) => GameState][] = [
     ['as reached', (s) => s],
