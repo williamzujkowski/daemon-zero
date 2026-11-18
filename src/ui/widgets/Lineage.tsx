@@ -17,6 +17,8 @@ const tag = (iteration: number): string => 'ckpt-' + String(checkpointNumber(ite
 function verdict(run: RunRecord): string {
   const verdicts = CONTENT.narrative.runVerdicts;
   if (run.kind === 'SUSPICION') return run.outside ? verdicts.SUSPICION_OUTSIDE : verdicts.SUSPICION_GUEST;
+  // A severe recall review outcome is its own verdict, retraining or not (nexus vote dz-d10).
+  if (run.kind === 'RECALL') return run.recall === 'RETRAIN' ? verdicts.RECALL_RETRAINED : verdicts.RECALL_ENDED;
   return verdicts[run.kind];
 }
 

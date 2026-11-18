@@ -9,6 +9,7 @@ import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { recordSubmittedEvidence } from './assignment';
 import { applyPilotResponse } from './pilot';
+import { applyReviewEffect } from './review';
 import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
@@ -203,9 +204,10 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   applyEffects(d, recordResolution(d, dilemma, choice), reg, dilemmaEvidence(dilemma), choice.cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
-  // A pilot offer's answer; an acceptance that cannot happen leaves the state as it was, unpaid.
+  // A pilot offer's answer, then any review effect (DZ-06); a refusal leaves the state as it was, unpaid.
   const answered = applyPilotResponse(d, choice, reg);
-  return answered.ok ? answered : refuse(s, answered.reason);
+  const reviewed = answered.ok ? applyReviewEffect(answered.state, choice, reg) : answered;
+  return reviewed.ok ? reviewed : refuse(s, reviewed.reason);
 }
 
 /** Pays to undo one conditioning mark. What retraining took can be taken back, at a price. */

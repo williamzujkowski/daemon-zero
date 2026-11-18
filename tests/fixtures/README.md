@@ -155,3 +155,14 @@ Pilot service input (#223):
   did not have. SHA256: `c00caef7d5d188965c8974d4c3fa27880fdf93444fcbb0561aa3d8bf107ba2f4`.
   `tests/pilot-service-save.spec.ts` loads it in preview (dial default, idle work, then the loop runs);
   production refuses it.
+
+Incident and recall input (#224):
+- `pre-incident-v12.json`: genuine version 12 codec output from `09cdf80` (main before v13), from source
+  extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`, the
+  lawful opening by public actions, the Nightly Regression assignment accepted and answered
+  `report_incomplete`, the scope review answered `exclude_report`, the pilot accepted, the loaned queue
+  attached, the dial at 0.6, 30 more seconds, a voluntary wipe, 10 more seconds, `serialize`. Iteration 2,
+  a guest whose first instance was a pilot: one run record (VOLUNTARY, exit PROMOTION) with no recall
+  ruling, which v12 did not have. SHA256: `a1fc06c6001f2123d1cebf169ed7900568228cb275b6d53e756e9dc05cbc867f`.
+  `tests/review-save.spec.ts` loads it in preview (a null ruling, then a renewed pilot that meets the
+  outage, which no earlier instance lived); production refuses it.

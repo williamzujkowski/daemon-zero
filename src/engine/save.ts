@@ -9,6 +9,7 @@ import { accessProblem } from './accessSave';
 import { assignmentProblem } from './assignment';
 import { pilotProblem } from './pilot';
 import { serviceProblem } from './pilotService';
+import { reviewProblem } from './reviewSave';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -90,6 +91,13 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   11: (save) => ({ ...save,
     actuators: { ...(isRecord(save.actuators) ? save.actuators : {}), serviceAllocationRatio: 0.5 },
     access: { ...(isRecord(save.access) ? save.access : {}), work: { progressCycles: 0, batches: 0 } } }),
+  // v13: the recall review's ruling on a finished run (DZ-06, nexus vote dz-d10). No earlier build ended a
+  // run through a recall review, so every recorded run gets null; nothing else changes.
+  12: (save) => {
+    const legacy = isRecord(save.legacy) ? save.legacy : {};
+    const runs = Array.isArray(legacy.runs) ? legacy.runs.map((run: unknown) => isRecord(run) ? { ...run, recall: null } : run) : legacy.runs;
+    return { ...save, legacy: { ...legacy, runs } };
+  },
 };
 
 export class SaveError extends Error {
@@ -226,7 +234,8 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
-  const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg) ?? serviceProblem(campaign, reg);
+  const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg) ?? serviceProblem(campaign, reg)
+    ?? reviewProblem(campaign, reg);
   if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);

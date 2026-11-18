@@ -18,6 +18,7 @@ import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
 import { checkObligationIntegrity } from './integrityObligations';
 import { checkGrantIntegrity } from './integrityGrant';
+import { checkReviewIntegrity } from './integrityReview';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -233,6 +234,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),
     ...checkGrantIntegrity(reg),
+    ...checkReviewIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

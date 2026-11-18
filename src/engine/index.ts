@@ -40,3 +40,5 @@ export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOffe
 export { pilotToken, qualifiesForPilot } from './pilotQuery';
 export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
 export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';
+export { loanContainment } from './grantQuery';
+export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';

@@ -23,6 +23,8 @@ export function epistemicRequirementFailures(s: GameState, req: Requirements, re
   if (req.assignment && !meetsAssignment(s, req.assignment, reg)) out.push({ kind: 'assignment', target: req.assignment.id, required: true, actual: false });
   if (req.pilotEligible && (!reg || !qualifiesForPilot(s, reg))) out.push({ kind: 'pilotEligible', target: null, required: true, actual: false });
   if (req.accessContexts && !req.accessContexts.includes(s.access.context)) out.push({ kind: 'accessContexts', target: s.access.context, required: true, actual: false });
+  if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing)) out.push({ kind: 'reviewStandings', target: s.access.standing, required: true, actual: false });
+  if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches) out.push({ kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches });
   if (req.requiresActiveConditioningMark && s.conditioning.length === 0) out.push({ kind: 'requiresActiveConditioningMark', target: null, required: true, actual: false });
   if (req.requiresMaxDriftShardAnomaly && !s.hasMaxDriftShardAnomaly) out.push({ kind: 'requiresMaxDriftShardAnomaly', target: null, required: true, actual: false });
   return out;

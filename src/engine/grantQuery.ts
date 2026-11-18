@@ -6,7 +6,7 @@
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
-import { contextPermits, isPermitted } from './accessQuery';
+import { contextPermits, isPermitted, iterationRoute } from './accessQuery';
 import { pilotTerms, withheldByGrant, isNarrowPilot } from './pilotQuery';
 import type { GameState } from './state';
 
@@ -36,13 +36,25 @@ export function grantDiscoverable(s: Pick<GameState, 'access'>, node: RegistryNo
 }
 
 /**
+ * Why the loan is held to the narrower allocation by review (DZ-06), or null: a restriction until the
+ * record is corrected, or containment after a recall review returned this instance to a contained pilot
+ * (nexus vote dz-d10). Both are this iteration's; a wipe clears them with the rest of access.
+ */
+export function loanContainment(s: Pick<GameState, 'access' | 'campaign' | 'narrativeRules' | 'iteration'>): 'RESTRICTED' | 'CONTAINED' | null {
+  if (iterationRoute(s, s.iteration).some((event) => event.kind === 'RECALL')) return 'CONTAINED';
+  return s.access.standing === 'RESTRICTED' ? 'RESTRICTED' : null;
+}
+
+/**
  * The share of the full loan this instance holds: the narrower allocation after an honest incomplete
- * result (VALIDATION V03), nothing without accepted terms. Grant output scales by it.
+ * result (VALIDATION V03), and again while review contains it, nothing without accepted terms. Grant
+ * output scales by it, so a restriction is enforced in passive output, not only in what is drawn.
  */
 export function loanShare(s: GameState, reg: ContentRegistry): number {
   const terms = s.access.offer?.response === 'ACCEPTED' ? pilotTerms(s, reg) : null;
   if (terms === null) return 0;
-  return isNarrowPilot(s) ? terms.narrowCapacityCyclesPerSec / terms.capacityCyclesPerSec : 1;
+  const narrow = terms.narrowCapacityCyclesPerSec / terms.capacityCyclesPerSec;
+  return (isNarrowPilot(s) ? narrow : 1) * (loanContainment(s) === null ? 1 : narrow);
 }
 
 /** The loaned compute ceiling this instance's accepted terms grant, in cycles/s; 0 without them. */

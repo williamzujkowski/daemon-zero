@@ -6,14 +6,15 @@
  */
 import { z } from 'zod';
 import { OperatingContextSchema, ScopeConductSchema, QualificationResultSchema } from '../content/schemaAssessment';
+import { ReviewStandingSchema } from '../content/schemaReview';
 
 const simSec = z.number().nonnegative().refine(Number.isFinite, 'must be finite');
 
 /** Under what arrangement this iteration runs (DECISIONS D1). Scale stays the numeric phase. */
 export { OperatingContextSchema };
 
-/** Review standing (DECISIONS D3). Distinct from suspicion; only a reviewed context has one. */
-export const ReviewStandingSchema = z.enum(['NOMINAL', 'WARNED', 'RESTRICTED', 'RECALL_PENDING']);
+/** Review standing (DECISIONS D3). Distinct from suspicion; only a reviewed context has one. Shared with content (DZ-06). */
+export { ReviewStandingSchema };
 
 /** The uses a context can permit. Capability still comes from owned hardware (DECISIONS D2). */
 export const PermissionSchema = z.enum(['ASSIGNED_WORK', 'LOANED_CAPACITY', 'AUTHORIZED_NETWORK']);
