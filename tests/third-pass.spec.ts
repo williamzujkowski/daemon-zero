@@ -115,7 +115,7 @@ describe('the run record', () => {
     const first = escaped({ simTimeSec: 600, traits: ['GHOST'] });
     const second = caught(first);
     expect(second.legacy.runs).toEqual([
-      { iteration: 1, kind: 'SUSPICION', outside: true, phase: 1, durationSec: 600, traits: ['GHOST'], marked: 'cond_concealment_aversion' },
+      { iteration: 1, kind: 'SUSPICION', outside: true, phase: 1, durationSec: 600, traits: ['GHOST'], marked: 'cond_concealment_aversion', exit: 'GUEST' },
     ]);
     expect(second.iterationStartedAtSimSec).toBe(600);
     const third = must(voluntaryWipe({ ...second, simTimeSec: 650 }, reg));

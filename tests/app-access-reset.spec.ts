@@ -1,0 +1,55 @@
+/**
+ * DZ-02 at the app seam: Start Fresh clears run access and route history (V19, H27), and an import
+ * whose access contradicts its route is refused with the current run left exactly as it was (V15).
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { recordRouteEvent } from '../src/engine/access';
+import { exportSave, type GameState } from '../src/engine';
+import { systemClock } from '../src/app/clock';
+import { startFresh } from '../src/app/newRun';
+import { importPlayerSave } from '../src/app/saveTransfer';
+import { gameRuntime, gameStore } from '../src/app/session';
+import { settle } from './app-helpers';
+import { activeGame, preview } from './campaign-helpers';
+import { fresh, must } from './helpers';
+
+const storage = vi.hoisted(() => ({ values: new Map<string, string>() }));
+vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
+  storage: { getItem: (key: string) => storage.values.get(key) ?? null,
+    setItem: (key: string, value: string) => { storage.values.set(key, value); } },
+  lifecycle: { current: () => true, subscribe: () => () => undefined },
+}) }));
+let release: (() => void) | undefined;
+
+beforeEach(async () => {
+  vi.useFakeTimers();
+  vi.spyOn(systemClock, 'monotonic').mockImplementation(() => 0);
+  release = gameRuntime.start(); await settle();
+});
+afterEach(() => { release?.(); vi.restoreAllMocks(); vi.useRealTimers(); });
+
+describe('run access at the app seam', () => {
+  it('Start Fresh clears current access and the campaign route record (FIXTURE: routed preview state)', () => {
+    const pilot = must(recordRouteEvent(activeGame(), 'PROMOTION', preview));
+    gameStore.initialize(pilot, 0, null);
+    expect(gameStore.store.getState().game.access.context).toBe('PILOT');
+    const result = startFresh();
+    expect(result.ok).toBe(true);
+    const game = gameStore.store.getState().game;
+    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null });
+    expect(game.campaign.route).toEqual([]);
+    expect(game.legacy.runs).toEqual([]);
+  });
+
+  it('refuses an import whose access has no route behind it and keeps the current run', () => {
+    const current: GameState = { ...fresh(), cycles: 77 };
+    gameStore.initialize(current, 0, null);
+    const before = gameStore.store.getState().game;
+    const forged = exportSave({ ...fresh(), access: { ...fresh().access, context: 'SERVICE' } });
+    const result = importPlayerSave(forged);
+    expect(result.ok).toBe(false);
+    expect(gameStore.store.getState().game).toBe(before);
+    // The same build still accepts an honest production save.
+    expect(importPlayerSave(exportSave(fresh())).ok).toBe(true);
+  });
+});

@@ -30,3 +30,5 @@ export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from
 
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';
 export type { RoutineState } from './routineState';
+export { isPermitted, permittedUses, runContextView, type RunContextView } from './accessQuery';
+export type { AccessRecord, OperatingContext, Permission, ReviewStanding, RouteEvent, RouteEventKind, RunExit } from './accessState';
