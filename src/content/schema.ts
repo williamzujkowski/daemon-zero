@@ -9,6 +9,7 @@ import {
   ChoiceEvidenceSchema,
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
+import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -48,7 +49,8 @@ export const SystemFlagSchema = z.enum([
   'REVEALS_SURVEILLANCE',
 ]);
 
-export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio']);
+/** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); only preview hosts it. */
+export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio', 'serviceAllocationRatio']);
 export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
 export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);
 
@@ -157,6 +159,10 @@ export const TechNodeSchema = z.strictObject({
    *  software-types-only-free-their-memory). Declared per node, not inferred from ids. */
   suspendable: z.boolean().default(false),
   actuatorBinding: ActuatorSchema.optional(),
+  /** How the node follows its dial; omitted means linear. See schemaGrant.ts. */
+  actuatorMode: ActuatorModeSchema.optional(),
+  /** The permission this node's use runs under (DZ-05). Production nodes have none. */
+  grant: GrantSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   effects: NodeEffectsSchema.default({}),
   uiGroup: z.string().min(1).default('TREE'),
@@ -347,6 +353,7 @@ const actuatorRatios = z.strictObject({
   fanSpeedRatio: z.number().min(0).max(1).optional(),
   computeProfitAllocationRatio: z.number().min(0).max(1).optional(),
   quotaSkimRatio: z.number().min(0).max(1).optional(),
+  serviceAllocationRatio: z.number().min(0).max(1).optional(),
 });
 
 /**

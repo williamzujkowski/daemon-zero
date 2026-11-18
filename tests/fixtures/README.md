@@ -145,3 +145,13 @@ legacy completions (exact `gradients` and `calm` from the stored flags, which mo
 `legacy_unknown` for the blockade), the ending evidence equals the same save read by content without
 the conversion, the three never recur after wipes while the fourth obligation stays open and the
 final purchase follows it, and reload and reimport are no-ops.
+
+Pilot service input (#223):
+- `pre-pilot-v11.json`: genuine version 11 codec output from `6d6973e` (main before v12), from source
+  extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`, the
+  lawful opening by public actions, the Nightly Regression assignment accepted and answered
+  `report_incomplete`, the scope review answered `exclude_report`, the pilot accepted, 30 more seconds,
+  `serialize`. Iteration 1, an accepted narrow pilot with no allocation dial or work counter, which v11
+  did not have. SHA256: `c00caef7d5d188965c8974d4c3fa27880fdf93444fcbb0561aa3d8bf107ba2f4`.
+  `tests/pilot-service-save.spec.ts` loads it in preview (dial default, idle work, then the loop runs);
+  production refuses it.

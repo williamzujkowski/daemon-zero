@@ -12,6 +12,7 @@ import { evaluateDilemmas } from './systems/dilemmas';
 import { scheduleRoutineActivity } from './systems/routine';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
+import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
@@ -19,6 +20,8 @@ import { fmt, pushLog } from './util';
 /** Order matters. To add a mechanic, write a TickSystem and insert it here. */
 export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateResources,
+  // Beside resources: the pilot's service share fills its work batch (DZ-05). Inert without a pilot.
+  integratePilotService,
   integrateThermal,
   integrateSuspicion,
   integrateEscalation,

@@ -38,3 +38,5 @@ export { acceptAssignment, assignmentView, type AssignmentStatus, type Assignmen
 export { assessmentStage, offerToken } from './assignmentQuery';
 export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
 export { pilotToken, qualifiesForPilot } from './pilotQuery';
+export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
+export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';

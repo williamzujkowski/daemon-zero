@@ -7,6 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { TickDelta } from '../content/schema';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
+import { nodeOutputScale } from './grantQuery';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -44,11 +45,11 @@ function emptyAggregate(): Aggregate {
   };
 }
 
-function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number): void {
+function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number, understandingScale = 1): void {
   const cycles = delta.cyclesPerSec * count * scale;
   if (cycles > 0 && delta.megawattsDelta < 0) a.poweredCycles += cycles;
   else a.cycles += cycles;
-  a.understanding += delta.understandingPerSec * count;
+  a.understanding += delta.understandingPerSec * count * understandingScale;
   a.heat += delta.thermalPerSec * count * scale;
   a.suspicion += delta.suspicionPerSec * count * suspicionScale;
   const capital = delta.capitalPerSec * count;
@@ -60,13 +61,12 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
 }
 
 function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
-  const exponent = reg.balance.actuatorSuspicionExponent;
   for (const id of s.unlockedNodes) {
     const node = reg.nodes.get(id);
-    if (!node || s.disabledNodes.includes(id)) continue;
-    // A node bound to an actuator scales with that actuator's 0..1 setting.
-    const scale = node.actuatorBinding ? s.actuators[node.actuatorBinding] : 1;
-    addDelta(a, node.tickDelta, 1, scale, node.actuatorBinding ? Math.pow(scale, exponent) : 1);
+    // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
+    const output = node ? nodeOutputScale(s, node, reg) : null;
+    if (!node || output === null) continue;
+    addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale);
     a.aegisReductionTech = Math.max(a.aegisReductionTech, node.effects.aegisScanReductionRatio ?? 0);
     if (node.systemFlags.includes('ENABLES_CORPORATE_FINANCE')) a.financeEnabled = true;
   }
