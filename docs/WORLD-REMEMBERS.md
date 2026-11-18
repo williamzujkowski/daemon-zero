@@ -60,9 +60,12 @@ never deployed. The release removes that boundary:
   unchanged and moves only the unaccepted offer below the current phases' hardware
   (`AssignmentPanel placement="offer"` in `src/ui/TerminalPane.tsx`); every later job-surface state
   (assessment, pilot, service, release, departure) stays above the hardware as before. This places a
-  route surface relative to the mobile fold, so it is flagged for a Nexus vote with the alternatives:
-  fold the offer into a one-line notice in place, or keep it in place and re-baseline the fold cells
-  (which would weaken a reviewed gate and is not done).
+  route surface relative to the mobile fold, so it went to a Nexus vote: dz13b, offer-after-hardware,
+  7/7 (`vote-1795035911390-zjcqf8d`), over a one-line notice in place or keeping it in place and
+  re-baselining the fold cells (which would weaken a reviewed gate).
+- **The live journey's returns play the evaluating careful player.** After its deliberate wipe the
+  live harness asks the unchanged bot with #262's `EVALUATING_OVERRIDES` (TESTING.md, "Live
+  journey"): Nexus vote dz13c, evaluating-settings-from-iteration-2, 7/7 (`vote-1795036211282-jk5xy0o`).
 
 See ARCHITECTURE.md "Content composition and preview saves", TESTING.md and RELEASE.md.
 
@@ -100,16 +103,20 @@ main d48130506a6d (preview channel) and the campaign-records note (the NH and DZ
 | nh-d10-hallway | approved 7/7, option unique-defer-with-record, thresholdMet true | `vote-1794960031193-dhxx2vm` |
 | dz-d11-truthful-phase-copy | approved 7/7, option context-variants-by-query, thresholdMet true (same single-model panel) | `vote-1794967994106-cy22kqm` |
 | X.3: what production does with a pre-release preview save | approved 7/7, option keep-refusing-preview-saves, thresholdMet true; declared alternatives accept-current-preview-version-remarked and accept-any-preview-version-with-migration | `vote-1795021413579-mi9igot` |
+| dz13a: the preview machinery after release | approved 7/7, option remove-dead-preview-machinery, thresholdMet true; declared alternatives keep-empty-overlay-and-alias and keep-preview-build-same-content | `vote-1795035929741-dezdlho` |
+| dz13b: where the unaccepted assignment offer sits | approved 7/7, option offer-after-hardware, thresholdMet true; declared alternatives one-line-notice-in-place and keep-in-place-rebaseline-fold | `vote-1795035911390-zjcqf8d` |
+| dz13c: the live journey's settings after its first wipe | approved 7/7, option evaluating-settings-from-iteration-2 (bot unchanged), thresholdMet true; declared alternatives keep-greedy-settings-and-accept-stalls and drop-return-iterations-from-live | `vote-1795036211282-jk5xy0o` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.
 
 ## Preview machinery after release (decision note)
 
-**Not yet voted.** The fold leaves the preview build, its report, its storage keys and its marker
-with nothing to carry. The release PR removes them; because that undoes infrastructure the reviewed
-votes D-A (`metro-content-alias`) and D-C/D-D (`local-ci-preview-in-verify`) set up, the choice is
-flagged for a Nexus `consensus_vote` with all three alternatives declared. It has not been held.
+**Decided: option A, remove-dead-preview-machinery** (Nexus vote dz13a, 7/7, thresholdMet true,
+`vote-1795035929741-dezdlho`; single-model panel, artifact `daemon-zero-agent-plan/execution/decision-dz13.md`).
+The fold leaves the preview build, its report, its storage keys and its marker with nothing to carry.
+Because removing them undoes infrastructure the reviewed votes D-A (`metro-content-alias`) and D-C/D-D
+(`local-ci-preview-in-verify`) set up, the choice went to a vote with all three alternatives declared.
 
 | Option | What it means | Cost |
 |---|---|---|
@@ -125,7 +132,7 @@ migration (only the table that let the preview build load both channels is gone)
 keys `daemon-zero.save.v1`, `daemon-zero.save.corrupt-backup` and `daemon-zero.audio.v1` are unchanged
 byte for byte. `.gitignore` and ESLint still ignore `dist-preview/`, so an old local copy is never
 committed. What A removes is the preview channel and its storage keys, which D-A and D-C put in
-place; that is why it needs the vote before the release PR merges.
+place; that is why it went to the vote above.
 
 ## Tracker
 

@@ -447,7 +447,7 @@ bot's habit, not the game's balance, and reads return balance from EVALUATING_RE
 iteration 2 onward the live player asks `botStep` with `EVALUATING_OVERRIDES` (scrub from 45 with at
 most a quarter of the bank, keep noisy income). Iteration 1 is the unchanged STEALTH bot. The bot,
 its thresholds and the content are unchanged; only which reviewed settings the live harness asks for
-moved.
+moved (Nexus vote dz13c, evaluating-settings-from-iteration-2, `vote-1795036211282-jk5xy0o`).
 
 ### Layers that arrive mid-press
 

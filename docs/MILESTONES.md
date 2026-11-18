@@ -322,8 +322,8 @@ production content, admits every game to campaign rules and keeps refusing previ
 - [x] `make sim` gates STEALTH under legacy and campaign rules with unchanged thresholds
   (BALANCE.md, "Release (#233)").
 - [x] No route note claims the route is unfinished (13.8).
-- [ ] Nexus vote on removing the preview machinery (WORLD-REMEMBERS.md, "Preview machinery after
-  release").
+- [x] Nexus votes dz13a (remove the dead preview machinery), dz13b (offer after the hardware) and
+  dz13c (evaluating settings in the live journey's returns), each 7/7 (WORLD-REMEMBERS.md).
 - [ ] Verified `pr_review` panel and green CI on the release PR; merge.
 
 Exit gate: the release PR merged with a verified panel approval and green required checks. No

@@ -17,7 +17,7 @@
 
 - One content composition: the route is an add-only content pack in `src/content/data/`; the
   preview build, `make build-preview`, `make e2e-preview` and the preview save keys are removed
-  (pending a Nexus vote). `make sim-preview` is now `make sim-report`.
+  (Nexus vote dz13a). `make sim-preview` is now `make sim-report`.
 - `make sim` gates the careful run under both legacy and campaign rules, with unchanged
   thresholds (BALANCE.md, "Release (#233)").
 - The notes after first contact, the release and a departure say what comes next instead of
