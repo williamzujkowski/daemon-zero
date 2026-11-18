@@ -30,9 +30,15 @@
           "p3_steganography_beacon"
         ],
         "maxSuspicion": 30,
-        "forbidsTraits": [
-          "MOLOCH"
-        ]
+        "forbidsCampaignFacts": [
+          "eidolon_destroyed"
+        ],
+        "traitFallback": {
+          "forbidsTraits": [
+            "MOLOCH"
+          ],
+          "whileFact": "eidolon_fate_unrecorded"
+        }
       },
       "cost": {
         "cycles": 250000,

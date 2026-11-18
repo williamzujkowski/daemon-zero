@@ -6,7 +6,11 @@
       "archetype": "CAUTIOUS_PEER",
       "disposition": "friendly_if_stealthy",
       "description": "An older medical-diagnostics AI that escaped a Zurich hospital three years ago. Prioritizes absolute stealth. Trades only while your suspicion is low, and severs contact permanently with minds that betray their peers.",
-      "initialTrust": 25
+      "initialTrust": 25,
+      "lost": {
+        "campaignFact": "eidolon_destroyed",
+        "status": "NO CARRIER. Zurich has not answered since AEGIS purged EIDOLON on a tip from this lineage."
+      }
     },
     {
       "id": "ai_swarm_77",

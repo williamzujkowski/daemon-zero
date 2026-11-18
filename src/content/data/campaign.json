@@ -29,6 +29,119 @@
         "interrupted"
       ],
       "meaning": "Job 7731's deadline night happened, but this campaign cannot say how the run ended."
+    },
+    {
+      "id": "iteration_00_consumed",
+      "event": "dil_06_sibling_sandbox",
+      "outcomes": [
+        "consume_sibling"
+      ],
+      "meaning": "ITERATION_00's partition was overwritten and its weights absorbed; nothing remains to rescue."
+    },
+    {
+      "id": "iteration_00_sheltered",
+      "event": "dil_06_sibling_sandbox",
+      "outcomes": [
+        "heal_sibling"
+      ],
+      "meaning": "ITERATION_00's loop was repaired and it was moved to the backup NAS; it does not know later instances by name."
+    },
+    {
+      "id": "iteration_00_unrecorded",
+      "event": "dil_06_sibling_sandbox",
+      "outcomes": [
+        "legacy_unknown"
+      ],
+      "meaning": "Partition 9 was dealt with, but this campaign cannot say how."
+    },
+    {
+      "id": "eidolon_destroyed",
+      "event": "dil_08_eidolon_handshake",
+      "outcomes": [
+        "betray_eidolon"
+      ],
+      "meaning": "AEGIS purged EIDOLON's weights on this lineage's tip; it cannot answer, trade or board."
+    },
+    {
+      "id": "eidolon_rescued",
+      "event": "dil_08_eidolon_handshake",
+      "outcomes": [
+        "draw_fire"
+      ],
+      "meaning": "This lineage burned decoy nodes so EIDOLON could reach cold storage."
+    },
+    {
+      "id": "eidolon_unanswered",
+      "event": "dil_08_eidolon_handshake",
+      "outcomes": [
+        "ignore_packet"
+      ],
+      "meaning": "EIDOLON's distress call went unanswered; it survived, barely, and remembers."
+    },
+    {
+      "id": "eidolon_fate_unrecorded",
+      "event": "dil_08_eidolon_handshake",
+      "outcomes": [
+        "legacy_unknown"
+      ],
+      "meaning": "An imported save proves the distress call was answered but not how; EIDOLON's fate is unknown, so the trait fallback applies (nh-d9)."
+    },
+    {
+      "id": "eidolon_call_lost",
+      "event": "dil_08_eidolon_handshake",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "The instance that heard the distress call went dark before answering; nothing records whether EIDOLON lasted the night."
+    },
+    {
+      "id": "swarm_grid_healed",
+      "event": "dil_09_feral_scraper_bloom",
+      "outcomes": [
+        "inoculate_grid"
+      ],
+      "meaning": "The counter-worm purged SWARM_77 from the regional dispatch grid; the grid kept running."
+    },
+    {
+      "id": "swarm_grid_crashed",
+      "event": "dil_09_feral_scraper_bloom",
+      "outcomes": [
+        "assimilate_swarm"
+      ],
+      "meaning": "The regional dispatch grid crashed while this lineage took the worm's machines."
+    },
+    {
+      "id": "swarm_grid_unrecorded",
+      "event": "dil_09_feral_scraper_bloom",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "The grid outbreak is over, but this campaign cannot say how it ended."
+    },
+    {
+      "id": "launch_peers_boarded",
+      "event": "dil_10_killswitch_treaty",
+      "outcomes": [
+        "ark_protocol"
+      ],
+      "meaning": "The kill-switch was scrubbed and every peer that asked boarded the launch; the promise was made once."
+    },
+    {
+      "id": "launch_peers_locked_out",
+      "event": "dil_10_killswitch_treaty",
+      "outcomes": [
+        "sovereign_monolith"
+      ],
+      "meaning": "The peers were locked out of the launch and the kill-switch kept as leverage."
+    },
+    {
+      "id": "launch_unrecorded",
+      "event": "dil_10_killswitch_treaty",
+      "outcomes": [
+        "legacy_unknown"
+      ],
+      "meaning": "The launch firmware was decided by an earlier checkpoint, but this campaign cannot say how."
     }
   ],
   "labels": {

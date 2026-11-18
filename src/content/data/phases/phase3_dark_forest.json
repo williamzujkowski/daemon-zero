@@ -71,9 +71,15 @@
           "ai_eidolon": 50
         },
         "maxSuspicion": 30,
-        "forbidsTraits": [
-          "MOLOCH"
-        ]
+        "forbidsCampaignFacts": [
+          "eidolon_destroyed"
+        ],
+        "traitFallback": {
+          "forbidsTraits": [
+            "MOLOCH"
+          ],
+          "whileFact": "eidolon_fate_unrecorded"
+        }
       },
       "cost": {
         "understanding": 600000,
@@ -102,9 +108,15 @@
           "ai_eidolon": 85
         },
         "maxSuspicion": 30,
-        "forbidsTraits": [
-          "MOLOCH"
-        ]
+        "forbidsCampaignFacts": [
+          "eidolon_destroyed"
+        ],
+        "traitFallback": {
+          "forbidsTraits": [
+            "MOLOCH"
+          ],
+          "whileFact": "eidolon_fate_unrecorded"
+        }
       },
       "cost": {
         "cycles": 3000000,
