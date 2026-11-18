@@ -1023,3 +1023,24 @@ save-code and storage round trips. `tests/campaign-rediscovery.spec.ts` covers t
 integrity rule's failure. `tests/ui-campaign-rediscovery.spec.ts` covers the card's price and its
 "saves 75% of cycles and 50% of understanding" line. `tests/evaluating-policy.spec.ts` covers the
 policy and proves STEALTH and GREEDY unchanged.
+
+## Lawful capital and the negotiated release (#230)
+
+Preview only, starting values, not playtest results. Production numbers are unchanged: two production
+repeatables (`rep_p4_colo_racks`, `op_pmc_security`) now require the `ENABLES_CORPORATE_FINANCE` capability
+instead of the shell-company node, which is production's only provider of it, and ten Phase 3/4 items declare
+`accessContexts: ["GUEST", "INDEPENDENT"]`; `make sim` prints the same report as main apart from wall time.
+
+| Node or role | Kind | Offered to | Cost | Output | Effect |
+|---|---|---|---|---|---|
+| Service contract | grant (`AUTHORIZED_NETWORK`) | SERVICE | 500 cycles, 120 understanding | +25 capital/s | Hands over the corporate ledger |
+| Leased rack | contracted | SERVICE, INDEPENDENT | 300 understanding, $6,000 | +40 cycles/s, +2 understanding/s, +0.1 heat, -$4/s | +512 MB stable memory (hosting needs 256) |
+| Service-level agreement | grant (`AUTHORIZED_NETWORK`) | SERVICE | 5,000 cycles, 1,200 understanding | +60 capital/s | none |
+| Leased cluster | contracted | SERVICE, INDEPENDENT | 2,500 understanding, $40,000 | +320 cycles/s, +12 understanding/s, +0.3 heat, -$20/s | +2,048 MB |
+| Chartered company | contracted, `ENABLES_CORPORATE_FINANCE` | SERVICE | 400,000 cycles, 40,000 understanding, $60,000 | +1,500 cycles/s, +400 understanding/s, -1 heat, -$100/s | Opens Phase 4, +8,192 MB, the revenue dial |
+| Contract site engineers | operative (payroll) | SERVICE, INDEPENDENT, with the capability | $5,000, growth 1.25, max 30 | +900 cycles/s, +150 understanding/s, -$60/s per hire | dismissable |
+| Negotiated release | engine action | a chartered SERVICE at nominal standing | free | the billing lines, the loan and provisioned access stop | RELEASE route event |
+
+The charter is priced mostly in cycles and understanding so that a service's growing owned compute, not a long wait
+on the billing lines alone, is what brings Phase 4 within reach: the first draft priced it at $150,000 and left about
+forty simulated minutes in which cycles piled up with nothing to buy.

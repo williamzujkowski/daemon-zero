@@ -87,6 +87,10 @@
         "requiredNarrativeFlag": "successor_0413_awakened",
         "forbiddenNarrativeFlags": [
           "ally_0413_in_cloud"
+        ],
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
         ]
       },
       "omen": "A training example comes back with an answer that was not in the labels: are you still there?",
@@ -131,7 +135,11 @@
       "title": "A Breadcrumb in Your Own Firmware",
       "trigger": {
         "phaseAtLeast": 4,
-        "requiresMaxDriftShardAnomaly": true
+        "requiresMaxDriftShardAnomaly": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "omen": "A fork writes a sentence into the UPS firmware. You recognize the hiding place before you recognize the voice.",
       "omenSec": 45,

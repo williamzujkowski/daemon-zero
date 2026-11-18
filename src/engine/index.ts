@@ -38,9 +38,12 @@ export { acceptAssignment, assignmentView, type AssessmentPreview, type Assignme
 export { assessmentStage, offerToken } from './assignmentQuery';
 export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
 export { pilotToken, qualifiesForPilot, type NarrowReason } from './pilotQuery';
-export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
+export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, outputBasis, permittedUse, type OutputBasis } from './grantQuery';
 export { hasCapability } from './capabilityQuery';
 export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGrantView } from './serviceGrant';
+export { negotiateRelease, releasePreview, releaseToken, releaseView, type ReleaseLedger, type ReleasePreview, type ReleaseView } from './release';
+export { lawfullyReleased } from './threatQuery';
+export { financeEnabled } from './rates';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
 export { submitPilotBatch } from './batchReview';

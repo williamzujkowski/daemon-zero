@@ -98,6 +98,26 @@ function serviceGrantProblems(owner: string, terms: PilotTerms, reg: ContentRegi
   return problems;
 }
 
+/**
+ * A negotiated release (DZ-10) leaves the instance on what it owns, so its terms must name owned capacity:
+ * a contracted node an authorized service can sign for. Like the grant it never waits on resources.
+ */
+function releaseProblems(owner: string, terms: PilotTerms, reg: ContentRegistry): string[] {
+  const release = terms.serviceGrant?.release;
+  if (!release) return [];
+  const at = `${owner} release`;
+  const problems = checkRequirements(reg, at, release.requirements);
+  const owned = (release.requirements.nodes ?? []).some((id) => {
+    const node = reg.nodes.get(id);
+    return node?.acquisition === 'CONTRACTED' && node.requirements?.accessContexts?.includes('SERVICE') === true;
+  });
+  if (!owned) problems.push(`${at}: must require a contracted node an authorized service can sign for, so the instance has capacity of its own`);
+  for (const key of Object.keys(release.requirements) as (keyof Requirements)[]) {
+    if (REQUIREMENT_SCOPES[key] === 'transient') problems.push(`${at}: a release never waits on ${key}`);
+  }
+  return problems;
+}
+
 function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
   const terms = reg.assignments.get(assignmentId)?.pilot;
   if (!terms) return [];
@@ -109,7 +129,7 @@ function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
     if (reg.nodes.get(id)?.suspendable !== true) problems.push(`${owner}: incompatible output "${id}" must be a known node that can be stopped`);
   }
   if (terms.terminalAlternative) problems.push(...alternativeProblems(owner, reg, terms.terminalAlternative.node));
-  problems.push(...serviceGrantProblems(owner, terms, reg));
+  problems.push(...serviceGrantProblems(owner, terms, reg), ...releaseProblems(owner, terms, reg));
   for (const stage of ['original', 'requalification'] as const) {
     for (const kind of ['scope', 'offer'] as const) {
       const count = sceneOf(reg, { id: assignmentId, stage }, kind).length;

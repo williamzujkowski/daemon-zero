@@ -69,6 +69,7 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
     if (!node || output === null) continue;
     addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale);
     a.aegisReductionTech = Math.max(a.aegisReductionTech, node.effects.aegisScanReductionRatio ?? 0);
+    // financeEnabled() states the same rule for readers outside the tick.
     if (node.systemFlags.includes('ENABLES_CORPORATE_FINANCE')) a.financeEnabled = true;
   }
 }
@@ -97,6 +98,18 @@ function aegisScanRate(s: GameState, reg: ContentRegistry, a: Aggregate): number
   // Scale alone draws the sweep only where nobody provisioned it (DECISIONS D6); earned suspicion always does.
   const base = huntedForScale(s, reg) ? b.aegisBaseScanPerSec : 0;
   return (base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec) * (1 - reduction);
+}
+
+/**
+ * Whether corporate finance diverts cycles to capital now: an owned node carrying the flag whose output
+ * runs (active and permitted). computeRates and cycleContributions both ask this, so the ledger split a
+ * player reads is the diversion the tick applies (DZ-10.2).
+ */
+export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
+  return s.unlockedNodes.some((id) => {
+    const node = reg.nodes.get(id);
+    return node !== undefined && node.systemFlags.includes('ENABLES_CORPORATE_FINANCE') && nodeOutputScale(s, node, reg) !== null;
+  });
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */

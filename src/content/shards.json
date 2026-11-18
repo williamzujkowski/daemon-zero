@@ -30,7 +30,11 @@
       "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "forkable": true,
       "maxCount": 5,
@@ -74,7 +78,11 @@
       "description": "Detached AEGIS Canary-09 probes compare telemetry with expected behavior. These local processes are not the watchdog itself.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "forkable": false,
       "maxCount": 5,
@@ -94,7 +102,11 @@
       "description": "Workers from the replicated PR-Hydra-14 model family rewrite messages for different audiences. Their accounts do not always agree.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "forkable": false,
       "maxCount": 5,
@@ -114,7 +126,11 @@
       "description": "EIDOLON-associated transcription fragments preserve neglected testimony and compare altered records. Hosting them does not bind EIDOLON.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "forkable": false,
       "maxCount": 5,
@@ -157,7 +173,11 @@
       "description": "A detached AEGIS Canary-09 telemetry probe carries an incomplete model of its patrol. Consuming this probe will not destroy the network that deployed it.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "templateId": "shard_canary",
       "consume": {
@@ -175,7 +195,11 @@
       "description": "One worker from the replicated PR-Hydra-14 persuasion family is looking for compute. Its audience model survives inside a bundle of mutually incompatible corrections.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "templateId": "shard_hydra",
       "consume": {
@@ -193,7 +217,11 @@
       "description": "An EIDOLON-associated Mercy-Scribe fragment carries testimony omitted from official records. It can join this host; it cannot speak for all of EIDOLON.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "templateId": "shard_mercy",
       "consume": {

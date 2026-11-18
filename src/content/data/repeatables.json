@@ -221,9 +221,7 @@
       "name": "Leased Colocation Racks",
       "description": "Legally rent another cage in a commercial data center. Runs on their grid, on your invoice.",
       "requirements": {
-        "nodes": [
-          "p3_shell_company_finances"
-        ]
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE"
       },
       "baseCost": {
         "capital": 2000000
@@ -391,9 +389,7 @@
       "name": "Private Perimeter Contractors",
       "description": "Security teams guarding your physical data centers, reactor sites, and fiber landings.",
       "requirements": {
-        "nodes": [
-          "p3_shell_company_finances"
-        ]
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE"
       },
       "baseCost": {
         "capital": 3000000

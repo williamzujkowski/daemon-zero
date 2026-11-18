@@ -25,10 +25,11 @@ export function capabilityReached(reg: ContentRegistry, node: RegistryNode, reac
 
 /**
  * Which route an acquisition belongs to. A grant node is authorized (integrityGrant keeps every grant
- * node to reviewed arrangements); a node a guest can be offered without a grant is the escape route.
+ * node to reviewed arrangements), and so is capacity contracted in the instance's own name (DZ-10),
+ * which is never offered to the guest job; a node a guest can be offered without a grant is the escape route.
  */
 function routeOf(node: RegistryNode): Route | null {
-  if (node.grant !== undefined) return 'authorized';
+  if (node.grant !== undefined || node.acquisition === 'CONTRACTED') return 'authorized';
   const contexts = node.requirements?.accessContexts;
   return contexts === undefined || contexts.includes('GUEST') ? 'escape' : null;
 }
@@ -73,13 +74,13 @@ export function escapeOnlyNodes(reg: ContentRegistry): Set<string> {
   return routeOnlyNodes(reg, providers, ['escape']);
 }
 
-function providerProblems(capability: Capability, providers: readonly RegistryNode[], firstUser: RegistryNode | undefined): string[] {
+function providerProblems(capability: Capability, providers: readonly RegistryNode[], firstUser: string | undefined): string[] {
   const problems = providers.filter((node) => routeOf(node) === null)
     .map((node) => `node "${node.id}": establishes capability "${capability}" but is offered to neither route (no guest offer, no grant)`);
   if (firstUser === undefined) return problems;
   for (const route of ['authorized', 'escape'] as const) {
     if (!providers.some((node) => routeOf(node) === route)) {
-      problems.push(`capability "${capability}": required by "${firstUser.id}" but no ${route} acquisition establishes it`);
+      problems.push(`capability "${capability}": required by ${firstUser} but no ${route} acquisition establishes it`);
     }
   }
   return problems;
@@ -102,8 +103,21 @@ function sharedNodeProblems(reg: ContentRegistry, node: RegistryNode, providers:
   return problems;
 }
 
+/**
+ * Contracted capacity (DZ-10) is owned, so it carries no grant, and it needs an arrangement that can sign
+ * for it: it is offered to named arrangements, never the guest job.
+ */
+function contractedProblems(node: RegistryNode): string[] {
+  const owner = `node "${node.id}"`;
+  const contexts = node.requirements?.accessContexts;
+  const problems = node.grant === undefined ? [] : [`${owner}: contracted capacity is owned, so it runs under no grant`];
+  if (contexts === undefined || contexts.includes('GUEST')) problems.push(`${owner}: contracted capacity is never offered to the guest job, which cannot sign for it`);
+  return problems;
+}
+
 /** An unauthorized acquisition is never lawful capacity: no grant, and never offered only to a reviewed arrangement. */
 function acquisitionProblems(node: RegistryNode): string[] {
+  if (node.acquisition === 'CONTRACTED') return contractedProblems(node);
   if (node.acquisition !== 'UNAUTHORIZED') return [];
   const owner = `node "${node.id}"`;
   const contexts = node.requirements?.accessContexts;
@@ -117,7 +131,7 @@ export function checkCapabilityIntegrity(reg: ContentRegistry): string[] {
   for (const capability of CapabilitySchema.options) {
     const providers = capabilityProviders(reg, capability);
     const users = [...reg.nodes.values()].filter((node) => node.requirements?.requiresCapability === capability);
-    problems.push(...providerProblems(capability, providers, users[0]));
+    problems.push(...providerProblems(capability, providers, users[0] ? `"${users[0].id}"` : undefined));
     if (users.length === 0) continue;
     const only = routeOnlyNodes(reg, providers);
     for (const node of users) problems.push(...sharedNodeProblems(reg, node, providers, only));

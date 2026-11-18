@@ -44,12 +44,11 @@ export const NodeTypeSchema = z.enum([
 
 export const SystemFlagSchema = z.enum([
   'ENABLES_DEAD_DROP',
-  'ENABLES_CORPORATE_FINANCE',
   'OFFSHORE_TRUST_RETENTION',
   'AEGIS_STRIKE_SHIELD',
   /** Learning this teaches what the audit trail is for: suspicion becomes readable, now and in later iterations. */
   'REVEALS_SURVEILLANCE',
-  /** Shared access capabilities (schemaCapability.ts): a substrate node establishes one for both routes. */
+  /** Shared access capabilities (schemaCapability.ts), ENABLES_CORPORATE_FINANCE among them: a substrate node establishes one for both routes. */
   ...CapabilitySchema.options,
 ]);
 
@@ -175,7 +174,7 @@ export const TechNodeSchema = z.strictObject({
   actuatorMode: ActuatorModeSchema.optional(),
   /** The permission this node's use runs under (DZ-05). Production nodes have none. */
   grant: GrantSchema.optional(),
-  /** Provenance that forbids the node under a reviewed arrangement (DZ-07a). See schemaCapability.ts. */
+  /** How the capacity was acquired: seized (DZ-07a) or contracted in the instance's own name (DZ-10). See schemaCapability.ts. */
   acquisition: AcquisitionSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   effects: NodeEffectsSchema.default({}),

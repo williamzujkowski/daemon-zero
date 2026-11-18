@@ -7,9 +7,9 @@ import type { Actuator, Cost, Ending, Lineage, Repeatable, Requirements, SystemF
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
-import { computeRates } from './rates';
+import { computeRates, financeEnabled } from './rates';
 import { endingEvidence, isCampaignActive } from './campaignQuery';
-import { grantDiscoverable, nodeOutputScale, nodeUseBlocker } from './grantQuery';
+import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
 export { understandsSurveillance } from './knowledge';
 
@@ -259,27 +259,40 @@ export function previewWipe(s: GameState, reg: ContentRegistry): { understanding
   };
 }
 
+export interface CycleContribution {
+  id: string;
+  kind: 'node' | 'repeatable' | 'action' | 'shard';
+  cyclesPerSec: number;
+  /**
+   * Who controls the source (DZ-10.2): GRANTED output runs on what the operators provide and stops with
+   * the grant; OWNED is everything the instance holds itself. A source has one basis, so a transition
+   * moves output between none and itself and never counts it twice.
+   */
+  basis: OutputBasis;
+}
+
 /** Additive net cycle sources, including actuator, grid and finance scaling. */
-export function cycleContributions(s: GameState, reg: ContentRegistry): { id: string; kind: 'node' | 'repeatable' | 'action' | 'shard'; cyclesPerSec: number }[] {
+export function cycleContributions(s: GameState, reg: ContentRegistry): CycleContribution[] {
   const rates = computeRates(s, reg);
   const scaled = (cycles: number, mw: number): number => cycles > 0 && mw < 0 ? cycles * rates.gridEfficiency : cycles;
-  const sources: { id: string; kind: 'node' | 'repeatable' | 'action' | 'shard'; cyclesPerSec: number }[] = [];
+  const sources: CycleContribution[] = [];
   for (const node of reg.nodes.values()) {
     // The same rule as computeRates: suspended or not permitted contributes nothing (DECISIONS D2).
     const output = s.unlockedNodes.includes(node.id) ? nodeOutputScale(s, node, reg) : null;
     if (output === null) continue;
-    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.megawattsDelta) });
+    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.megawattsDelta), basis: outputBasis(s, node, reg) });
   }
   for (const rep of reg.repeatables.values()) {
     const level = repeatableLevel(s, rep.id);
-    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.megawattsDelta) });
+    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.megawattsDelta), basis: 'OWNED' });
   }
   for (const [id, shard] of Object.entries(s.activeShards)) {
     const delta = shardOutput(shard, reg).delta;
-    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.megawattsDelta) });
+    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.megawattsDelta), basis: 'OWNED' });
   }
-  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.megawattsDelta) });
+  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.megawattsDelta), basis: 'OWNED' });
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
-  const fraction = gross > 0 && hasFlag(s, reg, 'ENABLES_CORPORATE_FINANCE') ? 1 - s.actuators.computeProfitAllocationRatio : 1;
+  // The diversion computeRates applies, by the same rule (a suspended or withheld entity diverts nothing).
+  const fraction = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;
   return sources.filter((source) => source.cyclesPerSec !== 0).map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction }));
 }

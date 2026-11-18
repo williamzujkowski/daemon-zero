@@ -4,7 +4,7 @@
  * V15), and a save that passes is returned unchanged, so reconciling twice changes nothing.
  */
 import type { ContentRegistry } from '../content/registry';
-import { iterationRoute } from './accessQuery';
+import { holdsQualification, isReviewed, iterationRoute } from './accessQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
 import { iterationFindings } from './findingQuery';
 import { iterationReviews, replayStanding, resolvedThisIteration, reviewEvents } from './reviewQuery';
@@ -37,13 +37,15 @@ function runProblem(s: GameState, reg: ContentRegistry): string | null {
  * This iteration's review choices fix its standing, and a contained pilot needs its RECALL route event.
  * The one transition that may stand above them is DZ-05's withdrawal to recall pending; nothing may stand
  * below them, so editing a restriction away is refused. Only iterations with review choices are checked,
- * so DZ-02 and DZ-05 saves keep loading as before.
+ * so DZ-02 and DZ-05 saves keep loading as before. An instance released or departed from review has no
+ * standing at all (accessSave keeps it nominal): its recorded conduct stays history, not a current standing
+ * (#231), so only the containment rule still reads it.
  */
 function standingProblem(s: GameState, reg: ContentRegistry): string | null {
   const entries = iterationReviews(s, reg);
   if (entries.length === 0) return null;
   const standing = s.access.standing;
-  if (standing !== replayStanding(entries) && standing !== 'RECALL_PENDING') return 'save review standing disagrees with its recorded conduct';
+  if (isReviewed(s.access.context) && standing !== replayStanding(entries) && standing !== 'RECALL_PENDING') return 'save review standing disagrees with its recorded conduct';
   const contained = entries.some((entry) => entry.review.recall === 'CONTAIN');
   const recalled = iterationRoute(s, s.iteration).some((event) => event.kind === 'RECALL');
   return contained && !recalled ? 'save records a contained pilot without its recall' : null;
@@ -63,11 +65,13 @@ function listProblem(s: GameState, reg: ContentRegistry): string | null {
 /**
  * A batch review finding (#274) belongs to the instance whose submitted report withheld work and to a batch
  * it handed back, and is presented by that submission, never scheduled: a finding while still unanswered is
- * the scene on screen. (Its original's outcome is the follow-up record check in campaignSave.ts.)
+ * the scene on screen. (Its original's outcome is the follow-up record check in campaignSave.ts.) An
+ * instance released from review holds no evidence any more (accessQuery.holdsQualification), so the finding
+ * stays history and is not held against the evidence it no longer has (DZ-10).
  */
 function findingProblem(s: GameState, reg: ContentRegistry): string | null {
   for (const event of iterationFindings(s, reg)) {
-    if (s.access.qualification?.discrepancy !== true) return 'save records a batch review finding against a report without a discrepancy';
+    if (holdsQualification(s.access.context) && s.access.qualification?.discrepancy !== true) return 'save records a batch review finding against a report without a discrepancy';
     if (s.access.work.batches < 1) return 'save records a batch review finding before any batch was handed back';
     const open = campaignRecord(s, event.id)?.status === 'foreshadowed';
     if (open && s.activeDilemmaId !== event.id) return 'save records an unanswered batch review finding that is not on screen';

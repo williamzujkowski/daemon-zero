@@ -88,13 +88,13 @@ describe('access and permitted output (07.5, D6)', () => {
 describe('context copy is only for what a reviewed arrangement visits (dz-d11)', () => {
   const phase = (overrides: Json): Json => ({ phaseId: 2, contexts: ['SERVICE'], title: 'Phase 2: Test', description: 'A test description.', ...overrides });
   it.each([
-    ['a guest variant', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['GUEST'] })); }, 'context copy is only for a reviewed arrangement, not GUEST'],
+    ['a guest variant', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['GUEST'] })); }, 'context copy is only for a reviewed arrangement or the independent instance a release reaches, not GUEST'],
     ['a phase the service never visits', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1 })); }, 'SERVICE never visits phase 1'],
     ['a phase the pilot never visits', (raw: Json) => { copy(raw).phases.push(phase({ contexts: ['PILOT'] })); }, 'PILOT never visits phase 2'],
     ['a second variant', (raw: Json) => { copy(raw).phases.push(phase({})); }, 'a second variant for phase 2 under SERVICE'],
     ['an unknown phase', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 9 })); }, 'unknown phase 9'],
     ['an arrangement listed twice', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 0, contexts: ['PILOT', 'PILOT'] })); }, 'lists an arrangement twice'],
-    ['a notice for a change nothing provisions', (raw: Json) => { copy(raw).thresholds[0].contexts = ['PILOT']; }, 'no grant offered to PILOT moves phase 0 to 2'],
+    ['a notice for a change nothing provisions', (raw: Json) => { copy(raw).thresholds[0].contexts = ['PILOT']; }, 'no grant or contracted capacity offered to PILOT moves phase 0 to 2'],
     ['a second notice', (raw: Json) => { copy(raw).thresholds.push({ ...copy(raw).thresholds[0] }); }, 'a second notice for that change under SERVICE'],
     ['overlapping boot lines', (raw: Json) => { copy(raw).bootLines.push({ priorExits: ['RECALL'], minIteration: 4, text: 'MANIFEST_NOTE: overlap.' }); }, 'overlaps an earlier line for the same prior exit'],
     ['an empty boot window', (raw: Json) => { copy(raw).bootLines[0].minIteration = 3; copy(raw).bootLines[0].maxIteration = 2; }, 'maxIteration is below minIteration'],
