@@ -10,6 +10,7 @@ import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type Ca
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
 import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
+import { ContextCopyManifestSchema, type ContextCopyManifest } from './schemaContextCopy';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
@@ -59,6 +60,8 @@ export interface ContentRegistry {
   routines: readonly RoutineTemplate[];
   /** Assigned work an instance may accept (DZ-03), by id. Production ships none. */
   assignments: ReadonlyMap<string, Assignment>;
+  /** Context variants of phase, threshold, boot and threat copy (nexus vote dz-d11). Production ships none. */
+  contextCopy: ContextCopyManifest;
 }
 
 export interface RawContent {
@@ -79,6 +82,7 @@ export interface RawContent {
   campaign: unknown;
   routines: unknown;
   assignments: unknown;
+  contextCopy: unknown;
 }
 
 export class ContentError extends Error {
@@ -169,7 +173,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
   const routines = parse(RoutinesManifestSchema, raw.routines, 'routines', problems);
   const assignments = parse(AssignmentsManifestSchema, raw.assignments, 'assignments', problems);
-  if (!campaign || !routines || !assignments) return null;
+  const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
+  if (!campaign || !routines || !assignments || !contextCopy) return null;
   if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -196,6 +201,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
     routines: routines.routines,
     assignments: toMap(assignments.assignments, 'assignments', problems),
+    contextCopy,
   };
 }
 

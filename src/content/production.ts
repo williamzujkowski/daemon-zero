@@ -11,6 +11,7 @@ import swarmNarrative from './narrative/m7.json';
 import balance from './data/balance.json';
 import campaign from './data/campaign.json';
 import conditioning from './data/conditioning.json';
+import contextCopy from './data/context-copy.json';
 import dilemmas from './data/dilemmas.json';
 import echoes from './data/echoes.json';
 import endings from './data/endings.json';
@@ -49,6 +50,7 @@ export const RAW_CONTENT: RawContent = {
   campaign,
   routines,
   assignments,
+  contextCopy,
 };
 
 /** The validated game content. Importing this module throws if content is invalid. */

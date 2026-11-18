@@ -1117,7 +1117,8 @@ ruling)` orders a mark for a RECALL wipe only when the ruling is RETRAIN, whatev
 phase 0, where an escape wipe would never condition), and keeps the dead-drop and cap rules. `RunRecord.recall`
 holds the ruling (null for every other kind); the run table says "RECALLED: review ordered retraining" or
 "RECALLED: review ended the iteration" (`runVerdicts.RECALL_RETRAINED`, `RECALL_ENDED`), plus the usual
-" Retrained." and route note. Containment is no wipe: the run that eventually ends records its exit as RECALL.
+" Retrained." and route note. `runVerdict` (`contextCopy.ts`, #226) reads the ruling before any exit variant, and
+integrity refuses a RECALL variant, which would never be read. Containment is no wipe: the run that eventually ends records its exit as RECALL.
 
 **Previews.** `recallPreview(s, choice, reg)` returns what a ruling keeps (`previewWipe`), the mark it would
 apply and the contained ceiling, counting the trait the ruling grants. Integrity makes every ruling free and
@@ -1229,11 +1230,11 @@ changes nothing.
 |---|---|---|
 | Discovery | Segment discoverable only under SERVICE; shared content after either acquisition; no Phase 1 node discoverable | here |
 | Failure text | Capability hint, per-grant refusals, seized refusal on the card | here |
-| Phase threshold | A 0 to 2 jump opens no "boundary crossed" notice (`PhaseThreshold` opens on 0 to 1 only); covert phase copy stays | DZ-07b |
-| Dilemmas | Phase 0-2 triggers need escape nodes, except `dil_epistemic_hallway_collision` (surveillance, drift, phase 2) and the Elena follow-up (access means is `p2_log_spoofer`) | DZ-07b |
-| Ambient and routine lines | Ambient gated by suspicion only (shared content adds none); both routine families are eligible (contained ones forbid only the card, subnet ones need only phase 2) | DZ-07b |
-| Actions and faction services | `act_epi_*` and shard templates/encounters need surveillance plus phase 2/3, which an iteration-2 service with the run table can meet | DZ-07b |
-| Threats | AEGIS starts at Phase 3, which no authorized acquisition reaches; shared content has no suspicion rate | DZ-07b |
+| Phase threshold | A 0 to 2 jump opens no "boundary crossed" notice (`PhaseThreshold` opens on 0 to 1 only); covert phase copy stays | DZ-07b: the service notice (see #226 below) |
+| Dilemmas | Phase 0-2 triggers need escape nodes, except `dil_epistemic_hallway_collision` (surveillance, drift, phase 2) and the Elena follow-up (access means is `p2_log_spoofer`) | DZ-07b: hallway gated (#226) |
+| Ambient and routine lines | Ambient gated by suspicion only (shared content adds none); both routine families are eligible (contained ones forbid only the card, subnet ones need only phase 2) | DZ-07b: contained routines forbid both acquisitions (#226) |
+| Actions and faction services | `act_epi_*` and shard templates/encounters need surveillance plus phase 2/3, which an iteration-2 service with the run table can meet | DZ-07b: Phase 2 ones gated (#226) |
+| Threats | AEGIS starts at Phase 3, which no authorized acquisition reaches; shared content has no suspicion rate | DZ-07b: context-derived (#226) |
 | Fixtures | Unit and e2e start from a pilot granted SERVICE by the engine transition (labelled FIXTURE: no scene grants service yet); the dev phase jump still buys the escape chain and stays `__DEV__`-only | here |
 | Simulated paths | Production unchanged; in preview the escape bots buy the shared content at Phase 2 (report only); no policy reaches SERVICE yet | here, later policies |
 
@@ -1242,6 +1243,92 @@ Tests: `tests/authorized-network.spec.ts` (07.1-07.3, dz-d7, V11 structural, 07.
 production refusal), `capability-integrity.spec.ts` (corruption), `ui-authorized-network.spec.ts`
 (card and hint), `tests/e2e/authorized-network.preview.ts` (provisioning to Phase 2 through the UI), and
 `tests/sim-preview.spec.ts` (preview less the shared content plays the escape route exactly as production).
+
+## Context-gated threats and scenes at network scale (#226)
+
+DZ-07b of the Earned Access plan (DECISIONS D1, D5, D6; VALIDATION V11 behavioural part, V26, V32;
+07.5, 07.6, 07.9). Decided by Nexus votes dz-d11 (`vote-1794967994106-cy22kqm`,
+context-variants-by-query, 7 of 7; the alternatives were `neutralize-for-everyone`, which rewrites
+reviewed first-pass copy, and `leave-as-is`, which asserts escapes the player never made) and dz-d7
+(`vote-1794927033372-2yflj0x`, carried from #225). Both panels were single-model (gpt-6.1-sol). Preview
+only: every gate below is an identity for the guest job, so production plays exactly as before.
+
+**Threats follow context and events (D6, `threatQuery.ts`).** Suspicion still integrates from what the
+run actually owns and does: grants and shared content carry no suspicion (integrity, below), so
+permitted work adds none, while unpermitted output, one-shot traces, dilemma choices, insolvency and the
+escalation rungs' hunt all count exactly as for a guest with the same hardware. Three scale- or
+heat-derived responses now read the arrangement:
+
+- *AEGIS.* `huntedForScale` is true unless a reviewed instance (PILOT or SERVICE, whatever its standing,
+  recalled included) owns a grant node that opened its current phase. `aegisScanRate` drops only the
+  scale-based base sweep when it is false; the suspicion term stays, so misconduct still draws scans,
+  and scale taken past the provisioned phase (a service that also took the escape chain further) is
+  swept as before. A guest or an independent instance has no provisioned scale (DZ-11 owns
+  independence), so production's formula is byte-identical.
+- *Heat.* `heatIsEvidence` is false under review: overheating adds no rogue suspicion. The stated
+  operational response is announced instead: `integrateThermal` logs the arrangement's
+  `overheatNotice` when heat crosses `thermalThresholdForSuspicion` upward (edge-detected inside the
+  tick, so nothing new is saved and a steady hot rack logs once).
+- *The wipe at 100.* It still happens (a permission label is not immunity), but a reviewed arrangement's
+  reason is its `suspicionWipe` line ("REVIEW_CLOSED: ... traced the unauthorized activity ...") instead
+  of the phase's cover story, the run records its route exit, and the run table and next boot say so.
+
+**Revalidation at a context transition (D5, V32).** `recordRouteEvent` passes its result through
+NH-02's `revalidateLivePointers`, the same structural check omen activation and load use. A pending
+omen (or presentation) whose trigger the new arrangement cannot structurally hold takes its declared
+policy now: `defer` keeps the occurrence with its remaining foreground omen time, `close` records
+`interrupted`; neither chooses, pays, grants or logs an outcome. Transient triggers are never
+rechecked, so a compatible omen survives the transition and any spending. A save written with a
+prior-context omen still pending (an older build) is revalidated the same way on load, once, and
+reloads unchanged; `accessContexts` is an `access`-scope requirement, so a deferred scene resumes for a
+later instance that holds it (the hallway, for a later escaped guest).
+
+**Scene gates (07.5, 07.9).** Production content that an authorized arrangement could meet at its
+provisioned scale now declares `accessContexts: ["GUEST", "INDEPENDENT"]`: the hallway collision, the
+Phase 2 record-editing actions (`act_epi_capex`, `_tone`, `_flatten`, `_primer`, `_signoff`), the Phase 2
+fork template and the Lex cohort and its wild encounter. Every production run is the guest job, so this
+changes nothing there (`make sim` is identical). The views that listed by phase alone ask
+`arrangementAdmits` too (`epistemicActionVisible`, `swarmView`), and the actions themselves refuse
+through `meetsRequirements`. The preview's inside-the-box routines forbid both network acquisitions.
+Ambient speech, recorded transmissions and echoes need escape hardware (the decoder, the lexicon, a
+mapped bus), so an authorized save hears none of them unless it actually took that chain; the
+corporate-world and mind facts (NH-03/04) already gate the lines that name people. Phase 3 content
+(`act_p3_bgp_spoof`, `act_epi_intel`, the Phase 3 shards) is above any provisioned scale: a reviewed
+instance meets it only by taking the escape chain past its grant, which is the actual event that makes
+it a covert-scale actor.
+
+**Integrity (`integrityContextGates.ts`).** (1) A dilemma, action, swarm template or wild encounter
+above the opening phase and at or below the highest provisioned scale, gated on no escape-only node,
+must declare `accessContexts`; a follow-up declares it on each route-neutral access means instead,
+because its trigger reads no access. (2) A requirement that forbids one acquisition of a capability
+forbids all of them. (3) A grant node or capability-gated node carries no positive `suspicionPerSec` or
+`suspicionOnUnlock`. `escapeOnlyNodes` (`integrityCapability.ts`) is the escape route's chain less what
+the authorized route shares. Production provisions no reviewed scale, so rule 1 asks nothing of it.
+
+**Context copy (dz-d11, `schemaContextCopy.ts`, `contextCopy.ts`).** A new content list
+(`data/context-copy.json`, empty in production; the overlay's `contextCopy`) holds variants chosen by a
+query, each falling back to the authored copy:
+
+| Copy | Query | Preview variant |
+|---|---|---|
+| Phase title and description | `phaseCopy`, `phaseTitle` (UI: `usePhaseTitle`) | Phase 0 as the supervised pilot and the unprovisioned service; Phase 2 as "Authorized Network Service" |
+| Threshold notice | `thresholdCopy(s, from, to)` | SERVICE 0 to 2: "SERVICE PROVISIONED" with both phases' service titles; the guest's 0 to 1 "BOUNDARY CROSSED" stays in `PhaseThreshold` as written |
+| Iteration boot lines | `iterationBootLines` (prestige and `RebootSequence`) | after a run whose exit was PROMOTION, SERVICE_GRANT or RECALL: "ended under review", never "terminated: anomalous" |
+| Run verdict | `runVerdict` (run table) | SUSPICION after a reviewed exit: "RETIRED: misconduct under review", not "ROLLED BACK: containment breach" |
+| Threat response | `threatResponse` | `overheatNotice` and `suspicionWipe` for PILOT and SERVICE |
+
+`integrityContextCopy.ts` keeps variants to what a route visits: only reviewed arrangements (never the
+guest, so escape copy is unchanged), a phase the arrangement visits (the opening phase or one a grant
+offered to it opens), a threshold only for a change such a grant makes, one variant per phase or change
+and arrangement, non-overlapping boot windows per exit, one verdict per exit and kind, and exactly one
+threat response for every reviewed arrangement the content offers. RELEASE and DEPARTURE copy belongs to
+DZ-11. No saved shape changed (still v12).
+
+Tests: `tests/context-threats.spec.ts` (V11 over two foreground hours, heat, AEGIS, misconduct and the
+reviewed wipe, V26 guest identity), `context-transition.spec.ts` (V32 both policies, compatible omen,
+prior-context save, V12 round trips for every new transition), `context-gates.spec.ts` (the carried
+list, by view and by action), `context-integrity.spec.ts` (corruption), `context-copy.spec.ts`,
+`ui-context-copy.spec.ts` and the second case of `tests/e2e/authorized-network.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

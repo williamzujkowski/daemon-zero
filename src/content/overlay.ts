@@ -29,6 +29,9 @@ export const PreviewOverlaySchema = z.strictObject({
   assignments: items,
   /** Declared campaign facts about overlay events (NH-06), appended to campaign.json's facts. */
   campaignFacts: items.default([]),
+  /** Context copy lists (nexus vote dz-d11), each appended to production's context-copy.json list. */
+  contextCopy: z.strictObject({ phases: items, thresholds: items, bootLines: items, runVerdicts: items, threatResponses: items })
+    .default({ phases: [], thresholds: [], bootLines: [], runVerdicts: [], threatResponses: [] }),
 });
 
 export type PreviewOverlay = z.infer<typeof PreviewOverlaySchema>;
@@ -97,6 +100,11 @@ function addNodes(phases: readonly unknown[], nodes: PreviewOverlay['nodes'], pr
   return composed;
 }
 
+/** Context copy items carry no id, so appending each list cannot redefine anything production holds. */
+function appendCopy(base: unknown, copy: PreviewOverlay['contextCopy'], problems: string[]): unknown {
+  return Object.entries(copy).reduce<unknown>((container, [key, added]) => append(container, key, added, problems), base);
+}
+
 /** Returns production raw content with the overlay's items appended. Throws ContentError on a redefinition. */
 export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawContent {
   const problems: string[] = [];
@@ -114,6 +122,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     routines: append(base.routines, 'routines', overlay.routines, problems),
     assignments: append(base.assignments, 'assignments', overlay.assignments, problems),
     campaign: append(base.campaign, 'facts', overlay.campaignFacts, problems),
+    contextCopy: appendCopy(base.contextCopy, overlay.contextCopy, problems),
   };
   if (problems.length > 0) throw new ContentError(problems);
   return composed;

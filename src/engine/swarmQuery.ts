@@ -7,6 +7,7 @@ import { formatCost, formatOutput, pausedReason, requirementLabels } from './que
 import { shardCommandCost, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
+import { arrangementAdmits } from './accessQuery';
 export function driftProgress(value: number) {
   const percent = Math.min(100, Math.max(0, Math.floor(value))), filled = Math.floor(percent / 10);
   return { percent, label: `[${'#'.repeat(filled)}${'.'.repeat(10 - filled)}] ${String(percent)}%` };
@@ -48,7 +49,7 @@ export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
 }
 export function swarmView(s: GameState, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;
-  return { templates: reg.swarm.playerSwarmTemplates.filter((t) => t.forkable && s.currentPhase >= (t.requirements.phaseAtLeast ?? 0))
+  return { templates: reg.swarm.playerSwarmTemplates.filter((t) => t.forkable && s.currentPhase >= (t.requirements.phaseAtLeast ?? 0) && arrangementAdmits(s, t.requirements))
     .map((t) => forkView(s, t, reg)), entries: Object.keys(s.activeShards).flatMap((id) => { const entry = shardEntryView(s, id, reg); return entry ? [entry] : []; }) };
 }
 export function wildEncounterView(s: GameState, reg: ContentRegistry) {

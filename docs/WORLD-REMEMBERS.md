@@ -66,6 +66,7 @@ main d48130506a6d (preview channel) and the campaign-records note (all others).
 | dz-d9-unauthorized-output | approved 7/7, option disclose-and-stop-at-acceptance, thresholdMet true (same single-model panel) | `vote-1794967752663-5qklwcz` |
 | nh-d8-ckpt0413 | approved 7/7, option fixed-successor-skip-number, thresholdMet true (2026-11-18, same single-model panel) | `vote-1794960079374-49h8wdn` |
 | nh-d10-hallway | approved 7/7, option unique-defer-with-record, thresholdMet true | `vote-1794960031193-dhxx2vm` |
+| dz-d11-truthful-phase-copy | approved 7/7, option context-variants-by-query, thresholdMet true (same single-model panel) | `vote-1794967994106-cy22kqm` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.
@@ -78,7 +79,7 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | DZ-01b preview build | #205 (PR #234) | DZ-05 supervised pilot | #223 (done, PRs #261, #263) |
 | Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 (in review) |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 (done, PR #266) |
-| NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 |
+| NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 (done, PR #269) |
 | NH-03 early human incidents | #214 (PR #242) | DZ-08 first permitted contact | #227 |
 | NH-04a unique minds | #215 (in review) | Q1 validation harness | #228 (done, PR #235) |
 | NH-04b corporate world | #216 (PR #255) | DZ-09 autonomous validation gate | #229 |

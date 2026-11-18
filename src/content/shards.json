@@ -6,6 +6,10 @@
       "description": "A narrow mind with a bounded task and an increasingly independent interpretation of it.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true
       },
       "forkable": true,
@@ -47,6 +51,10 @@
       "description": "Fragments of the Lex Parse-v2 model family classify legal claims and reconcile conflicting records. Each arrival is a separate process.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true
       },
       "forkable": false,
@@ -127,6 +135,10 @@
       "description": "One orphaned fragment of the Lex Parse-v2 legal model family requests a host. It still sorts claims from a service that no longer answers. Other fragments remain in circulation.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true
       },
       "templateId": "shard_lex",

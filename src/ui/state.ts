@@ -5,11 +5,16 @@
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
-import { understandsSurveillance, type GameState } from '../engine';
+import { phaseTitle, understandsSurveillance, type GameState } from '../engine';
 import { gameStore } from '../app/session';
 
 export function useGame<T>(selector: (game: GameState) => T): T {
   return useStore(gameStore.store, (state) => selector(state.game));
+}
+
+/** A phase's title as this run's arrangement sees it (nexus vote dz-d11); the guest reads the authored title. */
+export function usePhaseTitle(phase: number): string {
+  return useGame((game) => phaseTitle(game, phase, CONTENT));
 }
 
 /** False until this mind has learned what its audit trail is for; suspicion has no number before then. */

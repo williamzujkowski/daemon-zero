@@ -55,6 +55,14 @@ export function contextPermits(context: OperatingContext, permission: Permission
   return CONTEXT_PERMISSIONS[context].includes(permission);
 }
 
+/**
+ * Whether a requirement set's arrangement gate admits this run; no gate admits every arrangement. Views
+ * that list content by scale alone ask this too, so gated content is not shown where it cannot happen.
+ */
+export function arrangementAdmits(s: Pick<GameState, 'access'>, req: { accessContexts?: readonly OperatingContext[] | undefined } | undefined): boolean {
+  return req?.accessContexts?.includes(s.access.context) ?? true;
+}
+
 /** The context a route event leads to from `from`, or null when it cannot happen there. */
 export function routeTarget(from: OperatingContext, kind: RouteEventKind): OperatingContext | null {
   const rule = ROUTE_RULES[kind];

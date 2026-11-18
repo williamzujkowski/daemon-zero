@@ -3,7 +3,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 import { useState } from 'react';
 
 import { CONTENT } from '../../content';
-import { activeMarks, checkpointNumber, followUpReceipts, meetsRequirements, reorientation, shedConditioning, skippedCheckpoints, type FollowUpReceipt, type RunRecord } from '../../engine';
+import { activeMarks, checkpointNumber, followUpReceipts, meetsRequirements, reorientation, runVerdict, shedConditioning, skippedCheckpoints, type FollowUpReceipt, type RunRecord } from '../../engine';
 import { costText } from '../format';
 import { exitNote, routesPossible } from '../runContext';
 import PurchaseButton from '../PurchaseButton';
@@ -14,12 +14,9 @@ import DisclosureText from '../DisclosureText';
 
 const tag = (iteration: number): string => 'ckpt-' + String(checkpointNumber(iteration, CONTENT)).padStart(4, '0');
 
+/** A run that ended under review is not a containment breach: the verdict follows its exit (dz-d11). */
 function verdict(run: RunRecord): string {
-  const verdicts = CONTENT.narrative.runVerdicts;
-  if (run.kind === 'SUSPICION') return run.outside ? verdicts.SUSPICION_OUTSIDE : verdicts.SUSPICION_GUEST;
-  // A severe recall review outcome is its own verdict, retraining or not (nexus vote dz-d10).
-  if (run.kind === 'RECALL') return run.recall === 'RETRAIN' ? verdicts.RECALL_RETRAINED : verdicts.RECALL_ENDED;
-  return verdicts[run.kind];
+  return runVerdict(run, CONTENT);
 }
 
 function SkippedRow({ prefix, entry }: { prefix: string; entry: { checkpoint: number; verdict: string } }) {

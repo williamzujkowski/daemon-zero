@@ -20,6 +20,8 @@ import { checkObligationIntegrity } from './integrityObligations';
 import { checkGrantIntegrity } from './integrityGrant';
 import { checkReviewIntegrity } from './integrityReview';
 import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
+import { checkContextCopyIntegrity } from './integrityContextCopy';
+import { checkContextGateIntegrity } from './integrityContextGates';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -241,6 +243,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkGrantIntegrity(reg),
     ...checkReviewIntegrity(reg),
     ...checkCapabilityIntegrity(reg),
+    ...checkContextCopyIntegrity(reg),
+    ...checkContextGateIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

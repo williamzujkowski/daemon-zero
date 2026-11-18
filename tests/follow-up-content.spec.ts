@@ -72,7 +72,8 @@ describe('access means keep the follow-up route-neutral', () => {
 
   it('accepts a second means, as DZ-08 will add for the approved review channel', () => {
     expect(problems((raw) => {
-      dilemma(raw).followUp.access.push({ id: 'review_channel', requirements: { nodes: ['p0_job_manifest'], assignment: { id: 'asg_nightly_regression', stage: 'original' } },
+      // A route-neutral means names the arrangements it holds under (DZ-07b context gates).
+      dilemma(raw).followUp.access.push({ id: 'review_channel', requirements: { nodes: ['p0_job_manifest'], assignment: { id: 'asg_nightly_regression', stage: 'original' }, accessContexts: ['SERVICE'] },
         statement: 'Through an approved review channel, under a current grant.' });
     })).toBe('');
   });
