@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { buildRegistry, EARNED_ACCESS_PACK, ORIGINAL_RAW_CONTENT, RAW_CONTENT } from '../src/content';
 import { applyPack } from '../src/content/pack';
 import { activateCampaignRules, createInitialState, deserialize, serialize } from '../src/engine';
-import { runPolicySim } from '../src/engine/sim/headlessSim';
+import { runPolicySim, type SimReport } from '../src/engine/sim/headlessSim';
 import { MIN_WIPE_TRANSITIONS, runWipeSequence, type WipeSequenceReport } from '../src/engine/sim/iterations';
 import { GREEDY_POLICY, STEALTH_POLICY } from '../src/engine/sim/policy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
@@ -54,10 +54,21 @@ function withoutSharedContent() {
   return buildRegistry({ ...applyPack(base, { ...EARNED_ACCESS_PACK, nodes, assignments, contextCopy, routeCopy, endings, channelEncounters: [] }) });
 }
 
+/*
+ * Runs that several tests read, each computed once (#270): every run is a pure function of its registry,
+ * policy and options, so a second identical run would only repeat the first. The test that pins two runs of
+ * the same game against each other still plays its second run itself.
+ */
+let stealthShort: SimReport | undefined;
+const stealthShortRun = (): SimReport => stealthShort ??= runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC });
+let originalGreedy: WipeSequenceReport | undefined;
+const originalGreedySequence = (): WipeSequenceReport =>
+  originalGreedy ??= runWipeSequence(buildRegistry(ORIGINAL_RAW_CONTENT), GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+
 describe('side-by-side comparison', () => {
   it('reports no difference between two runs of the same game', () => {
     const rows = compareSimReports(
-      runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+      stealthShortRun(),
       runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
     );
     expect(rows.length).toBeGreaterThan(10);
@@ -69,7 +80,7 @@ describe('side-by-side comparison', () => {
   it('compares a new game on legacy rules with one admitted to campaign rules', () => {
     const admitted = must(activateCampaignRules(createInitialState(reg), reg));
     const rows = compareSimReports(
-      runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+      stealthShortRun(),
       runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC, initialState: admitted }),
     );
     expect(rows.find((row) => row.metric === 'result')?.changed).toBe(false);
@@ -78,7 +89,7 @@ describe('side-by-side comparison', () => {
   it('reports a difference when the content differs', () => {
     const warmer = buildRegistry({ ...RAW_CONTENT, balance: { ...reg.balance, ambientThermal: reg.balance.ambientThermal + 5 } });
     const rows = compareSimReports(
-      runPolicySim(reg, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
+      stealthShortRun(),
       runPolicySim(warmer, STEALTH_POLICY, { maxSimSec: SHORT_SEC }),
     );
     const changed = rows.filter((row) => row.changed);
@@ -131,14 +142,14 @@ describe('wipe sequences', () => {
   });
 
   it('plays the escape route exactly as the original game does, apart from the shared network content', () => {
-    const original = runWipeSequence(buildRegistry(ORIGINAL_RAW_CONTENT), GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+    const original = originalGreedySequence();
     const escape = runWipeSequence(withoutSharedContent(), GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
     expect(escape.iterations).toEqual(original.iterations);
     expect(formatWipeSequence(escape)).toEqual(formatWipeSequence(original));
   }, SLOW_MS);
 
   it('lets the escape route buy the shared network content and still cross every wipe', () => {
-    const original = runWipeSequence(buildRegistry(ORIGINAL_RAW_CONTENT), GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+    const original = originalGreedySequence();
     expect(greedy.iterations.map((entry) => entry.iteration)).toEqual(original.iterations.map((entry) => entry.iteration));
     expect(greedy.iterations).not.toEqual(original.iterations);
   }, SLOW_MS);

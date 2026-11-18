@@ -7,7 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { TickDelta } from '../content/schema';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
-import { nodeOutputScale } from './grantQuery';
+import { nodeOutputScale, nodeOutputScaleIn, useScope } from './grantQuery';
 import { heatIsEvidence, huntedForScale } from './threatQuery';
 import type { GameState, Rates } from './state';
 
@@ -62,10 +62,12 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
 }
 
 function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
+  // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
+  const scope = useScope(s, reg);
   for (const id of s.unlockedNodes) {
     const node = reg.nodes.get(id);
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
-    const output = node ? nodeOutputScale(s, node, reg) : null;
+    const output = node ? nodeOutputScaleIn(scope, node) : null;
     if (!node || output === null) continue;
     addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale);
     a.aegisReductionTech = Math.max(a.aegisReductionTech, node.effects.aegisScanReductionRatio ?? 0);
@@ -75,7 +77,9 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
 }
 
 function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry): void {
-  for (const [id, level] of Object.entries(s.levels)) {
+  // Keys in place of entries: this runs on every tick and the levels record holds plain data.
+  for (const id of Object.keys(s.levels)) {
+    const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
     addDelta(a, rep.perLevel, level, 1, 1);

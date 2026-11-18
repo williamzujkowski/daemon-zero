@@ -1,7 +1,7 @@
 import type { ContentRegistry } from '../../content/registry';
 import type { Dilemma } from '../../content/schema';
 import { closeLostDeferrals, isResumable, mayPresent, reserveOccurrence, resumeOccurrence } from '../campaignLifecycle';
-import { isCampaignConsumed } from '../campaignQuery';
+import { isCampaignActive, isCampaignConsumed } from '../campaignQuery';
 import { followUpPrerequisiteHolds, followUpReachable } from '../followUp';
 import { excludedByHistory } from '../narrativeHistory';
 import { meetsRequirements } from '../query';
@@ -37,15 +37,27 @@ function firePending(d: GameState, pending: NonNullable<GameState['pendingDilemm
  * omen or absence can bring a sanction to completed work nobody handed back.
  */
 function isFresh(d: GameState, dilemma: Dilemma, reg: ContentRegistry): boolean {
-  return dilemma.finding === undefined && !isCampaignConsumed(d, dilemma) && followUpPrerequisiteHolds(d, dilemma) &&
-    followUpReachable(d, dilemma, reg) && meetsRequirements(d, dilemma.trigger, reg);
+  // Every check is pure, so order never changes the answer. The trigger goes first because this runs for
+  // every unresolved dilemma on every tick and most triggers fail on their first cheap field read.
+  return dilemma.finding === undefined && meetsRequirements(d, dilemma.trigger, reg) && !isCampaignConsumed(d, dilemma) &&
+    followUpPrerequisiteHolds(d, dilemma) && followUpReachable(d, dilemma, reg);
 }
 
 /** The first dilemma in content order that is either a deferred occurrence resuming or a new one. */
+function nextDue(d: GameState, reg: ContentRegistry): Dilemma | undefined {
+  // A plain loop: this runs on every tick with no story pending, over every dilemma. A deferred occurrence is a
+  // campaign record, and legacy rules keep none (campaignRecord is null there), so only campaign rules ask.
+  const campaign = isCampaignActive(d);
+  for (const dilemma of reg.dilemmas) {
+    if (dilemma.phaseId > d.currentPhase || d.resolvedDilemmas.includes(dilemma.id)) continue;
+    if ((campaign && isResumable(d, dilemma, reg)) || isFresh(d, dilemma, reg)) return dilemma;
+  }
+  return undefined;
+}
+
 function scheduleNext(d: GameState, reg: ContentRegistry): void {
   closeLostDeferrals(d, reg);
-  const next = reg.dilemmas.find((dilemma) => dilemma.phaseId <= d.currentPhase && !d.resolvedDilemmas.includes(dilemma.id) &&
-    (isResumable(d, dilemma, reg) || isFresh(d, dilemma, reg)));
+  const next = nextDue(d, reg);
   if (!next) return;
   if (isResumable(d, next, reg)) {
     resumeOccurrence(d, next, reg);
