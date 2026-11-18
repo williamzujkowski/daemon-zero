@@ -58,7 +58,7 @@ function applyNodeEffects(d: GameState, node: RegistryNode, reg: ContentRegistry
   if (widget !== null && !d.unlockedWidgets.includes(widget)) d.unlockedWidgets = [...d.unlockedWidgets, widget];
   pushLog(d, reg, node.onUnlockLog, node.phaseId >= reg.balance.corporatePhase ? 'CORP' : 'SENSOR');
   for (const echo of reg.echoes) {
-    if (echo.onNode === node.id && d.iteration >= echo.minIteration) pushLog(d, reg, echo.text, 'LORE');
+    if (echo.onNode === node.id && d.iteration >= echo.minIteration && meetsRequirements(d, echo.requirements, reg)) pushLog(d, reg, echo.text, 'LORE');
   }
   if (fx.triggersVictory === true) endRun(d, node, reg);
 }

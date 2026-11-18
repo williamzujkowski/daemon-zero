@@ -58,14 +58,17 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
 }
 
 /**
- * What an old save proves about one event (NARRATIVE-HISTORY N11): an exclusive outcome flag
- * gives the exact choice; a resolved id without one gives legacy_unknown; nothing gives nothing.
+ * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): an exclusive
+ * outcome flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing
+ * gives nothing. Legacy history cannot postdate activation, so an event resolved in a later
+ * iteration of an already-active campaign (content converted it since) keeps no source iteration.
  */
-function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
+export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
   const current = s.resolvedDilemmas.includes(event.id);
   const exact = event.choices.find((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
   if (!exact && !current) return null;
-  return { status: 'resolved', outcome: exact?.id ?? LEGACY_UNKNOWN_OUTCOME, sourceIteration: current ? s.iteration : null, origin: 'legacy' };
+  const attributable = current && s.iteration <= (s.campaign.activatedAtIteration ?? s.iteration);
+  return { status: 'resolved', outcome: exact?.id ?? LEGACY_UNKNOWN_OUTCOME, sourceIteration: attributable ? s.iteration : null, origin: 'legacy' };
 }
 
 function legacyHistory(s: GameState, reg: ContentRegistry): CampaignState {

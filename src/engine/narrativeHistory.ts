@@ -23,6 +23,11 @@ export function hasConflictingNarrativeFlags(s: GameState, reg: ContentRegistry)
   return reg.swarm.exclusiveNarrativeFlagGroups.some((group) => group.filter((flag) => holdsNarrativeFlag(s, flag, reg)).length > 1);
 }
 
+/** The same check on the flags a save stores, before any record projects or consumes one. */
+export function hasConflictingStoredFlags(s: Pick<GameState, 'narrativeFlags'>, reg: ContentRegistry): boolean {
+  return reg.swarm.exclusiveNarrativeFlagGroups.some((group) => group.filter((flag) => s.narrativeFlags.includes(flag)).length > 1);
+}
+
 /** Imported stale incidents are removed without fabricating a choice or paying its effects. */
 export function reconcileDilemmaHistory(s: GameState, reg: ContentRegistry): GameState {
   const excluded = (id: string): boolean => excludedByHistory(s, reg.dilemmas.find((dilemma) => dilemma.id === id), reg);

@@ -7,7 +7,7 @@ import { createInitialState, deserialize, exportSave, importSave, tick, type Gam
 import { systemClock } from '../src/app/clock';
 import { startFresh } from '../src/app/newRun';
 import { captureReplacementScope } from '../src/app/replacePlayerGame';
-import { importPlayerSave } from '../src/app/saveTransfer';
+import { checkPlayerSave, importPlayerSave } from '../src/app/saveTransfer';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { SAVE_KEY } from '../src/app/storage';
 import { settle } from './app-helpers';
@@ -128,5 +128,25 @@ describe('player replacement race guard', () => {
     expect(result.state).toBe(before.game);
     expect(gameStore.store.getState().game).toBe(before.game);
     expect(gameStore.store.getState().restoreRevision).toBe(before.restoreRevision);
+  });
+});
+
+describe('player save check before confirmation', () => {
+  it('reports why a code would be refused through the import codec, leaving the run alone', () => {
+    gameStore.initialize(fixture('guest-skimmer'), 0, null);
+    const before = gameStore.store.getState();
+    const preview = exportSave(tick(createInitialState(PREVIEW), 1, PREVIEW));
+    expect(checkPlayerSave('not-a-save-code')).toEqual({ ok: false, reason: 'Save code is invalid or unsupported.' });
+    expect(checkPlayerSave('')).toEqual({ ok: false, reason: 'Save code is invalid or unsupported.' });
+    expect(checkPlayerSave(preview)).toEqual({ ok: false, reason: 'This save comes from a preview build and cannot be loaded here.' });
+    expect(checkPlayerSave(exportSave(fixture('tick-0')))).toEqual({ ok: true });
+    expect(gameStore.store.getState()).toBe(before);
+  });
+
+  it('agrees with import on every code it checks', () => {
+    for (const code of ['x', exportSave(fixture('tick-0'))]) {
+      gameStore.initialize(fixture('guest-skimmer'), 0, null);
+      expect(importPlayerSave(code, captureReplacementScope()).ok).toBe(checkPlayerSave(code).ok);
+    }
   });
 });

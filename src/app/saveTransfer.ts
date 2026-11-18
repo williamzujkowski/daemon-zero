@@ -14,6 +14,17 @@ function refusalReason(error: unknown): string {
   return 'Save code is invalid or unsupported.';
 }
 
+export type SaveCheck = { ok: true } | { ok: false; reason: string };
+
+/**
+ * Decodes a pasted code through the same codec as import, without touching the run, so the
+ * replacement confirmation is only offered for a code that would load.
+ */
+export function checkPlayerSave(code: string): SaveCheck {
+  try { importSave(code, CONTENT); return { ok: true }; }
+  catch (error) { return { ok: false, reason: refusalReason(error) }; }
+}
+
 export function importPlayerSave(code: string, expectedScope?: string): ActionResult {
   return replacePlayerGame((game) => {
     try { return { ok: true, state: importSave(code, CONTENT) }; }
