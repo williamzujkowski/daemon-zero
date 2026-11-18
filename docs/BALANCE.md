@@ -271,7 +271,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - **Network interface cut from 10,000 to 6,500 cycles** to shorten the wait at the end of Phase 1 (issue #23).
 - **Chronic suspicion from income repeatables halved** (idle threads 0.001, dormant workstations 0.0015 per level). Before the ladder, natural decay hid these; with it, 60 idle threads alone would outrun decay.
 - **Log scrubbing moved to the start of Phase 2** (needs the subnet mapper, costs 1,500 cycles, removes 10). Without it, early Phase 2 had suspicion sources and no countermeasure until the 25,000-cycle spoofer, and the only winning move was to buy through it.
-- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration. A second iteration clears Phase 0 in about a minute and Phase 1 in about eight.
+- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration. A second iteration clears Phase 0 in about a minute and Phase 1 in about eight. Under campaign rules (preview only) content may discount a remembered node's cycles further; only the log spoofer has such a discount (#262, below).
 
 ## How the economy is shaped
 
@@ -606,7 +606,8 @@ ordinary threat), but a careful human might meet the same squeeze. Options for a
 content change (not made here; tuning content needs a reviewed decision and the bot must not be
 tuned): a requalification or routine bounty in phases 1-2, a cheaper rediscovered spoofer, or a
 scrub cooldown that matches phase 2 income. DZ-09's return protocol should measure it with a human
-or an evaluating agent before any tuning.
+or an evaluating agent before any tuning. (DZ-09 part B measured it, and #262 decided a cheaper
+rediscovered spoofer; see "The rediscovered log spoofer under campaign rules (#262)".)
 
 ### Elena's follow-up once per campaign (#218)
 
@@ -910,3 +911,74 @@ compute and an unverified answer costs nothing. The bot is not involved.
 report as `main` apart from wall time. The returning policy's scope review now records `RESPECTED`
 (`tests/sim-pilot.spec.ts`), but nothing in the report reads it.
 
+## The rediscovered log spoofer under campaign rules (#262)
+
+**Decision.** Nexus decision `i262-return-balance`, record `vote-1795006680826-xhy7znt`:
+`cheaper-rediscovered-spoofer`, 6 of 7 option votes, threshold met. The panel was single-model, and its
+artifact was the DZ-09 report with Part B's measurements (REVIEW-EARNED-ACCESS-VALIDATION.md, B.6).
+**Dissent:** 1 vote for `no-change`. Part B's stated case for that option is that no configuration
+soft-locks: every stalled return ends by an ordinary threat and the next iteration starts, so (d) is
+defensible if slower, higher-suspicion campaign returns are accepted. The dissent's own text is not
+reproduced here. The options dropped before the vote were (c), a scrub cooldown (no measured benefit),
+and (a), a routine or requalification bounty (not measured, and it would re-add the recurring income
+D9 removed).
+
+**Change.** Preview only (`src/content/preview/overlay.json`, `campaignRediscovery`). Under campaign
+rules a returning instance rediscovers `p2_log_spoofer` for **6,250 cycles** instead of 12,500
+(`cyclesMultiplier` 0.5 applied after `rediscoveryCostMultiplier` 0.5). Understanding (2,000), memory
+(64 MB) and the first mapping (25,000 cycles) are unchanged, as is every other node. Legacy rules,
+production and `balance.json` are unchanged. Production ships an empty `rediscovery` list in
+`campaign.json`, and `make sim` prints the same report as `dbe6fce` byte for byte apart from wall time.
+The mechanism is a content declaration read only under campaign rules (ARCHITECTURE.md, "Remembered
+hardware"), not an engine constant. Part B's probe also halved the first-run price. This change does
+not, so iteration 1 is identical before and after. The bot was not changed.
+
+**Measured** on `dbe6fce` plus this branch with `make sim-preview` (overlay
+`daemon-zero:preview-overlay:5b1e0c7a`). This is SIM evidence: accelerated simulated time, three wipe
+transitions, a 4 x `SIM_BUDGET_SEC` budget, and a fresh campaign for the campaign rows. The policy is
+`EVALUATING_RETURN` (`src/engine/sim/evaluatingPolicy.ts`), Part B's evaluating careful return committed
+as a new preview policy. Iteration 1 is STEALTH_RETURN. Each return answers suspicion from 45, only with
+an action costing at most a quarter of the cycle bank, keeps its noisy income, and leaves on entering
+Phase 5. Before this change it reproduces Part B's table exactly. Peak suspicion is read after each
+decision. Phase times are seconds after that iteration booted.
+
+| Returns (iterations 2-4) | Past Phase 2 | P3 reached | P5 reached | Peak suspicion |
+|---|---|---|---|---|
+| Legacy rules, EVALUATING_RETURN (unchanged by #262) | 3 of 3 | 1938.8 / 1972.9 / 1952.4 s | 4388.2 / 4460.3 / 4492.4 s | 45.0 / 45.6 / 45.0 |
+| Legacy rules, STEALTH_RETURN (unchanged) | 3 of 3 | 2230.6 / 2265.7 / 2240.4 s | 4658.0 / 4743.4 / 4760.7 s | - |
+| Campaign rules, EVALUATING_RETURN, **before** (12,500) | 3 of 3 | 2546.0 / 2573.1 / 2404.2 s | 5618.3 / 5598.3 / 5434.2 s | 79.7 / 83.1 / 52.4 |
+| Campaign rules, EVALUATING_RETURN, **after** (6,250) | 3 of 3 | **2314.0 / 2336.1 / 2320.2 s** | 5260.3 / 5452.1 / 5454.2 s | **63.9 / 66.3 / 45.0** |
+| Campaign rules, STEALTH_RETURN (alarm 20), before and after | 0 of 3 | - | - | - |
+
+What moved:
+- **Phase 3.** Campaign returns reach it 9.1%, 9.2% and 3.5% sooner. They are now 18-19% slower than
+  the same policy under legacy rules, against 23-31% before. They are within 4% of legacy
+  STEALTH_RETURN (2230.6-2265.7 s).
+- **Peak suspicion.** It falls from 80-83 to 64-66 in returns 2 and 3, still past the 50 escalation
+  tier but below 75. Return 4 falls from 52.4 to 45.0. That is still above legacy (45.0-45.6) in
+  returns 2 and 3.
+- **Phase 5.** Returns 2 and 3 reach it 358 s and 146 s sooner. Return 4 reaches it 20 s later
+  (5454.2 against 5434.2 s). The cause was not traced.
+- **Return 2.** It now meets three dilemmas instead of one, and its story rewards rise from 0 to 90,000
+  cycles. Inferred, not traced: it reaches a story that the slower run never met.
+- **Suspicion-reducing actions per return.** 12 / 14 / 12, against 9 / 10 / 12 before. These are
+  actions with a negative `suspicionDelta`, counted by `returnObserver.ts`. Part B's 1-3 counted the
+  audit-log scrub alone.
+- **The fixed-alarm STEALTH_RETURN.** It still stalls 0 of 3 returns with the same numbers (4046.0 /
+  5303.7 / 10039.5 s, INCIDENT_CLOSED). It scrubs every cycle away and never saves even 6,250, as Part
+  B predicted. As Part B recommended, it is not the target metric.
+
+Other blocks of `make sim-preview` that a returning spoofer reaches:
+- **GREEDY under campaign rules.** Iteration 4 reaches Phase 3 at 2632.8 s, not 3266.8 s, and is wiped
+  by the AEGIS kill chain at 3292.9 s, not 3969.0 s. Iterations 1-3 are unchanged.
+- **STEALTH after completing Phase 5 (NH-05 block).** Iteration 5 reaches P3 at 2836.1 s (was 3090.1)
+  and P5 at 5980.3 s (was 6245.3). It ends SANCTUARY_LEDGER at 7817.3 s (was 8054.3). Iterations 2-4
+  stall exactly as before.
+- **Everything else.** All other blocks, and the 22 preview-versus-production metric rows, are unchanged.
+
+Tests: `tests/rediscovered-spoofer.spec.ts` covers the 6,250 price in a campaign return, the full
+first mapping, 12,500 under legacy rules on preview and in production, every other node unchanged, and
+save-code and storage round trips. `tests/campaign-rediscovery.spec.ts` covers the mechanism and each
+integrity rule's failure. `tests/ui-campaign-rediscovery.spec.ts` covers the card's price and its
+"saves 75% of cycles and 50% of understanding" line. `tests/evaluating-policy.spec.ts` covers the
+policy and proves STEALTH and GREEDY unchanged.
