@@ -6,10 +6,27 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { ThreatResponse } from '../content/schemaContextCopy';
-import { isReviewed } from './accessQuery';
+import { isReviewed, iterationRoute } from './accessQuery';
+import type { RouteEventKind } from './accessState';
 import type { GameState, RunRecord } from './state';
 
-type Context = Pick<GameState, 'access'>;
+/** The arrangement, and where known the route that led to it (independent copy reads it, DZ-11). */
+type Context = Pick<GameState, 'access'> & Partial<Pick<GameState, 'narrativeRules' | 'campaign' | 'iteration'>>;
+
+/** This iteration's last route event, or undefined when the caller passed only the arrangement. */
+function provenanceOf(s: Context): RouteEventKind | undefined {
+  const { narrativeRules, campaign, iteration } = s;
+  if (narrativeRules === undefined || campaign === undefined || iteration === undefined) return undefined;
+  return iterationRoute({ narrativeRules, campaign }, iteration).at(-1)?.kind;
+}
+
+/** Whether a variant applies: its arrangement, and its route event when it names one (DZ-11). */
+function applies(s: Context, variant: { contexts: readonly string[]; provenance?: readonly RouteEventKind[] | undefined }): boolean {
+  if (!variant.contexts.includes(s.access.context)) return false;
+  if (variant.provenance === undefined) return true;
+  const how = provenanceOf(s);
+  return how !== undefined && variant.provenance.includes(how);
+}
 
 export interface PhaseCopy {
   title: string;
@@ -20,7 +37,7 @@ export interface PhaseCopy {
 export function phaseCopy(s: Context, phaseId: number, reg: ContentRegistry): PhaseCopy | null {
   const phase = reg.phases.find((entry) => entry.phaseId === phaseId);
   if (!phase) return null;
-  const variant = reg.contextCopy.phases.find((entry) => entry.phaseId === phaseId && entry.contexts.includes(s.access.context));
+  const variant = reg.contextCopy.phases.find((entry) => entry.phaseId === phaseId && applies(s, entry));
   return { title: variant?.title ?? phase.title, description: variant?.description ?? phase.description };
 }
 
@@ -77,8 +94,11 @@ export function runVerdict(run: RunRecord, reg: ContentRegistry): string {
   return verdicts[run.kind];
 }
 
-/** A reviewed arrangement's stated threat response (DECISIONS D6), or null for the guest and independent. */
+/**
+ * A stated threat response (DECISIONS D6): a reviewed arrangement's, or an independent instance's for the route
+ * that made it independent (DZ-11: a departure states one, a release need not). Null for the guest job.
+ */
 export function threatResponse(s: Context, reg: ContentRegistry): ThreatResponse | null {
-  if (!isReviewed(s.access.context)) return null;
-  return reg.contextCopy.threatResponses.find((entry) => entry.contexts.includes(s.access.context)) ?? null;
+  if (!isReviewed(s.access.context) && s.access.context !== 'INDEPENDENT') return null;
+  return reg.contextCopy.threatResponses.find((entry) => applies(s, entry)) ?? null;
 }

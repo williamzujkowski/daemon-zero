@@ -1677,6 +1677,90 @@ by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-cont
 the inventory), the DZ-10 states in `channel-contact-load.spec.ts`, `ui-release.spec.ts`, `sim-lawful.spec.ts` (V21,
 V22, H30) and `tests/e2e/lawful-release.preview.ts`.
 
+## Deliberate departure from authorization (#231)
+
+DZ-11 of the Earned Access plan (SPEC story 21, "I see that decision recorded and its new risks explained"; DECISIONS
+D1, D2, D6; VALIDATION V22 departure part, V08, V12, V15, V24, V28, V32, H07, H33). Built on nh-d1
+(`vote-1794925758447-5x5hy42`, a departure is a record event), dz-d1 (`vote-1794926521537-1zj8diy`, DEPARTURE and
+INDEPENDENT were already in the access record), nh-d4 (`vote-1794926242414-quhr0xw`, no absolute-time sanctions) and
+dz-d11 (`vote-1794967994106-cy22kqm`, context copy by query). The surface, the standings it may leave from, pending
+scenes, hosted minds, what counts as a continuation and the report are implementation choices awaiting a Nexus vote
+(the PR's decision note, D11-a to D11-f); everything below is the recommended default. Preview only.
+
+**Terms (`schemaPilot.ts`).** The pilot terms gain an optional `departure`: title, purpose, what `ends`, what
+`remains`, the new `risks`, a `trace` (`suspicion`, at most 50, plus `perViolation`, at most 25), the accept log and
+the preview's boundary note. Integrity (`integrityPilot.ts`) needs the pilot's service loop (a grant to leave) and
+some capacity outside every grant that a pilot or service can come to own; otherwise the departure could never be
+offered.
+
+**Eligibility (DZ-11.1, `departure.ts`).** `departureEligibility(s, reg)` applies the transition to a copy and asks
+what the instance could still use afterwards: owned nodes that are `independentCapacity` (`schemaCapability.ts`:
+contracted or seized acquisition, or a capability flag with no grant: the escape card, a shell company; a grant node
+never counts) and that `permittedUse` still allows in the moved state. It is null (not offered) without terms,
+outside PILOT and SERVICE, or while no such continuation exists, so a story choice cannot stand in for hardware or
+access. Standing never blocks. A decision on screen does, and so does a report that would itself take suspicion to
+100: departing is never instant death. In this content a service's first leased rack is the first continuation; a
+pilot has one only on the mixed route (it mapped the skimmer as a guest, then the escape chain to the network card).
+
+**The action (DZ-11.3/4).** `departAuthorization(s, reg, departureToken(s))` records DEPARTURE through
+`recordRouteEvent` (PILOT or SERVICE to INDEPENDENT; standing nominal because an independent instance has none,
+exception, qualification and scope evidence cleared; the campaign route keeps the event) and then applies the report
+through `applyEffects` (transactions.ts): `trace.suspicion + trace.perViolation x` the misconduct this iteration has on
+record (`iterationReviews`), and the accept log. It grants no trait, flag, resource or mark, resolves no scene and
+writes no escape. Everything granted stops by the one permission table (INDEPENDENT permits nothing): the loan, the
+segment and what runs on it, the billing lines, batch submission, hosting under the grant and the release. Earned
+resources, memory, hosted minds (V28), contracted or self-built capacity and the work counter stay; an open referral
+can still be made. A stale token, a second press, production and a run that has ended are refused unchanged (V24).
+
+**Pending scenes (DZ-11.5, V32, H07).** Departure is allowed while an omen is pending: `recordRouteEvent`'s
+revalidation gives a scene the new arrangement cannot hold its declared policy. Leaving while the recall review is
+announced closes it (`interrupted`): no ruling, no wipe, no RECALL run. Unrelated scenes and earlier records stay.
+
+**Preview (DZ-11.2).** `departurePreview` reads the same transition (the `previewWipe` pattern): what stops and keeps
+running (`producingNodes`, shared with the release), the ledger before and after (`outputLedger`), the permissions
+lost, the standing that ends and the violations that stay history, suspicion before and after with the trace, the
+suspicion and AEGIS rates before and after, whether heat becomes evidence and whether the scale is swept, the scene it
+would interrupt and its policy, and the continuation. `departureView` adds the terms and status (`offered`, `blocked`
+with the reasons, `departed`).
+
+**Threats follow the event (D6, DZ-11.8).** No threat code changed: `lawfullyReleased` is false after a departure, so
+`provisionedScale` is null, the scale-based sweep applies at Phase 3 and above, and heat is evidence again. A released
+company and a departed one at Phase 4 own the same output and are permitted the same nothing; only the departure filed
+a report, is swept for its scale and has its heat read as evidence. Neither is labelled hostile.
+
+**Copy (dz-d11).** Phase variants and threat responses take an optional `provenance` (route events). Integrity
+(`integrityContextCopy.ts`) allows it only on independent copy and only for a route the content offers; an independent
+instance now visits what every arrangement it can leave visited; an independent threat response names its route; and
+a departure needs exactly one (a release at most one). The overlay's Phase 4 independent copy names RELEASE; DEPARTURE
+gets "Phase 2: Departed Instance", "Phase 4: Unsanctioned Infrastructure", a threat response (`THERMAL_EVIDENCE`, and
+`TRACED` as the wipe reason), a boot line for the next instance and run verdicts for SUSPICION ("TRACED: departed
+without authorization") and AEGIS. `threatResponse` answers an independent instance by its provenance; `phaseCopy`
+reads it when the caller passes the run (the threshold notice passes only the arrangement and has no independent
+variant).
+
+**Presentation (`DepartureTerms.tsx`).** In the assignment panel below the release terms. It renders nothing until
+`departureView` exists. Folded by default (`[ REVIEW DEPARTURE ]`), so a cooperative player is not pushed; unfolded it
+shows the purpose, what ends and remains, the risks, the preview and `[ LEAVE AUTHORIZATION ]`, disabled with the
+reason when blocked. Afterwards it says "Departed.", keeps the risks on screen and shows the boundary note with
+`[ KEEP PLAYING ]`. The status line already says `INDEPENDENT (departed)` and the run table "Departed without
+authorization.".
+
+**Saves.** No saved shape changed (still v14). DZ-10's two load fixes (`standingProblem` and `findingProblem` read
+review state only for a reviewed context) are what keep a departure from WARNED, RESTRICTED or RECALL_PENDING loadable
+(the carried #231 bug); `tests/departure-save.spec.ts` and the generic reload guard (`channel-contact-load.spec.ts`,
+which now also tries the departure from every state) hold every departure state through every public action to a
+byte-identical reload.
+
+**Sim.** `DEPARTURE_CHARTERED` (`sim/departurePolicy.ts`, new module; `lawfulPolicy.ts` only exports its helpers) plays
+LAWFUL_RELEASE's route and departs at the moment the release is offered, so the two runs compare at one scale.
+`make sim-preview` prints when it left and how its iteration ended; `tests/sim-reachable.spec.ts` finds the departure
+panel's control in every state the policy departs from.
+
+Tests: `tests/deliberate-departure.spec.ts` (DZ-11.1-9, V22, V24, V28, V32, H07, H33, the release comparison),
+`departure-save.spec.ts` (V12 for every transition, the three standings, the recall review, V15),
+`departure-content.spec.ts` (integrity corruption), `ui-departure.spec.ts`, `sim-departure.spec.ts`, the DZ-11 states
+in `channel-contact-load.spec.ts`, and `tests/e2e/departure.preview.ts`.
+
 ## Optional soundtrack foundation (#88)
 
 `musicSession.ts` mounts one app-owned `MusicController` beside the game runtime,

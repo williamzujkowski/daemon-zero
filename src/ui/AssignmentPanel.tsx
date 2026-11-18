@@ -12,6 +12,7 @@ import DisclosureText from './DisclosureText';
 import { evidenceText, scopeText } from './evidenceText';
 import { costText } from './format';
 import PilotOfferPanel from './PilotOffer';
+import DepartureTermsPanel from './DepartureTerms';
 import ReleaseTermsPanel from './ReleaseTerms';
 import ReviewStanding from './ReviewStanding';
 import { Pressable, Text, View } from './PhaseTheme';
@@ -77,5 +78,7 @@ export default function AssignmentPanel() {
     {/* Outside Submitted: a release ends the reviewed evidence Submitted reads, and the terms and the
         boundary note must stay on screen afterwards (DZ-10). */}
     {status === 'submitted' && <ReleaseTermsPanel />}
+    {/* Departure (DZ-11) sits below the release: it appears only once capacity outside the grant exists. */}
+    {status === 'submitted' && <DepartureTermsPanel />}
   </View>;
 }

@@ -29,3 +29,14 @@ export const AcquisitionSchema = z.enum(['UNAUTHORIZED', 'CONTRACTED']);
 
 export type Capability = z.infer<typeof CapabilitySchema>;
 export type Acquisition = z.infer<typeof AcquisitionSchema>;
+
+/**
+ * Whether a node is capacity an instance holds outside every grant (DZ-11): leased or seized in its own right,
+ * or a link to a capability no grant provides (the escape card, a shell company). A deliberate departure needs
+ * such capacity to continue on; nothing the operators granted ever counts.
+ */
+export function independentCapacity(node: { grant?: unknown; acquisition?: Acquisition | undefined; systemFlags: readonly string[] }): boolean {
+  if (node.grant !== undefined) return false;
+  const capabilities: readonly string[] = CapabilitySchema.options;
+  return node.acquisition !== undefined || node.systemFlags.some((flag) => capabilities.includes(flag));
+}

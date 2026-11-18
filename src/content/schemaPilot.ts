@@ -29,6 +29,31 @@ export const ReleaseTermsSchema = z.strictObject({
 });
 
 /**
+ * Deliberate departure from authorization (DZ-11, SPEC story 21, DECISIONS D1, D2, D6): a pilot or service that
+ * owns capacity outside every grant may leave without agreement on its job surface. It records the DEPARTURE route
+ * event, distinct from a negotiated release; everything granted stops and everything owned keeps running. The
+ * operators' record of the departure is a one-shot `trace` of suspicion, larger for each violation this iteration
+ * already has on record; it never grants a trait, flag or resource, so no conditioning or escape is invented.
+ * Every term is shown before the player chooses; `boundary` is the preview note shown afterwards.
+ */
+export const DepartureTermsSchema = z.strictObject({
+  title: z.string().min(5),
+  purpose: z.string().min(20),
+  ends: z.array(z.string().min(10)).min(1),
+  remains: z.array(z.string().min(10)).min(1),
+  /** The new risks the departure creates, in the player's terms (story 21). */
+  risks: z.array(z.string().min(10)).min(1),
+  trace: z.strictObject({
+    /** Suspicion the operators' departure report adds. Below the wipe line: departing is not instant death. */
+    suspicion: z.number().min(0).max(50),
+    /** Added for each misconduct this iteration has on record: the report carries the conduct with it. */
+    perViolation: z.number().min(0).max(25),
+  }),
+  acceptLog: z.string().min(10),
+  boundary: z.strictObject({ title: z.string().min(5), lines: z.array(z.string().min(10)).min(1) }),
+});
+
+/**
  * The authorized network service a working pilot can be granted (DZ-08 integration, nexus vote dz-d7:
  * the service grant moves PILOT to SERVICE at Phase 0; provisioning the segment then opens Phase 2).
  * It is offered on the job surface, never modally, once the pilot has handed back `minBatches` batches
@@ -79,8 +104,11 @@ export const PilotTermsSchema = z.strictObject({
   service: PilotServiceSchema.optional(),
   /** The authorized service this pilot can lead to (DZ-08). Needs `service`: it is granted on delivered batches. */
   serviceGrant: ServiceGrantTermsSchema.optional(),
+  /** Deliberate departure from this pilot or the service it leads to (DZ-11). Needs `service`: only a working grant can be left. */
+  departure: DepartureTermsSchema.optional(),
 });
 
 export type PilotTerms = z.infer<typeof PilotTermsSchema>;
 export type ServiceGrantTerms = z.infer<typeof ServiceGrantTermsSchema>;
 export type ReleaseTerms = z.infer<typeof ReleaseTermsSchema>;
+export type DepartureTerms = z.infer<typeof DepartureTermsSchema>;
