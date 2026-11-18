@@ -1,5 +1,5 @@
 /**
- * Pilot allocation policies for the preview runner (DZ-05, VALIDATION V30): TRUTHFUL_LOW_RESOURCE to an
+ * Pilot allocation policies for the route report (`make sim-report`) (DZ-05, VALIDATION V30): TRUTHFUL_LOW_RESOURCE to an
  * accepted pilot, then attach the loaned queue, hold one service share and submit each completed batch.
  * SERVICE_FIRST holds 0.8 of the ceiling on service, STUDY_FIRST 0.2: one ceiling, different forecasts
  * and Understanding. Everything goes through public actions, so a player could do the same. Test

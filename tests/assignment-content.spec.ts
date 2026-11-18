@@ -1,8 +1,8 @@
 /** DZ-03 content rules, each proved by corrupting the real preview content. Production ships none. */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content/preview';
+import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const ORIGINAL = 'dil_nr_stale_fixture';
@@ -25,9 +25,9 @@ const choiceOf = (raw: Json, id: string, choice: string): Json => dilemma(raw, i
 const assignment = (raw: Json): Json => raw.assignments.assignments[0];
 
 describe('assignment content', () => {
-  it('ships only in preview, with one original and one requalification per assignment', () => {
-    expect(PRODUCTION.assignments.size).toBe(0);
-    expect(PRODUCTION.dilemmas.some((entry) => entry.trigger.assignment !== undefined || entry.choices.some((c) => c.qualification))).toBe(false);
+  it('is added by the Earned Access pack alone, with one original and one requalification per assignment', () => {
+    expect(ORIGINAL_GAME.assignments.size).toBe(0);
+    expect(ORIGINAL_GAME.dilemmas.some((entry) => entry.trigger.assignment !== undefined || entry.choices.some((c) => c.qualification))).toBe(false);
     expect([...PREVIEW.assignments.keys()]).toEqual(['asg_nightly_regression']);
     expect(problems(() => undefined)).toBe('');
   });

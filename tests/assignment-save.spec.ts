@@ -8,9 +8,11 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { assignmentView, deserialize, MIGRATIONS, SaveChannelError, SCHEMA_VERSION, serialize } from '../src/engine';
 import { accept, preview, roundTrip } from './assignment-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 
-const V9 = readFileSync('tests/fixtures/pre-assignment-v9.json', 'utf8');
+const V9_PREVIEW = readFileSync('tests/fixtures/pre-assignment-v9.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const V9 = remarkedAsProduction(V9_PREVIEW);
 const ASSIGNMENT_STEP = 9;
 
 describe('the accepted-assignment migration step', () => {
@@ -27,7 +29,7 @@ describe('the accepted-assignment migration step', () => {
 
 describe('the v9 fixture', () => {
   it('is a genuine v9 preview campaign save with a promotion and evidence', () => {
-    const raw = JSON.parse(V9) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown> };
+    const raw = JSON.parse(V9_PREVIEW) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown> };
     expect([raw.schemaVersion, raw.contentChannel]).toEqual([9, 'preview']);
     expect(Object.keys(raw.access)).toEqual(['context', 'standing', 'exception', 'qualification']);
   });
@@ -48,6 +50,6 @@ describe('the v9 fixture', () => {
   });
 
   it('is refused by production before any healing, as every preview save is', () => {
-    expect(() => deserialize(V9, PRODUCTION)).toThrow(SaveChannelError);
+    expect(() => deserialize(V9_PREVIEW, PRODUCTION)).toThrow(SaveChannelError);
   });
 });

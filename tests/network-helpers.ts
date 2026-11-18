@@ -4,7 +4,7 @@
  * SERVICE_GRANT route event is recorded through the engine transition, because no scene grants
  * authorized service yet; after it, provisioning and the shared content are ordinary unlocks.
  */
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { recordRouteEvent } from '../src/engine/access';
 import { activateCampaignRules, createInitialState, unlockNode, type GameState } from '../src/engine';
 import { live } from './assignment-helpers';

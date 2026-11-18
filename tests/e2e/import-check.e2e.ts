@@ -2,9 +2,8 @@
  * #245: IMPORT SAVE CODE checks the pasted code first. A refused code stays on the save page with
  * its specific reason; only a code that loads is offered the validated-save confirmation.
  */
-import { CONTENT as PREVIEW } from '../../src/content/preview';
-import { createInitialState, exportSave, tick } from '../../src/engine';
 import { makeFixtures } from '../../scripts/make-fixtures';
+import { previewSaveCode } from '../helpers';
 import { boot, dismissBoot, expect, openSave, readSave, test } from './helpers';
 
 function run(save: Record<string, unknown>) {
@@ -14,7 +13,8 @@ function run(save: Record<string, unknown>) {
 
 const refusals: [string, () => string, string][] = [
   ['garbage text', () => 'not-a-save-code', 'Save code is invalid or unsupported.'],
-  ['a preview-build code', () => exportSave(tick(createInitialState(PREVIEW), 1, PREVIEW)),
+  // A genuine save of the pre-release preview build, which production keeps refusing by name (X.3).
+  ['a preview-build code', previewSaveCode,
     'This save comes from a preview build and cannot be loaded here.'],
 ];
 

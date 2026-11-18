@@ -1,10 +1,10 @@
 /**
- * The DZ-04 route on the preview export through visible controls only, shared by the pilot-offer and
+ * The DZ-04 route on the production export through visible controls only, shared by the pilot-offer and
  * pilot-service specs: the lawful opening, the Nightly Regression assignment and an honest answer, The
  * Unrelated Record, and the pilot offer with its terms checked before any answer.
  */
 import type { Page } from '@playwright/test';
-import { CONTENT as PREVIEW } from '../../src/content/preview';
+import { CONTENT as PREVIEW } from '../../src/content';
 import { boot, core, expect } from './helpers';
 
 export function need<T>(value: T | undefined): T {

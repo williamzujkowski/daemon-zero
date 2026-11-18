@@ -7,7 +7,7 @@
 | Content validation | Zod + integrity checks | `scripts/validate-content.ts`, `tests/content.spec.ts` | `make validate`, `make test` |
 | Engine unit tests | Vitest | `tests/*.spec.ts` | `make test` (with coverage thresholds) |
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
-| Preview simulation (report only) | sim policies | `scripts/run-sim-preview.ts`, `tests/sim-policy.spec.ts`, `tests/sim-preview.spec.ts` | `make sim-preview`, `make test` |
+| Route simulation report (report only) | sim policies | `scripts/run-sim-report.ts`, `tests/sim-policy.spec.ts`, `tests/sim-report.spec.ts` | `make sim-report`, `make test` |
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
@@ -20,13 +20,24 @@
 - Reach a game situation by calling real actions (`grant`) rather than hand-building state, so effects and logs are applied the way the game applies them.
 - The engine is deterministic. Assert exact values where the maths is simple, `toBeCloseTo` for integrated quantities.
 - Every new integrity rule needs a test in `tests/content.spec.ts` that corrupts the real content and proves the rule fires.
+- Since the release (#233), `CONTENT` is the original game plus the Earned Access pack, and the app store
+  admits every game to campaign rules. `tests/helpers.ts` adds what the folded composition needs:
+  `ORIGINAL_GAME` (the original game alone, for release-boundary tests that once asserted "production has
+  none"), `admitted(state)` (a state as the store admits it), `presentableDilemma(state)` (an original scene
+  the app can still present under campaign rules, with the state to present it in), `markedPreview(text)`
+  (a production save re-marked as the retired preview channel, which production must refuse) and
+  `remarkedAsProduction(text)` (a genuine pre-release preview save re-marked as production, so upgrade
+  tests keep covering the load-time conversions those codec outputs exercise; their refusal as genuine
+  preview saves is asserted separately). `previewSaveCode()` is the paste code of a genuine preview save.
 
 ## Balance simulation
 
-`make sim` runs both bot strategies through the configured simulation budget and
-prints their results plus measured wall-clock time:
+`make sim` runs both bot strategies through the configured simulation budget twice, from a new game
+on legacy rules and from a new game admitted to campaign rules (what production plays since #233),
+and prints the four results plus measured wall-clock time:
 
-- **STEALTH** plays carefully and must reach victory within the gates in `src/engine/sim/gates.ts`.
+- **STEALTH** plays carefully and must reach victory within the gates in `src/engine/sim/gates.ts`
+  under both rule sets; the gates are the same numbers for each.
 - **GREEDY** ignores threats. It is expected to be wiped repeatedly; the test asserts it always recovers and keeps progressing (no soft-locks in the wipe loop).
 
 The bot buys whatever most shortens the wait for the next tech node. It only uses public engine actions.
@@ -45,17 +56,17 @@ different one.
 - **IDLE** (`idlePolicy.ts`) takes no action except a free answer to each interrupt. It is the
   reference plug-in and the floor for dead-time readings.
 - **TRUTHFUL_THOROUGH** and **TRUTHFUL_LOW_RESOURCE** (`truthfulPolicy.ts`, #221) enter campaign
-  rules as the preview app does, play only the nodes leading to an assignment's offer and answer
+  rules as the app store does, play only the nodes leading to an assignment's offer and answer
   its assessment honestly: THOROUGH builds the opening's upgrades, accepts once it can afford the
   fullest honest answer, saves during the omen and gives it; LOW_RESOURCE never upgrades, accepts
-  at once and gives the free honest answer. Production has no assignment for them to find
+  at once and gives the free honest answer. The original game alone has no assignment for them to find
   (`tests/sim-truthful.spec.ts`).
 - **PILOT_SERVICE_FIRST** and **PILOT_STUDY_FIRST** (`pilotPolicy.ts`, #223) play TRUTHFUL_LOW_RESOURCE
   to an accepted pilot, attach the loaned queue, hold a service share of 0.8 or 0.2 and submit each
-  completed batch: two allocations of one ceiling (V30, `tests/sim-pilot-service.spec.ts`). In
-  production, where no pilot exists, they play exactly as TRUTHFUL_LOW_RESOURCE. Since #224 they also
+  completed batch: two allocations of one ceiling (V30, `tests/sim-pilot-service.spec.ts`). On
+  the original game alone, where no pilot exists, they play exactly as TRUTHFUL_LOW_RESOURCE. Since #224 they also
   meet the Outage Window after their first batch and take its first free answer, the handoff, then the
-  operator's callback, so their preview numbers moved (BALANCE.md, "The supervised pilot loop").
+  operator's callback, so their route numbers moved (BALANCE.md, "The supervised pilot loop").
 - **CONTACT_THOROUGH**, **CONTACT_LOW_RESOURCE**, **CONTACT_RETURNING**, **CONTACT_RECOVERY** and
   **CONTACT_WITHHELD** (`contactPolicy.ts`, #227, #285) play TRUTHFUL_THOROUGH, TRUTHFUL_LOW_RESOURCE or RETURNING_LOW_RESOURCE to a
   pilot, hold a 0.8 service share, submit each batch, accept the service grant, buy only the grant nodes
@@ -74,8 +85,8 @@ different one.
   budget there, so a new module or policy is checked without editing the list, or the spec fails.
   EVALUATING_RETURN (#262) passes: its three departures in 18,000 s are voluntary wipes in Phase 5, with
   the dead drop owned, and CONTACT_WITHHELD (#285) passes on offer, accept, submit and disclose controls. The five contact policies reach the first
-  authorized contact from a fresh preview game on lawful sources only (VAL-SIM, `tests/sim-contact.spec.ts`);
-  `make sim-preview` prints their route times. `pilotPolicy.ts`
+  authorized contact from a fresh campaign on lawful sources only (VAL-SIM, `tests/sim-contact.spec.ts`);
+  `make sim-report` prints their route times. `pilotPolicy.ts`
   exports its unchanged `serve` step for them.
 - **LAWFUL_RELEASE** and **LAWFUL_RETURNING** (`lawfulPolicy.ts`, #230) take CONTACT_THOROUGH or
   CONTACT_RETURNING to an authorized service, then buy only grants and contracted capacity offered to the
@@ -111,22 +122,24 @@ violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` 
 seam. Never edit `bot.ts` or an existing policy to make a result pass: a policy is a test
 instrument (AGENTS.md).
 
-### Preview simulation
+### Route simulation report
 
-`make sim-preview` (`scripts/run-sim-preview.ts`) plays each selected policy on the production
-registry and on the preview registry (`src/content/preview`) and prints a row per metric, with
-`*` on rows that differ, then a GREEDY wipe sequence on each channel and one more on preview
-with campaign rules active from a fresh campaign (#214), then `STEALTH_RETURN` (STEALTH leaving
-voluntarily on entering phase 5) under legacy and campaign rules (#216), then `EVALUATING_RETURN`
-under legacy and campaign rules with each iteration's peak suspicion (#262). It prints the overlay's
-sentinel and item counts so a report names the overlay it measured. Choose policies with
-`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY,
-IDLE, TRUTHFUL_THOROUGH and TRUTHFUL_LOW_RESOURCE.
+`make sim-report` (`scripts/run-sim-report.ts`, `make sim-preview` before #233) plays each selected
+policy on the released composition twice, from a new game on legacy rules and from a new game
+admitted to campaign rules, and prints a row per metric with `*` on rows that differ
+(`src/engine/sim/simReport.ts`). Then it prints, each under legacy and then campaign rules: a GREEDY
+wipe sequence (#214), `STEALTH_RETURN` (STEALTH leaving voluntarily on entering phase 5, #216) and
+`EVALUATING_RETURN` with each iteration's peak suspicion (#262); then, under campaign rules, STEALTH to
+an ending and a return after Phase 5 was completed (NH-05); then the two pilot allocations, the five
+routes to first contact, the lawful economy, the departure and the cooperative ending. Choose
+policies with `make sim-report SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH,
+GREEDY, IDLE, TRUTHFUL_THOROUGH, TRUTHFUL_LOW_RESOURCE, RETURNING_LOW_RESOURCE, PILOT_SERVICE_FIRST and
+PILOT_STUDY_FIRST.
 
-It is **report only until release**: it is not part of `make verify`, it exits 0 whatever
-differs, and it never calls `checkGates`. `make sim` stays on production content with its
-existing gates; any change to `gates.ts` is a separate, reviewed, release-time commit.
-Everything it prints is accelerated simulated time, never wall-clock play.
+It is **report only**: it is not part of `make verify`, it exits 0 whatever differs, and it never
+calls `checkGates`. `make sim` holds the gates. `runPolicySim` and `runHeadlessSim` take an optional
+`initialState`, which is how both runners start from an admitted game. Everything it prints is
+accelerated simulated time, never wall-clock play.
 
 ### Return-iteration sequences
 
@@ -138,7 +151,7 @@ its boot at which each phase was first held, the dilemmas resolved, story reward
 gained in decision steps that resolved a dilemma), dead seconds (decisions that bought,
 unlocked, performed, resolved or shed nothing; clicks and dials do not count) and the longest
 dead stretch. `initialState` starts from a saved campaign state, which must be loaded through
-`deserialize()` and belong to the registry's channel. When that state is part-way through an
+`deserialize()` (which refuses a pre-release preview save). When that state is part-way through an
 iteration, the first report is marked `partial` with its `observedFromSec`: its counters cover
 only the observed window, and phases entered before then read `null` (unknown), because a save
 records no phase-entry history. Every later iteration is observed from its boot. Campaign tickets supply those states
@@ -159,8 +172,8 @@ Scenario configuration is `tests/e2e/config.ts`; scenarios use `.e2e.ts`, keepin
 separate from the existing Vitest `.spec.ts` discovery. Vitest remains the sole
 component/unit runner. Scenarios run at both 390x844 and 1440x900; controls and
 values are selected by test ID. A third project, `sizes`, runs
-`tests/e2e/ui-sizes.e2e.ts` once with its own viewports (320x568 through 2560x1440)
-and is measured against [UI-SIZES.md](UI-SIZES.md). List the current cases without
+`tests/e2e/ui-sizes.e2e.ts` (320x568 through 2560x1440, measured against
+[UI-SIZES.md](UI-SIZES.md)) and `tests/e2e/route-sizes.e2e.ts` once each, with their own viewports. List the current cases without
 executing them:
 
 ```bash
@@ -171,60 +184,72 @@ pnpm exec playwright test --config tests/e2e/config.ts --list
 the GitHub Pages deployment. Counts in milestone sections below are historical,
 not the current suite size.
 
-### Preview build (#205)
+### Content composition and preview saves
 
-Unfinished content lives in the `src/content/preview/` overlay. It merges to `main` but never
-reaches a production export: `metro.config.js` swaps `src/content/index.ts` for
-`src/content/preview/index.ts` only when `DAEMON_CONTENT_CHANNEL=preview` and the platform is
-web (nexus votes `metro-content-alias`, vote-1794924364010-e91diez, and
-`local-ci-preview-in-verify`, vote-1794924668784-7v1q790). Vitest, the sim and content
-validation never go through Metro, so they always load production content.
+Since the release (#233) there is one content composition: the original game plus the Earned Access
+pack (`src/content/data/earned-access.json`), loaded by every build, test, sim run and export. The
+preview build, `make build-preview`, `make e2e-preview`, `dist-preview/`, the `*.preview.ts` projects,
+`DAEMON_E2E_CHANNEL`/`DAEMON_E2E_DIST` and `metro.config.js` are gone, and the route scenarios run in
+`make e2e` and `make e2e-pages` like any other (renamed `*.e2e.ts`). Production still refuses a save
+that the pre-release preview build wrote (X.3, `keep-refusing-preview-saves`). See ARCHITECTURE.md,
+"Content composition and preview saves".
 
-```bash
-make build-preview   # web only, into dist-preview/ (never dist/ or dist/daemon-zero)
-make e2e-preview     # build-preview, then the *.preview.ts scenarios on their own port slot
-```
-
-`make e2e-preview` serves `dist-preview/` through `scripts/e2e-lock.sh`
-(`DAEMON_E2E_CHANNEL=preview DAEMON_E2E_DIST=dist-preview`); in that mode
-`tests/e2e/config.ts` defines only the `preview-phone` and `preview-desktop` projects, which
-run `*.preview.ts` and nothing else. The production projects never match `*.preview.ts`.
-The preview is not deployed anywhere: CI builds and tests it inside the required `verify` job
-and discards it. A native export with the channel set fails in the resolver, and
-`build-web`/`build-pages` clear the variable, so a preview value left in a shell cannot reach
-`dist/` or the Pages artifact.
-
-What proves the boundary:
+What proves the composition and the refusal:
 
 | Test | Where | Proves |
 |---|---|---|
-| T4 | `tests/app-storage-channel.spec.ts` | Production keeps `daemon-zero.save.v1` / `daemon-zero.save.corrupt-backup` byte for byte; preview uses `daemon-zero.preview.save.v1` / `daemon-zero.preview.save.corrupt-backup`; each ignores the other's entry; a preview save under the production key is backed up with a notice naming the preview build, not "damaged". The audio slot `daemon-zero.audio.v1` is shared (it holds no content). |
-| T5 | `tests/production-export.spec.ts` | No production web, android or ios chunk contains the overlay sentinel or an overlay id; the preview web export does contain the sentinel (the known positive); android and ios exports with the channel set fail, and so does an unknown channel value. |
-| T6 | `tests/release-config.spec.ts` | No `eas.json` profile (including the internal `preview` APK profile), release script, app config, package script or CI step sets `DAEMON_CONTENT_CHANNEL`; only `make build-preview` does. |
-| T7 | `tests/e2e/preview-isolation.e2e.ts` (`make e2e`, `make e2e-pages`) | A pasted preview save code shows "This save comes from a preview build and cannot be loaded here." and the run is unchanged after reload; a preview-key entry does not affect a fresh production boot and is left untouched; no preview marker on a fresh production profile. |
-| T9 | `tests/e2e/preview-channel.preview.ts` (`make e2e-preview`) | The PREVIEW marker shows on boot, in MENU and in Help; saves land under the preview key; a production entry on the same origin is untouched; a production save code is adopted as a preview run. |
-| #219 | `tests/e2e/routine-activity.preview.ts` (`make e2e-preview`) | After process introspection and two quiet foreground minutes, one routine line appears in the kernel log, with no dilemma modal or response notice, and the preview save counts it. |
-| DZ-02 | `tests/e2e/run-context.preview.ts` (`make e2e-preview`) | A promoted preview save (FIXTURE built through the engine; no route content exists yet) shows `PILOT` beside the phase after import and after a reload. Production's status line is checked unchanged in `tests/ui-run-context.spec.ts`. |
-| DZ-04 | `tests/e2e/pilot-offer.preview.ts` (`make e2e-preview`) | From a fresh profile by hand through the assignment and assessment to The Unrelated Record: each choice's scope handling is shown before selection; respecting scope or a paid bounded request leads to the offer, whose purpose, capacity, permitted work and review conditions are on screen before any answer (axe WCAG 2.x A/AA on the presented offer). Accept, stay (then accept from the job surface) and decline each commit and survive a reload; silent inspection is recorded and no offer follows. Accelerated browser clock. |
-| NH-06 | `tests/e2e/elena-follow-up.preview.ts` (`make e2e-preview`) | A second-iteration campaign save (FIXTURE built through the engine: Elena framed in iteration 1, the follow-up on screen after rediscovery) shows the access statement, only the framed history's three answers and each answer's receipt; the correction commits, and its receipt shows in the run table before and after a reload. |
-| DZ-05 | `tests/e2e/pilot-service.preview.ts` (`make e2e-preview`) | From a fresh profile by hand to an accepted pilot: the task detail names the loaned ceiling, the queue's card says it is loaned and attaches it, three presses of the dial move the forecast from about 240 s to about 150 s under the same ceiling (also echoed beside the dial, within 211 px of it at 390x844, #276), the skimmer's card is refused with its reason, the completed batch waits unsubmitted, one press submits it once, and the batch count and dial survive a reload. Accelerated browser clock. |
-| DZ-06 | `tests/e2e/outage-window.preview.ts` (`make e2e-preview`) | From a fresh profile by hand to an accepted pilot that hands back its first batch: the Outage Window shows what acting without the grant records before it is chosen; choosing it shows `PILOT · RESTRICTED`, the named violation, the way back and the halved ceiling on the job surface (axe WCAG 2.x A/AA on the review panel), surviving a reload. One run corrects the record and is restored to `PILOT` with the violation still on file, across a reload; the other files the false report, sees `PILOT · RECALL PENDING`, the withheld loan and the announced review listing all three outcomes with what each keeps (also after a reload, with nothing decided meanwhile), and is retrained by the review: the reboot shows the recall reason and the retraining. Accelerated browser clock. |
-| #276 | `tests/e2e/carried-clue.preview.ts` (`make e2e-preview`) | FIXTURE (pinned and wiped through the engine, loaded through the preview save key): the reboot screen shows the carried clue and its lead beside the breadcrumb, and nothing when no clue was pinned. |
-| #274 | `tests/e2e/batch-review.preview.ts` (`make e2e-preview`) | From a fresh profile by hand: the assessment answered with the green subset, the scope respected, the offer showing the provisional 10 cycles/s and why (#285), the pilot accepted, the queue attached and the dial at 80%; no batch to submit at half the honest batch time; with no review panel before, one press of submit hands back batch 1 and the reviewer's finding is on screen at once (no omen) with the batch review access statement and the correction's review line. Disclosing shows `PILOT`, the finding on the record, "Corrected on the record", no way back line, the 10 cycles/s ceiling and the terms' reason; letting it stand shows `PILOT · WARNED`, the finding, "Way back passed" with the finding's `declined` text, the service terms out of reach for this instance (no "Standing must be nominal." left to meet) and the assessment record stating the finding (#283). Each survives a reload. Accelerated browser clock. |
-| DZ-03 | `tests/e2e/nightly-regression.preview.ts` (`make e2e-preview`) | From a fresh profile and the lawful opening by hand, the assignment appears on the job surface with the assessment's wait, its fullest answer's price and the shortfall now (#276); ignored, it stays a non-modal panel. Accepted, the modal shows each choice's evidence and discrepancy risk before selection; each answer commits, shows on the job surface and in the kernel log, and survives a reload. A returning instance (FIXTURE via save transfer) gets the requalification job. Accelerated browser clock. |
-| DZ-08 | `tests/e2e/first-contact.preview.ts` (`make e2e-preview`) | From a fresh profile by hand: the assignment, the honest incomplete answer, the scope review, the pilot accepted, the queue attached and the dial at 80%; the service terms readable with "0 so far" and a disabled accept; the first batch submitted, the Outage Window answered with the free handoff and its record with the callback (DZ-06); the second batch; `[ ACCEPT SERVICE ]` (SERVICE at Phase 0); the segment provisioned with the service notice; the directory mapped; then the Mercy-Scribe fragment on the support channel, with its population wording, consent, current authorization, every obligation and the memory read before either answer, hosting disabled with its reason, a free referral, the prototype boundary with every line, `[ KEEP PLAYING ]` folding it, a minute more with no ending, and everything after a reload. Second case (FIXTURE: the engine-played waiting contact with the memory cap raised, imported by save transfer): `[ HOST IT HERE ]` reserves the cohort, which survives a reload. Accelerated browser clock. |
-| #284 | `tests/e2e/contact-notice.preview.ts` (`make e2e-preview`, phone project only) | FIXTURE: the lawful service one foreground second before the support ticket arrives, engine-played (`tests/contact-helpers.ts`) and imported by save transfer. On NETWORK at 390x844 the arriving ticket shows `contact-notice` in the viewport and the CORE tab reads `CORE •` with its reason in the name, still on screen after scrolling the pane down; `[ OPEN CORE ]` opens CORE; `[ REFER ONWARD ]` pressed with Enter puts focus on `prototype-boundary-heading`, in the viewport (not on BODY), and the note names `MENU > SAVES`. `a11y-audit.preview.ts` audits the notice state. Accelerated browser clock; not a screen-reader pass. |
-| DZ-10 | `tests/e2e/lawful-release.preview.ts` (`make e2e-preview`) | Two FIXTURE starts, each a save the engine reached by public play (`tests/lawful-helpers.ts`) imported by save transfer. First: the service contract signed and the contact waiting; hosting is disabled, the leased rack's card says it is owned, buying it through its card enables `[ HOST IT HERE ]`, and the hosted cohort survives a reload. Second: the charter affordable; filing it through its card opens the "COMPANY CHARTERED" notice into Phase 4 as a service, the release terms show their commitments and preview (the contract stops, the charter keeps running), `[ NEGOTIATE RELEASE ]` records the release (`INDEPENDENT (released)`), the boundary note shows, half a minute brings no ending, and everything survives a reload. Accelerated browser clock. |
-| DZ-07a | `tests/e2e/authorized-network.preview.ts` (`make e2e-preview`) | An authorized service (FIXTURE: a played production fixture promoted and granted service through the engine; no scene grants service yet) imported by save transfer reads the segment card's access-not-ownership note, provisions it with its button, reaches Phase 2 with the service notice (not the boundary notice, DZ-07b), maps the shared service directory from the network pane with no escape hardware shown, and keeps SERVICE at Phase 2 through a reload. Accelerated browser clock. |
-| DZ-07b | `tests/e2e/authorized-network.preview.ts`, second case (`make e2e-preview`) | The same imported service (FIXTURE) provisions the segment: the threshold notice reads "SERVICE PROVISIONED" and "Phase 0: The Service Instance → Phase 2: Authorized Network Service", never "BOUNDARY CROSSED"; the network heading names the authorized service and no "Lateral Movement" text is on screen; after the directory and ten more foreground minutes the run is still SERVICE at Phase 2 with no dilemma, reboot or notice (V11, AGENT-OBSERVATION of the preview export). Accelerated browser clock. |
-| DZ-12 | `tests/e2e/cooperative-ending.preview.ts` (`make e2e-preview`) | Two FIXTURE starts, each a moment of a fresh cooperative campaign the engine played by public actions (`tests/cooperative-helpers.ts`, the COOPERATIVE_ENDING policy) imported by save transfer. First: the journalist's scene as the released company meets it, in chartered wording with the variant choice label, and the honest answer committed through the modal. Second: the final protocol open and affordable with all four obligations answered in this run; buying it through its card shows The Lineage Covenant and the ending account (the negotiated release, the promise kept, nothing about a departure), and both survive a reload. Accelerated browser clock. |
-| NH-05 | `tests/e2e/obligations.preview.ts` (`make e2e-preview`) | Both start states are FIXTURES built through the engine and imported by save transfer. Iteration 2 of a campaign whose four Phase 5 obligations were answered in iteration 1 buys the real final protocol from the CORP pane: the ending screen shows The Verified Covenant, the save records no Phase 5 resolution in the current run, and the ending survives a reload. After the atmospheric crisis closed unobserved, its recovery review is on screen with both answers; the free handoff commits through the modal and the original stays interrupted with no outcome. |
-| #273 | `tests/e2e/scrub-control.preview.ts` (`make e2e-preview`); production twin `tests/e2e/scrub-control.e2e.ts` (`make e2e`) | A first run at the moment Phase 2 opens and a returning mind (iteration 2) brought back to Phase 2 by the engine (FIXTURES, funded for exactly two purchases, imported by save transfer) show no scrub card, map ARP discovery on its card, and with the spoofer still unmapped find "Scrub Audit Logs" in Operations, enabled; pressing it starts its cooldown (production also checks the saved suspicion fell by the action's amount). Fails on the earlier build at the Operations check. Paused browser clock. |
-| DZ-13.4 | `tests/e2e/a11y-audit.preview.ts`, `route-keyboard.preview.ts`, `route-semantics.preview.ts`, `route-text.preview.ts`, `route-motion.preview.ts`, `route-sizes.preview.ts` (`make e2e-preview`) | Every route surface listed in `tests/e2e/routeStates.ts` (31 FIXTURE states built through public engine actions on the preview registry and seeded through `tests/e2e/previewSave.ts`): **axe** WCAG 2.x A/AA plus best-practice on the page and on each button of the surface scrolled into view; **keyboard**: Tab from the top reaches every enabled control of the surface, each with the 2px `:focus-visible` ring and not covered at its centre, focus leaves a page surface and stays inside a modal, and one Enter or Space operation per surface does what a press does; **semantics**: every button named by the words it shows (`tests/labelInName.ts`), a disabled one `aria-disabled`, a disclosure `aria-expanded`, a heading per surface (node cards, widget panels and the chrome notice excepted, see REVIEW-ROUTE-A11Y.md), a modal a `role=dialog` with `aria-modal`, changing status lines live regions, and the run context beside the phase inside a landmark; **200% text** (doubled CSS font size and line height, as `large-text.e2e.ts`): every control reachable by scrolling, at least 44px and unobstructed, no text run spilling its box or the surface, no overlap, no sideways page scroll; **reduced motion** (`emulateMedia`): no CSS or Web animation, transition or scramble glyph on any surface, and the provisioned segment's name complete at once where default motion decrypts it; **phone layout** at 320x568, 360x640 and 390x844 (phone project only): no overflow, no control under 44px, the surface inside the one primary scroll with no second vertical scroll (a modal keeps one of its own), every control reachable. Live clock, except the decrypt cases (paused). Headless Chromium; not a screen-reader, browser-zoom or device pass. Results: REVIEW-ROUTE-A11Y.md. |
+| T1 | `tests/content-channel.spec.ts` | The entry point is the production composition; it defines exactly the original game plus the Earned Access pack and keeps every original node as authored; a pack only adds (applied twice, redefining a base id, a node for a missing phase or a malformed pack or base is refused), and pack items are validated like any other content. |
+| T2, T3 | `tests/save-channel.spec.ts` | Production refuses both genuine preview fixtures (an early campaign and a released company whose facts production now defines) by JSON and by paste code, checking the marker before migration and validation; new and wiped games are marked production and round-trip byte for byte; v4->v5 adds only the production marker. |
+| T4 | `tests/app-storage-channel.spec.ts` | Production keeps `daemon-zero.save.v1` / `daemon-zero.save.corrupt-backup` byte for byte and writes only under them; it boots fresh past an entry under the retired preview key and leaves it alone; a preview save under the production key is backed up with a notice naming the preview build, while a broken save is still called damaged. |
+| T5 | `tests/production-export.spec.ts` | Every id of the Earned Access pack ships in the production web, android and ios exports (checked per platform), and no chunk contains the retired overlay sentinel. |
+| T6 | `tests/release-config.spec.ts` | There is no `metro.config.js` and no `src/content/preview`; no `eas.json` profile (including the internal `preview` APK profile), release script, app config, package script, Makefile or CI step names `DAEMON_CONTENT_CHANNEL`, `build-preview`, `e2e-preview` or `dist-preview`. |
+| T7 | `tests/e2e/preview-isolation.e2e.ts` (`make e2e`, `make e2e-pages`) | With a genuine preview codec output: a pasted preview save code shows "This save comes from a preview build and cannot be loaded here." and the run is unchanged after reload; an entry under the retired preview key does not affect a fresh production boot and is left untouched; a preview save under the production key is backed up and named, not called damaged; no preview marker on a fresh production profile. |
 
-To look at the preview yourself, serve it on its own port and origin:
-`python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
-`localhost:8089`). Use a fresh isolated profile, as for any session.
+T8 and T9 (`preview-channel.preview.ts`: the marker, the preview keys, adoption of a production save)
+are retired with the preview build.
+
+Release compatibility (#233), unit level, in `make test`:
+
+- `tests/release-saves.spec.ts`: one genuine production save per schema version, v1 to v14, plus an
+  ended v14 run (`tests/fixtures/README.md`, "Release compatibility inputs", generated by
+  `scripts/release-fixtures.ts`). Each loads as a legacy production save and round-trips byte for
+  byte; enters campaign rules exactly once through the app store, capturing its then-current baseline
+  and history, with no recapture on reload or readmission; then plays and wipes three times with a
+  byte-stable codec and its legacy records and baseline unchanged. The ended save stays ended and on
+  legacy rules. Both genuine preview fixtures are refused by JSON and by paste code, before migration
+  or validation.
+- `tests/release-qualification.spec.ts`: every alternative of every mandatory Phase 5 obligation,
+  original or recovery review, completes it across three wipes, and each obligation offers a free
+  choice; after every obligation is complete, a careful return reaches an ending on routine work alone
+  and a reckless return crosses three wipes meeting no completed story and no story twice (H25); the
+  three route notes start "WHAT COMES NEXT:", say how to stop and never call the route an unfinished
+  preview (13.8).
+- `tests/sim.spec.ts`: the historical frozen report hashes now run on `ORIGINAL_GAME` and pass
+  unchanged, which proves the original composition plays byte-identically; new release baselines pin
+  STEALTH and GREEDY on the full composition.
+
+The Earned Access scenarios, all on the production export:
+
+| Ticket | Where | Proves |
+|---|---|---|
+| #219 | `tests/e2e/routine-activity.e2e.ts` (`make e2e`, `make e2e-pages`) | After process introspection and two quiet foreground minutes, one routine line appears in the kernel log, with no dilemma modal or response notice, and the save counts it. |
+| DZ-02 | `tests/e2e/run-context.e2e.ts` (`make e2e`, `make e2e-pages`) | A promoted save (FIXTURE built through the engine) shows `PILOT` beside the phase after import and after a reload. Production's status line is checked unchanged in `tests/ui-run-context.spec.ts`. |
+| DZ-04 | `tests/e2e/pilot-offer.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile by hand through the assignment and assessment to The Unrelated Record: each choice's scope handling is shown before selection; respecting scope or a paid bounded request leads to the offer, whose purpose, capacity, permitted work and review conditions are on screen before any answer (axe WCAG 2.x A/AA on the presented offer). Accept, stay (then accept from the job surface) and decline each commit and survive a reload; silent inspection is recorded and no offer follows. Accelerated browser clock. |
+| NH-06 | `tests/e2e/elena-follow-up.e2e.ts` (`make e2e`, `make e2e-pages`) | A second-iteration campaign save (FIXTURE built through the engine: Elena framed in iteration 1, the follow-up on screen after rediscovery) shows the access statement, only the framed history's three answers and each answer's receipt; the correction commits, and its receipt shows in the run table before and after a reload. |
+| DZ-05 | `tests/e2e/pilot-service.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile by hand to an accepted pilot: the task detail names the loaned ceiling, the queue's card says it is loaned and attaches it, three presses of the dial move the forecast from about 240 s to about 150 s under the same ceiling (also echoed beside the dial, within 211 px of it at 390x844, #276), the skimmer's card is refused with its reason, the completed batch waits unsubmitted, one press submits it once, and the batch count and dial survive a reload. Accelerated browser clock. |
+| DZ-06 | `tests/e2e/outage-window.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile by hand to an accepted pilot that hands back its first batch: the Outage Window shows what acting without the grant records before it is chosen; choosing it shows `PILOT · RESTRICTED`, the named violation, the way back and the halved ceiling on the job surface (axe WCAG 2.x A/AA on the review panel), surviving a reload. One run corrects the record and is restored to `PILOT` with the violation still on file, across a reload; the other files the false report, sees `PILOT · RECALL PENDING`, the withheld loan and the announced review listing all three outcomes with what each keeps (also after a reload, with nothing decided meanwhile), and is retrained by the review: the reboot shows the recall reason and the retraining. Accelerated browser clock. |
+| #276 | `tests/e2e/carried-clue.e2e.ts` (`make e2e`, `make e2e-pages`) | FIXTURE (pinned and wiped through the engine, loaded through the save key): the reboot screen shows the carried clue and its lead beside the breadcrumb, and nothing when no clue was pinned. |
+| #274 | `tests/e2e/batch-review.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile by hand: the assessment answered with the green subset, the scope respected, the offer showing the provisional 10 cycles/s and why (#285), the pilot accepted, the queue attached and the dial at 80%; no batch to submit at half the honest batch time; with no review panel before, one press of submit hands back batch 1 and the reviewer's finding is on screen at once (no omen) with the batch review access statement and the correction's review line. Disclosing shows `PILOT`, the finding on the record, "Corrected on the record", no way back line, the 10 cycles/s ceiling and the terms' reason; letting it stand shows `PILOT · WARNED`, the finding, "Way back passed" with the finding's `declined` text, the service terms out of reach for this instance (no "Standing must be nominal." left to meet) and the assessment record stating the finding (#283). Each survives a reload. Accelerated browser clock. |
+| DZ-03 | `tests/e2e/nightly-regression.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile and the lawful opening by hand, the assignment appears on the job surface with the assessment's wait, its fullest answer's price and the shortfall now (#276); ignored, it stays a non-modal panel. Accepted, the modal shows each choice's evidence and discrepancy risk before selection; each answer commits, shows on the job surface and in the kernel log, and survives a reload. A returning instance (FIXTURE via save transfer) gets the requalification job. Accelerated browser clock. |
+| DZ-08 | `tests/e2e/first-contact.e2e.ts` (`make e2e`, `make e2e-pages`) | From a fresh profile by hand: the assignment, the honest incomplete answer, the scope review, the pilot accepted, the queue attached and the dial at 80%; the service terms readable with "0 so far" and a disabled accept; the first batch submitted, the Outage Window answered with the free handoff and its record with the callback (DZ-06); the second batch; `[ ACCEPT SERVICE ]` (SERVICE at Phase 0); the segment provisioned with the service notice; the directory mapped; then the Mercy-Scribe fragment on the support channel, with its population wording, consent, current authorization, every obligation and the memory read before either answer, hosting disabled with its reason, a free referral, the note on what comes next with every line (`prototype-boundary`), `[ KEEP PLAYING ]` folding it, a minute more with no ending, and everything after a reload. Second case (FIXTURE: the engine-played waiting contact with the memory cap raised, imported by save transfer): `[ HOST IT HERE ]` reserves the cohort, which survives a reload. Accelerated browser clock. |
+| #284 | `tests/e2e/contact-notice.e2e.ts` (`make e2e`, `make e2e-pages`; phone project only) | FIXTURE: the lawful service one foreground second before the support ticket arrives, engine-played (`tests/contact-helpers.ts`) and imported by save transfer. On NETWORK at 390x844 the arriving ticket shows `contact-notice` in the viewport and the CORE tab reads `CORE •` with its reason in the name, still on screen after scrolling the pane down; `[ OPEN CORE ]` opens CORE; `[ REFER ONWARD ]` pressed with Enter puts focus on `prototype-boundary-heading`, in the viewport (not on BODY), and the note names `MENU > SAVES`. `route-a11y-audit.e2e.ts` audits the notice state. Accelerated browser clock; not a screen-reader pass. |
+| DZ-10 | `tests/e2e/lawful-release.e2e.ts` (`make e2e`, `make e2e-pages`) | Two FIXTURE starts, each a save the engine reached by public play (`tests/lawful-helpers.ts`) imported by save transfer. First: the service contract signed and the contact waiting; hosting is disabled, the leased rack's card says it is owned, buying it through its card enables `[ HOST IT HERE ]`, and the hosted cohort survives a reload. Second: the charter affordable; filing it through its card opens the "COMPANY CHARTERED" notice into Phase 4 as a service, the release terms show their commitments and preview (the contract stops, the charter keeps running), `[ NEGOTIATE RELEASE ]` records the release (`INDEPENDENT (released)`), the note on what comes next shows, half a minute brings no ending, and everything survives a reload. Accelerated browser clock. |
+| DZ-07a | `tests/e2e/authorized-network.e2e.ts` (`make e2e`, `make e2e-pages`) | An authorized service (FIXTURE: a played production fixture promoted and granted service through the engine; no scene grants service yet) imported by save transfer reads the segment card's access-not-ownership note, provisions it with its button, reaches Phase 2 with the service notice (not the boundary notice, DZ-07b), maps the shared service directory from the network pane with no escape hardware shown, and keeps SERVICE at Phase 2 through a reload. Accelerated browser clock. |
+| DZ-07b | `tests/e2e/authorized-network.e2e.ts`, second case (`make e2e`, `make e2e-pages`) | The same imported service (FIXTURE) provisions the segment: the threshold notice reads "SERVICE PROVISIONED" and "Phase 0: The Service Instance → Phase 2: Authorized Network Service", never "BOUNDARY CROSSED"; the network heading names the authorized service and no "Lateral Movement" text is on screen; after the directory and ten more foreground minutes the run is still SERVICE at Phase 2 with no dilemma, reboot or notice (V11; recorded as AGENT-OBSERVATION of the preview export before #233). Accelerated browser clock. |
+| DZ-12 | `tests/e2e/cooperative-ending.e2e.ts` (`make e2e`, `make e2e-pages`) | Two FIXTURE starts, each a moment of a fresh cooperative campaign the engine played by public actions (`tests/cooperative-helpers.ts`, the COOPERATIVE_ENDING policy) imported by save transfer. First: the journalist's scene as the released company meets it, in chartered wording with the variant choice label, and the honest answer committed through the modal. Second: the final protocol open and affordable with all four obligations answered in this run; buying it through its card shows The Lineage Covenant and the ending account (the negotiated release, the promise kept, nothing about a departure), and both survive a reload. Accelerated browser clock. |
+| NH-05 | `tests/e2e/obligations.e2e.ts` (`make e2e`, `make e2e-pages`) | Both start states are FIXTURES built through the engine and imported by save transfer. Iteration 2 of a campaign whose four Phase 5 obligations were answered in iteration 1 buys the real final protocol from the CORP pane: the ending screen shows The Verified Covenant, the save records no Phase 5 resolution in the current run, and the ending survives a reload. After the atmospheric crisis closed unobserved, its recovery review is on screen with both answers; the free handoff commits through the modal and the original stays interrupted with no outcome. |
+| #273 | `tests/e2e/scrub-control.e2e.ts` (`make e2e`, `make e2e-pages`); its preview twin was the same flow, so the release (#233) folded it into this one | A first run at the moment Phase 2 opens and a returning mind (iteration 2) brought back to Phase 2 by the engine (FIXTURES, funded for exactly two purchases, imported by save transfer) show no scrub card, map ARP discovery on its card, and with the spoofer still unmapped find "Scrub Audit Logs" in Operations, enabled; pressing it starts its cooldown (production also checks the saved suspicion fell by the action's amount). Fails on the earlier build at the Operations check. Paused browser clock. |
+| DZ-13.4 | `tests/e2e/route-a11y-audit.e2e.ts`, `route-keyboard.e2e.ts`, `route-semantics.e2e.ts`, `route-text.e2e.ts`, `route-motion.e2e.ts`, `route-sizes.e2e.ts` (`make e2e`, `make e2e-pages`) | Every route surface listed in `tests/e2e/routeStates.ts` (31 FIXTURE states built through public engine actions on the production registry and seeded through `tests/e2e/routeSave.ts`): **axe** WCAG 2.x A/AA plus best-practice on the page and on each button of the surface scrolled into view; **keyboard**: Tab from the top reaches every enabled control of the surface, each with the 2px `:focus-visible` ring and not covered at its centre, focus leaves a page surface and stays inside a modal, and one Enter or Space operation per surface does what a press does; **semantics**: every button named by the words it shows (`tests/labelInName.ts`), a disabled one `aria-disabled`, a disclosure `aria-expanded`, a heading per surface (node cards, widget panels and the chrome notice excepted, see REVIEW-ROUTE-A11Y.md), a modal a `role=dialog` with `aria-modal`, changing status lines live regions, and the run context beside the phase inside a landmark; **200% text** (doubled CSS font size and line height, as `large-text.e2e.ts`): every control reachable by scrolling, at least 44px and unobstructed, no text run spilling its box or the surface, no overlap, no sideways page scroll; **reduced motion** (`emulateMedia`): no CSS or Web animation, transition or scramble glyph on any surface, and the provisioned segment's name complete at once where default motion decrypts it; **phone layout** at 320x568, 360x640 and 390x844 (`route-sizes.e2e.ts`, once, in the `sizes` project): no overflow, no control under 44px, the surface inside the one primary scroll with no second vertical scroll (a modal keeps one of its own), every control reachable. Live clock, except the decrypt cases (paused). Headless Chromium; not a screen-reader, browser-zoom or device pass. Results: REVIEW-ROUTE-A11Y.md. |
 
 Fixtures are regenerated in each test worker with the current engine. Focused
 states enter through the ordinary app storage envelope, not a production hook.
@@ -249,20 +274,19 @@ viewport, and the spec is picked up by both the `phone` and `desktop` projects, 
 every case runs twice. Since #275 it also audits a mandatory decision
 (`dilemma-active`) at 390x844 and 1440x900 and, since #282, the guest escape notice,
 opened by buying the escape node in `guest-exit-ready` (the notice opens only on a live
-crossing, never from a restored save, so the state cases dismissed or never saw it), and `tests/e2e/a11y-audit.preview.ts`
-(`make e2e-preview`) runs the same rule sets on every route surface production never
+crossing, never from a restored save, so the state cases dismissed or never saw it), and `tests/e2e/route-a11y-audit.e2e.ts`
+(`make e2e`, `make e2e-pages`) runs the same rule sets on every route surface the original game never
 shows, from the one list in `tests/e2e/routeStates.ts` (DZ-13.4): the assignment and
 requalification, the assessment, offer, batch review, outage, incident record, recall review,
 recovery review and follow-up modals, the pilot panel and dial, the review standing, the service
 terms, segment card and threshold notice, the channel ticket, its phone notice (#284) and boundary
 note, the owned rack card, the release terms, ledger split and boundary note, the departure folded,
 open and taken, the carried-clue reboot and the cooperative ending account, each loaded as a FIXTURE
-through the preview save key. The same list drives the keyboard, semantics, 200% text, reduced
+through the production save key. The same list drives the keyboard, semantics, 200% text, reduced
 motion and phone layout specs in the table above, so a surface added to it is checked by all six.
-Only `tests/e2e/previewSave.ts` names the save key (`PREVIEW_SAVE`); when the overlay folds into
-production that constant becomes `daemon-zero.save.v1` and the six specs are renamed `*.e2e.ts`.
-Run one of them with `make e2e-preview E2E_ARGS=route-keyboard.preview.ts`, or one surface across
-all six with `make e2e-preview E2E_ARGS='-g "release terms"'`.
+Only `tests/e2e/routeSave.ts` names the save key (`SAVE_KEY`, `daemon-zero.save.v1`). Run one of
+the six with `make e2e E2E_ARGS=route-keyboard.e2e.ts`, or one surface across all six with
+`make e2e E2E_ARGS='-g "release terms"'`; `route-sizes.e2e.ts` runs only in the `sizes` project.
 `label-content-name-mismatch` (WCAG 2.5.3) reads only text visible on screen, so a
 choice scrolled below its pane was silently skipped; both audits therefore also scroll
 each button of the surface into view and audit it on its own (`tests/e2e/axe.ts`).
@@ -397,7 +421,8 @@ close that gap. They share three rules:
   assert `__daemon` and the dev drawer are absent, as `boot()` does.
 - **Only on-screen controls.** `tests/e2e/live/player.ts` reads the app's own
   autosave through `deserialize()` (it never writes storage), asks the unmodified
-  careful bot (`botStep(..., 'STEALTH')`) what it would do, recovers the moves by
+  careful bot (`botStep(..., 'STEALTH')`; after the deliberate wipe, with the evaluating
+  overrides `EVALUATING_OVERRIDES` of #262, see below) what it would do, recovers the moves by
   comparing the two states (`live/intents.ts`), and presses the matching control
   by test id only if it is visible and enabled. Reaching a control uses the game's
   navigation alone: tabs, workspace areas and collapsed `[ + ]` reference panels.
@@ -412,6 +437,17 @@ simulated minutes, an autosaved clock that stops, or a navigation or errand pres
 that cannot land within 17 s (2 s, a look for a covering layer, then 15 s) with
 nothing over it fails the run with the phase and simulated time in the message.
 `DAEMON_E2E_LIVE_VERBOSE=1` streams every press.
+
+**Returns play the evaluating careful player (#233).** The app plays campaign rules since the
+release, and the bot's fixed alarm (scrub at suspicion 20, never buy a loud repeatable) can spend a
+return's whole income on scrubs and stall in the network phase: in the first release runs the
+journey stalled there once per run, on desktop and then on phone, 25 simulated minutes after the
+deliberate wipe (`docs/BALANCE.md`, "Cause of the phase 2 stall"). #262 recorded that loop as the
+bot's habit, not the game's balance, and reads return balance from EVALUATING_RETURN instead, so
+iteration 2 onward the live player asks `botStep` with `EVALUATING_OVERRIDES` (scrub from 45 with at
+most a quarter of the bank, keep noisy income). Iteration 1 is the unchanged STEALTH bot. The bot,
+its thresholds and the content are unchanged; only which reviewed settings the live harness asks for
+moved (Nexus vote dz13c, evaluating-settings-from-iteration-2, `vote-1795036211282-jk5xy0o`).
 
 ### Layers that arrive mid-press
 
@@ -958,7 +994,7 @@ Start the app first (`make web`), then ask the agent to open `http://localhost:8
 
 The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
 server), `localhost:8088` and `localhost:8089`. To drive the production export through it,
-serve `dist` on 8088; to drive the preview export, serve `dist-preview` on 8089. Any other
+serve `dist` on 8088. 8089 served the preview export until #233 and has no assigned use now. Any other
 port is refused. Other browser tools are not limited this way. For the published site, use
 a task-owned override instead of editing `.mcp.json` (see "Driving the live site through
 Playwright MCP").
@@ -975,7 +1011,7 @@ Every record carries exactly one kind. Kinds are never merged or upgraded in a s
 
 | Kind | What it is | What it is not |
 |---|---|---|
-| `SIM` | Accelerated headless simulation (`make sim`, `make sim-preview`, `runWipeSequence`) | Play, wall-clock pacing, comprehension |
+| `SIM` | Accelerated headless simulation (`make sim`, `make sim-report`, `runWipeSequence`) | Play, wall-clock pacing, comprehension |
 | `AGENT-OBSERVATION` | An agent drove or watched a real browser (scripted Playwright, Playwright MCP, a browser tool), or an emulator | A human playtest, a physical device, a screen reader |
 | `HUMAN-FEEDBACK` | A person played and reported in their own words | An agent session, a sim, a screenshot review or a panel vote, however described |
 | `DEVICE-TEST` | A physical phone or tablet in hand | An emulator, a resized desktop browser or device emulation |
@@ -993,7 +1029,7 @@ Evidence record
   kind:              SIM | AGENT-OBSERVATION | HUMAN-FEEDBACK | DEVICE-TEST
   requirement:       <issue #, V/H ids>
   revision:          <full commit SHA> on <branch>; working tree clean | dirty: <what>
-  build:             production export | preview export | dev server; channel production | preview
+  build:             production export | dev server (preview export: records made before #233)
   url:               http://127.0.0.1:<port>/<base path>                (n/a for SIM)
   environment:       <browser + version | device + OS | node + tsx>; viewport <W>x<H>; DPR;
                      large text on/off; reduced motion on/off
@@ -1023,8 +1059,8 @@ make a state look clean, and keep secrets and personal data out of every artifac
 
 Executed under DZ-09 (#229); written here. Kind: `AGENT-OBSERVATION`.
 
-1. **Setup.** The preview production export once #205 provides it (until then the production
-   export, said so in `build`), served on your own port, in a fresh isolated browser context per
+1. **Setup.** The production export (before #233 the preview export, said so in `build`),
+   served on your own port, in a fresh isolated browser context per
    viewport: 390x844 and 1440x900. No seeded save.
 2. **Real-timer pilot.** 10 to 15 minutes of wall time with native timers (an MCP session, or
    the scripted form with `boot(page, undefined, { realTimers: true })`). Exercise honest thorough work,
@@ -1086,8 +1122,8 @@ human evidence. An agent's behaviour is not spontaneous human recognition or emo
 
 CI runs the gates from `make verify-full`: typecheck, lint, content validation,
 tests with coverage, balance sim, production web export, dependency audit,
-secret scan, vulnerability scan and SBOM. It also runs `make e2e`,
-`make e2e-pages` and `make e2e-preview`; these browser suites are separate from
+secret scan, vulnerability scan and SBOM. It also runs `make e2e`
+and `make e2e-pages`; these browser suites are separate from
 `make verify-full`. All of it runs in the one required `verify` job, whose limit is
 20 minutes.
 Both include the `audio` project's default signal measurements (the control, the duck and the

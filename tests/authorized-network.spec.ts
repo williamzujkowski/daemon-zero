@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
@@ -15,7 +15,7 @@ import {
   toggleNode, unlockNode, unmetRequirements, type GameState,
 } from '../src/engine';
 import { freshCampaign, LAWFUL, live, roundTrip } from './assignment-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import {
   bothAcquisitions, buy, DIRECTORY, ESCAPE_CHAIN, escapedNetworked, escapedTo, granted, networked, NIC, provisioned, SEGMENT, SEGMENT_NODE, SEIZED,
@@ -225,23 +225,23 @@ describe('seized capacity is unauthorized acquisition, never lawful capacity (07
   });
 });
 
-describe('production is unchanged (V31)', () => {
+describe('the original game is unchanged (V31)', () => {
   it('ships no shared content, no provisioned segment and no network capability gate', () => {
-    const nodes = [...PRODUCTION.nodes.values()];
+    const nodes = [...ORIGINAL_GAME.nodes.values()];
     // DZ-12's one production gate is the late corporate chain on MARKET_REVENUE, which only the arbitrage desk
     // establishes there, so it answers exactly as the prerequisite it replaced (tests/cooperative-route.spec.ts).
     expect(nodes.filter((entry) => entry.requirements?.requiresCapability !== undefined).map((entry) => entry.requirements?.requiresCapability)).toEqual(['MARKET_REVENUE']);
     expect(nodes.filter((entry) => entry.grant !== undefined)).toEqual([]);
-    expect(PRODUCTION.nodes.has(SEGMENT) || SHARED.some((id) => PRODUCTION.nodes.has(id))).toBe(false);
+    expect(ORIGINAL_GAME.nodes.has(SEGMENT) || SHARED.some((id) => ORIGINAL_GAME.nodes.has(id))).toBe(false);
     // The card carries the capability in both channels; only preview has content that reads it.
-    expect(PRODUCTION.nodes.get(NIC)?.systemFlags).toEqual(['NETWORK_ACCESS']);
+    expect(ORIGINAL_GAME.nodes.get(NIC)?.systemFlags).toEqual(['NETWORK_ACCESS']);
   });
 
-  it('answers discoverability and availability exactly as before for every production node', () => {
-    const s = createInitialState(PRODUCTION);
-    for (const entry of PRODUCTION.nodes.values()) {
-      expect(isNodeDiscoverable(s, entry, PRODUCTION)).toBe(isNodeDiscoverable(s, entry));
-      expect(nodeUseBlocker(s, entry, PRODUCTION)).toBeNull();
+  it('answers discoverability and availability exactly as before for every original node', () => {
+    const s = createInitialState(ORIGINAL_GAME);
+    for (const entry of ORIGINAL_GAME.nodes.values()) {
+      expect(isNodeDiscoverable(s, entry, ORIGINAL_GAME)).toBe(isNodeDiscoverable(s, entry));
+      expect(nodeUseBlocker(s, entry, ORIGINAL_GAME)).toBeNull();
     }
   });
 

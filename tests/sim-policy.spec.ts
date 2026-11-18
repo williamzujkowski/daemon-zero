@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { GameStateSchema, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
 import { runHeadlessSim, runPolicySim } from '../src/engine/sim/headlessSim';
@@ -77,13 +77,12 @@ describe('a new policy plugs in without touching the bot', () => {
   }, SLOW_MS);
 });
 
-describe('IDLE on the preview registry', () => {
-  it('is deterministic and plays the preview channel', () => {
+describe('IDLE on the production registry', () => {
+  it('is deterministic and plays production content', () => {
     const first = runPolicySim(PREVIEW, IDLE_POLICY, { maxSimSec: SHORT_SEC });
     const again = runPolicySim(PREVIEW, IDLE_POLICY, { maxSimSec: SHORT_SEC });
     expect(again).toEqual(first);
-    expect(PREVIEW.channel).toBe('preview');
-    expect(first.finalState.contentChannel).toBe('preview');
+    expect(first.finalState.contentChannel).toBe('production');
     expect(first.simSeconds).toBeCloseTo(SHORT_SEC, 6);
     expect(GameStateSchema.safeParse(first.finalState).success).toBe(true);
   }, SLOW_MS);

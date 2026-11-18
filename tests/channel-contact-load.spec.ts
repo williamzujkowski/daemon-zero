@@ -20,7 +20,7 @@ import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterConta
 import { afterFinding, findingPresented, provisional } from './finding-helpers';
 import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
 import { depart, recallAnnouncedWithUplink } from './departure-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 import { OUTAGE, until } from './review-helpers';
 
 const pendingOn = (s: GameState): GameState => ({ ...s, pendingWildEncounterId: CHANNEL });
@@ -131,7 +131,7 @@ describe('every accepted DZ-08, #274, #285 and DZ-10 state stays loadable throug
     ['contact hosted (FIXTURE memory)', () => must(answer(withMemory(pending), 'HOST'))],
     ['pending after a recall', () => recalledPending],
     ['pending under a restriction', () => restrictedPending],
-    ['the genuine v13 fixture', () => deserialize(readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8'), preview)],
+    ['the genuine v13 fixture', () => deserialize(remarkedAsProduction(readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8')), preview)],
     ['DZ-10: contract signed, contact waiting', () => lawfulContract],
     ['DZ-10: rack leased, contact hostable', () => lawfulRack],
     ['DZ-10: chartered at Phase 4', () => lawfulCompany],

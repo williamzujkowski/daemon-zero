@@ -1,5 +1,5 @@
 /**
- * The cooperative ending policy for the preview runner (DZ-12, VALIDATION V21 full, SPEC story 22): LAWFUL_RELEASE to
+ * The cooperative ending policy for the route report (`make sim-report`) (DZ-12, VALIDATION V21 full, SPEC story 22): LAWFUL_RELEASE to
  * a negotiated release, then, as the released company, only lawful purchases: capacity contracted in its name and the
  * shared late chain it reaches through a capability it holds lawfully, up to the final protocol. Every scene gets a
  * cooperative answer (a choice whose declared trait is SYMBIOTIC or EMPATHETIC, or a free honest answer that grants

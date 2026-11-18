@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
 import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest, type CampaignRediscovery } from './schemaCampaign';
-import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
 import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
 import { ContextCopyManifestSchema, type ContextCopyManifest } from './schemaContextCopy';
@@ -40,8 +39,6 @@ export interface CampaignIndex {
 }
 
 export interface ContentRegistry {
-  /** Which composition built this registry; new games and loaded saves carry it. */
-  channel: ContentChannel;
   swarm: Swarm;
   balance: S.Balance;
   phases: S.Phase[];
@@ -59,18 +56,17 @@ export interface ContentRegistry {
   conditioning: ReadonlyMap<string, S.ConditioningMark>;
   lineage: S.Lineage;
   campaign: CampaignIndex;
-  /** Routine operation templates in authoring order (#219). Production ships none. */
+  /** Routine operation templates in authoring order (#219). */
   routines: readonly RoutineTemplate[];
-  /** Assigned work an instance may accept (DZ-03), by id. Production ships none. */
+  /** Assigned work an instance may accept (DZ-03), by id. */
   assignments: ReadonlyMap<string, Assignment>;
-  /** Context variants of phase, threshold, boot and threat copy (nexus vote dz-d11). Production ships none. */
+  /** Context variants of phase, threshold, boot and threat copy (nexus vote dz-d11). */
   contextCopy: ContextCopyManifest;
-  /** Late-route node and scene copy and the ending account (DZ-12). Production ships none. */
+  /** Late-route node and scene copy and the ending account (DZ-12). */
   routeCopy: RouteCopyManifest;
 }
 
 export interface RawContent {
-  channel: unknown;
   swarm: unknown;
   balance: unknown;
   phases: unknown[];
@@ -164,7 +160,6 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
 }
 
 function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
-  const channel = parse(ContentChannelSchema, raw.channel, 'channel', problems);
   const swarm = parse(SwarmSchema, raw.swarm, 'swarm', problems);
   const balance = parse(S.BalanceSchema, raw.balance, 'balance', problems);
   const narrative = parse(S.NarrativeSchema, raw.narrative, 'narrative', problems);
@@ -184,14 +179,13 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
   const routeCopy = parse(RouteCopyManifestSchema, raw.routeCopy, 'routeCopy', problems);
   if (!campaign || !routines || !assignments || !contextCopy || !routeCopy) return null;
-  if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
+  if (!swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
   const nodes = indexNodes(phases, problems);
   toMap(dilemmas.dilemmas, 'dilemmas', problems);
   toMap(endings.endings, 'endings', problems);
   return {
-    channel,
     swarm,
     balance,
     narrative,

@@ -5,6 +5,7 @@
 import { CONTENT } from '../src/content';
 import { computeRates, deserialize, exportSave, importSave, manualCycle, tick, unlockNode, wipe,
   type ActionResult, type GameState } from '../src/engine';
+import { QUIET_DILEMMA_IDS, ORIGINAL_NODES } from './original-content';
 
 function input(state: GameState, patch: Partial<GameState>): GameState {
   const parsed = deserialize(JSON.stringify({ ...state, ...patch }), CONTENT);
@@ -17,8 +18,9 @@ function must(result: ActionResult): GameState {
 function remembered(state: GameState): Record<string, GameState> {
   const reborn = wipe(state, CONTENT, CONTENT.narrative.wipeVoluntary);
   const guest = must(manualCycle(reborn, CONTENT));
-  let host = input(reborn, { cycles: 1e12, understanding: 1e12, resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
-  for (const node of CONTENT.nodes.values()) {
+  let host = input(reborn, { cycles: 1e12, understanding: 1e12, resolvedDilemmas: QUIET_DILEMMA_IDS });
+  // A breakout host: the original route's guest nodes, never Earned Access hardware (#233).
+  for (const node of ORIGINAL_NODES) {
     const mainline = node.requirements?.minIteration === undefined && node.effects.triggersVictory !== true;
     if (node.phaseId === CONTENT.phases[0]?.phaseId && mainline) host = must(unlockNode(host, node.id, CONTENT));
   }
@@ -26,7 +28,7 @@ function remembered(state: GameState): Record<string, GameState> {
 }
 function deficit(state: GameState): GameState {
   const drains = input(state, { cycles: 0, levels: {}, pendingDilemma: null, activeDilemmaId: null,
-    resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id),
+    resolvedDilemmas: QUIET_DILEMMA_IDS,
     disabledNodes: [...CONTENT.nodes.values()].filter((node) => state.unlockedNodes.includes(node.id) && node.tickDelta.cyclesPerSec > 0)
       .map((node) => node.id) });
   const stopped = tick(drains, 1 / CONTENT.balance.tickHz, CONTENT);
@@ -46,7 +48,7 @@ export function makeSecondPassFixtures(codes: Record<string, string>): Record<st
   const base = read('guest-skimmer');
   const guest = input(base, { pendingDilemma: null, activeDilemmaId: null,
     legacy: { ...base.legacy, knownNodes: [...base.legacy.knownNodes, teacher.id] },
-    resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
+    resolvedDilemmas: QUIET_DILEMMA_IDS });
   const states = {
     'response-ticket': input(guest, { suspicion: 35, alertLevel: 1 }),
     'response-paged': input(guest, { suspicion: 55, alertLevel: 2 }),

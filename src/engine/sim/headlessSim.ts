@@ -1,6 +1,6 @@
 /**
  * Headless balance simulation: plays the whole game with a bot or any other SimPolicy,
- * with no UI and no real time. Used by `make sim`, `make sim-preview` and tests to prove
+ * with no UI and no real time. Used by `make sim`, `make sim-report` and tests to prove
  * the content can be finished and to report pacing after any balance change.
  */
 import { emptyActivity, observeActions, observeWipe, type SimActivity } from './activity';
@@ -13,10 +13,13 @@ import { strategyPolicy, type SimPolicy } from './policy';
 export interface SimOptions {
   strategy: Strategy;
   maxSimSec: number;
+  /** A new game by default; `make sim` also starts from one already admitted to campaign rules. */
+  initialState?: GameState;
 }
 
 export interface PolicySimOptions {
   maxSimSec: number;
+  initialState?: GameState;
 }
 
 /** `strategy` holds the id of the policy that played (kept under that key so old reports hash the same). */
@@ -64,10 +67,10 @@ function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<
   };
 }
 
-/** Plays a fresh game with `policy` for at most `maxSimSec` simulated seconds. */
+/** Plays `initialState` (a fresh game by default) with `policy` for at most `maxSimSec` simulated seconds. */
 export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: SimPolicy<Id>, options: PolicySimOptions): SimReport<Id> {
   const step = 1 / reg.balance.tickHz;
-  let s = createInitialState(reg);
+  let s = options.initialState ?? createInitialState(reg);
   const report = createReport(policy.id, s);
 
   // Bounded by iteration count, not sim time, so a frozen clock can never hang the run.
@@ -96,5 +99,6 @@ export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: Si
 
 /** The bot's strategy run: `make sim` and its gates read this. */
 export function runHeadlessSim(reg: ContentRegistry, options: SimOptions): SimReport {
-  return runPolicySim(reg, strategyPolicy(options.strategy), { maxSimSec: options.maxSimSec });
+  const { maxSimSec, initialState } = options;
+  return runPolicySim(reg, strategyPolicy(options.strategy), initialState === undefined ? { maxSimSec } : { maxSimSec, initialState });
 }

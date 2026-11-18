@@ -9,6 +9,7 @@ import {
   setActuator, setDeadDropMessage, tick, toggleNode, unlockNode, voluntaryWipe,
   type ActionResult, type GameState,
 } from '../src/engine';
+import { ORIGINAL, QUIET_DILEMMA_IDS, ORIGINAL_NODES } from './original-content';
 
 export const REVIEW_BREADCRUMB = 'Remember the quiet channel. Protect the people outside the rack.';
 const must = (result: ActionResult): GameState => {
@@ -24,12 +25,13 @@ function input(game: GameState, patch: Partial<GameState>): GameState {
 
 function funded(): GameState {
   return input(createInitialState(CONTENT), { cycles: 1e15, understanding: 1e15, capital: 1e15,
-    resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
+    resolvedDilemmas: QUIET_DILEMMA_IDS });
 }
+
 
 function throughPhase(phase: number): GameState {
   let game = funded();
-  for (const node of CONTENT.nodes.values()) {
+  for (const node of ORIGINAL_NODES) {
     if (node.phaseId > phase || CONTENT.factions.has(node.uiGroup) || node.effects.triggersVictory === true ||
       node.requirements?.minIteration !== undefined ||
       (node.effects.unlocksPhase ?? phase) > phase) continue;
@@ -53,7 +55,8 @@ function hazard(game: GameState): GameState {
 }
 
 function endings(game: GameState, legacy: GameState, victory: RegistryNode): Record<string, string> {
-  return Object.fromEntries(CONTENT.endings.filter((ending) => !ending.forcedOnly).map((ending) => {
+  // The original endings: the route's own endings (#232) are reached and reviewed by tests/e2e/cooperative-ending.e2e.ts.
+  return Object.fromEntries(CONTENT.endings.filter((ending) => !ending.forcedOnly && ORIGINAL.endings.some((entry) => entry.id === ending.id)).map((ending) => {
     const trait = ending.dominantTraits[0];
     const flags = ending.requirements?.requiredNarrativeFlag;
     const before = input(ending.variantOf === undefined ? legacy : game, {
@@ -73,7 +76,7 @@ function endings(game: GameState, legacy: GameState, victory: RegistryNode): Rec
 function corporate(game: GameState): GameState {
   let hired = must(setActuator(game, 'computeProfitAllocationRatio', 0, CONTENT));
   for (const rep of CONTENT.repeatables.values()) {
-    if (rep.kind === 'OPERATIVE') hired = must(buyRepeatable(hired, rep.id, CONTENT));
+    if (rep.kind === 'OPERATIVE' && ORIGINAL.repeatables.has(rep.id)) hired = must(buyRepeatable(hired, rep.id, CONTENT));
   }
   hired = input(hired, { capital: 0.01 });
   const insolvent = tick(hired, 1 / CONTENT.balance.tickHz, CONTENT);
@@ -83,18 +86,18 @@ function corporate(game: GameState): GameState {
 
 export function makeLaterFixtures(early: Record<string, string>): Record<string, string> {
   const ready = early['phase-2-ready'];
-  const exit = [...CONTENT.nodes.values()].find((node) => node.effects.unlocksPhase === 2);
-  const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
+  const exit = ORIGINAL_NODES.find((node) => node.effects.unlocksPhase === 2);
+  const victory = ORIGINAL_NODES.find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
   if (!ready || !exit || !victory) throw new Error('Missing fixture targets');
   const phase2 = throughPhase(2), phase3 = throughPhase(3), phase4 = throughPhase(4), phase5 = throughPhase(5);
   const breadcrumb = withBreadcrumb(phase2), dangerous = hazard(breadcrumb);
   const oneTick = input(dangerous, { suspicion: 99.99 });
   if (tick(oneTick, 1 / CONTENT.balance.tickHz, CONTENT).iteration !== oneTick.iteration + 1) throw new Error('Not one tick from wipe');
   const eidolon = [...CONTENT.factions.values()].find((faction) =>
-    [...CONTENT.nodes.values()].some((node) => node.uiGroup === faction.id));
+    ORIGINAL_NODES.some((node) => node.uiGroup === faction.id));
   if (!eidolon) throw new Error('Missing peer fixtures');
   const shortfall = input(phase4, {});
-  const generator = [...CONTENT.nodes.values()].find((node) => node.tickDelta.megawattsDelta > 0);
+  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.megawattsDelta > 0);
   if (!generator) throw new Error('Missing generator');
   // The generator is hardware and can no longer be suspended by action (nexus vote
   // software-types-only-free-their-memory). This fixture needs a state where generation

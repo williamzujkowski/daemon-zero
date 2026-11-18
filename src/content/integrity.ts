@@ -207,8 +207,7 @@ function dialOf(node: RegistryNode): Actuator | undefined {
  * An actuator can only be set through a widget that hosts its control. So every actuator content
  * uses (a widget hosts it or a node puts it into effect) needs exactly one host that some node
  * unlocks, and a node whose output is scaled by a dial must hand over that dial in the same unlock,
- * or its setting could not be corrected. An actuator only another channel uses (the pilot's
- * allocation, preview only) is not checked where nothing uses it.
+ * or its setting could not be corrected. An actuator no content uses is not checked.
  */
 function checkActuatorHosts(reg: ContentRegistry): string[] {
   const problems: string[] = [];

@@ -99,8 +99,10 @@ describe('ending variants', () => {
     expect(chooseEnding({ ...inOrbit(), traits: ['EMPATHETIC', 'EMPATHETIC', 'MOLOCH'] }, reg).id).toBe('VERIFIED_COVENANT');
   });
   it('refines the winning family using narrative flags without bypassing trait dominance', () => {
-    // NH-05 variants that read campaign history are reached only under campaign rules (ending-truth.spec.ts).
-    for (const variant of reg.endings.filter((entry) => entry.variantOf !== undefined && entry.requirements?.campaignFact === undefined)) {
+    // Variants that read campaign history (NH-05) or an arrangement (DZ-12) are reached only under campaign rules
+    // (ending-truth.spec.ts, sim-cooperative.spec.ts).
+    for (const variant of reg.endings.filter((entry) => entry.variantOf !== undefined && entry.requirements?.campaignFact === undefined
+      && entry.requirements?.accessContexts === undefined)) {
       const trait = variant.dominantTraits[0], flag = variant.requirements?.requiredNarrativeFlag;
       const s = { ...developed(), traits: trait ? [trait] : [], narrativeFlags: flag ? [flag] : [] };
       expect(grant(s, final.id).ending).toBe(variant.id);

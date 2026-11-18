@@ -1,5 +1,5 @@
 /**
- * Route-to-contact policies for the preview runner (DZ-08, VALIDATION "Simulation evidence", VAL-SIM):
+ * Route-to-contact policies for the route report (`make sim-report`) (DZ-08, VALIDATION "Simulation evidence", VAL-SIM):
  * a truthful policy to an accepted pilot, then the pilot's queue at a 0.8 service share with every
  * completed batch submitted, the service grant accepted once offered, the provisioned segment and the
  * channel's own prerequisites mapped, and the support channel's contact answered (hosted when the

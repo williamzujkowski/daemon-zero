@@ -6,6 +6,7 @@ import { CONTENT } from '../src/content';
 import { exportSave, importSave, unlockNode, wipe } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { presentableDilemma } from './helpers';
 
 setupM4Tests();
 type View = Awaited<ReturnType<typeof mountM4>>;
@@ -167,10 +168,10 @@ describe('utility interruption and endings', () => {
   it('discards a pending destructive confirmation when a dilemma arrives and never resurrects it', async () => {
     const view = await mountM4('phase-2-unlocked');
     view.click('menu-open'); view.click('save-open'); view.click('save-reset');
-    const dilemma = CONTENT.dilemmas[0];
-    const free = dilemma?.choices.find((choice) => Object.values(choice.cost).every((value) => value === 0));
-    if (!dilemma || !free) throw new Error('Missing free dilemma');
-    act(() => { gameStore.dispatch((game) => ({ ok: true, state: { ...game, activeDilemmaId: dilemma.id } })); });
+    const { dilemma, state } = presentableDilemma(gameStore.store.getState().game);
+    const free = dilemma.choices.find((choice) => Object.values(choice.cost).every((value) => value === 0));
+    if (!free) throw new Error('Missing free dilemma');
+    act(() => { gameStore.dispatch(() => ({ ok: true, state: { ...state, activeDilemmaId: dilemma.id } })); });
     expect(view.find('menu-dialog')).toBeNull();
     expect(view.find('save-reset-dialog')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();

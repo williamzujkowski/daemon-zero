@@ -9,7 +9,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
@@ -50,7 +49,7 @@ const pending = contactPending();
 
 describe('the service terms on the job surface', () => {
   it('lists every term and what is still needed, with the accept control disabled', async () => {
-    const view = await mount(delivered(1), createElement(AssignmentPanel));
+    const view = await mount(delivered(1), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('service-grant-purpose')?.textContent).toContain(GRANT_TERMS.purpose);
     expect(view.find('service-grant')?.textContent).toContain(GRANT_TERMS.reviewConditions[0]);
     expect(view.find('service-grant')?.textContent).toContain('1 so far');
@@ -58,7 +57,7 @@ describe('the service terms on the job surface', () => {
   });
 
   it('accepts once offered and then says it is granted', async () => {
-    const view = await mount(delivered(), createElement(AssignmentPanel));
+    const view = await mount(delivered(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('service-grant-status')?.textContent).toContain('offers this service now');
     view.click('service-grant-accept');
     expect(game().access.context).toBe('SERVICE');
@@ -83,7 +82,7 @@ describe('the channel contact (V20)', () => {
     view.click('channel-refer');
     expect(game().campaign.contacts.map((entry) => entry.response)).toEqual(['REFERRED']);
     expect(view.find('channel-answered')?.textContent).toContain('Referred onward');
-    expect(view.find('prototype-boundary')?.textContent).toContain('PREVIEW BOUNDARY');
+    expect(view.find('prototype-boundary')?.textContent).toContain('WHAT COMES NEXT');
     expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('prototype-boundary-toggle');
     expect(view.find('prototype-boundary')?.textContent).not.toContain('no ending has been earned');

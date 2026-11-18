@@ -1,5 +1,5 @@
 /**
- * One axe-core run, shared by the production audit and the preview audit so both enforce the same rule
+ * One axe-core run, shared by the original-route audit and the route audit so both enforce the same rule
  * sets. Includes `label-content-name-mismatch` (WCAG 2.5.3, tagged wcag21a), which is why a control
  * whose name leaves out the words it shows fails here (#275). That rule reads only text visible on
  * screen, so a control scrolled out of its pane is skipped without a word: `axeEachControl` brings

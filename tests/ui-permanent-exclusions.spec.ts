@@ -6,6 +6,7 @@ import { gameStore } from '../src/app/session';
 import { permanentlyBlocked } from '../src/ui/purchaseVisibility';
 import { resourceWidgets, stripOnlyWidgets } from '../src/ui/registry/widgetRegistry';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { admitted } from './helpers';
 setupM4Tests();
 
 it('distinguishes run ownership and lifetime trait exclusions from temporary requirements', () => {
@@ -34,6 +35,6 @@ it('keeps resource totals and live rates only in the strip while preserving unlo
   expect(view.find('res-cycles')?.textContent).toContain(game.rates.cyclesPerSec.toFixed(2));
   expect(view.find('widget-' + resourceWidgets.understanding)).not.toBeNull();
   expect(view.find('thermal-meter')).not.toBeNull();
-  expect(gameStore.store.getState().game).toEqual(game);
+  expect(gameStore.store.getState().game).toEqual(admitted(game));
   view.close();
 });

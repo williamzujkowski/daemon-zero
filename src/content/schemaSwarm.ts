@@ -43,14 +43,14 @@ export const ChannelEncounterSchema = z.strictObject({
   hosting: z.strictObject({ text: z.string().min(20), log: z.string().min(10) }),
   /** Said beside the contact when an earlier instance of this campaign already answered one here. */
   earlierContact: z.string().min(20),
-  /** The preview's prototype boundary after the first authorized contact (DZ-08.6): honest, stoppable. */
+  /** The note after the first authorized contact (DZ-08.6): what comes next and how to stop, honestly. */
   boundary: z.strictObject({ title: z.string().min(5), lines: z.array(z.string().min(10)).min(1) }),
 });
 
 export const SwarmSchema = z.strictObject({
   playerSwarmTemplates: z.array(ShardTemplateSchema).min(1),
   wildShardEncounters: z.array(WildEncounterSchema).min(1),
-  /** Authorized-channel encounters (DZ-08). Production: empty; the preview overlay adds them. */
+  /** Authorized-channel encounters (DZ-08). shards.json declares none; the Earned Access pack adds them. */
   channelEncounters: z.array(ChannelEncounterSchema),
   shardQuirks: z.array(ShardQuirkSchema).min(1),
   narrativeFlags: z.array(id),

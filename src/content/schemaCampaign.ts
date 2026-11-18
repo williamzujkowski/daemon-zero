@@ -149,7 +149,7 @@ export const CampaignManifestSchema = z.strictObject({
   aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
   retired: z.array(id),
   facts: z.array(CampaignFactSchema).default([]),
-  /** Rediscovery discounts that apply under campaign rules only. Production ships none. */
+  /** Rediscovery discounts that apply under campaign rules only (the Earned Access pack adds them). */
   rediscovery: z.array(CampaignRediscoverySchema).default([]),
   labels: CampaignLabelsSchema,
 });

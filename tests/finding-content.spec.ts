@@ -6,9 +6,9 @@
  * correction; and a warning needs a correction that can actually follow it. Plus the release boundary.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content/preview';
+import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const SCENE = 'dil_nr_batch_review';
@@ -30,8 +30,8 @@ const choice = (raw: Json, id: string, choiceId: string): Json => dilemma(raw, i
 const means = (raw: Json): Json => dilemma(raw, SCENE).followUp.access[0];
 
 describe('the release boundary and the declared scene', () => {
-  it('ships no finding in production; preview declares one once-per-campaign follow-up of the green subset', () => {
-    expect(PRODUCTION.dilemmas.some((entry) => entry.finding !== undefined)).toBe(false);
+  it('the original game has no finding; the Earned Access pack declares one once-per-campaign follow-up of the green subset', () => {
+    expect(ORIGINAL_GAME.dilemmas.some((entry) => entry.finding !== undefined)).toBe(false);
     const findings = PREVIEW.dilemmas.filter((entry) => entry.finding !== undefined);
     expect(findings.map((entry) => [entry.id, entry.followUp?.event, entry.followUp?.outcomes, entry.finding?.standing])).toEqual([
       [SCENE, 'dil_nr_stale_fixture', ['green_subset'], 'WARNED'],

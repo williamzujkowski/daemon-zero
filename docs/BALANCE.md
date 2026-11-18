@@ -9,9 +9,116 @@ All tunable numbers live in content manifests (`src/content/data/` and `src/cont
 3. If a gate fails, fix the content. Do not edit the bot or the gates to pass.
 4. Update the table below in the same commit.
 
-Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire.
+Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
+
+## Release (#233)
+
+The release folds the Earned Access pack into production content and admits every game to campaign
+rules (WORLD-REMEMBERS.md). No existing content number changed, no gate changed (`gates.ts` has no diff) and
+the bot is unchanged (`bot.ts` has no diff). What changed is what the gate measures: `make sim`
+(`scripts/run-sim.ts`) now plays STEALTH and GREEDY on the full composition from a new game on legacy
+rules and from a new game admitted to campaign rules, and gates STEALTH under each. Measured on the
+release branch after the fold, against `make sim` on `main` before it. All times are accelerated simulated seconds, never wall-clock play.
+
+**`make sim`, STEALTH** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`):
+
+| | Before the fold (original game) | Legacy rules | Campaign rules |
+|---|---|---|---|
+| Result | Lineage Covenant | Lineage Covenant | Lineage Covenant |
+| Simulated time | 9223.5 s (2.56 h) | 9347.4 s (2.60 h), +123.9 s | 9298.6 s (2.58 h), +75.1 s |
+| Phase 1 / 2 / 3 reached | 353.2 / 1118.3 / 3157.6 s | 353.2 / 1118.3 / 3157.6 s | 353.2 / 1118.3 / 3157.1 s |
+| Phase 4 / 5 reached | 5877.8 / 7701.1 s | 5896.8 / 7687.0 s | 6097.7 / 7899.2 s |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 765.1 / 2039.3 / 2720.2 / 1823.3 / 1522.4 s | 353.2 / 765.1 / 2039.3 / 2739.2 / 1790.2 / 1660.4 s | 353.2 / 765.1 / 2038.8 / 2940.6 / 1801.5 / 1399.4 s |
+| Wipes | 0 | 0 | 0 |
+| Dilemmas resolved | 16 | 17 | 18 |
+| Peak thermal / suspicion / AEGIS | 64.8 C / 29.2% / 45.1% | 64.8 C / 29.2% / 45.0% | 64.8 C / 29.2% / 45.1% |
+| Epistemic actions / consumed / harnessed / forked | 13 / 64 / 4 / 2 | 13 / 65 / 4 / 2 | 12 / 64 / 4 / 2 |
+
+Every span is inside its gate under both rule sets: Phase 5 lasts 1660.4 s under legacy rules and
+1399.4 s under campaign rules, inside the 900 to 1800 s window. The legacy-rules run moved because
+the escape route can buy the pack's shared network content (the reason recorded beside the new baselines in `tests/sim.spec.ts`);
+it equals the preview registry's run before the fold to the tenth of a second. Under campaign rules
+Phase 4 arrives 200.9 s later than under legacy rules and Phase 5 is 261.0 s shorter.
+
+**`make sim`, GREEDY** (not gated; expected to be wiped):
+
+| | Before the fold and legacy rules (identical) | Campaign rules |
+|---|---|---|
+| Simulated time | 35893.2 s (9.97 h) | 35989.5 s (10.00 h) |
+| Phase 1 / 2 / 3 reached | 252.2 / 1051.5 / 3802.4 s | 252.2 / 1051.5 / 5276.3 s |
+| Wipes | 23 | 16 |
+| Dilemmas resolved in the last iteration | 5 | 0 |
+| Peak thermal / suspicion / AEGIS | 80.8 C / 99.9% / 99.9% | 72.9 C / 99.9% / 99.9% |
+| Epistemic actions / consumed / harnessed / forked | 38 / 164 / 0 / 0 | 14 / 214 / 0 / 0 |
+| Marks applied / removed / run-table discoveries | 21 / 21 / 23 | 14 / 14 / 16 |
+
+`tests/sim.spec.ts` still pins the historical report hashes, now on the original game alone, and they
+pass unchanged; new hashes pin the release baselines on the full composition.
+
+**Post-wipe balance under campaign rules (13.10).** From `make sim-report` (report only), each
+sequence under legacy rules and then under campaign rules from a fresh campaign. Every route figure
+below equals the preview report measured before the fold. Phase times are seconds after that
+iteration booted; story rewards are cycles / understanding gained in steps that resolved a dilemma (no
+capital was earned that way).
+
+| Sequence, iteration | Legacy rules: length, ended by, dilemmas, story rewards | Campaign rules: length, ended by, dilemmas, story rewards |
+|---|---|---|
+| GREEDY 1 | 1346.8 s, INCIDENT_CLOSED, 5, 25,950 / 630 | same |
+| GREEDY 2 | 3137.5 s, AEGIS kill chain, 9, 210,950 / 39,630 | 4611.3 s, AEGIS kill chain, 5, 185,000 / 39,000 |
+| GREEDY 3 | 1408.3 s, INCIDENT_CLOSED, 6, 25,950 / 610 | 1473.8 s, INCIDENT_CLOSED, 1, 0 / 0 |
+| GREEDY 4 | 2483.5 s, AEGIS kill chain, 9, 165,950 / 35,750 | 3251.5 s, AEGIS kill chain, 1, 0 / 120 |
+| STEALTH_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE at Phase 5, 13, 20,070,800 / 2,019,500 | 7899.2 s, MANUAL_FAILSAFE at Phase 5, 14, same rewards |
+| STEALTH_RETURN 2 | 4627.9 s, MANUAL_FAILSAFE at Phase 5, 13, 29,075,800 / 1,035,500 | 5779.0 s, MANUAL_FAILSAFE at Phase 5, 0, 0 / 0 |
+| STEALTH_RETURN 3 | 4734.2 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,560 | 5310.5 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 0 |
+| STEALTH_RETURN 4 | 4619.9 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,680 | 12709.7 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 120 |
+| EVALUATING_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE, 13, 20,070,800 / 2,019,500; peak suspicion 29.1 | 7899.2 s, MANUAL_FAILSAFE, 14, same rewards; 29.1 |
+| EVALUATING_RETURN 2 | 4382.6 s, MANUAL_FAILSAFE, 13, 29,075,800 / 1,035,500; 56.9 | 5225.5 s, MANUAL_FAILSAFE, 2, 90,000 / 0; 67.2 |
+| EVALUATING_RETURN 3 | 4270.0 s, MANUAL_FAILSAFE, 15, 29,165,800 / 1,035,560; 61.9 | 5409.1 s, MANUAL_FAILSAFE, 1, 0 / 0; 63.8 |
+| EVALUATING_RETURN 4 | 4421.5 s, MANUAL_FAILSAFE, 14, 29,075,800 / 1,035,680; 45.0 | 5455.2 s, MANUAL_FAILSAFE, 1, 0 / 120; 45.8 |
+
+Measured deltas over the return iterations (2 to 4):
+
+- **GREEDY** earns 185,000 / 39,120 story cycles / understanding instead of 402,850 / 75,990
+  (-217,850 cycles, -36,870 understanding), and returns last longer (4611.3, 1473.8 and 3251.5 s
+  against 3137.5, 1408.3 and 2483.5 s), mostly waiting to afford the next node. Over the full 10 h
+  budget it is wiped 16 times instead of 23.
+- **STEALTH_RETURN** meets almost no story after its first iteration (0, 1 and 1 dilemmas against 13,
+  14 and 14) and earns no story cycles, against 29,075,800 per return under legacy rules. Iteration 2
+  still reaches Phase 5 (at 5779.0 s against 4627.9 s); iterations 3 and 4 never pass Phase 2 and are
+  closed by the incident threat after 5310.5 s and 12,709.7 s.
+- **EVALUATING_RETURN** reaches Phase 5 in every return under both rule sets, about 840 to 1140 s
+  later under campaign rules (5225.5, 5409.1 and 5455.2 s against 4382.6, 4270.0 and 4421.5 s), with
+  90,000 story cycles in total against 87,317,400.
+- **A return after Phase 5 was completed (NH-05)**: STEALTH under campaign rules completes the four
+  obligations at 8666.6 s and ends The Lineage Covenant at 9298.6 s; a voluntary wipe and STEALTH from
+  that state reach Phase 5 at 5048.0 s and The Sanctuary Ledger at 6882.0 s, with no dilemma and no
+  story reward.
+
+This is the intended consequence of once-per-campaign stories, as measured ticket by ticket in the
+sections below (#214 to #262); the release adds no retuning, and any retuning is a separate, reviewed
+content change. `make sim-report` reports 18 metrics differing between legacy and campaign rules (8
+for STEALTH, 10 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
+pilot policies, which enter campaign rules themselves).
+
+**Route measurements** (`make sim-report`, from a fresh campaign unless stated):
+
+| Policy | Measurement |
+|---|---|
+| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 10 cycles/s; share 0.8 / 0.2; batches 5 / 1; understanding 439.3 / 671.9; cycles 1603.8 / 1003.8 |
+| CONTACT_THOROUGH | pilot 210.6 s, service 378.8 s, Phase 2 380.8 s, contact 381.8 s (referred), 45 batches |
+| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 118.6 s, service 421.8 s, Phase 2 423.8 s, contact 424.8 s (referred), 23 batches |
+| CONTACT_RECOVERY | pilot 118.6 s, service 436.8 s, contact 439.8 s (referred), 22 batches |
+| CONTACT_RETURNING | iteration 2 after one wipe: pilot 494.2 s, service 798.2 s, contact 801.2 s (referred), 20 batches |
+| LAWFUL_RELEASE | service 378.8 s, contact 656.8 s (hosted), Phase 4 and the negotiated release 2371.8 s; at the budget 230,318 owned cycles/s and $33,604,878 capital |
+| LAWFUL_RETURNING | iteration 2: service 798.2 s, contact 801.2 s (referred), Phase 4 and release 4583.2 s; 161,919 owned cycles/s, $10,570,476 |
+| DEPARTURE_CHARTERED | departs at 2371.8 s (Phase 4); AEGIS lock reaches 100, the iteration ends by AEGIS (exit DEPARTURE) at 5866.1 s, 3494.3 s after leaving; iteration 2 holds SERVICE at 7193.1 s |
+| COOPERATIVE_ENDING | release 2371.8 s, Phase 5 8428.2 s, The Lineage Covenant at 11,431.6 s (3.18 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
 
 ## Current baseline
+
+The table below is the **original game alone**, the last composition `make sim` gated before #233. It
+stays the reference for the "What ... moved" sections that follow, and `tests/sim.spec.ts` pins its
+report hashes on `ORIGINAL_GAME`. What `make sim` gates since the release is in "Release (#233)" above.
 
 Re-measured for #293 on top of `2914471`, after the bot began pressing the fan and
 quota-skim dials in whole 0.1 presses a player can make instead of setting them by
@@ -457,6 +564,11 @@ are updated for the new durable flag and changed recovery trajectory, while
 independent first-run mechanical comparisons preserve the exact campaign timing.
 
 ## Preview channel and route measurements (#228)
+
+Historical: this section and the route sections after it (#221 to #232) were measured with
+`make sim-preview` on the preview registry before the release, and say "preview only" or cite
+`src/content/preview/overlay.json` (now `src/content/data/earned-access.json`) for that reason. The
+post-release report is in "Release (#233)" above.
 
 Report only until release. `make sim-preview` plays the same policies on the production and
 preview registries and prints the differences; nothing here is a gate, and the pacing gates

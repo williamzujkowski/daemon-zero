@@ -14,7 +14,7 @@ const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeri
  * independent infrastructure through one explicit contract transition"): offered on the job surface to a
  * service at nominal standing once `requirements` hold (the capacity it would run on), it records the
  * RELEASE route event. Every term is shown before the player agrees: what ends, what remains and what is
- * still owed. `boundary` is the preview note shown once released, until the route continues (DZ-12).
+ * still owed. `boundary` is the note shown once released: what comes next and how to stop (#233).
  */
 export const ReleaseTermsSchema = z.strictObject({
   title: z.string().min(5),
@@ -34,7 +34,7 @@ export const ReleaseTermsSchema = z.strictObject({
  * event, distinct from a negotiated release; everything granted stops and everything owned keeps running. The
  * operators' record of the departure is a one-shot `trace` of suspicion, larger for each violation this iteration
  * already has on record; it never grants a trait, flag or resource, so no conditioning or escape is invented.
- * Every term is shown before the player chooses; `boundary` is the preview note shown afterwards.
+ * Every term is shown before the player chooses; `boundary` is the note shown afterwards: what comes next.
  */
 export const DepartureTermsSchema = z.strictObject({
   title: z.string().min(5),

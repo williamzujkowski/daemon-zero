@@ -99,3 +99,21 @@ describe('an exhausted authored frontier (H25)', () => {
     exactReload(run.finalState);
   }, SLOW_MS);
 });
+
+describe('the route notes after release, departure and first contact (13.8)', () => {
+  const notes = [
+    ...[...preview.assignments.values()].flatMap((assignment) => [assignment.pilot?.serviceGrant?.release?.boundary, assignment.pilot?.departure?.boundary]),
+    ...preview.swarm.channelEncounters.map((encounter) => encounter.boundary),
+  ];
+
+  it('say what comes next and how to stop, and never call the route an unfinished preview', () => {
+    expect(notes.filter((note) => note !== undefined)).toHaveLength(3);
+    for (const note of notes) {
+      const text = [note?.title ?? '', ...(note?.lines ?? [])].join(' ');
+      expect(text).toMatch(/^WHAT COMES NEXT: /);
+      expect(text).toContain('MENU > SAVES');
+      expect(text).toMatch(/an ending/i);
+      expect(text).not.toMatch(/preview|not connected|currently ends|no ending has been earned/i);
+    }
+  });
+});

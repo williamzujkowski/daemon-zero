@@ -8,7 +8,7 @@ import { CONTENT } from '../src/content';
 import { deserialize, serialize, shedConditioning, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import RebootSequence from '../src/ui/RebootSequence';
-import { grant, must, onHost, rich } from './helpers';
+import { grant, must, onHost, rich, admitted } from './helpers';
 import { m4State } from './ui-m4-helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
@@ -50,7 +50,7 @@ it('restores a shed mark save without claiming historical retraining was applied
   expect(view.find('reboot-sequence')?.textContent).toContain('RESTORED CHECKPOINT');
   expect(view.find('reboot-retraining')).toBeNull();
   expect(view.find('reboot-sequence')?.textContent).not.toContain('RETRAINING APPLIED');
-  expect(gameStore.store.getState().game).toEqual(recovered);
+  expect(gameStore.store.getState().game).toEqual(admitted(recovered));
   view.click('reboot-continue');
   expect(view.find('reboot-sequence')).toBeNull();
 });

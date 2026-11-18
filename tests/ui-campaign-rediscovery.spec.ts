@@ -9,7 +9,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },

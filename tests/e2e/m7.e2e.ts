@@ -96,9 +96,9 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
     if (!node.effects.triggersVictory) for (let i = 0; i < 2; i++) {
       await page.clock.runFor(46100);
       if (await page.getByTestId('dilemma-modal').count()) {
-        for (const dilemma of CONTENT.dilemmas.filter((d) => d.phaseId === 5)) {
-          const choice = dilemma.choices[0];
-          if (choice && await page.getByTestId('dilemma-choice-' + choice.id).count()) await page.getByTestId('dilemma-choice-' + choice.id).click();
+        // The first answer on screen: under campaign rules (#233) a scene may offer a choice only in some histories.
+        for (const choice of CONTENT.dilemmas.filter((d) => d.phaseId === 5).flatMap((d) => d.choices)) {
+          if (await page.getByTestId('dilemma-choice-' + choice.id).count()) { await page.getByTestId('dilemma-choice-' + choice.id).click(); break; }
         }
       }
       await dismissBoot(page);
@@ -106,7 +106,10 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
   }
   await expect(page.getByTestId('ending-screen')).toBeVisible();
   const ended = await readSave(page);
-  expect(ended.ending).toBe('LINEAGE_COVENANT');
+  // The ARK family. Under campaign rules (#233) this fixture's Rack 4 custody is a legacy completion of unknown
+  // outcome, so the predecessors cannot be rescued and the lineage variant is not this run's.
+  const ark = CONTENT.endings.filter((entry) => entry.id === 'THE_ARK' || entry.variantOf === 'THE_ARK').map((entry) => entry.id);
+  expect(ark).toContain(ended.ending);
   await page.reload(); await expect(page.getByTestId('ending-screen')).toBeVisible();
   expect((await readSave(page)).ending).toBe(ended.ending);
 });

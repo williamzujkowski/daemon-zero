@@ -3,7 +3,7 @@
  * declared edit, the run table a later iteration remembers, and a guest at network scale whose hallway
  * omen is pending. FIXTURES are labelled where a state is edited rather than played.
  */
-import { RAW_CONTENT } from '../src/content/preview';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry, type ContentRegistry, type RawContent } from '../src/content/registry';
 import { advance, deserialize, serialize, tick, type GameState } from '../src/engine';
 import { preview } from './assignment-helpers';

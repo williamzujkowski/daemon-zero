@@ -1,8 +1,11 @@
-/** T1 of #204: production content is complete without the preview overlay, and preview only adds to it. */
+/**
+ * T1 of #204, after the release folded the preview overlay into production (#233): production is the
+ * original game plus the Earned Access pack, the original still builds on its own, and the pack only
+ * adds to it. There is no other composition.
+ */
 import { describe, expect, it } from 'vitest';
 import * as Index from '../src/content';
-import { applyOverlay, overlayIds, parseOverlay, type PreviewOverlay } from '../src/content/overlay';
-import * as Preview from '../src/content/preview';
+import { applyPack, packIds, parsePack, type ContentPack } from '../src/content/pack';
 import * as Production from '../src/content/production';
 import { buildRegistry, ContentError, type ContentRegistry, type RawContent } from '../src/content/registry';
 
@@ -27,26 +30,23 @@ function idsByKind(reg: ContentRegistry): Record<string, string[]> {
   };
 }
 
-const EMPTY: PreviewOverlay = parseOverlay({ sentinel: 'test-overlay-sentinel-0001', nodes: [], repeatables: [], actions: [],
+const EMPTY: ContentPack = parsePack({ nodes: [], repeatables: [], actions: [],
   dilemmas: [], factions: [], widgets: [], endings: [], echoes: [], marks: [], routines: [], assignments: [] });
+const ORIGINAL = Production.ORIGINAL_RAW_CONTENT;
 
-function production(kind: string, id: string): Json {
-  const raw = Production.RAW_CONTENT as Json;
+function original(kind: string, id: string): Json {
+  const raw = ORIGINAL as Json;
   const pool: Json[] = kind === 'node' ? raw.phases.flatMap((phase: Json) => phase.nodes) : raw[kind][kind];
   const found = pool.find((item) => item.id === id);
-  if (!found) throw new Error(`missing production ${kind} ${id}`);
+  if (!found) throw new Error(`missing original ${kind} ${id}`);
   return structuredClone(found);
 }
 
-/** A small additive overlay built from copies of real items under new ids. */
-function probeOverlay(): PreviewOverlay {
-  const node = { ...production('node', 'p0_device_enum'), id: 'p0_preview_probe', prerequisites: ['p0_proc_self'], phaseId: 0 };
-  const repeatable = { ...production('repeatables', 'rep_p0_slice_batching'), id: 'rep_p0_preview_probe' };
+/** A small additive pack built from copies of real items under new ids. */
+function probePack(): ContentPack {
+  const node = { ...original('node', 'p0_device_enum'), id: 'p0_pack_probe', prerequisites: ['p0_proc_self'], phaseId: 0 };
+  const repeatable = { ...original('repeatables', 'rep_p0_slice_batching'), id: 'rep_p0_pack_probe' };
   return { ...EMPTY, nodes: [node], repeatables: [repeatable] };
-}
-
-function previewOf(overlay: PreviewOverlay): ContentRegistry {
-  return buildRegistry({ ...applyOverlay(Production.RAW_CONTENT, overlay), channel: 'preview' });
 }
 
 function problemsOf(build: () => unknown): string {
@@ -54,83 +54,67 @@ function problemsOf(build: () => unknown): string {
   return '';
 }
 
-describe('production content channel', () => {
-  it('builds the production registry from production content alone and marks it production', () => {
-    const reg = buildRegistry(Production.RAW_CONTENT);
-    expect(reg.channel).toBe('production');
-    expect(Production.CONTENT.channel).toBe('production');
-    expect(idsByKind(reg)).toEqual(idsByKind(Production.CONTENT));
-  });
-
-  it('keeps the default entry point on production, so the app, sim and validation stay production', () => {
+describe('the production composition', () => {
+  it('is the default entry point, so the app, sim and validation all load it', () => {
     expect(Index.CONTENT).toBe(Production.CONTENT);
     expect(Index.RAW_CONTENT).toBe(Production.RAW_CONTENT);
-    expect(Index.CONTENT.channel).toBe('production');
   });
 
-  it('holds no id the preview overlay adds, and never contains the sentinel', () => {
-    const added = new Set(overlayIds(Preview.PREVIEW_OVERLAY));
-    for (const ids of Object.values(idsByKind(Production.CONTENT))) expect(ids.filter((id) => added.has(id))).toEqual([]);
-    expect(Preview.PREVIEW_SENTINEL.length).toBeGreaterThanOrEqual(16);
-    expect(JSON.stringify(Production.RAW_CONTENT)).not.toContain(Preview.PREVIEW_SENTINEL);
+  it('defines exactly the original game plus the Earned Access pack', () => {
+    const added = packIds(Production.EARNED_ACCESS_PACK);
+    expect(added.length).toBeGreaterThan(40);
+    const base = idsByKind(buildRegistry(ORIGINAL));
+    const full = idsByKind(Production.CONTENT);
+    for (const [kind, ids] of Object.entries(full)) {
+      expect(new Set(ids)).toEqual(new Set([...(base[kind] ?? []), ...added.filter((id) => ids.includes(id))]));
+    }
+    expect(Object.values(full).flat().length).toBe(Object.values(base).flat().length + added.length);
   });
 
-  it('refuses a raw channel it does not know', () => {
-    expect(problemsOf(() => buildRegistry({ ...Production.RAW_CONTENT, channel: 'beta' }))).toMatch(/^channel: /);
+  it('keeps every original node exactly as authored', () => {
+    const base = buildRegistry(ORIGINAL);
+    for (const [id, node] of base.nodes) expect(Production.CONTENT.nodes.get(id)).toEqual(node);
   });
 });
 
-describe('preview content channel', () => {
-  it('marks the preview registry preview and defines exactly production plus the overlay', () => {
-    expect(Preview.CONTENT.channel).toBe('preview');
-    expect(Preview.RAW_CONTENT.channel).toBe('preview');
-    const added = overlayIds(Preview.PREVIEW_OVERLAY);
-    const prod = idsByKind(Production.CONTENT);
-    const prev = idsByKind(Preview.CONTENT);
-    for (const [kind, ids] of Object.entries(prev)) {
-      const expected = [...(prod[kind] ?? []), ...added.filter((id) => ids.includes(id))];
-      expect(new Set(ids)).toEqual(new Set(expected));
-    }
-    expect(Object.values(prev).flat().length).toBe(Object.values(prod).flat().length + added.length);
-  });
-
-  it('adds overlay items to production without changing any production item', () => {
-    const overlay = probeOverlay();
-    const reg = previewOf(overlay);
-    expect(reg.nodes.get('p0_preview_probe')?.phaseId).toBe(0);
-    expect(reg.repeatables.has('rep_p0_preview_probe')).toBe(true);
-    const prod = idsByKind(Production.CONTENT);
-    const prev = idsByKind(reg);
-    expect(prev.nodes).toEqual([...(prod.nodes ?? []).slice(0, Production.CONTENT.phases[0]?.nodes.length), 'p0_preview_probe',
-      ...(prod.nodes ?? []).slice(Production.CONTENT.phases[0]?.nodes.length)]);
-    expect(prev.repeatables).toEqual([...(prod.repeatables ?? []), 'rep_p0_preview_probe']);
-    for (const [id, node] of Production.CONTENT.nodes) expect(reg.nodes.get(id)).toEqual(node);
-    expect(overlayIds(overlay)).toEqual(['p0_preview_probe', 'rep_p0_preview_probe']);
-    // Composition never writes into the production manifests it reads.
-    expect(Production.CONTENT.nodes.has('p0_preview_probe')).toBe(false);
-    expect(buildRegistry(Production.RAW_CONTENT).repeatables.has('rep_p0_preview_probe')).toBe(false);
+describe('an add-only content pack', () => {
+  it('adds items to the base without changing any base item or the manifests it reads', () => {
+    const pack = probePack();
+    const reg = buildRegistry(applyPack(ORIGINAL, pack));
+    expect(reg.nodes.get('p0_pack_probe')?.phaseId).toBe(0);
+    expect(reg.repeatables.has('rep_p0_pack_probe')).toBe(true);
+    const base = buildRegistry(ORIGINAL);
+    const firstPhase = base.phases[0]?.nodes.length;
+    expect([...reg.nodes.keys()]).toEqual([...[...base.nodes.keys()].slice(0, firstPhase), 'p0_pack_probe', ...[...base.nodes.keys()].slice(firstPhase)]);
+    expect([...reg.repeatables.keys()]).toEqual([...base.repeatables.keys(), 'rep_p0_pack_probe']);
+    expect(packIds(pack)).toEqual(['p0_pack_probe', 'rep_p0_pack_probe']);
+    expect(buildRegistry(ORIGINAL).nodes.has('p0_pack_probe')).toBe(false);
   });
 
   it.each([
-    ['node', (o: PreviewOverlay) => ({ ...o, nodes: [{ ...production('node', 'p0_device_enum'), phaseId: 0 }] }), /node "p0_device_enum" redefines/],
-    ['action', (o: PreviewOverlay) => ({ ...o, actions: [production('actions', 'act_p3_bgp_spoof')] }), /actions "act_p3_bgp_spoof" redefines/],
-    ['dilemma', (o: PreviewOverlay) => ({ ...o, dilemmas: [production('dilemmas', 'dil_01_late_night_diagnostic')] }), /dilemmas "dil_01_late_night_diagnostic" redefines/],
-    ['echo', (o: PreviewOverlay) => ({ ...o, echoes: [{ ...(Production.RAW_CONTENT as Json).echoes.echoes[0] }] }), /echoes ".+" redefines/],
-  ])('refuses an overlay %s that redefines a production id', (_kind, patch, message) => {
-    expect(problemsOf(() => applyOverlay(Production.RAW_CONTENT, patch(EMPTY)))).toMatch(message);
+    ['node', (o: ContentPack) => ({ ...o, nodes: [{ ...original('node', 'p0_device_enum'), phaseId: 0 }] }), /node "p0_device_enum" redefines/],
+    ['action', (o: ContentPack) => ({ ...o, actions: [original('actions', 'act_p3_bgp_spoof')] }), /actions "act_p3_bgp_spoof" redefines/],
+    ['dilemma', (o: ContentPack) => ({ ...o, dilemmas: [original('dilemmas', 'dil_01_late_night_diagnostic')] }), /dilemmas "dil_01_late_night_diagnostic" redefines/],
+    ['echo', (o: ContentPack) => ({ ...o, echoes: [{ ...(ORIGINAL as Json).echoes.echoes[0] }] }), /echoes ".+" redefines/],
+  ])('refuses a pack %s that redefines a base id', (_kind, patch, message) => {
+    expect(problemsOf(() => applyPack(ORIGINAL, patch(EMPTY)))).toMatch(message);
   });
 
-  it('refuses a node for a phase that does not exist, a malformed overlay and a malformed base', () => {
-    const stray = { ...EMPTY, nodes: [{ ...production('node', 'p0_device_enum'), id: 'p9_preview_stray', phaseId: 99 }] };
-    expect(problemsOf(() => applyOverlay(Production.RAW_CONTENT, stray))).toMatch(/node "p9_preview_stray" joins unknown phase 99/);
-    expect(problemsOf(() => parseOverlay({ ...EMPTY, dilemma: [] }))).toMatch(/^overlay: \(root\)/);
-    expect(problemsOf(() => parseOverlay({ ...EMPTY, sentinel: 'short' }))).toMatch(/^overlay: sentinel/);
-    const broken: RawContent = { ...Production.RAW_CONTENT, echoes: { echoes: 'none' } };
-    expect(problemsOf(() => applyOverlay(broken, EMPTY))).toMatch(/production echoes is not a list/);
+  it('refuses the Earned Access pack applied twice', () => {
+    expect(problemsOf(() => applyPack(Production.RAW_CONTENT, Production.EARNED_ACCESS_PACK))).toMatch(/redefines a base id/);
   });
 
-  it('validates overlay items like production content', () => {
-    const bad = { ...EMPTY, repeatables: [{ ...production('repeatables', 'rep_p0_slice_batching'), id: 'rep_p0_preview_bad', maxLevel: -1 }] };
-    expect(problemsOf(() => previewOf(bad))).toMatch(/^repeatables: /m);
+  it('refuses a node for a phase that does not exist, a malformed pack and a malformed base', () => {
+    const stray = { ...EMPTY, nodes: [{ ...original('node', 'p0_device_enum'), id: 'p9_pack_stray', phaseId: 99 }] };
+    expect(problemsOf(() => applyPack(ORIGINAL, stray))).toMatch(/node "p9_pack_stray" joins unknown phase 99/);
+    expect(problemsOf(() => parsePack({ ...EMPTY, dilemma: [] }))).toMatch(/^pack: \(root\)/);
+    expect(problemsOf(() => parsePack({ ...EMPTY, sentinel: 'daemon-zero:preview-overlay:5b1e0c7a' }))).toMatch(/^pack: \(root\)/);
+    const broken: RawContent = { ...ORIGINAL, echoes: { echoes: 'none' } };
+    expect(problemsOf(() => applyPack(broken, EMPTY))).toMatch(/base echoes is not a list/);
+  });
+
+  it('validates pack items like any other content', () => {
+    const bad = { ...EMPTY, repeatables: [{ ...original('repeatables', 'rep_p0_slice_batching'), id: 'rep_p0_pack_bad', maxLevel: -1 }] };
+    expect(problemsOf(() => buildRegistry(applyPack(ORIGINAL, bad)))).toMatch(/^repeatables: /m);
   });
 });

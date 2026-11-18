@@ -6,6 +6,7 @@ import { CONTENT } from '../src/content';
 import { wipe } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { presentableDilemma } from './helpers';
 
 setupM4Tests();
 const load = (game: ReturnType<typeof m4State>): void => { act(() => { gameStore.initialize(game, 0, null); }); };
@@ -69,9 +70,8 @@ describe('second-pass interface', () => {
     const view = await mountM4('phase-1-widgets');
     expect(view.find('inspection-forecast')?.textContent).toContain('No interrupt inbound');
     const game = m4State('phase-1-widgets');
-    const dilemma = CONTENT.dilemmas[0];
-    if (!dilemma) throw new Error('Missing dilemma');
-    load({ ...game, pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + 30 } });
+    const { dilemma, state } = presentableDilemma(game);
+    load({ ...state, pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + 30 } });
     expect(view.find('inspection-forecast')?.textContent).toContain('Interrupt inbound in 30s');
     view.close();
   });

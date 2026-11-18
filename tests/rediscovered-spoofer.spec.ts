@@ -5,13 +5,12 @@
  * derived, so a save round trip neither stores nor changes it.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, deserialize, exportSave, importSave, nodeCost, serialize, unlockNode, wipe, type GameState,
 } from '../src/engine';
-import { must, PHASE0, PHASE1, rich } from './helpers';
+import { must, PHASE0, PHASE1, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 
 const SPOOFER = 'p2_log_spoofer';
@@ -39,13 +38,12 @@ describe('the rediscovered log spoofer under campaign rules', () => {
     expect(nodeCost(first, spoofer(PREVIEW), PREVIEW).cycles).toBe(25000);
   });
 
-  it('keeps the ordinary 12,500 under legacy rules, on preview and in production', () => {
+  it('keeps the ordinary 12,500 under legacy rules, in production and in the original game', () => {
     expect(nodeCost(returning(PREVIEW, false), spoofer(PREVIEW), PREVIEW).cycles).toBe(12500);
-    const production = returning(PRODUCTION, false);
-    expect(nodeCost(production, spoofer(PRODUCTION), PRODUCTION).cycles).toBe(12500);
-    // Production cannot enter the rules that would read a discount, and declares none.
-    expect(activateCampaignRules(production, PRODUCTION).ok).toBe(false);
-    expect(PRODUCTION.campaign.rediscovery.size).toBe(0);
+    const production = returning(ORIGINAL_GAME, false);
+    expect(nodeCost(production, spoofer(ORIGINAL_GAME), ORIGINAL_GAME).cycles).toBe(12500);
+    // The original game declares no discount, so even campaign rules would read none there.
+    expect(ORIGINAL_GAME.campaign.rediscovery.size).toBe(0);
   });
 
   it('changes no other remembered node', () => {

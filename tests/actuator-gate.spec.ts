@@ -21,10 +21,13 @@ import { fresh, grant, must, reasonOf, reg, rich, withoutDilemmas } from './help
 
 const ACTUATORS: Actuator[] = ['quotaSkimRatio', 'fanSpeedRatio', 'computeProfitAllocationRatio'];
 
-/** The node that hands over an actuator's control, found through the widget that hosts it. */
+/**
+ * The breakout node that hands over an actuator's control, found through the widget that hosts it. Earned
+ * Access hardware that hands over the same control (#233) needs a grant or a contract, so it is not a guest's.
+ */
 function hostNode(actuator: Actuator) {
   const widget = [...reg.widgets.values()].find((entry) => entry.hostsActuator === actuator);
-  const node = [...reg.nodes.values()].find((entry) => entry.unlocksUiComponent === widget?.id);
+  const node = [...reg.nodes.values()].find((entry) => entry.unlocksUiComponent === widget?.id && entry.grant === undefined && entry.acquisition === undefined);
   if (!widget || !node) throw new Error(`no host for ${actuator}`);
   return { widget, node };
 }

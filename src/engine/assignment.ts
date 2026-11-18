@@ -12,7 +12,7 @@ import type { ActionResult } from './actions';
 import { holdsQualification, isPermitted } from './accessQuery';
 import type { Qualification } from './accessState';
 import { assessmentOf, assessmentStage, meetsAssignment, offerToken } from './assignmentQuery';
-import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
+import { isCampaignActive } from './campaignQuery';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
 import { pushLog } from './util';
@@ -26,10 +26,10 @@ function offered(s: GameState, assignment: Assignment, reg: ContentRegistry): bo
   return s.access.assignment === null && isPermitted(s, 'ASSIGNED_WORK') && meetsRequirements(s, assignment.requirements, reg);
 }
 
-function blocked(s: GameState, reg: ContentRegistry): string | null {
+function blocked(s: GameState): string | null {
   if (s.ending !== null) return 'the run has ended';
   if (s.activeDilemmaId !== null) return 'a dilemma is awaiting a decision';
-  if (!campaignRulesSupported(reg) || !isCampaignActive(s)) return 'assignments need campaign rules';
+  if (!isCampaignActive(s)) return 'assignments need campaign rules';
   return null;
 }
 
@@ -39,7 +39,7 @@ function blocked(s: GameState, reg: ContentRegistry): string | null {
  * assessment's trigger now holds, so the ordinary scheduler brings its omen and interrupt.
  */
 export function acceptAssignment(s: GameState, assignmentId: string, reg: ContentRegistry, offer: string): ActionResult {
-  const reason = blocked(s, reg);
+  const reason = blocked(s);
   if (reason) return refuse(s, reason);
   const assignment = reg.assignments.get(assignmentId);
   if (!assignment) return refuse(s, 'unknown assignment');

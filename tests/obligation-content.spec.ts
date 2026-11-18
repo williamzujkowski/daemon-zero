@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { buildRegistry, CONTENT, RAW_CONTENT, type RawContent } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { ATMOSPHERE, ATMOSPHERE_REVIEW, BLOCKADE, CEILING, CEILING_REVIEW, OBLIGATIONS, ORDER } from './obligation-helpers';
 
 type Json = Record<string, any>;

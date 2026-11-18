@@ -3,10 +3,11 @@
  * production ships no scope review, offer or pilot, and its one changed requirement is inert there.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION, RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PRODUCTION, ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 import { createInitialState, isNodeAvailable, unmetRequirements } from '../src/engine';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const RECORD = 'dil_ur_unrelated_record';
@@ -32,10 +33,10 @@ const pilot = (raw: Json): Json => raw.assignments.assignments[0].pilot;
 const shipped = (raw: Json): Json => raw.phases[0].nodes.find((node: Json) => node.id === 'p0_pass_evaluation');
 
 describe('the release boundary', () => {
-  it('ships scope reviews, offers and pilot terms only in preview', () => {
+  it('adds scope reviews, offers and pilot terms only through the Earned Access pack', () => {
     const scenes = (reg: typeof PREVIEW) => reg.dilemmas.filter((entry) => entry.trigger.pilotEligible || entry.choices.some((c) => c.scope || c.pilotResponse))
       .map((entry) => entry.id);
-    expect(scenes(PRODUCTION)).toEqual([]);
+    expect(scenes(ORIGINAL_GAME)).toEqual([]);
     expect(scenes(PREVIEW)).toEqual([RECORD, STATEMENT, OFFER, RENEWAL]);
     expect([...PREVIEW.assignments.values()].map((entry) => entry.pilot?.title)).toEqual(['Supervised pilot // log triage service']);
     expect(problems(() => undefined)).toBe('');
@@ -47,7 +48,7 @@ describe('the release boundary', () => {
     const s = { ...createInitialState(PRODUCTION), iteration: 2, unlockedNodes: ['p0_proc_self', 'p0_job_manifest'], cycles: 1e4, understanding: 1e3 };
     expect(node && isNodeAvailable(s, node, PRODUCTION)).toBe(true);
     expect(node && unmetRequirements({ ...s, access: { ...s.access, context: 'PILOT' } }, node.requirements, PRODUCTION).map((item) => item.kind)).toEqual(['accessContexts']);
-    expect(JSON.stringify(PRODUCTION_RAW)).not.toContain('pilotEligible');
+    expect(JSON.stringify(ORIGINAL_RAW)).not.toContain('pilotEligible');
   });
 });
 

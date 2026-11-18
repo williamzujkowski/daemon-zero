@@ -1,7 +1,8 @@
 /**
- * Content channels name which registry composition built a game. Production is what
- * players get; preview adds unfinished content on top of it and is never shipped.
- * Saves carry their channel so production can refuse a preview run instead of healing it.
+ * The content channel a save records. Every shipped build is production. `preview` names the local
+ * and CI-only builds that carried Earned Access before its release (#204, #233); the marker stays so
+ * production keeps refusing such a save atomically instead of healing it (nexus votes
+ * gamestate-channel-marker and keep-refusing-preview-saves).
  */
 import { z } from 'zod';
 

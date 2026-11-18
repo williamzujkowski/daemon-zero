@@ -1,8 +1,8 @@
 /**
  * Route copy (DZ-12, extending nexus vote dz-d11's context-variants-by-query to the late corporate chain): a
  * node's or scene's text as an arrangement other than the guest job reads it, and the ending account, the
- * lines an ending may add about what the campaign record actually holds. Production ships none, so escape
- * copy and every production ending read exactly as before; integrityRouteCopy.ts keeps each variant to an
+ * lines an ending may add about what the campaign record actually holds. The original game declares none, so
+ * escape copy reads exactly as before for the guest job; integrityRouteCopy.ts keeps each variant to an
  * item that arrangement can meet and each account line to recorded history.
  */
 import { z } from 'zod';

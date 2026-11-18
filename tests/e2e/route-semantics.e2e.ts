@@ -1,0 +1,65 @@
+/**
+ * What assistive technology reads from every route surface (DZ-13.4) on the production export, from the DOM
+ * the browser exposes: each control is a button named by the words it shows first (WCAG 2.5.3, the rule
+ * tests/labelInName.ts shares with the mounted tests), a disabled one says so, a disclosure says whether it
+ * is open, a surface is introduced by a heading, a modal is a named dialog, status lines that change are
+ * live regions, and the run's arrangement is named beside the phase. FIXTURE states; not a screen-reader pass.
+ */
+import { expect, test, type Locator } from '@playwright/test';
+import { CONTENT as PREVIEW } from '../../src/content';
+import { runContextView } from '../../src/engine';
+import { contextLabel } from '../../src/ui/runContext';
+import { labelInName } from '../labelInName';
+import { openRouteState } from './routeSave';
+import { ROUTE_STATES } from './routeStates';
+
+/** Lines that change while the player reads them, and how each announces the change. */
+const LIVE: Readonly<Record<string, readonly [string, string]>> = {
+  'review-announced': ['role', 'alert'],
+  'release-status': ['aria-live', 'polite'],
+  'departure-status': ['aria-live', 'polite'],
+  'contact-notice': ['aria-live', 'polite'],
+};
+
+async function controlProblems(scope: Locator): Promise<string[]> {
+  const problems: string[] = [];
+  for (const button of await scope.getByRole('button').all()) {
+    const id = await button.getAttribute('data-testid') ?? '?';
+    const visible = (await button.textContent() ?? '').trim();
+    const name = await button.getAttribute('aria-label') ?? visible;
+    if (name.trim() === '') problems.push(id + ': no accessible name');
+    if (!labelInName(visible, name)) problems.push(id + ': "' + visible + '" not in "' + name + '"');
+    if (!await button.isEnabled() && await button.getAttribute('aria-disabled') !== 'true') problems.push(id + ': disabled without aria-disabled');
+  }
+  return problems;
+}
+
+for (const entry of ROUTE_STATES) {
+  test('semantics route ' + entry.name, async ({ page }, info) => {
+    test.skip(entry.phoneOnly === true && info.project.name !== 'phone', 'only the phone tier renders this surface');
+    await openRouteState(page, entry);
+    const scope = page.getByTestId(entry.scope);
+    expect(await controlProblems(scope)).toEqual([]);
+    // Not checked: a node card and a widget panel are titled by shared production lines styled as headings but not
+    // exposed as one (docs/REVIEW-ROUTE-A11Y.md, left to a production change), and a chrome notice is a status line.
+    if (!/^(node-|widget-|contact-notice$)/.test(entry.scope)) expect(await scope.getByRole('heading').count(), 'the surface has a heading').toBeGreaterThan(0);
+    if (entry.disclosure !== undefined) await expect(page.getByTestId(entry.disclosure)).toHaveAttribute('aria-expanded', /^(true|false)$/);
+    for (const [id, [attribute, value]] of Object.entries(LIVE)) {
+      if (await scope.getByTestId(id).count()) await expect(scope.getByTestId(id)).toHaveAttribute(attribute, value);
+    }
+    if (entry.modal === true) {
+      const dialog = page.locator('[aria-modal="true"]').filter({ has: page.getByTestId(entry.reach) });
+      await expect(dialog).toHaveCount(1);
+      await expect(dialog).toHaveAttribute('role', 'dialog');
+      return;
+    }
+    const label = contextLabel(runContextView(entry.state(), PREVIEW));
+    if (label !== null) {
+      const context = page.getByTestId('run-context').first();
+      await expect(context).toHaveText(label);
+      const landmark = await context.evaluate((element) => (element as unknown as { closest(selector: string): unknown })
+        .closest('main, [role="main"], [role="region"], header, [role="banner"]') !== null);
+      expect(landmark, 'the arrangement is read inside a landmark').toBe(true);
+    }
+  });
+}

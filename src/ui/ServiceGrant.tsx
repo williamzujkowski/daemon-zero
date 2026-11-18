@@ -1,7 +1,7 @@
 /**
  * The authorized service terms on the job surface (DZ-08 integration, nexus vote dz-d7): what the
  * service permits and how it is reviewed, what is still needed, and an explicit accept control once
- * the pilot qualifies. Nothing here is modal; ignoring it changes nothing. Production has no pilot.
+ * the pilot qualifies. Nothing here is modal; ignoring it changes nothing.
  */
 import { CONTENT } from '../content';
 import { acceptServiceGrant, serviceGrantView, type ServiceGrantView } from '../engine';

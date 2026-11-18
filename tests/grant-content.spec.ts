@@ -5,9 +5,9 @@
  * such node with a complement binding. Plus the actuator-host rule for a preview-only dial.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content/preview';
+import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const QUEUE = 'p0_pilot_triage_queue';
@@ -28,9 +28,9 @@ const node = (raw: Json, id: string): Json => raw.phases.flatMap((phase: Json) =
 const service = (raw: Json): Json => raw.assignments.assignments[0].pilot.service;
 
 describe('the release boundary', () => {
-  it('ships the loan, its dial host and the loop only in preview', () => {
-    expect([...PRODUCTION.nodes.values()].filter((entry) => entry.grant !== undefined)).toEqual([]);
-    expect([...PRODUCTION.widgets.values()].some((widget) => widget.hostsActuator === 'serviceAllocationRatio')).toBe(false);
+  it('adds the loan, its dial host and the loop only through the Earned Access pack', () => {
+    expect([...ORIGINAL_GAME.nodes.values()].filter((entry) => entry.grant !== undefined)).toEqual([]);
+    expect([...ORIGINAL_GAME.widgets.values()].some((widget) => widget.hostsActuator === 'serviceAllocationRatio')).toBe(false);
     // The pilot's loan, the authorized service's provisioned network segment (DZ-07a) and its two billing lines (DZ-10).
     expect([...PREVIEW.nodes.values()].filter((entry) => entry.grant !== undefined).map((entry) => [entry.id, entry.grant]))
       .toEqual([[QUEUE, 'LOANED_CAPACITY'], ['p0_service_network_segment', 'AUTHORIZED_NETWORK'],

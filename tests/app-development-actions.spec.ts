@@ -5,6 +5,7 @@ import { CONTENT } from '../src/content';
 import { createInitialState, exportSave } from '../src/engine';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { runtimeHarness, settle } from './app-helpers';
+import { presentableDilemma } from './helpers';
 
 const fixtures = makeFixtures();
 beforeEach(() => { vi.stubGlobal('__DEV__', true); vi.useFakeTimers(); });
@@ -45,9 +46,9 @@ describe('development actions', () => {
 
   it('forces a known dilemma/wipe, round trips codes and protects completed runs from mutation', async () => {
     const h = await harness();
-    const dilemma = CONTENT.dilemmas[0];
-    if (!dilemma) throw new Error('Missing dilemma');
-    expect(h.tools.forceDilemma(dilemma.id).ok).toBe(true);
+    const { dilemma, state } = presentableDilemma(h.game.store.getState().game);
+    h.game.initialize(state, 0, null);
+    expect(h.tools.forceDilemma(dilemma.id)).toMatchObject({ ok: true });
     expect(h.game.store.getState().game.activeDilemmaId).toBe(dilemma.id);
     expect(h.tools.forceWipe().ok).toBe(true);
     expect(h.game.store.getState().game.iteration).toBe(2);

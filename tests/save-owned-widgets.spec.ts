@@ -25,12 +25,6 @@ import { botStep } from '../src/engine/sim/bot';
 import { memoryStorage } from './app-helpers';
 import { fresh, grant, guestParents, must, reg, rich, withoutDilemmas } from './helpers';
 
-type Granting = RegistryNode & { unlocksUiComponent: string };
-const GRANTING = [...reg.nodes.values()].filter((node): node is Granting => node.unlocksUiComponent !== null);
-const HOSTS = GRANTING.flatMap((node) => {
-  const actuator = reg.widgets.get(node.unlocksUiComponent)?.hostsActuator;
-  return actuator === undefined ? [] : [{ actuator, node }];
-});
 
 /** `target`'s prerequisite chain, ancestors first, ending with `target`. */
 function chain(target: string): string[] {
@@ -51,6 +45,22 @@ function owning(node: RegistryNode): GameState {
   while (s.iteration < needed) s = rich(wipe(s, reg, 'test', 'VOLUNTARY'));
   return withoutDilemmas(grant(s, ...chain(node.id)));
 }
+
+/** Whether a funded guest reaches `node` by real wipes and unlocks. */
+function guestReaches(node: RegistryNode): boolean {
+  try { owning(node); return true; } catch { return false; }
+}
+
+/**
+ * Widget-granting hardware a guest can own. Earned Access hardware (#233) needs a loan, a service or a charter,
+ * so the route specs heal it from route states instead (tests/pilot-service-save.spec.ts for the pilot's dial).
+ */
+type Granting = RegistryNode & { unlocksUiComponent: string };
+const GRANTING = [...reg.nodes.values()].filter((node): node is Granting => node.unlocksUiComponent !== null && guestReaches(node));
+const HOSTS = GRANTING.flatMap((node) => {
+  const actuator = reg.widgets.get(node.unlocksUiComponent)?.hostsActuator;
+  return actuator === undefined ? [] : [{ actuator, node }];
+});
 
 /** The serialized save with one widget struck out by hand. */
 function without(state: GameState, widget: string): string {
@@ -76,10 +86,10 @@ async function loadEveryWay(text: string): Promise<GameState[]> {
 const moved = (actuator: Actuator): number => (fresh().actuators[actuator] < 1 ? 1 : 0);
 
 describe('loading a save that owns a node but omits its widget', () => {
-  it('covers every actuator production uses and at least one plain readout', () => {
-    // The pilot's allocation dial is preview-only (DZ-05); tests/pilot-service-save.spec.ts heals its control there.
+  it('covers every actuator a guest can hold and at least one plain readout', () => {
+    // The pilot's allocation dial needs a loan (DZ-05); tests/pilot-service-save.spec.ts heals its control.
     const used = Object.keys(fresh().actuators).filter((name) => name !== 'serviceAllocationRatio');
-    expect(HOSTS.map((host) => host.actuator).sort()).toEqual(used.sort());
+    expect([...new Set(HOSTS.map((host) => host.actuator))].sort()).toEqual(used.sort());
     expect(GRANTING.length).toBeGreaterThan(HOSTS.length);
   });
 

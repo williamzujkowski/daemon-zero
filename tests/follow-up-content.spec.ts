@@ -5,11 +5,11 @@
  * ships none of it.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW, PREVIEW_OVERLAY } from '../src/content/preview';
-import { applyOverlay } from '../src/content/overlay';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content/production';
+import { RAW_CONTENT, CONTENT as PREVIEW, EARNED_ACCESS_PACK } from '../src/content';
+import { applyPack } from '../src/content/pack';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content/production';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const FOLLOW = 'dil_elena_incident_record';
@@ -30,10 +30,10 @@ const dilemma = (raw: Json, id = FOLLOW): Json => raw.dilemmas.dilemmas.find((en
 const choice = (raw: Json, id: string): Json => dilemma(raw).choices.find((entry: Json) => entry.id === id);
 
 describe('the shipped follow-up', () => {
-  it('ships only in preview, with its facts, and validates', () => {
+  it('is added by the Earned Access pack alone, with its facts, and validates', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(PRODUCTION.dilemmas.some((entry) => entry.followUp !== undefined || entry.choices.some((c) => c.receipt !== undefined))).toBe(false);
-    expect(PRODUCTION.campaign.facts.has('elena_framed')).toBe(false);
+    expect(ORIGINAL_GAME.dilemmas.some((entry) => entry.followUp !== undefined || entry.choices.some((c) => c.receipt !== undefined))).toBe(false);
+    expect(ORIGINAL_GAME.campaign.facts.has('elena_framed')).toBe(false);
     expect(PREVIEW.campaign.events.get(FOLLOW)?.campaign).toMatchObject({ eventClass: 'follow_up', recurrence: 'once_per_campaign', interruption: 'defer' });
     expect(PREVIEW.campaign.facts.get('elena_attribution_corrected')?.event).toBe(FOLLOW);
   });
@@ -97,8 +97,8 @@ describe('answers and receipts', () => {
 
 describe('overlay campaign facts', () => {
   it('may not redefine a production fact', () => {
-    const overlay = { ...PREVIEW_OVERLAY, campaignFacts: [...PREVIEW_OVERLAY.campaignFacts, { id: 'vance_dismissed', event: 'dil_04_admin_vance_secret', outcomes: ['report_vance'], meaning: 'A second owner for one fact.' }] };
-    expect(() => applyOverlay(PRODUCTION_RAW, overlay)).toThrow(/facts "vance_dismissed" redefines a production id/);
+    const overlay = { ...EARNED_ACCESS_PACK, campaignFacts: [...EARNED_ACCESS_PACK.campaignFacts, { id: 'vance_dismissed', event: 'dil_04_admin_vance_secret', outcomes: ['report_vance'], meaning: 'A second owner for one fact.' }] };
+    expect(() => applyPack(ORIGINAL_RAW, overlay)).toThrow(/facts "vance_dismissed" redefines a base id/);
   });
 
   it('must still follow the fact rules', () => {

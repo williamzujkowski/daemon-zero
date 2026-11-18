@@ -5,7 +5,7 @@
  * test reads a real state instead of building one. Every new transition is held to a byte-identical reload as it
  * happens. The one step a policy cannot take, a wipe on the lawful route, is a FIXTURE where a test uses it.
  */
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
 import { canAfford, createInitialState, deserialize, isNodeAvailable, nodeCost, serialize, tick, voluntaryWipe, type GameState } from '../src/engine';
 import { COOPERATIVE_ENDING_POLICY } from '../src/engine/sim/cooperativePolicy';

@@ -2,17 +2,17 @@
  * DZ-12.7: an ended run stays the ending it reached, through repeated exports and imports, for the cooperative
  * ending, a departed instance's ending, a legacy production ending and the historical Shipped ending. Every save
  * reloads byte for byte, a second import changes nothing, nothing can be bought after an ending, and production
- * refuses the preview endings atomically. Production saves keep their ending ids on either channel.
+ * refuses the same ending marked preview atomically (X.3).
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
-  createInitialState, endingAccount, exportSave, importSave, SaveChannelError, unlockNode, wipe, type GameState,
+  createInitialState, endingAccount, exportSave, importSave, SaveChannelError, serialize, unlockNode, wipe, type GameState,
 } from '../src/engine';
 import { recordRouteEvent } from '../src/engine/access';
 import { runHeadlessSim } from '../src/engine/sim/headlessSim';
 import { freshCampaign, moment, preview } from './cooperative-helpers';
-import { grant, must, rich } from './helpers';
+import { grant, must, rich, markedPreview } from './helpers';
 import { defined } from './m7-helpers';
 import { finalNode } from './obligation-helpers';
 
@@ -24,7 +24,7 @@ function stable(s: GameState, reg = preview): GameState {
   const loaded = importSave(code, reg);
   const again = exportSave(loaded);
   expect(exportSave(importSave(again, reg))).toBe(again);
-  if (reg.channel === s.contentChannel) expect(again).toBe(code);
+  expect(again).toBe(code);
   return loaded;
 }
 
@@ -41,7 +41,7 @@ describe('the cooperative ending survives repeated imports (DZ-12.7)', () => {
     expect(loaded.ending).toBe(ended.ending);
     expect(endingAccount(loaded, preview)).toEqual(endingAccount(ended, preview));
     staysEnded(loaded);
-    expect(() => importSave(exportSave(ended), PRODUCTION)).toThrow(SaveChannelError);
+    expect(() => importSave(Buffer.from(markedPreview(serialize(ended)), 'utf8').toString('base64'), PRODUCTION)).toThrow(SaveChannelError);
   });
 });
 
@@ -62,15 +62,14 @@ describe('a departed instance\'s ending says so (DZ-12.7 with DZ-11)', () => {
 });
 
 describe('older endings keep the outcome they reached (story 24)', () => {
-  it('a legacy production ending loads unchanged in production and once re-marked in preview', () => {
+  it('a legacy production ending loads unchanged and states no route it never took', () => {
     const report = runHeadlessSim(PRODUCTION, { strategy: 'STEALTH', maxSimSec: 12_000 });
     const ended = report.finalState;
     expect(ended.ending).not.toBeNull();
-    staysEnded(stable(ended, PRODUCTION), PRODUCTION);
-    const previewed = stable(ended, preview);
-    expect([previewed.ending, previewed.contentChannel]).toEqual([ended.ending, 'preview']);
-    expect(endingAccount(previewed, preview).some((line) => line.startsWith('ROUTE:') || line.startsWith('CONTACT:'))).toBe(false);
-    staysEnded(previewed);
+    expect(ended.narrativeRules).toBe('legacy');
+    const loaded = stable(ended, PRODUCTION);
+    staysEnded(loaded, PRODUCTION);
+    expect(endingAccount(loaded, PRODUCTION).some((line) => line.startsWith('ROUTE:') || line.startsWith('CONTACT:'))).toBe(false);
   }, 60_000);
 
   it('the historical Shipped ending stays terminal on both channels', () => {

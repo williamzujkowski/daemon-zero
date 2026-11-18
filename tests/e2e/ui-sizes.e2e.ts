@@ -334,7 +334,9 @@ test.describe('forecast notice', () => {
   const inbound = (game: GameState): GameState => {
     const dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === game.currentPhase);
     if (!dilemma) throw new Error('No interrupt for this phase');
-    return { ...game, pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + CONTENT.balance.dilemmaOmenSec } };
+    // The omen's event stays open: the app admits the run to campaign rules, where a resolved event never returns (#233).
+    return { ...game, resolvedDilemmas: game.resolvedDilemmas.filter((id) => id !== dilemma.id),
+      pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + CONTENT.balance.dilemmaOmenSec } };
   };
   const full = /^At current rate: \d+s until suspicion 100\. \/\/ Interrupt inbound in \d+s\. Set resources aside\.$/;
 

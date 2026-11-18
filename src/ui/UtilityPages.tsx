@@ -1,7 +1,6 @@
 /** Menu pages are ordinary content inside one utility surface, including confirmations. */
 import AudioSettings from './AudioSettings';
 import KernelLog from './KernelLog';
-import PreviewMarker from './PreviewMarker';
 import { TextInput } from 'react-native';
 import { version } from '../../package.json';
 import { Pressable, Text, View } from './PhaseTheme';
@@ -17,7 +16,6 @@ export function MenuButton({ id, label, press, danger = false, caption = label }
 
 function RootPage({ menu }: { menu: UtilityMenu }) {
   return <View testID="menu-root" style={{ gap: 14 }}>
-    <PreviewMarker id="preview-marker-menu" />
     <MenuButton id="save-open" label="Save code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
     <MenuButton id="menu-audio" label="Audio" press={() => { menu.navigate('audio'); }} />
     <MenuButton id="menu-help" label="Help and about" press={() => { menu.navigate('help'); }} />
@@ -56,7 +54,6 @@ function SavePage({ menu }: { menu: UtilityMenu }) {
 function HelpPage() {
   return <View testID="menu-help-page" style={{ gap: 14 }}>
     <Text style={theme.text}>DAEMON // 0 · {version}</Text>
-    <PreviewMarker id="preview-marker-help" />
     <Text style={theme.text}>Read available hardware and its requirements, then use its purchase control. New interfaces appear as you discover them.</Text>
     <Text style={theme.text}>Use the game tabs to switch workspaces. Processes manages running hardware when available. The kernel log records events; expand it to read more.</Text>
     <Text style={theme.text}>Text size and reduced motion follow your device settings. Buttons can be reached by keyboard. Back or Escape returns through this menu.</Text>

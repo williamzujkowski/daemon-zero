@@ -1,5 +1,5 @@
 /**
- * #273, shared by the production and preview specs: from Phase 2 with only ARP discovery affordable,
+ * #273, shared by the original-route and route specs: from Phase 2 with only ARP discovery affordable,
  * map it on its card, then find "Scrub Audit Logs" in Operations, enabled, and use it before the
  * spoofer exists. FIXTURE: a played save (first run, or a returning mind brought back to Phase 2 by
  * the engine) funded for the two purchases, imported through the visible save transfer.

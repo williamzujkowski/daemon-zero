@@ -1,5 +1,5 @@
 /**
- * Lawful-economy policies for the preview runner (DZ-10, VALIDATION V21 Phase 4 part, V22 release part, H30):
+ * Lawful-economy policies for the route report (`make sim-report`) (DZ-10, VALIDATION V21 Phase 4 part, V22 release part, H30):
  * a contact policy's route to an authorized service, then only lawful acquisitions offered to the current
  * arrangement (grants and contracted capacity, in prerequisite order), the support channel answered, the
  * negotiated release agreed once offered, and afterwards the shared Phase 4 accounts the capital can carry

@@ -10,7 +10,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
@@ -122,7 +121,7 @@ describe('after an answer (#284)', () => {
 
 describe('the pilot status line follows the grant (#284)', () => {
   it('reads "supervised pilot" while piloting and names the service once granted', async () => {
-    const view = await mount(delivered(), createElement(AssignmentPanel));
+    const view = await mount(delivered(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-status')?.textContent).toBe('Accepted. This instance runs as a supervised pilot.');
     view.click('service-grant-accept');
     expect(gameStore.store.getState().game.access.context).toBe('SERVICE');

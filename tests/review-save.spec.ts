@@ -11,13 +11,15 @@ import {
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { answer, funded, preview, roundTrip } from './assignment-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 import {
   afterOutage, falsified, OUTAGE, outagePresented, RECORD, recordPresented, renewedPilot, REVIEW, reviewPresented, until, untilOmen,
 } from './review-helpers';
 import { QUEUE, submit, untilComplete } from './service-helpers';
 
-const V12 = readFileSync('tests/fixtures/pre-incident-v12.json', 'utf8');
+const V12_PREVIEW = readFileSync('tests/fixtures/pre-incident-v12.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const V12 = remarkedAsProduction(V12_PREVIEW);
 const RECALL_STEP = 12;
 const contained = (): GameState => must(answer(reviewPresented(), 'submit_full_logs'));
 
@@ -74,7 +76,7 @@ describe('the v12 -> v13 step', () => {
 
 describe('the genuine v12 fixture (tests/fixtures/README.md)', () => {
   it('is a v12 preview save of a returning guest whose first instance was a pilot', () => {
-    const raw = JSON.parse(V12) as { schemaVersion: number; contentChannel: string; iteration: number; legacy: { runs: Record<string, unknown>[] } };
+    const raw = JSON.parse(V12_PREVIEW) as { schemaVersion: number; contentChannel: string; iteration: number; legacy: { runs: Record<string, unknown>[] } };
     expect([raw.schemaVersion, raw.contentChannel, raw.iteration]).toEqual([12, 'preview', 2]);
     expect(raw.legacy.runs.map((run) => Object.keys(run))).toEqual([['iteration', 'kind', 'outside', 'phase', 'durationSec', 'traits', 'marked', 'exit']]);
   });
@@ -89,7 +91,7 @@ describe('the genuine v12 fixture (tests/fixtures/README.md)', () => {
   });
 
   it('is refused by production, which never loads a preview save', () => {
-    expect(() => deserialize(V12, PRODUCTION)).toThrow(SaveChannelError);
+    expect(() => deserialize(V12_PREVIEW, PRODUCTION)).toThrow(SaveChannelError);
   });
 });
 

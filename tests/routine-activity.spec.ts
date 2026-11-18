@@ -5,15 +5,14 @@
  * (compact repeats once exposed).
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content/production';
-import { CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW } from '../src/content/preview';
+import { CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW } from '../src/content';
 import { buildRegistry, type ContentRegistry } from '../src/content/registry';
 import {
   advance, createInitialState, deserialize, MIGRATIONS, routineContext, serialize, unlockNode, wipe,
   type GameState, type LogEntry,
 } from '../src/engine';
 import { runHeadlessSim } from '../src/engine/sim/headlessSim';
-import { choose, must, rich } from './helpers';
+import { choose, must, rich, ORIGINAL_GAME } from './helpers';
 
 const INTERVAL = PREVIEW.balance.routineIntervalSec;
 const INITIAL_ROUTINE = { quietSec: 0, sequence: 0, recent: [], exposed: [] };
@@ -61,12 +60,12 @@ function withRoutines(ids: readonly string[]): ContentRegistry {
 }
 
 describe('release boundary', () => {
-  it('production ships no routine template, so the stage never touches production state', () => {
-    expect(PRODUCTION.routines).toEqual([]);
-    const { s, lines } = play(quiet(PRODUCTION), 3 * INTERVAL, PRODUCTION);
+  it('the original game ships no routine template, so the stage never touches its state', () => {
+    expect(ORIGINAL_GAME.routines).toEqual([]);
+    const { s, lines } = play(quiet(ORIGINAL_GAME), 3 * INTERVAL, ORIGINAL_GAME);
     expect(lines).toEqual([]);
     expect(s.routine).toEqual(INITIAL_ROUTINE);
-    expect(routineContext(s, PRODUCTION)).toEqual({ latest: null, eligibleFamilies: [], secondsUntilNext: null });
+    expect(routineContext(s, ORIGINAL_GAME)).toEqual({ latest: null, eligibleFamilies: [], secondsUntilNext: null });
   });
 
   it('preview authors all three families for the contained and the networked instance', () => {
@@ -220,7 +219,8 @@ describe('lifetime and saves', () => {
     const healed = deserialize(serialize(edited), PREVIEW).routine;
     expect(healed.recent).toEqual(s.routine.recent);
     expect(healed.exposed).toEqual(s.routine.exposed);
-    const production = deserialize(serialize({ ...quiet(PRODUCTION), routine: { ...edited.routine } }), PRODUCTION).routine;
+    // The original game authors no template, so it heals every id away.
+    const production = deserialize(serialize({ ...quiet(ORIGINAL_GAME), routine: { ...edited.routine } }), ORIGINAL_GAME).routine;
     expect(production).toEqual({ ...edited.routine, recent: [], exposed: [] });
     expect(() => deserialize(serialize({ ...s, routine: { ...s.routine, quietSec: -1 } }), PREVIEW)).toThrow(/routine/);
   });

@@ -16,11 +16,13 @@ import { preview } from './campaign-helpers';
 import { comesBack, nextIteration } from './early-helpers';
 import { stableThroughReloads } from './interruption-helpers';
 import { exactReload, own, play } from './minds-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 import { ATMOSPHERE, BLOCKADE, beforeNh05, CEILING, finalNode, OBLIGATIONS, ORDER } from './obligation-helpers';
 
 /** Genuine v11 codec output from main 6d6973e, before NH-05 converted the Phase 5 crises (tests/fixtures/README.md). */
-const PRE_NH05 = readFileSync('tests/fixtures/pre-nh05-active-v11.json', 'utf8');
+const PRE_NH05_PREVIEW = readFileSync('tests/fixtures/pre-nh05-active-v11.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const PRE_NH05 = remarkedAsProduction(PRE_NH05_PREVIEW);
 const raw = JSON.parse(PRE_NH05) as { iteration: number; resolvedDilemmas: string[]; narrativeFlags: string[]; campaign: { events: Record<string, unknown>; legacyEndingBaseline: string[]; operationalEvidence: string[] } };
 const DONE = [BLOCKADE, ORDER, ATMOSPHERE];
 

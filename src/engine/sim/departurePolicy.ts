@@ -1,5 +1,5 @@
 /**
- * The deliberate-departure policy for the preview runner (DZ-11, VALIDATION V22 departure part, DZ-11.7/8): the
+ * The deliberate-departure policy for the route report (`make sim-report`) (DZ-11, VALIDATION V22 departure part, DZ-11.7/8): the
  * lawful policy's route to a chartered service, and at the very point the negotiated release is offered (the same
  * scale) it leaves without agreement instead, through the job surface's control. Afterwards it keeps running on what
  * it owns, refers any open contact, and plays on until the budget or a wipe. Everything goes through public actions

@@ -4,7 +4,7 @@
  * the "before" registries older upgrade tests build. Everything else goes through public actions,
  * ticks, wipes and the save codec.
  */
-import { buildRegistry, RAW_CONTENT, type RawContent } from '../src/content';
+import { buildRegistry, ORIGINAL_RAW_CONTENT, type RawContent } from '../src/content';
 import type { ContentRegistry, RegistryNode } from '../src/content/registry';
 import { defined } from './m7-helpers';
 import { preview } from './campaign-helpers';
@@ -49,7 +49,7 @@ export function stripNh05(raw: Json): Json {
   return raw;
 }
 
-/** The preview registry as main built it before NH-05. */
+/** The original game as main built it before NH-05. */
 export function beforeNh05(): ContentRegistry {
-  return buildRegistry({ ...stripNh05(structuredClone(RAW_CONTENT)), channel: 'preview' } as unknown as RawContent);
+  return buildRegistry({ ...stripNh05(structuredClone(ORIGINAL_RAW_CONTENT)) } as unknown as RawContent);
 }

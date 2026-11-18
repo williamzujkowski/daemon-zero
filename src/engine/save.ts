@@ -125,24 +125,20 @@ export class SaveChannelError extends SaveError {
   }
 }
 
-/**
- * Which save channels each build may load. Preview starts from real production saves;
- * production never loads preview, because reconcile would strip the preview facts.
- */
-const LOADABLE_CHANNELS: Readonly<Record<ContentChannel, readonly ContentChannel[]>> = {
-  production: ['production'],
-  preview: ['production', 'preview'],
-};
+/** The one channel every shipped build is. */
+const BUILD_CHANNEL: ContentChannel = 'production';
 
 /**
  * Reads the channel marker from the raw parsed save, before migration or reconciliation can
  * change anything. A save written before v5 has no marker and came from production.
  */
-function admitChannel(raw: RawSave, reg: ContentRegistry): void {
+function admitChannel(raw: RawSave): void {
   if (!Object.hasOwn(raw, 'contentChannel')) return;
   const marker = ContentChannelSchema.safeParse(raw.contentChannel);
   if (!marker.success) throw new SaveError('save has an unknown content channel');
-  if (!LOADABLE_CHANNELS[reg.channel].includes(marker.data)) throw new SaveChannelError(marker.data, reg.channel);
+  // A preview save is refused, never healed: reconcile would rewrite what that build recorded
+  // (nexus votes gamestate-channel-marker and keep-refusing-preview-saves, #233).
+  if (marker.data !== BUILD_CHANNEL) throw new SaveChannelError(marker.data, BUILD_CHANNEL);
 }
 
 export function migrate(raw: RawSave, migrations = MIGRATIONS, target = SCHEMA_VERSION): RawSave {
@@ -274,19 +270,17 @@ function parseObject(text: string): RawSave {
 
 /**
  * Parses, checks the channel, migrates, validates and reconciles a serialized save. Throws
- * SaveError, or SaveChannelError when this build may not load the save's channel. An admitted
- * save is re-marked with this build's channel, so a production save loaded by preview becomes
- * a preview save once.
+ * SaveError, or SaveChannelError for a save from the pre-release preview channel.
  */
 export function deserialize(text: string, reg: ContentRegistry): GameState {
   const raw = parseObject(text);
-  admitChannel(raw, reg);
+  admitChannel(raw);
   const result = GameStateSchema.safeParse(migrate(raw));
   if (!result.success) {
     const first = result.error.issues[0];
     throw new SaveError(`save failed validation: ${first?.path.join('.') ?? ''} ${first?.message ?? ''}`.trim());
   }
-  return reconcile({ ...result.data, contentChannel: reg.channel }, reg);
+  return reconcile(result.data, reg);
 }
 
 /** Copy/paste save string for moving a run between devices. */

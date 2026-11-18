@@ -13,27 +13,27 @@ import {
 import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo, withUnconverted } from './campaign-helpers';
 import { reloadedHistory } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, rich, choose } from './helpers';
+import { must, rich, choose, markedPreview } from './helpers';
 
 const flagOf = (index: number) => defined(choiceOf(index).effects.setsNarrativeFlag);
 const traitOf = (index: number) => defined(choiceOf(index).effects.grantsTrait);
 
-describe('production stays on legacy rules (H29)', () => {
-  it('refuses activation and leaves the state untouched', () => {
+describe('production enters campaign rules only through activation (H29, #233)', () => {
+  it('activates a new legacy game once, and refuses a second activation with the state untouched', () => {
     const game = createInitialState(PRODUCTION);
-    const result = activateCampaignRules(game, PRODUCTION);
-    expect(result).toEqual({ ok: false, state: game, reason: 'campaign rules are not available in this build' });
-    expect(result.state).toBe(game);
     expect(game.narrativeRules).toBe('legacy');
+    const active = must(activateCampaignRules(game, PRODUCTION));
+    expect(active.narrativeRules).toBe('campaign_v1');
+    const again = activateCampaignRules(active, PRODUCTION);
+    expect(again).toEqual({ ok: false, state: active, reason: 'campaign rules are already active' });
   });
 
-  it('refuses an active save marked production atomically, while preview loads it', () => {
-    const active = { ...activeGame(), contentChannel: 'production' as const };
+  it('loads an active production save as it is, and refuses the same save marked preview whole', () => {
+    const active = activeGame();
     const text = serialize(active), copy = structuredClone(active);
-    expect(() => deserialize(text, PRODUCTION)).toThrow(SaveError);
-    expect(() => deserialize(text, PRODUCTION)).toThrow(/campaign rules this build does not support/);
+    expect(deserialize(text, PRODUCTION).narrativeRules).toBe('campaign_v1');
+    expect(() => deserialize(markedPreview(text), PRODUCTION)).toThrow(SaveError);
     expect(active).toEqual(copy);
-    expect(deserialize(text, preview).narrativeRules).toBe('campaign_v1');
   });
 
   it('keeps writing outcome flags, not records, when cryo resolves under legacy rules', () => {
@@ -193,7 +193,7 @@ describe('snapshots and round trips (H32)', () => {
     const state = returnTo(returnTo(chooseCryo(activeGame(), 0)));
     const once = reload(state);
     // The setup's out-of-the-way early events come back as legacy completions; every real record is kept.
-    expect({ ...once, campaign: state.campaign }).toEqual({ ...state, contentChannel: 'preview' });
+    expect({ ...once, campaign: state.campaign }).toEqual(state);
     expect(reloadedHistory(state)).toEqual(state.campaign);
     expect(reload(once)).toEqual(once);
     expect(exportSave(reload(once))).toBe(exportSave(once));

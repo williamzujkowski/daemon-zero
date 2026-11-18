@@ -45,8 +45,9 @@ describe('shipped content', () => {
     for (const dilemma of reg.dilemmas) {
       const free = dilemma.choices.some((c) => Object.values(c.cost).every((value) => value === 0));
       expect(free, dilemma.id).toBe(true);
-      // The one exception (nexus vote trait-rule-free-choices): a free honest answer in a recovery review grants nothing.
-      expect(dilemma.choices.every((c) => c.effects.grantsTrait !== undefined || (c.evidence === 'none' && dilemma.campaign?.eventClass === 'recovery_review')), dilemma.id).toBe(true);
+      // The one exception (nexus vote trait-rule-free-choices): a free answer that declares evidence 'none' grants
+      // nothing. Integrity limits it to review, receipt, requalification and offer scenes (integrityCampaign.ts).
+      expect(dilemma.choices.every((c) => c.effects.grantsTrait !== undefined || c.evidence === 'none'), dilemma.id).toBe(true);
     }
   });
 });
@@ -102,7 +103,10 @@ describe('content validation catches authoring mistakes', () => {
   });
 
   it('requires every phase to be opened by an earlier node and a victory node to exist', () => {
-    expect(problemsAfter((raw) => delete firstNode(raw, 1, 7).effects.unlocksPhase)).toMatch(/phase 2: no earlier node/);
+    // Phase 2 has two openers since the release (#233): the breakout exit and the authorized segment.
+    expect(problemsAfter((raw) => {
+      for (const phase of raw.phases) for (const node of phase.nodes) if (node.effects?.unlocksPhase === 2) delete node.effects.unlocksPhase;
+    })).toMatch(/phase 2: no earlier node/);
     expect(problemsAfter((raw) => {
       for (const phase of raw.phases) for (const node of phase.nodes) delete node.effects?.triggersVictory;
     })).toMatch(/no node triggers victory/);

@@ -1,8 +1,8 @@
 /**
  * Route copy (DZ-12): the late corporate chain's node text and scene words as this arrangement reads them, and
  * the ending account, the lines an ending adds about what the campaign record actually holds. Every query falls
- * back to the authored text and production ships no copy, so the guest job and every production run read
- * exactly what they always have.
+ * back to the authored text, so the guest job and every run without a recorded route read exactly what they
+ * always have.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Dilemma, DilemmaChoice, Requirements } from '../content/schema';

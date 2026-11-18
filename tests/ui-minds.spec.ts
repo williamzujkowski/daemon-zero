@@ -8,8 +8,7 @@
 import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
+import { afterEach, describe, expect, it } from 'vitest';
 import { activateCampaignRules, createInitialState, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import OtherMinds from '../src/ui/widgets/OtherMinds';

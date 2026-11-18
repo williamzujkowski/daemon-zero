@@ -60,7 +60,7 @@ export function Cluster() {
   const text = useGame((game) => cycleContributions(game, CONTENT).map((source) => {
     const name = CONTENT.nodes.get(source.id)?.revealedName ?? CONTENT.repeatables.get(source.id)?.name ??
       CONTENT.actions.get(source.id)?.label ?? CONTENT.swarm.playerSwarmTemplates.find((template) => template.id === source.id)?.name;
-    // Granted output is marked (DZ-10.2); production has none, so its lines are unchanged.
+    // Granted output is marked (DZ-10.2); owned output reads as it always did.
     return (name ?? 'Source') + ': ' + source.cyclesPerSec.toFixed(2) + ' cycles/s' + (source.basis === 'GRANTED' ? ' (granted)' : '');
   }).join('\n'));
   return <Text testID="cycle-sources" style={theme.text}>{text || 'No active cycle sources'}</Text>;

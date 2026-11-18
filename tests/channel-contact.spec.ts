@@ -4,7 +4,6 @@
  * public play from a fresh preview game (contact-helpers) unless a step says FIXTURE.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
   channelContactView, computeRates, contactToken, resolveChannelContact, resolveWildEncounter, voluntaryWipe, wildEncounterView,
@@ -12,7 +11,7 @@ import {
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { live, preview, roundTrip } from './assignment-helpers';
 import { answer, CHANNEL, CHANNEL_ENCOUNTER, contactPending, laterContact, lawfulService, MERCY, MERCY_MB, withMemory } from './contact-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 
 const pending = contactPending();
@@ -74,11 +73,12 @@ describe('referral: free, unrewarded, complete (DZ-08.2, DZ-08.4)', () => {
     expect([reasonOf(refused), refused.state]).toEqual([view.hostUnmet[0], pending]);
   });
 
-  it('shows the answer, and then the prototype boundary, honestly and with no ending (DZ-08.6)', () => {
+  it('shows the answer, and then what comes next, honestly, with the way to stop (DZ-08.6, #233)', () => {
     const view = defined(channelContactView(referred, preview));
     expect([view.pending, view.answered, view.hosted]).toEqual([null, { title: 'Mercy-Scribe fragment', response: 'REFERRED' }, null]);
-    expect(view.boundary?.title).toContain('PREVIEW BOUNDARY');
-    expect(view.boundary?.lines.join(' ')).toContain('no ending has been earned');
+    expect(view.boundary?.title).toContain('WHAT COMES NEXT');
+    expect(view.boundary?.lines.join(' ')).toContain('an ending this campaign earns');
+    expect(view.boundary?.lines.join(' ')).toContain('MENU > SAVES');
     expect(referred.ending).toBeNull();
     expect(live(referred, 60).ending).toBeNull();
   });
@@ -143,8 +143,8 @@ describe('V24: a stale, repeated or misplaced answer pays nothing', () => {
     }
   });
 
-  it('production opens no channel: nothing to refer, and no REFER answer reaches a wild encounter', () => {
-    expect(PRODUCTION.swarm.channelEncounters).toEqual([]);
+  it('the original game opens no channel: nothing to refer, and no REFER answer reaches a wild encounter', () => {
+    expect(ORIGINAL_GAME.swarm.channelEncounters).toEqual([]);
     const s = { ...pending, pendingWildEncounterId: 'wild_mercy' };
     expect(reasonOf(resolveChannelContact(s, 'REFER', preview, contactToken(s)))).toBe('no channel contact is waiting');
   });

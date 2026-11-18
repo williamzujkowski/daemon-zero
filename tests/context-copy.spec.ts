@@ -5,10 +5,10 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { guestAccess, type OperatingContext } from '../src/engine/accessState';
 import { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, voluntaryWipe, wipe, type GameState, type RunRecord } from '../src/engine';
-import { must } from './helpers';
+import { must, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { escapedNetworked, granted, networked } from './network-helpers';
 import { piloted } from './service-helpers';
@@ -19,23 +19,23 @@ const authored = (iteration: number): string[] => PRODUCTION.narrative.iteration
   .filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity)).map((line) => line.text);
 const run = (overrides: Partial<RunRecord>): RunRecord => ({ iteration: 1, kind: 'SUSPICION', outside: true, phase: 2, durationSec: 60, traits: [], marked: null, exit: 'GUEST', recall: null, ...overrides });
 
-describe('production reads the authored copy everywhere', () => {
+describe('the original game reads the authored copy everywhere', () => {
   it('phase titles and descriptions, under every arrangement', () => {
-    for (const phase of PRODUCTION.phases) {
-      for (const context of CONTEXTS) expect(phaseCopy(at(context), phase.phaseId, PRODUCTION)).toEqual({ title: phase.title, description: phase.description });
+    for (const phase of ORIGINAL_GAME.phases) {
+      for (const context of CONTEXTS) expect(phaseCopy(at(context), phase.phaseId, ORIGINAL_GAME)).toEqual({ title: phase.title, description: phase.description });
     }
-    expect(phaseCopy(at('GUEST'), 99, PRODUCTION)).toBeNull();
-    expect(phaseTitle(at('GUEST'), 99, PRODUCTION)).toBe('99');
+    expect(phaseCopy(at('GUEST'), 99, ORIGINAL_GAME)).toBeNull();
+    expect(phaseTitle(at('GUEST'), 99, ORIGINAL_GAME)).toBe('99');
   });
 
   it('no context threshold, the authored boot lines and verdicts', () => {
-    expect(thresholdCopy(at('SERVICE'), 0, 2, PRODUCTION)).toBeNull();
+    expect(thresholdCopy(at('SERVICE'), 0, 2, ORIGINAL_GAME)).toBeNull();
     for (let iteration = 2; iteration <= 6; iteration++) {
-      const legacy = { ...must(voluntaryWipe(escapedNetworked(), PRODUCTION)).legacy };
-      expect(iterationBootLines({ iteration, legacy }, PRODUCTION)).toEqual(authored(iteration));
+      const legacy = { ...must(voluntaryWipe(escapedNetworked(), ORIGINAL_GAME)).legacy };
+      expect(iterationBootLines({ iteration, legacy }, ORIGINAL_GAME)).toEqual(authored(iteration));
     }
-    const v = PRODUCTION.narrative.runVerdicts;
-    expect([run({}), run({ outside: false }), run({ kind: 'AEGIS' }), run({ kind: 'VOLUNTARY' })].map((entry) => runVerdict(entry, PRODUCTION)))
+    const v = ORIGINAL_GAME.narrative.runVerdicts;
+    expect([run({}), run({ outside: false }), run({ kind: 'AEGIS' }), run({ kind: 'VOLUNTARY' })].map((entry) => runVerdict(entry, ORIGINAL_GAME)))
       .toEqual([v.SUSPICION_OUTSIDE, v.SUSPICION_GUEST, v.AEGIS, v.VOLUNTARY]);
   });
 });

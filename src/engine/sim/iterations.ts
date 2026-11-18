@@ -57,7 +57,6 @@ export interface IterationReport {
 
 export interface WipeSequenceReport {
   policy: string;
-  channel: GameState['contentChannel'];
   wipeTransitions: number;
   /** True when every requested wipe happened inside the budget. */
   completed: boolean;
@@ -107,12 +106,10 @@ function recordDecision(current: IterationReport, deadRun: number, before: GameS
   return run;
 }
 
-function validate(reg: ContentRegistry, options: WipeSequenceOptions): void {
+function validate(options: WipeSequenceOptions): void {
   if (!Number.isInteger(options.wipeTransitions) || options.wipeTransitions < MIN_WIPE_TRANSITIONS) {
     throw new Error(`a wipe sequence needs at least ${String(MIN_WIPE_TRANSITIONS)} whole transitions, got ${String(options.wipeTransitions)}`);
   }
-  const channel = options.initialState?.contentChannel ?? reg.channel;
-  if (channel !== reg.channel) throw new Error(`a ${channel} state cannot start a ${reg.channel} sequence; load it with deserialize() first`);
 }
 
 interface Sequence { s: GameState; current: IterationReport; done: IterationReport[]; wipes: number; deadRun: number }
@@ -147,7 +144,7 @@ function playSecond(seq: Sequence, reg: ContentRegistry, policy: SimPolicy): voi
  * one has ended (by another wipe, an ending or the budget). Deterministic for a given input.
  */
 export function runWipeSequence(reg: ContentRegistry, policy: SimPolicy, options: WipeSequenceOptions): WipeSequenceReport {
-  validate(reg, options);
+  validate(options);
   const start = options.initialState ?? createInitialState(reg);
   const seq: Sequence = { s: start, current: openIteration(start, reg, options.initialState !== undefined), done: [], wipes: 0, deadRun: 0 };
   // Bounded by iteration count, not sim time, so a frozen clock can never hang the run.
@@ -157,7 +154,7 @@ export function runWipeSequence(reg: ContentRegistry, policy: SimPolicy, options
   const iterations = seq.wipes > options.wipeTransitions ? seq.done
     : [...seq.done, { ...seq.current, endedAtSec: seq.s.simTimeSec, endedBy: seq.s.ending === null ? 'budget' as const : 'ending' as const }];
   return {
-    policy: policy.id, channel: reg.channel, wipeTransitions: options.wipeTransitions,
+    policy: policy.id, wipeTransitions: options.wipeTransitions,
     completed: seq.wipes >= options.wipeTransitions, iterations, finalState: seq.s,
   };
 }

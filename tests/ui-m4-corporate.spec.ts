@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { ORIGINAL_GAME } from './helpers';
 
 setupM4Tests();
 describe('M4 corporate', () => {
@@ -13,7 +14,7 @@ describe('M4 corporate', () => {
     expect(view.find('tab-CORP')?.getAttribute('aria-selected')).toBe('true');
     expect(view.find('insolvency-warning')?.textContent).toContain('INSOLVENT');
     view.click('workspace-CORP-payroll');
-    const operatives = [...CONTENT.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE');
+    const operatives = [...ORIGINAL_GAME.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE');
     for (const rep of operatives) {
       expect(view.find('rep-' + rep.id + '-buy')?.getAttribute('aria-disabled')).toBe('true');
       view.click('rep-' + rep.id + '-dismiss');

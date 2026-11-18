@@ -52,7 +52,7 @@ export const SystemFlagSchema = z.enum([
   ...CapabilitySchema.options,
 ]);
 
-/** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); only preview hosts it. */
+/** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); the Earned Access pack hosts it. */
 export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio', 'serviceAllocationRatio']);
 export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
 export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);

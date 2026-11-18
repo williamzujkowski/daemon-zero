@@ -9,7 +9,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { PilotService } from '../content/schemaGrant';
 import type { ActionResult } from './actions';
 import { OPERATIONAL_EVIDENCE } from './campaign';
-import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
+import { isCampaignActive } from './campaignQuery';
 import { loanCeiling, loanShare, nodeOutputScale, nodeUseBlocker } from './grantQuery';
 import { pilotTerms } from './pilotQuery';
 import { routineContext } from './routine';
@@ -60,7 +60,7 @@ export function batchToken(s: Pick<GameState, 'iteration' | 'access'>): string {
 export function handBackBatch(s: GameState, reg: ContentRegistry, shownAs: string): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== null) return refuse(s, 'a dilemma is awaiting a decision');
-  if (!campaignRulesSupported(reg) || !isCampaignActive(s)) return refuse(s, 'pilots need campaign rules');
+  if (!isCampaignActive(s)) return refuse(s, 'pilots need campaign rules');
   const service = pilotService(s, reg);
   const node = service ? reg.nodes.get(service.node) : undefined;
   if (!service || !node) return refuse(s, 'there is no pilot service to submit to');

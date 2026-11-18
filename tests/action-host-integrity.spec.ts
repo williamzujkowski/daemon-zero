@@ -5,8 +5,8 @@
  * needs only ARP discovery.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT as PREVIEW_RAW } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT as PREVIEW_RAW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, any>;
@@ -23,7 +23,7 @@ function problemsOf(raw: Json): string {
   return '';
 }
 
-function problems(edit: (raw: Json) => void, base: RawContent = PRODUCTION_RAW): string {
+function problems(edit: (raw: Json) => void, base: RawContent = ORIGINAL_RAW): string {
   const raw = structuredClone(base) as Json;
   edit(raw);
   return problemsOf(raw);

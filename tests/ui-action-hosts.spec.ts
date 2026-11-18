@@ -39,7 +39,8 @@ function openers(action: Action): (RegistryNode | undefined)[] {
   const phase = action.requirements.phaseAtLeast;
   if (phase === undefined) return [undefined];
   const implied = [...closure(gateNodes(action))].some((id) => (CONTENT.nodes.get(id)?.effects.unlocksPhase ?? -1) >= phase);
-  return implied ? [undefined] : nodes.filter((node) => (node.effects.unlocksPhase ?? -1) >= phase);
+  // Breakout openers only: the authorized segment and the charter (#233) open phases under a grant or a contract.
+  return implied ? [undefined] : nodes.filter((node) => (node.effects.unlocksPhase ?? -1) >= phase && node.grant === undefined && node.acquisition === undefined);
 }
 
 /** The state right after the last purchase the action needs, every purchase made by the engine. */

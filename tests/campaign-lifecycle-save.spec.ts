@@ -3,8 +3,7 @@
  * appended migration, healing a v6 omen, and refusing contradictions instead of filtering them.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT } from '../src/content/preview';
-import { CONTENT as PRODUCTION } from '../src/content';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, advance, campaignRecord, createInitialState, deserialize, MIGRATIONS, presentationToken, serialize, tick, wipe, type GameState,
@@ -139,10 +138,9 @@ describe('the clue in a save', () => {
     expect(() => deserialize(withCampaign(chosen, { clue: { event: cryo.id, pinnedAtIteration: 5 } }), preview)).toThrow(/clue outside campaign play/);
   });
 
-  it('refuses a clue on a legacy save, in production and preview alike', () => {
+  it('refuses a clue on a legacy save', () => {
     const legacy = { ...chosen, narrativeRules: 'legacy' as const, campaign: { ...chosen.campaign, activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {} } };
     const text = withCampaign(legacy, { clue: { event: cryo.id, pinnedAtIteration: 1 } });
     expect(() => deserialize(text, preview)).toThrow(/campaign history without campaign rules/);
-    expect(() => deserialize(text.replace('"contentChannel":"preview"', '"contentChannel":"production"'), PRODUCTION)).toThrow(/campaign history without campaign rules/);
   });
 });

@@ -6,7 +6,7 @@
  * meets every one. Every gate is checked by the action that would perform it, not only by the view.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import {
   eligibleAmbientSpeech, eligibleRoutines, epistemicView, forkShard, performAction, swarmView, tick, type GameState,
 } from '../src/engine';

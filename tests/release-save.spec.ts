@@ -11,7 +11,7 @@ import { advance, buyRepeatable, deserialize, exportSave, importSave, SCHEMA_VER
 import { preview, roundTrip, answer as answerScene } from './assignment-helpers';
 import { acceptService, answer, contactPending, delivered, directoryMapped, GRANT_TERMS } from './contact-helpers';
 import { afterFinding } from './finding-helpers';
-import { must } from './helpers';
+import { must, markedPreview } from './helpers';
 import { chartered, leased, release, released, signed } from './lawful-helpers';
 import { OUTAGE, until } from './review-helpers';
 
@@ -86,6 +86,6 @@ describe('V15: an impossible release is refused whole', () => {
   });
 
   it('production refuses the preview save of a released company', () => {
-    expect(() => deserialize(serialize(freed), PRODUCTION)).toThrow('preview');
+    expect(() => deserialize(markedPreview(serialize(freed)), PRODUCTION)).toThrow('preview');
   });
 });

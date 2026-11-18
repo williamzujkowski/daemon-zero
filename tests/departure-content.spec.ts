@@ -5,10 +5,11 @@
  * departure states its own threat response. Production offers no departure.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION, RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { CONTENT as PREVIEW_CONTENT, RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { CONTENT as PREVIEW_CONTENT, RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 import { independentCapacity } from '../src/content/schemaCapability';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 
@@ -29,11 +30,11 @@ const copy = (raw: Json): Json => raw.contextCopy;
 const nodes = (raw: Json): Json[] => raw.phases.flatMap((phase: Json) => phase.nodes);
 const departed = (raw: Json, phaseId: number): Json => copy(raw).phases.find((entry: Json) => entry.phaseId === phaseId && entry.provenance?.includes('DEPARTURE'));
 
-describe('the real content passes, and production offers no departure', () => {
+describe('the real content passes, and the original game offers no departure', () => {
   it('builds', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
-    expect([...PRODUCTION.assignments.values()].some((assignment) => assignment.pilot?.departure !== undefined)).toBe(false);
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
+    expect([...ORIGINAL_GAME.assignments.values()].some((assignment) => assignment.pilot?.departure !== undefined)).toBe(false);
   });
 });
 

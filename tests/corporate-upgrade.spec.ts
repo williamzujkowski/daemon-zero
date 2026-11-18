@@ -7,18 +7,20 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT } from '../src/content';
+import { ORIGINAL_RAW_CONTENT } from '../src/content';
 import { buildRegistry, type RawContent } from '../src/content/registry';
 import { activateCampaignRules, campaignRecord, deserialize, endingEvidence, exportSave, holdsCampaignFact, importSave, offeredChoices, serialize } from '../src/engine';
 import { preview } from './campaign-helpers';
 import { AUCTION, CORPORATE, omen, ORDER } from './corporate-helpers';
 import { comesBack, event, near, nextIteration } from './early-helpers';
 import { stableThroughReloads, untilPresented } from './interruption-helpers';
-import { rich } from './helpers';
+import { rich, remarkedAsProduction } from './helpers';
 import { stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before NH-04b converted the corporate events (tests/fixtures/README.md). */
-const PRE_NH04B = readFileSync('tests/fixtures/pre-nh04b-active-v9.json', 'utf8');
+const PRE_NH04B_PREVIEW = readFileSync('tests/fixtures/pre-nh04b-active-v9.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const PRE_NH04B = remarkedAsProduction(PRE_NH04B_PREVIEW);
 const raw = JSON.parse(PRE_NH04B) as { iteration: number; resolvedDilemmas: string[]; campaign: { events: Record<string, unknown>; legacyEndingBaseline: string[]; operationalEvidence: string[] } };
 
 describe('an already-active campaign save from before NH-04b', () => {
@@ -87,7 +89,7 @@ type Raw = {
 /** The shipped content as it was before NH-04b converted the corporate events and gated the order on custody. */
 function beforeConversion(): ReturnType<typeof buildRegistry> {
   // The save predates NH-05 as well, and NH-05's ethics-review answers read the journalist's facts.
-  const old = stripNh05(structuredClone(RAW_CONTENT)) as unknown as Raw;
+  const old = stripNh05(structuredClone(ORIGINAL_RAW_CONTENT)) as unknown as Raw;
   const facts = new Set(old.campaign.facts.filter((fact) => CORPORATE.includes(fact.event)).map((fact) => fact.id));
   old.campaign.facts = old.campaign.facts.filter((fact) => !facts.has(fact.id));
   old.echoes.echoes = old.echoes.echoes.filter((echo) => !facts.has(echo.requirements?.campaignFact ?? '') && !CORPORATE.includes(echo.requirements?.campaignOutcome?.event ?? ''));
@@ -99,5 +101,5 @@ function beforeConversion(): ReturnType<typeof buildRegistry> {
     delete dilemma.contextVariants;
     delete dilemma.omenVariants;
   }
-  return buildRegistry({ ...old, channel: 'preview' } as unknown as RawContent);
+  return buildRegistry({ ...old } as unknown as RawContent);
 }

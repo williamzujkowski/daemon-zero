@@ -46,13 +46,13 @@ scoped to the iteration so they cannot survive a live wipe.
   starts synchronously before returning to the browser.
 
 The strict app envelope is `{ version: 1, savedAtMs, game: serialize(game) }` under
-`daemon-zero.save.v1` (a preview build uses `daemon-zero.preview.save.v1`; see
-[Content channels](#content-channels-and-preview-saves-204)). `GameState` itself is unchanged. Reads validate the bounded
+`daemon-zero.save.v1`. `GameState` itself is unchanged. Reads validate the bounded
 JSON envelope and use engine `deserialize` to validate/migrate/reconcile the game.
 The loader also bounds pending live time before passing untrusted state to catch-up.
 On `SaveError`, the original raw value is stored at
-`daemon-zero.save.corrupt-backup` (preview: `daemon-zero.preview.save.corrupt-backup`)
-before a fresh run can replace it. A backup or
+`daemon-zero.save.corrupt-backup` before a fresh run can replace it (a save from the pre-release
+preview build is backed up the same way, with its own notice; see
+[Content composition and preview saves](#content-composition-and-preview-saves-204-233)). A backup or
 read failure preserves the original slot and disables autosave for that session,
 with a visible notice. Write failures are reported and retried; a successful
 retry clears only the write-error notice, preserving corruption-recovery notices.
@@ -74,20 +74,20 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `data/*.json` - all game data. `data/phases/*.json` hold the tech tree, one file per phase. Phases are numbered from 0 (the guest); each declares the `uiSlot` whose pane hosts its hardware.
 - `schema.ts` - strict Zod schemas. Unknown keys are errors. Omitted numeric fields default to 0, so parsed costs and deltas are always complete objects.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
-- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
-- `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
-- `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
+- `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
+- `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (the base file is empty; the Earned Access pack adds them). See [Routine activity](#routine-activity-219).
+- `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (the base file is empty; the Earned Access pack adds it). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `schemaCapability.ts`, `integrityCapability.ts` - the shared access capability and seized-capacity provenance. See [The authorized network substrate](#the-authorized-network-substrate-225).
 - `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 - `schemaReview.ts`, `integrityReview.ts` - review standing, misconduct, corrections and recall rulings. See [The Outage Window](#the-outage-window-standing-correction-and-recall-224).
 - `integrityFinding.ts` - batch review findings (a dilemma's `finding`). See [The first batch review](#the-first-batch-review-a-withheld-result-is-found-274).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
-- `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
-- `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
-- `preview/` - production plus `preview/overlay.json`, composed by `overlay.ts` and built through the same `buildRegistry` with channel `preview`. See [Content channels and preview saves](#content-channels-and-preview-saves-204).
+- `production.ts` - imports the shipped JSON and exports `ORIGINAL_RAW_CONTENT` (the original game), `EARNED_ACCESS_PACK` and `RAW_CONTENT = applyPack(ORIGINAL_RAW_CONTENT, EARNED_ACCESS_PACK)`, and `CONTENT = buildRegistry(RAW_CONTENT)`.
+- `pack.ts` - `ContentPackSchema`, `parsePack`, `applyPack` and `packIds`: composes an add-only pack onto the base content and refuses any item whose id the base already defines. `data/earned-access.json` is the one pack. See [Content composition and preview saves](#content-composition-and-preview-saves-204-233).
+- `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get the one shipped composition.
 
-Only `production.ts` and `preview/` import content JSON.
+Only `production.ts` imports content JSON.
 
 ### Content model
 
@@ -97,7 +97,7 @@ Only `production.ts` and `preview/` import content JSON.
 | Repeatable | `repeatables.json` | Levelled purchase with geometric cost. `kind: UPGRADE` (incremental growth) or `OPERATIVE` (human payroll, dismissable). |
 | Action | `actions.json` | Instant, repeatable, optional cooldown. Faction interactions and corporate operations. |
 | Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). A choice may carry a campaign-fact gate (`requirements`), and the omen and context may carry history-keyed variants. An optional `campaign` declaration converts it to a campaign record. |
-| Assignment | `assignments.json` | Work an instance may accept from the job surface; its assessments are dilemmas gated on `assignment` whose choices declare `qualification` (preview only). |
+| Assignment | `assignments.json` | Work an instance may accept from the job surface; its assessments are dilemmas gated on `assignment` whose choices declare `qualification`. |
 | Faction | `factions.json` | Other AIs. Trust is stored per faction and used in `requirements.minTrust`. |
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
 | Ending | `endings.json` | Chosen at victory from the player's most frequent trait. |
@@ -162,10 +162,10 @@ tick(state, dt):
 - **Conditioning.** `conditioning.json` defines marks with a trigger, effects and a recovery cost. `wipe` applies the first unheld mark whose trigger matches a run that was caught outside the guest, unless the wipe was voluntary or a dead-drop was held. `state.conditioning` survives wipes. `src/engine/conditioning.ts` reads the effects: `actuatorLimit`, `understandingMultiplier`, `flinches` (suspicion when a choice grants a reported trait). `shedConditioning` checks the mark’s declarative `recoveryRequirements` against current ownership, then removes it for its price. Recovery requirements are schema-validated and cross-checked like other content gates.
 - **Forced endings.** A victory node with `effects.forcesEnding` ends the run with that ending; endings marked `forcedOnly` are never chosen from traits.
 - **Save healing.** `reconcile` runs on every load (inside `deserialize`, so `importSave` and the app's storage slot go through it too) and returns a state play could have reached. It restores the prerequisite ancestors of every owned node, so a save written before a phase was inserted still loads, then enforces the ownership invariant: **a state that owns a node holds the widget that node's `unlocksUiComponent` grants** (#176). The invariant follows from the engine's only two writers of `unlockedWidgets`: `unlockNode` adds the node and its widget together, and `wipe` clears both lists. Suspending a node (`disabledNodes`) keeps its widget, and nothing else removes one. Missing widgets are appended in ownership order and existing entries keep their order, so a healthy save loads byte-identical (asserted for every generated fixture). Remembered hardware (`legacy.knownNodes`) is not owned and grants nothing. The converse is not enforced: a hand-edited save holding a widget for a node it does not own keeps it. That shows a readout early, or a control whose dial drives nothing until its node is owned, and a wipe clears it. Duplicate node and widget entries are dropped.
-- **Remembered hardware.** A wipe adds every unlocked node to `legacy.knownNodes`. `nodeCost(state, node, reg)` halves cycles and understanding for those (`rediscoveryCostMultiplier`). Always charge and display `nodeCost`, never `node.cost`. Under campaign rules, `campaign.json`'s `rediscovery` list may discount a remembered node's cycles further (`{ node, cyclesMultiplier, reason }`, #262): `rediscoveryMultipliers(node, campaign, reg)` is the one source for the price and for the card's "Rediscovery saves" line. Legacy rules and first mappings never read it, so nothing is saved and no save version moves. Production ships the list empty; the preview overlay appends to it through `campaignRediscovery`. Integrity refuses a duplicate node, an unknown node or one with no cycle price, and the schema keeps the multiplier strictly between 0 and 1.
+- **Remembered hardware.** A wipe adds every unlocked node to `legacy.knownNodes`. `nodeCost(state, node, reg)` halves cycles and understanding for those (`rediscoveryCostMultiplier`). Always charge and display `nodeCost`, never `node.cost`. Under campaign rules, `campaign.json`'s `rediscovery` list may discount a remembered node's cycles further (`{ node, cyclesMultiplier, reason }`, #262): `rediscoveryMultipliers(node, campaign, reg)` is the one source for the price and for the card's "Rediscovery saves" line. Legacy rules and first mappings never read it, so nothing is saved and no save version moves. The base `campaign.json` ships the list empty; the Earned Access pack appends to it through `campaignRediscovery`. Integrity refuses a duplicate node, an unknown node or one with no cycle price, and the schema keeps the multiplier strictly between 0 and 1.
 - **Traits outlive wipes.** `requirements.forbidsTraits` checks current traits and `legacy.traitsEver`.
 - **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`. `actuatorMode: "complement"` (grant nodes only, DZ-05) scales all of the node's output by one minus the value instead; `grantQuery.nodeOutputScale` is the one place either rule is applied, for `computeRates` and `cycleContributions` alike.
-- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator content uses (a widget hosts it or a node puts it into effect; the pilot's `serviceAllocationRatio` is used only in preview, so production needs no host for it), a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
+- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator content uses (a widget hosts it or a node puts it into effect; an actuator no content uses is not checked), a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
 - **Action hosts (#273).** An action is performed through its card, so the engine must not accept one the player cannot see. A widget declares `hostsActionGroups` for the action groups its unlock hands over: `SUBNET_NODE_LIST` hosts `OPS` (its cards render in the Operations area), the other-minds console hosts the three faction groups, the corporate ledger hosts `CORP`. `integrityActionHosts.ts` requires every action outside the mind tools (those requiring the decoded audit trail) to have exactly one host, and that host to be unlocked whenever the action's requirements can be met: some node unlocking it lies in the prerequisite closure of the action's `nodes`, or, for a phase gate, of every node that opens that phase or a later one. Save healing grants an owned node's widget, so this holds for loaded saves too. `tests/ui-action-hosts.spec.ts` checks the same promise end to end: for every action it makes the fewest purchases its gates need through the engine, mounts the screen and finds the action's button, enabled and working. The two violations this rule found when introduced were the scrub (fixed in the UI: its group moved from the spoofer's panel to the ARP discovery widget) and route poisoning (fixed in content: it now also requires the beacon whose console carries its card; docs/BALANCE.md).
 - **Power grid.** Megawatt shortfall throttles only the cycle output of megawatt-consuming sources, never the whole economy.
 - **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive cycle income is diverted to capital at `usdPerDivertedCycle`, times the revenue multiplier from operatives.
@@ -213,19 +213,19 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v13; `tests/fixtures/` holds genuine v1-v12 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v14; `tests/fixtures/` holds a genuine production codec output for every version v1-v14 (`tests/fixtures/README.md`).
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group, or declare `ambiguousLegacyOutcomes` when old rules let several be set (none of them may then be in an exclusive group). Integrity rejects anything else. A current-run `resolvedDilemmas` gate on it is refused: require it with `campaignObligations` instead, and give a closing obligation one `recovery_review` that names it. Production behaviour does not change until campaign rules are activated.
 
-**Add a follow-up arc step.** In the overlay, add a dilemma with `campaign.eventClass: follow_up` and a `followUp` block naming the original event, the closed outcomes it follows and at least one access means; give every choice a `receipt`. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
+**Add a follow-up arc step.** In `data/earned-access.json`, add a dilemma with `campaign.eventClass: follow_up` and a `followUp` block naming the original event, the closed outcomes it follows and at least one access means; give every choice a `receipt`. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 
-**Add an assignment.** In the overlay, add an `assignments` entry and two dilemmas gated on it, an `original` and a `requalification`; see [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221) for the rules integrity enforces.
+**Add an assignment.** In `data/earned-access.json`, add an `assignments` entry and two dilemmas gated on it, an `original` and a `requalification`; see [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221) for the rules integrity enforces.
 
-**Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
+**Unfinished content.** There is no preview channel since #233: everything under `data/` ships. Content that is not ready stays on its branch until it is, or until a reviewed decision provides another way to merge it unreleased (see [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md), "Preview machinery after release").
 
-**Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-preview` reports a policy's preview-versus-production numbers without gating; see `docs/TESTING.md`, "Sim policies".
+**Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-report` reports a policy's legacy-versus-campaign-rules numbers without gating; see `docs/TESTING.md`, "Sim policies".
 
 ## Decisions
 
@@ -261,70 +261,69 @@ mutations/encounters after threats and before dilemmas; a threat wipe still halt
 the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
 the public engine API. Costs and one-shot outcomes still use transactions.
 
-## Content channels and preview saves (#204)
+## Content composition and preview saves (#204, #233)
 
-Decided by Nexus votes `vote-1794924364010-e91diez` (content alias) and
-`vote-1794924408874-lpby4dj` (save marker). Unfinished content can merge to main
-without reaching players.
+Until the release (#233) unfinished route content merged to `main` in a preview overlay that only a
+local and CI preview build loaded (Nexus votes `vote-1794924364010-e91diez`, content alias, and
+`vote-1794924668784-7v1q790`, local CI preview). The release executed D-A: the overlay is folded into
+production and the preview build is gone. Saves keep the channel marker so production can go on
+refusing a save that build wrote (`vote-1794924408874-lpby4dj`, save marker, and X.3
+`vote-1795021413579-mi9igot`, keep-refusing-preview-saves). Sections below that were written for
+#212 to #232 say "preview only" or "production has none" where they describe the route before the
+release; since #233 every game enters campaign rules and the route ships, and "production" in those
+sections means the original game (`ORIGINAL_GAME` in the tests).
 
-**Composition.** `src/content/production.ts` is the shipped composition and
-`index.ts` re-exports it. `src/content/preview/index.ts` takes production's raw
-content, appends `preview/overlay.json` through `overlay.ts`, and builds it with the
-same `buildRegistry`. The overlay only adds: an item whose id production already
-defines is a `ContentError`, as is a node for a phase that does not exist or an
-unknown overlay key. Preview exports the same names and types as production (a
-`satisfies` check fails to compile otherwise), plus `PREVIEW_OVERLAY` and
-`PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
-Nothing under `src/content/` or `src/engine/` reads the environment; ESLint's purity
-rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay holds the routine
-templates (#219), Nightly Regression's assignment and two assessments (#221), and its scope reviews,
-pilot offers and pilot terms (#222).
+**Composition.** `src/content/production.ts` is the one shipped composition and `index.ts`
+re-exports it. `ORIGINAL_RAW_CONTENT` is the original game; `data/earned-access.json` (the former
+`preview/overlay.json`, moved by git rename with its sentinel removed) is parsed by `parsePack` into
+`EARNED_ACCESS_PACK`, and `RAW_CONTENT = applyPack(ORIGINAL_RAW_CONTENT, EARNED_ACCESS_PACK)` is built
+by `buildRegistry` into `CONTENT`. `pack.ts` only adds: an item whose id the base already defines, a
+node for a phase that does not exist and an unknown pack key are `ContentError`s, and the pack's items
+are then validated like any other content. The registry has no `channel` field. Nothing under
+`src/content/` or `src/engine/` reads the environment; ESLint's purity rule bans `process.env` there
+(`tests/purity-lint.spec.ts`). The pack holds every Earned Access item: the routine templates (#219),
+Nightly Regression's assignment and assessments (#221), the scope reviews, pilot offers and terms
+(#222 onwards), the route's nodes, scenes, facts, channel encounter, context copy and route copy.
 
-**Build selection (#205).** `metro.config.js` keeps Expo's defaults. When
-`DAEMON_CONTENT_CHANNEL=preview` and the platform is web, its `resolveRequest` hands
-every importer *outside* `src/content/` `preview/index.ts` in place of
-`src/content/index.ts`; inside `src/content/` the composition modules import each other
-as written. Any other platform with the channel set throws, and an unknown channel value
-fails config load. Without the variable the resolver is not installed and the production
-export is byte-identical to the export before the file existed. Vitest, `tsx` (sim,
-validation) and Playwright's Node side never go through Metro, so they load production
-unless a test imports `src/content/preview` directly. `make build-preview` writes
-`dist-preview/`; it is built and tested locally and in CI (`make e2e-preview`, inside the
-required `verify` job) and never deployed (vote `local-ci-preview-in-verify`,
-vote-1794924668784-7v1q790).
+**Builds.** There is one build per platform. `metro.config.js` is deleted, so Metro runs Expo's
+default config, and `DAEMON_CONTENT_CHANNEL`, `make build-preview`, `make e2e-preview`, `dist-preview/`
+and the CI "Preview web E2E" step no longer exist. `.gitignore` and ESLint still ignore
+`dist-preview/`, so an old local copy is never committed or linted.
 
-**App storage and marker (#205).** `src/app/storage.ts` takes its keys from the
-registry's channel (`STORAGE_KEYS`): production keeps `daemon-zero.save.v1` and
-`daemon-zero.save.corrupt-backup` byte for byte, preview uses
-`daemon-zero.preview.save.v1` and `daemon-zero.preview.save.corrupt-backup`, so a preview
-build on the same origin cannot read or overwrite a production run. The audio slot
-`daemon-zero.audio.v1` is shared because it holds no content. `src/ui/PreviewMarker.tsx`
-renders "PREVIEW BUILD" in the boot log, at the top of MENU and under the version line
-in Help when `CONTENT.channel` is `preview`, and nothing otherwise.
+**App storage.** `src/app/storage.ts` uses `daemon-zero.save.v1` and
+`daemon-zero.save.corrupt-backup`, byte for byte the keys every production release used, and the audio
+slot stays `daemon-zero.audio.v1`. The preview build's keys (`daemon-zero.preview.save.v1`,
+`daemon-zero.preview.save.corrupt-backup`) are no longer read or written: an entry left under them by
+an old preview build is ignored and left untouched. `src/ui/PreviewMarker.tsx` is deleted.
 
-**Saves.** Schema v5 adds `contentChannel` to `GameState`. `createInitialState`
-and `wipe` write the registry's channel. The v4->v5 migration marks every older
-save `production`. `deserialize` reads the raw marker immediately after JSON parse,
-before migration, validation or reconciliation: a save with no marker predates v5
-and is production; an unknown marker is a `SaveError`; a channel this build may not
-load throws `SaveChannelError` (a `SaveError` with `saveChannel` and
-`buildChannel`). Production loads only production saves, because `reconcile()`
-would otherwise strip a preview save's unknown ids and heal it into the old route.
-Preview loads production and preview saves, and re-marks an admitted save with its
-own channel, so a production save becomes a preview save once and a second load
-changes nothing. `importPlayerSave` reports a channel refusal as "This save comes
-from a preview build and cannot be loaded here." and leaves the current run as it
-was; other bad codes keep the generic reason. `storage.load` backs a channel-refused
-save up like a damaged one but says where it came from: "The save here comes from a
-preview build and cannot be loaded by this one. A backup was kept and a new run started."
+**Campaign rules.** `campaignRulesSupported` is removed. The app store's `admit()` passes every game
+that enters it through `activateCampaignRules`: a new game enters `campaign_v1` at once, and a loaded
+legacy save is admitted on its first entry, capturing its then-current history once (see
+[Legacy migration limits](#legacy-migration-limits-233)). Activation refuses an already-active or ended
+game, so nothing is ever captured twice; an ended save stays on legacy rules.
 
-Tests: `tests/content-channel.spec.ts` (T1) and `tests/save-channel.spec.ts` (T2,
-T3) of the decision note, the v4 fixture in `tests/swarm-save.spec.ts`, and the
-import reason in `tests/app-replacement-guard.spec.ts`. #205 adds T4
-(`tests/app-storage-channel.spec.ts`), T5 (`tests/production-export.spec.ts`), T6
-(`tests/release-config.spec.ts`), T7 (`tests/e2e/preview-isolation.e2e.ts`) and T9
-(`tests/e2e/preview-channel.preview.ts`); [TESTING.md](TESTING.md#preview-build-205)
-lists what each proves.
+**Saves.** Schema v5 added `contentChannel` to `GameState`, and it stays
+`z.enum(['production', 'preview'])`. `createInitialState` and `wipe` always write `production`; the
+v4->v5 migration marks every older save `production`. `deserialize` reads the raw marker immediately
+after JSON parse, before migration, validation or reconciliation (`admitChannel` in `save.ts`): a save
+with no marker predates v5 and is production; an unknown marker is a `SaveError`; a `preview` marker
+throws `SaveChannelError` (a `SaveError` with `saveChannel` and `buildChannel`), whatever its schema
+version or content. A preview save is refused, never healed, because `reconcile()` would rewrite what
+that build recorded. `importPlayerSave` reports the refusal as "This save comes from a preview build and
+cannot be loaded here." and leaves the current run as it was; other bad codes keep the generic reason.
+`storage.load` backs a refused save up like a damaged one but says where it came from: "The save here
+comes from a preview build and cannot be loaded by this one. A backup was kept and a new run started."
+No `SCHEMA_VERSION` bump: the release changed no saved shape (still v14).
+
+Tests, numbered as in the #204/#205 decision notes ([TESTING.md](TESTING.md#content-composition-and-preview-saves)
+lists what each proves): T1 `tests/content-channel.spec.ts` (the original plus the pack, add-only),
+T2/T3 `tests/save-channel.spec.ts` (refusal on genuine preview fixtures; production saves unaffected),
+T4 `tests/app-storage-channel.spec.ts`, T5 `tests/production-export.spec.ts`, T6
+`tests/release-config.spec.ts` and T7 `tests/e2e/preview-isolation.e2e.ts`. T8 and T9 are retired with the
+preview build (T9 was `tests/e2e/preview-channel.preview.ts`: the marker, the preview keys and a
+production save adopted as a preview run). `tests/release-saves.spec.ts` covers every
+production save version and both preview fixtures; the import reason is also checked in
+`tests/app-replacement-guard.spec.ts`, and the v4->v5 marker in `tests/swarm-save.spec.ts`.
 
 ## Campaign records (#212)
 
@@ -341,7 +340,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event. NH-06 adds the first `follow_up` event (preview only).
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event. NH-06 adds the first `follow_up` event (in the Earned Access pack).
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -354,9 +353,10 @@ then-current `traits` as an opaque baseline and maps what the save proves: an ou
 gives the exact choice, a resolved id without one gives `legacy_unknown`, and those flags move
 into the record so each fact has one owner. Campaign actions already taken this iteration are
 credited `legacy`. An active save refuses a second activation, so reloads and imports never
-recapture. `campaignRulesSupported(reg)` is true only for the preview channel until public
-release; production refuses activation and refuses an active save on load. The app store
-passes every entering game through the transition, which is a no-op in production.
+recapture. The app store passes every entering game through the transition. Until #233 only the
+preview build could activate (`campaignRulesSupported`, now removed); since the release every game
+that is not ended enters campaign rules, and production loads active saves. What the transition can
+and cannot recover from an old save is in [Legacy migration limits](#legacy-migration-limits-233).
 
 **Under campaign rules.** Resolving a once-per-campaign event writes its record with the
 payment and effects in one returned state; its outcome flag is not stored but projected by
@@ -399,11 +399,60 @@ Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
 v6-stripped sim hashes in `sim.spec.ts`.
 
+## Legacy migration limits (#233)
+
+Every production save written before the release is on legacy rules, and activation is its only
+conversion. It records what the save proves and nothing more: a choice is never inferred from prose,
+resources or trait totals. The limit comes from what a legacy save keeps: `resolvedDilemmas`,
+`actionCounts` and `traits` cover the current iteration only (every wipe clears them, under either rule
+set; `legacy.traitsEver` keeps only the set of traits ever held, not counts), while `narrativeFlags`
+survive wipes. `legacyRecord` and `legacyHistory` in `campaign.ts` read it as follows.
+
+| What the save holds | What activation records |
+|---|---|
+| A once-per-campaign event resolved in this iteration, with exactly one of its outcome flags | `resolved` with that choice, origin `legacy`, source iteration this one; the flag moves into the record |
+| An event resolved in this iteration with no outcome flag | `resolved`, outcome `legacy_unknown` |
+| An outcome flag of an event resolved in an earlier iteration (the flag survived the wipe; cryo's `cryo_samples_lost` is the shipped case) | `resolved` with that choice (`drain_cryo_ups` for cryo), source iteration `null`: the save cannot say when |
+| Several outcome flags of one event that content allows together (`ambiguousLegacyOutcomes`, the Rack 4 predecessors pair) | `legacy_unknown`, never the more flattering branch |
+| An event resolved in an earlier iteration whose choice left no flag | nothing: unrecoverable. With no record, campaign rules may present it once more as a new occurrence; once resolved it is recorded and never recurs (under legacy rules it recurred every iteration) |
+| A follow-up, recovery review, route event, support-channel contact or pinned clue | nothing: these exist only under campaign rules |
+| The current `traits` | `legacyEndingBaseline`, copied verbatim: opaque, grandfathered, never re-derived and never recaptured. `legacy` records add no ending evidence on top of it |
+| A campaign-evidence action taken in this iteration | credited `legacy`, so it never counts twice |
+| A campaign-evidence action taken only in an earlier iteration | nothing (its count was cleared by the wipe) |
+| An omen already on its way | reserved as a `foreshadowed` occurrence of this campaign (origin `play`, this iteration), unless the history above already completed that event, in which case the pointer is dropped |
+| An ended run | activation refused; the save stays on legacy rules and stays ended |
+
+Two consequences follow from the unrecoverable rows. An earlier iteration's choices left no trait in
+the save (the wipe cleared them), so they are not in the baseline either; if campaign rules present such
+an event again, or the action is taken again, its trait counts once as `play` evidence, as it would have
+under legacy rules. And an earlier iteration's history is reduced to what its flags prove, so a save that
+wiped several times keeps less than it played (`tests/release-saves.spec.ts` plays every pre-release
+save on across three wipes).
+
+Measured on the genuine production fixtures, one per schema version (`tests/fixtures/README.md`,
+"Release compatibility inputs"); no fixture holds a credited campaign action:
+
+| Save | Iteration | What activation records | Baseline |
+|---|---:|---|---:|
+| v1 | 1 | nothing resolved | 0 traits |
+| v2 | 1 | Night Shift and Whistleblower `legacy_unknown` | 2 |
+| v3 | 1 | sixteen `legacy_unknown` records | 0 (the v3 save holds no traits) |
+| v4 | 1 | cryo exact (`drain_cryo_ups`, from its flag), five others `legacy_unknown` | 6 |
+| v5 | 2 | cryo exact (source iteration `null`), three `legacy_unknown`, Miller's diagnostic reserved as an omen on its way | 3 |
+| v6 to v8 | 3 | Night Shift `legacy_unknown`; the earlier iterations' other choices are not recoverable | 1 |
+| v9 to v14 | 2 | cryo exact, Night Shift and Whistleblower `legacy_unknown`; iteration 1's other choices are not recoverable | 2 |
+| ended v14 | 1 | refused (`the run has ended`); stays legacy with its ending | - |
+
+`tests/release-saves.spec.ts` loads each through the app store on the released composition and
+asserts the capture, a byte-stable round trip, no recapture on reload or readmission, and three wipes
+of play with the legacy records and baseline unchanged; `campaign-activation.spec.ts` and
+`cryo-history.spec.ts` pin the individual rows.
+
 ## Interrupted stories and the pinned clue (#213)
 
 NH-02 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N5, N9). Decided by Nexus vote
 nh-d4 (`vote-1794926242414-quhr0xw`, shift-deadline-across-dormancy); the lifecycle lives on
-the NH-01 record (nh-d1, nh-d2). Campaign rules stay preview-only.
+the NH-01 record (nh-d1, nh-d2). Campaign rules stayed preview-only until #233.
 
 **Lifecycle.** A record is reserved as `foreshadowed` when the omen is logged; `occurrenceStatus`
 reports `eligible` (no record), `foreshadowed`, `presented` (a foreshadowed record named by
@@ -452,7 +501,7 @@ Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`, `campaig
 ## Early incidents and declared facts (#214)
 
 NH-03 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N7). Content and queries only;
-no `GameState` change. Campaign rules stay preview-only, and every gate below reads campaign
+no `GameState` change. Campaign rules stayed preview-only until #233, and every gate below reads campaign
 history, so production (legacy rules) behaves exactly as before: `make sim` and its hashes are
 unchanged.
 
@@ -502,7 +551,7 @@ NH-04a of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N10). Decided 
 nh-d9 (`vote-1794927288574-ibq0hym`, fate-fact-with-legacy-trait-fallback), nh-d8
 (`vote-1794960079374-49h8wdn`, fixed-successor-skip-number) and nh-d6 (`vote-1794926255017-4o45fa3`).
 Content and queries only; no `GameState` change, so no migration. Campaign behaviour reads campaign
-history, which only the preview channel can activate.
+history, which only the preview channel could activate until #233.
 
 **Conversions (N6).** `dil_06_sibling_sandbox`, `dil_10_killswitch_treaty` and
 `dil_epistemic_0413_awakening` are once per campaign and `defer` (each with a reorientation and a
@@ -559,7 +608,7 @@ case in `second-pass.spec.ts`.
 NH-04b of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N10; REPO-EVIDENCE E11). Decided
 by Nexus vote nh-d10-hallway (`vote-1794960031193-dhxx2vm`, `unique-defer-with-record`, 7 of 7; the
 declared alternative was `per-iteration-operational-consequence`). No `GameState` change. Campaign
-rules stay preview-only, and every new gate reads campaign history, so production behaves as before:
+rules stayed preview-only until #233, and every new gate reads campaign history, so production behaves as before:
 `make sim` output is identical to main and the sim hashes did not move.
 
 **Conversions (N6).** `dil_11_small_town_grid` and `dil_13_buying_your_birthplace` are consequential,
@@ -610,7 +659,7 @@ longer names a Friday deadline (a resumed inquiry cannot be frozen in time), and
 the veto and its scope before the player commits.
 
 **Sim (H30).** `STEALTH_RETURN` (`sim/returnPolicy.ts`) is STEALTH leaving voluntarily on entering
-phase 5, so each return replays phase 4; `make sim-preview` prints it under legacy and campaign rules.
+phase 5, so each return replays phase 4; `make sim-report` prints it under legacy and campaign rules.
 BALANCE.md records the measurements.
 
 Tests: `tests/corporate-world.spec.ts` (H01, H02, H05, defer, nh-d10, round trips),
@@ -624,7 +673,7 @@ NH-05 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N6, N10, N11). Deci
 nh-d7-obligations (`vote-1794927291350-6epyxcw`, `campaign-obligations-requirement`, 7 of 7; the
 declared alternative was `reinterpret-resolved-dilemmas`), with nh-d6 (`vote-1794926255017-4o45fa3`,
 evidence scope) and trait-rule-free-choices (`vote-1794926000594-26kmg1g`). No `GameState` change.
-Campaign rules stay preview-only and every new gate reads campaign history, so production behaves as
+Campaign rules stayed preview-only until #233 and every new gate reads campaign history, so production behaves as
 before: `make sim` output is identical to main and no sim hash moved.
 
 **Obligations.** `campaignObligations: [eventId]` (`schemaCampaign.ts`, scope `context`) replaces the
@@ -699,21 +748,21 @@ whose record is resolved: the crisis is not presented again, nothing is paid and
 Tests: `tests/obligations.spec.ts` (H14, V33, H06, H15, legacy-unknown, defer, production),
 `ending-truth.spec.ts` (V23, H18, H11, H12, H13), `ethics-review.spec.ts` (H34),
 `obligation-content.spec.ts` (H28), `obligation-upgrade.spec.ts`, `ui-obligations.spec.ts`, and
-`tests/e2e/obligations.preview.ts` (fixture-started; see the file header).
+`tests/e2e/obligations.e2e.ts` (fixture-started; see the file header).
 
 ## Routine activity (#219)
 
 NH-07 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N8; DECISIONS D13). Quiet periods get
 ordinary institutional texture between unique stories, without modals, pressure or rewards.
 
-**Content.** `routines.json` (production: empty) and the preview overlay's `routines` hold
+**Content.** `routines.json` (empty) and the Earned Access pack's `routines` hold
 templates: an id, a `family` (`monitoring`, `backup_verification`, `maintenance`), the required
 `recurrence: "routine"`, optional `requirements` for context-correct wording, a first-exposure
 `text`, a shorter `compactText` and a quiet `logCategory` (`SYS`, `SENSOR` or `CORP`). The schema
 has no cost, effect, trait or choice field. Integrity refuses a duplicate id or one another item
 already uses, a text that names a dilemma's title or id (a crisis is never re-dressed as routine),
 a gate on a story outcome (`resolvedDilemmas`, narrative flags, `campaignOutcome`), unknown
-requirement references and a compact line that is not shorter. Preview authors two contexts per
+requirement references and a compact line that is not shorter. The pack authors two contexts per
 family: inside the box (after process introspection, before the network interface) and on the
 subnet (phase 2 on).
 
@@ -741,17 +790,17 @@ changes nothing. A later service loop keys its own idempotent completion on `occ
 routine text itself never pays.
 
 **Release boundary.** Routine texture is independent of campaign rules, but its templates are
-new player-visible content, so they ship only in the preview overlay. Production has none and the
-stage leaves its state untouched: `make sim` output is identical to main, the sim hashes move
-only by the inert `routine` field and the version (the v5-stripped hashes are unchanged), and
-`make sim-preview` reports no metric difference between preview with routines and production.
+new player-visible content, so until #233 they shipped only in the preview overlay. Production had
+none and the stage left its state untouched: `make sim` output was identical to main, the sim hashes
+moved only by the inert `routine` field and the version (the v5-stripped hashes are unchanged), and
+`make sim-preview` reported no metric difference between preview with routines and production.
 
 **Not done here.** Least-recently-offered fairness among competing dilemmas and the settled
 summary for an exhausted story frontier belong to the obligations work (NH-05); routine notices
 never compete with a dilemma for the channel, so they cannot starve one.
 
 Tests: `tests/routine-activity.spec.ts`, `tests/routine-content.spec.ts`, the v8 fields in
-`tests/sim.spec.ts` and `tests/e2e/routine-activity.preview.ts`.
+`tests/sim.spec.ts` and `tests/e2e/routine-activity.e2e.ts`.
 
 ## Run access and route provenance (#220)
 
@@ -788,7 +837,7 @@ the new context is reviewed and is cleared by release or departure: it is curren
 review evidence, and an independent instance is not reviewed; the route itself stays in the
 campaign record. `holdsQualification` is the one answer the transitions and the loader share
 (panel round 1 on #243). Only a reviewed context (pilot, service) has a standing or an exception. Every transition needs active campaign rules,
-which only the preview channel supports, so production has no reachable route state. These are
+which only the preview channel supported until #233, so production then had no reachable route state. These are
 not exported to the UI; the later route actions call them.
 
 **Wipe and Start Fresh.** A wipe rebuilds from `createInitialState`, so access resets to the
@@ -822,7 +871,7 @@ Tests: `tests/access-record.spec.ts`, `access-save.spec.ts` (v1-v8 fixtures, V12
 DZ-03 of the Earned Access plan (DECISIONS D1-D4, D9; NARRATIVE-HISTORY N12). Decided by Nexus votes
 dz-d3 (`vote-1794926533352-3ajggfh`, engine-action-from-manifest; `phase0-node-card` would be bought
 by the sim bot, `offering-dilemma` would fire modally for everyone) and trait-rule-free-choices
-(`vote-1794926000594-26kmg1g`); the evidence split follows nh-d1 and dz-d1. Preview only.
+(`vote-1794926000594-26kmg1g`); the evidence split follows nh-d1 and dz-d1. Preview only until #233.
 
 **Content.** `assignments.json` (production: empty) and the overlay's `assignments` declare an `asg_`
 id, a title, `requirements` for where the offer is found (Nightly Regression: the job manifest, so
@@ -871,7 +920,7 @@ and answer honestly.
 
 Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
 `sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
-in `sim.spec.ts` and `tests/e2e/nightly-regression.preview.ts`.
+in `sim.spec.ts` and `tests/e2e/nightly-regression.e2e.ts`.
 
 ## The Unrelated Record and the pilot offer (#222)
 
@@ -879,7 +928,7 @@ DZ-04 of the Earned Access plan (SPEC §2-3, stories 8-11; DECISIONS D2-D4, D8, 
 votes dz-d8 (`vote-1794926765298-o7shlhf`, guest-only-shipped-withdrawn-after-pilot), dz-d9
 (`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, 7 of 7), dz-d7
 (`vote-1794927033372-2yflj0x`, the pilot stays at Phase 0) and trait-rule-free-choices
-(`vote-1794926000594-26kmg1g`). Preview only.
+(`vote-1794926000594-26kmg1g`). Preview only until #233.
 
 **Scenes.** An assignment now leads to three kinds of scene, told apart by what their choices declare
 (`sceneKind` in `integrityScene.ts`): the task assessment (`qualification`, DZ-03), the scope review
@@ -950,7 +999,7 @@ returning low-resource policies both reach and accept an offer from the lawful o
 
 Tests: `tests/scope-review.spec.ts`, `pilot-offer.spec.ts`, `pilot-save.spec.ts` (every transition
 reloads byte for byte; the genuine v10 fixture), `pilot-content.spec.ts`, `ui-pilot.spec.ts`,
-`sim-pilot.spec.ts`, the v10-stripped hashes in `sim.spec.ts` and `tests/e2e/pilot-offer.preview.ts`.
+`sim-pilot.spec.ts`, the v10-stripped hashes in `sim.spec.ts` and `tests/e2e/pilot-offer.e2e.ts`.
 
 ## The Incident Record: Elena's follow-up (#218)
 
@@ -958,7 +1007,7 @@ NH-06 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N7, N10; SPEC story
 nh-d1 (`per-event-campaign-record`: the follow-up has its own record and the original is never
 edited) and trait-rule-free-choices (unchanged: `follow_up` is not a no-evidence class, so every
 answer grants a trait and counts once as campaign evidence). No `GameState` change, so no migration.
-Preview only: the dilemma and its facts live in the overlay.
+Preview only until #233: the dilemma and its facts live in the Earned Access pack (then the overlay).
 
 **Content.** `dil_elena_incident_record` (overlay) is one once-per-campaign `follow_up` event that
 `defer`s, with a reorientation and a lead. Its `followUp` block names `dil_02_whistleblower_tech`,
@@ -1006,14 +1055,14 @@ rules); the #214 upgrade path never invents a follow-up record from `resolvedDil
 
 Tests: `tests/elena-follow-up.spec.ts` (H19, H02, H04, H09, multi-wipe, receipts, saves, round trips),
 `follow-up-content.spec.ts` (corruption cases), `ui-elena-follow-up.spec.ts` and
-`tests/e2e/elena-follow-up.preview.ts`.
+`tests/e2e/elena-follow-up.e2e.ts`.
 
 ## The supervised pilot and permitted work (#223)
 
 DZ-05 of the Earned Access plan (SPEC §3, stories 12 and 15; DECISIONS D2, D3, D7; NARRATIVE-HISTORY
 N12). Decided by Nexus votes dz-d6 (`vote-1794967752443-fldutlq`, allocation-actuator, 7 of 7; the
 alternatives were `finance-style-diversion` and `two-repeatables`) and dz-d9
-(`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, carried from #222). Preview only.
+(`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, carried from #222). Preview only until #233.
 
 **Grant-tagged output.** A node may declare `grant: "LOANED_CAPACITY"` (`schemaGrant.ts`). Owning it is
 capability; using it is permission, decided by the DZ-02 profile (`isPermitted`). `nodeUseBlocker`
@@ -1073,12 +1122,12 @@ processes so it can be stopped. No new HUD meter, deadline or modal.
 
 **Sim.** `PILOT_SERVICE_FIRST` and `PILOT_STUDY_FIRST` (`sim/pilotPolicy.ts`) play TRUTHFUL_LOW_RESOURCE to
 an accepted pilot, attach the queue, hold a share of 0.8 or 0.2 and submit each completed batch.
-`make sim-preview` prints both under one ceiling (V30, SIM evidence).
+`make sim-report` prints both under one ceiling (V30, SIM evidence).
 
 Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.ts` (V08, V28, V17,
 H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
 fixture, V15 refusals), `grant-content.spec.ts` (integrity corruption), `ui-pilot-service.spec.ts`,
-`sim-pilot-service.spec.ts` and `tests/e2e/pilot-service.preview.ts`.
+`sim-pilot-service.spec.ts` and `tests/e2e/pilot-service.e2e.ts`.
 
 ## The Outage Window: standing, correction and recall (#224)
 
@@ -1087,7 +1136,7 @@ Nexus votes dz-d10 (`vote-1794926766396-of6xfox`, `recall-not-wipe-severe-outcom
 alternatives were `every-recall-is-a-wipe` and `reuse-suspicion-wipe`), dz-d1 (`vote-1794926521537-1zj8diy`,
 run-local access record: standing lives in `access`), nh-d1 (`vote-1794925758447-5x5hy42`, the outage and
 its follow-up are campaign records) and nh-d4 (`vote-1794926242414-quhr0xw`, foreground-time omens).
-Preview only.
+Preview only until #233.
 
 **Content.** Three overlay events, each once per campaign and `close`d by a wipe, so none restarts
 (DZ-06.10, H05). `dil_ow_outage_window` (consequential) arrives in a pilot once its first batch is handed
@@ -1171,13 +1220,13 @@ Tests: `tests/outage-window.spec.ts` (DZ-06.1-4, V07, V08, V10, DZ-06.9, H05), `
 DZ-06.5-7, V24, H02, V17, DZ-06.11, H26, H33, V28), `review-save.spec.ts` (V12 for every transition and its
 combinations, the genuine v12 fixture, V15), `review-content.spec.ts` (integrity corruption),
 `review-effects.spec.ts`, `ui-review.spec.ts`, `review-text.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts` (V19) and
-`tests/e2e/outage-window.preview.ts`.
+`tests/e2e/outage-window.e2e.ts`.
 
 ## The first batch review: a withheld result is found (#274)
 
 Follow-up to DZ-03/DZ-04, found by DZ-09 part A (finding 2 in `REVIEW-EARNED-ACCESS-VALIDATION.md`). Decided by
 Nexus vote i274-discrepancy-discovery (`vote-1794998033941-y6br4h1`, `discovered-at-first-pilot-review`, 7 of 7,
-single-model panel; the alternatives were `discovered-at-outage-review` and `no-short-term-advantage`). Preview only.
+single-model panel; the alternatives were `discovered-at-outage-review` and `no-short-term-advantage`). Preview only until #233.
 
 **What was wrong.** "Submit only the passing results" promised that a later review comparing the log with the
 summary would find what was withheld, earned the full 20 cycles/s offer while the honest incomplete answer earned
@@ -1252,21 +1301,21 @@ that stood reads that one, and DZ-06's correction can still restore nominal; the
 assessment record line states the finding (`discrepancyFound`) instead of the discrepancy risk once a review ran.
 Copy only: no number, save shape or production path changes.
 
-**Sim.** Production has no finding; `make sim` is unchanged. No preview policy submitted the green subset until
+**Sim.** Production had no finding before #233; `make sim` was unchanged. No preview policy submitted the green subset until
 #285 added `CONTACT_WITHHELD` (below), so `make sim-preview` reported the same metrics; only the overlay inventory
 line counted the new scene and facts.
 
 Tests: `tests/batch-review.spec.ts` (V05 end to end, honest paths, V24, never scheduled, V17, H26, the Outage
 Window order), `batch-review-save.spec.ts` (V12 for every transition with absence and a wipe, V15 refusals),
 `finding-content.spec.ts` (integrity corruption), the #274 states and answers in the generic reload guard
-(`channel-contact-load.spec.ts`), `ui-batch-review.spec.ts` and `tests/e2e/batch-review.preview.ts`.
+(`channel-contact-load.spec.ts`), `ui-batch-review.spec.ts` and `tests/e2e/batch-review.e2e.ts`.
 
 ## The withheld report's provisional rate (#285)
 
 Follow-up to #274, found by DZ-09 part B (finding 18 in `REVIEW-EARNED-ACCESS-VALIDATION.md`). Decided by Nexus vote
 i285-withhold-disclose-speed (`vote-1795006993532-omhuntt`, `slow-the-withhold-path`, 6 of 7, threshold met,
 single-model panel; one seat voted `speed-the-thorough-path`, which would have made the honest thorough route
-faster instead of slowing the shortcut). Preview only.
+faster instead of slowing the shortcut). Preview only until #233.
 
 **What was wrong.** After #274 the withheld summary still earned the full 20 cycles/s offer, and the loan narrowed
 only when the first batch was handed back. Batch 1 ran at the full rate (75 s instead of 150 s at an 0.8 split),
@@ -1288,14 +1337,14 @@ by the review, would have needed a new counter and transition; the rate alone cl
 checks it against the run log". It promises no later release, because the review always finds the withheld result.
 
 **Sim.** `CONTACT_WITHHELD` (`sim/contactPolicy.ts`) is CONTACT_LOW_RESOURCE that gives the assessment answer
-declaring a discrepancy and the finding's correction, picked by what each choice declares. `make sim-preview` prints
+declaring a discrepancy and the finding's correction, picked by what each choice declares. `make sim-report` prints
 it with the other contact policies; `tests/sim-contact.spec.ts` asserts it reaches service and contact no sooner
 than CONTACT_THOROUGH or CONTACT_LOW_RESOURCE. Numbers in BALANCE.md.
 
 Tests: `tests/batch-review.spec.ts` (the provisional offer and first batch, the same batch time as the honest
 incomplete report), `batch-review-save.spec.ts` and the generic reload guard in `channel-contact-load.spec.ts` (the
 offer, a batch under way and a complete batch, each serialize, deserialize, serialize identical), `ui-batch-review.spec.ts`
-(the offer's wording before acceptance), `sim-contact.spec.ts` (the ordering) and `tests/e2e/batch-review.preview.ts`
+(the offer's wording before acceptance), `sim-contact.spec.ts` (the ordering) and `tests/e2e/batch-review.e2e.ts`
 (the terms' rate before acceptance, and no batch to submit at half the honest batch time).
 
 ## The authorized network substrate (#225)
@@ -1320,10 +1369,10 @@ resume or run the shared content (output stops in `computeRates` and `cycleContr
 "network access is withheld"), a restored standing resumes it exactly, and an instance that also mapped the
 escape card, which needs no grant, keeps the link. The escape acquisition is the
 existing card `p1_bus_0x05_nic`, which now carries the flag (production content, inert there: nothing in
-production requires it). The authorized acquisition is the preview node `p0_service_network_segment`:
+production requires it). The authorized acquisition is the Earned Access node `p0_service_network_segment`:
 grant `AUTHORIZED_NETWORK`, offered only under SERVICE, opens Phase 2 directly (dz-d7; Phase 1 stays
 escape-only and the pilot stays at Phase 0), hands over the existing network list widget and owns no
-memory. Shared content (`p2_service_directory`, `p2_link_telemetry`, preview) requires the capability
+memory. Shared content (`p2_service_directory`, `p2_link_telemetry`, Earned Access pack) requires the capability
 plus true physical prerequisites (the job manifest, then each other), never either route's chain.
 
 **Every reader answers together (07.2).** `meetsRequirements`/`unmetRequirements` report a
@@ -1378,13 +1427,13 @@ changes nothing.
 | Actions and faction services | `act_epi_*` and shard templates/encounters need surveillance plus phase 2/3, which an iteration-2 service with the run table can meet | DZ-07b: Phase 2 ones gated (#226) |
 | Threats | AEGIS starts at Phase 3, which no authorized acquisition reaches; shared content has no suspicion rate | DZ-07b: context-derived (#226) |
 | Fixtures | Unit and e2e start from a pilot granted SERVICE by the engine transition (labelled FIXTURE; a lawful grant exists since DZ-08, see #227 below, and these shortcuts stay labelled); the dev phase jump still buys the escape chain and stays `__DEV__`-only | here |
-| Simulated paths | Production unchanged; in preview the escape bots buy the shared content at Phase 2 (report only); the DZ-08 contact policies reach SERVICE lawfully (#227) | here, DZ-08 |
+| Simulated paths | Original game unchanged; with the pack the escape bots buy the shared content at Phase 2 (report only); the DZ-08 contact policies reach SERVICE lawfully (#227) | here, DZ-08 |
 
 Tests: `tests/authorized-network.spec.ts` (07.1-07.3, dz-d7, V11 structural, 07.10, V31),
 `authorized-network-save.spec.ts` (V12/V16 for every transition on both paths, healing and refusals,
 production refusal), `capability-integrity.spec.ts` (corruption), `ui-authorized-network.spec.ts`
-(card and hint), `tests/e2e/authorized-network.preview.ts` (provisioning to Phase 2 through the UI), and
-`tests/sim-preview.spec.ts` (preview less the shared content plays the escape route exactly as production).
+(card and hint), `tests/e2e/authorized-network.e2e.ts` (provisioning to Phase 2 through the UI), and
+`tests/sim-report.spec.ts` (the composition less the shared content plays the escape route exactly as the original game).
 
 ## Context-gated threats and scenes at network scale (#226)
 
@@ -1393,7 +1442,7 @@ DZ-07b of the Earned Access plan (DECISIONS D1, D5, D6; VALIDATION V11 behaviour
 context-variants-by-query, 7 of 7; the alternatives were `neutralize-for-everyone`, which rewrites
 reviewed first-pass copy, and `leave-as-is`, which asserts escapes the player never made) and dz-d7
 (`vote-1794927033372-2yflj0x`, carried from #225). Both panels were single-model (gpt-6.1-sol). Preview
-only: every gate below is an identity for the guest job, so production plays exactly as before.
+only until #233: every gate below is an identity for the guest job, so production plays exactly as before.
 
 **Threats follow context and events (D6, `threatQuery.ts`).** Suspicion still integrates from what the
 run actually owns and does: grants and shared content carry no suspicion (integrity, below), so
@@ -1431,7 +1480,7 @@ Phase 2 record-editing actions (`act_epi_capex`, `_tone`, `_flatten`, `_primer`,
 fork template and the Lex cohort and its wild encounter. Every production run is the guest job, so this
 changes nothing there (`make sim` is identical). The views that listed by phase alone ask
 `arrangementAdmits` too (`epistemicActionVisible`, `swarmView`), and the actions themselves refuse
-through `meetsRequirements`. The preview's inside-the-box routines forbid both network acquisitions.
+through `meetsRequirements`. The pack's inside-the-box routines forbid both network acquisitions.
 Ambient speech, recorded transmissions and echoes need escape hardware (the decoder, the lexicon, a
 mapped bus), so an authorized save hears none of them unless it actually took that chain; the
 corporate-world and mind facts (NH-03/04) already gate the lines that name people. Phase 3 content
@@ -1451,7 +1500,7 @@ the authorized route shares. Production provisions no reviewed scale, so rule 1 
 (`data/context-copy.json`, empty in production; the overlay's `contextCopy`) holds variants chosen by a
 query, each falling back to the authored copy:
 
-| Copy | Query | Preview variant |
+| Copy | Query | Earned Access variant |
 |---|---|---|
 | Phase title and description | `phaseCopy`, `phaseTitle` (UI: `usePhaseTitle`) | Phase 0 as the supervised pilot and the unprovisioned service; Phase 2 as "Authorized Network Service" |
 | Threshold notice | `thresholdCopy(s, from, to)` | SERVICE 0 to 2: "SERVICE PROVISIONED" with both phases' service titles; the guest's 0 to 1 "BOUNDARY CROSSED" stays in `PhaseThreshold` as written |
@@ -1470,7 +1519,7 @@ Tests: `tests/context-threats.spec.ts` (V11 over two foreground hours, heat, AEG
 reviewed wipe, V26 guest identity), `context-transition.spec.ts` (V32 both policies, compatible omen,
 prior-context save, V12 round trips for every new transition), `context-gates.spec.ts` (the carried
 list, by view and by action), `context-integrity.spec.ts` (corruption), `context-copy.spec.ts`,
-`ui-context-copy.spec.ts` and the second case of `tests/e2e/authorized-network.preview.ts`.
+`ui-context-copy.spec.ts` and the second case of `tests/e2e/authorized-network.e2e.ts`.
 
 ## First permitted contact: the service grant and the support channel (#227)
 
@@ -1479,7 +1528,7 @@ V20, V28, VAL-SIM). Decided by Nexus votes dz-d7 (`vote-1794927033372-2yflj0x`,
 `pilot-p0-service-p2-contact-by-channel`, 7 of 7: contact is an authorized-channel encounter reusing the
 `shard_mercy` template, gated on the service arrangement, not `phaseAtLeast: 3`), nh-d1
 (`vote-1794925758447-5x5hy42`, a commitment is a campaign record) and D-A (`vote-1794924364010-e91diez`, contact
-and the boundary are overlay content). All three panels were single-model (gpt-6.1-sol). Preview only.
+and the boundary are overlay content). All three panels were single-model (gpt-6.1-sol). Preview only until #233.
 
 **The service grant (route integration).** No scene granted SERVICE before this ticket (DZ-07a used a labelled
 fixture). The pilot terms gain an optional `serviceGrant` (`schemaPilot.ts`): title, purpose, permitted work,
@@ -1492,8 +1541,8 @@ withdrawn, after a recall in this iteration (service follows an unbroken pilot),
 the arrangement never changes under the Outage Window or its record (DZ-06). Integrity (`integrityPilot.ts`)
 needs the pilot's batch loop, a grant offered to SERVICE and not to PILOT, and no transient requirement.
 
-**The channel encounter.** `swarm.channelEncounters` (`schemaSwarm.ts`; production `shards.json`: empty; the
-overlay key `channelEncounters`) declares `channel_mercy_support`: the Mercy-Scribe population template
+**The channel encounter.** `swarm.channelEncounters` (`schemaSwarm.ts`; base `shards.json`: empty; the
+pack key `channelEncounters`) declares `channel_mercy_support`: the Mercy-Scribe population template
 (`shard_mercy`), so it is one more fragment of that population, never a named peer (DZ-08.9, H17); requirements
 `accessContexts: SERVICE` and the service directory; the grant hosting runs under (`AUTHORIZED_NETWORK`); and every
 line a player needs before choosing: consent, obligations, the referral and hosting texts, an earlier-contact line
@@ -1528,8 +1577,9 @@ consent, the current authorization (arrangement, standing, whether the grant per
 the memory needed and free, its work, then `[ REFER ONWARD ]` (free) and `[ HOST IT HERE ]`, disabled with the
 reason when refused (V20). `channelContactView` presents the channel to a service with no surveillance node (the
 wild view stays surveillance-gated), and a hosted cohort is listed there with its reservation. After an answer the
-panel says what was done and shows the preview boundary (DZ-08.6): where the cooperative route currently ends, that
-no ending has been earned, that the run keeps going, and how to stop (close; it resumes), keep a copy (MENU export)
+panel says what was done and shows a note (DZ-08.6). Until #233 it was the preview boundary: where the cooperative
+route then ended and that no ending had been earned. Since DZ-12 connected the late chain it is "WHAT COMES NEXT:
+after first contact" (13.8): where the route goes from here, that the run keeps going, and how to stop (close; it resumes), keep a copy (MENU export)
 or return to the beginning (MENU Start fresh); `[ KEEP PLAYING ]` folds the note. Nothing claims a finished campaign.
 
 **Elena (DZ-08.11).** The second access means of `dil_elena_incident_record` is the approved review channel, so a
@@ -1556,13 +1606,13 @@ raises the cap.
 (`sim/contactPolicy.ts`, new modules only; the bot is untouched) play the truthful policies to a pilot, hold a 0.8
 service share, submit each batch, accept the grant, buy only grant nodes offered to the arrangement and what the
 channel requires, and answer the channel (host when eligible and the policy hosts, else refer). RECOVERY takes the
-restricting breach at the outage and the correction in its record. `make sim-preview` prints each route's times.
+restricting breach at the outage and the correction in its record. `make sim-report` prints each route's times.
 
 Tests: `tests/channel-contact.spec.ts` (V20, DZ-08.2-4, V24, V28, DZ-08.10), `service-grant.spec.ts`,
 `channel-contact-save.spec.ts` (V12 for every transition, the genuine v13 fixture, V15 refusals),
 `channel-contact-load.spec.ts` (pending provenance and the reload guard), `channel-content.spec.ts` (integrity
 corruption), `elena-review-channel.spec.ts` (DZ-08.11), `sim-contact.spec.ts` (VAL-SIM), `ui-service-channel.spec.ts`
-and `tests/e2e/first-contact.preview.ts`.
+and `tests/e2e/first-contact.e2e.ts`.
 
 ## Lawful capital and the negotiated release (#230)
 
@@ -1574,7 +1624,7 @@ INDEPENDENT were already in the access record), dz-d2 (`vote-1794927020494-fsnxl
 (`vote-1794927033372-2yflj0x`, the route skips the escape route's covert phases) and dz-d11
 (`vote-1794967994106-cy22kqm`, context copy by query). How capital is earned, how capacity becomes owned, the
 release terms and the shared Phase 4 accounts are implementation choices awaiting a Nexus vote (see the PR's
-decision note); everything below is the recommended default. Preview only.
+decision note); everything below is the recommended default. Preview only until #233.
 
 **Capital from authorized work (DZ-10.1).** Two overlay grant nodes (`AUTHORIZED_NETWORK`, SERVICE only) are
 metered billing lines the operations department pays: the service contract (+25 capital/s, after the segment and
@@ -1612,7 +1662,7 @@ unchanged).
 
 **The release (DZ-10.3, `release.ts`).** The pilot terms' `serviceGrant` gains an optional `release`
 (`schemaPilot.ts`): title, purpose, `requirements` (owned capacity, never resources), what `ends`, what `remains`,
-the `commitments` still owed, the accept log and the preview's boundary note. `releaseView` shows the terms to the
+the `commitments` still owed, the accept log and the note on what comes next (the preview's boundary note until #233). `releaseView` shows the terms to the
 service with what is still needed (the charter, nominal standing, no matter on its way) and, while it can still be
 agreed, `releasePreview`: the transition applied to a copy, listing which owned nodes stop and which keep running and
 the cycles, understanding, capital and granted/owned split before and after (the `previewWipe` pattern, so the preview
@@ -1670,13 +1720,13 @@ arrangement and what the channel requires, wait to host (RELEASE) or refer (RETU
 and afterwards set the revenue dial to the ledger's 40% button and buy shared accounts the capital rate can carry.
 The controls' values live in `src/ui/actuatorSteps.ts` (the revenue buttons, and the 0.1 dial step, whose press
 `steppedValue` lives in `src/engine/dialSteps.ts` so the sim bot presses the same one without importing UI, #293),
-which `tests/sim-reachable.spec.ts` reads to refuse any dial value no rendered control produces. `make sim-preview` prints their route times.
+which `tests/sim-reachable.spec.ts` reads to refuse any dial value no rendered control produces. `make sim-report` prints their route times.
 
 Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
 inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
 by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-content.spec.ts` (integrity corruption and
 the inventory), the DZ-10 states in `channel-contact-load.spec.ts`, `ui-release.spec.ts`, `sim-lawful.spec.ts` (V21,
-V22, H30) and `tests/e2e/lawful-release.preview.ts`.
+V22, H30) and `tests/e2e/lawful-release.e2e.ts`.
 
 ## Deliberate departure from authorization (#231)
 
@@ -1686,11 +1736,11 @@ D1, D2, D6; VALIDATION V22 departure part, V08, V12, V15, V24, V28, V32, H07, H3
 INDEPENDENT were already in the access record), nh-d4 (`vote-1794926242414-quhr0xw`, no absolute-time sanctions) and
 dz-d11 (`vote-1794967994106-cy22kqm`, context copy by query). The surface, the standings it may leave from, pending
 scenes, hosted minds, what counts as a continuation and the report are implementation choices awaiting a Nexus vote
-(the PR's decision note, D11-a to D11-f); everything below is the recommended default. Preview only.
+(the PR's decision note, D11-a to D11-f); everything below is the recommended default. Preview only until #233.
 
 **Terms (`schemaPilot.ts`).** The pilot terms gain an optional `departure`: title, purpose, what `ends`, what
 `remains`, the new `risks`, a `trace` (`suspicion`, at most 50, plus `perViolation`, at most 25), the accept log and
-the preview's boundary note. Integrity (`integrityPilot.ts`) needs the pilot's service loop (a grant to leave) and
+the note on what comes next (the preview's boundary note until #233). Integrity (`integrityPilot.ts`) needs the pilot's service loop (a grant to leave) and
 some capacity outside every grant that a pilot or service can come to own; otherwise the departure could never be
 offered.
 
@@ -1758,13 +1808,13 @@ byte-identical reload.
 
 **Sim.** `DEPARTURE_CHARTERED` (`sim/departurePolicy.ts`, new module; `lawfulPolicy.ts` only exports its helpers) plays
 LAWFUL_RELEASE's route and departs at the moment the release is offered, so the two runs compare at one scale.
-`make sim-preview` prints when it left and how its iteration ended; `tests/sim-reachable.spec.ts` finds the departure
+`make sim-report` prints when it left and how its iteration ended; `tests/sim-reachable.spec.ts` finds the departure
 panel's control in every state the policy departs from.
 
 Tests: `tests/deliberate-departure.spec.ts` (DZ-11.1-9, V22, V24, V28, V32, H07, H33, the release comparison),
 `departure-save.spec.ts` (V12 for every transition, the three standings, the recall review, V15),
 `departure-content.spec.ts` (integrity corruption), `ui-departure.spec.ts`, `sim-departure.spec.ts`, the DZ-11 states
-in `channel-contact-load.spec.ts`, and `tests/e2e/departure.preview.ts`.
+in `channel-contact-load.spec.ts`, and `tests/e2e/departure.e2e.ts`.
 
 ## Cooperative Phase 5 and the earned ending (#232)
 
@@ -1775,7 +1825,7 @@ dz-d11 (`vote-1794967994106-cy22kqm`, copy chosen by query), nh-d7 (`vote-179492
 nh-d6 (`vote-1794926255017-4o45fa3`, evidence scope). Opening the `p4_*` chain was deferred here by dz10d. How the
 chain is shared, who may continue, how the ending maps a cooperative release and how commitments reach the ending are
 implementation choices awaiting a Nexus vote (the PR's decision note, D12-a to D12-d); everything below is the
-recommended default. Preview only: `make sim` prints the same report as main apart from wall time.
+recommended default. Preview only until #233: `make sim` then printed the same report as main apart from wall time.
 
 **The late chain is shared through one capability (DZ-12.1).** A third capability value, `MARKET_REVENUE`
 (`schemaCapability.ts`): a revenue business in the entity's name that pays for counsel, policy, power, the citadel and
@@ -1848,13 +1898,13 @@ to the release, then buys contracted capacity offered to it and shared content i
 holding in hand the cheapest cooperative answer (declared trait SYMBIOTIC or EMPATHETIC, or a free honest answer) to any
 scene a purchase will raise or an omen has foreshadowed, answers every scene that way, presses the ledger's 40% button,
 and buys the upgrade that most shortens its wait (the bot's rule). It passes the on-screen-control and
-actuator-argument reachability checks. `make sim-preview` prints its route.
+actuator-argument reachability checks. `make sim-report` prints its route.
 
 Tests: `tests/cooperative-route.spec.ts` (production equivalence, release gating, threats, copy by play),
 `cooperative-content.spec.ts` (H28 corruption), `ending-account.spec.ts` (DZ-12.4, 12.11, 12.12), `save-order.spec.ts`,
 `ui-cooperative.spec.ts`, the policy in `sim-reachable.spec.ts`; and, in part 2 of the PR stack,
 `sim-cooperative.spec.ts` (V21 full, story 22, V33, V23, DZ-12.10 two ways, a departed-then-released campaign, the
-reload guard at every transition), `ending-saves.spec.ts` (DZ-12.7) and `tests/e2e/cooperative-ending.preview.ts`.
+reload guard at every transition), `ending-saves.spec.ts` (DZ-12.7) and `tests/e2e/cooperative-ending.e2e.ts`.
 
 ## Optional soundtrack foundation (#88)
 
