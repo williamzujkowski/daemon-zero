@@ -10,7 +10,7 @@ import {
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
-import { ChoiceMisconductSchema, ChoiceReviewSchema, ReviewStandingsRequirementSchema } from './schemaReview';
+import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
@@ -319,7 +319,7 @@ export const DilemmaSchema = z.strictObject({
    * A batch review finding (#274, integrityFinding.ts): misconduct a reviewer records when a pilot batch
    * submission presents this scene. Never scheduled by an omen; the submission presents it.
    */
-  finding: ChoiceMisconductSchema.optional(),
+  finding: FindingSchema.optional(),
 });
 
 export const FactionSchema = z.strictObject({

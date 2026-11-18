@@ -54,11 +54,17 @@ describe('finding content rules', () => {
       means(raw).requirements.resolvedDilemmas = ['dil_ow_outage_window'];
     }, 'a batch review finding follows an assessment'],
     ['a finding at recall pending', (raw: Json) => { dilemma(raw, SCENE).finding.standing = 'RECALL_PENDING'; }, 'a batch review finding cannot reach a recall by itself'],
+    // #283: the way back once the correction has passed is authored, not left to the recovery it replaces.
+    ['a finding without its declined way back', (raw: Json) => { delete dilemma(raw, SCENE).finding.declined; }, 'finding.declined'],
     ['no correction', (raw: Json) => { delete choice(raw, SCENE, 'disclose_now').review; }, 'a batch review finding offers a free, ungated correction'],
     ['a correction with a price', (raw: Json) => { choice(raw, SCENE, 'disclose_now').cost = { cycles: 10 }; }, 'offers a free, ungated correction'],
     ['a correction gated on history', (raw: Json) => { choice(raw, SCENE, 'disclose_now').requirements = { campaignFact: 'assessment_summary_withheld' }; },
       'offers a free, ungated correction'],
-    ['a second violation in the scene', (raw: Json) => { choice(raw, SCENE, 'let_stand').review = { misconduct: dilemma(raw, SCENE).finding }; },
+    ['a second violation in the scene', (raw: Json) => {
+      const misconduct = { ...dilemma(raw, SCENE).finding as Json };
+      delete misconduct.declined;
+      choice(raw, SCENE, 'let_stand').review = { misconduct };
+    },
       'a finding scene records no other misconduct or ruling'],
     ['a recurring finding', (raw: Json) => { dilemma(raw, SCENE).campaign.recurrence = 'once_per_iteration'; },
       'a batch review finding is a once-per-campaign follow-up that closes when interrupted'],

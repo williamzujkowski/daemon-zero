@@ -5,7 +5,7 @@
  * what this instance submitted. Production ships no assignment, so it renders nothing there.
  */
 import { CONTENT } from '../content';
-import { acceptAssignment, assignmentView, type AssessmentPreview, type GameState } from '../engine';
+import { acceptAssignment, assignmentView, discrepancyFound, type AssessmentPreview, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import CostHint from './CostHint';
 import DisclosureText from './DisclosureText';
@@ -22,10 +22,11 @@ const view = (game: GameState) => assignmentView(game, CONTENT);
 function Submitted() {
   const result = useGame((game) => game.access.qualification?.result ?? null);
   const discrepancy = useGame((game) => game.access.qualification?.discrepancy ?? false);
+  const found = useGame((game) => discrepancyFound(game, CONTENT));
   const scope = useGame((game) => game.access.scope?.conduct ?? null);
   if (result === null) return null;
   return <>
-    <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted')}</Text>
+    <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted', found)}</Text>
     {scope !== null && <Text testID="assignment-scope" style={theme.muted}>Scope review: {scopeText(scope, 'this instance')}</Text>}
     <PilotOfferPanel />
     <ReviewStanding />
