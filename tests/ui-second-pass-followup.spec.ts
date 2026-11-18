@@ -4,6 +4,7 @@ import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
+import { labelMismatches } from './labelInName';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -52,6 +53,7 @@ describe('second-pass presentation follow-up', () => {
     for (const rung of CONTENT.balance.escalation) expect(view.find('response-rungs')?.textContent).toContain(String(rung.at) + '%');
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(view.find('response-notice')).not.toBeNull();
+    expect(labelMismatches(view.find('response-notice') ?? view.container)).toEqual([]);
     view.click('response-acknowledge');
     expect(view.find('response-notice')).toBeNull();
     load(m4State('response-stand-down-ready'));

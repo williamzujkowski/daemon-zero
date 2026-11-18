@@ -18,6 +18,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
 import { campaignRecord, pinClue, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
+import { labelMismatches } from './labelInName';
 import DeadDrop from '../src/ui/widgets/DeadDrop';
 import DilemmaModal from '../src/ui/DilemmaModal';
 import { RunTable } from '../src/ui/widgets/Lineage';
@@ -59,8 +60,11 @@ describe('the clue pin beside the breadcrumb', () => {
     const view = await mount(withDeadDrop(noteOmen()), createElement(DeadDrop));
     expect(view.find('clue-pinned')?.textContent).toBe('Pinned: None');
     expect(view.container.querySelectorAll('[data-testid^="clue-pin-"]')).toHaveLength(1);
+    expect(labelMismatches(view.container)).toEqual([]);
     view.click('clue-pin-' + note.id);
     expect(game().campaign.clue?.event).toBe(note.id);
+    expect(view.find('clue-clear')?.getAttribute('aria-label')).toBe('Clear pin: remove the pinned clue');
+    expect(labelMismatches(view.container)).toEqual([]);
     expect(view.find('clue-pinned')?.textContent).toBe(`Pinned: ${note.title} // ${preview.campaign.labels.foreshadowed}`);
     view.click('clue-clear');
     expect(game().campaign.clue).toBeNull();

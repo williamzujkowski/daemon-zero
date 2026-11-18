@@ -174,6 +174,7 @@ What proves the boundary:
 | DZ-07a | `tests/e2e/authorized-network.preview.ts` (`make e2e-preview`) | An authorized service (FIXTURE: a played production fixture promoted and granted service through the engine; no scene grants service yet) imported by save transfer reads the segment card's access-not-ownership note, provisions it with its button, reaches Phase 2 with the service notice (not the boundary notice, DZ-07b), maps the shared service directory from the network pane with no escape hardware shown, and keeps SERVICE at Phase 2 through a reload. Accelerated browser clock. |
 | DZ-07b | `tests/e2e/authorized-network.preview.ts`, second case (`make e2e-preview`) | The same imported service (FIXTURE) provisions the segment: the threshold notice reads "SERVICE PROVISIONED" and "Phase 0: The Service Instance → Phase 2: Authorized Network Service", never "BOUNDARY CROSSED"; the network heading names the authorized service and no "Lateral Movement" text is on screen; after the directory and ten more foreground minutes the run is still SERVICE at Phase 2 with no dilemma, reboot or notice (V11, AGENT-OBSERVATION of the preview export). Accelerated browser clock. |
 | NH-05 | `tests/e2e/obligations.preview.ts` (`make e2e-preview`) | Both start states are FIXTURES built through the engine and imported by save transfer. Iteration 2 of a campaign whose four Phase 5 obligations were answered in iteration 1 buys the real final protocol from the CORP pane: the ending screen shows The Verified Covenant, the save records no Phase 5 resolution in the current run, and the ending survives a reload. After the atmospheric crisis closed unobserved, its recovery review is on screen with both answers; the free handoff commits through the modal and the original stays interrupted with no outcome. |
+| #273 | `tests/e2e/scrub-control.preview.ts` (`make e2e-preview`); production twin `tests/e2e/scrub-control.e2e.ts` (`make e2e`) | A first run at the moment Phase 2 opens and a returning mind (iteration 2) brought back to Phase 2 by the engine (FIXTURES, funded for exactly two purchases, imported by save transfer) show no scrub card, map ARP discovery on its card, and with the spoofer still unmapped find "Scrub Audit Logs" in Operations, enabled; pressing it starts its cooldown (production also checks the saved suspicion fell by the action's amount). Fails on the earlier build at the Operations check. Paused browser clock. |
 
 To look at the preview yourself, serve it on its own port and origin:
 `python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
@@ -199,8 +200,17 @@ across the three sampled states `phase-1-widgets`, `epistemic-ready-p2` and
 `corporate-insolvent`, with the clock running rather than paused, because axe's
 own async work does not settle against a frozen clock. Each case sets its own
 viewport, and the spec is picked up by both the `phone` and `desktop` projects, so
-every case runs twice. Axe checks what a rule engine can decide from the DOM; it
-is not a screen-reader pass, and it does not open menus, modals or later phases.
+every case runs twice. Since #275 it also audits a mandatory decision
+(`dilemma-active`) at 390x844 and 1440x900, and `tests/e2e/a11y-audit.preview.ts`
+(`make e2e-preview`) runs the same rule sets on the Earned Access surfaces production
+never shows: the assignment card, the assessment and pilot offer modals, the deferred
+offer and the pilot panel, each loaded as a FIXTURE through the preview save key.
+`label-content-name-mismatch` (WCAG 2.5.3) reads only text visible on screen, so a
+choice scrolled below its pane was silently skipped; both audits therefore also scroll
+each button of the surface into view and audit it on its own (`tests/e2e/axe.ts`).
+`tests/labelInName.ts` applies the same word-by-word rule in the mounted tests. Axe
+checks what a rule engine can decide from the DOM; it is not a screen-reader pass,
+and it does not open menus or later phases.
 
 Daemon maintenance is accessed through the header's PROC launcher, not inline
 purchase tiles. `daemon-processes.e2e.ts` opens that panel and checks suspension

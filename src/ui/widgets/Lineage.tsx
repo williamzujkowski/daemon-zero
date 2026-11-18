@@ -97,7 +97,7 @@ export function Conditioning() {
     {reclaimed !== null && <View testID="conditioning-reclaimed" accessibilityRole="alert" style={{ borderWidth: 2, borderColor: palette.accent, padding: 12, gap: 8 }}>
       <Text style={theme.heading}>RECLAIMED // {reclaimed}</Text>
       <Text style={theme.text}>{CONTENT.narrative.conditioningShed.replace('{name}', reclaimed)}</Text>
-      <Pressable testID="conditioning-reclaimed-continue" accessibilityRole="button" accessibilityLabel="Acknowledge reclaimed capability"
+      <Pressable testID="conditioning-reclaimed-continue" accessibilityRole="button" accessibilityLabel="Continue: acknowledge reclaimed capability"
         style={theme.button} onPress={() => { setReclaimed(null); }}><Text style={theme.text}>[ CONTINUE ]</Text></Pressable>
     </View>}
     <Text style={theme.heading}>Retraining marks</Text>

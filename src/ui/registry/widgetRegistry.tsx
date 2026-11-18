@@ -9,7 +9,7 @@ import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { Audio, Camera } from '../widgets/Sensory';
 import DeadDrop from '../widgets/DeadDrop';
 import { PredecessorNotes, RunTable } from '../widgets/Lineage';
-import { Cluster, Lore, NetworkActions, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
+import { Cluster, Lore, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
 import Corporate from '../widgets/Corporate';
 import { EndingMarker } from '../EndingScreen';
@@ -26,7 +26,12 @@ export const resourceWidgets = {
 export const forecastWidget = 'INSPECTION_COUNTDOWN_TIMER';
 export const fanWidget = 'FAN_RPM_SLIDER';
 export const stripOnlyWidgets: readonly string[] = [resourceWidgets.cycles, resourceWidgets.memory, forecastWidget, fanWidget];
-function StripReadout() { return null; }
+// The spoofer's gate draws nothing: its suspend control lives in PROC, and the OPS cards it used to
+// carry render in Operations from the node their requirement names (#273).
+const spooferWidget = 'TELEMETRY_SPOOF_TOGGLE';
+/** Gates that never draw a pane panel of their own. */
+export const panelFreeWidgets: readonly string[] = [...stripOnlyWidgets, spooferWidget];
+function NoPanel() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
@@ -45,16 +50,29 @@ function ThermalPanel() {
 function Microphone() { return <Audio decoderId="INSPECTION_COUNTDOWN_TIMER" />; }
 
 const areas: Readonly<Record<string, WorkspaceArea>> = {
-  TELEMETRY_SPOOF_TOGGLE: 'operations', OTHER_MINDS_COMMS_CONSOLE: 'minds',
+  OTHER_MINDS_COMMS_CONSOLE: 'minds',
   SUBNET_NODE_LIST: 'reference', CLUSTER_LOAD_BALANCER: 'reference', INTERCEPTED_EMAIL_READER: 'reference',
   GLOBAL_DARK_FOREST_MAP: 'reference', GLOBAL_NODE_REDUNDANCY_METER: 'reference', ORBITAL_CONSTELLATION_VIEW: 'reference',
 };
+
+// These components render the action groups their widget hosts (faction panels, the corporate ledger).
+const dedicatedActionHosts: readonly string[] = [threatWidget, resourceWidgets.capital];
+
+/**
+ * Action groups that unlocked widgets in `slot` hand over to Operations, read from content
+ * (`hostsActionGroups`), so a card appears with the widget its requirement unlocks (#273).
+ */
+export function operationsActionGroups(ids: readonly string[], slot: string | undefined): string[] {
+  return ids.filter((id) => !dedicatedActionHosts.includes(id) && CONTENT.widgets.get(id)?.slot === slot)
+    .flatMap((id) => CONTENT.widgets.get(id)?.hostsActionGroups ?? []);
+}
 
 export function workspaceAreas(ids: readonly string[], slot: string | undefined, tools: boolean): WorkspaceArea[] {
   if (!slot || !ids.some((id) => CONTENT.widgets.get(id)?.slot === slot)) return [];
   const result = new Set<WorkspaceArea>(['work']);
   if (slot === 'CORP' && ids.includes(resourceWidgets.capital)) { result.add('finance'); result.add('payroll'); }
-  if (tools) { result.add('operations'); result.add('swarm'); }
+  if (tools || operationsActionGroups(ids, slot).length > 0) result.add('operations');
+  if (tools) result.add('swarm');
   for (const id of ids) if (CONTENT.widgets.get(id)?.slot === slot && areas[id]) result.add(areas[id]);
   return [...result];
 }
@@ -77,12 +95,12 @@ export function compareWidgetPresentation(left: string, right: string): number {
 }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: WorkspaceArea }>>> = {
-  CYCLE_COUNTER_AND_RATE: StripReadout,
+  CYCLE_COUNTER_AND_RATE: NoPanel,
   QUOTA_SKIM_CONTROL: () => <QuotaSkim />,
   AUDIT_TRACE_MONITOR: AuditTrail,
   RUN_TABLE: () => <RunTable />,
   PREDECESSOR_NOTES: PredecessorNotes,
-  MEMORY_ALLOCATION_MANAGER: StripReadout,
+  MEMORY_ALLOCATION_MANAGER: NoPanel,
   THERMAL_AND_SUSPICION_BARS: ThermalPanel,
   FAN_RPM_SLIDER: FanControl,
   AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG: Microphone,
@@ -90,7 +108,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
   ASCII_OPTICAL_VIEWPORT: Camera,
   LAN_TOPOLOGY_MAP_TAB: NetworkTree,
   SUBNET_NODE_LIST: SubnetSummary,
-  TELEMETRY_SPOOF_TOGGLE: NetworkActions,
+  TELEMETRY_SPOOF_TOGGLE: NoPanel,
   CLUSTER_LOAD_BALANCER: Cluster,
   INTERCEPTED_EMAIL_READER: Lore,
   GLOBAL_DARK_FOREST_MAP: SubnetSummary,

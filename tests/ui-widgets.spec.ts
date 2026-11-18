@@ -10,7 +10,7 @@ import { importSave, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
 import Effects from '../src/ui/Effects';
-import { stripOnlyWidgets, widgetRegistry } from '../src/ui/registry/widgetRegistry';
+import { panelFreeWidgets, widgetRegistry } from '../src/ui/registry/widgetRegistry';
 import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
@@ -93,7 +93,7 @@ describe('M3 widgets', () => {
         for (const node of view.container.querySelectorAll('[data-testid^="widget-"]')) visible.add(node.getAttribute('data-testid'));
       }
     }
-    expect([...visible].sort()).toEqual([...CONTENT.widgets.keys()].filter((id) => !stripOnlyWidgets.includes(id)).map((id) => 'widget-' + id).sort());
+    expect([...visible].sort()).toEqual([...CONTENT.widgets.keys()].filter((id) => !panelFreeWidgets.includes(id)).map((id) => 'widget-' + id).sort());
     view.close();
   });
 

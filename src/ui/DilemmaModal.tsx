@@ -46,7 +46,9 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
-    <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button" accessibilityLabel={choice.label}
+    {/* The name starts with the words on the button, then says which choice it commits (WCAG 2.5.3). */}
+    <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button"
+      accessibilityLabel={(affordable ? 'Commit directive: ' : 'Unavailable: ') + choice.label}
       disabled={!affordable} style={[theme.button, !affordable && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => resolveDilemma(game, dilemmaId, choice.id, CONTENT, token)); }}>
       <Text style={theme.text}>{affordable ? '[ COMMIT DIRECTIVE ]' : '[ UNAVAILABLE ]'}</Text>

@@ -7,24 +7,24 @@
  * ui-sizes.e2e.ts: two phone, two two-column, one three-column) and every
  * sampled state, and fails on
  * any violation - so a regression is a red gate rather than a rediscovery.
+ * A mandatory decision is audited too, at one phone and one desktop size: the
+ * modal is where every choice button lives, and the screen states never open one,
+ * so a label-in-name failure there went unseen (#275).
  *
  * Deliberately does NOT install the suite's paused fake clock: axe's own async
  * work never settles against a frozen clock, and the live loop changes numbers,
  * not structure.
  */
 import { test, expect, type Page } from '@playwright/test';
-import path from 'node:path';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize } from '../../src/engine';
+import { axeEachControl, axeViolations } from './axe';
 
 const fixtures = makeFixtures();
 const STATES = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] as const;
 const SIZES = [[320, 568], [390, 844], [768, 1024], [900, 640], [1440, 900]] as const;
-const RULES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
-
-interface AxeViolation { id: string; impact: string; nodes: { target: string[] }[]; help: string }
-interface AxeGlobal { axe: { run(context: unknown, options: unknown): Promise<{ violations: AxeViolation[] }> } }
+const MODAL_SIZES = [[390, 844], [1440, 900]] as const;
 
 async function openLive(page: Page, fixture: string): Promise<void> {
   const code = fixtures[fixture];
@@ -48,19 +48,22 @@ for (const size of SIZES) {
     test('axe ' + size.join('x') + ' ' + state, async ({ page }) => {
       await page.setViewportSize({ width: size[0], height: size[1] });
       await openLive(page, state);
-      await page.addScriptTag({ path: path.join(process.cwd(), 'node_modules/axe-core/axe.min.js') });
-      const violations = await page.evaluate(async (rules) => {
-        const { axe } = globalThis as unknown as AxeGlobal;
-        const result = await axe.run({ exclude: [] }, { runOnly: rules, resultTypes: ['violations'] });
-        return result.violations.map((v) => ({
-          id: v.id,
-          impact: v.impact,
-          help: v.help,
-          nodes: v.nodes.length,
-          sample: v.nodes.slice(0, 2).map((n) => n.target.join(' ')),
-        }));
-      }, RULES);
+      const violations = await axeViolations(page);
       expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
     });
   }
+}
+
+for (const size of MODAL_SIZES) {
+  test('axe ' + size.join('x') + ' dilemma modal', async ({ page }) => {
+    await page.setViewportSize({ width: size[0], height: size[1] });
+    await openLive(page, 'dilemma-active');
+    await expect(page.getByTestId('dilemma-modal')).toBeVisible();
+    const violations = await axeViolations(page);
+    expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+    // The audit must reach the controls it is here for, each on screen, not just an open dialog.
+    const controls = await axeEachControl(page, page.getByTestId('dilemma-modal'));
+    expect(controls.audited).toBeGreaterThan(1);
+    expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
+  });
 }

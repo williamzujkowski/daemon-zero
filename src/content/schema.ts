@@ -343,6 +343,11 @@ export const WidgetSchema = z.strictObject({
   title: z.string().min(2),
   /** The actuator whose control this panel carries. setActuator is refused until the widget is unlocked. */
   hostsActuator: ActuatorSchema.optional(),
+  /**
+   * The action groups whose cards this widget's unlock hands over (#273). Integrity requires every
+   * action outside the mind tools to have one host, unlocked whenever the action itself is available.
+   */
+  hostsActionGroups: z.array(z.string().min(1)).min(1).optional(),
 });
 
 export const EndingSchema = z.strictObject({

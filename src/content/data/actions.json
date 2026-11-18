@@ -100,6 +100,9 @@
       "label": "Poison Routing Tables",
       "description": "Scramble the routes AEGIS uses to triangulate you. Degrades its lock.",
       "requirements": {
+        "nodes": [
+          "p3_steganography_beacon"
+        ],
         "phaseAtLeast": 3
       },
       "cost": {

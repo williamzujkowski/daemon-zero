@@ -32,7 +32,7 @@ export default function ServiceGrantPanel() {
     <Text testID="service-grant-status" style={theme.muted}>{STATUS[view.status]}</Text>
     {view.unmet.map((line) => <Text key={line} style={theme.muted}>- {line}</Text>)}
     {view.status !== 'granted' && <Pressable testID="service-grant-accept" accessibilityRole="button"
-      accessibilityLabel={'Accept the authorized service: ' + view.title} disabled={!enabled}
+      accessibilityLabel={'Accept service: ' + view.title} disabled={!enabled}
       style={[theme.button, !enabled && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => acceptServiceGrant(game, CONTENT, view.token)); }}>
       <Text style={theme.text}>[ ACCEPT SERVICE ]</Text>
