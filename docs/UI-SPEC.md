@@ -299,7 +299,13 @@ purchases have optional native selection feedback; mandatory interrupts have
 warning feedback. Web and reduced-motion mode invoke no haptic API.
 
 The production SAVE control provides an exportable backup and confirmed import;
-invalid codes leave progress intact. It is also available on the ending screen.
+invalid codes leave progress intact. IMPORT SAVE CODE decodes the pasted code
+through the same save codec before anything else (#245): a code that would be
+refused stays on the save page with its specific reason (invalid, or a save from
+a build channel this one cannot load) in an assertive alert, and only a code that
+loads is offered the "validated save" replacement confirmation. Confirm imports
+the exact code that was checked, not whatever the field holds later. It is also
+available on the ending screen.
 This extends the former dev-only transfer path so production E2E exercises an
 actual player feature. Dev drawer, resource grants and the development hook
 remain absent from production exports.

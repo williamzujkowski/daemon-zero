@@ -52,8 +52,8 @@ test('a pasted preview save code is refused by name and the run is unchanged aft
   await openSave(page);
   await page.getByTestId('save-code').fill(code);
   await page.getByTestId('save-import').click();
-  await page.getByTestId('save-import-confirm').click();
   await expect(page.getByTestId('save-transfer-status')).toHaveText('This save comes from a preview build and cannot be loaded here.');
+  await expect(page.getByTestId('save-import-dialog')).toHaveCount(0);
   expect(run(await readSave(page))).toEqual(before);
   await page.reload();
   await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
