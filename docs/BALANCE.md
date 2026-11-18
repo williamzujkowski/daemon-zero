@@ -1085,9 +1085,9 @@ budget 7200 s. DEPARTURE_CHARTERED plays LAWFUL_RELEASE's route and leaves at th
 | Policy | Phase 4 | Departure | After leaving | Iteration 1 ended | Wipes |
 |---|---:|---:|---|---|---:|
 | LAWFUL_RELEASE | 2371.8 s | (release at 2371.8 s) | no sweep, AEGIS lock 0 | still running at the budget | 0 |
-| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3513.5 s after leaving | 1 |
+| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3330.7 s after leaving | 1 |
 
 In the public-play chartered state of `tests/lawful-helpers.ts`, departing keeps the owned output (1,488.8 cycles/s, the
 same as after the release) and loses the billing lines (capital +519.3/s to +434.3/s). It cannot yet afford the AEGIS-reducing payroll the released company
-hires, so the sweep ends the iteration after about 59 foreground minutes; offline time stays safe (dormancy), and the next
+hires, so the sweep ends the iteration after about 56 foreground minutes; offline time stays safe (dormancy), and the next
 instance requalifies as a guest. That is the measured cost of leaving at this scale, not a tuning target.
