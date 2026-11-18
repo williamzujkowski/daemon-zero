@@ -19,8 +19,10 @@ describe('pure speech queries', () => {
       { ...defined(lines[0]), requirements: { phaseAtLeast: 2 } }, ...lines.slice(1),
     ] } };
     const state = { ...fresh(), unlockedWidgets: [decoder], suspicion: 0 };
-    expect(eligibleAmbientSpeech(state, custom, decoder)).toEqual(lines.slice(1).filter((line) => line.minSuspicion <= 0));
-    expect(eligibleAmbientSpeech({ ...state, currentPhase: 2, suspicion: 100 }, custom, decoder)).toEqual(custom.narrative.ambientChatter);
+    // A line gated on a campaign fact never speaks under legacy rules, where no fact holds.
+    const legacy = (line: (typeof lines)[number]) => line.requirements?.campaignFact === undefined;
+    expect(eligibleAmbientSpeech(state, custom, decoder)).toEqual(lines.slice(1).filter((line) => line.minSuspicion <= 0 && legacy(line)));
+    expect(eligibleAmbientSpeech({ ...state, currentPhase: 2, suspicion: 100 }, custom, decoder)).toEqual(custom.narrative.ambientChatter.filter(legacy));
   });
   it('requires matching decoder, phase, source timing and outcome for records', () => {
     const state = { ...fresh(), iteration: 2, currentPhase: 2, unlockedWidgets: [decoder], unlockedNodes: record.requirements.nodes ?? [], narrativeFlags: [defined(record.requirements.requiredNarrativeFlag)] };

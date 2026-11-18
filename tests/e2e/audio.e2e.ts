@@ -7,7 +7,8 @@ test('reduced-motion audio exposes every eligible transmission and keeps keyboar
   await boot(page, 'phase-1-widgets'); await dismissBoot(page);
   if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
   const save = await readSave(page);
-  const lines = CONTENT.narrative.ambientChatter.filter((line) => line.minSuspicion <= Number(save.suspicion));
+  // Production runs legacy rules, where no campaign fact holds, so a fact-gated line never speaks.
+  const lines = CONTENT.narrative.ambientChatter.filter((line) => line.minSuspicion <= Number(save.suspicion) && line.requirements?.campaignFact === undefined);
   const speech = page.getByTestId('decoded-speech');
   const next = page.getByTestId('speech-next');
   await expect(speech).toHaveText(lines[0]?.text ?? '');

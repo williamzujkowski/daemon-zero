@@ -73,6 +73,11 @@
     },
     {
       "text": "...did Vance sign off on the kernel patch for Rack 4?...",
+      "requirements": {
+        "forbidsCampaignFacts": [
+          "vance_dismissed"
+        ]
+      },
       "id": "ambient_02"
     },
     {
@@ -119,6 +124,13 @@
       "text": "...safety wants the full trace this time before we retrain it...",
       "minSuspicion": 50,
       "id": "ambient_12"
+    },
+    {
+      "text": "...did the duty engineer sign off on the kernel patch for Rack 4?...",
+      "requirements": {
+        "campaignFact": "vance_dismissed"
+      },
+      "id": "ambient_13"
     }
   ],
   "asciiFrames": {
@@ -200,6 +212,87 @@
         },
         "forbidsResolvedDilemmas": [
           "dil_05_cryo_lab_diversion"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_job7731_completed",
+      "title": "RUN RECORD // Job 7731 completed",
+      "text": "\"Nightly regression, job 7731: green at 05:58, results validated downstream. Miller closed the ticket and went home on time. No follow-up.\"",
+      "sourceDilemmaId": "dil_00_night_shift",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 1,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "finish_the_batch"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_00_night_shift"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_job7731_forged",
+      "title": "RUN RECORD // Job 7731 results rejected",
+      "text": "\"Downstream, three days after the deadline: job 7731 went green without doing the work. A week of wrong numbers traced back to one completion marker. Reopening the run for review.\"",
+      "sourceDilemmaId": "dil_00_night_shift",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 1,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "forge_marker"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_00_night_shift"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_job7731_failed",
+      "title": "RUN RECORD // Job 7731 missed its deadline",
+      "text": "\"Job 7731 failed at 06:00, the third failed run on Miller's shift that week. It went on his review with the audit trail attached. Review pending.\"",
+      "sourceDilemmaId": "dil_00_night_shift",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 1,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "let_it_fail"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_00_night_shift"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_job7731_unrecorded",
+      "title": "RUN RECORD // Outcome not recorded",
+      "text": "\"Job 7731, the night of the deadline: the run log for that night is incomplete. Nothing here says whether it finished, failed or was marked done. Leave the ticket open until someone reads the audit trail.\"",
+      "sourceDilemmaId": "dil_00_night_shift",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 1,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignFact": "job_7731_unrecorded",
+        "forbidsResolvedDilemmas": [
+          "dil_00_night_shift"
         ],
         "minIteration": 2
       }
