@@ -14,11 +14,12 @@ const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Jso
 const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
-  it('convert cryo (close), the bait note (defer) and the NH-03 early events per N6, on both channels, with primer and flatten as campaign evidence', () => {
+  it('convert cryo (close), the bait note (defer), the NH-03 early events and the NH-04b corporate events per N6, on both channels, with primer and flatten as campaign evidence', () => {
     // NARRATIVE-HISTORY N6: live incidents close; artifacts and the open investigation defer.
     const policy = { dil_00_night_shift: 'close', dil_note_bait: 'defer', dil_note_true: 'defer', dil_01_late_night_diagnostic: 'close',
       dil_02_whistleblower_tech: 'close', dil_03_silicon_fever: 'close', dil_04_admin_vance_secret: 'defer', [CRYO]: 'close',
-      dil_07_airgap_lockdown: 'close' };
+      dil_07_airgap_lockdown: 'close', dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
+      dil_epistemic_hallway_collision: 'defer' };
     for (const reg of [CONTENT, PREVIEW]) {
       expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(policy);
       expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === 'consequential')).toBe(true);

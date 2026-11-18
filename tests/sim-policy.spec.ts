@@ -17,13 +17,13 @@ const SLOW_MS = 30_000;
 
 describe('sim policy catalog', () => {
   it('lists the bot strategies and the reference plug-in', () => {
-    expect([...SIM_POLICIES.keys()]).toEqual(['STEALTH', 'GREEDY', 'IDLE']);
+    expect([...SIM_POLICIES.keys()]).toEqual(['STEALTH', 'GREEDY', 'IDLE', 'STEALTH_RETURN']);
     expect(resolvePolicy(SIM_POLICIES, 'STEALTH')).toBe(STEALTH_POLICY);
     expect(resolvePolicy(SIM_POLICIES, 'IDLE')).toBe(IDLE_POLICY);
   });
 
   it('rejects an unknown strategy and names the known ones', () => {
-    expect(() => resolvePolicy(SIM_POLICIES, 'HONEST')).toThrow('unknown sim policy "HONEST" (known: STEALTH, GREEDY, IDLE)');
+    expect(() => resolvePolicy(SIM_POLICIES, 'HONEST')).toThrow('unknown sim policy "HONEST" (known: STEALTH, GREEDY, IDLE, STEALTH_RETURN)');
     expect(() => resolvePolicy(SIM_POLICIES, 'stealth')).toThrow('unknown sim policy');
   });
 

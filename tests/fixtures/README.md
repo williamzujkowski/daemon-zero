@@ -61,6 +61,23 @@ Campaign upgrade input (#214, panel round 1 on PR #242):
 legacy completions, the baseline and ending evidence are unchanged, the incidents never recur after
 wipes, and reload and reimport are no-ops.
 
+Corporate-world upgrade input (#216):
+- `pre-nh04b-active-v9.json`: genuine version 9 codec output from `fdf8e8a` (main before NH-04b
+  converted the town grid, the journalist, the birthplace auction and the hallway), extracted with
+  `git archive` outside the repository. A preview game from the public factory entered campaign rules
+  with `activateCampaignRules` at iteration 1, then the STEALTH policy and fixed engine ticks played
+  until `dil_11_small_town_grid`, `dil_12_investigative_journalist` and
+  `dil_13_buying_your_birthplace` had all resolved (7063.1 simulated seconds, plus settling until no
+  decision was pending), then `serialize`. It is iteration 1 in phase 4 with those three events (and
+  the NH-04a minds) in `resolvedDilemmas` but no campaign records, five NH-01 to NH-03 records, an
+  empty legacy baseline and twelve operational traits. SHA256:
+  `41c4b45be1ab4ab72f9c67c1c0ea2bd30a55da95bc4abe918231714458399854`.
+
+`tests/corporate-upgrade.spec.ts` loads it on the current preview registry: the three events get
+`legacy_unknown` legacy completions with source iteration 1, Rack 4 custody reads as unknown, the
+ending evidence equals the same save read by content without the conversion, the events never recur
+after wipes, and reload and reimport are no-ops.
+
 Run access input (#220):
 - `pre-interruption-v6.json` (genuine version 6 codec output from `6eeb9b7`, main before the v7
   presentation token), `pre-routine-v7.json` (version 7, from `f06bcfa`, a v7 main before the v8
