@@ -293,6 +293,13 @@ each button of the surface into view and audit it on its own (`tests/e2e/axe.ts`
 `tests/labelInName.ts` applies the same word-by-word rule in the mounted tests. Axe
 checks what a rule engine can decide from the DOM; it is not a screen-reader pass,
 and it does not open menus or later phases.
+Axe also cannot tell that a line styled as a title should be a heading, so
+`a11y-audit.e2e.ts` has `headings` cases (390x844 and 1440x900, its three states)
+that read the heading outline through `tests/e2e/headings.ts` and require every
+widget panel and node card title in it at its level (UI-SPEC.md, Accessibility),
+each found by Playwright's role engine, with no heading more than one level below
+the one before it (#302). `route-semantics.e2e.ts` applies the same check to the
+route's node card and widget surfaces.
 
 Daemon maintenance is accessed through the header's PROC launcher, not inline
 purchase tiles. `daemon-processes.e2e.ts` opens that panel and checks suspension

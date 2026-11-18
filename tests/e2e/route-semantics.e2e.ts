@@ -10,6 +10,7 @@ import { CONTENT as PREVIEW } from '../../src/content';
 import { runContextView } from '../../src/engine';
 import { contextLabel } from '../../src/ui/runContext';
 import { labelInName } from '../labelInName';
+import { expectedLevel, outlineProblems, readOutline } from './headings';
 import { openRouteState } from './routeSave';
 import { ROUTE_STATES } from './routeStates';
 
@@ -40,9 +41,16 @@ for (const entry of ROUTE_STATES) {
     await openRouteState(page, entry);
     const scope = page.getByTestId(entry.scope);
     expect(await controlProblems(scope)).toEqual([]);
-    // Not checked: a node card and a widget panel are titled by shared production lines styled as headings but not
-    // exposed as one (docs/REVIEW-ROUTE-A11Y.md, left to a production change), and a chrome notice is a status line.
-    if (!/^(node-|widget-|contact-notice$)/.test(entry.scope)) expect(await scope.getByRole('heading').count(), 'the surface has a heading').toBeGreaterThan(0);
+    // A chrome notice is a status line, not a surface with a heading. A node card and a widget panel are titled by
+    // a heading at their place in the outline (#302), and the outline around them must stay navigable.
+    if (entry.scope !== 'contact-notice') expect(await scope.getByRole('heading').count(), 'the surface has a heading').toBeGreaterThan(0);
+    if (/^(node-|widget-)/.test(entry.scope)) {
+      const outline = await readOutline(page);
+      const surface = outline.surfaces.find((candidate) => candidate.kind + '-' + candidate.id === entry.scope);
+      expect(surface, 'the surface is titled').toBeDefined();
+      expect(outlineProblems(outline)).toEqual([]);
+      if (surface) await expect(scope.getByRole('heading', { level: expectedLevel(surface), name: surface.title }).first()).toBeAttached();
+    }
     if (entry.disclosure !== undefined) await expect(page.getByTestId(entry.disclosure)).toHaveAttribute('aria-expanded', /^(true|false)$/);
     for (const [id, [attribute, value]] of Object.entries(LIVE)) {
       if (await scope.getByTestId(id).count()) await expect(scope.getByTestId(id)).toHaveAttribute(attribute, value);

@@ -3,6 +3,7 @@
  */
 import { createContext, useContext, type ComponentProps, type ReactNode } from 'react';
 import { Pressable as NativePressable, Text as NativeText, View as NativeView, StyleSheet, type StyleProp, type TextStyle } from 'react-native';
+import { useInheritedLevel } from './headingLevel';
 import { useGame } from './state';
 import { palette } from './theme';
 
@@ -40,11 +41,13 @@ function useColour(style: StyleProp<TextStyle>): StyleProp<TextStyle> {
   }
   return [style, overrides];
 }
+// Every heading is drawn through these two, so the outline level a section sets (headingLevel.tsx) reaches
+// each heading inside it without every widget threading a level down by hand.
 export function Text(props: ComponentProps<typeof NativeText>) {
-  return <NativeText {...props} style={useColour(props.style)} />;
+  return <NativeText {...props} {...useInheritedLevel(props)} style={useColour(props.style)} />;
 }
 export function View(props: ComponentProps<typeof NativeView>) {
-  return <NativeView {...props} style={useColour(props.style)} />;
+  return <NativeView {...props} {...useInheritedLevel(props)} style={useColour(props.style)} />;
 }
 export function Pressable(props: Omit<ComponentProps<typeof NativePressable>, 'style'> & { style?: StyleProp<TextStyle> }) {
   return <NativePressable {...props} style={useColour(props.style)} />;
