@@ -68,9 +68,12 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
   const result = await readThrough(page, REST_MS);
   const score = find(result, '/audio/music/'); const clip = find(result, '/voice/');
   expect(score.startFrame, 'both captures share one timeline').toBe(clip.startFrame);
-  const music = await matched(page, score);
-  expect(music.correlation).toBeGreaterThan(0.999);
   const talking = span(clip);
+  // The score's identity is checked where its gain is held: the rest before the duck starts.
+  // Over the whole capture the loudest window can sit on the duck-up ramp, and which passage is
+  // read (the live rotation, eight seconds a line) decides whether it does (#293).
+  const music = await matched(page, score, undefined, { from: 0, to: talking.from });
+  expect(music.correlation).toBeGreaterThan(0.999);
   // Which passage this is matters to the absolute levels below, so the run says so.
   info.annotations.push({ type: 'signal', description: 'sources = ' + assetPath(clip.source) + ' over ' + assetPath(score.source) });
 

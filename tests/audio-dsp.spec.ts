@@ -93,6 +93,18 @@ describe('alignment', () => {
     expect(align(new Float32Array(20_000), reference, 0, 100).correlation).toBe(0);
     expect(correlation(new Float32Array(100), reference, 0)).toBe(0);
   });
+
+  it('keeps the alignment window inside a stretch of held gain when asked (#293)', () => {
+    // Held at full level, then ducked to a third over a short ramp: the loudest window of the whole
+    // capture straddles the ramp and its correlation falls; inside the held stretch it is the file.
+    const capture = reference.subarray(5000, 5000 + 30_000).map((value, at) => value * (at < 12_000 ? 1 : at < 12_400 ? 1 - (at - 12_000) / 600 : 1 / 3));
+    const loud = Float32Array.from(capture, (value, at) => (at >= 12_000 && at < 12_400 ? value * 3 : value));
+    expect(align(loud, reference, 5000, 200).correlation).toBeLessThan(0.999);
+    const held = align(loud, reference, 5000, 200, 8192, { from: 0, to: 12_000 });
+    expect(held.offset).toBe(5000);
+    expect(held.correlation).toBeCloseTo(1, 6);
+    expect(loudestWindow(loud, 8192, 0, 12_000) + 8192).toBeLessThanOrEqual(12_000);
+  });
 });
 
 describe('gain envelope and ramps', () => {

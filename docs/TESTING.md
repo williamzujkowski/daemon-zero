@@ -655,7 +655,14 @@ gain that turns the file's samples into the samples that came out. Two things fo
 
 - **Identity is by waveform.** A score capture correlates with its own file at 1.0000 and with
   the next phase's file at under 0.1, so "the right track is playing" is a statement about
-  samples, not about a URL.
+  samples, not about a URL. The correlation is read on one 8192-sample window (the loudest),
+  which must sit where the gain is held: a gain ramp inside it lowers the figure although
+  every sample is the file. A capture that holds a deliberate move passes `within` to
+  `matched()`/`align()`. The speech duck spec aligns on the rest before the duck. Until
+  #293 it took the loudest window of the whole capture, and with `ambient_04` (the passage
+  the live eight-second rotation offers on the #293 fixture) that window lay on the tail of
+  the duck-up ramp and read 0.995-0.998, while the rest, the ducked stretch and the tail each
+  read 1.000000 at the same offset.
 - **Level is read with the music divided out.** A duck or a fade is a gain number whatever
   the passage is doing, to a few thousandths of a dB, at 5 ms resolution (a fifth of one
   25 ms ramp step).
