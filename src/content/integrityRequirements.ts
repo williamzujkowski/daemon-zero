@@ -68,6 +68,10 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   }
   if (req.campaignOutcome) problems.push(...checkCampaignOutcome(reg, owner, req.campaignOutcome));
   if (req.assignment && !reg.assignments.has(req.assignment.id)) problems.push(`${owner}: requirement references unknown assignment "${req.assignment.id}"`);
+  const capability = req.requiresCapability;
+  if (capability !== undefined && ![...reg.nodes.values()].some((node) => node.systemFlags.includes(capability))) {
+    problems.push(`${owner}: requires capability "${capability}", which no node establishes`);
+  }
   if (req.accessContexts && new Set(req.accessContexts).size !== req.accessContexts.length) problems.push(`${owner}: accessContexts lists an arrangement twice`);
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));

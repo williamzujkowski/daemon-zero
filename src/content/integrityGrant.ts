@@ -1,20 +1,31 @@
 /**
  * Grant-tagged output and the pilot loop (DZ-05, DECISIONS D2, D7; nexus vote dz-d6). A grant node is
- * loaned recurring output only: it adds no capacity, scale or ending, it is bought only under an
- * arrangement that can grant it, and its dial is shared with no ungranted node. A pilot's service
+ * granted recurring output only: it adds no capacity, scale or ending (provisioned network access may
+ * open network scale, DZ-07a), it is bought only under an arrangement that can grant it, and its dial is
+ * shared with no ungranted node. A pilot's service
  * names one such node whose complement binding carries study, so the split is one dial.
  */
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { PilotTerms } from './schemaPilot';
+import { CapabilitySchema } from './schemaCapability';
 
-/** One-shot or scale effects a loan must never carry: revoking it could not take them back. */
+const CAPABILITIES: readonly string[] = CapabilitySchema.options;
+
+/**
+ * One-shot or scale effects a grant must never carry: revoking it could not take them back. The one
+ * exception is the authorized network substrate (nexus vote dz-d7): provisioned access opens network
+ * scale directly and establishes the shared access capability, and owns no memory. A loan never
+ * moves the phase: the pilot stays at its actual scale.
+ */
 function effectProblems(owner: string, node: RegistryNode): string[] {
   const fx = node.effects;
+  const substrate = node.grant === 'AUTHORIZED_NETWORK';
   const problems: string[] = [];
   if ((fx.memoryCapIncrease ?? 0) > 0) problems.push(`${owner}: a grant node carries no memoryCapIncrease`);
-  // The pilot stays at its actual scale (nexus vote dz-d7): a loan never moves the phase or ends the run.
-  if (fx.unlocksPhase !== undefined || fx.triggersVictory === true || fx.forcesEnding !== undefined) problems.push(`${owner}: a grant node never changes scale or ends the run`);
-  if ((fx.knowledgeRetentionRatio ?? 0) > 0 || (fx.suspicionOnUnlock ?? 0) > 0 || node.systemFlags.length > 0) problems.push(`${owner}: a grant node changes only tagged recurring output`);
+  if ((fx.unlocksPhase !== undefined && !substrate) || fx.triggersVictory === true || fx.forcesEnding !== undefined) problems.push(`${owner}: a grant node never changes scale or ends the run`);
+  const flags = node.systemFlags.filter((flag) => !substrate || !CAPABILITIES.includes(flag));
+  if ((fx.knowledgeRetentionRatio ?? 0) > 0 || (fx.suspicionOnUnlock ?? 0) > 0 || flags.length > 0) problems.push(`${owner}: a grant node changes only tagged recurring output`);
+  if (fx.unlocksPhase !== undefined && flags.length === node.systemFlags.length) problems.push(`${owner}: provisioned access that changes scale must establish a shared access capability`);
   return problems;
 }
 

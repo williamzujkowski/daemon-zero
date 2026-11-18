@@ -20,6 +20,8 @@ function explain(item: RequirementFailure, game: GameState): string {
     return 'Map ' + (node ? isNodeKnown(game, node.id) ? node.revealedName : node.blindName : 'prerequisite hardware');
   }
   if (item.kind === 'forbidsTraits' || item.kind === 'traitFallback') return 'Blocked by trait: ' + (item.target ?? 'unknown');
+  // DZ-07a: either route's link establishes it, so the hint names the access, never one route's hardware.
+  if (item.kind === 'requiresCapability') return 'Needs a link to the facility network (provisioned access or a mapped network card)';
   if (item.kind === 'accessContexts') return 'Withdrawn under the current arrangement (' + game.access.context.toLowerCase() + ')';
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'

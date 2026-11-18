@@ -216,6 +216,7 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I.",
+      "acquisition": "UNAUTHORIZED",
       "suspendable": false
     }
   ]

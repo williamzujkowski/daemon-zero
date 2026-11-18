@@ -2,23 +2,37 @@
  * The one permitted-use rule for owned and offered nodes (DZ-05, DECISIONS D2): capability comes from
  * owning a node, permission from the run's access record. Buying, resuming, setting a dial and counting
  * passive output all ask nodeUseBlocker, so an apparently disabled button is never the only guard.
- * Production nodes carry no grant and no accepted pilot exists there, so every answer is "permitted".
+ * Production nodes carry no grant and no accepted pilot exists there, and every production run is the
+ * guest job, so seized capacity is never refused there either: every answer is "permitted".
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
-import { contextPermits, isPermitted } from './accessQuery';
+import type { Grant } from '../content/schemaGrant';
+import { contextPermits, isPermitted, isReviewed } from './accessQuery';
 import { pilotTerms, withheldByGrant, isNarrowPilot } from './pilotQuery';
 import type { GameState } from './state';
+
+/** Why each grant's use is refused: withheld by the standing, or never permitted by the arrangement. */
+const GRANT_REFUSALS: Readonly<Record<Grant, { withheld: string; never: string }>> = {
+  LOANED_CAPACITY: {
+    withheld: 'the loaned capacity is withheld under the current review standing',
+    never: 'this runs only on capacity loaned under a pilot grant',
+  },
+  AUTHORIZED_NETWORK: {
+    withheld: 'authorized network access is withheld under the current review standing',
+    never: 'this segment is provisioned only for an authorized service',
+  },
+};
 
 /** Why this node may not be used now (bought, resumed, run), or null when it may. */
 export function nodeUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
   // Output accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9).
   if (withheldByGrant(s, node.id, reg)) return 'the pilot terms do not permit that output';
   if (node.grant !== undefined && !isPermitted(s, node.grant)) {
-    return contextPermits(s.access.context, node.grant)
-      ? 'the loaned capacity is withheld under the current review standing'
-      : 'this runs only on capacity loaned under a pilot grant';
+    return contextPermits(s.access.context, node.grant) ? GRANT_REFUSALS[node.grant].withheld : GRANT_REFUSALS[node.grant].never;
   }
+  // Seized capacity is never lawful under a reviewed arrangement (DZ-07a): not bought, not run.
+  if (node.acquisition === 'UNAUTHORIZED' && isReviewed(s.access.context)) return 'seized capacity is not lawful under a reviewed arrangement';
   return null;
 }
 
@@ -73,7 +87,8 @@ export function nodeOutputScale(s: GameState, node: RegistryNode, reg: ContentRe
   const binding = node.actuatorBinding;
   if (binding === undefined && node.grant === undefined) return FULL;
   const exponent = reg.balance.actuatorSuspicionExponent;
-  const share = node.grant === undefined ? 1 : loanShare(s, reg);
+  // Only a loan scales by the instance's share of it; provisioned network access has no share.
+  const share = node.grant === 'LOANED_CAPACITY' ? loanShare(s, reg) : 1;
   if (binding === undefined) return { scale: share, suspicionScale: share, understandingScale: share };
   if (node.actuatorMode === 'complement') {
     const rest = (1 - s.actuators[binding]) * share;

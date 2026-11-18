@@ -49,7 +49,8 @@ function quiet(reg: ContentRegistry = PREVIEW): GameState {
 
 /** The same instance on the production subnet. */
 function onSubnet(reg: ContentRegistry = PREVIEW): GameState {
-  const nic = [...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 2);
+  // The escape opener: the authorized substrate also opens Phase 2 (DZ-07a) and is not mapped here.
+  const nic = [...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 2 && node.grant === undefined);
   if (!nic) throw new Error('content has no phase 2 opener');
   return { ...quiet(reg), currentPhase: 2, unlockedNodes: [...quiet(reg).unlockedNodes, nic.id] };
 }

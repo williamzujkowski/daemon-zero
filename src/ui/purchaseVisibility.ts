@@ -18,7 +18,7 @@ export function permanentlyBlocked(game: GameState, requirements: Requirements |
 
 export function pendingNode(game: GameState, node: RegistryNode, showLocked = false): boolean {
   return !game.unlockedNodes.includes(node.id) && !permanentlyBlocked(game, node.requirements) && (showLocked ||
-    ((game.cycles > 0 || game.unlockedNodes.length > 0) && isNodeDiscoverable(game, node)));
+    ((game.cycles > 0 || game.unlockedNodes.length > 0) && isNodeDiscoverable(game, node, CONTENT)));
 }
 
 export function pendingRepeatable(game: GameState, rep: Repeatable): boolean {
