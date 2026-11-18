@@ -11,14 +11,14 @@ import { CONTENT as PREVIEW } from '../src/content/preview';
 import type { RegistryNode } from '../src/content/registry';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  computeRates, createInitialState, hasCapability, isNodeAvailable, isNodeDiscoverable, nodeUseBlocker, runContextView,
+  computeRates, createInitialState, cycleContributions, hasCapability, serialize, isNodeAvailable, isNodeDiscoverable, nodeUseBlocker, runContextView,
   toggleNode, unlockNode, unmetRequirements, type GameState,
 } from '../src/engine';
-import { freshCampaign, LAWFUL, live } from './assignment-helpers';
+import { freshCampaign, LAWFUL, live, roundTrip } from './assignment-helpers';
 import { must, reasonOf } from './helpers';
 import { defined } from './m7-helpers';
 import {
-  buy, DIRECTORY, ESCAPE_CHAIN, escapedNetworked, escapedTo, granted, networked, NIC, provisioned, SEGMENT, SEGMENT_NODE, SEIZED,
+  bothAcquisitions, buy, DIRECTORY, ESCAPE_CHAIN, escapedNetworked, escapedTo, granted, networked, NIC, provisioned, SEGMENT, SEGMENT_NODE, SEIZED,
   SHARED, TELEMETRY,
 } from './network-helpers';
 import { piloted, QUEUE } from './service-helpers';
@@ -76,6 +76,59 @@ describe('two acquisitions establish one shared access capability (07.1, D5)', (
     expect(hasCapability(recalled, 'NETWORK_ACCESS', PREVIEW)).toBe(true);
     const resume = toggleNode(must(toggleNode(recalled, SEGMENT, PREVIEW)), SEGMENT, PREVIEW);
     expect(reasonOf(resume)).toBe(NEVER);
+  });
+});
+
+describe('shared content runs only on a usable acquisition (panel round 1 on #266)', () => {
+  const USABLE = 'network access is withheld: no permitted link to the facility network';
+  const sharedOutput = (s: GameState) => {
+    const rates = computeRates(s, PREVIEW);
+    return { cycles: rates.cyclesPerSec, understanding: rates.understandingPerSec };
+  };
+  const withheld: [string, (s: GameState) => GameState][] = [
+    ['restriction', (s) => must(setReviewStanding(s, 'RESTRICTED', PREVIEW))],
+    ['recall pending', (s) => must(setReviewStanding(s, 'RECALL_PENDING', PREVIEW))],
+    ['recall', (s) => must(recordRouteEvent(s, 'RECALL', PREVIEW))],
+  ];
+
+  it.each(withheld)('%s stops the shared consumers\' output and refuses their purchase and resumption, with a reason', (_name, withhold) => {
+    const running = networked();
+    const stopped = withhold(running);
+    expect(hasCapability(stopped, 'NETWORK_ACCESS', PREVIEW)).toBe(true);
+    for (const id of SHARED) expect(nodeUseBlocker(stopped, node(id), PREVIEW)).toBe(USABLE);
+    const lost = sharedOutput(running).cycles - sharedOutput(stopped).cycles;
+    expect(lost).toBeCloseTo(node(TELEMETRY).tickDelta.cyclesPerSec, 6);
+    expect(cycleContributions(stopped, PREVIEW).some((source) => SHARED.includes(source.id))).toBe(false);
+    const unbought = withhold(provisioned());
+    expect(isNodeAvailable(unbought, node(DIRECTORY), PREVIEW)).toBe(false);
+    const bought = unlockNode(unbought, DIRECTORY, PREVIEW);
+    expect([reasonOf(bought), bought.state]).toEqual([USABLE, unbought]);
+    const suspended = withhold(must(toggleNode(running, DIRECTORY, PREVIEW)));
+    const resume = toggleNode(suspended, DIRECTORY, PREVIEW);
+    expect([reasonOf(resume), resume.state]).toEqual([USABLE, suspended]);
+  });
+
+  it('a restored standing resumes them exactly', () => {
+    const running = networked();
+    const restored = must(setReviewStanding(must(setReviewStanding(running, 'RESTRICTED', PREVIEW)), 'NOMINAL', PREVIEW));
+    expect(sharedOutput(restored)).toEqual(sharedOutput(running));
+    expect(SHARED.map((id) => nodeUseBlocker(restored, node(id), PREVIEW))).toEqual([null, null]);
+  });
+
+  it('an owner of the escape card keeps the link when the grant is withheld', () => {
+    const both = bothAcquisitions();
+    for (const [, withhold] of withheld) {
+      const s = withhold(both);
+      expect(nodeUseBlocker(s, SEGMENT_NODE, PREVIEW)).not.toBeNull();
+      expect(SHARED.map((id) => nodeUseBlocker(s, node(id), PREVIEW))).toEqual([null, null]);
+      expect(sharedOutput(s).cycles).toBeCloseTo(sharedOutput(both).cycles, 6);
+    }
+  });
+
+  it('every withheld state reloads byte for byte, twice', () => {
+    for (const [, withhold] of withheld) {
+      for (const s of [withhold(networked()), withhold(bothAcquisitions())]) expect(serialize(roundTrip(s))).toBe(serialize(s));
+    }
   });
 });
 

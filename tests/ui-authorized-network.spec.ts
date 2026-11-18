@@ -22,7 +22,7 @@ import { settle } from './app-helpers';
 import NodeCard from '../src/ui/NodeCard';
 import RequirementHint from '../src/ui/RequirementHint';
 import { defined } from './m7-helpers';
-import { DIRECTORY, escapedTo, granted, networked, SEGMENT } from './network-helpers';
+import { DIRECTORY, escapedTo, granted, networked, provisioned, SEGMENT } from './network-helpers';
 import { must } from './helpers';
 import { setReviewStanding } from '../src/engine/access';
 
@@ -63,6 +63,12 @@ describe('access versus ownership on the node card', () => {
   it('a restricted service reads why the segment is withheld', async () => {
     const { find } = await mount(must(setReviewStanding(granted(), 'RESTRICTED', PREVIEW)), card(SEGMENT));
     expect(find('node-' + SEGMENT + '-grant')?.textContent).toBe('Provisioned access, withheld: authorized network access is withheld under the current review standing.');
+  });
+
+  it('a shared node under a restricted service says why it is withheld (panel round 1 on #266)', async () => {
+    const restricted = must(setReviewStanding(provisioned(), 'RESTRICTED', PREVIEW));
+    const { find } = await mount(restricted, card(DIRECTORY));
+    expect(find('node-' + DIRECTORY + '-grant')?.textContent).toBe('Not permitted: network access is withheld: no permitted link to the facility network.');
   });
 
   it('a seized host tells a reviewed service why it is refused, and tells a guest nothing', async () => {

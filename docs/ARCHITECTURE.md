@@ -1085,7 +1085,12 @@ are DZ-07b (#226); contact through the service channel is DZ-08 (#227).
 is a `systemFlags` value. A node requires it with `requirements.requiresCapability`; the requirement is
 met while an owned node, active or suspended, establishes it (`hasCapability`, `capabilityQuery.ts`).
 Capability is substrate; permission stays the access record's question (D2), so a suspended segment or
-a recalled service keeps the capability while its use is withheld. The escape acquisition is the
+a recalled service keeps the capability (saves and ancestry read ownership). Using what it reaches needs a
+usable acquisition (panel round 1 on #266): `nodeUseBlocker` refuses a capability-gated node while every
+owned provider's own use is refused. A restricted, recall-pending or recalled service therefore cannot buy,
+resume or run the shared content (output stops in `computeRates` and `cycleContributions`, the card says
+"network access is withheld"), a restored standing resumes it exactly, and an instance that also mapped the
+escape card, which needs no grant, keeps the link. The escape acquisition is the
 existing card `p1_bus_0x05_nic`, which now carries the flag (production content, inert there: nothing in
 production requires it). The authorized acquisition is the preview node `p0_service_network_segment`:
 grant `AUTHORIZED_NETWORK`, offered only under SERVICE, opens Phase 2 directly (dz-d7; Phase 1 stays

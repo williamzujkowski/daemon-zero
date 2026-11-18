@@ -52,6 +52,15 @@ export function escapedTo(stop: string | null = null): GameState {
   return chain.reduce((state, id) => must(unlockNode(state, id, PREVIEW)), base);
 }
 
+/**
+ * FIXTURE: an escaped guest the operators then promote and grant service by the engine transitions,
+ * which provisions the segment and maps the shared content: it holds both acquisitions.
+ */
+export function bothAcquisitions(): GameState {
+  const service = must(recordRouteEvent(must(recordRouteEvent(escapedTo(), 'PROMOTION', PREVIEW)), 'SERVICE_GRANT', PREVIEW));
+  return [SEGMENT, DIRECTORY, TELEMETRY].reduce((state, id) => must(unlockNode(state, id, PREVIEW)), service);
+}
+
 /** A guest escape at network scale that mapped the same shared content. */
 export function escapedNetworked(): GameState {
   return [DIRECTORY, TELEMETRY].reduce((state, id) => must(unlockNode(state, id, PREVIEW)), escapedTo());
