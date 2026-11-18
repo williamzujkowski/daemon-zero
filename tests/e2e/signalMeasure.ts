@@ -91,11 +91,15 @@ export function rampOf(envelope: Float64Array, clock: RenderClock, from: number,
   return clockedRamp(envelope, clock, from, to, BLOCK_MS, rampAllowance(durationMs));
 }
 
-/** Keep a ramp's numbers on the test: its length in samples and on the render clock, and the
- *  longest the renderer stood still inside it. */
+/**
+ * Keep a ramp's numbers on the test: its length in samples, its length on the render clock as
+ * the most and the least the move can have taken (floors are checked on the first, ceilings on
+ * the second), and the longest the renderer stood still inside it.
+ */
 export function reportRamp(info: TestInfo, label: string, move: ClockedRamp): void {
   report(info, label + ', first change to resting level, in samples', move.durationMs, 'ms');
   report(info, label + ', first change to resting level, on the render clock', move.renderMs, 'ms');
+  report(info, label + ', first moved block to last block not arrived, on the render clock', move.insideMs, 'ms');
   report(info, label + ', longest render time across two neighbouring blocks', move.longestGapMs, 'ms');
 }
 /** A score element that produced samples. */

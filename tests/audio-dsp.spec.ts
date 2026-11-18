@@ -190,6 +190,21 @@ describe('gain envelope and ramps', () => {
       expect(found?.excess, 'the jump is the writes made while nothing was rendered').toBeLessThanOrEqual(0);
     });
 
+    it('brackets the length: a stall just before the first write counts in renderMs and not in insideMs', () => {
+      const steady = wallOf(Number.POSITIVE_INFINITY, 0);
+      const clean = clockedRamp(envelopeOf((t) => stepped(steady(t))), clockOf(steady), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(clean?.insideMs, 'two blocks inside the outer span').toBeCloseTo((clean?.renderMs ?? 0) - 2 * BLOCK_MS, 6);
+      // Nothing rendered from 320 to 530 ms; the first write (525 ms) lands in the first block after.
+      const wall = wallOf(0.32, 210);
+      const found = clockedRamp(envelopeOf((t) => stepped(wall(t))), clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(found?.renderMs, 'the dead time before the first write is in the outer span').toBeGreaterThan(175 + 180);
+      expect(found?.insideMs).toBeGreaterThanOrEqual(175 - 3 * BLOCK_MS);
+      expect(found?.insideMs, 'and not in the inner one').toBeLessThanOrEqual(175);
+      expect(found?.excess).toBeLessThanOrEqual(0);
+      // One jump has no inside.
+      expect(clockedRamp(envelopeOf((t) => t < 0.5 ? 0.3 : 0.105), clockOf(steady), 0.3, 0.105, BLOCK_MS, allowed)?.insideMs).toBe(0);
+    });
+
     it('still reads a step as a step when the renderer kept time', () => {
       const wall = wallOf(Number.POSITIVE_INFINITY, 0);
       const found = clockedRamp(envelopeOf((t) => t < 0.5 ? 0.3 : 0.105), clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);

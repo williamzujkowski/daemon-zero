@@ -200,8 +200,13 @@ export function ramp(envelope: Samples, from: number, to: number, blockMs: numbe
 }
 
 export interface ClockedRamp extends Ramp {
-  /** `startBlock` to `endBlock` on the clock the blocks were rendered by. */
+  /** `startBlock` to `endBlock` on the clock the blocks were rendered by. The first was rendered
+   *  before the move began and the last after it ended, so the move took no longer than this. */
   renderMs: number;
+  /** From the first block that moved to the last that had not arrived, on the same clock: the
+   *  move took at least this long. With the renderer keeping time it is `renderMs` less two
+   *  blocks; a stall just before or after the move counts in `renderMs` and not here. */
+  insideMs: number;
   /** The most render time spanned by two neighbouring readable blocks on the way. */
   longestGapMs: number;
   /** How far the worst jump between neighbouring readable blocks went past `allowed` for the
@@ -226,17 +231,21 @@ export function clockedRamp(envelope: Samples, clock: RenderClock, from: number,
   if (!found) return null;
   const known = (ms: number, blocks: number): number => Number.isNaN(ms) ? blocks * blockMs : ms;
   const across = (a: number, b: number): number => known((clock.last[b] ?? Number.NaN) - (clock.first[a] ?? Number.NaN), b - a + 1);
+  const between = (a: number, b: number): number => known((clock.first[b] ?? Number.NaN) - (clock.first[a] ?? Number.NaN), b - a);
   let longestGapMs = 0; let excess = Number.NEGATIVE_INFINITY; let last = found.startBlock;
+  let firstMoved = found.endBlock; let lastWaiting = found.startBlock;
   for (let block = found.startBlock + 1; block <= found.endBlock; block++) {
     const value = envelope[block] ?? Number.NaN;
     if (Number.isNaN(value)) continue;
     const elapsed = across(last, block);
     longestGapMs = Math.max(longestGapMs, elapsed);
     excess = Math.max(excess, (value - (envelope[last] ?? 0)) / (to - from) - allowed(elapsed));
+    if (block < found.endBlock) { firstMoved = Math.min(firstMoved, block); lastWaiting = block; }
     last = block;
   }
-  const renderMs = known((clock.first[found.endBlock] ?? Number.NaN) - (clock.first[found.startBlock] ?? Number.NaN), found.endBlock - found.startBlock);
-  return { ...found, renderMs, longestGapMs, excess };
+  // A move made in one jump has nothing inside it.
+  const insideMs = lastWaiting > firstMoved ? between(firstMoved, lastWaiting) : 0;
+  return { ...found, renderMs: between(found.startBlock, found.endBlock), insideMs, longestGapMs, excess };
 }
 
 /** A sine of known amplitude, for calibrating the functions above. */

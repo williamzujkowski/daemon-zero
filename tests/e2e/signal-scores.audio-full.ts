@@ -57,7 +57,7 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   // The ramp waits for the player's position to move, so the audible part is close to the
   // whole constant; the floor stays where it was before durations were read on the render clock.
   expect(fade.renderMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
-  expect(fade.renderMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
+  expect(fade.insideMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
 
   const steadyFrom = (fade.endBlock + 2) * BLOCK;
   // Over everything at rest, not just the window the alignment used: a bass note can line up

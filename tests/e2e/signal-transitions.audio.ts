@@ -56,7 +56,7 @@ test('a phase change never renders two scores at once: the old one is cut, then 
   expect(fade.reversals).toBe(0);
   expect(fade.excess, 'a ramp, not a step').toBeLessThanOrEqual(0);
   expect(fade.renderMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
-  expect(fade.renderMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
+  expect(fade.insideMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
   // The output is those two and nothing else.
   expect(Math.max(peak(result.mix.left, leaving.to, arriving.from), peak(result.mix.right, leaving.to, arriving.from)), 'the gap is silence').toBe(0);
 });
@@ -79,7 +79,7 @@ async function expectFadeOut(page: Page, from: number, label: string, info: Para
   // The first write lands one step after the press and the last on the deadline, and with
   // twenty steps the first and last each sit on the 5% edge of "at the level": 425 to 475 ms.
   expect(fade.renderMs).toBeGreaterThanOrEqual(FADE_OUT_MS - 4 * RAMP_STEP_MS);
-  expect(fade.renderMs).toBeLessThanOrEqual(FADE_OUT_MS * LONGEST_RAMP);
+  expect(fade.insideMs).toBeLessThanOrEqual(FADE_OUT_MS * LONGEST_RAMP);
   const silentFrom = span(score).to;
   expect(result.mix.left.length - silentFrom, 'a stretch after the fade was captured').toBeGreaterThan(SAMPLE_RATE / 5);
   expect(Math.max(peak(result.mix.left, silentFrom), peak(result.mix.right, silentFrom)), 'then exact silence').toBe(0);
@@ -139,14 +139,15 @@ test('a score whose file arrives late waits for its first sample, then fades in 
   // The first whole 5 ms block of signal: how loud the score is when it is first heard.
   const firstBlock = Math.ceil(span(score).from / BLOCK);
   const first = envelope[firstBlock] ?? Number.NaN;
-  // Render time from the first audible sample to the end of that block: the writes made in it
-  // all reach the block, and a stalled output can make it long (#244).
-  const heardOver = renderTime(result.renderedAt, score.startFrame + (firstBlock + 1) * BLOCK - 1) - renderTime(result.renderedAt, score.startFrame + span(score).from);
+  // Render time from the quantum before the first audible sample to the end of that block. The
+  // fade starts when the player's position moves, and a stalled output can hold the first sound
+  // back after that (#244): the writes made meanwhile all reach this block.
+  const heardOver = renderTime(result.renderedAt, score.startFrame + (firstBlock + 1) * BLOCK - 1) - renderTime(result.renderedAt, score.startFrame + span(score).from - 128);
   const writesBy = 2 + (Number.isNaN(heardOver) ? 0 : Math.floor(heardOver / RAMP_STEP_MS));
   const fade = rampOf(envelope, renderClock(result.renderedAt, score), 0, LEVEL, FADE_IN_MS);
   if (!fade) throw new Error('The score never reached the preference level.');
   report(info, 'file held back ' + String(delayMs) + ' ms: first audible gain, as a fraction of the level', first / LEVEL, '');
-  report(info, 'file held back ' + String(delayMs) + ' ms: render time from the first audible sample to the end of its block', heardOver, 'ms');
+  report(info, 'file held back ' + String(delayMs) + ' ms: render time from just before the first audible sample to the end of its block', heardOver, 'ms');
   reportRamp(info, 'file held back ' + String(delayMs) + ' ms: fade-in from the first audible sample', fade);
   report(info, 'file held back ' + String(delayMs) + ' ms: largest single step, as a fraction of the level', fade.largestStep, '');
   // Low: no more than two volume writes of the fade (each is RAMP_STEP_MS / FADE_IN_MS of it),
@@ -157,5 +158,5 @@ test('a score whose file arrives late waits for its first sample, then fades in 
   expect(fade.reversals, 'upwards only').toBe(0);
   expect(fade.excess, 'a ramp, not a step').toBeLessThanOrEqual(0);
   expect(fade.renderMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.8);
-  expect(fade.renderMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
+  expect(fade.insideMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
 });

@@ -595,12 +595,16 @@ so a busy main thread stretches a ramp and never bunches it. So:
 - **Every quantum carries its render time.** The tap stamps each 128-frame quantum with the
   render thread's `Date.now()`, and `captured()` returns it as `renderedAt`.
 - **Ramps are read on that clock** (`rampOf` in `signalMeasure.ts`, `clockedRamp` in
-  `tests/audio/dsp.ts`): durations are render time from the first change to the resting
-  level, and a jump between neighbouring blocks may exceed `LARGEST_RAMP_JUMP` only by the
-  writes that fit in the render time between them (one per 25 ms, plus two for a late tick
-  followed by an on-time one). While the renderer keeps time this is the old bound, unchanged;
-  a jump the render clock does not account for is still a step and still fails. Each ramp
-  reports its length in samples, on the render clock, and the longest render gap inside it.
+  `tests/audio/dsp.ts`). A ramp's length is bracketed on the render clock: from the last block
+  at the start level to the first at the end level it cannot have been longer (`renderMs`,
+  which the floors check), and from the first block that moved to the last that had not
+  arrived it cannot have been shorter (`insideMs`, which the ceilings check; two blocks, 10 ms,
+  under `renderMs` when the renderer keeps time). A jump between neighbouring blocks may
+  exceed `LARGEST_RAMP_JUMP` only by the writes that fit in the render time between them (one
+  per 25 ms, plus two for a late tick followed by an on-time one). While the renderer keeps
+  time this is the old bound, unchanged; a jump the render clock does not account for is still
+  a step and still fails. Each ramp reports its length in samples, both render-clock lengths,
+  and the longest render gap inside it.
 - **Waits for samples count samples** (`settle`): wall time and as many samples as that time
   should hold, so a capture is never short of the stretch it measures.
 

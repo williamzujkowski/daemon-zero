@@ -99,7 +99,7 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
     expect(move.excess, label + ': a ramp, not a step (no jump the render clock does not account for)').toBeLessThanOrEqual(0);
     // The first write lands one step after the trigger and the last on the deadline.
     expect(move.renderMs).toBeGreaterThanOrEqual(DUCK_RAMP_MS - 2 * RAMP_STEP_MS);
-    expect(move.renderMs).toBeLessThanOrEqual(DUCK_RAMP_MS * LONGEST_RAMP);
+    expect(move.insideMs).toBeLessThanOrEqual(DUCK_RAMP_MS * LONGEST_RAMP);
   }
   // When the duck moves relative to the speech itself, which is what a listener would notice.
   report(info, 'duck starts after the first speech sample by', down.startBlock * BLOCK_MS - talking.from / SAMPLE_RATE * 1000, 'ms');
