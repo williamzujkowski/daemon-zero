@@ -7,7 +7,8 @@
  * Android's own touch dispatch or a native audio backend (docs/SOUNDTRACK.md has the emulator run).
  */
 import type { HTMLElement } from 'happy-dom';
-import { act } from 'react';
+import { act, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Platform } from 'react-native';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 const audio = vi.hoisted(() => ({ players: [] as { play: ReturnType<typeof vi.fn>; pause: ReturnType<typeof vi.fn> }[] }));
@@ -22,6 +23,7 @@ vi.mock('expo-haptics', () => ({ impactAsync: () => Promise.resolve(), notificat
   ImpactFeedbackStyle: { Light: 'light' }, NotificationFeedbackType: { Warning: 'warning' } }));
 import { AUDIO_KEY } from '../src/app/audioPreferences';
 import { music } from '../src/app/musicSession';
+import TerminalScreen from '../src/ui/TerminalScreen';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -79,6 +81,47 @@ it('treats a media-key pause as this session only: a later touch does not restar
   // Nothing was written: a fresh install has no stored value, and a pause must not create one.
   expect(stored()).toBeNull();
   view.close();
+});
+
+/** A second app root over the same document, as an Android activity recreation mounts one. */
+function secondRoot() {
+  const container = host.document.createElement('div');
+  host.document.body.appendChild(container);
+  const mounted = createRoot(container);
+  const close = () => { act(() => { mounted.unmount(); }); container.remove(); };
+  return { render: () => { act(() => { mounted.render(createElement(TerminalScreen)); }); }, close };
+}
+
+/** The first input each platform listens for: a touch on the terminal, or any document gesture. */
+async function firstInput(platform: string) {
+  if (platform === 'web') {
+    act(() => { host.document.dispatchEvent(new host.Event('pointerdown')); });
+    await flush();
+    return;
+  }
+  // After the first root is gone, every terminal left in the document is the second root's.
+  await touch('terminal-hud');
+}
+
+// Panel round 1 (#253): the new root's child effect armed the listener while the old root's
+// controller still read activated, so it detached at once; the parent's start() then reset
+// activated and nothing listened again. The order below is the one #185 recorded on Android.
+it.each(['android', 'web'])('re-arms the first input for a root that replaces an active one (%s)', async (platform) => {
+  (Platform as { OS: string }).OS = platform;
+  const first = await mountM4('tick-0', { width: 390, height: 844 });
+  await flush();
+  await firstInput(platform);
+  expect(music.state.getState().activated).toBe(true);
+  expect(audio.players).toHaveLength(1);
+  const second = secondRoot();
+  second.render();
+  first.close();
+  await flush();
+  expect(music.state.getState()).toMatchObject({ loaded: true, enabled: true, activated: false });
+  await firstInput(platform);
+  expect(music.state.getState().activated, 'the replacing root starts the score at its first input').toBe(true);
+  expect(audio.players.at(-1)?.play).toHaveBeenCalled();
+  second.close();
 });
 
 it('stays silent through every touch when music is stored off', async () => {

@@ -209,7 +209,13 @@ has touched the game (a phone opened in a quiet room, a launch nobody meant).
 (`armMusicGestureResume`). Native has no document, so the terminal's root view feeds a small
 in-memory source (`createTouchGestures`) from `onStartShouldSetResponderCapture`, which React
 Native asks of every ancestor of a touch before the touched control, and the probe always
-answers `false`, so the touch still belongs to whatever was pressed. The MENU press that
+answers `false`, so the touch still belongs to whatever was pressed. The listener is armed by
+`useMusicRuntime` in the same effect as the controller's `start()`, straight after it. The
+first version armed it from the terminal below, and a panel review (round 1 on #253) found
+that wrong when Android recreates the activity: the new root's child effect ran first, saw
+the old root's `activated`, detached at once, and `start()` then reset `activated` with
+nothing listening, so every later tap was silent. The web had the same ordering bug before
+#249. The MENU press that
 opens the Audio page is therefore itself the first tap. The Audio page says what starts the
 score on each platform ("your first tap in the game" on native, "tap, click or key press" on
 the web).
@@ -223,7 +229,8 @@ action, not observed.
 Tests: `tests/app-music-gesture.spec.ts` (the shared listener, detaching on activation, the
 native source never claiming a touch) and `tests/ui-native-first-tap.spec.ts` (the mounted
 screen with `Platform.OS` reporting Android: nothing before a touch, the score on the first,
-a media-key pause not undone by a later tap and not stored, music off silent). The emulator
+a media-key pause not undone by a later tap and not stored, music off silent, and a root
+that replaces an active one still starting at its first input, on native and web). The emulator
 check is under "Android emulator run, 2026-11-17" below.
 
 ### Rules that hold, and the test for each

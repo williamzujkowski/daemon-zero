@@ -35,7 +35,7 @@ import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
 import { isNarrowChrome, isVeryNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
-import { armMusicGestureResume, createTouchGestures, type GestureDocument } from '../app/musicGesture';
+import { createTouchGestures, type GestureDocument } from '../app/musicGesture';
 
 import { UtilityFocusProvider } from './UtilityFocus';
 
@@ -70,7 +70,11 @@ function gestureDocument(): GestureDocument | undefined {
 
 export default function TerminalScreen() {
   useGameLoop();
-  useMusicRuntime();
+  // A default-on soundtrack starts inside the first real input, once, then the player owns
+  // the toggle: browsers refuse audio before a gesture, and native follows the same rule by
+  // vote (src/app/musicGesture.ts). The resume is armed with the runtime's own lease, not by
+  // the terminal below it, so a root that replaces another always listens (#253).
+  useMusicRuntime(gestureDocument);
   const restoreRevision = useGameValue((state) => state.restoreRevision);
   // Replacement saves own fresh presentation state; the runtime keeps its single lease.
   return <PhaseTheme><UtilityFocusProvider><Terminal key={restoreRevision} /></UtilityFocusProvider></PhaseTheme>;
@@ -78,14 +82,6 @@ export default function TerminalScreen() {
 
 function Terminal() {
   useEffect(() => { installFocusRing(); }, []);
-  // A default-on soundtrack starts inside the first real input, once, then the player owns
-  // the toggle: browsers refuse audio before a gesture, and native follows the same rule by
-  // vote (src/app/musicGesture.ts). A gesture that arrives before the stored preference
-  // loads cannot start anything, so the listener stays until the controller activates.
-  useEffect(() => {
-    const doc = gestureDocument();
-    return doc ? armMusicGestureResume(music, doc) : undefined;
-  }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
   const ids = useWidgetIds();
