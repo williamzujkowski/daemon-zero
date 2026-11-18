@@ -88,7 +88,8 @@ describe('the job surface', () => {
     expect(view.find('pilot-capacity')?.textContent).toBe('Allocated capacity: 10 cycles/s of loaned compute, the provisional allocation, because the submitted result was incomplete.');
     expect(view.find('pilot-held')?.textContent).toContain('held allocation, 5 cycles/s');
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('5 cycles/s');
-    expect(view.find('pilot-review')?.textContent).not.toContain('warned');
+    // Every standing the terms name is one the content records (WARNED by the batch review, #274).
+    expect(view.find('pilot-review')?.textContent).toContain('nominal to warned, restricted or recall pending');
   });
 
   it('a clean pilot shows no held allocation in its terms', async () => {

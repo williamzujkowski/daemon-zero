@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { iterationRoute } from './accessQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
+import { iterationFindings } from './findingQuery';
 import { iterationReviews, replayStanding, resolvedThisIteration, reviewEvents } from './reviewQuery';
 import type { GameState, RunRecord } from './state';
 
@@ -59,7 +60,22 @@ function listProblem(s: GameState, reg: ContentRegistry): string | null {
   return disagree ? 'save resolution list disagrees with its review records' : null;
 }
 
+/**
+ * A batch review finding (#274) belongs to the instance whose submitted report withheld work and to a batch
+ * it handed back, and is presented by that submission, never scheduled: a finding while still unanswered is
+ * the scene on screen. (Its original's outcome is the follow-up record check in campaignSave.ts.)
+ */
+function findingProblem(s: GameState, reg: ContentRegistry): string | null {
+  for (const event of iterationFindings(s, reg)) {
+    if (s.access.qualification?.discrepancy !== true) return 'save records a batch review finding against a report without a discrepancy';
+    if (s.access.work.batches < 1) return 'save records a batch review finding before any batch was handed back';
+    const open = campaignRecord(s, event.id)?.status === 'foreshadowed';
+    if (open && s.activeDilemmaId !== event.id) return 'save records an unanswered batch review finding that is not on screen';
+  }
+  return null;
+}
+
 /** Why the save's review state must be refused, or null. */
 export function reviewProblem(s: GameState, reg: ContentRegistry): string | null {
-  return runProblem(s, reg) ?? listProblem(s, reg) ?? standingProblem(s, reg);
+  return runProblem(s, reg) ?? listProblem(s, reg) ?? findingProblem(s, reg) ?? standingProblem(s, reg);
 }

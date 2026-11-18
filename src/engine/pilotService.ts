@@ -51,12 +51,13 @@ export function batchToken(s: Pick<GameState, 'iteration' | 'access'>): string {
 }
 
 /**
- * Submits the completed batch shown as `shownAs` (its batchToken) for review: it pays the advertised
- * return once through transactions, starts the next batch empty and counts the submission. Refused,
- * state unchanged, after the run, during a decision, without campaign rules, for a stale render, while
- * the loan is withheld (a recall stops loaned actions; the work is kept) or before the batch is done.
+ * Hands back the completed batch shown as `shownAs` (its batchToken): it pays the advertised return once
+ * through transactions, starts the next batch empty and counts the submission. Refused, state unchanged,
+ * after the run, during a decision, without campaign rules, for a stale render, while the loan is
+ * withheld (a recall stops loaned actions; the work is kept) or before the batch is done. The public
+ * action is batchReview.submitPilotBatch, which adds what the reviewer finds (#274).
  */
-export function submitPilotBatch(s: GameState, reg: ContentRegistry, shownAs: string): ActionResult {
+export function handBackBatch(s: GameState, reg: ContentRegistry, shownAs: string): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== null) return refuse(s, 'a dilemma is awaiting a decision');
   if (!campaignRulesSupported(reg) || !isCampaignActive(s)) return refuse(s, 'pilots need campaign rules');
@@ -101,7 +102,7 @@ export interface PilotServiceView {
   withheld: string | null;
   /** The routine work notice the queue last carried (NH-07 task context), or null. */
   queueContext: string | null;
-  /** Pass to submitPilotBatch. */
+  /** Pass to submitPilotBatch (batchReview.ts). */
   token: string;
 }
 

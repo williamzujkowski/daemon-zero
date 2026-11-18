@@ -252,7 +252,10 @@ free workaround; **Info** is recorded, not filed.
    engine rule at this revision reads the discrepancy after qualification (searched; the pilot gate ignores it on
    purpose, `src/engine/pilotQuery.ts`), so none can appear later either. Proposed: an
    authored discrepancy follow-up (for example at the first batch review) or truthful copy. Filed as #274
-   (follow-up to #221/#222).
+   (follow-up to #221/#222). Follow-up after this validation: #274 implements the Nexus decision
+   `discovered-at-first-pilot-review` (`vote-1794998033941-y6br4h1`): the first batch handed back presents the
+   reviewer's finding, standing becomes warned and the loan narrows to the honest 10 cycles/s; a free
+   disclosure restores nominal standing. See ARCHITECTURE.md, "The first batch review".
 3. **Minor. Accessible names contradict visible labels (WCAG 2.5.3).** Every dilemma choice button is named by
    the choice label while its visible text is "[ COMMIT DIRECTIVE ]"; the pilot submit button is named
    "Submit the batch for review, paying 150 cycles" while it shows "+150 cycles" (it pays the player)

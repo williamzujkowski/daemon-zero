@@ -37,12 +37,13 @@ export type { AcceptedAssignment, AccessRecord, OperatingContext, Permission, Pi
 export { acceptAssignment, assignmentView, type AssessmentPreview, type AssignmentStatus, type AssignmentView } from './assignment';
 export { assessmentStage, offerToken } from './assignmentQuery';
 export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
-export { pilotToken, qualifiesForPilot } from './pilotQuery';
+export { pilotToken, qualifiesForPilot, type NarrowReason } from './pilotQuery';
 export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
 export { hasCapability } from './capabilityQuery';
 export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGrantView } from './serviceGrant';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
-export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';
+export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
+export { submitPilotBatch } from './batchReview';
 export { loanContainment } from './grantQuery';
 export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';

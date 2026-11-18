@@ -28,12 +28,13 @@ describe('the shipped campaign declarations', () => {
       dil_p5_03_atmosphere_review: 'defer', dil_p5_04_ceiling_review: 'defer' };
     const reviews = ['dil_p5_03_atmosphere_review', 'dil_p5_04_ceiling_review'];
     for (const reg of [CONTENT, PREVIEW]) {
-      // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04), the Elena follow-up (NH-06)
-      // and the Outage Window, its incident record and its recall review (DZ-06), which production lacks; all three DZ-06 events close.
+      // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04), the Elena follow-up (NH-06),
+      // the Outage Window, its incident record and its recall review (DZ-06), and the batch review finding (#274), which production
+      // lacks; all three DZ-06 events and the finding close.
       const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close', dil_ur_unrelated_record: 'close', dil_elena_incident_record: 'defer',
-        dil_ow_outage_window: 'close', dil_ow_incident_record: 'close', dil_ow_recall_review: 'close' } : policy;
+        dil_ow_outage_window: 'close', dil_ow_incident_record: 'close', dil_ow_recall_review: 'close', dil_nr_batch_review: 'close' } : policy;
       expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
-      const followUps = reg === PREVIEW ? ['dil_elena_incident_record', 'dil_ow_incident_record'] : [];
+      const followUps = reg === PREVIEW ? ['dil_elena_incident_record', 'dil_ow_incident_record', 'dil_nr_batch_review'] : [];
       const classOf = (id: string) => reviews.includes(id) ? 'recovery_review' : followUps.includes(id) ? 'follow_up' : 'consequential';
       expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === classOf(event.id))).toBe(true);
       expect(followUps.every((id) => reg.campaign.events.has(id))).toBe(true);

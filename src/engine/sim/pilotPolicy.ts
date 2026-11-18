@@ -7,7 +7,8 @@
  */
 import type { ContentRegistry } from '../../content/registry';
 import { setActuator, unlockNode, type ActionResult } from '../actions';
-import { pilotService, pilotServiceView, submitPilotBatch } from '../pilotService';
+import { submitPilotBatch } from '../batchReview';
+import { pilotService, pilotServiceView } from '../pilotService';
 import type { GameState } from '../state';
 import type { SimPolicy } from './policy';
 import { TRUTHFUL_LOW_RESOURCE_POLICY } from './truthfulPolicy';

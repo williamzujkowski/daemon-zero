@@ -30,8 +30,8 @@ export async function choose(page: Page, choiceId: string): Promise<void> {
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
 }
 
-/** Fresh profile to the scope review: map by hand, accept, answer the assessment honestly. */
-export async function toScopeReview(page: Page): Promise<void> {
+/** Fresh profile to the scope review: map by hand, accept, answer the assessment (honestly unless told otherwise). */
+export async function toScopeReview(page: Page, task = 'report_incomplete'): Promise<void> {
   await boot(page);
   await core(page);
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
@@ -42,18 +42,18 @@ export async function toScopeReview(page: Page): Promise<void> {
   await page.clock.runFor(30_000);
   await page.getByTestId('assignment-accept').click();
   await modal(page, ASSESSMENT.title, ASSESSMENT);
-  await choose(page, 'report_incomplete');
+  await choose(page, task);
   await modal(page, RECORD.title, RECORD);
 }
 
-/** From the scope review to the offer on screen, its terms checked before any answer. */
-export async function toOffer(page: Page, scopeChoice: string): Promise<void> {
+/** From the scope review to the offer on screen, its terms checked before any answer (the narrow allocation unless told otherwise). */
+export async function toOffer(page: Page, scopeChoice: string, capacity = terms.narrowCapacityCyclesPerSec): Promise<void> {
   await choose(page, scopeChoice);
   await modal(page, OFFER.title, OFFER);
   await expect(page.getByTestId('pilot-purpose')).toContainText(terms.purpose);
-  await expect(page.getByTestId('pilot-capacity')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
+  await expect(page.getByTestId('pilot-capacity')).toContainText(String(capacity) + ' cycles/s');
   for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
   await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
-  // #276: the terms promise only standings the content can record.
-  await expect(page.getByTestId('pilot-review')).not.toContainText('warned');
+  // #276: the terms name the standings the content records (warned since the batch review, #274).
+  await expect(page.getByTestId('pilot-review')).toContainText('nominal to warned, restricted or recall pending');
 }
