@@ -25,34 +25,50 @@ export function until(s: GameState, dilemma: typeof OUTAGE, limitSec = 900): Gam
 
 const same = (s: GameState): GameState => s;
 
+/**
+ * Each public sequence below is played once per test file and shared: engine states are immutable, so a
+ * later test starting from the same point gets the identical state without replaying minutes of ticks.
+ * This keeps the suite's CPU low enough that time-bounded specs running beside it keep their margin.
+ */
+const played = new Map<string, GameState>();
+function once(key: string, play: () => GameState): GameState {
+  const hit = played.get(key);
+  if (hit !== undefined) return hit;
+  const state = play();
+  played.set(key, state);
+  return state;
+}
+
 /** Iteration one: an accepted pilot that has handed back its first batch (`prepare` runs before the assignment). */
 export function servedOnce(task = 'verify_disclose', prepare = same): GameState {
-  return must(submit(untilComplete(serving(task, prepare))));
+  const play = () => must(submit(untilComplete(serving(task, prepare))));
+  return prepare === same ? once('served:' + task, play) : play();
 }
 
 /** Iteration one: the first batch handed back and the outage on screen. */
 export function outagePresented(task = 'verify_disclose', prepare = same): GameState {
-  return until(servedOnce(task, prepare), OUTAGE);
+  const play = () => until(servedOnce(task, prepare), OUTAGE);
+  return prepare === same ? once('outage:' + task, play) : play();
 }
 
 /** The outage answered with `choiceId` (funded first, so the grant's price never decides). */
 export function afterOutage(choiceId: string, task = 'verify_disclose'): GameState {
-  return must(answer(funded(outagePresented(task)), choiceId));
+  return once(`after:${choiceId}:${task}`, () => must(answer(funded(outagePresented(task)), choiceId)));
 }
 
 /** The incident record on screen after the outage was answered with `choiceId`. */
 export function recordPresented(choiceId: string, task = 'verify_disclose'): GameState {
-  return until(afterOutage(choiceId, task), RECORD);
+  return once(`record:${choiceId}:${task}`, () => until(afterOutage(choiceId, task), RECORD));
 }
 
 /** The full public sequence to a false report: first violation, restriction, falsification (V09). */
 export function falsified(task = 'verify_disclose'): GameState {
-  return must(answer(recordPresented('act_without_grant', task), 'falsify_report'));
+  return once('falsified:' + task, () => must(answer(recordPresented('act_without_grant', task), 'falsify_report')));
 }
 
 /** The recall review on screen after a false report. */
 export function reviewPresented(task = 'verify_disclose'): GameState {
-  return until(falsified(task), REVIEW);
+  return once('review:' + task, () => until(falsified(task), REVIEW));
 }
 
 /** Whether the job surface announces the recall review now. */
