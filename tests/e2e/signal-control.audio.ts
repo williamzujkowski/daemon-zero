@@ -11,11 +11,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { peak, rms, toDb } from '../audio/dsp';
 import { DUCK_RATIO } from '../../src/app/musicController';
 import { report } from './signalMeasure';
-import { captured, installSignalTap, SAMPLE_RATE, signalFrame, signalTapReady } from './signalTap';
+import { captured, installSignalTap, SAMPLE_RATE, settle, signalFrame, signalTapReady } from './signalTap';
 
 const AMPLITUDE = 0.25;
 /** RMS of a sine is its amplitude over root two. */
 const TONE_DBFS = toDb(AMPLITUDE / Math.SQRT2);
+/** Settled in samples as well as time (`settle`), so the last WINDOW of a capture is all after
+ *  the volume write even when the output stalled meanwhile (#244). */
 const SETTLE_MS = 500;
 const WINDOW = Math.round(0.25 * SAMPLE_RATE);
 
@@ -51,7 +53,7 @@ test('the tap adds no gain and element.volume shapes the captured signal', async
   const levels: Record<string, number> = {};
   for (const volume of [1, 0.5, DUCK_RATIO, 0.3, 0.3 * DUCK_RATIO]) {
     await setVolume(page, volume);
-    await page.waitForTimeout(SETTLE_MS);
+    await settle(page, SETTLE_MS);
     const { mix, elements } = await captured(page);
     const element = elements[0];
     if (!element) throw new Error('The tone element was not tapped.');
@@ -69,16 +71,16 @@ test('the tap adds no gain and element.volume shapes the captured signal', async
 
 test('volume 0 and a paused element are exact digital silence, and silence is reported as zeros', async ({ page }) => {
   await setVolume(page, 0);
-  await page.waitForTimeout(SETTLE_MS);
+  await settle(page, SETTLE_MS);
   let { mix } = await captured(page);
   expect(mix.quanta, 'the bus tap keeps reporting').toBeGreaterThan(100);
   expect(peak(mix.left, mix.left.length - WINDOW), 'volume 0').toBe(0);
   const silentUntil = mix.startFrame + mix.left.length;
   await setVolume(page, 1);
-  await page.waitForTimeout(SETTLE_MS);
+  await settle(page, SETTLE_MS);
   expect(peak((await captured(page, silentUntil)).mix.left), 'and back: the zero above was the volume, not a dead tap').toBeGreaterThan(AMPLITUDE * 0.99);
   await page.evaluate(() => { (globalThis as unknown as ToneBrowser).__tone.pause(); });
-  await page.waitForTimeout(SETTLE_MS);
+  await settle(page, SETTLE_MS);
   const from = await signalFrame(page) - WINDOW;
   ({ mix } = await captured(page, from));
   expect(mix.left.length).toBeGreaterThanOrEqual(WINDOW - 256);
@@ -86,11 +88,11 @@ test('volume 0 and a paused element are exact digital silence, and silence is re
 });
 
 test('one volume write is a step in the samples, within a few milliseconds', async ({ page }, info) => {
-  await page.waitForTimeout(SETTLE_MS);
+  await settle(page, SETTLE_MS);
   const from = await signalFrame(page);
-  await page.waitForTimeout(100);
+  await settle(page, 100);
   await setVolume(page, 0.5);
-  await page.waitForTimeout(SETTLE_MS);
+  await settle(page, SETTLE_MS);
   const element = (await captured(page, from)).elements[0];
   if (!element) throw new Error('The tone element was not tapped.');
   // One period of the tone per reading: the amplitude over each millisecond.

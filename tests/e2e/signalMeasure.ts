@@ -5,9 +5,10 @@
 import type { Page, TestInfo } from '@playwright/test';
 import { FADE_IN_MS } from '../../src/app/musicController';
 import { OUTPUT_SCALE } from '../../src/app/outputLevel';
+import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { boot, dismissBoot, expect } from './helpers';
-import { align, gainEnvelope, mono, type Alignment } from '../audio/dsp';
-import { assetPath, installSignalTap, playing, reference, SAMPLE_RATE, signalTapReady, type Capture } from './signalTap';
+import { align, clockedRamp, gainEnvelope, mono, type Alignment, type ClockedRamp, type RenderClock } from '../audio/dsp';
+import { assetPath, installSignalTap, playing, reference, SAMPLE_RATE, settle, signalTapReady, type Capture, type RenderedAt } from './signalTap';
 
 /** Envelope resolution: 5 ms, a fifth of one volume-ramp step. */
 export const BLOCK = 240;
@@ -48,13 +49,59 @@ export const LEVEL = PREFERENCE * OUTPUT_SCALE;
 export const REST_MS = 400;
 /**
  * What separates a ramp from a step in these specs. At rest a ramp is a staircase of single
- * volume writes, 25 ms apart. When the main thread is busy (a first start, a purchase, a loaded
- * machine) late timer ticks land together: four writes in one 5 ms block were measured on a
- * busy machine, and the whole ramp ran up to 18% long. So a ramp may take a jump of up to half
- * its move and up to twice its nominal time; a step is the whole move at once.
+ * volume writes, 25 ms apart, and a busy main thread only stretches it: the browser drops the
+ * timer ticks it missed and the ramp counts steps (measured: a ramp ran up to 18% long). So a
+ * ramp may take up to twice its nominal time, and between two neighbouring blocks a jump of up
+ * to half its move; a step is the whole move at once.
+ *
+ * More than half arrives at once only when the output stopped pulling samples (#244): the ramp
+ * goes on writing in real time and every write made meanwhile lands at one sample instant. That
+ * is measured, not assumed: `rampAllowance` grows past this floor by one write per
+ * `RAMP_STEP_MS` the render clock stood still, and durations are read on that clock.
  */
 export const LARGEST_RAMP_JUMP = 0.5;
 export const LONGEST_RAMP = 2;
+
+/**
+ * The most of a ramp of `durationMs` that may arrive between two neighbouring blocks rendered
+ * `elapsedMs` apart: `LARGEST_RAMP_JUMP`, or one write per `RAMP_STEP_MS` of render time plus two
+ * (a late tick and the on-time one after it) when that is more.
+ */
+export function rampAllowance(durationMs: number): (elapsedMs: number) => number {
+  const steps = Math.ceil(durationMs / RAMP_STEP_MS);
+  return (elapsedMs) => Math.max(LARGEST_RAMP_JUMP, (Math.floor(elapsedMs / RAMP_STEP_MS) + 2) / steps);
+}
+
+/** When the quantum holding context frame `frame` was rendered (ms), or NaN if no tap reported it. */
+export function renderTime(renderedAt: RenderedAt, frame: number): number {
+  return renderedAt.ms[Math.floor((frame - renderedAt.from) / 128)] ?? Number.NaN;
+}
+
+/** When each `BLOCK` of a capture was rendered, from `firstBlock` on, as `clockedRamp` reads it. */
+export function renderClock(renderedAt: RenderedAt, capture: Capture, firstBlock = 0): RenderClock {
+  const at = (frame: number): number => renderTime(renderedAt, frame);
+  const blocks = Math.max(0, Math.floor(capture.left.length / BLOCK) - firstBlock);
+  const frameOf = (block: number) => capture.startFrame + (firstBlock + block) * BLOCK;
+  return { first: Float64Array.from({ length: blocks }, (_, block) => at(frameOf(block))),
+    last: Float64Array.from({ length: blocks }, (_, block) => at(frameOf(block) + BLOCK - 1)) };
+}
+
+/** A ramp of nominal `durationMs` in an envelope, with the render clock beside it. */
+export function rampOf(envelope: Float64Array, clock: RenderClock, from: number, to: number, durationMs: number): ClockedRamp | null {
+  return clockedRamp(envelope, clock, from, to, BLOCK_MS, rampAllowance(durationMs));
+}
+
+/**
+ * Keep a ramp's numbers on the test: its length in samples, its length on the render clock as
+ * the most and the least the move can have taken (floors are checked on the first, ceilings on
+ * the second), and the longest the renderer stood still inside it.
+ */
+export function reportRamp(info: TestInfo, label: string, move: ClockedRamp): void {
+  report(info, label + ', first change to resting level, in samples', move.durationMs, 'ms');
+  report(info, label + ', first change to resting level, on the render clock', move.renderMs, 'ms');
+  report(info, label + ', first moved block to last block not arrived, on the render clock', move.insideMs, 'ms');
+  report(info, label + ', longest render time across two neighbouring blocks', move.longestGapMs, 'ms');
+}
 /** A score element that produced samples. */
 export const isScore = (capture: Capture): boolean => capture.source.includes('/audio/music/') && capture.audible !== null;
 
@@ -66,7 +113,7 @@ export async function startScore(page: Page, fixture: string): Promise<void> {
   await dismissBoot(page);
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(() => playing(page, '/audio/music/')).toBe(1);
-  await page.waitForTimeout(FADE_IN_MS + 2 * REST_MS);
+  await settle(page, FADE_IN_MS + 2 * REST_MS);
 }
 
 /** Index of the first non-zero sample and one past the last, or an empty span. */

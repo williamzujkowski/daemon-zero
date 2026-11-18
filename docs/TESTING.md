@@ -44,6 +44,12 @@ different one.
   and the `make sim` output are byte-identical to before the interface existed.
 - **IDLE** (`idlePolicy.ts`) takes no action except a free answer to each interrupt. It is the
   reference plug-in and the floor for dead-time readings.
+- **TRUTHFUL_THOROUGH** and **TRUTHFUL_LOW_RESOURCE** (`truthfulPolicy.ts`, #221) enter campaign
+  rules as the preview app does, play only the nodes leading to an assignment's offer and answer
+  its assessment honestly: THOROUGH builds the opening's upgrades, accepts once it can afford the
+  fullest honest answer, saves during the omen and gives it; LOW_RESOURCE never upgrades, accepts
+  at once and gives the free honest answer. Production has no assignment for them to find
+  (`tests/sim-truthful.spec.ts`).
 
 To add a route or return-iteration policy (truthful-thorough, truthful-low-resource,
 violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` that exports a
@@ -58,8 +64,8 @@ registry and on the preview registry (`src/content/preview`) and prints a row pe
 `*` on rows that differ, then a GREEDY wipe sequence on each channel and one more on preview
 with campaign rules active from a fresh campaign (#214). It prints the overlay's
 sentinel and item counts so a report names the overlay it measured. Choose policies with
-`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY
-and IDLE.
+`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY,
+IDLE, TRUTHFUL_THOROUGH and TRUTHFUL_LOW_RESOURCE.
 
 It is **report only until release**: it is not part of `make verify`, it exits 0 whatever
 differs, and it never calls `checkGates`. `make sim` stays on production content with its
@@ -584,6 +590,40 @@ it fires every interval tick it missed back to back (measured: up to eight volum
 landing in one 5 ms block during a first start), where a real browser drops them. The older
 element-level specs keep the paused clock and step it by hand; they assert the sequence of
 levels, these assert what was rendered and when.
+
+The audio clock is not the wall clock either, and #244 was the difference. The app writes a
+ramp in real time; the samples exist only when the output pulls them. When the output stops
+pulling for a while (headless Chromium on CI has no audio device, and its fake output thread
+starved of CPU on a loaded runner is enough), real time passes with no samples and every
+volume write made meanwhile lands at one sample instant: in the samples, a 200 ms duck read
+135 ms long, a 500 ms fade 320 ms, with up to nine-tenths of the move in one 5 ms block. The
+main thread is not the cause: Chromium drops the interval ticks a stalled main thread missed
+(ticks at 25, 50, 75, then 256 and 275 ms around a 180 ms stall), and the ramp counts steps,
+so a busy main thread stretches a ramp and never bunches it. So:
+
+- **Every quantum carries its render time.** The tap stamps each 128-frame quantum with the
+  render thread's `Date.now()`, and `captured()` returns it as `renderedAt`.
+- **Ramps are read on that clock** (`rampOf` in `signalMeasure.ts`, `clockedRamp` in
+  `tests/audio/dsp.ts`). A ramp's length is bracketed on the render clock, by construction:
+  from the first sample of the last block at the start level to the last sample of the first
+  block at the end level the move cannot have taken longer (`renderMs`, which the floors
+  check), and from the last sample of the first block that moved to the first sample of the
+  last block that had not arrived it cannot have taken less (`insideMs`, which the ceilings
+  check). With the renderer keeping time they read one block (5 ms) longer and three blocks
+  (15 ms) shorter than the sample count the old checks used. A jump between neighbouring blocks may
+  exceed `LARGEST_RAMP_JUMP` only by the writes that fit in the render time between them (one
+  per 25 ms, plus two for a late tick followed by an on-time one). While the renderer keeps
+  time this is the old bound, unchanged; a jump the render clock does not account for is still
+  a step and still fails. Each ramp reports its length in samples, both render-clock lengths,
+  and the longest render gap inside it.
+- **Waits for samples count samples** (`settle`): wall time and as many samples as that time
+  should hold, so a capture is never short of the stretch it measures.
+
+To reproduce a stalled output, stop the audio service process of the test browser for 50 to
+250 ms at a time while the suite runs (`kill -STOP`/`-CONT` on the Chromium process with
+`AudioService` in its command line). Chromium moves each browser into its own systemd scope
+(`app-org.chromium.Chromium-<pid>.scope`), so a CPU quota set on the test's own cgroup does
+not reach the browser.
 
 ### Running it
 
