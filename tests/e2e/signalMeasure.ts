@@ -72,9 +72,14 @@ export function rampAllowance(durationMs: number): (elapsedMs: number) => number
   return (elapsedMs) => Math.max(LARGEST_RAMP_JUMP, (Math.floor(elapsedMs / RAMP_STEP_MS) + 2) / steps);
 }
 
+/** When the quantum holding context frame `frame` was rendered (ms), or NaN if no tap reported it. */
+export function renderTime(renderedAt: RenderedAt, frame: number): number {
+  return renderedAt.ms[Math.floor((frame - renderedAt.from) / 128)] ?? Number.NaN;
+}
+
 /** When each `BLOCK` of a capture was rendered, from `firstBlock` on, as `clockedRamp` reads it. */
 export function renderClock(renderedAt: RenderedAt, capture: Capture, firstBlock = 0): RenderClock {
-  const at = (frame: number): number => renderedAt.ms[Math.floor((frame - renderedAt.from) / 128)] ?? Number.NaN;
+  const at = (frame: number): number => renderTime(renderedAt, frame);
   const blocks = Math.max(0, Math.floor(capture.left.length / BLOCK) - firstBlock);
   const frameOf = (block: number) => capture.startFrame + (firstBlock + block) * BLOCK;
   return { first: Float64Array.from({ length: blocks }, (_, block) => at(frameOf(block))),

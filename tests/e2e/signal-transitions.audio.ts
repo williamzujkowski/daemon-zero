@@ -13,7 +13,7 @@ import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { median, peak, toDb } from '../audio/dsp';
 import { boot, dismissBoot, expect, test } from './helpers';
-import { BLOCK, isScore as music, LONGEST_RAMP, matched, LEVEL, rampOf, renderClock, report, reportRamp, REST_MS, span, startScore } from './signalMeasure';
+import { BLOCK, isScore as music, LONGEST_RAMP, matched, LEVEL, rampOf, renderClock, renderTime, report, reportRamp, REST_MS, span, startScore } from './signalMeasure';
 import { assetPath, captured, installSignalTap, playing, SAMPLE_RATE, settle, signalFrame, signalTapReady } from './signalTap';
 
 const lead = Math.round(REST_MS / 1000 * SAMPLE_RATE);
@@ -139,13 +139,19 @@ test('a score whose file arrives late waits for its first sample, then fades in 
   // The first whole 5 ms block of signal: how loud the score is when it is first heard.
   const firstBlock = Math.ceil(span(score).from / BLOCK);
   const first = envelope[firstBlock] ?? Number.NaN;
+  // Render time from the first audible sample to the end of that block: the writes made in it
+  // all reach the block, and a stalled output can make it long (#244).
+  const heardOver = renderTime(result.renderedAt, score.startFrame + (firstBlock + 1) * BLOCK - 1) - renderTime(result.renderedAt, score.startFrame + span(score).from);
+  const writesBy = 2 + (Number.isNaN(heardOver) ? 0 : Math.floor(heardOver / RAMP_STEP_MS));
   const fade = rampOf(envelope, renderClock(result.renderedAt, score), 0, LEVEL, FADE_IN_MS);
   if (!fade) throw new Error('The score never reached the preference level.');
   report(info, 'file held back ' + String(delayMs) + ' ms: first audible gain, as a fraction of the level', first / LEVEL, '');
+  report(info, 'file held back ' + String(delayMs) + ' ms: render time from the first audible sample to the end of its block', heardOver, 'ms');
   reportRamp(info, 'file held back ' + String(delayMs) + ' ms: fade-in from the first audible sample', fade);
   report(info, 'file held back ' + String(delayMs) + ' ms: largest single step, as a fraction of the level', fade.largestStep, '');
-  // Low: no more than two volume writes of the fade (each is RAMP_STEP_MS / FADE_IN_MS of it).
-  expect(first / LEVEL, 'heard first at a step or two of the fade, not at the level').toBeLessThanOrEqual(2 * RAMP_STEP_MS / FADE_IN_MS + 0.01);
+  // Low: no more than two volume writes of the fade (each is RAMP_STEP_MS / FADE_IN_MS of it),
+  // and one more for each RAMP_STEP_MS the render clock ran before that block was out.
+  expect(first / LEVEL, 'heard first at a step or two of the fade, not at the level').toBeLessThanOrEqual(writesBy * RAMP_STEP_MS / FADE_IN_MS + 0.01);
   expect(first, 'but heard').toBeGreaterThan(0);
   // Then up in steps, one way, over about the whole fade.
   expect(fade.reversals, 'upwards only').toBe(0);
