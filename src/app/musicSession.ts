@@ -7,6 +7,7 @@ import { gameStore } from './session';
 import { MusicController } from './musicController';
 import { onVoiceActivity } from './voicePlayer';
 import { bindScoreSession, browserSessionHost } from './scoreSession';
+import { armMusicGestureResume, type GestureDocument } from './musicGesture';
 
 const platform = getPlatform();
 export const music = new MusicController(gameStore, platform.lifecycle, platform.storage);
@@ -19,7 +20,22 @@ onVoiceActivity((talking) => { music.setDucked(talking); });
 // API (every native build, older browsers).
 const sessionHost = browserSessionHost();
 if (sessionHost) bindScoreSession(music, sessionHost);
-export function useMusicRuntime(): void { useEffect(() => music.start(), []); }
+/**
+ * Holds the controller for one root and, given a gesture source, arms the first-input resume
+ * in the same effect, straight after `start()`. Arming anywhere else reads a stale lease: when
+ * Android recreates the activity, the new root's child effects run before this one, while the
+ * old root's controller still reports `activated`, and a listener armed there detached at once
+ * and never came back after `start()` reset it (panel round 1 on #253).
+ */
+export function useMusicRuntime(gestures?: () => GestureDocument | undefined): void {
+  useEffect(() => {
+    const release = music.start();
+    const doc = gestures?.();
+    const disarm = doc ? armMusicGestureResume(music, doc) : undefined;
+    return () => { disarm?.(); release(); };
+  // Callers pass a module-level function, so this runs once per root, like the lease itself.
+  }, [gestures]);
+}
 export function useMusic() { return useStore(music.state); }
 /**
  * Only the speech half of the preference, so a transmission widget re-renders when its own
