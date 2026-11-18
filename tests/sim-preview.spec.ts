@@ -37,6 +37,8 @@ function previewWithoutSharedContent() {
   // The authorized channel (DZ-08) opens only for a service and names the shared directory, so it goes too, and
   // with it the late route's copy and ending account (DZ-12), which name the channel and the company's arrangement.
   const routeCopy = { nodes: [], dilemmas: [], account: [] };
+  // An ending whose claim rests on the charter goes with the charter (panel round 2 on #296).
+  const endings = PREVIEW_OVERLAY.endings.filter((ending) => !JSON.stringify(ending).includes('"p2_lawful_charter"'));
   // The late chain's capability gate (DZ-12) has its lawful acquisition on the charter, which went with the lawful
   // economy, so here it reverts to the arbitrage-desk prerequisite it replaced; production answers both alike.
   type RawNode = { prerequisites: string[]; requirements?: unknown; systemFlags?: string[] };
@@ -45,7 +47,7 @@ function previewWithoutSharedContent() {
     if (JSON.stringify(node.requirements ?? {}).includes('MARKET_REVENUE')) { delete node.requirements; node.prerequisites = ['p4_hft_arbitrage_desk']; }
     if (node.systemFlags?.includes('MARKET_REVENUE') === true) node.systemFlags = node.systemFlags.filter((flag) => flag !== 'MARKET_REVENUE');
   }
-  return buildRegistry({ ...applyOverlay(base, { ...PREVIEW_OVERLAY, nodes, assignments, contextCopy, routeCopy, channelEncounters: [] }), channel: 'preview' });
+  return buildRegistry({ ...applyOverlay(base, { ...PREVIEW_OVERLAY, nodes, assignments, contextCopy, routeCopy, endings, channelEncounters: [] }), channel: 'preview' });
 }
 
 describe('preview comparison', () => {

@@ -80,6 +80,8 @@ describe('route copy (DZ-12.2, D11)', () => {
     ['an unknown choice', (raw: Json) => { copy(raw).dilemmas[0].choices[0].id = 'bribe_her'; }, 'routeCopy.dilemmas[0]: unknown choice "bribe_her"'],
     ['a choice named twice', (raw: Json) => { copy(raw).dilemmas[0].choices.push(structuredClone(copy(raw).dilemmas[0].choices[0])); }, 'routeCopy.dilemmas[0]: names a choice twice'],
     ['a choice variant that changes nothing', (raw: Json) => { copy(raw).dilemmas[0].choices[0] = { id: 'discredit_her' }; }, 'choice "discredit_her" changes nothing'],
+    ['evidence that reads resources', (raw: Json) => { copy(raw).nodes[0].requirements = { minCapital: 1 }; }, 'routeCopy.nodes[0]: evidence reads only what the instance holds or the world records'],
+    ['evidence on an unknown node', (raw: Json) => { copy(raw).dilemmas[0].requirements = { nodes: ['p2_missing'] }; }, 'routeCopy.dilemmas[0]: requirement references unknown node "p2_missing"'],
   ])('%s', (_name, edit, expected) => {
     expect(problems(edit)).toContain(expected);
   });

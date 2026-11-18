@@ -13,10 +13,22 @@ const id = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const contexts = z.array(OperatingContextSchema).min(1);
 const prose = z.string().min(10);
 
+/**
+ * The evidence a variant's claims rest on, besides the arrangement (panel round 2 on #296): `requirements` for what
+ * the instance holds or the world records (a charter owned, a fact), never resources, and `route` for how this
+ * iteration got here (its last route event). Copy that asserts a charter needs the charter; copy that asserts a
+ * negotiated release needs the release. An instance without the evidence reads the authored text.
+ */
+const evidence = {
+  requirements: RequirementsSchema.optional(),
+  route: RouteEventKindSchema.optional(),
+};
+
 /** A node's descriptions and unlock log under these arrangements. Names stay as authored (DECISIONS D10). */
 export const NodeCopySchema = z.strictObject({
   node: id,
   contexts,
+  ...evidence,
   blindDescription: prose.optional(),
   revealedDescription: prose.optional(),
   onUnlockLog: prose.optional(),
@@ -34,6 +46,7 @@ export const ChoiceCopySchema = z.strictObject({
 export const DilemmaCopySchema = z.strictObject({
   dilemma: z.string().regex(/^dil_[a-z0-9_]+$/),
   contexts,
+  ...evidence,
   omen: prose.optional(),
   context: z.string().min(20).optional(),
   choices: z.array(ChoiceCopySchema).default([]),

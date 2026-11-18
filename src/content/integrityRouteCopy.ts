@@ -41,6 +41,17 @@ function duplicateProblems(owner: string, target: string, contexts: readonly Ope
   return problems;
 }
 
+/**
+ * A variant's evidence names real content and reads only what cannot change while the text is shown: what the
+ * instance holds and what the world records, never resources, transient conditions or an iteration window.
+ */
+function evidenceProblems(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
+  const problems = checkRequirements(reg, owner, req);
+  const unstable = Object.keys(requirementsInScope(req, 'transient')).length + Object.keys(requirementsInScope(req, 'window')).length;
+  if (unstable > 0) problems.push(`${owner}: evidence reads only what the instance holds or the world records, never resources or the iteration window`);
+  return problems;
+}
+
 function nodeProblems(reg: ContentRegistry, offered: ReadonlySet<OperatingContext>): string[] {
   const seen = new Set<string>();
   return reg.routeCopy.nodes.flatMap((variant: NodeCopy, index) => {
@@ -49,6 +60,7 @@ function nodeProblems(reg: ContentRegistry, offered: ReadonlySet<OperatingContex
     if (!node) return [`${owner}: unknown node "${variant.node}"`];
     const changes = [variant.blindDescription, variant.revealedDescription, variant.onUnlockLog].some((text) => text !== undefined);
     return [...contextProblems(owner, variant.contexts, offered, node.requirements), ...duplicateProblems(owner, variant.node, variant.contexts, seen),
+      ...evidenceProblems(reg, owner, variant.requirements),
       ...(changes ? [] : [`${owner}: changes nothing`])];
   });
 }
@@ -69,6 +81,7 @@ function dilemmaProblems(reg: ContentRegistry, offered: ReadonlySet<OperatingCon
     if (!dilemma) return [`${owner}: unknown dilemma "${variant.dilemma}"`];
     const changes = variant.omen !== undefined || variant.context !== undefined || variant.choices.length > 0;
     return [...contextProblems(owner, variant.contexts, offered, dilemma.trigger), ...duplicateProblems(owner, variant.dilemma, variant.contexts, seen),
+      ...evidenceProblems(reg, owner, variant.requirements),
       ...choiceProblems(owner, variant, new Set(dilemma.choices.map((choice) => choice.id))), ...(changes ? [] : [`${owner}: changes nothing`])];
   });
 }

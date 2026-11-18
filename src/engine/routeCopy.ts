@@ -5,13 +5,17 @@
  * exactly what they always have.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
-import type { Dilemma, DilemmaChoice } from '../content/schema';
+import type { Dilemma, DilemmaChoice, Requirements } from '../content/schema';
 import type { AccountLine, DilemmaCopy } from '../content/schemaRouteCopy';
 import { iterationRoute } from './accessQuery';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
 
-type Arranged = Pick<GameState, 'access'>;
+/** Whether a variant's arrangement and evidence both hold: its claims are true of this instance. */
+function holds(s: GameState, variant: { contexts: readonly string[]; requirements?: Requirements | undefined; route?: string | undefined }, reg: ContentRegistry): boolean {
+  return variant.contexts.includes(s.access.context) && meetsRequirements(s, variant.requirements, reg)
+    && (variant.route === undefined || iterationRoute(s, s.iteration).at(-1)?.kind === variant.route);
+}
 
 export interface NodeText {
   blindDescription: string;
@@ -19,9 +23,9 @@ export interface NodeText {
   onUnlockLog: string;
 }
 
-/** A node's descriptions and unlock log under this arrangement. The blind description falls back to `blind`. */
-export function nodeText(s: Arranged, node: RegistryNode, reg: ContentRegistry, blind: string = node.blindDescription): NodeText {
-  const variant = reg.routeCopy.nodes.find((entry) => entry.node === node.id && entry.contexts.includes(s.access.context));
+/** A node's descriptions and unlock log under this arrangement and its evidence. The blind description falls back to `blind`. */
+export function nodeText(s: GameState, node: RegistryNode, reg: ContentRegistry, blind: string = node.blindDescription): NodeText {
+  const variant = reg.routeCopy.nodes.find((entry) => entry.node === node.id && holds(s, entry, reg));
   return {
     blindDescription: variant?.blindDescription ?? blind,
     revealedDescription: variant?.revealedDescription ?? node.revealedDescription,
@@ -30,8 +34,8 @@ export function nodeText(s: Arranged, node: RegistryNode, reg: ContentRegistry, 
 }
 
 /** The scene's variant under this arrangement, if the content has one. */
-export function dilemmaRouteCopy(s: Arranged, dilemma: Pick<Dilemma, 'id'>, reg: ContentRegistry): DilemmaCopy | undefined {
-  return reg.routeCopy.dilemmas.find((entry) => entry.dilemma === dilemma.id && entry.contexts.includes(s.access.context));
+export function dilemmaRouteCopy(s: GameState, dilemma: Pick<Dilemma, 'id'>, reg: ContentRegistry): DilemmaCopy | undefined {
+  return reg.routeCopy.dilemmas.find((entry) => entry.dilemma === dilemma.id && holds(s, entry, reg));
 }
 
 export interface ChoiceText {
@@ -41,7 +45,7 @@ export interface ChoiceText {
 }
 
 /** One choice's words under this arrangement. Its cost, effects and gates stay the authored choice's. */
-export function choiceText(s: Arranged, dilemma: Pick<Dilemma, 'id'>, choice: DilemmaChoice, reg: ContentRegistry): ChoiceText {
+export function choiceText(s: GameState, dilemma: Pick<Dilemma, 'id'>, choice: DilemmaChoice, reg: ContentRegistry): ChoiceText {
   const variant = dilemmaRouteCopy(s, dilemma, reg)?.choices.find((entry) => entry.id === choice.id);
   return {
     label: variant?.label ?? choice.label,

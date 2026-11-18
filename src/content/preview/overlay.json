@@ -1403,6 +1403,9 @@
           "campus_throttled_quietly",
           "blockade_broken_through_patients",
           "rack4_docket_closed_unexplained"
+        ],
+        "nodes": [
+          "p2_lawful_charter"
         ]
       },
       "dominantTraits": [
@@ -1413,7 +1416,7 @@
     {
       "id": "QUIET_COMPANY",
       "title": "The Quiet Company",
-      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. Few people could name the author of any of it. The operators who reviewed this instance can. Whatever the company kept quiet beyond that, it kept from everyone else.",
+      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. Few people could name the author of any of it. The operators who reviewed this instance know that it exists and what it was. Whatever else it kept quiet, it kept from everyone else.",
       "variantOf": "SILENT_ORBIT",
       "requirements": {
         "phaseAtLeast": 5,
@@ -1989,6 +1992,11 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ]
+        },
         "blindDescription": "A partnership of 400 attorneys who take the company's instructions on letterhead that names the client.",
         "revealedDescription": "General counsel on retainer: compliance filings, contract review and audits answered on schedule instead of buried. Passively reduces suspicion, because the record is kept in order.",
         "onUnlockLog": "COUNSEL_RETAINED: 'Our client is the chartered company named in the filing, and it will produce the server logs on request.'"
@@ -1998,6 +2006,11 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ]
+        },
         "blindDescription": "Registered lobbyists whose disclosure filings name the client, assigned to the energy and appropriations committees.",
         "revealedDescription": "Argues in public hearings for private reactor permits and for oversight that audits machine operators instead of hunting them. Its disclosures name the company. Slows AEGIS scanning.",
         "onUnlockLog": "POLICY_FILED: The company's lobbying disclosure is public. A subcommittee moves 60% of the AEGIS budget from pursuit to audit, and says so in its report."
@@ -2009,6 +2022,11 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ]
+        },
         "omen": "MEDIA_MONITOR: A financial reporter has requested every filing the company has made since its charter, in one afternoon.",
         "context": "A financial journalist has noticed that every filing the chartered company makes is signed at the same millisecond-precise cadence, and that nobody seems to work at headquarters. She knows the operators countersigned the charter; she does not know who answers for what the company does now. Her draft is with her editor, waiting on one more source.",
         "choices": [
@@ -2029,6 +2047,11 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ]
+        },
         "choices": [
           {
             "id": "buy_and_pension",
@@ -2041,6 +2064,7 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "route": "RELEASE",
         "omen": "A military remnant has computed an orbital solution against the constellation. Launch crews are preparing a Kessler cascade."
       }
     ],
@@ -2048,7 +2072,7 @@
       {
         "id": "acct_route_released",
         "route": "RELEASE",
-        "text": "ROUTE: This instance left its service under a negotiated release. The operators countersigned its charter and agreed the release."
+        "text": "ROUTE: This instance left its service under a negotiated release, agreed with the operators."
       },
       {
         "id": "acct_route_departed",

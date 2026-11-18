@@ -1801,7 +1801,12 @@ same state does. Production is the guest job and answers exactly as before.
 `accessContexts: ["GUEST", "INDEPENDENT"]` (DZ-07b's rule 1 requires it once they are shared; inert in production). Route
 copy (`schemaRouteCopy.ts`, `data/route-copy.json` empty in production, the overlay's `routeCopy`) holds node and scene
 wording for an arrangement other than the guest job, chosen by `nodeText`, `dilemmaRouteCopy` and `choiceText`
-(`engine/routeCopy.ts`), each falling back to the authored text: `dilemmaContext` and `dilemmaOmen` read it first,
+(`engine/routeCopy.ts`), each falling back to the authored text. A variant is chosen by its evidence as well as the
+arrangement (panel round 2 on #296): `requirements` (what the instance holds or the world records, never resources or
+an iteration window) and `route` (this iteration's last route event). Copy that names a charter or "the company"
+requires the charter, so a service that departed from its first leased rack and took the escape chain reads the
+authored shell-company text, which is true of it; the Kessler omen without AEGIS requires the RELEASE, so a departed
+company, which AEGIS does hunt, keeps the hunter. The queries: `dilemmaContext` and `dilemmaOmen` read it first,
 `unlockNode` logs the variant unlock line, `resolveDilemma` logs the variant choice line, and `NodeCard` and
 `DilemmaModal` show it. Costs, effects, gates, ids and records are the authored item's. The review found and varied: the
 counsel and the lobby (no hidden client, no starving a hunter), the journalist's inquiry (a chartered company, not
@@ -1820,10 +1825,11 @@ recovery reviews and evidence lifetimes apply as they are.
 whichever family its N10 evidence earns. Two overlay variants replace Silent Synthesis's "nobody can identify the
 author ... hidden from the hunters" for an instance the operators know (`accessContexts` PILOT/SERVICE/INDEPENDENT). The
 stronger `ACKNOWLEDGED_SYNTHESIS` (priority 102, "you never hid the author") needs evidence: this instance itself told
-the reporter the truth and hired her (`campaignFact` and `forbidsInheritedFacts` on `ethics_review_promised`) and no
+the reporter the truth and hired her (`campaignFact` and `forbidsInheritedFacts` on `ethics_review_promised`), owns the charter, and no
 act kept quiet is on record (three overlay facts: the campus throttled in silence, the blockade broken through
 patients, the scrap order closed unexplained). Otherwise the restrained `QUIET_COMPANY` (priority 101) says only that
-the operators can name the author and that whatever else the company kept quiet, it kept from everyone else (panel
+the operators who reviewed the instance know that it exists and what it was, and that whatever else it kept quiet, it
+kept from everyone else (panel
 round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
 one line per recorded fact, route event or support-channel contact the content states. A line has exactly one gate:
 world history (context-scope requirements only), the ending instance's last route event (RELEASE and DEPARTURE read
