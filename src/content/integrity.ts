@@ -23,6 +23,7 @@ import { checkReviewIntegrity } from './integrityReview';
 import { checkFindingIntegrity } from './integrityFinding';
 import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
 import { checkContextCopyIntegrity } from './integrityContextCopy';
+import { checkRouteCopyIntegrity } from './integrityRouteCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
 
@@ -154,7 +155,8 @@ function checkPhases(reg: ContentRegistry): string[] {
     if (!opener) problems.push(`phase ${String(phase.phaseId)}: no earlier node has effects.unlocksPhase for it`);
   });
   if (!nodes.some((n) => n.effects.triggersVictory === true)) problems.push('no node triggers victory');
-  if (!nodes.some((n) => n.prerequisites.length === 0)) problems.push('no root node (every node has prerequisites)');
+  // A node behind a capability gate (DZ-07a, DZ-12) is not a root: it waits on whichever node establishes it.
+  if (!nodes.some((n) => n.prerequisites.length === 0 && n.requirements?.requiresCapability === undefined)) problems.push('no root node (every node has prerequisites)');
   return problems;
 }
 
@@ -248,6 +250,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkFindingIntegrity(reg),
     ...checkCapabilityIntegrity(reg),
     ...checkContextCopyIntegrity(reg),
+    ...checkRouteCopyIntegrity(reg),
     ...checkContextGateIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkChannelIntegrity(reg),

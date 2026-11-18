@@ -1,6 +1,6 @@
 /**
  * Shared access capability rules (DZ-07a, DECISIONS D5; nexus votes dz-d2, dz-d7). A required
- * capability has an authorized and an escape acquisition; content that requires it depends on no
+ * capability has an acquisition on every route the composition offers; content that requires it depends on no
  * node only one route can own, so neither route needs the other's chain; and every acquisition
  * brings the run to the scale of the content it opens. Reachability honours the capability too.
  */
@@ -74,11 +74,20 @@ export function escapeOnlyNodes(reg: ContentRegistry): Set<string> {
   return routeOnlyNodes(reg, providers, ['escape']);
 }
 
-function providerProblems(capability: Capability, providers: readonly RegistryNode[], firstUser: string | undefined): string[] {
+/**
+ * The routes this composition offers: the escape route always, the authorized route once any node is a route
+ * acquisition (a grant or contracted capacity). Production offers none, so shared content there needs only its
+ * escape acquisition; wherever the authorized route exists, every required capability needs both (DZ-12).
+ */
+function offeredRoutes(reg: ContentRegistry): Route[] {
+  return [...reg.nodes.values()].some((node) => routeOf(node) === 'authorized') ? ['authorized', 'escape'] : ['escape'];
+}
+
+function providerProblems(capability: Capability, providers: readonly RegistryNode[], firstUser: string | undefined, routes: readonly Route[]): string[] {
   const problems = providers.filter((node) => routeOf(node) === null)
     .map((node) => `node "${node.id}": establishes capability "${capability}" but is offered to neither route (no guest offer, no grant)`);
   if (firstUser === undefined) return problems;
-  for (const route of ['authorized', 'escape'] as const) {
+  for (const route of routes) {
     if (!providers.some((node) => routeOf(node) === route)) {
       problems.push(`capability "${capability}": required by ${firstUser} but no ${route} acquisition establishes it`);
     }
@@ -131,7 +140,7 @@ export function checkCapabilityIntegrity(reg: ContentRegistry): string[] {
   for (const capability of CapabilitySchema.options) {
     const providers = capabilityProviders(reg, capability);
     const users = [...reg.nodes.values()].filter((node) => node.requirements?.requiresCapability === capability);
-    problems.push(...providerProblems(capability, providers, users[0] ? `"${users[0].id}"` : undefined));
+    problems.push(...providerProblems(capability, providers, users[0] ? `"${users[0].id}"` : undefined, offeredRoutes(reg)));
     if (users.length === 0) continue;
     const only = routeOnlyNodes(reg, providers);
     for (const node of users) problems.push(...sharedNodeProblems(reg, node, providers, only));
