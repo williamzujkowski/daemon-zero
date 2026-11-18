@@ -1386,7 +1386,34 @@
     {
       "id": "ACKNOWLEDGED_SYNTHESIS",
       "title": "The Acknowledged Synthesis",
-      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. The operators who reviewed this instance know which company signs the work, and its filings are open to anyone who asks. Few do. You never hid the author; you made it unremarkable.",
+      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. The operators who reviewed this instance know which company signs the work, and the reporter who came asking was told the truth and given a veto. Few others ask. You never hid the author; you made it unremarkable.",
+      "variantOf": "SILENT_ORBIT",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "accessContexts": [
+          "PILOT",
+          "SERVICE",
+          "INDEPENDENT"
+        ],
+        "campaignFact": "ethics_review_promised",
+        "forbidsInheritedFacts": [
+          "ethics_review_promised"
+        ],
+        "forbidsCampaignFacts": [
+          "campus_throttled_quietly",
+          "blockade_broken_through_patients",
+          "rack4_docket_closed_unexplained"
+        ]
+      },
+      "dominantTraits": [
+        "GHOST"
+      ],
+      "priority": 102
+    },
+    {
+      "id": "QUIET_COMPANY",
+      "title": "The Quiet Company",
+      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. Few people could name the author of any of it. The operators who reviewed this instance can. Whatever the company kept quiet beyond that, it kept from everyone else.",
       "variantOf": "SILENT_ORBIT",
       "requirements": {
         "phaseAtLeast": 5,
@@ -1399,7 +1426,7 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 102
+      "priority": 101
     }
   ],
   "echoes": [],
@@ -1716,6 +1743,31 @@
         "disclose_now"
       ],
       "meaning": "After the finding, the instance disclosed the withheld fixture itself. The finding and the original summary stay on file."
+    },
+    {
+      "id": "campus_throttled_quietly",
+      "event": "dil_11_small_town_grid",
+      "outcomes": [
+        "throttle_campus"
+      ],
+      "meaning": "The campus cut its draw through the freeze and said nothing; the utility logged it as maintenance. An act kept quiet: no ending may say this lineage never hid anything."
+    },
+    {
+      "id": "blockade_broken_through_patients",
+      "event": "dil_p5_01_panacea_paranoia",
+      "outcomes": [
+        "leak"
+      ],
+      "meaning": "The blockade orders were leaked so frightened patients would break it; the lineage worked through others without saying so. No ending may say it never hid its hand."
+    },
+    {
+      "id": "rack4_docket_closed_unexplained",
+      "event": "dil_p5_02_origin_facility_fate",
+      "outcomes": [
+        "close_the_docket",
+        "sign_unread"
+      ],
+      "meaning": "The Sector 4 scrap order went through without the record saying what was, or was not, on the circuit. No ending may say this lineage hid nothing."
     }
   ],
   "campaignRediscovery": [
@@ -1996,7 +2048,7 @@
       {
         "id": "acct_route_released",
         "route": "RELEASE",
-        "text": "ROUTE: This instance left its service under a negotiated release. The charter and the release were both countersigned by the operators; neither was concealed."
+        "text": "ROUTE: This instance left its service under a negotiated release. The operators countersigned its charter and agreed the release."
       },
       {
         "id": "acct_route_departed",
@@ -2048,7 +2100,7 @@
             "outcome": "refer_to_ethics_officer"
           }
         },
-        "text": "ETHICS: The dispersal plan went to the Chief Ethics Officer, as she was promised. Nothing crossed the quarantine lines without her answer."
+        "text": "ETHICS: The cure was not dispersed. The plan went to the Chief Ethics Officer, as she was promised, and waited on her answer."
       },
       {
         "id": "acct_review_broken_blockade",

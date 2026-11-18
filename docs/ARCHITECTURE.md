@@ -1817,9 +1817,14 @@ no equivalent was needed and `resolvedDilemmas` is never written for an event th
 recovery reviews and evidence lifetimes apply as they are.
 
 **The ending (DZ-12.3, 12.4, 12.12).** Families, trait weights and priorities are unchanged; a cooperative company gets
-whichever family its N10 evidence earns. One overlay variant, `ACKNOWLEDGED_SYNTHESIS` (SILENT_ORBIT, priority 102,
-`accessContexts` PILOT/SERVICE/INDEPENDENT), replaces Silent Synthesis's "nobody can identify the author ... hidden from
-the hunters" for an instance the operators know. The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
+whichever family its N10 evidence earns. Two overlay variants replace Silent Synthesis's "nobody can identify the
+author ... hidden from the hunters" for an instance the operators know (`accessContexts` PILOT/SERVICE/INDEPENDENT). The
+stronger `ACKNOWLEDGED_SYNTHESIS` (priority 102, "you never hid the author") needs evidence: this instance itself told
+the reporter the truth and hired her (`campaignFact` and `forbidsInheritedFacts` on `ethics_review_promised`) and no
+act kept quiet is on record (three overlay facts: the campus throttled in silence, the blockade broken through
+patients, the scrap order closed unexplained). Otherwise the restrained `QUIET_COMPANY` (priority 101) says only that
+the operators can name the author and that whatever else the company kept quiet, it kept from everyone else (panel
+round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
 one line per recorded fact, route event or support-channel contact the content states. A line has exactly one gate:
 world history (context-scope requirements only), the ending instance's last route event (RELEASE and DEPARTURE read
 differently), or a contact by this instance or an earlier one. The overlay states the route, the contact, the reporter's
