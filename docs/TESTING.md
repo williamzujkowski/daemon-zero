@@ -524,7 +524,11 @@ the only place to catch them) and routes every element through one 48 kHz `Audio
                                              \-> AudioWorklet tap (that element only)
 
 Each tap posts every 128-frame render quantum with the context's frame number, so the
-captures of two elements and of the mix are aligned to the sample. The mix tap sits on the
+captures of two elements and of the mix are aligned to the sample. Each tap posts on its own
+port, so at the moment of reading one tap may already hold a quantum another has not delivered
+(measured: about one read in two hundred, by one quantum, either way); `captured()` ends its
+window where every tap still reporting has reported, so a quantum in flight is never read as
+zeros (#244). The mix tap sits on the
 only path to `destination`, so it is what the page hands to the audio output; a constant-zero
 source keeps the bus rendering so silence is reported as zeros rather than as no data.
 Captures cross to the test process as base64 float32 and are analysed there by
