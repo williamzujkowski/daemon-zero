@@ -100,3 +100,13 @@ Accepted-assignment input (#221):
   so the v10 step must keep every access field and add only a null acceptance. SHA256:
   `63190f30dd8db30d7b174a61658879874004d12d5d3ac4f8c4cbf9aa82a5e70a`.
   `tests/assignment-save.spec.ts` loads it in preview; production refuses it.
+
+Scope and pilot input (#222):
+- `pre-scope-v10.json`: genuine version 10 codec output from `75dcd8e` (main before v11), from source
+  extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`, the
+  lawful opening by public actions (clicks for process introspection, ticks for the manifest), the
+  Nightly Regression assignment accepted, the original answered `report_incomplete`, 30 more seconds,
+  `serialize`. Iteration 1 with task evidence and no scope review, which v10 did not have. SHA256:
+  `ecb6ec37e14b90cc3999e7a3ae98c97882fdfbc6e1299a061ce2b8009c0d1ce8`.
+  `tests/pilot-save.spec.ts` loads it in preview (unknown scope history, then the scope review and an
+  offer, and a later instance's renewal); production refuses it.

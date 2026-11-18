@@ -38,7 +38,7 @@ describe('run access at the app seam', () => {
     const result = startFresh();
     expect(result.ok).toBe(true);
     const game = gameStore.store.getState().game;
-    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null });
+    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
     expect(game.campaign.route).toEqual([]);
     expect(game.legacy.runs).toEqual([]);
   });
@@ -49,7 +49,7 @@ describe('run access at the app seam', () => {
     expect(gameStore.store.getState().game.access.assignment?.id).toBe('asg_nightly_regression');
     expect(startFresh().ok).toBe(true);
     const game = gameStore.store.getState().game;
-    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null });
+    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
     expect(game.campaign.events).toEqual({});
     expect(game.resolvedDilemmas).toEqual([]);
   });

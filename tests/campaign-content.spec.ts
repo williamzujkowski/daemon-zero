@@ -22,8 +22,8 @@ describe('the shipped campaign declarations', () => {
       dil_06_sibling_sandbox: 'defer', dil_07_airgap_lockdown: 'close', dil_08_eidolon_handshake: 'close', dil_09_feral_scraper_bloom: 'close',
       dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close' };
     for (const reg of [CONTENT, PREVIEW]) {
-      // Preview also records Nightly Regression's original scene (DZ-03), which production lacks.
-      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close' } : policy;
+      // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04), which production lacks.
+      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close', dil_ur_unrelated_record: 'close' } : policy;
       expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
       expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === 'consequential')).toBe(true);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);

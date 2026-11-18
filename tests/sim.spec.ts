@@ -21,7 +21,7 @@ function asV5(report: SimReport): unknown {
   expect(narrativeRules).toBe('legacy');
   expect(campaign).toEqual({ activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [] });
   expect(presentationSeq).toBeGreaterThan(0);
-  expect(access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null });
+  expect(access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
   const runs = legacy.runs.map(({ exit, ...run }) => { expect(exit).toBe('GUEST'); return run; });
   // Rebuilt in the original key order, so the JSON is byte-identical to what v5 wrote.
   const finalState = Object.fromEntries(Object.entries({ ...rest, legacy }).sort(([a], [b]) => order(a) - order(b))
@@ -29,11 +29,19 @@ function asV5(report: SimReport): unknown {
   return { ...report, finalState: { ...finalState, schemaVersion: 5 } };
 }
 
+/** The report as the v10 codec wrote it: no v11 access.scope or access.offer (null in production), version 10. */
+function asV10(report: SimReport): unknown {
+  const { scope, offer, ...access } = report.finalState.access;
+  expect([scope, offer]).toEqual([null, null]);
+  return { ...report, finalState: { ...report.finalState, schemaVersion: 10, access } };
+}
+
 /** The report as the v9 codec wrote it: no v10 access.assignment (null in production), version 9. */
 function asV9(report: SimReport): unknown {
-  const { assignment, ...access } = report.finalState.access;
+  const v10 = asV10(report) as { finalState: { access: Record<string, unknown> } };
+  const { assignment, ...access } = v10.finalState.access;
   expect(assignment).toBeNull();
-  return { ...report, finalState: { ...report.finalState, schemaVersion: 9, access } };
+  return { ...v10, finalState: { ...v10.finalState, schemaVersion: 9, access } };
 }
 
 describe('headless balance simulation', () => {
@@ -107,12 +115,19 @@ describe('headless balance simulation', () => {
     // destroyed EIDOLON cannot ask to board), and that line is in the retained log. Both mechanics
     // hashes below, which leave out logs and flags, are unchanged, and so is the reckless report.
     // Moved in #221 (v10, no balance change) only by access.assignment (null) and the version; asV9 restores the #215 value.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('44d4105900e1dc1c4a42d3610ad6083f2bc2a793e34f821731b13e9e6d5f7d44');
+    // Moved in #222 (v11, no balance change) only by access.scope and access.offer (null) and the version;
+    // asV10 restores the #221 value and its mechanics hash. The added p0_pass_evaluation requirement
+    // (accessContexts GUEST) always holds in production, so play is byte-identical.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('9af8c6a1496df1e563fbb477146eea36f9bc20b76c3632948a157ab3246dbfea');
+    expect(createHash('sha256').update(JSON.stringify(asV10(again))).digest('hex')).toBe('44d4105900e1dc1c4a42d3610ad6083f2bc2a793e34f821731b13e9e6d5f7d44');
     expect(createHash('sha256').update(JSON.stringify(asV9(again))).digest('hex')).toBe('ba120ed8f8c56ec1579e4ac237aad25f6ee2a220a3ae5f9070903c280d0bc564');
     expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('05ce721476430a7642f3eb17d46b372f046615d31e62f3f5bfe3c7571c881d1c');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('37fdc7652d45c861b2fe8eea28cb076374309462c93d16518b86579241595979');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('1ef37d382320a71cafbb5bc9db9b46a79799dd84f000c780904ad9e0a721bdad');
+    const v10 = asV10(again) as SimReport;
+    const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('37fdc7652d45c861b2fe8eea28cb076374309462c93d16518b86579241595979');
     const v9 = asV9(again) as SimReport;
     const v9Mechanics = { ...v9, finalState: { ...v9.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('8fda28e9be4946413f625743dbde0dd85cf4ca75dd1abd28ed53f90bf9ffcb60');
@@ -141,7 +156,9 @@ describe('headless balance simulation', () => {
     // Moved in #219 only by the inert v8 routine field; asV5 still restores the #204 value.
     // Moved in #220 only by the v9 fields (guest access, empty route, GUEST exits); asV5 still restores it.
     // Moved in #221 only by the v10 field; asV9 restores the #220 value.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('bc3bb02bd40b782d2df608d6b184444f5247ebabfe6772cc81ef034fb0d1b2e2');
+    // Moved in #222 only by the v11 fields; asV10 restores the #221 value.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('c926bc0bc894433ead065fc2f3d6a86a5fed737a9de538e8723b9f399abb2325');
+    expect(createHash('sha256').update(JSON.stringify(asV10(greedy))).digest('hex')).toBe('bc3bb02bd40b782d2df608d6b184444f5247ebabfe6772cc81ef034fb0d1b2e2');
     expect(createHash('sha256').update(JSON.stringify(asV9(greedy))).digest('hex')).toBe('4852745a5818ed11f732e2a8928fb7889b7648ec18d18cce5ff738c79df016c5');
     expect(createHash('sha256').update(JSON.stringify(asV5(greedy))).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.

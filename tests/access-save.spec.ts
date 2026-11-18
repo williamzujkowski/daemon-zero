@@ -26,7 +26,7 @@ const V8 = readFileSync('tests/fixtures/pre-access-v8.json', 'utf8');
 type Raw = Record<string, unknown> & { legacy: { runs?: Record<string, unknown>[] } };
 const raw = (text: string): Raw => JSON.parse(text) as Raw;
 type Change = (s: GameState) => GameState;
-const GUEST = { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null };
+const GUEST = { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null };
 /** The guest record as the v8 -> v9 step wrote it, before v10 added the accepted assignment. */
 const V9_GUEST = { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null };
 
@@ -143,7 +143,7 @@ describe('contradictory access or provenance is refused whole (V15)', () => {
     ['an exception the arrangement never permits', (s: GameState) => ({ ...s, access: { ...s.access, exception: { scope: 'AUTHORIZED_NETWORK', grantedAtSimSec: 5, expiresAtSimSec: 9 } } }), /exception/],
     ['an exception that expires before it begins', (s: GameState) => ({ ...s, access: { ...s.access, exception: { scope: 'LOANED_CAPACITY', grantedAtSimSec: 5, expiresAtSimSec: 5 } } }), /lifetime/],
     ['evidence on an independent instance', (s: GameState) => route({ ...s, simTimeSec: 9,
-      access: { context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: 5 }, assignment: null } },
+      access: { context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: 5 }, assignment: null, scope: null, offer: null } },
     [{ kind: 'PROMOTION', iteration: s.iteration, atSimSec: 5 }, { kind: 'RELEASE', iteration: s.iteration, atSimSec: 6 }]), /qualification/],
     ['evidence from the future', (s: GameState) => ({ ...s, access: { ...s.access, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: s.simTimeSec + 1 } } }), /qualification/],
     ['a run exit its route does not prove', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: s.iteration, kind: 'VOLUNTARY', outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'RELEASE' }] } }), /run exit/],

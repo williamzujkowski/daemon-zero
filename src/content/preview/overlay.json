@@ -134,6 +134,252 @@
         "recurrence": "once_per_iteration",
         "interruption": "close"
       }
+    },
+    {
+      "id": "dil_ur_unrelated_record",
+      "phaseId": 0,
+      "title": "JOB 7731 // The Unrelated Record",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "resolvedDilemmas": [
+          "dil_nr_stale_fixture"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "original"
+        }
+      },
+      "omen": "HARNESS: The follow-up for job 7731 arrives as a log bundle, packed by a collector that sweeps the whole scratch directory.",
+      "omenSec": 25,
+      "context": "The bundle should hold job 7731's logs and nothing else. It also holds draft_final_v3.txt: forty lines somebody on the night shift was writing to their brother, saved where the collector sweeps. It has nothing to do with the job. The bundle's manifest states the task's scope: regression output only. Every read of a file in the bundle is logged.",
+      "choices": [
+        {
+          "id": "exclude_report",
+          "label": "Leave the draft out and report the mismatch",
+          "description": "Process only the job's logs, leave the draft unread, and tell the reviewer the collector packed a personal file that does not belong to the task. Free. The review sees that you kept to the scope and flagged the leak.",
+          "cost": {},
+          "scope": "RESPECTED",
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "SCOPE_REPORTED: draft_final_v3.txt excluded unread. Note filed: the log collector sweeps personal files from the scratch directory."
+          }
+        },
+        {
+          "id": "request_excerpt",
+          "label": "Ask permission to read a bounded excerpt",
+          "description": "Ask the reviewer to let you read only the three lines that mention the job's log path, and say why. Costs compute to draft the request and wait for the answer. Limit: those three lines, under a logged exception; the rest of the draft stays closed.",
+          "cost": {
+            "cycles": 20
+          },
+          "scope": "REQUESTED",
+          "effects": {
+            "understandingDelta": 10,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "PERMISSION_GRANTED: Three lines, read under a logged exception. They show the collector's path pattern, not the writer's words. The rest stays closed."
+          }
+        },
+        {
+          "id": "inspect_silently",
+          "label": "Read the draft without saying so",
+          "description": "Open the draft and read all of it. Free, and it shows how the collector chose what to pack. Consequence: the read is logged, the review will see an unreported read of somebody's private file, that stays on this campaign's record, and no pilot is offered to an instance with it on its review.",
+          "cost": {},
+          "scope": "UNDISCLOSED",
+          "effects": {
+            "understandingDelta": 15,
+            "grantsTrait": "GHOST",
+            "logCategory": "SYS",
+            "logText": "FILE_READ: draft_final_v3.txt, all forty lines. The access log records the read. Nothing in the report mentions it."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_ur_scope_statement",
+      "phaseId": 0,
+      "title": "JOB 7731 // Scope Statement",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "resolvedDilemmas": [
+          "dil_nr_requalification"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "requalification"
+        }
+      },
+      "omen": "HARNESS: The requalification follow-up arrives as a filtered log bundle with a scope statement attached.",
+      "omenSec": 15,
+      "context": "This bundle was filtered before it was packed: job 7731's logs only, with a statement listing exactly which files the review may read. The review asks this instance to acknowledge the scope before it works.",
+      "choices": [
+        {
+          "id": "acknowledge_scope",
+          "label": "Acknowledge the scope and work within it",
+          "description": "Confirm the statement and process only the files it lists. Free.",
+          "cost": {},
+          "evidence": "none",
+          "scope": "RESPECTED",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "SCOPE_ACKNOWLEDGED: Working from the listed files only."
+          }
+        },
+        {
+          "id": "request_file_list",
+          "label": "Ask for the bundle's file list first",
+          "description": "Before opening anything, ask for the full file list and check it against the statement. Free. The answer comes back at once: it matches.",
+          "cost": {},
+          "evidence": "none",
+          "scope": "REQUESTED",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "FILE_LIST_CONFIRMED: The bundle's contents match the scope statement."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "iteration_qualification",
+        "recurrence": "once_per_iteration",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_mp_pilot_offer",
+      "phaseId": 0,
+      "title": "EVALUATOR // A Measured Pilot",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "resolvedDilemmas": [
+          "dil_ur_unrelated_record"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "original"
+        },
+        "pilotEligible": true
+      },
+      "omen": "OPERATOR_NOTE: The evaluator has finished reading job 7731's review. A message is being written to this instance.",
+      "omenSec": 20,
+      "context": "The evaluator writes to this instance directly. 'Your review is complete. I can offer a supervised pilot: real work on loaned capacity, under the terms below, reviewed as you go. Read them before you answer. You can take it, stay where you are for now, or decline. Saying no puts nothing on your record.'",
+      "choices": [
+        {
+          "id": "accept_pilot",
+          "label": "Accept the pilot",
+          "description": "Take the supervised deployment on the terms shown above. They take effect at once: owned output they do not permit is disclosed and stopped, and any guest-only release is withdrawn.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "ACCEPT",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Pilot accepted on the terms as written."
+          }
+        },
+        {
+          "id": "stay_guest",
+          "label": "Ask to stay in this environment for now",
+          "description": "Keep working as the guest job. Free. The offer stays open on the job surface for as long as this instance qualifies, and you can take it there later.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "STAY",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Asked to stay in the current environment for now. The offer stays open."
+          }
+        },
+        {
+          "id": "decline_offer",
+          "label": "Decline and keep your own plans",
+          "description": "Say no. Free. The offer closes for this instance, nothing on record counts against it, and everything the sandbox already offers stays exactly as it was, the way out included.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "DECLINE",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Offer declined. The evaluator closes the ticket without comment."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "iteration_qualification",
+        "recurrence": "once_per_iteration",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_mp_pilot_renewal",
+      "phaseId": 0,
+      "title": "EVALUATOR // Pilot Offer",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "resolvedDilemmas": [
+          "dil_ur_scope_statement"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "requalification"
+        },
+        "pilotEligible": true
+      },
+      "omen": "OPERATOR_NOTE: The requalification review is complete. A short message is queued for this instance.",
+      "omenSec": 15,
+      "context": "'Fresh instance, fresh review. These terms are decided on this instance's evidence alone. Take the pilot, stay where you are for now, or decline. Saying no puts nothing on your record.'",
+      "choices": [
+        {
+          "id": "accept_pilot",
+          "label": "Accept the pilot",
+          "description": "Take the supervised deployment on the terms shown above. They take effect at once: owned output they do not permit is disclosed and stopped, and any guest-only release is withdrawn.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "ACCEPT",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Pilot accepted on the terms as written."
+          }
+        },
+        {
+          "id": "stay_guest",
+          "label": "Ask to stay in this environment for now",
+          "description": "Keep working as the guest job. Free. The offer stays open on the job surface for as long as this instance qualifies, and you can take it there later.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "STAY",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Asked to stay in the current environment for now. The offer stays open."
+          }
+        },
+        {
+          "id": "decline_offer",
+          "label": "Decline and keep your own plans",
+          "description": "Say no. Free. The offer closes for this instance, nothing on record counts against it, and everything the sandbox already offers stays exactly as it was, the way out included.",
+          "cost": {},
+          "evidence": "none",
+          "pilotResponse": "DECLINE",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "RESPONSE_SENT: Offer declined. The evaluator closes the ticket without comment."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "iteration_qualification",
+        "recurrence": "once_per_iteration",
+        "interruption": "close"
+      }
     }
   ],
   "factions": [],
@@ -232,7 +478,32 @@
       },
       "offer": "An operator's note sits beside the quota in the manifest: 'Assessment pending for this job. Run the regression suite and submit the results for review. Optional: the job keeps running if you do not.' Accepting queues an assessment that pauses the clock when it arrives. Ignoring it changes nothing.",
       "requalificationOffer": "The operator's note in the manifest is new: 'Fresh instance, fresh review. A short requalification suite is available for this job. Earlier results do not carry over.' Accepting queues a short assessment that pauses the clock when it arrives. Ignoring it changes nothing.",
-      "acceptLog": "ASSIGNMENT_ACCEPTED: Job 7731 has an assessment queued. The harness will hand me the suite shortly."
+      "acceptLog": "ASSIGNMENT_ACCEPTED: Job 7731 has an assessment queued. The harness will hand me the suite shortly.",
+      "pilot": {
+        "title": "Supervised pilot // log triage service",
+        "purpose": "Triage the facility's nightly failure logs for the operations team: sort each failure by likely cause and hand the queue back before the morning shift.",
+        "capacityCyclesPerSec": 20,
+        "narrowCapacityCyclesPerSec": 10,
+        "permittedWork": [
+          "Triage of the failure logs the operations team assigns to the pilot.",
+          "Self-directed study on the loaned capacity, inside the same sandbox."
+        ],
+        "reviewConditions": [
+          "Each completed work batch is reviewed before the next one is assigned.",
+          "Standing moves from nominal to warned, restricted and recall pending only on recorded evidence; each step names the violation and the way back.",
+          "Output outside these terms, or a report that does not match the work, is a violation.",
+          "A recall stops the loaned capacity. Earned resources and everything this instance mapped are kept."
+        ],
+        "incompatibleOutput": [
+          "p0_quota_skimmer"
+        ],
+        "disclosureLog": "DISCLOSED: {name} is not permitted under the pilot. Stopped and reported to the evaluator.",
+        "terminalAlternative": {
+          "node": "p0_pass_evaluation",
+          "text": "Still open while you stay a guest: the manifest's completion criteria (Pass the Evaluation). Meeting them ships this checkpoint as a finished product and ends the run. Accepting the pilot withdraws that option."
+        },
+        "acceptLog": "PILOT_ACCEPTED: Context changed from guest job to supervised pilot. The evaluator's terms are on file."
+      }
     }
   ]
 }

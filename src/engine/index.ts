@@ -31,6 +31,8 @@ export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';
 export type { RoutineState } from './routineState';
 export { isPermitted, permittedUses, runContextView, type RunContextView } from './accessQuery';
-export type { AcceptedAssignment, AccessRecord, OperatingContext, Permission, Qualification, ReviewStanding, RouteEvent, RouteEventKind, RunExit } from './accessState';
+export type { AcceptedAssignment, AccessRecord, OperatingContext, Permission, PilotOfferRecord, Qualification, ReviewStanding, RouteEvent, RouteEventKind, RunExit, ScopeEvidence } from './accessState';
 export { acceptAssignment, assignmentView, type AssignmentStatus, type AssignmentView } from './assignment';
 export { assessmentStage, offerToken } from './assignmentQuery';
+export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
+export { pilotToken, qualifiesForPilot } from './pilotQuery';

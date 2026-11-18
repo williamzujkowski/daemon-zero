@@ -8,6 +8,8 @@ import type { Actuator } from '../content/schema';
 import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { recordSubmittedEvidence } from './assignment';
+import { applyPilotResponse } from './pilot';
+import { withheldByGrant } from './pilotQuery';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { actuatorLimit } from './conditioning';
@@ -77,6 +79,7 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (reason) return refuse(s, reason);
   const node = reg.nodes.get(nodeId);
   if (!node) return refuse(s, 'unknown node');
+  if (withheldByGrant(s, nodeId, reg)) return refuse(s, 'the pilot terms do not permit that output');
   if (!isNodeAvailable(s, node, reg)) return refuse(s, 'node is not available');
   const cost = nodeCost(s, node, reg);
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
@@ -97,6 +100,8 @@ export function toggleNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   // per node in content rather than inferred from an id.
   if (!node.suspendable) return refuse(s, 'hardware cannot be suspended');
   const wasDisabled = s.disabledNodes.includes(nodeId);
+  // Output the accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9).
+  if (wasDisabled && withheldByGrant(s, nodeId, reg)) return refuse(s, 'the pilot terms do not permit that output');
   const held = node.cost.memory;
   // Suspending frees the memory the process holds, and that is the recovery lever the
   // playtest reached for. Resuming therefore has to fit, or a player could suspend a node,
@@ -192,7 +197,9 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   applyEffects(d, recordResolution(d, dilemma, choice), reg, dilemmaEvidence(dilemma), choice.cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
-  return accept(d);
+  // A pilot offer's answer; an acceptance that cannot happen leaves the state as it was, unpaid.
+  const answered = applyPilotResponse(d, choice, reg);
+  return answered.ok ? answered : refuse(s, answered.reason);
 }
 
 /** Pays to undo one conditioning mark. What retraining took can be taken back, at a price. */

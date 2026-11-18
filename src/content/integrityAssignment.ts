@@ -3,23 +3,17 @@
  * authored original scene, recorded once per campaign, and one short requalification job for later
  * instances. Each assessment submits evidence from every choice, keeps an honest incomplete answer
  * free, never turns capability into a discrepancy, and a requalification never repays the original.
+ * Scope reviews and pilot offers (DZ-04) follow it; their rules are in integrityPilot.ts.
  */
+import { assignedSceneProblems, checkPilotTerms } from './integrityPilot';
+import { isFree, pays, sceneKind, stageProblems } from './integrityScene';
 import { checkRequirements } from './integrityRequirements';
 import type { ContentRegistry } from './registry';
-import type { Cost, Dilemma, DilemmaChoice } from './schema';
-
-function isFree(cost: Cost): boolean {
-  return Object.values(cost).every((amount) => amount === 0);
-}
+import type { Dilemma, DilemmaChoice } from './schema';
 
 /** A free answer that states the work was not finished, with no gap between report and work. */
 function isHonestIncomplete(choice: DilemmaChoice): boolean {
   return isFree(choice.cost) && choice.qualification?.result === 'INCOMPLETE' && !choice.qualification.discrepancy;
-}
-
-function pays(choice: DilemmaChoice): boolean {
-  const fx = choice.effects;
-  return fx.cyclesDelta > 0 || fx.understandingDelta > 0 || fx.capitalDelta > 0 || fx.memoryCapIncrease > 0 || fx.setsNarrativeFlag !== undefined;
 }
 
 function choiceProblems(owner: string, choice: DilemmaChoice, requalification: boolean): string[] {
@@ -31,23 +25,18 @@ function choiceProblems(owner: string, choice: DilemmaChoice, requalification: b
   return problems;
 }
 
-/** The declared stage decides the dilemma's campaign shape. */
-function stageProblems(owner: string, dilemma: Dilemma, stage: 'original' | 'requalification'): string[] {
-  const declared = dilemma.campaign;
-  if (stage === 'requalification') {
-    return declared?.eventClass === 'iteration_qualification' ? [] : [`${owner}: a requalification must be an iteration_qualification event`];
-  }
-  // A deferred original could never resume: a later instance is offered the requalification instead.
-  if (declared?.recurrence !== 'once_per_campaign' || declared.interruption !== 'close') return [`${owner}: an original assessment must be a once-per-campaign event that closes when interrupted`];
-  return [];
+function declaresAssignedAnswer(choice: DilemmaChoice): boolean {
+  return choice.qualification !== undefined || choice.scope !== undefined || choice.pilotResponse !== undefined;
 }
 
-function assessmentProblems(dilemma: Dilemma): string[] {
+function assessmentProblems(dilemma: Dilemma, reg: ContentRegistry): string[] {
   const gate = dilemma.trigger.assignment;
   const owner = `dilemma "${dilemma.id}"`;
   if (!gate) {
-    return dilemma.choices.some((choice) => choice.qualification) ? [`${owner}: only an assessment (a dilemma gated on an assignment) submits qualification evidence`] : [];
+    return dilemma.choices.some(declaresAssignedAnswer) ? [`${owner}: only a scene gated on an assignment submits evidence, scope conduct or an offer answer`] : [];
   }
+  const kind = sceneKind(dilemma);
+  if (kind !== 'assessment') return assignedSceneProblems(dilemma, gate, kind, reg);
   const problems = stageProblems(owner, dilemma, gate.stage);
   for (const choice of dilemma.choices) problems.push(...choiceProblems(owner, choice, gate.stage === 'requalification'));
   if (!dilemma.choices.some(isHonestIncomplete)) problems.push(`${owner}: needs a free choice that reports the work as incomplete without a discrepancy`);
@@ -58,7 +47,8 @@ function coverageProblems(reg: ContentRegistry): string[] {
   const problems: string[] = [];
   for (const assignment of reg.assignments.values()) {
     for (const stage of ['original', 'requalification'] as const) {
-      const count = reg.dilemmas.filter((dilemma) => dilemma.trigger.assignment?.id === assignment.id && dilemma.trigger.assignment.stage === stage).length;
+      const count = reg.dilemmas.filter((dilemma) => dilemma.trigger.assignment?.id === assignment.id && dilemma.trigger.assignment.stage === stage
+        && sceneKind(dilemma) === 'assessment').length;
       if (count !== 1) problems.push(`assignment "${assignment.id}": needs exactly one ${stage} assessment, found ${String(count)}`);
     }
     if (assignment.requirements.assignment !== undefined) problems.push(`assignment "${assignment.id}": an offer cannot require an accepted assignment`);
@@ -68,5 +58,5 @@ function coverageProblems(reg: ContentRegistry): string[] {
 }
 
 export function checkAssignmentIntegrity(reg: ContentRegistry): string[] {
-  return [...coverageProblems(reg), ...reg.dilemmas.flatMap(assessmentProblems)];
+  return [...coverageProblems(reg), ...reg.dilemmas.flatMap((dilemma) => assessmentProblems(dilemma, reg)), ...checkPilotTerms(reg)];
 }

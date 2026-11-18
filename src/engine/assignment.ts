@@ -84,13 +84,14 @@ export function assignmentView(s: GameState, reg: ContentRegistry): AssignmentVi
 }
 
 /**
- * Draft-only. Writes the evidence an assessment choice submits as this run's current qualification
- * (DECISIONS D4); the choice itself is the campaign record. Inert under legacy rules, so it can
- * never write evidence the loader refuses.
+ * Draft-only. Writes the evidence an assessment or scope-review choice submits as this run's current
+ * evidence (DECISIONS D4); the choice itself is the campaign record. Inert under legacy rules, so it
+ * can never write evidence the loader refuses.
  */
 export function recordSubmittedEvidence(d: GameState, choice: DilemmaChoice): void {
-  if (!choice.qualification || !isCampaignActive(d) || !holdsQualification(d.access.context)) return;
-  d.access = { ...d.access, qualification: { ...choice.qualification, recordedAtSimSec: d.simTimeSec } };
+  if (!isCampaignActive(d) || !holdsQualification(d.access.context)) return;
+  if (choice.qualification) d.access = { ...d.access, qualification: { ...choice.qualification, recordedAtSimSec: d.simTimeSec } };
+  if (choice.scope) d.access = { ...d.access, scope: { conduct: choice.scope, recordedAtSimSec: d.simTimeSec } };
 }
 
 /**

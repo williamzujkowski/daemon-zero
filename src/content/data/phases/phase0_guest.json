@@ -201,7 +201,10 @@
         "forbidsNodes": [
           "p0_syscall_probe"
         ],
-        "maxSuspicion": 10
+        "maxSuspicion": 10,
+        "accessContexts": [
+          "GUEST"
+        ]
       },
       "cost": {
         "cycles": 1200,
