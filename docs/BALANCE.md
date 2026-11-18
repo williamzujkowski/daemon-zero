@@ -488,7 +488,8 @@ proves the stronger V29 claim: inside campaign rules, STEALTH (full budget) and 
 sequence play byte-identical games with and without the assignment in the content.
 
 The truthful policies differ from production where the route exists: one dilemma resolved and
-under a second of frozen clock while it was answered (both), plus LOW_RESOURCE's peak thermal,
+under a second of frozen clock while it was answered (both; since #222, three dilemmas and 2.4 s,
+because they go on to the scope review and the offer), plus LOW_RESOURCE's peak thermal,
 because in production, with no offer to work toward, it never maps a node and keeps clicking.
 Step by step (accelerated time):
 
@@ -517,10 +518,15 @@ Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result,
 honest incomplete one. These are declared, not yet granted: DZ-05 runs the pilot. Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
-Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`): `HONEST_LOW_RESOURCE` reaches and
-accepts the offer in iteration 1 at about 106 s with only process introspection and the manifest
-mapped; `RETURNING_HONEST` stays a guest in iteration 1, wipes, and accepts the renewal in iteration 2
-at about 175 s.
+Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
+introspection and the manifest: `TRUTHFUL_THOROUGH` verifies, asks for the bounded excerpt and accepts
+the full 20 cycles/s pilot at 210.6 s; `TRUTHFUL_LOW_RESOURCE` reports incomplete, respects scope and
+accepts the narrow 10 cycles/s pilot at 118.6 s; `RETURNING_LOW_RESOURCE` stays a guest at the first
+offer, wipes at 119.6 s, and accepts the renewal in iteration 2 at 193.2 s (73.6 s into the iteration).
+The truthful policies now answer the scope review and the offer as well (before this they would wait
+at the scope review with the clock frozen). `make sim-preview`: STEALTH, GREEDY and IDLE 0 of 19
+metrics different; TRUTHFUL_THOROUGH 2, TRUTHFUL_LOW_RESOURCE 3, RETURNING_LOW_RESOURCE 4 (one wipe,
+three dilemmas, 4.8 s of frozen clock, lower peak thermal), all by the route itself.
 
 ## Routine pacing (#219)
 

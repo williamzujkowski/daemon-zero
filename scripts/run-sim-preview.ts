@@ -16,7 +16,7 @@ import { GREEDY_POLICY } from '../src/engine/sim/policy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
-const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE'];
+const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE'];
 
 const overlayItems = Object.entries(PREVIEW_OVERLAY)
   .filter(([key]) => key !== 'sentinel')

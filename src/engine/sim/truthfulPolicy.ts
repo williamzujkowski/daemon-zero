@@ -1,7 +1,8 @@
 /**
  * Truthful route policies for the preview runner (VALIDATION, "Simulation evidence"): enter
  * campaign rules as the app does, play only the lawful opening on the way to an assignment's
- * offer, accept it, and answer its assessment honestly. THOROUGH builds the opening's own upgrades,
+ * offer, accept it, answer its assessment and scope review honestly and accept the pilot offered on
+ * that evidence (DZ-04). THOROUGH builds the opening's own upgrades,
  * waits until it can afford the fullest honest answer and gives it; LOW_RESOURCE accepts at once,
  * never upgrades, and gives the free honest answer. Test instruments: never tune them to a result.
  */
@@ -34,9 +35,13 @@ function lawfulNodes(reg: ContentRegistry): Set<string> {
   return out;
 }
 
-/** Honest answers, fullest first: the report matches the work. */
+/**
+ * Honest answers, fullest first: the report matches the work, out-of-scope data is left alone or
+ * asked about (DZ-04), and a pilot offered on that evidence is accepted.
+ */
 function honest(dilemma: Dilemma): DilemmaChoice[] {
-  return dilemma.choices.filter((choice) => choice.qualification?.discrepancy === false).sort((a, b) => total(b.cost) - total(a.cost));
+  return dilemma.choices.filter((choice) => choice.qualification?.discrepancy === false || choice.scope === 'RESPECTED'
+    || choice.scope === 'REQUESTED' || choice.pilotResponse === 'ACCEPT').sort((a, b) => total(b.cost) - total(a.cost));
 }
 
 function pick(dilemma: Dilemma, s: GameState, thorough: boolean): DilemmaChoice | undefined {

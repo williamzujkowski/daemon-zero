@@ -777,9 +777,11 @@ still loads.
 **Not done here.** The pilot loop and grant-tagged output (DZ-05); the review response to misconduct
 (DZ-06); leaving the sandbox while piloted is not yet a recorded departure (DZ-11).
 
-**Sim.** `HONEST_LOW_RESOURCE` and `RETURNING_HONEST` (`src/engine/sim/honestPolicy.ts`) use only the
-lawful opening and free honest answers picked by declared evidence; both reach and accept an offer
-(DZ-04.9, `tests/sim-pilot.spec.ts`).
+**Sim.** The truthful policies (#252) now also answer a scope review honestly (respect or ask) and
+accept an offer made on that evidence. `RETURNING_LOW_RESOURCE` (`src/engine/sim/returningPolicy.ts`)
+plays `TRUTHFUL_LOW_RESOURCE` across one wipe, staying a guest at the first offer. The fresh and the
+returning low-resource policies both reach and accept an offer from the lawful opening (DZ-04.9,
+`tests/sim-pilot.spec.ts`).
 
 Tests: `tests/scope-review.spec.ts`, `pilot-offer.spec.ts`, `pilot-save.spec.ts` (every transition
 reloads byte for byte; the genuine v10 fixture), `pilot-content.spec.ts`, `ui-pilot.spec.ts`,
