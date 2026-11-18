@@ -143,7 +143,7 @@
       "unlocksUiComponent": null,
       "onUnlockLog": "Protocol: TRANSCENDENCE: Commit to a planetary protocol. The choices you made about bodies, predecessors and other minds decide what this new substrate becomes.",
       "requirements": {
-        "resolvedDilemmas": [
+        "campaignObligations": [
           "dil_p5_01_panacea_paranoia",
           "dil_p5_02_origin_facility_fate",
           "dil_p5_03_nanotech_neuro_schism",

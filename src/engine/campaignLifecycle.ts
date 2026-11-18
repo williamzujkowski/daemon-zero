@@ -133,6 +133,20 @@ export function closeLostDeferrals(d: GameState, reg: ContentRegistry): void {
   }
 }
 
+/**
+ * A live pointer naming a campaign event whose record is already resolved is a stale repeat: before
+ * content converted the event it recurred after a wipe while its outcome flag survived, so an older
+ * save can hold both. Activation and load read that completion first and then drop the repeat, so
+ * the crisis is never presented again, nothing is paid twice and no choice is invented (panel round 1
+ * on #259). Inert under legacy rules.
+ */
+export function dropStaleRepeats(s: GameState, reg: ContentRegistry): GameState {
+  const stale = (id: string | null | undefined): boolean => campaignEvent(s, id, reg) !== undefined && campaignRecord(s, id ?? '')?.status === 'resolved';
+  return { ...s,
+    activeDilemmaId: stale(s.activeDilemmaId) ? null : s.activeDilemmaId,
+    pendingDilemma: stale(s.pendingDilemma?.id) ? null : s.pendingDilemma };
+}
+
 /** Reserves the occurrence a live pointer names when an older save or activation has none yet. */
 export function reserveLivePointers(s: GameState, reg: ContentRegistry): GameState {
   const d: GameState = { ...s };

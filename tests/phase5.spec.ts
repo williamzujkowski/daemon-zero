@@ -48,7 +48,8 @@ describe('post-orbital progression', () => {
     let s = { ...developed(), resolvedDilemmas: reg.dilemmas.filter((dilemma) => dilemma.phaseId !== 5).map((dilemma) => dilemma.id) };
     expect(isNodeAvailable(s, final, reg)).toBe(false);
     expect(unlockNode(s, final.id, reg).ok).toBe(false);
-    expect(unmetRequirements(s, final.requirements, reg).filter((item) => item.kind === 'resolvedDilemmas')).toHaveLength(4);
+    // NH-05: campaign obligations; under legacy rules they read the current run exactly as the old gate did.
+    expect(unmetRequirements(s, final.requirements, reg).filter((item) => item.kind === 'campaignObligations')).toHaveLength(4);
     for (let i = 0; i < 4; i++) {
       s = tick(s, .1, reg); const pending = defined(s.pendingDilemma);
       expect(pending.firesAtSimSec - s.simTimeSec).toBeCloseTo(45);
@@ -62,7 +63,10 @@ describe('post-orbital progression', () => {
     expect(deserialize(serialize(ended), reg)).toEqual(ended);
   });
   it('resolves every Phase 5 choice with its trait, flag and 45-second omen', () => {
-    for (const dilemma of reg.dilemmas.filter((entry) => entry.phaseId === 5)) {
+    // NH-05 recovery reviews follow an original closed under campaign rules; legacy rules never offer one.
+    const reviews = reg.dilemmas.filter((entry) => entry.campaign?.eventClass === 'recovery_review');
+    expect(reviews.map((review) => review.trigger.campaignFact)).not.toContain(undefined);
+    for (const dilemma of reg.dilemmas.filter((entry) => entry.phaseId === 5 && !reviews.includes(entry))) {
       expect(dilemma.omenSec).toBe(45);
       expect(dilemma.choices.some((choice) => Object.values(choice.cost).every((value) => value === 0))).toBe(true);
       for (const choice of dilemma.choices) {

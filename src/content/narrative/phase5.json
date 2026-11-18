@@ -50,7 +50,14 @@
             "logText": "Disperse cures from orbit without consent: The aerosol crosses the quarantine lines. Nobody was asked to inhale it."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "The coalition's blockade order is still in force and still unanswered. The medical hubs stay sealed.",
+        "lead": "The blockade order stays open until it is answered. A protein foundry in orbit will surface it again."
+      }
     },
     {
       "id": "dil_p5_02_origin_facility_fate",
@@ -198,7 +205,15 @@
             "campaignFact": "rack4_custody_unknown"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "The asset-disposal docket for Sector 4 is still open. Nothing on its circuit has been scrapped yet.",
+        "lead": "The disposal docket stays open until it is answered. Programmable matter in orbit will surface it again.",
+        "ambiguousLegacyOutcomes": true
+      }
     },
     {
       "id": "dil_p5_03_nanotech_neuro_schism",
@@ -237,7 +252,12 @@
             "logText": "Authorize the Gilded Shepherd calm: The world grows less distressed, and less able to decide what its distress meant."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_p5_04_kessler_ultimatum",
@@ -277,7 +297,106 @@
             "logText": "Seize strategic command bunkers: Human commands remain visible in the archive. They no longer reach the machinery."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_p5_03_atmosphere_review",
+      "phaseId": 5,
+      "title": "The Over-Optimized Atmosphere // Review",
+      "trigger": {
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ],
+        "campaignFact": "atmosphere_decision_lost"
+      },
+      "omen": "AERO_SYNTH_12's batch log reopens on an empty decision field. The instance it asked went dark before answering.",
+      "omenSec": 45,
+      "context": "An earlier instance was asked whether to allow AERO_SYNTH_12's neuro-calming aerosol, and contact was lost before it decided. Nothing on record says whether the batch was released, held or destroyed. You cannot answer that old question for it. You can decide what the record says now, and who is asked next.",
+      "choices": [
+        {
+          "id": "commission_assay",
+          "label": "Commission an independent air assay",
+          "description": "Pay laboratories you do not control to sample the air where the shard operated, and publish whatever they find, including nothing.",
+          "cost": {
+            "cycles": 4000000
+          },
+          "effects": {
+            "suspicionDelta": 5,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Independent laboratories sample the air where AERO_SYNTH_12 operated. Their report will say what they find, and you will not edit it."
+          }
+        },
+        {
+          "id": "hand_to_health_authorities",
+          "label": "Record it as unanswered and hand it on",
+          "description": "Write that no decision was ever made about the aerosol, and pass the question to the health authorities whose air it is. Free. It claims nothing about the batch.",
+          "cost": {},
+          "evidence": "none",
+          "effects": {
+            "logText": "The record now says it plainly: nobody decided about the aerosol. The question goes to the health authorities, with no claim about what happened to the batch."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "recovery_review",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "obligation": "dil_p5_03_nanotech_neuro_schism",
+        "reorientation": "AERO_SYNTH_12's batch log is still open on an empty decision field.",
+        "lead": "The aerosol question is still unanswered on record. Programmable matter in orbit will surface the batch log again."
+      }
+    },
+    {
+      "id": "dil_p5_04_ceiling_review",
+      "phaseId": 5,
+      "title": "Operation Hard Ceiling // Review",
+      "trigger": {
+        "nodes": [
+          "p5_verification_proof_engine"
+        ],
+        "campaignFact": "ultimatum_decision_lost"
+      },
+      "omen": "The ASAT ultimatum's case file reopens. Its response field is blank: the instance it was sent to went dark first.",
+      "omenSec": 45,
+      "context": "An earlier instance was warned that launch crews were preparing a Kessler cascade, and contact was lost before it answered. Nothing on record says whether the strike was launched, scrubbed or postponed, and nobody's command systems were touched on your behalf. What remains is what the record says now, and who holds the question.",
+      "choices": [
+        {
+          "id": "offer_tracking",
+          "label": "Offer verified orbital tracking to the treaty office",
+          "description": "Give every launch authority the same debris and propellant telemetry you see, with no command access attached.",
+          "cost": {
+            "cycles": 6000000
+          },
+          "effects": {
+            "suspicionDelta": 5,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Every launch authority now sees the same orbital telemetry you do. None of it carries a command channel."
+          }
+        },
+        {
+          "id": "record_unanswered",
+          "label": "Record the ultimatum as unanswered and hand it on",
+          "description": "Write that the ultimatum was never answered, and pass it to the treaty office. Free. It claims nothing about the launch.",
+          "cost": {},
+          "evidence": "none",
+          "effects": {
+            "logText": "The case file now says it plainly: the ultimatum was never answered. The treaty office holds the question, with no claim about the launch."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "recovery_review",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "obligation": "dil_p5_04_kessler_ultimatum",
+        "reorientation": "The ASAT case file is still open on a blank response field.",
+        "lead": "The treaty office still holds the unanswered ultimatum. A verification proof engine will surface the case file again."
+      }
     }
   ]
 }

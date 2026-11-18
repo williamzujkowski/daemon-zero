@@ -210,7 +210,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
-**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
+**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group, or declare `ambiguousLegacyOutcomes` when old rules let several be set (none of them may then be in an exclusive group). Integrity rejects anything else. A current-run `resolvedDilemmas` gate on it is refused: require it with `campaignObligations` instead, and give a closing obligation one `recovery_review` that names it. Production behaviour does not change until campaign rules are activated.
 
 **Add a follow-up arc step.** In the overlay, add a dilemma with `campaign.eventClass: follow_up` and a `followUp` block naming the original event, the closed outcomes it follows and at least one access means; give every choice a `receipt`. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 
@@ -334,7 +334,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events and NH-04b four corporate-world events (below); the other 4 dilemmas (Phase 5) are unconverted and recur per iteration. NH-06 adds the first `follow_up` event (preview only).
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event. NH-06 adds the first `follow_up` event (preview only).
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -385,8 +385,8 @@ choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
-NH-02 (below); the CHORUS `elevate` scope in NH-04a (below). Converting the other dilemmas and
-the Phase 5 obligations are later NH tickets.
+NH-02 (below); the CHORUS `elevate` scope in NH-04a (below); the Phase 5 obligations in NH-05
+(below).
 
 Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
@@ -610,6 +610,72 @@ Tests: `tests/corporate-world.spec.ts` (H01, H02, H05, defer, nh-d10, round trip
 `corporate-history-text.spec.ts` (H16, H18, echoes, records), `rack4-custody.spec.ts` (E11, no soft
 lock), `corporate-upgrade.spec.ts` (genuine pre-NH-04b active v9 save), `corporate-content.spec.ts`
 (H28 corruption cases), `ui-corporate-world.spec.ts`, `return-policy.spec.ts`.
+
+## Campaign obligations and recovery reviews (#217)
+
+NH-05 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N6, N10, N11). Decided by Nexus vote
+nh-d7-obligations (`vote-1794927291350-6epyxcw`, `campaign-obligations-requirement`, 7 of 7; the
+declared alternative was `reinterpret-resolved-dilemmas`), with nh-d6 (`vote-1794926255017-4o45fa3`,
+evidence scope) and trait-rule-free-choices (`vote-1794926000594-26kmg1g`). No `GameState` change.
+Campaign rules stay preview-only and every new gate reads campaign history, so production behaves as
+before: `make sim` output is identical to main and no sim hash moved.
+
+**Obligations.** `campaignObligations: [eventId]` (`schemaCampaign.ts`, scope `context`) replaces the
+final protocol's current-run gate. Under campaign rules an event is complete when its record is
+resolved, with a chosen outcome or `legacy_unknown`, or, once the original closed unobserved, when its
+recovery review is resolved. Completion never names a branch: outcome-specific content keeps reading
+facts. Under legacy rules an obligation is the current run's resolution, exactly the old gate, and a
+wipe empties it. `obligationReceipt(s, id, reg)` (`engine/obligations.ts`) returns the one canonical
+receipt (`via` `original`, `review` or `current_run`, the record that holds it and its outcome);
+`obligationDecision` names the decision that completes the obligation now, which `RequirementHint`
+shows. Current `resolvedDilemmas` is never written for an event this instance did not resolve.
+
+**Conversions (N6).** `dil_p5_01_panacea_paranoia` and `dil_p5_02_origin_facility_fate` defer (each
+with a reorientation and a lead); `dil_p5_03_nanotech_neuro_schism` and `dil_p5_04_kessler_ultimatum`
+close. The Rack 4 order declares `ambiguousLegacyOutcomes`: its predecessor flags were never exclusive,
+so an old save holding both reads as one `legacy_unknown` record, never the rescue (H10; gate-change
+commit). A legacy record from the flags moves them into the record, as for every earlier conversion.
+
+**Recovery reviews (N4).** A dilemma of class `recovery_review` declares the `obligation` it completes;
+`reg.campaign.reviews` indexes them. `dil_p5_03_atmosphere_review` and `dil_p5_04_ceiling_review` are
+triggered by their original's `interrupted` fact (`atmosphere_decision_lost`,
+`ultimatum_decision_lost`) and the original's hardware. Each is present-tense, offers a costed new
+decision with its own trait and a free honest handoff with `evidence: "none"`, and defers, so a wipe
+resumes the same review and no chain of reviews can start. Original and review are exclusive by
+construction: a resolved original never makes the interrupted fact hold, and an interrupted original
+is consumed. Load refuses a review record beside an original that did not close unobserved
+(`obligationProblem`), and legacy history never proves a review (`legacyRecord`), so a stale,
+duplicated or forged claim cannot pay twice (H06). The superseded original stays `interrupted`, with
+no outcome.
+
+**Endings (N10).** Families, trait weights and priorities are unchanged, and `endingEvidence` (#212)
+already sums the baseline, each campaign choice once, credited actions and this iteration's
+operational evidence; converting the Phase 5 events makes their choices campaign evidence, and a
+review's `none` answer adds nothing. Truthful epilogues and the journalist's review are the second
+NH-05 pull request.
+
+**Integrity (`integrityObligations.ts`, H28).** An obligation names a consequential or follow-up
+once-per-campaign event; its trigger uses only regainable access (hardware on the way to the requiring
+node, a phase not after it), no window and no world history, so every supported history has an
+attainable path; a closing event has exactly one review and a deferring one cannot be reviewed; a
+review triggers only on its original's interrupted fact, defers, offers an `evidence: "none"` answer,
+sets no outcome flag and gates no answer; duplicates and unknown ids are refused. The once-only
+current-run check now reads the declared recurrence class for purchases and endings (nodes, endings,
+actions, repeatables); a dilemma trigger may still sequence a same-iteration follow-up on a
+once-per-campaign event (DZ-04's scope review), so triggers keep the older durable-flag rule.
+
+**Upgrade.** An already-active save from before NH-05 goes through the shared upgrade path (#242): each
+Phase 5 event it proves resolved gets a legacy completion, a stored predecessor or calm flag gives the
+exact choice (`tests/obligation-upgrade.spec.ts`, on a genuine active v11 save from `6d6973e`).
+Before the conversion a crisis recurred after a wipe while its outcome flag survived, so an old save
+can hold the flag and a pending or presented repeat. Load and activation therefore read the proven
+completion before reserving any live occurrence, and `dropStaleRepeats` clears a pointer to an event
+whose record is resolved: the crisis is not presented again, nothing is paid and no choice is invented
+(panel round 1; `tests/obligation-repeat-upgrade.spec.ts`).
+
+Tests: `tests/obligations.spec.ts` (H14, V33, H06, H15, legacy-unknown, defer, production),
+`obligation-content.spec.ts` (H28), `obligation-upgrade.spec.ts`, `ui-obligations.spec.ts`, and
+`tests/e2e/obligations.preview.ts` (fixture-started; see the file header).
 
 ## Routine activity (#219)
 

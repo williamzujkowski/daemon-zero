@@ -4,7 +4,10 @@
  * All objects are strict, so a typo in a JSON key fails validation.
  */
 import { z } from 'zod';
-import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema, ChoiceEvidenceSchema } from './schemaCampaign';
+import {
+  ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignObligationsRequirementSchema, CampaignOutcomeRequirementSchema,
+  ChoiceEvidenceSchema,
+} from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
 
@@ -115,6 +118,8 @@ export const RequirementsSchema = z.strictObject({
   pilotEligible: z.literal(true).optional(),
   /** Met only under one of these arrangements. Every production run is the guest job. */
   accessContexts: z.array(OperatingContextSchema).min(1).optional(),
+  /** Nexus vote nh-d7: campaign events that must be complete (see schemaCampaign.ts). */
+  campaignObligations: CampaignObligationsRequirementSchema.optional(),
 });
 
 /**

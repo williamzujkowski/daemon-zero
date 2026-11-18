@@ -73,8 +73,11 @@ function flagSetters(reg: ContentRegistry): { owner: string; flag: string }[] {
 
 /**
  * Under campaign rules an event's outcome flags are derived from its record, and an old save's
- * flag is mapped back to exactly one choice. So each outcome flag must belong to one choice of
- * one event, and an event with several outcome flags must keep them mutually exclusive.
+ * flag is mapped back to one choice. So each outcome flag must belong to one choice of one event.
+ * An event with several outcome flags keeps them in one exclusive group (an old save holding two is
+ * contradictory and refused), unless it declares ambiguousLegacyOutcomes: then the old rules let
+ * different iterations set more than one, a save holding several is legitimate ambiguity that maps
+ * to legacy_unknown (N11, H10), and no flag of it may sit in an exclusive group.
  */
 function checkOutcomeFlags(reg: ContentRegistry, event: Dilemma, setters: { owner: string; flag: string }[]): string[] {
   const problems: string[] = [];
@@ -83,8 +86,13 @@ function checkOutcomeFlags(reg: ContentRegistry, event: Dilemma, setters: { owne
     const owners = setters.filter((setter) => setter.flag === flag);
     if (owners.length > 1) problems.push(`dilemma "${event.id}": outcome flag "${flag}" must have one owner, found ${owners.map((o) => o.owner).join(', ')}`);
   }
-  const exclusive = reg.swarm.exclusiveNarrativeFlagGroups.some((group) => flags.every((flag) => group.includes(flag)));
-  if (flags.length > 1 && !exclusive) problems.push(`dilemma "${event.id}": outcome flags must form one exclusive group`);
+  const groups = reg.swarm.exclusiveNarrativeFlagGroups;
+  const declared = event.campaign?.ambiguousLegacyOutcomes === true;
+  const grouped = flags.filter((flag) => groups.some((group) => group.includes(flag)));
+  const exclusive = groups.some((group) => flags.every((flag) => group.includes(flag)));
+  if (declared && flags.length < 2) problems.push(`dilemma "${event.id}": ambiguousLegacyOutcomes needs at least two outcome flags`);
+  if (declared && grouped.length > 0) problems.push(`dilemma "${event.id}": ambiguous legacy outcomes cannot be in an exclusive group (${grouped.join(', ')})`);
+  if (!declared && flags.length > 1 && !exclusive) problems.push(`dilemma "${event.id}": outcome flags must form one exclusive group, or declare ambiguousLegacyOutcomes`);
   return problems;
 }
 
