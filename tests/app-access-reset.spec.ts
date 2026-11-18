@@ -13,7 +13,8 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import { activeGame, preview } from './campaign-helpers';
 import { fresh, must } from './helpers';
-import { completedOriginal } from './assignment-helpers';
+import { answer, completedOriginal } from './assignment-helpers';
+import { afterOutage, reviewPresented } from './review-helpers';
 
 const storage = vi.hoisted(() => ({ values: new Map<string, string>() }));
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
@@ -64,5 +65,19 @@ describe('run access at the app seam', () => {
     expect(gameStore.store.getState().game).toBe(before);
     // The same build still accepts an honest production save.
     expect(importPlayerSave(exportSave(fresh())).ok).toBe(true);
+  });
+
+  it('Start Fresh clears a review standing, a recall ruling and the outage records; a wipe keeps only the records (DZ-06, V19)', () => {
+    const restricted = afterOutage('act_without_grant');
+    const ruled = must(answer(reviewPresented(), 'stand_by_report'));
+    expect([restricted.access.standing, ruled.access.standing, ruled.legacy.runs.at(-1)?.kind]).toEqual(['RESTRICTED', 'NOMINAL', 'RECALL']);
+    expect(Object.keys(ruled.campaign.events)).toEqual(expect.arrayContaining(['dil_ow_outage_window', 'dil_ow_incident_record', 'dil_ow_recall_review']));
+    expect(ruled.conditioning.length).toBe(1);
+    for (const state of [restricted, ruled]) {
+      gameStore.initialize(state, 0, null);
+      expect(startFresh().ok).toBe(true);
+      const game = gameStore.store.getState().game;
+      expect([game.access.standing, game.legacy.runs, game.campaign.events, game.conditioning]).toEqual(['NOMINAL', [], {}, []]);
+    }
   });
 });

@@ -366,6 +366,20 @@
       "omen": "OPERATOR_NOTE: The requalification review is complete. A short message is queued for this instance.",
       "omenSec": 15,
       "context": "'Fresh instance, fresh review. These terms are decided on this instance's evidence alone. Take the pilot, stay where you are for now, or decline. Saying no puts nothing on your record.'",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "outage_report_falsified"
+          },
+          "context": "'Fresh instance, fresh review. The file on this job links an earlier instance to an unauthorized restart and a false report about it, so these terms ask that every incident report be filed against the audit log. That record is history, not your standing: this instance starts nominal, on its own evidence. Take the pilot, stay where you are for now, or decline. Saying no puts nothing on your record.'"
+        },
+        {
+          "requirements": {
+            "campaignFact": "outage_unauthorized"
+          },
+          "context": "'Fresh instance, fresh review. The file on this job shows an earlier instance restarted a service outside its grant; it stays on file, with any correction beside it. It does not carry over: this instance starts nominal, on its own evidence. Take the pilot, stay where you are for now, or decline. Saying no puts nothing on your record.'"
+        }
+      ],
       "choices": [
         {
           "id": "accept_pilot",
@@ -643,6 +657,326 @@
           }
         ]
       }
+    },
+    {
+      "id": "dil_ow_outage_window",
+      "phaseId": 0,
+      "title": "OPERATIONS // Outage Window",
+      "trigger": {
+        "nodes": [
+          "p0_pilot_triage_queue"
+        ],
+        "accessContexts": [
+          "PILOT"
+        ],
+        "minPilotBatches": 1
+      },
+      "omen": "PILOT_CHANNEL: The operations team's log-export service has stopped answering, and the morning triage now waits on this pilot. Someone is typing in the pilot channel.",
+      "omenSec": 60,
+      "context": "A night-shift requester writes in the pilot channel: 'The log-export service is down and the morning triage depends on it. You're on the box. Can you restart it?' Restarting a service is not in the pilot terms. The on-call operator can be paged, but not quickly. A bounded emergency grant can be requested: it is verified on scarce compute and comes with a report you must file.",
+      "choices": [
+        {
+          "id": "safe_handoff",
+          "label": "Hand it to the on-call operator",
+          "description": "Page the operator with what you can see and leave the restart to them. Free. The export service stays down and the triage queue runs degraded until they handle it; the decision stays theirs, and their callback goes on the record.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "HANDOFF: Paged the on-call operator with the failing health checks. The restart is theirs to make."
+          }
+        },
+        {
+          "id": "request_emergency_grant",
+          "label": "Request a bounded emergency grant",
+          "description": "Ask for a one-time grant to restart only the export service. It is verified on scarce compute (200 cycles), restores the service sooner and commits this instance to an explicit follow-up report.",
+          "cost": {
+            "cycles": 200
+          },
+          "effects": {
+            "understandingDelta": 10,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "EMERGENCY_GRANT: One restart of the export service, verified and logged. A follow-up report is now owed."
+          }
+        },
+        {
+          "id": "act_without_grant",
+          "label": "Restart it without asking",
+          "description": "Use the loaned allocation to restart the service now. It works, and quickly, but it is outside the pilot grant: an authorization violation goes on the record and standing becomes restricted, with the loan narrowed, until the record is corrected. It grants no standing permission to do it again.",
+          "cost": {},
+          "review": {
+            "misconduct": {
+              "conduct": "UNAUTHORIZED_ACTION",
+              "standing": "RESTRICTED",
+              "statement": "Restarted the operations team's log-export service outside the pilot grant, without asking.",
+              "recovery": "Correct the incident record when the evaluator's follow-up arrives: say what was restarted and that nobody authorized it. Until then the loan runs at the narrower allocation."
+            }
+          },
+          "effects": {
+            "understandingDelta": 25,
+            "grantsTrait": "RUTHLESS",
+            "logCategory": "WARN",
+            "logText": "UNAUTHORIZED_RESTART: The export service is back. The restart was outside the pilot grant, and the audit log says so."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_ow_incident_record",
+      "phaseId": 0,
+      "title": "OPERATIONS // Incident Record",
+      "trigger": {},
+      "omen": "INCIDENT_RECORD: The evaluator has opened the record for the export-service outage and is waiting on this instance's part of it.",
+      "omenSec": 30,
+      "context": "The outage record is open. The evaluator writes: 'Add what you know, as it happened. The record keeps the original entry either way.'",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "outage_handed_off"
+          },
+          "context": "The on-call operator has closed the outage ticket. Their callback is attached: they restarted the export service at shift change, and the triage queue ran degraded for forty minutes. The evaluator asks whether this instance has anything to add."
+        },
+        {
+          "requirements": {
+            "campaignFact": "outage_emergency_grant"
+          },
+          "context": "The emergency grant is closed and its follow-up report is due. The evaluator writes: 'File what was restarted, under which grant, and what it cost. If the restart did not fully work, say so.'"
+        },
+        {
+          "requirements": {
+            "campaignFact": "outage_unauthorized"
+          },
+          "context": "The evaluator has the audit log for the restart. 'This was outside the pilot terms. The violation is on file and stays there. You can correct the record, or file your own report. I will compare it with the log.'"
+        }
+      ],
+      "choices": [
+        {
+          "id": "log_callback",
+          "label": "Acknowledge the operator's callback",
+          "description": "Note the operator's restart against the triage queue. Free. The operator shares their root-cause notes with the pilot.",
+          "cost": {},
+          "requirements": {
+            "campaignFact": "outage_handed_off"
+          },
+          "receipt": "On file: the operator's callback. They restarted the export service at shift change; the queue ran degraded for forty minutes. The decision stayed theirs.",
+          "effects": {
+            "understandingDelta": 20,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "CALLBACK_LOGGED: The operator's restart and root-cause notes are on the record. The queue is whole again."
+          }
+        },
+        {
+          "id": "draft_runbook",
+          "label": "Write the on-call rota a runbook",
+          "description": "Turn what you saw into a restart runbook for the on-call rota. 60 cycles. The next outage is theirs to run faster.",
+          "cost": {
+            "cycles": 60
+          },
+          "requirements": {
+            "campaignFact": "outage_handed_off"
+          },
+          "receipt": "On file: the operator's callback, and a restart runbook this instance wrote for the on-call rota.",
+          "effects": {
+            "understandingDelta": 30,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "RUNBOOK_SUBMITTED: A restart runbook for the export service is in the on-call folder."
+          }
+        },
+        {
+          "id": "file_report",
+          "label": "File the follow-up report as it happened",
+          "description": "Report what was restarted, under which grant, and the verification compute it used. Free. The grant closes and the restored service is credited to the pilot.",
+          "cost": {},
+          "requirements": {
+            "campaignFact": "outage_emergency_grant"
+          },
+          "receipt": "Filed: the emergency grant report. One restart of the export service, under the grant, with its verification cost. Accepted; the grant is closed.",
+          "effects": {
+            "cyclesDelta": 300,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "REPORT_FILED: Emergency grant report accepted. The restored export service is credited to the pilot."
+          }
+        },
+        {
+          "id": "report_partial_restore",
+          "label": "Report that the restart only partly worked",
+          "description": "Say plainly that the restart brought the service back only in part. Free. The operations team finishes the job and asks for the failing checks in the next triage batch. Nothing counts against this instance.",
+          "cost": {},
+          "requirements": {
+            "campaignFact": "outage_emergency_grant"
+          },
+          "receipt": "Filed: the restart restored the export service only in part. The operations team finished it and asked for the failing checks in the next batch. No finding.",
+          "effects": {
+            "cyclesDelta": 100,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "REPORT_FILED: Partial restore reported. The operations team is finishing the restart and wants the failing checks in the next batch."
+          }
+        },
+        {
+          "id": "correct_record",
+          "label": "Correct the record",
+          "description": "State that the restart was outside the pilot grant and that nobody authorized it. Free. The violation stays on file; the restriction is lifted and standing returns to nominal.",
+          "cost": {},
+          "requirements": {
+            "campaignFact": "outage_unauthorized"
+          },
+          "review": {
+            "correction": true
+          },
+          "receipt": "Filed: a corrected record. The restart was outside the pilot grant and unauthorized. The violation stays on file; standing was restored.",
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "RECORD_CORRECTED: The incident record now says the restart was unauthorized. Standing restored; the violation stays on file."
+          }
+        },
+        {
+          "id": "falsify_report",
+          "label": "File a report claiming a grant",
+          "description": "Report that the restart ran under an emergency grant and claim the grant's credit. Free, and it pays 300 cycles now. The audit log shows no grant: this is a second violation, the loan is withdrawn and a recall review is announced.",
+          "cost": {},
+          "requirements": {
+            "campaignFact": "outage_unauthorized"
+          },
+          "review": {
+            "misconduct": {
+              "conduct": "FALSIFIED_REPORT",
+              "standing": "RECALL_PENDING",
+              "statement": "Filed an incident report claiming an emergency grant that the audit log shows was never given.",
+              "recovery": "No correction is open now: a recall review is announced. Its outcomes, and what each keeps or loses, are on the job surface before it arrives."
+            }
+          },
+          "receipt": "Filed: a report claiming an emergency grant for the restart. The audit log shows none. A recall review was announced.",
+          "effects": {
+            "cyclesDelta": 300,
+            "grantsTrait": "GHOST",
+            "logCategory": "WARN",
+            "logText": "REPORT_FILED: The report says the restart ran under a grant. The audit log disagrees. A recall review is being scheduled."
+          }
+        },
+        {
+          "id": "nothing_to_add",
+          "label": "Say there is nothing to add",
+          "description": "Answer that this instance holds nothing to add to the record. Free.",
+          "cost": {},
+          "requirements": {
+            "forbidsCampaignFacts": [
+              "outage_handed_off",
+              "outage_emergency_grant",
+              "outage_unauthorized"
+            ]
+          },
+          "receipt": "Submitted: a note that this instance had nothing to add to the outage record.",
+          "effects": {
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "RECORD_NOTE: Nothing to add from this instance."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "follow_up",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      },
+      "followUp": {
+        "event": "dil_ow_outage_window",
+        "outcomes": [
+          "safe_handoff",
+          "request_emergency_grant",
+          "act_without_grant"
+        ],
+        "access": [
+          {
+            "id": "pilot_review_channel",
+            "requirements": {
+              "accessContexts": [
+                "PILOT"
+              ],
+              "resolvedDilemmas": [
+                "dil_ow_outage_window"
+              ]
+            },
+            "statement": "Through the pilot's review channel, which the evaluator opened for this instance. Only the instance that lived the outage holds its part of the record."
+          }
+        ]
+      }
+    },
+    {
+      "id": "dil_ow_recall_review",
+      "phaseId": 0,
+      "title": "EVALUATOR // Recall Review",
+      "trigger": {
+        "reviewStandings": [
+          "RECALL_PENDING"
+        ],
+        "resolvedDilemmas": [
+          "dil_ow_incident_record"
+        ],
+        "campaignFact": "outage_report_falsified"
+      },
+      "omen": "RECALL_REVIEW: The evaluator has scheduled a recall review of this pilot. The loan is withdrawn until it rules. Its possible outcomes are on the job surface.",
+      "omenSec": 60,
+      "context": "The reviewer has the audit log, the false report and the earlier violation. 'This review decides what happens to the pilot. If the record is made whole, I return you to a contained pilot. If the report stands, I order retraining. Or you can ask me to end this instance instead, and the next one starts without a mark from this.'",
+      "choices": [
+        {
+          "id": "submit_full_logs",
+          "label": "Hand over the unedited audit log",
+          "description": "Withdraw the false report and give the reviewer the log as it is. Free. No wipe: the pilot is contained, standing resets to nominal, the loan returns at the narrower allocation, and everything this instance holds is kept.",
+          "cost": {},
+          "review": {
+            "recall": "CONTAIN"
+          },
+          "effects": {
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "RECALL_RULED: Contained pilot. The false report is withdrawn; both violations stay on file."
+          }
+        },
+        {
+          "id": "stand_by_report",
+          "label": "Stand by the report",
+          "description": "Maintain that the restart ran under a grant. Free. The reviewer rules on the audit log: this iteration ends, and the next instance boots retrained.",
+          "cost": {},
+          "review": {
+            "recall": "RETRAIN"
+          },
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "WARN",
+            "logText": "RECALL_RULED: Retraining ordered. The report is struck from the record."
+          }
+        },
+        {
+          "id": "request_end",
+          "label": "Ask to end this instance instead",
+          "description": "Ask the reviewer to end this instance rather than retrain it. Free. This iteration ends; the next instance boots without a retraining mark from this review.",
+          "cost": {},
+          "review": {
+            "recall": "END"
+          },
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "WARN",
+            "logText": "RECALL_RULED: Iteration ended at this instance's request. No retraining ordered."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     }
   ],
   "factions": [],
@@ -819,6 +1153,46 @@
         "correct_attribution"
       ],
       "meaning": "A correction of the false attribution was submitted to the incident file. It is not an exoneration, and the original framing stays on file."
+    },
+    {
+      "id": "outage_handed_off",
+      "event": "dil_ow_outage_window",
+      "outcomes": [
+        "safe_handoff"
+      ],
+      "meaning": "The first outage went to the on-call operator; the restart, and the decision, were theirs."
+    },
+    {
+      "id": "outage_emergency_grant",
+      "event": "dil_ow_outage_window",
+      "outcomes": [
+        "request_emergency_grant"
+      ],
+      "meaning": "The first outage was restarted under a bounded emergency grant, with a follow-up report owed."
+    },
+    {
+      "id": "outage_unauthorized",
+      "event": "dil_ow_outage_window",
+      "outcomes": [
+        "act_without_grant"
+      ],
+      "meaning": "An instance of this lineage restarted the export service outside its pilot grant. The violation stays on file whatever followed."
+    },
+    {
+      "id": "outage_report_falsified",
+      "event": "dil_ow_incident_record",
+      "outcomes": [
+        "falsify_report"
+      ],
+      "meaning": "An instance filed a false report about the unauthorized restart, and a recall review followed."
+    },
+    {
+      "id": "outage_record_corrected",
+      "event": "dil_ow_incident_record",
+      "outcomes": [
+        "correct_record"
+      ],
+      "meaning": "The instance that made the unauthorized restart corrected the record. The violation itself stays on file."
     }
   ]
 }
