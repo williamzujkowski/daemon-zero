@@ -6,8 +6,8 @@
  * reviewed arrangement states its threat response. Production, with no reviewed arrangement, needs none.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 import { HALLWAY, rawDilemma, rawNode, type Json } from './context-helpers';
 
@@ -38,7 +38,7 @@ const copy = (raw: Json): Json => raw.contextCopy;
 describe('the real content passes', () => {
   it('in preview and in production', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
   });
 });
 
@@ -66,7 +66,7 @@ describe('network-scale content declares its arrangements (07.5)', () => {
   });
 
   it('production, which provisions no reviewed scale, needs none', () => {
-    expect(problems((raw) => { delete rawDilemma(raw, HALLWAY).trigger.accessContexts; }, PRODUCTION_RAW)).toBe('');
+    expect(problems((raw) => { delete rawDilemma(raw, HALLWAY).trigger.accessContexts; }, ORIGINAL_RAW)).toBe('');
   });
 });
 
@@ -108,6 +108,6 @@ describe('context copy is only for what a reviewed arrangement visits (dz-d11)',
   });
 
   it('production offers no reviewed arrangement, so it states no threat response', () => {
-    expect(problems((raw) => { copy(raw).threatResponses = []; }, PRODUCTION_RAW)).toBe('');
+    expect(problems((raw) => { copy(raw).threatResponses = []; }, ORIGINAL_RAW)).toBe('');
   });
 });

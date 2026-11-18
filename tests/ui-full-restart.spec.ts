@@ -11,6 +11,7 @@ import { gameStore } from '../src/app/session';
 import { SAVE_KEY } from '../src/app/storage';
 import GameMenu from '../src/ui/GameMenu';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { admitted } from './helpers';
 setupM4Tests();
 
 it('refuses a full restart when the game runtime is inactive', () => {
@@ -50,7 +51,8 @@ it.each(['lineage-reboot-retrained', 'phase5-midgame'])('exports, cancels, then 
   expect(gameStore.store.getState().game).toBe(before);
   expect(gameStore.store.getState().restoreRevision).toBe(revision);
   view.click('save-reset'); view.click('save-reset-confirm');
-  const fresh = createInitialState(CONTENT);
+  // The store admits the new game to campaign rules, as it does every game (#233).
+  const fresh = admitted(createInitialState(CONTENT));
   expect(gameStore.store.getState().game).toEqual(fresh);
   expect(gameStore.store.getState().restoreRevision).toBe(revision + 1);
   expect(view.find('save-transfer')).toBeNull();

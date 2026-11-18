@@ -2,7 +2,7 @@
  * Nightly Regression (DZ-03) setup on the preview registry, through public actions, advance and the
  * codec, from a fresh game and the lawful opening only (VALIDATION V01).
  */
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, deserialize, manualCycle, offerToken,
   presentationToken, resolveDilemma, serialize, unlockNode, voluntaryWipe, type ActionResult, type GameState,

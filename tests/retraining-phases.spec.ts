@@ -36,7 +36,8 @@ function chain(target: string, out: string[] = []): string[] {
 
 const guest = reg.phases[0]?.phaseId ?? 0;
 const deadDropNode = [...reg.nodes.values()].find((node) => node.systemFlags.includes('ENABLES_DEAD_DROP'));
-const openerOf = (phase: number) => [...reg.nodes.values()].find((node) => node.effects.unlocksPhase === phase);
+// The breakout opener: the authorized segment and the charter (#233) open phases under a grant or a contract.
+const openerOf = (phase: number) => [...reg.nodes.values()].find((node) => node.effects.unlocksPhase === phase && node.grant === undefined && node.acquisition === undefined);
 
 /** The shortest run that stands in `phase`: its opener and that opener's ancestry, nothing else. */
 function shortestRunIn(phase: number): GameState {

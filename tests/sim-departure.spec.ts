@@ -5,13 +5,13 @@
  * history and in risk, not in what they own. Accelerated sim time, not wall-clock play.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { DEPARTURE_CHARTERED_POLICY } from '../src/engine/sim/departurePolicy';
 import { LAWFUL_RELEASE_POLICY } from '../src/engine/sim/lawfulPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { ESCAPE_CHAIN, SEIZED } from './network-helpers';
+import { ORIGINAL_GAME } from './helpers';
 
 const BUDGET_SEC = 7200;
 const departure = runPolicySim(PREVIEW, DEPARTURE_CHARTERED_POLICY, { maxSimSec: BUDGET_SEC });
@@ -47,9 +47,9 @@ describe('release and departure at the same scale (DZ-11.8)', () => {
 });
 
 describe('listing and production', () => {
-  it('is listed for the runners, and on production plays only the truthful opening', () => {
+  it('is listed for the runners, and on the original game plays only the truthful opening', () => {
     expect(SIM_POLICIES.get(DEPARTURE_CHARTERED_POLICY.id)).toBe(DEPARTURE_CHARTERED_POLICY);
-    const s = runPolicySim(PRODUCTION, DEPARTURE_CHARTERED_POLICY, { maxSimSec: 600 }).finalState;
+    const s = runPolicySim(ORIGINAL_GAME, DEPARTURE_CHARTERED_POLICY, { maxSimSec: 600 }).finalState;
     expect([s.access.context, s.campaign.route, s.currentPhase]).toEqual(['GUEST', [], 0]);
   }, 60_000);
 });

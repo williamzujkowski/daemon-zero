@@ -8,7 +8,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 // Player presses go through the real runtime, which needs storage and an active lifecycle.
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({

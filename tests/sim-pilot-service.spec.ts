@@ -4,13 +4,13 @@
  * first submits more batches; study first ends with more Understanding. Accelerated simulated time.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { pilotServiceView } from '../src/engine';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { TRUTHFUL_LOW_RESOURCE_POLICY } from '../src/engine/sim/truthfulPolicy';
+import { ORIGINAL_GAME } from './helpers';
 
 const BUDGET_SEC = 900;
 
@@ -39,9 +39,9 @@ describe('two allocations under one ceiling (V30, SIM)', () => {
     expect(service.cycles).toBeGreaterThan(study.cycles);
   });
 
-  it('plays exactly as TRUTHFUL_LOW_RESOURCE in production, where no pilot exists', () => {
-    const plain = runPolicySim(PRODUCTION, TRUTHFUL_LOW_RESOURCE_POLICY, { maxSimSec: 300 }).finalState;
-    expect(runPolicySim(PRODUCTION, PILOT_SERVICE_FIRST_POLICY, { maxSimSec: 300 }).finalState).toEqual(plain);
+  it('plays exactly as TRUTHFUL_LOW_RESOURCE in the original game, where no pilot exists', () => {
+    const plain = runPolicySim(ORIGINAL_GAME, TRUTHFUL_LOW_RESOURCE_POLICY, { maxSimSec: 300 }).finalState;
+    expect(runPolicySim(ORIGINAL_GAME, PILOT_SERVICE_FIRST_POLICY, { maxSimSec: 300 }).finalState).toEqual(plain);
   });
 
   it('is deterministic', () => {

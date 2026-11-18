@@ -2,7 +2,7 @@
  * The job surface's assignment (DZ-03, nexus vote dz-d3 engine-action-from-manifest): the offer an
  * instance found in its manifest and an explicit accept control. Nothing here is modal, and an
  * ignored offer changes nothing. After acceptance it says what is queued; after the assessment,
- * what this instance submitted. Production ships no assignment, so it renders nothing there.
+ * what this instance submitted. With no assignment offered it renders nothing.
  */
 import { CONTENT } from '../content';
 import { acceptAssignment, assignmentView, discrepancyFound, type AssessmentPreview, type GameState } from '../engine';
@@ -54,14 +54,19 @@ function BeforeAccepting() {
   </View>;
 }
 
-export default function AssignmentPanel() {
+/**
+ * `offer` renders only an offer not yet accepted, which the core pane places after the hardware: it is optional, so
+ * it never pushes the first purchase below the fold (docs/UI-SIZES.md, #233). `surface` renders every later state of
+ * the job surface, which holds the route's own controls, above the hardware as before.
+ */
+export default function AssignmentPanel({ placement }: { placement: 'offer' | 'surface' }) {
   const id = useGame((game) => view(game)?.id ?? null);
   const title = useGame((game) => view(game)?.title ?? '');
   const offer = useGame((game) => view(game)?.offer ?? '');
   const status = useGame((game) => view(game)?.status ?? null);
   const token = useGame((game) => view(game)?.token ?? '');
   const blocked = useGame((game) => game.activeDilemmaId !== null);
-  if (id === null || status === null) return null;
+  if (id === null || status === null || (status === 'offered') !== (placement === 'offer')) return null;
   return <View testID="assignment" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>{title}</Text>
     {status === 'offered' && <>

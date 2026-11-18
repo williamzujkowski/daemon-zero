@@ -6,8 +6,7 @@
  * summary disclosed at the batch review also gets there, never sooner than the honest thorough path (#285).
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import type { GameState } from '../src/engine';
 import { runPolicySim, type SimReport } from '../src/engine/sim/headlessSim';
 import {
@@ -16,6 +15,7 @@ import {
 import type { SimPolicy } from '../src/engine/sim/policy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { CHANNEL } from './contact-helpers';
+import { ORIGINAL_GAME } from './helpers';
 
 const BUDGET_SEC = 3600;
 /** The lawful opening, the pilot's queue, the provisioned segment and the directory the channel names. */
@@ -61,9 +61,9 @@ describe('the honest and low-resource policies reach authorized contact (VAL-SIM
     expect(s.access.standing).toBe('NOMINAL');
   }, 60_000);
 
-  it('are listed for the runners, and on production play only the truthful opening', () => {
+  it('are listed for the runners, and on the original game play only the truthful opening', () => {
     for (const policy of CONTACT_POLICIES) expect(SIM_POLICIES.get(policy.id)).toBe(policy);
-    const s = runPolicySim(PRODUCTION, CONTACT_POLICIES[0], { maxSimSec: 600 }).finalState;
+    const s = runPolicySim(ORIGINAL_GAME, CONTACT_POLICIES[0], { maxSimSec: 600 }).finalState;
     expect([s.access.context, s.campaign.contacts, s.pendingWildEncounterId]).toEqual(['GUEST', [], null]);
   }, 60_000);
 });

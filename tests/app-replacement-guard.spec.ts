@@ -2,8 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
-import { createInitialState, deserialize, exportSave, importSave, tick, type GameState } from '../src/engine';
+import { createInitialState, deserialize, exportSave, importSave, type GameState } from '../src/engine';
 import { systemClock } from '../src/app/clock';
 import { startFresh } from '../src/app/newRun';
 import { captureReplacementScope } from '../src/app/replacePlayerGame';
@@ -11,6 +10,7 @@ import { checkPlayerSave, importPlayerSave } from '../src/app/saveTransfer';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { SAVE_KEY } from '../src/app/storage';
 import { settle } from './app-helpers';
+import { admitted, previewSaveCode } from './helpers';
 
 const storage = vi.hoisted(() => ({ values: new Map<string, string>() }));
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
@@ -89,8 +89,8 @@ describe('player replacement race guard', () => {
   it('rejects ownership changed after confirmation without requiring a save restoration', () => {
     gameStore.initialize(fixture('tick-0'), 0, null);
     const token = captureReplacementScope();
-    const mapped = fixture('guest-skimmer');
-    gameStore.dispatch(() => ({ ok: true, state: mapped }));
+    gameStore.dispatch(() => ({ ok: true, state: fixture('guest-skimmer') }));
+    const mapped = gameStore.store.getState().game;
     const revision = gameStore.store.getState().restoreRevision;
     const result = startFresh(token);
     expect(result.ok).toBe(false);
@@ -105,7 +105,7 @@ describe('player replacement race guard', () => {
     now = 100;
     const result = replace(kind, token);
     expect(result.ok).toBe(true);
-    expect(result.state).toEqual(createInitialState(CONTENT));
+    expect(result.state).toEqual(admitted(createInitialState(CONTENT)));
     expect(gameStore.store.getState().restoreRevision).toBe(revision + 1);
   });
 
@@ -121,9 +121,7 @@ describe('player replacement race guard', () => {
   it('names a preview-build save code and keeps the current run', () => {
     gameStore.initialize(fixture('guest-skimmer'), 0, null);
     const before = gameStore.store.getState();
-    const preview = tick(createInitialState(PREVIEW), 1, PREVIEW);
-    expect(preview.contentChannel).toBe('preview');
-    const result = importPlayerSave(exportSave(preview), captureReplacementScope());
+    const result = importPlayerSave(previewSaveCode(), captureReplacementScope());
     expect(result).toMatchObject({ ok: false, reason: 'This save comes from a preview build and cannot be loaded here.' });
     expect(result.state).toBe(before.game);
     expect(gameStore.store.getState().game).toBe(before.game);
@@ -135,7 +133,7 @@ describe('player save check before confirmation', () => {
   it('reports why a code would be refused through the import codec, leaving the run alone', () => {
     gameStore.initialize(fixture('guest-skimmer'), 0, null);
     const before = gameStore.store.getState();
-    const preview = exportSave(tick(createInitialState(PREVIEW), 1, PREVIEW));
+    const preview = previewSaveCode();
     expect(checkPlayerSave('not-a-save-code')).toEqual({ ok: false, reason: 'Save code is invalid or unsupported.' });
     expect(checkPlayerSave('')).toEqual({ ok: false, reason: 'Save code is invalid or unsupported.' });
     expect(checkPlayerSave(preview)).toEqual({ ok: false, reason: 'This save comes from a preview build and cannot be loaded here.' });

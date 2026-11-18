@@ -2,10 +2,12 @@
 import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { REVIEW_BREADCRUMB } from '../scripts/m4-fixtures';
-import { CONTENT } from '../src/content';
+import { buildRegistry, CONTENT, ORIGINAL_RAW_CONTENT } from '../src/content';
 import { canAfford, importSave, isNodeAvailable, serialize, tick, voluntaryWipe } from '../src/engine';
 
 const saves = makeFixtures();
+/** The review states are breakout states: the original game's operatives and endings (#233). */
+const ORIGINAL = buildRegistry(ORIGINAL_RAW_CONTENT);
 function state(name: string) {
   const code = saves[name];
   if (!code) throw new Error('Missing fixture ' + name);
@@ -43,7 +45,7 @@ describe('M4 review fixtures', () => {
     const insolvent = state('corporate-insolvent');
     expect(insolvent.insolvent).toBe(true);
     expect(insolvent.capital).toBe(0);
-    expect([...CONTENT.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE')
+    expect([...ORIGINAL.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE')
       .every((rep) => (insolvent.levels[rep.id] ?? 0) > 0)).toBe(true);
     expect(state('megawatt-shortfall').rates.gridEfficiency).toBeLessThan(1);
   });
@@ -53,6 +55,6 @@ describe('M4 review fixtures', () => {
     const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
     if (!victory) throw new Error('Missing victory');
     expect(isNodeAvailable(ready, victory) && canAfford(ready, victory.cost)).toBe(true);
-    for (const ending of CONTENT.endings) expect(state('ending-' + ending.id.toLowerCase()).ending).toBe(ending.id);
+    for (const ending of ORIGINAL.endings) expect(state('ending-' + ending.id.toLowerCase()).ending).toBe(ending.id);
   });
 });

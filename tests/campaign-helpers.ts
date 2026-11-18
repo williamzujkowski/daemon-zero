@@ -2,7 +2,7 @@
  * Campaign-record test setup on the preview registry, the only channel that may activate
  * campaign rules before release. Everything goes through public actions and the save codec.
  */
-import { buildRegistry, CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW, type RawContent } from '../src/content/preview';
+import { buildRegistry, CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW, type RawContent } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, exportSave, importSave, unlockNode, wipe, type GameState,

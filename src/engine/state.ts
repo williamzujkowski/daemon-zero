@@ -200,7 +200,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
 
   return {
     schemaVersion: SCHEMA_VERSION,
-    contentChannel: reg.channel,
+    contentChannel: 'production',
     ...initialHistory(),
     ...initialSwarmState(),
     iteration: 1,

@@ -29,10 +29,19 @@ export function expectAtBase(player: LivePlayer, what: string): void {
   expect(new URL(player.page.url()).pathname, what + ' comes back at the deployment path').toBe(BASE_PREFIX);
 }
 
-/** What survives any save, reload or transfer exactly; clocks and balances move underneath it. */
+/**
+ * What survives any save, reload or transfer exactly; clocks and balances move underneath it. Since the release
+ * (#233) that includes the campaign: its rules, the records of what happened, the route and the arrangement.
+ */
 function durable(state: GameState) {
   return { iteration: state.iteration, phase: state.currentPhase, nodes: state.unlockedNodes, levels: state.levels,
-    dilemmas: state.resolvedDilemmas, traits: state.traits, wipes: state.legacy.wipes, known: state.legacy.knownNodes };
+    dilemmas: state.resolvedDilemmas, traits: state.traits, wipes: state.legacy.wipes, known: state.legacy.knownNodes,
+    rules: state.narrativeRules, records: settled(state), route: state.campaign.route, arrangement: state.access.context };
+}
+
+/** The campaign records that cannot move on their own: an omen in flight may be presented by the next tick. */
+function settled(state: GameState) {
+  return Object.fromEntries(Object.entries(state.campaign.events).filter(([, record]) => record.status === 'resolved'));
 }
 
 async function loaded(player: LivePlayer): Promise<void> {
@@ -233,6 +242,13 @@ export async function wipesAndRemembers(player: LivePlayer): Promise<boolean> {
   await expect(page.getByTestId('reboot-breadcrumb')).toContainText(breadcrumb);
   const after = await player.read();
   const fresh = createInitialState(CONTENT);
+  // The world remembers (#233): the store admitted the fresh profile to campaign rules, and the wipe keeps
+  // every story the campaign closed, once, with the activation it began from.
+  expect(before.narrativeRules, 'the app plays campaign rules').toBe('campaign_v1');
+  expect(after.narrativeRules).toBe('campaign_v1');
+  expect(after.campaign.activatedAtIteration).toBe(before.campaign.activatedAtIteration);
+  expect(Object.keys(settled(before)).length, 'the first iteration closed at least one story').toBeGreaterThan(0);
+  expect(settled(after), 'every closed story stays closed across the wipe').toEqual(expect.objectContaining(settled(before)));
   expect(after.iteration).toBe(before.iteration + 1);
   expect(after.legacy.wipes).toBe(before.legacy.wipes + 1);
   expect(after.currentPhase).toBe(fresh.currentPhase);

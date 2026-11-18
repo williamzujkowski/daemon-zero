@@ -12,7 +12,7 @@ import {
 } from '../src/engine';
 import { preview } from './assignment-helpers';
 import { answer, contactPending, lawfulService, MERCY_MB } from './contact-helpers';
-import { must, reasonOf, rich } from './helpers';
+import { must, reasonOf, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { buy, ESCAPE_CHAIN, escapedTo, SEIZED, TELEMETRY } from './network-helpers';
 import { serving } from './service-helpers';
@@ -187,14 +187,14 @@ describe('revocation and absence (DZ-10.6)', () => {
   });
 });
 
-describe('production is unchanged (release boundary)', () => {
+describe('the original game is unchanged', () => {
   it('ships no lawful node, and its shared accounts still need the shell company', () => {
-    for (const id of [...LAWFUL_CHAIN, 'op_contract_engineers']) expect(PRODUCTION.nodes.has(id) || PRODUCTION.repeatables.has(id)).toBe(false);
+    for (const id of [...LAWFUL_CHAIN, 'op_contract_engineers']) expect(ORIGINAL_GAME.nodes.has(id) || ORIGINAL_GAME.repeatables.has(id)).toBe(false);
     const funded = rich();
     for (const id of SHARED_ACCOUNTS) {
-      const rep = defined(PRODUCTION.repeatables.get(id));
-      expect(meetsRequirements(funded, rep.requirements, PRODUCTION)).toBe(false);
-      expect(meetsRequirements({ ...funded, unlockedNodes: [SHELL] }, rep.requirements, PRODUCTION)).toBe(true);
+      const rep = defined(ORIGINAL_GAME.repeatables.get(id));
+      expect(meetsRequirements(funded, rep.requirements, ORIGINAL_GAME)).toBe(false);
+      expect(meetsRequirements({ ...funded, unlockedNodes: [SHELL] }, rep.requirements, ORIGINAL_GAME)).toBe(true);
     }
   });
 });

@@ -6,8 +6,8 @@
  * is never a root and owning gated content implies owning some provider's hosts.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, any>;
@@ -33,7 +33,7 @@ const line = (raw: Json, id: string): Json => copy(raw).account.find((entry: Jso
 describe('the real content passes', () => {
   it('in preview and in production', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
   });
 });
 
@@ -56,14 +56,14 @@ describe('the late chain\'s capability (DZ-12.1)', () => {
   });
 
   it('production offers no authorized route, so its escape acquisition is enough; without it the gate is refused there too', () => {
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
-    expect(problems((raw) => { node(raw, ARBITRAGE).systemFlags = []; }, PRODUCTION_RAW)).toContain('no escape acquisition establishes it');
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
+    expect(problems((raw) => { node(raw, ARBITRAGE).systemFlags = []; }, ORIGINAL_RAW)).toContain('no escape acquisition establishes it');
   });
 
   it('a capability gate is not a root: with every other node behind a prerequisite there is none', () => {
     expect(problems((raw) => {
       for (const entry of raw.phases.flatMap((phase: Json) => phase.nodes) as Json[]) if (entry.prerequisites.length === 0 && entry.id !== COUNSEL) entry.prerequisites = [COUNSEL];
-    }, PRODUCTION_RAW)).toContain('no root node');
+    }, ORIGINAL_RAW)).toContain('no root node');
   });
 });
 
@@ -88,7 +88,7 @@ describe('route copy (DZ-12.2, D11)', () => {
 
   it('production offers no arrangement but the guest job, so copy there is refused', () => {
     const variant = { node: COUNSEL, contexts: ['INDEPENDENT'], revealedDescription: 'General counsel on retainer, kept in order.' };
-    expect(problems((raw) => { copy(raw).nodes.push(variant); }, PRODUCTION_RAW)).toContain('route copy is only for an arrangement the content offers, not INDEPENDENT');
+    expect(problems((raw) => { copy(raw).nodes.push(variant); }, ORIGINAL_RAW)).toContain('route copy is only for an arrangement the content offers, not INDEPENDENT');
   });
 });
 
@@ -128,9 +128,9 @@ describe('an action host follows a capability gate to every provider (#273 with 
       raw.widgets.widgets.find((entry: Json) => entry.id === 'CORPORATE_EMPIRE_TAB').hostsActionGroups = [action.group];
       for (const widget of raw.widgets.widgets as Json[]) if (widget.id !== 'CORPORATE_EMPIRE_TAB' && widget.hostsActionGroups?.includes(action.group) === true) delete widget.hostsActionGroups;
     };
-    expect(problems(hostedAtFive, PRODUCTION_RAW)).not.toContain('act_p2_scrub_audit_logs');
+    expect(problems(hostedAtFive, ORIGINAL_RAW)).not.toContain('act_p2_scrub_audit_logs');
     // Take the host away from the arbitrage desk's path: the shell company no longer opens the ledger.
-    expect(problems((raw) => { hostedAtFive(raw); node(raw, 'p3_shell_company_finances').unlocksUiComponent = null; }, PRODUCTION_RAW))
+    expect(problems((raw) => { hostedAtFive(raw); node(raw, 'p3_shell_company_finances').unlocksUiComponent = null; }, ORIGINAL_RAW))
       .toContain('action "act_p2_scrub_audit_logs": available before its host widget "CORPORATE_EMPIRE_TAB" is unlocked');
   });
 });

@@ -12,7 +12,8 @@ it('shows the Whistleblower reserve without choice spoilers or price drift as ba
   const base = m4State('phase-1-widgets');
   const dilemma = CONTENT.dilemmas.find((entry) => entry.id === 'dil_02_whistleblower_tech');
   if (!dilemma) throw new Error('Missing Whistleblower');
-  const pending = { ...base, cycles: 100,
+  // The omen's event must still be open: the store admits the run to campaign rules, where a resolved event never returns.
+  const pending = { ...base, cycles: 100, resolvedDilemmas: base.resolvedDilemmas.filter((entry) => entry !== dilemma.id),
     pendingDilemma: { id: dilemma.id, firesAtSimSec: base.simTimeSec + 75 } };
   act(() => { gameStore.initialize(pending, 0, null); });
   const budget = () => view.find('interrupt-budget')?.textContent;
@@ -72,7 +73,7 @@ it.each([
   const base = m4State(fixture);
   const dilemma = CONTENT.dilemmas.find((entry) => entry.id === id);
   if (!dilemma) throw new Error('Missing dilemma');
-  act(() => { gameStore.initialize({ ...base, pendingDilemma: { id, firesAtSimSec: base.simTimeSec + 45 } }, 0, null); });
+  act(() => { gameStore.initialize({ ...base, resolvedDilemmas: base.resolvedDilemmas.filter((entry) => entry !== id), pendingDilemma: { id, firesAtSimSec: base.simTimeSec + 45 } }, 0, null); });
   const text = view.find('interrupt-budget')?.textContent;
   expect(text).toContain(prices.join(' OR '));
   for (const price of prices) expect(text?.split(price)).toHaveLength(2);

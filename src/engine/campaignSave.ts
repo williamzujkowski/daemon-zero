@@ -8,7 +8,7 @@ import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import { legacyRecord } from './campaign';
 import { dropStaleRepeats, reserveLivePointers } from './campaignLifecycle';
 import { obligationProblem } from './obligations';
-import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
+import { isCampaignActive, projectableFlags } from './campaignQuery';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import { followUpPrerequisiteHolds } from './followUp';
 import type { GameState } from './state';
@@ -110,7 +110,6 @@ function followUpProblem(s: GameState, reg: ContentRegistry, events: CampaignSta
 /** Returns the reconciled state, or why the save must be refused without loading anything. */
 export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): GameState | string {
   if (!isCampaignActive(loaded)) return isInactive(loaded.campaign) ? loaded : 'save carries campaign history without campaign rules';
-  if (!campaignRulesSupported(reg)) return 'save uses campaign rules this build does not support';
   const c = loaded.campaign;
   if (c.activatedAtIteration === null || c.activatedAtIteration > loaded.iteration || c.legacyEndingBaseline === null) {
     return 'save has an incomplete campaign activation';

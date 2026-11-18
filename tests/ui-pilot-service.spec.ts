@@ -9,7 +9,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
@@ -51,7 +50,7 @@ async function mount(state: GameState, element: ReactElement) {
 }
 
 const game = () => gameStore.store.getState().game;
-const both = () => createElement('div', null, createElement(AssignmentPanel), createElement(PilotAllocation));
+const both = () => createElement('div', null, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })), createElement(PilotAllocation));
 
 describe('the pilot allocation dial', () => {
   it('is registered for the widget that hosts it, found by what it hosts', () => {
@@ -62,7 +61,7 @@ describe('the pilot allocation dial', () => {
 
 describe('the task detail of an accepted pilot', () => {
   it('names the ceiling and asks for the loan to be attached before any work', async () => {
-    const view = await mount(piloted(), createElement(AssignmentPanel));
+    const view = await mount(piloted(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('10 cycles/s of loaned compute');
     expect(view.find('pilot-service-idle')).not.toBeNull();
     expect(view.find('pilot-service-submit')).toBeNull();
@@ -95,7 +94,7 @@ describe('the task detail of an accepted pilot', () => {
 
   it('submits a completed batch only on an explicit press, once', async () => {
     const done = untilComplete(serving());
-    const view = await mount(done, createElement(AssignmentPanel));
+    const view = await mount(done, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-service-forecast')?.textContent).toContain('waits for you');
     expect(view.find('pilot-service-submit')?.getAttribute('aria-disabled')).not.toBe('true');
     view.click('pilot-service-submit');

@@ -1,7 +1,7 @@
 /** Corrupt real manifests to prove every campaign-record content rule catches its mistake (H28). */
 import { describe, expect, it } from 'vitest';
 import { buildRegistry, CONTENT, RAW_CONTENT, type RawContent } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 
 type Json = Record<string, any>;
 const CRYO = 'dil_05_cryo_lab_diversion', NOTE = 'dil_note_bait';

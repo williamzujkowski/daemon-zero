@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { buildRegistry, RAW_CONTENT, type RawContent } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 
 type Json = Record<string, any>;
 function corrupt(change: (raw: Json) => void): () => unknown {

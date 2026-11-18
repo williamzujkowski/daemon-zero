@@ -6,7 +6,6 @@
  * fresh preview game unless a step says FIXTURE.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import { setReviewStanding } from '../src/engine/access';
 import {
   acceptAssignment, advance, batchToken, computeRates, contactToken, cycleContributions, departAuthorization, departedWithoutAgreement, departureEligibility,
@@ -18,7 +17,7 @@ import { threatResponse } from '../src/engine/contextCopy';
 import { mapManifest, NIGHTLY, preview, roundTrip } from './assignment-helpers';
 import { answer, contactPending, lawfulService } from './contact-helpers';
 import { depart, DEPARTURE_TERMS, recallAnnouncedWithUplink } from './departure-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { chartered, CHARTER, CLUSTER, CONTRACT, leased, RACK, release, signed, SLA } from './lawful-helpers';
 import { defined } from './m7-helpers';
 import { NIC, SEGMENT } from './network-helpers';
@@ -58,14 +57,14 @@ describe('DZ-11.1: offered only when the eligibility query proves a continuation
     expect(departureEligibility(pilot, preview)?.continuation).toEqual([NIC]);
   });
 
-  it('is refused, unchanged, on a stale token, during a decision, after it happened, and in production', () => {
+  it('is refused, unchanged, on a stale token, during a decision, after it happened, and in the original game', () => {
     expect(reasonOf(departAuthorization(rack, preview, 'depart@1#0'))).toBe('that departure is no longer current');
     const deciding = { ...rack, activeDilemmaId: 'dil_ow_outage_window' };
     expect(departureEligibility(deciding, preview)).toMatchObject({ eligible: false, blockers: ['A decision is on screen; it comes first.'] });
     expect(depart(deciding).state).toBe(deciding);
     expect(reasonOf(depart(gone))).toBe('there is no authorization to leave');
-    expect(departureView(rack, PRODUCTION)).toBeNull();
-    expect(reasonOf(departAuthorization(rack, PRODUCTION, departureToken(rack)))).toBe('there is no authorization to leave');
+    expect(departureView(rack, ORIGINAL_GAME)).toBeNull();
+    expect(reasonOf(departAuthorization(rack, ORIGINAL_GAME, departureToken(rack)))).toBe('there is no authorization to leave');
   });
 
   it('is not instant death: a report that would complete the trace is refused until suspicion falls', () => {

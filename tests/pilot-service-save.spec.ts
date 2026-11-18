@@ -12,10 +12,12 @@ import {
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { freshCampaign, live, preview, roundTrip } from './assignment-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 import { piloted, QUEUE, QUEUE_NODE, SERVICE, serving, split, submit, untilComplete } from './service-helpers';
 
-const V11 = readFileSync('tests/fixtures/pre-pilot-v11.json', 'utf8');
+const V11_PREVIEW = readFileSync('tests/fixtures/pre-pilot-v11.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const V11 = remarkedAsProduction(V11_PREVIEW);
 const SERVICE_STEP = 11;
 
 describe('every DZ-05 transition reloads unchanged (V12)', () => {
@@ -57,7 +59,7 @@ describe('the v11 -> v12 step', () => {
 
 describe('the genuine v11 fixture (tests/fixtures/README.md)', () => {
   it('is a v11 preview save of an accepted narrow pilot from before the loop existed', () => {
-    const raw = JSON.parse(V11) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown>; actuators: Record<string, number> };
+    const raw = JSON.parse(V11_PREVIEW) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown>; actuators: Record<string, number> };
     expect([raw.schemaVersion, raw.contentChannel]).toEqual([11, 'preview']);
     expect(Object.keys(raw.access)).toEqual(['context', 'standing', 'exception', 'qualification', 'assignment', 'scope', 'offer']);
     expect(Object.keys(raw.actuators)).toEqual(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio']);
@@ -73,7 +75,7 @@ describe('the genuine v11 fixture (tests/fixtures/README.md)', () => {
   });
 
   it('is refused by production, which never loads a preview save', () => {
-    expect(() => deserialize(V11, PRODUCTION)).toThrow(SaveChannelError);
+    expect(() => deserialize(V11_PREVIEW, PRODUCTION)).toThrow(SaveChannelError);
   });
 });
 

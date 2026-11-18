@@ -7,11 +7,13 @@ import { startOver } from '../src/app/newRun';
 import { gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { labelMismatches } from './labelInName';
+import { ORIGINAL_GAME } from './helpers';
 
 setupM4Tests();
 describe('M4 endings', () => {
   it('shows every authored title/epilogue and cannot dismiss an ending with Escape', async () => {
-    for (const ending of CONTENT.endings) {
+    // The original endings; the route's own (#232) are shown by tests/ui-cooperative.spec.ts and the e2e cooperative ending.
+    for (const ending of ORIGINAL_GAME.endings) {
       const view = await mountM4('ending-' + ending.id.toLowerCase());
       expect(view.find('ending-title')?.textContent).toBe(ending.title);
       expect(view.find('ending-epilogue')?.textContent).toBe(ending.epilogue);

@@ -1,7 +1,7 @@
 /** Human outcomes persist without replay rewards or reconstructed historical choices. */
 import { describe, expect, it } from 'vitest';
 import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave, importSave, isNodeAvailable, meetsRequirements, recordedTransmissions, serialize, tick, unmetRequirements, wipe, type GameState } from '../src/engine';
-import { CONTENT as preview } from '../src/content/preview';
+import { CONTENT as preview } from '../src/content';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, outOfTheWay, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
@@ -46,7 +46,7 @@ describe('recorded cryo outcomes', () => {
   });
 
   // Rewritten under nexus vote nh-d5 (suppress-legacy-unknown-at-activation, vote-1794925989193-ef6tf9i).
-  // Legacy rules, which production still plays, keep the pilot behaviour: a resolved cryo with no
+  // Legacy rules (no live production game plays them since #233) keep the pilot behaviour: a resolved cryo with no
   // stored choice may return once after a wipe. Campaign rules map it to legacy_unknown at
   // activation and suppress the original for good; no outcome is invented either way.
   it('keeps legacy resolved history unknown: it may recur under legacy rules, never under campaign rules', () => {

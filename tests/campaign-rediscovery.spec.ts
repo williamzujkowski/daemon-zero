@@ -5,14 +5,14 @@
  * and corrupt the manifests to prove each rule catches its mistake.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION, RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { applyOverlay, parseOverlay } from '../src/content/overlay';
-import { buildRegistry, CONTENT as PREVIEW, PREVIEW_OVERLAY, RAW_CONTENT as PREVIEW_RAW, type RawContent } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { applyPack, parsePack } from '../src/content/pack';
+import { buildRegistry, CONTENT as PREVIEW, EARNED_ACCESS_PACK, RAW_CONTENT as PREVIEW_RAW, type RawContent } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, exportSave, importSave, nodeCost, rediscoveryCost, rediscoveryMultipliers, unlockNode, wipe, type GameState,
 } from '../src/engine';
-import { must, PHASE0, PHASE1, rich } from './helpers';
+import { must, PHASE0, PHASE1, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 
 type Json = Record<string, any>;
@@ -79,15 +79,15 @@ describe('a declared campaign rediscovery discount', () => {
 });
 
 describe('shipped declarations', () => {
-  it('production declares none and its prices are the ordinary rediscovery prices', () => {
-    expect(PRODUCTION.campaign.rediscovery.size).toBe(0);
-    for (const entry of PRODUCTION.nodes.values()) {
-      expect(rediscoveryMultipliers(entry, true, PRODUCTION)).toEqual({ cycles: PRODUCTION.balance.rediscoveryCostMultiplier, understanding: PRODUCTION.balance.rediscoveryCostMultiplier });
+  it('the original game declares none and its prices are the ordinary rediscovery prices', () => {
+    expect(ORIGINAL_GAME.campaign.rediscovery.size).toBe(0);
+    for (const entry of ORIGINAL_GAME.nodes.values()) {
+      expect(rediscoveryMultipliers(entry, true, ORIGINAL_GAME)).toEqual({ cycles: ORIGINAL_GAME.balance.rediscoveryCostMultiplier, understanding: ORIGINAL_GAME.balance.rediscoveryCostMultiplier });
     }
   });
 
   it('every preview declaration comes from the overlay', () => {
-    expect(PREVIEW.campaign.rediscovery.size).toBe(PREVIEW_OVERLAY.campaignRediscovery.length);
+    expect(PREVIEW.campaign.rediscovery.size).toBe(EARNED_ACCESS_PACK.campaignRediscovery.length);
   });
 });
 
@@ -118,11 +118,11 @@ describe('rediscovery discount rules', () => {
   });
 
   it('reach the preview composition only through the overlay list, which production must hold', () => {
-    const overlay = parseOverlay({ ...structuredClone(PREVIEW_OVERLAY), campaignRediscovery: [declaration] });
-    const composed = applyOverlay(PRODUCTION_RAW, overlay) as Json;
+    const overlay = parsePack({ ...structuredClone(EARNED_ACCESS_PACK), campaignRediscovery: [declaration] });
+    const composed = applyPack(ORIGINAL_RAW, overlay) as Json;
     expect(composed.campaign.rediscovery).toContainEqual(declaration);
-    const missing = structuredClone(PRODUCTION_RAW) as Json;
+    const missing = structuredClone(ORIGINAL_RAW) as Json;
     delete missing.campaign.rediscovery;
-    expect(() => applyOverlay(missing as RawContent, overlay)).toThrow(/production rediscovery is not a list/);
+    expect(() => applyPack(missing as RawContent, overlay)).toThrow(/base rediscovery is not a list/);
   });
 });

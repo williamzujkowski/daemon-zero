@@ -3,7 +3,7 @@
  * Mercy-Scribe fragment's consent, what hosting would commit this instance to, the current
  * authorization and the memory hosting needs, all before the two answers. Referral is free and always
  * open; hosting is refused, with the reason, when memory or permission is missing. After an answer it
- * shows what was done and the preview's prototype boundary. Production opens no channel, so this
+ * shows what was done and the note on what comes next. The original game opens no channel, so this
  * renders nothing there.
  */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
@@ -76,7 +76,7 @@ function focusHeading(node: ComponentRef<typeof View> | null): void {
   else AccessibilityInfo.sendAccessibilityEvent(node, 'focus');
 }
 
-/** The preview's honest end of the route so far, with the way to keep going or stop. */
+/** What comes next on the route, honestly, with the way to keep going or stop. */
 function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactView['boundary']>; focus: boolean }) {
   const [open, setOpen] = useState(true);
   const heading = useRef<ComponentRef<typeof View>>(null);
@@ -87,7 +87,7 @@ function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactVie
     </View>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
     <Pressable testID="prototype-boundary-toggle" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
-      accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
+      accessibilityLabel={open ? 'Keep playing: fold the note on what comes next' : 'Show note: what comes next'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>
     </Pressable>

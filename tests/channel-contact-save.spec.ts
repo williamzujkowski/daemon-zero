@@ -11,9 +11,11 @@ import { advance, createInitialState, deserialize, MIGRATIONS, serialize, volunt
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { freshCampaign, live, preview, roundTrip } from './assignment-helpers';
 import { acceptService, answer, CHANNEL, contactPending, delivered, directoryMapped, lawfulService, MERCY, withMemory } from './contact-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction, markedPreview } from './helpers';
 
-const V13 = readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8');
+const V13_PREVIEW = readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const V13 = remarkedAsProduction(V13_PREVIEW);
 /** The migration step that adds `campaign.contacts`. */
 const CONTACT_STEP = 13;
 const pending = contactPending();
@@ -76,7 +78,7 @@ describe('the contact-record migration step', () => {
 
 describe('the genuine v13 fixture (tests/fixtures/README.md)', () => {
   it('is a v13 preview save of a nominal pilot with two delivered batches and no contact record', () => {
-    const raw = JSON.parse(V13) as { schemaVersion: number; contentChannel: string; campaign: Record<string, unknown>; access: { context: string; work: { batches: number } } };
+    const raw = JSON.parse(V13_PREVIEW) as { schemaVersion: number; contentChannel: string; campaign: Record<string, unknown>; access: { context: string; work: { batches: number } } };
     expect([raw.schemaVersion, raw.contentChannel, raw.access.context, raw.access.work.batches]).toEqual([CONTACT_STEP, 'preview', 'PILOT', 2]);
     expect('contacts' in raw.campaign).toBe(false);
   });
@@ -91,7 +93,7 @@ describe('the genuine v13 fixture (tests/fixtures/README.md)', () => {
   });
 
   it('production refuses it before reading anything', () => {
-    expect(() => deserialize(V13, PRODUCTION)).toThrow('preview');
+    expect(() => deserialize(V13_PREVIEW, PRODUCTION)).toThrow('preview');
   });
 });
 
@@ -119,7 +121,7 @@ describe('impossible contact records are refused, never healed (V15)', () => {
   });
 
   it('production refuses a preview save holding a contact before it reads anything', () => {
-    expect(() => deserialize(serialize(referred), PRODUCTION)).toThrow('preview');
+    expect(() => deserialize(markedPreview(serialize(referred)), PRODUCTION)).toThrow('preview');
   });
 
   it('a valid record from an earlier iteration needs no cohort and loads unchanged', () => {

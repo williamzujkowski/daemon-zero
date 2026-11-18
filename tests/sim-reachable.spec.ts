@@ -80,7 +80,7 @@ vi.mock('../src/engine/campaign', async (load) => {
   return { ...real, activateCampaignRules: wrap('activateCampaignRules', real.activateCampaignRules) };
 });
 
-const { CONTENT: PREVIEW } = await import('../src/content/preview');
+const { CONTENT: PREVIEW } = await import('../src/content');
 const { understandsSurveillance } = await import('../src/engine/knowledge');
 const { departureView } = await import('../src/engine/departure');
 const { SIM_POLICIES } = await import('../src/engine/sim/policies');

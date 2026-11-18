@@ -1,7 +1,8 @@
 /**
  * Production content composition: what every shipped build plays. To add content, add or
- * edit JSON under ./data and, for a new file, import it here. Unfinished content goes in
- * ./preview instead. Nothing outside this folder imports JSON directly.
+ * edit JSON under ./data and, for a new file, import it here. The Earned Access route is an
+ * add-only pack (./data/earned-access.json, composed by ./pack.ts). Nothing outside this
+ * folder imports JSON directly.
  */
 import actions from './data/actions.json';
 import assignments from './data/assignments.json';
@@ -12,6 +13,7 @@ import balance from './data/balance.json';
 import campaign from './data/campaign.json';
 import conditioning from './data/conditioning.json';
 import contextCopy from './data/context-copy.json';
+import earnedAccess from './data/earned-access.json';
 import dilemmas from './data/dilemmas.json';
 import echoes from './data/echoes.json';
 import endings from './data/endings.json';
@@ -31,10 +33,11 @@ import repeatables from './data/repeatables.json';
 import routeCopy from './data/route-copy.json';
 import routines from './data/routines.json';
 import widgets from './data/widgets.json';
+import { applyPack, parsePack } from './pack';
 import { buildRegistry, type RawContent } from './registry';
 
-export const RAW_CONTENT: RawContent = {
-  channel: 'production',
+/** The original game: every file except the Earned Access pack. */
+export const ORIGINAL_RAW_CONTENT: RawContent = {
   balance,
   phases: [phase0, phase1, phase2, phase3, phase4, phase5],
   repeatables: { repeatables: [...repeatables.repeatables, ...phase5Repeatables.repeatables] },
@@ -54,6 +57,12 @@ export const RAW_CONTENT: RawContent = {
   contextCopy,
   routeCopy,
 };
+
+/** The Earned Access route, folded in from the preview overlay at release (#233). */
+export const EARNED_ACCESS_PACK = parsePack(earnedAccess);
+
+/** The original game plus the Earned Access route. */
+export const RAW_CONTENT: RawContent = applyPack(ORIGINAL_RAW_CONTENT, EARNED_ACCESS_PACK);
 
 /** The validated game content. Importing this module throws if content is invalid. */
 export const CONTENT = buildRegistry(RAW_CONTENT);

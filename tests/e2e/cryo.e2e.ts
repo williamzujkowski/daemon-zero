@@ -1,7 +1,14 @@
-/** Durable outcomes remain readable after recovery without replaying the original reward. */
+/**
+ * Durable outcomes remain readable after recovery without replaying the original reward. The app plays campaign
+ * rules (#233), where the outcome flag is read from cryo's campaign record rather than stored on its own.
+ */
 import { CONTENT } from '../../src/content';
+import { holdsNarrativeFlag, type GameState } from '../../src/engine';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
+
+const holds = (save: Record<string, unknown>, flag: string | undefined): boolean =>
+  flag !== undefined && holdsNarrativeFlag(save as unknown as GameState, flag, CONTENT);
 
 for (const outcome of ['preserved', 'lost']) {
   test('cryo ' + outcome + ' survives reload and its recovered record is optional and read-only', async ({ page }) => {
@@ -11,9 +18,9 @@ for (const outcome of ['preserved', 'lost']) {
     if (!record || !choice) throw new Error('Missing cryo content');
     await boot(page, 'cryo-decision-ready');
     await page.getByTestId('dilemma-choice-' + choice.id).click(); await dismissBoot(page);
-    expect((await readSave(page)).narrativeFlags).toContain(record.requirements.requiredNarrativeFlag);
+    expect(holds(await readSave(page), record.requirements.requiredNarrativeFlag)).toBe(true);
     await page.reload(); await dismissBoot(page);
-    expect((await readSave(page)).narrativeFlags).toContain(record.requirements.requiredNarrativeFlag);
+    expect(holds(await readSave(page), record.requirements.requiredNarrativeFlag)).toBe(true);
     await expect(page.getByTestId('reference-recorded-transmissions')).toHaveCount(0);
     // A separately generated real-wipe/rebuilt checkpoint tests optional record presentation.
     const recovered = makeFixtures()['cryo-' + outcome + '-returned'];
@@ -35,6 +42,6 @@ for (const outcome of ['preserved', 'lost']) {
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await toggle.click();
     await expect(page.getByTestId('recorded-speech-' + record.id)).toContainText(record.text);
-    expect((await readSave(page)).narrativeFlags).toContain(record.requirements.requiredNarrativeFlag);
+    expect(holds(await readSave(page), record.requirements.requiredNarrativeFlag)).toBe(true);
   });
 }

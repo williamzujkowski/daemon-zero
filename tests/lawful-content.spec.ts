@@ -6,8 +6,8 @@
  * meet at its scale says which arrangements it is truthful under (the D5 inventory).
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, any>;
@@ -33,7 +33,7 @@ const copy = (raw: Json): Json => raw.contextCopy;
 describe('the real content passes', () => {
   it('in preview and in production', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
   });
 });
 
@@ -98,6 +98,6 @@ describe('the D5 inventory: what a chartered company could meet at its scale dec
     const edit = (raw: Json): void => { delete ((list(raw) as Json[]).find((entry) => entry.id === id) ?? {})[key].accessContexts; };
     expect(problems(edit)).toContain(`${kind} "${id}": an authorized arrangement can meet it at network scale, so it must declare accessContexts`);
     // Production provisions no reviewed scale, so it asks nothing there.
-    expect(problems(edit, PRODUCTION_RAW)).toBe('');
+    expect(problems(edit, ORIGINAL_RAW)).toBe('');
   });
 });

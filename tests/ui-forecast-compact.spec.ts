@@ -64,7 +64,9 @@ function stateFor({ known, seconds, inbound }: ForecastInputs) {
   const legacy = { ...base.legacy, knownNodes: known ? [...base.legacy.knownNodes, teacher.id] : base.legacy.knownNodes.filter((id) => !teaches(id)) };
   return { ...base, legacy, suspicion: 9, unlockedNodes: known ? base.unlockedNodes : base.unlockedNodes.filter((id) => !teaches(id)),
     rates: { ...base.rates, suspicionPerSec: seconds === null ? 0 : 91 / seconds },
-    pendingDilemma: inbound === null ? null : { id: dilemma.id, firesAtSimSec: base.simTimeSec + inbound } };
+    pendingDilemma: inbound === null ? null : { id: dilemma.id, firesAtSimSec: base.simTimeSec + inbound },
+    // The omen's event must still be open: the store enters campaign rules, where a resolved event never returns.
+    resolvedDilemmas: base.resolvedDilemmas.filter((id) => id !== dilemma.id) };
 }
 
 describe('mounted forecast', () => {

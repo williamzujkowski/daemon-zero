@@ -1,6 +1,7 @@
 /** Codec-validated review inputs: funding is explicit; choices, wipes and rebuilding use engine actions. */
 import { CONTENT } from '../src/content';
 import { deserialize, exportSave, importSave, presentationToken, resolveDilemma, tick, unlockNode, wipe, type ActionResult, type GameState } from '../src/engine';
+import { QUIET_DILEMMA_IDS } from './original-content';
 
 function must(result: ActionResult): GameState { if (!result.ok) throw new Error(result.reason); return result.state; }
 function funded(state: GameState, resolvedDilemmas = state.resolvedDilemmas): GameState {
@@ -17,7 +18,8 @@ function purchase(state: GameState, id: string): GameState {
 }
 function rebuild(state: GameState, decoderId: string): GameState {
   const decoder = [...CONTENT.nodes.values()].find((node) => node.unlocksUiComponent === decoderId);
-  const exit = [...CONTENT.nodes.values()].find((node) => node.effects.unlocksPhase === 2);
+  // The breakout exit: the authorized segment (#225) also opens Phase 2, under a grant.
+  const exit = [...CONTENT.nodes.values()].find((node) => node.effects.unlocksPhase === 2 && node.grant === undefined && node.acquisition === undefined);
   if (!decoder || !exit) throw new Error('Missing callback rebuild targets');
   return purchase(purchase(funded(state), decoder.id), exit.id);
 }
@@ -27,7 +29,7 @@ export function makeCryoFixtures(prior: Record<string, string>): Record<string, 
   const source = CONTENT.dilemmas.find((entry) => entry.id === record?.sourceDilemmaId);
   const code = prior['phase-2-unlocked'];
   if (!record || !source || !code) throw new Error('Missing cryo fixture inputs');
-  const others = CONTENT.dilemmas.filter((entry) => entry.id !== source.id).map((entry) => entry.id);
+  const others = QUIET_DILEMMA_IDS.filter((id) => id !== source.id);
   let decision = funded(importSave(code, CONTENT), others);
   for (const id of source.trigger.nodes ?? []) decision = purchase(decision, id);
   decision = tick(decision, .1, CONTENT);

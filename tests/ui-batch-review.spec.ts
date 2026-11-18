@@ -11,7 +11,6 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
@@ -84,7 +83,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
   });
 
   it('#283: after letting the finding stand, the job surface names no way back that is gone and no condition left to meet', async () => {
-    const view = await mount(untilComplete(serving(WITHHELD)), createElement('div', null, createElement(AssignmentPanel), createElement(DilemmaModal)));
+    const view = await mount(untilComplete(serving(WITHHELD)), createElement('div', null, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })), createElement(DilemmaModal)));
     expect(view.find('assignment-evidence')?.textContent).toContain('Discrepancy risk: the report leaves out work that a later review can find.');
     view.click('pilot-service-submit');
     await act(async () => { await settle(); });

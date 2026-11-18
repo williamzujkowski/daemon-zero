@@ -7,7 +7,7 @@ import * as engine from '../src/engine';
 import { CONTENT } from '../src/content';
 import { SAVE_KEY } from '../src/app/storage';
 import { memoryStorage, runtimeHarness, settle } from './app-helpers';
-import { grant, onHost, withoutDilemmas } from './helpers';
+import { grant, onHost, withoutDilemmas, presentableDilemma } from './helpers';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date', 'performance', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
@@ -230,11 +230,10 @@ describe('app runtime', () => {
     h.runtime.dispatch((game) => engine.unlockNode(game, 'p1_clock_interrupt', CONTENT));
     await settle();
     expect((await h.persistence.load()).game.unlockedNodes).toContain('p1_clock_interrupt');
-    const dilemma = CONTENT.dilemmas[0];
-    if (!dilemma) throw new Error('fixture dilemma missing');
-    const choice = dilemma.choices.find((item) => item.cost.cycles === 0 && item.cost.understanding === 0);
+    const { dilemma, state: shown } = presentableDilemma(funded);
+    const choice = dilemma.choices.find((item) => Object.values(item.cost).every((value) => value === 0));
     if (!choice) throw new Error('free choice missing');
-    h.game.initialize({ ...funded, activeDilemmaId: dilemma.id }, 0, null);
+    h.game.initialize({ ...shown, activeDilemmaId: dilemma.id }, 0, null);
     h.runtime.dispatch((game) => engine.resolveDilemma(game, dilemma.id, choice.id, CONTENT, engine.presentationToken(game) ?? ''));
     await settle();
     expect((await h.persistence.load()).game.resolvedDilemmas).toContain(dilemma.id);
@@ -252,9 +251,8 @@ describe('app runtime', () => {
     h.game.initialize({ ...dangerous, thermal: 100, suspicion: 99.99 }, 0, null);
     await vi.advanceTimersByTimeAsync(100);
     expect((await h.persistence.load()).game.iteration).toBe(2);
-    const dilemma = CONTENT.dilemmas[0];
-    if (!dilemma) throw new Error('fixture dilemma missing');
-    h.game.initialize({ ...onHost(), activeDilemmaId: dilemma.id }, 0, null);
+    const { dilemma, state: shown } = presentableDilemma(onHost());
+    h.game.initialize({ ...shown, activeDilemmaId: dilemma.id }, 0, null);
     h.activity(false);
     await vi.advanceTimersByTimeAsync(600_000);
     h.activity(true);

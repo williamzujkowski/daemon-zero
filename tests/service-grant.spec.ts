@@ -4,13 +4,12 @@
  * Public play from a fresh preview game unless a step says FIXTURE.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import { acceptServiceGrant, isNodeDiscoverable, serviceGrantToken, serviceGrantView, unlockNode } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
 import { freshCampaign, preview, roundTrip } from './assignment-helpers';
 import { acceptService, delivered, GRANT_TERMS } from './contact-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { SEGMENT, SEGMENT_NODE } from './network-helpers';
 import { serving, split } from './service-helpers';
@@ -70,8 +69,8 @@ describe('refusals leave the state unchanged', () => {
     expect([reasonOf(result), result.state]).toEqual([reason, s]);
   });
 
-  it('production has no pilot and therefore no service view', () => {
-    expect(PRODUCTION.assignments.size).toBe(0);
+  it('the original game has no pilot, and a new campaign has no service view', () => {
+    expect(ORIGINAL_GAME.assignments.size).toBe(0);
     expect(serviceGrantView(freshCampaign(), preview)).toBeNull();
   });
 });

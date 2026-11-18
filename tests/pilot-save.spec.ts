@@ -8,10 +8,12 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { createInitialState, deserialize, MIGRATIONS, pilotOfferView, qualifiesForPilot, SaveChannelError, SCHEMA_VERSION, serialize, voluntaryWipe, type GameState } from '../src/engine';
 import { accept, answer, funded, live, nextInstance, preview, roundTrip, untilPresented } from './assignment-helpers';
-import { must } from './helpers';
+import { must, remarkedAsProduction } from './helpers';
 import { acceptDeferred, OFFER, offerPresented, RECORD, RENEWAL, respond, scopePresented, SKIMMER, STATEMENT, withSkimmer } from './pilot-helpers';
 
-const V10 = readFileSync('tests/fixtures/pre-scope-v10.json', 'utf8');
+const V10_PREVIEW = readFileSync('tests/fixtures/pre-scope-v10.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const V10 = remarkedAsProduction(V10_PREVIEW);
 const PILOT_STEP = 10;
 
 describe('every DZ-04 transition reloads unchanged (V12)', () => {
@@ -52,7 +54,7 @@ describe('the v10 -> v11 step', () => {
 
 describe('the genuine v10 fixture (tests/fixtures/README.md)', () => {
   it('is a v10 preview save that submitted assessment evidence before scope reviews existed', () => {
-    const raw = JSON.parse(V10) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown>; resolvedDilemmas: string[] };
+    const raw = JSON.parse(V10_PREVIEW) as { schemaVersion: number; contentChannel: string; access: Record<string, unknown>; resolvedDilemmas: string[] };
     expect([raw.schemaVersion, raw.contentChannel]).toEqual([10, 'preview']);
     expect(Object.keys(raw.access)).toEqual(['context', 'standing', 'exception', 'qualification', 'assignment']);
     expect(raw.resolvedDilemmas).toEqual(['dil_nr_stale_fixture']);
@@ -80,7 +82,7 @@ describe('the genuine v10 fixture (tests/fixtures/README.md)', () => {
   });
 
   it('is refused by production before any healing, as every preview save is', () => {
-    expect(() => deserialize(V10, PRODUCTION)).toThrow(SaveChannelError);
+    expect(() => deserialize(V10_PREVIEW, PRODUCTION)).toThrow(SaveChannelError);
   });
 });
 

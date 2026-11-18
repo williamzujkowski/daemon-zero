@@ -1,7 +1,7 @@
 /**
  * The phone tier shows one pane at a time, so a support channel ticket arriving on CORE while another
  * pane is open went unseen (#284). This names it in the chrome, non-modally, with a way to open CORE;
- * the tab bar marks CORE too. Wider tiers always show CORE and never render it. Preview only.
+ * the tab bar marks CORE too. Wider tiers always show CORE and never render it.
  */
 import { CONTENT } from '../content';
 import { channelContactView, type GameState } from '../engine';

@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { buildRegistry } from '../src/content/registry';
-import { RAW_CONTENT } from '../src/content/preview';
+import { RAW_CONTENT } from '../src/content';
 import {
   activateCampaignRules, advance, campaignHistory, campaignRecord, createInitialState, endingEvidence, holdsNarrativeFlag, occurrenceStatus,
   presentationToken, resolveDilemma, structuralFailure, tick, wipe, type GameState,

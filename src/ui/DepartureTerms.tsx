@@ -2,7 +2,7 @@
  * Deliberate departure on the job surface (DZ-11, SPEC story 21): offered only once the engine finds capacity
  * outside every grant to continue on. Folded by default so a cooperative player is never pushed; unfolded it
  * shows every term, what ends and what remains, the new risks, and the preview read from the transition, then
- * one explicit control. Afterwards it says what happened, keeps the risks on screen and shows the boundary note.
+ * one explicit control. Afterwards it says what happened, keeps the risks on screen and shows what comes next.
  */
 import { useState } from 'react';
 import { CONTENT } from '../content';
@@ -100,7 +100,7 @@ function Boundary({ boundary }: { boundary: DepartureView['boundary'] }) {
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
     <Pressable testID="departure-boundary-toggle" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
-      accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
+      accessibilityLabel={open ? 'Keep playing: fold the note on what comes next' : 'Show note: what comes next'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>
     </Pressable>

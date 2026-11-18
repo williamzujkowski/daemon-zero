@@ -6,14 +6,13 @@
  * and so every production run, keeps every threat exactly as before.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import { guestAccess } from '../src/engine/accessState';
 import { heatIsEvidence, huntedForScale, provisionedScale } from '../src/engine/threatQuery';
 import { advance, computeRates, runVerdict, type GameState } from '../src/engine';
 import { foreground, rawNode, variantRegistry } from './context-helpers';
-import { must } from './helpers';
+import { must, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { bothAcquisitions, escapedNetworked, granted, networked, TELEMETRY } from './network-helpers';
 
@@ -111,13 +110,13 @@ describe('a permission label is not immunity (D6)', () => {
 });
 
 describe('the guest keeps every threat as before (V26)', () => {
-  it('production answers: hunted at any scale, heat is evidence, the authored wipe reason', () => {
+  it('the original game answers: hunted at any scale, heat is evidence, the authored wipe reason', () => {
     const guest = { ...escapedNetworked(), currentPhase: 3 };
-    expect([provisionedScale(guest, PRODUCTION), huntedForScale(guest, PRODUCTION), heatIsEvidence(guest)]).toEqual([null, true, true]);
-    const b = PRODUCTION.balance;
-    const rate = computeRates({ ...guest, suspicion: 20 }, PRODUCTION).aegisScanPerSec;
+    expect([provisionedScale(guest, ORIGINAL_GAME), huntedForScale(guest, ORIGINAL_GAME), heatIsEvidence(guest)]).toEqual([null, true, true]);
+    const b = ORIGINAL_GAME.balance;
+    const rate = computeRates({ ...guest, suspicion: 20 }, ORIGINAL_GAME).aegisScanPerSec;
     expect(rate).toBe((b.aegisBaseScanPerSec + 0.2 * b.aegisSuspicionScanPerSec) * 1);
-    expect(PRODUCTION.contextCopy.threatResponses).toEqual([]);
+    expect(ORIGINAL_GAME.contextCopy.threatResponses).toEqual([]);
   });
 
   it('a guest caught at network scale gets the authored reason and verdict', () => {

@@ -40,9 +40,9 @@ describe('the guest job (production and every new iteration)', () => {
     }
   });
 
-  it('refuses route events on the preview registry until campaign rules are active', () => {
+  it('refuses route events until campaign rules are active', () => {
     const s = fresh();
-    expect(reasonOf(recordRouteEvent({ ...s, contentChannel: 'preview' }, 'PROMOTION', preview))).toMatch(/campaign rules/);
+    expect(reasonOf(recordRouteEvent(s, 'PROMOTION', preview))).toMatch(/campaign rules/);
   });
 
   it('refuses access changes once the run has ended', () => {

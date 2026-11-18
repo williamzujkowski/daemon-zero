@@ -8,6 +8,7 @@ import { createInitialState, exportSave } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import DevelopmentTools from '../src/app/DevelopmentTools';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { presentableDilemma } from './helpers';
 
 setupM4Tests();
 function typeInto(id: string, value: string) {
@@ -33,9 +34,10 @@ describe('M4 development drawer', () => {
     expect(view.find('dev-status')?.textContent).toContain('positive amount');
     typeInto('dev-amount', '100'); view.click('dev-grant');
     expect(gameStore.store.getState().game.cycles).toBe(before + 100);
-    const dilemma = CONTENT.dilemmas[0];
-    const free = dilemma?.choices.find((choice) => Object.values(choice.cost).every((value) => value === 0));
-    if (!dilemma || !free) throw new Error('Missing dilemma');
+    const { dilemma, state } = presentableDilemma(gameStore.store.getState().game);
+    act(() => { gameStore.dispatch(() => ({ ok: true, state })); });
+    const free = dilemma.choices.find((choice) => Object.values(choice.cost).every((value) => value === 0));
+    if (!free) throw new Error('Missing dilemma');
     view.click('dev-dilemma-' + dilemma.id);
     expect(view.find('dev-drawer')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();

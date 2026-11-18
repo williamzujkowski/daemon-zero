@@ -1,5 +1,5 @@
 /**
- * Truthful route policies for the preview runner (VALIDATION, "Simulation evidence"): enter
+ * Truthful route policies for the route report (`make sim-report`) (VALIDATION, "Simulation evidence"): enter
  * campaign rules as the app does, play only the lawful opening on the way to an assignment's
  * offer, accept it, answer its assessment and scope review honestly and accept the pilot offered on
  * that evidence (DZ-04). THOROUGH builds the opening's own upgrades,
@@ -12,7 +12,7 @@ import { buyRepeatable, manualCycle, resolveDilemma, unlockNode, type ActionResu
 import { acceptAssignment, assignmentView } from '../assignment';
 import { assessmentOf } from '../assignmentQuery';
 import { activateCampaignRules } from '../campaign';
-import { campaignRulesSupported, isCampaignActive } from '../campaignQuery';
+import { isCampaignActive } from '../campaignQuery';
 import { canAfford, meetsRequirements, presentationToken, repeatableCost, repeatableLevel } from '../query';
 import type { GameState } from '../state';
 import type { SimPolicy } from './policy';
@@ -92,7 +92,7 @@ function click(s: GameState, reg: ContentRegistry): GameState {
 
 function step(state: GameState, reg: ContentRegistry, thorough: boolean): GameState {
   if (state.ending !== null) return state;
-  const s = campaignRulesSupported(reg) && !isCampaignActive(state) ? take(state, activateCampaignRules(state, reg)) : state;
+  const s = !isCampaignActive(state) ? take(state, activateCampaignRules(state, reg)) : state;
   if (s.activeDilemmaId !== null) return answer(s, reg, thorough);
   // Once the assessment is queued, a thorough player sets its price aside instead of spending it.
   const saving = thorough && assignmentView(s, reg)?.status === 'accepted';

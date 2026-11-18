@@ -3,9 +3,9 @@
  * the Nightly Regression offer and play exactly the game they play without it.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { applyOverlay } from '../src/content/overlay';
-import { CONTENT as PREVIEW, PREVIEW_OVERLAY } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { applyPack } from '../src/content/pack';
+import { CONTENT as PREVIEW, EARNED_ACCESS_PACK } from '../src/content';
 import { buildRegistry, type ContentRegistry } from '../src/content/registry';
 import { activateCampaignRules, type GameState } from '../src/engine';
 import { SIM_BUDGET_SEC } from '../src/engine/sim/gates';
@@ -25,13 +25,12 @@ const idOf = (item: unknown): string => String((item as { id?: unknown }).id);
 const eventOf = (item: unknown): string => String((item as { event?: unknown }).event);
 // Without an assignment nothing offers a release (DZ-10) or a departure (DZ-11), so the independent instance's copy goes too.
 const independent = (item: unknown): boolean => JSON.stringify(item).includes('"INDEPENDENT"');
-const copy = { ...PREVIEW_OVERLAY.contextCopy, phases: PREVIEW_OVERLAY.contextCopy.phases.filter((item) => !independent(item)),
-  threatResponses: PREVIEW_OVERLAY.contextCopy.threatResponses.filter((item) => !independent(item)) };
+const copy = { ...EARNED_ACCESS_PACK.contextCopy, phases: EARNED_ACCESS_PACK.contextCopy.phases.filter((item) => !independent(item)),
+  threatResponses: EARNED_ACCESS_PACK.contextCopy.threatResponses.filter((item) => !independent(item)) };
 const WITHOUT: ContentRegistry = buildRegistry({
-  ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [], contextCopy: copy,
-    dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !dropped.has(idOf(item))),
-    campaignFacts: PREVIEW_OVERLAY.campaignFacts.filter((fact) => !dropped.has(eventOf(fact))) }),
-  channel: 'preview',
+  ...applyPack(ORIGINAL_RAW, { ...EARNED_ACCESS_PACK, assignments: [], contextCopy: copy,
+    dilemmas: EARNED_ACCESS_PACK.dilemmas.filter((item) => !dropped.has(idOf(item))),
+    campaignFacts: EARNED_ACCESS_PACK.campaignFacts.filter((fact) => !dropped.has(eventOf(fact))) }),
 });
 
 /** A bot strategy that first enters campaign rules, as the preview app admits every game. */

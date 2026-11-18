@@ -1,7 +1,7 @@
 /**
  * Read-only questions about campaign history: one shared answer for original eligibility,
  * outcome flags, recovered records and ending evidence. Under legacy rules every answer is the
- * pre-campaign one, so production behaviour does not change until rules are activated.
+ * pre-campaign one; activateCampaignRules is the only way out of them.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, Requirements, Trait } from '../content/schema';
@@ -13,14 +13,6 @@ type History = Pick<GameState, 'narrativeRules' | 'campaign'>;
 
 export function isCampaignActive(s: Pick<GameState, 'narrativeRules'>): boolean {
   return s.narrativeRules === 'campaign_v1';
-}
-
-/**
- * Whether this build may activate campaign rules. Until public release (DZ-13) only the preview
- * content channel does; production stays on legacy rules and refuses an active save.
- */
-export function campaignRulesSupported(reg: ContentRegistry): boolean {
-  return reg.channel === 'preview';
 }
 
 /** The record of a once-per-campaign event, or null when it has none or rules are legacy. */

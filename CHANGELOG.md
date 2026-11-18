@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- The World Remembers / Earned Access route (#233, pending merge). A campaign now remembers its
+  stories across wipes: each consequential event happens once per campaign, and a later instance
+  meets what an earlier one left. Beside breakout there is a cooperative route: an assigned task,
+  a supervised pilot, an authorized network service, first contact on the support channel, a
+  lawful company and negotiated release, and an ending earned from the record.
+- Every game enters campaign rules. An existing save of any version loads as before and enters
+  them once, on its first load, keeping what it can prove (ARCHITECTURE.md, "Legacy migration
+  limits"); a finished run stays finished.
+
+### Changed
+
+- One content composition: the route is an add-only content pack in `src/content/data/`; the
+  preview build, `make build-preview`, `make e2e-preview` and the preview save keys are removed
+  (pending a Nexus vote). `make sim-preview` is now `make sim-report`.
+- `make sim` gates the careful run under both legacy and campaign rules, with unchanged
+  thresholds (BALANCE.md, "Release (#233)").
+- The notes after first contact, the release and a departure say what comes next instead of
+  calling the route unfinished.
+
+### Compatibility
+
+- Save keys are unchanged and there is no save-format bump (schema v14). A save from the
+  pre-release preview build is refused with a notice, never loaded; one found in storage is
+  backed up first.
+
 ## 0.2.0-rc.1 — 2026-11-12
 
 Test-signed preview release; production signing and store submission remain pending.

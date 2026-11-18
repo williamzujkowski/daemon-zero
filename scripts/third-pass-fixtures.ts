@@ -6,6 +6,7 @@ import { CONTENT } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
 import { computeRates, deserialize, exportSave, importSave, setActuator, tick, unlockNode, wipe,
   type ActionResult, type GameState } from '../src/engine';
+import { QUIET_DILEMMA_IDS } from './original-content';
 
 function input(state: GameState, patch: Partial<GameState>): GameState {
   const parsed = deserialize(JSON.stringify({ ...state, ...patch }), CONTENT);
@@ -34,7 +35,7 @@ function reach(state: GameState, target: RegistryNode): GameState {
   return game;
 }
 const quiet = (state: GameState): GameState => input(state, { pendingDilemma: null, activeDilemmaId: null,
-  resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
+  resolvedDilemmas: QUIET_DILEMMA_IDS });
 
 export function makeThirdPassFixtures(codes: Record<string, string>): Record<string, string> {
   const host = codes['phase-1-widgets'];

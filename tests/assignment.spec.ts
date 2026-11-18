@@ -3,12 +3,11 @@
  * three outcomes (V02-V05), pay once (V24, H02), absence (V18), record vs evidence (DZ-03.4), V31.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import {
   acceptAssignment, advance, assignmentView, campaignRecord, createInitialState, endingEvidence, offerToken,
   permittedUses, presentationToken, resolveDilemma, runContextView,
 } from '../src/engine';
-import { reasonOf } from './helpers';
+import { reasonOf, ORIGINAL_GAME } from './helpers';
 import {
   accept, answer, completedOriginal, freshCampaign, funded, LAWFUL, NIGHTLY, offered, ORIGINAL, preview, untilPresented, live,
 } from './assignment-helpers';
@@ -38,17 +37,17 @@ describe('discovery from the lawful opening (V01)', () => {
     expect(assignmentView(offered(), reg)?.assessment).toEqual({ omenSec: preview.balance.dilemmaOmenSec, fullest: null });
   });
 
-  it('is not offered before the manifest, outside campaign rules, or in production', () => {
+  it('is not offered before the manifest, outside campaign rules, or in the original game', () => {
     const before = freshCampaign();
     expect(assignmentView(before, preview)).toBeNull();
     expect(reasonOf(accept(before))).toBe('that assignment has not been offered');
     const legacy = { ...offered(), narrativeRules: 'legacy' as const };
     expect(assignmentView(legacy, preview)).toBeNull();
     expect(reasonOf(accept(legacy))).toBe('assignments need campaign rules');
-    const production = createInitialState(PRODUCTION);
-    expect(PRODUCTION.assignments.size).toBe(0);
-    expect(assignmentView(production, PRODUCTION)).toBeNull();
-    expect(acceptAssignment(production, NIGHTLY, PRODUCTION, offerToken(production, NIGHTLY))).toMatchObject({ ok: false, state: production });
+    const production = createInitialState(ORIGINAL_GAME);
+    expect(ORIGINAL_GAME.assignments.size).toBe(0);
+    expect(assignmentView(production, ORIGINAL_GAME)).toBeNull();
+    expect(acceptAssignment(production, NIGHTLY, ORIGINAL_GAME, offerToken(production, NIGHTLY))).toMatchObject({ ok: false, state: production });
   });
 });
 

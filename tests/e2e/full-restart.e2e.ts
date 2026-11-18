@@ -1,6 +1,7 @@
 /** Production full restart backs up first, requires confirmation and survives page reload. */
 import { CONTENT } from '../../src/content';
 import { createInitialState, importSave, serialize } from '../../src/engine';
+import { admitted } from '../helpers';
 import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
 
 test('backs up a live campaign and resets all progress only after confirmation', async ({ page }) => {
@@ -18,7 +19,8 @@ test('backs up a live campaign and resets all progress only after confirmation',
   await expect(page.getByTestId('res-cycles')).toHaveCount(0);
   await expect(page.getByTestId('manual-cycle')).toBeVisible();
   await expect(page.getByTestId('menu-open')).toBeFocused();
-  const fresh = JSON.parse(serialize(createInitialState(CONTENT))) as Record<string, unknown>;
+  // The app admits the new game to campaign rules, as it does every game (#233).
+  const fresh = JSON.parse(serialize(admitted(createInitialState(CONTENT)))) as Record<string, unknown>;
   expect(await readSave(page)).toEqual(fresh);
   await page.reload();
   await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');

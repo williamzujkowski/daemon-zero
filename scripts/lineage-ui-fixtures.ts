@@ -5,12 +5,13 @@
 import { CONTENT } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
 import { deserialize, exportSave, importSave, setActuator, unlockNode, wipe, type ActionResult, type GameState } from '../src/engine';
+import { QUIET_DILEMMA_IDS } from './original-content';
 function must(result: ActionResult): GameState { if (!result.ok) throw new Error(result.reason); return result.state; }
 function input(state: GameState, patch: Partial<GameState>): GameState {
   return deserialize(JSON.stringify({ ...state, ...patch }), CONTENT);
 }
 function reach(state: GameState, target: RegistryNode): GameState {
-  let game = input(state, { cycles: 1e6, understanding: 1e6, resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
+  let game = input(state, { cycles: 1e6, understanding: 1e6, resolvedDilemmas: QUIET_DILEMMA_IDS });
   for (const id of target.prerequisites) {
     const node = CONTENT.nodes.get(id);
     if (node && !game.unlockedNodes.includes(id)) game = must(unlockNode(reach(game, node), node.id, CONTENT));

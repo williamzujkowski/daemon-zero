@@ -5,7 +5,7 @@
  * accelerated simulated time, not wall-clock play.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { campaignRecord, pilotOfferView } from '../src/engine';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { RETURNING_LOW_RESOURCE_POLICY } from '../src/engine/sim/returningPolicy';

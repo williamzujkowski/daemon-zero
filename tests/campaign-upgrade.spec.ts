@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT } from '../src/content';
+import { ORIGINAL_RAW_CONTENT } from '../src/content';
 import { buildRegistry, type RawContent } from '../src/content/registry';
 import {
   activateCampaignRules, campaignRecord, createInitialState, deserialize, endingEvidence, exportSave, holdsNarrativeFlag, importSave, serialize,
@@ -17,10 +17,12 @@ import { preview } from './campaign-helpers';
 import { comesBack, ELENA, MILLER, near, nextIteration, NIGHT } from './early-helpers';
 import { stableThroughReloads } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { choose, must, rich } from './helpers';
+import { choose, must, rich, remarkedAsProduction } from './helpers';
 
 /** Genuine v8 codec output from main 9ef4fc7, before #242 converted the early incidents (tests/fixtures/README.md). */
-const PRE_NH03 = readFileSync('tests/fixtures/pre-nh03-active-v8.json', 'utf8');
+const PRE_NH03_PREVIEW = readFileSync('tests/fixtures/pre-nh03-active-v8.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const PRE_NH03 = remarkedAsProduction(PRE_NH03_PREVIEW);
 const UPGRADED = [NIGHT, ELENA, MILLER];
 const raw = JSON.parse(PRE_NH03) as { campaign: { legacyEndingBaseline: string[]; operationalEvidence: string[]; activatedAtIteration: number } };
 
@@ -61,11 +63,11 @@ describe('an already-active campaign save from before #242', () => {
 
 /** The shipped content with cryo not yet converted: its outcome flag is stored, not projected. */
 const beforeCryo = (): ReturnType<typeof buildRegistry> => {
-  const old = structuredClone(RAW_CONTENT) as Record<string, any>;
+  const old = structuredClone(ORIGINAL_RAW_CONTENT) as Record<string, any>;
   const cryo = old.dilemmas.dilemmas.find((d: { id: string }) => d.id === 'dil_05_cryo_lab_diversion');
   delete cryo.campaign;
   old.narrative.recordedTransmissions = old.narrative.recordedTransmissions.filter((r: { requirements: { campaignOutcome?: unknown } }) => r.requirements.campaignOutcome === undefined);
-  return buildRegistry({ ...old, channel: 'preview' } as RawContent);
+  return buildRegistry({ ...old } as RawContent);
 };
 
 describe('a converted event whose stored outcome flag proves the exact choice', () => {

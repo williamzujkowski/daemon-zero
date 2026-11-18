@@ -246,8 +246,8 @@ does not install the suite's paused fake clock: axe's async work never settles
 against a frozen clock, and the live loop changes numbers, not structure. It runs
 as part of `make e2e`, which CI already requires. It includes one dilemma modal
 state and the guest escape notice (opened by a live crossing, since a restored save never
-replays it; #282), and `tests/e2e/a11y-audit.preview.ts` covers the Earned Access modals and panels,
-and the service threshold notice, on the preview export; both bring each control of those surfaces into view before
+replays it; #282), and `tests/e2e/route-a11y-audit.e2e.ts` covers the Earned Access modals and panels,
+and the service threshold notice, on the same production export; both bring each control of those surfaces into view before
 auditing it, because axe skips a control whose text is scrolled out of its pane.
 
 ## Test ids
@@ -458,11 +458,11 @@ Optional prose uses inline Details; decision information and blind node prose st
 Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane navigation remains outside; text and warnings stay intact.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.
 
-## Earned Access copy and layout (#276, preview only)
+## Earned Access copy and layout (#276)
 
 - The pilot allocation dial echoes what a press changed beside it (`pilot-allocation-forecast`:
   the batch forecast and the study rate). On a 390 px phone the task detail sits about 1,000 px
-  below the dial, so a press used to have no visible effect near the control. The preview e2e
+  below the dial, so a press used to have no visible effect near the control. The e2e
   holds the echo within 211 px of the + button.
 - Before acceptance, the assignment card states the wait and the price (`assignment-wait`): the
   assessment's omen, the fact that it pauses the clock, and its fullest honest answer with that
@@ -472,11 +472,11 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   holds an accepted loan, the terms add the **held allocation** with the ceiling that applies now
   (`pilot-held`, the same words as `review-containment`), so the terms and the ceiling agree.
 - A clue that survived a wipe appears on the reboot screen beside the breadcrumb (`reboot-clue`,
-  the engine's `reorientation()` lines), as the pin panel promises. Legacy rules (production) carry
-  no clue, so production shows nothing new.
+  the engine's `reorientation()` lines), as the pin panel promises. A run still on legacy rules (only
+  an ended pre-release save, since #233) carries no clue and shows nothing new.
 
 
-## Earned Access follow-ups from DZ-09 part B (#283, #284, preview only)
+## Earned Access follow-ups from DZ-09 part B (#283, #284)
 
 - **Copy follows the record (#283).** Once a batch review finding was answered without its
   correction, `review-recovery` reads `Way back passed: ` and the finding's authored `declined`
@@ -491,22 +491,26 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   and the CORE tab reads `CORE •` with `CORE pane, a support ticket is waiting` as its name. The
   tab bar stays on screen when the pane is scrolled. Wider tiers always show CORE and render
   neither.
-- **After an answer (#284).** Answering the ticket on screen moves focus to the boundary note's
-  heading (`prototype-boundary-heading`), which also scrolls it into view; a restored, already
+- **After an answer (#284).** Answering the ticket on screen moves focus to the heading of the note
+  on what comes next (`prototype-boundary-heading`), which also scrolls it into view; a restored, already
   answered contact does not take focus. The note names the real path: `MENU > SAVES`.
 - **The pilot status line follows the grant (#284).** After `[ ACCEPT SERVICE ]`, `pilot-status`
   says the pilot led to the authorized service instead of "runs as a supervised pilot".
 
 
-## Route surface accessibility (DZ-13.4, preview only)
+## Route surface accessibility (DZ-13.4)
 
 - **Disclosures say whether they are open.** The departure's `[ REVIEW DEPARTURE ]` / `[ HIDE DETAILS ]`
-  control and the three boundary notes' `[ KEEP PLAYING ]` / `[ SHOW NOTE ]` controls expose
+  control and the three route notes' `[ KEEP PLAYING ]` / `[ SHOW NOTE ]` controls expose
   `aria-expanded`. On web `accessibilityState` alone never reached the DOM, so each passes
   `aria-expanded` beside it, as `CardDetails` and `ReferencePanel` already did.
+- **The route notes say what comes next (13.8, #233).** The notes after first contact, the negotiated
+  release and a departure are titled `WHAT COMES NEXT: ...`, and their toggles are named
+  `Show note: what comes next` and `Keep playing: fold the note on what comes next`. Before the release
+  they were "preview boundary" notes saying the route ended there.
 - **The open departure control keeps its words in its name:** `Hide details: <title>`, not
   "Hide departure details", which split the visible words (WCAG 2.5.3, axe
   `label-content-name-mismatch`).
 - Every route surface is held to axe, keyboard, semantics, 200% text, reduced motion and the phone
-  layout contract by the preview specs in [TESTING.md](TESTING.md); results and the limits of that
+  layout contract by the route specs in [TESTING.md](TESTING.md); results and the limits of that
   evidence are in [REVIEW-ROUTE-A11Y.md](REVIEW-ROUTE-A11Y.md).

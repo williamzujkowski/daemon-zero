@@ -6,8 +6,8 @@
  * seized capacity is never lawful under a grant.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, any>;
@@ -38,7 +38,7 @@ const node = (raw: Json, id: string): Json => raw.phases.flatMap((phase: Json) =
 describe('the real content passes', () => {
   it('in preview and in production', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
   });
 });
 
@@ -105,7 +105,7 @@ describe('seized capacity is never lawful capacity (07.10)', () => {
       'node "p3_seized_research_cluster": an unauthorized acquisition is offered only where it is forbidden'],
     ['an unknown acquisition tag', (raw: Json) => { node(raw, 'p4_seized_rival_datacentre').acquisition = 'BORROWED'; }, 'acquisition'],
   ])('%s', (_name, edit, expected) => {
-    expect(problems(edit, PRODUCTION_RAW)).toContain(expected);
+    expect(problems(edit, ORIGINAL_RAW)).toContain(expected);
   });
 
   it('an unknown capability is a schema error', () => {

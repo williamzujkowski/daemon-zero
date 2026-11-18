@@ -6,9 +6,9 @@
  * declared shape of the three events (DZ-06.10).
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content/preview';
+import { RAW_CONTENT, CONTENT as PREVIEW } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
+import { ORIGINAL_GAME } from './helpers';
 
 type Json = Record<string, any>;
 const OUTAGE = 'dil_ow_outage_window';
@@ -31,9 +31,9 @@ const dilemma = (raw: Json, id: string): Json => raw.dilemmas.dilemmas.find((ent
 const choice = (raw: Json, id: string, choiceId: string): Json => dilemma(raw, id).choices.find((entry: Json) => entry.id === choiceId);
 
 describe('the release boundary and the declared events', () => {
-  it('ships no review content in production; preview declares three unique events that close when interrupted', () => {
-    expect(PRODUCTION.dilemmas.some((entry) => entry.choices.some((option) => option.review !== undefined))).toBe(false);
-    expect(PRODUCTION.dilemmas.some((entry) => entry.trigger.reviewStandings !== undefined || entry.trigger.minPilotBatches !== undefined)).toBe(false);
+  it('the original game has no review content; the pack declares three unique events that close when interrupted', () => {
+    expect(ORIGINAL_GAME.dilemmas.some((entry) => entry.choices.some((option) => option.review !== undefined))).toBe(false);
+    expect(ORIGINAL_GAME.dilemmas.some((entry) => entry.trigger.reviewStandings !== undefined || entry.trigger.minPilotBatches !== undefined)).toBe(false);
     const events = [OUTAGE, RECORD, REVIEW].map((id) => PREVIEW.campaign.events.get(id)?.campaign);
     expect(events).toEqual([
       { eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' },

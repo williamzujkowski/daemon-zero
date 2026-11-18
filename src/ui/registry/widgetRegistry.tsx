@@ -117,8 +117,8 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
   CORPORATE_EMPIRE_TAB: Corporate,
   ORBITAL_CONSTELLATION_VIEW: EndingMarker,
   DEAD_DROP_ENCODER_TAB: DeadDrop,
-  // Preview only (DZ-05): whichever widget hosts the pilot's allocation dial. Found by what it hosts, so
-  // no preview id ships in production, whose content hosts no such dial and adds nothing here.
+  // The pilot's allocation dial (DZ-05): whichever widget hosts it. Found by what it hosts, so no route
+  // id is named here.
   ...Object.fromEntries([...CONTENT.widgets.values()].filter((widget) => widget.hostsActuator === 'serviceAllocationRatio')
     .map((widget) => [widget.id, PilotAllocation])),
 };

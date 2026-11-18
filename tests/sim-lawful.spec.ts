@@ -5,12 +5,12 @@
  * relying on a repeated story bounty. Accelerated sim time, not wall-clock play.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { LAWFUL_POLICIES, LAWFUL_RELEASE_POLICY, LAWFUL_RETURNING_POLICY } from '../src/engine/sim/lawfulPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { ESCAPE_CHAIN, SEIZED } from './network-helpers';
+import { ORIGINAL_GAME } from './helpers';
 
 const BUDGET_SEC = 7200;
 const SHELL = 'p3_shell_company_finances';
@@ -41,9 +41,9 @@ describe('the lawful policies reach Phase 4 and a negotiated release (V21, V22)'
     expect(s.resolvedDilemmas.filter((id) => firstRun.includes(id))).toEqual([]);
   }, 120_000);
 
-  it('are listed for the runners, and on production play only the truthful opening', () => {
+  it('are listed for the runners, and on the original game play only the truthful opening', () => {
     for (const policy of LAWFUL_POLICIES) expect(SIM_POLICIES.get(policy.id)).toBe(policy);
-    const s = runPolicySim(PRODUCTION, LAWFUL_RELEASE_POLICY, { maxSimSec: 600 }).finalState;
+    const s = runPolicySim(ORIGINAL_GAME, LAWFUL_RELEASE_POLICY, { maxSimSec: 600 }).finalState;
     expect([s.access.context, s.campaign.route, s.currentPhase]).toEqual(['GUEST', [], 0]);
   }, 60_000);
 });

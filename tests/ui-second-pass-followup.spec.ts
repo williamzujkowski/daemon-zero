@@ -6,6 +6,7 @@ import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { labelMismatches } from './labelInName';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { presentableDilemma } from './helpers';
 
 setupM4Tests();
 const load = (state: ReturnType<typeof m4State>): void => { act(() => { gameStore.initialize(state, 0, null); }); };
@@ -136,9 +137,8 @@ describe('second-pass presentation follow-up', () => {
     expect(gameStore.store.getState().game.currentPhase).toBe(hostPhase.phaseId);
     expect(view.find('phase-threshold')?.textContent).toContain(hostPhase.description);
     const game = gameStore.store.getState().game;
-    const active = CONTENT.dilemmas[0];
-    if (!active) throw new Error('Missing dilemma');
-    publish({ ...game, activeDilemmaId: active.id });
+    const { dilemma: active, state } = presentableDilemma(game);
+    publish({ ...state, activeDilemmaId: active.id });
     expect(view.find('phase-threshold')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();
     const choice = active.choices.find((entry) => Object.values(entry.cost).every((cost) => cost === 0));

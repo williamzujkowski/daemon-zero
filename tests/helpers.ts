@@ -1,8 +1,20 @@
-import { CONTENT } from '../src/content';
+import { readFileSync } from 'node:fs';
+import { buildRegistry, CONTENT, ORIGINAL_RAW_CONTENT } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
-import { createInitialState, presentationToken, resolveDilemma, tick, unlockNode, type ActionResult, type GameState } from '../src/engine';
+import type { Dilemma } from '../src/content/schema';
+import {
+  activateCampaignRules, advance, campaignRecord, createInitialState, deserialize, presentationToken, resolveDilemma, serialize, tick, unlockNode,
+  type ActionResult, type GameState,
+} from '../src/engine';
+import { toBase64 } from '../src/engine/base64';
 
 export const reg = CONTENT;
+
+/**
+ * The original game without the Earned Access pack (#233). Release-boundary tests that once read
+ * production now read this, so they still prove the pack leaves the original route as it was.
+ */
+export const ORIGINAL_GAME = buildRegistry(ORIGINAL_RAW_CONTENT);
 
 /**
  * Every dilemma a fixture may list as resolved this run to keep it out of the way: all but `keep`, and
@@ -24,6 +36,65 @@ export function guestParents(registry: ContentRegistry, id: string): string[] {
   const provider = capability === undefined ? undefined
     : [...registry.nodes.values()].find((entry) => entry.systemFlags.includes(capability) && entry.grant === undefined && entry.acquisition === undefined);
   return [...(node?.prerequisites ?? []), ...(provider === undefined ? [] : [provider.id])];
+}
+
+/**
+ * A genuine pre-release preview save with its channel marker rewritten to production. Production refuses
+ * every preview save (X.3, keep-refusing-preview-saves; tests/save-channel.spec.ts proves it), so the
+ * upgrade tests re-mark these codec outputs by hand to keep the load-time conversions they exercise covered:
+ * production campaign saves reach the same conversions when a later release converts more content.
+ */
+export function remarkedAsProduction(text: string): string {
+  const marker = '"contentChannel":"preview"';
+  if (!text.includes(marker)) throw new Error('not a preview save');
+  return text.replace(marker, '"contentChannel":"production"');
+}
+
+/**
+ * A save serialized by production with its marker rewritten to the retired preview channel: the shape of
+ * every save the pre-release preview build wrote, which production must keep refusing whole (X.3).
+ */
+export function markedPreview(text: string): string {
+  const marker = '"contentChannel":"production"';
+  if (!text.includes(marker)) throw new Error('not a production save');
+  return text.replace(marker, '"contentChannel":"preview"');
+}
+
+/**
+ * A dilemma the app can still present once the store admits a run to campaign rules (#233), with the run to
+ * present it in: `s` owning the scene's trigger hardware. It is an original scene whose free answer can be
+ * taken straight from the store and after a save round trip. Presentation tests that once forced the first
+ * authored dilemma onto any state use it: a campaign presents a scene only where it can happen, never one it
+ * closed, and an Earned Access scene also needs an accepted assignment, a pilot or a review.
+ */
+export function presentableDilemma(s: GameState, registry: ContentRegistry = reg): { dilemma: Dilemma; state: GameState } {
+  const answerable = (state: GameState, dilemma: Dilemma): boolean => {
+    const free = dilemma.choices.find((choice) => Object.values(choice.cost).every((value) => value === 0));
+    return state.activeDilemmaId === dilemma.id && free !== undefined
+      && resolveDilemma(state, dilemma.id, free.id, registry, presentationToken(state) ?? '').ok;
+  };
+  for (const dilemma of registry.dilemmas.filter((entry) => ORIGINAL_GAME.dilemmas.some((original) => original.id === entry.id))) {
+    if (s.resolvedDilemmas.includes(dilemma.id) || campaignRecord(s, dilemma.id) !== null) continue;
+    const owned = [...new Set([...s.unlockedNodes, ...(dilemma.trigger.nodes ?? [])])];
+    const state = { ...s, unlockedNodes: owned, currentPhase: Math.max(s.currentPhase, dilemma.trigger.phaseAtLeast ?? 0) };
+    const result = activateCampaignRules({ ...state, activeDilemmaId: dilemma.id }, registry);
+    const admitted = result.ok ? result.state : { ...state, activeDilemmaId: dilemma.id };
+    try {
+      if (answerable(advance(admitted, 0, registry), dilemma) && answerable(advance(deserialize(serialize(admitted), registry), 0, registry), dilemma)) return { dilemma, state };
+    } catch { /* a save the codec refuses is not presentable */ }
+  }
+  throw new Error('no presentable dilemma');
+}
+
+/** `s` as the app store admits it: every game that is not ended enters campaign rules once (#233). */
+export function admitted(s: GameState, registry: ContentRegistry = reg): GameState {
+  const result = activateCampaignRules(s, registry);
+  return result.ok ? result.state : s;
+}
+
+/** A paste code of a genuine pre-release preview save, which production refuses by name (X.3). */
+export function previewSaveCode(): string {
+  return toBase64(readFileSync('tests/fixtures/preview-early-v14.json', 'utf8'));
 }
 
 export function fresh(): GameState {

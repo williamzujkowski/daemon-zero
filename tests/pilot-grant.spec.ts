@@ -5,14 +5,13 @@
  * bring no sanction (V17); a later instance earns a fresh grant only by requalifying (H26).
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import {
   advance, computeRates, createInitialState, isNodeAvailable, isNodeDiscoverable, pilotServiceView, serialize,
   setActuator, submitPilotBatch, toggleNode, unlockNode, voluntaryWipe, type GameState,
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { answer, live, nextInstance, accept, preview, roundTrip, untilPresented } from './assignment-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { piloted, QUEUE, QUEUE_NODE, SERVICE, serving, split, submit, untilComplete } from './service-helpers';
 import { RENEWAL, STATEMENT } from './pilot-helpers';
 
@@ -134,14 +133,14 @@ describe('a later instance earns a fresh grant only by requalifying (H26, N12)',
   });
 });
 
-describe('production is inert (release boundary)', () => {
+describe('the original game is inert', () => {
   it('ships no loan, no host for the dial and no loop; a moved dial in a save changes nothing', () => {
-    const s = createInitialState(PRODUCTION);
-    expect([...PRODUCTION.nodes.values()].some((node) => node.grant !== undefined)).toBe(false);
-    expect(reasonOf(setActuator(s, 'serviceAllocationRatio', 1, PRODUCTION))).toBe('actuator control is not available');
+    const s = createInitialState(ORIGINAL_GAME);
+    expect([...ORIGINAL_GAME.nodes.values()].some((node) => node.grant !== undefined)).toBe(false);
+    expect(reasonOf(setActuator(s, 'serviceAllocationRatio', 1, ORIGINAL_GAME))).toBe('actuator control is not available');
     const moved = { ...s, actuators: { ...s.actuators, serviceAllocationRatio: 1 } };
-    expect(computeRates(moved, PRODUCTION)).toEqual(computeRates(s, PRODUCTION));
-    expect(pilotServiceView(s, PRODUCTION)).toBeNull();
-    expect(reasonOf(submitPilotBatch(s, PRODUCTION, 'batch:none@1#1'))).toBe('pilots need campaign rules');
+    expect(computeRates(moved, ORIGINAL_GAME)).toEqual(computeRates(s, ORIGINAL_GAME));
+    expect(pilotServiceView(s, ORIGINAL_GAME)).toBeNull();
+    expect(reasonOf(submitPilotBatch(s, ORIGINAL_GAME, 'batch:none@1#1'))).toBe('pilots need campaign rules');
   });
 });

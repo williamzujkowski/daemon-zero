@@ -8,9 +8,8 @@
 import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { afterEach, describe, expect, it } from 'vitest';
+import { CONTENT as PREVIEW } from '../src/content';
 import { unlockNode, voluntaryWipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import DaemonProcesses from '../src/ui/DaemonProcesses';

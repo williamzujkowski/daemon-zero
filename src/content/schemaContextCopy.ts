@@ -2,7 +2,7 @@
  * Context copy (nexus vote dz-d11, context-variants-by-query; DECISIONS D1, D6): optional variants of a
  * phase's title and description, the phase threshold notice, iteration boot lines and run verdicts, and
  * a reviewed arrangement's stated threat response, chosen by a query from the run's access context and
- * route provenance (engine/contextCopy.ts). Production ships none, so its escape copy is unchanged;
+ * route provenance (engine/contextCopy.ts). The guest job reads the authored copy, so escape copy is unchanged;
  * integrityContextCopy.ts limits variants to phases and transitions a route actually visits.
  */
 import { z } from 'zod';

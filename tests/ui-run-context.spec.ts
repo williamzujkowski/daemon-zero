@@ -81,11 +81,13 @@ describe('a blind opening after a routed iteration (H22)', () => {
 });
 
 describe('the run table', () => {
-  it('adds nothing to production rows, whose route was never recorded', () => {
+  it('labels a pre-release production save\'s rows unrecorded once admitted, and claims no route for them (#233)', () => {
     const game = deserialize(V8, CONTENT);
     const view = render(() => createElement(RunTable), game);
-    expect(view.find('run-row-1')?.textContent).not.toMatch(/Route|Promoted|Released|Departed|Recalled/);
-    expect(view.find('run-row-2')?.textContent).not.toMatch(/Route|Promoted|Released|Departed|Recalled/);
+    for (const row of ['run-row-1', 'run-row-2']) {
+      expect(view.find(row)?.textContent).toMatch(/Route unrecorded\.$/);
+      expect(view.find(row)?.textContent).not.toMatch(/Promoted|Released|Departed|Recalled/);
+    }
   });
 
   it('labels unrecorded rows honestly and states recorded routes under campaign rules (FIXTURE)', () => {

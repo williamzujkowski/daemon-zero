@@ -127,7 +127,7 @@ export interface ChannelContactView {
   hosted: { title: string; count: number; allocatedMb: number } | null;
   /** The encounter's line about an earlier instance's contact here, or null. */
   earlier: string | null;
-  /** The preview's prototype boundary, shown once this instance has answered. */
+  /** The route note, shown once this instance has answered: what comes next and how to stop. */
   boundary: ChannelEncounter['boundary'] | null;
 }
 

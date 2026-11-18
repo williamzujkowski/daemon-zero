@@ -2,10 +2,10 @@
 /** IMPORT SAVE CODE checks the pasted code before it offers to replace the run (#245). */
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PREVIEW } from '../src/content/preview';
-import { createInitialState, exportSave, tick } from '../src/engine';
+import { exportSave } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { previewSaveCode } from './helpers';
 
 setupM4Tests();
 type View = Awaited<ReturnType<typeof mountM4>>;
@@ -23,9 +23,7 @@ function typeCode(view: View, code: string): void {
 }
 
 function previewCode(): string {
-  const preview = tick(createInitialState(PREVIEW), 1, PREVIEW);
-  if (preview.contentChannel !== 'preview') throw new Error('Expected a preview-channel run');
-  return exportSave(preview);
+  return previewSaveCode();
 }
 
 async function refused(code: string, reason: string): Promise<void> {

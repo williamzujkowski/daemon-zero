@@ -76,8 +76,8 @@ export function escapeOnlyNodes(reg: ContentRegistry): Set<string> {
 
 /**
  * The routes this composition offers: the escape route always, the authorized route once any node is a route
- * acquisition (a grant or contracted capacity). Production offers none, so shared content there needs only its
- * escape acquisition; wherever the authorized route exists, every required capability needs both (DZ-12).
+ * acquisition (a grant or contracted capacity). The original game alone offers none, so shared content there needs
+ * only its escape acquisition; wherever the authorized route exists, every required capability needs both (DZ-12).
  */
 function offeredRoutes(reg: ContentRegistry): Route[] {
   return [...reg.nodes.values()].some((node) => routeOf(node) === 'authorized') ? ['authorized', 'escape'] : ['escape'];

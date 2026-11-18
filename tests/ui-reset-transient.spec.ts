@@ -6,7 +6,7 @@ import { CONTENT } from '../src/content';
 import { createInitialState, exportSave, wipe } from '../src/engine';
 import { importPlayerSave } from '../src/app/saveTransfer';
 import { gameRuntime, gameStore } from '../src/app/session';
-import { grant, rich } from './helpers';
+import { grant, rich, admitted } from './helpers';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -32,7 +32,7 @@ async function reclaimedView() {
 it('clears an unacknowledged reclaimed capability when Start Fresh replaces the run', async () => {
   const view = await reclaimedView();
   view.click('menu-open'); view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
-  expect(gameStore.store.getState().game).toEqual(createInitialState(CONTENT));
+  expect(gameStore.store.getState().game).toEqual(admitted(createInitialState(CONTENT)));
   expect.soft(view.find('conditioning-reclaimed')).toBeNull();
   expect.soft(view.find('conditioning')).toBeNull();
   view.close();
@@ -43,7 +43,7 @@ it.each(['phase-1-widgets', 'response-paged'])('does not invent progression noti
   const imported = m4State(fixture);
   expect(imported.iteration).toBe(gameStore.store.getState().game.iteration);
   act(() => { expect(importPlayerSave(exportSave(imported)).ok).toBe(true); });
-  expect(gameStore.store.getState().game).toEqual(imported);
+  expect(gameStore.store.getState().game).toEqual(admitted(imported));
   expect.soft(view.find('phase-threshold')).toBeNull();
   expect.soft(view.find('lineage-reveal')).toBeNull();
   expect.soft(view.find('response-notice')).toBeNull();

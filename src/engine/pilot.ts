@@ -10,7 +10,7 @@ import type { PilotTerms } from '../content/schemaPilot';
 import type { ActionResult } from './actions';
 import { recordRouteEvent } from './access';
 import { iterationRoute } from './accessQuery';
-import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
+import { isCampaignActive } from './campaignQuery';
 import { discloseIncompatibleOutput } from './pilotDisclosure';
 import { narrowReason, pilotTerms, pilotToken, qualifiesForPilot, withheldByGrant, type NarrowReason } from './pilotQuery';
 import { isNodeDiscoverable } from './query';
@@ -58,7 +58,7 @@ export function applyPilotResponse(d: GameState, choice: DilemmaChoice, reg: Con
 export function acceptPilotOffer(s: GameState, reg: ContentRegistry, shownAs: string): ActionResult {
   if (s.ending !== null) return refuse(s, 'the run has ended');
   if (s.activeDilemmaId !== null) return refuse(s, 'a dilemma is awaiting a decision');
-  if (!campaignRulesSupported(reg) || !isCampaignActive(s)) return refuse(s, 'pilots need campaign rules');
+  if (!isCampaignActive(s)) return refuse(s, 'pilots need campaign rules');
   if (shownAs !== pilotToken(s)) return refuse(s, 'that offer is no longer current');
   if (s.access.offer?.response !== 'DEFERRED') return refuse(s, 'there is no deferred pilot offer');
   const accepted = acceptTerms({ ...s }, reg);

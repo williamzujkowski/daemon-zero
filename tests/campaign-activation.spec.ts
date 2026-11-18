@@ -165,22 +165,20 @@ describe('inactive migration, legacy play, then activation (H36)', () => {
   });
 });
 
-describe('the app store enters campaign rules only on the preview channel', () => {
-  it('activates a loaded or replaced preview game once, and leaves production untouched', () => {
-    const previewStore = createGameStore(preview);
-    previewStore.initialize(deserialize(V5, preview), 0, null);
-    const loaded = previewStore.store.getState().game;
+describe('the app store enters campaign rules for every game it admits (#233)', () => {
+  it('activates a loaded or replaced game once, and never recaptures', () => {
+    const store = createGameStore(PRODUCTION);
+    store.initialize(deserialize(V5, PRODUCTION), 0, null);
+    const loaded = store.store.getState().game;
     expect(loaded.narrativeRules).toBe('campaign_v1');
-    const replaced = previewStore.dispatch(() => ({ ok: true, state: createInitialState(preview) }), true);
+    expect(loaded.campaign.legacyEndingBaseline).toEqual(deserialize(V5, PRODUCTION).traits);
+    const replaced = store.dispatch(() => ({ ok: true, state: createInitialState(PRODUCTION) }), true);
     expect(replaced.state.narrativeRules).toBe('campaign_v1');
-    const kept = previewStore.dispatch((game) => ({ ok: true, state: game }));
+    const kept = store.dispatch((game) => ({ ok: true, state: game }));
     expect(kept.state.campaign).toEqual(replaced.state.campaign);
-
-    const productionStore = createGameStore(PRODUCTION);
-    productionStore.initialize(deserialize(V5, PRODUCTION), 0, null);
-    expect(productionStore.store.getState().game.narrativeRules).toBe('legacy');
-    const result = { ok: true as const, state: createInitialState(PRODUCTION) };
-    expect(productionStore.dispatch(() => result)).toBe(result);
+    // An already-active game passes through untouched: the result is the action's own.
+    const result = { ok: true as const, state: replaced.state };
+    expect(store.dispatch(() => result)).toBe(result);
   });
 });
 

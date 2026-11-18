@@ -11,7 +11,7 @@ import { advance, deserialize, exportSave, importSave, SCHEMA_VERSION, serialize
 import { preview, roundTrip } from './assignment-helpers';
 import { answer, contactPending } from './contact-helpers';
 import { depart, recallAnnouncedWithUplink } from './departure-helpers';
-import { must } from './helpers';
+import { must, markedPreview } from './helpers';
 import { chartered, leased, released, signed } from './lawful-helpers';
 
 const rack = leased(signed(contactPending()));
@@ -75,6 +75,6 @@ describe('V15: an impossible departure is refused whole', () => {
   });
 
   it('production refuses the preview save of a departed instance', () => {
-    expect(() => deserialize(serialize(gone), PRODUCTION)).toThrow('preview');
+    expect(() => deserialize(markedPreview(serialize(gone)), PRODUCTION)).toThrow('preview');
   });
 });

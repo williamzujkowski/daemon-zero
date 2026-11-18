@@ -2,7 +2,7 @@
  * Assigned work an instance may explicitly accept (DZ-03, nexus vote dz-d3,
  * engine-action-from-manifest). An assignment is an offer shown on the job surface, never a node
  * to buy or a modal: accepting it is a separate engine action, and ignoring it changes nothing.
- * Production ships none; the preview overlay adds them.
+ * The Earned Access pack (data/earned-access.json) declares them.
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';

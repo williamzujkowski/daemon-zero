@@ -6,11 +6,11 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import { deserialize, serialize, toggleNode, voluntaryWipe, SaveChannelError, SaveError, type GameState } from '../src/engine';
 import { LAWFUL, roundTrip } from './assignment-helpers';
-import { grant, must, rich } from './helpers';
+import { grant, must, rich, markedPreview } from './helpers';
 import { buy, DIRECTORY, ESCAPE_CHAIN, escapedNetworked, escapedTo, granted, networked, provisioned, SEGMENT } from './network-helpers';
 import { QUEUE } from './service-helpers';
 
@@ -94,7 +94,7 @@ describe('healing restores shared structure and never the other route (D5, 07.4)
 
 describe('the production build (V31)', () => {
   it('refuses an authorized preview save atomically rather than strip it into the escape graph', () => {
-    const code = serialize(networked());
+    const code = markedPreview(serialize(networked()));
     expect(() => deserialize(code, PRODUCTION)).toThrow(SaveChannelError);
   });
 

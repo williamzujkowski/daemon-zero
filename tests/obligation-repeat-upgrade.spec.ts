@@ -17,10 +17,12 @@ import {
 import { preview } from './campaign-helpers';
 import { stableThroughReloads } from './interruption-helpers';
 import { exactReload } from './minds-helpers';
-import { guestParents, must, rich } from './helpers';
+import { guestParents, must, rich, remarkedAsProduction } from './helpers';
 import { BLOCKADE, beforeNh05, ORDER } from './obligation-helpers';
 
-const PRE_NH05 = readFileSync('tests/fixtures/pre-nh05-active-v11.json', 'utf8');
+const PRE_NH05_PREVIEW = readFileSync('tests/fixtures/pre-nh05-active-v11.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const PRE_NH05 = remarkedAsProduction(PRE_NH05_PREVIEW);
 const STEP = 1 / preview.balance.tickHz;
 
 /** Buys a node and its missing prerequisites with the real unlock action. */

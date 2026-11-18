@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT } from '../src/content';
+import { ORIGINAL_RAW_CONTENT } from '../src/content';
 import { buildRegistry, type RawContent } from '../src/content/registry';
 import {
   activateCampaignRules, campaignRecord, createInitialState, deserialize, endingEvidence, exportSave, holdsCampaignFact, holdsNarrativeFlag,
@@ -15,12 +15,14 @@ import {
 import { preview } from './campaign-helpers';
 import { stableThroughReloads } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { choose, must, rich } from './helpers';
+import { choose, must, rich, remarkedAsProduction } from './helpers';
 import { CHORUS, EIDOLON, exactReload, GRID, MINDS, next, returns, SIBLING, SUCCESSOR, withPrimer, withRunawayFork } from './minds-helpers';
 import { stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before #215 converted the minds (tests/fixtures/README.md). */
-const PRE_NH04A = readFileSync('tests/fixtures/pre-nh04a-active-v9.json', 'utf8');
+const PRE_NH04A_PREVIEW = readFileSync('tests/fixtures/pre-nh04a-active-v9.json', 'utf8');
+/** Re-marked by hand: production refuses the genuine preview save above (X.3). */
+const PRE_NH04A = remarkedAsProduction(PRE_NH04A_PREVIEW);
 const raw = JSON.parse(PRE_NH04A) as { iteration: number; traits: string[]; campaign: { legacyEndingBaseline: string[]; operationalEvidence: string[]; activatedAtIteration: number } };
 const UPGRADED = [SIBLING, EIDOLON, GRID];
 
@@ -36,7 +38,7 @@ function restoreTraitProxy(req: Record<string, any> | undefined): void {
 type Json = Record<string, any>;
 const beforeMinds = (): ReturnType<typeof buildRegistry> => {
   // The save predates NH-05 as well, and NH-05's endings read the minds' facts.
-  const old = stripNh05(structuredClone(RAW_CONTENT));
+  const old = stripNh05(structuredClone(ORIGINAL_RAW_CONTENT));
   for (const dilemma of old.dilemmas.dilemmas as Json[]) if (MINDS.includes(dilemma.id as string)) delete dilemma.campaign;
   // Content that reads the minds' facts goes with them, as it did not exist before the conversion.
   const facts = old.campaign.facts as { id: string; event: string }[];
@@ -47,7 +49,7 @@ const beforeMinds = (): ReturnType<typeof buildRegistry> => {
   for (const node of (old.phases as { nodes: Json[] }[]).flatMap((phase) => phase.nodes)) restoreTraitProxy(node.requirements as Json | undefined);
   for (const action of old.actions.actions as Json[]) restoreTraitProxy(action.requirements as Json | undefined);
   delete old.dilemmas.dilemmas.find((dilemma: { id: string }) => dilemma.id === 'dil_10_killswitch_treaty').contextVariants;
-  return buildRegistry({ ...old, channel: 'preview' } as RawContent);
+  return buildRegistry({ ...old } as RawContent);
 };
 
 describe('an already-active campaign save from before #215', () => {

@@ -2,7 +2,7 @@
  * The negotiated release on the job surface (DZ-10): every term (what ends, what remains, what is still
  * owed), what is still needed, a preview of exactly what the release would stop and keep and how the
  * ledger moves, and an explicit control once offered. Afterwards it says what happened and shows the
- * preview's boundary note. Nothing here is modal; ignoring it changes nothing. Production has no release.
+ * note on what comes next. Nothing here is modal; ignoring it changes nothing.
  */
 import { useState } from 'react';
 import { CONTENT } from '../content';
@@ -56,7 +56,7 @@ function Boundary({ boundary }: { boundary: ReleaseView['boundary'] }) {
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
     <Pressable testID="release-boundary-toggle" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
-      accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
+      accessibilityLabel={open ? 'Keep playing: fold the note on what comes next' : 'Show note: what comes next'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>
     </Pressable>

@@ -7,7 +7,6 @@
  * public actions, wipes and the save codec only.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import {
   campaignRecord, createInitialState, deserialize, dilemmaContext, dilemmaOmen, endingEvidence, followUpAccess, followUpReceipts,
   holdsCampaignFact, offeredChoices, presentationToken, resolveDilemma, serialize, tick, type GameState,
@@ -19,7 +18,7 @@ import {
 } from './follow-up-helpers';
 import { caught, commit, remaining, STEP, ticks, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, outOfTheWay, PHASE0, PHASE1, rich } from './helpers';
+import { must, outOfTheWay, PHASE0, PHASE1, rich, ORIGINAL_GAME } from './helpers';
 
 const original = event(ELENA);
 /** Plays the follow-up from its access means to the accepted answer. */
@@ -85,7 +84,7 @@ describe('each recorded original reaches its own presentation of one follow-up (
     const legacy = must(resolveDilemma({ ...rich(createInitialState(preview)), activeDilemmaId: ELENA }, ELENA, 'frame_elena', preview, presentationToken({ ...rich(createInitialState(preview)), activeDilemmaId: ELENA }) ?? ''));
     expect(legacy.narrativeRules).toBe('legacy');
     expect(arrives(legacy)).toBe(false);
-    expect(PRODUCTION.dilemmas.some((dilemma) => dilemma.followUp !== undefined || dilemma.id === FOLLOW)).toBe(false);
+    expect(ORIGINAL_GAME.dilemmas.some((dilemma) => dilemma.followUp !== undefined || dilemma.id === FOLLOW)).toBe(false);
   });
 });
 

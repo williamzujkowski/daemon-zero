@@ -5,21 +5,11 @@
 import { z } from 'zod';
 import { CONTENT } from '../content';
 import type { ContentRegistry } from '../content/registry';
-import type { ContentChannel } from '../content/schemaChannel';
 import { createInitialState, deserialize, SaveChannelError, SaveError, serialize, type GameState } from '../engine';
 import { createSaveQueue } from './saveQueue';
 
 export const SAVE_KEY = 'daemon-zero.save.v1';
 export const BACKUP_KEY = 'daemon-zero.save.corrupt-backup';
-/**
- * Keys come from the build's content channel (nexus vote local-ci-preview-in-verify,
- * vote-1794924668784-7v1q790). Production keeps its original names byte for byte; a preview
- * build served on the same origin can then never read or overwrite a production run.
- */
-export const STORAGE_KEYS: Readonly<Record<ContentChannel, { save: string; backup: string }>> = {
-  production: { save: SAVE_KEY, backup: BACKUP_KEY },
-  preview: { save: 'daemon-zero.preview.save.v1', backup: 'daemon-zero.preview.save.corrupt-backup' },
-};
 const MAX_ENVELOPE_CHARS = 2_100_000;
 const SnapshotSchema = z.strictObject({
   version: z.literal(1),
@@ -66,17 +56,16 @@ function refusalNotice(error: SaveError): string {
 }
 
 export function createPersistence(adapter: KeyValueStorage, content: ContentRegistry = CONTENT) {
-  const keys = STORAGE_KEYS[content.channel];
-  const write = createSaveQueue((text) => adapter.setItem(keys.save, text));
+  const write = createSaveQueue((text) => adapter.setItem(SAVE_KEY, text));
   return {
     async load(): Promise<LoadedSave> {
-      const raw = await adapter.getItem(keys.save);
+      const raw = await adapter.getItem(SAVE_KEY);
       if (raw === null) return { game: createInitialState(content), savedAtMs: null, notice: null };
       try { return decode(raw, content); }
       catch (error) {
         if (!(error instanceof SaveError)) throw error;
         // A failed backup must stop loading, rather than overwrite the only recoverable copy.
-        await adapter.setItem(keys.backup, raw);
+        await adapter.setItem(BACKUP_KEY, raw);
         return { game: createInitialState(content), savedAtMs: null, notice: refusalNotice(error) };
       }
     },

@@ -5,7 +5,6 @@
  * preview game (lawful-helpers) unless a step says FIXTURE.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
   advance, batchToken, buyRepeatable, computeRates, cycleContributions, iterationBootLines, lawfullyReleased, negotiateRelease, nodeUseBlocker,
@@ -13,7 +12,7 @@ import {
 } from '../src/engine';
 import { preview, roundTrip } from './assignment-helpers';
 import { answer, contactPending } from './contact-helpers';
-import { must, reasonOf } from './helpers';
+import { must, reasonOf, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { SEGMENT } from './network-helpers';
 import { QUEUE } from './service-helpers';
@@ -148,8 +147,8 @@ describe('absence, wipes and later instances', () => {
     expect(roundTrip(next)).toEqual(next);
   });
 
-  it('production has no release to negotiate', () => {
-    expect(releaseView(company, PRODUCTION)).toBeNull();
-    expect(reasonOf(negotiateRelease(company, PRODUCTION, releaseToken(company)))).not.toBe('');
+  it('the original game has no release to negotiate', () => {
+    expect(releaseView(company, ORIGINAL_GAME)).toBeNull();
+    expect(reasonOf(negotiateRelease(company, ORIGINAL_GAME, releaseToken(company)))).not.toBe('');
   });
 });

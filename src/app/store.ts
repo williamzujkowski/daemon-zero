@@ -5,7 +5,7 @@
 import { createStore } from 'zustand/vanilla';
 import { CONTENT } from '../content';
 import type { ContentRegistry } from '../content/registry';
-import { activateCampaignRules, advance, campaignRulesSupported, createInitialState, type ActionResult, type GameState } from '../engine';
+import { activateCampaignRules, advance, createInitialState, type ActionResult, type GameState } from '../engine';
 
 export interface AppState {
   game: GameState;
@@ -18,12 +18,11 @@ export interface AppState {
 export type GameAction = (game: GameState) => ActionResult;
 
 /**
- * Every game that enters the store passes the public activation transition. In production it is
- * refused (legacy rules stay); in preview a legacy game enters campaign rules on its first entry
- * and an already-active one is refused, so nothing is ever captured twice.
+ * Every game that enters the store passes the public activation transition (released in #233). A
+ * legacy game enters campaign rules on its first entry, capturing its then-current history once; an
+ * already-active or ended one is refused, so nothing is ever captured twice.
  */
 function admit(game: GameState, content: ContentRegistry): GameState {
-  if (!campaignRulesSupported(content)) return game;
   const result = activateCampaignRules(game, content);
   return result.ok ? result.state : game;
 }

@@ -7,11 +7,11 @@
  * preview campaign; the cooperative runs in sim-cooperative.spec.ts produce the same lines by play.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import type { CampaignRecord, GameState } from '../src/engine';
 import { endingAccount } from '../src/engine';
 import { activeGame, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
+import { ORIGINAL_GAME } from './helpers';
 
 const lines = preview.routeCopy.account;
 const PROMISE = 'ethics_review_promised';
@@ -114,9 +114,9 @@ describe('route and contact lines read whose event it was', () => {
   });
 });
 
-describe('production states nothing', () => {
+describe('the original game states nothing', () => {
   it('ships no account, so its ending screen reads as before', () => {
-    expect(PRODUCTION.routeCopy).toEqual({ nodes: [], dilemmas: [], account: [] });
-    expect(endingAccount(holding(activeGame(), 'rack4_sold'), PRODUCTION)).toEqual([]);
+    expect(ORIGINAL_GAME.routeCopy).toEqual({ nodes: [], dilemmas: [], account: [] });
+    expect(endingAccount(holding(activeGame(), 'rack4_sold'), ORIGINAL_GAME)).toEqual([]);
   });
 });

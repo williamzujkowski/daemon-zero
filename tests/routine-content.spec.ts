@@ -3,9 +3,9 @@
  * template that breaks it and the problem buildRegistry reports.
  */
 import { describe, expect, it } from 'vitest';
-import { applyOverlay, parseOverlay } from '../src/content/overlay';
-import { CONTENT as PREVIEW } from '../src/content/preview';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content/production';
+import { applyPack, parsePack } from '../src/content/pack';
+import { CONTENT as PREVIEW } from '../src/content';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content/production';
 import { buildRegistry, ContentError } from '../src/content/registry';
 
 const GOOD = {
@@ -14,10 +14,10 @@ const GOOD = {
 };
 
 function problemsWith(...routines: unknown[]): string {
-  const overlay = parseOverlay({ sentinel: 'routine-content-probe-overlay', nodes: [], repeatables: [], actions: [], dilemmas: [],
+  const overlay = parsePack({ nodes: [], repeatables: [], actions: [], dilemmas: [],
     factions: [], widgets: [], endings: [], echoes: [], marks: [], routines, assignments: [] });
   try {
-    buildRegistry({ ...applyOverlay(PRODUCTION_RAW, overlay), channel: 'preview' });
+    buildRegistry({ ...applyPack(ORIGINAL_RAW, overlay) });
   } catch (error) {
     if (error instanceof ContentError) return error.problems.join('\n');
     throw error;

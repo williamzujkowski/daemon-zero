@@ -6,9 +6,9 @@
  * service and never waits on resources. Schema refusals for the new shapes are here too.
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { parseOverlay } from '../src/content/overlay';
-import { PREVIEW_OVERLAY, RAW_CONTENT } from '../src/content/preview';
+import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW } from '../src/content';
+import { parsePack } from '../src/content/pack';
+import { EARNED_ACCESS_PACK, RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, any>;
@@ -36,8 +36,8 @@ const grant = (raw: Json): Json => raw.assignments.assignments[0].pilot.serviceG
 describe('the real content passes', () => {
   it('in preview and in production, and production opens no channel', () => {
     expect(problems(() => undefined)).toBe('');
-    expect(problems(() => undefined, PRODUCTION_RAW)).toBe('');
-    expect((PRODUCTION_RAW.swarm as Json).channelEncounters).toEqual([]);
+    expect(problems(() => undefined, ORIGINAL_RAW)).toBe('');
+    expect((ORIGINAL_RAW.swarm as Json).channelEncounters).toEqual([]);
   });
 });
 
@@ -67,9 +67,9 @@ describe('channel corruption is refused', () => {
   });
 
   it('the overlay may add channels, and a channel added twice is a redefinition', () => {
-    const overlay = parseOverlay({ ...PREVIEW_OVERLAY });
+    const overlay = parsePack({ ...EARNED_ACCESS_PACK });
     expect(overlay.channelEncounters).toHaveLength(1);
-    expect(parseOverlay({ ...PREVIEW_OVERLAY, channelEncounters: undefined }).channelEncounters).toEqual([]);
+    expect(parsePack({ ...EARNED_ACCESS_PACK, channelEncounters: undefined }).channelEncounters).toEqual([]);
   });
 });
 

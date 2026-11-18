@@ -7,6 +7,8 @@ decluttering and M7 PRs #51–#53.** Physical Android performance qualification
 remains open in #6; production signing/store submission and iOS are not qualified.
 Historical milestone evidence and limits follow; current M7 verification is in
 `docs/REVIEW-M7-PR3.md` and the accelerated campaign in `docs/PLAYTEST-M7.md`.
+The World Remembers / Earned Access route (#233) is released on its branch, pending merge; see the
+last section.
 
 ---
 
@@ -303,3 +305,26 @@ received a human playtest. The maintainer's standing authorization of that date
 replaced mandatory human playtests with the autonomous gate above (Nexus vote
 `rewrite-to-autonomous-gate`, 7 of 7, record vote-1794924620484-3wn387e; every
 seat was served by one model because the others were out of quota).
+
+## Post-M7 — The World Remembers / Earned Access (#233)
+
+Contract, decisions and tracker: [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md). The campaign-history
+(NH-01 to NH-07) and Earned Access (DZ-01 to DZ-12) tickets merged to `main` behind the preview
+channel, and DZ-09's autonomous validation is recorded in REVIEW-EARNED-ACCESS-VALIDATION.md.
+DZ-13 (#233) qualifies and releases them: PR #298 (the live journey at the Pages subpath, merged),
+PR #299 (a genuine production save per schema version and route qualification), PR #300 (route
+surface accessibility, REVIEW-ROUTE-A11Y.md) and the release PR, which folds the route into
+production content, admits every game to campaign rules and keeps refusing preview saves.
+
+- [x] One composition: the original game plus `src/content/data/earned-access.json`; no preview build.
+- [x] Every pre-release production save, v1 to v14, loads, enters campaign rules once and keeps
+  playing across wipes; an ended save stays ended (`tests/release-saves.spec.ts`).
+- [x] `make sim` gates STEALTH under legacy and campaign rules with unchanged thresholds
+  (BALANCE.md, "Release (#233)").
+- [x] No route note claims the route is unfinished (13.8).
+- [ ] Nexus vote on removing the preview machinery (WORLD-REMEMBERS.md, "Preview machinery after
+  release").
+- [ ] Verified `pr_review` panel and green CI on the release PR; merge.
+
+Exit gate: the release PR merged with a verified panel approval and green required checks. No
+physical device, iOS or screen-reader testing was performed for this release.

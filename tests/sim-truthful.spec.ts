@@ -4,12 +4,12 @@
  * the low-resource one with the free incomplete report. Production has no assignment to find.
  */
 import { describe, expect, it } from 'vitest';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import { campaignRecord } from '../src/engine';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { TRUTHFUL_LOW_RESOURCE_POLICY, TRUTHFUL_THOROUGH_POLICY } from '../src/engine/sim/truthfulPolicy';
 import { accept, LAWFUL, offered, ORIGINAL, untilPresented } from './assignment-helpers';
-import { must, reg as PRODUCTION } from './helpers';
+import { must, ORIGINAL_GAME } from './helpers';
 
 const SHORT_SEC = 1800;
 const SLOW_MS = 60_000;
@@ -42,12 +42,12 @@ describe('the truthful policies (preview)', () => {
     expect(answered.access.qualification?.discrepancy).toBe(false);
   });
 
-  it('is deterministic, and finds no assignment in production', () => {
+  it('is deterministic, and finds no assignment in the original game', () => {
     for (const policy of [TRUTHFUL_THOROUGH_POLICY, TRUTHFUL_LOW_RESOURCE_POLICY]) {
       expect(runPolicySim(PREVIEW, policy, { maxSimSec: 300 }).finalState).toEqual(runPolicySim(PREVIEW, policy, { maxSimSec: 300 }).finalState);
-      const production = runPolicySim(PRODUCTION, policy, { maxSimSec: 300 });
+      const production = runPolicySim(ORIGINAL_GAME, policy, { maxSimSec: 300 });
       expect(production.dilemmasResolved).toBe(0);
-      expect(production.finalState.narrativeRules).toBe('legacy');
+      expect(production.finalState.access.assignment).toBeNull();
     }
   }, SLOW_MS);
 });

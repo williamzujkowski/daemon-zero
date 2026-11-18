@@ -9,13 +9,12 @@ import type { HTMLElement, Window } from 'happy-dom';
 import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../src/content', async () => await import('../src/content/preview'));
 const storage = vi.hoisted(() => new Map<string, string>());
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW } from '../src/content';
 import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
@@ -56,7 +55,7 @@ const name = (id: string) => defined(PREVIEW.nodes.get(id)).revealedName;
 
 describe('the release terms on the job surface', () => {
   it('lists every term and what is still needed, with the control disabled', async () => {
-    const view = await mount(rack, createElement(AssignmentPanel));
+    const view = await mount(rack, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('release-purpose')?.textContent).toContain(RELEASE_TERMS.purpose);
     for (const line of [...RELEASE_TERMS.ends, ...RELEASE_TERMS.remains, ...RELEASE_TERMS.commitments]) expect(view.find('release-terms')?.textContent).toContain(line);
     expect(view.find('release-terms')?.textContent).toContain(`Own ${name(CHARTER)} first`);
@@ -64,7 +63,7 @@ describe('the release terms on the job surface', () => {
   });
 
   it('previews what stops and what keeps running, then records the release and shows the boundary', async () => {
-    const view = await mount(company, createElement(AssignmentPanel));
+    const view = await mount(company, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('release-stops')?.textContent).toContain(name(CONTRACT));
     expect(view.find('release-keeps')?.textContent).toContain(name(RACK));
     expect(view.find('release-split')?.textContent).toContain('nothing granted');
@@ -90,7 +89,7 @@ describe('the pilot status line after a release', () => {
     const status = await mount(freed, createElement(PilotOfferPanel));
     expect(status.find('pilot-status')?.textContent).toContain('negotiated release');
     expect(status.find('pilot-status')?.textContent).not.toContain('runs as a supervised pilot');
-    const surface = await mount(freed, createElement(AssignmentPanel));
+    const surface = await mount(freed, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     const inSurface = (id: string) => surface.container.querySelector('[data-testid="' + id + '"]');
     expect(inSurface('pilot-status')).toBeNull();
     expect(inSurface('release-status')?.textContent).toContain('Released.');

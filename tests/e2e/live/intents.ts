@@ -5,7 +5,8 @@
  */
 import { CONTENT } from '../../../src/content';
 import { DIAL_STEP, isActuatorAvailable, type GameState } from '../../../src/engine';
-import { botStep, manualClicksPerSec, rankDilemmaChoices } from '../../../src/engine/sim/bot';
+import { botStep, manualClicksPerSec, rankDilemmaChoices, type BotOverrides } from '../../../src/engine/sim/bot';
+import { EVALUATING_OVERRIDES } from '../../../src/engine/sim/evaluatingPolicy';
 
 /** A control to press, by test id, `times` times in a row. */
 export interface Intent { id: string; times: number; kind: 'actuator' | 'action' | 'swarm' | 'buy' | 'shed' }
@@ -88,9 +89,19 @@ function dialUnlocked(state: GameState, name: Dial): boolean {
   return isActuatorAvailable(state, name, CONTENT);
 }
 
+/**
+ * The careful bot's settings for `state`. A return plays the evaluating careful player (#262): since campaign rules
+ * ship (#233) the bot's fixed alarm can spend a return's whole income on scrubs and stall in the network phase
+ * (docs/BALANCE.md, "Cause of the phase 2 stall"), which #262 recorded as the bot's habit, not the game's balance.
+ * The first iteration is the unchanged STEALTH bot.
+ */
+function settings(state: GameState): Readonly<BotOverrides> | undefined {
+  return state.iteration > 1 ? EVALUATING_OVERRIDES : undefined;
+}
+
 /** What the careful bot would do with `state`, as presses, in the order the bot acts. */
 export function decide(state: GameState): { intents: Intent[]; locked: Dial[] } {
-  const wanted = botStep(state, CONTENT, 'STEALTH');
+  const wanted = botStep(state, CONTENT, 'STEALTH', settings(state));
   const shed = state.conditioning.filter((id) => !wanted.conditioning.includes(id))
     .map((id): Intent => ({ id: 'cond-' + id + '-shed', times: 1, kind: 'shed' }));
   const dials: [Dial, Intent[]][] = [

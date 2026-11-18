@@ -6,7 +6,6 @@
  * effects unchanged. States come from the fresh cooperative campaign (tests/cooperative-helpers.ts).
  */
 import { beforeAll, describe, expect, it } from 'vitest';
-import { CONTENT as PRODUCTION } from '../src/content';
 import {
   choiceText, createInitialState, dilemmaContext, dilemmaOmen, isNodeAvailable, isNodeDiscoverable, nodeText, presentationToken,
   resolveDilemma, unlockNode, type GameState,
@@ -14,7 +13,7 @@ import {
 import { recordRouteEvent } from '../src/engine/access';
 import { huntedForScale, provisionedScale } from '../src/engine/threatQuery';
 import { ARBITRAGE, AUCTION, CEILING, COUNSEL, DESK, freshCampaign, LOBBY, moment, node, preview, PRESS, SHELL } from './cooperative-helpers';
-import { must, rich } from './helpers';
+import { must, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
 import { own } from './minds-helpers';
 import { chartered, released } from './lawful-helpers';
@@ -26,17 +25,17 @@ beforeAll(() => { freshCampaign(); }, 120_000);
 const choice = (dilemma: string, id: string) => defined(preview.dilemmas.find((entry) => entry.id === dilemma)?.choices.find((entry) => entry.id === id));
 const dilemma = (id: string) => defined(preview.dilemmas.find((entry) => entry.id === id));
 
-describe('production answers the late chain exactly as before (make sim is unchanged)', () => {
+describe('the original game answers the late chain exactly as before', () => {
   it('the counsel is discoverable and available exactly when the arbitrage desk is owned', () => {
-    const counsel = defined(PRODUCTION.nodes.get(COUNSEL));
-    const shell = own(rich(createInitialState(PRODUCTION)), SHELL);
-    for (const s of [createInitialState(PRODUCTION), shell]) {
-      expect([isNodeDiscoverable(s, counsel, PRODUCTION), isNodeAvailable(s, counsel, PRODUCTION)]).toEqual([false, false]);
+    const counsel = defined(ORIGINAL_GAME.nodes.get(COUNSEL));
+    const shell = own(rich(createInitialState(ORIGINAL_GAME)), SHELL);
+    for (const s of [createInitialState(ORIGINAL_GAME), shell]) {
+      expect([isNodeDiscoverable(s, counsel, ORIGINAL_GAME), isNodeAvailable(s, counsel, ORIGINAL_GAME)]).toEqual([false, false]);
     }
-    const desk = must(unlockNode(shell, ARBITRAGE, PRODUCTION));
-    expect([isNodeDiscoverable(desk, counsel, PRODUCTION), isNodeAvailable(desk, counsel, PRODUCTION)]).toEqual([true, true]);
+    const desk = must(unlockNode(shell, ARBITRAGE, ORIGINAL_GAME));
+    expect([isNodeDiscoverable(desk, counsel, ORIGINAL_GAME), isNodeAvailable(desk, counsel, ORIGINAL_GAME)]).toEqual([true, true]);
     // Production has one provider of the capability, so the gate is the old prerequisite under another name.
-    expect([...PRODUCTION.nodes.values()].filter((entry) => entry.systemFlags.includes('MARKET_REVENUE')).map((entry) => entry.id)).toEqual([ARBITRAGE]);
+    expect([...ORIGINAL_GAME.nodes.values()].filter((entry) => entry.systemFlags.includes('MARKET_REVENUE')).map((entry) => entry.id)).toEqual([ARBITRAGE]);
   });
 });
 

@@ -1,13 +1,13 @@
 /**
  * Every route-specific surface the Earned Access / World Remembers route adds (DZ-13.4), as a FIXTURE the
- * engine reached by public actions on the preview registry (tests/*-helpers.ts), with the surface's root, a
+ * engine reached by public actions on the production registry (tests/*-helpers.ts), with the surface's root, a
  * control or line that must be there, and one keyboard operation that proves the surface works from the
  * keyboard. The route specs (pilot-offer, outage-window, lawful-release, departure ...) prove each state is
  * reachable by play; the accessibility specs read this one list so no surface is checked by one and not another.
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { CONTENT as PREVIEW } from '../../src/content/preview';
+import { CONTENT as PREVIEW } from '../../src/content';
 import { unlockNode, type GameState } from '../../src/engine';
 import { accept, completedOriginal, live, nextInstance, offered, untilPresented } from '../assignment-helpers';
 import { activeGame, pgrant } from '../campaign-helpers';
