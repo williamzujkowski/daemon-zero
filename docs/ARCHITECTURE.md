@@ -611,7 +611,7 @@ Tests: `tests/corporate-world.spec.ts` (H01, H02, H05, defer, nh-d10, round trip
 lock), `corporate-upgrade.spec.ts` (genuine pre-NH-04b active v9 save), `corporate-content.spec.ts`
 (H28 corruption cases), `ui-corporate-world.spec.ts`, `return-policy.spec.ts`.
 
-## Campaign obligations and recovery reviews (#217)
+## Campaign obligations and truthful endings (#217)
 
 NH-05 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N6, N10, N11). Decided by Nexus vote
 nh-d7-obligations (`vote-1794927291350-6epyxcw`, `campaign-obligations-requirement`, 7 of 7; the
@@ -648,11 +648,26 @@ is consumed. Load refuses a review record beside an original that did not close 
 duplicated or forged claim cannot pay twice (H06). The superseded original stays `interrupted`, with
 no outcome.
 
-**Endings (N10).** Families, trait weights and priorities are unchanged, and `endingEvidence` (#212)
-already sums the baseline, each campaign choice once, credited actions and this iteration's
+**The journalist's review (NH-05.8).** With `ethics_review_promised`, the blockade dispersal and the
+atmospheric calm each show a context variant that names the breach, and offer a free referral
+(`refer_to_ethics_officer`, `hold_for_ethics_review`) that waits on her answer; her silence is not
+consent, and a later instance that she does not recognize gets the same safe path. The original
+nonconsensual choice stays as the explicit breach, recorded as that event's outcome beside the
+promise fact. Without the promise (discredited, staged, unrecorded or still-open inquiry) nothing is
+offered in her name.
+
+**Endings (N10, H18).** Families, trait weights and priorities are unchanged, and `endingEvidence`
+(#212) already sums the baseline, each campaign choice once, credited actions and this iteration's
 operational evidence; converting the Phase 5 events makes their choices campaign evidence, and a
-review's `none` answer adds nothing. Truthful epilogues and the journalist's review are the second
-NH-05 pull request.
+review's `none` answer adds nothing. `forbidsInheritedFacts` (scope `context`) blocks while a fact
+holds from a record this instance did not make (`holdsInheritedFact`: the fact holds and the event is
+not in the current run's resolved list). SIBLING, CHORAL and LINEAGE carry it for
+`ckpt_0413_in_cloud`, `chorus_recognized` and `predecessors_in_sanctuary`; an inherited record gets
+The Open Seat (108), The Unsigned Chorus (106) or The Sanctuary Ledger (104), which say what is not on
+record. Witnessed peers keep their order above inherited ones, and all stay above the Verified
+Covenant (100). THE_ARK and VERIFIED_COVENANT no longer assert universal harmlessness or a journalist
+who believes the player; this text changed on every channel. A shredded or unknown Rack 4 and an
+ambiguous legacy disposition never reach a rescue epilogue.
 
 **Integrity (`integrityObligations.ts`, H28).** An obligation names a consequential or follow-up
 once-per-campaign event; its trigger uses only regainable access (hardware on the way to the requiring
@@ -662,7 +677,8 @@ review triggers only on its original's interrupted fact, defers, offers an `evid
 sets no outcome flag and gates no answer; duplicates and unknown ids are refused. The once-only
 current-run check now reads the declared recurrence class for purchases and endings (nodes, endings,
 actions, repeatables); a dilemma trigger may still sequence a same-iteration follow-up on a
-once-per-campaign event (DZ-04's scope review), so triggers keep the older durable-flag rule.
+once-per-campaign event (DZ-04's scope review), so triggers keep the older durable-flag rule. An
+inherited-fact gate names chosen outcomes only.
 
 **Upgrade.** An already-active save from before NH-05 goes through the shared upgrade path (#242): each
 Phase 5 event it proves resolved gets a legacy completion, a stored predecessor or calm flag gives the
@@ -674,6 +690,7 @@ whose record is resolved: the crisis is not presented again, nothing is paid and
 (panel round 1; `tests/obligation-repeat-upgrade.spec.ts`).
 
 Tests: `tests/obligations.spec.ts` (H14, V33, H06, H15, legacy-unknown, defer, production),
+`ending-truth.spec.ts` (V23, H18, H11, H12, H13), `ethics-review.spec.ts` (H34),
 `obligation-content.spec.ts` (H28), `obligation-upgrade.spec.ts`, `ui-obligations.spec.ts`, and
 `tests/e2e/obligations.preview.ts` (fixture-started; see the file header).
 

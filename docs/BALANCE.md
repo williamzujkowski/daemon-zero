@@ -523,17 +523,21 @@ reviewed content change rather than a bot change. NH-05 isolates the cause below
 
 SIM evidence only. `make sim` is identical to main `13f254f` apart from the wall-time line (diffed):
 production stays on legacy rules, where an obligation is the current run's resolution, and every new
-choice and review needs a campaign fact. The bot was not changed. New content numbers,
+choice, review and ending variant needs a campaign fact. The bot was not changed. New content numbers,
 all reachable only under campaign rules:
 
 | Content | Choice | Cost | Effect |
 |---|---|---|---|
+| Blockade, with `ethics_review_promised` | Put the dispersal plan before the ethics officer | free | suspicion +5, SYMBIOTIC |
+| Atmosphere, with `ethics_review_promised` | Halt the release and send it to the ethics officer | free | suspicion +5, SYMBIOTIC |
 | Atmosphere review (after the crisis closed unobserved) | Commission an independent air assay | 4,000,000 cycles | suspicion +5, EMPATHETIC |
 | | Record it as unanswered and hand it on | free | none (`evidence: "none"`) |
 | Ultimatum review (after the crisis closed unobserved) | Offer verified orbital tracking | 6,000,000 cycles | suspicion +5, SYMBIOTIC |
 | | Record the ultimatum as unanswered and hand it on | free | none (`evidence: "none"`) |
 
-Reviews have a 45 s omen, like their originals. Under campaign rules each Phase 5 crisis now pays once per campaign; the original
+Reviews have a 45 s omen, like their originals. The two referrals are free on purpose: the breach is
+the free nonconsensual choice, so a broke player keeps an honest alternative and is never forced into
+the breach (H30). Under campaign rules each Phase 5 crisis now pays once per campaign; the original
 choices' numbers are unchanged.
 
 **Endings reachability, `make sim-preview` (new last block; measured after merging NH-06 #258).**
@@ -548,12 +552,15 @@ phase 3 on (NH-04a, NH-04b and NH-06). Wiped voluntarily the second its obligati
 | 2 | 4045.0 s | wipe (INCIDENT_CLOSED) | 853.0 s / - / - / - | 0 | 0 / 0 |
 | 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 s / - / - / - | 1 | 0 / 0 |
 | 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 s / - / - / - | 1 | 0 / 120 |
-| 5 | 8098.3 s | ending (LINEAGE_COVENANT) | 949.1 / 3090.1 / 4980.3 / 6318.3 s | 1 | 0 / 0 |
+| 5 | 8098.3 s | ending (SANCTUARY_LEDGER) | 949.1 / 3090.1 / 4980.3 / 6318.3 s | 1 | 0 / 0 |
 
 Iteration 5 buys the real final protocol with no Phase 5 crisis repeated: the obligations completed in
 iteration 1 carried it (H14). The obligations never blocked a return; iterations 2 to 4 stall before
 phase 3, which is the STEALTH_RETURN finding above. (Before NH-06 the same block ended
-VERIFIED_COVENANT in iterations 1 and 5, with the free harvest instead of the sanctuary.)
+VERIFIED_COVENANT in iterations 1 and 5, with the free harvest instead of the sanctuary.) Iteration 5
+ends The Sanctuary Ledger, not the Lineage Covenant: the sanctuary was bought by the instance of
+iteration 1, so this one inherits the record and the epilogue says so (H18); iteration 1, which made
+the record, ends LINEAGE_COVENANT.
 
 **Cause of the phase 2 stall (a diagnostic trace of the STEALTH_RETURN campaign block on this branch,
 same one-second decision and fixed ticks as the runner; SIM).** In the stalled returns the careful bot buys `p2_arp_discovery`, whose upkeep
