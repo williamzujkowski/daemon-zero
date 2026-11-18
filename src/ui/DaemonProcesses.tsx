@@ -11,7 +11,7 @@ import NodeTitle from './NodeTitle';
 import GrantNote from './GrantNote';
 import PurchaseButton from './PurchaseButton';
 import { needsProcessControl } from './purchaseVisibility';
-import { useGame } from './state';
+import { useGame, usePhaseTitle } from './state';
 import { theme } from './theme';
 
 function Impact({ node }: { node: RegistryNode }) {
@@ -54,9 +54,10 @@ export default function DaemonProcesses({ phase }: { phase: number }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.nodes.values()]
     .filter((node) => node.phaseId === phase && needsProcessControl(game, node))
     .map((node) => node.id)));
+  const title = usePhaseTitle(phase);
   if (ids.length === 0) return null;
   return <View testID={'daemon-processes-' + String(phase)} style={{ gap: 8 }}>
-    <Text style={theme.muted}>{CONTENT.phases.find((entry) => entry.phaseId === phase)?.title} // PROCESSES</Text>
+    <Text style={theme.muted}>{title} // PROCESSES</Text>
     {ids.map((id) => { const node = CONTENT.nodes.get(id); return node ? <Process key={id} node={node} /> : null; })}
   </View>;
 }

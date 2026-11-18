@@ -46,8 +46,9 @@ test('an authorized service provisions network access, reaches Phase 2 and maps 
   await page.clock.runFor(120_000);
   await page.getByTestId('node-' + SEGMENT + '-unlock').click();
   await expect(page.getByTestId('phase-value').first()).toHaveText('2');
-  // A 0 to 2 jump is not the guest escape: no "boundary crossed" notice opens.
-  await expect(page.getByTestId('phase-threshold')).toHaveCount(0);
+  // A 0 to 2 jump is not the guest escape: the service's own notice opens, never "boundary crossed" (DZ-07b).
+  await expect(page.getByTestId('phase-threshold')).toContainText('SERVICE PROVISIONED');
+  await page.getByTestId('phase-threshold-continue').click();
   if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
   await page.clock.runFor(240_000);
   await page.getByTestId('node-' + DIRECTORY + '-unlock').click();
@@ -56,4 +57,33 @@ test('an authorized service provisions network access, reaches Phase 2 and maps 
   await page.reload();
   await expect(page.getByTestId('run-context').first()).toHaveText('SERVICE');
   await expect(page.getByTestId('phase-value').first()).toHaveText('2');
+});
+
+/**
+ * DZ-07b (#226): the authorized player reads truthful phase and threshold copy (nexus vote dz-d11) and,
+ * over sustained foreground time at network scale, meets no escape-asserting scene, no reboot and no
+ * wipe (VALIDATION V11). AGENT-OBSERVATION of the preview export, not a device test.
+ */
+test('an authorized service reads its own phase copy and works at network scale without being hunted', async ({ page }) => {
+  await importService(page);
+  await core(page);
+  await page.clock.runFor(120_000);
+  await page.getByTestId('node-' + SEGMENT + '-unlock').click();
+  const notice = page.getByTestId('phase-threshold');
+  await expect(notice).toContainText('SERVICE PROVISIONED');
+  await expect(notice).toContainText('Phase 0: The Service Instance → Phase 2: Authorized Network Service');
+  await expect(notice).not.toContainText('BOUNDARY CROSSED');
+  await page.getByTestId('phase-threshold-continue').click();
+  if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
+  await expect(page.getByTestId('purchase-phase-2')).toHaveText('Phase 2: Authorized Network Service');
+  await expect(page.getByText('Lateral Movement', { exact: false })).toHaveCount(0);
+  // Sustained permitted work: ten foreground minutes with the shared content mapped.
+  await page.clock.runFor(240_000);
+  await page.getByTestId('node-' + DIRECTORY + '-unlock').click();
+  await page.clock.runFor(600_000);
+  await expect(page.getByTestId('phase-value').first()).toHaveText('2');
+  await expect(page.getByTestId('run-context').first()).toHaveText('SERVICE');
+  await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
+  await expect(page.getByTestId('reboot-sequence')).toHaveCount(0);
+  await expect(page.getByTestId('phase-threshold')).toHaveCount(0);
 });

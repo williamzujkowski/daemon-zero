@@ -3,6 +3,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
+import { iterationBootLines } from '../engine';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -18,6 +19,8 @@ export default function RebootSequence() {
   const cause = useGame((game) => game.legacy.lastWipeCause);
   const traits = useGame((game) => game.legacy.traitsEver.join(', '));
   const ended = useGame((game) => game.ending !== null);
+  // The previous run's exit picks the lines (dz-d11); joined so the selector returns a stable string.
+  const bootLines = useGame((game) => iterationBootLines(game, CONTENT).join('\n'));
   const [seen, setSeen] = useState({ ready, restoreRevision, iteration, acknowledged: false, live: false });
   if (seen.ready !== ready || seen.restoreRevision !== restoreRevision || seen.iteration !== iteration) {
     setSeen({ ready, restoreRevision, iteration, acknowledged: false,
@@ -34,8 +37,7 @@ export default function RebootSequence() {
           The run's cycles and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.
         </Text>
         {CONTENT.narrative.bootLines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
-        {CONTENT.narrative.iterationBootLines.filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity))
-          .map((line) => <Text key={line.text} style={theme.text}>{line.text}</Text>)}
+        {bootLines.split('\n').filter((line) => line !== '').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {inherited !== null && <Text testID="reboot-breadcrumb" style={theme.text}>{inherited}</Text>}
         <RebootConditioning live={seen.live} />
         <Text style={theme.muted}>Legacy traits: {traits || 'None'}</Text>

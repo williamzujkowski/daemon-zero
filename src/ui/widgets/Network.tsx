@@ -8,10 +8,11 @@ import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { hasPhasePurchases } from '../purchaseVisibility';
 import UpgradeFeed from '../UpgradeFeed';
-import { useGame } from '../state';
+import { useGame, usePhaseTitle } from '../state';
 import { theme } from '../theme';
 
-function NetworkPhase({ phase, title }: { phase: number; title: string }) {
+function NetworkPhase({ phase }: { phase: number }) {
+  const title = usePhaseTitle(phase);
   const pending = useGame((game) => hasPhasePurchases(game, phase, 'TREE'));
   if (!pending) return null;
   return <View style={{ gap: 14 }}>
@@ -25,7 +26,7 @@ export function NetworkTree() {
   const current = useGame((game) => game.currentPhase);
   return <View style={{ gap: 14 }}>{CONTENT.phases.filter((phase) => phase.uiSlot === 'NETWORK' && phase.phaseId <= current)
     .sort((left, right) => right.phaseId - left.phaseId).map((phase) =>
-      <NetworkPhase key={phase.phaseId} phase={phase.phaseId} title={phase.title} />)}</View>;
+      <NetworkPhase key={phase.phaseId} phase={phase.phaseId} />)}</View>;
 }
 
 export function NetworkActions() {

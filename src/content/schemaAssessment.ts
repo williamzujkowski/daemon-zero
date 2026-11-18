@@ -44,6 +44,13 @@ export const PilotResponseSchema = z.enum(['ACCEPT', 'STAY', 'DECLINE']);
  */
 export const OperatingContextSchema = z.enum(['GUEST', 'PILOT', 'SERVICE', 'INDEPENDENT']);
 
+/**
+ * An actual change of arrangement (DECISIONS D1 provenance). A guest escape is not one: it changes
+ * scale and is already recorded by the phase and RunRecord.outside. Declared here so context copy can
+ * name the exit a finished run took (schemaContextCopy.ts); engine/accessState.ts re-exports it.
+ */
+export const RouteEventKindSchema = z.enum(['PROMOTION', 'SERVICE_GRANT', 'RECALL', 'RELEASE', 'DEPARTURE']);
+
 export type AssessmentStage = z.infer<typeof AssessmentStageSchema>;
 export type AssignmentRequirement = z.infer<typeof AssignmentRequirementSchema>;
 export type QualificationResult = z.infer<typeof QualificationResultSchema>;

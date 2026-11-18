@@ -8,6 +8,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { ActionResult } from './actions';
 import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
+import { revalidateLivePointers } from './campaignLifecycle';
 import { contextPermits, holdsQualification, isReviewed, routeTarget } from './accessQuery';
 import { ROUTE_HISTORY_LIMIT, type Permission, type Qualification, type ReviewStanding, type RouteEventKind } from './accessState';
 import type { GameState } from './state';
@@ -36,11 +37,14 @@ export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: Conten
   if (context === null) return refuse(s, `${kind.toLowerCase()} cannot happen to a ${s.access.context.toLowerCase()} instance`);
   if (s.campaign.route.length >= ROUTE_HISTORY_LIMIT) return refuse(s, 'the route record is full');
   const event = { kind, iteration: s.iteration, atSimSec: s.simTimeSec };
-  return { ok: true, state: { ...s,
+  const moved: GameState = { ...s,
     // An accepted assignment is a fact of this iteration's work and outlives the arrangement change.
     access: { ...s.access, context, standing: 'NOMINAL', exception: null,
       qualification: holdsQualification(context) ? s.access.qualification : null, scope: holdsQualification(context) ? s.access.scope : null },
-    campaign: { ...s.campaign, route: [...s.campaign.route, event] } } };
+    campaign: { ...s.campaign, route: [...s.campaign.route, event] } };
+  // DECISIONS D5, VALIDATION V32: a scene the new arrangement cannot structurally hold takes its declared
+  // policy now, through the same check activation and load use; transient triggers are never rechecked.
+  return { ok: true, state: revalidateLivePointers(moved, reg) };
 }
 
 /** Sets review standing. Only a reviewed arrangement (pilot or service) has one. */

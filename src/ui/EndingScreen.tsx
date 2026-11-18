@@ -8,7 +8,7 @@ import { CONTENT } from '../content';
 import { startOver } from '../app/newRun';
 import DevelopmentTools from '../app/DevelopmentTools';
 import ConfirmDialog from './ConfirmDialog';
-import { useGame } from './state';
+import { useGame, usePhaseTitle } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
 
@@ -29,7 +29,8 @@ function RunSummary() {
 export function EndingMarker() {
   const id = useGame((game) => game.ending);
   const phase = useGame((game) => game.currentPhase);
-  return <Text style={theme.text}>{CONTENT.endings.find((ending) => ending.id === id)?.title ?? CONTENT.phases.find((entry) => entry.phaseId === phase)?.title}</Text>;
+  const phaseTitle = usePhaseTitle(phase);
+  return <Text style={theme.text}>{CONTENT.endings.find((ending) => ending.id === id)?.title ?? phaseTitle}</Text>;
 }
 
 export default function EndingScreen() {
