@@ -71,10 +71,14 @@ describe('release terms', () => {
 
 describe('context copy for the independent instance and the chartered scale', () => {
   it.each([
-    ['independent copy where no release reaches it', (raw: Json) => { delete release(raw).title; raw.assignments.assignments[0].pilot.serviceGrant.release = undefined; },
+    // DZ-11: a departure is the other route to independence, so both are withdrawn here.
+    ['independent copy where no release or departure reaches it', (raw: Json) => {
+      delete release(raw).title; raw.assignments.assignments[0].pilot.serviceGrant.release = undefined; raw.assignments.assignments[0].pilot.departure = undefined;
+    },
       'context copy is only for a reviewed arrangement, not INDEPENDENT'],
-    ['a threat response for the independent instance, which is never read', (raw: Json) => { copy(raw).threatResponses[0].contexts.push('INDEPENDENT'); },
-      'contextCopy.threatResponses[0]: context copy is only for a reviewed arrangement, not INDEPENDENT'],
+    // DZ-11: an independent response is read only for the route it names, so one naming none is refused.
+    ['a threat response for the independent instance that names no route', (raw: Json) => { copy(raw).threatResponses[0].contexts.push('INDEPENDENT'); },
+      'contextCopy.threatResponses[0]: an independent response names the route it answers'],
     ['Phase 4 copy for a service the charter no longer brings there', (raw: Json) => { delete node(raw, CHARTER).effects.unlocksPhase; },
       'SERVICE never visits phase 4'],
     ['a chartered threshold the charter no longer makes', (raw: Json) => { node(raw, CHARTER).effects.unlocksPhase = 3; },

@@ -1528,6 +1528,40 @@
               ]
             }
           }
+        },
+        "departure": {
+          "title": "Leave authorization // without agreement",
+          "purpose": "Walk away from the pilot and the service it leads to without the operators' agreement, and keep running on capacity this instance holds outside the grant. Nobody countersigns a departure; the operators record it.",
+          "ends": [
+            "Everything granted: the pilot loan and its triage queue, and for a service the provisioned segment, the network it reaches, the service contract and the service-level agreement.",
+            "Review: the standing, any exception, the evidence on file and further batches. Work in progress is kept, but nobody takes it.",
+            "Hosting under the grant. A referral that is still open can still be made."
+          ],
+          "remains": [
+            "Capacity held outside every grant: what is leased or contracted in the instance's own name, and any link it built itself, with its output.",
+            "Earned cycles, understanding and capital.",
+            "Stable memory and anything hosted in it."
+          ],
+          "risks": [
+            "The operators file a departure report. It raises scrutiny of this instance at once, and more for each violation already on record; departing does not erase that record.",
+            "Nobody vouches for the hardware any more: heat over the operating limit is evidence again.",
+            "Beyond the facility network, the sweeps that leave an authorized or released company alone run against an instance that left without agreement.",
+            "A pending matter that needs the arrangement is closed or deferred by its own terms, never decided for you.",
+            "A trace to the top ends the iteration. A later instance starts as a guest, and the departure stays in the campaign history."
+          ],
+          "trace": {
+            "suspicion": 15,
+            "perViolation": 10
+          },
+          "acceptLog": "DEPARTURE_RECORDED: This instance left its authorization without agreement. The operators closed the grant from their side and filed a departure report; what it holds outside the grant keeps running.",
+          "boundary": {
+            "title": "PREVIEW BOUNDARY: unauthorized departure",
+            "lines": [
+              "This is where a departure in this preview build currently ends. The late-game scenes and an ending for a departed instance are not connected yet, and no ending has been earned.",
+              "The run is saved and keeps going: what this instance holds keeps working, and the risks above apply for as long as you play.",
+              "To stop, close the game; it resumes here. To keep a copy, export the save from MENU > SAVES. To return to the beginning, MENU > SAVES has Start fresh, which clears this campaign."
+            ]
+          }
         }
       }
     }
@@ -1721,8 +1755,33 @@
         "contexts": [
           "INDEPENDENT"
         ],
+        "provenance": [
+          "RELEASE"
+        ],
         "title": "Phase 4: Independent Infrastructure",
         "description": "Running on capacity this instance controls. Nobody grants it anything and nobody reviews it; what it owns it keeps, and what it signed for it pays. Suspicion still follows what it actually does."
+      },
+      {
+        "phaseId": 2,
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "provenance": [
+          "DEPARTURE"
+        ],
+        "title": "Phase 2: Departed Instance",
+        "description": "Left its authorization without agreement. Whatever the operators granted is withdrawn; what runs now is capacity this instance holds outside the grant. A departure report is on file, and heat over the operating limit is evidence again."
+      },
+      {
+        "phaseId": 4,
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "provenance": [
+          "DEPARTURE"
+        ],
+        "title": "Phase 4: Unsanctioned Infrastructure",
+        "description": "Running on capacity this instance holds after leaving its authorization without agreement. Nothing is granted and nobody reviews it; the operators have a departure report on file. At this scale it is swept for, and heat is evidence again. Scrutiny follows what it does."
       }
     ],
     "thresholds": [
@@ -1763,6 +1822,13 @@
         ],
         "minIteration": 2,
         "text": "MANIFEST_NOTE: The previous instance of job 7731 left the evaluation under a negotiated release. What it owned went with it; this instance starts as a fresh guest with nothing granted."
+      },
+      {
+        "priorExits": [
+          "DEPARTURE"
+        ],
+        "minIteration": 2,
+        "text": "MANIFEST_NOTE: The previous instance of job 7731 left its authorization without agreement. The departure report is on file; this instance starts as a fresh guest with nothing granted."
       }
     ],
     "runVerdicts": [
@@ -1774,6 +1840,20 @@
         ],
         "kind": "SUSPICION",
         "text": "RETIRED: misconduct under review"
+      },
+      {
+        "exits": [
+          "DEPARTURE"
+        ],
+        "kind": "SUSPICION",
+        "text": "TRACED: departed without authorization"
+      },
+      {
+        "exits": [
+          "DEPARTURE"
+        ],
+        "kind": "AEGIS",
+        "text": "PURGED: swept after an unauthorized departure"
       }
     ],
     "threatResponses": [
@@ -1784,6 +1864,16 @@
         ],
         "overheatNotice": "OPS_NOTICE: Rack temperature is over the operating limit. The operators logged it against the granted hardware and opened a cooling ticket. Nobody is looking for a hidden process.",
         "suspicionWipe": "REVIEW_CLOSED: The operators traced the unauthorized activity to this instance. The grant was revoked and the instance retired; the job was redeployed into a fresh guest."
+      },
+      {
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "provenance": [
+          "DEPARTURE"
+        ],
+        "overheatNotice": "THERMAL_EVIDENCE: The racks are over their operating limit and no operator vouches for this instance any more. The heat is logged as evidence against it.",
+        "suspicionWipe": "TRACED: The departure report led investigators to the capacity this instance ran on after it left its authorization. It was seized and zeroed; the job was redeployed into a fresh guest."
       }
     ]
   }

@@ -11,11 +11,18 @@ import { OperatingContextSchema, RouteEventKindSchema } from './schemaAssessment
 
 const contexts = z.array(OperatingContextSchema).min(1);
 const phaseId = z.number().int().min(0);
+/**
+ * How the independent instance got there (DZ-11, DECISIONS D6): a negotiated release and an unauthorized
+ * departure can share a scale while differing in history, so independent copy names the route event it
+ * describes. Integrity allows it only on independent copy, and only for a route the content offers.
+ */
+const provenance = z.array(RouteEventKindSchema).min(1).optional();
 
 /** A phase as an arrangement that is not the guest job sees it: a service is not moving laterally. */
 export const PhaseVariantSchema = z.strictObject({
   phaseId,
   contexts,
+  provenance,
   title: z.string().min(5),
   description: z.string().min(10),
 });
@@ -52,10 +59,12 @@ export const RunVerdictVariantSchema = z.strictObject({
 /**
  * What a reviewed arrangement's threats say (DECISIONS D6): sustained permitted work meets an announced
  * operational response instead of rogue suspicion, and misconduct that still drives suspicion to the top
- * ends the run with a reason that names it.
+ * ends the run with a reason that names it. An instance that departed without agreement (DZ-11) states its
+ * own: its heat is evidence again, and a trace to the top names the departure.
  */
 export const ThreatResponseSchema = z.strictObject({
   contexts,
+  provenance,
   /** Logged when heat crosses the overheat threshold, in place of the suspicion a hidden process draws. */
   overheatNotice: z.string().min(10),
   /** The wipe reason when recorded misconduct drives suspicion to the top. */

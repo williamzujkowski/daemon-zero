@@ -12,6 +12,7 @@ import { checkRequirements } from './integrityRequirements';
 import { REQUIREMENT_SCOPES } from './requirementScopes';
 import type { Requirements } from './schema';
 import type { PilotTerms } from './schemaPilot';
+import { independentCapacity } from './schemaCapability';
 
 const RESPONSES: readonly PilotResponse[] = ['ACCEPT', 'STAY', 'DECLINE'];
 
@@ -118,6 +119,23 @@ function releaseProblems(owner: string, terms: PilotTerms, reg: ContentRegistry)
   return problems;
 }
 
+/**
+ * A deliberate departure (DZ-11) leaves the grant behind, so there must be a grant to leave (the pilot's service
+ * loop) and capacity outside every grant an authorized arrangement can come to own; otherwise the departure could
+ * never be offered and would be dead content.
+ */
+function departureProblems(owner: string, terms: PilotTerms, reg: ContentRegistry): string[] {
+  if (!terms.departure) return [];
+  const problems = terms.service ? [] : [`${owner} departure: needs the pilot's service loop, a grant to leave`];
+  const continuable = [...reg.nodes.values()].some((node) => {
+    const contexts = node.requirements?.accessContexts;
+    const open = contexts === undefined || contexts.includes('PILOT') || contexts.includes('SERVICE');
+    return independentCapacity(node) && node.acquisition !== 'UNAUTHORIZED' && open;
+  });
+  if (!continuable) problems.push(`${owner} departure: no capacity outside every grant is offered to a pilot or service, so it could never continue`);
+  return problems;
+}
+
 function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
   const terms = reg.assignments.get(assignmentId)?.pilot;
   if (!terms) return [];
@@ -129,7 +147,7 @@ function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
     if (reg.nodes.get(id)?.suspendable !== true) problems.push(`${owner}: incompatible output "${id}" must be a known node that can be stopped`);
   }
   if (terms.terminalAlternative) problems.push(...alternativeProblems(owner, reg, terms.terminalAlternative.node));
-  problems.push(...serviceGrantProblems(owner, terms, reg), ...releaseProblems(owner, terms, reg));
+  problems.push(...serviceGrantProblems(owner, terms, reg), ...releaseProblems(owner, terms, reg), ...departureProblems(owner, terms, reg));
   for (const stage of ['original', 'requalification'] as const) {
     for (const kind of ['scope', 'offer'] as const) {
       const count = sceneOf(reg, { id: assignmentId, stage }, kind).length;

@@ -17,6 +17,7 @@ import type * as Assignment from '../src/engine/assignment';
 import type * as BatchReview from '../src/engine/batchReview';
 import type * as Campaign from '../src/engine/campaign';
 import type * as Release from '../src/engine/release';
+import type * as Departure from '../src/engine/departure';
 import type * as ChannelContact from '../src/engine/channelContact';
 import type * as ServiceGrant from '../src/engine/serviceGrant';
 import type * as ShardActions from '../src/engine/shardActions';
@@ -70,6 +71,10 @@ vi.mock('../src/engine/release', async (load) => {
   const real = await load<typeof Release>();
   return { ...real, negotiateRelease: wrap('negotiateRelease', real.negotiateRelease) };
 });
+vi.mock('../src/engine/departure', async (load) => {
+  const real = await load<typeof Departure>();
+  return { ...real, departAuthorization: wrap('departAuthorization', real.departAuthorization) };
+});
 vi.mock('../src/engine/campaign', async (load) => {
   const real = await load<typeof Campaign>();
   return { ...real, activateCampaignRules: wrap('activateCampaignRules', real.activateCampaignRules) };
@@ -77,6 +82,7 @@ vi.mock('../src/engine/campaign', async (load) => {
 
 const { CONTENT: PREVIEW } = await import('../src/content/preview');
 const { understandsSurveillance } = await import('../src/engine/knowledge');
+const { departureView } = await import('../src/engine/departure');
 const { SIM_POLICIES } = await import('../src/engine/sim/policies');
 const { actuatorLimit } = await import('../src/engine/conditioning');
 const { financeEnabled } = await import('../src/engine/rates');
@@ -119,6 +125,9 @@ const CONTROLS: Readonly<Record<string, (s: GameState, reg: ContentRegistry, arg
   acceptServiceGrant: () => null, resolveChannelContact: () => null, activateCampaignRules: () => null,
   // The release terms render on the job surface whenever releaseView exists, and the engine accepts only an offered release (DZ-10).
   negotiateRelease: () => null,
+  // The departure panel renders whenever departureView exists (DZ-11); its control is one fold away, and the engine
+  // accepts only an eligible departure, which is exactly when the view says 'offered'.
+  departAuthorization: (s, reg) => (departureView(s, reg)?.status === 'offered' ? null : 'the departure panel does not offer it now'),
   voluntaryWipe: (s) => WIPE_HOST !== undefined && s.unlockedWidgets.includes(WIPE_HOST) ? null : 'the only wipe control is in the dead drop, not unlocked',
   executeShardCommand: mindTools, forkShard: mindTools, resolveWildEncounter: mindTools,
 };
@@ -146,7 +155,7 @@ function simImports(): string[] {
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
-  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit']);
+  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView']);
 
 /**
  * A known finding, not a pass: the bot (bot.ts, which AGENTS.md forbids tuning, and so every policy that plays
@@ -180,6 +189,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   STEALTH: 12_000, GREEDY: 12_000, STEALTH_RETURN: 9000, EVALUATING_RETURN: 18_000,
   // DZ-10: past the negotiated release (about 2,400 s fresh, 4,300 s in a requalified iteration).
   LAWFUL_RELEASE: 7200, LAWFUL_RETURNING: 7200,
+  // DZ-11: past the departure (about 2,400 s, where the release would be offered) and the sweep that follows it.
+  DEPARTURE_CHARTERED: 7200,
 };
 
 function violations(policyId: string, maxSimSec: number): string[] {

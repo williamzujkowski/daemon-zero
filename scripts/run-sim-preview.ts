@@ -23,6 +23,7 @@ import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/eng
 import { pilotServiceView } from '../src/engine/pilotService';
 import { CONTACT_POLICIES } from '../src/engine/sim/contactPolicy';
 import { LAWFUL_POLICIES } from '../src/engine/sim/lawfulPolicy';
+import { DEPARTURE_CHARTERED_POLICY } from '../src/engine/sim/departurePolicy';
 import { cycleContributions, freeMemory } from '../src/engine/query';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
@@ -143,6 +144,18 @@ for (const policy of LAWFUL_POLICIES) {
     ` | phase 4 ${at(report.phaseReachedAtSec[4])} | release ${at(event('RELEASE'))} | ${s.access.context} | wipes ${String(report.wipes)}`);
   console.log(`  ${''.padEnd(20)} at the budget: owned ${sum('OWNED').toFixed(0)} cycles/s, granted ${sum('GRANTED').toFixed(0)} | capital ${s.capital.toFixed(0)}` +
     ` | scenes resolved this iteration ${String(s.resolvedDilemmas.length)} | accounts ${JSON.stringify(s.levels)}`);
+}
+
+// DZ-11 (V22 departure, DZ-11.8): the same lawful route to a chartered service, which leaves without agreement where
+// the release is offered. Report only: when it left, the sweep that followed, and how the iteration ended if it did.
+console.log('\n-- preview, deliberate departure: the lawful route to the charter, then leaving without agreement --');
+{
+  const report = runPolicySim(PREVIEW, DEPARTURE_CHARTERED_POLICY, { maxSimSec: LAWFUL_BUDGET_SEC });
+  const s = report.finalState;
+  const left = s.campaign.route.find((entry) => entry.kind === 'DEPARTURE');
+  const ended = s.legacy.runs.find((run) => run.iteration === left?.iteration);
+  console.log(`  ${DEPARTURE_CHARTERED_POLICY.id.padEnd(20)} phase 4 ${at(report.phaseReachedAtSec[4])} | departure ${at(left?.atSimSec)} | max AEGIS lock ${report.maxAegisLock.toFixed(1)}` +
+    ` | first iteration ${ended ? `ended ${ended.kind} (exit ${ended.exit}) after ${ended.durationSec.toFixed(1)} s, ${(ended.durationSec - (left?.atSimSec ?? 0)).toFixed(1)} s after leaving` : 'still running'} | iteration ${String(s.iteration)} ${s.access.context} at ${s.simTimeSec.toFixed(1)} s | wipes ${String(report.wipes)}`);
 }
 
 console.log(`\nsimulated in ${((performance.now() - started) / 1000).toFixed(1)} s of wall time`);

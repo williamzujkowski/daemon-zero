@@ -88,7 +88,7 @@ describe('access and permitted output (07.5, D6)', () => {
 describe('context copy is only for what a reviewed arrangement visits (dz-d11)', () => {
   const phase = (overrides: Json): Json => ({ phaseId: 2, contexts: ['SERVICE'], title: 'Phase 2: Test', description: 'A test description.', ...overrides });
   it.each([
-    ['a guest variant', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['GUEST'] })); }, 'context copy is only for a reviewed arrangement or the independent instance a release reaches, not GUEST'],
+    ['a guest variant', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['GUEST'] })); }, 'context copy is only for a reviewed arrangement or the independent instance a route reaches, not GUEST'],
     ['a phase the service never visits', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1 })); }, 'SERVICE never visits phase 1'],
     ['a phase the pilot never visits', (raw: Json) => { copy(raw).phases.push(phase({ contexts: ['PILOT'] })); }, 'PILOT never visits phase 2'],
     ['a second variant', (raw: Json) => { copy(raw).phases.push(phase({})); }, 'a second variant for phase 2 under SERVICE'],
@@ -102,7 +102,7 @@ describe('context copy is only for what a reviewed arrangement visits (dz-d11)',
     ['a variant for a recall ruling', (raw: Json) => { copy(raw).runVerdicts.push({ exits: ['PROMOTION'], kind: 'RECALL', text: 'RETIRED' }); }, 'a RECALL run reads its review\'s ruling'],
     ['an offered arrangement with no threat response', (raw: Json) => { copy(raw).threatResponses[0].contexts = ['PILOT']; }, 'SERVICE is offered, so it needs exactly one stated threat response, found 0'],
     ['two threat responses for one arrangement', (raw: Json) => { copy(raw).threatResponses.push({ ...copy(raw).threatResponses[0], contexts: ['SERVICE'] }); }, 'SERVICE is offered, so it needs exactly one stated threat response, found 2'],
-    ['a threat response for the guest', (raw: Json) => { copy(raw).threatResponses[0].contexts.push('GUEST'); }, 'context copy is only for a reviewed arrangement, not GUEST'],
+    ['a threat response for the guest', (raw: Json) => { copy(raw).threatResponses[0].contexts.push('GUEST'); }, 'context copy is only for a reviewed arrangement or the independent instance a route reaches, not GUEST'],
   ])('refuses %s', (_label, edit, message) => {
     expect(problems(edit)).toContain(message);
   });

@@ -3,14 +3,15 @@
  * answered one, so an admitted save never becomes unloadable through a successful public action. A
  * forged pending channel is refused whole through deserialize and importSave; a contact that opened
  * before a recall or restriction still loads, can still be referred, and reloads byte for byte. The
- * generic guard: every accepted DZ-08 state, every #274 batch review finding state and every #285
- * provisional-rate state, through every public action that succeeds, reloads.
+ * generic guard: every accepted DZ-08 state, every #274 batch review finding state, every #285
+ * provisional-rate state, every DZ-10 state and every DZ-11 departure state, through every public action
+ * that succeeds (departure included), reloads.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  acceptServiceGrant, advance, batchToken, buyRepeatable, contactToken, deserialize, exportSave, importSave, negotiateRelease, presentationToken,
+  acceptServiceGrant, advance, batchToken, buyRepeatable, contactToken, departAuthorization, departureToken, deserialize, exportSave, importSave, negotiateRelease, presentationToken,
   releaseToken, resolveChannelContact, resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
@@ -18,6 +19,7 @@ import { answer as answerScene, offered, preview, roundTrip } from './assignment
 import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
 import { afterFinding, findingPresented, provisional } from './finding-helpers';
 import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
+import { depart, recallAnnouncedWithUplink } from './departure-helpers';
 import { must } from './helpers';
 import { OUTAGE, until } from './review-helpers';
 
@@ -92,6 +94,7 @@ const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['disclose now', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'disclose_now', preview, presentationToken(s) ?? '')],
   ['let the finding stand', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'let_stand', preview, presentationToken(s) ?? '')],
   ['negotiate release', (s) => negotiateRelease(s, preview, releaseToken(s))],
+  ['leave authorization', (s) => departAuthorization(s, preview, departureToken(s))],
   ['sign or lease the next lawful node', (s) => nextLawful(s)],
   ['lease colocation racks', (s) => buyRepeatable(s, 'rep_p4_colo_racks', preview)],
   ['wipe', (s) => voluntaryWipe(s, preview)],
@@ -104,6 +107,8 @@ const lawfulContract = signed(pending);
 const lawfulRack = leased(lawfulContract);
 const lawfulCompany = chartered(lawfulRack);
 const lawfulFreed = released(lawfulCompany);
+// DZ-11 states.
+const recallAnnounced = recallAnnouncedWithUplink();
 
 describe('every accepted DZ-08, #274, #285 and DZ-10 state stays loadable through every public action (generic guard)', () => {
   const states: [string, () => GameState][] = [
@@ -134,6 +139,14 @@ describe('every accepted DZ-08, #274, #285 and DZ-10 state stays loadable throug
     ['DZ-10: released with money for accounts', () => ({ ...lawfulFreed, capital: lawfulFreed.capital + 5_000_000 })],
     ['DZ-10 FIXTURE: chartered and restricted', () => must(setReviewStanding(lawfulCompany, 'RESTRICTED', preview))],
     ['#231 FIXTURE: released from a warned pilot', () => must(recordRouteEvent(afterFinding('let_stand'), 'RELEASE', preview))],
+    ['DZ-11: departed on the leased rack, contact open', () => must(depart(lawfulRack))],
+    ['DZ-11: departed with a hosted mind', () => must(depart(must(answer(lawfulRack, 'HOST'))))],
+    ['DZ-11: departed a chartered company', () => must(depart(lawfulCompany))],
+    ['DZ-11 FIXTURE: leased rack under WARNED', () => must(setReviewStanding(lawfulRack, 'WARNED', preview))],
+    ['DZ-11 FIXTURE: leased rack under RESTRICTED', () => must(setReviewStanding(lawfulRack, 'RESTRICTED', preview))],
+    ['DZ-11 FIXTURE: leased rack under RECALL_PENDING', () => must(setReviewStanding(lawfulRack, 'RECALL_PENDING', preview))],
+    ['DZ-11: pilot with its own card, recall review announced (FIXTURE resources)', () => recallAnnounced],
+    ['DZ-11: that pilot departed', () => must(depart(recallAnnounced))],
     // Hand-edited saves: if the loader ever admits one, what it admits must stay loadable too.
     ['forged: pending on a pilot', () => pendingOn(delivered())],
     ['forged: pending on a service without the directory', () => pendingOn(lawfulService())],

@@ -24,10 +24,10 @@ import type { SimPolicy } from './policy';
  * maximum, which is the ledger's middle button (40%), so a player can press exactly this (panel round 1 on #292).
  */
 const REVENUE_FRACTION_OF_MAX = 0.5;
-const taken = (result: ActionResult): GameState | null => (result.ok ? result.state : null);
+export const taken = (result: ActionResult): GameState | null => (result.ok ? result.state : null);
 
 /** The share of the loan the service keeps on its batches, as the contact policies hold it. */
-const SERVICE_SHARE = 0.8;
+export const SERVICE_SHARE = 0.8;
 
 /**
  * Granted to, or signed for by, this arrangement, or what an authorized channel requires: the only
@@ -40,7 +40,7 @@ function lawfulFor(s: GameState, node: RegistryNode, reg: ContentRegistry): bool
 }
 
 /** Buys the cheapest lawful acquisition it can afford now. */
-function acquire(s: GameState, reg: ContentRegistry): GameState | null {
+export function acquire(s: GameState, reg: ContentRegistry): GameState | null {
   const open = [...reg.nodes.values()].filter((node) => lawfulFor(s, node, reg) && isNodeAvailable(s, node, reg) && canAfford(s, nodeCost(s, node, reg)));
   open.sort((a, b) => nodeCost(s, a, reg).capital - nodeCost(s, b, reg).capital);
   for (const node of open) {
@@ -51,7 +51,7 @@ function acquire(s: GameState, reg: ContentRegistry): GameState | null {
 }
 
 /** Holds the contact until it can host (when the policy hosts), else refers; a referral is always free. */
-function answerContact(s: GameState, reg: ContentRegistry, hosts: boolean): GameState | null {
+export function answerContact(s: GameState, reg: ContentRegistry, hosts: boolean): GameState | null {
   const pending = channelContactView(s, reg)?.pending;
   if (!pending) return null;
   if (pending.hostEligible && hosts) return taken(resolveChannelContact(s, 'HOST', reg, contactToken(s)));
@@ -60,7 +60,7 @@ function answerContact(s: GameState, reg: ContentRegistry, hosts: boolean): Game
 }
 
 /** One level of a shared account that keeps the capital rate at or above zero, cheapest first. */
-function expand(s: GameState, reg: ContentRegistry): GameState | null {
+export function expand(s: GameState, reg: ContentRegistry): GameState | null {
   if (!financeEnabled(s, reg)) return null;
   // The engine holds a press inside a retraining limit; aim at what it will hold, so the policy does not press forever.
   const share = Math.min(REVENUE_FRACTION_OF_MAX * reg.balance.maxProfitAllocation, actuatorLimit(s, 'computeProfitAllocationRatio', reg));

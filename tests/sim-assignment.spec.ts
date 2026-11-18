@@ -23,8 +23,10 @@ const gated = new Set(PREVIEW.dilemmas.filter((item) => item.trigger.assignment 
 const dropped = new Set([...gated, ...PREVIEW.dilemmas.filter((item) => gated.has(item.followUp?.event ?? '')).map((item) => item.id)]);
 const idOf = (item: unknown): string => String((item as { id?: unknown }).id);
 const eventOf = (item: unknown): string => String((item as { event?: unknown }).event);
-// Without an assignment nothing offers a release (DZ-10), so the independent instance's copy goes too.
-const copy = { ...PREVIEW_OVERLAY.contextCopy, phases: PREVIEW_OVERLAY.contextCopy.phases.filter((item) => !JSON.stringify(item).includes('"INDEPENDENT"')) };
+// Without an assignment nothing offers a release (DZ-10) or a departure (DZ-11), so the independent instance's copy goes too.
+const independent = (item: unknown): boolean => JSON.stringify(item).includes('"INDEPENDENT"');
+const copy = { ...PREVIEW_OVERLAY.contextCopy, phases: PREVIEW_OVERLAY.contextCopy.phases.filter((item) => !independent(item)),
+  threatResponses: PREVIEW_OVERLAY.contextCopy.threatResponses.filter((item) => !independent(item)) };
 const WITHOUT: ContentRegistry = buildRegistry({
   ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [], contextCopy: copy,
     dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !dropped.has(idOf(item))),

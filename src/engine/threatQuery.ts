@@ -29,7 +29,7 @@ function lawfulAcquisition(node: RegistryNode): boolean {
  * node (signed for) opens, or null when nothing lawful opened any scale. Standing and recall do not matter (a
  * restricted or recalled instance is still the operators' and still at the scale they gave it). Only a
  * reviewed instance or one lawfully released has such a scale; the guest job, and an instance that left
- * without agreement, has none, so it answers exactly as before (DZ-11 owns departure).
+ * without agreement (DZ-11, departure.ts), has none, so it is swept at its scale like any covert actor.
  */
 export function provisionedScale(s: Threatened, reg: ContentRegistry): number | null {
   if (!isReviewed(s.access.context) && !lawfullyReleased(s)) return null;

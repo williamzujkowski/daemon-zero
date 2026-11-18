@@ -79,7 +79,8 @@ export interface ReleasePreview {
   after: ReleaseLedger;
 }
 
-function ledger(s: GameState, reg: ContentRegistry): ReleaseLedger {
+/** Recurring output and its granted/owned split now: the ledger both route previews compare. */
+export function outputLedger(s: GameState, reg: ContentRegistry): ReleaseLedger {
   const rates = computeRates(s, reg);
   const split = cycleContributions(s, reg);
   const sum = (basis: 'GRANTED' | 'OWNED'): number => split.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
@@ -88,7 +89,7 @@ function ledger(s: GameState, reg: ContentRegistry): ReleaseLedger {
 }
 
 /** Owned nodes with any recurring output that runs now (active and permitted, by the one rule). */
-function producing(s: GameState, reg: ContentRegistry): string[] {
+export function producingNodes(s: GameState, reg: ContentRegistry): string[] {
   return s.unlockedNodes.filter((id) => {
     const node = reg.nodes.get(id);
     if (!node || nodeOutputScale(s, node, reg) === null) return false;
@@ -105,13 +106,13 @@ export function releasePreview(s: GameState, reg: ContentRegistry): ReleasePrevi
   if (s.access.context !== 'SERVICE') return null;
   const moved = recordRouteEvent(s, 'RELEASE', reg);
   if (!moved.ok) return null;
-  const after = new Set(producing(moved.state, reg));
-  const before = producing(s, reg);
+  const after = new Set(producingNodes(moved.state, reg));
+  const before = producingNodes(s, reg);
   return {
     stops: before.filter((id) => !after.has(id)),
     keeps: before.filter((id) => after.has(id)),
-    before: ledger(s, reg),
-    after: ledger(moved.state, reg),
+    before: outputLedger(s, reg),
+    after: outputLedger(moved.state, reg),
   };
 }
 
