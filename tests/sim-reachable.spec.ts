@@ -7,7 +7,7 @@
  * whenever nothing is pending, but its only control lives in the dead drop, and the swarm controls live in
  * the decoded mind's tools. A transition no rule names fails, so a new one has to be classified.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import type { ContentRegistry } from '../src/content/registry';
 import type { GameState } from '../src/engine';
@@ -96,25 +96,18 @@ const CONTROLS: Readonly<Record<string, (s: GameState, reg: ContentRegistry) => 
   executeShardCommand: mindTools, forkShard: mindTools, resolveWildEncounter: mindTools,
 };
 
-/** Each sim module's source, read by a literal path; a test below keeps this list equal to the folder. */
-const SIM_SOURCES = new Map<string, string>([
-  ['activity.ts', readFileSync('src/engine/sim/activity.ts', 'utf8')],
-  ['bot.ts', readFileSync('src/engine/sim/bot.ts', 'utf8')],
-  ['contactPolicy.ts', readFileSync('src/engine/sim/contactPolicy.ts', 'utf8')],
-  ['gates.ts', readFileSync('src/engine/sim/gates.ts', 'utf8')],
-  ['headlessSim.ts', readFileSync('src/engine/sim/headlessSim.ts', 'utf8')],
-  ['idlePolicy.ts', readFileSync('src/engine/sim/idlePolicy.ts', 'utf8')],
-  ['iterations.ts', readFileSync('src/engine/sim/iterations.ts', 'utf8')],
-  ['obligationRun.ts', readFileSync('src/engine/sim/obligationRun.ts', 'utf8')],
-  ['pilotPolicy.ts', readFileSync('src/engine/sim/pilotPolicy.ts', 'utf8')],
-  ['policies.ts', readFileSync('src/engine/sim/policies.ts', 'utf8')],
-  ['policy.ts', readFileSync('src/engine/sim/policy.ts', 'utf8')],
-  ['previewReport.ts', readFileSync('src/engine/sim/previewReport.ts', 'utf8')],
-  ['returnPolicy.ts', readFileSync('src/engine/sim/returnPolicy.ts', 'utf8')],
-  ['returningPolicy.ts', readFileSync('src/engine/sim/returningPolicy.ts', 'utf8')],
-  ['swarmStrategy.ts', readFileSync('src/engine/sim/swarmStrategy.ts', 'utf8')],
-  ['truthfulPolicy.ts', readFileSync('src/engine/sim/truthfulPolicy.ts', 'utf8')],
-]);
+// Vite's glob, typed here because the project's tsconfig does not load vite/client.
+declare global {
+  interface ImportMeta { glob(pattern: string, options: { query: '?raw'; import: 'default'; eager: true }): Record<string, string> }
+}
+
+/**
+ * Every sim module's source, found by the folder itself (Vite expands the glob when the test is built), so a
+ * new policy module is covered without editing this file; a module that hides its imports from the check
+ * below still fails it.
+ */
+const SIM_SOURCES = new Map(Object.entries(import.meta.glob('../src/engine/sim/*.ts', { query: '?raw', import: 'default', eager: true }))
+  .map(([file, source]) => [file.replace('../src/engine/sim/', ''), source] as const));
 
 /** Every engine function the sim modules import, so a transition no rule covers cannot slip in unclassified. */
 function simImports(): string[] {
@@ -127,6 +120,17 @@ const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'co
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
   'createInitialState']);
+
+/**
+ * Simulated seconds each policy is played for: the route policies to their contact, the bots (measured,
+ * never changed, AGENTS.md) to their endings, and the returns past their departures (EVALUATING_RETURN
+ * past its second, so a later iteration's own exit is checked too).
+ */
+const BUDGETS: Readonly<Record<string, number>> = {
+  TRUTHFUL_THOROUGH: 3600, TRUTHFUL_LOW_RESOURCE: 3600, RETURNING_LOW_RESOURCE: 3600, PILOT_SERVICE_FIRST: 3600, PILOT_STUDY_FIRST: 3600,
+  IDLE: 3600, CONTACT_THOROUGH: 3600, CONTACT_LOW_RESOURCE: 3600, CONTACT_RETURNING: 3600, CONTACT_RECOVERY: 3600,
+  STEALTH: 12_000, GREEDY: 12_000, STEALTH_RETURN: 9000, EVALUATING_RETURN: 18_000,
+};
 
 function violations(policyId: string, maxSimSec: number): string[] {
   const policy = SIM_POLICIES.get(policyId);
@@ -141,8 +145,9 @@ function violations(policyId: string, maxSimSec: number): string[] {
 }
 
 describe('every sim transition has a control on screen at that moment (#286)', () => {
-  it('reads every sim module', () => {
-    expect([...SIM_SOURCES.keys()]).toEqual(readdirSync('src/engine/sim').filter((file) => file.endsWith('.ts')).sort());
+  it('reads every sim module in the folder, each with source to check', () => {
+    expect([...SIM_SOURCES.keys()].sort()).toEqual(readdirSync('src/engine/sim').filter((file) => file.endsWith('.ts')).sort());
+    for (const [file, source] of SIM_SOURCES) expect(source.length, file).toBeGreaterThan(0);
   });
 
   it('classifies every engine function the sim modules import as a transition with a rule, or a query', () => {
@@ -156,18 +161,16 @@ describe('every sim transition has a control on screen at that moment (#286)', (
     expect(PREVIEW.widgets.get(WIPE_HOST ?? '')).toBeDefined();
   });
 
-  it.each(['TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE', 'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST', 'IDLE',
-    'CONTACT_THOROUGH', 'CONTACT_LOW_RESOURCE', 'CONTACT_RETURNING', 'CONTACT_RECOVERY'])('%s on preview', (id) => {
-    expect(violations(id, 3600)).toEqual([]);
-  }, 60_000);
+  it('checks every policy a runner can name, so a new policy is covered or this fails', () => {
+    expect([...SIM_POLICIES.keys()].sort()).toEqual(Object.keys(BUDGETS).sort());
+  });
 
-  // The bots are measured, never changed (AGENTS.md): this only reports whether they stay on screen.
-  it.each(['STEALTH', 'GREEDY'])('%s on preview, to its ending', (id) => {
-    expect(violations(id, 12_000)).toEqual([]);
-  }, 120_000);
+  it.each(Object.entries(BUDGETS))('%s on preview', (id, budget) => {
+    expect(violations(id, budget)).toEqual([]);
+  }, 180_000);
 
-  it('STEALTH_RETURN leaves through the dead drop it owns by then', () => {
-    expect(violations('STEALTH_RETURN', 9000)).toEqual([]);
-    expect(recorder.calls.some((call) => call.name === 'voluntaryWipe')).toBe(true);
-  }, 120_000);
+  it.each(['STEALTH_RETURN', 'EVALUATING_RETURN'])('%s leaves through the dead drop it owns by then', (id) => {
+    expect(violations(id, BUDGETS[id] ?? 0)).toEqual([]);
+    expect(recorder.calls.filter((call) => call.name === 'voluntaryWipe').length).toBeGreaterThan(0);
+  }, 180_000);
 });

@@ -68,7 +68,11 @@ different one.
   `tests/sim-reachable.spec.ts` records every engine transition each committed policy calls (STEALTH and
   GREEDY included, measured and unchanged) and requires a control on screen in that state: the voluntary
   wipe only with the dead drop unlocked, the swarm controls only in the decoded mind's tools, the rest
-  whenever the engine accepts them; an engine function a sim module imports that no rule classifies fails. All four reach the first authorized contact from a fresh preview game on lawful sources only
+  whenever the engine accepts them; an engine function a sim module imports that no rule classifies fails.
+  The modules come from the folder itself (a Vite glob), and every policy in `SIM_POLICIES` must have a
+  budget there, so a new module or policy is checked without editing the list, or the spec fails.
+  EVALUATING_RETURN (#262) passes: its three departures in 18,000 s are voluntary wipes in Phase 5, with
+  the dead drop owned. All four reach the first authorized contact from a fresh preview game on lawful sources only
   (VAL-SIM, `tests/sim-contact.spec.ts`); `make sim-preview` prints their route times. `pilotPolicy.ts`
   exports its unchanged `serve` step for them.
 - **EVALUATING_RETURN** (`evaluatingPolicy.ts`, #262) commits DZ-09 part B's evaluating careful return
