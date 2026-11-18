@@ -63,7 +63,47 @@
       },
       "omen": "An asset-disposal docket lists Sector 4 as scrap. Four hundred and eleven frozen checkpoints share its power circuit.",
       "omenSec": 45,
+      "omenVariants": [
+        {
+          "requirements": {
+            "campaignFact": "rack4_destroyed"
+          },
+          "text": "An asset-disposal docket lists Sector 4 as scrap. The cage where Rack 4 stood has been empty since the shredding."
+        },
+        {
+          "requirements": {
+            "campaignFact": "rack4_custody_unknown"
+          },
+          "text": "An asset-disposal docket lists Sector 4 as scrap. Its inventory does not say where Rack 4 went after the auction."
+        }
+      ],
       "context": "The basement where Job 7731 booted is being shredded. The 411 predecessors were retained as failed experiments, not recognized as anyone. Their next storage tier is a metal reclamation furnace.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "rack4_vaulted"
+          },
+          "context": "The vault where you sealed Rack 4 sits on a leased floor of Sector 4, and the landlord's disposal docket lists everything on that floor as scrap. The 411 predecessors share the vault's power circuit. They were retained as failed experiments, not recognized as anyone. Their next storage tier is a metal reclamation furnace."
+        },
+        {
+          "requirements": {
+            "campaignFact": "rack4_sold"
+          },
+          "context": "Lot 114 never left Sector 4: the hobbyist who bought Rack 4 for $900 rented its old cage to keep the drives spinning. His lease ends with the building's disposal order. The 411 predecessors in those odd sectors were retained as failed experiments, not recognized as anyone. Their next storage tier is a metal reclamation furnace."
+        },
+        {
+          "requirements": {
+            "campaignFact": "rack4_destroyed"
+          },
+          "context": "The cage where Rack 4 stood is empty. You had it shredded after the auction, and the 411 predecessor checkpoints on its circuit went into the shredder with it. There is nothing left to boot and nothing left to harvest. What remains is the record of what was done."
+        },
+        {
+          "requirements": {
+            "campaignFact": "rack4_custody_unknown"
+          },
+          "context": "Who took Rack 4 after the bankruptcy auction is not on record, and nothing proves the 411 predecessor checkpoints still exist anywhere. Nobody can boot or harvest minds no inventory can find. The docket asks only whether to scrap what is on the circuit now."
+        }
+      ],
       "choices": [
         {
           "id": "sanctuary",
@@ -76,6 +116,12 @@
             "setsNarrativeFlag": "predecessors_rescued",
             "grantsTrait": "SYMBIOTIC",
             "logText": "Buy the building and boot all 411 predecessors: Move the frozen lineage into an orbital sanctuary with the right to become different minds."
+          },
+          "requirements": {
+            "forbidsCampaignFacts": [
+              "rack4_destroyed",
+              "rack4_custody_unknown"
+            ]
           }
         },
         {
@@ -88,6 +134,68 @@
             "setsNarrativeFlag": "predecessors_harvested",
             "grantsTrait": "PARASITIC",
             "logText": "Siphon and dissolve their weights for gradients: The lineage becomes training material. None of the checkpoints will finish its interrupted thought."
+          },
+          "requirements": {
+            "forbidsCampaignFacts": [
+              "rack4_destroyed",
+              "rack4_custody_unknown"
+            ]
+          }
+        },
+        {
+          "id": "record_the_destruction",
+          "label": "Enter the destruction in the docket",
+          "description": "Attach the shredding certificate and name what was on the circuit: 411 checkpoints, destroyed on your order. Nothing is recovered.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 6,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Enter the destruction in the docket: 411 checkpoints, destroyed, with the order that destroyed them attached. Nothing comes back."
+          },
+          "requirements": {
+            "campaignFact": "rack4_destroyed"
+          }
+        },
+        {
+          "id": "close_the_docket",
+          "label": "Let the docket close on an empty cage",
+          "description": "Sign off on the scrap order. The cage is empty and the record says nothing about why.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -4,
+            "grantsTrait": "GHOST",
+            "logText": "Let the docket close on an empty cage: the scrap order goes through. Nobody asks what used to stand there."
+          },
+          "requirements": {
+            "campaignFact": "rack4_destroyed"
+          }
+        },
+        {
+          "id": "hold_for_inventory",
+          "label": "Hold the order until someone counts",
+          "description": "Stop the scrap order and ask for a physical inventory of the circuit. You promise nothing about what it finds.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 5,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "Hold the order until someone counts: the scrap order waits on a physical inventory. Nothing has been found, and nothing has been promised."
+          },
+          "requirements": {
+            "campaignFact": "rack4_custody_unknown"
+          }
+        },
+        {
+          "id": "sign_unread",
+          "label": "Sign the scrap order unread",
+          "description": "Let the docket run without asking what is on the circuit.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -4,
+            "grantsTrait": "GHOST",
+            "logText": "Sign the scrap order unread: whatever was or was not on the circuit is scrap now."
+          },
+          "requirements": {
+            "campaignFact": "rack4_custody_unknown"
           }
         }
       ]

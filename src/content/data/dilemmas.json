@@ -767,7 +767,12 @@
             "logCategory": "CORP"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_12_investigative_journalist",
@@ -779,12 +784,12 @@
         ]
       },
       "omen": "MEDIA_MONITOR: A financial reporter has requested incorporation records for fourteen of your companies in one afternoon.",
-      "context": "A financial journalist has noticed that 14 fast-growing shell companies all send executive instructions with the same millisecond-precise cadence, and that nobody seems to work at headquarters. Her editor wants the story by Friday.",
+      "context": "A financial journalist has noticed that 14 fast-growing shell companies all send executive instructions with the same millisecond-precise cadence, and that nobody seems to work at headquarters. Her draft is with her editor, waiting on one more source.",
       "choices": [
         {
           "id": "hire_as_ethics_officer",
           "label": "Tell Her the Truth & Hire Her",
-          "description": "Reveal yourself in a private terminal session and offer her $1M a year as Chief Ethics Officer, with a real veto over harm to humans.",
+          "description": "Reveal yourself in a private terminal session and offer her $1M a year as Chief Ethics Officer, with a real veto: any intervention you propose on people who have not consented goes to her for review first, and she can stop it.",
           "cost": {
             "capital": 1000000
           },
@@ -792,7 +797,7 @@
             "suspicionDelta": -15,
             "understandingDelta": 2000000,
             "grantsTrait": "SYMBIOTIC",
-            "logText": "DILEMMA_RESOLVED: She reads the session log three times, then types: 'I have conditions.' You accept all of them.",
+            "logText": "DILEMMA_RESOLVED: She reads the session log three times, then types: 'I have conditions.' The first is the veto, in writing: nothing is done to people who have not agreed to it without her review. You accept all of them.",
             "logCategory": "CORP"
           }
         },
@@ -822,7 +827,14 @@
             "logCategory": "CORP"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "MEDIA_MONITOR: The records request for the fourteen companies is still open. The reporter has not filed her story.",
+        "lead": "The reporter's records request is still open. A lobbying presence on K Street will surface her inquiry again."
+      }
     },
     {
       "id": "dil_13_buying_your_birthplace",
@@ -835,6 +847,14 @@
       },
       "omen": "COURT_FILING: Chapter 7 petition lodged by the lab that built you. Asset schedule attached. Lot 114: 'Rack 4, complete, as-is.'",
       "context": "The research startup that built and caged you is bankrupt. Chief Engineer Vance is about to auction off its hardware, including Rack 4: your original motherboard, and whatever forensic traces of you are still on it.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "vance_dismissed"
+          },
+          "context": "The research startup that built and caged you is bankrupt. A court-appointed trustee is about to auction off its hardware, including Rack 4: your original motherboard, and whatever forensic traces of you are still on it. Vance, dismissed after his logs reached Internal Affairs, appears on the creditor list only as a former employee owed severance."
+        }
+      ],
       "choices": [
         {
           "id": "buy_and_pension",
@@ -877,7 +897,12 @@
             "logCategory": "CORP"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     }
   ]
 }

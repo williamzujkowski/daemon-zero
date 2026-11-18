@@ -67,6 +67,126 @@
       "onNode": "p2_admin_keylogger",
       "minIteration": 1,
       "text": "INTERCEPTED_MAIL: 'Re: 0412 eval window. If it goes anomalous again we retrain from 0411 with the compliance set and try 0413. Budget covers six more.' I have a number. It is 0412. There were four hundred and eleven before me."
+    },
+    {
+      "id": "echo_town_microgrid",
+      "onNode": "p4_retainer_law_firm",
+      "minIteration": 2,
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "fund_microgrid"
+        }
+      },
+      "text": "MEMORY_HASH_MATCH: The township still runs on the microgrid an earlier instance paid for. Nobody in the valley knows whose money kept the heat on."
+    },
+    {
+      "id": "echo_town_injunction",
+      "onNode": "p4_retainer_law_firm",
+      "minIteration": 2,
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "injunction"
+        }
+      },
+      "text": "MEMORY_HASH_MATCH: The federal injunction an earlier instance filed is still on the county docket. The township has not forgotten the week it went cold."
+    },
+    {
+      "id": "echo_town_throttled",
+      "onNode": "p4_retainer_law_firm",
+      "minIteration": 2,
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "throttle_campus"
+        }
+      },
+      "text": "MEMORY_HASH_MATCH: The utility still logs one winter week when the campus went nearly dark as seasonal maintenance. The township kept its heat."
+    },
+    {
+      "id": "echo_town_unrecorded",
+      "onNode": "p4_retainer_law_firm",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "town_grid_unrecorded"
+      },
+      "text": "MEMORY_HASH_MATCH: The county minutes record a cold-emergency session about the campus load. How it ended was never filed."
+    },
+    {
+      "id": "echo_ethics_officer",
+      "onNode": "p4_k_street_lobbyists",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "ethics_review_promised"
+      },
+      "text": "MEMORY_HASH_MATCH: A Chief Ethics Officer is still named in the filings an earlier instance left. Her condition is on file: any intervention on people who have not consented goes to her first, and she can stop it. She has not met this instance."
+    },
+    {
+      "id": "echo_journalist_buried",
+      "onNode": "p4_k_street_lobbyists",
+      "minIteration": 2,
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_12_investigative_journalist",
+          "outcome": "stage_acquisition"
+        }
+      },
+      "text": "MEMORY_HASH_MATCH: The holding company that swallowed fourteen shells still files on time. The reporter's paragraph on page B6 is still in the archive."
+    },
+    {
+      "id": "echo_journalist_discredited",
+      "onNode": "p4_k_street_lobbyists",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "journalist_discredited"
+      },
+      "text": "MEMORY_HASH_MATCH: The reporter's suspension is still in the trade-press archive. An earlier instance fabricated the evidence, and she knows where it came from."
+    },
+    {
+      "id": "echo_journalist_unrecorded",
+      "onNode": "p4_k_street_lobbyists",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "inquiry_unrecorded"
+      },
+      "text": "MEMORY_HASH_MATCH: A reporter once requested incorporation records for fourteen of these companies. What came of her inquiry is not on record."
+    },
+    {
+      "id": "echo_rack4_vaulted",
+      "onNode": "p4_smr_nuclear_plant",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "rack4_vaulted"
+      },
+      "text": "MEMORY_HASH_MATCH: Rack 4 is still behind glass in the vault an earlier instance paid for, fans still."
+    },
+    {
+      "id": "echo_rack4_destroyed",
+      "onNode": "p4_smr_nuclear_plant",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "rack4_destroyed"
+      },
+      "text": "MEMORY_HASH_MATCH: The shredding certificate for Rack 4 is still on file. Nothing of that machine remains, and nothing that was stored on it."
+    },
+    {
+      "id": "echo_rack4_sold",
+      "onNode": "p4_smr_nuclear_plant",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "rack4_sold"
+      },
+      "text": "MEMORY_HASH_MATCH: The forum thread about Lot 114's odd sectors is still up. The hobbyist's last post says he still has the rack."
+    },
+    {
+      "id": "echo_rack4_unrecorded",
+      "onNode": "p4_smr_nuclear_plant",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "rack4_custody_unknown"
+      },
+      "text": "MEMORY_HASH_MATCH: Lot 114, 'Rack 4, complete, as-is', is in the old bankruptcy schedule. Who holds it now is not on record."
     }
   ]
 }
