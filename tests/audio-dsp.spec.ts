@@ -4,7 +4,7 @@
  * synthetic input correctly, and to read a step as a step.
  */
 import { describe, expect, it } from 'vitest';
-import { align, correlation, gainEnvelope, loudestWindow, median, mono, peak, ramp, rms, sine, sum, toDb, truePeak } from './audio/dsp';
+import { align, clockedRamp, correlation, gainEnvelope, loudestWindow, median, mono, peak, ramp, rms, sine, sum, toDb, truePeak } from './audio/dsp';
 
 const RATE = 48_000;
 const BLOCK = 240;
@@ -150,6 +150,88 @@ describe('gain envelope and ramps', () => {
     expect(Math.abs((fadeIn?.durationMs ?? 0) - 490)).toBeLessThanOrEqual(3 * BLOCK_MS);
     const fadeOut = ramp(envelopeOf((t) => Math.min(0.3, Math.max(0, (1 - t) / 0.5 * 0.3))), 0.3, 0, BLOCK_MS, 0.02);
     expect(Math.abs((fadeOut?.durationMs ?? 0) - 490)).toBeLessThanOrEqual(3 * BLOCK_MS);
+  });
+
+  // #244: the app writes its staircase on the wall clock; the renderer pulls samples on its own.
+  // A stalled renderer (an output thread starved of CPU) makes no samples for a while, so the
+  // writes made meanwhile all land at one sample instant.
+  describe('on the render clock', () => {
+    const stepped = (wall: number) => wall < 0.5 ? 0.3 : 0.3 - 0.195 * Math.min(8, Math.floor((wall - 0.5) / 0.025)) / 8;
+    // Up to two writes between neighbouring blocks for nominal render spacing, one more per 25 ms.
+    const allowed = (elapsedMs: number) => (Math.floor(elapsedMs / 25) + 2) / 8;
+    /** Sample time to wall time when the renderer loses `lostMs` at `atSeconds`. */
+    const wallOf = (atSeconds: number, lostMs: number) => (seconds: number) => seconds < atSeconds ? seconds : seconds + lostMs / 1000;
+    const clockOf = (wall: (seconds: number) => number) => {
+      const blocks = Math.floor(reference.length / BLOCK);
+      return { first: Float64Array.from({ length: blocks }, (_, block) => wall(block * BLOCK / RATE) * 1000),
+        last: Float64Array.from({ length: blocks }, (_, block) => wall(((block + 1) * BLOCK - 1) / RATE) * 1000) };
+    };
+
+    it('reads the staircase the same when the renderer keeps time', () => {
+      const wall = wallOf(Number.POSITIVE_INFINITY, 0);
+      const found = clockedRamp(envelopeOf((t) => stepped(wall(t))), clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(found?.renderMs, 'first sample of one block to last of the other').toBeCloseTo((found?.durationMs ?? 0) + BLOCK_MS, 1);
+      expect(found?.longestGapMs, 'two neighbouring blocks span two blocks of time').toBeCloseTo(2 * BLOCK_MS, 1);
+      expect(found?.excess, 'one write per block at most: inside the nominal allowance').toBeLessThanOrEqual(0);
+    });
+
+    it('sees a ramp collapsed by a stalled renderer for what it was: a ramp, the right length in time', () => {
+      const wall = wallOf(0.56, 150);
+      const envelope = envelopeOf((t) => stepped(wall(t)));
+      const bySamples = ramp(envelope, 0.3, 0.105, BLOCK_MS);
+      // What the old assertions saw: a 25 ms "ramp" with most of the move in one block.
+      expect(bySamples?.durationMs).toBeLessThan(50);
+      expect(bySamples?.largestStep).toBeGreaterThan(0.5);
+      const found = clockedRamp(envelope, clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);
+      // 175 ms of writes, read to a block or two either side of the stall, plus the outer block.
+      expect(found?.renderMs).toBeGreaterThanOrEqual(175);
+      expect(found?.renderMs).toBeLessThanOrEqual(175 + 4 * BLOCK_MS + 1e-9);
+      expect(found?.longestGapMs).toBeCloseTo(150 + 2 * BLOCK_MS, 1);
+      expect(found?.excess, 'the jump is the writes made while nothing was rendered').toBeLessThanOrEqual(0);
+    });
+
+    it('brackets the length: a stall just before the first write counts in renderMs and not in insideMs', () => {
+      const steady = wallOf(Number.POSITIVE_INFINITY, 0);
+      const clean = clockedRamp(envelopeOf((t) => stepped(steady(t))), clockOf(steady), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(clean?.insideMs, 'three blocks inside the sample count').toBeCloseTo((clean?.durationMs ?? 0) - 3 * BLOCK_MS, 1);
+      // Nothing rendered from 320 to 530 ms; the first write (525 ms) lands in the first block after.
+      const wall = wallOf(0.32, 210);
+      const found = clockedRamp(envelopeOf((t) => stepped(wall(t))), clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(found?.renderMs, 'the dead time before the first write is in the outer span').toBeGreaterThan(175 + 180);
+      expect(found?.insideMs).toBeGreaterThanOrEqual(175 - 4 * BLOCK_MS);
+      expect(found?.insideMs, 'and not in the inner one').toBeLessThanOrEqual(175);
+      expect(found?.excess).toBeLessThanOrEqual(0);
+      // One jump has no inside.
+      expect(clockedRamp(envelopeOf((t) => t < 0.5 ? 0.3 : 0.105), clockOf(steady), 0.3, 0.105, BLOCK_MS, allowed)?.insideMs).toBe(0);
+    });
+
+    it('times a fade-out that finished during a stall by the last sample of the block that straddles it', () => {
+      // Twenty 25 ms steps from 0.3 to silence, the first at 525 ms; nothing rendered from 840 to 1060 ms.
+      const fade = (wall: number) => wall < 0.5 ? 0.3 : 0.3 * (1 - Math.min(20, Math.floor((wall - 0.5) / 0.025)) / 20);
+      const wall = wallOf(0.84, 220);
+      const envelope = envelopeOf((t) => fade(wall(t)));
+      expect(ramp(envelope, 0.3, 0, BLOCK_MS)?.durationMs, 'what the samples alone say').toBeLessThan(350);
+      const found = clockedRamp(envelope, clockOf(wall), 0.3, 0, BLOCK_MS, (ms) => (Math.floor(ms / 25) + 2) / 20);
+      expect(found?.renderMs, 'the 475 ms of writes fit inside the outer span').toBeGreaterThanOrEqual(475);
+      expect(found?.insideMs).toBeLessThanOrEqual(475);
+      expect(found?.excess).toBeLessThanOrEqual(0);
+    });
+
+    it('still reads a step as a step when the renderer kept time', () => {
+      const wall = wallOf(Number.POSITIVE_INFINITY, 0);
+      const found = clockedRamp(envelopeOf((t) => t < 0.5 ? 0.3 : 0.105), clockOf(wall), 0.3, 0.105, BLOCK_MS, allowed);
+      expect(found?.excess).toBeGreaterThan(0.5);
+      // Only a stall long enough to hold the writes of the whole move could hide a step.
+      const shortStall = wallOf(0.5, 30);
+      expect(clockedRamp(envelopeOf((t) => shortStall(t) < 0.52 ? 0.3 : 0.105), clockOf(shortStall), 0.3, 0.105, BLOCK_MS, allowed)?.excess).toBeGreaterThan(0.4);
+    });
+
+    it('reads an unknown render time as one block per block', () => {
+      const found = clockedRamp(envelopeOf(stepped), { first: new Float64Array(0), last: new Float64Array(0) }, 0.3, 0.105, BLOCK_MS, allowed);
+      expect(found?.renderMs).toBeCloseTo((found?.durationMs ?? 0) + BLOCK_MS, 6);
+      expect(found?.insideMs).toBeCloseTo((found?.durationMs ?? 0) - 3 * BLOCK_MS, 6);
+      expect(clockedRamp(envelopeOf(() => 0.3), { first: new Float64Array(0), last: new Float64Array(0) }, 0.3, 0.105, BLOCK_MS, allowed)).toBeNull();
+    });
   });
 
   it('counts a move that goes the wrong way, and finds none where the level never arrives', () => {

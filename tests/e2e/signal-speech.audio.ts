@@ -8,16 +8,17 @@
  * sum of the two, sample for sample, so nothing reaches the output that was not measured.
  *
  * Clock: real browser timers throughout (`realTimers`), so the 25 ms ramp steps and the audio
- * run on the same real time. Nothing here says how any of it sounds.
+ * run on the same real time, and ramps are read against the render clock (`rampOf`), which is
+ * that real time even while the output stalls. Nothing here says how any of it sounds.
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO, FADE_IN_MS } from '../../src/app/musicController';
 import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../../src/app/outputLevel';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
-import { median, mono, peak, ramp, rms, sum, toDb, truePeak } from '../audio/dsp';
+import { median, mono, peak, rms, sum, toDb, truePeak } from '../audio/dsp';
 import { boot, expect, test } from './helpers';
-import { BLOCK, BLOCK_MS, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, report, REST_MS, span, type Matched } from './signalMeasure';
-import { assetPath, captured, installSignalTap, playing, SAMPLE_RATE, signalFrame, signalTapReady, type Capture, type Captured } from './signalTap';
+import { BLOCK, BLOCK_MS, LONGEST_RAMP, matched, rampOf, renderClock, report, reportRamp, REST_MS, span, type Matched } from './signalMeasure';
+import { assetPath, captured, installSignalTap, playing, SAMPLE_RATE, settle, signalFrame, signalTapReady, type Capture, type Captured } from './signalTap';
 
 const blocksOf = (ms: number) => Math.round(ms / BLOCK_MS);
 
@@ -32,7 +33,7 @@ async function readThrough(page: Page, leadMs: number): Promise<Captured & { pre
   await page.getByTestId('speech-read').click();
   await expect.poll(() => playing(page, '/voice/'), 'the clip is talking').toBe(1);
   await expect.poll(() => playing(page, '/voice/'), { message: 'the clip runs out', timeout: 30_000 }).toBe(0);
-  await page.waitForTimeout(DUCK_RAMP_MS + REST_MS + 200);
+  await settle(page, DUCK_RAMP_MS + REST_MS + 200);
   return { ...await captured(page, pressed - Math.round(leadMs / 1000 * SAMPLE_RATE)), pressed };
 }
 
@@ -62,7 +63,7 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
   await openSensors(page);
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(() => playing(page, '/audio/music/')).toBe(1);
-  await page.waitForTimeout(FADE_IN_MS + 2 * REST_MS);
+  await settle(page, FADE_IN_MS + 2 * REST_MS);
 
   const result = await readThrough(page, REST_MS);
   const score = find(result, '/audio/music/'); const clip = find(result, '/voice/');
@@ -75,13 +76,13 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
 
   // Levels at rest: before the press, while the clip talks (after the way down), and after.
   const before = median(music.envelope, 0, blocksOf(REST_MS) - 4);
-  const down = ramp(music.envelope, before, before * DUCK_RATIO, BLOCK_MS);
+  const down = rampOf(music.envelope, renderClock(result.renderedAt, score), before, before * DUCK_RATIO, DUCK_RAMP_MS);
   if (!down) throw new Error('The score never reached the ducked level.');
   const during = median(music.envelope, down.endBlock + 2, Math.floor(talking.to / BLOCK) - 2);
-  const tail = music.envelope.subarray(Math.floor(talking.to / BLOCK) - 4);
-  const up = ramp(tail, during, before, BLOCK_MS);
+  const tailFrom = Math.floor(talking.to / BLOCK) - 4;
+  const up = rampOf(music.envelope.subarray(tailFrom), renderClock(result.renderedAt, score, tailFrom), during, before, DUCK_RAMP_MS);
   if (!up) throw new Error('The score never came back.');
-  const after = median(tail, up.endBlock + 2);
+  const after = median(music.envelope, tailFrom + up.endBlock + 2);
   report(info, 'score gain before the clip', toDb(before), 'dB');
   report(info, 'score gain while the clip talks', toDb(during), 'dB');
   report(info, 'score gain after the clip', toDb(after), 'dB');
@@ -92,17 +93,17 @@ test('the score ducks under a transmission by the duck ratio, by ramps, and come
 
   // The moves are staircases of DUCK_RAMP_MS / RAMP_STEP_MS volume writes, one way only.
   for (const [label, move] of [['down', down], ['up', up]] as const) {
-    report(info, 'duck ' + label + ', first change to resting level', move.durationMs, 'ms');
+    reportRamp(info, 'duck ' + label, move);
     report(info, 'duck ' + label + ' largest single step, relative to the ducked level', toDb(1 + move.largestStep * (1 / DUCK_RATIO - 1)), 'dB');
     expect(move.reversals, label + ': one way only').toBe(0);
-    expect(move.largestStep, label + ': a ramp, not a step').toBeLessThanOrEqual(LARGEST_RAMP_JUMP);
+    expect(move.excess, label + ': a ramp, not a step (no jump the render clock does not account for)').toBeLessThanOrEqual(0);
     // The first write lands one step after the trigger and the last on the deadline.
-    expect(move.durationMs).toBeGreaterThanOrEqual(DUCK_RAMP_MS - 2 * RAMP_STEP_MS);
-    expect(move.durationMs).toBeLessThanOrEqual(DUCK_RAMP_MS * LONGEST_RAMP);
+    expect(move.renderMs).toBeGreaterThanOrEqual(DUCK_RAMP_MS - 2 * RAMP_STEP_MS);
+    expect(move.insideMs).toBeLessThanOrEqual(DUCK_RAMP_MS * LONGEST_RAMP);
   }
   // When the duck moves relative to the speech itself, which is what a listener would notice.
   report(info, 'duck starts after the first speech sample by', down.startBlock * BLOCK_MS - talking.from / SAMPLE_RATE * 1000, 'ms');
-  report(info, 'score starts back after the last speech sample by', (Math.floor(talking.to / BLOCK) - 4 + up.startBlock) * BLOCK_MS - talking.to / SAMPLE_RATE * 1000, 'ms');
+  report(info, 'score starts back after the last speech sample by', (tailFrom + up.startBlock) * BLOCK_MS - talking.to / SAMPLE_RATE * 1000, 'ms');
 
   // Speech against the ducked score, over the stretch where the clip has samples and the duck is down.
   const { gain } = await speechGain(page, clip, info, 'default levels:');
@@ -164,7 +165,7 @@ test('at full music and speech levels the output mix stays under full scale', as
   await openSensors(page);
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(() => playing(page, '/audio/music/')).toBe(1);
-  await page.waitForTimeout(FADE_IN_MS + 2 * REST_MS);
+  await settle(page, FADE_IN_MS + 2 * REST_MS);
   const result = await readThrough(page, REST_MS);
   const mixPeak = Math.max(truePeak(result.mix.left), truePeak(result.mix.right));
   const clipPeak = truePeak(find(result, '/voice/').left);
