@@ -475,3 +475,24 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   the engine's `reorientation()` lines), as the pin panel promises. Legacy rules (production) carry
   no clue, so production shows nothing new.
 
+
+## Earned Access follow-ups from DZ-09 part B (#283, #284, preview only)
+
+- **Copy follows the record (#283).** Once a batch review finding was answered without its
+  correction, `review-recovery` reads `Way back passed: ` and the finding's authored `declined`
+  text, never the disclosure that is no longer offered. The service terms then read
+  `Out of reach for this instance as its record stands.` with only the reason
+  (`serviceGrantView` status `closed`), instead of "Still needed: Standing must be nominal."
+  The assessment record states the finding (`Found: ...`) instead of the discrepancy risk once a
+  review has run.
+- **A waiting ticket off screen (#284).** The phone tier shows one pane, so while a support
+  channel ticket waits on CORE and another pane is open, the chrome shows a non-modal notice
+  (`contact-notice`, polite live region, `[ OPEN CORE ]`) beside the omen and response notices,
+  and the CORE tab reads `CORE •` with `CORE pane, a support ticket is waiting` as its name. The
+  tab bar stays on screen when the pane is scrolled. Wider tiers always show CORE and render
+  neither.
+- **After an answer (#284).** Answering the ticket on screen moves focus to the boundary note's
+  heading (`prototype-boundary-heading`), which also scrolls it into view; a restored, already
+  answered contact does not take focus. The note names the real path: `MENU > SAVES`.
+- **The pilot status line follows the grant (#284).** After `[ ACCEPT SERVICE ]`, `pilot-status`
+  says the pilot led to the authorized service instead of "runs as a supervised pilot".

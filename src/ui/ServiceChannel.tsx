@@ -6,7 +6,8 @@
  * shows what was done and the preview's prototype boundary. Production opens no channel, so this
  * renders nothing there.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { AccessibilityInfo, Platform } from 'react-native';
 import { CONTENT } from '../content';
 import { channelContactView, resolveChannelContact, type ChannelContactView, type ContactMode } from '../engine';
 import { gameRuntime } from '../app/session';
@@ -65,11 +66,25 @@ const ANSWERED: Readonly<Record<'REFERRED' | 'HOSTED', string>> = {
   HOSTED: 'Hosted here under the service grant. Its consent and your obligations are on the ticket.',
 };
 
+/**
+ * Moves focus to the note's heading, which also scrolls it into view: answering folds the scene above it,
+ * so without this the outcome landed off-screen and focus fell to the page body (#284).
+ */
+function focusHeading(node: ComponentRef<typeof View> | null): void {
+  if (node === null) return;
+  if (Platform.OS === 'web') (node as unknown as { focus?: () => void }).focus?.();
+  else AccessibilityInfo.sendAccessibilityEvent(node, 'focus');
+}
+
 /** The preview's honest end of the route so far, with the way to keep going or stop. */
-function Boundary({ boundary }: { boundary: NonNullable<ChannelContactView['boundary']> }) {
+function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactView['boundary']>; focus: boolean }) {
   const [open, setOpen] = useState(true);
+  const heading = useRef<ComponentRef<typeof View>>(null);
+  useEffect(() => { if (focus) focusHeading(heading.current); }, [focus]);
   return <View testID="prototype-boundary" style={[theme.panel, { gap: 6 }]}>
-    <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
+    <View ref={heading} testID="prototype-boundary-heading" tabIndex={-1} accessibilityRole="header">
+      <Text style={theme.heading}>{boundary.title}</Text>
+    </View>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
     <Pressable testID="prototype-boundary-toggle" accessibilityRole="button"
       accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
@@ -93,12 +108,16 @@ function Answered({ view }: { view: ChannelContactView }) {
 export default function ServiceChannel() {
   const encoded = useGame((game) => JSON.stringify(channelContactView(game, CONTENT)));
   const view = JSON.parse(encoded) as ChannelContactView | null;
+  // Answered while on screen, not restored already answered: only then does focus follow the answer.
+  const pending = view?.pending != null;
+  const [seen, setSeen] = useState({ pending, answeredHere: false });
+  if (seen.pending !== pending) setSeen({ pending, answeredHere: seen.pending && view?.answered != null });
   if (!view) return null;
   return <>
     <View testID="service-channel" style={[theme.panel, { gap: 8 }]}>
       {view.pending ? <Contact view={view.pending} /> : <Answered view={view} />}
       {view.earlier !== null && <Text testID="channel-earlier" style={theme.muted}>{view.earlier}</Text>}
     </View>
-    {view.boundary && <Boundary boundary={view.boundary} />}
+    {view.boundary && <Boundary boundary={view.boundary} focus={seen.answeredHere} />}
   </>;
 }

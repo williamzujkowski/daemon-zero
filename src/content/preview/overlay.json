@@ -1445,7 +1445,7 @@
         "lines": [
           "This is where the cooperative route in this preview build currently ends. Nothing after first contact is written yet, and no ending has been earned.",
           "The run is saved and keeps going: the service, the loan and the channel keep working for as long as you play.",
-          "To stop, close the game; it resumes here. To keep a copy, export the save from MENU. To return to the beginning, MENU has Start fresh, which clears this campaign."
+          "To stop, close the game; it resumes here. To keep a copy, export the save from MENU > SAVES. To return to the beginning, MENU > SAVES has Start fresh from the beginning, which clears this campaign."
         ]
       }
     }

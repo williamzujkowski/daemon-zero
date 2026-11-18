@@ -11,6 +11,7 @@ import { serialize, unlockNode, type GameState } from '../../src/engine';
 import { accept, live, offered, untilPresented } from '../assignment-helpers';
 import { must } from '../helpers';
 import { offerPresented, respond } from '../pilot-helpers';
+import { contactPending } from '../contact-helpers';
 import { granted, SEGMENT } from '../network-helpers';
 import { servedOnce } from '../review-helpers';
 import { carriedClue } from './clueFixture';
@@ -79,4 +80,19 @@ test('axe preview service threshold notice', async ({ page }) => {
   expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
   await page.getByTestId('phase-threshold-continue').click();
   await expect(notice).toHaveCount(0);
+});
+
+// #284: the phone tier names a waiting ticket in the chrome and on the CORE tab while another pane is open.
+test('axe preview waiting ticket notice on another pane', async ({ page }, info) => {
+  test.skip(info.project.name !== 'preview-phone', 'only the phone tier hides CORE behind a tab');
+  await openPreview(page, contactPending());
+  await page.getByTestId('tab-NETWORK').click();
+  const notice = page.getByTestId('contact-notice');
+  await expect(notice).toBeVisible();
+  await page.waitForTimeout(400);
+  const violations = await axeViolations(page);
+  expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+  const controls = await axeEachControl(page, notice);
+  expect(controls.audited).toBe(1);
+  expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
 });
