@@ -10,6 +10,7 @@ import { gameRuntime } from '../app/session';
 import DisclosureText from './DisclosureText';
 import { evidenceText, scopeText } from './evidenceText';
 import PilotOfferPanel from './PilotOffer';
+import ReviewStanding from './ReviewStanding';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
@@ -25,6 +26,7 @@ function Submitted() {
     <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted')}</Text>
     {scope !== null && <Text testID="assignment-scope" style={theme.muted}>Scope review: {scopeText(scope, 'this instance')}</Text>}
     <PilotOfferPanel />
+    <ReviewStanding />
   </>;
 }
 
