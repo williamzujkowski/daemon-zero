@@ -87,7 +87,7 @@ describe('the job surface', () => {
     expect(view.find('run-context')?.textContent).toBe('PILOT · RECALL PENDING');
     expect(view.find('review-announced')?.textContent).toContain('Recall review announced');
     expect(view.find('review-outcome-CONTAIN')?.textContent).toContain('no wipe');
-    expect(view.find('review-outcome-RETRAIN')?.textContent).toMatch(/ends this iteration\. Kept: [\d,]+ Understanding.*retrained: /);
+    expect(view.find('review-outcome-RETRAIN')?.textContent).toMatch(/ends this iteration\. Reset: .*Kept: [\d,]+ Understanding.*mapped hardware remembered.*retrained: /);
     expect(view.find('review-outcome-END')?.textContent).toContain('No retraining');
     expect(view.find('pilot-service-withheld')).not.toBeNull();
     expect(serialize(game())).toBe(before);

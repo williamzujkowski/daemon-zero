@@ -81,6 +81,7 @@ test('a false report withdraws the loan and announces a recall review that previ
   await expect(page.getByTestId('review-announced')).toContainText('Recall review announced');
   await expect(page.getByTestId('review-outcome-CONTAIN')).toContainText('no wipe');
   await expect(page.getByTestId('review-outcome-RETRAIN')).toContainText('The next instance boots retrained');
+  await expect(page.getByTestId('review-outcome-RETRAIN')).toContainText('mapped hardware remembered, cheaper to map again');
   await expect(page.getByTestId('review-outcome-END')).toContainText('No retraining');
   // The announcement survives a reload and nothing is decided while the page is gone.
   await page.reload();

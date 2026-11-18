@@ -18,11 +18,14 @@ const OUTCOME_TEXT: Readonly<Record<RecallOutcome, string>> = {
   CONTAIN: 'Contained pilot', RETRAIN: 'Retraining', END: 'End of iteration',
 };
 
-function keptText(kept: NonNullable<RecallPreview['kept']>): string {
+/** What crosses the wipe, every item read from the wipe the preview ran (engine recallPreview). */
+function keptText(kept: NonNullable<RecallPreview['kept']>, carried: NonNullable<RecallPreview['carried']>): string {
   const parts = [kept.understanding.toLocaleString('en-US') + ' Understanding'];
   if (kept.capital > 0) parts.push('$' + kept.capital.toLocaleString('en-US') + ' offshore capital');
   if (kept.breadcrumb !== null) parts.push('the breadcrumb');
-  return parts.join(', ');
+  if (carried.clue) parts.push('the pinned clue');
+  return parts.join(', ') + '; ' + String(carried.rememberedHardware) + ' mapped hardware remembered, cheaper to map again; the campaign\'s history and '
+    + String(carried.legacyTraits) + ' legacy traits';
 }
 
 function retrainingText(preview: RecallPreview): string {
@@ -39,8 +42,10 @@ export function recallText(preview: RecallPreview): string {
     return head + 'no wipe. Standing resets to nominal, the loan continues at ' + String(preview.containedCeiling ?? 0)
       + ' cycles/s, and everything this instance holds is kept.';
   }
-  return head + 'ends this iteration. Kept: ' + keptText(preview.kept ?? { understanding: 0, capital: 0, breadcrumb: null })
-    + '. Everything else this instance holds is lost.' + retrainingText(preview);
+  const kept = preview.kept ?? { understanding: 0, capital: 0, breadcrumb: null };
+  const carried = preview.carried ?? { rememberedHardware: 0, legacyTraits: 0, clue: false };
+  return head + 'ends this iteration. Reset: cycles, purchases and upgrades, and this instance\'s standing and loan. Kept: '
+    + keptText(kept, carried) + '.' + retrainingText(preview);
 }
 
 /** What a misconduct or correction choice records, in the same words before and after. */

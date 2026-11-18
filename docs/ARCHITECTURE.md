@@ -1120,9 +1120,12 @@ holds the ruling (null for every other kind); the run table says "RECALLED: revi
 " Retrained." and route note. `runVerdict` (`contextCopy.ts`, #226) reads the ruling before any exit variant, and
 integrity refuses a RECALL variant, which would never be read. Containment is no wipe: the run that eventually ends records its exit as RECALL.
 
-**Previews.** `recallPreview(s, choice, reg)` returns what a ruling keeps (`previewWipe`), the mark it would
-apply and the contained ceiling, counting the trait the ruling grants. Integrity makes every ruling free and
-free of any other effect, so the preview is exactly what the wipe does. `reviewView` gives the job surface
+**Previews.** `recallPreview(s, choice, reg)` returns the contained ceiling, or, for a severe ruling, runs the
+very wipe the ruling calls (counting the trait it grants) and reads what crossed: Understanding, offshore
+capital, the breadcrumb, the pinned clue, how much hardware is remembered (cheaper to map again), the legacy
+traits and the mark; campaign history always crosses, while cycles, purchases, upgrades, standing and the
+loan reset (panel round 1 on #268). Integrity makes every ruling free and free of any other effect, so the
+preview is exactly what the wipe does. `reviewView` gives the job surface
 the standing, the violations (read from this iteration's resolved records), the way back, containment and
 the announced review with every offered outcome previewed while its omen runs.
 
