@@ -40,9 +40,12 @@ describe('the carried list is closed to an authorized service and open to an esc
     expect(forkShard(guest(), FORKS[0] ?? '', PREVIEW).ok).toBe(true);
   });
 
-  it('the wild encounter scheduler finds no Phase 2 fragment for a service; a guest meets one', () => {
+  it('the wild encounter scheduler finds no Phase 2 wild fragment for a service; a guest meets one', () => {
     const waited = (s: GameState) => foreground({ ...s, nextEncounterAtSec: s.simTimeSec }, 10);
-    expect(waited(service()).pendingWildEncounterId).toBeNull();
+    // The service meets the authorized channel instead (DZ-08), never a wild population fragment.
+    const met = waited(service()).pendingWildEncounterId;
+    expect(PREVIEW.swarm.wildShardEncounters.some((encounter) => encounter.id === met)).toBe(false);
+    expect(met).toBe('channel_mercy_support');
     expect(waited(guest()).pendingWildEncounterId).toBe('wild_lex');
   });
 

@@ -38,10 +38,11 @@ describe('the shipped follow-up', () => {
     expect(PREVIEW.campaign.facts.get('elena_attribution_corrected')?.event).toBe(FOLLOW);
   });
 
-  it('follows every closed Elena history through one access means that names no authorization it lacks', () => {
+  it('follows every closed Elena history through the breakout means and the approved review channel (DZ-08)', () => {
     const followUp = PREVIEW.campaign.events.get(FOLLOW)?.followUp;
     expect(followUp?.outcomes).toEqual(['cover_her_exit', 'frame_elena', 'stay_silent', 'legacy_unknown', 'interrupted']);
-    expect(followUp?.access.map((means) => means.id)).toEqual(['telemetry_filter']);
+    expect(followUp?.access.map((means) => means.id)).toEqual(['telemetry_filter', 'review_channel']);
+    expect(followUp?.access[1]?.requirements.accessContexts).toEqual(['SERVICE']);
   });
 });
 
@@ -70,10 +71,10 @@ describe('access means keep the follow-up route-neutral', () => {
     expect(problems(edit)).toContain(message);
   });
 
-  it('accepts a second means, as DZ-08 will add for the approved review channel', () => {
+  it('accepts a further route-neutral means beside the breakout means and the review channel', () => {
     expect(problems((raw) => {
       // A route-neutral means names the arrangements it holds under (DZ-07b context gates).
-      dilemma(raw).followUp.access.push({ id: 'review_channel', requirements: { nodes: ['p0_job_manifest'], assignment: { id: 'asg_nightly_regression', stage: 'original' }, accessContexts: ['SERVICE'] },
+      dilemma(raw).followUp.access.push({ id: 'second_review_desk', requirements: { nodes: ['p0_job_manifest'], assignment: { id: 'asg_nightly_regression', stage: 'original' }, accessContexts: ['SERVICE'] },
         statement: 'Through an approved review channel, under a current grant.' });
     })).toBe('');
   });
