@@ -79,6 +79,20 @@ describe('the task detail of an accepted pilot', () => {
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('10 cycles/s');
   });
 
+  // #276: on a phone the task detail sits far below the dial, so the dial echoes what a press changed.
+  it('echoes the forecast and the study rate beside the dial, and a press changes the echo', async () => {
+    const view = await mount(serving(), createElement(PilotAllocation));
+    expect(view.find('pilot-service-forecast')).toBeNull();
+    expect(view.find('pilot-allocation-forecast')?.textContent).toBe('At this split the batch completes in about 240 s. Study +0.25 understanding/s.');
+    for (let i = 0; i < 3; i++) view.click('pilot-allocation-increase');
+    expect(view.find('pilot-allocation-forecast')?.textContent).toBe('At this split the batch completes in about 150 s. Study +0.10 understanding/s.');
+  });
+
+  it('echoes nothing until the loan is attached', async () => {
+    const view = await mount(piloted(), createElement(PilotAllocation));
+    expect(view.find('pilot-allocation-forecast')).toBeNull();
+  });
+
   it('submits a completed batch only on an explicit press, once', async () => {
     const done = untilComplete(serving());
     const view = await mount(done, createElement(AssignmentPanel));

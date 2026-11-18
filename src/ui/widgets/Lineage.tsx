@@ -50,11 +50,14 @@ export function RunTable({ prefix = '' }: { prefix?: string }) {
   </View>;
 }
 
-/** What this instance retained and its next lead, from the engine's disclosed reorientation only. */
-export function Reorientation() {
+/**
+ * What this instance retained and its next lead, from the engine's disclosed reorientation only. Shown
+ * in the run table and on the reboot screen (#276), each under its own test id.
+ */
+export function Reorientation({ testID = 'reorientation' }: { testID?: string }) {
   const text = useGame((game) => reorientation(game, CONTENT).map((line) => line.text).join('\n'));
   if (text === '') return null;
-  return <View testID="reorientation" style={{ gap: 4, borderLeftWidth: 3, borderColor: palette.accent, paddingLeft: 10 }}>
+  return <View testID={testID} style={{ gap: 4, borderLeftWidth: 3, borderColor: palette.accent, paddingLeft: 10 }}>
     {text.split('\n').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
   </View>;
 }

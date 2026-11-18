@@ -3,10 +3,12 @@
  * and recall rulings belong to once-per-campaign stories, so no review can be farmed; every warning or
  * restriction has a correction that can follow it; recall pending always leads to a recall review; and a
  * recall review is gated on that standing and always offers a free containment, so no history forces a wipe.
+ * Terms promise only the standings some choice or batch review finding can record.
  */
 import type { ContentRegistry } from './registry';
 import { isFree } from './integrityScene';
 import type { Dilemma, DilemmaChoice } from './schema';
+import { ReviewStandingSchema } from './schemaReview';
 
 const REVIEW_CLASSES = ['consequential', 'follow_up'];
 
@@ -74,9 +76,30 @@ function pathProblems(reg: ContentRegistry): string[] {
   });
 }
 
+/**
+ * Review conditions shown to the player name only standings the content can produce (#276): terms that
+ * promise a standing nothing records describe a ladder nobody can climb. A standing is produced by a
+ * choice's misconduct or by a batch review finding (#274). Nominal is the start.
+ */
+function termsStandingProblems(reg: ContentRegistry): string[] {
+  const produced = new Set(reg.dilemmas.flatMap((dilemma) => [
+    ...dilemma.finding === undefined ? [] : [dilemma.finding.standing],
+    ...dilemma.choices.flatMap((choice) => choice.review?.misconduct?.standing ?? []),
+  ]));
+  return [...reg.assignments.values()].flatMap((assignment) => {
+    // Whole words only, padded, so "warned" matches and "forewarned" does not.
+    const words = ' ' + [...assignment.pilot?.reviewConditions ?? [], ...assignment.pilot?.serviceGrant?.reviewConditions ?? []]
+      .join(' ').toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
+    return ReviewStandingSchema.options.filter((standing) => standing !== 'NOMINAL' && !produced.has(standing)
+      && words.includes(' ' + standing.toLowerCase().replace('_', ' ') + ' '))
+      .map((standing) => `assignment "${assignment.id}" pilot: review conditions name the ${standing.toLowerCase().replace('_', ' ')} standing, which nothing records`);
+  });
+}
+
 export function checkReviewIntegrity(reg: ContentRegistry): string[] {
   return [
     ...reg.dilemmas.flatMap((dilemma) => [...placementProblems(dilemma), ...recallProblems(dilemma)]),
     ...pathProblems(reg),
+    ...termsStandingProblems(reg),
   ];
 }

@@ -11,6 +11,7 @@ import { accept, offered, untilPresented } from '../assignment-helpers';
 import { must } from '../helpers';
 import { offerPresented, respond } from '../pilot-helpers';
 import { servedOnce } from '../review-helpers';
+import { carriedClue } from './clueFixture';
 import { axeEachControl, axeViolations } from './axe';
 
 const PREVIEW_SAVE = 'daemon-zero.preview.save.v1';
@@ -23,6 +24,8 @@ const STATES: readonly { name: string; state: () => GameState; scope: string; re
   { name: 'pilot offer modal', state: () => offerPresented(), scope: 'dilemma-modal', reach: 'dilemma-choice-accept_pilot' },
   { name: 'deferred offer', state: () => must(respond(offerPresented(), 'stay_guest')), scope: 'assignment', reach: 'pilot-accept' },
   { name: 'pilot panel', state: () => servedOnce(), scope: 'assignment', reach: 'pilot-service-submit' },
+  // #276: the reboot names the clue a dead-drop carried.
+  { name: 'reboot with a carried clue', state: carriedClue, scope: 'reboot-sequence', reach: 'reboot-clue' },
 ];
 
 async function openPreview(page: Page, state: GameState): Promise<void> {
@@ -33,7 +36,8 @@ async function openPreview(page: Page, state: GameState): Promise<void> {
   }, [PREVIEW_SAVE, game] as const);
   await page.goto('./');
   await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
-  if (await page.getByTestId('tab-CORE').count()) await page.getByTestId('tab-CORE').click();
+  // A reboot screen covers the panes; it is audited as it stands.
+  if (await page.getByTestId('reboot-sequence').count() === 0 && await page.getByTestId('tab-CORE').count()) await page.getByTestId('tab-CORE').click();
 }
 
 for (const entry of STATES) {

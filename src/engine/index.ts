@@ -34,7 +34,7 @@ export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccu
 export type { RoutineState } from './routineState';
 export { isPermitted, permittedUses, runContextView, type RunContextView } from './accessQuery';
 export type { AcceptedAssignment, AccessRecord, OperatingContext, Permission, PilotOfferRecord, Qualification, ReviewStanding, RouteEvent, RouteEventKind, RunExit, ScopeEvidence } from './accessState';
-export { acceptAssignment, assignmentView, type AssignmentStatus, type AssignmentView } from './assignment';
+export { acceptAssignment, assignmentView, type AssessmentPreview, type AssignmentStatus, type AssignmentView } from './assignment';
 export { assessmentStage, offerToken } from './assignmentQuery';
 export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
 export { pilotToken, qualifiesForPilot, type NarrowReason } from './pilotQuery';

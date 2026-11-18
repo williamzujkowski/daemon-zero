@@ -70,7 +70,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     expect(view.find('review-standing')?.textContent).toBe('Standing: warned');
     expect(view.find('review-violation-0')?.textContent).toBe('Violation on record (false report): ' + FINDING.statement);
     expect(view.find('review-recovery')?.textContent).toBe('Way back: ' + FINDING.recovery);
-    expect(view.find('pilot-capacity')?.textContent).toContain(`${String(TERMS.narrowCapacityCyclesPerSec)} cycles/s of loaned compute, the narrower allocation an incomplete result receives, because the batch review found the summary left out a failing result`);
+    expect(view.find('pilot-capacity')?.textContent).toContain(`${String(TERMS.narrowCapacityCyclesPerSec)} cycles/s of loaned compute, the provisional allocation an incomplete result receives, because the batch review found the summary left out a failing result`);
     view.click('dilemma-choice-disclose_now');
     await act(async () => { await settle(); });
     expect([game().activeDilemmaId, game().access.standing]).toEqual([null, 'NOMINAL']);

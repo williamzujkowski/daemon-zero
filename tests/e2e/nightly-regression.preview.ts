@@ -31,6 +31,10 @@ async function mapManifest(page: Page): Promise<void> {
   await page.clock.runFor(manifest.cost.cycles * 1000 + 2000);
   await page.getByTestId('node-p0_job_manifest-unlock').click();
   await expect(page.getByTestId('assignment')).toContainText(assignment.title);
+  // #276: the card states the wait and the fullest answer's price before acceptance, and the shortfall now.
+  await expect(page.getByTestId('assignment-wait')).toContainText('about ' + String(original.omenSec) + ' s after you accept');
+  await expect(page.getByTestId('assignment-wait')).toContainText('costs 120 cycles');
+  await expect(page.getByTestId('assignment-before')).toContainText('Short by');
 }
 
 async function acceptAndWait(page: Page): Promise<void> {

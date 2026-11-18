@@ -40,6 +40,8 @@ function scopeProblems(owner: string, dilemma: Dilemma, gate: AssignmentRequirem
   if (gate.stage === 'requalification') {
     // A returning instance acknowledges the current scope; the original private record is never found again.
     if (dilemma.choices.some((choice) => choice.scope === 'UNDISCLOSED')) problems.push(`${owner}: a requalification scope review has no private record to read`);
+    // REQUESTED records permission asked to read outside the task (#276); a filtered bundle has no outside.
+    if (dilemma.choices.some((choice) => choice.scope === 'REQUESTED')) problems.push(`${owner}: a requalification scope review has nothing outside the task to ask permission for`);
     if (dilemma.choices.some(pays)) problems.push(`${owner}: a requalification cannot repay the original's reward or outcome`);
   }
   return problems;

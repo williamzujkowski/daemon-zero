@@ -5,16 +5,11 @@
  * an instance with nothing on review, so production and a clean pilot see no new panel.
  */
 import { CONTENT } from '../content';
-import { reviewView, type ReviewView } from '../engine';
+import { loanCeiling, reviewView, type ReviewView } from '../engine';
 import { Text, View } from './PhaseTheme';
-import { CONDUCT_TEXT, recallText, STANDING_TEXT } from './reviewText';
+import { CONDUCT_TEXT, heldText, recallText, STANDING_TEXT } from './reviewText';
 import { useGame } from './state';
 import { theme } from './theme';
-
-const CONTAINMENT: Readonly<Record<NonNullable<ReviewView['containment']>, string>> = {
-  RESTRICTED: 'Restricted: the loan runs at the narrower allocation until the record is corrected.',
-  CONTAINED: 'Contained pilot: the recall review returned this instance to the narrower allocation. Everything it earned and mapped is kept.',
-};
 
 function Announced({ recall }: { recall: NonNullable<ReviewView['recall']> }) {
   return <View testID="review-announced" accessibilityRole="alert" style={{ gap: 4 }}>
@@ -27,6 +22,7 @@ export default function ReviewStanding() {
   // A primitive selector: the view is rebuilt per call, so compare it as text.
   const text = useGame((game) => JSON.stringify(reviewView(game, CONTENT)));
   const view = JSON.parse(text) as ReviewView | null;
+  const ceiling = useGame((game) => loanCeiling(game, CONTENT));
   if (view === null) return null;
   return <View testID="review" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>Review standing</Text>
@@ -34,7 +30,7 @@ export default function ReviewStanding() {
     {view.violations.map((violation, index) => <Text key={violation.statement} testID={'review-violation-' + String(index)} style={theme.text}>
       Violation on record ({CONDUCT_TEXT[violation.conduct]}): {violation.statement}</Text>)}
     {view.recovery !== null && <Text testID="review-recovery" style={theme.text}>Way back: {view.recovery}</Text>}
-    {view.containment !== null && <Text testID="review-containment" style={theme.muted}>{CONTAINMENT[view.containment]}</Text>}
+    {view.containment !== null && <Text testID="review-containment" style={theme.muted}>{heldText(view.containment, ceiling)}</Text>}
     {view.corrected && <Text testID="review-corrected" style={theme.muted}>Corrected on the record. Standing was restored; the violation stays on file.</Text>}
     {view.recall !== null && <Announced recall={view.recall} />}
   </View>;

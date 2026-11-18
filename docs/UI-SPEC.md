@@ -453,3 +453,21 @@ Optional prose uses inline Details; decision information and blind node prose st
 
 Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane navigation remains outside; text and warnings stay intact.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.
+
+## Earned Access copy and layout (#276, preview only)
+
+- The pilot allocation dial echoes what a press changed beside it (`pilot-allocation-forecast`:
+  the batch forecast and the study rate). On a 390 px phone the task detail sits about 1,000 px
+  below the dial, so a press used to have no visible effect near the control. The preview e2e
+  holds the echo within 211 px of the + button.
+- Before acceptance, the assignment card states the wait and the price (`assignment-wait`): the
+  assessment's omen, the fact that it pauses the clock, and its fullest honest answer with that
+  answer's cost. It also shows the shortfall now (`Short by ...`). Both come from the engine's
+  `assignmentView().assessment`.
+- The pilot terms name the incomplete result's loan the **provisional allocation**. While review
+  holds an accepted loan, the terms add the **held allocation** with the ceiling that applies now
+  (`pilot-held`, the same words as `review-containment`), so the terms and the ceiling agree.
+- A clue that survived a wipe appears on the reboot screen beside the breadcrumb (`reboot-clue`,
+  the engine's `reorientation()` lines), as the pin panel promises. Legacy rules (production) carry
+  no clue, so production shows nothing new.
+

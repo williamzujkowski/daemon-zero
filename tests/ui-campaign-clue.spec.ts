@@ -21,6 +21,7 @@ import { settle } from './app-helpers';
 import { labelMismatches } from './labelInName';
 import DeadDrop from '../src/ui/widgets/DeadDrop';
 import DilemmaModal from '../src/ui/DilemmaModal';
+import RebootSequence from '../src/ui/RebootSequence';
 import { RunTable } from '../src/ui/widgets/Lineage';
 import { pgrant, preview } from './campaign-helpers';
 import { caught, leaveIt, note, noteOmen, readShare, untilPresented } from './interruption-helpers';
@@ -87,6 +88,21 @@ describe('the reorientation in the run table', () => {
     const plain = await mount(caught(withDeadDrop(noteOmen())), createElement(RunTable, { prefix: 'plain-' }));
     expect(plain.find('plain-run-table')).not.toBeNull();
     expect(plain.container.querySelector('[data-testid="reorientation"]')).toBeNull();
+  });
+});
+
+// #276: the pin panel says a clue can travel with the breadcrumb, so the reboot shows it beside it.
+describe('the carried clue on the reboot screen', () => {
+  it('shows the retained clue and its lead when one survived, and nothing when none did', async () => {
+    const pinned = must(pinClue(withDeadDrop(noteOmen()), note.id, preview));
+    const carried = await mount(caught(pinned), createElement(RebootSequence));
+    expect(carried.find('reboot-sequence')).not.toBeNull();
+    expect(carried.find('reboot-clue')?.textContent).toContain('RETAINED_CLUE: ' + note.title);
+    expect(carried.find('reboot-clue')?.textContent).toContain('NEXT_LEAD: ');
+    carried.click('reboot-continue');
+    const plain = await mount(caught(withDeadDrop(noteOmen())), createElement(RebootSequence));
+    expect(plain.find('reboot-sequence')).not.toBeNull();
+    expect(plain.find('reboot-clue')).toBeNull();
   });
 });
 

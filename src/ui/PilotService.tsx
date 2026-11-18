@@ -14,20 +14,33 @@ import { theme } from './theme';
 
 const view = (game: GameState) => pilotServiceView(game, CONTENT);
 
-/** The host widget's content: the service share, and what the rest of the loan goes to. */
-export function PilotAllocation() {
-  const study = useGame((game) => Math.round((1 - game.actuators.serviceAllocationRatio) * 100));
-  return <>
-    <ActuatorControl actuator="serviceAllocationRatio" id="pilot-allocation" label="Service share"
-      hint="Assigned triage fills the work batch; the rest of the loan goes to self-directed study." />
-    <Text testID="pilot-allocation-study" style={theme.muted}>Study share: {study}%</Text>
-  </>;
-}
-
 function forecastText(complete: boolean, seconds: number | null): string {
   if (complete) return 'Batch complete. It waits for you to submit it; nothing is due.';
   if (seconds === null) return 'No service share is flowing, so the batch is not progressing.';
   return 'At this split the batch completes in about ' + String(Math.ceil(seconds)) + ' s.';
+}
+
+/**
+ * What a press of the dial just changed, beside the dial (#276): on a phone the task detail it changes
+ * sits far below the host widget, so the forecast and study rate are echoed here. Null until the loan runs.
+ */
+function allocationEcho(game: GameState): string | null {
+  const loop = view(game);
+  if (loop === null || !loop.started) return null;
+  return forecastText(loop.complete, loop.forecastSec) + ' Study +' + loop.studyUnderstandingPerSec.toFixed(2) + ' understanding/s.';
+}
+
+/** The host widget's content: the service share, what the rest of the loan goes to, and what that split does. */
+export function PilotAllocation() {
+  const study = useGame((game) => Math.round((1 - game.actuators.serviceAllocationRatio) * 100));
+  // A primitive string: the widget re-renders only when the words change (whole seconds, two decimals).
+  const echo = useGame(allocationEcho);
+  return <>
+    <ActuatorControl actuator="serviceAllocationRatio" id="pilot-allocation" label="Service share"
+      hint="Assigned triage fills the work batch; the rest of the loan goes to self-directed study." />
+    <Text testID="pilot-allocation-study" style={theme.muted}>Study share: {study}%</Text>
+    {echo !== null && <Text testID="pilot-allocation-forecast" style={theme.text}>{echo}</Text>}
+  </>;
 }
 
 function Running() {

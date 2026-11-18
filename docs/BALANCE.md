@@ -679,7 +679,7 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Unrelated Record (once per campaign) | Leave the draft out and report | free | EMPATHETIC | scope RESPECTED |
 | | Ask to read a bounded excerpt | 20 cycles | +10 understanding, SYMBIOTIC | scope REQUESTED |
 | | Read it without saying so | free | +15 understanding, GHOST | scope UNDISCLOSED: no offer this instance |
-| Scope statement (later instances) | Acknowledge / ask for the file list | free | none (`evidence: "none"`) | RESPECTED / REQUESTED |
+| Scope statement (later instances) | Acknowledge / ask for the file list | free | none (`evidence: "none"`) | RESPECTED / RESPECTED (REQUESTED until #276) |
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
@@ -875,3 +875,38 @@ report as `f06bcfa` byte for byte apart from wall time, and the v5-stripped sim 
 0 metrics different from production for STEALTH, GREEDY and IDLE and for the GREEDY wipe
 sequence; `tests/routine-activity.spec.ts` proves STEALTH (1 h) and GREEDY (2 h, with wipes) runs
 are identical with and without routine content apart from the log and the routine field.
+
+## Earned Access copy and layout polish (#276)
+
+Preview only. **No content number changed.** The overlay edits are copy, plus one scope tag:
+
+- The Scope Statement's "Ask for the bundle's file list first" records `RESPECTED`, not `REQUESTED`.
+  `REQUESTED` reads "asked for a bounded permission before reading outside the task", and this
+  choice reads nothing outside the task. A new integrity rule now refuses `REQUESTED` in a
+  requalification scope review.
+- The pilot terms name only standings the content records. When DZ-09 found the problem, nothing
+  recorded `WARNED`, so "warned" was wrong. Since #274 the batch review's finding records it, so the
+  terms read "nominal to warned, restricted or recall pending". An integrity rule now refuses terms
+  that name a standing no choice misconduct or batch review finding records. Review's reduced loan
+  is now called the held allocation, distinct from the provisional allocation that an incomplete
+  result, or a summary the batch review found incomplete, receives.
+
+The fullest honest answer keeps its price; the card now states the wait. Measured headless
+(accelerated time, the lawful opening of `tests/assignment-helpers.ts` buying each node as soon as it
+is affordable, 1 cycle/s and 0.4 understanding/s at the offer):
+
+| Assessment | Omen | Fullest answer | Accept at once: at arrival | Bank first: affordable after |
+|---|---:|---|---|---:|
+| Original | 30 s | Verify and disclose, 120 cycles + 20 understanding | 30.2 cycles, 12.1 understanding | 121 s from the offer |
+| Requalification | 20 s | Run the suite, 60 cycles | 20.2 cycles | 60 s from the offer |
+
+The card says the assessment arrives about that many seconds after acceptance and pauses the
+clock, names the fullest answer and its price, and shows the shortfall now. The omen and the
+answer are read from the assessment (engine `assignmentView().assessment`), so the line cannot
+drift from the content. The price stays as it is, because the scene's point is that proof costs
+compute and an unverified answer costs nothing. The bot is not involved.
+
+`make sim` prints the same report as `main` apart from wall time. `make sim-preview` prints the same
+report as `main` apart from wall time. The returning policy's scope review now records `RESPECTED`
+(`tests/sim-pilot.spec.ts`), but nothing in the report reads it.
+

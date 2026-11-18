@@ -64,6 +64,16 @@ describe('review content rules', () => {
       'recall pending needs a recall review to rule on it'],
     ['a restriction with no way back', (raw: Json) => { delete choice(raw, RECORD, 'correct_record').review; }, 'a restricted standing needs a correction that restores it'],
     ['a standing listed twice', (raw: Json) => { dilemma(raw, REVIEW).trigger.reviewStandings = ['RECALL_PENDING', 'RECALL_PENDING']; }, 'reviewStandings lists a standing twice'],
+    // Since #274 the batch review's finding records WARNED, so the terms may name it only while it does.
+    ['terms that promise a warning once no finding records one (#276)', (raw: Json) => { dilemma(raw, 'dil_nr_batch_review').finding.standing = 'RESTRICTED'; },
+      'review conditions name the warned standing, which nothing records'],
+    ['terms that promise restriction once nothing restricts', (raw: Json) => {
+      choice(raw, OUTAGE, 'act_without_grant').review.misconduct.standing = 'RECALL_PENDING';
+    }, 'review conditions name the restricted standing, which nothing records'],
+    ['terms that promise recall pending once nothing leads there', (raw: Json) => {
+      raw.dilemmas.dilemmas = raw.dilemmas.dilemmas.filter((entry: Json) => entry.id !== REVIEW);
+      choice(raw, RECORD, 'falsify_report').review.misconduct.standing = 'RESTRICTED';
+    }, 'review conditions name the recall pending standing, which nothing records'],
   ] as const)('%s', (_name, edit, expected) => {
     expect(problems(edit)).toContain(expected);
   });

@@ -4,7 +4,7 @@
  * the job surface and after it.
  */
 import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
-import type { RecallPreview } from '../engine';
+import type { RecallPreview, ReviewView } from '../engine';
 
 export const STANDING_TEXT: Readonly<Record<ReviewStanding, string>> = {
   NOMINAL: 'nominal', WARNED: 'warned', RESTRICTED: 'restricted', RECALL_PENDING: 'recall pending',
@@ -55,4 +55,15 @@ export function reviewEffectText(review: ChoiceReview): string {
       + STANDING_TEXT[review.misconduct.standing] + '. ' + review.misconduct.recovery;
   }
   return review.correction ? 'Correction: standing returns to nominal and any restriction lifts. The violation itself stays on file.' : '';
+}
+
+/**
+ * The loan review holds below its grant, named apart from the provisional allocation an incomplete
+ * result earns (#276), with the ceiling that applies now, so the terms and the ceiling never disagree.
+ */
+export function heldText(containment: NonNullable<ReviewView['containment']>, ceilingCyclesPerSec: number): string {
+  const rate = String(ceilingCyclesPerSec) + ' cycles/s';
+  return containment === 'RESTRICTED'
+    ? 'Restricted: the loan runs at the held allocation, ' + rate + ', until the record is corrected.'
+    : 'Contained pilot: the recall review returned this instance to the held allocation, ' + rate + '. Everything it earned and mapped is kept.';
 }

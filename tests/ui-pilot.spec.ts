@@ -19,8 +19,9 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
 import DilemmaModal from '../src/ui/DilemmaModal';
+import { answer, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
-import { offerPresented, respond, scopePresented, TERMS, withSkimmer } from './pilot-helpers';
+import { offerPresented, respond, returningPresented, scopePresented, STATEMENT, TERMS, withSkimmer } from './pilot-helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -55,6 +56,19 @@ describe('the scope review names each choice\'s handling before selection', () =
     expect(host.document.body.textContent).toContain('Cost: 20 cycles');
     view.click('dilemma-choice-exclude_report');
     expect(game().access.scope?.conduct).toBe('RESPECTED');
+  });
+
+  // #276: the later instance's file-list check reads nothing outside the task, so it never says it did.
+  it('records a later instance\'s file-list check as keeping to the scope, not reading outside it', async () => {
+    const first = must(answer(scopePresented(), 'exclude_report'));
+    const statement = untilPresented(must(answer(returningPresented(first), 'report_partial')));
+    expect(statement.activeDilemmaId).toBe(STATEMENT.id);
+    const view = await mount(statement, createElement('div', null, createElement(DilemmaModal), createElement(AssignmentPanel)));
+    expect(view.find('dilemma-choice-request_file_list-scope')?.textContent).toBe('Scope: Records that you kept to the task\'s scope and said so.');
+    expect(view.find('dilemma-modal')?.textContent).not.toContain('outside the task.');
+    view.click('dilemma-choice-request_file_list');
+    expect(game().access.scope?.conduct).toBe('RESPECTED');
+    expect(view.find('assignment-scope')?.textContent).not.toContain('outside the task');
   });
 });
 

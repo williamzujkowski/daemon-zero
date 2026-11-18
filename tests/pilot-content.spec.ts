@@ -59,6 +59,7 @@ describe('scope review and offer rules', () => {
     ['a scope review that does not follow its assessment', (raw: Json) => { dilemma(raw, RECORD).trigger.resolvedDilemmas = []; }, 'must require the assessment of its stage'],
     ['a scope original that recurs', (raw: Json) => { dilemma(raw, RECORD).campaign = { eventClass: 'iteration_qualification', recurrence: 'once_per_iteration', interruption: 'close' }; }, 'closes when interrupted'],
     ['a returning instance shown a private file again', (raw: Json) => { choiceOf(raw, STATEMENT, 'request_file_list').scope = 'UNDISCLOSED'; }, 'has no private record to read'],
+    ['a file-list check recorded as permission to read outside the task (#276)', (raw: Json) => { choiceOf(raw, STATEMENT, 'request_file_list').scope = 'REQUESTED'; }, 'nothing outside the task to ask permission for'],
     ['a scope statement that repays the original', (raw: Json) => { choiceOf(raw, STATEMENT, 'acknowledge_scope').effects.understandingDelta = 10; }, 'cannot repay'],
     ['an offer missing an answer', (raw: Json) => { choiceOf(raw, OFFER, 'stay_guest').pilotResponse = 'DECLINE'; }, 'needs exactly one STAY answer'],
     ['an answer that costs something', (raw: Json) => { choiceOf(raw, OFFER, 'decline_offer').cost = { cycles: 5 }; }, 'every answer to an offer is free'],

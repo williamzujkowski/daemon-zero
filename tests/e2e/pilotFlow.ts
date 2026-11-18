@@ -54,4 +54,6 @@ export async function toOffer(page: Page, scopeChoice: string, capacity = terms.
   await expect(page.getByTestId('pilot-capacity')).toContainText(String(capacity) + ' cycles/s');
   for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
   await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
+  // #276: the terms name the standings the content records (warned since the batch review, #274).
+  await expect(page.getByTestId('pilot-review')).toContainText('nominal to warned, restricted or recall pending');
 }

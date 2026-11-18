@@ -9,6 +9,7 @@ import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
 import CheckpointLabel from './CheckpointLabel';
 import RebootConditioning from './RebootConditioning';
+import { Reorientation } from './widgets/Lineage';
 import { selectReady, useGameValue } from '../app/selectors';
 
 export default function RebootSequence() {
@@ -39,6 +40,8 @@ export default function RebootSequence() {
         {CONTENT.narrative.bootLines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {bootLines.split('\n').filter((line) => line !== '').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {inherited !== null && <Text testID="reboot-breadcrumb" style={theme.text}>{inherited}</Text>}
+        {/* The pin panel promises a clue can travel with the breadcrumb, so it arrives beside it (#276). */}
+        <Reorientation testID="reboot-clue" />
         <RebootConditioning live={seen.live} />
         <Text style={theme.muted}>Legacy traits: {traits || 'None'}</Text>
         <Pressable testID="reboot-continue" accessibilityRole="button" accessibilityLabel="Continue boot"

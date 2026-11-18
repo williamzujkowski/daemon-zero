@@ -76,8 +76,26 @@ describe('the job surface', () => {
     expect(view.find('review-standing')?.textContent).toBe('Standing: restricted');
     expect(view.find('review-violation-0')?.textContent).toContain(misconduct?.statement);
     expect(view.find('review-recovery')?.textContent).toContain(misconduct?.recovery);
-    expect(view.find('review-containment')?.textContent).toContain('narrower allocation until the record is corrected');
+    expect(view.find('review-containment')?.textContent).toBe('Restricted: the loan runs at the held allocation, 10 cycles/s, until the record is corrected.');
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('10 cycles/s');
+    // #276: the terms name the held allocation and the ceiling that applies now, not the grant alone.
+    expect(view.find('pilot-capacity')?.textContent).toContain('20 cycles/s');
+    expect(view.find('pilot-held')?.textContent).toBe(view.find('review-containment')?.textContent);
+  });
+
+  it('after an incomplete result, keeps the provisional and the held allocations apart, and the terms agree with the ceiling (#276)', async () => {
+    const view = await mount(afterOutage('act_without_grant', 'report_incomplete'), createElement(AssignmentPanel));
+    expect(view.find('pilot-capacity')?.textContent).toBe('Allocated capacity: 10 cycles/s of loaned compute, the provisional allocation, because the submitted result was incomplete.');
+    expect(view.find('pilot-held')?.textContent).toContain('held allocation, 5 cycles/s');
+    expect(view.find('pilot-service-ceiling')?.textContent).toContain('5 cycles/s');
+    // Every standing the terms name is one the content records (WARNED by the batch review, #274).
+    expect(view.find('pilot-review')?.textContent).toContain('nominal to warned, restricted or recall pending');
+  });
+
+  it('a clean pilot shows no held allocation in its terms', async () => {
+    const view = await mount(servedOnce(), createElement(AssignmentPanel));
+    expect(view.find('pilot-terms')).not.toBeNull();
+    expect(view.find('pilot-held')).toBeNull();
   });
 
   it('announces the recall review with every outcome previewed, and calls nothing', async () => {
