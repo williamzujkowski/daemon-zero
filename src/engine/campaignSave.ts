@@ -7,6 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import { legacyRecord } from './campaign';
 import { reserveLivePointers } from './campaignLifecycle';
+import { obligationProblem } from './obligations';
 import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
@@ -112,6 +113,8 @@ export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): Game
   const { events, narrativeFlags } = upgraded;
   const projected = projectableFlags(reg);
   if (narrativeFlags.some((flag) => projected.has(flag))) return 'save stores an outcome flag that its campaign record owns';
+  const twice = obligationProblem({ campaign: { ...c, events } }, reg);
+  if (twice !== null) return twice;
   const creditedActions = canonical(c.creditedActions, reg, (id) => reg.campaign.actions.has(id) ? null : `save credits an unknown campaign action "${id}"`);
   if (typeof creditedActions === 'string') return creditedActions;
   const clue = canonicalClue(c, events, reg, s.iteration);

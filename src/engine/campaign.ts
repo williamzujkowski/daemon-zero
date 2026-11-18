@@ -67,6 +67,9 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
  * (content converted it since) keeps no source iteration.
  */
 export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
+  // A recovery review exists only under campaign rules, which record it when it resolves, so no
+  // legacy history can prove one; a bare resolved id never completes an obligation (H06).
+  if (event.campaign?.eventClass === 'recovery_review') return null;
   const current = s.resolvedDilemmas.includes(event.id);
   const held = event.choices.filter((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
   const exact = held.length === 1 ? held[0] : undefined;

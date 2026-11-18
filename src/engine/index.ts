@@ -26,6 +26,7 @@ export { activateCampaignRules } from './campaign';
 export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycle';
 export * from './campaignClue';
 export * from './campaignQuery';
+export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
 
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';

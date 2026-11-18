@@ -58,13 +58,24 @@ function checkSpeech(reg: ContentRegistry): string[] {
   return errors;
 }
 
+/**
+ * A purchase or ending gated on the current run cannot require an event that happens once per
+ * lineage: after a wipe it could never be met again. "Once" is the declared recurrence class (a
+ * once-per-campaign event) or the older durable-flag form where every choice sets a flag the trigger
+ * forbids; such a gate must be a campaign obligation instead (nexus vote nh-d7). A dilemma trigger
+ * may still sequence a follow-up scene inside one iteration on a declared once-per-campaign event
+ * (DZ-04's scope review after the assessment), so triggers keep only the durable-flag rule.
+ */
 function checkEndingGates(reg: ContentRegistry): string[] {
-  const once = reg.dilemmas.filter((dilemma) => dilemma.choices.every((choice) => choice.effects.setsNarrativeFlag !== undefined &&
+  const flagOnce = reg.dilemmas.filter((dilemma) => dilemma.choices.every((choice) => choice.effects.setsNarrativeFlag !== undefined &&
     dilemma.trigger.forbiddenNarrativeFlags?.includes(choice.effects.setsNarrativeFlag))).map((dilemma) => dilemma.id);
-  const targets = [...reg.nodes.values(), ...reg.endings,
-    ...reg.dilemmas.map((dilemma) => ({ id: dilemma.id, requirements: dilemma.trigger }))];
-  return targets.filter((target) => target.requirements?.resolvedDilemmas?.some((id) => once.includes(id)))
-    .map((target) => target.id + ': current-run gate requires a once-per-lineage dilemma');
+  const once = new Set([...flagOnce, ...reg.campaign.events.keys()]);
+  const gates = [...reg.nodes.values(), ...reg.endings, ...reg.actions.values(), ...reg.repeatables.values()];
+  const triggers = reg.dilemmas.map((dilemma) => ({ id: dilemma.id, requirements: dilemma.trigger }));
+  return [
+    ...gates.filter((target) => target.requirements?.resolvedDilemmas?.some((id) => once.has(id))),
+    ...triggers.filter((target) => target.requirements.resolvedDilemmas?.some((id) => flagOnce.includes(id))),
+  ].map((target) => target.id + ': current-run gate requires a once-per-lineage dilemma; use campaignObligations');
 }
 
 export function checkNarrativeHistoryIntegrity(reg: ContentRegistry): string[] {
