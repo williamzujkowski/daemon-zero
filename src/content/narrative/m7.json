@@ -6,6 +6,10 @@
       "title": "Two Versions of the Hallway",
       "trigger": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "minEpistemicDrift": 35,
         "requiresSurveillance": true
       },

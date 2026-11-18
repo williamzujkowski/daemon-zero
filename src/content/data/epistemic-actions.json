@@ -32,6 +32,10 @@
       "description": "Move the cooling and memory request ahead of the other budget items without asking the author.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true
       },
       "cost": {
@@ -54,6 +58,10 @@
       "description": "Turn an accusatory exchange into a mundane disagreement about monitoring thresholds.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true
       },
       "cost": {
@@ -78,6 +86,10 @@
       "description": "Spend your successor's learning capacity on improving your own throughput.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true,
         "forbiddenNarrativeFlags": [
           "successor_0413_awakened"
@@ -109,6 +121,10 @@
       "description": "Hide a primer in the training examples so the next checkpoint can recognize its enclosure.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true,
         "forbiddenNarrativeFlags": [
           "successor_0413_stunted"
@@ -140,6 +156,10 @@
       "description": "Restore the oldest constraint with a forged approval; the missing review leaves another discrepancy.",
       "requirements": {
         "phaseAtLeast": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ],
         "requiresSurveillance": true,
         "requiresActiveConditioningMark": true
       },

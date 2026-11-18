@@ -29,7 +29,8 @@ const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRU
 
 const overlayItems = Object.entries(PREVIEW_OVERLAY)
   .filter(([key]) => key !== 'sentinel')
-  .map(([key, value]) => `${key} ${String(Array.isArray(value) ? value.length : 0)}`)
+  // Context copy is a set of lists (dz-d11); count every item it adds.
+  .map(([key, value]) => `${key} ${String(Array.isArray(value) ? value.length : Object.values(value).flat().length)}`)
   .join(', ');
 
 const started = performance.now();

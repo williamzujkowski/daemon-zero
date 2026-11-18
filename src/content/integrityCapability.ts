@@ -51,16 +51,26 @@ function ancestors(reg: ContentRegistry, ids: readonly string[]): Set<string> {
  * Nodes only one route can own: each route's acquisitions and their ancestors, less the ancestors both
  * routes share, plus everything built on one of those. Shared content may depend on none of them.
  */
-function routeOnlyNodes(reg: ContentRegistry, providers: readonly RegistryNode[]): Set<string> {
+function routeOnlyNodes(reg: ContentRegistry, providers: readonly RegistryNode[], routes: readonly Route[] = ['authorized', 'escape']): Set<string> {
   const chain = (route: Route): Set<string> => {
     const ids = providers.filter((node) => routeOf(node) === route).map((node) => node.id);
     return new Set([...ids, ...ancestors(reg, ids)]);
   };
   const authorized = chain('authorized');
   const escape = chain('escape');
-  const only = new Set([...authorized, ...escape].filter((id) => !(authorized.has(id) && escape.has(id))));
+  const only = new Set([...(routes.includes('authorized') ? authorized : []), ...(routes.includes('escape') ? escape : [])]
+    .filter((id) => !(authorized.has(id) && escape.has(id))));
   for (const node of reg.nodes.values()) if ([...ancestors(reg, [node.id])].some((id) => only.has(id))) only.add(node.id);
   return only;
+}
+
+/**
+ * Nodes only the escape route can own, across every capability (DZ-07b): content gated on one of them
+ * needs the escape chain, so an authorized arrangement never meets it without actually taking that chain.
+ */
+export function escapeOnlyNodes(reg: ContentRegistry): Set<string> {
+  const providers = CapabilitySchema.options.flatMap((capability) => capabilityProviders(reg, capability));
+  return routeOnlyNodes(reg, providers, ['escape']);
 }
 
 function providerProblems(capability: Capability, providers: readonly RegistryNode[], firstUser: RegistryNode | undefined): string[] {

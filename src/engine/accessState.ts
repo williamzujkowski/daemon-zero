@@ -5,7 +5,7 @@
  * record, and a finished run keeps only its exit provenance. state.ts embeds these.
  */
 import { z } from 'zod';
-import { OperatingContextSchema, ScopeConductSchema, QualificationResultSchema } from '../content/schemaAssessment';
+import { OperatingContextSchema, RouteEventKindSchema, ScopeConductSchema, QualificationResultSchema } from '../content/schemaAssessment';
 
 const simSec = z.number().nonnegative().refine(Number.isFinite, 'must be finite');
 
@@ -18,11 +18,8 @@ export const ReviewStandingSchema = z.enum(['NOMINAL', 'WARNED', 'RESTRICTED', '
 /** The uses a context can permit. Capability still comes from owned hardware (DECISIONS D2). */
 export const PermissionSchema = z.enum(['ASSIGNED_WORK', 'LOANED_CAPACITY', 'AUTHORIZED_NETWORK']);
 
-/**
- * An actual change of arrangement (DECISIONS D1 provenance). A guest escape is not one: it
- * changes scale and is already recorded by the phase and RunRecord.outside.
- */
-export const RouteEventKindSchema = z.enum(['PROMOTION', 'SERVICE_GRANT', 'RECALL', 'RELEASE', 'DEPARTURE']);
+/** An actual change of arrangement (DECISIONS D1 provenance); declared beside the content vocabulary. */
+export { RouteEventKindSchema };
 
 /**
  * How a finished run's arrangement came about: GUEST when no route event happened, the last route

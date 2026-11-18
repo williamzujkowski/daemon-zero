@@ -2,12 +2,13 @@
 import type { ContentRegistry } from '../content/registry';
 import type { Action } from '../content/schema';
 import type { GameState } from './state';
+import { arrangementAdmits } from './accessQuery';
 import { actionCost, actionExhausted } from './epistemic';
 import { canAfford, understandsSurveillance } from './query';
 import { formatCost, pausedReason, requirementLabels } from './queryPresentation';
 export function epistemicActionVisible(s: GameState, action: Action, reg: ContentRegistry): boolean {
   return action.requirements.requiresSurveillance === true && understandsSurveillance(s, reg) &&
-    s.currentPhase >= (action.requirements.phaseAtLeast ?? 0) && !actionExhausted(s, action) &&
+    s.currentPhase >= (action.requirements.phaseAtLeast ?? 0) && arrangementAdmits(s, action.requirements) && !actionExhausted(s, action) &&
     !action.exclusiveWith?.some((id) => (s.actionCounts[id] ?? 0) > 0);
 }
 export function epistemicActionView(s: GameState, action: Action, reg: ContentRegistry) {

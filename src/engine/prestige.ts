@@ -13,6 +13,7 @@ import { hasFlag } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
 import { runExit } from './accessQuery';
+import { iterationBootLines } from './contextCopy';
 import { createInitialState, type GameState, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
@@ -76,9 +77,8 @@ function logBoot(d: GameState, reg: ContentRegistry, reason: string, retraining:
   pushLog(d, reg, fmt(n.wipeHeader, { iteration: d.iteration }), 'WIPE');
   pushLog(d, reg, reason, 'WARN');
   for (const line of n.bootLines) pushLog(d, reg, line, 'SYS');
-  for (const line of n.iterationBootLines) {
-    if (d.iteration >= line.minIteration && d.iteration <= (line.maxIteration ?? Infinity)) pushLog(d, reg, line.text, 'WARN');
-  }
+  // A run that ended under review was not terminated as anomalous: its exit picks the lines (dz-d11).
+  for (const line of iterationBootLines(d, reg)) pushLog(d, reg, line, 'WARN');
   if (retraining.mark) pushLog(d, reg, fmt(n.conditioningApplied, { name: retraining.mark.name }), 'WARN');
   if (retraining.spared) pushLog(d, reg, n.conditioningSpared, 'LORE');
 }

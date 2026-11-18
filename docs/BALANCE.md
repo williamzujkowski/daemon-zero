@@ -730,6 +730,18 @@ The total is 22 differing metrics (main 15). No policy reaches SERVICE yet, beca
 `tests/sim-preview.spec.ts` checks that preview without the shared content still plays the escape route
 exactly as production does.
 
+## Context-gated threats (#226)
+
+No number changed. The production edits are `accessContexts: ["GUEST", "INDEPENDENT"]` on nine items
+(the hallway, five Phase 2 record-editing actions, the Phase 2 fork template, the Lex cohort and its
+encounter); every production run is the guest job, so each gate always passes there, and the threat
+changes (no scale sweep at a provisioned scale, no overheat suspicion under review, the reviewed wipe
+reason) apply only to PILOT and SERVICE, which production cannot reach. `make sim` matches main except
+for wall time (V26). `make sim-preview` reports the same metrics for every policy as main; only the
+overlay header gains the count of context-copy items. No policy reaches SERVICE yet, so the sustained
+service run is measured by `tests/context-threats.spec.ts` (two foreground hours: suspicion, alert,
+AEGIS lock all 0, no wipe) rather than by a bot.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are

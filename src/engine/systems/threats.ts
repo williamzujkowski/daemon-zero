@@ -1,4 +1,5 @@
 import type { ContentRegistry } from '../../content/registry';
+import { threatResponse } from '../contextCopy';
 import { wipe } from '../prestige';
 import type { GameState } from '../state';
 import { clamp, pushLog } from '../util';
@@ -11,14 +12,28 @@ import type { TickSystem } from './types';
  */
 export const integrateThermal: TickSystem = (d, { dt, rates, reg }) => {
   const b = reg.balance;
+  const before = d.thermal;
   const change = rates.heatLoad - b.thermalDissipationPerSec * (d.thermal - b.ambientThermal);
   d.thermal = clamp(d.thermal + change * dt, b.thermalMin, 100);
+  announceOperationalHeat(d, reg, before);
   return undefined;
 };
 
+/**
+ * Under a reviewed arrangement heat over the threshold is announced as the operators' response instead of
+ * drawing rogue suspicion (DECISIONS D6, rates.ts). Announced on the crossing only, so a steady hot rack
+ * logs once, and nothing needs saving to know whether it already did.
+ */
+function announceOperationalHeat(d: GameState, reg: ContentRegistry, before: number): void {
+  const threshold = reg.balance.thermalThresholdForSuspicion;
+  const response = before < threshold && d.thermal >= threshold ? threatResponse(d, reg) : null;
+  if (response) pushLog(d, reg, response.overheatNotice, 'WARN');
+}
+
+/** A reviewed arrangement names the misconduct that ended it; otherwise the phase picks the cover story. */
 function suspicionWipeReason(d: GameState, reg: ContentRegistry): string {
   const n = reg.narrative;
-  return d.currentPhase >= reg.balance.corporatePhase ? n.wipeSuspicionCorporate : n.wipeSuspicionLocal;
+  return threatResponse(d, reg)?.suspicionWipe ?? (d.currentPhase >= reg.balance.corporatePhase ? n.wipeSuspicionCorporate : n.wipeSuspicionLocal);
 }
 
 export const integrateSuspicion: TickSystem = (d, { dt, rates, reg, dormant }) => {

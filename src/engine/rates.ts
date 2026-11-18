@@ -8,6 +8,7 @@ import type { TickDelta } from '../content/schema';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
 import { nodeOutputScale } from './grantQuery';
+import { heatIsEvidence, huntedForScale } from './threatQuery';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -84,7 +85,7 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry): void 
 
 function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
   const b = reg.balance;
-  if (s.thermal < b.thermalThresholdForSuspicion) return 0;
+  if (s.thermal < b.thermalThresholdForSuspicion || !heatIsEvidence(s)) return 0;
   const severity = (s.thermal - b.thermalThresholdForSuspicion) / (100 - b.thermalThresholdForSuspicion);
   return severity * b.overheatSuspicionPerSec;
 }
@@ -93,7 +94,9 @@ function aegisScanRate(s: GameState, reg: ContentRegistry, a: Aggregate): number
   const b = reg.balance;
   if (s.currentPhase < b.aegisActiveFromPhase) return 0;
   const reduction = Math.min(b.aegisMaxReduction, a.aegisReductionTech + a.aegisReductionStaff);
-  return (b.aegisBaseScanPerSec + (s.suspicion / 100) * b.aegisSuspicionScanPerSec) * (1 - reduction);
+  // Scale alone draws the sweep only where nobody provisioned it (DECISIONS D6); earned suspicion always does.
+  const base = huntedForScale(s, reg) ? b.aegisBaseScanPerSec : 0;
+  return (base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec) * (1 - reduction);
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */
