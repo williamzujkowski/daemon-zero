@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema, ChoiceEvidenceSchema } from './schemaCampaign';
-import { AssignmentRequirementSchema, ChoiceQualificationSchema } from './schemaAssessment';
+import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -109,6 +109,10 @@ export const RequirementsSchema = z.strictObject({
    */
   traitFallback: z.strictObject({ forbidsTraits: z.array(TraitSchema).min(1), whileFact: snakeId }).optional(),
   assignment: AssignmentRequirementSchema.optional(),
+  /** Met while this instance qualifies for its accepted assignment's pilot, on evidence alone (DZ-04). */
+  pilotEligible: z.literal(true).optional(),
+  /** Met only under one of these arrangements. Every production run is the guest job. */
+  accessContexts: z.array(OperatingContextSchema).min(1).optional(),
 });
 
 /**
@@ -242,6 +246,10 @@ export const DilemmaChoiceSchema = z.strictObject({
    */
   requirements: RequirementsSchema.optional(),
   qualification: ChoiceQualificationSchema.optional(),
+  /** A scope review's choice: how it handles data outside the task (DZ-04). */
+  scope: ScopeConductSchema.optional(),
+  /** A pilot offer's choice: the answer it gives (DZ-04). */
+  pilotResponse: PilotResponseSchema.optional(),
 });
 
 export const DilemmaSchema = z.strictObject({

@@ -41,6 +41,9 @@ export const REQUIREMENT_SCOPES = {
   traitFallback: 'context',
   // An accepted assignment is this instance's: a wipe resets it, so the occurrence it led to is interrupted.
   assignment: 'access',
+  // Pilot evidence and the arrangement are this instance's, and reset with it.
+  pilotEligible: 'access',
+  accessContexts: 'access',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

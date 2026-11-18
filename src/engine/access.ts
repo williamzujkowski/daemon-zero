@@ -38,7 +38,8 @@ export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: Conten
   const event = { kind, iteration: s.iteration, atSimSec: s.simTimeSec };
   return { ok: true, state: { ...s,
     // An accepted assignment is a fact of this iteration's work and outlives the arrangement change.
-    access: { ...s.access, context, standing: 'NOMINAL', exception: null, qualification: holdsQualification(context) ? s.access.qualification : null },
+    access: { ...s.access, context, standing: 'NOMINAL', exception: null,
+      qualification: holdsQualification(context) ? s.access.qualification : null, scope: holdsQualification(context) ? s.access.scope : null },
     campaign: { ...s.campaign, route: [...s.campaign.route, event] } } };
 }
 

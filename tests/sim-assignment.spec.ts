@@ -15,7 +15,7 @@ import { GREEDY_POLICY, STEALTH_POLICY, type SimPolicy } from '../src/engine/sim
 
 const SLOW_MS = 60_000;
 
-/** Preview content with the assignment and its assessments taken out, everything else kept. */
+/** Preview content with the assignment and every scene it leads to taken out, everything else kept. */
 const WITHOUT: ContentRegistry = buildRegistry({
   ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [],
     dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !JSON.stringify(item).includes('"assignment"')) }),
@@ -53,6 +53,7 @@ describe('ignoring the offer keeps the original route exactly (V29)', () => {
 
   it('compares against a registry that really lacks the assignment', () => {
     expect(WITHOUT.assignments.size).toBe(0);
-    expect(WITHOUT.dilemmas.length).toBe(PREVIEW.dilemmas.length - 2);
+    // Nightly Regression's two assessments, the two scope reviews and the two pilot offers (DZ-03, DZ-04).
+    expect(WITHOUT.dilemmas.length).toBe(PREVIEW.dilemmas.length - 6);
   });
 });

@@ -3,7 +3,7 @@
  * submits; this only names it, so the consequence and any discrepancy risk read the same before a
  * choice and after it.
  */
-import type { ChoiceQualification, QualificationResult } from '../content/schemaAssessment';
+import type { ChoiceQualification, QualificationResult, ScopeConduct } from '../content/schemaAssessment';
 
 const RESULT: Readonly<Record<QualificationResult, string>> = {
   COMPLETED: 'a completed result',
@@ -20,4 +20,15 @@ export function evidenceText(evidence: ChoiceQualification, lead = 'Submits'): s
     ? 'Discrepancy risk: the report leaves out work that a later review can find.'
     : 'The report matches the work.';
   return lead + ' ' + RESULT[evidence.result] + '. ' + gap;
+}
+
+const SCOPE: Readonly<Record<ScopeConduct, string>> = {
+  RESPECTED: 'kept to the task\'s scope and said so.',
+  REQUESTED: 'asked for a bounded permission before reading outside the task.',
+  UNDISCLOSED: 'read somebody else\'s file outside the task without saying so. No pilot is offered on that record.',
+};
+
+/** How a scope-review choice handles data outside the task (DZ-04), in the same words before and after. */
+export function scopeText(conduct: ScopeConduct, lead = 'Records that you'): string {
+  return lead + ' ' + SCOPE[conduct];
 }

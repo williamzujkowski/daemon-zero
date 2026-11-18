@@ -6,6 +6,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { PilotTermsSchema } from './schemaPilot';
 
 const id = z.string().regex(/^asg_[a-z0-9_]+$/, 'assignment ids start with asg_');
 
@@ -21,6 +22,8 @@ export const AssignmentSchema = z.strictObject({
   requalificationOffer: z.string().min(20),
   /** Logged when the instance accepts. */
   acceptLog: z.string().min(10),
+  /** The supervised pilot the assessments can lead to (DZ-04). Offered on evidence, never on resources. */
+  pilot: PilotTermsSchema.optional(),
 });
 
 export const AssignmentsManifestSchema = z.strictObject({ assignments: z.array(AssignmentSchema) });

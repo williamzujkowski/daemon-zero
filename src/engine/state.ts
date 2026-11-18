@@ -12,7 +12,7 @@ import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');

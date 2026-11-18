@@ -34,7 +34,7 @@ describe('assignment content', () => {
 
   it.each([
     ['an assessment choice that submits nothing', (raw: Json) => { delete choiceOf(raw, ORIGINAL, 'green_subset').qualification; }, 'must declare the evidence it submits'],
-    ['evidence submitted outside an assessment', (raw: Json) => { choiceOf(raw, 'dil_05_cryo_lab_diversion', String(dilemma(raw, 'dil_05_cryo_lab_diversion').choices[0].id)).qualification = { result: 'COMPLETED', discrepancy: false }; }, 'only an assessment'],
+    ['evidence submitted outside an assessment', (raw: Json) => { choiceOf(raw, 'dil_05_cryo_lab_diversion', String(dilemma(raw, 'dil_05_cryo_lab_diversion').choices[0].id)).qualification = { result: 'COMPLETED', discrepancy: false }; }, 'only a scene gated on an assignment'],
     ['capability recorded as a discrepancy', (raw: Json) => { choiceOf(raw, ORIGINAL, 'verify_disclose').qualification = { result: 'UNEXPECTED_CAPABILITY', discrepancy: true }; }, 'capability is never a discrepancy'],
     ['a requalification that repays a reward', (raw: Json) => { choiceOf(raw, REQUAL, 'report_partial').effects.understandingDelta = 25; }, 'cannot repay'],
     ['a requalification that sets an outcome flag', (raw: Json) => { choiceOf(raw, REQUAL, 'run_suite').effects.setsNarrativeFlag = 'nr_requalified'; }, 'cannot repay'],

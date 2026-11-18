@@ -9,6 +9,7 @@ import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epis
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
 import { endingEvidence } from './campaignQuery';
+import { withheldByGrant } from './pilotQuery';
 export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
@@ -118,6 +119,7 @@ export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): b
 export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
   if (s.unlockedNodes.includes(node.id)) return false;
   if (!node.prerequisites.every((id) => s.unlockedNodes.includes(id))) return false;
+  if (reg && withheldByGrant(s, node.id, reg)) return false;
   return meetsRequirements(s, node.requirements, reg);
 }
 

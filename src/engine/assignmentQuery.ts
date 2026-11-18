@@ -9,9 +9,13 @@ import type { AssessmentStage, AssignmentRequirement } from '../content/schemaAs
 import { campaignRecord } from './campaignQuery';
 import type { GameState } from './state';
 
-/** The assessment dilemma content declares for an assignment at a stage (integrity guarantees one). */
+/**
+ * The task assessment content declares for an assignment at a stage (integrity guarantees one): the
+ * scene whose choices submit qualification evidence, not the scope review or the offer after it.
+ */
 export function assessmentOf(reg: ContentRegistry, assignmentId: string, stage: AssessmentStage): Dilemma | undefined {
-  return reg.dilemmas.find((dilemma) => dilemma.trigger.assignment?.id === assignmentId && dilemma.trigger.assignment.stage === stage);
+  return reg.dilemmas.find((dilemma) => dilemma.trigger.assignment?.id === assignmentId && dilemma.trigger.assignment.stage === stage
+    && dilemma.choices.some((choice) => choice.qualification !== undefined));
 }
 
 /**
