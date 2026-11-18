@@ -389,24 +389,16 @@ you claim the live site works.
 
 ### Driving the live site through Playwright MCP
 
-The repository's `.mcp.json` lets the Playwright MCP server reach only `localhost:8081` and
-`localhost:8088`, and that default stays as it is. To look at the published site through MCP,
-use a configuration your task owns, in a directory of your own, and start your agent with it.
-For Claude Code:
+The repository's `.mcp.json` lets the Playwright MCP server reach the local dev and test
+servers (`localhost:8081`, `8088`, `8089`) and the published site,
+`https://williamzujkowski.github.io` (the maintainer asked for the live site to be reachable,
+2026-11-18). Nothing else is reachable, so a page that tries to fetch from another origin fails
+visibly instead of passing silently.
 
-```bash
-dir=$(mktemp -d)
-cat > "$dir/mcp-live.json" <<'JSON'
-{ "mcpServers": { "playwright-live": { "command": "npx", "args": [
-  "-y", "@playwright/mcp@0.0.85", "--browser", "chrome", "--isolated",
-  "--allowed-origins", "https://williamzujkowski.github.io", "--snapshot-mode", "none" ] } } }
-JSON
-claude --mcp-config "$dir/mcp-live.json"
-```
-
-Other harnesses have an equivalent per-session option. Keep `--isolated`, so the browser
-profile is fresh and thrown away: the live site's origin may hold a player's real save in any
-profile that has visited it. Do not commit the override or widen `.mcp.json`.
+Keep `--isolated`: the browser profile is fresh and thrown away, which matters because the live
+site's origin may hold a player's real save in any profile that has visited it. An MCP session
+started before this change keeps the old allowlist until the server restarts (in Claude Code,
+`/mcp` and reconnect `playwright`, or start a new session).
 
 ## Live journey
 
