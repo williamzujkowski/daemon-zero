@@ -71,6 +71,9 @@ test('the session appears only after the first gesture, survives READ, obeys its
   await gesture(page);
   await expect.poll(async () => (await session(page)).state).toBe('playing');
   await openAudio(page);
+  // The session can report `playing` before the Audio page's status text names the phase;
+  // wait for the text rather than reading it once (a NaN here failed CI on 2026-11-18).
+  await expect.poll(() => phaseOf(page)).not.toBeNaN();
   const phase = await phaseOf(page);
   await page.getByTestId('menu-close').click();
   const playing = await session(page);
