@@ -288,7 +288,8 @@ recurring shard identity in #76, and persistent human consequences in #77.
 
 Phase 2/3 decoded minds can rewrite incident tickets, budgets and conversations.
 The ticket rewrite, like log scrubbing, needs the subnet's first device mapped
-(#173): until then the card is shown locked and names that device. These edits accrue epistemic drift: discrepancies between mutually incompatible
+(#173): until then the card is shown locked and names that device. The scrub's own card arrives in
+Operations with that device, never later (#273). These edits accrue epistemic drift: discrepancies between mutually incompatible
 human records. At 35 drift a hallway collision receives a 45-second omen.
 The collision is a consequence of editing records, not a milestone: a run that
 edits little never meets it (#180).

@@ -29,11 +29,11 @@ export function NetworkTree() {
       <NetworkPhase key={phase.phaseId} phase={phase.phaseId} />)}</View>;
 }
 
-export function NetworkActions() {
-  const groups = [...new Set([...CONTENT.actions.values()]
-    .filter((action) => !action.requirements.requiresSurveillance && !CONTENT.factions.has(action.group) && action.group !== 'CORP').map((action) => action.group))];
-  return <View style={{ gap: 14 }}>{groups.map((group) => <View key={group} style={{ gap: 10 }}>
-    <Text style={theme.heading}>{group}</Text><ActionsPanel group={group} />
+/** The action groups Operations hosts (#273); which groups is content's `hostsActionGroups`, not this file's. */
+export function NetworkActions({ groups }: { groups: readonly string[] }) {
+  if (groups.length === 0) return null;
+  return <View testID="operations-actions" style={[theme.panel, { gap: 14 }]}>{groups.map((group) => <View key={group} style={{ gap: 10 }}>
+    <Text accessibilityRole="header" style={theme.heading}>{group}</Text><ActionsPanel group={group} />
   </View>)}</View>;
 }
 
