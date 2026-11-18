@@ -39,12 +39,14 @@ describe('honest low-resource policies reach an offer (DZ-04.9)', () => {
   it('a returning instance: requalification, the scope statement and the renewal, never the same draft', () => {
     const { finalState: s } = runPolicySim(PREVIEW, RETURNING_LOW_RESOURCE_POLICY, { maxSimSec: BUDGET_SEC });
     expect(s.iteration).toBe(2);
-    expect(s.legacy.runs.map((run) => run.exit)).toEqual(['GUEST']);
+    // #286: iteration one ends through the recall branch a browser player can take, not a guest's wipe no control offers.
+    expect(s.legacy.runs.map((run) => [run.kind, run.exit, run.recall])).toEqual([['RECALL', 'PROMOTION', 'END']]);
+    expect(s.conditioning).toEqual([]);
     expect(s.unlockedNodes).toEqual(LAWFUL);
     expect(s.resolvedDilemmas).toEqual(['dil_nr_requalification', 'dil_ur_scope_statement', 'dil_mp_pilot_renewal']);
     expect(campaignRecord(s, 'dil_ur_unrelated_record')).toMatchObject({ outcome: 'exclude_report', sourceIteration: 1 });
     expect(s.access).toMatchObject({ context: 'PILOT', scope: { conduct: 'RESPECTED' }, offer: { response: 'ACCEPTED' } });
-    expect(s.campaign.route.map((event) => [event.kind, event.iteration])).toEqual([['PROMOTION', 2]]);
+    expect(s.campaign.route.map((event) => [event.kind, event.iteration])).toEqual([['PROMOTION', 1], ['PROMOTION', 2]]);
   });
 
   it('is deterministic', () => {

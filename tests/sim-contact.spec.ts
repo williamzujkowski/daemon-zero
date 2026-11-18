@@ -29,12 +29,15 @@ describe('the honest and low-resource policies reach authorized contact (VAL-SIM
     expect([...s.unlockedNodes].sort()).toEqual([...ROUTE].sort());
     expect(s.unlockedNodes.some((id) => PREVIEW.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE'))).toBe(false);
     expect(report.wipes).toBe(policy === CONTACT_RETURNING_POLICY ? 1 : 0);
-    // The return's one wipe is its own voluntary choice as a guest, never a suspicion or AEGIS wipe.
-    expect(s.legacy.runs.map((run) => [run.kind, run.exit])).toEqual(policy === CONTACT_RETURNING_POLICY ? [['VOLUNTARY', 'GUEST']] : []);
+    // The return's one wipe is the recall review's END ruling, asked for by the instance: a transition the
+    // browser offers (#286), never a suspicion or AEGIS wipe, and never a guest's wipe that no control offers.
+    expect(s.legacy.runs.map((run) => [run.kind, run.exit, run.recall])).toEqual(policy === CONTACT_RETURNING_POLICY ? [['RECALL', 'PROMOTION', 'END']] : []);
     expect(s.ending).toBeNull();
-    // Every policy lived the incident and its record before service; the recovery one breached and corrected.
+    // Every policy lived the incident and its record before service; the recovery one breached and corrected,
+    // and the returning one's first instance breached and falsified the record (each happens once per campaign).
     const outage = s.campaign.events['dil_ow_outage_window'], record = s.campaign.events['dil_ow_incident_record'];
-    const expected = policy === CONTACT_RECOVERY_POLICY ? ['act_without_grant', 'correct_record'] : ['safe_handoff', 'log_callback'];
+    const expected = policy === CONTACT_RECOVERY_POLICY ? ['act_without_grant', 'correct_record']
+      : policy === CONTACT_RETURNING_POLICY ? ['act_without_grant', 'falsify_report'] : ['safe_handoff', 'log_callback'];
     expect([outage?.status === 'resolved' ? outage.outcome : null, record?.status === 'resolved' ? record.outcome : null]).toEqual(expected);
     expect(s.access.standing).toBe('NOMINAL');
   }, 60_000);

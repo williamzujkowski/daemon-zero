@@ -689,12 +689,15 @@ honest incomplete one (or once a batch review finds a withheld result, #274 belo
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
 introspection and the manifest: `TRUTHFUL_THOROUGH` verifies, asks for the bounded excerpt and accepts
 the full 20 cycles/s pilot at 210.6 s; `TRUTHFUL_LOW_RESOURCE` reports incomplete, respects scope and
-accepts the narrow 10 cycles/s pilot at 118.6 s; `RETURNING_LOW_RESOURCE` stays a guest at the first
-offer, wipes at 119.6 s, and accepts the renewal in iteration 2 at 193.2 s (73.6 s into the iteration).
+accepts the narrow 10 cycles/s pilot at 118.6 s; `RETURNING_LOW_RESOURCE` accepts it too, is recalled
+(breach, false report, then "Ask to end this instance instead") and its iteration ends at 420.9 s, and it
+accepts the renewal in iteration 2 at 494.2 s (73.3 s into the iteration). Until #286 it stayed a guest
+and wiped voluntarily at 119.6 s, a transition no control offers at Phase 0 (the dead drop arrives in
+Phase 2); renewal then came 73.6 s into iteration 2.
 The truthful policies now answer the scope review and the offer as well (before this they would wait
 at the scope review with the clock frozen). `make sim-preview`: STEALTH, GREEDY and IDLE 0 of 19
 metrics different; TRUTHFUL_THOROUGH 2, TRUTHFUL_LOW_RESOURCE 3, RETURNING_LOW_RESOURCE 4 (one wipe,
-three dilemmas, 4.8 s of frozen clock, lower peak thermal), all by the route itself.
+three dilemmas, 7.8 s of frozen clock since #286, 4.8 s before; lower peak thermal), all by the route itself.
 
 ## The supervised pilot loop (#223)
 
@@ -808,17 +811,21 @@ labelled fixture.
 
 Headless (accelerated simulated time, `make sim-preview`, `tests/sim-contact.spec.ts`), from a fresh preview
 game, budget 3600 s; every policy owns exactly process introspection, the manifest, the loaned queue, the
-segment and the directory, and lived the Outage Window and its record before service:
+segment and the directory, and lived the Outage Window and its record before service (RETURNING in its first
+instance, as each happens once per campaign):
 
 | Policy | Iteration | Pilot | Service | Phase 2 | Contact | Answer | Wipes |
 |---|---:|---:|---:|---:|---:|---|---:|
 | CONTACT_THOROUGH | 1 | 210.6 s | 378.8 s | 380.8 s | 381.8 s | REFERRED (48 MB free) | 0 |
 | CONTACT_LOW_RESOURCE | 1 | 118.6 s | 421.8 s | 423.8 s | 424.8 s | REFERRED | 0 |
-| CONTACT_RETURNING | 2 | 193.2 s | 496.4 s | 498.4 s | 499.4 s | REFERRED | 1 (voluntary, as a guest) |
+| CONTACT_RETURNING | 2 | 494.2 s | 798.2 s | 800.2 s | 801.2 s | REFERRED | 1 (recall, END ruling) |
 | CONTACT_RECOVERY | 1 | 118.6 s | 436.8 s | 438.8 s | 439.8 s | REFERRED | 0 |
 
 RECOVERY restarted the outage without the grant, was restricted with the loan narrowed, corrected the record
-and was granted service 15 s after LOW_RESOURCE. The contact follows the directory by one tick because the
+and was granted service 15 s after LOW_RESOURCE. RETURNING's first instance is recalled at 420.9 s through
+the recall branch a browser player can take (#286); its second instance reaches contact 380.3 s after its
+reboot (379.8 s when it wiped as a guest at 119.6 s, contact 499.4 s, before #286), with 20 batches instead
+of 22 because the Outage Window does not recur. The contact follows the directory by one tick because the
 encounter clock (120 s from the run's start) has long elapsed by then.
 
 ## The authorized network substrate (#225)

@@ -942,7 +942,9 @@ still loads.
 
 **Sim.** The truthful policies (#252) now also answer a scope review honestly (respect or ask) and
 accept an offer made on that evidence. `RETURNING_LOW_RESOURCE` (`src/engine/sim/returningPolicy.ts`)
-plays `TRUTHFUL_LOW_RESOURCE` across one wipe, staying a guest at the first offer. The fresh and the
+plays `TRUTHFUL_LOW_RESOURCE` across one wipe. Since #286 that wipe is the recall review's END ruling
+after a breach and a false report, a transition the browser offers; it used to stay a guest and call
+`voluntaryWipe` at Phase 0, where no control exists (`tests/sim-reachable.spec.ts`). The fresh and the
 returning low-resource policies both reach and accept an offer from the lawful opening (DZ-04.9,
 `tests/sim-pilot.spec.ts`).
 

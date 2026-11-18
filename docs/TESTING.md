@@ -61,7 +61,14 @@ different one.
   pilot, hold a 0.8 service share, submit each batch, accept the service grant, buy only the grant nodes
   offered to the arrangement and what the support channel requires, and answer the channel (THOROUGH hosts
   when it has the memory, the rest refer). RECOVERY takes the outage's restricting breach and then the
-  correction. All four reach the first authorized contact from a fresh preview game on lawful sources only
+  correction. RETURNING_LOW_RESOURCE (#286) ends its first instance through the recall branch, the way DZ-09
+  part B played it on screen: it accepts and serves the pilot, takes the outage's restricting breach and
+  the record's false report, and at the recall review asks to end the instance (the END ruling, no
+  retraining). It once wiped voluntarily as a guest at Phase 0, which no control offers.
+  `tests/sim-reachable.spec.ts` records every engine transition each committed policy calls (STEALTH and
+  GREEDY included, measured and unchanged) and requires a control on screen in that state: the voluntary
+  wipe only with the dead drop unlocked, the swarm controls only in the decoded mind's tools, the rest
+  whenever the engine accepts them; an engine function a sim module imports that no rule classifies fails. All four reach the first authorized contact from a fresh preview game on lawful sources only
   (VAL-SIM, `tests/sim-contact.spec.ts`); `make sim-preview` prints their route times. `pilotPolicy.ts`
   exports its unchanged `serve` step for them.
 
