@@ -92,10 +92,14 @@ export interface Alignment {
 /**
  * Where a capture sits in a reference, by normalised cross-correlation of the capture's loudest
  * window against every offset within `search` samples of `expected`. Normalising makes the
- * answer independent of the gain the player applied, which is the thing measured afterwards.
+ * answer independent of the gain the player applied, which is the thing measured afterwards -
+ * as long as that gain is constant across the window. A capture that holds a deliberate gain
+ * change (a duck, a fade) passes `within`, a stretch where the gain is held, so the window
+ * cannot straddle the ramp (#293: a 170 ms window on the tail of a duck-up read 0.995).
  */
-export function align(capture: Samples, reference: Samples, expected: number, search: number, width = 8192): Alignment {
-  const at = loudestWindow(capture, Math.min(width, capture.length));
+export function align(capture: Samples, reference: Samples, expected: number, search: number, width = 8192,
+  within: { from: number; to: number } = { from: 0, to: capture.length }): Alignment {
+  const at = loudestWindow(capture, Math.min(width, within.to - within.from), within.from, within.to);
   const size = Math.min(width, capture.length - at);
   let captureEnergy = 0;
   for (let index = 0; index < size; index++) captureEnergy += (capture[at + index] ?? 0) ** 2;

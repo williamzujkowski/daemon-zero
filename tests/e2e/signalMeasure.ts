@@ -20,14 +20,17 @@ const LEAD_SECONDS = 0.5;
 
 export interface Matched extends Alignment { signal: Float32Array; reference: Float32Array; envelope: Float64Array; asset: string }
 
-/** Match a capture against a committed file: by default the one its element was built from. */
-export async function matched(page: Page, capture: Capture, asset = assetPath(capture.source)): Promise<Matched> {
+/**
+ * Match a capture against a committed file: by default the one its element was built from.
+ * `within` keeps the alignment window inside a stretch of held gain (see `align`).
+ */
+export async function matched(page: Page, capture: Capture, asset = assetPath(capture.source), within?: { from: number; to: number }): Promise<Matched> {
   if (!capture.audible) throw new Error('Nothing but zeros was captured from ' + capture.source);
   const signal = mono(capture.left, capture.right);
   const startsAt = capture.audible.mediaSeconds - (capture.audible.frame - capture.startFrame) / SAMPLE_RATE;
   const from = Math.max(0, startsAt - LEAD_SECONDS);
   const samples = await reference(page, asset, from, signal.length / SAMPLE_RATE + 2 * LEAD_SECONDS);
-  const found = align(signal, samples, Math.round((startsAt - from) * SAMPLE_RATE), SEARCH);
+  const found = align(signal, samples, Math.round((startsAt - from) * SAMPLE_RATE), SEARCH, undefined, within);
   return { ...found, signal, reference: samples, envelope: gainEnvelope(signal, samples, found.offset, BLOCK), asset };
 }
 

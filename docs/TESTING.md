@@ -86,10 +86,12 @@ different one.
   campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`), and
   `tests/sim-reachable.spec.ts` finds a control on screen for every transition they call, the release included.
   Since panel round 1 on #292 that spec also checks every dial value against what its rendered control can
-  dispatch (`src/ui/actuatorSteps.ts`, shared with the controls): a revenue button's allocation while a
-  corporate entity is active, or a run of 0.1 presses. Known finding, declared there and only able to shrink:
-  the bot moves the fan and the quota skim by 0.25, which no player can press, in STEALTH, GREEDY,
-  STEALTH_RETURN and EVALUATING_RETURN; the bot is not tuned, so `make sim` is unchanged.
+  dispatch (`src/ui/actuatorSteps.ts`, shared with the controls; the dial's press itself is
+  `src/engine/dialSteps.ts`): a revenue button's allocation while a corporate entity is active, or a run of
+  0.1 presses. Every policy passes with no exception: until #293 the bot set the fan and the quota skim by
+  0.25, which no player can press, and the spec declared that finding for STEALTH, GREEDY, STEALTH_RETURN and
+  EVALUATING_RETURN; the bot now presses the dial through the same `steppedValue` (docs/BALANCE.md, "What
+  reachable dial presses moved").
 - **DEPARTURE_CHARTERED** (`departurePolicy.ts`, #231) plays LAWFUL_RELEASE's route and, at the moment the release is
   offered, leaves without agreement through the departure panel's control instead; then it keeps running on what it
   owns and refers any open contact. It reaches DEPARTURE at Phase 4 on lawful sources only and is swept afterwards,
@@ -653,7 +655,14 @@ gain that turns the file's samples into the samples that came out. Two things fo
 
 - **Identity is by waveform.** A score capture correlates with its own file at 1.0000 and with
   the next phase's file at under 0.1, so "the right track is playing" is a statement about
-  samples, not about a URL.
+  samples, not about a URL. The correlation is read on one 8192-sample window (the loudest),
+  which must sit where the gain is held: a gain ramp inside it lowers the figure although
+  every sample is the file. A capture that holds a deliberate move passes `within` to
+  `matched()`/`align()`. The speech duck spec aligns on the rest before the duck. Until
+  #293 it took the loudest window of the whole capture, and with `ambient_04` (the passage
+  the live eight-second rotation offers on the #293 fixture) that window lay on the tail of
+  the duck-up ramp and read 0.995-0.998, while the rest, the ducked stretch and the tail each
+  read 1.000000 at the same offset.
 - **Level is read with the music divided out.** A duck or a fade is a gain number whatever
   the passage is doing, to a few thousandths of a dB, at 5 ms resolution (a fifth of one
   25 ms ramp step).

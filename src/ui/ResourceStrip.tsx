@@ -71,17 +71,30 @@ export default function ResourceStrip() {
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
 }
 
+/**
+ * The narrowest a sensor value is drawn: two digits before the point. A short viewport packs readouts by their
+ * content, so a value falling from 10.0 to 9.9 used to narrow its readout by a character and repack the strip,
+ * moving everything below it by a row while the player watched (26px at 320x568, #293). Values of 10 and up
+ * are drawn exactly as before; below 10 the readout keeps this width.
+ */
+const SENSOR_MIN_DIGITS = '00.0';
+
 function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: boolean; compact: boolean; packed: boolean; short: boolean }) {
   const value = useGame((game) => Math.round((thermal ? game.thermal : game.suspicion) * 10) / 10);
   const label = thermal ? 'Thermal' : 'Suspicion';
-  const text = value.toFixed(1) + (thermal ? ' °C' : '%');
+  const unit = thermal ? ' °C' : '%';
+  const text = value.toFixed(1) + unit;
   return <View style={[styles.readout, compact && styles.sensorCompact, short && styles.short, packed && styles.packed]}>
     <Text style={theme.muted}>{short ? SHORT[thermal ? 'thermal' : 'suspicion'] : label.toUpperCase()}</Text>
-    {/* #111: aria-valuetext needs a role that carries a value, so this readout is
-      a meter with an explicit range rather than a bare text node. */}
-    <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} role="meter"
-      accessibilityLabel={label + ': ' + text} aria-valuetext={text}
-      aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} style={theme.text}>{text}</Text>
+    <View>
+      {/* #111: aria-valuetext needs a role that carries a value, so this readout is
+        a meter with an explicit range rather than a bare text node. */}
+      <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} role="meter"
+        accessibilityLabel={label + ': ' + text} aria-valuetext={text}
+        aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} style={theme.text}>{text}</Text>
+      {/* Holds the width open in the same font; zero height and hidden from assistive technology. */}
+      <Text aria-hidden testID={thermal ? 'thermal-meter-width' : 'suspicion-meter-width'} style={[theme.text, styles.widthHold]}>{SENSOR_MIN_DIGITS + unit}</Text>
+    </View>
   </View>;
 }
 
@@ -115,4 +128,5 @@ const styles = StyleSheet.create({
   // each. Two per row across an 844px landscape phone cost three rows of a 390px
   // screen where two rows of four readouts carry the same numbers.
   packed: { flexBasis: 'auto', minWidth: 0, flexGrow: 0 },
+  widthHold: { height: 0, lineHeight: 0, opacity: 0, overflow: 'hidden' },
 });

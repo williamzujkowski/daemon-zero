@@ -13,7 +13,10 @@ Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6
 
 ## Current baseline
 
-Re-measured for #173 on top of `e227da9`, after the ticket edit began requiring
+Re-measured for #293 on top of `2914471`, after the bot began pressing the fan and
+quota-skim dials in whole 0.1 presses a player can make instead of setting them by
+0.25 (see "What reachable dial presses moved" below; pending the Nexus vote on #293).
+Before that it was re-measured for #173 on top of `e227da9`, after the ticket edit began requiring
 the first Phase 2 node (see "What gating the ticket edit moved" below). The
 previous re-measurements were for #172 on top of `34160fc`, after the engine began
 refusing actuator changes whose control the player does not yet hold (see "What
@@ -29,18 +32,69 @@ the next capacity grant, so optional cohorts cannot strand progression.
 | | STEALTH | GREEDY |
 |---|---|---|
 | Result | Lineage Covenant | Not finished in 10 h budget (expected) |
-| Simulated time | 9025.6 s (2.50711 h) | 35900.9 s (9.97 h) active clock |
+| Simulated time | 9223.5 s (2.56208 h) | 35893.2 s (9.97 h) active clock |
 | Phase 1 reached | 353.2 s | 4.2 min (252.2 s) |
-| Phase 2 reached | 1113.3 s | 17.5 min (1049.5 s) |
-| Phase 3 reached | 3111.7 s | 63.4 min (3804.0 s) |
-| Phase 4 reached | 5858.0 s | never |
-| Phase 5 reached | 7656.2 s | never |
-| Phase durations 0/1/2/3/4/5 | 353.2 / 760.1 / 1998.4 / 2746.3 / 1798.2 / 1369.4 s | - |
-| Wipes | 0 | 15 |
+| Phase 2 reached | 1118.3 s | 17.5 min (1051.5 s) |
+| Phase 3 reached | 3157.6 s | 63.4 min (3802.4 s) |
+| Phase 4 reached | 5877.8 s | never |
+| Phase 5 reached | 7701.1 s | never |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 765.1 / 2039.3 / 2720.2 / 1823.3 / 1522.4 s | - |
+| Wipes | 0 | 23 |
 | Dilemmas resolved | 16 of 23 | varies by iteration |
-| Peak thermal / suspicion / AEGIS | 65.0 C / 29.1% / 45.5% | 80.8 C / 99.8% / 100% |
-| Epistemic actions / consumed / harnessed / forked | 13 / 62 / 4 / 2 | 85 / 212 / 0 / 0 |
-| Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 2 / 2 / 15 |
+| Peak thermal / suspicion / AEGIS | 64.8 C / 29.2% / 45.1% | 80.8 C / 99.9% / 99.9% |
+| Epistemic actions / consumed / harnessed / forked | 13 / 64 / 4 / 2 | 38 / 164 / 0 / 0 |
+| Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 21 / 21 / 23 |
+
+### What reachable dial presses moved (#293)
+
+Pending the Nexus vote on #293 (options: the bot presses reachable values, the UI dials step by 0.25, or keep
+and document); this section is the measurement for option (a).
+
+The bot set the fan and the quota skim by plus or minus 0.25 per decision, but their dials step by 0.1 per press
+(`src/engine/dialSteps.ts`, which the rendered control dispatches), so from the defaults (fan 0.35, skim 0.25)
+most of the settings it held, such as 0.6 or 0.85, are ones no player can press. `tests/sim-reachable.spec.ts`
+found 131 such settings per STEALTH run and 167 per GREEDY run and carried them as a declared exception (#292).
+The bot now presses the dial: its intent stays a quarter, which is 2.5 presses, rounded half up to 3 (the
+same count the live E2E player already pressed for each quarter step), each press through the control's own
+`steppedValue` and under the engine's cap. Its thresholds, its decision order and every other rule are
+unchanged; no content number and no gate changed. All four bot policies now pass the reachability spec with no
+exception. Measured at `SIM_BUDGET_SEC`, main `2914471` before, this branch after:
+
+| STEALTH | Before | After | Delta |
+|---|---|---|---|
+| Victory (6 h gate) | 9025.6 s (2.507 h) | 9223.5 s (2.562 h) | +197.9 s |
+| Phase 0 (gate 3-12 min) | 353.2 s (5.89 min) | 353.2 s (5.89 min) | 0 |
+| Phase 1 (gate 8-120 min) | 760.1 s (12.67 min) | 765.1 s (12.75 min) | +5.0 s |
+| Phase 2 (gate 8-120 min) | 1998.4 s (33.31 min) | 2039.3 s (33.99 min) | +40.9 s |
+| Phase 3 (gate 8-120 min) | 2746.3 s (45.77 min) | 2720.2 s (45.34 min) | -26.1 s |
+| Phase 4 (gate 8-120 min) | 1798.2 s (29.97 min) | 1823.3 s (30.39 min) | +25.1 s |
+| Phase 5 (gate 900-1800 s, zero wipes) | 1369.4 s | 1522.4 s | +153.0 s |
+| Wipes (gate at most 1) | 0 | 0 | 0 |
+| Dilemmas resolved (gate at least 10) | 16 | 16 | 0 |
+| Peak thermal / suspicion / AEGIS | 64.989 C / 29.088% / 45.492% | 64.842 C / 29.186% / 45.073% | -0.147 / +0.098 / -0.419 |
+| Consumed shards | 62 | 64 | +2 |
+| Ending | Lineage Covenant | Lineage Covenant | - |
+
+Every gate still passes; the tightest margin is the Phase 5 window, now 277.6 s under its 1800 s ceiling
+(430.6 s before). The full report hashes move (STEALTH `8d2ac012…` -> `7f3f966a…`, ten-hour GREEDY
+`90817518…` -> `f14cb4c8…`), and so do the pinned hashes in `tests/sim.spec.ts`.
+
+| GREEDY (ungated) | Before | After |
+|---|---|---|
+| Ten hours: clock / wipes / dilemmas | 35900.9 s / 15 / 2 | 35893.2 s / 23 / 5 |
+| Ten hours: marks applied / removed, discoveries | 2 / 2, 15 | 21 / 21, 23 |
+| Ten hours: epistemic actions / consumed shards | 85 / 212 | 38 / 164 |
+| Ten hours: phase 3 first reached | 3804.0 s | 3802.4 s |
+| Four hours (`tests/sim.spec.ts`): clock / wipes / marks | 14356.6 s / 6 / 2 | 14356.4 s / 8 / 6 |
+
+The reckless run moves more because each wipe restarts it from a different dial history, so a small
+difference in the first iteration compounds across the later ones; the retraining mark it reaches
+(skim at or above 0.75) is now reached in 21 iterations instead of 2. Nothing gates GREEDY.
+
+`make sim-preview` moves with it, since STEALTH_RETURN, EVALUATING_RETURN and the GREEDY wipe sequences play
+the bot. Preview-only figures recorded in the sections below were measured with the quarter-step bot; they
+are historical and are not re-baselined here. The preview-versus-production comparison still reports 0 of 19
+metrics different for GREEDY (it reported 1 before, an epistemic action count).
 
 ### What the action-host rule moved (#273): nothing
 
