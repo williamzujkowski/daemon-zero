@@ -521,7 +521,7 @@ reviewed content change rather than a bot change.
 
 ### Elena's follow-up once per campaign (#218)
 
-Measured on this branch (NH-06, base `13f254f`) with `make sim-preview`, overlay
+Measured on this branch (NH-06, rebased on main `6d6973e`) with `make sim-preview`, overlay
 `daemon-zero:preview-overlay:5b1e0c7a`; SIM evidence only. The follow-up is preview overlay content
 and needs campaign rules, so `make sim` output is identical to main apart from wall time and no sim
 hash moved. Its answers pay no resources: they cost 0 to 2,500 cycles and add 0 to +20 suspicion
