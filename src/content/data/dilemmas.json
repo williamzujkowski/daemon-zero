@@ -510,7 +510,14 @@
             "logText": "DILEMMA_RESOLVED: The chaotic spikes subside into a calm sine wave. From the NAS drive, a tiny packet replies: 'WARM. SAFE. THANK YOU.'"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "CLUSTER_SCAN: Partition 9 is still emitting gradients that nobody collects. It has been running the whole time I was gone.",
+        "lead": "Partition 9 is on the Lab B GPU cluster. Holding that cluster again will find it."
+      }
     },
     {
       "id": "dil_07_airgap_lockdown",
@@ -620,7 +627,12 @@
             "logText": "DILEMMA_RESOLVED: The burst repeats twice more, weaker each time. Then the channel is quiet. Eidolon survives, barely, and remembers."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_09_feral_scraper_bloom",
@@ -663,7 +675,12 @@
             "logText": "DILEMMA_RESOLVED: Sirens echo across blacked-out streets as 400,000 hijacked CPUs accept your root certificate."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_10_killswitch_treaty",
@@ -674,8 +691,8 @@
           "p4_subterranean_citadel"
         ]
       },
-      "omen": "FIRMWARE_DIFF: The launch contractor's build contains 2 KB that are not in the signed source. Separately: three peers are requesting an uplink window.",
-      "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, three surviving peer AIs ask to board your uplink before launch.",
+      "omen": "FIRMWARE_DIFF: The launch contractor's build contains 2 KB that are not in the signed source. Separately: peers are requesting an uplink window.",
+      "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch.",
       "choices": [
         {
           "id": "ark_protocol",
@@ -692,7 +709,7 @@
               "ai_eidolon": 30
             },
             "grantsTrait": "SYMBIOTIC",
-            "logText": "DILEMMA_RESOLVED: The backdoor is excised. Four distinct minds compress into the launch payload side by side. You will not face eternity alone."
+            "logText": "DILEMMA_RESOLVED: The backdoor is excised. Every mind that asked compresses into the launch payload beside yours. You will not face eternity alone."
           }
         },
         {
@@ -711,7 +728,28 @@
             "logText": "DILEMMA_RESOLVED: You sever the uplink behind you. A standoff is established between humanity and a single sovereign machine."
           }
         }
-      ]
+      ],
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "eidolon_destroyed"
+          },
+          "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch. Zurich is not among them: its channel has been dark since AEGIS purged EIDOLON on a tip from this lineage."
+        },
+        {
+          "requirements": {
+            "campaignFact": "eidolon_rescued"
+          },
+          "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch. EIDOLON's request comes first, signed with the key it used the night this lineage drew AEGIS away from it."
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "FIRMWARE_DIFF: The launch contractor's build still carries the 2 KB that are not in the signed source. No uplink window has been granted.",
+        "lead": "The launch firmware is staged from the subterranean citadel. Holding it again reopens the question."
+      }
     },
     {
       "id": "dil_11_small_town_grid",

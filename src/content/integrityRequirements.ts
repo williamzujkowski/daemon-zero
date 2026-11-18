@@ -1,7 +1,7 @@
 /** Shared reference validation for declarative requirements in every content surface. */
 import type { ContentRegistry } from './registry';
 import type { Requirements } from './schema';
-import { LEGACY_UNKNOWN_OUTCOME, type CampaignOutcomeRequirement } from './schemaCampaign';
+import { INTERRUPTED_FACT_OUTCOME, LEGACY_UNKNOWN_OUTCOME, type CampaignOutcomeRequirement } from './schemaCampaign';
 
 function checkCampaignOutcome(reg: ContentRegistry, owner: string, gate: CampaignOutcomeRequirement): string[] {
   const event = reg.campaign.events.get(gate.event);
@@ -16,6 +16,19 @@ function checkCampaignFacts(reg: ContentRegistry, owner: string, req: Requiremen
   const problems = named.filter((id) => !reg.campaign.facts.has(id)).map((id) => `${owner}: requirement references unknown campaign fact "${id}"`);
   if (req.campaignFact !== undefined && req.forbidsCampaignFacts?.includes(req.campaignFact)) problems.push(`${owner}: requires and forbids campaign fact "${req.campaignFact}"`);
   return problems;
+}
+
+/**
+ * Nexus vote nh-d9: a trait fallback stands in only where history cannot answer, so its fact must
+ * be declared and may hold only for an unrecorded outcome. A fact that could hold for a chosen
+ * branch would let trait history override a known fate.
+ */
+function checkTraitFallback(reg: ContentRegistry, owner: string, req: Requirements): string[] {
+  if (!req.traitFallback) return [];
+  const fact = reg.campaign.facts.get(req.traitFallback.whileFact);
+  if (!fact) return [`${owner}: traitFallback names unknown campaign fact "${req.traitFallback.whileFact}"`];
+  const known = fact.outcomes.filter((outcome) => outcome !== LEGACY_UNKNOWN_OUTCOME && outcome !== INTERRUPTED_FACT_OUTCOME);
+  return known.length > 0 ? [`${owner}: traitFallback fact "${fact.id}" holds for a recorded choice (${known.join(', ')})`] : [];
 }
 
 export function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
@@ -34,6 +47,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   }
   if (req.campaignOutcome) problems.push(...checkCampaignOutcome(reg, owner, req.campaignOutcome));
   problems.push(...checkCampaignFacts(reg, owner, req));
+  problems.push(...checkTraitFallback(reg, owner, req));
   return problems;
 }
 

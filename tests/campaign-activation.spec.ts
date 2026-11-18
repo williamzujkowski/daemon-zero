@@ -136,7 +136,7 @@ describe('inactive migration, legacy play, then activation (H36)', () => {
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
     const incident = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
-    const choice = defined(incident.choices.find((entry) => entry.cost.cycles === 0));
+    const choice = defined(incident.choices.find((entry) => Object.values(entry.cost).every((amount) => amount === 0)));
     const playedOn = must(choose({ ...wiped, activeDilemmaId: incident.id }, incident.id, choice.id, preview));
     expect(playedOn.traits).toEqual([choice.effects.grantsTrait]);
     const active = activate(playedOn);
