@@ -7,16 +7,28 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, dilemmaContext, followUpAccess, offeredChoices, presentationToken, resolveDilemma } from '../engine';
+import { canAfford, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
 import { costText } from './format';
 import { evidenceText, scopeText } from './evidenceText';
 import { PilotTerms } from './PilotOffer';
+import { recallText, reviewEffectText } from './reviewText';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
+
+/** What a choice records on review, or what a recall outcome keeps and loses, before it is committed (DZ-06). */
+function ReviewLine({ choice }: { choice: DilemmaChoice }) {
+  const text = useGame((game) => {
+    const review = choice.review;
+    if (review === undefined) return '';
+    const ruling = recallPreview(game, choice, CONTENT);
+    return ruling === null ? reviewEffectText(review) : recallText(ruling);
+  });
+  return text === '' ? null : <Text testID={'dilemma-choice-' + choice.id + '-review'} style={theme.muted}>Review: {text}</Text>;
+}
 
 /** `token` is the presentation this choice was rendered for; a press against any other is refused. */
 function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId: string; token: string }) {
@@ -30,6 +42,7 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     {choice.scope && <Text testID={'dilemma-choice-' + choice.id + '-scope'} style={theme.muted}>Scope: {scopeText(choice.scope)}</Text>}
     {choice.receipt !== undefined && <Text testID={'dilemma-choice-' + choice.id + '-receipt'} style={theme.muted}>
       On file afterwards: {choice.receipt}</Text>}
+    <ReviewLine choice={choice} />
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
