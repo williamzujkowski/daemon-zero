@@ -290,6 +290,14 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
    recorded "retained On/20% without autoplay" in Expo Go, so this is known behaviour;
    what is new is seeing it on a fresh release install where the switch already reads
    ON. Native has no autoplay restriction to work around.
+   - Added 2026-11-17 (#249): decided by nexus vote `vote-1794960417659-qqjw6dn`, option
+     `native-first-gesture-resume` (4 of 7; three seats preferred starting at launch). Native
+     now starts a stored "music on" at the first touch on the terminal, through the same
+     listener as the web, and nothing plays before it; a media-key pause stays session-only
+     and music off stays silent. Re-run on a disposable emulator with a release build (not a
+     device): see [SOUNDTRACK.md](SOUNDTRACK.md), "Starting on native" and "Android emulator
+     run, 2026-11-17". After an activity recreation (finding 1) the score now waits for the
+     next tap rather than for `[ RESUME MUSIC ]`; that case was reasoned, not re-observed.
 4. **`DORMANT_RESUME` reports `0.0h` for short absences. (Cosmetic.)** A 112 s absence
    logs "0.0h in low-power hibernation". The one-decimal hour format rounds anything
    under three minutes to zero.

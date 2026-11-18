@@ -173,6 +173,13 @@ a credited artist, so there is no credit to show and none was invented.
 
 ### What the controls do
 
+- **Start.** With music on in storage (a fresh install included), the score fades in at the
+  player's first input of the session, and nothing plays before it. The web listens on the
+  document for a pointer, touch or key; native listens for a touch anywhere on the terminal
+  (since #249, below). Both use one listener that stays until the score has started, so a
+  tap that lands before the stored preference has loaded still gets a second chance, and
+  once the score has started a tap never restarts it: after a pause, only Play or
+  `[ RESUME MUSIC ]` does. With music off nothing starts at all.
 - **Pause** is a pause for this session: the state the Audio page already had, "Music is
   paused. Resume to start listening." with `[ RESUME MUSIC ]`. It is **not** a preference
   change. The in-app switch `[ MUSIC ON/OFF ]` is one, and it is stored; a headset button is
@@ -184,11 +191,47 @@ a credited artist, so there is no credit to show and none was invented.
   music off and to the ending, where the score is going away; a pause key should feel like one.
 - No next, previous or seek: the score is chosen by the phase and loops.
 
+### Starting on native: the first tap (#249)
+
+Before #249 the first-gesture resume was attached only on the web, so on Android a stored
+"music on" was silent on every cold start until MENU > Audio > `[ RESUME MUSIC ]`, while the
+switch already read `[ MUSIC ON ]`
+([REVIEW-ANDROID-EMULATOR-2026-11-16.md](REVIEW-ANDROID-EMULATOR-2026-11-16.md), finding 3).
+
+**Decision.** Nexus `consensus_vote`, record `vote-1794960417659-qqjw6dn` (single-model
+panel): option `native-first-gesture-resume`, 4 of 7 option votes, threshold met.
+**Dissent:** the other three seats preferred `autostart-on-launch`, starting the score as
+soon as the app opens with music on, since native has no autoplay rule to work around. The
+majority kept one behaviour on every platform and kept sound from arriving before the player
+has touched the game (a phone opened in a quiet room, a launch nobody meant).
+
+**How it works.** `src/app/musicGesture.ts` owns the listener for both platforms
+(`armMusicGestureResume`). Native has no document, so the terminal's root view feeds a small
+in-memory source (`createTouchGestures`) from `onStartShouldSetResponderCapture`, which React
+Native asks of every ancestor of a touch before the touched control, and the probe always
+answers `false`, so the touch still belongs to whatever was pressed. The MENU press that
+opens the Audio page is therefore itself the first tap. The Audio page says what starts the
+score on each platform ("your first tap in the game" on native, "tap, click or key press" on
+the web).
+
+**What it does not cover.** A hardware keyboard on Android does not start it (only touches
+are heard there). A TalkBack double-tap activates a control through an accessibility action
+rather than a touch, so it is expected not to start the score either and the player uses
+`[ RESUME MUSIC ]`, as before #249; that was reasoned from how React Native dispatches the
+action, not observed.
+
+Tests: `tests/app-music-gesture.spec.ts` (the shared listener, detaching on activation, the
+native source never claiming a touch) and `tests/ui-native-first-tap.spec.ts` (the mounted
+screen with `Platform.OS` reporting Android: nothing before a touch, the score on the first,
+a media-key pause not undone by a later tap and not stored, music off silent). The emulator
+check is under "Android emulator run, 2026-11-17" below.
+
 ### Rules that hold, and the test for each
 
 | Rule | Test |
 |---|---|
 | Nothing is published, and no handler exists, until the player has started the score in the app once. A stored "enabled" is not enough, so a media key can never be what first fetches or plays audio | `app-score-session.spec.ts` "publishes nothing for a stored "enabled"…" and "is published by the press that switches music on…"; `media-session.e2e.ts` first assertion |
+| With music on, nothing plays before the player's first input; the first input starts the score (web: pointer, touch or key; native: a touch on the terminal); once started, a tap never restarts a paused score; with music off no input starts it | `app-music-gesture.spec.ts`, `ui-native-first-tap.spec.ts`; `music.e2e.ts` for the web |
 | A play that arrives while the app is in the background is dropped, and is not remembered for the return | `app-music-remote.spec.ts` "drops a play that arrives in the background…" |
 | A player that something else starts in the background is paused again at once | `app-music-remote.spec.ts` "stops a player that something started…" |
 | The session is cleared, handlers included, when music is switched off, at an ending and at teardown | `app-score-session.spec.ts` "is cleared when…"; `media-session.e2e.ts` |
@@ -262,6 +305,30 @@ adb -s <serial> shell input keyevent KEYCODE_MEDIA_PAUSE   # then read the Audio
 adb -s <serial> shell input keyevent KEYCODE_MEDIA_PLAY
 adb -s <serial> shell input keyevent KEYCODE_HOME          # then the play key again
 ```
+
+### Android emulator run, 2026-11-17 (#249, first tap)
+
+A test-signed release APK of the #249 branch (`make android-release`, throwaway key made for
+the run and deleted with it) on a disposable headless emulator created for the run under a
+private `ANDROID_AVD_HOME` and deleted afterwards: API 36 `google_apis` x86_64, Pixel 6
+profile, driven by `adb`. State was read from `dumpsys media_session`, `dumpsys audio`
+(`AudioPlaybackConfiguration`), logcat and the Audio page's own text via `uiautomator`.
+**Emulator, not a device, and nobody listened.** Each step was done once.
+
+| Step | Observed |
+|---|---|
+| Fresh install (music on by default), cold start, nothing pressed for 12 s | No media session for the app, no `AudioTrack`, no `ExoPlayerImpl` line |
+| One tap on empty terminal space | `ExoPlayerImpl: Init` within 0.1 s of the tap; session `PLAYING`, the app is the media-button session, metadata `Phase 0 score, DAEMON // 0, DAEMON // 0`; one `AudioTrack` for the app, `started`, `USAGE_MEDIA`, 48 kHz |
+| `KEYCODE_MEDIA_PAUSE`, then another tap on the terminal | `PAUSED` at the same position before and after the tap; the track `paused`. The tap did not restart it |
+| MENU > Audio (two more taps) | `[ MUSIC ON ]`, "Music is paused. Resume to start listening.", `[ RESUME MUSIC ]`; the intro reads "While music is on, it starts at your first tap in the game, never before."; still `PAUSED` |
+| Force-stop, cold start, 12 s untouched, one tap | No session before the tap; `PLAYING` and a `started` track after it. The pause had not rewritten the stored preference |
+| `[ MUSIC OFF ]`, force-stop, cold start, three taps, then MENU > Audio | No session, no track, no `ExoPlayerImpl` line; "Music is off." |
+| logcat | 0 `FATAL EXCEPTION`, no `ReactNativeJS` error line |
+
+Not observed: a first touch that lands inside a React Native `Modal` (the probe sits on the
+terminal's root view, and React Native's responder negotiation follows the React tree, so a
+modal's touch is expected to reach it; nothing on a fresh start opens a modal before the first
+tap, so it was not exercised), TalkBack, a hardware keyboard, an activity recreation, a phone.
 
 ### Resolved on Android, 2026-11-17: the files' tags are neutral
 
