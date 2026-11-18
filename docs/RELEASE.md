@@ -53,6 +53,12 @@ PRs run these checks but cannot deploy. Only the separate deployment job receive
 `experiments.baseUrl` and writes `dist/daemon-zero/`. That directory alone becomes
 the Pages artifact. `make e2e-pages` serves it under the real subpath and runs all
 production scenarios at phone and desktop sizes, including asset-path checks.
+`make e2e-live-pages` plays the same export live from a fresh profile to an ending under
+the subpath, on phone and desktop: save transfer, reload, a wipe, a cold start after an
+absence and the ending's reload all come back at `/daemon-zero/`, and no request leaves
+it. It takes minutes per viewport, so it runs beside the root journey in the nightly
+`live-journey` workflow and reports rather than gates; it is not part of the `verify` job
+that deploys.
 Ordinary `make build-web`, development and native builds keep the root base path;
 release web archives still package the ordinary root export. Always run a fresh
 `make build-web` before archiving `dist`, since Pages builds add a nested directory.
