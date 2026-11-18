@@ -1393,8 +1393,12 @@ means but no original, so no follow-up is scheduled.
 **Saved shape (v14).** `campaign.contacts`; `MIGRATIONS[13]` adds an empty list. Load (`contactProblem`) refuses,
 never heals: a contact or a pending channel under legacy rules, an unknown channel, a contact outside campaign play
 or this iteration's clock, two contacts through one channel in one iteration, contacts out of order, this
-instance's contact on a route that never reached the channel's arrangement, hosting this instance no longer holds,
-and a channel pending again after this instance answered it. An earlier instance's HOSTED record needs no cohort.
+instance's contact (answered or pending) on a channel this iteration could not have opened (its route never reached
+an admitted arrangement, or another channel requirement such as the directory does not hold), hosting this instance
+no longer holds, and a channel pending again after this instance answered it. The arrangement is read from the
+route, not the current context, so a contact that opened before a recall or restriction loads and can be referred
+(panel round 1 on #271). An earlier instance's HOSTED record needs no cohort. `tests/channel-contact-load.spec.ts`
+holds every accepted DZ-08 state, through every public action that succeeds, to a byte-identical reload.
 
 **Lawful memory (finding).** The lawful route owns no memory-cap increase (base 64 MB; the directory reserves 16),
 so a first-run cooperative instance cannot host the 256 MB fragment: the refusal is shown with exact numbers and
@@ -1405,7 +1409,8 @@ raises the cap.
 
 Tests: `tests/channel-contact.spec.ts` (V20, DZ-08.2-4, V24, V28, DZ-08.10), `service-grant.spec.ts`,
 `channel-contact-save.spec.ts` (V12 for every transition, the genuine v13 fixture, V15 refusals),
-`channel-content.spec.ts` (integrity corruption) and `elena-review-channel.spec.ts` (DZ-08.11).
+`channel-contact-load.spec.ts` (pending provenance and the reload guard), `channel-content.spec.ts` (integrity
+corruption) and `elena-review-channel.spec.ts` (DZ-08.11).
 
 ## Optional soundtrack foundation (#88)
 

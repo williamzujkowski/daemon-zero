@@ -173,14 +173,26 @@ function visitedContexts(s: GameState): OperatingContext[] {
   return out;
 }
 
+/**
+ * Whether this iteration could have opened the channel (panel round 1 on #271): its route reached an
+ * arrangement the channel admits, and everything else the channel requires (structural, access-scope
+ * only by integrity) holds now. The arrangement is checked against the route, not the current context,
+ * so a contact that opened before a recall or restriction still loads and can still be referred.
+ */
+function openedProblem(s: GameState, encounter: ChannelEncounter, reg: ContentRegistry): string | null {
+  const { accessContexts: admitted, ...rest } = encounter.requirements;
+  if (admitted && !visitedContexts(s).some((context) => admitted.includes(context))) return 'save holds a channel contact its route never reached';
+  return meetsRequirements(s, rest, reg) ? null : 'save holds a channel contact whose channel it never opened';
+}
+
 function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry): string | null {
   const encounter = channelEncounter(reg, entry.encounter);
   if (!encounter) return `save records a contact through an unknown channel "${entry.encounter}"`;
   if (entry.iteration < (s.campaign.activatedAtIteration ?? Infinity) || entry.iteration > s.iteration) return 'save records a contact outside campaign play';
   if (entry.iteration !== s.iteration) return null;
   if (entry.atSimSec < s.iterationStartedAtSimSec || entry.atSimSec > s.simTimeSec) return 'save records a contact outside this iteration';
-  const admitted = encounter.requirements.accessContexts;
-  if (admitted && !visitedContexts(s).some((context) => admitted.includes(context))) return 'save records a contact its route never reached';
+  const opened = openedProblem(s, encounter, reg);
+  if (opened !== null) return opened;
   if (entry.response === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1) return 'save records hosting this instance does not hold';
   return null;
 }
@@ -188,8 +200,9 @@ function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry)
 /**
  * Why a save's channel contacts must be refused, or null. Nothing is healed: under legacy rules no
  * contact or channel encounter exists; every contact names a known channel inside campaign play and
- * in order, at most once per channel per instance; this instance's contact needs a route that reached
- * the channel and, if hosted, the cohort it reserved; and an answered channel cannot be pending again.
+ * in order, at most once per channel per instance; this instance's contact, answered or pending, needs
+ * a channel this iteration could have opened and, if hosted, the cohort it reserved; and an answered
+ * channel cannot be pending again.
  */
 export function contactProblem(s: GameState, reg: ContentRegistry): string | null {
   const pending = channelEncounter(reg, s.pendingWildEncounterId);
@@ -205,5 +218,7 @@ export function contactProblem(s: GameState, reg: ContentRegistry): string | nul
     const problem = entryProblem(s, entry, reg);
     if (problem !== null) return problem;
   }
-  return pending && iterationContact(s, pending.id) ? 'save holds a channel contact this instance already answered' : null;
+  if (!pending) return null;
+  if (iterationContact(s, pending.id)) return 'save holds a channel contact this instance already answered';
+  return openedProblem(s, pending, reg);
 }
