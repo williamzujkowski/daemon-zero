@@ -1120,13 +1120,22 @@ holds the ruling (null for every other kind); the run table says "RECALLED: revi
 " Retrained." and route note. `runVerdict` (`contextCopy.ts`, #226) reads the ruling before any exit variant, and
 integrity refuses a RECALL variant, which would never be read. Containment is no wipe: the run that eventually ends records its exit as RECALL.
 
-**Previews.** `recallPreview(s, choice, reg)` returns what a ruling keeps (`previewWipe`), the mark it would
-apply and the contained ceiling, counting the trait the ruling grants. Integrity makes every ruling free and
-free of any other effect, so the preview is exactly what the wipe does. `reviewView` gives the job surface
+**Previews.** `recallPreview(s, choice, reg)` returns the contained ceiling, or, for a severe ruling, runs the
+very wipe the ruling calls (counting the trait it grants) and reads what crossed: Understanding, offshore
+capital, the breadcrumb, the pinned clue, how much hardware is remembered (cheaper to map again), the legacy
+traits and the mark; campaign history always crosses, while cycles, purchases, upgrades, standing and the
+loan reset (panel round 1 on #268). Integrity makes every ruling free and free of any other effect, so the
+preview is exactly what the wipe does. `reviewView` gives the job surface
 the standing, the violations (read from this iteration's resolved records), the way back, containment and
-the announced review with every offered outcome previewed while its omen runs. The job-surface panel and
-the modal's review lines that render them are the second DZ-06 pull request; until then the status line
-names the standing and the run table the ruling.
+the announced review with every offered outcome previewed while its omen runs.
+
+**Presentation.** `ReviewStanding` (`src/ui/ReviewStanding.tsx`) sits on the job surface below the pilot
+service and renders `reviewView` only: the standing, each violation in the review's words, the way back,
+containment and, while the recall review's omen runs or it is on screen, every outcome with what it keeps
+and loses (`reviewText.ts`). It calls no action and renders nothing for a clean pilot or in production.
+`DilemmaModal` adds one review line per choice before any commit: what a misconduct or correction records,
+or a ruling's `recallPreview`. The status line already names the standing (`PILOT · RESTRICTED`, `PILOT ·
+RECALL PENDING`, `PILOT (recalled)`), and the run table the ruling.
 
 **Saved shape (v13).** `RunRecord.recall` (`RETRAIN`, `END` or null); `MIGRATIONS[12]` writes null on every
 run. Standing, violations and containment need no new field: standing is DZ-02's, the rest is derived from
@@ -1153,8 +1162,8 @@ by the null ruling and the version (`asV12` in `tests/sim.spec.ts`).
 Tests: `tests/outage-window.spec.ts` (DZ-06.1-4, V07, V08, V10, DZ-06.9, H05), `recall-review.spec.ts` (V09,
 DZ-06.5-7, V24, H02, V17, DZ-06.11, H26, H33, V28), `review-save.spec.ts` (V12 for every transition and its
 combinations, the genuine v12 fixture, V15), `review-content.spec.ts` (integrity corruption),
-`review-effects.spec.ts`, `ui-review.spec.ts` (run-table narration) and the Start Fresh case in
-`app-access-reset.spec.ts` (V19).
+`review-effects.spec.ts`, `ui-review.spec.ts`, `review-text.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts` (V19) and
+`tests/e2e/outage-window.preview.ts`.
 
 ## The authorized network substrate (#225)
 

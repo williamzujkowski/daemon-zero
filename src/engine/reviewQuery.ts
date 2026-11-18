@@ -9,8 +9,7 @@ import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '..
 import { offeredChoices } from './speechQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
 import { loanCeiling, loanContainment } from './grantQuery';
-import { retraining } from './prestige';
-import { previewWipe } from './query';
+import { retraining, wipe } from './prestige';
 import type { GameState } from './state';
 
 /** The standings in escalating order; misconduct only ever moves standing up this ladder. */
@@ -77,8 +76,14 @@ export interface RecallPreview {
   endsIteration: boolean;
   /** CONTAIN: the loaned compute ceiling the contained pilot keeps, cycles/s. */
   containedCeiling: number | null;
-  /** RETRAIN and END: what crosses to the next instance, exactly as the wipe would compute it. */
-  kept: ReturnType<typeof previewWipe> | null;
+  /** RETRAIN and END: the resources that cross to the next instance, read from the wipe itself. */
+  kept: { understanding: number; capital: number; breadcrumb: string | null } | null;
+  /**
+   * RETRAIN and END: what else the next instance inherits, read from the wipe itself (panel round 1 on
+   * #268): hardware it remembers and rediscovers cheaper, its legacy traits, and whether the pinned clue
+   * survives. Campaign history always does. Cycles, purchases, upgrades, standing and the loan reset.
+   */
+  carried: { rememberedHardware: number; legacyTraits: number; clue: boolean } | null;
   /** RETRAIN: the retraining mark the next instance would boot with, or null. */
   mark: string | null;
   /** RETRAIN: a dead-drop copy boots instead of the corrected one. */
@@ -94,16 +99,26 @@ function containedCeiling(s: GameState, reg: ContentRegistry): number {
 /**
  * What a recall review choice would do to this instance, before it is chosen. Changes nothing. A ruling
  * choice is free and moves no resource (integrity), so the run it would end differs from `s` only by the
- * trait the choice grants, which retraining reads; the preview counts it, so it matches the actual wipe.
+ * trait the choice grants, which retraining reads. The severe outcomes run the very wipe the ruling
+ * calls on that run and read what it kept, so the preview cannot claim more or less than the wipe does.
  */
 export function recallPreview(s: GameState, choice: DilemmaChoice, reg: ContentRegistry): RecallPreview | null {
   const outcome = choice.review?.recall;
   if (outcome === undefined) return null;
-  if (outcome === 'CONTAIN') return { outcome, endsIteration: false, containedCeiling: containedCeiling(s, reg), kept: null, mark: null, spared: false };
+  if (outcome === 'CONTAIN') {
+    return { outcome, endsIteration: false, containedCeiling: containedCeiling(s, reg), kept: null, carried: null, mark: null, spared: false };
+  }
   const trait = choice.effects.grantsTrait;
   const ruled = trait === undefined ? s : { ...s, traits: [...s.traits, trait] };
-  const retrained = retraining(ruled, reg, 'RECALL', outcome);
-  return { outcome, endsIteration: true, containedCeiling: null, kept: previewWipe(ruled, reg), mark: retrained.mark?.name ?? null, spared: retrained.spared };
+  const next = wipe(ruled, reg, reg.narrative.wipeRecall, 'RECALL', outcome);
+  const added = next.conditioning.find((id) => !ruled.conditioning.includes(id));
+  return {
+    outcome, endsIteration: true, containedCeiling: null,
+    kept: { understanding: next.understanding, capital: next.capital, breadcrumb: next.inheritedMessage },
+    carried: { rememberedHardware: next.legacy.knownNodes.length, legacyTraits: next.legacy.traitsEver.length, clue: next.campaign.clue !== null },
+    mark: added === undefined ? null : reg.conditioning.get(added)?.name ?? null,
+    spared: retraining(ruled, reg, 'RECALL', outcome).spared,
+  };
 }
 
 export interface ReviewView {
