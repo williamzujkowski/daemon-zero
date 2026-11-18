@@ -27,7 +27,8 @@ export function pendingRepeatable(game: GameState, rep: Repeatable): boolean {
 
 export function needsProcessControl(game: GameState, node: RegistryNode): boolean {
   const delta = node.tickDelta;
-  return game.unlockedNodes.includes(node.id) && (game.disabledNodes.includes(node.id) ||
+  // A loan is always listed (DZ-05): it is the process a recall stops, and the player may stop it too.
+  return game.unlockedNodes.includes(node.id) && (game.disabledNodes.includes(node.id) || node.grant !== undefined ||
     delta.cyclesPerSec < 0 || delta.thermalPerSec > 0 || delta.suspicionPerSec > 0);
 }
 

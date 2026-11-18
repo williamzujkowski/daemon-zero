@@ -19,6 +19,7 @@ import RequirementHint from './RequirementHint';
 import { recordNodeRender, recordNodeProfile } from '../app/renderCounts';
 import CostHint from './CostHint';
 import NodeTitle from './NodeTitle';
+import GrantNote from './GrantNote';
 
 function NodeCard({ node }: { node: RegistryNode }) {
   useEffect(() => {
@@ -54,6 +55,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
+      <GrantNote node={node} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
         allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
