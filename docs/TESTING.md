@@ -85,6 +85,11 @@ different one.
   capital rate at or above zero. Both reach Phase 4 and the release on lawful sources only, from a fresh
   campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`), and
   `tests/sim-reachable.spec.ts` finds a control on screen for every transition they call, the release included.
+  Since panel round 1 on #292 that spec also checks every dial value against what its rendered control can
+  dispatch (`src/ui/actuatorSteps.ts`, shared with the controls): a revenue button's allocation while a
+  corporate entity is active, or a run of 0.1 presses. Known finding, declared there and only able to shrink:
+  the bot moves the fan and the quota skim by 0.25, which no player can press, in STEALTH, GREEDY,
+  STEALTH_RETURN and EVALUATING_RETURN; the bot is not tuned, so `make sim` is unchanged.
 - **EVALUATING_RETURN** (`evaluatingPolicy.ts`, #262) commits DZ-09 part B's evaluating careful return
   (REVIEW-EARNED-ACCESS-VALIDATION.md B.6): iteration 1 is STEALTH_RETURN unchanged; each return plays
   STEALTH with three knobs (answer suspicion from 45, only with an action costing at most a quarter of the

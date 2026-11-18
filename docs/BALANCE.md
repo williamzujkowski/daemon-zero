@@ -1057,6 +1057,13 @@ never draw an AEGIS sweep and end INDEPENDENT at Phase 4:
 The second iteration met no story scene the first resolved (H30): its route runs on the requalification, the
 batches and the economy, not on repeated bounties. Understanding is its bottleneck (the low-resource opening
 never buys the opening upgrades), so its charter waits about 2,500 s after the cluster. After the release both
-policies hire engineers and lease racks on their own capital; `make sim-preview` prints the state at the budget.
+policies set the revenue dial to the ledger's 40% button (half of `maxProfitAllocation` 0.8; the first draft used
+0.5, which no button offers, panel round 1 on #292) and hire engineers and lease racks on their own capital. Route
+times are unchanged, because the dial moves only after the release. At the 7200 s budget (`make sim-preview`):
+
+| Policy | Owned cycles/s | Capital | Engineers / colocation racks / perimeter contractors |
+|---|---:|---:|---|
+| LAWFUL_RELEASE | 206,318 | $13,295,745 | 30 / 17 / 5 |
+| LAWFUL_RETURNING | 128,919 | $1,353,281 | 30 / 10 / 3 |
 `make sim-preview` still reports 22 metrics different from production, as on main (the shared network content,
 #225): the lawful economy is offered to no guest.

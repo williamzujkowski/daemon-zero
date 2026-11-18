@@ -5,6 +5,7 @@ import { CONTENT } from '../../content';
 import { cycleContributions, financeEnabled, isActuatorAvailable, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
+import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
@@ -83,8 +84,8 @@ function Allocation() {
   if (!entity) return <Text testID="allocation-unavailable" style={theme.muted}>Revenue allocation needs an active corporate entity.</Text>;
   return <View style={{ gap: 8 }}>
     <Text testID="allocation-value" style={theme.text}>Compute diverted to revenue: {Math.round(ratio * 100)}%</Text>
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{[0, 0.25, 0.5, 0.75, 1].map((step) => {
-      const value = step * CONTENT.balance.maxProfitAllocation, percent = Math.round(value * 100);
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{profitAllocationValues(CONTENT).map((value) => {
+      const percent = Math.round(value * 100);
       return <Pressable key={percent} testID={'allocation-' + String(percent)} accessibilityRole="button"
         accessibilityLabel={'Allocate ' + String(percent) + ' percent to revenue'} aria-pressed={Math.abs(value - ratio) < 1e-6}
         accessibilityState={{ selected: Math.abs(value - ratio) < 1e-6 }} disabled={blocked}

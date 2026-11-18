@@ -2,6 +2,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 /** Compact ten-percentage-point steps use the live engine limit at dispatch time. */
 import { StyleSheet } from 'react-native';
 import ConditioningImpact from '../ConditioningImpact';
+import { steppedValue } from '../actuatorSteps';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';
 import { actuatorLimit, actuatorUseBlocker, isActuatorAvailable, setActuator } from '../../engine';
@@ -19,11 +20,10 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
   const available = useGame((game) => isActuatorAvailable(game, actuator, CONTENT));
   // A dial that follows a withheld grant is refused by the same rule (DZ-05), and says why.
   const withheld = useGame((game) => actuatorUseBlocker(game, actuator, CONTENT));
-  const step = (direction: number) => {
+  const step = (direction: -1 | 1) => {
     gameRuntime.dispatch((game) => {
       const cap = actuatorLimit(game, actuator, CONTENT);
-      const value = Math.max(0, Math.min(cap, Math.round((game.actuators[actuator] + direction * .1) * 1e6) / 1e6));
-      return setActuator(game, actuator, value, CONTENT);
+      return setActuator(game, actuator, steppedValue(game.actuators[actuator], direction, cap), CONTENT);
     });
   };
   if (!available) return null;

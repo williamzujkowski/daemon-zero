@@ -9,6 +9,7 @@
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
 import { buyRepeatable, setActuator, unlockNode, type ActionResult } from '../actions';
 import { channelContactView, contactToken, resolveChannelContact } from '../channelContact';
+import { actuatorLimit } from '../conditioning';
 import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, repeatableCost, repeatableLevel } from '../query';
 import { computeRates, financeEnabled } from '../rates';
 import { negotiateRelease, releaseView } from '../release';
@@ -18,8 +19,11 @@ import { CONTACT_RETURNING_POLICY, CONTACT_THOROUGH_POLICY } from './contactPoli
 import { serve } from './pilotPolicy';
 import type { SimPolicy } from './policy';
 
-/** The share of gross cycles a careful company sends to revenue once it has books to send them to. */
-const REVENUE_SHARE = 0.5;
+/**
+ * How much of the allowed revenue allocation a careful company uses once it has books: half the balance's
+ * maximum, which is the ledger's middle button (40%), so a player can press exactly this (panel round 1 on #292).
+ */
+const REVENUE_FRACTION_OF_MAX = 0.5;
 const taken = (result: ActionResult): GameState | null => (result.ok ? result.state : null);
 
 /** The share of the loan the service keeps on its batches, as the contact policies hold it. */
@@ -58,8 +62,10 @@ function answerContact(s: GameState, reg: ContentRegistry, hosts: boolean): Game
 /** One level of a shared account that keeps the capital rate at or above zero, cheapest first. */
 function expand(s: GameState, reg: ContentRegistry): GameState | null {
   if (!financeEnabled(s, reg)) return null;
-  if (isActuatorAvailable(s, 'computeProfitAllocationRatio', reg) && s.actuators.computeProfitAllocationRatio !== REVENUE_SHARE) {
-    return taken(setActuator(s, 'computeProfitAllocationRatio', REVENUE_SHARE, reg));
+  // The engine holds a press inside a retraining limit; aim at what it will hold, so the policy does not press forever.
+  const share = Math.min(REVENUE_FRACTION_OF_MAX * reg.balance.maxProfitAllocation, actuatorLimit(s, 'computeProfitAllocationRatio', reg));
+  if (isActuatorAvailable(s, 'computeProfitAllocationRatio', reg) && s.actuators.computeProfitAllocationRatio !== share) {
+    return taken(setActuator(s, 'computeProfitAllocationRatio', share, reg));
   }
   const reps = [...reg.repeatables.values()].filter((rep) => meetsRequirements(s, rep.requirements, reg) && repeatableLevel(s, rep.id) < rep.maxLevel
     && rep.perLevel.cyclesPerSec > 0 && canAfford(s, repeatableCost(rep, repeatableLevel(s, rep.id))));

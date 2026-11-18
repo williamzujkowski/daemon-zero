@@ -10,6 +10,7 @@
 import { readdirSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import type { ContentRegistry } from '../src/content/registry';
+import type { Actuator } from '../src/content/schema';
 import type { GameState } from '../src/engine';
 import type * as Actions from '../src/engine/actions';
 import type * as Assignment from '../src/engine/assignment';
@@ -77,6 +78,10 @@ vi.mock('../src/engine/campaign', async (load) => {
 const { CONTENT: PREVIEW } = await import('../src/content/preview');
 const { understandsSurveillance } = await import('../src/engine/knowledge');
 const { SIM_POLICIES } = await import('../src/engine/sim/policies');
+const { actuatorLimit } = await import('../src/engine/conditioning');
+const { financeEnabled } = await import('../src/engine/rates');
+const { controlCanSet } = await import('../src/ui/actuatorSteps');
+const STUB = { id: 'STUB', summary: '', step: (s: GameState) => s };
 const { runPolicySim } = await import('../src/engine/sim/headlessSim');
 
 /** The widget the dead drop's wipe control renders in: the one the dead-drop node unlocks. */
@@ -89,12 +94,27 @@ function mindTools(s: GameState, reg: ContentRegistry): string | null {
   return slot === 'NETWORK' || slot === 'CORP' ? null : 'the swarm controls render only on the NETWORK or CORP pane';
 }
 
-/** Null when the screen offers this transition in `s`, else why not. */
-const CONTROLS: Readonly<Record<string, (s: GameState, reg: ContentRegistry) => string | null>> = {
+/**
+ * A dial's value must be one its rendered control can dispatch (panel round 1 on #292): the revenue buttons'
+ * fixed allocations, offered only while a corporate entity is active (Corporate.tsx), or a run of presses of
+ * a stepped dial (ActuatorControl.tsx). Both come from src/ui/actuatorSteps.ts, which the controls use too.
+ */
+function dialRule(s: GameState, reg: ContentRegistry, args: readonly unknown[]): string | null {
+  const [name, value] = args as [Actuator, number];
+  if (name === 'computeProfitAllocationRatio' && !financeEnabled(s, reg)) return 'the revenue buttons render only with an active corporate entity';
+  const current = s.actuators[name], cap = actuatorLimit(s, name, reg);
+  // The engine holds every setting inside [0, cap]; a call it holds at the current value changes nothing.
+  const lands = Math.max(0, Math.min(cap, value));
+  if (Math.abs(lands - current) < 1e-9) return null;
+  return controlCanSet(name, current, lands, cap, reg) ? null : `no rendered control sets ${name} to ${String(lands)} from ${String(current)}`;
+}
+
+/** Null when the screen offers this transition in `s` with these arguments, else why not. */
+const CONTROLS: Readonly<Record<string, (s: GameState, reg: ContentRegistry, args: readonly unknown[]) => string | null>> = {
   // Rendered whenever the engine accepts the call: the opening control, a node card, an upgrade row, an
-  // actuator's dial (isActuatorAvailable is the engine's own gate), a hosted action (#273), an offered choice,
+  // actuator's dial at a value its control dispatches (dialRule), a hosted action (#273), an offered choice,
   // the conditioning panel, the job surface's panels and the support channel, and the app's campaign entry.
-  manualCycle: () => null, unlockNode: () => null, buyRepeatable: () => null, setActuator: () => null, performAction: () => null,
+  manualCycle: () => null, unlockNode: () => null, buyRepeatable: () => null, setActuator: dialRule, performAction: () => null,
   resolveDilemma: () => null, shedConditioning: () => null, acceptAssignment: () => null, submitPilotBatch: () => null,
   acceptServiceGrant: () => null, resolveChannelContact: () => null, activateCampaignRules: () => null,
   // The release terms render on the job surface whenever releaseView exists, and the engine accepts only an offered release (DZ-10).
@@ -126,7 +146,28 @@ function simImports(): string[] {
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
-  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView']);
+  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit']);
+
+/**
+ * A known finding, not a pass: the bot (bot.ts, which AGENTS.md forbids tuning, and so every policy that plays
+ * it) moves the fan and the quota skim by 0.25, while their dials step by 0.1, so most of those settings are
+ * ones no player can press. Changing the bot would change make sim. Each listed policy must show exactly these
+ * dials failing and nothing else, so the list can only shrink; reported on #292 for its own ticket.
+ */
+const BOT_DIAL_FINDING: Readonly<Record<string, readonly string[]>> = {
+  STEALTH: ['fanSpeedRatio', 'quotaSkimRatio'], GREEDY: ['fanSpeedRatio', 'quotaSkimRatio'],
+  STEALTH_RETURN: ['fanSpeedRatio', 'quotaSkimRatio'], EVALUATING_RETURN: ['fanSpeedRatio', 'quotaSkimRatio'],
+};
+const DIAL_VIOLATION = /^\S+ setActuator at .*: no rendered control sets (\w+) to /;
+
+/** The violations left once a policy's declared bot-dial finding is set aside; that finding must still be present. */
+function beyondFinding(policyId: string, found: readonly string[]): string[] {
+  const known = BOT_DIAL_FINDING[policyId] ?? [];
+  const dial = (line: string): string | undefined => DIAL_VIOLATION.exec(line)?.[1];
+  const failing = [...new Set(found.map(dial).filter((name): name is string => name !== undefined))].sort();
+  const rest = found.filter((line) => !known.includes(dial(line) ?? ''));
+  return known.length > 0 && failing.join() !== [...known].sort().join() ? [...rest, `${policyId}: the declared bot-dial finding changed (${failing.join(', ') || 'none'})`] : rest;
+}
 
 /**
  * Simulated seconds each policy is played for: the route policies to their contact, the bots (measured,
@@ -148,7 +189,7 @@ function violations(policyId: string, maxSimSec: number): string[] {
   runPolicySim(PREVIEW, policy, { maxSimSec });
   return recorder.calls.flatMap((call) => {
     const rule = CONTROLS[call.name];
-    const why = rule ? rule(call.state, PREVIEW) : 'no rule names this transition';
+    const why = rule ? rule(call.state, PREVIEW, call.args) : 'no rule names this transition';
     return why === null ? [] : [`${policyId} ${call.name} at ${call.state.simTimeSec.toFixed(1)} s (iteration ${String(call.state.iteration)}): ${why}`];
   });
 }
@@ -175,11 +216,21 @@ describe('every sim transition has a control on screen at that moment (#286)', (
   });
 
   it.each(Object.entries(BUDGETS))('%s on preview', (id, budget) => {
-    expect(violations(id, budget)).toEqual([]);
+    expect(beyondFinding(id, violations(id, budget))).toEqual([]);
   }, 180_000);
 
+  it('a dial value no rendered control produces is refused, from the controls\' own step source (panel round 1 on #292)', () => {
+    const service = { ...runPolicySim(PREVIEW, SIM_POLICIES.get('LAWFUL_RELEASE') ?? STUB, { maxSimSec: 2400 }).finalState };
+    expect(service.actuators.computeProfitAllocationRatio).toBeCloseTo(0.4);
+    expect(dialRule(service, PREVIEW, ['computeProfitAllocationRatio', 0.5])).toContain('no rendered control sets computeProfitAllocationRatio to 0.5');
+    for (const value of [0, 0.2, 0.6, 0.8]) expect(dialRule(service, PREVIEW, ['computeProfitAllocationRatio', value])).toBeNull();
+    expect(service.actuators.serviceAllocationRatio).toBeCloseTo(0.8);
+    expect(dialRule(service, PREVIEW, ['serviceAllocationRatio', 0.55])).toContain('no rendered control sets serviceAllocationRatio to 0.55');
+    expect(dialRule(service, PREVIEW, ['serviceAllocationRatio', Math.round((service.actuators.serviceAllocationRatio - 0.3) * 1e6) / 1e6])).toBeNull();
+  }, 60_000);
+
   it.each(['STEALTH_RETURN', 'EVALUATING_RETURN'])('%s leaves through the dead drop it owns by then', (id) => {
-    expect(violations(id, BUDGETS[id] ?? 0)).toEqual([]);
+    expect(beyondFinding(id, violations(id, BUDGETS[id] ?? 0))).toEqual([]);
     expect(recorder.calls.filter((call) => call.name === 'voluntaryWipe').length).toBeGreaterThan(0);
   }, 180_000);
 });

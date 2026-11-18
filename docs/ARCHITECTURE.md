@@ -1667,7 +1667,9 @@ already says `INDEPENDENT (released)` and the run table "Released."; the pilot o
 **Sim.** `LAWFUL_RELEASE` and `LAWFUL_RETURNING` (`sim/lawfulPolicy.ts`, new module; the bot and earlier policies are
 untouched) take a contact policy to service, then buy only grants and contracted capacity offered to the current
 arrangement and what the channel requires, wait to host (RELEASE) or refer (RETURNING), agree the release once offered
-and afterwards buy shared accounts the capital rate can carry. `make sim-preview` prints their route times.
+and afterwards set the revenue dial to the ledger's 40% button and buy shared accounts the capital rate can carry.
+The controls' values live in `src/ui/actuatorSteps.ts` (the revenue buttons, the 0.1 dial step), which
+`tests/sim-reachable.spec.ts` reads to refuse any dial value no rendered control produces. `make sim-preview` prints their route times.
 
 Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
 inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
