@@ -90,8 +90,9 @@ export function loanContainment(s: Pick<GameState, 'access' | 'campaign' | 'narr
 
 /**
  * The share of the full loan this instance holds: the narrower allocation after an honest incomplete
- * result (VALIDATION V03) or a batch review's finding (#274), and again while review contains it, nothing without accepted terms. Grant
- * output scales by it, so a restriction is enforced in passive output, not only in what is drawn.
+ * result (VALIDATION V03), a withheld report before and after its batch review (#285, #274), and again
+ * while review contains it, nothing without accepted terms. Grant output scales by it, so a restriction is
+ * enforced in passive output, not only in what is drawn.
  */
 export function loanShare(s: GameState, reg: ContentRegistry): number {
   const terms = s.access.offer?.response === 'ACCEPTED' ? pilotTerms(s, reg) : null;

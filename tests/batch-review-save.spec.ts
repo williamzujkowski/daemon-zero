@@ -1,13 +1,14 @@
 /**
- * #274 saves. No saved shape changed (the finding is read from its scene's campaign record), so there is no
- * migration: every new transition, alone and with absence, a wipe and the Outage Window, reloads byte for
- * byte twice (V12), and a hand-edited finding is refused whole through deserialize and importSave (V15).
+ * #274 and #285 saves. No saved shape changed (the finding is read from its scene's campaign record, the
+ * provisional rate from the submitted evidence), so there is no migration: every new transition, alone and
+ * with absence, a wipe and the Outage Window, reloads byte for byte twice (V12), and a hand-edited finding is
+ * refused whole through deserialize and importSave (V15).
  */
 import { describe, expect, it } from 'vitest';
-import { advance, deserialize, exportSave, importSave, SCHEMA_VERSION, serialize, voluntaryWipe, type GameState } from '../src/engine';
+import { advance, deserialize, exportSave, importSave, pilotOfferView, SCHEMA_VERSION, serialize, voluntaryWipe, type GameState } from '../src/engine';
 import { answer, preview, roundTrip } from './assignment-helpers';
 import { must } from './helpers';
-import { afterFinding, BATCH_REVIEW, findingPresented } from './finding-helpers';
+import { afterFinding, BATCH_REVIEW, findingPresented, provisional } from './finding-helpers';
 import { OUTAGE, RECORD, REVIEW, until, untilOmen } from './review-helpers';
 
 const restrictedAfterStanding = (): GameState => must(answer(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'));
@@ -15,6 +16,9 @@ const falsifiedAfterDisclosure = (): GameState => must(answer(until(must(answer(
 
 describe('every #274 transition reloads unchanged (V12)', () => {
   const transitions: [string, () => GameState][] = [
+    ['#285: provisional offer on screen', () => provisional('offer')],
+    ['#285: provisional pilot, first batch under way', () => provisional('working')],
+    ['#285: provisional pilot, first batch complete', () => provisional('complete')],
     ['finding on screen', findingPresented],
     ['disclosed', () => afterFinding('disclose_now')],
     ['left standing', () => afterFinding('let_stand')],
@@ -39,6 +43,13 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     expect(serialize(loaded)).toBe(serialize(s));
     expect([loaded.access, loaded.campaign, loaded.activeDilemmaId]).toEqual([s.access, s.campaign, s.activeDilemmaId]);
     expect(serialize(importSave(exportSave(s), preview))).toBe(serialize(s));
+  });
+
+  it.each([['offer', 'offer'], ['working', 'working'], ['complete', 'complete']] as const)('#285: the provisional rate is read back, not stored (%s)', (_name, stage) => {
+    const s = provisional(stage), loaded = roundTrip(s);
+    expect(pilotOfferView(loaded, preview)).toEqual(pilotOfferView(s, preview));
+    expect(pilotOfferView(loaded, preview)?.narrowReason).toBe('AWAITING_REVIEW');
+    expect(serialize(roundTrip(loaded))).toBe(serialize(s));
   });
 
   it('needs no migration: the save version is unchanged', () => {
