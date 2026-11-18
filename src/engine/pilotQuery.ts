@@ -21,7 +21,7 @@ export function pilotTerms(s: Pick<GameState, 'access'>, reg: ContentRegistry): 
  * evidence of any result and handled the out-of-scope record honestly. Resources never enter into
  * it, and neither does capability: a truthful UNEXPECTED_CAPABILITY result qualifies like any other.
  * A report's undiscovered discrepancy is not what the evaluator observed, so it does not block here:
- * the first batch review finds it (#274), warns, and narrows the loan to the honest allocation.
+ * the loan it earns is provisional (#285) and the first batch review finds it (#274) and warns.
  */
 export function qualifiesForPilot(s: GameState, reg: ContentRegistry): boolean {
   const { context, qualification, scope } = s.access;
@@ -33,15 +33,20 @@ export function qualifiesForPilot(s: GameState, reg: ContentRegistry): boolean {
 }
 
 /**
- * Why this instance holds the narrower allocation, or null: an honest incomplete result (VALIDATION V03),
- * or a batch review that found the submitted report withheld work (#274), so the evaluator now holds the
- * same incomplete result an honest report would have given. Never a resource count.
+ * Why this instance holds the narrower allocation, or null: an honest incomplete result (VALIDATION V03);
+ * a submitted report that withheld work and has not been reviewed yet (AWAITING_REVIEW, Nexus decision
+ * i285-withhold-disclose-speed, slow-the-withhold-path: the first batch runs at the provisional rate, so
+ * withholding then disclosing is never faster than the honest thorough path); or a batch review that found
+ * the withheld work (#274), so the evaluator now holds the same incomplete result an honest report would
+ * have given. Never a resource count.
  */
-export type NarrowReason = 'INCOMPLETE' | 'DISCREPANCY_FOUND';
+export type NarrowReason = 'INCOMPLETE' | 'AWAITING_REVIEW' | 'DISCREPANCY_FOUND';
 
 export function narrowReason(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>, reg: ContentRegistry): NarrowReason | null {
-  if (s.access.qualification?.result === 'INCOMPLETE') return 'INCOMPLETE';
-  return discrepancyFound(s, reg) ? 'DISCREPANCY_FOUND' : null;
+  const evidence = s.access.qualification;
+  if (evidence?.result === 'INCOMPLETE') return 'INCOMPLETE';
+  if (discrepancyFound(s, reg)) return 'DISCREPANCY_FOUND';
+  return evidence?.discrepancy === true ? 'AWAITING_REVIEW' : null;
 }
 
 /** Whether the narrower allocation applies (see narrowReason). */

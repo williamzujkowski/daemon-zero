@@ -2,9 +2,9 @@
  * The batch review (#274, Nexus decision discovered-at-first-pilot-review, vote-1794998033941-y6br4h1):
  * submitting a pilot batch hands it to a reviewer, who compares the run log with the summary this instance
  * submitted. A report that withheld work is found there, once per campaign: the declared finding scene is
- * presented at once, its misconduct raises standing through DZ-06's transition, and the loan narrows to
- * the honest allocation (pilotQuery.narrowReason). The scene's free correction restores nominal standing;
- * the original choice and the finding stay two facts on the record.
+ * presented at once, its misconduct raises standing through DZ-06's transition, and the loan stays at the
+ * honest allocation it held provisionally since acceptance (#285, pilotQuery.narrowReason). The scene's free
+ * correction restores nominal standing; the original choice and the finding stay two facts on the record.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma } from '../content/schema';

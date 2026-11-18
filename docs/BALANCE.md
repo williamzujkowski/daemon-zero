@@ -684,7 +684,7 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
-honest incomplete one (or once a batch review finds a withheld result, #274 below), granted by DZ-05 (below). Omens: 25 s (record),
+honest incomplete one (or for a withheld result, provisionally from the offer and after the batch review finds it, #285 and #274 below), granted by DZ-05 (below). Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
@@ -782,11 +782,45 @@ campaign facts 9 -> 12). Starting values, not playtest results.
 | Disclose now | scene answer | free, EMPATHETIC | Standing back to nominal; both facts stay on file |
 | Let the finding stand | scene answer | free, GHOST | Standing stays warned: the service grant (nominal only) is out of reach |
 
-What the shortcut buys now: a full 20 cycles/s loan until the first batch is reviewed, so batch 1 (1200 loaned
-cycles) takes 75 s at an 0.8 split instead of 150 s, and costs 10 cycles at the assessment. From the first review
+What the shortcut bought at #274: a full 20 cycles/s loan until the first batch is reviewed, so batch 1 (1200 loaned
+cycles) took 75 s at an 0.8 split instead of 150 s, and cost 10 cycles at the assessment. #285 (below) removed that
+head start. From the first review
 on, its loan equals the honest report's; left standing, the warning also keeps it from the service grant. With
 the Outage Window, a warning that stood plus the unauthorized restart is RESTRICTED (5 cycles/s), as for an honest
 pilot, never recall pending.
+
+## The withheld report's provisional rate (#285)
+
+Preview only. Nexus decision i285-withhold-disclose-speed (`vote-1795006993532-omhuntt`): `slow-the-withhold-path`,
+6 of 7, threshold met, single-model panel. Dissent, recorded: one seat voted `speed-the-thorough-path` (make the
+honest thorough route faster rather than slow the shortcut); the majority kept the honest numbers as they are.
+
+| Value | Where | Before | Now | Meaning |
+|---|---|---:|---:|---|
+| Offer after the green subset | `narrowReason` AWAITING_REVIEW | 20 cycles/s | 10 cycles/s | The provisional allocation, stated on the terms before acceptance |
+| First batch at an 0.8 split | 1200 loaned cycles | 75 s | 150 s | The honest incomplete report's batch time |
+| Loan after the finding | unchanged (#274) | 10 cycles/s | 10 cycles/s | Disclosed or left standing |
+
+No content number changed; the rule is in `pilotQuery.narrowReason`. `make sim` prints the same report as main
+(`dbe6fce`) apart from wall time. `make sim-preview` matches main except for the new `CONTACT_WITHHELD` row.
+
+Headless (accelerated simulated time, `make sim-preview`, `tests/sim-contact.spec.ts`), from a fresh preview game,
+budget 3600 s. "Before" is `CONTACT_WITHHELD` run against the rule on main; every other row is unchanged by #285:
+
+| Policy | Path | Pilot | Service | Phase 2 | Contact |
+|---|---|---:|---:|---:|---:|
+| CONTACT_THOROUGH | honest thorough: verify, bounded excerpt, full loan | 210.6 s | 378.8 s | 380.8 s | 381.8 s |
+| CONTACT_WITHHELD, before | green subset, disclosed at the batch review (full-rate first batch) | 118.6 s | **346.9 s** | 348.9 s | 393.9 s |
+| CONTACT_WITHHELD, now | the same, provisional first batch | 118.6 s | 421.8 s | 423.8 s | 424.8 s |
+| CONTACT_LOW_RESOURCE | honest incomplete, low resources | 118.6 s | 421.8 s | 423.8 s | 424.8 s |
+| CONTACT_RECOVERY | low-resource recovery: breach, then correct | 118.6 s | 436.8 s | 438.8 s | 439.8 s |
+| CONTACT_RETURNING | iteration 2, after a voluntary wipe as a guest | 193.2 s | 496.4 s | 498.4 s | 499.4 s |
+
+Before, the withheld path reached service 31.9 s ahead of the thorough path. Its contact still came later in
+the sim (the directory's 80 understanding waited on the study share), but on screen it reached contact first as
+well (DZ-09 part B: T+393 against T+433). Now the withheld path is the honest incomplete path to the tenth of a
+second: 43.0 s behind thorough at service and contact, and never faster. The test asserts withheld ≥ thorough and
+withheld ≥ incomplete for both service and contact, and fails on main's rule (service 346.9 s < 378.8 s).
 
 ## First permitted contact (#227)
 
