@@ -24,10 +24,12 @@ describe('the shipped campaign declarations', () => {
       dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
       dil_epistemic_hallway_collision: 'defer' };
     for (const reg of [CONTENT, PREVIEW]) {
-      // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04), which production lacks.
-      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close', dil_ur_unrelated_record: 'close' } : policy;
+      // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04) and the Elena follow-up (NH-06), which production lacks.
+      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close', dil_ur_unrelated_record: 'close', dil_elena_incident_record: 'defer' } : policy;
       expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
-      expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === 'consequential')).toBe(true);
+      const followUps = reg === PREVIEW ? ['dil_elena_incident_record'] : [];
+      expect([...reg.campaign.events.values()].filter((event) => event.campaign?.eventClass !== 'consequential').map((event) => event.id)).toEqual(followUps);
+      expect(followUps.every((id) => reg.campaign.events.get(id)?.campaign?.eventClass === 'follow_up')).toBe(true);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });
       expect(reg.campaign.events.get(NOTE)?.campaign).toMatchObject({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'defer' });

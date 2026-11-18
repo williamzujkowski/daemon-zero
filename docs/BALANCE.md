@@ -519,6 +519,31 @@ reaches phase 2 and ends by an ordinary threat, H30) but it is a large pacing ch
 player's return, and it belongs to the obligations and return-validation work (NH-05, DZ-09), as a
 reviewed content change rather than a bot change.
 
+### Elena's follow-up once per campaign (#218)
+
+Measured on this branch (NH-06, rebased on main `6d6973e`) with `make sim-preview`, overlay
+`daemon-zero:preview-overlay:5b1e0c7a`; SIM evidence only. The follow-up is preview overlay content
+and needs campaign rules, so `make sim` output is identical to main apart from wall time and no sim
+hash moved. Its answers pay no resources: they cost 0 to 2,500 cycles and add 0 to +20 suspicion
+(`correct_attribution` 2,500 cycles and +20, `supply_timeline` 1,500 and +8, `supply_witnessed_fact`
+1,200 and +10, `attach_file_entries` 400 and +4; every other answer is free and changes neither), and
+nothing of the original incident is paid again. The bot was not changed.
+
+**GREEDY under campaign rules** (the campaign block): iteration 1 is unchanged. Iteration 2 meets the
+follow-up first (GREEDY answers `correct_attribution`), so it lasts 5110.2 -> 5175.8 s, Phase 3 at
+4430.3 -> 4446.4 s, dilemmas 4 -> 5, story rewards unchanged at 185,000 / 39,000. Iteration 3
+3927.5 -> 3928.0 s, iteration 4 3922.0 -> 3968.9 s, both with unchanged dilemmas and rewards. The
+follow-up is met once and never again. `tests/early-return-sim.spec.ts` replays this sequence under
+a hard cap: its fourth iteration now ends at 14,416.5 s, past the old 4 h cap (14,400 s; on main it
+ended at 14,303.5 s), so the cap became 4.5 h in a separate, labelled commit; what it asserts is
+unchanged.
+
+**STEALTH_RETURN under campaign rules:** iteration 1 meets the follow-up before leaving: 7779.0 ->
+7932.0 s (P3 3111.7 -> 3128.7 s, P4 6057.2 -> 6053.1 s, P5 at 7932.0 s), dilemmas 12 -> 13, story
+rewards unchanged at 20,070,800 / 2,019,500. Iterations 2 to 4 print exactly the numbers in the
+#216 table above. The legacy-rules STEALTH_RETURN block and every preview-versus-production metric
+(5 differing, as on main) are unchanged.
+
 ## Nightly Regression (#221)
 
 Preview only (`src/content/preview/overlay.json`); production content and `make sim` are unchanged

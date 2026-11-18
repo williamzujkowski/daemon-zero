@@ -10,6 +10,7 @@ import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './sch
 import { checkRequirements } from './integrityRequirements';
 import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
 import { checkChoiceGateIntegrity } from './integrityChoiceGates';
+import { checkFollowUpIntegrity } from './integrityFollowUp';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
@@ -216,6 +217,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCampaignIntegrity(reg),
     ...checkCampaignFactIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
+    ...checkFollowUpIntegrity(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),

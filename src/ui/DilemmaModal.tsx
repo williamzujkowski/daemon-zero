@@ -7,7 +7,7 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, dilemmaContext, offeredChoices, presentationToken, resolveDilemma } from '../engine';
+import { canAfford, dilemmaContext, followUpAccess, offeredChoices, presentationToken, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -28,6 +28,8 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
       Evidence: {evidenceText(choice.qualification)}</Text>}
     {choice.scope && <Text testID={'dilemma-choice-' + choice.id + '-scope'} style={theme.muted}>Scope: {scopeText(choice.scope)}</Text>}
+    {choice.receipt !== undefined && <Text testID={'dilemma-choice-' + choice.id + '-receipt'} style={theme.muted}>
+      On file afterwards: {choice.receipt}</Text>}
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
@@ -50,6 +52,8 @@ export default function DilemmaModal() {
   const context = useGame((game) => dilemma ? dilemmaContext(game, dilemma, CONTENT) : '');
   // A primitive selector over the same history: choices a world without their subject cannot offer stay hidden.
   const offered = useGame((game) => dilemma ? offeredChoices(game, dilemma, CONTENT).map((choice) => choice.id).join(' ') : '').split(' ');
+  // How this instance reaches a follow-up's record, and who authorized that route, before any commit (NH-06).
+  const access = useGame((game) => dilemma ? followUpAccess(game, dilemma, CONTENT)?.statement ?? null : null);
   if (!dilemma || ended || token === null) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
@@ -61,6 +65,7 @@ export default function DilemmaModal() {
           <DisclosureText style={theme.text}>{context}</DisclosureText>
           {/* An offer shows every term before any answer (DZ-04.3). */}
           {dilemma.choices.some((choice) => choice.pilotResponse) && <PilotTerms />}
+          {access !== null && <Text testID="dilemma-access" style={theme.muted}>Access: {access}</Text>}
           {dilemma.choices.filter((choice) => offered.includes(choice.id)).map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
         </ScrollView>
       </View>

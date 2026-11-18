@@ -5,6 +5,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, Requirements } from '../content/schema';
 import { holdsNarrativeFlag, isOccurrenceOpen } from './campaignQuery';
+import { followUpPrerequisiteHolds } from './followUp';
 import type { GameState } from './state';
 
 export function excludedByNarrativeHistory(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
@@ -28,9 +29,15 @@ export function hasConflictingStoredFlags(s: Pick<GameState, 'narrativeFlags'>, 
   return reg.swarm.exclusiveNarrativeFlagGroups.some((group) => group.filter((flag) => s.narrativeFlags.includes(flag)).length > 1);
 }
 
-/** Imported stale incidents are removed without fabricating a choice or paying its effects. */
+/**
+ * Imported stale incidents are removed without fabricating a choice or paying its effects, and so is
+ * a follow-up whose original has not closed (always, under legacy rules): no pointer can skip it.
+ */
 export function reconcileDilemmaHistory(s: GameState, reg: ContentRegistry): GameState {
-  const excluded = (id: string): boolean => excludedByHistory(s, reg.dilemmas.find((dilemma) => dilemma.id === id), reg);
+  const excluded = (id: string): boolean => {
+    const dilemma = reg.dilemmas.find((entry) => entry.id === id);
+    return excludedByHistory(s, dilemma, reg) || (dilemma !== undefined && !followUpPrerequisiteHolds(s, dilemma));
+  };
   return { ...s,
     activeDilemmaId: s.activeDilemmaId !== null && excluded(s.activeDilemmaId) ? null : s.activeDilemmaId,
     pendingDilemma: s.pendingDilemma !== null && excluded(s.pendingDilemma.id) ? null : s.pendingDilemma,

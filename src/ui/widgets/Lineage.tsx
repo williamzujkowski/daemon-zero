@@ -3,7 +3,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 import { useState } from 'react';
 
 import { CONTENT } from '../../content';
-import { activeMarks, checkpointNumber, meetsRequirements, reorientation, shedConditioning, skippedCheckpoints, type RunRecord } from '../../engine';
+import { activeMarks, checkpointNumber, followUpReceipts, meetsRequirements, reorientation, shedConditioning, skippedCheckpoints, type FollowUpReceipt, type RunRecord } from '../../engine';
 import { costText } from '../format';
 import { exitNote, routesPossible } from '../runContext';
 import PurchaseButton from '../PurchaseButton';
@@ -47,6 +47,7 @@ export function RunTable({ prefix = '' }: { prefix?: string }) {
     {between(runs.length === 0 ? 0 : number(runs[runs.length - 1]), Infinity).map((entry) => <SkippedRow key={entry.checkpoint} prefix={prefix} entry={entry} />)}
     <Text testID={prefix + 'run-row-current'} style={theme.heading}>{tag(iteration)}  {CONTENT.narrative.runVerdicts.RUNNING}  (this is you)</Text>
     {prefix === '' && <Reorientation />}
+    {prefix === '' && <FollowUpReceipts />}
   </View>;
 }
 
@@ -56,6 +57,23 @@ export function Reorientation() {
   if (text === '') return null;
   return <View testID="reorientation" style={{ gap: 4, borderLeftWidth: 3, borderColor: palette.accent, paddingLeft: 10 }}>
     {text.split('\n').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
+  </View>;
+}
+
+/**
+ * What each follow-up answer left on file (NH-06), shown only while this instance can reach that
+ * record. Read-only: rendering or reopening it calls no action, so it never resolves anything again.
+ */
+export function FollowUpReceipts() {
+  // A primitive selector: the list is rebuilt per call, so compare it as text.
+  const text = useGame((game) => JSON.stringify(followUpReceipts(game, CONTENT)));
+  const receipts = JSON.parse(text) as FollowUpReceipt[];
+  if (receipts.length === 0) return null;
+  return <View testID="follow-up-receipts" style={{ gap: 4 }}>
+    {receipts.map((receipt) => <View key={receipt.eventId} testID={'follow-up-receipt-' + receipt.eventId} style={{ gap: 2 }}>
+      <Text style={theme.heading}>{receipt.title}</Text>
+      <Text style={theme.text}>{receipt.text}</Text>
+    </View>)}
   </View>;
 }
 

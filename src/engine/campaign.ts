@@ -60,10 +60,12 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
 /**
  * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): an exclusive
  * outcome flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing
- * gives nothing. Legacy history cannot postdate activation, so an event resolved in a later
+ * gives nothing, and nothing proves a follow-up. Legacy history cannot postdate activation, so an event resolved in a later
  * iteration of an already-active campaign (content converted it since) keeps no source iteration.
  */
 export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
+  // A follow-up never existed outside campaign rules, so no legacy evidence can prove one (NH-06).
+  if (event.followUp !== undefined) return null;
   const current = s.resolvedDilemmas.includes(event.id);
   const exact = event.choices.find((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
   if (!exact && !current) return null;
