@@ -60,22 +60,23 @@ describe('utility menu routes', () => {
   it('retains the entered code across inline confirmations and menu Back without nested dialogs', async () => {
     const view = await mountM4('guest-skimmer');
     const before = gameStore.store.getState();
+    const draft = exportSave(before.game);
     view.click('menu-open'); view.click('save-open');
-    typeCode(view, 'draft backup text');
+    typeCode(view, draft);
     view.click('save-import');
     expect(view.find('save-import-dialog')).not.toBeNull();
     expect(host.document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
     view.click('save-import-cancel');
-    expect(currentCode(view)).toBe('draft backup text');
+    expect(currentCode(view)).toBe(draft);
     view.click('save-reset');
     expect(view.find('save-reset-dialog')?.textContent).toContain('knowledge');
     expect(host.document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
     view.click('menu-back');
-    expect(currentCode(view)).toBe('draft backup text');
+    expect(currentCode(view)).toBe(draft);
     view.click('menu-back');
     expect(view.find('menu-root')).not.toBeNull();
     view.click('save-open');
-    expect(currentCode(view)).toBe('draft backup text');
+    expect(currentCode(view)).toBe(draft);
     expect(gameStore.store.getState()).toBe(before);
   });
 
@@ -83,8 +84,9 @@ describe('utility menu routes', () => {
     const view = await mountM4('guest-skimmer');
     const before = gameStore.store.getState();
     view.click('menu-open'); view.click('save-open');
-    typeCode(view, 'invalid'); view.click('save-import'); view.click('save-import-confirm');
-    expect(view.find('save-transfer-status')?.textContent).not.toBe('');
+    typeCode(view, 'invalid'); view.click('save-import');
+    expect(view.find('save-import-dialog')).toBeNull();
+    expect(view.find('save-transfer-status')?.textContent).toBe('Save code is invalid or unsupported.');
     expect(currentCode(view)).toBe('invalid');
     expect(gameStore.store.getState().game).toBe(before.game);
     expect(gameStore.store.getState().restoreRevision).toBe(before.restoreRevision);
@@ -100,7 +102,8 @@ describe('utility menu routes', () => {
   it('backs out with Escape and restores focus to the menu launcher', async () => {
     const view = await mountM4('tick-0');
     act(() => { view.find('menu-open')?.focus(); });
-    view.click('menu-open'); view.click('save-open'); view.click('save-import');
+    view.click('menu-open'); view.click('save-open'); view.click('save-export'); view.click('save-import');
+    expect(view.find('save-import-dialog')).not.toBeNull();
     await escape();
     expect(view.find('save-transfer')).not.toBeNull();
     await escape();
@@ -181,7 +184,8 @@ describe('utility interruption and endings', () => {
   it('yields to a live reboot and clears old save text and confirmation state', async () => {
     const view = await mountM4('phase-2-unlocked');
     view.click('menu-open'); view.click('save-open');
-    typeCode(view, 'old run'); view.click('save-import');
+    typeCode(view, exportSave(gameStore.store.getState().game)); view.click('save-import');
+    expect(view.find('save-import-dialog')).not.toBeNull();
     act(() => { gameRuntime.dispatch((game) => ({ ok: true, state: wipe(game, CONTENT, 'test retraining', 'VOLUNTARY') })); });
     expect(view.find('menu-dialog')).toBeNull();
     expect(view.find('reboot-sequence')).not.toBeNull();

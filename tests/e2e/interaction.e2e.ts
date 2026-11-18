@@ -25,8 +25,9 @@ test('save-code transfer cancels replacement, rejects bad input and round-trips 
   const code = await page.getByTestId('save-code').inputValue(), before = await readSave(page);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-cancel').click();
   await page.getByTestId('save-code').fill('invalid');
-  await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
+  await page.getByTestId('save-import').click();
   await expect(page.getByTestId('save-transfer-status')).toContainText('invalid');
+  await expect(page.getByTestId('save-import-dialog')).toHaveCount(0);
   await page.getByTestId('save-close').click(); await page.getByTestId('manual-cycle').click();
   await openSave(page); await page.getByTestId('save-code').fill(code);
   await page.getByTestId('save-import').click(); await page.getByTestId('save-import-confirm').click();
