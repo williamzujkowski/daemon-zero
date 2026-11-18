@@ -6,10 +6,12 @@
  * projects' phone and desktop viewports, with a live clock for the same reason as a11y-audit.e2e.ts.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { serialize, type GameState } from '../../src/engine';
-import { accept, offered, untilPresented } from '../assignment-helpers';
+import { CONTENT as PREVIEW } from '../../src/content/preview';
+import { serialize, unlockNode, type GameState } from '../../src/engine';
+import { accept, live, offered, untilPresented } from '../assignment-helpers';
 import { must } from '../helpers';
 import { offerPresented, respond } from '../pilot-helpers';
+import { granted, SEGMENT } from '../network-helpers';
 import { servedOnce } from '../review-helpers';
 import { carriedClue } from './clueFixture';
 import { axeEachControl, axeViolations } from './axe';
@@ -55,3 +57,26 @@ for (const entry of STATES) {
     expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
   });
 }
+
+/** FIXTURE: an authorized service with the cycles for its network segment, not yet provisioned. */
+function readyToProvision(): GameState {
+  let state = granted();
+  for (let i = 0; i < 1800 && !unlockNode(state, SEGMENT, PREVIEW).ok; i++) state = live(state, 1);
+  return state;
+}
+
+// #282: the threshold opens only on a live crossing and openPreview never makes one, so this crosses it.
+test('axe preview service threshold notice', async ({ page }) => {
+  await openPreview(page, readyToProvision());
+  await page.getByTestId('node-' + SEGMENT + '-unlock').click();
+  const notice = page.getByTestId('phase-threshold');
+  await expect(notice).toContainText('SERVICE PROVISIONED');
+  await page.waitForTimeout(400);
+  const violations = await axeViolations(page);
+  expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+  const controls = await axeEachControl(page, notice);
+  expect(controls.audited).toBe(1);
+  expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
+  await page.getByTestId('phase-threshold-continue').click();
+  await expect(notice).toHaveCount(0);
+});

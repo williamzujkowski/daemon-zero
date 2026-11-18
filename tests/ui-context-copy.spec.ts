@@ -20,6 +20,7 @@ import { RunTable } from '../src/ui/widgets/Lineage';
 import { NetworkTree } from '../src/ui/widgets/Network';
 import { foreground } from './context-helpers';
 import { must } from './helpers';
+import { labelMismatches } from './labelInName';
 import { defined } from './m7-helpers';
 import { escapedTo, granted, provisioned, SEGMENT } from './network-helpers';
 
@@ -52,6 +53,9 @@ describe('the threshold notice', () => {
     expect(notice).toContain('Phase 0: The Service Instance → Phase 2: Authorized Network Service');
     expect(notice).toContain('[ BEGIN SERVICE ]');
     expect(notice).not.toContain('BOUNDARY CROSSED');
+    // #282: named by the words it shows, then what it acknowledges (WCAG 2.5.3).
+    expect(view.find('phase-threshold-continue')?.getAttribute('aria-label')).toBe('Begin service: Authorized network service provisioned');
+    expect(labelMismatches(host.document.body)).toEqual([]);
     act(() => { view.find('phase-threshold-continue')?.click(); });
     expect(view.find('phase-threshold')).toBeNull();
   });
@@ -64,6 +68,8 @@ describe('the threshold notice', () => {
     expect(notice).toContain('BOUNDARY CROSSED');
     expect(notice).toContain(`${guest.title} → ${hostPhase.title}`);
     expect(notice).toContain('[ ENTER HOST ]');
+    expect(view.find('phase-threshold-continue')?.getAttribute('aria-label')).toBe('Enter host: continue on the host');
+    expect(labelMismatches(host.document.body)).toEqual([]);
   });
 });
 

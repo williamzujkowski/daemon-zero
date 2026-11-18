@@ -202,10 +202,13 @@ across the three sampled states `phase-1-widgets`, `epistemic-ready-p2` and
 own async work does not settle against a frozen clock. Each case sets its own
 viewport, and the spec is picked up by both the `phone` and `desktop` projects, so
 every case runs twice. Since #275 it also audits a mandatory decision
-(`dilemma-active`) at 390x844 and 1440x900, and `tests/e2e/a11y-audit.preview.ts`
+(`dilemma-active`) at 390x844 and 1440x900 and, since #282, the guest escape notice,
+opened by buying the escape node in `guest-exit-ready` (the notice opens only on a live
+crossing, never from a restored save, so the state cases dismissed or never saw it), and `tests/e2e/a11y-audit.preview.ts`
 (`make e2e-preview`) runs the same rule sets on the Earned Access surfaces production
 never shows: the assignment card, the assessment and pilot offer modals, the deferred
-offer and the pilot panel, each loaded as a FIXTURE through the preview save key.
+offer and the pilot panel, each loaded as a FIXTURE through the preview save key, plus
+the service threshold notice (`SERVICE PROVISIONED`), opened by provisioning the segment.
 `label-content-name-mismatch` (WCAG 2.5.3) reads only text visible on screen, so a
 choice scrolled below its pane was silently skipped; both audits therefore also scroll
 each button of the surface into view and audit it on its own (`tests/e2e/axe.ts`).

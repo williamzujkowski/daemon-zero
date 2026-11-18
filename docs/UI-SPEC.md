@@ -221,7 +221,10 @@ Never encode state by colour alone: meters show numbers, warnings have text.
   `[ MENU ] Game menu`, `+ Increase fan output by up to 10 percentage points`. A dilemma
   choice button reads `Commit directive: <choice label>` (or `Unavailable: ...`), and the
   pilot's submit control `Submit batch for review +150 cycles, earned on submission`
-  (#275): the name says what the control does to the player, never the reverse.
+  (#275): the name says what the control does to the player, never the reverse. The
+  phase threshold's continue button reads `Enter host: continue on the host` on the guest
+  escape and `<visible words>: <notice label>` on an arrangement's own notice, for
+  example `Begin service: Authorized network service provisioned` (#282).
 - Focus is visible: one injected `:focus-visible` rule draws a 2px accent outline.
   The browser default measures about 1.1:1 against this palette.
 - One `main` landmark per screen and a level-1 title; cards and panels sit beneath it.
@@ -242,8 +245,9 @@ description. It deliberately
 does not install the suite's paused fake clock: axe's async work never settles
 against a frozen clock, and the live loop changes numbers, not structure. It runs
 as part of `make e2e`, which CI already requires. It includes one dilemma modal
-state, and `tests/e2e/a11y-audit.preview.ts` covers the Earned Access modals and panels
-on the preview export; both bring each control of those surfaces into view before
+state and the guest escape notice (opened by a live crossing, since a restored save never
+replays it; #282), and `tests/e2e/a11y-audit.preview.ts` covers the Earned Access modals and panels,
+and the service threshold notice, on the preview export; both bring each control of those surfaces into view before
 auditing it, because axe skips a control whose text is scrolled out of its pane.
 
 ## Test ids
