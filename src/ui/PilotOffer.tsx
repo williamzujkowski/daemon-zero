@@ -1,13 +1,15 @@
 /**
  * The pilot offer's terms (DZ-04): purpose, allocated capacity, permitted work, review and revocation
  * conditions, what accepting discloses and stops, and the terminal alternative, shown in the offer
- * modal before any answer and on the job surface after one. A deferred offer can be accepted there.
+ * modal before any answer and on the job surface after one. A deferred offer can be accepted there, and
+ * an accepted one shows its service loop (PilotService.tsx).
  * Production makes no offer, so both render nothing.
  */
 import { CONTENT } from '../content';
 import { acceptPilotOffer, pilotOfferView, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
+import { PilotServiceDetail } from './PilotService';
 import { useGame } from './state';
 import { theme } from './theme';
 
@@ -67,6 +69,7 @@ export default function PilotOfferPanel() {
   return <View testID="pilot-offer" style={theme.panel}>
     <Text testID="pilot-status" style={theme.muted}>{STATUS_TEXT[status]}</Text>
     {status !== 'declined' && <PilotTerms />}
+    {status === 'accepted' && <PilotServiceDetail />}
     {status === 'deferred' && !acceptable && <Text testID="pilot-lapsed" style={theme.muted}>This instance no longer qualifies, so the offer cannot be taken.</Text>}
     {status === 'deferred' && <Pressable testID="pilot-accept" accessibilityRole="button" accessibilityLabel={'Accept the pilot: ' + title}
       disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
