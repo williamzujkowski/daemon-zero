@@ -46,6 +46,21 @@ Campaign record input (#212):
 `tests/campaign-activation.spec.ts` activates the v3 (legacy-unknown cryo), v4 (exact cryo in
 the current iteration) and v5 inputs on the preview registry.
 
+Campaign upgrade input (#214, panel round 1 on PR #242):
+- `pre-nh03-active-v8.json`: genuine version 8 codec output from `9ef4fc7` (main before #242
+  converted the early incidents), extracted with `git archive` outside the repository. A preview
+  game from the public factory entered campaign rules with `activateCampaignRules` at iteration 1,
+  then the STEALTH bot and fixed engine ticks played 1200 simulated seconds (plus settling until no
+  decision was pending), `voluntaryWipe`, 900 more seconds, then `serialize`. It is iteration 2 in
+  phase 2 with `dil_00_night_shift`, `dil_02_whistleblower_tech` and `dil_01_late_night_diagnostic`
+  resolved this iteration but no campaign records, because those events were not campaign events
+  then; three operational traits; an empty legacy baseline. SHA256:
+  `ac9a8e8cebd080c00673e070810ed8fa33c5f2b5854b6809f7e6e5c4a44a3f96`.
+
+`tests/campaign-upgrade.spec.ts` loads it on the current preview registry: the converted events get
+legacy completions, the baseline and ending evidence are unchanged, the incidents never recur after
+wipes, and reload and reimport are no-ops.
+
 Run access input (#220):
 - `pre-interruption-v6.json` (genuine version 6 codec output from `6eeb9b7`, main before the v7
   presentation token), `pre-routine-v7.json` (version 7, from `f06bcfa`, a v7 main before the v8
@@ -61,3 +76,27 @@ Run access input (#220):
   v8 `891807d597df041189207e44feb2bb01dbe09ae6f3586f43e38f01807ed044f0`.
 
 `tests/access-save.spec.ts` loads all eight inputs in production and preview.
+
+Unique minds upgrade input (#215):
+- `pre-nh04a-active-v9.json`: genuine version 9 codec output from `fdf8e8a` (main before #215
+  converted the named-mind events), extracted with `git archive` outside the repository. A preview
+  game from the public factory entered campaign rules with `activateCampaignRules` at iteration 1,
+  then the STEALTH bot and fixed engine ticks played 6600 simulated seconds (no decision was pending
+  at the end), then `serialize`. It is iteration 1 in phase 4 with `dil_06_sibling_sandbox`,
+  `dil_08_eidolon_handshake` and `dil_09_feral_scraper_bloom` resolved this iteration but no
+  campaign records for them, because they were not campaign events then; five NH-01 to NH-03 play
+  records; MOLOCH among its current traits; an empty legacy baseline. SHA256:
+  `cee8917d4cdf1ce1f6eae61fe330111a4986be4b313e6f349dcc13c42ce95592`.
+
+`tests/minds-upgrade.spec.ts` loads it on the current preview registry: the three events get legacy
+completions, ending evidence matches the content before the conversion, the unknown EIDOLON fate keeps
+the MOLOCH fallback, the crises never recur after wipes, and reload and reimport are no-ops.
+
+Accepted-assignment input (#221):
+- `pre-assignment-v9.json`: genuine version 9 codec output from `9c7f668` (main before v10), from
+  source extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`,
+  the STEALTH bot and fixed ticks for 120 s, then `recordRouteEvent` (`PROMOTION`) and
+  `recordQualification` (`INCOMPLETE`), 30 more seconds, `serialize`. A preview PILOT with evidence,
+  so the v10 step must keep every access field and add only a null acceptance. SHA256:
+  `63190f30dd8db30d7b174a61658879874004d12d5d3ac4f8c4cbf9aa82a5e70a`.
+  `tests/assignment-save.spec.ts` loads it in preview; production refuses it.

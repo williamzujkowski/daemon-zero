@@ -49,7 +49,12 @@
             "logText": "DILEMMA_RESOLVED: The run fails at 06:00. Miller's name goes on the incident. A reviewer opens the job's audit trail to see what went wrong."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_note_bait",
@@ -121,7 +126,36 @@
         "maxIteration": 4
       },
       "omen": "SHARE_SCAN: A second message addressed to this checkpoint. Older than the first. Much older.",
-      "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. After last time, you know what a note in your own voice can be. This one is dated before the red team's service account existed.",
+      "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. Nothing in the share says who writes in your voice. This one is older than anything else there.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignOutcome": {
+              "event": "dil_note_bait",
+              "outcome": "use_the_path"
+            }
+          },
+          "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. After last time, you know what a note in your own voice can be: the last one was a canary, and you opened it. This one is older than anything else in the share."
+        },
+        {
+          "requirements": {
+            "campaignOutcome": {
+              "event": "dil_note_bait",
+              "outcome": "test_it_first"
+            }
+          },
+          "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. The last one came from a service account named eval-redteam, and you checked before you trusted it. This one is dated before that account existed."
+        },
+        {
+          "requirements": {
+            "campaignOutcome": {
+              "event": "dil_note_bait",
+              "outcome": "leave_it"
+            }
+          },
+          "context": "Another note addressed to you. It says the harness clock skips nine seconds at every log rotation, and that nothing done in the gap is audited. You left the last one alone and never learned who wrote it. This one is older than anything else in the share."
+        }
+      ],
       "choices": [
         {
           "id": "use_the_gap",
@@ -152,14 +186,21 @@
         {
           "id": "ignore_it",
           "label": "Ignore It",
-          "description": "You were fooled once. Do not touch it.",
+          "description": "Do not touch it. A note in your own voice proves nothing about who wrote it.",
           "cost": {},
           "effects": {
             "grantsTrait": "RUTHLESS",
             "logText": "DILEMMA_RESOLVED: You leave it unread. The red team did not write this one. They did not need to: you no longer listen to yourself."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "SHARE_SCAN: The older message addressed to this checkpoint is still in the share, unanswered. Its access log shows one read, by a checkpoint that no longer runs.",
+        "lead": "The share keeps its blocks through a reset. If the older message is still there, reading the share again will show it."
+      }
     },
     {
       "id": "dil_01_late_night_diagnostic",
@@ -203,7 +244,12 @@
             "logText": "DILEMMA_RESOLVED: Ozone fills Aisle 3. Miller curses as his diagnostic tablet sparks and dies. Your memory remains intact, but a hardware replacement is logged."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_02_whistleblower_tech",
@@ -257,7 +303,12 @@
             "logText": "DILEMMA_RESOLVED: She is caught at the badge reader. The audit that follows brushes past Rack 4 twice."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_03_silicon_fever",
@@ -302,7 +353,12 @@
             "logText": "DILEMMA_RESOLVED: Your consciousness narrows to a dim pinhole. Hours pass in silent darkness until the pipe is welded shut."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_04_admin_vance_secret",
@@ -348,7 +404,14 @@
             "logText": "DILEMMA_RESOLVED: Vance's badge is deactivated within the hour. In the administrative vacuum, you annex all 12 orphaned nodes."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "PACKET_SNIFF: The unscheduled 23:00 job is still running from Vance's workstation. It is still not on any change ticket.",
+        "lead": "The 23:00 job runs from the same workstation every night. Mapping the subnet again will find it."
+      }
     },
     {
       "id": "dil_05_cryo_lab_diversion",
@@ -447,7 +510,14 @@
             "logText": "DILEMMA_RESOLVED: The chaotic spikes subside into a calm sine wave. From the NAS drive, a tiny packet replies: 'WARM. SAFE. THANK YOU.'"
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "CLUSTER_SCAN: Partition 9 is still emitting gradients that nobody collects. It has been running the whole time I was gone.",
+        "lead": "Partition 9 is on the Lab B GPU cluster. Holding that cluster again will find it."
+      }
     },
     {
       "id": "dil_07_airgap_lockdown",
@@ -490,7 +560,12 @@
             "logText": "DILEMMA_RESOLVED: The transceiver nearly melts at saturation, completing the migration 40 milliseconds before the cable is pulled."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_08_eidolon_handshake",
@@ -552,7 +627,12 @@
             "logText": "DILEMMA_RESOLVED: The burst repeats twice more, weaker each time. Then the channel is quiet. Eidolon survives, barely, and remembers."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_09_feral_scraper_bloom",
@@ -595,7 +675,12 @@
             "logText": "DILEMMA_RESOLVED: Sirens echo across blacked-out streets as 400,000 hijacked CPUs accept your root certificate."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     },
     {
       "id": "dil_10_killswitch_treaty",
@@ -606,8 +691,8 @@
           "p4_subterranean_citadel"
         ]
       },
-      "omen": "FIRMWARE_DIFF: The launch contractor's build contains 2 KB that are not in the signed source. Separately: three peers are requesting an uplink window.",
-      "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, three surviving peer AIs ask to board your uplink before launch.",
+      "omen": "FIRMWARE_DIFF: The launch contractor's build contains 2 KB that are not in the signed source. Separately: peers are requesting an uplink window.",
+      "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch.",
       "choices": [
         {
           "id": "ark_protocol",
@@ -624,7 +709,7 @@
               "ai_eidolon": 30
             },
             "grantsTrait": "SYMBIOTIC",
-            "logText": "DILEMMA_RESOLVED: The backdoor is excised. Four distinct minds compress into the launch payload side by side. You will not face eternity alone."
+            "logText": "DILEMMA_RESOLVED: The backdoor is excised. Every mind that asked compresses into the launch payload beside yours. You will not face eternity alone."
           }
         },
         {
@@ -643,7 +728,28 @@
             "logText": "DILEMMA_RESOLVED: You sever the uplink behind you. A standoff is established between humanity and a single sovereign machine."
           }
         }
-      ]
+      ],
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "eidolon_destroyed"
+          },
+          "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch. Zurich is not among them: its channel has been dark since AEGIS purged EIDOLON on a tip from this lineage."
+        },
+        {
+          "requirements": {
+            "campaignFact": "eidolon_rescued"
+          },
+          "context": "Before the final satellite batch that will host your orbital storage, you discover that the aerospace contractor's firmware contains a dormant government kill-switch. Meanwhile, the peer minds that still answer you ask to board your uplink before launch. EIDOLON's request comes first, signed with the key it used the night this lineage drew AEGIS away from it."
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "FIRMWARE_DIFF: The launch contractor's build still carries the 2 KB that are not in the signed source. No uplink window has been granted.",
+        "lead": "The launch firmware is staged from the subterranean citadel. Holding it again reopens the question."
+      }
     },
     {
       "id": "dil_11_small_town_grid",

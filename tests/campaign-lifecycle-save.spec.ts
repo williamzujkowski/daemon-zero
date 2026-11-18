@@ -12,7 +12,7 @@ import {
 import { activeGame, chooseCryo, cryo, nearCryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
 import {
-  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, stableThroughReloads, status, STEP, ticks, untilPresented,
+  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, reloadedHistory, stableThroughReloads, status, STEP, ticks, untilPresented,
 } from './interruption-helpers';
 import { must, rich } from './helpers';
 
@@ -35,7 +35,7 @@ describe('the v6 to v7 migration step', () => {
     delete v6.presentationSeq;
     delete v6.campaign.clue;
     const loaded = deserialize(JSON.stringify(v6), preview);
-    expect(loaded.schemaVersion).toBe(9);
+    expect(loaded.schemaVersion).toBe(10);
     expect(campaignRecord(loaded, note.id)).toEqual({ status: 'foreshadowed', sourceIteration: 3, origin: 'play' });
     expect(loaded.pendingDilemma).toEqual(omen.pendingDilemma);
   });
@@ -113,7 +113,7 @@ describe('every lifecycle transition leaves a save that reloads unchanged', () =
       cryoLost, cryoShownLost, activatedMidOmen, away };
     for (const [name, state] of Object.entries(states)) {
       expect(() => stableThroughReloads(state), name).not.toThrow();
-      expect(stableThroughReloads(state).campaign, name).toEqual(state.campaign);
+      expect(reloadedHistory(state), name).toEqual(state.campaign);
     }
   });
 });
@@ -134,7 +134,8 @@ describe('the clue in a save', () => {
   });
 
   it('refuses a clue without a record, or pinned outside campaign play', () => {
-    expect(() => deserialize(withCampaign(chosen, { clue: { event: note.id, pinnedAtIteration: 1 } }), preview)).toThrow(/has no record/);
+    const unseen = { ...chosen, resolvedDilemmas: chosen.resolvedDilemmas.filter((id) => id !== note.id) };
+    expect(() => deserialize(withCampaign(unseen, { clue: { event: note.id, pinnedAtIteration: 1 } }), preview)).toThrow(/has no record/);
     expect(() => deserialize(withCampaign(chosen, { clue: { event: cryo.id, pinnedAtIteration: 5 } }), preview)).toThrow(/clue outside campaign play/);
   });
 

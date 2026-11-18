@@ -10,7 +10,7 @@ import {
 } from '../src/engine';
 import { activeGame, cryo, pgrant, preview } from './campaign-helpers';
 import {
-  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, stableThroughReloads, status, STEP, ticks, untilPresented,
+  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, reloadedHistory, stableThroughReloads, status, STEP, ticks, untilPresented,
 } from './interruption-helpers';
 import { must, PHASE0, PHASE1, PHASE2, reasonOf, rich } from './helpers';
 
@@ -81,8 +81,8 @@ describe('carrying the clue across a wipe', () => {
     ]);
     expect(bootTexts(back)).toEqual(expect.arrayContaining(lines(back)));
     // Pinned and carried clues both leave saves that reload unchanged.
-    expect(stableThroughReloads(pinned).campaign).toEqual(pinned.campaign);
-    expect(stableThroughReloads(back).campaign).toEqual(back.campaign);
+    expect(reloadedHistory(pinned)).toEqual(pinned.campaign);
+    expect(reloadedHistory(back)).toEqual(back.campaign);
     expect(lines(stableThroughReloads(back))).toEqual(lines(back));
   });
 

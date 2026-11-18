@@ -14,9 +14,18 @@ const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Jso
 const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
-  it('convert cryo (close) and the bait note (defer), on both channels, with primer and flatten as campaign evidence', () => {
+  it('convert cryo (close), the bait note (defer), the NH-03 early events and the NH-04a minds per N6, on both channels, with primer and flatten as campaign evidence', () => {
+    // NARRATIVE-HISTORY N6: live incidents close; artifacts, the open investigation and unresolved
+    // questions about a mind or a promise defer.
+    const policy = { dil_00_night_shift: 'close', dil_note_bait: 'defer', dil_note_true: 'defer', dil_01_late_night_diagnostic: 'close',
+      dil_02_whistleblower_tech: 'close', dil_03_silicon_fever: 'close', dil_04_admin_vance_secret: 'defer', [CRYO]: 'close',
+      dil_06_sibling_sandbox: 'defer', dil_07_airgap_lockdown: 'close', dil_08_eidolon_handshake: 'close', dil_09_feral_scraper_bloom: 'close',
+      dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close' };
     for (const reg of [CONTENT, PREVIEW]) {
-      expect([...reg.campaign.events.keys()]).toEqual([NOTE, CRYO]);
+      // Preview also records Nightly Regression's original scene (DZ-03), which production lacks.
+      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close' } : policy;
+      expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
+      expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === 'consequential')).toBe(true);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });
       expect(reg.campaign.events.get(NOTE)?.campaign).toMatchObject({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'defer' });
@@ -93,7 +102,7 @@ describe('campaign id compatibility', () => {
 
 describe('campaign outcome requirements', () => {
   it('names a once-per-campaign event and one of its outcomes, or legacy_unknown', () => {
-    expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: 'dil_00_night_shift', outcome: 'legacy_unknown' })).toThrow(/not a once-per-campaign event/);
+    expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: 'dil_p5_01_panacea_paranoia', outcome: 'legacy_unknown' })).toThrow(/not a once-per-campaign event/);
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'teleport' })).toThrow(/is not an outcome of/);
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'legacy_unknown' })).not.toThrow();
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'preserve_cryo' })).not.toThrow();

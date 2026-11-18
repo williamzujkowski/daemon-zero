@@ -2,6 +2,7 @@ import { Text, View } from './PhaseTheme';
 /** One scrollable pane renders only the unlocked manifest slots requested by its layout. */
 import { ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
+import AssignmentPanel from './AssignmentPanel';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
@@ -55,6 +56,7 @@ function CoreTree() {
     <ManualCycle />
     <BootLog />
     <Conditioning key={iteration} />
+    <AssignmentPanel />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}
   </>;

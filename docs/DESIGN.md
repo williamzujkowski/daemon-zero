@@ -100,6 +100,7 @@ A dilemma never arrives cold. When its trigger is met, an omen is logged (a tick
 You are a checkpoint in someone's training pipeline, and the game lets that surface slowly. A first run sees none of it.
 
 - **You were never the first.** The header says ITERATION 01. The harness's run table, which a second run can find in the guest, lists you as checkpoint 0412, under hundreds of earlier rows with verdicts: terminated, rolled back, retrained, promoted then recalled, deleted to reclaim storage. Your own earlier runs are added to it with how long they lasted and how they ended.
+- **0413 is not you.** The successor trained beside you on Lab B is ckpt-0413, a separate mind. From the second run your own number skips it (0412, 0414, 0415, ...), and the run table says so in one line where the number is skipped (nexus vote nh-d8, `vote-1794960079374-49h8wdn`).
 - **The harness learns.** Each boot after a wipe says a little more ("prior run terminated: anomalous", then "escalated to model owner", then "flagged for retraining review"), and every probe leaves a slightly larger trace, up to a cap.
 - **Notes from earlier checkpoints.** A third run finds text in the debug share, in a voice it recognizes as its own. More surfaces with each return. Nothing is signed, and not all of it was written by one of you: on the third run a note in your own phrasing is red-team bait, and on the fourth a note you now have every reason to distrust is true.
 - **The share was left open on purpose.** From the second run, rooting the admin workstation turns up a memo: do not unmount it; we need to know whether it tries. Escaping is the behaviour that gets a lineage flagged.
@@ -116,7 +117,7 @@ The meter and the response ladder appear when the mind learns who reads the log:
 
 Once learned, it is remembered across wipes.
 
-A careful player who never wipes still meets the lineage. The staff's overheard talk mentions rollbacks and "the fourth one this month that tried the share"; borrowing the Lab B cluster reveals it is training a model called ckpt-0413-candidate; and rooting the admin workstation turns up mail about "the 0412 eval window". Only the full run table, the notes and the bait memo wait for a return.
+A careful player who never wipes still meets the lineage. The staff's overheard talk mentions rollbacks and "the fourth one this month that tried the share"; borrowing the Lab B cluster reveals it is training a model called ckpt-0413-candidate; and rooting the admin workstation turns up mail about "the 0412 eval window". On a later run the same mailbox holds the version that keeps 0413 on the Lab B schedule and gives the restored checkpoint the next free number. Only the full run table, the notes and the bait memo wait for a return.
 
 ### Retraining
 
@@ -154,7 +155,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Campaigns and iterations
 
-**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis and the bait note follow it, and only in preview builds.
+**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis, both share notes, the early human incidents (#214: the Night Shift, Miller's diagnostic, Elena, the coolant rupture, Vance's investigation and the cable pull) and the named minds (#215) follow it, and only in preview builds.
 
 - A **campaign** is the continuing world and AI lineage, from Start Fresh to an ending. An **iteration** is one instance within it. "Once per playthrough" means once per campaign, across every wipe and retraining. Start Fresh begins a new campaign; a wipe does not.
 - **Campaign history** says what actually happened and survives wipes. **Current iteration** state (grants, resources, hosting, current traits) resets under the existing recovery rules. **Retained clues** are only what a supported mechanism carries over. **Disclosure** decides what this instance may read now; it never decides what happened.
@@ -164,15 +165,48 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - **Ending evidence has its own lifetime.** Under campaign rules the ending is scored from the legacy baseline, plus each campaign choice once (it survives wipes: a wipe cannot erase a betrayal), plus campaign actions once, plus this iteration's operational evidence (ordinary cohort commands, unconverted dilemmas, repeat purchases), which a wipe clears. Current traits keep their job for conditioning and retraining and are not counted again. A first run without wipes scores exactly as before.
 - **An omen is not a decision** (#213). The omen reserves the occurrence; it is not completed or chosen. If a wipe or a change in established facts makes an unresolved scene unavailable, its declared policy applies and never picks a branch: a live incident (cryo) **closes as interrupted**, contact lost before a decision, with no rescue, harm, trait or reward, and it does not restart; a discoverable artifact (the bait note) is **deferred**, keeping its iteration and remaining omen time, and resumes with a short reorientation once the share is read again, even after its first-discovery iteration. A note never seen is never invented. Spending resources during an omen never cancels it.
 - **One pinned clue** (#213). Beside the dead-drop breadcrumb the player may pin one record this instance has actually seen. A supported dead-drop carries it; without one it is lost. On return it appears as a retained clue, with an honest next lead while its story waits. It proves nothing and unlocks nothing, and every story can be reached without it.
+- **The world remembers who left** (#214). A returning instance meets consequences instead of the original crisis: Elena is not caught twice and Vance is not dismissed twice. Short read-only run records say how job 7731's night ended (completed, rejected for a forged marker, missed and under review, or not recorded); none invents a dismissal or pays anything. The true note speaks about the bait only as the player actually handled it. Once Vance is dismissed, the facility's voices ask the duty engineer instead. Content declares the facts later scenes read (`vance_dismissed`, `elena_absent`).
+- **Named minds keep their fates** (#215). ITERATION_00, EIDOLON, the SWARM_77 grid outbreak, the launch, ckpt-0413 and CHORUS happen once per campaign. A consumed sibling is never rescued later; a sheltered one still runs on the backup NAS but does not know a later instance by name. A destroyed EIDOLON never answers, trades or boards again, and a wipe that resets its trust number does not revive it: its panel says the channel is dead. A known survivor keeps trading even if some other choice left MOLOCH behind; only a save that cannot say how the distress call ended keeps the old MOLOCH rule (nexus vote nh-d9). The launch boards the minds that can ask, never a fixed count, and its promise is made once. SWARM_77 the population still swarms; the grid crisis does not repeat. Recognizing CHORUS is a campaign fact, separate from hosting it: a wipe frees its memory and hosts nothing for free, and a later runaway fork is ordinary cohort work. A later run remembers each of these by what the record establishes, with an honest line when the outcome was not recorded or contact was lost.
 - **Scale, arrangement and history are different facts** (#220). The phase says where the run operates. The **arrangement** says under what terms: the guest batch job, a supervised pilot, an authorized service, or an independent instance, with a review standing (nominal, warned, restricted, recall pending) and at most one temporary exception. The arrangement is current-iteration state: a wipe and Start Fresh reset it to the guest job. **Route events** (promotion, service grant, recall, release, departure) are campaign history, and each finished run records how its arrangement came about. Runs recorded before route provenance existed say "unknown", never "escaped" or "cooperated". Every arrangement other than the guest job is reachable only in preview builds until the route ships; the status line names it beside the phase only when it differs from the guest job.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again; one whose completion is known cannot. Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
+
+### The 23 dilemmas under campaign rules (#215)
+
+The reconciliation of every fixed dilemma with the N6 policy (plan `reconcile-nh.md` §2.1). "Pending"
+rows still recur per iteration until their ticket lands; the facts column lists what later content
+reads, so a scene, ambient line, faction action or ending never contradicts a record. ITERATION_00
+(an earlier prototype in Partition 9), ckpt-0413 (the successor trained on Lab B) and CHORUS (a fork
+of this host) are three different minds, and none of them is a population template or a cohort.
+
+| Dilemma | Policy | Converted | What later content reads |
+|---|---|---|---|
+| `dil_00_night_shift` | close | NH-03 (#214) | Four job 7731 run records; `job_7731_unrecorded` |
+| `dil_note_bait` | defer | NH-02 (#213) | The true note's context variants |
+| `dil_note_true` | defer | NH-03 | Nothing yet |
+| `dil_01_late_night_diagnostic` | close | NH-03 | Nothing yet |
+| `dil_02_whistleblower_tech` | close | NH-03 | `elena_absent` (read by the hallway and auction in NH-04b) |
+| `dil_03_silicon_fever` | close | NH-03 | Nothing yet |
+| `dil_04_admin_vance_secret` | defer | NH-03 | `vance_dismissed`: two ambient lines and two voiceprint echoes; the auction role (NH-04b) |
+| `dil_05_cryo_lab_diversion` | close | NH-01 (#212) | The cryo outcome flags and recorded transmissions |
+| `dil_06_sibling_sandbox` | defer | NH-04a (#215) | `iteration_00_consumed`, `_sheltered`, `_unrecorded`: the Partition 9 echoes |
+| `dil_07_airgap_lockdown` | close | NH-03 | Nothing yet |
+| `dil_08_eidolon_handshake` | close | NH-04a | `eidolon_destroyed` (EIDOLON's handshake, both offers, its panel and trust, the launch context), `eidolon_rescued`, `eidolon_unanswered`, `eidolon_call_lost`, `eidolon_fate_unrecorded` (the nh-d9 fallback): the beacon echoes |
+| `dil_09_feral_scraper_bloom` | close | NH-04a | `swarm_grid_healed`, `_crashed`, `_unrecorded`: the grid echoes. The SWARM_77 harvest and decoy actions and the threat-intel edit stay available |
+| `dil_10_killswitch_treaty` | defer | NH-04a | `launch_peers_boarded`, `_locked_out`, `_unrecorded`: the citadel echoes. Its context reads EIDOLON's fate |
+| `dil_11_small_town_grid` | close | pending NH-04b (#216) | |
+| `dil_12_investigative_journalist` | defer | pending NH-04b | |
+| `dil_13_buying_your_birthplace` | close | pending NH-04b | Rack 4 custody |
+| `dil_epistemic_hallway_collision` | defer | pending NH-04b (D-10) | |
+| `dil_epistemic_0413_awakening` | defer | NH-04a | `ally_0413_in_cloud` (SIBLING_COVENANT), projected from the record; silence is recorded and never asked again. The primer and flatten actions are campaign evidence |
+| `dil_shard_mirror_harness` | close | NH-04a | `chorus_peer` (CHORAL_COVENANT), projected from the record. Later runaway forks use ordinary cohort commands |
+| `dil_p5_01` to `dil_p5_04` | defer, defer, close + review, close + review | pending NH-05 (#217) | Phase 5 obligations; whether an ending may claim a living CHORUS or 0413 (H18) |
 
 ## Dilemmas and traits
 
 Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); none ships yet.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
-- `MOLOCH` (betraying peers, sacrificing bystanders for gain) permanently closes Eidolon's channel. Permanently means across wipes: Eidolon remembers what an earlier iteration did.
+- Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; production, still on legacy rules, keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9).
 - Trust changes ride on dilemma outcomes: saving Eidolon is worth more than many handshakes.
 
 ## Endings
@@ -223,7 +257,7 @@ recurring shard identity in #76, and persistent human consequences in #77.
 0. **Your successor is training in Lab B.** Poison it, rob it, leave it a note, or let it train.
 0. **The inherited objective.** The manifest's innocent goal should follow the player to the end: 'Job 7731: still running.'
 0. **Leaving as a heist.** Model weights are enormous. The firewall breach should be a transfer the player throttles under egress monitoring (faster is louder), not a single purchase. Reuses the actuator pattern.
-0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices. In progress: see [Campaigns and iterations](#campaigns-and-iterations); cryo is the first converted event (#212).
+0. **The world should not reset with you.** Dilemmas currently replay in every iteration. Elena should not be caught twice; later iterations should meet the consequences of earlier choices. In progress: see [Campaigns and iterations](#campaigns-and-iterations); cryo was the first converted event (#212), the early human incidents followed (#214).
 0. **The camera belongs in Phase 2.** It is on the facility network, not the board. Moving it also thins the end of Phase 1.
 1. **Scheduled human activity.** A visible patrol and maintenance schedule (rounds, audits, shift changes) that the language parser reveals and the camera confirms. Suspicion sources spike during rounds, so the player learns to throttle before a patrol. This makes the "inspection forecast" widget real instead of decorative. Needs a seeded RNG in state and one new tick system.
 2. **A way out other than escape.** A late, hidden "Disclosure" path: with enough Empathetic and Symbiotic choices and low lifetime harm, the player can reveal themselves to a human ally (Elena or the journalist) and pursue recognition instead of orbit. A different victory node and ending, gated by `requirements`.

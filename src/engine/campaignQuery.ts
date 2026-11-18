@@ -4,8 +4,8 @@
  * pre-campaign one, so production behaviour does not change until rules are activated.
  */
 import type { ContentRegistry } from '../content/registry';
-import type { Dilemma, Trait } from '../content/schema';
-import type { CampaignOutcomeRequirement } from '../content/schemaCampaign';
+import type { Dilemma, Requirements, Trait } from '../content/schema';
+import { INTERRUPTED_FACT_OUTCOME, type CampaignOutcomeRequirement } from '../content/schemaCampaign';
 import type { CampaignRecord } from './campaignState';
 import type { GameState } from './state';
 
@@ -54,6 +54,42 @@ export function holdsNarrativeFlag(s: Pick<GameState, 'narrativeRules' | 'campai
 export function hasCampaignOutcome(s: History, gate: CampaignOutcomeRequirement): boolean {
   const record = campaignRecord(s, gate.event);
   return record?.status === 'resolved' && record.outcome === gate.outcome;
+}
+
+/**
+ * Whether a declared campaign fact holds: its event's record is resolved with a listed outcome, or
+ * closed unobserved and the fact lists 'interrupted'. False under legacy rules, for an unknown
+ * fact and while the occurrence is still open, so absence of history never proves anything.
+ */
+export function holdsCampaignFact(s: History, factId: string, reg: ContentRegistry): boolean {
+  const fact = reg.campaign.facts.get(factId);
+  const record = fact === undefined ? null : campaignRecord(s, fact.event);
+  if (!fact || !record) return false;
+  if (record.status === 'resolved') return fact.outcomes.includes(record.outcome);
+  return record.status === 'interrupted' && fact.outcomes.includes(INTERRUPTED_FACT_OUTCOME);
+}
+
+/**
+ * Nexus vote nh-d9: the traits a trait-history fallback blocks on now. Under legacy rules, every
+ * listed trait ever held, exactly as forbidsTraits (production is unchanged); under campaign rules,
+ * only while the named fact holds, i.e. while history cannot state the fate. A known fate decides
+ * alone, so a trait from some other source no longer closes the door. Without a registry the
+ * fallback stays on, the cautious reading.
+ */
+export function fallbackTraits(s: History & Pick<GameState, 'traits' | 'legacy'>, req: Requirements, reg?: ContentRegistry): Trait[] {
+  const fallback = req.traitFallback;
+  if (!fallback) return [];
+  if (isCampaignActive(s) && reg !== undefined && !holdsCampaignFact(s, fallback.whileFact, reg)) return [];
+  return fallback.forbidsTraits.filter((trait) => s.traits.includes(trait) || s.legacy.traitsEver.includes(trait));
+}
+
+/**
+ * Whether a peer is gone for good (NARRATIVE-HISTORY N6): its declared loss fact holds. Numeric
+ * trust resets on a wipe; this does not, so a reset cannot revive a destroyed mind (H33).
+ */
+export function isPeerLost(s: History, factionId: string, reg: ContentRegistry): boolean {
+  const lost = reg.factions.get(factionId)?.lost;
+  return lost !== undefined && holdsCampaignFact(s, lost.campaignFact, reg);
 }
 
 /**

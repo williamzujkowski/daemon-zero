@@ -24,6 +24,15 @@ trivy = "0.76.2"
 # recorded native builds used. Do not move it without a native rebuild and a device run.
 java = "temurin-21.0.13+9.0.LTS"
 
+# ffmpeg and ffprobe for tests/audio-assets.spec.ts, which measures the committed audio and fails
+# rather than skips under CI. From conda-forge rather than apt so CI restores it from the
+# mise-action cache instead of reaching an Ubuntu mirror on every run (a slow mirror took the
+# apt step to 16 minutes on 2026-11-17). 9.0.2 is the newest upstream FFmpeg release (tag n9.0.2).
+# conda-forge's GPL build (GPL-2.0-or-later) is the one mise resolves; it is a development and CI
+# tool, never bundled into the app. mise.lock pins the exact build and each dependency's checksum.
+# See docs/TESTING.md, "Audio signal measurement".
+"conda:ffmpeg" = "9.0.2"
+
 [settings]
 # Record exact resolved versions and checksums in mise.lock; commit that file.
 lockfile = true

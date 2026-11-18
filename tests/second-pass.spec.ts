@@ -17,6 +17,9 @@ import {
   type GameState,
 } from '../src/engine';
 import { fresh, grant, must, onHost, PHASE0, reg, rich, untilDilemma, withoutDilemmas } from './helpers';
+import { preview } from './campaign-helpers';
+import { defined } from './m7-helpers';
+import { campaignStart, EIDOLON, play } from './minds-helpers';
 
 const STEP = 1 / reg.balance.tickHz;
 const b = reg.balance;
@@ -151,14 +154,24 @@ describe('remembered hardware', () => {
 });
 
 describe('fixes from the first playtests', () => {
-  it('a betrayal closes a door for every later iteration (#28)', () => {
-    const req = { forbidsTraits: ['MOLOCH' as const] };
+  // Rewritten for nexus vote nh-d9 (fate-fact-with-legacy-trait-fallback). The door #28 closed is
+  // EIDOLON's, and what closes it is EIDOLON's recorded fate: a betrayal (eidolon_destroyed) closes it
+  // in every later iteration, while MOLOCH from any other source does not. The MOLOCH trait proxy
+  // remains only where history cannot say: under legacy rules (production today) and for an imported
+  // save whose distress-call outcome is unknown. tests/minds-eidolon.spec.ts covers each case.
+  it('a betrayal of EIDOLON closes its door for every later iteration (#28, by fate since nh-d9)', () => {
+    const req = defined(reg.actions.get('act_p3_eidolon_handshake')).requirements;
     const betrayer = { ...fresh(), traits: ['MOLOCH' as const] };
     const reborn = wipe(betrayer, reg, 'test');
     expect(reborn.traits).toEqual([]);
-    expect(meetsRequirements(reborn, req)).toBe(false);
-    expect(unmetRequirements(reborn, req)).toHaveLength(1);
-    expect(meetsRequirements(fresh(), req)).toBe(true);
+    expect(meetsRequirements(reborn, req, reg)).toBe(false);
+    expect(unmetRequirements(reborn, req, reg).map((item) => item.kind)).toContain('traitFallback');
+    const destroyed = play(campaignStart(), EIDOLON, 'betray_eidolon');
+    const later = wipe(destroyed, preview, 'test');
+    expect(unmetRequirements(later, req, preview).map((item) => item.kind)).toContain('forbidsCampaignFacts');
+    const spared = { ...wipe(play(campaignStart(), EIDOLON, 'draw_fire'), preview, 'test'), traits: ['MOLOCH' as const] };
+    expect(unmetRequirements(spared, req, preview).map((item) => item.kind)).not.toContain('traitFallback');
+    expect(unmetRequirements(spared, req, preview).map((item) => item.kind)).not.toContain('forbidsCampaignFacts');
   });
 
   it('the kindest ending must be earned outright, not won on a tie (#36)', () => {
@@ -192,7 +205,7 @@ describe('save migration from version 1', () => {
     delete old.iterationStartedAtSimSec;
     Object.assign(old, { schemaVersion: 1 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded.schemaVersion).toBe(9);
+    expect(loaded.schemaVersion).toBe(10);
     expect(loaded.conditioning).toEqual([]);
     expect(loaded.legacy.runs).toEqual([]);
     expect(loaded.actuators.quotaSkimRatio).toBe(0.25);

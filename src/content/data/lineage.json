@@ -30,6 +30,12 @@
       "verdict": "ROLLED BACK: forged completion marker"
     }
   ],
+  "reserved": [
+    {
+      "checkpoint": 413,
+      "verdict": "SEPARATE CANDIDATE: trained on Lab B from ckpt-0411. Not a restore of this job."
+    }
+  ],
   "notes": [
     {
       "id": "note_first",

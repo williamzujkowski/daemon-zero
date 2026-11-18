@@ -62,6 +62,7 @@ main d48130506a6d (preview channel) and the campaign-records note (all others).
 | dz-d8-legacy-shipped | approved 7/7, option guest-only-shipped-withdrawn-after-pilot, thresholdMet True | `vote-1794926765298-o7shlhf` |
 | nh-d7-obligations | approved 7/7, option campaign-obligations-requirement, thresholdMet True | `vote-1794927291350-6epyxcw` |
 | nh-d9-eidolon-fate | approved 7/7, option fate-fact-with-legacy-trait-fallback, thresholdMet True | `vote-1794927288574-ibq0hym` |
+| nh-d8-ckpt0413 | approved 7/7, option fixed-successor-skip-number, thresholdMet true (2026-11-18, same single-model panel) | `vote-1794960079374-49h8wdn` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.
@@ -75,14 +76,14 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 |
 | NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 |
-| NH-03 early human incidents | #214 | DZ-08 first permitted contact | #227 |
-| NH-04a unique minds | #215 | Q1 validation harness | #228 (done, PR #235) |
+| NH-03 early human incidents | #214 (PR #242) | DZ-08 first permitted contact | #227 |
+| NH-04a unique minds | #215 (in review) | Q1 validation harness | #228 (done, PR #235) |
 | NH-04b corporate world | #216 | DZ-09 autonomous validation gate | #229 |
 | NH-05 obligations, endings | #217 | DZ-10 lawful economics | #230 |
 | NH-06 Elena follow-up | #218 | DZ-11 deliberate departure | #231 |
 | NH-07 routine activity | #219 (done, PR #241) | DZ-12 cooperative ending | #232 |
-| DZ-02 truthful run context | #220 (in review) | DZ-13 release qualification | #233 |
-| DZ-03 Nightly Regression | #221 | | |
+| DZ-02 truthful run context | #220 (done, PR #243) | DZ-13 release qualification | #233 |
+| DZ-03 Nightly Regression | #221 (in review) | | |
 
 ## Evidence labels
 

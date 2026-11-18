@@ -10,7 +10,7 @@ import type { GameState } from './state';
 
 function isGuestJob(s: GameState): boolean {
   const a = s.access;
-  return a.context === 'GUEST' && a.standing === 'NOMINAL' && a.exception === null && a.qualification === null;
+  return a.context === 'GUEST' && a.standing === 'NOMINAL' && a.exception === null && a.qualification === null && a.assignment === null;
 }
 
 /** Standing, exception and evidence must fit the arrangement and this iteration's clock. */
@@ -23,6 +23,7 @@ function recordProblem(s: GameState): string | null {
     if (!now(exception.grantedAtSimSec) || exception.expiresAtSimSec <= exception.grantedAtSimSec) return 'save holds an access exception with an impossible lifetime';
   }
   if (qualification !== null && (!holdsQualification(context) || !now(qualification.recordedAtSimSec))) return 'save holds qualification evidence it cannot have';
+  if (s.access.assignment !== null && !now(s.access.assignment.acceptedAtSimSec)) return 'save accepts an assignment outside this iteration';
   return null;
 }
 

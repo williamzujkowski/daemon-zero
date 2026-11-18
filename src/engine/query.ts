@@ -3,7 +3,7 @@
  * so that "is this available / what does it cost" has exactly one answer.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
-import type { Actuator, Cost, Ending, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
+import type { Actuator, Cost, Ending, Lineage, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
@@ -57,9 +57,21 @@ export function probeTrace(s: GameState, node: RegistryNode, reg: ContentRegistr
   return base + Math.min(reg.balance.probeHardeningMax, (s.iteration - 1) * reg.balance.probeHardeningPerWipe);
 }
 
-/** The number the harness knows this iteration by. It did not start counting with the player. */
+/**
+ * The number the harness knows this iteration by. It did not start counting with the player, and
+ * it skips numbers that belong to other minds (nexus vote nh-d8): ckpt-0413 is the successor
+ * trained beside the player, so the player's second iteration is the next free number.
+ */
 export function checkpointNumber(iteration: number, reg: ContentRegistry): number {
-  return reg.lineage.checkpointOffset + iteration;
+  let number = reg.lineage.checkpointOffset + iteration;
+  for (const reserved of reg.lineage.reserved.map((entry) => entry.checkpoint).sort((a, b) => a - b)) if (reserved <= number) number += 1;
+  return number;
+}
+
+/** Reserved numbers the player's numbering has already skipped, oldest first, for the run table to explain. */
+export function skippedCheckpoints(iteration: number, reg: ContentRegistry): Lineage['reserved'] {
+  const current = checkpointNumber(iteration, reg);
+  return reg.lineage.reserved.filter((entry) => entry.checkpoint < current).sort((a, b) => a.checkpoint - b.checkpoint);
 }
 
 /** Traits follow a mind across wipes: what an earlier iteration did still counts. */

@@ -15,7 +15,7 @@ const GOOD = {
 
 function problemsWith(...routines: unknown[]): string {
   const overlay = parseOverlay({ sentinel: 'routine-content-probe-overlay', nodes: [], repeatables: [], actions: [], dilemmas: [],
-    factions: [], widgets: [], endings: [], echoes: [], marks: [], routines });
+    factions: [], widgets: [], endings: [], echoes: [], marks: [], routines, assignments: [] });
   try {
     buildRegistry({ ...applyOverlay(PRODUCTION_RAW, overlay), channel: 'preview' });
   } catch (error) {
@@ -68,6 +68,8 @@ describe('routine content (H28)', () => {
     const story = PREVIEW.dilemmas[0]?.id ?? '';
     expect(problemsWith({ ...GOOD, requirements: { resolvedDilemmas: [story] } })).toMatch(/gates on story outcome "resolvedDilemmas"/);
     expect(problemsWith({ ...GOOD, requirements: { requiredNarrativeFlag: 'any_flag' } })).toMatch(/gates on story outcome "requiredNarrativeFlag"/);
+    expect(problemsWith({ ...GOOD, requirements: { campaignFact: 'vance_dismissed' } })).toMatch(/gates on story outcome "campaignFact"/);
+    expect(problemsWith({ ...GOOD, requirements: { forbidsCampaignFacts: ['vance_dismissed'] } })).toMatch(/gates on story outcome "forbidsCampaignFacts"/);
     expect(problemsWith({ ...GOOD, requirements: { nodes: ['p9_missing'] } })).toMatch(/routine "rt_probe_template": requirement references unknown node "p9_missing"/);
     expect(problemsWith({ ...GOOD, requirements: { phaseAtLeast: 2 } })).toBe('');
   });

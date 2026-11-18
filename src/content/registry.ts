@@ -6,9 +6,10 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
-import { CampaignManifestSchema, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
+import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
+import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
@@ -23,6 +24,8 @@ export interface CampaignIndex {
   aliases: ReadonlyMap<string, string>;
   /** Retired campaign ids whose old records are kept as tombstones. */
   retired: ReadonlySet<string>;
+  /** Declared facts later scenes read, by id. Not save keys: each is derived from one event's record. */
+  facts: ReadonlyMap<string, CampaignFact>;
   /** Reorientation and clue labels. */
   labels: CampaignLabels;
 }
@@ -49,6 +52,8 @@ export interface ContentRegistry {
   campaign: CampaignIndex;
   /** Routine operation templates in authoring order (#219). Production ships none. */
   routines: readonly RoutineTemplate[];
+  /** Assigned work an instance may accept (DZ-03), by id. Production ships none. */
+  assignments: ReadonlyMap<string, Assignment>;
 }
 
 export interface RawContent {
@@ -68,6 +73,7 @@ export interface RawContent {
   lineage: unknown;
   campaign: unknown;
   routines: unknown;
+  assignments: unknown;
 }
 
 export class ContentError extends Error {
@@ -128,11 +134,13 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
   const from = manifest.aliases.map((alias) => alias.from);
   if (new Set(from).size !== from.length) problems.push('campaign: duplicate alias source');
   if (new Set(manifest.retired).size !== manifest.retired.length) problems.push('campaign: duplicate retired id');
+  if (new Set(manifest.facts.map((fact) => fact.id)).size !== manifest.facts.length) problems.push('campaign: duplicate fact id');
   return {
     events: new Map(dilemmas.filter((d) => d.campaign?.recurrence === 'once_per_campaign').map((d) => [d.id, d])),
     actions: new Map(actions.filter((action) => action.evidence === 'campaign').map((action) => [action.id, action])),
     aliases: new Map(manifest.aliases.map((alias) => [alias.from, alias.to])),
     retired: new Set(manifest.retired),
+    facts: new Map(manifest.facts.map((fact) => [fact.id, fact])),
     labels: manifest.labels,
   };
 }
@@ -154,7 +162,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
   const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
   const routines = parse(RoutinesManifestSchema, raw.routines, 'routines', problems);
-  if (!campaign || !routines) return null;
+  const assignments = parse(AssignmentsManifestSchema, raw.assignments, 'assignments', problems);
+  if (!campaign || !routines || !assignments) return null;
   if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -180,6 +189,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     lineage,
     campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
     routines: routines.routines,
+    assignments: toMap(assignments.assignments, 'assignments', problems),
   };
 }
 

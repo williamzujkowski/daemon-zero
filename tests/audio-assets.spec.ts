@@ -5,8 +5,8 @@
  *
  * Needs ffmpeg and ffprobe on the machine. Where they are missing the file checks are skipped
  * and say so, except under CI (`CI` set), where a missing tool fails the run: the workflow
- * installs ffmpeg, so a skip there would be a gate that quietly stopped running. See
- * docs/TESTING.md, "Audio signal measurement".
+ * installs ffmpeg (pinned in mise.toml), so a skip there would be a gate that quietly stopped
+ * running. See docs/TESTING.md, "Audio signal measurement".
  */
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +23,7 @@ const onCi = Boolean(process.env.CI);
 if (!available) console.warn('[audio-assets] ffmpeg/ffprobe not found: the committed audio files were NOT measured in this run.');
 
 it('has ffmpeg and ffprobe wherever CI is set, so the file checks below cannot be skipped there', () => {
-  expect(available || !onCi, 'CI is set but ffmpeg/ffprobe are missing: install them (.github/workflows/ci.yml)').toBe(true);
+  expect(available || !onCi, 'CI is set but ffmpeg/ffprobe are missing: run `mise install` (mise.toml pins them)').toBe(true);
 });
 
 interface Measured { file: string; rate: number; channels: number; seconds: number; frames: number; warnings: string;

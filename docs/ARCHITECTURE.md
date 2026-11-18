@@ -76,6 +76,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
 - `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
+- `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
@@ -92,6 +93,7 @@ Only `production.ts` and `preview/` import content JSON.
 | Repeatable | `repeatables.json` | Levelled purchase with geometric cost. `kind: UPGRADE` (incremental growth) or `OPERATIVE` (human payroll, dismissable). |
 | Action | `actions.json` | Instant, repeatable, optional cooldown. Faction interactions and corporate operations. |
 | Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). An optional `campaign` declaration converts it to a campaign record. |
+| Assignment | `assignments.json` | Work an instance may accept from the job surface; its assessments are dilemmas gated on `assignment` whose choices declare `qualification` (preview only). |
 | Faction | `factions.json` | Other AIs. Trust is stored per faction and used in `requirements.minTrust`. |
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
 | Ending | `endings.json` | Chosen at victory from the player's most frequent trait. |
@@ -116,6 +118,7 @@ Public API is `src/engine/index.ts`.
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
+| `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
@@ -201,9 +204,11 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v9; `tests/fixtures/` holds genuine v1-v8 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v10; `tests/fixtures/` holds genuine v1-v9 codec outputs.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
+
+**Add an assignment.** In the overlay, add an `assignments` entry and two dilemmas gated on it, an `original` and a `requalification`; see [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221) for the rules integrity enforces.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
@@ -258,8 +263,8 @@ unknown overlay key. Preview exports the same names and types as production (a
 `satisfies` check fails to compile otherwise), plus `PREVIEW_OVERLAY` and
 `PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
 Nothing under `src/content/` or `src/engine/` reads the environment; ESLint's purity
-rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay is empty today
-apart from its sentinel.
+rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay holds the routine
+templates (#219) and Nightly Regression's assignment and two assessments (#221).
 
 **Build selection (#205).** `metro.config.js` keeps Expo's defaults. When
 `DAEMON_CONTENT_CHANNEL=preview` and the platform is web, its `resolveRequest` hands
@@ -322,7 +327,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo and NH-02 the bait note; the other 21 dilemmas are unconverted and recur per iteration.
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events and NH-04a the six named-mind events (below); the other 8 dilemmas are unconverted and recur per iteration.
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -358,12 +363,23 @@ dilemmas, ordinary cohort commands and encounters as operational.
 **Loading.** `reconcileCampaign` refuses, never filters: campaign state on a legacy save, an
 incomplete activation, a stored outcome flag that a record owns, an unknown event, outcome or
 action, an impossible source iteration, or an id recorded twice. Aliased ids are re-keyed;
-retired ids stay as tombstones (they add no score). Importing a save replaces the campaign
+retired ids stay as tombstones (they add no score). **Upgrade path** (#214 panel round 1): when
+content converts more events after a campaign was activated, activation cannot run again, so load
+gives each converted event the save proves resolved, but holds no record for, a completed record
+read exactly as activation reads it: a guarded outcome flag gives the choice (the flag moves into
+the record), otherwise `legacy_unknown`; origin `legacy`, with a source iteration only when it is
+not after activation. The baseline is not recaptured and a `legacy` record adds no ending evidence
+(the trait already sits in that iteration's operational evidence). Recorded events are never
+touched, so a flag stored beside its record is still refused, and a second load is a no-op
+(`tests/campaign-upgrade.spec.ts`, on a genuine pre-#242 active save). An upgrade never consumes
+evidence a later check needs: `deserialize` checks the stored flags for contradictions before
+`reconcileCampaign` runs, and the upgrade refuses two stored outcomes of one event rather than
+choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
-NH-02 (below). Converting the other dilemmas, Phase 5 obligations and the CHORUS `elevate`
-campaign scope are later NH tickets.
+NH-02 (below); the CHORUS `elevate` scope in NH-04a (below). Converting the other dilemmas and
+the Phase 5 obligations are later NH tickets.
 
 Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
@@ -418,6 +434,111 @@ and a closing event may declare neither.
 Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`, `campaign-clue.spec.ts`,
 `campaign-lifecycle-save.spec.ts`, `ui-campaign-clue.spec.ts`, the interruption cases in
 `campaign-content.spec.ts`, and the rewritten dormancy case in `second-pass.spec.ts`.
+
+## Early incidents and declared facts (#214)
+
+NH-03 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N7). Content and queries only;
+no `GameState` change. Campaign rules stay preview-only, and every gate below reads campaign
+history, so production (legacy rules) behaves exactly as before: `make sim` and its hashes are
+unchanged.
+
+**Conversions (N6).** `dil_00_night_shift`, `dil_01_late_night_diagnostic`,
+`dil_02_whistleblower_tech`, `dil_03_silicon_fever` and `dil_07_airgap_lockdown` are consequential,
+once per campaign and `close`; `dil_note_true` and `dil_04_admin_vance_secret` `defer`, with a
+reorientation and a lead. Costs and effects are untouched: the first accepted choice pays as before,
+and the NH-01/NH-02 record, scheduler and lifecycle stop a second one.
+
+**Declared facts.** `data/campaign.json` `facts` names questions later scenes ask about one event:
+`{ id, event, outcomes, meaning }`, where an outcome is a choice id, `legacy_unknown` or
+`interrupted`. `holdsCampaignFact` (in `campaignQuery.ts`) is true under campaign rules when the
+event's record is resolved with a listed outcome, or closed unobserved and the fact lists
+`interrupted`; it is false under legacy rules, for an open occurrence and with no record. The
+requirements `campaignFact` and `forbidsCampaignFacts` read it (scope `context`). Integrity
+(`integrityCampaignFacts.ts`): the event is a once-per-campaign event; outcomes are its own and
+distinct; `interrupted` never shares a fact with a choice (an unobserved occurrence proves no
+branch); `legacy_unknown` joins choices only when the fact covers every choice; no choice id may be
+a reserved outcome; a requirement names a declared fact and never requires and forbids the same
+one. Shipped: `vance_dismissed` (`report_vance`), `elena_absent` (every Elena outcome and
+`legacy_unknown`; read by NH-04b's hallway and auction scenes, decision D-10 pending) and
+`job_7731_unrecorded` (`legacy_unknown`, `interrupted`).
+
+**History-keyed text.** A dilemma may carry `contextVariants` (`{ requirements, context }`, first
+match wins) and an echo may carry `requirements`; both may read world history (`context` scope)
+only, so the text cannot change while it is on screen. `dilemmaContext(s, dilemma, reg)` in
+`speechQuery.ts` picks the context and `DilemmaModal` renders it. The true note's default context
+claims nothing about the bait; three variants follow the bait's recorded outcome.
+
+**Receipts.** Four `recordedTransmissions` with source `dil_00_night_shift`, on the decoded-speech
+surface: one per exact outcome (`campaignOutcome`) and an honest fallback gated on
+`job_7731_unrecorded`. A record may now gate on a campaign fact about its own source event; it still
+needs exactly one outcome gate, a return iteration and a later-run source gate.
+
+**Presence.** `ambient_02` ("did Vance sign off…") and `echo_audio` (his voiceprint) forbid
+`vance_dismissed`; `ambient_13` and `echo_audio_vance_gone` are the neutral lines that require it.
+`frame_elena`'s "Chief Vance" stays: the scheduler always meets Elena's incident before Vance's
+investigation (registry order, and Vance's trigger implies Elena's), which a test pins. The `dil_13`
+auction and the hallway scene belong to NH-04b.
+
+Tests: `tests/early-incidents.spec.ts` (H01, H02, H05, H09, defer), `early-history-text.spec.ts`
+(H16, H20, H22, H31), `campaign-facts-content.spec.ts` (each rule), `early-return-sim.spec.ts` (H30).
+
+## Unique minds (#215)
+
+NH-04a of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N10). Decided by Nexus votes
+nh-d9 (`vote-1794927288574-ibq0hym`, fate-fact-with-legacy-trait-fallback), nh-d8
+(`vote-1794960079374-49h8wdn`, fixed-successor-skip-number) and nh-d6 (`vote-1794926255017-4o45fa3`).
+Content and queries only; no `GameState` change, so no migration. Campaign behaviour reads campaign
+history, which only the preview channel can activate.
+
+**Conversions (N6).** `dil_06_sibling_sandbox`, `dil_10_killswitch_treaty` and
+`dil_epistemic_0413_awakening` are once per campaign and `defer` (each with a reorientation and a
+lead); `dil_08_eidolon_handshake`, `dil_09_feral_scraper_bloom` and `dil_shard_mirror_harness` `close`.
+Costs and effects are unchanged. The 0413 `cloud` flag and the CHORUS `chorus_peer` flag become
+projections of their records, so SIBLING_COVENANT and CHORAL_COVENANT read the record; `silence` is a
+recorded outcome and never asked again. Converting CHORUS makes all three of its choices campaign
+evidence (nh-d6); ordinary cohort CLAMP/ELEVATE stay operational. After the record exists the scheduler
+never foreshadows CHORUS again, so `executeShardCommand` no longer refuses on a runaway fork and later
+drift is ordinary cohort work. Primer and flatten were already campaign actions (#212); their first
+purchase counts once and a repurchase in a later iteration is operational only.
+
+**Facts.** `campaign.json` declares exact, legacy-unknown and interrupted facts for the sibling,
+EIDOLON, the grid and the launch (for example `eidolon_destroyed`, `eidolon_call_lost`,
+`eidolon_fate_unrecorded`). Echoes on each trigger node, from iteration 2, say what the record
+establishes and nothing more.
+
+**EIDOLON (nh-d9).** A new requirement, `traitFallback: { forbidsTraits, whileFact }` (scope
+`context`), carries the old trait proxy: under legacy rules it blocks exactly as `forbidsTraits`, so
+production is unchanged; under campaign rules it blocks only while `whileFact` holds.
+`fallbackTraits` in `campaignQuery.ts` is the single reading, used by `epistemicRequirementFailures`
+and the UI's permanent-exclusion check. EIDOLON's action and both offers now carry
+`forbidsCampaignFacts: [eidolon_destroyed]` plus the fallback on `eidolon_fate_unrecorded`
+(`legacy_unknown` only), replacing `forbidsTraits: [MOLOCH]`. A faction may declare
+`lost: { campaignFact, status }`: `isPeerLost` answers it, `applyTrust` lets no gain reach a lost
+peer (a fall still applies, so the destroying act itself sets trust to its floor), and the Other
+Minds panel shows the status in place of the trust meter. The launch context has two variants keyed
+on EIDOLON's fate, and its default omen, context and `ark_protocol` log no longer count peers, which
+is the one production text change (its STEALTH log hashes moved; mechanics hashes did not).
+Integrity: a fallback's fact must be declared and may hold only for `legacy_unknown` or
+`interrupted`; a lost faction's fact must be declared and every action and node in its group must
+forbid it.
+
+**ckpt-0413 (nh-d8).** `lineage.json` `reserved` lists numbers that belong to other minds.
+`checkpointNumber` skips each reserved number at or below the computed one (iteration 1 -> 0412,
+2 -> 0414, 3 -> 0415), in production as well, since this corrects a label rather than enabling
+campaign behaviour. `skippedCheckpoints` gives the run table the one-line explanation for each
+skipped number. `Echo.maxIteration` (integrity: not below `minIteration`) gives `echo_eval_window`
+its iteration-1 window; `echo_eval_window_later` speaks from iteration 2. Integrity: a reserved
+number is after the offset, unique and not an ancestor.
+
+**Upgrade.** An already-active save from before #215 goes through the shared upgrade path (#242):
+each converted event it proves resolved gets a legacy completion; a stored `ally_0413_in_cloud` or
+`chorus_peer` gives the exact choice and moves into the record (`tests/minds-upgrade.spec.ts`, on a
+genuine active v9 save from `fdf8e8a`).
+
+Tests: `tests/minds-once.spec.ts` (H01, H02, defer, close, exact reloads), `minds-eidolon.spec.ts`
+(nh-d9, H17, H33), `minds-identity.spec.ts` (nh-d8, H12, H17, the remembered variants),
+`minds-upgrade.spec.ts`, `minds-content.spec.ts` (H28), `ui-minds.spec.ts`, and the rewritten #28
+case in `second-pass.spec.ts`.
 
 ## Routine activity (#219)
 
@@ -495,8 +616,8 @@ and verdicts.
 PILOT: plus loaned capacity; SERVICE: plus authorized network; INDEPENDENT: nothing granted),
 less what the standing withholds (RESTRICTED: network; RECALL_PENDING: loaned capacity and
 network), plus an unexpired exception's scope, which may restore a withheld use but never one
-the context lacks. `isPermitted` wraps it. Nothing consumes it yet; DZ-05 and DZ-07 gate
-output and actions through it, not through a second check.
+the context lacks. `isPermitted` wraps it. The assignment offer (#221) is its first consumer
+(`ASSIGNED_WORK`); DZ-05 and DZ-07 gate output and actions through it, not through a second check.
 
 **Transitions.** `src/engine/access.ts` (`recordRouteEvent`, `setReviewStanding`,
 `grantAccessException`, `recordQualification`) returns a whole new state or refuses with the
@@ -534,6 +655,57 @@ Tests: `tests/access-record.spec.ts`, `access-save.spec.ts` (v1-v8 fixtures, V12
 `access-roundtrip.spec.ts` (every transition from every reachable access shape reloads unchanged),
 `app-access-reset.spec.ts`, `ui-run-context.spec.ts`, and the v9-stripped sim hashes in
 `sim.spec.ts`.
+
+## Nightly Regression: assigned work and assessment evidence (#221)
+
+DZ-03 of the Earned Access plan (DECISIONS D1-D4, D9; NARRATIVE-HISTORY N12). Decided by Nexus votes
+dz-d3 (`vote-1794926533352-3ajggfh`, engine-action-from-manifest; `phase0-node-card` would be bought
+by the sim bot, `offering-dilemma` would fire modally for everyone) and trait-rule-free-choices
+(`vote-1794926000594-26kmg1g`); the evidence split follows nh-d1 and dz-d1. Preview only.
+
+**Content.** `assignments.json` (production: empty) and the overlay's `assignments` declare an `asg_`
+id, a title, `requirements` for where the offer is found (Nightly Regression: the job manifest, so
+the lawful opening suffices), an `offer`, a `requalificationOffer` and an `acceptLog`. An assessment
+is a dilemma whose trigger has `assignment: { id, stage }` (`original` or `requalification`, `access`
+scope) and whose every choice declares `qualification: { result, discrepancy }`.
+`integrityAssignment.ts` requires one original (once per campaign, `close`) and one requalification
+(`iteration_qualification`) per assignment, evidence on every assessment choice and nowhere else, a
+free choice reporting the work incomplete without a discrepancy, no discrepancy on
+`UNEXPECTED_CAPABILITY`, no reward or outcome flag on a requalification, and valid offer requirements.
+
+**Accepting.** `acceptAssignment(s, id, reg, offerToken(s, id))` is free and once per instance. It
+is refused, state unchanged, after the run ends, during a presentation, without campaign rules (so
+in production), for an unknown id, a token from another instance, a second acceptance, or an offer
+not shown (requirements unmet or no `ASSIGNED_WORK`). It writes `access.assignment` and logs. It
+schedules nothing itself: the trigger now holds, so the ordinary scheduler logs the omen and the
+assessment freezes the clock when it arrives. An ignored offer changes nothing.
+
+**Stage.** `assessmentStage` reads the original's campaign record: none, or one begun in this
+iteration, means the original; one from an earlier instance, resolved or interrupted, means the
+requalification. So the original happens once per campaign, a wipe during its omen closes it with
+no outcome, and the instance that lived it never sees the requalification.
+
+**Evidence.** Resolving an assessment choice writes the campaign record (the original's outcome is
+the choice id) and, through `recordSubmittedEvidence`, `access.qualification` from the declared
+evidence: what happened is history; what this instance submitted is current evidence and resets
+with it. Choices and numbers are in BALANCE.md. Requalification traits are operational, so routine
+qualification adds no permanent ending evidence and never repays the original.
+
+**Saved shape (v10).** `access.assignment` is `{ id, acceptedAtSimSec }` or null; `MIGRATIONS[9]`
+adds null. A route event keeps it. Load refuses an acceptance under legacy rules, outside this
+iteration's clock or for an unknown id, and an assessment on screen or pending that this instance
+did not accept (`assignmentProblem`).
+
+**Presentation.** `assignmentView` (status, stage text, token, evidence) feeds `AssignmentPanel` in
+the core pane: non-modal, an explicit `[ ACCEPT ASSIGNMENT ]`, nothing in production.
+`DilemmaModal` adds an evidence line per choice naming any discrepancy risk (`evidenceText.ts`).
+
+**Sim.** STEALTH, GREEDY and IDLE never accept and, inside campaign rules, play identical games
+with or without the assignment (V29, `tests/sim-assignment.spec.ts`).
+
+Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
+`sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
+in `sim.spec.ts` and `tests/e2e/nightly-regression.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

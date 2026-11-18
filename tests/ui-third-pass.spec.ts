@@ -64,7 +64,15 @@ describe('lineage interface', () => {
     expect(view.find('run-row-1')?.textContent).toContain('ckpt-0412');
     expect(view.find('run-row-1')?.textContent).toContain(CONTENT.narrative.runVerdicts.SUSPICION_OUTSIDE);
     expect(view.find('run-row-1')?.textContent).toContain('Retrained.');
-    expect(view.find('run-row-current')?.textContent).toContain('ckpt-0413');
+    // nexus vote nh-d8: 0413 is the successor trained beside you, so your second iteration is 0414
+    // and the table says once, where the number is skipped, whose 0413 is.
+    expect(view.find('run-row-current')?.textContent).toContain('ckpt-0414');
+    const reserved = CONTENT.lineage.reserved[0];
+    if (!reserved) throw new Error('Missing reserved checkpoint');
+    expect(view.find('run-row-reserved-413')?.textContent).toContain('ckpt-0413');
+    expect(view.find('run-row-reserved-413')?.textContent).toContain(reserved.verdict);
+    expect(text.indexOf('ckpt-0412')).toBeLessThan(text.indexOf(reserved.verdict));
+    expect(text.indexOf(reserved.verdict)).toBeLessThan(text.indexOf('ckpt-0414'));
     view.close();
   });
 

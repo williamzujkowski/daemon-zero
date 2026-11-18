@@ -12,7 +12,7 @@ import {
 } from '../src/engine';
 import { activeGame, cryo, nearCryo, preview, reload, returnTo } from './campaign-helpers';
 import {
-  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, remaining, stableThroughReloads, status, STEP, ticks, toIteration, untilPresented,
+  caught, commit, cryoOmen, leaveIt, note, noteOmen, readShare, remaining, reloadedHistory, status, STEP, ticks, toIteration, untilPresented,
 } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { must, rich } from './helpers';
@@ -134,14 +134,14 @@ describe('structural context (H07)', () => {
     const changed = tick(readShare(molochEver(deferred)), STEP, variant);
     expect(changed.pendingDilemma).toBeNull();
     expect(campaignRecord(changed, note.id)).toEqual({ status: 'interrupted', sourceIteration: 3, origin: 'play' });
-    expect(stableThroughReloads(changed, variant).campaign).toEqual(changed.campaign);
+    expect(reloadedHistory(changed, variant)).toEqual(changed.campaign);
   });
 
   it('closes instead of deferring when the context is already gone at the transition', () => {
     const omen = omenOn();
     const closed = wipe(molochEver(omen), variant, 'test', 'SUSPICION');
     expect(status(closed)).toBe('interrupted');
-    expect(stableThroughReloads(closed, variant).campaign).toEqual(closed.campaign);
+    expect(reloadedHistory(closed, variant)).toEqual(closed.campaign);
   });
 
   it('applies the policy at activation rather than presenting a scene whose context changed during the omen', () => {
@@ -150,7 +150,7 @@ describe('structural context (H07)', () => {
     for (let i = 0; i < 2000 && s.pendingDilemma !== null; i++) s = tick(s, STEP, variant);
     expect(s.activeDilemmaId).toBeNull();
     expect(status(s)).toBe('interrupted');
-    expect(stableThroughReloads(s, variant).campaign).toEqual(s.campaign);
+    expect(reloadedHistory(s, variant)).toEqual(s.campaign);
   });
 
   it('refuses a commit whose structure no longer holds, without paying anything', () => {

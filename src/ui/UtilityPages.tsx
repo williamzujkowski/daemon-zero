@@ -42,12 +42,13 @@ function SavePage({ menu }: { menu: UtilityMenu }) {
       multiline maxLength={1_000_000} value={menu.code} onChangeText={menu.edit}
       style={[theme.text, { height: 160, borderWidth: 1, borderColor: palette.border, padding: 10 }]} />
     <MenuButton id="save-export" label="Export save code" press={menu.export} />
-    <MenuButton id="save-import" label="Import save code" press={() => { menu.navigate('import'); }} />
+    <MenuButton id="save-import" label="Import save code" press={menu.review} />
     <View style={{ borderTopWidth: 1, borderColor: palette.warning, paddingTop: 12, gap: 12 }}>
       <Text style={theme.muted}>Want to begin again? Export and copy a backup first if you may want to return.</Text>
       <MenuButton id="save-reset" label="Start fresh from the beginning" danger press={() => { menu.navigate('reset'); }} />
     </View>
-    {menu.status !== '' && <Text testID="save-transfer-status" accessibilityRole="alert" style={theme.text}>{menu.status}</Text>}
+    {menu.status !== '' && <Text key={menu.notice} testID="save-transfer-status" accessibilityRole="alert" accessibilityLiveRegion="assertive"
+      style={theme.text}>{menu.status}</Text>}
     <MenuButton id="save-close" label="Close save code transfer" press={menu.close} />
   </View>;
 }

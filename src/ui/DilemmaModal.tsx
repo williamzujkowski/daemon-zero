@@ -7,11 +7,12 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, presentationToken, resolveDilemma } from '../engine';
+import { canAfford, dilemmaContext, presentationToken, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
 import { costText } from './format';
+import { evidenceText } from './evidenceText';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -23,6 +24,8 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     <Text style={theme.heading}>{choice.label}</Text>
     <DisclosureText style={theme.text}>{choice.description}</DisclosureText>
     <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
+    {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
+      Evidence: {evidenceText(choice.qualification)}</Text>}
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
@@ -41,6 +44,8 @@ export default function DilemmaModal() {
   const ended = useGame((game) => game.ending !== null);
   useEffect(() => { if (id && !ended) void feedback('interrupt', reduced); }, [id, ended, reduced]);
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
+  // Variants read only world history, which cannot change while the clock is stopped here.
+  const context = useGame((game) => dilemma ? dilemmaContext(game, dilemma, CONTENT) : '');
   if (!dilemma || ended || token === null) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
@@ -49,7 +54,7 @@ export default function DilemmaModal() {
         <ScrollView contentContainerStyle={styles.content}>
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
           <Text style={theme.muted}>CLOCK PAUSED // DECISION REQUIRED</Text>
-          <DisclosureText style={theme.text}>{dilemma.context}</DisclosureText>
+          <DisclosureText style={theme.text}>{context}</DisclosureText>
           {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
         </ScrollView>
       </View>
