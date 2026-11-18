@@ -1741,7 +1741,11 @@ variant).
 **Presentation (`DepartureTerms.tsx`).** In the assignment panel below the release terms. It renders nothing until
 `departureView` exists. Folded by default (`[ REVIEW DEPARTURE ]`), so a cooperative player is not pushed; unfolded it
 shows the purpose, what ends and remains, the risks, the preview and `[ LEAVE AUTHORIZATION ]`, disabled with the
-reason when blocked. Afterwards it says "Departed.", keeps the risks on screen and shows the boundary note with
+reason when blocked. The preview follows the readouts' own disclosure gates (panel round 1 on #294): the report's
+suspicion numbers only once surveillance is decoded (`useSurveillanceKnown`), the hunter's sweep rates only once its
+console widget is open, cycles and capital only behind their readouts; before that each is stated in words (the
+report "raises scrutiny", violations "make it worse", an instance that left is "swept for" beyond the facility
+network), and the terms' own lines carry no number. Afterwards it says "Departed.", keeps the risks on screen and shows the boundary note with
 `[ KEEP PLAYING ]`. The status line already says `INDEPENDENT (departed)` and the run table "Departed without
 authorization.".
 

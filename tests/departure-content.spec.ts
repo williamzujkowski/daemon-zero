@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION, RAW_CONTENT as PRODUCTION_RAW } from '../src/content';
-import { RAW_CONTENT } from '../src/content/preview';
+import { CONTENT as PREVIEW_CONTENT, RAW_CONTENT } from '../src/content/preview';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 import { independentCapacity } from '../src/content/schemaCapability';
 
@@ -50,6 +50,12 @@ describe('departure terms', () => {
     ['a departure with no risks stated', (raw: Json) => { pilot(raw).departure.risks = []; }, 'risks'],
   ])('%s', (_name, edit, expected) => {
     expect(problems(edit)).toContain(expected);
+  });
+
+  it('the terms state no hidden number: suspicion and the hunter\'s scale are not readouts every instance has (panel round 1)', () => {
+    const terms = [...PREVIEW_CONTENT.assignments.values()].flatMap((assignment) => (assignment.pilot?.departure ? [assignment.pilot.departure] : []));
+    expect(terms.length).toBe(1);
+    for (const line of terms.flatMap((entry) => [...entry.ends, ...entry.remains, ...entry.risks])) expect(line).not.toMatch(/\d|suspicion|AEGIS/i);
   });
 
   it('only capacity outside every grant counts as a continuation', () => {

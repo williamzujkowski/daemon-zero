@@ -37,7 +37,9 @@ test('FIXTURE rack leased: review the departure, leave without agreement on the 
   for (const line of DEPARTURE_TERMS.risks) await expect(page.getByTestId('departure-risks')).toContainText(line);
   await expect(page.getByTestId('departure-stops')).toContainText(name(CONTRACT));
   await expect(page.getByTestId('departure-continuation')).toContainText(name(RACK));
-  await expect(page.getByTestId('departure-trace')).toContainText(`(+${String(DEPARTURE_TERMS.trace.suspicion)})`);
+  // Surveillance is not decoded on this route: the report is described, not numbered (panel round 1).
+  await expect(page.getByTestId('departure-trace')).toContainText('raises scrutiny of this instance');
+  await expect(page.getByTestId('departure-trace')).not.toContainText('suspicion');
   await expect(page.getByTestId('departure-accept')).toBeEnabled();
   await page.getByTestId('departure-accept').click();
 

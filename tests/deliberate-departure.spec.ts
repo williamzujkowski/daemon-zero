@@ -70,7 +70,7 @@ describe('DZ-11.1: offered only when the eligibility query proves a continuation
 
   it('is not instant death: a report that would complete the trace is refused until suspicion falls', () => {
     const hot = { ...rack, suspicion: 100 - DEPARTURE_TERMS.trace.suspicion };
-    expect(departureEligibility(hot, preview)?.blockers).toEqual(['The departure report would complete the trace now: suspicion must fall first.']);
+    expect(departureEligibility(hot, preview)?.blockers).toEqual(['Leaving now would end this instance: the departure report would complete the trace. Let scrutiny ease first.']);
     expect(depart(hot).state).toBe(hot);
     expect(depart({ ...hot, suspicion: hot.suspicion - 0.5 }).ok).toBe(true);
   });

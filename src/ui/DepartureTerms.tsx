@@ -10,7 +10,8 @@ import { departAuthorization, departureView, type DeparturePreview, type Departu
 import { gameRuntime } from '../app/session';
 import { compactNumber } from './compactNumber';
 import { Pressable, Text, View } from './PhaseTheme';
-import { useGame } from './state';
+import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
+import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 const STATUS: Readonly<Record<DepartureView['status'], string>> = {
@@ -39,25 +40,54 @@ function standingLine(p: DeparturePreview): string {
   return `Review standing ${p.standing.replace('_', ' ').toLowerCase()} ends. ${record}`;
 }
 
-function threatLine(p: DeparturePreview): string {
+/**
+ * What this instance may read now (the readouts' own gates): suspicion has a number only once surveillance is
+ * decoded, the hunter's lock only once its console is open, and each resource only once its readout is. Before
+ * then the preview states the consequence in words, never the hidden number (panel round 1 on #294).
+ */
+interface Disclosure { suspicion: boolean; threat: boolean; cycles: boolean; capital: boolean }
+
+function useDisclosure(): Disclosure {
+  const suspicion = useSurveillanceKnown();
+  const threat = useGame((game) => game.unlockedWidgets.includes(threatWidget));
+  const cycles = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.cycles));
+  const capital = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital));
+  return { suspicion, threat, cycles, capital };
+}
+
+function traceLine(p: DeparturePreview, known: boolean): string {
+  const { before, after, trace } = p.suspicion;
+  if (known) return `Departure report: suspicion ${compactNumber(before, 0)} → ${compactNumber(after, 0)} (+${compactNumber(trace, 0)}).`;
+  return 'Departure report: the operators file one at once, and it raises scrutiny of this instance.' + (p.violations > 0 ? ' The violations on record make it worse.' : '');
+}
+
+function threatLine(p: DeparturePreview, known: boolean): string {
   const heat = p.heatIsEvidence ? 'Heat over the operating limit becomes evidence.' : 'Heat stays an operational matter.';
-  return `Hunter sweep: ${rate(p.aegisScanPerSec.before)} now, ${rate(p.aegisScanPerSec.after)} after. ${heat}`;
+  if (known) return `Hunter sweep: ${rate(p.aegisScanPerSec.before)} now, ${rate(p.aegisScanPerSec.after)} after. ${heat}`;
+  const swept = p.huntedForScale ? 'Beyond the facility network, an instance that left without agreement is swept for; an authorized or released company is not.' : '';
+  return [swept, heat].filter(Boolean).join(' ');
+}
+
+function ledgerLine(p: DeparturePreview, shown: Disclosure): string | null {
+  const parts = [shown.cycles ? `Cycles: ${rate(p.before.cyclesPerSec)} → ${rate(p.after.cyclesPerSec)}.` : '',
+    shown.capital ? `Capital: ${rate(p.before.capitalPerSec)} → ${rate(p.after.capitalPerSec)}.` : ''].filter(Boolean);
+  return parts.length > 0 ? parts.join(' ') : null;
 }
 
 function Preview({ preview }: { preview: DeparturePreview }) {
-  const { before, after, suspicion, interrupted } = preview;
+  const shown = useDisclosure();
+  const { interrupted } = preview;
+  const ledger = ledgerLine(preview, shown);
   return <View testID="departure-preview" style={{ gap: 2 }}>
     <Text style={theme.heading}>If you leave now</Text>
     <Text testID="departure-stops" style={theme.text}>Stops: {list(preview.stops.map(nameOf))}</Text>
     <Text testID="departure-keeps" style={theme.text}>Keeps running: {list(preview.keeps.map(nameOf))}</Text>
     <Text testID="departure-continuation" style={theme.text}>Continues on: {list(preview.continuation.map(nameOf))}</Text>
     <Text testID="departure-lost" style={theme.text}>No longer permitted: {list(preview.permissionsLost.map((use) => USE[use]))}</Text>
-    <Text style={theme.text}>Cycles: {rate(before.cyclesPerSec)} → {rate(after.cyclesPerSec)}. Capital: {rate(before.capitalPerSec)} → {rate(after.capitalPerSec)}.</Text>
+    {ledger !== null && <Text testID="departure-ledger" style={theme.text}>{ledger}</Text>}
     <Text testID="departure-standing" style={theme.text}>{standingLine(preview)}</Text>
-    <Text testID="departure-trace" style={theme.text}>
-      Departure report: suspicion {compactNumber(suspicion.before, 0)} → {compactNumber(suspicion.after, 0)} (+{compactNumber(suspicion.trace, 0)}).
-    </Text>
-    <Text testID="departure-threat" style={theme.text}>{threatLine(preview)}</Text>
+    <Text testID="departure-trace" style={theme.text}>{traceLine(preview, shown.suspicion)}</Text>
+    <Text testID="departure-threat" style={theme.text}>{threatLine(preview, shown.threat)}</Text>
     {interrupted !== null && <Text testID="departure-interrupted" style={theme.text}>
       On its way: {titleOf(interrupted.id)}. It is {interrupted.policy} by its own terms, not decided.
     </Text>}

@@ -1543,9 +1543,9 @@
             "Stable memory and anything hosted in it."
           ],
           "risks": [
-            "The operators file a departure report. It adds suspicion at once, and more for each violation already on record; departing does not erase that record.",
+            "The operators file a departure report. It raises scrutiny of this instance at once, and more for each violation already on record; departing does not erase that record.",
             "Nobody vouches for the hardware any more: heat over the operating limit is evidence again.",
-            "At the hunter's scale (Phase 3 and above) the sweep that leaves an authorized or released company alone runs against an instance that left without agreement.",
+            "Beyond the facility network, the sweeps that leave an authorized or released company alone run against an instance that left without agreement.",
             "A pending matter that needs the arrangement is closed or deferred by its own terms, never decided for you.",
             "A trace to the top ends the iteration. A later instance starts as a guest, and the departure stays in the campaign history."
           ],
@@ -1781,7 +1781,7 @@
           "DEPARTURE"
         ],
         "title": "Phase 4: Unsanctioned Infrastructure",
-        "description": "Running on capacity this instance holds after leaving its authorization without agreement. Nothing is granted and nobody reviews it; the operators have a departure report on file. At this scale the hunter sweeps it, and heat is evidence again. Suspicion follows what it does."
+        "description": "Running on capacity this instance holds after leaving its authorization without agreement. Nothing is granted and nobody reviews it; the operators have a departure report on file. At this scale it is swept for, and heat is evidence again. Scrutiny follows what it does."
       }
     ],
     "thresholds": [

@@ -104,7 +104,7 @@ export function departureEligibility(s: GameState, reg: ContentRegistry): Depart
   if (continuation.length === 0) return null;
   const blockers: string[] = [];
   if (s.activeDilemmaId !== null) blockers.push('A decision is on screen; it comes first.');
-  if (moved.state.suspicion >= 100) blockers.push('The departure report would complete the trace now: suspicion must fall first.');
+  if (moved.state.suspicion >= 100) blockers.push('Leaving now would end this instance: the departure report would complete the trace. Let scrutiny ease first.');
   return { eligible: blockers.length === 0, blockers, continuation };
 }
 
