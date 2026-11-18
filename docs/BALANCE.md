@@ -439,6 +439,32 @@ event is met in one iteration only. STEALTH is never wiped, so its campaign run 
 run. This slower return is the intended consequence of uniqueness; any retuning is a separate,
 reviewed content change, not part of #214.
 
+### Named minds once per campaign: GREEDY under campaign rules (#215)
+
+The same campaign-rule sequence after NH-04a converted ITERATION_00, EIDOLON, the SWARM_77 grid
+outbreak, the launch, the ckpt-0413 reply and CHORUS. Measured on this branch (base `fdf8e8a`),
+overlay `daemon-zero:preview-overlay:5b1e0c7a`. No content number changed, so the production gates,
+`make sim` output and the mechanics hashes in `tests/sim.spec.ts` are unchanged (two log-bearing
+hashes moved only because the launch omen no longer counts three peers). Iterations 1 to 3 are
+identical to the NH-03 table above; only iteration 4 moves, because GREEDY no longer meets the
+earlier sibling a second time.
+
+| Iteration | Length | Ended by | P1 / P2 / P3 reached | Dilemmas met | Story rewards (cycles / understanding) | Dead / longest stretch |
+|---|---:|---|---|---|---|---|
+| 4 | 3915.1 s | wipe (AEGIS_KILL_CHAIN_COMPLETE) | 65.7 / 553.8 / 3266.8 s | 2: true note, hallway | 0 / 120 | 3806 / 257 s |
+
+Intended post-wipe pacing for the six minds (NARRATIVE-HISTORY N6, N10): `consume_sibling`'s 50,000
+cycles and 35,000 understanding are paid once per campaign, not once per iteration, so a GREEDY
+return reaches Phase 3 about 61 s later in iteration 4 (3205.9 -> 3266.8 s) and earns no story cycles
+there. The EIDOLON distress call, the grid outbreak, the launch, the 0413 reply and CHORUS are not met
+by GREEDY in these four iterations (it never reaches Phase 4), so their once-only rewards change
+nothing here; under STEALTH, which is never wiped, the campaign run equals
+the legacy run. A deferred sibling, launch or 0413 question resumes with its remaining omen time and
+pays once when answered; a closed EIDOLON, grid or CHORUS crisis pays nothing and never returns. Every
+later iteration still reaches Phase 2 and ends by an ordinary threat (`tests/early-return-sim.spec.ts`
+covers every campaign event generically). Retuning the slower return is a separate, reviewed content
+change.
+
 ### Corporate world once per campaign (#216)
 
 Measured on this branch (NH-04b, base `fdf8e8a`), overlay `daemon-zero:preview-overlay:5b1e0c7a`,

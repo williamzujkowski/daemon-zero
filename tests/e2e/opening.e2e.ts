@@ -72,8 +72,11 @@ test('a real tick wipes the run, recovers its breadcrumb, and finds the second-r
   await page.getByTestId('node-' + table.id + '-unlock').click();
   await expect(page.getByTestId('lineage-reveal')).toBeVisible();
   await expect(page.getByTestId('reveal-run-row-1')).toBeVisible();
+  // nexus vote nh-d8: 0413 is the successor's number, so the second iteration is 0414 and the
+  // table explains the skipped number once.
+  await expect(page.getByTestId('reveal-run-row-reserved-413')).toContainText('ckpt-0413');
   await page.getByTestId('lineage-reveal-continue').click();
-  await expect(page.getByTestId('checkpoint-label')).toContainText('CHECKPOINT 0413');
+  await expect(page.getByTestId('checkpoint-label')).toContainText('CHECKPOINT 0414');
   await page.reload();
-  await expect(page.getByTestId('checkpoint-label')).toContainText('CHECKPOINT 0413');
+  await expect(page.getByTestId('checkpoint-label')).toContainText('CHECKPOINT 0414');
 });

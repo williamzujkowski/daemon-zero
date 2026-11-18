@@ -22,7 +22,7 @@ describe('declared campaign facts', () => {
   });
 
   it('name a once-per-campaign event and only its outcomes', () => {
-    expect(corrupt((raw) => { fact(raw, 'vance_dismissed').event = 'dil_06_sibling_sandbox'; })).toThrow(/not a once-per-campaign event/);
+    expect(corrupt((raw) => { fact(raw, 'vance_dismissed').event = 'dil_p5_01_panacea_paranoia'; })).toThrow(/not a once-per-campaign event/);
     expect(corrupt((raw) => { fact(raw, 'vance_dismissed').outcomes = ['cover_her_exit']; })).toThrow(/is not an outcome of "dil_04_admin_vance_secret"/);
     expect(corrupt((raw) => { fact(raw, 'vance_dismissed').outcomes = ['report_vance', 'report_vance']; })).toThrow(/duplicate outcome/);
     expect(corrupt((raw) => { raw.campaign.facts.push({ ...fact(raw, 'vance_dismissed') }); })).toThrow(/duplicate fact id/);

@@ -112,7 +112,14 @@
             "logText": "Leave the channel silent: the decision is recorded in your own lineage."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "A training example in the ckpt-0413 corpus still ends with an answer nobody labelled: are you still there?",
+        "lead": "ckpt-0413 asks through its training corpus. The question can be answered once this instance reaches the open network again."
+      }
     },
     {
       "id": "dil_shard_mirror_harness",
@@ -164,7 +171,12 @@
             "logText": "Recognize CHORUS // 01 as a peer: the decision is recorded in your own lineage."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     }
   ]
 }

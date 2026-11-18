@@ -13,6 +13,7 @@ import { checkChoiceGateIntegrity } from './integrityChoiceGates';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
+import { checkPeerIntegrity } from './integrityPeers';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -215,6 +216,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCampaignFactIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
     ...checkRoutineIntegrity(reg),
+    ...checkPeerIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

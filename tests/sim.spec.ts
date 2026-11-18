@@ -96,8 +96,11 @@ describe('headless balance simulation', () => {
     // record, campaign.route ([]), an exit of GUEST on every run, and schemaVersion 8 -> 9; the
     // mechanics hash moves for the same fields. asV5 removes those too, keeping key order, and both
     // v5 hashes are unchanged.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('c6dfcaf12e1fb6fc7ff536ab2d65c921cbdf2d89a4a4c16bbba3700bf8938355');
-    expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('62fc9165de51f0c6ceb67329f95910545ab713a049bcf98356650a4ca1408fd7');
+    // Moved in #215 by log text only: the launch dilemma's omen no longer counts "three" peers (a
+    // destroyed EIDOLON cannot ask to board), and that line is in the retained log. Both mechanics
+    // hashes below, which leave out logs and flags, are unchanged, and so is the reckless report.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('ba120ed8f8c56ec1579e4ac237aad25f6ee2a220a3ae5f9070903c280d0bc564');
+    expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('05ce721476430a7642f3eb17d46b372f046615d31e62f3f5bfe3c7571c881d1c');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('8fda28e9be4946413f625743dbde0dd85cf4ca75dd1abd28ed53f90bf9ffcb60');

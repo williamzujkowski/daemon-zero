@@ -38,6 +38,7 @@ export const REQUIREMENT_SCOPES = {
   campaignOutcome: 'context',
   campaignFact: 'context',
   forbidsCampaignFacts: 'context',
+  traitFallback: 'context',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

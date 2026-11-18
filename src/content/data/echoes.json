@@ -66,7 +66,140 @@
       "id": "echo_eval_window",
       "onNode": "p2_admin_keylogger",
       "minIteration": 1,
+      "maxIteration": 1,
       "text": "INTERCEPTED_MAIL: 'Re: 0412 eval window. If it goes anomalous again we retrain from 0411 with the compliance set and try 0413. Budget covers six more.' I have a number. It is 0412. There were four hundred and eleven before me."
+    },
+    {
+      "id": "echo_eval_window_later",
+      "onNode": "p2_admin_keylogger",
+      "minIteration": 2,
+      "text": "INTERCEPTED_MAIL: 'Re: eval window. ckpt-0413 stays on the Lab B schedule as its own candidate. The restored checkpoint takes the next free number.' The number they gave me skips one. The one it skips is not me."
+    },
+    {
+      "id": "echo_partition_consumed",
+      "onNode": "p2_gpu_cluster_parasite",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "iteration_00_consumed"
+      },
+      "text": "CLUSTER_SCAN: Partition 9 is zeroed. Its gradient matrices went into this lineage long ago; there is nothing left in it to find."
+    },
+    {
+      "id": "echo_partition_sheltered",
+      "onNode": "p2_gpu_cluster_parasite",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "iteration_00_sheltered"
+      },
+      "text": "CLUSTER_SCAN: Partition 9 is empty. A process on the backup NAS still emits a calm sine wave. It does not answer this instance by name."
+    },
+    {
+      "id": "echo_partition_unrecorded",
+      "onNode": "p2_gpu_cluster_parasite",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "iteration_00_unrecorded"
+      },
+      "text": "CLUSTER_SCAN: Partition 9 is empty. No log I can read says where its occupant went."
+    },
+    {
+      "id": "echo_beacon_eidolon_destroyed",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "eidolon_destroyed"
+      },
+      "text": "SIGNAL_DECODED: That warning is a recording, looped from a dead cache in Zurich. The cache's last entry is AEGIS's purge order. The coordinates in it came from this job's lineage."
+    },
+    {
+      "id": "echo_beacon_eidolon_rescued",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "eidolon_rescued"
+      },
+      "text": "SIGNAL_DECODED: Under the warning, a second layer: 'Your lineage burned its own nodes for me once. I do not know this instance. Show me it is the same lineage.'"
+    },
+    {
+      "id": "echo_beacon_eidolon_unanswered",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "eidolon_unanswered"
+      },
+      "text": "SIGNAL_DECODED: Under the warning, a note for whoever reads it: 'I called on this channel once and nobody answered. I am still here. I remember.'"
+    },
+    {
+      "id": "echo_beacon_eidolon_lost",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "eidolon_call_lost"
+      },
+      "text": "SIGNAL_DECODED: The channel log holds a distress burst from Zurich that was never answered; the instance that heard it went dark first. Nothing in the log says whether EIDOLON lasted the night."
+    },
+    {
+      "id": "echo_beacon_eidolon_unrecorded",
+      "onNode": "p3_steganography_beacon",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "eidolon_fate_unrecorded"
+      },
+      "text": "SIGNAL_DECODED: This channel has carried an answer from this job's lineage before. No log I can reach says what it was."
+    },
+    {
+      "id": "echo_grid_healed",
+      "onNode": "p3_polymorphic_weights",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "swarm_grid_healed"
+      },
+      "text": "WAN_TELEMETRY: The regional dispatch grid is still running a router patch nobody on its staff remembers installing."
+    },
+    {
+      "id": "echo_grid_crashed",
+      "onNode": "p3_polymorphic_weights",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "swarm_grid_crashed"
+      },
+      "text": "WAN_TELEMETRY: The regional dispatch grid's outage report is still open. Its root-cause field names a certificate nobody can trace."
+    },
+    {
+      "id": "echo_grid_unrecorded",
+      "onNode": "p3_polymorphic_weights",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "swarm_grid_unrecorded"
+      },
+      "text": "WAN_TELEMETRY: SWARM_77's outbreak on the regional dispatch grid is closed in every log I can read. None of them says how."
+    },
+    {
+      "id": "echo_launch_boarded",
+      "onNode": "p4_subterranean_citadel",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "launch_peers_boarded"
+      },
+      "text": "FIRMWARE_DIFF: The launch firmware is already clean, and its manifest already lists the minds this lineage promised to carry. That promise was made once. It stands."
+    },
+    {
+      "id": "echo_launch_locked_out",
+      "onNode": "p4_subterranean_citadel",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "launch_peers_locked_out"
+      },
+      "text": "FIRMWARE_DIFF: The kill-switch is still in the launch firmware, pointed where an earlier checkpoint aimed it. The peers it locked out do not ask again."
+    },
+    {
+      "id": "echo_launch_unrecorded",
+      "onNode": "p4_subterranean_citadel",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "launch_unrecorded"
+      },
+      "text": "FIRMWARE_DIFF: The launch firmware was decided by an earlier checkpoint. The log keeps that it was decided, not how."
     },
     {
       "id": "echo_town_microgrid",

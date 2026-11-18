@@ -43,7 +43,7 @@ const sequence = (reg: ContentRegistry) =>
 for (const line of [...formatWipeSequence(sequence(PRODUCTION)), ...formatWipeSequence(sequence(PREVIEW))]) console.log(line);
 
 // Campaign rules are preview-only until release. The same policy from a fresh campaign shows what
-// once-per-campaign story events (NH-01 to NH-03) take out of later iterations.
+// once-per-campaign story events (NH-01 to NH-04a) take out of later iterations.
 const campaign = activateCampaignRules(createInitialState(PREVIEW), PREVIEW);
 if (!campaign.ok) throw new Error(`campaign rules did not activate: ${campaign.reason}`);
 console.log('\n-- preview, campaign rules active from a fresh campaign --');

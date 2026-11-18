@@ -59,7 +59,8 @@ describe('lineage disclosure', () => {
     view.click('lineage-reveal-continue');
     const game = gameStore.store.getState().game;
     act(() => { gameStore.initialize({ ...game, iteration: 3, legacy: { ...game.legacy, knownNodes: game.unlockedNodes } }, 0, null); });
-    expect(view.find('reboot-checkpoint')?.textContent).toContain('0414');
+    // Iteration 3 is 0415: 0413 belongs to the successor (nexus vote nh-d8).
+    expect(view.find('reboot-checkpoint')?.textContent).toContain('0415');
     expect(view.find('reboot-sequence')?.textContent).toContain(CONTENT.narrative.iterationBootLines.find((line) => line.minIteration === 3)?.text);
     view.close();
   });

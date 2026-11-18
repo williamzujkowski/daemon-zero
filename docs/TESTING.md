@@ -610,8 +610,20 @@ PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/audio.json DAEMON_E2E_AUDIO=1 bash scripts/e2e-
 are tools on the machine, not package dependencies. Where they are missing on a developer's
 machine the file-level checks are skipped with a console warning (`[audio-assets]
 ffmpeg/ffprobe not found`). Where `CI` is set they are not skipped: a missing tool fails the
-run, and the `verify` job installs ffmpeg from apt before `make verify` (#198). The
-measurement-function tests in the same file always run.
+run (#198). The measurement-function tests in the same file always run.
+
+ffmpeg and ffprobe are pinned in `mise.toml` (`conda:ffmpeg`, 9.0.2, conda-forge's GPL build;
+`mise.lock` records it and every dependency by URL and SHA-256), so `mise install` puts them on
+`PATH` locally and in CI alike. In CI, `jdx/mise-action` installs and caches them with the rest
+of the toolchain under a key that hashes `mise.toml` and `mise.lock`; a run with an unchanged
+toolchain restores them rather than downloading, and no step installs ffmpeg from apt (a slow
+Ubuntu mirror once took that step to 16 minutes). A step before `make setup` fails the job if
+the `ffmpeg` or `ffprobe` on `PATH` is not the one `mise which` names. An ffmpeg version change
+can move a measured number: when the pin moves, run `CI=1 pnpm exec vitest run
+tests/audio-assets.spec.ts` against the new one before updating the lockfile. 9.0.2 and apt's
+8.0.1 print identical loudness and true peak for every committed file.
+docs/REVIEW-CURRENCY-2026-11-16.md, "ffmpeg from mise", records the choice, the size and the
+alternatives.
 
 ### Seeking on the test server
 
@@ -656,8 +668,12 @@ An emulator is not a phone, and neither capture says how anything sounds. With a
 Android phone, in this order, a release build (`make android-release`) and music and speech
 at their 30% defaults unless a step says otherwise:
 
-1. **Sound at all.** MENU > Audio > RESUME MUSIC. Is the phase score audible on the speaker
-   and on headphones? Note the phone's media volume step.
+1. **Sound at all.** Cold start with music on and tap the terminal once: since #249 that
+   first tap starts the score (SOUNDTRACK.md, "Starting on native"). Is the phase score
+   audible on the speaker and on headphones? Note the phone's media volume step. Then, with
+   TalkBack on, cold start and double-tap a control: the score is expected *not* to start
+   (an accessibility action is not a touch) and `[ RESUME MUSIC ]` to start it; confirm or
+   correct that.
 2. **The start.** Switch music off and on five times. Does the score swell in over about half
    a second each time, or does it sometimes start abruptly at full level? (Emulator, before
    #198: one start of two was abrupt. The fade-in now waits for the player's position to move,
@@ -896,7 +912,8 @@ secret scan, vulnerability scan and SBOM. It also runs `make e2e`,
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
 `make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file
-checks are: the job installs ffmpeg, and those checks fail rather than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
+checks are: the job gets ffmpeg from the mise toolchain (cached), and those checks fail rather
+than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on

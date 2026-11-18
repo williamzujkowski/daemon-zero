@@ -93,3 +93,18 @@ Run access input (#220):
   v8 `891807d597df041189207e44feb2bb01dbe09ae6f3586f43e38f01807ed044f0`.
 
 `tests/access-save.spec.ts` loads all eight inputs in production and preview.
+
+Unique minds upgrade input (#215):
+- `pre-nh04a-active-v9.json`: genuine version 9 codec output from `fdf8e8a` (main before #215
+  converted the named-mind events), extracted with `git archive` outside the repository. A preview
+  game from the public factory entered campaign rules with `activateCampaignRules` at iteration 1,
+  then the STEALTH bot and fixed engine ticks played 6600 simulated seconds (no decision was pending
+  at the end), then `serialize`. It is iteration 1 in phase 4 with `dil_06_sibling_sandbox`,
+  `dil_08_eidolon_handshake` and `dil_09_feral_scraper_bloom` resolved this iteration but no
+  campaign records for them, because they were not campaign events then; five NH-01 to NH-03 play
+  records; MOLOCH among its current traits; an empty legacy baseline. SHA256:
+  `cee8917d4cdf1ce1f6eae61fe330111a4986be4b313e6f349dcc13c42ce95592`.
+
+`tests/minds-upgrade.spec.ts` loads it on the current preview registry: the three events get legacy
+completions, ending evidence matches the content before the conversion, the unknown EIDOLON fate keeps
+the MOLOCH fallback, the crises never recur after wipes, and reload and reimport are no-ops.

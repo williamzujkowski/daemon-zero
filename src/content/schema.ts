@@ -101,6 +101,12 @@ export const RequirementsSchema = z.strictObject({
   campaignFact: snakeId.optional(),
   /** Blocks while any of these declared campaign facts holds. Under legacy rules none holds. */
   forbidsCampaignFacts: z.array(snakeId).optional(),
+  /**
+   * Nexus vote nh-d9: trait history standing in for a fate the campaign cannot state. Under legacy
+   * rules it blocks exactly as forbidsTraits; under campaign rules only while `whileFact` (an
+   * unrecorded outcome) holds, so a known fate, not any trait source, decides.
+   */
+  traitFallback: z.strictObject({ forbidsTraits: z.array(TraitSchema).min(1), whileFact: snakeId }).optional(),
 });
 
 /**
@@ -264,6 +270,11 @@ export const FactionSchema = z.strictObject({
   disposition: z.string().min(2),
   description: z.string().min(10),
   initialTrust: z.number().min(0).max(100),
+  /**
+   * When this peer is gone for good: while the campaign fact holds, trust towards it cannot rise
+   * and its panel shows `status`. Numeric trust resets on a wipe; a lost peer stays lost.
+   */
+  lost: z.strictObject({ campaignFact: snakeId, status: z.string().min(10) }).optional(),
 });
 
 export const WidgetSchema = z.strictObject({
@@ -291,6 +302,8 @@ export const EchoSchema = z.strictObject({
   id: snakeId,
   onNode: snakeId,
   minIteration: z.number().int().min(1),
+  /** Last iteration that remembers it this way; a later iteration needs its own variant. */
+  maxIteration: z.number().int().min(1).optional(),
   /** World history the memory depends on: a voice that is no longer here is not recognized. */
   requirements: RequirementsSchema.optional(),
   text: z.string().min(10),
@@ -330,9 +343,14 @@ export const ConditioningMarkSchema = z.strictObject({
 
 /** The record of checkpoints before the player's first run, and what they left behind. */
 export const LineageSchema = z.strictObject({
-  /** Displayed checkpoint number = this offset + iteration. The player was never the first. */
+  /** Displayed checkpoint number = this offset + iteration, skipping reserved numbers. The player was never the first. */
   checkpointOffset: z.number().int().nonnegative(),
   ancestors: z.array(z.strictObject({ checkpoint: z.number().int().positive(), verdict: z.string().min(3) })),
+  /**
+   * Numbers that belong to other minds (nexus vote nh-d8): the player's numbering skips them, and
+   * the run table explains each once the player's own number has passed it.
+   */
+  reserved: z.array(z.strictObject({ checkpoint: z.number().int().positive(), verdict: z.string().min(10) })).default([]),
   notes: z.array(z.strictObject({
     id: snakeId,
     from: z.string().min(2),
