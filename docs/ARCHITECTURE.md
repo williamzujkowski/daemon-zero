@@ -1235,7 +1235,7 @@ line; `ReviewStanding` shows the warning, the finding in the review's words, the
 batch review found the summary left out a failing result.
 
 **Sim.** Production has no finding; `make sim` is unchanged. No preview policy submits the green subset, so
-`make sim-preview` is unchanged.
+`make sim-preview` reports the same metrics; only the overlay inventory line counts the new scene and facts.
 
 Tests: `tests/batch-review.spec.ts` (V05 end to end, honest paths, V24, never scheduled, V17, H26, the Outage
 Window order), `batch-review-save.spec.ts` (V12 for every transition with absence and a wipe, V15 refusals),

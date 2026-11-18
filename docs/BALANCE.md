@@ -743,8 +743,9 @@ the honest grant report pays, bought with a recall review.
 ## The batch review finding (#274)
 
 Preview only (`src/content/preview/overlay.json`); no production content or number changed, so `make sim` prints
-the same report as `b9e96cf` apart from wall time, and no preview policy submits the green subset, so
-`make sim-preview` is unchanged too. Starting values, not playtest results.
+the same report as `b9e96cf` apart from wall time. No preview policy submits the green subset, so
+`make sim-preview` prints every metric as on `b9e96cf`; only its overlay inventory line moves (dilemmas 10 -> 11,
+campaign facts 9 -> 12). Starting values, not playtest results.
 
 | Value | Where | Number | Meaning |
 |---|---|---:|---|
