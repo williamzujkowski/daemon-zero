@@ -1052,7 +1052,7 @@ never draw an AEGIS sweep and end INDEPENDENT at Phase 4:
 | Policy | Iteration | Service | Contact | Contract | Rack | Agreement | Cluster | Charter = Phase 4 = release | Wipes |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | LAWFUL_RELEASE | 1 | 378.8 s | 656.8 s HOSTED (in the rack's memory) | 417 s | 657 s | 736 s | 1210 s | 2371.8 s | 0 |
-| LAWFUL_RETURNING | 2 | 496.4 s | 499.4 s REFERRED | 799 s | 1039 s | 1155 s | 1780 s | 4280.4 s | 1 (voluntary, as a guest) |
+| LAWFUL_RETURNING | 2 | 798 s | 801 s REFERRED | 1101 s | 1341 s | 1458 s | 2083 s | 4583 s | 1 (the first instance's recall review ended it, #286) |
 
 The second iteration met no story scene the first resolved (H30): its route runs on the requalification, the
 batches and the economy, not on repeated bounties. Understanding is its bottleneck (the low-resource opening

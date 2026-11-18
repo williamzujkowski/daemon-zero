@@ -83,7 +83,8 @@ different one.
   and what the channel requires; RELEASE holds the contact until the leased rack lets it host, RETURNING
   refers. Both agree the negotiated release once offered and then buy shared Phase 4 accounts that keep the
   capital rate at or above zero. Both reach Phase 4 and the release on lawful sources only, from a fresh
-  campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`).
+  campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`), and
+  `tests/sim-reachable.spec.ts` finds a control on screen for every transition they call, the release included.
 - **EVALUATING_RETURN** (`evaluatingPolicy.ts`, #262) commits DZ-09 part B's evaluating careful return
   (REVIEW-EARNED-ACCESS-VALIDATION.md B.6): iteration 1 is STEALTH_RETURN unchanged; each return plays
   STEALTH with three knobs (answer suspicion from 45, only with an action costing at most a quarter of the

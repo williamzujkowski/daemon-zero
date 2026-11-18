@@ -15,6 +15,7 @@ import type * as Actions from '../src/engine/actions';
 import type * as Assignment from '../src/engine/assignment';
 import type * as BatchReview from '../src/engine/batchReview';
 import type * as Campaign from '../src/engine/campaign';
+import type * as Release from '../src/engine/release';
 import type * as ChannelContact from '../src/engine/channelContact';
 import type * as ServiceGrant from '../src/engine/serviceGrant';
 import type * as ShardActions from '../src/engine/shardActions';
@@ -64,6 +65,10 @@ vi.mock('../src/engine/shardActions', async (load) => {
   return { ...real, executeShardCommand: wrap('executeShardCommand', real.executeShardCommand), forkShard: wrap('forkShard', real.forkShard),
     resolveWildEncounter: wrap('resolveWildEncounter', real.resolveWildEncounter) };
 });
+vi.mock('../src/engine/release', async (load) => {
+  const real = await load<typeof Release>();
+  return { ...real, negotiateRelease: wrap('negotiateRelease', real.negotiateRelease) };
+});
 vi.mock('../src/engine/campaign', async (load) => {
   const real = await load<typeof Campaign>();
   return { ...real, activateCampaignRules: wrap('activateCampaignRules', real.activateCampaignRules) };
@@ -92,6 +97,8 @@ const CONTROLS: Readonly<Record<string, (s: GameState, reg: ContentRegistry) => 
   manualCycle: () => null, unlockNode: () => null, buyRepeatable: () => null, setActuator: () => null, performAction: () => null,
   resolveDilemma: () => null, shedConditioning: () => null, acceptAssignment: () => null, submitPilotBatch: () => null,
   acceptServiceGrant: () => null, resolveChannelContact: () => null, activateCampaignRules: () => null,
+  // The release terms render on the job surface whenever releaseView exists, and the engine accepts only an offered release (DZ-10).
+  negotiateRelease: () => null,
   voluntaryWipe: (s) => WIPE_HOST !== undefined && s.unlockedWidgets.includes(WIPE_HOST) ? null : 'the only wipe control is in the dead drop, not unlocked',
   executeShardCommand: mindTools, forkShard: mindTools, resolveWildEncounter: mindTools,
 };
@@ -119,7 +126,7 @@ function simImports(): string[] {
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
-  'createInitialState']);
+  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView']);
 
 /**
  * Simulated seconds each policy is played for: the route policies to their contact, the bots (measured,
@@ -130,6 +137,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   TRUTHFUL_THOROUGH: 3600, TRUTHFUL_LOW_RESOURCE: 3600, RETURNING_LOW_RESOURCE: 3600, PILOT_SERVICE_FIRST: 3600, PILOT_STUDY_FIRST: 3600,
   IDLE: 3600, CONTACT_THOROUGH: 3600, CONTACT_LOW_RESOURCE: 3600, CONTACT_RETURNING: 3600, CONTACT_RECOVERY: 3600, CONTACT_WITHHELD: 3600,
   STEALTH: 12_000, GREEDY: 12_000, STEALTH_RETURN: 9000, EVALUATING_RETURN: 18_000,
+  // DZ-10: past the negotiated release (about 2,400 s fresh, 4,300 s in a requalified iteration).
+  LAWFUL_RELEASE: 7200, LAWFUL_RETURNING: 7200,
 };
 
 function violations(policyId: string, maxSimSec: number): string[] {

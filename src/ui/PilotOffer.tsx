@@ -73,6 +73,8 @@ const STATUS_TEXT = {
 } as const;
 /** Once the pilot has led to the service grant, the status line says so instead of "supervised pilot" (#284). */
 const GRANTED_TEXT = 'Accepted. The pilot led to the authorized service below; this instance no longer runs as a pilot.';
+/** After a negotiated release (DZ-10) the instance is neither a pilot nor a service. */
+const RELEASED_TEXT = 'Accepted. The pilot led to service and then a negotiated release; this instance no longer runs as a pilot.';
 
 /** The job surface's record of the answer, with the deferred offer's accept control. */
 export default function PilotOfferPanel() {
@@ -81,11 +83,12 @@ export default function PilotOfferPanel() {
   const token = useGame((game) => view(game)?.token ?? '');
   const title = useGame((game) => view(game)?.title ?? '');
   const blocked = useGame((game) => game.activeDilemmaId !== null);
-  const granted = useGame((game) => game.access.context === 'SERVICE');
+  const context = useGame((game) => game.access.context);
   if (status === null || status === 'eligible') return null;
   const enabled = acceptable && !blocked;
   return <View testID="pilot-offer" style={theme.panel}>
-    <Text testID="pilot-status" style={theme.muted}>{status === 'accepted' && granted ? GRANTED_TEXT : STATUS_TEXT[status]}</Text>
+    <Text testID="pilot-status" style={theme.muted}>{status !== 'accepted' ? STATUS_TEXT[status]
+      : context === 'SERVICE' ? GRANTED_TEXT : context === 'INDEPENDENT' ? RELEASED_TEXT : STATUS_TEXT.accepted}</Text>
     {status !== 'declined' && <PilotTerms />}
     {status === 'accepted' && <PilotServiceDetail />}
     {status === 'accepted' && <ServiceGrantPanel />}

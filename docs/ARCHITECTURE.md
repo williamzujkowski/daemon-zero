@@ -1661,7 +1661,8 @@ corporate phase, a compute line splits owned and granted cycles whenever anythin
 ledger is unchanged), and the revenue dial is offered only while `financeEnabled` holds ("Revenue allocation needs an
 active corporate entity" otherwise), so no dial is shown that would divert nothing. `GrantNote` names the billing
 lines as granted income and contracted capacity as owned; the cluster readout marks granted sources. The status line
-already says `INDEPENDENT (released)` and the run table "Released.".
+already says `INDEPENDENT (released)` and the run table "Released."; the pilot offer's status line (#284) reads
+"...led to service and then a negotiated release" for an independent instance instead of "runs as a supervised pilot".
 
 **Sim.** `LAWFUL_RELEASE` and `LAWFUL_RETURNING` (`sim/lawfulPolicy.ts`, new module; the bot and earlier policies are
 untouched) take a contact policy to service, then buy only grants and contracted capacity offered to the current

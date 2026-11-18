@@ -21,9 +21,10 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
 import GrantNote from '../src/ui/GrantNote';
+import PilotOfferPanel from '../src/ui/PilotOffer';
 import Corporate from '../src/ui/widgets/Corporate';
 import { defined } from './m7-helpers';
-import { chartered, CHARTER, CONTRACT, leased, RACK, RELEASE_TERMS, signed } from './lawful-helpers';
+import { chartered, CHARTER, CONTRACT, leased, RACK, RELEASE_TERMS, released, signed } from './lawful-helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -77,6 +78,19 @@ describe('the release terms on the job surface', () => {
     expect(view.find('release-boundary')?.textContent).toContain(RELEASE_TERMS.boundary.title);
     view.click('release-boundary-toggle');
     expect(view.find('release-boundary')?.textContent).not.toContain(RELEASE_TERMS.boundary.lines[0]);
+  });
+});
+
+describe('the pilot status line after a release', () => {
+  it('no longer says the instance runs as a pilot, and the job surface drops the reviewed evidence', async () => {
+    const freed = released(company);
+    const status = await mount(freed, createElement(PilotOfferPanel));
+    expect(status.find('pilot-status')?.textContent).toContain('negotiated release');
+    expect(status.find('pilot-status')?.textContent).not.toContain('runs as a supervised pilot');
+    const surface = await mount(freed, createElement(AssignmentPanel));
+    const inSurface = (id: string) => surface.container.querySelector('[data-testid="' + id + '"]');
+    expect(inSurface('pilot-status')).toBeNull();
+    expect(inSurface('release-status')?.textContent).toContain('Released.');
   });
 });
 

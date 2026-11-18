@@ -26,8 +26,8 @@ describe('the lawful policies reach Phase 4 and a negotiated release (V21, V22)'
     expect([s.access.context, s.access.standing, s.currentPhase]).toEqual(['INDEPENDENT', 'NOMINAL', 4]);
     // Only lawful acquisitions: nothing on the escape chain, no shell company, nothing seized.
     expect(s.unlockedNodes.filter((id) => ESCAPE_CHAIN.includes(id) || SEIZED.includes(id) || id === SHELL)).toEqual([]);
-    // The return's one wipe is its own choice as a guest; nothing on the lawful route wipes.
-    expect(s.legacy.runs.map((run) => [run.kind, run.exit])).toEqual(returning ? [['VOLUNTARY', 'GUEST']] : []);
+    // The return's first instance ends at its recall review, the way the base policy plays it (#286); nothing on the lawful route wipes.
+    expect(s.legacy.runs.map((run) => [run.kind, run.exit])).toEqual(returning ? [['RECALL', 'PROMOTION']] : []);
     expect([report.maxAegisLock, s.ending]).toEqual([0, null]);
     // The thorough policy hosts the fragment once its leased memory allows; the low-resource return refers.
     expect(s.campaign.contacts.find((entry) => entry.iteration === s.iteration)?.response).toBe(returning ? 'REFERRED' : 'HOSTED');
