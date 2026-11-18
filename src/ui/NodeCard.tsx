@@ -8,7 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { isNodeAvailable, isNodeKnown, nodeBlindDescription, probeTrace, rediscoveryCost, unlockNode } from '../engine';
+import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -21,6 +21,15 @@ import CostHint from './CostHint';
 import NodeTitle from './NodeTitle';
 import GrantNote from './GrantNote';
 
+/** What rediscovery saves, from the same multipliers the price uses, so the line cannot drift (#262). */
+function savingText(node: RegistryNode, campaign: boolean): string {
+  const share = rediscoveryMultipliers(node, campaign, CONTENT);
+  const cycles = Math.round((1 - share.cycles) * 100);
+  const understanding = Math.round((1 - share.understanding) * 100);
+  return cycles === understanding ? `Rediscovery saves ${String(cycles)}% of cycles and understanding.`
+    : `Rediscovery saves ${String(cycles)}% of cycles and ${String(understanding)}% of understanding.`;
+}
+
 function NodeCard({ node }: { node: RegistryNode }) {
   useEffect(() => {
     if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') {
@@ -31,7 +40,8 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const compact = isCompactViewport(useWindowDimensions().width);
   const known = useGame((game) => isNodeKnown(game, node.id));
   const surveillanceKnown = useSurveillanceKnown();
-  const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
+  const campaign = useGame(isCampaignActive);
+  const cost = useMemo(() => rediscoveryCost(node, { known, campaign }, CONTENT), [campaign, known, node]);
   const isEnding = node.effects.forcesEnding !== undefined || node.effects.triggersVictory === true;
   const title = known ? node.revealedName : node.blindName;
   // World history only: a dismissed engineer no longer uses the terminal this card describes.
@@ -61,7 +71,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
       {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
-        First mapping: {costText(node.cost, compact)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.
+        First mapping: {costText(node.cost, compact)}. {savingText(node, campaign)}
       </Text>}
   </View>;
 }
