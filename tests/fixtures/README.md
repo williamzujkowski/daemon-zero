@@ -177,3 +177,38 @@ First permitted contact input (#227):
   which v13 did not have. SHA256: `505583472dede21088fb15ae30436bbeb62e8c935e5f7365404c1d1afcf17f8f`.
   `tests/channel-contact-save.spec.ts` loads it in preview (an empty contact record, then the service
   grant, the segment, the directory and the channel by public actions); production refuses it.
+
+Release compatibility inputs (#233, DZ-13):
+Made by the committed generator `scripts/release-fixtures.ts` on source extracted with `git archive`
+outside the repository (`git archive <commit> src package.json tsconfig.json | tar -x -C <dir>`, with
+`node_modules` linked in), then `pnpm exec tsx scripts/release-fixtures.ts --source <dir> --recipe
+<recipe> > <file>`. Each recipe plays the tree's own public factory, bot or policy with fixed engine
+ticks (one decision and `tickHz` ticks per simulated second), then `serialize`:
+- `production-wiped`: production registry, STEALTH for 2400 simulated seconds, `voluntaryWipe` (playing
+  on a second at a time until it is accepted), 600 more seconds. Iteration 2 in phase 1, legacy rules,
+  `cryo_samples_lost` carried from iteration 1, two current traits.
+- `production-ended`: production registry, STEALTH from a new game to its ending.
+- `preview-early`: preview registry, `activateCampaignRules`, STEALTH for 120 seconds (the guest job,
+  no route fact yet).
+- `preview-route`: preview registry, `activateCampaignRules`, the `COOPERATIVE_ENDING` policy for 6000
+  seconds (route PROMOTION, SERVICE_GRANT, RELEASE; a released company in phase 4).
+
+| File | Version | Commit (last main at that version) | Recipe | SHA256 |
+|---|---|---|---|---|
+| `pre-release-v9.json` | 9 | `7af9265` | production-wiped | `e3963c87d4eb6e59ba83f561fe6d3e13962a7d1851e84050067f9cf631351105` |
+| `pre-release-v10.json` | 10 | `13f254f` | production-wiped | `a9a4210ee045a61a5e970a33e1766067143543c323e78b8cb38fd1d46824afbd` |
+| `pre-release-v11.json` | 11 | `9f10441` | production-wiped | `2f312bfaeeb6a30f683275fe0ccbe81eeab8b19212ef366680510558ee687961` |
+| `pre-release-v12.json` | 12 | `7a6093a` | production-wiped | `8073ff0e23646b688161d3cb7121af053311c5e0328b8e9a34d875c6dab7c184` |
+| `pre-release-v13.json` | 13 | `58310a8` | production-wiped | `a8efe13ff8a0c5be0312b63cd82f3beaff553d83eb10dbb7e8f99be0d2d25a3d` |
+| `pre-release-v14.json` | 14 | `594da2e` | production-wiped | `200bb1b39a3e9d721c71b618d4204ba178df9bdc03af484fb4397ae6cd353d58` |
+| `pre-release-ended-v14.json` | 14 | `594da2e` | production-ended (LINEAGE_COVENANT, 9223.5 s) | `b39dbbc646c636dea490147b2f7db173ce0baa9ea368b35681b45b7b52e77269` |
+| `preview-early-v14.json` | 14 | `594da2e` | preview-early | `3b5a913a9ccc33c546b5dc351e4293454dee5bba7a1a7173e2167efc55290233` |
+| `preview-route-v14.json` | 14 | `594da2e` | preview-route | `9cbb1b23168812d4b75c5cdc57d4af59b446a252270146b76fb07f96ba75eda3` |
+
+With the eight older production inputs above (v1 to v8) they give one genuine production save per schema
+version. `tests/release-saves.spec.ts` loads each in production (legacy rules, byte-stable round trip),
+admits it through the app store on the composition the release enables (campaign rules entered once,
+the then-current baseline and history captured, nothing recaptured on reload), and plays and wipes it
+three times with a stable codec. The ended save stays ended and legacy. Production refuses both preview
+saves atomically (X.3, `keep-refusing-preview-saves`). The preview recipes need a tree with
+`src/content/preview/`, so they can only be rerun on a commit before the release folded it.
