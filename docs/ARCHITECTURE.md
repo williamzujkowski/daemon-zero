@@ -701,7 +701,9 @@ the core pane: non-modal, an explicit `[ ACCEPT ASSIGNMENT ]`, nothing in produc
 `DilemmaModal` adds an evidence line per choice naming any discrepancy risk (`evidenceText.ts`).
 
 **Sim.** STEALTH, GREEDY and IDLE never accept and, inside campaign rules, play identical games
-with or without the assignment (V29, `tests/sim-assignment.spec.ts`).
+with or without the assignment (V29, `tests/sim-assignment.spec.ts`). `TRUTHFUL_THOROUGH` and
+`TRUTHFUL_LOW_RESOURCE` (`sim/truthfulPolicy.ts`) play only the nodes leading to an offer, accept
+and answer honestly.
 
 Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
 `sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes

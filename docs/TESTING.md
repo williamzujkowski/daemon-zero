@@ -44,6 +44,12 @@ different one.
   and the `make sim` output are byte-identical to before the interface existed.
 - **IDLE** (`idlePolicy.ts`) takes no action except a free answer to each interrupt. It is the
   reference plug-in and the floor for dead-time readings.
+- **TRUTHFUL_THOROUGH** and **TRUTHFUL_LOW_RESOURCE** (`truthfulPolicy.ts`, #221) enter campaign
+  rules as the preview app does, play only the nodes leading to an assignment's offer and answer
+  its assessment honestly: THOROUGH builds the opening's upgrades, accepts once it can afford the
+  fullest honest answer, saves during the omen and gives it; LOW_RESOURCE never upgrades, accepts
+  at once and gives the free honest answer. Production has no assignment for them to find
+  (`tests/sim-truthful.spec.ts`).
 
 To add a route or return-iteration policy (truthful-thorough, truthful-low-resource,
 violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` that exports a
@@ -58,8 +64,8 @@ registry and on the preview registry (`src/content/preview`) and prints a row pe
 `*` on rows that differ, then a GREEDY wipe sequence on each channel and one more on preview
 with campaign rules active from a fresh campaign (#214). It prints the overlay's
 sentinel and item counts so a report names the overlay it measured. Choose policies with
-`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY
-and IDLE.
+`make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY,
+IDLE, TRUTHFUL_THOROUGH and TRUTHFUL_LOW_RESOURCE.
 
 It is **report only until release**: it is not part of `make verify`, it exits 0 whatever
 differs, and it never calls `checkGates`. `make sim` stays on production content with its
