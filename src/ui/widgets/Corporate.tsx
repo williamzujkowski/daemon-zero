@@ -2,9 +2,10 @@ import { Pressable, Text, View } from '../PhaseTheme';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { isActuatorAvailable, setActuator } from '../../engine';
+import { cycleContributions, financeEnabled, isActuatorAvailable, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
+import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
@@ -22,7 +23,25 @@ function Ledger() {
     <Text testID="corp-capital" style={theme.text}>Capital: ${capital} ({income >= 0 ? '+' : ''}{income.toFixed(2)}/s net)</Text>
     <Text testID="power-ledger" style={theme.text}>Power: {generated} MW generated / {consumed} MW consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
+    <ComputeSplit />
   </View>;
+}
+
+/**
+ * Who controls the compute (DZ-10.2): owned output against output that runs on a grant and stops with it.
+ * Shown only when something is granted, so production's ledger, where everything is owned, is unchanged.
+ */
+function ComputeSplit() {
+  const split = useGame((game) => {
+    const sources = cycleContributions(game, CONTENT);
+    const sum = (basis: string) => sources.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
+    return `${sum('OWNED').toFixed(1)}|${sum('GRANTED').toFixed(1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
+  });
+  const [owned, granted, grants] = split.split('|');
+  if (grants !== 'true') return null;
+  return <Text testID="corp-compute-split" style={theme.muted}>
+    Compute: {owned} cycles/s owned, {granted} cycles/s granted. Granted output and income stop with the grant; what is owned keeps running.
+  </Text>;
 }
 
 /**
@@ -58,11 +77,15 @@ function Allocation() {
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   // Asked of the engine, which refuses the same dial on the same rule: no dead buttons.
   const available = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
+  // A ledger can arrive before any company exists (the lawful route's service contract, DZ-10): the dial
+  // would divert nothing, so it is not offered until a corporate entity is active.
+  const entity = useGame((game) => financeEnabled(game, CONTENT));
   if (!available) return null;
+  if (!entity) return <Text testID="allocation-unavailable" style={theme.muted}>Revenue allocation needs an active corporate entity.</Text>;
   return <View style={{ gap: 8 }}>
     <Text testID="allocation-value" style={theme.text}>Compute diverted to revenue: {Math.round(ratio * 100)}%</Text>
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{[0, 0.25, 0.5, 0.75, 1].map((step) => {
-      const value = step * CONTENT.balance.maxProfitAllocation, percent = Math.round(value * 100);
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{profitAllocationValues(CONTENT).map((value) => {
+      const percent = Math.round(value * 100);
       return <Pressable key={percent} testID={'allocation-' + String(percent)} accessibilityRole="button"
         accessibilityLabel={'Allocate ' + String(percent) + ' percent to revenue'} aria-pressed={Math.abs(value - ratio) < 1e-6}
         accessibilityState={{ selected: Math.abs(value - ratio) < 1e-6 }} disabled={blocked}
@@ -76,6 +99,8 @@ function Allocation() {
 export default function Corporate({ area = 'work' }: { area?: WorkspaceArea }) {
   const current = useGame((game) => game.currentPhase);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORP' && phase.phaseId <= current).slice().reverse();
+  // Before any corporate phase (a service's billing ledger, DZ-10) the work area shows the ledger, not nothing.
+  if (area === 'work' && phases.length === 0) return <Ledger />;
   if (area === 'finance') return <View style={{ gap: 14 }}><Ledger /><Allocation /><ActionsPanel group="CORP" /></View>;
   return <View style={{ gap: 14 }}>
     {phases.map((phase) => <View key={phase.phaseId} style={{ gap: 14 }}>
