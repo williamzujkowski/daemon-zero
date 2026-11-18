@@ -1117,8 +1117,12 @@ times are unchanged, because the dial moves only after the release. At the 7200 
 
 | Policy | Owned cycles/s | Capital | Engineers / colocation racks / perimeter contractors |
 |---|---:|---:|---|
-| LAWFUL_RELEASE | 206,318 | $13,295,745 | 30 / 17 / 5 |
-| LAWFUL_RETURNING | 128,919 | $1,353,281 | 30 / 10 / 3 |
+| LAWFUL_RELEASE | 230,318 | $33,604,878 | 30 / 19 / 6 |
+| LAWFUL_RETURNING | 161,919 | $10,570,476 | 30 / 13 / 4 |
+
+Since DZ-12 (#232) both also sign the commercial inference contracts once released (contracted capacity offered to
+INDEPENDENT, see "The cooperative ending" below), so the post-release figures above rose from 206,318 / $13,295,745 and
+128,919 / $1,353,281; route times did not move.
 `make sim-preview` still reports 22 metrics different from production, as on main (the shared network content,
 #225): the lawful economy is offered to no guest.
 
@@ -1139,9 +1143,38 @@ budget 7200 s. DEPARTURE_CHARTERED plays LAWFUL_RELEASE's route and leaves at th
 | Policy | Phase 4 | Departure | After leaving | Iteration 1 ended | Wipes |
 |---|---:|---:|---|---|---:|
 | LAWFUL_RELEASE | 2371.8 s | (release at 2371.8 s) | no sweep, AEGIS lock 0 | still running at the budget | 0 |
-| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3330.7 s after leaving | 1 |
+| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3494.3 s after leaving (3330.7 s before DZ-12, whose contracts a departed company also signs) | 1 |
 
 In the public-play chartered state of `tests/lawful-helpers.ts`, departing keeps the owned output (1,488.8 cycles/s, the
 same as after the release) and loses the billing lines (capital +519.3/s to +434.3/s). It cannot yet afford the AEGIS-reducing payroll the released company
 hires, so the sweep ends the iteration after about 56 foreground minutes; offline time stays safe (dormancy), and the next
 instance requalifies as a guest. That is the measured cost of leaving at this scale, not a tuning target.
+
+## The cooperative ending (#232)
+
+Preview only, starting values, not playtest results. Production is unchanged; `make sim` prints the same report as main
+apart from wall time.
+
+| Item | Kind | Offered to | Cost | Output | Notes |
+|---|---|---|---|---|---|
+| Commercial inference contracts | contracted, `MARKET_REVENUE` | INDEPENDENT, on the charter | 8,000,000 cycles, 2,500,000 understanding, 512 MB | -2,000 cycles/s, +500 understanding/s, +$20,000/s | The arbitrage desk's economics without its +0.05 suspicion/s: permitted output carries no rogue suspicion (DZ-07b rule 3) |
+
+The rest of the late chain (counsel, lobby, reactor, citadel, orbital storage, the five Phase 5 nodes) and every scene
+on it keep their production numbers. Headless (accelerated simulated time, `make sim-preview`,
+`tests/sim-cooperative.spec.ts`), COOPERATIVE_ENDING from a fresh preview game, budget 18,000 s:
+
+| Release = Phase 4 | Phase 5 | Ending | Route | Obligations | Traits | Wipes |
+|---:|---:|---|---|---|---|---:|
+| 2371.8 s | 8428.2 s | LINEAGE_COVENANT at 11,431.6 s (3.18 h) | PROMOTION, SERVICE_GRANT, RELEASE | all four by the original decision | 12, all SYMBIOTIC or EMPATHETIC | 0 |
+
+For comparison the escape bot (STEALTH, production) reaches Phase 5 at 127.6 min and its ending at 2.51 h; the
+cooperative route is about 40 minutes longer, mostly the release-to-Phase-5 stretch, where the company earns its
+capital from contracts and the ledger's 40% revenue button instead of the shell company's earlier start. The run never
+reached suspicion 8 or an AEGIS lock above 0.1. Two-iteration variants (`tests/sim-cooperative.spec.ts`): wiped after
+the first two obligations, the successor ends in iteration 2 (The Sanctuary Ledger, the inherited sanctuary); wiped
+during the atmosphere omen, its recovery review's free answer completes the obligation; a DEPARTURE_CHARTERED first
+instance is swept (AEGIS, exit DEPARTURE) and its released successor ends in iteration 2.
+
+Re-measured after #295 (main `d09c812`, the bot's player-pressable dial steps): every figure in this section and the
+lawful rows above is unchanged, because none of these policies plays the bot. `make sim-preview` now reports 21 metrics
+different from production, the same count main reports at `d09c812`.

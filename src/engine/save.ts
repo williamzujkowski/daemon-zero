@@ -160,10 +160,18 @@ export function migrate(raw: RawSave, migrations = MIGRATIONS, target = SCHEMA_V
   return save;
 }
 
+/**
+ * The entries of `source` whose ids content still knows, in the order the save holds them, then a fallback for
+ * each known id it lacks. Keeping the saved order makes a reload byte-identical whatever order play wrote them
+ * in (a lawful company buys an overlay account before a production one, DZ-12's reload guard).
+ */
 function known<T>(source: Record<string, T>, ids: Iterable<string>, fallback: (id: string) => T | undefined) {
+  const valid = new Set(ids);
   const out: Record<string, T> = {};
-  for (const id of ids) {
-    const value = Object.hasOwn(source, id) ? source[id] : fallback(id);
+  for (const [id, value] of Object.entries(source)) if (valid.has(id) && value !== undefined) out[id] = value;
+  for (const id of valid) {
+    if (Object.hasOwn(out, id)) continue;
+    const value = fallback(id);
     if (value !== undefined) out[id] = value;
   }
   return out;

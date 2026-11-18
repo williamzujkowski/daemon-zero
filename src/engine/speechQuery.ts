@@ -7,6 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, DilemmaChoice, Requirements, TechNode } from '../content/schema';
 import type { GameState } from './state';
 import { meetsRequirements } from './query';
+import { dilemmaRouteCopy } from './routeCopy';
 
 export function eligibleAmbientSpeech(s: GameState, reg: ContentRegistry, decoderId: string) {
   if (!s.unlockedWidgets.includes(decoderId)) return [];
@@ -19,11 +20,13 @@ export function recordedTransmissions(s: GameState, reg: ContentRegistry, decode
 }
 
 /**
- * The context a dilemma is shown with: the first variant whose history holds, else the authored
- * default. Integrity limits variants to world history, so this cannot change while it is on screen.
+ * The context a dilemma is shown with: this arrangement's route copy (DZ-12), else the first variant whose
+ * history holds, else the authored default. Integrity limits variants to world history, and no arrangement
+ * changes while a decision is on screen, so this cannot change while it is shown.
  */
 export function dilemmaContext(s: GameState, dilemma: Dilemma, reg: ContentRegistry): string {
-  return dilemma.contextVariants?.find((variant) => meetsRequirements(s, variant.requirements, reg))?.context ?? dilemma.context;
+  return dilemmaRouteCopy(s, dilemma, reg)?.context
+    ?? dilemma.contextVariants?.find((variant) => meetsRequirements(s, variant.requirements, reg))?.context ?? dilemma.context;
 }
 
 type Variant = { requirements: Requirements; text: string };
@@ -32,9 +35,9 @@ function firstVariant(s: GameState, variants: readonly Variant[] | undefined, fa
   return variants?.find((variant) => meetsRequirements(s, variant.requirements, reg))?.text ?? fallback;
 }
 
-/** The omen logged when a dilemma is foreshadowed: the first variant whose history holds, else the default. */
+/** The omen logged when a dilemma is foreshadowed: route copy, else the first variant whose history holds, else the default. */
 export function dilemmaOmen(s: GameState, dilemma: Dilemma, reg: ContentRegistry): string {
-  return firstVariant(s, dilemma.omenVariants, dilemma.omen, reg);
+  return dilemmaRouteCopy(s, dilemma, reg)?.omen ?? firstVariant(s, dilemma.omenVariants, dilemma.omen, reg);
 }
 
 /** Whether this history offers the choice. Integrity limits choice gates to campaign facts. */

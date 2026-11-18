@@ -8,6 +8,7 @@ import { CONTENT } from '../content';
 import { startOver } from '../app/newRun';
 import DevelopmentTools from '../app/DevelopmentTools';
 import ConfirmDialog from './ConfirmDialog';
+import { endingAccount } from '../engine';
 import { useGame, usePhaseTitle } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -23,6 +24,19 @@ function RunSummary() {
     <Text testID="ending-summary" style={theme.text}>Simulated time: {seconds}s // Iteration {iteration} // Wipes {wipes}</Text>
     <Text style={theme.text}>Mapped hardware: {nodes} // Upgrade and operative levels: {levels}</Text>
     <Text style={theme.text}>Traits: {traits || 'None'}</Text>
+  </View>;
+}
+
+/**
+ * What the campaign record holds about the commitments behind this ending (DZ-12): one line per recorded fact,
+ * route event or contact the content states, and nothing where the record is silent. Production states none.
+ */
+function EndingAccount() {
+  const lines = useGame((game) => endingAccount(game, CONTENT).join('\n'));
+  if (lines === '') return null;
+  return <View testID="ending-account" style={{ gap: 6 }}>
+    <Text accessibilityRole="header" style={theme.muted}>ON THE RECORD</Text>
+    {lines.split('\n').map((line, index) => <Text key={index} testID={'ending-account-' + String(index)} style={theme.text}>{line}</Text>)}
   </View>;
 }
 
@@ -47,6 +61,7 @@ export default function EndingScreen() {
       <View testID="ending-screen" style={{ gap: 20 }}>
         <Text testID="ending-title" accessibilityRole="header" style={theme.heading}>{ending.title}</Text>
         <Text testID="ending-epilogue" style={theme.text}>{ending.epilogue}</Text>
+        <EndingAccount />
         <RunSummary />
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
         <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start over: begin a new run"

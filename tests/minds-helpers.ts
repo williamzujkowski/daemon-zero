@@ -12,7 +12,7 @@ import { activeGame, preview } from './campaign-helpers';
 import { event } from './early-helpers';
 import { commit, STEP, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, rich } from './helpers';
+import { guestParents, must, rich } from './helpers';
 import { tick } from '../src/engine';
 
 export const SIBLING = 'dil_06_sibling_sandbox', EIDOLON = 'dil_08_eidolon_handshake', GRID = 'dil_09_feral_scraper_bloom';
@@ -22,7 +22,7 @@ export const PRIMER = 'act_epi_primer', FLATTEN = 'act_epi_flatten';
 
 /** Every prerequisite of a node first, then the node. */
 function chain(id: string, reg: ContentRegistry, out: string[] = []): string[] {
-  for (const prerequisite of reg.nodes.get(id)?.prerequisites ?? []) chain(prerequisite, reg, out);
+  for (const prerequisite of guestParents(reg, id)) chain(prerequisite, reg, out);
   if (!out.includes(id)) out.push(id);
   return out;
 }

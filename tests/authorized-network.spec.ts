@@ -226,9 +226,11 @@ describe('seized capacity is unauthorized acquisition, never lawful capacity (07
 });
 
 describe('production is unchanged (V31)', () => {
-  it('ships no shared content, no provisioned segment and no capability gate', () => {
+  it('ships no shared content, no provisioned segment and no network capability gate', () => {
     const nodes = [...PRODUCTION.nodes.values()];
-    expect(nodes.filter((entry) => entry.requirements?.requiresCapability !== undefined)).toEqual([]);
+    // DZ-12's one production gate is the late corporate chain on MARKET_REVENUE, which only the arbitrage desk
+    // establishes there, so it answers exactly as the prerequisite it replaced (tests/cooperative-route.spec.ts).
+    expect(nodes.filter((entry) => entry.requirements?.requiresCapability !== undefined).map((entry) => entry.requirements?.requiresCapability)).toEqual(['MARKET_REVENUE']);
     expect(nodes.filter((entry) => entry.grant !== undefined)).toEqual([]);
     expect(PRODUCTION.nodes.has(SEGMENT) || SHARED.some((id) => PRODUCTION.nodes.has(id))).toBe(false);
     // The card carries the capability in both channels; only preview has content that reads it.

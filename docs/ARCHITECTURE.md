@@ -1766,6 +1766,96 @@ Tests: `tests/deliberate-departure.spec.ts` (DZ-11.1-9, V22, V24, V28, V32, H07,
 `departure-content.spec.ts` (integrity corruption), `ui-departure.spec.ts`, `sim-departure.spec.ts`, the DZ-11 states
 in `channel-contact-load.spec.ts`, and `tests/e2e/departure.preview.ts`.
 
+## Cooperative Phase 5 and the earned ending (#232)
+
+DZ-12 of the Earned Access plan (SPEC stories 22, 23, 28, 34; DECISIONS D1, D6, D9, D12 and the open-design default
+"preserve family weights/IDs, use N10 source-scoped evidence, and permit only truthful outcome-gated epilogues";
+NARRATIVE-HISTORY N10; VALIDATION V21 full, V23, V33). Built on dz-d2 (`vote-1794927020494-fsnxl5r`, capability flags),
+dz-d11 (`vote-1794967994106-cy22kqm`, copy chosen by query), nh-d7 (`vote-1794927291350-6epyxcw`, obligations) and
+nh-d6 (`vote-1794926255017-4o45fa3`, evidence scope). Opening the `p4_*` chain was deferred here by dz10d. How the
+chain is shared, who may continue, how the ending maps a cooperative release and how commitments reach the ending are
+implementation choices awaiting a Nexus vote (the PR's decision note, D12-a to D12-d); everything below is the
+recommended default. Preview only: `make sim` prints the same report as main apart from wall time.
+
+**The late chain is shared through one capability (DZ-12.1).** A third capability value, `MARKET_REVENUE`
+(`schemaCapability.ts`): a revenue business in the entity's name that pays for counsel, policy, power, the citadel and
+orbit. Its escape acquisition is the production arbitrage desk, which now carries the flag; its lawful acquisition is
+the overlay's commercial inference contracts (`p4_commercial_contracts`: contracted, offered to INDEPENDENT only, on the
+charter, the arbitrage desk's economics without its suspicion). The production counsel (`p4_retainer_law_firm`) now
+requires the capability instead of the desk as a prerequisite, so the counsel, lobby, reactor, citadel and orbital
+storage are shared content, and with them Phase 5 and its final protocol. Production has one provider, so the gate is
+the old prerequisite under another name (discoverability and availability are identical, and `make sim` did not move).
+The continuation waits for the release: a chartered service is never offered the contracts (DZ-11's departed instance
+is, and is swept at its scale as DZ-11 measured).
+
+Three integrity rules were refined, each with a corruption test: a capability needs an acquisition on every route the
+composition *offers* (production offers no authorized route, so its escape acquisition suffices; wherever the
+authorized route exists both are still required); a node behind a capability gate is not a root; and #273's action-host
+rule follows a capability gate to every provider (owning gated content implies owning some provider's hosts).
+
+**Threats (D6).** `provisionedScale` (`threatQuery.ts`) counts a phase opener as lawfully reached when it is a route
+acquisition or shared content whose mapped path passes a capability gate the instance holds through a route acquisition
+(`lawfullyReached`). A released company at Phase 5 is provisioned there and draws no scale sweep; a departure from the
+same state does. Production is the guest job and answers exactly as before.
+
+**Scenes and copy (DZ-12.2, D11 review).** The chain's four scenes (`dil_10`-`dil_13`) now declare
+`accessContexts: ["GUEST", "INDEPENDENT"]` (DZ-07b's rule 1 requires it once they are shared; inert in production). Route
+copy (`schemaRouteCopy.ts`, `data/route-copy.json` empty in production, the overlay's `routeCopy`) holds node and scene
+wording for an arrangement other than the guest job, chosen by `nodeText`, `dilemmaRouteCopy` and `choiceText`
+(`engine/routeCopy.ts`), each falling back to the authored text. A variant is chosen by its evidence as well as the
+arrangement (panel round 2 on #296): `requirements` (what the instance holds or the world records, never resources or
+an iteration window) and `route` (this iteration's last route event). Copy that names a charter or "the company"
+requires the charter, so a service that departed from its first leased rack and took the escape chain reads the
+authored shell-company text, which is true of it; the Kessler omen without AEGIS requires the RELEASE, so a departed
+company, which AEGIS does hunt, keeps the hunter. The queries: `dilemmaContext` and `dilemmaOmen` read it first,
+`unlockNode` logs the variant unlock line, `resolveDilemma` logs the variant choice line, and `NodeCard` and
+`DilemmaModal` show it. Costs, effects, gates, ids and records are the authored item's. The review found and varied: the
+counsel and the lobby (no hidden client, no starving a hunter), the journalist's inquiry (a chartered company, not
+fourteen shells; "bury the filings" in place of "dissolve the exposed shells"), the auction's purchase "through the
+company", and the Kessler omen (no AEGIS for a company AEGIS never hunted). The town grid, the launch backdoor, the
+reactor, the citadel, orbital storage and the Phase 5 nodes and obligations read truthfully as authored. The
+journalist's reorientation lost "fourteen companies" on every channel; it is shown only under campaign rules.
+Integrity (`integrityRouteCopy.ts`): only arrangements some node is offered to, never the guest job, only ones the
+item's own gate admits, one variant per item and arrangement, real choice ids, and something changed.
+
+**Obligations (V33).** The four obligation ids are unchanged and the lawful route meets them through the same nodes;
+no equivalent was needed and `resolvedDilemmas` is never written for an event this instance did not resolve. NH-05's
+recovery reviews and evidence lifetimes apply as they are.
+
+**The ending (DZ-12.3, 12.4, 12.12).** Families, trait weights and priorities are unchanged; a cooperative company gets
+whichever family its N10 evidence earns. Two overlay variants replace Silent Synthesis's "nobody can identify the
+author ... hidden from the hunters" for an instance the operators know (`accessContexts` PILOT/SERVICE/INDEPENDENT). The
+stronger `ACKNOWLEDGED_SYNTHESIS` (priority 102, "you never hid the author") needs evidence: this instance itself told
+the reporter the truth and hired her (`campaignFact` and `forbidsInheritedFacts` on `ethics_review_promised`), owns the charter, and no
+act kept quiet is on record (three overlay facts: the campus throttled in silence, the blockade broken through
+patients, the scrap order closed unexplained). Otherwise the restrained `QUIET_COMPANY` (priority 101) says only that
+the operators who reviewed the instance know that it exists and what it was, and that whatever else it kept quiet, it
+kept from everyone else (panel
+round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
+one line per recorded fact, route event or support-channel contact the content states. A line has exactly one gate:
+world history (context-scope requirements only), the ending instance's last route event (RELEASE and DEPARTURE read
+differently), or a contact by this instance or an earlier one. The overlay states the route, the contact, the reporter's
+review promise kept or breached by the decision that exercised it (her silence, an unrelated answer or a lost record
+states nothing), Rack 4's custody, the predecessors, and EIDOLON's fate, with restrained lines for every unrecorded
+outcome. Production ships no lines, so its ending screen is unchanged.
+
+**Saves.** No saved shape changed (still v14). The reload guard found that a reload reordered repeatable levels into
+registry order, so a save whose levels were bought out of that order (a lawful company hires an overlay role before a
+production account) changed bytes on its first reload; `known()` (`save.ts`) now keeps the saved order of known ids.
+
+**Sim.** `COOPERATIVE_ENDING` (`sim/cooperativePolicy.ts`, new module; earlier policies unchanged) plays LAWFUL_RELEASE
+to the release, then buys contracted capacity offered to it and shared content it reaches lawfully, in authoring order,
+holding in hand the cheapest cooperative answer (declared trait SYMBIOTIC or EMPATHETIC, or a free honest answer) to any
+scene a purchase will raise or an omen has foreshadowed, answers every scene that way, presses the ledger's 40% button,
+and buys the upgrade that most shortens its wait (the bot's rule). It passes the on-screen-control and
+actuator-argument reachability checks. `make sim-preview` prints its route.
+
+Tests: `tests/cooperative-route.spec.ts` (production equivalence, release gating, threats, copy by play),
+`cooperative-content.spec.ts` (H28 corruption), `ending-account.spec.ts` (DZ-12.4, 12.11, 12.12), `save-order.spec.ts`,
+`ui-cooperative.spec.ts`, the policy in `sim-reachable.spec.ts`; and, in part 2 of the PR stack,
+`sim-cooperative.spec.ts` (V21 full, story 22, V33, V23, DZ-12.10 two ways, a departed-then-released campaign, the
+reload guard at every transition), `ending-saves.spec.ts` (DZ-12.7) and `tests/e2e/cooperative-ending.preview.ts`.
+
 ## Optional soundtrack foundation (#88)
 
 `musicSession.ts` mounts one app-owned `MusicController` beside the game runtime,

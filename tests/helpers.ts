@@ -13,6 +13,19 @@ export function outOfTheWay(registry: ContentRegistry, ...keep: string[]): strin
   return registry.dilemmas.filter((dilemma) => !keep.includes(dilemma.id) && !dilemma.choices.some((choice) => choice.review !== undefined)).map((dilemma) => dilemma.id);
 }
 
+/**
+ * What a guest maps before `id`: its prerequisites and, for a capability gate (DZ-07a, DZ-12), the escape route's
+ * acquisition of that capability (no grant, not contracted), which is how every escape-route fixture reaches
+ * shared content such as the late corporate chain.
+ */
+export function guestParents(registry: ContentRegistry, id: string): string[] {
+  const node = registry.nodes.get(id);
+  const capability = node?.requirements?.requiresCapability;
+  const provider = capability === undefined ? undefined
+    : [...registry.nodes.values()].find((entry) => entry.systemFlags.includes(capability) && entry.grant === undefined && entry.acquisition === undefined);
+  return [...(node?.prerequisites ?? []), ...(provider === undefined ? [] : [provider.id])];
+}
+
 export function fresh(): GameState {
   return createInitialState(reg);
 }

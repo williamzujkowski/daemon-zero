@@ -7,7 +7,7 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
+import { canAfford, choiceText, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -33,9 +33,12 @@ function ReviewLine({ choice }: { choice: DilemmaChoice }) {
 /** `token` is the presentation this choice was rendered for; a press against any other is refused. */
 function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId: string; token: string }) {
   const affordable = useGame((game) => canAfford(game, choice.cost));
+  // This arrangement's words for the choice (DZ-12); the arrangement cannot change while the clock is stopped here.
+  const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
+  const description = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).description);
   return <View style={theme.panel}>
-    <Text style={theme.heading}>{choice.label}</Text>
-    <DisclosureText style={theme.text}>{choice.description}</DisclosureText>
+    <Text style={theme.heading}>{label}</Text>
+    <DisclosureText style={theme.text}>{description}</DisclosureText>
     <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
     {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
       Evidence: {evidenceText(choice.qualification)}</Text>}
@@ -48,7 +51,7 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
     {/* The name starts with the words on the button, then says which choice it commits (WCAG 2.5.3). */}
     <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button"
-      accessibilityLabel={(affordable ? 'Commit directive: ' : 'Unavailable: ') + choice.label}
+      accessibilityLabel={(affordable ? 'Commit directive: ' : 'Unavailable: ') + label}
       disabled={!affordable} style={[theme.button, !affordable && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => resolveDilemma(game, dilemmaId, choice.id, CONTENT, token)); }}>
       <Text style={theme.text}>{affordable ? '[ COMMIT DIRECTIVE ]' : '[ UNAVAILABLE ]'}</Text>

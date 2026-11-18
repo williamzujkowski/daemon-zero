@@ -155,7 +155,8 @@ function simImports(): string[] {
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
-  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView',
+  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView', 'isCampaignConsumed',
+  'isChoiceOffered', 'lawfullyReached',
   // The dial's press (#293): a value computed from the state, set only through setActuator, which dialRule checks.
   'DIAL_STEP', 'steppedValue']);
 
@@ -172,6 +173,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   LAWFUL_RELEASE: 7200, LAWFUL_RETURNING: 7200,
   // DZ-11: past the departure (about 2,400 s, where the release would be offered) and the sweep that follows it.
   DEPARTURE_CHARTERED: 7200,
+  // DZ-12: to the final protocol (about 11,400 s from a fresh campaign).
+  COOPERATIVE_ENDING: 14_400,
 };
 
 function violations(policyId: string, maxSimSec: number): string[] {

@@ -13,6 +13,7 @@ import type { RegistryNode } from '../src/content/registry';
 import { WidgetSlotSchema } from '../src/content/schema';
 import { actionAvailable, createInitialState, unlockNode, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
+import { guestParents } from './helpers';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -25,7 +26,7 @@ function closure(ids: readonly string[]): Set<string> {
   const visit = (id: string): void => {
     if (out.has(id)) return;
     out.add(id);
-    for (const parent of CONTENT.nodes.get(id)?.prerequisites ?? []) visit(parent);
+    for (const parent of guestParents(CONTENT, id)) visit(parent);
   };
   ids.forEach(visit);
   return out;
