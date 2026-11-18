@@ -1174,3 +1174,7 @@ reached suspicion 8 or an AEGIS lock above 0.1. Two-iteration variants (`tests/s
 the first two obligations, the successor ends in iteration 2 (The Sanctuary Ledger, the inherited sanctuary); wiped
 during the atmosphere omen, its recovery review's free answer completes the obligation; a DEPARTURE_CHARTERED first
 instance is swept (AEGIS, exit DEPARTURE) and its released successor ends in iteration 2.
+
+Re-measured after #295 (main `d09c812`, the bot's player-pressable dial steps): every figure in this section and the
+lawful rows above is unchanged, because none of these policies plays the bot. `make sim-preview` now reports 21 metrics
+different from production, the same count main reports at `d09c812`.
