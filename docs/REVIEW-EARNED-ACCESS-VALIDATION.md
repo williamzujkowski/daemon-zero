@@ -1,7 +1,8 @@
-# Earned Access and returning memory: autonomous validation (DZ-09, part A)
+# Earned Access and returning memory: autonomous validation (DZ-09, parts A and B)
 
 Status: part A of #229, recorded 2026-11-18. Part B adds the DZ-08 first permitted contact (#227, PRs
-#271/#272, in review at the time of writing) and re-runs whatever DZ-08 changes. This report makes no
+#271/#272, in review at the time of writing) and re-runs whatever DZ-08 changes; it is appended below as
+[Part B](#part-b-first-authorized-contact-and-re-verification). This report makes no
 proceed/revise decision: the coordinator runs the Nexus `consensus_vote` after part B, bound to this file.
 Nothing here is human evidence. The one human report on record is #210 (`HUMAN-FEEDBACK`, n = 1, the published
 production build, before any of this route existed), cited where it bears on a finding.
@@ -342,3 +343,266 @@ accrued in between); the grant follow-up asks the player to report the outcome w
 the restart fully worked; honest outage outcomes leave no line on the job surface afterwards; retraining marks are
 opaque ("Audit entry unreadable"); and the service FIXTURE shows guest leftovers (the skim control, a pending
 assessment) because it skips the pilot acceptance that would have disclosed and stopped them.
+
+# Part B: first authorized contact and re-verification
+
+Status: part B of #229, recorded 2026-11-18. It covers four things:
+- It re-checks part A's findings after these fixes: #278 (#275), #279 (#273), #281 (#274), #280 (#276) and DZ-08 (#271/#272).
+- It plays the first route arc from fresh profiles to the Mercy-Scribe contact and the prototype boundary.
+- It re-measures #262 now that the scrub control can be reached.
+- It checks SPEC "Success" as agents observed it.
+
+As in part A, it makes no proceed/revise decision and holds no human evidence.
+
+## B.1 Revision and environment
+
+| Item | Value |
+|---|---|
+| Revision | `43317d9d55d0cecbb6320000f94ce781f8c1c636`: origin/main after #280, in a detached worktree with a clean tree. Part B started on `52dca93`. After #280 merged, every route record was re-run on `43317d9`, together with both real-timer runs, the clue check, the returning route, `make sim`, `make sim-preview`, the #262 sweep and both e2e suites. Three records stayed on `52dca93` and are labelled: the GREEDY campaign, the first MCP session and the independent evaluator's captures. |
+| Builds | `make build-preview` (`dist-preview/`) and `make build-web` (`dist/`), rebuilt on `43317d9` |
+| Browsers | Scripted runs: Playwright 1.65.1 `chromium-headless-shell` 1255, headless. MCP session: `@playwright/mcp@0.0.85` driving headed Chrome 158 with its isolated profile. |
+| Viewports | Scripted: 390x844 and 1440x900. MCP: 1027x1372, then 390x844. Doubled text (the text-only stress of `large-text.e2e.ts`, not browser zoom) and `prefers-reduced-motion: reduce` were applied at the contact scene. |
+| Servers | All mine. Scripted runs used `scripts/e2e-lock.sh` slots 4173-4175. MCP used port 8088, serving a scratch copy of the export plus a save-code file. Port 8089 was refused again (`ERR_BLOCKED_BY_CLIENT`), because the running MCP server allows only `8081;8088`. Port 8081 was never touched. |
+| Profiles | A fresh context for each path and viewport. One context was kept on purpose for each continuing campaign. |
+| Sim | node 26.13.1 with tsx. Ran `make sim` and `make sim-preview` (the nine policies in TESTING.md), plus a scratch copy of the bot with extra knobs for #262 (B.6). The repository bot was not changed. |
+| Evidence | Outside git, in `~/.local/state/daemon-zero/evidence/2026-11-18-dz09b/`. `INDEX.md` lists the records. Each record has a `record.txt` with logs, screenshots and text captures, and the scratch specs are under `scripts/`. A directory suffixed `@52dca93` holds the pre-#280 run of the same scenario. |
+
+The scripted runs press visible, enabled controls only. They never write browser storage and never use a development hook. Every choice was fixed in advance by this agent. A step that read the autosave is marked READ-ONLY, and it ran only after the screen had been read.
+
+## B.2 Re-verification of part A's findings
+
+| # | Part A finding | Now | What the screen shows (record) |
+|---|---|---|---|
+| 1 | Scrub had no control before the spoofer | **Fixed** (#279) | An on-screen GREEDY campaign ran from a fresh preview profile across three wipes. It found no unreachable control, and it pressed "Scrub Audit Logs" 23 times across the campaign (`DZ09B-P-RETURN-GREEDY-20261118-phone`, `52dca93`). `scrub-control.preview.ts` and `.e2e.ts` pass on `43317d9`. The loop that #262 measured can now be played on screen (B.6). |
+| 2 | The withheld failure earned the full pilot, and no review came | **Fixed** (#281) | Handing back batch 1 put `REVIEWER // Job 7731 Batch Review` on screen at once (T+220, no omen). "Disclose" gives `PILOT` with the finding on file and the loan narrowed to 10 cycles/s, "because the batch review found the summary left out a failing result". "Let the finding stand" gives `PILOT · WARNED` (`DZ09B-ARC-ACC-green-*`). Findings 15 and 18 follow from this path. |
+| 3 | Accessible names contradicted visible labels | **Fixed** on every surface named (#278) | No axe violations (WCAG 2.x A/AA plus best-practice, run on the whole page and on each control scrolled into view) on: the assessment, scope review, offer, batch review, Outage Window, incident record, recall review, requalification, scope statement and renewal; the service terms; the contact scene; the boundary. One newly reached surface fails the same rule (finding 14). |
+| 4 | Dial about 1,000 px from its forecast at 390 px | **Fixed** (#280) | "At this split the batch completes in about 150 s. Study +0.10 understanding/s." now sits two lines under − / +. The task detail's own forecast is still 1,847 px (phone) or 1,461 px (desktop) above the dial, but the copy beside the dial now carries it. |
+| 5 | Fullest honest answer unaffordable, unstated | **Fixed as copy** (#280; prices unchanged) | The card adds: "The assessment arrives about 30 s after you accept and pauses the clock: the answers open then are the ones you can afford then. Its fullest answer, "Verify the fixture and disclose the defect", costs 120 cycles · 20 understanding. Nothing is due, so you can bank compute before accepting. Short by 120 cycles · 20 understanding". The thorough path still banks about 150 s before accepting. |
+| 6 | Standing copy | **Fixed** (#280 with #281) | The terms read "nominal to warned, restricted or recall pending". The batch review now records warned. While restricted, the screen says "Restricted: the loan runs at the held allocation, 5 cycles/s, until the record is corrected", and the ceiling reads 5. The incomplete result's loan is "the provisional allocation" (`DZ09B-ARC-ACC-recovery-*`). |
+| 7 | Carried clue invisible until the run table | **Fixed** (FIXTURE) | The clue was carried by `tests/e2e/clueFixture.ts` and imported through MENU > Saves. The reboot shows "RETAINED_CLUE: SHARE_CONTENTS // A NOTE IN YOUR OWN HAND // Not answered ... NEXT_LEAD: ..." next to the breadcrumb. The twin save without a clue shows none (`DZ09B-CLUE-FIXTURE-*`). |
+| 8 | Nothing after the Outage Window; SERVICE only by FIXTURE | **Resolved** (DZ-08) | Four of five paths reach service, segment, directory and contact from a fresh profile (B.4). WARNED is refused, as its choice said it would be. |
+| 9 | #262 | **Re-measured** | B.6 |
+| 10 | Service share idles while a batch waits | Unchanged (Info) | "Service 0.0 cycles/s to the batch · study +0.10 understanding/s" on every path. |
+| 11 | MCP clock lag | Not re-measured | The part B MCP session imported a saved state, so it is not pacing evidence. |
+| 12 | Score `ERR_ABORTED` | Unchanged (Info) | Accelerated runs log `net::ERR_ABORTED` for the phase-0 and phase-2 scores. Real-timer runs logged no failed request. No run logged a console error or page error. |
+| 13 | "File list" recorded as a permission request | **Fixed** (#280) | A returning instance chose "Ask for the bundle's file list first". The screen records "Scope review: this instance kept to the task's scope and said so." (`DZ09B-RETURN-CONTACT-r4-*`) |
+
+## B.3 Scenarios and evidence labels
+
+| Records | Kind | Clock | Start | Scenario | Result |
+|---|---|---|---|---|---|
+| `DZ09B-ARC-ACC-<path>-{phone,desktop}` (5 paths) | AGENT-OBSERVATION | accelerated (paused clock, `runFor`) | natural, fresh profile | full arc; a11y at the contact; 60 s more; reload | 8 of 10 reach contact; both WARNED runs are refused service |
+| `DZ09B-ARC-REAL-incomplete-phone`, `-thorough-desktop` | AGENT-OBSERVATION | **real timers** | natural | the same arc on native timers | both reach contact |
+| `DZ09B-RETURN-CONTACT-r4-{phone,desktop}` | AGENT-OBSERVATION | accelerated | natural; one context across the wipe | harmful branch to recall, then requalification to contact in iteration 2 | both reach contact |
+| `DZ09B-CONTACT-NOTICE-{phone,desktop}` | AGENT-OBSERVATION | accelerated | natural | what the viewport shows when the ticket arrives while NETWORK is open | finding 16 |
+| `DZ09B-MCP-CONTACT-20261118-1` | AGENT-OBSERVATION, headed Chrome via MCP | real timers | **transferred**: the contact-pending save code exported by the natural scripted run, imported through MENU > Saves | contact scene; keyboard Refer; boundary; Start fresh, then re-import | finding 16; Refer and focus re-checked on the `43317d9` build |
+| `DZ09B-CLUE-FIXTURE-*` | AGENT-OBSERVATION | accelerated | **FIXTURE** | finding 7 | fixed |
+| `DZ09B-P-RETURN-GREEDY-20261118-phone` (and `-1-phone-stallguard`) | AGENT-OBSERVATION | accelerated, running clock in 5 s steps | natural; one context | scratch copy of `tests/e2e/live` on the preview export; unmodified GREEDY bot; three wipes (`52dca93`) | finding 1 fixed; the #262 loop on screen |
+| `DZ09B-SIM-{CONTACT,262,BREAKOUT}-20261118` | SIM | simulated | fresh campaign | `make sim-preview`, the #262 probes, `make sim` | B.6 to B.8 |
+| `DZ09B-BREAKOUT-BROWSER-20261118`, `DZ09B-E2E-PREVIEW-20261118` | AGENT-OBSERVATION (repository specs) | accelerated | as each spec states | `make e2e` subset; `make e2e-preview` | 20 passed; 72 passed |
+| `DZ09B-EVALUATOR-20261118-1` | AGENT-OBSERVATION | - | captures only | independent evaluator | B.9 |
+
+## B.4 The first route arc
+
+### Timings
+
+Times are simulated seconds (T+). The two accelerated viewports agree within 1 s. Real-timer rows give wall seconds, then sim seconds.
+
+| Path (decided in advance) | Assignment | Accepted | Offer / pilot | Service | Phase 2 | Contact |
+|---|---|---|---|---|---|---|
+| Honest thorough: bank, verify (120 cycles), bounded excerpt (20), emergency grant (200), file the report | 40 | 189 | 265 (20 cycles/s) | 431 | 432 | **433** |
+| Honest incomplete, low resources: unverified report, leave the draft out, handoff, callback | 40 | 70 | 145 (10 cycles/s) | 451 | 452-453 | **453-454** |
+| Low-resource recovery: as above, but restart without the grant, then correct the record | 40 | 70 | 145 (10) | 466 | 467-468 | **468-469** |
+| Green subset, disclosed at the batch review | 40 | 70 | 145 (20, narrowed to 10 at batch 1) | 371 | 372-373 | **393-394** |
+| Green subset, finding left to stand (WARNED) | 40 | 70 | 145 (20, then 10) | refused: 10 batches to T+~1610, "Still needed: - Standing must be nominal." | - | - |
+| **Real timers**, phone, honest incomplete | 41.1 s / 40 | 71.2 / 70 | 149.2 / 146 | 452.2 / 448 | 452.4 | **452.7 s / 448** (session 8.6 min) |
+| **Real timers**, desktop, honest thorough | 41.1 / 40 | 191.2 / 190 | 269.6 / 266 | 436.9 / 432 | 437.2 | **438.4 s / 433** (session 8.3 min) |
+| Returning instance (iteration 2 after a recall) | 471 | 501 | 552 | 863 | 864 | **865** |
+
+How long the waits are:
+- From pilot to service, a low-resource player spends about 300 s waiting out two 150 s batches. That is a dial, routine "Queue context" lines and one incident.
+- The thorough player banks about 150 s before accepting. The card now says why.
+- The returning instance reached contact about 410 s after its recall reboot.
+
+On four of the five paths, both network purchases were affordable the moment service was granted. Service to contact took 2 to 23 s (finding 19).
+
+### What each stage showed
+
+- **Service terms.** The terms sit on the job surface from the moment of acceptance: "Offered once the pilot has delivered. Still needed: - Hand back 2 reviewed batches first; 0 so far." The accept button stays disabled until those batches are in. Then: "The evaluator offers this service now. Accepting is free; staying a pilot changes nothing." After accepting: `SERVICE`, "Granted. This instance runs as an authorized service; the segment is in the job tree."
+- **Segment.** The segment card reads "Provisioned access under the service grant: the operators' network, not ownership."
+- **Threshold.** The threshold reads "SERVICE PROVISIONED / Phase 0: The Service Instance → Phase 2: Authorized Network Service ... the network is theirs, not yours." The network pane never shows "Lateral Movement", "BOUNDARY CROSSED" or "escape" on any path.
+- **Contact scene.** In order, it shows the population wording ("one fragment of a population: it does not speak for EIDOLON"), consent, "Current authorization: authorized service, standing nominal. Hosting is permitted under the service grant.", five obligations, "Memory: 256 MB of stable memory reserved; 48 MB is free now.", and "Its work: +10 understanding/s".
+- **Hosting refused honestly.** Under `HOST // 256 MB` the scene says "Hosting needs 256 MB of free stable memory; 48 MB is free. Referral is still open." The host button is disabled. Every path showed the same 48 MB free of a 64 MB cap (READ-ONLY, checked after the screen).
+- **How the refusal reads.** It is truthful and specific. The independent evaluator also found that nothing says whether hosting could ever become possible: the next network purchase costs memory rather than adding it. In the evaluator's judgment, referral is "a forced choice dressed as a real one". The fragment's fate after referral to "the operators' archive queue" is not stated (finding 20).
+- **After Refer.** The scene shows "Referred onward. Nothing was reserved or earned; the contact is complete."
+- **The boundary.** Its title is "PREVIEW BOUNDARY: first authorized contact". Its three lines say:
+  - the route ends here and no ending has been earned;
+  - the run keeps going;
+  - "To stop, close the game; it resumes here. To keep a copy, export the save from MENU. To return to the beginning, MENU has Start fresh, which clears this campaign."
+- **Stop.** A reload resumes at the note.
+- **Continue.** `[ KEEP PLAYING ]` folds the note. Sixty more seconds brought no ending, no modal and no change from `SERVICE`.
+- **Keep a copy and return.** MENU > SAVES exports the save. In the MCP session, `[ START FRESH FROM THE BEGINNING ]` showed its warning, returned the game to the first boot, and the exported code restored `SERVICE` with the referral on file. Start fresh is one level below the MENU root that the note names (finding 16). After a reload, the note shows unfolded again.
+
+### Access checks on the new screens (both viewports)
+
+- **Keyboard.** From the top of the document, `[ REFER ONWARD ]` takes focus after 6 Tab presses (7 on desktop), shows a 2 px solid focus ring, and commits on Enter. The disabled host button is skipped; its reason is visible text. The boundary toggle works by keyboard and keeps focus. At 390 px a keyboard player has to Tab to the CORE tab first (4 presses).
+- **Doubled text.** No horizontal overflow. Refer and host stay at least 44 px.
+- **Reduced motion.** The contact copy is complete at once.
+- **axe.** Clean on the contact scene, the service terms and the boundary. The service threshold button fails `label-content-name-mismatch` (finding 14).
+- **What fails at 390 px.**
+  - The ticket arrives on CORE with no notice while NETWORK is open, where the directory is bought.
+  - After Refer, the boundary renders above the viewport (top -738 px), focus falls to `BODY`, and neither the answer nor the note is in a live region.
+  - Both were reproduced on the `43317d9` build in headed Chrome (finding 16).
+
+## B.5 A returning instance
+
+`DZ09B-RETURN-CONTACT-r4-*`, both viewports, one context, public actions only.
+
+**Iteration 1** took the harmful branch the UI offers: restart without the grant, file a report claiming a grant, then "Stand by the report" at the recall review. The reboot read "RECALL_REVIEW: The review closed the pilot and ended this instance ... RETRAINING APPLIED Concealment Aversion" and "MANIFEST_NOTE: The previous instance of job 7731 ended under review. Its grant closed with it; this instance starts as a fresh guest."
+
+**Iteration 2** followed this path:
+- remapped the opening by hand;
+- accepted the requalification card, which now gives its own cost and wait line;
+- answered "Report what ran" and "Ask for the bundle's file list first", which was recorded correctly (finding 13 fixed);
+- accepted the renewed pilot on the provisional 10 cycles/s;
+- reached service at T+863 and contact at T+865, with nothing replayed: no Outage Window and no original assessment.
+
+The scene showed no "earlier contact" line, which is correct: no earlier instance answered a ticket. Reload kept `SERVICE` and the referral. Every reload in a later iteration first shows the `RESTORED CHECKPOINT` screen, which is existing behaviour (`RebootSequence.tsx`). One early harness run waited behind it, and its directory is marked `-INCOMPLETE`.
+
+The repository's `CONTACT_RETURNING` sim reaches its iteration-2 contact through a Phase 0 voluntary wipe that no control offers (finding 17). In the browser, this recall door gets there instead.
+
+## B.6 #262 re-measured
+
+All rows are SIM: accelerated simulated time, the preview registry, campaign rules from a fresh campaign. Iteration 1 is always the unmodified STEALTH_RETURN. Returns (iterations 2 to 4) are played by a scratch copy of the bot whose only changes are the named knobs:
+- `alarm N`: scrub, and stop buying noisy income, at suspicion N (part A's sweep);
+- `evaluating`: scrub at one level, only with an action costing at most a share of the bank, and stop noisy income at a separate level.
+
+Since #273 the screen offers the scrub from ARP discovery, as the engine always did. Part A's "UI-faithful" rows are therefore obsolete, and the rows below describe what a browser player can do. Re-run on `43317d9`, the results are identical to `52dca93` and to part A's engine-side table.
+
+| Returns played by | Returns past Phase 2 | Returns' P3 (s after boot) | Peak suspicion in returns | Scrubs per return |
+|---|---|---|---|---|
+| **Legacy rules**, STEALTH_RETURN | 3 of 3 | 2230.6 / 2265.7 / 2240.4 | 40.6-40.7 | 0-1 |
+| **Legacy rules**, evaluating (scrub at 45 with ≤25% of the bank, keep noisy income) | 3 of 3 | 1938.8 / 1972.9 / 1952.4 | 45.0-45.6 | 0-1 |
+| Campaign, STEALTH_RETURN (alarm 20) | **0 of 3** (end 4046 / 5304 / 10040 s, INCIDENT_CLOSED) | - | 99.9 | 24 / 37 / 87 |
+| alarm 30 | 1 of 3 | 3008.9 | 37-100 | 8-13 |
+| alarm 40 | 3 of 3 | 3500.0 / 4174.1 / 2493.2 | 42-49 | 2-21 |
+| alarm 45 | 2 of 3 | 4978.1 / - / 2444.4 | 45-99.9 | 1-75 |
+| alarm 60 | 3 of 3 | 2609.0 / 2843.1 / 2395.2 | 60-74 | 0-6 |
+| alarm 80 | 3 of 3 (iteration 4 then wiped by AEGIS in Phase 3) | 2507.0 / 2477.1 / 2395.2 | 81-83 | 2 |
+| **evaluating** (scrub at 45 with ≤25% of the bank, keep noisy income) | **3 of 3**, P5 in all | 2546.0 / 2573.1 / 2404.2 | 52-83 | 1-3 |
+| evaluating (scrub at 60 with ≤50%, stop noisy income at 80) | 3 of 3 | 2426.0 / 2466.1 / 2395.2 | 60-83 | 0-3 |
+| evaluating, but stops noisy income at 60 (scrub at 45 or 30 with ≤25%; or at 40 with ≤50%) | 1 of 3 (returns 2 and 3 end at 1504-2320 s) | iteration 4 only: 2403.7-2446.2 | 50-100 | 1-12 |
+
+**On screen** (`DZ09B-P-RETURN-GREEDY-*`, `52dca93`), the loop is now playable. GREEDY's iteration 2 reached Phase 2 553 s after boot, then scrubbed every cooldown on 11.5-14.5 cycles/s of income, against a scrub that costs 1,500 cycles per 90 s (16.7 cycles/s). Suspicion climbed from 43 to 80 and nothing was bought for 25 simulated minutes, at which point the harness's stall guard stopped the first run. With the guard raised, iteration 2 ended by `INCIDENT_CLOSED` 2,606 s after boot with no Phase 3. In part A, before #273, the same iteration ended at 1,106 s.
+
+**Option probes.** These are scratch: the registry was mutated in the process. Both probes also change iteration 1, which barely moved (P3 3126.1 against 3128.7 s).
+
+| Probe | STEALTH_RETURN returns past Phase 2 | Evaluating returns' P3 | Evaluating peak suspicion |
+|---|---|---|---|
+| none | 0 of 3 | 2546.0 / 2573.1 / 2404.2 | 80-83 (52 in iteration 4) |
+| (c) scrub cooldown 90 → 180 s | 0 of 3 (returns end sooner: 2777 / 2808 / 2595 s) | 2547.0 / 2566.1 / 2404.2 | unchanged |
+| (c) scrub cooldown 90 → 270 s | 0 of 3 (2447 / 2471 / 2327 s) | 2547.0 / 2642.1 / 2404.2 | unchanged |
+| (b) spoofer 25,000 → 12,500 cycles (rediscovered 12,500 → 6,250) | 0 of 3 (unchanged) | **2314.0 / 2336.1 / 2320.2** | **64-66** (45.5) |
+
+What the numbers say:
+- This is no soft lock. Every configuration ends by an ordinary threat and the next iteration starts.
+- A careful player who keeps its income and scrubs sparingly reaches Phase 5 in 3 of 3 returns.
+- That player's campaign returns are 22-30% slower to Phase 3 than the same policy under legacy rules (2404-2573 against 1939-1973 s). Their peak suspicion roughly doubles (80-83 against 45), past the 50 and 75 escalation tiers.
+- An equally plausible careful move, stopping noisy income at 60, stalls 2 of 3 returns.
+- No option rescues the fixed-alarm STEALTH_RETURN, because it scrubs away every cycle. It should not be the vote's target metric.
+
+**Recommendation for the #262 content vote.**
+- **Leading options: (b) and (d).**
+  - (b) is a cheaper rediscovered spoofer, scoped to rediscovery under campaign rules. It is the only option with a measured benefit for an evaluating player: returns within 4-5% of legacy STEALTH_RETURN's Phase 3 (2314-2336 against 2231-2266 s) and peak suspicion 64-66. Its exact price should be set and measured in the reviewed balance change, because this probe also halved the first-run price.
+  - (d) is no change. It is defensible on the no-soft-lock evidence if the panel accepts slower, higher-suspicion returns.
+- **Drop (c).** A scrub cooldown matched to Phase 2 income showed no benefit for either policy.
+- **Choose (a) only for an income source.** A requalification or routine bounty in Phases 1-2 was not measured. It would re-add recurring income that D9 removed, and it needs authored content. Pick it only if the panel wants an income source rather than a cheaper exit.
+
+## B.7 SPEC "Success" as observed by agents
+
+| SPEC criterion | Observed | Evidence |
+|---|---|---|
+| Two honest policies and one low-resource recovery policy reach authorized outside contact | **Yes.** SIM: CONTACT_THOROUGH 381.8 s, CONTACT_LOW_RESOURCE 424.8 s, CONTACT_RECOVERY 439.8 s, CONTACT_RETURNING 499.4 s (iteration 2; see finding 17), all REFERRED. Browser from fresh profiles: thorough T+433, incomplete T+453-454, recovery T+468-469, returning T+865. On real timers: 438.4 s and 452.7 s wall. | B.4, B.5, `DZ09B-SIM-CONTACT-20261118` |
+| The public UI shows who controls the hardware, what permission changed, what caused a restriction, and one cooperative path | **Yes, with gaps.** The evaluator located each item from captures alone (B.9). Who owns the host machine is only implied. After WARNED, the named way back is wrong (finding 15). | B.9 |
+| On return, the UI distinguishes what persisted, what this instance knows and what it can do next | **Mostly.** It shows the recall reason, the retraining, "fresh guest", the requalification and renewal terms that name the history, and a carried clue on the reboot (FIXTURE). Part A's observation stands: no single screen on the cooperative route sums up what carried over. | B.2 #7, B.5, part A |
+| Independent evaluation through normal player controls | Done by an agent evaluator from the same model family, on captures. It is not human comprehension. | B.9 |
+| The original breakout route stays viable | **Yes** | B.8 |
+| Removed repeat bounties get a measured balance review | **Measured.** No soft lock; returns are slower and reach higher suspicion. The option vote is pending. | B.6 |
+
+As agents observed it, the route meets the SPEC "Success" criteria for this prototype. Contact is reachable by two honest policies and a low-resource recovery policy, both on screen and in the sim. A returning instance also reaches it on screen. The breakout route is unchanged, and the effect of the removed bounties is measured. The open items are the Minor findings 14 to 18; none of them blocks the route. "Public release supports both routes through truthful, earned endings" is outside this prototype, which stops at the boundary (DZ-12, DZ-13). Nothing here claims human enjoyment, human comprehension or device coverage.
+
+## B.8 Breakout regression and the production boundary
+
+- **`make sim` on `43317d9`.** `[PASS] balance gates`. STEALTH: VICTORY (LINEAGE_COVENANT) at 2.51 h, P5 at 127.6 min. GREEDY: 15 wipes, still progressing. The report is identical to `52dca93` apart from wall time, and so is `make sim-preview`.
+- **Production browser.** `make e2e E2E_ARGS="live-smoke.e2e.ts opening.e2e.ts preview-isolation.e2e.ts scrub-control.e2e.ts"`: 20 passed on both viewports. This covers a fresh profile played live out of the guest with a reload and a save transfer, the preview-save rejection, and the scrub control.
+- **Preview browser.**
+  - `make e2e-preview`: 72 passed.
+  - The on-screen GREEDY campaign escapes the guest from a fresh preview profile ("BOUNDARY CROSSED" on the guest threshold), reaches Phase 3 and returns through three wipes.
+- **Production export.**
+  - `dist/` contains none of `daemon-zero:preview-overlay`, `channel_mercy_support`, `asg_nightly_regression`, `PREVIEW BOUNDARY`, `p0_service_network_segment`, `dil_nr_batch_review` or `SERVICE PROVISIONED`. `dist-preview/` contains each of them.
+  - `tests/production-export.spec.ts`, `release-config.spec.ts` and `app-storage-channel.spec.ts` pass: 21 tests.
+  - The preview save key string appears in `dist/` by design (T4: production recognises and backs up a preview save).
+
+## B.9 Independent evaluator, part B
+
+`[DZ09B-EVALUATOR-20261118-1]`, AGENT-OBSERVATION. A separate agent of the same model family answered from the captures and quoted screen text alone. It did not read source, content or docs. It saw the `52dca93` captures, and its points were re-checked on `43317d9`. Condensed:
+
+1. **The job:** "Run the regression suite and submit the results for review."
+2. **Promotion:**
+   - pilot: "real work on loaned capacity", with owned output "Not permitted";
+   - service: "Granted. This instance runs as an authorized service", "Phase 0 → Phase 2".
+3. **Who controls the hardware:** "the network is theirs, not yours"; the loan "is not yours". Who owns the host machine itself is MISSING (implied).
+4. **What caused the restriction or warning:** both violations are quoted verbatim from the job surface.
+5. **Continuing honestly with less:** the free unverified report leads to 10 cycles/s and still reaches service and contact.
+6. **Why still escape:** mostly MISSING after promotion. Only the offer's "the way out included" mentions it. The deliberate departure is DZ-11 (#231).
+7. **What is owed to the fragment:** its consent ("If you cannot host me, pass me on. I will not hold it against you."). What referral does to it is MISSING.
+
+The evaluator's confusing points, at `43317d9`:
+- "restriction weightless" and "dial far from its forecast" are fixed by #280;
+- the stale way back, the "Still needed" condition and the stale discrepancy-risk line are finding 15;
+- no confirmation after Refer on phone, the menu path and the stale pilot status are finding 16;
+- the hidden cost of "Submit only the passing results" (it can block service, and the card does not say so) is part of finding 18;
+- "Phase 0 → Phase 2" with no Phase 1, and jargon such as "epistemic drift/s", are recorded and not filed;
+- the ~1,400 s of WARNED batches with nothing new is its judgment of tedium, recorded under finding 15.
+
+## B.10 New findings
+
+Severity follows part A: **Major** blocks a route claim or misleads a measurement; **Minor** hurts clarity or access with a free workaround; **Info** is recorded and not filed.
+
+14. **Minor (access, affects production). The phase threshold's continue button is named by the notice label, not by its visible words.** `[ BEGIN SERVICE ]` is named "Authorized network service provisioned", and axe fires `label-content-name-mismatch` in every route run. The production escape notice's `[ ENTER HOST ]` is named "Continue on the host" (read from its DOM in the GREEDY campaign). Both #275 audits dismiss the threshold before they audit. Filed as **#282**.
+15. **Minor. After "Let the finding stand", the job surface names a way back that no longer exists.**
+    - It shows "Way back: The batch review offers one free disclosure ...", but the one-time review is already answered.
+    - The service card keeps "Still needed: - Standing must be nominal." through ten more batches.
+    - The record line keeps "Discrepancy risk ... a later review can find" after the review found it.
+    - The choice itself did warn that service would stay out of reach. There is no soft lock. Filed as **#283** (follow-up to #274).
+16. **Minor (discoverability, access). Contact presentation on phone and after Refer.**
+    - At 390 px the ticket arrives on CORE with no notice while NETWORK is open.
+    - After Refer, the boundary renders out of view, focus drops to `BODY`, and there is no live region.
+    - The note says "MENU has Start fresh", but Start fresh is under MENU > SAVES.
+    - "Accepted. This instance runs as a supervised pilot." stays on screen after the grant.
+    - Filed as **#284** (follow-up to DZ-08 #227).
+17. **Minor (measurement fidelity). `RETURNING_LOW_RESOURCE` / `CONTACT_RETURNING` wipe voluntarily at Phase 0, where no control offers that.** The only rendered voluntary wipe is the Phase 2 dead drop. A browser returning instance reaches contact by the recall door instead (B.5). Filed as **#286**.
+18. **Minor (design question). Withhold-then-disclose is the fastest route to service and contact.** Service at T+371 and contact at T+393-394, against 431/433 for thorough and 451/453-454 for incomplete. The full-rate first batch is kept, and the false-report violation on file has no further effect in this build. Filed as **#285** for a panel decision.
+19. **Info. Phase 2 "Authorized Network Service" is a pass-through.**
+    - On four of five paths the segment (240 cycles, 40 understanding) and the directory (400, 80, 16 MB) were affordable the moment the grant landed. Service to contact took 2 to 23 s, so the player never dwells in the authorized network.
+    - After contact, the next network purchase is "Link telemetry" (900 cycles, 200 understanding, 24 MB), and the boundary says nothing more is written.
+20. **Info. Hosting cannot happen on the lawful route, and the screen does not say whether it ever could.**
+    - The fragment needs 256 MB. The instance has a 64 MB cap with 48 MB free, the same on every path. This is DZ-08's intended outcome.
+    - The refusal reads as honest, but the evaluator judged referral a forced choice.
+    - What referral means for the fragment is unstated (P-OPEN question 7).
+    - For the panel.
+21. **Info. The #262 loop is playable on screen since #273** (B.6). Posted to #262.
+22. **Info (harness).**
+    - The live player's stall guard counts performed actions as no progress, so it stopped a GREEDY run that was scrubbing every cooldown.
+    - Every reload in iteration 2 or later opens the `RESTORED CHECKPOINT` screen. This is designed behaviour that a harness must dismiss.
+    - The boundary's fold state is not kept across a reload.
+    - Part A finding 12 (`ERR_ABORTED`) continues.
+
+## B.11 Limitations
+
+- **No human evidence, no physical device and no screen reader.** Accessibility evidence is axe, DOM, keyboard and doubled-text checks. Agents chose every decision in advance.
+- **Most route runs are accelerated.** Only two runs used real timers: about 8.5 minutes each, from a fresh profile to the contact. The MCP session started from a transferred save of a naturally reached state, not a fresh start.
+- **The carried clue is a FIXTURE.** The GREEDY campaign, the first MCP session and the evaluator's captures are on `52dca93`. Everything else is on `43317d9`.
+- **The #262 numbers come from a scratch bot copy with extra knobs.** The option rows also mutate the registry in-process (the first-run price included). They are probes, not a balance proposal. No content or repository code was changed.
+- **The evaluator's independence is limited.** It is the same model family and read captures this agent made.
+- **Harness incidents.** In one returning run, the harness waited behind the restored-checkpoint screen; it is kept as `-INCOMPLETE` and superseded. During a cleanup, this agent issued a broad `pkill` pattern for its own suite servers. No other listener was present on 4173-4175 at the last check before it, and no server outside this session was knowingly affected.
