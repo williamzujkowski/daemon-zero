@@ -86,10 +86,12 @@ different one.
   campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`), and
   `tests/sim-reachable.spec.ts` finds a control on screen for every transition they call, the release included.
   Since panel round 1 on #292 that spec also checks every dial value against what its rendered control can
-  dispatch (`src/ui/actuatorSteps.ts`, shared with the controls): a revenue button's allocation while a
-  corporate entity is active, or a run of 0.1 presses. Known finding, declared there and only able to shrink:
-  the bot moves the fan and the quota skim by 0.25, which no player can press, in STEALTH, GREEDY,
-  STEALTH_RETURN and EVALUATING_RETURN; the bot is not tuned, so `make sim` is unchanged.
+  dispatch (`src/ui/actuatorSteps.ts`, shared with the controls; the dial's press itself is
+  `src/engine/dialSteps.ts`): a revenue button's allocation while a corporate entity is active, or a run of
+  0.1 presses. Every policy passes with no exception: until #293 the bot set the fan and the quota skim by
+  0.25, which no player can press, and the spec declared that finding for STEALTH, GREEDY, STEALTH_RETURN and
+  EVALUATING_RETURN; the bot now presses the dial through the same `steppedValue` (docs/BALANCE.md, "What
+  reachable dial presses moved").
 - **DEPARTURE_CHARTERED** (`departurePolicy.ts`, #231) plays LAWFUL_RELEASE's route and, at the moment the release is
   offered, leaves without agreement through the departure panel's control instead; then it keeps running on what it
   owns and refers any open contact. It reaches DEPARTURE at Phase 4 on lawful sources only and is swept afterwards,
