@@ -27,6 +27,7 @@ export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycl
 export * from './campaignClue';
 export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
+export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
 
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';

@@ -31,6 +31,19 @@ export const CampaignEventDeclarationSchema = z.strictObject({
   reorientation: z.string().min(10).optional(),
   /** Defer only: the next available lead a retained clue on this occurrence offers. Never a promise. */
   lead: z.string().min(10).optional(),
+  /**
+   * Recovery review only: the campaign obligation this review completes when its original crisis
+   * was closed unobserved (NARRATIVE-HISTORY N4). The review is its own occurrence with its own id;
+   * resolving it completes the obligation without giving the original an outcome or its reward.
+   */
+  obligation: id.optional(),
+  /**
+   * The old rules let different iterations set more than one of this event's outcome flags (the
+   * predecessor pair), so an old save holding several is legitimate ambiguity: it reads as
+   * legacy_unknown, never as one branch (NARRATIVE-HISTORY N11, H10). Integrity keeps the flags out
+   * of every exclusive group.
+   */
+  ambiguousLegacyOutcomes: z.literal(true).optional(),
 });
 
 /**
@@ -55,6 +68,14 @@ export const ActionEvidenceSchema = z.enum(['campaign', 'operational']);
 
 /** The outcome id a save records when it proves an event happened but not which choice was made. */
 export const LEGACY_UNKNOWN_OUTCOME = 'legacy_unknown';
+
+/**
+ * Nexus vote nh-d7 (campaign-obligations-requirement): events that must be complete in this
+ * campaign. Under campaign rules an event is complete when its record is resolved (any outcome,
+ * legacy_unknown included) or its recovery review is resolved; completion never names a branch.
+ * Under legacy rules it reads the current run's resolved dilemmas, exactly as before.
+ */
+export const CampaignObligationsRequirementSchema = z.array(id).min(1);
 
 /** Gate on a campaign record: the event's recorded outcome is this choice id, or legacy_unknown. */
 export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outcome: id });

@@ -200,7 +200,15 @@ export async function captured(page: Page, fromFrame = 0): Promise<Captured> {
     // a tap that did not exist yet, or had nothing connected, is zeros there.
     const reported = mix.quanta.filter((quantum) => quantum.frame + 128 > from);
     const start = Math.max(from, reported[0]?.frame ?? frame);
-    const end = Math.max(start, (reported.at(-1)?.frame ?? start - 128) + 128);
+    // Each tap posts on its own port, so at the moment of reading one may hold a quantum another
+    // has not delivered yet: about one read in two hundred differs by one quantum, either way,
+    // and a quantum still in flight would read as 128 zeros (-0.047 dB over a 250 ms window,
+    // #244). So the window ends where every tap still reporting has reported. A tap more than
+    // LIVE behind the output tap has stopped, and does not hold the window back.
+    const mixLast = reported.at(-1)?.frame ?? start - 128;
+    const LIVE = 8 * 128;
+    const lasts = taps.map((tap) => tap.quanta.at(-1)?.frame).filter((last): last is number => last !== undefined && last >= mixLast - LIVE);
+    const end = Math.max(start, Math.min(mixLast, ...lasts) + 128);
     const flatten = (record: TapRecord) => {
       const quanta = record.quanta.filter((quantum) => quantum.frame + 128 > start && quantum.frame < end);
       const left = new Float32Array(end - start); const right = new Float32Array(end - start);

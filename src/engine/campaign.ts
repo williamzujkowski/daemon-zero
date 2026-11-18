@@ -9,7 +9,7 @@ import type { Action, Dilemma, DilemmaChoice, EffectPayload, Trait } from '../co
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import type { ActionResult } from './actions';
 import { campaignRecord, campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
-import { reserveLivePointers } from './campaignLifecycle';
+import { dropStaleRepeats, reserveLivePointers } from './campaignLifecycle';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
 
@@ -58,17 +58,24 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
 }
 
 /**
- * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): an exclusive
- * outcome flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing
- * gives nothing, and nothing proves a follow-up. Legacy history cannot postdate activation, so an event resolved in a later
- * iteration of an already-active campaign (content converted it since) keeps no source iteration.
+ * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): one outcome
+ * flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing gives
+ * nothing, and nothing proves a follow-up or a recovery review. Several outcome flags of one event
+ * that content allows together (the predecessor pair, set by different iterations of a legacy save)
+ * are legitimate old ambiguity, so they give legacy_unknown, never the most flattering or
+ * latest-looking branch (H10). Legacy history cannot postdate activation, so an event resolved in a
+ * later iteration of an already-active campaign (content converted it since) keeps no source iteration.
  */
 export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
   // A follow-up never existed outside campaign rules, so no legacy evidence can prove one (NH-06).
   if (event.followUp !== undefined) return null;
+  // A recovery review exists only under campaign rules, which record it when it resolves, so no
+  // legacy history can prove one; a bare resolved id never completes an obligation (H06).
+  if (event.campaign?.eventClass === 'recovery_review') return null;
   const current = s.resolvedDilemmas.includes(event.id);
-  const exact = event.choices.find((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
-  if (!exact && !current) return null;
+  const held = event.choices.filter((choice) => choice.effects.setsNarrativeFlag !== undefined && s.narrativeFlags.includes(choice.effects.setsNarrativeFlag));
+  const exact = held.length === 1 ? held[0] : undefined;
+  if (held.length === 0 && !current) return null;
   const attributable = current && s.iteration <= (s.campaign.activatedAtIteration ?? s.iteration);
   return { status: 'resolved', outcome: exact?.id ?? LEGACY_UNKNOWN_OUTCOME, sourceIteration: attributable ? s.iteration : null, origin: 'legacy' };
 }
@@ -103,7 +110,9 @@ export function activateCampaignRules(s: GameState, reg: ContentRegistry): Actio
   if (isCampaignActive(s)) return { ok: false, state: s, reason: 'campaign rules are already active' };
   if (s.ending !== null) return { ok: false, state: s, reason: 'the run has ended' };
   const projected = projectableFlags(reg);
-  // An omen already on its way becomes a reserved occurrence of this campaign.
-  return { ok: true, state: reserveLivePointers({ ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
-    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) }, reg) };
+  // The history the save proves comes first; an omen already on its way then becomes a reserved
+  // occurrence of this campaign, unless it repeats an event that history already completed.
+  const recorded: GameState = { ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
+    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) };
+  return { ok: true, state: reserveLivePointers(dropStaleRepeats(recorded, reg), reg) };
 }

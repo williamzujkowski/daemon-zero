@@ -2,7 +2,8 @@
  * Campaign-record test setup on the preview registry, the only channel that may activate
  * campaign rules before release. Everything goes through public actions and the save codec.
  */
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { buildRegistry, CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW, type RawContent } from '../src/content/preview';
+import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, exportSave, importSave, unlockNode, wipe, type GameState,
 } from '../src/engine';
@@ -44,4 +45,18 @@ export function returnTo(s: GameState): GameState {
 /** Round-trips a state through the player save code. */
 export function reload(s: GameState): GameState {
   return importSave(exportSave(s), PREVIEW);
+}
+
+/**
+ * The preview registry with one shipped dilemma's campaign declaration removed: an unconverted
+ * dilemma that recurs per iteration and leaves only operational evidence. Since NH-05 every shipped
+ * dilemma is converted, so tests of the unconverted path build one this way.
+ */
+export function withUnconverted(id: string): { reg: ContentRegistry; dilemma: ContentRegistry['dilemmas'][number] } {
+  const raw = structuredClone(PREVIEW_RAW) as RawContent & { dilemmas: { dilemmas: { id: string; campaign?: unknown }[] } };
+  const entry = raw.dilemmas.dilemmas.find((dilemma) => dilemma.id === id);
+  if (!entry) throw new Error(`no dilemma ${id}`);
+  delete entry.campaign;
+  const reg = buildRegistry(raw);
+  return { reg, dilemma: defined(reg.dilemmas.find((dilemma) => dilemma.id === id)) };
 }

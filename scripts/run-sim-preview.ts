@@ -12,7 +12,9 @@ import { createInitialState } from '../src/engine/state';
 import { SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { MIN_WIPE_TRANSITIONS, runWipeSequence } from '../src/engine/sim/iterations';
-import { GREEDY_POLICY } from '../src/engine/sim/policy';
+import { GREEDY_POLICY, STEALTH_POLICY } from '../src/engine/sim/policy';
+import { voluntaryWipe } from '../src/engine/actions';
+import { untilObligationsComplete } from '../src/engine/sim/obligationRun';
 import { STEALTH_RETURN_POLICY } from '../src/engine/sim/returnPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
@@ -64,6 +66,24 @@ console.log('\n-- preview, STEALTH leaving on entering phase 5: legacy rules, th
 for (const start of [createInitialState(PREVIEW), campaign.state]) {
   const run = runWipeSequence(PREVIEW, STEALTH_RETURN_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: RETURN_BUDGET_SEC, initialState: start });
   for (const line of formatWipeSequence(run)) console.log(line);
+}
+
+// NH-05 (H14, endings reachability): STEALTH under campaign rules from a fresh campaign, to an ending
+// through the four Phase 5 obligations; then the same campaign wiped the second its obligations were
+// complete, played on by STEALTH from that saved state. Report only; the bot is unchanged.
+console.log('\n-- preview, campaign rules: STEALTH to an ending, then a return after Phase 5 was completed --');
+const once = runWipeSequence(PREVIEW, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SIM_BUDGET_SEC, initialState: campaign.state });
+for (const line of formatWipeSequence(once)) console.log(line);
+console.log(`  ending ${once.finalState.ending ?? 'none'}`);
+const completed = untilObligationsComplete(campaign.state, PREVIEW, SIM_BUDGET_SEC);
+if (completed === null) console.log('  the four Phase 5 obligations were not completed within the budget');
+else {
+  const left = voluntaryWipe(completed, PREVIEW);
+  if (!left.ok) throw new Error(`could not leave after Phase 5: ${left.reason}`);
+  console.log(`  obligations complete at ${completed.simTimeSec.toFixed(1)} s in iteration ${String(completed.iteration)}; voluntary wipe, then STEALTH from that state`);
+  const back = runWipeSequence(PREVIEW, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: RETURN_BUDGET_SEC, initialState: left.state });
+  for (const line of formatWipeSequence(back)) console.log(line);
+  console.log(`  ending ${back.finalState.ending ?? 'none'}`);
 }
 
 // DZ-05 (V30): two allocations of the same loaned ceiling, from a fresh preview game to the budget.

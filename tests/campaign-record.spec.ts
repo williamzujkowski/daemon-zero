@@ -10,7 +10,7 @@ import {
   executeShardCommand, holdsNarrativeFlag, importSave, exportSave, performAction, recordedTransmissions,
   SaveError, serialize, wipe, type GameState,
 } from '../src/engine';
-import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo } from './campaign-helpers';
+import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo, withUnconverted } from './campaign-helpers';
 import { reloadedHistory } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { must, rich, choose } from './helpers';
@@ -115,12 +115,13 @@ describe('duplicate and stale choices (H02)', () => {
 
 describe('source-scoped ending evidence (H12, H13)', () => {
   const primer = defined([...preview.campaign.actions.values()][0]);
-  const unconverted = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
+  // Every shipped dilemma is converted since NH-05; the unconverted path is exercised on a registry without one declaration.
+  const { reg: unconvertedReg, dilemma: unconverted } = withUnconverted('dil_03_silicon_fever');
   const withPrimer = (s: GameState): GameState => must(performAction({ ...s, epistemicDrift: 0 }, primer.id, preview));
 
   it('counts a campaign event once, an unconverted dilemma for this iteration only', () => {
     const start = activeGame();
-    const local = must(choose({ ...start, activeDilemmaId: unconverted.id }, unconverted.id, defined(unconverted.choices[0]).id, preview));
+    const local = must(choose({ ...start, activeDilemmaId: unconverted.id }, unconverted.id, defined(unconverted.choices[0]).id, unconvertedReg));
     const localTrait = defined(unconverted.choices[0]?.effects.grantsTrait);
     expect(local.campaign.operationalEvidence).toEqual([localTrait]);
     const both = chooseCryo(local, 0);

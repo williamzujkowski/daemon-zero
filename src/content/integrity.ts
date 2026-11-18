@@ -16,6 +16,7 @@ import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
 import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
+import { checkObligationIntegrity } from './integrityObligations';
 import { checkGrantIntegrity } from './integrityGrant';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
@@ -226,6 +227,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCampaignIntegrity(reg),
     ...checkCampaignFactIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
+    ...checkObligationIntegrity(reg),
     ...checkFollowUpIntegrity(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),

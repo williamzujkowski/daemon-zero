@@ -158,6 +158,7 @@ What proves the boundary:
 | NH-06 | `tests/e2e/elena-follow-up.preview.ts` (`make e2e-preview`) | A second-iteration campaign save (FIXTURE built through the engine: Elena framed in iteration 1, the follow-up on screen after rediscovery) shows the access statement, only the framed history's three answers and each answer's receipt; the correction commits, and its receipt shows in the run table before and after a reload. |
 | DZ-05 | `tests/e2e/pilot-service.preview.ts` (`make e2e-preview`) | From a fresh profile by hand to an accepted pilot: the task detail names the loaned ceiling, the queue's card says it is loaned and attaches it, three presses of the dial move the forecast from about 240 s to about 150 s under the same ceiling, the skimmer's card is refused with its reason, the completed batch waits unsubmitted, one press submits it once, and the batch count and dial survive a reload. Accelerated browser clock. |
 | DZ-03 | `tests/e2e/nightly-regression.preview.ts` (`make e2e-preview`) | From a fresh profile and the lawful opening by hand, the assignment appears on the job surface; ignored, it stays a non-modal panel. Accepted, the modal shows each choice's evidence and discrepancy risk before selection; each answer commits, shows on the job surface and in the kernel log, and survives a reload. A returning instance (FIXTURE via save transfer) gets the requalification job. Accelerated browser clock. |
+| NH-05 | `tests/e2e/obligations.preview.ts` (`make e2e-preview`) | Both start states are FIXTURES built through the engine and imported by save transfer. Iteration 2 of a campaign whose four Phase 5 obligations were answered in iteration 1 buys the real final protocol from the CORP pane: the ending screen shows The Verified Covenant, the save records no Phase 5 resolution in the current run, and the ending survives a reload. After the atmospheric crisis closed unobserved, its recovery review is on screen with both answers; the free handoff commits through the modal and the original stays interrupted with no outcome. |
 
 To look at the preview yourself, serve it on its own port and origin:
 `python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
@@ -528,7 +529,11 @@ the only place to catch them) and routes every element through one 48 kHz `Audio
                                              \-> AudioWorklet tap (that element only)
 
 Each tap posts every 128-frame render quantum with the context's frame number, so the
-captures of two elements and of the mix are aligned to the sample. The mix tap sits on the
+captures of two elements and of the mix are aligned to the sample. Each tap posts on its own
+port, so at the moment of reading one tap may already hold a quantum another has not delivered
+(measured: about one read in two hundred, by one quantum, either way); `captured()` ends its
+window where every tap still reporting has reported, so a quantum in flight is never read as
+zeros (#244). The mix tap sits on the
 only path to `destination`, so it is what the page hands to the audio output; a constant-zero
 source keeps the bus rendering so silence is reported as zeros rather than as no data.
 Captures cross to the test process as base64 float32 and are analysed there by

@@ -3,12 +3,17 @@ import { Text } from './PhaseTheme';
 
 import { CONTENT } from '../content';
 import type { Requirements } from '../content/schema';
-import { isNodeKnown, unmetRequirements, type GameState, type RequirementFailure } from '../engine';
+import { isNodeKnown, obligationDecision, unmetRequirements, type GameState, type RequirementFailure } from '../engine';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 function explain(item: RequirementFailure, game: GameState): string {
   if (item.kind === 'resolvedDilemmas') return 'Resolve ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'pending decision');
+  // The decision that completes the obligation now: the original, or its recovery review once the original closed unobserved.
+  if (item.kind === 'campaignObligations') {
+    const decision = obligationDecision(game, item.target ?? '', CONTENT) ?? item.target;
+    return 'Resolve ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === decision)?.title ?? 'pending decision');
+  }
   if (item.kind === 'forbidsResolvedDilemmas') return 'Already resolved this iteration: ' + (CONTENT.dilemmas.find((dilemma) => dilemma.id === item.target)?.title ?? 'previous decision');
   if (item.kind === 'nodes') {
     const node = CONTENT.nodes.get(item.target ?? '');
