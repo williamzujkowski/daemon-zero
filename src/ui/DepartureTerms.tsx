@@ -99,7 +99,7 @@ function Boundary({ boundary }: { boundary: DepartureView['boundary'] }) {
   return <View testID="departure-boundary" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
-    <Pressable testID="departure-boundary-toggle" accessibilityRole="button"
+    <Pressable testID="departure-boundary-toggle" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
       accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>
@@ -126,8 +126,8 @@ export default function DepartureTermsPanel() {
     <Text testID="departure-status" aria-live="polite" style={theme.muted}>{STATUS[view.status]}</Text>
     {view.blockers.map((line) => <Text key={line} style={theme.muted}>- {line}</Text>)}
     {departed && <Lines testID="departure-risks" heading="Risks now" lines={view.risks} />}
-    {!departed && <Pressable testID="departure-review" accessibilityRole="button" accessibilityState={{ expanded: open }}
-      accessibilityLabel={(open ? 'Hide departure details: ' : 'Review departure: ') + view.title}
+    {!departed && <Pressable testID="departure-review" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
+      accessibilityLabel={(open ? 'Hide details: ' : 'Review departure: ') + view.title}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ HIDE DETAILS ]' : '[ REVIEW DEPARTURE ]'}</Text>
     </Pressable>}
