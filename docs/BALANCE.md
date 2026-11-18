@@ -467,7 +467,7 @@ change.
 
 ### Corporate world once per campaign (#216)
 
-Measured on this branch (NH-04b, base `fdf8e8a`), overlay `daemon-zero:preview-overlay:5b1e0c7a`,
+Measured on this branch (NH-04b) merged with main `7af9265` (NH-04a), overlay `daemon-zero:preview-overlay:5b1e0c7a`,
 with `make sim-preview`; SIM evidence only. `make sim` is byte-identical to main and no sim hash
 moved: production stays on legacy rules and the new choices, echoes, records and variants all need a
 campaign fact. The bot was not changed.
@@ -483,9 +483,10 @@ answers cost nothing and pay nothing (suspicion +6, -4, +5, -4); they replace re
 predecessors are gone or unaccounted for, so a shredded Rack 4 can no longer be harvested for its
 bounty.
 
-**GREEDY under campaign rules** (the #214 block above): identical to the NH-03 table except
-iteration 4, which no longer meets the hallway a second time: 3865.2 -> 3863.6 s, dilemmas 3 -> 2
-(true note, sibling), story rewards unchanged at 50,000 / 35,120. GREEDY never reaches phase 4, so it
+**GREEDY under campaign rules** (the campaign block above): identical to main `7af9265` (the NH-04a
+table) except iteration 4, which no longer meets the hallway a second time: 3915.1 -> 3922.0 s,
+dilemmas 2 -> 1 (true note), story rewards unchanged at 0 / 120. (Measured before NH-04a, on
+`fdf8e8a`: 3865.2 -> 3863.6 s, dilemmas 3 -> 2.) GREEDY never reaches phase 4, so it
 never meets a corporate event.
 
 **STEALTH_RETURN** (new: STEALTH leaving voluntarily on entering phase 5, three transitions, budget
@@ -498,16 +499,18 @@ never meets a corporate event.
 | 3 | 4747.1 s | voluntary wipe (MANUAL_FAILSAFE) | 668.3 / 2265.7 / 3582.0 / 4747.1 s | 14 | 29,075,800 / 1,035,560 |
 | 4 | 4702.3 s | voluntary wipe (MANUAL_FAILSAFE) | 642.6 / 2240.4 / 3531.0 / 4702.3 s | 14 | 29,075,800 / 1,035,680 |
 
-Campaign rules from a fresh campaign: iteration 1 is identical to the legacy row (first-pass play is
-unchanged), then:
+Campaign rules from a fresh campaign (iteration 1 differs from the legacy row since NH-04a: phase 4
+at 6057.2 s and phase 5 at 7779.0 s, the same 12 dilemmas and story rewards; NH-04b changes nothing
+in it):
 
 | Iteration | Length | Ended by | P2 / P3 reached | Dilemmas | Story rewards (cycles / understanding) |
 |---|---:|---|---|---:|---|
+| 1 | 7779.0 s | voluntary wipe (MANUAL_FAILSAFE) | 1113.3 / 3111.7 s (P4 6057.2, P5 7779.0) | 12 | 20,070,800 / 2,019,500 |
 | 2 | 4046.0 s | wipe (INCIDENT_CLOSED) | 854.0 / - s | 0 | 0 / 0 |
 | 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 / - s | 1 (bait note) | 0 / 0 |
 | 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 / - s | 1 (true note) | 0 / 120 |
 
-**Finding, not caused by #216.** The same block run on main `fdf8e8a` prints exactly these numbers:
+**Finding, not caused by #216.** The same block run on main `7af9265` (and before it on `fdf8e8a`, for iterations 2 to 4) prints exactly these numbers:
 under campaign rules the careful bot's returns no longer leave phase 2 and are ended by the ordinary
 suspicion threat, so it never reaches phase 4 again and the corporate conversions cannot change its
 run. Its cause was not isolated here; what the numbers show is that campaign returns collect no
