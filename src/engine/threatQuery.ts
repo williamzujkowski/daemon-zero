@@ -24,19 +24,44 @@ function lawfulAcquisition(node: RegistryNode): boolean {
   return node.grant !== undefined || node.acquisition === 'CONTRACTED';
 }
 
+/** The node and its prerequisite ancestry, the path a player had to map to own it. */
+function mappedPath(id: string, reg: ContentRegistry, seen: Set<string> = new Set()): Set<string> {
+  if (seen.has(id)) return seen;
+  seen.add(id);
+  for (const parent of reg.nodes.get(id)?.prerequisites ?? []) mappedPath(parent, reg, seen);
+  return seen;
+}
+
 /**
- * The highest scale this instance holds lawfully: a phase an owned grant node (provisioned) or contracted
- * node (signed for) opens, or null when nothing lawful opened any scale. Standing and recall do not matter (a
- * restricted or recalled instance is still the operators' and still at the scale they gave it). Only a
- * reviewed instance or one lawfully released has such a scale; the guest job, and an instance that left
- * without agreement (DZ-11, departure.ts), has none, so it is swept at its scale like any covert actor.
+ * Whether an owned phase opener was reached lawfully (DZ-12): it is a route acquisition itself, or it is shared
+ * content whose path passes a capability gate this instance holds through a route acquisition (the late
+ * corporate chain financed by the company's own contracts). Integrity keeps shared content off every node only
+ * one route owns, so the escape route's chain never counts here.
+ */
+export function lawfullyReached(s: Threatened, node: RegistryNode, reg: ContentRegistry): boolean {
+  if (lawfulAcquisition(node)) return true;
+  return [...mappedPath(node.id, reg)].some((id) => {
+    const capability = reg.nodes.get(id)?.requirements?.requiresCapability;
+    return capability !== undefined && s.unlockedNodes.some((owned) => {
+      const provider = reg.nodes.get(owned);
+      return provider !== undefined && provider.systemFlags.includes(capability) && lawfulAcquisition(provider);
+    });
+  });
+}
+
+/**
+ * The highest scale this instance holds lawfully: a phase an owned grant node (provisioned), contracted node
+ * (signed for) or shared content reached through them opens, or null when nothing lawful opened any scale.
+ * Standing and recall do not matter (a restricted or recalled instance is still the operators' and still at
+ * the scale they gave it). Only a reviewed instance or one lawfully released has such a scale; the guest job,
+ * and an instance that left without agreement (DZ-11, departure.ts), has none, so it is swept at its scale like any covert actor.
  */
 export function provisionedScale(s: Threatened, reg: ContentRegistry): number | null {
   if (!isReviewed(s.access.context) && !lawfullyReleased(s)) return null;
   return s.unlockedNodes.reduce<number | null>((scale, id) => {
     const node = reg.nodes.get(id);
     const opens = node?.effects.unlocksPhase;
-    if (node === undefined || !lawfulAcquisition(node) || opens === undefined) return scale;
+    if (node === undefined || opens === undefined || !lawfullyReached(s, node, reg)) return scale;
     return Math.max(scale ?? opens, opens);
   }, null);
 }

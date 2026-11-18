@@ -8,7 +8,7 @@ import { campaignRecord, tick, unlockNode, wipe, type GameState } from '../src/e
 import { preview } from './campaign-helpers';
 import { commit, STEP, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, outOfTheWay, rich } from './helpers';
+import { guestParents, must, outOfTheWay, rich } from './helpers';
 
 export const event = (id: string, reg: ContentRegistry = preview): Dilemma => defined(reg.dilemmas.find((dilemma) => dilemma.id === id));
 export const NIGHT = 'dil_00_night_shift', BAIT = 'dil_note_bait', TRUE_NOTE = 'dil_note_true', MILLER = 'dil_01_late_night_diagnostic';
@@ -18,7 +18,7 @@ export const UNWINDOWED = [NIGHT, MILLER, ELENA, COOLANT, VANCE, CABLE];
 
 /** Every prerequisite of a node first, then the node: the order a player must buy them in. */
 function chain(id: string, reg: ContentRegistry, out: string[] = []): string[] {
-  for (const prerequisite of reg.nodes.get(id)?.prerequisites ?? []) chain(prerequisite, reg, out);
+  for (const prerequisite of guestParents(reg, id)) chain(prerequisite, reg, out);
   if (!out.includes(id)) out.push(id);
   return out;
 }

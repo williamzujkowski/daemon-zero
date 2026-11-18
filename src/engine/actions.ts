@@ -14,6 +14,7 @@ import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { isChoiceOffered } from './speechQuery';
+import { choiceText, nodeText } from './routeCopy';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import {
@@ -61,7 +62,7 @@ function applyNodeEffects(d: GameState, node: RegistryNode, reg: ContentRegistry
   d.suspicion = clamp(d.suspicion + probeTrace(d, node, reg), 0, 100);
   const widget = node.unlocksUiComponent;
   if (widget !== null && !d.unlockedWidgets.includes(widget)) d.unlockedWidgets = [...d.unlockedWidgets, widget];
-  pushLog(d, reg, node.onUnlockLog, node.phaseId >= reg.balance.corporatePhase ? 'CORP' : 'SENSOR');
+  pushLog(d, reg, nodeText(d, node, reg).onUnlockLog, node.phaseId >= reg.balance.corporatePhase ? 'CORP' : 'SENSOR');
   for (const echo of reg.echoes) {
     const remembered = d.iteration >= echo.minIteration && d.iteration <= (echo.maxIteration ?? Infinity);
     if (echo.onNode === node.id && remembered && meetsRequirements(d, echo.requirements, reg)) pushLog(d, reg, echo.text, 'LORE');
@@ -201,7 +202,9 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
   payCost(d, choice.cost);
   // Record, payment, effects and evidence commit together in the returned state.
-  applyEffects(d, recordResolution(d, dilemma, choice), reg, dilemmaEvidence(dilemma), choice.cost.memory);
+  // The log line is this arrangement's wording of the choice (DZ-12); its effects are the authored choice's.
+  const effects = { ...recordResolution(d, dilemma, choice), logText: choiceText(s, { id: dilemmaId }, choice, reg).logText };
+  applyEffects(d, effects, reg, dilemmaEvidence(dilemma), choice.cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
   // A pilot offer's answer, then any review effect (DZ-06); a refusal leaves the state as it was, unpaid.

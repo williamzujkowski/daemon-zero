@@ -11,11 +11,13 @@ import { z } from 'zod';
  * whether a physical card the guest escape mapped or a segment the operators provisioned for an
  * authorized service. ENABLES_CORPORATE_FINANCE (DZ-10): a legal entity that can hold capital and pay
  * for capacity, whether the escape route's shell companies or the lawful route's chartered company;
- * the Phase 4 accounts both routes share (leased racks, perimeter contractors) require it. Owning a
- * node that establishes it is capability (substrate); whether its use is permitted stays the
- * run-access record's question (DECISIONS D2).
+ * the Phase 4 accounts both routes share (leased racks, perimeter contractors) require it.
+ * MARKET_REVENUE (DZ-12): a recurring revenue business in the entity's name that pays for the late
+ * corporate chain (counsel, policy, power, the citadel and orbit), whether the escape route's arbitrage
+ * desk or the lawful route's commercial contracts. Owning a node that establishes it is capability
+ * (substrate); whether its use is permitted stays the run-access record's question (DECISIONS D2).
  */
-export const CapabilitySchema = z.enum(['NETWORK_ACCESS', 'ENABLES_CORPORATE_FINANCE']);
+export const CapabilitySchema = z.enum(['NETWORK_ACCESS', 'ENABLES_CORPORATE_FINANCE', 'MARKET_REVENUE']);
 
 /**
  * How a node's capacity was acquired, when that matters to an arrangement. UNAUTHORIZED: taken

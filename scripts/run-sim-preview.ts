@@ -24,6 +24,9 @@ import { pilotServiceView } from '../src/engine/pilotService';
 import { CONTACT_POLICIES } from '../src/engine/sim/contactPolicy';
 import { LAWFUL_POLICIES } from '../src/engine/sim/lawfulPolicy';
 import { DEPARTURE_CHARTERED_POLICY } from '../src/engine/sim/departurePolicy';
+import { COOPERATIVE_ENDING_POLICY } from '../src/engine/sim/cooperativePolicy';
+import { endingAccount } from '../src/engine/routeCopy';
+import { obligationReceipt } from '../src/engine/obligations';
 import { cycleContributions, freeMemory } from '../src/engine/query';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
@@ -33,6 +36,8 @@ const PILOT_BUDGET_SEC = 900;
 const CONTACT_BUDGET_SEC = 3600;
 /** The lawful economy reaches its release in well under two simulated hours (DZ-10); two leave room. */
 const LAWFUL_BUDGET_SEC = 7200;
+/** The cooperative ending (DZ-12) arrives a little after three simulated hours; five leave room. */
+const ENDING_BUDGET_SEC = 18_000;
 
 const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE',
   'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST'];
@@ -156,6 +161,21 @@ console.log('\n-- preview, deliberate departure: the lawful route to the charter
   const ended = s.legacy.runs.find((run) => run.iteration === left?.iteration);
   console.log(`  ${DEPARTURE_CHARTERED_POLICY.id.padEnd(20)} phase 4 ${at(report.phaseReachedAtSec[4])} | departure ${at(left?.atSimSec)} | max AEGIS lock ${report.maxAegisLock.toFixed(1)}` +
     ` | first iteration ${ended ? `ended ${ended.kind} (exit ${ended.exit}) after ${ended.durationSec.toFixed(1)} s, ${(ended.durationSec - (left?.atSimSec ?? 0)).toFixed(1)} s after leaving` : 'still running'} | iteration ${String(s.iteration)} ${s.access.context} at ${s.simTimeSec.toFixed(1)} s | wipes ${String(report.wipes)}`);
+}
+
+// DZ-12 (V21 full, V33, story 22): a fresh cooperative campaign through the late chain, every Phase 5 obligation
+// and the final protocol. Report only; tests/sim-cooperative.spec.ts holds the claims.
+console.log('\n-- preview, the cooperative ending: release, the late chain, the four obligations and the final protocol --');
+{
+  const report = runPolicySim(PREVIEW, COOPERATIVE_ENDING_POLICY, { maxSimSec: ENDING_BUDGET_SEC });
+  const s = report.finalState;
+  const event = (kind: string) => s.campaign.route.find((entry) => entry.kind === kind && entry.iteration === s.iteration)?.atSimSec;
+  const final = [...PREVIEW.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
+  const receipts = (final?.requirements?.campaignObligations ?? []).map((id) => obligationReceipt(s, id, PREVIEW)?.via ?? 'missing');
+  console.log(`  ${COOPERATIVE_ENDING_POLICY.id.padEnd(20)} iteration ${String(s.iteration)} | release ${at(event('RELEASE'))} | phase 4 ${at(report.phaseReachedAtSec[4])}` +
+    ` | phase 5 ${at(report.phaseReachedAtSec[5])} | ending ${report.ending ?? 'none'} at ${at(report.victory ? report.simSeconds : undefined)} | wipes ${String(report.wipes)}`);
+  console.log(`  ${''.padEnd(20)} route ${s.campaign.route.map((entry) => entry.kind).join(' > ')} | obligations ${receipts.join(', ')}` +
+    ` | traits ${s.traits.join(', ')} | account lines ${String(endingAccount(s, PREVIEW).length)}`);
 }
 
 console.log(`\nsimulated in ${((performance.now() - started) / 1000).toFixed(1)} s of wall time`);

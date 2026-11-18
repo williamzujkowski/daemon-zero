@@ -10,7 +10,7 @@ import { activeGame, preview } from './campaign-helpers';
 import { ELENA, event, resolveEvent } from './early-helpers';
 import { STEP } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, outOfTheWay, rich } from './helpers';
+import { guestParents, must, outOfTheWay, rich } from './helpers';
 
 export const FOLLOW = 'dil_elena_incident_record';
 export const follow: Dilemma = event(FOLLOW);
@@ -28,7 +28,7 @@ export const choiceOf = (id: string) => defined(follow.choices.find((choice) => 
 
 /** Every prerequisite of a node first, then the node. */
 function chain(id: string, out: string[] = []): string[] {
-  for (const prerequisite of preview.nodes.get(id)?.prerequisites ?? []) chain(prerequisite, out);
+  for (const prerequisite of guestParents(preview, id)) chain(prerequisite, out);
   if (!out.includes(id)) out.push(id);
   return out;
 }

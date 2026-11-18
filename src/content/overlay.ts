@@ -36,6 +36,8 @@ export const PreviewOverlaySchema = z.strictObject({
   /** Context copy lists (nexus vote dz-d11), each appended to production's context-copy.json list. */
   contextCopy: z.strictObject({ phases: items, thresholds: items, bootLines: items, runVerdicts: items, threatResponses: items })
     .default({ phases: [], thresholds: [], bootLines: [], runVerdicts: [], threatResponses: [] }),
+  /** Late-route copy and the ending account (DZ-12), each appended to production's route-copy.json list. */
+  routeCopy: z.strictObject({ nodes: items, dilemmas: items, account: items }).default({ nodes: [], dilemmas: [], account: [] }),
 });
 
 export type PreviewOverlay = z.infer<typeof PreviewOverlaySchema>;
@@ -104,8 +106,8 @@ function addNodes(phases: readonly unknown[], nodes: PreviewOverlay['nodes'], pr
   return composed;
 }
 
-/** Context copy items carry no id, so appending each list cannot redefine anything production holds. */
-function appendCopy(base: unknown, copy: PreviewOverlay['contextCopy'], problems: string[]): unknown {
+/** Appends each list of a copy manifest; an item with an id production already holds (an account line) is refused. */
+function appendCopy(base: unknown, copy: Readonly<Record<string, readonly unknown[]>>, problems: string[]): unknown {
   return Object.entries(copy).reduce<unknown>((container, [key, added]) => append(container, key, added, problems), base);
 }
 
@@ -128,6 +130,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     campaign: append(append(base.campaign, 'facts', overlay.campaignFacts, problems), 'rediscovery', overlay.campaignRediscovery, problems),
     swarm: append(base.swarm, 'channelEncounters', overlay.channelEncounters, problems),
     contextCopy: appendCopy(base.contextCopy, overlay.contextCopy, problems),
+    routeCopy: appendCopy(base.routeCopy, overlay.routeCopy, problems),
   };
   if (problems.length > 0) throw new ContentError(problems);
   return composed;

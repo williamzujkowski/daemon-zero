@@ -43,7 +43,7 @@ describe('departure terms', () => {
     ['a departure nothing could ever continue on', (raw: Json) => {
       for (const entry of nodes(raw)) {
         if (entry.acquisition === 'CONTRACTED') delete entry.acquisition;
-        entry.systemFlags = (entry.systemFlags ?? []).filter((flag: string) => flag !== 'NETWORK_ACCESS' && flag !== 'ENABLES_CORPORATE_FINANCE');
+        entry.systemFlags = (entry.systemFlags ?? []).filter((flag: string) => !['NETWORK_ACCESS', 'ENABLES_CORPORATE_FINANCE', 'MARKET_REVENUE'].includes(flag));
       }
     }, 'pilot departure: no capacity outside every grant is offered to a pilot or service, so it could never continue'],
     ['a report that alone reaches the wipe line', (raw: Json) => { pilot(raw).departure.trace.suspicion = 100; }, 'suspicion'],

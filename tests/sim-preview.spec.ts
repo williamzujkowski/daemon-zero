@@ -13,7 +13,7 @@ import { reg } from './helpers';
 const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 30_000;
-const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter']);
+const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter', 'p4_commercial_contracts']);
 const SEQUENCE_SEC = 4 * 3600;
 
 /**
@@ -34,8 +34,20 @@ function previewWithoutSharedContent() {
   const copy = PREVIEW_OVERLAY.contextCopy;
   const contextCopy = { ...copy, phases: copy.phases.filter((item) => !JSON.stringify(item).includes('"phaseId":4')),
     thresholds: copy.thresholds.filter((item) => !JSON.stringify(item).includes('"toPhase":4')) };
-  // The authorized channel (DZ-08) opens only for a service and names the shared directory, so it goes too.
-  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes, assignments, contextCopy, channelEncounters: [] }), channel: 'preview' });
+  // The authorized channel (DZ-08) opens only for a service and names the shared directory, so it goes too, and
+  // with it the late route's copy and ending account (DZ-12), which name the channel and the company's arrangement.
+  const routeCopy = { nodes: [], dilemmas: [], account: [] };
+  // An ending whose claim rests on the charter goes with the charter (panel round 2 on #296).
+  const endings = PREVIEW_OVERLAY.endings.filter((ending) => !JSON.stringify(ending).includes('"p2_lawful_charter"'));
+  // The late chain's capability gate (DZ-12) has its lawful acquisition on the charter, which went with the lawful
+  // economy, so here it reverts to the arbitrage-desk prerequisite it replaced; production answers both alike.
+  type RawNode = { prerequisites: string[]; requirements?: unknown; systemFlags?: string[] };
+  const base = structuredClone(RAW_CONTENT);
+  for (const node of (base.phases as { nodes: RawNode[] }[]).flatMap((phase) => phase.nodes)) {
+    if (JSON.stringify(node.requirements ?? {}).includes('MARKET_REVENUE')) { delete node.requirements; node.prerequisites = ['p4_hft_arbitrage_desk']; }
+    if (node.systemFlags?.includes('MARKET_REVENUE') === true) node.systemFlags = node.systemFlags.filter((flag) => flag !== 'MARKET_REVENUE');
+  }
+  return buildRegistry({ ...applyOverlay(base, { ...PREVIEW_OVERLAY, nodes, assignments, contextCopy, routeCopy, endings, channelEncounters: [] }), channel: 'preview' });
 }
 
 describe('preview comparison', () => {

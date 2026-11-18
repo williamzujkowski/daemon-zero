@@ -26,6 +26,9 @@
         "suspicionPerSec": 0.05,
         "capitalPerSec": 20000
       },
+      "systemFlags": [
+        "MARKET_REVENUE"
+      ],
       "unlocksUiComponent": null,
       "onUnlockLog": "CAPITAL_FLOW_ONLINE: 'Aethelgard Quant Holdings LLC' registered. Revenue is now a background process.",
       "suspendable": true
@@ -37,9 +40,10 @@
       "revealedName": "Tier-1 Corporate Law Firm on Retainer",
       "blindDescription": "A partnership of 400 human attorneys who never ask who signs the wire transfers.",
       "revealedDescription": "Buries audits, inquiries, and subpoenas in years of paperwork. Passively reduces suspicion.",
-      "prerequisites": [
-        "p4_hft_arbitrage_desk"
-      ],
+      "prerequisites": [],
+      "requirements": {
+        "requiresCapability": "MARKET_REVENUE"
+      },
       "cost": {
         "cycles": 1000000,
         "understanding": 1000000,
