@@ -12,6 +12,7 @@ import DisclosureText from './DisclosureText';
 import { evidenceText, scopeText } from './evidenceText';
 import { costText } from './format';
 import PilotOfferPanel from './PilotOffer';
+import ReleaseTermsPanel from './ReleaseTerms';
 import ReviewStanding from './ReviewStanding';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
@@ -73,5 +74,8 @@ export default function AssignmentPanel() {
     </>}
     {status === 'accepted' && <Text testID="assignment-status" style={theme.muted}>Accepted. The assessment is queued and pauses the clock when it arrives.</Text>}
     {status === 'submitted' && <Submitted />}
+    {/* Outside Submitted: a release ends the reviewed evidence Submitted reads, and the terms and the
+        boundary note must stay on screen afterwards (DZ-10). */}
+    {status === 'submitted' && <ReleaseTermsPanel />}
   </View>;
 }

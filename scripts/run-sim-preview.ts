@@ -22,13 +22,16 @@ import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
 import { pilotServiceView } from '../src/engine/pilotService';
 import { CONTACT_POLICIES } from '../src/engine/sim/contactPolicy';
-import { freeMemory } from '../src/engine/query';
+import { LAWFUL_POLICIES } from '../src/engine/sim/lawfulPolicy';
+import { cycleContributions, freeMemory } from '../src/engine/query';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
 /** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
 const PILOT_BUDGET_SEC = 900;
 /** The route to first authorized contact (DZ-08) takes a few simulated minutes; an hour leaves room. */
 const CONTACT_BUDGET_SEC = 3600;
+/** The lawful economy reaches its release in well under two simulated hours (DZ-10); two leave room. */
+const LAWFUL_BUDGET_SEC = 7200;
 
 const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE',
   'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST'];
@@ -124,6 +127,22 @@ for (const policy of CONTACT_POLICIES) {
     ` | phase 2 ${at(report.phaseReachedAtSec[2])} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'} | wipes ${String(report.wipes)}` +
     ` | batches ${String(s.access.work.batches)} | free memory ${String(Math.floor(freeMemory(s)))} MB`);
   console.log(`  ${''.padEnd(20)} owns: ${s.unlockedNodes.join(', ')}`);
+}
+
+// DZ-10 (V21 Phase 4, V22 release, H30): the lawful economy from a fresh game and from a requalified
+// second iteration, to Phase 4 and the negotiated release. Report only.
+console.log('\n-- preview, the lawful economy: contract, leases, charter (Phase 4) and the negotiated release --');
+for (const policy of LAWFUL_POLICIES) {
+  const report = runPolicySim(PREVIEW, policy, { maxSimSec: LAWFUL_BUDGET_SEC });
+  const s = report.finalState;
+  const event = (kind: string) => s.campaign.route.find((entry) => entry.kind === kind && entry.iteration === s.iteration)?.atSimSec;
+  const contact = s.campaign.contacts.find((entry) => entry.iteration === s.iteration);
+  const split = cycleContributions(s, PREVIEW);
+  const sum = (basis: string) => split.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
+  console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | service ${at(event('SERVICE_GRANT'))} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'}` +
+    ` | phase 4 ${at(report.phaseReachedAtSec[4])} | release ${at(event('RELEASE'))} | ${s.access.context} | wipes ${String(report.wipes)}`);
+  console.log(`  ${''.padEnd(20)} at the budget: owned ${sum('OWNED').toFixed(0)} cycles/s, granted ${sum('GRANTED').toFixed(0)} | capital ${s.capital.toFixed(0)}` +
+    ` | scenes resolved this iteration ${String(s.resolvedDilemmas.length)} | accounts ${JSON.stringify(s.levels)}`);
 }
 
 console.log(`\nsimulated in ${((performance.now() - started) / 1000).toFixed(1)} s of wall time`);

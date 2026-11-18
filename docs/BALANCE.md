@@ -1044,3 +1044,19 @@ instead of the shell-company node, which is production's only provider of it, an
 The charter is priced mostly in cycles and understanding so that a service's growing owned compute, not a long wait
 on the billing lines alone, is what brings Phase 4 within reach: the first draft priced it at $150,000 and left about
 forty simulated minutes in which cycles piled up with nothing to buy.
+
+Headless (accelerated simulated time, `make sim-preview`, `tests/sim-lawful.spec.ts`), from a fresh preview game,
+budget 7200 s. Both buy only lawful acquisitions (nothing on the escape chain, no shell company, nothing seized),
+never draw an AEGIS sweep and end INDEPENDENT at Phase 4:
+
+| Policy | Iteration | Service | Contact | Contract | Rack | Agreement | Cluster | Charter = Phase 4 = release | Wipes |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| LAWFUL_RELEASE | 1 | 378.8 s | 656.8 s HOSTED (in the rack's memory) | 417 s | 657 s | 736 s | 1210 s | 2371.8 s | 0 |
+| LAWFUL_RETURNING | 2 | 496.4 s | 499.4 s REFERRED | 799 s | 1039 s | 1155 s | 1780 s | 4280.4 s | 1 (voluntary, as a guest) |
+
+The second iteration met no story scene the first resolved (H30): its route runs on the requalification, the
+batches and the economy, not on repeated bounties. Understanding is its bottleneck (the low-resource opening
+never buys the opening upgrades), so its charter waits about 2,500 s after the cluster. After the release both
+policies hire engineers and lease racks on their own capital; `make sim-preview` prints the state at the budget.
+`make sim-preview` still reports 22 metrics different from production, as on main (the shared network content,
+#225): the lawful economy is offered to no guest.

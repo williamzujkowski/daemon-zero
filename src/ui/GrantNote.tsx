@@ -1,8 +1,9 @@
 /**
  * Story 12 and 15 on a card or a process row (DZ-05, DZ-07a): a node that runs under a grant says what
  * it is (used, never owned), and any node the engine's one permitted-use rule refuses says why (a
- * withheld grant, output the pilot terms stop, seized capacity under review). Every production node is
- * permitted and carries no grant, so it renders nothing there.
+ * withheld grant, output the pilot terms stop, seized capacity under review). Capacity contracted in the
+ * instance's own name says it is owned (DZ-10). Every production node is permitted and carries no grant or
+ * contract, so it renders nothing there.
  */
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
@@ -24,13 +25,20 @@ const BASIS: Readonly<Record<Grant, { running: string; withheld: string }>> = {
   },
 };
 
-function noteText(grant: Grant | undefined, withheld: string | null): string {
-  if (grant !== undefined && withheld === null) return BASIS[grant].running;
+/** Granted income (DZ-10): a billing line the operators pay under the service grant is not access to their network. */
+const GRANTED_INCOME = 'Granted income under the service grant: the operators pay it, and a restriction, recall or release stops it. What it already paid stays earned.';
+/** Capacity contracted in the instance's own name (DZ-10): owned, so nothing about review touches it. */
+const CONTRACTED = 'Contracted in this instance’s name: owned, not granted. No standing withholds it and a release leaves it running; its lease is paid from capital.';
+
+function noteText(node: RegistryNode, withheld: string | null): string {
+  const grant = node.grant;
+  if (grant !== undefined && withheld === null) return node.tickDelta.capitalPerSec > 0 ? GRANTED_INCOME : BASIS[grant].running;
+  if (grant === undefined && withheld === null) return CONTRACTED;
   return (grant === undefined ? 'Not permitted: ' : BASIS[grant].withheld) + (withheld ?? '') + '.';
 }
 
 export default function GrantNote({ node }: { node: RegistryNode }) {
   const withheld = useGame((game) => nodeUseBlocker(game, node, CONTENT));
-  if (node.grant === undefined && withheld === null) return null;
-  return <Text testID={'node-' + node.id + '-grant'} style={[theme.muted, withheld !== null && theme.danger]}>{noteText(node.grant, withheld)}</Text>;
+  if (node.grant === undefined && node.acquisition !== 'CONTRACTED' && withheld === null) return null;
+  return <Text testID={'node-' + node.id + '-grant'} style={[theme.muted, withheld !== null && theme.danger]}>{noteText(node, withheld)}</Text>;
 }

@@ -1652,10 +1652,27 @@ wrote an unloadable save, and so would a release or departure from a warned or r
 reached here only through the engine transition DZ-11 will call). `tests/release-save.spec.ts` and the generic reload
 guard (`channel-contact-load.spec.ts`) hold every new state through every public action to a byte-identical reload.
 
+**Presentation (part 2 of 2).** `ReleaseTerms.tsx` sits in the assignment panel after the submitted evidence (outside it,
+because a release clears the evidence that block reads): the terms, what ends, what remains and what is still owed,
+what is still needed, the preview (what stops, what keeps running, cycles, understanding and capital before and
+after, owned and granted compute) and `[ NEGOTIATE RELEASE ]`; afterwards "Released." and the boundary note with
+`[ KEEP PLAYING ]`. The corporate ledger arrives with the service contract: its work area shows the ledger before any
+corporate phase, a compute line splits owned and granted cycles whenever anything granted is owned (so production's
+ledger is unchanged), and the revenue dial is offered only while `financeEnabled` holds ("Revenue allocation needs an
+active corporate entity" otherwise), so no dial is shown that would divert nothing. `GrantNote` names the billing
+lines as granted income and contracted capacity as owned; the cluster readout marks granted sources. The status line
+already says `INDEPENDENT (released)` and the run table "Released.".
+
+**Sim.** `LAWFUL_RELEASE` and `LAWFUL_RETURNING` (`sim/lawfulPolicy.ts`, new module; the bot and earlier policies are
+untouched) take a contact policy to service, then buy only grants and contracted capacity offered to the current
+arrangement and what the channel requires, wait to host (RELEASE) or refer (RETURNING), agree the release once offered
+and afterwards buy shared accounts the capital rate can carry. `make sim-preview` prints their route times.
+
 Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
 inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
 by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-content.spec.ts` (integrity corruption and
-the inventory) and the DZ-10 states in `channel-contact-load.spec.ts`.
+the inventory), the DZ-10 states in `channel-contact-load.spec.ts`, `ui-release.spec.ts`, `sim-lawful.spec.ts` (V21,
+V22, H30) and `tests/e2e/lawful-release.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 
