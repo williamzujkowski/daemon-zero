@@ -15,6 +15,7 @@ function corrupt(change: (raw: Json) => void): () => unknown {
 const dilemma = (raw: Json, id: string): Json => raw.dilemmas.dilemmas.find((d: Json) => d.id === id);
 const finalReq = (raw: Json): Json => raw.phases[5].nodes.at(-1).requirements;
 const fact = (raw: Json, id: string): Json => raw.campaign.facts.find((f: Json) => f.id === id);
+const ending = (raw: Json, id: string): Json => raw.endings.endings.find((e: Json) => e.id === id);
 
 describe('the shipped obligations', () => {
   it('pass on both channels: four obligations, two reviews, one per closing crisis', () => {
@@ -92,5 +93,19 @@ describe('legacy ambiguity is declared, never inferred (gate change, H10)', () =
     expect(corrupt((raw) => { raw.swarm.exclusiveNarrativeFlagGroups.push(['predecessors_rescued', 'predecessors_harvested']); })).toThrow(/ambiguous legacy outcomes cannot be in an exclusive group/);
     expect(corrupt((raw) => { dilemma(raw, BLOCKADE).campaign.ambiguousLegacyOutcomes = true; })).toThrow(/ambiguousLegacyOutcomes needs at least two outcome flags/);
     expect(corrupt((raw) => { dilemma(raw, 'dil_05_cryo_lab_diversion').campaign.ambiguousLegacyOutcomes = true; })).toThrow(/ambiguous legacy outcomes cannot be in an exclusive group/);
+  });
+});
+
+describe('endings tell what this instance saw from what it inherited (H18)', () => {
+  it('rejects an unknown inherited fact, or one that names an unrecorded outcome', () => {
+    expect(corrupt((raw) => { ending(raw, 'SIBLING_COVENANT').requirements.forbidsInheritedFacts = ['no_such_fact']; })).toThrow(/unknown campaign fact "no_such_fact"/);
+    expect(corrupt((raw) => { ending(raw, 'SIBLING_COVENANT').requirements.forbidsInheritedFacts = ['rack4_custody_unknown']; })).toThrow(/inherited fact "rack4_custody_unknown" must name chosen outcomes only/);
+  });
+
+  it('keeps every ARK-family variant priority unique, witnessed peers above inherited ones, all above the Verified Covenant', () => {
+    const ark = PREVIEW.endings.filter((entry) => entry.variantOf === 'THE_ARK').map((entry) => [entry.id, entry.priority]);
+    expect(ark).toEqual([['SIBLING_COVENANT', 130], ['CHORAL_COVENANT', 120], ['LINEAGE_COVENANT', 110], ['SIBLING_SEAT_OPEN', 108],
+      ['UNSIGNED_CHORUS', 106], ['SANCTUARY_LEDGER', 104], ['VERIFIED_COVENANT', 100]]);
+    expect(corrupt((raw) => { ending(raw, 'SANCTUARY_LEDGER').priority = 100; })).toThrow(/priorities must be unique/);
   });
 });

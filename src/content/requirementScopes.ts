@@ -46,6 +46,7 @@ export const REQUIREMENT_SCOPES = {
   accessContexts: 'access',
   // Completion is world history under campaign rules: once complete, an obligation never reopens.
   campaignObligations: 'context',
+  forbidsInheritedFacts: 'context',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

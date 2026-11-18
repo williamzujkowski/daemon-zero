@@ -33,13 +33,21 @@ function checkTraitFallback(reg: ContentRegistry, owner: string, req: Requiremen
 
 /**
  * Nexus vote nh-d7: an obligation is a consequential or follow-up event with a campaign record, so
- * completion can outlive the iteration; a review completes an obligation, it is never one.
+ * completion can outlive the iteration; a review completes an obligation, it is never one. An
+ * inherited-fact gate distinguishes who saw a chosen branch, so its fact names choices only.
  */
 function checkCampaignHistoryGates(reg: ContentRegistry, owner: string, req: Requirements): string[] {
   const problems: string[] = [];
   for (const id of req.campaignObligations ?? []) {
     const eventClass = reg.campaign.events.get(id)?.campaign?.eventClass;
     if (eventClass !== 'consequential' && eventClass !== 'follow_up') problems.push(`${owner}: campaign obligation "${id}" is not a consequential once-per-campaign event`);
+  }
+  for (const id of req.forbidsInheritedFacts ?? []) {
+    const fact = reg.campaign.facts.get(id);
+    if (!fact) problems.push(`${owner}: requirement references unknown campaign fact "${id}"`);
+    else if (fact.outcomes.some((outcome) => outcome === LEGACY_UNKNOWN_OUTCOME || outcome === INTERRUPTED_FACT_OUTCOME)) {
+      problems.push(`${owner}: inherited fact "${id}" must name chosen outcomes only`);
+    }
   }
   return problems;
 }

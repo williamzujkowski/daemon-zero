@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import {
   ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignObligationsRequirementSchema, CampaignOutcomeRequirementSchema,
-  ChoiceEvidenceSchema,
+  ChoiceEvidenceSchema, InheritedFactsRequirementSchema,
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
@@ -120,6 +120,8 @@ export const RequirementsSchema = z.strictObject({
   accessContexts: z.array(OperatingContextSchema).min(1).optional(),
   /** Nexus vote nh-d7: campaign events that must be complete (see schemaCampaign.ts). */
   campaignObligations: CampaignObligationsRequirementSchema.optional(),
+  /** Blocks while a fact holds that an earlier instance's record established (see schemaCampaign.ts). */
+  forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
 });
 
 /**

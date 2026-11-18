@@ -77,6 +77,13 @@ export const LEGACY_UNKNOWN_OUTCOME = 'legacy_unknown';
  */
 export const CampaignObligationsRequirementSchema = z.array(id).min(1);
 
+/**
+ * Blocks while one of these facts holds from a record this instance did not make: the event was
+ * resolved by an earlier instance, so its consequence is history, not something this one saw.
+ * Under legacy rules no fact holds, so nothing is blocked.
+ */
+export const InheritedFactsRequirementSchema = z.array(id).min(1);
+
 /** Gate on a campaign record: the event's recorded outcome is this choice id, or legacy_unknown. */
 export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outcome: id });
 
