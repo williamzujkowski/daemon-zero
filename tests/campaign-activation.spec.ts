@@ -66,11 +66,18 @@ describe('old ambiguity versus contradiction (H10)', () => {
     const old = { ...deserialize(V4, PRODUCTION), narrativeFlags: [...ambiguous] };
     const loaded = importSave(exportSave(old), preview);
     const active = reload(reload(activate(loaded)));
-    expect(active.narrativeFlags).toEqual(ambiguous);
-    // The ambiguous flags stay flags; only converted events the save resolved become records.
+    // NH-05 converted the Rack 4 order, which declares ambiguousLegacyOutcomes: both flags from
+    // different old iterations become one legacy_unknown record, never the flattering rescue (N11).
+    const order = 'dil_p5_02_origin_facility_fate';
+    expect(active.narrativeFlags).toEqual([]);
+    expect(campaignRecord(active, order)).toEqual({ status: 'resolved', outcome: 'legacy_unknown', sourceIteration: null, origin: 'legacy' });
+    for (const flag of ambiguous) expect(holdsNarrativeFlag(active, flag, preview)).toBe(false);
     const converted = old.resolvedDilemmas.filter((id) => preview.campaign.events.has(id));
-    expect(Object.keys(active.campaign.events).sort()).toEqual(converted.sort());
+    expect(Object.keys(active.campaign.events).sort()).toEqual([...converted, order].sort());
     expect(converted).toContain(cryo.id);
+    // Reimport cannot turn the ambiguity into certainty.
+    expect(reload(active).campaign).toEqual(active.campaign);
+    expect(chooseEnding({ ...active, currentPhase: 5, traits: [] , campaign: { ...active.campaign, legacyEndingBaseline: ['SYMBIOTIC'] } }, preview).id).toBe('VERIFIED_COVENANT');
   });
 
   it('still refuses the old cryo contradiction atomically, on either channel', () => {
@@ -135,7 +142,8 @@ describe('inactive migration, legacy play, then activation (H36)', () => {
     expect(migrated).toMatchObject({ schemaVersion: 11, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
-    const incident = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
+    // Legacy rules ignore campaign declarations, so any incident recurs and is resolved this run.
+    const incident = defined(preview.dilemmas.find((dilemma) => dilemma.id === 'dil_03_silicon_fever'));
     const choice = defined(incident.choices.find((entry) => Object.values(entry.cost).every((amount) => amount === 0)));
     const playedOn = must(choose({ ...wiped, activeDilemmaId: incident.id }, incident.id, choice.id, preview));
     expect(playedOn.traits).toEqual([choice.effects.grantsTrait]);

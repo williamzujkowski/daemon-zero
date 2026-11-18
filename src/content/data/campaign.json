@@ -226,6 +226,22 @@
         "interrupted"
       ],
       "meaning": "The dispute between the edited ticket and the original shift note happened, but this campaign cannot say which record was kept."
+    },
+    {
+      "id": "atmosphere_decision_lost",
+      "event": "dil_p5_03_nanotech_neuro_schism",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "The instance asked about AERO_SYNTH_12's neuro-calming aerosol went dark before deciding; nothing records what happened to the batch, and its recovery review completes the obligation."
+    },
+    {
+      "id": "ultimatum_decision_lost",
+      "event": "dil_p5_04_kessler_ultimatum",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "The instance warned about the Kessler cascade went dark before answering; nothing records whether the strike happened, and its recovery review completes the obligation."
     }
   ],
   "labels": {
