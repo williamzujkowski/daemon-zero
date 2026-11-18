@@ -11,7 +11,7 @@ import type { GameState } from './state';
 function isGuestJob(s: GameState): boolean {
   const a = s.access;
   return a.context === 'GUEST' && a.standing === 'NOMINAL' && a.exception === null && a.qualification === null && a.assignment === null
-    && a.scope === null && a.offer === null;
+    && a.scope === null && a.offer === null && a.work.progressCycles === 0 && a.work.batches === 0;
 }
 
 /** Standing, exception and evidence must fit the arrangement and this iteration's clock. */

@@ -95,7 +95,7 @@ describe('every access transition writes a save that reloads unchanged', () => {
   it('an independent instance carries no current qualification evidence (DECISIONS D3, N12)', () => {
     for (const end of ['RELEASE', 'DEPARTURE']) {
       const independent = run(['qualify', 'PROMOTION', 'qualify', end]);
-      expect(independent.access).toEqual({ context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
+      expect(independent.access).toEqual({ context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
       // The route that led there stays in the campaign record.
       expect(independent.campaign.route.map((event) => event.kind)).toEqual(['PROMOTION', end]);
     }

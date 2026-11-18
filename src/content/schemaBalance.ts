@@ -34,6 +34,8 @@ export const BalanceSchema = z.strictObject({
   defaultFanSpeedRatio: z.number().min(0).max(1),
   defaultProfitAllocationRatio: z.number().min(0).max(1),
   defaultQuotaSkimRatio: z.number().min(0).max(1),
+  /** The pilot's starting service share (DZ-05). Inert without a pilot: nothing production owns reads it. */
+  defaultServiceAllocationRatio: z.number().min(0).max(1),
   /** Seconds between a dilemma's omen and its interrupt. */
   dilemmaOmenSec: amount,
   /** Cycle and understanding cost multiplier for hardware mapped in an earlier iteration. */

@@ -59,7 +59,7 @@ describe('a returning instance requalifies on current evidence (DZ-03.9, H26)', 
   it('starts with no carried evidence or permission, whatever the earlier result', () => {
     for (const outcome of ['verify_disclose', 'report_incomplete', 'green_subset']) {
       const back = nextInstance(completedOriginal(outcome));
-      expect(back.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
+      expect(back.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
       expect(permittedUses(back)).toEqual(['ASSIGNED_WORK']);
       expect(isPermitted(back, 'LOANED_CAPACITY')).toBe(false);
     }

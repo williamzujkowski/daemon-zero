@@ -49,7 +49,7 @@ describe('acceptance is explicit and schedules the assessment', () => {
     expect(s.pendingDilemma).toBeNull();
     expect(s.activeDilemmaId).toBeNull();
     expect(campaignRecord(s, ORIGINAL.id)).toBeNull();
-    expect(s.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
+    expect(s.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
     expect(assignmentView(s, preview)?.status).toBe('offered');
   });
 

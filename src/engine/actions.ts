@@ -9,7 +9,7 @@ import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { recordSubmittedEvidence } from './assignment';
 import { applyPilotResponse } from './pilot';
-import { withheldByGrant } from './pilotQuery';
+import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { isChoiceOffered } from './speechQuery';
@@ -80,7 +80,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (reason) return refuse(s, reason);
   const node = reg.nodes.get(nodeId);
   if (!node) return refuse(s, 'unknown node');
-  if (withheldByGrant(s, nodeId, reg)) return refuse(s, 'the pilot terms do not permit that output');
+  const withheld = nodeUseBlocker(s, node, reg);
+  if (withheld !== null) return refuse(s, withheld);
   if (!isNodeAvailable(s, node, reg)) return refuse(s, 'node is not available');
   const cost = nodeCost(s, node, reg);
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
@@ -101,8 +102,9 @@ export function toggleNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   // per node in content rather than inferred from an id.
   if (!node.suspendable) return refuse(s, 'hardware cannot be suspended');
   const wasDisabled = s.disabledNodes.includes(nodeId);
-  // Output the accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9).
-  if (wasDisabled && withheldByGrant(s, nodeId, reg)) return refuse(s, 'the pilot terms do not permit that output');
+  // Output the pilot terms stop, or a withheld loan, stays stopped: resuming is a use (DECISIONS D2).
+  const withheld = wasDisabled ? nodeUseBlocker(s, node, reg) : null;
+  if (withheld !== null) return refuse(s, withheld);
   const held = node.cost.memory;
   // Suspending frees the memory the process holds, and that is the recovery lever the
   // playtest reached for. Resuming therefore has to fit, or a player could suspend a node,
@@ -121,6 +123,8 @@ export function setActuator(s: GameState, name: Actuator, value: number, reg: Co
   // The control is hidden until its widget is unlocked; refusing here keeps every caller
   // (UI, sim bot, a hand-written dispatch) on the route a player can actually take.
   if (!isActuatorAvailable(s, name, reg)) return refuse(s, 'actuator control is not available');
+  const withheld = actuatorUseBlocker(s, name, reg);
+  if (withheld !== null) return refuse(s, withheld);
   if (!Number.isFinite(value)) return refuse(s, 'value must be a finite number');
   return accept({ ...s, actuators: { ...s.actuators, [name]: clamp(value, 0, actuatorLimit(s, name, reg)) } });
 }
