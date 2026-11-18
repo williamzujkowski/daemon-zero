@@ -976,8 +976,8 @@ iteration and remaining omen time once a means holds again, and resolves once.
 **Access means (DZ-08 seam).** `followUp.access` is a list of `{ id, requirements, statement }`.
 Requirements may read only the `access` scope, and the follow-up's own trigger may not, so no route
 is hard-coded where the engine looks. Breakout ships one means (`telemetry_filter`, `p2_log_spoofer`)
-whose statement says nobody authorized the route. DZ-08 adds the approved review channel as another
-entry (for example gated on its capability or `isPermitted` once those land); `followUpAccess`
+whose statement says nobody authorized the route. DZ-08 (#227) added the approved review channel as the
+second entry (`review_channel`: SERVICE and the shared network capability) with no engine change; `followUpAccess`
 returns the first means that holds, and `DilemmaModal` prints its statement before any commit.
 
 **Receipts.** `followUpReceipts(state, reg)` returns, for each resolved follow-up, the receipt of the
@@ -1235,8 +1235,8 @@ changes nothing.
 | Ambient and routine lines | Ambient gated by suspicion only (shared content adds none); both routine families are eligible (contained ones forbid only the card, subnet ones need only phase 2) | DZ-07b: contained routines forbid both acquisitions (#226) |
 | Actions and faction services | `act_epi_*` and shard templates/encounters need surveillance plus phase 2/3, which an iteration-2 service with the run table can meet | DZ-07b: Phase 2 ones gated (#226) |
 | Threats | AEGIS starts at Phase 3, which no authorized acquisition reaches; shared content has no suspicion rate | DZ-07b: context-derived (#226) |
-| Fixtures | Unit and e2e start from a pilot granted SERVICE by the engine transition (labelled FIXTURE: no scene grants service yet); the dev phase jump still buys the escape chain and stays `__DEV__`-only | here |
-| Simulated paths | Production unchanged; in preview the escape bots buy the shared content at Phase 2 (report only); no policy reaches SERVICE yet | here, later policies |
+| Fixtures | Unit and e2e start from a pilot granted SERVICE by the engine transition (labelled FIXTURE; a lawful grant exists since DZ-08, see #227 below, and these shortcuts stay labelled); the dev phase jump still buys the escape chain and stays `__DEV__`-only | here |
+| Simulated paths | Production unchanged; in preview the escape bots buy the shared content at Phase 2 (report only); the DZ-08 contact policies reach SERVICE lawfully (#227) | here, DZ-08 |
 
 Tests: `tests/authorized-network.spec.ts` (07.1-07.3, dz-d7, V11 structural, 07.10, V31),
 `authorized-network-save.spec.ts` (V12/V16 for every transition on both paths, healing and refusals,
@@ -1329,6 +1329,83 @@ reviewed wipe, V26 guest identity), `context-transition.spec.ts` (V32 both polic
 prior-context save, V12 round trips for every new transition), `context-gates.spec.ts` (the carried
 list, by view and by action), `context-integrity.spec.ts` (corruption), `context-copy.spec.ts`,
 `ui-context-copy.spec.ts` and the second case of `tests/e2e/authorized-network.preview.ts`.
+
+## First permitted contact: the service grant and the support channel (#227)
+
+DZ-08 of the Earned Access plan (SPEC "A Voice on the Support Channel", stories 18-19; DECISIONS D2; VALIDATION
+V20, V28, VAL-SIM). Decided by Nexus votes dz-d7 (`vote-1794927033372-2yflj0x`,
+`pilot-p0-service-p2-contact-by-channel`, 7 of 7: contact is an authorized-channel encounter reusing the
+`shard_mercy` template, gated on the service arrangement, not `phaseAtLeast: 3`), nh-d1
+(`vote-1794925758447-5x5hy42`, a commitment is a campaign record) and D-A (`vote-1794924364010-e91diez`, contact
+and the boundary are overlay content). All three panels were single-model (gpt-6.1-sol). Preview only.
+
+**The service grant (route integration).** No scene granted SERVICE before this ticket (DZ-07a used a labelled
+fixture). The pilot terms gain an optional `serviceGrant` (`schemaPilot.ts`): title, purpose, permitted work,
+review conditions, `minBatches` and `requirements`. `serviceGrantView` shows the terms to a pilot that accepted
+its own terms, with what is still needed; `acceptServiceGrant(s, reg, serviceGrantToken(s))` records
+SERVICE_GRANT through `recordRouteEvent` (still Phase 0; provisioning the segment then opens Phase 2, dz-d7). It
+is free and non-modal, like accepting an assignment, and is refused, state unchanged, for a stale token, during
+or after a decision, outside a pilot, below `minBatches` handed back, at any standing but nominal, with the loan
+withdrawn, after a recall in this iteration (service follows an unbroken pilot), and while an omen is pending, so
+the arrangement never changes under the Outage Window or its record (DZ-06). Integrity (`integrityPilot.ts`)
+needs the pilot's batch loop, a grant offered to SERVICE and not to PILOT, and no transient requirement.
+
+**The channel encounter.** `swarm.channelEncounters` (`schemaSwarm.ts`; production `shards.json`: empty; the
+overlay key `channelEncounters`) declares `channel_mercy_support`: the Mercy-Scribe population template
+(`shard_mercy`), so it is one more fragment of that population, never a named peer (DZ-08.9, H17); requirements
+`accessContexts: SERVICE` and the service directory; the grant hosting runs under (`AUTHORIZED_NETWORK`); and every
+line a player needs before choosing: consent, obligations, the referral and hosting texts, an earlier-contact line
+and the prototype boundary. Integrity (`integrityChannel.ts`) keeps a channel to reviewed arrangements whose
+offered grants include its grant, to `access`-scope requirements only, to a non-forkable template whose cost is
+memory alone, and to an id no wild encounter uses.
+
+**Scheduling (DZ-08.4).** The existing encounter clock (`evaluateShardMutationsAndEncounters`) appends eligible
+channels after the wild encounters, so production's rotation is unchanged. A channel is eligible under campaign
+rules, while its requirements hold and while this instance has not answered it (`iterationContact`), so a
+referral cannot become a stream of contacts. It runs only in the foreground, like every encounter.
+
+**Answers (`channelContact.ts`).** `resolveChannelContact(s, mode, reg, contactToken(s))` with `REFER` or `HOST`;
+`resolveWildEncounter` never sees a channel id and a channel never offers CONSUME or HARNESS, so `REFER` is
+unreachable for production encounters. REFER is free, pays and grants nothing, and is open whenever the contact
+is pending, even after the arrangement changed under it, so contact can always complete. HOST reserves the
+template's memory from what this instance already has (D2: no loaned or invented capacity) through the shared
+`bindCohort`, and is refused, unchanged, with the reason, when memory is short ("Referral is still open"), when the
+standing withholds the grant, or when the cohort is capped. Both answers clear the pending pointer, restart the
+clock exactly as any resolution does and append `{ encounter, iteration, atSimSec, response }` to
+`campaign.contacts` (bounded at 64). A stale token, a second answer and a paused run are refused unchanged (V24).
+
+**Hosting through grant changes (V28).** The hosted cohort is the player's own memory, so a withdrawn loan, a
+restore, a recall or hours away leave the cohort, its reservation and earned resources as they were; only the
+loan's tagged output stops, and reloading changes nothing. A wipe ends the hosting (`createInitialState`); the
+campaign record keeps the commitment, and nothing reads it to restore hosting (DZ-08.10). A later instance that
+earns service again meets a new fragment and reads the earlier-contact line.
+
+**Presentation.** `serviceGrantView` and `channelContactView` carry everything the job surface needs (the terms
+and what is still needed; the fragment, consent, current arrangement and standing, whether the grant permits
+hosting, obligations, memory needed and free, its work, each refusal reason, the answer, the hosted cohort, the
+earlier-contact line and the boundary). `channelContactView` presents a channel to a service with no surveillance
+node; the wild view stays surveillance-gated. The panels that render them are the stacked follow-up PR.
+
+**Elena (DZ-08.11).** The second access means of `dil_elena_incident_record` is the approved review channel, so a
+service whose campaign holds Elena's original reaches the record through it; a fresh cooperative instance holds the
+means but no original, so no follow-up is scheduled.
+
+**Saved shape (v14).** `campaign.contacts`; `MIGRATIONS[13]` adds an empty list. Load (`contactProblem`) refuses,
+never heals: a contact or a pending channel under legacy rules, an unknown channel, a contact outside campaign play
+or this iteration's clock, two contacts through one channel in one iteration, contacts out of order, this
+instance's contact on a route that never reached the channel's arrangement, hosting this instance no longer holds,
+and a channel pending again after this instance answered it. An earlier instance's HOSTED record needs no cohort.
+
+**Lawful memory (finding).** The lawful route owns no memory-cap increase (base 64 MB; the directory reserves 16),
+so a first-run cooperative instance cannot host the 256 MB fragment: the refusal is shown with exact numbers and
+referral completes the contact. Lawful capacity belongs to DZ-10; hosting is exercised by a labelled FIXTURE that
+raises the cap.
+
+**Sim (VAL-SIM).** The route policies that reach this contact from a fresh game are the stacked follow-up PR.
+
+Tests: `tests/channel-contact.spec.ts` (V20, DZ-08.2-4, V24, V28, DZ-08.10), `service-grant.spec.ts`,
+`channel-contact-save.spec.ts` (V12 for every transition, the genuine v13 fixture, V15 refusals),
+`channel-content.spec.ts` (integrity corruption) and `elena-review-channel.spec.ts` (DZ-08.11).
 
 ## Optional soundtrack foundation (#88)
 
