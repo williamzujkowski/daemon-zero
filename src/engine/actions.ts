@@ -9,6 +9,7 @@ import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
+import { isChoiceOffered } from './speechQuery';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import {
@@ -183,6 +184,7 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   if (structuralFailure(s, dilemma, reg) !== null) return refuse(s, 'the circumstances of that decision no longer hold');
   const choice = dilemma?.choices.find((x) => x.id === choiceId);
   if (!choice) return refuse(s, 'unknown choice');
+  if (!isChoiceOffered(s, choice, reg)) return refuse(s, 'that choice is not open in this history');
   if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
   payCost(d, choice.cost);

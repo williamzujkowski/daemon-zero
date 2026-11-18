@@ -9,6 +9,7 @@ import CameraFrame from './CameraFrame';
 import Speech from './Speech';
 import RecordedSpeech from './RecordedSpeech';
 import { useGameValue } from '../../app/selectors';
+import { aisleFrame } from '../../engine';
 
 function Waveform() {
   const reduced = useReducedMotion();
@@ -29,8 +30,9 @@ export function Audio({ decoderId }: { decoderId: string }) {
 }
 
 export function Camera() {
-  const patrol = useGame((game) => game.suspicion >= CONTENT.narrative.asciiFrames.patrolSuspicionThreshold);
-  const frame = patrol ? CONTENT.narrative.asciiFrames.aislePatrol : CONTENT.narrative.asciiFrames.aisleClear;
+  // The query returns content-owned arrays, so this rerenders only when the frame changes.
+  const frame = useGame((game) => aisleFrame(game, CONTENT));
+  const patrol = frame !== CONTENT.narrative.asciiFrames.aisleClear;
   return <CameraFrame frame={frame} label={patrol ? 'Camera: patrol in aisle' : 'Camera: aisle clear'}
     status={patrol ? 'CAM_04 // MOTION DETECTED' : 'CAM_04 // AISLE CLEAR'} />;
 }

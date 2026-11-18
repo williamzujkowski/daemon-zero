@@ -103,6 +103,13 @@ export const RequirementsSchema = z.strictObject({
   forbidsCampaignFacts: z.array(snakeId).optional(),
 });
 
+/**
+ * Text to show instead of an authored default when established world history says more (first match
+ * wins). Integrity limits the requirements to world history, so the text cannot change while it is
+ * on screen; under legacy rules no campaign fact holds, so production keeps its default.
+ */
+export const HistoryTextVariantSchema = z.strictObject({ requirements: RequirementsSchema, text: z.string().min(10) });
+
 export const NodeEffectsSchema = z.strictObject({
   memoryCapIncrease: amount.optional(),
   unlocksPhase: z.number().int().min(1).optional(),
@@ -121,6 +128,8 @@ export const TechNodeSchema = z.strictObject({
   blindName: z.string().min(3),
   revealedName: z.string().min(3),
   blindDescription: z.string().min(10),
+  /** History-keyed replacements for blindDescription: a dismissed engineer no longer uses the terminal. */
+  blindDescriptionVariants: z.array(HistoryTextVariantSchema).optional(),
   revealedDescription: z.string().min(10),
   prerequisites: z.array(snakeId),
   requirements: RequirementsSchema.optional(),
@@ -219,6 +228,11 @@ export const DilemmaChoiceSchema = z.strictObject({
   effects: EffectPayloadSchema,
   /** 'none': a free honest answer that grants no trait. Only review, receipt and requalification events. */
   evidence: ChoiceEvidenceSchema.optional(),
+  /**
+   * Offered only while this history holds: campaign facts alone (integrity), so a choice never
+   * asserts a world earlier play removed. Every history must still leave a zero-cost choice.
+   */
+  requirements: RequirementsSchema.optional(),
 });
 
 export const DilemmaSchema = z.strictObject({
@@ -230,6 +244,8 @@ export const DilemmaSchema = z.strictObject({
   omen: z.string().min(10),
   /** Overrides balance.dilemmaOmenSec for this dilemma. */
   omenSec: amount.optional(),
+  /** The omen to log instead when established history says more (first match wins), like contextVariants. */
+  omenVariants: z.array(HistoryTextVariantSchema).optional(),
   context: z.string().min(20),
   choices: z.array(DilemmaChoiceSchema).min(2),
   /**
@@ -378,6 +394,8 @@ export const NarrativeSchema = z.strictObject({
   asciiFrames: z.strictObject({
     aisleClear: z.array(z.string()).min(1),
     aislePatrol: z.array(z.string()).min(1),
+    /** History-keyed replacements for aislePatrol (first match wins): who walks the aisle now. */
+    aislePatrolVariants: z.array(z.strictObject({ requirements: RequirementsSchema, frame: z.array(z.string()).min(1) })).optional(),
     patrolSuspicionThreshold: z.number().min(0).max(100),
   }),
 });
