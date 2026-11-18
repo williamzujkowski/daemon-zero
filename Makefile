@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim sim-preview verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-audio build-pages e2e-pages build-preview e2e-preview e2e-remote pages-deployment android-release
+.PHONY: help setup typecheck lint validate test sim sim-preview verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-live e2e-live-pages e2e-audio build-pages e2e-pages build-preview e2e-preview e2e-remote pages-deployment android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -89,9 +89,11 @@ e2e: build-web ## Playwright scenarios against the production web export (takes 
 	$(E2E_LOCK) $(E2E_ENV) pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
 
 # Not part of `e2e` or the `ci` job: several minutes per viewport. The `live-journey` workflow
-# runs it nightly. See docs/TESTING.md, "Live journey".
+# runs it nightly, at the root and (e2e-live-pages, below) under the Pages subpath. See
+# docs/TESTING.md, "Live journey".
+LIVE_PROJECTS := --project live-phone --project live-desktop
 e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone and desktop (~6 min)
-	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts --project live-phone --project live-desktop $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_LIVE=1 pnpm exec playwright test --config tests/e2e/config.ts $(LIVE_PROJECTS) $(E2E_ARGS)
 
 # `make e2e` already runs the control, duck and transition signal measurements. This adds the
 # per-phase ones (six scores, six loop seams), about a minute. See docs/TESTING.md, "Audio
@@ -102,11 +104,19 @@ e2e-audio: build-web ## Rendered-audio signal measurements for every phase score
 android-release: ## Build signed local release AAB and APK (external signing environment required)
 	bash scripts/build-android-release.sh
 
+# The GitHub Pages project URL's path. build-pages writes the export into dist$(PAGES_BASE)/, which
+# the e2e server (serving dist/) then reaches at that same path.
+PAGES_BASE := /daemon-zero
 build-pages: ## Export for the GitHub Pages project URL (keep root export separate)
-	env -u NO_COLOR -u DAEMON_CONTENT_CHANNEL EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec expo export --platform web --output-dir dist/daemon-zero
+	env -u NO_COLOR -u DAEMON_CONTENT_CHANNEL EXPO_NO_TELEMETRY=1 DAEMON_WEB_BASE_PATH=$(PAGES_BASE) pnpm exec expo export --platform web --output-dir dist$(PAGES_BASE)
 
 e2e-pages: build-pages ## Run the production scenarios under the actual Pages base path
-	$(E2E_LOCK) $(E2E_ENV) DAEMON_WEB_BASE_PATH=/daemon-zero pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_WEB_BASE_PATH=$(PAGES_BASE) pnpm exec playwright test --config tests/e2e/config.ts $(E2E_ARGS)
+
+# The same live journey as e2e-live, against the Pages export served at /daemon-zero/: reloads, the
+# cold start and the ending must come back at that path, and no request may leave it.
+e2e-live-pages: build-pages ## Full live playthrough under the Pages base path, phone and desktop (~6 min)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_LIVE=1 DAEMON_WEB_BASE_PATH=$(PAGES_BASE) pnpm exec playwright test --config tests/e2e/config.ts $(LIVE_PROJECTS) $(E2E_ARGS)
 
 # Preview: production content plus the src/content/preview overlay, web only, local and CI only
 # (nexus vote local-ci-preview-in-verify, vote-1794924668784-7v1q790). Saves use their own keys.
