@@ -230,6 +230,13 @@ Never encode state by colour alone: meters show numbers, warnings have text.
 - One `main` landmark per screen and a level-1 title; cards and panels sit beneath it.
   The chrome (header, HUD, forecast, notices) sits in one labelled region beside it,
   so every block is inside a landmark.
+- **Widget and node card titles are headings, levelled by nesting (#302).** A widget's title
+  is a level-2 heading (a reference widget's `[ + ]` toggle sits inside a level-2 heading,
+  the disclosure pattern that keeps both roles); a node card's title is level 2 in a pane
+  and level 3 inside a widget; any other heading drawn inside a widget takes level 3
+  (`src/ui/headingLevel.tsx`, applied by `PhaseTheme`'s `Text` and `View`). A dialog
+  opened from inside a widget resets the level, so its title keeps the dialog's own.
+  Headings outside a widget keep the level they had. Semantics only: no style changes.
 - Respect reduced-motion (no scramble, no blinking) and font scaling.
 - Touch targets at least 44 pt.
 - Palette contrast is asserted, not maintained by eye: body text at or above 4.5:1
@@ -248,7 +255,9 @@ as part of `make e2e`, which CI already requires. It includes one dilemma modal
 state and the guest escape notice (opened by a live crossing, since a restored save never
 replays it; #282), and `tests/e2e/route-a11y-audit.e2e.ts` covers the Earned Access modals and panels,
 and the service threshold notice, on the same production export; both bring each control of those surfaces into view before
-auditing it, because axe skips a control whose text is scrolled out of its pane.
+auditing it, because axe skips a control whose text is scrolled out of its pane. axe has no rule that a
+styled title must be a heading, so the same spec's `headings` cases read the heading outline and require
+every widget and node card title in it at its level, with no level skipped (#302).
 
 ## Test ids
 

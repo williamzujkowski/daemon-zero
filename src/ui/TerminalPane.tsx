@@ -11,6 +11,7 @@ import UpgradeFeed from './UpgradeFeed';
 import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, operationsActionGroups, panelFreeWidgets, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
+import { HeadingLevel, SECTION_LEVEL } from './headingLevel';
 import { useGame, useWidgetIds } from './state';
 import { selectBootLogText, selectOpening, selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
@@ -91,13 +92,18 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
   </View>;
 }
 
+/** A titled widget is a section of the pane (#302): its title is a heading, and headings in its body sit below it. */
 function Widget({ id, compact = false, area = 'work' }: { id: string; compact?: boolean; area?: WorkspaceArea }) {
   const widget = CONTENT.widgets.get(id), Component = widgetRegistry[id];
-  return widget && Component ? <View testID={'widget-' + id} style={compact ? styles.compact : theme.panel}>
-    {!compact && referenceWidgets.includes(id)
-      ? <ReferencePanel id={id} title={widget.title}><Component area={area} /></ReferencePanel>
-      : <>{!compact && <Text style={theme.heading}>{widget.title}</Text>}<Component area={area} /></>}
-  </View> : null;
+  if (!widget || !Component) return null;
+  // The guest console pins a widget without its title, so its body is not a section of its own.
+  if (compact) return <View testID={'widget-' + id} style={styles.compact}><Component area={area} /></View>;
+  const body = <HeadingLevel level={SECTION_LEVEL + 1}><Component area={area} /></HeadingLevel>;
+  return <View testID={'widget-' + id} style={theme.panel}>
+    {referenceWidgets.includes(id)
+      ? <ReferencePanel id={id} title={widget.title} level={SECTION_LEVEL}>{body}</ReferencePanel>
+      : <><Text accessibilityRole="header" aria-level={SECTION_LEVEL} style={theme.heading}>{widget.title}</Text>{body}</>}
+  </View>;
 }
 const styles = StyleSheet.create({
   flow: { minWidth: 0, flexShrink: 0 },

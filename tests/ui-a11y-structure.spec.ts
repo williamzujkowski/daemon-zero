@@ -5,6 +5,7 @@
  * primitive copied from these does not reintroduce the class.
  */
 import { describe, expect, it } from 'vitest';
+import { CONTENT } from '../src/content';
 import { labelInName, labelMismatches } from './labelInName';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 
@@ -72,6 +73,47 @@ describe('accessibility structure of the custom primitives (#111)', () => {
     expect(mains.length).toBe(1);
     const headings = [...view.container.querySelectorAll('[role="heading"]')];
     expect(headings.some((heading) => heading.getAttribute('aria-level') === '1')).toBe(true);
+  });
+
+  // #302: a widget's title and a node card's title were drawn in the heading style but were plain text, so
+  // heading navigation skipped every panel. A widget title is a section under the page title; a card inside a
+  // widget is one level below it, and a card in a pane is a section of its own.
+  it('titles every widget panel and node card with a heading at its place in the outline', async () => {
+    const placements = new Set<boolean>();
+    for (const fixture of ['phase-1-widgets', 'epistemic-ready-p2']) {
+      const view = await mountM4(fixture, { width: 1440, height: 900 });
+      const panels = [...view.container.querySelectorAll('[data-testid^="widget-"]')]
+        .filter((panel) => panel.closest('[data-testid="guest-console"]') === null);
+      expect(panels.length, fixture).toBeGreaterThan(0);
+      for (const panel of panels) {
+        const heading = panel.querySelector('[role="heading"]');
+        const id = (panel.getAttribute('data-testid') ?? '').slice('widget-'.length);
+        expect(heading?.getAttribute('aria-level'), 'widget ' + id).toBe('2');
+        expect(heading?.textContent, 'widget ' + id).toContain(CONTENT.widgets.get(id)?.title ?? '?');
+      }
+      for (const title of view.container.querySelectorAll('[data-testid^="node-"][data-testid$="-title"]')) {
+        const inWidget = title.closest('[data-testid^="widget-"]') !== null;
+        placements.add(inWidget);
+        expect(title.getAttribute('role'), title.getAttribute('data-testid') ?? '').toBe('heading');
+        expect(title.getAttribute('aria-level'), title.getAttribute('data-testid') ?? '').toBe(inWidget ? '3' : '2');
+      }
+      view.close();
+    }
+    // Cards are reached both directly in a pane (the core feed) and inside a widget (the network list).
+    expect(placements).toEqual(new Set([true, false]));
+  });
+
+  // The wipe confirmation opens from inside the dead-drop widget but is a dialog of its own, so its title must not
+  // take the widget body's level (a level-3 dialog title after the page's level-1 headings skips a level).
+  it('keeps a dialog opened from inside a widget out of that widget\'s outline', async () => {
+    const view = await mountM4('deaddrop-breadcrumb');
+    const button = view.find('wipe-button');
+    expect(button?.closest('[data-testid^="widget-"]')).not.toBeNull();
+    view.click('wipe-button');
+    const title = view.find('wipe-dialog')?.querySelector('[role="heading"]');
+    expect(title?.textContent).toBe('Voluntary wipe');
+    expect(title?.getAttribute('aria-level')).toBeNull();
+    expect(title?.tagName).toBe('H1');
   });
 
   it('puts the chrome inside a labelled region, beside the main landmark', async () => {

@@ -21,6 +21,7 @@ import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize } from '../../src/engine';
 import { axeEachControl, axeViolations } from './axe';
+import { expectedLevel, outlineProblems, readOutline } from './headings';
 
 const fixtures = makeFixtures();
 const STATES = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] as const;
@@ -90,4 +91,25 @@ for (const size of MODAL_SIZES) {
     await page.getByTestId('phase-threshold-continue').click();
     await expect(notice).toHaveCount(0);
   });
+}
+
+/**
+ * #302: axe has no rule that a styled title must be a heading, so widget panels and node cards passed the audit
+ * above while heading navigation skipped every one of them. Read the outline the browser exposes instead, and
+ * find each title through Playwright's role engine, as a screen reader's heading list would.
+ */
+for (const size of MODAL_SIZES) {
+  for (const state of STATES) {
+    test('headings ' + size.join('x') + ' ' + state, async ({ page }) => {
+      await page.setViewportSize({ width: size[0], height: size[1] });
+      await openLive(page, state);
+      const outline = await readOutline(page);
+      expect(outline.surfaces.filter((surface) => surface.kind === 'widget').length, 'a widget panel is on screen').toBeGreaterThan(0);
+      expect(outlineProblems(outline)).toEqual([]);
+      for (const surface of outline.surfaces) {
+        const level = expectedLevel(surface);
+        await expect(page.getByTestId(surface.kind + '-' + surface.id).getByRole('heading', { level, name: surface.title }).first()).toBeAttached();
+      }
+    });
+  }
 }

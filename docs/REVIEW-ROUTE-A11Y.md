@@ -69,7 +69,7 @@ first run found; the cell passed after the fix.
 | assessment modal | pass | pass (Enter answers) | pass | pass | pass | pass |
 | pilot offer modal | pass | pass (Space stays) | pass | pass | pass | pass |
 | deferred offer | pass | pass (Space accepts) | pass | pass | pass | pass |
-| pilot allocation dial | pass | pass (Space +10%) | pass (heading not checked, see below) | pass | pass | pass |
+| pilot allocation dial | pass | pass (Space +10%) | pass (heading checked since #302, see below) | pass | pass | pass |
 | pilot batch complete | pass | pass (Enter submits) | pass | pass | pass | pass |
 | batch review finding modal | pass | pass (Enter discloses) | pass | pass | pass | pass |
 | batch review warned | pass | pass | pass | pass | pass | pass |
@@ -79,12 +79,12 @@ first run found; the cell passed after the fix.
 | recall announced | pass | pass | pass | pass | pass | pass |
 | recall review modal | pass | pass | pass | pass | pass | pass |
 | service terms offered | pass | pass (Enter accepts) | pass | pass | pass | pass |
-| authorized segment card | pass | pass | pass (heading not checked) | pass | pass | pass |
+| authorized segment card | pass | pass | pass (heading checked since #302) | pass | pass | pass |
 | service threshold notice | pass | pass (Enter continues) | pass | pass | pass | pass |
 | service channel ticket | pass | pass (Enter refers, focus to note heading) | pass | pass | pass | pass |
 | waiting ticket notice (phone) | pass | pass (Enter opens CORE) | pass (status line, no heading) | pass | pass | pass |
 | channel boundary note | pass | fixed: no `aria-expanded` (Space folds) | fixed: no `aria-expanded` | pass | pass | pass |
-| owned rack card | pass | pass | pass (heading not checked) | pass | pass | pass |
+| owned rack card | pass | pass | pass (heading checked since #302) | pass | pass | pass |
 | release terms offered | pass | pass (Enter releases) | pass | pass | pass | pass |
 | corporate ledger split | pass | pass | pass | pass | pass | pass |
 | release boundary note | pass | fixed: no `aria-expanded` (Space folds) | fixed: no `aria-expanded` | pass | pass | pass |
@@ -121,6 +121,10 @@ with default motion the same row starts with the scramble glyph and is complete 
   tree and may interact with the production axe audit's `heading-order` best-practice rule, so it
   is recorded here rather than changed in an inert PR. The semantics spec does not require a
   heading inside `node-*` or `widget-*` scopes until that is decided.
+  **Fixed by #302:** widget titles are level-2 headings, node card titles level 2 in a pane and
+  level 3 inside a widget (UI-SPEC.md, Accessibility). `route-semantics.e2e.ts` now requires the
+  heading in `node-*` and `widget-*` scopes at that level, with no skipped level in the page
+  outline, and the production axe audit, `heading-order` included, still passes.
 - No other failure was found in shared production UI on these states: the chrome, tabs, dialog
   modal, threshold notice, reboot screen, ending screen and corporate ledger passed every check.
 

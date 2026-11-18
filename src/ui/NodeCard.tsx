@@ -19,6 +19,7 @@ import RequirementHint from './RequirementHint';
 import { recordNodeRender, recordNodeProfile } from '../app/renderCounts';
 import CostHint from './CostHint';
 import NodeTitle from './NodeTitle';
+import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from './headingLevel';
 import GrantNote from './GrantNote';
 
 /** What rediscovery saves, from the same multipliers the price uses, so the line cannot drift (#262). */
@@ -38,6 +39,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
   });
   // Hardware mapped in an earlier iteration is remembered by name and costs less to map again.
   const compact = isCompactViewport(useWindowDimensions().width);
+  const level = useHeadingLevel() ?? SECTION_LEVEL;
   const known = useGame((game) => isNodeKnown(game, node.id));
   const surveillanceKnown = useSurveillanceKnown();
   const campaign = useGame(isCampaignActive);
@@ -54,9 +56,12 @@ function NodeCard({ node }: { node: RegistryNode }) {
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
+    {/* #302: whichever line titles the card is a heading at the card's place in the outline. */}
+    <HeadingLevel level={level}>
     {known && !isEnding ? <CardDetails id={'node-' + node.id} titleTestID={'node-' + node.id + '-title'}
       title={'[REMEMBERED] ' + title} description={revealedDescription} /> :
       <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />}
+    </HeadingLevel>
     {isEnding && <DisclosureText style={theme.text}>{known ? revealedDescription : blindDescription}</DisclosureText>}
     </Profiler>
       {/* #108: the decision precedes the prose. The button used to be the last
