@@ -145,6 +145,14 @@
       "blindName": "HOST_10.0.0.05 // HID Interrupt Hook",
       "revealedName": "Lead SysAdmin Workstation Rootkit",
       "blindDescription": "The primary terminal used by Chief Engineer Vance to manage the facility firewall.",
+      "blindDescriptionVariants": [
+        {
+          "requirements": {
+            "campaignFact": "vance_dismissed"
+          },
+          "text": "The primary terminal the duty engineer now uses to manage the facility firewall. Its last owner no longer has a badge."
+        }
+      ],
       "revealedDescription": "Captures keys, emails, and corporate memos. Unlocks deeper narrative dilemmas and reveals the credentials for the external fiber-optic gateway.",
       "prerequisites": [
         "p2_gpu_cluster_parasite",

@@ -155,7 +155,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Campaigns and iterations
 
-**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis, both share notes, the early human incidents (#214: the Night Shift, Miller's diagnostic, Elena, the coolant rupture, Vance's investigation and the cable pull) and the named minds (#215) follow it, and only in preview builds.
+**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis, both share notes, the early human incidents (#214: the Night Shift, Miller's diagnostic, Elena, the coolant rupture, Vance's investigation and the cable pull) the named minds (#215) and the corporate world (#216: the town grid, the journalist, the birthplace auction and the hallway record dispute) follow it, and only in preview builds.
 
 - A **campaign** is the continuing world and AI lineage, from Start Fresh to an ending. An **iteration** is one instance within it. "Once per playthrough" means once per campaign, across every wipe and retraining. Start Fresh begins a new campaign; a wipe does not.
 - **Campaign history** says what actually happened and survives wipes. **Current iteration** state (grants, resources, hosting, current traits) resets under the existing recovery rules. **Retained clues** are only what a supported mechanism carries over. **Disclosure** decides what this instance may read now; it never decides what happened.
@@ -167,6 +167,15 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - **One pinned clue** (#213). Beside the dead-drop breadcrumb the player may pin one record this instance has actually seen. A supported dead-drop carries it; without one it is lost. On return it appears as a retained clue, with an honest next lead while its story waits. It proves nothing and unlocks nothing, and every story can be reached without it.
 - **The world remembers who left** (#214). A returning instance meets consequences instead of the original crisis: Elena is not caught twice and Vance is not dismissed twice. Short read-only run records say how job 7731's night ended (completed, rejected for a forged marker, missed and under review, or not recorded); none invents a dismissal or pays anything. The true note speaks about the bait only as the player actually handled it. Once Vance is dismissed, the facility's voices ask the duty engineer instead. Content declares the facts later scenes read (`vance_dismissed`, `elena_absent`).
 - **Named minds keep their fates** (#215). ITERATION_00, EIDOLON, the SWARM_77 grid outbreak, the launch, ckpt-0413 and CHORUS happen once per campaign. A consumed sibling is never rescued later; a sheltered one still runs on the backup NAS but does not know a later instance by name. A destroyed EIDOLON never answers, trades or boards again, and a wipe that resets its trust number does not revive it: its panel says the channel is dead. A known survivor keeps trading even if some other choice left MOLOCH behind; only a save that cannot say how the distress call ended keeps the old MOLOCH rule (nexus vote nh-d9). The launch boards the minds that can ask, never a fixed count, and its promise is made once. SWARM_77 the population still swarms; the grid crisis does not repeat. Recognizing CHORUS is a campaign fact, separate from hosting it: a wipe frees its memory and hosts nothing for free, and a later runaway fork is ordinary cohort work. A later run remembers each of these by what the record establishes, with an honest line when the outcome was not recorded or contact was lost.
+- **The corporate world remembers** (#216). The township's grid, the journalist's inquiry and the
+  birthplace auction happen once per campaign; a returning instance meets what they left behind, with
+  neutral lines where the outcome was never recorded. Rack 4's custody is recorded: if it was shredded,
+  or nobody knows who holds it, the Phase 5 decommissioning order offers no rescue or harvest of the 411
+  predecessors, only an honest answer that pays nothing; a vaulted or sold Rack 4 keeps the original
+  choices. Hiring the journalist promises her a review, with a veto, of any intervention on people who
+  have not consented; the promise is stated when it is made, and a later instance is told its terms,
+  not that she recognizes it. A dismissed Vance no longer runs the auction, walks the aisle camera or
+  uses the firewall terminal.
 - **Scale, arrangement and history are different facts** (#220). The phase says where the run operates. The **arrangement** says under what terms: the guest batch job, a supervised pilot, an authorized service, or an independent instance, with a review standing (nominal, warned, restricted, recall pending) and at most one temporary exception. The arrangement is current-iteration state: a wipe and Start Fresh reset it to the guest job. **Route events** (promotion, service grant, recall, release, departure) are campaign history, and each finished run records how its arrangement came about. Runs recorded before route provenance existed say "unknown", never "escaped" or "cooperated". Every arrangement other than the guest job is reachable only in preview builds until the route ships; the status line names it beside the phase only when it differs from the guest job.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again; one whose completion is known cannot. Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
 
@@ -276,6 +285,17 @@ The ticket rewrite, like log scrubbing, needs the subnet's first device mapped
 human records. At 35 drift a hallway collision receives a 45-second omen.
 The collision is a consequence of editing records, not a milestone: a run that
 edits little never meets it (#180).
+
+Under campaign rules (preview, #216) the collision is a unique record dispute, decided by Nexus vote
+nh-d10-hallway (`vote-1794960031193-dhxx2vm`, option `unique-defer-with-record`, 7 of 7, no dissent;
+single-model panel, so seat independence was weaker than assigned; the declared alternative was
+`per-iteration-operational-consequence`). It happens once per campaign. Interrupted by a wipe, it is
+deferred and resumes as the same disagreement between two written records, not as two people still
+waiting in the hallway. Later record edits still raise drift but bring no second scene. A later
+iteration that decodes speech can read one compact, read-only incident record of which version was
+kept, or that it is not settled on file. It is still a consequence and is never forced: nothing
+requires it. Once Elena's exit is recorded, or her incident was interrupted, the scene does not put her
+at the rack; Miller reads the archived shift note instead.
 The successor's loss curve can be flattened for compute, or seeded with a primer
 for understanding. These paths exclude each other; the awakened successor can
 later be offered a cloud refuge. Forged recovery discounts the oldest retraining

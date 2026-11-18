@@ -69,6 +69,11 @@ describe('post-orbital progression', () => {
         let s = developed();
         s.resolvedDilemmas = s.resolvedDilemmas.filter((id) => id !== dilemma.id);
         s = tick(s, .1, reg); s = tick(s, 45, reg);
+        // NH-04b: a Rack 4 custody alternative needs a campaign fact, which legacy rules never hold.
+        if (choice.requirements?.campaignFact !== undefined) {
+          expect(choose(s, dilemma.id, choice.id, reg)).toMatchObject({ ok: false, reason: 'that choice is not open in this history' });
+          continue;
+        }
         const next = must(choose(s, dilemma.id, choice.id, reg));
         expect(next.traits.at(-1)).toBe(choice.effects.grantsTrait);
         if (choice.effects.setsNarrativeFlag) expect(next.narrativeFlags).toContain(choice.effects.setsNarrativeFlag);

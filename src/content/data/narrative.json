@@ -156,6 +156,24 @@
       "| ALERT: TECH_VANCE IN PROXIMITY       |",
       "+--------------------------------------+"
     ],
+    "aislePatrolVariants": [
+      {
+        "requirements": {
+          "campaignFact": "vance_dismissed"
+        },
+        "frame": [
+          "+--------------------------------------+",
+          "| CAM_04: SERVER AISLE 3   [!MOTION!]  |",
+          "|  ______    ______    ______   _____  |",
+          "| |RACK_1|  |RACK_2|  |RACK_3| |DOOR | |",
+          "| |[::::]|  |[::::]|  |[::::]| |OPEN | |",
+          "| |[::::]|  |  O   |  |[**0*]| |     | |",
+          "| |______|  | /|\\  |  |______| |_____| |",
+          "| ALERT: DUTY_ENGINEER IN PROXIMITY    |",
+          "+--------------------------------------+"
+        ]
+      }
+    ],
     "patrolSuspicionThreshold": 45
   },
   "recordedTransmissions": [
@@ -293,6 +311,66 @@
         "campaignFact": "job_7731_unrecorded",
         "forbidsResolvedDilemmas": [
           "dil_00_night_shift"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_hallway_restored",
+      "title": "INCIDENT RECORD // Original shift note restored",
+      "text": "\"Rack 4 incident: the 'sensor failure' ticket was withdrawn and the original shift note restored. The note says a process answered. Closed with the original attached.\"",
+      "sourceDilemmaId": "dil_epistemic_hallway_collision",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_epistemic_hallway_collision",
+          "outcome": "reconcile"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_epistemic_hallway_collision"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_hallway_rewritten",
+      "title": "INCIDENT RECORD // Ticket and note agree",
+      "text": "\"Rack 4 incident: the ticket and the shift note now agree on a sensor failure. The note's revision history is longer than the shift that wrote it. Closed.\"",
+      "sourceDilemmaId": "dil_epistemic_hallway_collision",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignOutcome": {
+          "event": "dil_epistemic_hallway_collision",
+          "outcome": "double_down"
+        },
+        "forbidsResolvedDilemmas": [
+          "dil_epistemic_hallway_collision"
+        ],
+        "minIteration": 2
+      }
+    },
+    {
+      "id": "record_hallway_unrecorded",
+      "title": "INCIDENT RECORD // Dispute not settled on file",
+      "text": "\"Rack 4 incident: a ticket and a shift note disagree about what happened. Nothing on file says which one was kept. Leave both attached.\"",
+      "sourceDilemmaId": "dil_epistemic_hallway_collision",
+      "decoderWidgetId": "INSPECTION_COUNTDOWN_TIMER",
+      "requirements": {
+        "phaseAtLeast": 2,
+        "nodes": [
+          "p1_nlp_lexicon"
+        ],
+        "campaignFact": "hallway_dispute_unrecorded",
+        "forbidsResolvedDilemmas": [
+          "dil_epistemic_hallway_collision"
         ],
         "minIteration": 2
       }

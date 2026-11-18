@@ -101,11 +101,14 @@ export function decide(state: GameState): { intents: Intent[]; locked: Dial[] } 
   return { intents: [...shed, ...usable, ...actions(state, wanted), ...swarm(state, wanted), ...purchases(state, wanted)], locked };
 }
 
-/** The bot's own dilemma ranking, best first. The player presses the first one that is enabled. */
+/**
+ * The bot's own dilemma ranking of the choices on screen, best first. The player presses the first
+ * one that is enabled. A choice this history does not offer is not rendered, so it is never ranked.
+ */
 export function rankChoices(choiceIds: readonly string[]): { dilemma: string; id: string; free: boolean }[] {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.choices.some((choice) => choiceIds.includes(choice.id)));
   if (!dilemma) return [];
-  return rankDilemmaChoices(dilemma.choices, 'STEALTH')
+  return rankDilemmaChoices(dilemma.choices.filter((choice) => choiceIds.includes(choice.id)), 'STEALTH')
     .map((choice) => ({ dilemma: dilemma.id, id: choice.id, free: Object.values(choice.cost).every((value) => value === 0) }));
 }
 

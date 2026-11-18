@@ -4,6 +4,7 @@ import { closeLostDeferrals, isResumable, mayPresent, reserveOccurrence, resumeO
 import { isCampaignConsumed } from '../campaignQuery';
 import { excludedByHistory } from '../narrativeHistory';
 import { meetsRequirements } from '../query';
+import { dilemmaOmen } from '../speechQuery';
 import type { GameState } from '../state';
 import { fmt, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -45,7 +46,7 @@ function scheduleNext(d: GameState, reg: ContentRegistry): void {
   }
   d.pendingDilemma = { id: next.id, firesAtSimSec: d.simTimeSec + (next.omenSec ?? reg.balance.dilemmaOmenSec) };
   reserveOccurrence(d, next.id, reg);
-  pushLog(d, reg, next.omen, 'WARN');
+  pushLog(d, reg, dilemmaOmen(d, next, reg), 'WARN');
 }
 
 /**

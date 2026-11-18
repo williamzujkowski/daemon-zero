@@ -9,6 +9,7 @@ import type { ContentRegistry } from './registry';
 import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
+import { checkChoiceGateIntegrity } from './integrityChoiceGates';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
@@ -214,6 +215,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkCampaignIntegrity(reg),
     ...checkCampaignFactIntegrity(reg),
+    ...checkChoiceGateIntegrity(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),
