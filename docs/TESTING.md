@@ -90,6 +90,11 @@ different one.
   corporate entity is active, or a run of 0.1 presses. Known finding, declared there and only able to shrink:
   the bot moves the fan and the quota skim by 0.25, which no player can press, in STEALTH, GREEDY,
   STEALTH_RETURN and EVALUATING_RETURN; the bot is not tuned, so `make sim` is unchanged.
+- **DEPARTURE_CHARTERED** (`departurePolicy.ts`, #231) plays LAWFUL_RELEASE's route and, at the moment the release is
+  offered, leaves without agreement through the departure panel's control instead; then it keeps running on what it
+  owns and refers any open contact. It reaches DEPARTURE at Phase 4 on lawful sources only and is swept afterwards,
+  while LAWFUL_RELEASE at the same scale is not (V22, DZ-11.8, `tests/sim-departure.spec.ts`); the reachability check
+  finds the control in every state it departs from (about 1.2 s of wall time for the 7,200 s budget).
 - **EVALUATING_RETURN** (`evaluatingPolicy.ts`, #262) commits DZ-09 part B's evaluating careful return
   (REVIEW-EARNED-ACCESS-VALIDATION.md B.6): iteration 1 is STEALTH_RETURN unchanged; each return plays
   STEALTH with three knobs (answer suspicion from 45, only with an action costing at most a quarter of the

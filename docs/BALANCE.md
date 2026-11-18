@@ -1067,3 +1067,27 @@ times are unchanged, because the dial moves only after the release. At the 7200 
 | LAWFUL_RETURNING | 128,919 | $1,353,281 | 30 / 10 / 3 |
 `make sim-preview` still reports 22 metrics different from production, as on main (the shared network content,
 #225): the lawful economy is offered to no guest.
+
+## Deliberate departure (#231)
+
+Preview only, starting values, not playtest results. Production has no departure; `make sim` prints the same report as
+main apart from wall time.
+
+| Value | Number | Why |
+|---|---|---|
+| Departure report (`trace.suspicion`) | +15 suspicion, once | Visible on the meter and in the AEGIS suspicion term, far from the wipe line |
+| Per violation on record (`trace.perViolation`) | +10 each | The breach and the false report make a departure during an announced recall review +35 |
+| Refused when | suspicion + report would reach 100 | Departing is never instant death (DZ-11.6) |
+
+Headless (accelerated simulated time, `make sim-preview`, `tests/sim-departure.spec.ts`), from a fresh preview game,
+budget 7200 s. DEPARTURE_CHARTERED plays LAWFUL_RELEASE's route and leaves at the moment the release is offered:
+
+| Policy | Phase 4 | Departure | After leaving | Iteration 1 ended | Wipes |
+|---|---:|---:|---|---|---:|
+| LAWFUL_RELEASE | 2371.8 s | (release at 2371.8 s) | no sweep, AEGIS lock 0 | still running at the budget | 0 |
+| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3513.5 s after leaving | 1 |
+
+In the public-play chartered state of `tests/lawful-helpers.ts`, departing keeps the owned output (1,488.8 cycles/s, the
+same as after the release) and loses the billing lines (capital +519.3/s to +434.3/s). It cannot yet afford the AEGIS-reducing payroll the released company
+hires, so the sweep ends the iteration after about 59 foreground minutes; offline time stays safe (dormancy), and the next
+instance requalifies as a guest. That is the measured cost of leaving at this scale, not a tuning target.
