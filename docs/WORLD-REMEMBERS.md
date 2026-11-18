@@ -81,7 +81,7 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | NH-03 early human incidents | #214 (PR #242) | DZ-08 first permitted contact | #227 |
 | NH-04a unique minds | #215 (in review) | Q1 validation harness | #228 (done, PR #235) |
 | NH-04b corporate world | #216 (PR #255) | DZ-09 autonomous validation gate | #229 |
-| NH-05 obligations, endings | #217 | DZ-10 lawful economics | #230 |
+| NH-05 obligations, endings | #217 (in review) | DZ-10 lawful economics | #230 |
 | NH-06 Elena follow-up | #218 | DZ-11 deliberate departure | #231 |
 | NH-07 routine activity | #219 (done, PR #241) | DZ-12 cooperative ending | #232 |
 | DZ-02 truthful run context | #220 (done, PR #243) | DZ-13 release qualification | #233 |

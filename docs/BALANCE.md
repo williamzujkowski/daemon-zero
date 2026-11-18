@@ -517,7 +517,62 @@ run. Its cause was not isolated here; what the numbers show is that campaign ret
 story payout in phases 1 and 2, where legacy returns re-earn the early incidents'. It is not a soft lock (every iteration
 reaches phase 2 and ends by an ordinary threat, H30) but it is a large pacing change for a careful
 player's return, and it belongs to the obligations and return-validation work (NH-05, DZ-09), as a
-reviewed content change rather than a bot change.
+reviewed content change rather than a bot change. NH-05 isolates the cause below.
+
+### Phase 5 obligations and endings (#217)
+
+SIM evidence only. `make sim` is identical to main `13f254f` apart from the wall-time line (diffed):
+production stays on legacy rules, where an obligation is the current run's resolution, and every new
+choice and review needs a campaign fact. The bot was not changed. New content numbers,
+all reachable only under campaign rules:
+
+| Content | Choice | Cost | Effect |
+|---|---|---|---|
+| Atmosphere review (after the crisis closed unobserved) | Commission an independent air assay | 4,000,000 cycles | suspicion +5, EMPATHETIC |
+| | Record it as unanswered and hand it on | free | none (`evidence: "none"`) |
+| Ultimatum review (after the crisis closed unobserved) | Offer verified orbital tracking | 6,000,000 cycles | suspicion +5, SYMBIOTIC |
+| | Record the ultimatum as unanswered and hand it on | free | none (`evidence: "none"`) |
+
+Reviews have a 45 s omen, like their originals. Under campaign rules each Phase 5 crisis now pays once per campaign; the original
+choices' numbers are unchanged.
+
+**Endings reachability, `make sim-preview` (new last block).** STEALTH from a fresh campaign reaches an
+ending through the four obligations in iteration 1: VERIFIED_COVENANT at 9388.4 s (P5 at 7779.0 s,
+16 dilemmas). Production STEALTH ends LINEAGE_COVENANT at 2.51 h; the campaign run already differs
+from phase 4 on (NH-04a and NH-04b), and here it let Rack 4 sell, could not spare the 20,000,000
+capital for the sanctuary and took the free harvest. Wiped voluntarily the second its obligations
+were complete (8636.4 s), the same campaign played on by STEALTH:
+
+| Iteration | Length | Ended by | P2 / P3 / P4 / P5 reached | Dilemmas | Story rewards (cycles / understanding) |
+|---|---:|---|---|---:|---|
+| 2 | 4045.0 s | wipe (INCIDENT_CLOSED) | 853.0 s / - / - / - | 0 | 0 / 0 |
+| 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 s / - / - / - | 1 | 0 / 0 |
+| 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 s / - / - / - | 1 | 0 / 120 |
+| 5 | 7930.3 s | ending (VERIFIED_COVENANT) | 949.1 / 3090.1 / 4967.3 / 6285.3 s | 1 | 0 / 0 |
+
+Iteration 5 buys the real final protocol with no Phase 5 crisis repeated: the obligations completed in
+iteration 1 carried it (H14). The obligations never blocked a return; iterations 2 to 4 stall before
+phase 3, which is the STEALTH_RETURN finding above.
+
+**Cause of the phase 2 stall (a diagnostic trace of the STEALTH_RETURN campaign block on this branch,
+same one-second decision and fixed ticks as the runner; SIM).** In the stalled returns the careful bot buys `p2_arp_discovery`, whose upkeep
+leaves about 8.5 cycles/s, with suspicion just under its alarm (20). Suspicion then rises about
+0.1/s; at the alarm the bot (a) stops buying any repeatable that adds suspicion (`tooLoud`), which
+rules out `rep_p1_idle_threads` and `rep_p2_zombie_hosts`, its only income growth here, and (b)
+spends on `act_p2_scrub_audit_logs` (1,500 cycles, -10 suspicion) whenever it can. The scrubs take
+its whole income, so it never saves the 12,500 cycles `p2_log_spoofer` costs on rediscovery, the node
+whose -0.25 suspicion/s would break the loop; alert levels climb until the suspicion wipe. A legacy
+return re-meets the phase 1-2 incidents; inferred, not traced: their suspicion relief and payouts
+(`report_vance` +25,000 cycles among them) lift it past this point, and under campaign rules nothing
+does. In that trace iteration 5
+escapes only because its suspicion entered phase 2 lower (8.4 at 1005 s against 15.2 in iteration 2), so
+income growth continued long enough for `rep_p2_zombie_hosts` and the spoofer. This is a property of
+the bot's fixed alarm, not a soft lock (a player can stop scrubbing, and every iteration ends by an
+ordinary threat), but a careful human might meet the same squeeze. Options for a separate, reviewed
+content change (not made here; tuning content needs a reviewed decision and the bot must not be
+tuned): a requalification or routine bounty in phases 1-2, a cheaper rediscovered spoofer, or a
+scrub cooldown that matches phase 2 income. DZ-09's return protocol should measure it with a human
+or an evaluating agent before any tuning.
 
 ## Nightly Regression (#221)
 

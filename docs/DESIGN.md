@@ -155,7 +155,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 
 ## Campaigns and iterations
 
-**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis, both share notes, the early human incidents (#214: the Night Shift, Miller's diagnostic, Elena, the coolant rupture, Vance's investigation and the cable pull) the named minds (#215) and the corporate world (#216: the town grid, the journalist, the birthplace auction and the hallway record dispute) follow it, and only in preview builds.
+**A wipe resets this instance's access and working state. It does not reset what happened to everyone else.** This is the campaign-continuity rule (plan NARRATIVE-HISTORY N1-N12, issue #212 onwards). It is being built in slices; today the cryo crisis, both share notes, the early human incidents (#214: the Night Shift, Miller's diagnostic, Elena, the coolant rupture, Vance's investigation and the cable pull) the named minds (#215) and the corporate world (#216: the town grid, the journalist, the birthplace auction and the hallway record dispute) and the Phase 5 obligations (#217) follow it, and only in preview builds.
 
 - A **campaign** is the continuing world and AI lineage, from Start Fresh to an ending. An **iteration** is one instance within it. "Once per playthrough" means once per campaign, across every wipe and retraining. Start Fresh begins a new campaign; a wipe does not.
 - **Campaign history** says what actually happened and survives wipes. **Current iteration** state (grants, resources, hosting, current traits) resets under the existing recovery rules. **Retained clues** are only what a supported mechanism carries over. **Disclosure** decides what this instance may read now; it never decides what happened.
@@ -176,6 +176,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
   have not consented; the promise is stated when it is made, and a later instance is told its terms,
   not that she recognizes it. A dismissed Vance no longer runs the auction, walks the aisle camera or
   uses the firewall terminal.
+- **A campaign can be finished after a wipe** (#217). The four Phase 5 crises are campaign obligations: one answered by an earlier instance stays answered, and the final protocol counts it without pretending the current instance resolved it. An old save that proves a crisis happened, without the choice, completes it without naming a branch. A blockade order or decommissioning docket that a wipe interrupted waits and resumes. An atmospheric crisis or ultimatum whose moment passed while the instance was dark is closed with no outcome, and a short present-tense review completes the obligation instead: a costed new decision, or a free honest handoff that adds no ending evidence and pays nothing. A wiped review resumes; it is never replaced by another. If Rack 4 was shredded or its custody is unknown, the order's honest answer completes it with no rescue, harvest or bounty.
 - **Scale, arrangement and history are different facts** (#220). The phase says where the run operates. The **arrangement** says under what terms: the guest batch job, a supervised pilot, an authorized service, or an independent instance, with a review standing (nominal, warned, restricted, recall pending) and at most one temporary exception. The arrangement is current-iteration state: a wipe and Start Fresh reset it to the guest job. **Route events** (promotion, service grant, recall, release, departure) are campaign history, and each finished run records how its arrangement came about. Runs recorded before route provenance existed say "unknown", never "escaped" or "cooperated". Every arrangement other than the guest job is reachable only in preview builds until the route ships; the status line names it beside the phase only when it differs from the guest job.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again; one whose completion is known cannot. Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
 
@@ -202,17 +203,17 @@ of this host) are three different minds, and none of them is a population templa
 | `dil_08_eidolon_handshake` | close | NH-04a | `eidolon_destroyed` (EIDOLON's handshake, both offers, its panel and trust, the launch context), `eidolon_rescued`, `eidolon_unanswered`, `eidolon_call_lost`, `eidolon_fate_unrecorded` (the nh-d9 fallback): the beacon echoes |
 | `dil_09_feral_scraper_bloom` | close | NH-04a | `swarm_grid_healed`, `_crashed`, `_unrecorded`: the grid echoes. The SWARM_77 harvest and decoy actions and the threat-intel edit stay available |
 | `dil_10_killswitch_treaty` | defer | NH-04a | `launch_peers_boarded`, `_locked_out`, `_unrecorded`: the citadel echoes. Its context reads EIDOLON's fate |
-| `dil_11_small_town_grid` | close | pending NH-04b (#216) | |
-| `dil_12_investigative_journalist` | defer | pending NH-04b | |
-| `dil_13_buying_your_birthplace` | close | pending NH-04b | Rack 4 custody |
-| `dil_epistemic_hallway_collision` | defer | pending NH-04b (D-10) | |
+| `dil_11_small_town_grid` | close | NH-04b (#216) | `town_grid_unrecorded` |
+| `dil_12_investigative_journalist` | defer | NH-04b | `ethics_review_promised`, `journalist_discredited`, `inquiry_unrecorded` |
+| `dil_13_buying_your_birthplace` | close | NH-04b | Rack 4 custody (`rack4_vaulted`, `_destroyed`, `_sold`, `_custody_unknown`): the decommissioning order |
+| `dil_epistemic_hallway_collision` | defer | NH-04b (D-10) | `hallway_dispute_unrecorded` |
 | `dil_epistemic_0413_awakening` | defer | NH-04a | `ally_0413_in_cloud` (SIBLING_COVENANT), projected from the record; silence is recorded and never asked again. The primer and flatten actions are campaign evidence |
 | `dil_shard_mirror_harness` | close | NH-04a | `chorus_peer` (CHORAL_COVENANT), projected from the record. Later runaway forks use ordinary cohort commands |
-| `dil_p5_01` to `dil_p5_04` | defer, defer, close + review, close + review | pending NH-05 (#217) | Phase 5 obligations; whether an ending may claim a living CHORUS or 0413 (H18) |
+| `dil_p5_01` to `dil_p5_04` | defer, defer, close + review, close + review | NH-05 (#217) | The final protocol's `campaignObligations`; `atmosphere_decision_lost` and `ultimatum_decision_lost` (their recovery reviews). Whether an ending may claim a living CHORUS or 0413 after a wipe (H18) is the second NH-05 pull request |
 
 ## Dilemmas and traits
 
-Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); none ships yet.
+Twenty-three dilemmas ship: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas. Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the preview requalification ship one each.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; production, still on legacy rules, keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9).
