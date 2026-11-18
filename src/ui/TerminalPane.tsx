@@ -9,7 +9,7 @@ import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
 import UpgradeFeed from './UpgradeFeed';
 import { palette } from './theme';
-import { compareWidgetPresentation, guestPinnedWidgets, referenceWidgets, stripOnlyWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
+import { compareWidgetPresentation, guestPinnedWidgets, operationsActionGroups, panelFreeWidgets, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import PreviewMarker from './PreviewMarker';
 import { useGame, useWidgetIds } from './state';
@@ -18,6 +18,7 @@ import { theme } from './theme';
 import { CONTENT_MAX_WIDTH } from './layout';
 import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
+import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
 
 /**
@@ -72,9 +73,10 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
   const content = <>
     {slots.includes('CORE') && <CoreTree />}
-    {ids.filter((id) => !pinned.includes(id) && !stripOnlyWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
+    {ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
       (!workspace.slot || workspaceWidgetVisible(id, workspace.active)))
       .sort(compareWidgetPresentation).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
+    {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}
   </>;

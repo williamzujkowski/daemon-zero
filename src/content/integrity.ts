@@ -23,6 +23,7 @@ import { checkReviewIntegrity } from './integrityReview';
 import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
 import { checkContextCopyIntegrity } from './integrityContextCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
+import { checkActionHostIntegrity } from './integrityActionHosts';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -258,5 +259,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
     ...checkActuatorHosts(reg),
+    ...checkActionHostIntegrity(reg),
   ];
 }

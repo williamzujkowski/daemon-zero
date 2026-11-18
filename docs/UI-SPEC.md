@@ -38,7 +38,8 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
-| `TELEMETRY_SPOOF_TOGGLE` | OPS actions; spoofer suspend/resume lives in PROC | `toggleNode`, actions with `group: OPS` |
+| `SUBNET_NODE_LIST` (also) | hands over the OPS action group (`hostsActionGroups`), whose cards render in Operations from ARP discovery (#273) | actions with `group: OPS` |
+| `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar | `factions`, `trust`, `aegisLock` |
@@ -391,7 +392,10 @@ NETWORK and CORP default to Work, containing unfinished nodes and current-phase
 upgrades. A 44px workspace navigation row precedes pane content. Sections
 appear only through unlocked widget registration: Operations, Swarm, Factions,
 Finance, Payroll and Reference. Operations contains normal network actions and
-current-phase epistemic edits; Factions keeps authored descriptions, trust,
+current-phase epistemic edits. Network actions appear with the widget whose content declares
+`hostsActionGroups` for their group, and integrity requires that widget to be unlocked whenever an
+action in the group can be performed, so a card is never missing while the engine would accept it
+(#273: the scrub's card arrives with ARP discovery, the node it requires, not with the spoofer); Factions keeps authored descriptions, trust,
 offers and countermeasures together. Finance contains the capital/power ledger,
 allocation and corporate actions; Payroll contains hire/dismiss controls.
 Insolvency, power shortfall and brownout warnings appear in every CORP workspace.
