@@ -12,7 +12,7 @@ import { defined } from './m7-helpers';
 
 const OLD = 'dil_cryo_old_name', GONE = 'dil_retired_incident';
 const evolved = buildRegistry({ ...RAW_CONTENT, channel: 'preview',
-  campaign: { aliases: [{ from: OLD, to: cryo.id, since: 7 }], retired: [GONE], labels: (RAW_CONTENT.campaign as { labels: unknown }).labels } });
+  campaign: { ...(RAW_CONTENT.campaign as object), aliases: [{ from: OLD, to: cryo.id, since: 7 }], retired: [GONE] } });
 const record = (s: GameState) => {
   const found = defined(campaignRecord(s, cryo.id));
   if (found.status !== 'resolved') throw new Error('cryo is not resolved');
@@ -27,7 +27,8 @@ describe('renamed, retired and unknown campaign ids', () => {
   it('reads a renamed record under its new id, so the event stays consumed', () => {
     const loaded = deserialize(withEvents(chosen, { [OLD]: record(chosen) }), evolved);
     expect(campaignRecord(loaded, cryo.id)).toEqual(record(chosen));
-    expect(Object.keys(loaded.campaign.events)).toEqual([cryo.id]);
+    // Other events the setup marked resolved this run come back as legacy completions (the upgrade path).
+    expect(Object.keys(loaded.campaign.events).filter((id) => !chosen.resolvedDilemmas.includes(id))).toEqual([cryo.id]);
     expect(advance(loaded, 120, evolved).pendingDilemma).toBeNull();
   });
 

@@ -75,7 +75,7 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 |
 | NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 |
-| NH-03 early human incidents | #214 | DZ-08 first permitted contact | #227 |
+| NH-03 early human incidents | #214 (PR #242) | DZ-08 first permitted contact | #227 |
 | NH-04a unique minds | #215 | Q1 validation harness | #228 (done, PR #235) |
 | NH-04b corporate world | #216 | DZ-09 autonomous validation gate | #229 |
 | NH-05 obligations, endings | #217 | DZ-10 lawful economics | #230 |
