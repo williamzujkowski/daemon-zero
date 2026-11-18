@@ -200,12 +200,15 @@ export function ramp(envelope: Samples, from: number, to: number, blockMs: numbe
 }
 
 export interface ClockedRamp extends Ramp {
-  /** `startBlock` to `endBlock` on the clock the blocks were rendered by. The first was rendered
-   *  before the move began and the last after it ended, so the move took no longer than this. */
+  /** From the first sample of `startBlock` to the last of `endBlock`, on the clock the blocks
+   *  were rendered by. Some sample of the first was rendered before the move began and some
+   *  sample of the last after it ended, so the move took no longer than this. With the renderer
+   *  keeping time it reads one block longer than `durationMs`. */
   renderMs: number;
-  /** From the first block that moved to the last that had not arrived, on the same clock: the
-   *  move took at least this long. With the renderer keeping time it is `renderMs` less two
-   *  blocks; a stall just before or after the move counts in `renderMs` and not here. */
+  /** From the last sample of the first block that moved to the first sample of the last block
+   *  that had not arrived: the move took at least this long. With the renderer keeping time it
+   *  reads three blocks shorter than `durationMs`; a stall just before or after the move, or
+   *  inside a block that straddles one end, counts in `renderMs` and not here. */
   insideMs: number;
   /** The most render time spanned by two neighbouring readable blocks on the way. */
   longestGapMs: number;
@@ -231,7 +234,7 @@ export function clockedRamp(envelope: Samples, clock: RenderClock, from: number,
   if (!found) return null;
   const known = (ms: number, blocks: number): number => Number.isNaN(ms) ? blocks * blockMs : ms;
   const across = (a: number, b: number): number => known((clock.last[b] ?? Number.NaN) - (clock.first[a] ?? Number.NaN), b - a + 1);
-  const between = (a: number, b: number): number => known((clock.first[b] ?? Number.NaN) - (clock.first[a] ?? Number.NaN), b - a);
+  const inside = (a: number, b: number): number => known((clock.first[b] ?? Number.NaN) - (clock.last[a] ?? Number.NaN), b - a - 1);
   let longestGapMs = 0; let excess = Number.NEGATIVE_INFINITY; let last = found.startBlock;
   let firstMoved = found.endBlock; let lastWaiting = found.startBlock;
   for (let block = found.startBlock + 1; block <= found.endBlock; block++) {
@@ -244,8 +247,8 @@ export function clockedRamp(envelope: Samples, clock: RenderClock, from: number,
     last = block;
   }
   // A move made in one jump has nothing inside it.
-  const insideMs = lastWaiting > firstMoved ? between(firstMoved, lastWaiting) : 0;
-  return { ...found, renderMs: between(found.startBlock, found.endBlock), insideMs, longestGapMs, excess };
+  const insideMs = lastWaiting > firstMoved ? Math.max(0, inside(firstMoved, lastWaiting)) : 0;
+  return { ...found, renderMs: across(found.startBlock, found.endBlock), insideMs, longestGapMs, excess };
 }
 
 /** A sine of known amplitude, for calibrating the functions above. */
