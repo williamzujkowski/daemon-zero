@@ -3,8 +3,12 @@ import { music, useMusic } from '../app/musicSession';
 import { scoreLabel } from '../app/scoreSession';
 import { Pressable, Text, View } from './PhaseTheme';
 import { theme } from './theme';
+import { Platform } from 'react-native';
 
 const STEP = 10;
+/** What starts a default-on score (src/app/musicGesture.ts): the web listens for any input on
+ *  the page, native for a touch on the terminal. Nothing plays before it on either. */
+function firstInput(): string { return Platform.OS === 'web' ? 'tap, click or key press' : 'tap'; }
 
 /** One switch. Its accessible name starts with the visible text (#111), then says what it gates. */
 function Toggle({ id, word, gates, on, loaded, onPress }: { id: string; word: string; gates: string; on: boolean; loaded: boolean; onPress: () => void }) {
@@ -40,7 +44,7 @@ export default function AudioSettings() {
   const speech = !audio.speechEnabled ? 'Speech is off. READ is hidden.'
     : audio.speechVolume === 0 ? 'READ is offered, muted at 0%.' : 'READ is offered on transmissions that have a recording.';
   return <View testID="menu-audio-page" style={{ gap: 14 }}>
-    <Text style={theme.text}>Optional instrumental score. Music starts only when you enable or resume it.</Text>
+    <Text testID="music-intro" style={theme.text}>Optional instrumental score. While music is on, it starts at your first {firstInput()} in the game, never before.</Text>
     <Toggle id="music" word="MUSIC" gates="Instrumental score only" on={audio.enabled} loaded={audio.loaded} onPress={() => { music.toggle(); }} />
     <Text testID="music-status" accessibilityLiveRegion="polite" style={theme.text}>{status}</Text>
     {audio.enabled && available && !audio.playing && <Pressable testID="music-resume" accessibilityRole="button"

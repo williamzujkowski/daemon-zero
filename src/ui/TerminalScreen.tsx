@@ -35,7 +35,7 @@ import MobileTerminal from './MobileTerminal';
 import TopForecast from './TopForecast';
 import { isNarrowChrome, isVeryNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
-import { attachMusicGestureResume } from '../app/musicGesture';
+import { armMusicGestureResume, createTouchGestures, type GestureDocument } from '../app/musicGesture';
 
 import { UtilityFocusProvider } from './UtilityFocus';
 
@@ -59,6 +59,15 @@ function SideColumn({ slots, allowed, flex, minWidth, testID }: {
   </View>;
 }
 
+/** Native touches reach the first-gesture resume through the root view; the web listens on
+ *  the document instead, which also hears keys and covers anything portalled outside it. */
+const nativeTouches = createTouchGestures();
+function gestureDocument(): GestureDocument | undefined {
+  if (Platform.OS !== 'web') return nativeTouches;
+  // The DOM lib is not in this tsconfig (see src/ui/focusRing.ts for the same dance).
+  return (globalThis as unknown as { document?: GestureDocument }).document;
+}
+
 export default function TerminalScreen() {
   useGameLoop();
   useMusicRuntime();
@@ -69,21 +78,13 @@ export default function TerminalScreen() {
 
 function Terminal() {
   useEffect(() => { installFocusRing(); }, []);
-  // A default-on soundtrack cannot play before a user gesture: browsers refuse it and
-  // the controller would surface a blocked message instead. Resume inside the first
-  // real input, once, then let the player own the toggle.
+  // A default-on soundtrack starts inside the first real input, once, then the player owns
+  // the toggle: browsers refuse audio before a gesture, and native follows the same rule by
+  // vote (src/app/musicGesture.ts). A gesture that arrives before the stored preference
+  // loads cannot start anything, so the listener stays until the controller activates.
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    // The DOM lib is not in this tsconfig (see src/ui/focusRing.ts for the same dance).
-    const doc = (globalThis as unknown as { document?: Parameters<typeof attachMusicGestureResume>[1] }).document;
-    if (!doc) return;
-    const detach = attachMusicGestureResume(() => { music.resume(); }, doc);
-    // Detach on activation, not on the first gesture. A gesture that arrives before the
-    // stored preference loads cannot start anything, and dropping the listener then
-    // would leave a default-on install silent until the player found the MENU switch.
-    if (music.state.getState().activated) detach();
-    const unsubscribe = music.state.subscribe((state) => { if (state.activated) detach(); });
-    return () => { unsubscribe(); detach(); };
+    const doc = gestureDocument();
+    return doc ? armMusicGestureResume(music, doc) : undefined;
   }, []);
   const { width, height } = useWindowDimensions();
   const layout = layoutFor(width, height);
@@ -102,7 +103,8 @@ function Terminal() {
   // edge-to-edge, so the old StatusBar.currentHeight pad would now be counted twice.
   const edges = useEdgePadding();
   if (ended) return <View style={styles.screen}><EndingScreen /></View>;
-  return <View testID="terminal-screen" aria-busy={!ready} style={[styles.screen, edges]}>
+  return <View testID="terminal-screen" aria-busy={!ready} style={[styles.screen, edges]}
+    onStartShouldSetResponderCapture={Platform.OS === 'web' ? undefined : nativeTouches.touch}>
     <StatusBar barStyle="light-content" />
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
