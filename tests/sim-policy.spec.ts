@@ -18,13 +18,13 @@ const SLOW_MS = 30_000;
 describe('sim policy catalog', () => {
   it('lists the bot strategies, the reference plug-in, the truthful route policies and the return policies', () => {
     expect([...SIM_POLICIES.keys()]).toEqual(['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'STEALTH_RETURN', 'RETURNING_LOW_RESOURCE',
-      'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST', 'CONTACT_THOROUGH', 'CONTACT_LOW_RESOURCE', 'CONTACT_RETURNING', 'CONTACT_RECOVERY']);
+      'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST', 'CONTACT_THOROUGH', 'CONTACT_LOW_RESOURCE', 'CONTACT_RETURNING', 'CONTACT_RECOVERY', 'CONTACT_WITHHELD']);
     expect(resolvePolicy(SIM_POLICIES, 'STEALTH')).toBe(STEALTH_POLICY);
     expect(resolvePolicy(SIM_POLICIES, 'IDLE')).toBe(IDLE_POLICY);
   });
 
   it('rejects an unknown strategy and names the known ones', () => {
-    expect(() => resolvePolicy(SIM_POLICIES, 'HONEST')).toThrow('unknown sim policy "HONEST" (known: STEALTH, GREEDY, IDLE, TRUTHFUL_THOROUGH, TRUTHFUL_LOW_RESOURCE, STEALTH_RETURN, RETURNING_LOW_RESOURCE, PILOT_SERVICE_FIRST, PILOT_STUDY_FIRST, CONTACT_THOROUGH, CONTACT_LOW_RESOURCE, CONTACT_RETURNING, CONTACT_RECOVERY)');
+    expect(() => resolvePolicy(SIM_POLICIES, 'HONEST')).toThrow('unknown sim policy "HONEST" (known: STEALTH, GREEDY, IDLE, TRUTHFUL_THOROUGH, TRUTHFUL_LOW_RESOURCE, STEALTH_RETURN, RETURNING_LOW_RESOURCE, PILOT_SERVICE_FIRST, PILOT_STUDY_FIRST, CONTACT_THOROUGH, CONTACT_LOW_RESOURCE, CONTACT_RETURNING, CONTACT_RECOVERY, CONTACT_WITHHELD)');
     expect(() => resolvePolicy(SIM_POLICIES, 'stealth')).toThrow('unknown sim policy');
   });
 
