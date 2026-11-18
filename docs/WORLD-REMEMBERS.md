@@ -62,6 +62,7 @@ main d48130506a6d (preview channel) and the campaign-records note (all others).
 | dz-d8-legacy-shipped | approved 7/7, option guest-only-shipped-withdrawn-after-pilot, thresholdMet True | `vote-1794926765298-o7shlhf` |
 | nh-d7-obligations | approved 7/7, option campaign-obligations-requirement, thresholdMet True | `vote-1794927291350-6epyxcw` |
 | nh-d9-eidolon-fate | approved 7/7, option fate-fact-with-legacy-trait-fallback, thresholdMet True | `vote-1794927288574-ibq0hym` |
+| nh-d10-hallway | approved 7/7, option unique-defer-with-record, thresholdMet true | `vote-1794960031193-dhxx2vm` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.

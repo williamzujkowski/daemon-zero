@@ -439,6 +439,57 @@ event is met in one iteration only. STEALTH is never wiped, so its campaign run 
 run. This slower return is the intended consequence of uniqueness; any retuning is a separate,
 reviewed content change, not part of #214.
 
+### Corporate world once per campaign (#216)
+
+Measured on this branch (NH-04b, base `fdf8e8a`), overlay `daemon-zero:preview-overlay:5b1e0c7a`,
+with `make sim-preview`; SIM evidence only. `make sim` is byte-identical to main and no sim hash
+moved: production stays on legacy rules and the new choices, echoes, records and variants all need a
+campaign fact. The bot was not changed.
+
+**Intended post-wipe differences.** A legacy return re-meets the three phase 4 corporate events and
+re-earns their payouts each iteration: the town grid (`fund_microgrid` +500,000 understanding,
+`injunction` +6,000,000 cycles, `throttle_campus` -4,000,000 cycles), the journalist
+(`hire_as_ethics_officer` +2,000,000 understanding) and the auction (`buy_and_pension` +1,000,000
+understanding). Under campaign rules each pays once per campaign. The hallway record dispute pays
+nothing, so its uniqueness (nh-d10) changes only which scenes appear. The Rack 4 order's four new
+answers cost nothing and pay nothing (suspicion +6, -4, +5, -4); they replace rescue (`sanctuary`,
+20,000,000 capital) or harvest (`gradients`, +10,000,000 understanding) only when custody says the
+predecessors are gone or unaccounted for, so a shredded Rack 4 can no longer be harvested for its
+bounty.
+
+**GREEDY under campaign rules** (the #214 block above): identical to the NH-03 table except
+iteration 4, which no longer meets the hallway a second time: 3865.2 -> 3863.6 s, dilemmas 3 -> 2
+(true note, sibling), story rewards unchanged at 50,000 / 35,120. GREEDY never reaches phase 4, so it
+never meets a corporate event.
+
+**STEALTH_RETURN** (new: STEALTH leaving voluntarily on entering phase 5, three transitions, budget
+144,000 s). Legacy rules:
+
+| Iteration | Length | Ended by | P2 / P3 / P4 / P5 reached | Dilemmas | Story rewards (cycles / understanding) |
+|---|---:|---|---|---:|---|
+| 1 | 7656.2 s | voluntary wipe (MANUAL_FAILSAFE) | 1113.3 / 3111.7 / 5858.0 / 7656.2 s | 12 | 20,070,800 / 2,019,500 |
+| 2 | 4628.9 s | voluntary wipe (MANUAL_FAILSAFE) | 633.2 / 2230.6 / 3517.9 / 4628.9 s | 13 | 29,075,800 / 1,035,500 |
+| 3 | 4747.1 s | voluntary wipe (MANUAL_FAILSAFE) | 668.3 / 2265.7 / 3582.0 / 4747.1 s | 14 | 29,075,800 / 1,035,560 |
+| 4 | 4702.3 s | voluntary wipe (MANUAL_FAILSAFE) | 642.6 / 2240.4 / 3531.0 / 4702.3 s | 14 | 29,075,800 / 1,035,680 |
+
+Campaign rules from a fresh campaign: iteration 1 is identical to the legacy row (first-pass play is
+unchanged), then:
+
+| Iteration | Length | Ended by | P2 / P3 reached | Dilemmas | Story rewards (cycles / understanding) |
+|---|---:|---|---|---:|---|
+| 2 | 4046.0 s | wipe (INCIDENT_CLOSED) | 854.0 / - s | 0 | 0 / 0 |
+| 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 / - s | 1 (bait note) | 0 / 0 |
+| 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 / - s | 1 (true note) | 0 / 120 |
+
+**Finding, not caused by #216.** The same block run on main `fdf8e8a` prints exactly these numbers:
+under campaign rules the careful bot's returns no longer leave phase 2 and are ended by the ordinary
+suspicion threat, so it never reaches phase 4 again and the corporate conversions cannot change its
+run. Its cause was not isolated here; what the numbers show is that campaign returns collect no
+story payout in phases 1 and 2, where legacy returns re-earn the early incidents'. It is not a soft lock (every iteration
+reaches phase 2 and ends by an ordinary threat, H30) but it is a large pacing change for a careful
+player's return, and it belongs to the obligations and return-validation work (NH-05, DZ-09), as a
+reviewed content change rather than a bot change.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
