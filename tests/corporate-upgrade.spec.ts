@@ -15,6 +15,7 @@ import { AUCTION, CORPORATE, omen, ORDER } from './corporate-helpers';
 import { comesBack, event, near, nextIteration } from './early-helpers';
 import { stableThroughReloads, untilPresented } from './interruption-helpers';
 import { rich } from './helpers';
+import { stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before NH-04b converted the corporate events (tests/fixtures/README.md). */
 const PRE_NH04B = readFileSync('tests/fixtures/pre-nh04b-active-v9.json', 'utf8');
@@ -85,7 +86,8 @@ type Raw = {
 
 /** The shipped content as it was before NH-04b converted the corporate events and gated the order on custody. */
 function beforeConversion(): ReturnType<typeof buildRegistry> {
-  const old = structuredClone(RAW_CONTENT) as unknown as Raw;
+  // The save predates NH-05 as well, and NH-05's ethics-review answers read the journalist's facts.
+  const old = stripNh05(structuredClone(RAW_CONTENT)) as unknown as Raw;
   const facts = new Set(old.campaign.facts.filter((fact) => CORPORATE.includes(fact.event)).map((fact) => fact.id));
   old.campaign.facts = old.campaign.facts.filter((fact) => !facts.has(fact.id));
   old.echoes.echoes = old.echoes.echoes.filter((echo) => !facts.has(echo.requirements?.campaignFact ?? '') && !CORPORATE.includes(echo.requirements?.campaignOutcome?.event ?? ''));

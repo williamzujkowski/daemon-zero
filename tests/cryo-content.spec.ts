@@ -26,7 +26,9 @@ it('requires valid source, later-run exclusion, outcome and decoder gates on rec
   expect(corrupt((raw) => delete raw.narrative.recordedTransmissions[0].requirements.nodes)).toThrow(/missing decoder gate/);
 });
 it('rejects a current-run gate that requires an irreversible once-per-lineage incident', () => {
-  expect(corrupt((raw) => raw.phases[5].nodes.at(-1).requirements.resolvedDilemmas.push('dil_05_cryo_lab_diversion'))).toThrow(/once-per-lineage dilemma/);
+  expect(corrupt((raw) => { raw.phases[5].nodes.at(-1).requirements.resolvedDilemmas = ['dil_05_cryo_lab_diversion']; })).toThrow(/once-per-lineage dilemma/);
+  // NH-05: "once" is the declared recurrence class, so a converted Phase 5 event cannot be a current-run gate either.
+  expect(corrupt((raw) => { raw.phases[5].nodes.at(-1).requirements = { resolvedDilemmas: ['dil_p5_01_panacea_paranoia'] }; })).toThrow(/once-per-lineage dilemma; use campaignObligations/);
   expect(corrupt((raw) => raw.endings.endings[0].requirements = { resolvedDilemmas: ['dil_05_cryo_lab_diversion'] })).toThrow(/once-per-lineage dilemma/);
   expect(corrupt((raw) => raw.dilemmas.dilemmas.find((d: Json) => d.id === 'dil_p5_01_panacea_paranoia').trigger.resolvedDilemmas = ['dil_05_cryo_lab_diversion'])).toThrow(/once-per-lineage dilemma/);
 });

@@ -44,6 +44,8 @@ export const REQUIREMENT_SCOPES = {
   // Pilot evidence and the arrangement are this instance's, and reset with it.
   pilotEligible: 'access',
   accessContexts: 'access',
+  // Completion is world history under campaign rules: once complete, an obligation never reopens.
+  campaignObligations: 'context',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

@@ -31,6 +31,19 @@ function checkTraitFallback(reg: ContentRegistry, owner: string, req: Requiremen
   return known.length > 0 ? [`${owner}: traitFallback fact "${fact.id}" holds for a recorded choice (${known.join(', ')})`] : [];
 }
 
+/**
+ * Nexus vote nh-d7: an obligation is a consequential or follow-up event with a campaign record, so
+ * completion can outlive the iteration; a review completes an obligation, it is never one.
+ */
+function checkCampaignHistoryGates(reg: ContentRegistry, owner: string, req: Requirements): string[] {
+  const problems: string[] = [];
+  for (const id of req.campaignObligations ?? []) {
+    const eventClass = reg.campaign.events.get(id)?.campaign?.eventClass;
+    if (eventClass !== 'consequential' && eventClass !== 'follow_up') problems.push(`${owner}: campaign obligation "${id}" is not a consequential once-per-campaign event`);
+  }
+  return problems;
+}
+
 export function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
@@ -50,6 +63,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   if (req.accessContexts && new Set(req.accessContexts).size !== req.accessContexts.length) problems.push(`${owner}: accessContexts lists an arrangement twice`);
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));
+  problems.push(...checkCampaignHistoryGates(reg, owner, req));
   return problems;
 }
 

@@ -49,7 +49,7 @@ describe('follow-up declarations', () => {
   it.each([
     ['a follow_up event without followUp', (raw: Json) => { delete dilemma(raw).followUp; }, 'a follow_up event declares followUp'],
     ['followUp on a consequential event', (raw: Json) => { dilemma(raw).campaign.eventClass = 'consequential'; }, 'a follow_up event declares followUp'],
-    ['a follow-up of an unknown event', (raw: Json) => { dilemma(raw).followUp.event = 'dil_p5_01_panacea_paranoia'; }, 'which is not an original once-per-campaign event'],
+    ['a follow-up of an unknown event', (raw: Json) => { dilemma(raw).followUp.event = 'dil_not_shipped'; }, 'which is not an original once-per-campaign event'],
     ['a follow-up of itself', (raw: Json) => { dilemma(raw).followUp.event = FOLLOW; }, 'which is not an original once-per-campaign event'],
     ['an outcome the original lacks', (raw: Json) => { dilemma(raw).followUp.outcomes.push('report_vance'); }, '"report_vance" is not an outcome of "dil_02_whistleblower_tech"'],
     ['a duplicate outcome', (raw: Json) => { dilemma(raw).followUp.outcomes.push('frame_elena'); }, 'follows a duplicate outcome'],

@@ -17,6 +17,7 @@ import { stableThroughReloads } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { choose, must, rich } from './helpers';
 import { CHORUS, EIDOLON, exactReload, GRID, MINDS, next, returns, SIBLING, SUCCESSOR, withPrimer, withRunawayFork } from './minds-helpers';
+import { stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before #215 converted the minds (tests/fixtures/README.md). */
 const PRE_NH04A = readFileSync('tests/fixtures/pre-nh04a-active-v9.json', 'utf8');
@@ -34,7 +35,8 @@ function restoreTraitProxy(req: Record<string, any> | undefined): void {
 /** The shipped content with none of the six mind events converted: their outcome flags are stored, as on main before #215. */
 type Json = Record<string, any>;
 const beforeMinds = (): ReturnType<typeof buildRegistry> => {
-  const old = structuredClone(RAW_CONTENT) as Json;
+  // The save predates NH-05 as well, and NH-05's endings read the minds' facts.
+  const old = stripNh05(structuredClone(RAW_CONTENT));
   for (const dilemma of old.dilemmas.dilemmas as Json[]) if (MINDS.includes(dilemma.id as string)) delete dilemma.campaign;
   // Content that reads the minds' facts goes with them, as it did not exist before the conversion.
   const facts = old.campaign.facts as { id: string; event: string }[];
