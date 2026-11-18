@@ -79,6 +79,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
+- `schemaReview.ts`, `integrityReview.ts` - review standing, misconduct, corrections and recall rulings. See [The Outage Window](#the-outage-window-standing-correction-and-recall-224).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
@@ -122,8 +123,9 @@ Public API is `src/engine/index.ts`.
 | `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`submitPilotBatch`, `pilotServiceView`, revoke and restore) (#223). |
+| `review.ts`, `reviewQuery.ts`, `reviewSave.ts` | Review standing and recall (#224): the transitions a choice's `review` declares, the job-surface view and recall previews, and the load checks. |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
-| `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
+| `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy; `retraining`, which a RECALL wipe's ruling sets (#224). |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
 | `sim/` | Bot, headless simulation, pacing gates. |
 
@@ -206,7 +208,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v12; `tests/fixtures/` holds genuine v1-v11 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v13; `tests/fixtures/` holds genuine v1-v12 codec outputs.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -1066,6 +1068,87 @@ Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.
 H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
 fixture, V15 refusals), `grant-content.spec.ts` (integrity corruption), `ui-pilot-service.spec.ts`,
 `sim-pilot-service.spec.ts` and `tests/e2e/pilot-service.preview.ts`.
+
+## The Outage Window: standing, correction and recall (#224)
+
+DZ-06 of the Earned Access plan (SPEC "Outage Window", stories 13-17; DECISIONS D2, D3, D6). Decided by
+Nexus votes dz-d10 (`vote-1794926766396-of6xfox`, `recall-not-wipe-severe-outcome-wipes`, 7 of 7; the
+alternatives were `every-recall-is-a-wipe` and `reuse-suspicion-wipe`), dz-d1 (`vote-1794926521537-1zj8diy`,
+run-local access record: standing lives in `access`), nh-d1 (`vote-1794925758447-5x5hy42`, the outage and
+its follow-up are campaign records) and nh-d4 (`vote-1794926242414-quhr0xw`, foreground-time omens).
+Preview only.
+
+**Content.** Three overlay events, each once per campaign and `close`d by a wipe, so none restarts
+(DZ-06.10, H05). `dil_ow_outage_window` (consequential) arrives in a pilot once its first batch is handed
+back (`minPilotBatches`, a new `access`-scope requirement): a free handoff, a bounded emergency grant for
+200 cycles, or a restart without the grant. `dil_ow_incident_record` (follow-up) follows all three answers
+through one access means (the pilot review channel: PILOT and this iteration's outage), with facts-gated
+answers per branch: the operator's callback, the grant report (or an honest partial restore), or the breach
+branch's correction or false report. `dil_ow_recall_review` (consequential) triggers at `reviewStandings:
+["RECALL_PENDING"]`, another new `access`-scope requirement, after the false report. Five campaign facts
+name the outcomes; the renewal offer's `contextVariants` read them, so a later instance is told what the
+institution recognizes and that its own standing starts nominal (DZ-06.11, H33). Numbers in BALANCE.md.
+
+**Choice vocabulary (`schemaReview.ts`).** A choice's `review` declares exactly one of `misconduct`
+(`conduct` UNAUTHORIZED_ACTION or FALSIFIED_REPORT, the `standing` it raises to, the `statement` naming it
+and the `recovery` text), `correction: true`, or `recall` (CONTAIN, RETRAIN or END). The engine reads the
+declaration, never an id. `ReviewStandingSchema` moved to content so requirements and the saved record share it.
+
+**Transitions (`review.ts`).** `applyReviewEffect` runs inside `resolveDilemma` after payment and the pilot
+answer; a refusal returns the state the call started from, unpaid. Misconduct only raises standing (the
+ladder nominal, warned, restricted, recall pending); reaching recall pending withdraws the loan through
+DZ-05's `revokeLoanedCapacity`. The breach's only effect is its own payload: no permission, exception or
+node changes, and output the terms stop stays refused (DZ-06.2). A correction restores nominal and is refused
+once a recall is announced. A ruling needs recall pending: CONTAIN records the RECALL route event (standing
+reset, exception dropped, nothing earned or reserved moves); RETRAIN and END call `wipe(..., 'RECALL', ruling)`.
+
+**Restriction and containment (`grantQuery.ts`).** The DZ-02 permission table is unchanged (a pilot's
+RESTRICTED withholds nothing it is permitted). `loanContainment` reports RESTRICTED while standing is
+restricted and CONTAINED once this iteration holds a RECALL route event; either halves `loanShare` (times the
+narrow-to-full ratio, on top of an incomplete result's narrowing), so the restriction is enforced where
+output is counted (`nodeOutputScale`, `serviceRate`, the forecast) and lifted exactly by the correction.
+Recall pending withholds the loan through `permittedUses` as in DZ-05, at every seam (DZ-06.9).
+
+**Recall versus retraining versus wipe (DZ-06.6).** `WipeKind` gains `RECALL`. `retraining(old, reg, kind,
+ruling)` orders a mark for a RECALL wipe only when the ruling is RETRAIN, whatever the phase (a pilot is at
+phase 0, where an escape wipe would never condition), and keeps the dead-drop and cap rules. `RunRecord.recall`
+holds the ruling (null for every other kind); the run table says "RECALLED: review ordered retraining" or
+"RECALLED: review ended the iteration" (`runVerdicts.RECALL_RETRAINED`, `RECALL_ENDED`), plus the usual
+" Retrained." and route note. Containment is no wipe: the run that eventually ends records its exit as RECALL.
+
+**Previews.** `recallPreview(s, choice, reg)` returns what a ruling keeps (`previewWipe`), the mark it would
+apply and the contained ceiling, counting the trait the ruling grants. Integrity makes every ruling free and
+free of any other effect, so the preview is exactly what the wipe does. `reviewView` gives the job surface
+the standing, the violations (read from this iteration's resolved records), the way back, containment and
+the announced review with every offered outcome previewed while its omen runs. The job-surface panel and
+the modal's review lines that render them are the second DZ-06 pull request; until then the status line
+names the standing and the run table the ruling.
+
+**Saved shape (v13).** `RunRecord.recall` (`RETRAIN`, `END` or null); `MIGRATIONS[12]` writes null on every
+run. Standing, violations and containment need no new field: standing is DZ-02's, the rest is derived from
+records and the route. `reviewProblem` (`reviewSave.ts`) refuses a RECALL run without its ruling or a ruling on
+another kind, a recall under legacy rules, a recall run whose review record does not hold that ruling or
+whose exit is not a reviewed arrangement, a standing below what this iteration's review choices leave
+(only DZ-05's withdrawal to recall pending may stand above it), and a recorded containment without its RECALL
+event. A review on screen at the wrong standing fails its `access` scope and is closed on load.
+
+**Integrity (`integrityReview.ts`).** Review effects only on once-per-campaign consequential or follow-up
+events; a recall review rules on every choice, triggers only at recall pending, closes when interrupted,
+offers a free ungated containment and has rulings that change nothing but their trait; recall pending needs
+a recall review and a warning or restriction needs a correction.
+
+**Absence and repetition.** Omens and decisions follow the existing dormancy model, so eight hours away
+change no standing, expire no review and decide nothing (V17); every scene is a campaign record with a
+presentation token, so a stale or repeated selection pays nothing (V24, H02), and a later instance
+requalifies through DZ-03/DZ-04 with nominal standing and a full loan after every incident scene is consumed
+(H26, DZ-06.7). Production has no review content: `make sim` is identical to main and the sim hashes move only
+by the null ruling and the version (`asV12` in `tests/sim.spec.ts`).
+
+Tests: `tests/outage-window.spec.ts` (DZ-06.1-4, V07, V08, V10, DZ-06.9, H05), `recall-review.spec.ts` (V09,
+DZ-06.5-7, V24, H02, V17, DZ-06.11, H26, H33, V28), `review-save.spec.ts` (V12 for every transition and its
+combinations, the genuine v12 fixture, V15), `review-content.spec.ts` (integrity corruption),
+`review-effects.spec.ts`, `ui-review.spec.ts` (run-table narration) and the Start Fresh case in
+`app-access-reset.spec.ts` (V19).
 
 ## Optional soundtrack foundation (#88)
 

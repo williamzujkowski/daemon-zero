@@ -53,7 +53,9 @@ different one.
 - **PILOT_SERVICE_FIRST** and **PILOT_STUDY_FIRST** (`pilotPolicy.ts`, #223) play TRUTHFUL_LOW_RESOURCE
   to an accepted pilot, attach the loaned queue, hold a service share of 0.8 or 0.2 and submit each
   completed batch: two allocations of one ceiling (V30, `tests/sim-pilot-service.spec.ts`). In
-  production, where no pilot exists, they play exactly as TRUTHFUL_LOW_RESOURCE.
+  production, where no pilot exists, they play exactly as TRUTHFUL_LOW_RESOURCE. Since #224 they also
+  meet the Outage Window after their first batch and take its first free answer, the handoff, then the
+  operator's callback, so their preview numbers moved (BALANCE.md, "The supervised pilot loop").
 
 To add a route or return-iteration policy (truthful-thorough, truthful-low-resource,
 violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` that exports a

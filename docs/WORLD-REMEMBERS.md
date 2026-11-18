@@ -75,8 +75,8 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | Packet | Issue | Packet | Issue |
 |---|---|---|---|
 | DZ-01a content channel | #204 (done, PR #211) | DZ-04 scope judgment, pilot offer | #222 (done, PR #257) |
-| DZ-01b preview build | #205 (PR #234) | DZ-05 supervised pilot | #223 (in review) |
-| Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 |
+| DZ-01b preview build | #205 (PR #234) | DZ-05 supervised pilot | #223 (done, PRs #261, #263) |
+| Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 (in review) |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 |
 | NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 |
 | NH-03 early human incidents | #214 (PR #242) | DZ-08 first permitted contact | #227 |

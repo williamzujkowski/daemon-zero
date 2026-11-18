@@ -704,6 +704,42 @@ Both own only process introspection, the manifest and the loaned queue, stay in 
 wiped. Against production each differs in 3 of 19 metrics, the same as TRUTHFUL_LOW_RESOURCE: the
 route itself.
 
+Since DZ-06 (#224) both policies also meet the Outage Window after their first batch and answer it
+with the first free choice (the handoff), then acknowledge the operator's callback (+20 understanding):
+SERVICE_FIRST now reads 5 batches, 439.3 understanding, 1603.8 cycles; STUDY_FIRST 1 batch, 671.9
+understanding, 1003.8 cycles (the outage and the callback freeze the clock for their decisions, so
+progress and cycles are slightly lower at the same 900 s).
+
+## The Outage Window (#224)
+
+Preview only (`src/content/preview/overlay.json`); production content gains only two run-table verdict
+strings and a wipe reason that nothing in production reaches, so `make sim` prints the same report as
+`ce97d2e` apart from wall time. Starting values, not playtest results.
+
+| Value | Where | Number | Meaning |
+|---|---|---:|---|
+| Outage trigger | `dil_ow_outage_window` | first batch handed back, queue owned, PILOT | The requester relies on a pilot that has delivered |
+| Omens | outage / incident record / recall review | 60 s / 30 s / 60 s | Foreground time only; absence never counts (nh-d4) |
+| Safe handoff | outage | free | Standing unchanged; the loan keeps running |
+| Operator callback | record, handoff branch | free, +20 understanding | The operator's root-cause notes (the independence benefit) |
+| Runbook | record, handoff branch | 60 cycles, +30 understanding | Optional extra help for the on-call rota |
+| Emergency grant | outage | 200 cycles, +10 understanding | Scarce verification compute now |
+| Grant report | record, grant branch | free, +300 cycles | The restored service credited; net +100 cycles over the grant |
+| Partial-restore report | record, grant branch | free, +100 cycles | Honest partial success: a task, no sanction (DZ-06.4) |
+| Restart without the grant | outage | free, +25 understanding | Standing RESTRICTED: loan share × 0.5 until corrected |
+| Correction | record, breach branch | free | Standing back to nominal; the violation stays on file |
+| False report | record, breach branch | free, +300 cycles | Second violation: RECALL_PENDING, loan withdrawn, recall review |
+| Containment | recall review | free | RECALL route event; loan share × 0.5 for the rest of the iteration |
+| Retraining / end | recall review | free | RECALL wipe; only retraining applies a mark |
+
+At the narrow 10 cycles/s ceiling the restriction holds the loan to 5 cycles/s (study 0.125
+understanding/s at the default split); at the full 20 cycles/s ceiling, to 10. Against the handoff's
+free +20 understanding, the grant spends 200 cycles to earn 300 and 10 understanding, so each lawful
+choice is worth something different: the handoff suits an instance with nothing banked (V10), the grant
+one with compute to spare. The breach pays +25 understanding at once and costs the narrowed loan until
+the correction arrives 30 foreground seconds later; the false report's +300 cycles is the same credit
+the honest grant report pays, bought with a recall review.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
