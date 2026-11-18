@@ -297,7 +297,8 @@ Each has its steps and evidence. Screenshots, logs and the APK are outside the r
      and music off stays silent. Re-run on a disposable emulator with a release build (not a
      device): see [SOUNDTRACK.md](SOUNDTRACK.md), "Starting on native" and "Android emulator
      run, 2026-11-17". After an activity recreation (finding 1) the score now waits for the
-     next tap rather than for `[ RESUME MUSIC ]`; that case was reasoned, not re-observed.
+     next tap rather than for `[ RESUME MUSIC ]`; seen once on the emulator after a font-scale
+     change, with the listener armed by the runtime's own lease (panel round 1 on #253).
 4. **`DORMANT_RESUME` reports `0.0h` for short absences. (Cosmetic.)** A 112 s absence
    logs "0.0h in low-power hibernation". The one-decimal hour format rounds anything
    under three minutes to zero.

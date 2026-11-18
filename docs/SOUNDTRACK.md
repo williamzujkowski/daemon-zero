@@ -332,10 +332,23 @@ profile, driven by `adb`. State was read from `dumpsys media_session`, `dumpsys 
 | `[ MUSIC OFF ]`, force-stop, cold start, three taps, then MENU > Audio | No session, no track, no `ExoPlayerImpl` line; "Music is off." |
 | logcat | 0 `FATAL EXCEPTION`, no `ReactNativeJS` error line |
 
+After the panel round 1 fix (#253), a second build on a second disposable emulator of the same
+kind, deleted afterwards:
+
+| Step | Observed |
+|---|---|
+| Fresh install, cold start, untouched 12 s, one tap | No session before the tap; `PLAYING` after it |
+| `settings put system font_scale 1.3` while playing | Activity recreated (`wm_relaunch_resume_activity`, `wm_on_destroy_called`, `wm_on_create_called`; `Running "main"` twice in logcat); afterwards no session and no `AudioTrack` for the app: the new root's `start()` released the old player |
+| One tap on the recreated terminal | `PLAYING`, a `started` track: the replacing root listened for its first input |
+| logcat | 0 `FATAL EXCEPTION`, no `ReactNativeJS` error line |
+
+A recreation is a new lease, like a cold start: it waits for a tap even if the score had been
+paused with a media key before it (reasoned from the code, not observed).
+
 Not observed: a first touch that lands inside a React Native `Modal` (the probe sits on the
 terminal's root view, and React Native's responder negotiation follows the React tree, so a
 modal's touch is expected to reach it; nothing on a fresh start opens a modal before the first
-tap, so it was not exercised), TalkBack, a hardware keyboard, an activity recreation, a phone.
+tap, so it was not exercised), TalkBack, a hardware keyboard, a phone.
 
 ### Resolved on Android, 2026-11-17: the files' tags are neutral
 
