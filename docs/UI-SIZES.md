@@ -538,6 +538,18 @@ measures 28px there, and 85px in the insolvency state. The condition
 is `isShortViewport(height)`, the same 599px boundary the layout policy already uses
 for the tier, so a landscape phone is short for both purposes rather than for one.
 
+Packing by content means a readout's width is its text, so a value losing a digit could
+repack the strip while the player watched. #293 found it: its `phase-1-widgets` fixture
+opens at 9.98% suspicion, drawn `10.0%`, and within 1.5 s of running the value reads `9.9%`.
+At 320x568 that readout narrowed from 68px to 59px, rose from the third row to the second,
+and the strip went from 78px to 52px, moving the first purchase up 26px (the matrix's
+running-clock offset). The thermal and suspicion readouts now keep the width of two digits
+before the point (`00.0`), drawn in the same font as a zero-height, hidden-from-assistive-tech
+twin of the value. Values of 10 and up are drawn exactly as before. Measured at 320x568 on
+that fixture: 68px wide and 78px of strip both paused and running, offset 0. The amount
+readouts (cycles, understanding) are not held: they mostly grow rather than hover
+around a decade boundary.
+
 ### Two folds, 45px apart
 
 The mobile tab bar (`terminal-tabs-scroll`) docks over the bottom of the primary
