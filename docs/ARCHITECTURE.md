@@ -1389,11 +1389,15 @@ loan's tagged output stops, and reloading changes nothing. A wipe ends the hosti
 campaign record keeps the commitment, and nothing reads it to restore hosting (DZ-08.10). A later instance that
 earns service again meets a new fragment and reads the earlier-contact line.
 
-**Presentation.** `serviceGrantView` and `channelContactView` carry everything the job surface needs (the terms
-and what is still needed; the fragment, consent, current arrangement and standing, whether the grant permits
-hosting, obligations, memory needed and free, its work, each refusal reason, the answer, the hosted cohort, the
-earlier-contact line and the boundary). `channelContactView` presents a channel to a service with no surveillance
-node; the wild view stays surveillance-gated. The panels that render them are the stacked follow-up PR.
+**Presentation (`ServiceChannel.tsx`, `ServiceGrant.tsx`).** The job surface (core pane) shows the service terms
+under the pilot's task detail with `[ ACCEPT SERVICE ]`, and the channel above the assignment: the fragment, its
+consent, the current authorization (arrangement, standing, whether the grant permits hosting), the obligations,
+the memory needed and free, its work, then `[ REFER ONWARD ]` (free) and `[ HOST IT HERE ]`, disabled with the
+reason when refused (V20). `channelContactView` presents the channel to a service with no surveillance node (the
+wild view stays surveillance-gated), and a hosted cohort is listed there with its reservation. After an answer the
+panel says what was done and shows the preview boundary (DZ-08.6): where the cooperative route currently ends, that
+no ending has been earned, that the run keeps going, and how to stop (close; it resumes), keep a copy (MENU export)
+or return to the beginning (MENU Start fresh); `[ KEEP PLAYING ]` folds the note. Nothing claims a finished campaign.
 
 **Elena (DZ-08.11).** The second access means of `dil_elena_incident_record` is the approved review channel, so a
 service whose campaign holds Elena's original reaches the record through it; a fresh cooperative instance holds the
@@ -1415,12 +1419,17 @@ so a first-run cooperative instance cannot host the 256 MB fragment: the refusal
 referral completes the contact. Lawful capacity belongs to DZ-10; hosting is exercised by a labelled FIXTURE that
 raises the cap.
 
-**Sim (VAL-SIM).** The route policies that reach this contact from a fresh game are the stacked follow-up PR.
+**Sim (VAL-SIM).** `CONTACT_THOROUGH`, `CONTACT_LOW_RESOURCE`, `CONTACT_RETURNING` and `CONTACT_RECOVERY`
+(`sim/contactPolicy.ts`, new modules only; the bot is untouched) play the truthful policies to a pilot, hold a 0.8
+service share, submit each batch, accept the grant, buy only grant nodes offered to the arrangement and what the
+channel requires, and answer the channel (host when eligible and the policy hosts, else refer). RECOVERY takes the
+restricting breach at the outage and the correction in its record. `make sim-preview` prints each route's times.
 
 Tests: `tests/channel-contact.spec.ts` (V20, DZ-08.2-4, V24, V28, DZ-08.10), `service-grant.spec.ts`,
 `channel-contact-save.spec.ts` (V12 for every transition, the genuine v13 fixture, V15 refusals),
 `channel-contact-load.spec.ts` (pending provenance and the reload guard), `channel-content.spec.ts` (integrity
-corruption) and `elena-review-channel.spec.ts` (DZ-08.11).
+corruption), `elena-review-channel.spec.ts` (DZ-08.11), `sim-contact.spec.ts` (VAL-SIM), `ui-service-channel.spec.ts`
+and `tests/e2e/first-contact.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

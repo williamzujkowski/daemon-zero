@@ -14,8 +14,8 @@ import { TRUTHFUL_LOW_RESOURCE_POLICY } from './truthfulPolicy';
 
 const taken = (result: ActionResult): GameState | null => (result.ok ? result.state : null);
 
-/** One service decision, or null when there is nothing to do and the truthful policy plays on. */
-function serve(s: GameState, reg: ContentRegistry, share: number): GameState | null {
+/** One service decision, or null when there is nothing to do and the truthful policy plays on. Shared with the contact policies. */
+export function serve(s: GameState, reg: ContentRegistry, share: number): GameState | null {
   const service = pilotService(s, reg);
   const view = pilotServiceView(s, reg);
   if (s.ending !== null || s.activeDilemmaId !== null || service === null || view === null || view.withheld !== null) return null;
