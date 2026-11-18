@@ -6,7 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import { legacyRecord } from './campaign';
-import { reserveLivePointers } from './campaignLifecycle';
+import { dropStaleRepeats, reserveLivePointers } from './campaignLifecycle';
 import { obligationProblem } from './obligations';
 import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
 import type { CampaignRecord, CampaignState } from './campaignState';
@@ -100,24 +100,27 @@ function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: Camp
 export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): GameState | string {
   if (!isCampaignActive(loaded)) return isInactive(loaded.campaign) ? loaded : 'save carries campaign history without campaign rules';
   if (!campaignRulesSupported(reg)) return 'save uses campaign rules this build does not support';
-  // A v6 save could hold an omen with no reserved occurrence; reserve it before checking.
-  const s = reserveLivePointers(loaded, reg);
-  const c = s.campaign;
-  if (c.activatedAtIteration === null || c.activatedAtIteration > s.iteration || c.legacyEndingBaseline === null) {
+  const c = loaded.campaign;
+  if (c.activatedAtIteration === null || c.activatedAtIteration > loaded.iteration || c.legacyEndingBaseline === null) {
     return 'save has an incomplete campaign activation';
   }
-  const checked = canonical(c.events, reg, (id, record) => recordProblem(s, reg, id, record));
+  const checked = canonical(c.events, reg, (id, record) => recordProblem(loaded, reg, id, record));
   if (typeof checked === 'string') return checked;
-  const upgraded = upgradeConvertedEvents(s, reg, checked);
+  // Completion the save proves for newly converted events is read before any live occurrence is
+  // reserved, so a stale repeat of a completed event (older saves recurred it after a wipe while its
+  // flag survived) is dropped instead of being reserved and hiding the flag (panel round 1 on #259).
+  const upgraded = upgradeConvertedEvents(loaded, reg, checked);
   if (typeof upgraded === 'string') return upgraded;
   const { events, narrativeFlags } = upgraded;
+  // A v6 save could hold an omen with no reserved occurrence; reserve it once history is known.
+  const s = reserveLivePointers(dropStaleRepeats({ ...loaded, narrativeFlags, campaign: { ...c, events } }, reg), reg);
   const projected = projectableFlags(reg);
   if (narrativeFlags.some((flag) => projected.has(flag))) return 'save stores an outcome flag that its campaign record owns';
   const twice = obligationProblem({ campaign: { ...c, events } }, reg);
   if (twice !== null) return twice;
   const creditedActions = canonical(c.creditedActions, reg, (id) => reg.campaign.actions.has(id) ? null : `save credits an unknown campaign action "${id}"`);
   if (typeof creditedActions === 'string') return creditedActions;
-  const clue = canonicalClue(c, events, reg, s.iteration);
+  const clue = canonicalClue(c, s.campaign.events, reg, s.iteration);
   if (typeof clue === 'string') return clue;
-  return { ...s, narrativeFlags, campaign: { ...c, events, creditedActions, clue } };
+  return { ...s, campaign: { ...s.campaign, creditedActions, clue } };
 }

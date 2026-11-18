@@ -9,7 +9,7 @@ import type { Action, Dilemma, DilemmaChoice, EffectPayload, Trait } from '../co
 import { LEGACY_UNKNOWN_OUTCOME } from '../content/schemaCampaign';
 import type { ActionResult } from './actions';
 import { campaignRecord, campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
-import { reserveLivePointers } from './campaignLifecycle';
+import { dropStaleRepeats, reserveLivePointers } from './campaignLifecycle';
 import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
 
@@ -108,7 +108,9 @@ export function activateCampaignRules(s: GameState, reg: ContentRegistry): Actio
   if (isCampaignActive(s)) return { ok: false, state: s, reason: 'campaign rules are already active' };
   if (s.ending !== null) return { ok: false, state: s, reason: 'the run has ended' };
   const projected = projectableFlags(reg);
-  // An omen already on its way becomes a reserved occurrence of this campaign.
-  return { ok: true, state: reserveLivePointers({ ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
-    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) }, reg) };
+  // The history the save proves comes first; an omen already on its way then becomes a reserved
+  // occurrence of this campaign, unless it repeats an event that history already completed.
+  const recorded: GameState = { ...s, narrativeRules: 'campaign_v1', campaign: legacyHistory(s, reg),
+    narrativeFlags: s.narrativeFlags.filter((flag) => !projected.has(flag)) };
+  return { ok: true, state: reserveLivePointers(dropStaleRepeats(recorded, reg), reg) };
 }

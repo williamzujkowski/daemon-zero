@@ -663,6 +663,11 @@ once-per-campaign event (DZ-04's scope review), so triggers keep the older durab
 **Upgrade.** An already-active save from before NH-05 goes through the shared upgrade path (#242): each
 Phase 5 event it proves resolved gets a legacy completion, a stored predecessor or calm flag gives the
 exact choice (`tests/obligation-upgrade.spec.ts`, on a genuine active v11 save from `6d6973e`).
+Before the conversion a crisis recurred after a wipe while its outcome flag survived, so an old save
+can hold the flag and a pending or presented repeat. Load and activation therefore read the proven
+completion before reserving any live occurrence, and `dropStaleRepeats` clears a pointer to an event
+whose record is resolved: the crisis is not presented again, nothing is paid and no choice is invented
+(panel round 1; `tests/obligation-repeat-upgrade.spec.ts`).
 
 Tests: `tests/obligations.spec.ts` (H14, V33, H06, H15, legacy-unknown, defer, production),
 `obligation-content.spec.ts` (H28), `obligation-upgrade.spec.ts`, `ui-obligations.spec.ts`, and
