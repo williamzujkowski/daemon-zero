@@ -28,6 +28,7 @@ import GameMenu from './GameMenu';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
+import ContactNotice, { waitingContact } from './ContactNotice';
 import PhaseThreshold from './PhaseThreshold';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
@@ -91,6 +92,9 @@ function Terminal() {
   const [selection, select] = useState<{ phase: number; slot: string }>({ phase, slot: preferred });
   if (selection.phase !== phase) select({ phase, slot: preferred });
   const active = slots.includes(selection.slot) ? selection.slot : 'CORE';
+  // Only the phone tier hides CORE behind a tab, so only there does a waiting ticket need pointing to (#284).
+  const contactAway = useGame((game) => waitingContact(game) !== null) && active !== 'CORE';
+  const openCore = () => { select({ phase, slot: 'CORE' }); };
   const ready = useGameValue(selectReady);
   const ended = useGame((game) => game.ending !== null);
   // The root owns every edge: the header clears the notch or status bar, the bottom tab bar
@@ -104,8 +108,9 @@ function Terminal() {
     <StatusBar barStyle="light-content" />
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
-        select={(slot) => { select({ phase, slot }); }} horizontal />}
-        header={<ChromeHeader landmark />} band={<AlertBand landmark />} body={<ChromeBody landmark />} />
+        select={(slot) => { select({ phase, slot }); }} horizontal attention={contactAway ? { CORE: 'a support ticket is waiting' } : {}} />}
+        header={<ChromeHeader landmark />} band={<AlertBand landmark />}
+        body={<ChromeBody landmark {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
@@ -181,7 +186,7 @@ function AlertBand({ landmark }: { landmark?: boolean }) {
   return <View testID="alert-band" {...landmarkAttrs('Run ending alerts', landmark)}><CorporateAlerts /></View>;
 }
 
-function ChromeBody({ landmark }: { landmark?: boolean }) {
+function ChromeBody({ landmark, openCore }: { landmark?: boolean; openCore?: () => void }) {
   const notice = useGameValue(selectNotice);
   return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
@@ -189,6 +194,7 @@ function ChromeBody({ landmark }: { landmark?: boolean }) {
     <TopForecast />
     <BlindAuditStatus />
     <ResponseNotice /><OmenNotice />
+    {openCore !== undefined && <ContactNotice open={openCore} />}
   </View>;
 }
 

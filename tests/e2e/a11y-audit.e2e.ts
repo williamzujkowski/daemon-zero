@@ -9,7 +9,8 @@
  * any violation - so a regression is a red gate rather than a rediscovery.
  * A mandatory decision is audited too, at one phone and one desktop size: the
  * modal is where every choice button lives, and the screen states never open one,
- * so a label-in-name failure there went unseen (#275).
+ * so a label-in-name failure there went unseen (#275). The guest escape notice is audited the same way:
+ * it opens only on a live crossing, so openLive dismisses it and the state audits never saw it (#282).
  *
  * Deliberately does NOT install the suite's paused fake clock: axe's own async
  * work never settles against a frozen clock, and the live loop changes numbers,
@@ -26,7 +27,7 @@ const STATES = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] 
 const SIZES = [[320, 568], [390, 844], [768, 1024], [900, 640], [1440, 900]] as const;
 const MODAL_SIZES = [[390, 844], [1440, 900]] as const;
 
-async function openLive(page: Page, fixture: string): Promise<void> {
+async function openLive(page: Page, fixture: string, dismiss = true): Promise<void> {
   const code = fixtures[fixture];
   if (!code) throw new Error('Missing fixture ' + fixture);
   const game = serialize(importSave(code, CONTENT));
@@ -36,6 +37,7 @@ async function openLive(page: Page, fixture: string): Promise<void> {
   }, game);
   await page.goto('./');
   await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
+  if (!dismiss) return;
   for (const id of ['reboot-continue', 'phase-threshold-continue', 'lineage-reveal-continue', 'response-acknowledge']) {
     const button = page.getByTestId(id);
     if (await button.count()) await button.click();
@@ -65,5 +67,27 @@ for (const size of MODAL_SIZES) {
     const controls = await axeEachControl(page, page.getByTestId('dilemma-modal'));
     expect(controls.audited).toBeGreaterThan(1);
     expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
+  });
+}
+
+for (const size of MODAL_SIZES) {
+  test('axe ' + size.join('x') + ' guest escape notice', async ({ page }) => {
+    await page.setViewportSize({ width: size[0], height: size[1] });
+    await openLive(page, 'guest-exit-ready');
+    const host = CONTENT.phases[1];
+    const exit = CONTENT.phases[0]?.nodes.find((node) => node.effects.unlocksPhase === host?.phaseId);
+    if (!exit) throw new Error('Missing guest escape node');
+    if (await page.getByTestId('tab-CORE').count()) await page.getByTestId('tab-CORE').click();
+    await page.getByTestId('node-' + exit.id + '-unlock').click();
+    const notice = page.getByTestId('phase-threshold');
+    await expect(notice).toContainText('BOUNDARY CROSSED');
+    await page.waitForTimeout(400);
+    const violations = await axeViolations(page);
+    expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+    const controls = await axeEachControl(page, notice);
+    expect(controls.audited).toBe(1);
+    expect(controls.violations, JSON.stringify(controls.violations, null, 2)).toEqual([]);
+    await page.getByTestId('phase-threshold-continue').click();
+    await expect(notice).toHaveCount(0);
   });
 }

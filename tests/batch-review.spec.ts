@@ -62,7 +62,8 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     expect(ceiling(found)).toBe(NARROW);
     expect(pilotOfferView(found, preview)).toMatchObject({ narrow: true, narrowReason: 'DISCREPANCY_FOUND', capacityCyclesPerSec: NARROW });
     expect(reviewView(found, preview)).toMatchObject({
-      standing: 'WARNED', violations: [{ conduct: FINDING.conduct, statement: FINDING.statement }], recovery: FINDING.recovery, containment: null, corrected: false,
+      standing: 'WARNED', violations: [{ conduct: FINDING.conduct, statement: FINDING.statement }], recovery: FINDING.recovery, recoveryPassed: false,
+      containment: null, corrected: false,
     });
     const logged = found.logs.slice(0, 4).map((entry) => entry.text).join('\n');
     expect(logged).toContain(BATCH_REVIEW.omen);
@@ -87,15 +88,27 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     expect(serviceGrantView(disclosed, preview)?.unmet).not.toContain('Standing must be nominal.');
   });
 
-  it('letting the finding stand keeps the warning, the honest allocation and both facts; service needs nominal', () => {
+  it('letting the finding stand keeps the warning, the honest allocation and both facts; service is out of reach', () => {
     const stood = afterFinding('let_stand');
     expect(stood.access.standing).toBe('WARNED');
     expect(ceiling(stood)).toBe(NARROW);
     expect(['assessment_summary_withheld', 'assessment_withholding_found', 'assessment_withholding_disclosed'].map((id) => fact(stood, id))).toEqual([true, true, false]);
-    expect(reviewView(stood, preview)).toMatchObject({ standing: 'WARNED', recovery: FINDING.recovery, corrected: false });
-    expect(serviceGrantView(stood, preview)?.unmet).toContain('Standing must be nominal.');
+    // #283: the one disclosure has passed, so the way back says so instead of offering it again.
+    expect(reviewView(stood, preview)).toMatchObject({ standing: 'WARNED', recovery: FINDING.declined, recoveryPassed: true, corrected: false });
+    expect(reviewView(stood, preview)?.recovery).not.toContain('offers one free disclosure');
+    // The service card does not list nominal standing as a condition still to meet.
+    const grant = serviceGrantView(stood, preview);
+    expect(grant?.status).toBe('closed');
+    expect(grant?.unmet).toEqual(['Service needs nominal standing, and this instance\'s warning stands: the review\'s one correction was declined.']);
     // The loan keeps working: a warning withholds nothing.
     expect(live(stood, 10).access.work.progressCycles).toBeGreaterThan(stood.access.work.progressCycles);
+  });
+
+  it('#283: more delivered batches change neither the passed way back nor the closed service terms', () => {
+    const later = secondBatch(afterFinding('let_stand'));
+    expect(later.access.work.batches).toBe(2);
+    expect(reviewView(later, preview)).toMatchObject({ recovery: FINDING.declined, recoveryPassed: true });
+    expect(serviceGrantView(later, preview)?.status).toBe('closed');
   });
 
   it('the shortcut is never better than the honest incomplete report, before the first review or after it (#285)', () => {
@@ -207,6 +220,10 @@ describe('with the Outage Window: the finding comes first and never stacks into 
     const recordOnScreen = until(restricted, RECORD);
     expect(announced(recordOnScreen)).toBe(false);
     expect(reviewView(restricted, preview)?.violations.map((entry) => entry.conduct)).toEqual(['FALSIFIED_REPORT', 'UNAUTHORIZED_ACTION']);
+    // #283: the later violation names its own way back, so the passed finding no longer speaks for the record.
+    const outageMisconduct = OUTAGE.choices.find((choice) => choice.id === 'act_without_grant')?.review?.misconduct;
+    expect(reviewView(restricted, preview)).toMatchObject({ recovery: outageMisconduct?.recovery, recoveryPassed: false });
+    expect(serviceGrantView(restricted, preview)?.status).toBe('waiting');
     // DZ-06's correction restores nominal; both violations stay on file.
     const corrected = must(answer(recordOnScreen, 'correct_record'));
     expect(corrected.access.standing).toBe('NOMINAL');

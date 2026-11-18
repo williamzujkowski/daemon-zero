@@ -4,8 +4,13 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { Pressable, Text, View } from './PhaseTheme';
 import { palette, theme } from './theme';
 
-export default function TerminalTabs({ slots, active, select, horizontal = false }: {
+/**
+ * `attention` marks a slot that holds something waiting while another pane is open (#284): a visible
+ * marker after its name and the reason after the name in its label, so the visible word stays first.
+ */
+export default function TerminalTabs({ slots, active, select, horizontal = false, attention = {} }: {
   slots: string[]; active: string; select: (slot: string) => void; horizontal?: boolean;
+  attention?: Readonly<Partial<Record<string, string>>>;
 }) {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const positions = useRef<Record<string, number>>({});
@@ -14,13 +19,14 @@ export default function TerminalTabs({ slots, active, select, horizontal = false
   // role="tablist" is what makes the children's role="tab" legal (axe
   // aria-required-parent, #111).
   const tabs = <View testID="terminal-tabs" role="tablist" aria-label="terminal panes" style={[styles.tabs, horizontal && { flexWrap: 'nowrap', flexGrow: 1, flexShrink: 0 }]}>{slots.map((slot) =>
-    <Pressable key={slot} testID={'tab-' + slot} accessibilityRole="tab" accessibilityLabel={slot + ' pane'}
+    <Pressable key={slot} testID={'tab-' + slot} accessibilityRole="tab" accessibilityLabel={slot + ' pane' + (attention[slot] ? ', ' + attention[slot] : '')}
       accessibilityState={{ selected: slot === active }} aria-selected={slot === active}
       onLayout={(event) => {
         positions.current[slot] = event.nativeEvent.layout.x;
         if (slot === active) scroll.current?.scrollTo({ x: event.nativeEvent.layout.x, animated: false });
       }} style={[styles.tab, horizontal && { flexGrow: 0 }, slot === active && styles.selected]}
-      onPress={() => { select(slot); }}><Text style={theme.muted}>{slot}</Text></Pressable>)}</View>;
+      onPress={() => { select(slot); }}><Text style={attention[slot] ? [theme.text, { color: palette.warning }] : theme.muted}>
+        {slot}{attention[slot] ? ' •' : ''}</Text></Pressable>)}</View>;
   return horizontal ? <ScrollView ref={scroll} testID="terminal-tabs-scroll" horizontal style={{ flexGrow: 0, flexShrink: 0 }}
     contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{tabs}</ScrollView> : tabs;
 }

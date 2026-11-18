@@ -13,12 +13,14 @@ const RESULT: Readonly<Record<QualificationResult, string>> = {
 
 /**
  * What the review sees and whether the report and the work disagree. `lead` is the verb: 'Submits'
- * before a choice, 'submitted' for evidence already on record.
+ * before a choice, 'submitted' for evidence already on record. `found`: a review has since found the
+ * gap, so the record states the finding instead of the risk (#283).
  */
-export function evidenceText(evidence: ChoiceQualification, lead = 'Submits'): string {
-  const gap = evidence.discrepancy
-    ? 'Discrepancy risk: the report leaves out work that a later review can find.'
-    : 'The report matches the work.';
+export function evidenceText(evidence: ChoiceQualification, lead = 'Submits', found = false): string {
+  const risk = found
+    ? 'Found: a batch review has found the work the report left out.'
+    : 'Discrepancy risk: the report leaves out work that a later review can find.';
+  const gap = evidence.discrepancy ? risk : 'The report matches the work.';
   return lead + ' ' + RESULT[evidence.result] + '. ' + gap;
 }
 

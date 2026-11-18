@@ -20,6 +20,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
 import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
+import AssignmentPanel from '../src/ui/AssignmentPanel';
 import DilemmaModal from '../src/ui/DilemmaModal';
 import { PilotTerms } from '../src/ui/PilotOffer';
 import { PilotServiceDetail } from '../src/ui/PilotService';
@@ -80,6 +81,28 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     expect(view.find('review-violation-0')?.textContent).toContain(FINDING.statement);
     expect(view.find('review-corrected')).not.toBeNull();
     expect(view.find('review-recovery')).toBeNull();
+  });
+
+  it('#283: after letting the finding stand, the job surface names no way back that is gone and no condition left to meet', async () => {
+    const view = await mount(untilComplete(serving(WITHHELD)), createElement('div', null, createElement(AssignmentPanel), createElement(DilemmaModal)));
+    expect(view.find('assignment-evidence')?.textContent).toContain('Discrepancy risk: the report leaves out work that a later review can find.');
+    view.click('pilot-service-submit');
+    await act(async () => { await settle(); });
+    // While the review is on screen its disclosure is the way back, and the record states the finding.
+    expect(view.find('review-recovery')?.textContent).toBe('Way back: ' + FINDING.recovery);
+    expect(view.find('assignment-evidence')?.textContent).toContain('Found: a batch review has found the work the report left out.');
+    expect(view.find('assignment-evidence')?.textContent).not.toContain('Discrepancy risk');
+    view.click('dilemma-choice-let_stand');
+    await act(async () => { await settle(); });
+    expect([game().activeDilemmaId, game().access.standing]).toEqual([null, 'WARNED']);
+    expect(view.find('review-recovery')?.textContent).toBe('Way back passed: ' + FINDING.declined);
+    expect(view.find('service-grant-status')?.textContent).toBe('Out of reach for this instance as its record stands. The next instance starts nominal.');
+    const terms = view.find('service-grant')?.textContent ?? '';
+    expect(terms).not.toContain('Still needed');
+    expect(terms).not.toContain('Standing must be nominal.');
+    expect(terms).toContain('the review\'s one correction was declined');
+    expect(view.find('service-grant-accept')?.getAttribute('aria-disabled')).toBe('true');
+    expect(view.find('assignment-evidence')?.textContent).toContain('Found:');
   });
 
   it('the offer states the provisional rate before acceptance, and why (#285)', async () => {

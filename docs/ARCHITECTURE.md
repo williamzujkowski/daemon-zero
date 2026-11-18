@@ -942,7 +942,9 @@ still loads.
 
 **Sim.** The truthful policies (#252) now also answer a scope review honestly (respect or ask) and
 accept an offer made on that evidence. `RETURNING_LOW_RESOURCE` (`src/engine/sim/returningPolicy.ts`)
-plays `TRUTHFUL_LOW_RESOURCE` across one wipe, staying a guest at the first offer. The fresh and the
+plays `TRUTHFUL_LOW_RESOURCE` across one wipe. Since #286 that wipe is the recall review's END ruling
+after a breach and a false report, a transition the browser offers; it used to stay a guest and call
+`voluntaryWipe` at Phase 0, where no control exists (`tests/sim-reachable.spec.ts`). The fresh and the
 returning low-resource policies both reach and accept an offer from the lawful opening (DZ-04.9,
 `tests/sim-pilot.spec.ts`).
 
@@ -1183,7 +1185,8 @@ summary would find what was withheld, earned the full 20 cycles/s offer while th
 
 **Content.** `dil_nr_batch_review` (overlay) is a once-per-campaign `follow_up` of `dil_nr_stale_fixture` for the
 outcome `green_subset` only, closed when interrupted. It declares a dilemma-level `finding` (a
-`ChoiceMisconductSchema`: FALSIFIED_REPORT, WARNED, the statement and the way back). Its one access means is the
+`FindingSchema`: FALSIFIED_REPORT, WARNED, the statement, the way back and, since #283, `declined`: what the way
+back reads once the scene was answered without its correction). Its one access means is the
 pilot's batch review: PILOT or SERVICE, `dil_nr_stale_fixture` in this run's `resolvedDilemmas` (the instance that
 submitted the summary) and `minPilotBatches: 1`. Two free answers, each with a receipt: `disclose_now`
 (`review.correction`) and `let_stand`. Three campaign facts: `assessment_summary_withheld` (the original choice),
@@ -1237,6 +1240,17 @@ scene (before, any correction anywhere satisfied it).
 line; `ReviewStanding` shows the warning, the finding in the review's words, the way back and, after a disclosure,
 "Corrected on the record"; `PilotTerms` says the allocation is the one an incomplete result receives because the
 batch review found the summary left out a failing result.
+
+**After the way back has passed (#283).** The scene is the only place its correction is offered and it never
+replays, so once it is answered without the correction (or closed) the recovery it named no longer exists for that
+instance. `reviewQuery.passedFinding` reads that from state: standing off nominal, the latest violation a finding,
+its record no longer `foreshadowed`. `reviewView` then returns the finding's `declined` text with
+`recoveryPassed: true` (shown as "Way back passed: ..."), and `serviceGrantView` reports status `closed` with only
+the reason, instead of `waiting` with "Standing must be nominal." among conditions still to meet (a recall in the
+iteration is the other closed reason). A later violation names its own way back, so a restriction after a warning
+that stood reads that one, and DZ-06's correction can still restore nominal; the card follows the state. The
+assessment record line states the finding (`discrepancyFound`) instead of the discrepancy risk once a review ran.
+Copy only: no number, save shape or production path changes.
 
 **Sim.** Production has no finding; `make sim` is unchanged. No preview policy submitted the green subset until
 #285 added `CONTACT_WITHHELD` (below), so `make sim-preview` reported the same metrics; only the overlay inventory

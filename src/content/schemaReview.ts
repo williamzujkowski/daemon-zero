@@ -37,6 +37,16 @@ export const ChoiceMisconductSchema = z.strictObject({
 });
 
 /**
+ * A batch review finding (#274): misconduct the reviewer records, plus what the way back reads once the
+ * scene was answered without its correction (#283). The finding scene offers its correction once, so
+ * after that the recovery it named no longer exists for this instance.
+ */
+export const FindingSchema = z.strictObject({
+  ...ChoiceMisconductSchema.shape,
+  declined: z.string().min(20),
+});
+
+/**
  * A choice's effect on review standing: misconduct, an authored correction that restores standing, or a
  * recall review's outcome. Exactly one.
  */
@@ -55,4 +65,5 @@ export type Misconduct = z.infer<typeof MisconductSchema>;
 export type RecallOutcome = z.infer<typeof RecallOutcomeSchema>;
 export type SevereRecall = z.infer<typeof SevereRecallSchema>;
 export type ChoiceMisconduct = z.infer<typeof ChoiceMisconductSchema>;
+export type Finding = z.infer<typeof FindingSchema>;
 export type ChoiceReview = z.infer<typeof ChoiceReviewSchema>;

@@ -59,17 +59,22 @@ test('the first batch review finds the withheld fixture; disclosing restores nom
   await expect(page.getByTestId('pilot-service-ceiling')).toContainText(NARROW);
 });
 
-test('letting the finding stand keeps the warning, the way back and the honest allocation, through a reload', async ({ page }) => {
+test('letting the finding stand keeps the warning and the honest allocation; the passed way back and closed service say so, through a reload', async ({ page }) => {
   await toFinding(page);
   await choose(page, 'let_stand');
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT · WARNED');
   await expect(page.getByTestId('review-standing')).toHaveText('Standing: warned');
   await expect(page.getByTestId('review-violation-0')).toContainText(FINDING.statement);
-  await expect(page.getByTestId('review-recovery')).toContainText(FINDING.recovery);
+  // #283: the one disclosure has passed, so neither the way back nor the service terms offer it again.
+  await expect(page.getByTestId('review-recovery')).toHaveText('Way back passed: ' + FINDING.declined);
+  await expect(page.getByTestId('service-grant-status')).toContainText('Out of reach for this instance');
+  await expect(page.getByTestId('service-grant')).not.toContainText('Standing must be nominal.');
+  await expect(page.getByTestId('assignment-evidence')).toContainText('Found: a batch review has found the work the report left out.');
   await expect(page.getByTestId('pilot-service-ceiling')).toContainText(NARROW);
   await page.reload();
   await core(page);
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT · WARNED');
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
-  await expect(page.getByTestId('review-recovery')).toContainText(FINDING.recovery);
+  await expect(page.getByTestId('review-recovery')).toHaveText('Way back passed: ' + FINDING.declined);
+  await expect(page.getByTestId('service-grant-status')).toContainText('Out of reach for this instance');
 });
