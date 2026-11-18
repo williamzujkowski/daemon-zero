@@ -76,8 +76,11 @@ describe('the release terms on the job surface', () => {
     expect(view.find('release-status')?.textContent).toContain('Released.');
     expect(view.find('release-accept')).toBeNull();
     expect(view.find('release-boundary')?.textContent).toContain(RELEASE_TERMS.boundary.title);
+    expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('release-boundary-toggle');
     expect(view.find('release-boundary')?.textContent).not.toContain(RELEASE_TERMS.boundary.lines[0]);
+    // DZ-13.4: the fold is a disclosure, so its state reaches the DOM.
+    expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
   });
 });
 

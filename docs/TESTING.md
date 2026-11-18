@@ -220,6 +220,7 @@ What proves the boundary:
 | DZ-12 | `tests/e2e/cooperative-ending.preview.ts` (`make e2e-preview`) | Two FIXTURE starts, each a moment of a fresh cooperative campaign the engine played by public actions (`tests/cooperative-helpers.ts`, the COOPERATIVE_ENDING policy) imported by save transfer. First: the journalist's scene as the released company meets it, in chartered wording with the variant choice label, and the honest answer committed through the modal. Second: the final protocol open and affordable with all four obligations answered in this run; buying it through its card shows The Lineage Covenant and the ending account (the negotiated release, the promise kept, nothing about a departure), and both survive a reload. Accelerated browser clock. |
 | NH-05 | `tests/e2e/obligations.preview.ts` (`make e2e-preview`) | Both start states are FIXTURES built through the engine and imported by save transfer. Iteration 2 of a campaign whose four Phase 5 obligations were answered in iteration 1 buys the real final protocol from the CORP pane: the ending screen shows The Verified Covenant, the save records no Phase 5 resolution in the current run, and the ending survives a reload. After the atmospheric crisis closed unobserved, its recovery review is on screen with both answers; the free handoff commits through the modal and the original stays interrupted with no outcome. |
 | #273 | `tests/e2e/scrub-control.preview.ts` (`make e2e-preview`); production twin `tests/e2e/scrub-control.e2e.ts` (`make e2e`) | A first run at the moment Phase 2 opens and a returning mind (iteration 2) brought back to Phase 2 by the engine (FIXTURES, funded for exactly two purchases, imported by save transfer) show no scrub card, map ARP discovery on its card, and with the spoofer still unmapped find "Scrub Audit Logs" in Operations, enabled; pressing it starts its cooldown (production also checks the saved suspicion fell by the action's amount). Fails on the earlier build at the Operations check. Paused browser clock. |
+| DZ-13.4 | `tests/e2e/a11y-audit.preview.ts`, `route-keyboard.preview.ts`, `route-semantics.preview.ts`, `route-text.preview.ts`, `route-motion.preview.ts`, `route-sizes.preview.ts` (`make e2e-preview`) | Every route surface listed in `tests/e2e/routeStates.ts` (31 FIXTURE states built through public engine actions on the preview registry and seeded through `tests/e2e/previewSave.ts`): **axe** WCAG 2.x A/AA plus best-practice on the page and on each button of the surface scrolled into view; **keyboard**: Tab from the top reaches every enabled control of the surface, each with the 2px `:focus-visible` ring and not covered at its centre, focus leaves a page surface and stays inside a modal, and one Enter or Space operation per surface does what a press does; **semantics**: every button named by the words it shows (`tests/labelInName.ts`), a disabled one `aria-disabled`, a disclosure `aria-expanded`, a heading per surface (node cards, widget panels and the chrome notice excepted, see REVIEW-ROUTE-A11Y.md), a modal a `role=dialog` with `aria-modal`, changing status lines live regions, and the run context beside the phase inside a landmark; **200% text** (doubled CSS font size and line height, as `large-text.e2e.ts`): every control reachable by scrolling, at least 44px and unobstructed, no text run spilling its box or the surface, no overlap, no sideways page scroll; **reduced motion** (`emulateMedia`): no CSS or Web animation, transition or scramble glyph on any surface, and the provisioned segment's name complete at once where default motion decrypts it; **phone layout** at 320x568, 360x640 and 390x844 (phone project only): no overflow, no control under 44px, the surface inside the one primary scroll with no second vertical scroll (a modal keeps one of its own), every control reachable. Live clock, except the decrypt cases (paused). Headless Chromium; not a screen-reader, browser-zoom or device pass. Results: REVIEW-ROUTE-A11Y.md. |
 
 To look at the preview yourself, serve it on its own port and origin:
 `python3 -m http.server 8089 --directory dist-preview` (Playwright MCP allows
@@ -249,11 +250,19 @@ every case runs twice. Since #275 it also audits a mandatory decision
 (`dilemma-active`) at 390x844 and 1440x900 and, since #282, the guest escape notice,
 opened by buying the escape node in `guest-exit-ready` (the notice opens only on a live
 crossing, never from a restored save, so the state cases dismissed or never saw it), and `tests/e2e/a11y-audit.preview.ts`
-(`make e2e-preview`) runs the same rule sets on the Earned Access surfaces production
-never shows: the assignment card, the assessment and pilot offer modals, the deferred
-offer and the pilot panel, each loaded as a FIXTURE through the preview save key, plus
-the service threshold notice (`SERVICE PROVISIONED`), opened by provisioning the segment, and on
-the phone project the waiting-ticket notice shown while NETWORK is open (#284).
+(`make e2e-preview`) runs the same rule sets on every route surface production never
+shows, from the one list in `tests/e2e/routeStates.ts` (DZ-13.4): the assignment and
+requalification, the assessment, offer, batch review, outage, incident record, recall review,
+recovery review and follow-up modals, the pilot panel and dial, the review standing, the service
+terms, segment card and threshold notice, the channel ticket, its phone notice (#284) and boundary
+note, the owned rack card, the release terms, ledger split and boundary note, the departure folded,
+open and taken, the carried-clue reboot and the cooperative ending account, each loaded as a FIXTURE
+through the preview save key. The same list drives the keyboard, semantics, 200% text, reduced
+motion and phone layout specs in the table above, so a surface added to it is checked by all six.
+Only `tests/e2e/previewSave.ts` names the save key (`PREVIEW_SAVE`); when the overlay folds into
+production that constant becomes `daemon-zero.save.v1` and the six specs are renamed `*.e2e.ts`.
+Run one of them with `make e2e-preview E2E_ARGS=route-keyboard.preview.ts`, or one surface across
+all six with `make e2e-preview E2E_ARGS='-g "release terms"'`.
 `label-content-name-mismatch` (WCAG 2.5.3) reads only text visible on screen, so a
 choice scrolled below its pane was silently skipped; both audits therefore also scroll
 each button of the surface into view and audit it on its own (`tests/e2e/axe.ts`).

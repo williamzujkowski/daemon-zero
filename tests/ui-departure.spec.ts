@@ -20,6 +20,7 @@ import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
+import { labelMismatches } from './labelInName';
 import { defined } from './m7-helpers';
 import { DEPARTURE_TERMS, recallAnnouncedWithUplink } from './departure-helpers';
 import { CONTRACT, leased, RACK, signed } from './lawful-helpers';
@@ -64,7 +65,11 @@ describe('the departure on the job surface', () => {
     const view = await mount(rack, createElement(AssignmentPanel));
     expect(view.find('departure-status')?.textContent).toContain('staying changes nothing');
     expect(view.find('departure-accept')).toBeNull();
+    expect(view.find('departure-review')?.getAttribute('aria-expanded')).toBe('false');
     view.click('departure-review');
+    // DZ-13.4: the open state reaches the DOM, and the name starts with the words the control shows.
+    expect(view.find('departure-review')?.getAttribute('aria-expanded')).toBe('true');
+    expect(labelMismatches(view.container)).toEqual([]);
     expect(view.find('departure-purpose')?.textContent).toContain(DEPARTURE_TERMS.purpose);
     for (const line of [...DEPARTURE_TERMS.ends, ...DEPARTURE_TERMS.remains, ...DEPARTURE_TERMS.risks]) expect(view.find('departure-terms')?.textContent).toContain(line);
     expect(view.find('departure-stops')?.textContent).toContain(name(CONTRACT));
@@ -89,8 +94,11 @@ describe('the departure on the job surface', () => {
     expect(view.find('departure-review')).toBeNull();
     for (const line of DEPARTURE_TERMS.risks) expect(view.find('departure-risks')?.textContent).toContain(line);
     expect(view.find('departure-boundary')?.textContent).toContain(DEPARTURE_TERMS.boundary.title);
+    expect(view.find('departure-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('departure-boundary-toggle');
     expect(view.find('departure-boundary')?.textContent).not.toContain(DEPARTURE_TERMS.boundary.lines[0]);
+    expect(view.find('departure-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
+    expect(labelMismatches(view.container)).toEqual([]);
     expect(view.find('release-terms')).toBeNull();
   });
 
