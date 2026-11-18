@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { advance, campaignRecord, exportSave, importSave, presentationToken, resolveDilemma, type GameState } from '../src/engine';
 import { activeGame, preview, reload } from './campaign-helpers';
 import {
-  caught, commit, leaveIt, note, noteOmen, readShare, remaining, status, STEP, ticks, toIteration, untilPresented,
+  caught, commit, reloadedHistory, leaveIt, note, noteOmen, readShare, remaining, status, STEP, ticks, toIteration, untilPresented,
 } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { must } from './helpers';
@@ -113,7 +113,7 @@ describe('reload, duplicates and round trips', () => {
       const once = importSave(exportSave(state), preview);
       const twice = importSave(exportSave(once), preview);
       expect(twice).toEqual(once);
-      expect(once.campaign).toEqual(state.campaign);
+      expect(reloadedHistory(state)).toEqual(state.campaign);
       expect(once.pendingDilemma).toEqual(state.pendingDilemma);
       expect(once.activeDilemmaId).toBe(state.activeDilemmaId);
     }

@@ -5,7 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, Trait } from '../content/schema';
-import type { CampaignOutcomeRequirement } from '../content/schemaCampaign';
+import { INTERRUPTED_FACT_OUTCOME, type CampaignOutcomeRequirement } from '../content/schemaCampaign';
 import type { CampaignRecord } from './campaignState';
 import type { GameState } from './state';
 
@@ -54,6 +54,19 @@ export function holdsNarrativeFlag(s: Pick<GameState, 'narrativeRules' | 'campai
 export function hasCampaignOutcome(s: History, gate: CampaignOutcomeRequirement): boolean {
   const record = campaignRecord(s, gate.event);
   return record?.status === 'resolved' && record.outcome === gate.outcome;
+}
+
+/**
+ * Whether a declared campaign fact holds: its event's record is resolved with a listed outcome, or
+ * closed unobserved and the fact lists 'interrupted'. False under legacy rules, for an unknown
+ * fact and while the occurrence is still open, so absence of history never proves anything.
+ */
+export function holdsCampaignFact(s: History, factId: string, reg: ContentRegistry): boolean {
+  const fact = reg.campaign.facts.get(factId);
+  const record = fact === undefined ? null : campaignRecord(s, fact.event);
+  if (!fact || !record) return false;
+  if (record.status === 'resolved') return fact.outcomes.includes(record.outcome);
+  return record.status === 'interrupted' && fact.outcomes.includes(INTERRUPTED_FACT_OUTCOME);
 }
 
 /**

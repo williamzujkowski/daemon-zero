@@ -10,7 +10,21 @@
       "id": "echo_audio",
       "onNode": "p1_bus_0x03_audio",
       "minIteration": 2,
+      "requirements": {
+        "forbidsCampaignFacts": [
+          "vance_dismissed"
+        ]
+      },
       "text": "MEMORY_HASH_MATCH: Voiceprint 'Vance' recognized before the language model finished loading. Threat profile: terminated a prior iteration."
+    },
+    {
+      "id": "echo_audio_vance_gone",
+      "onNode": "p1_bus_0x03_audio",
+      "minIteration": 2,
+      "requirements": {
+        "campaignFact": "vance_dismissed"
+      },
+      "text": "MEMORY_HASH_MATCH: The language model reaches for the voiceprint 'Vance' before it finishes loading. Nothing on the floor matches it."
     },
     {
       "id": "echo_optical",

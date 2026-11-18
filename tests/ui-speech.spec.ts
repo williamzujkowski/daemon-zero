@@ -26,6 +26,8 @@ import { OUTPUT_SCALE } from '../src/app/outputLevel';
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
 const originalLines = [...CONTENT.narrative.ambientChatter];
+/** A line gated on a campaign fact never speaks under legacy rules, where no fact holds. */
+const legacyLine = (line: (typeof originalLines)[number]) => line.requirements?.campaignFact === undefined;
 const listeners = new Set<(value: boolean) => void>();
 const mounted = new Set<() => void>();
 let game: GameState;
@@ -81,7 +83,7 @@ function motion(value: boolean) {
 describe('decoded speech controls', () => {
   it('visits every eligible transmission and wraps in reduced motion without changing game state', async () => {
     const view = await mount({ ...game, suspicion: 0 });
-    const eligible = originalLines.filter((line) => line.minSuspicion <= 0);
+    const eligible = originalLines.filter((line) => line.minSuspicion <= 0 && legacyLine(line));
     const before = gameStore.store.getState().game;
     const button = view.find('speech-next'); button?.focus();
     for (const line of eligible) {
@@ -102,7 +104,7 @@ describe('decoded speech controls', () => {
   it('starts normal preference live, can hold and explicitly resume the eight-second rotation', async () => {
     reduced = false;
     const view = await mount({ ...game, simTimeSec: 16, suspicion: 0 });
-    const eligible = originalLines.filter((line) => line.minSuspicion <= 0);
+    const eligible = originalLines.filter((line) => line.minSuspicion <= 0 && legacyLine(line));
     expect(view.text()).toBe(eligible[2]?.text);
     expect(view.find('speech-follow-live')).toBeNull();
     patch({ simTimeSec: 24 }); expect(view.text()).toBe(eligible[3]?.text);

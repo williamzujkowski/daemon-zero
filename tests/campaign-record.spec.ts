@@ -11,6 +11,7 @@ import {
   SaveError, serialize, wipe, type GameState,
 } from '../src/engine';
 import { activeGame, choiceOf, chooseCryo, cryo, decoder, nearCryo, preview, reload, returnTo } from './campaign-helpers';
+import { reloadedHistory } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { must, rich, choose } from './helpers';
 
@@ -114,7 +115,7 @@ describe('duplicate and stale choices (H02)', () => {
 
 describe('source-scoped ending evidence (H12, H13)', () => {
   const primer = defined([...preview.campaign.actions.values()][0]);
-  const unconverted = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined && dilemma.phaseId === 0));
+  const unconverted = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
   const withPrimer = (s: GameState): GameState => must(performAction({ ...s, epistemicDrift: 0 }, primer.id, preview));
 
   it('counts a campaign event once, an unconverted dilemma for this iteration only', () => {
@@ -190,7 +191,9 @@ describe('snapshots and round trips (H32)', () => {
   it('is idempotent through import, export and import across several wipes', () => {
     const state = returnTo(returnTo(chooseCryo(activeGame(), 0)));
     const once = reload(state);
-    expect(once).toEqual({ ...state, contentChannel: 'preview' });
+    // The setup's out-of-the-way early events come back as legacy completions; every real record is kept.
+    expect({ ...once, campaign: state.campaign }).toEqual({ ...state, contentChannel: 'preview' });
+    expect(reloadedHistory(state)).toEqual(state.campaign);
     expect(reload(once)).toEqual(once);
     expect(exportSave(reload(once))).toBe(exportSave(once));
   });
