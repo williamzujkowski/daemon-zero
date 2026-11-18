@@ -14,11 +14,13 @@ test('keyboard utility navigation cancels replacement and restores focus without
     await expect(page.getByTestId('menu-dialog').locator(':focus')).toHaveCount(1);
   }
   await page.getByTestId('save-open').click();
-  await page.getByTestId('save-code').fill('keep this draft');
+  await page.getByTestId('save-export').click();
+  const draft = await page.getByTestId('save-code').inputValue();
   await page.getByTestId('save-import').click();
+  await expect(page.getByTestId('save-import-dialog')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(1);
   await page.keyboard.press('Escape');
-  await expect(page.getByTestId('save-code')).toHaveValue('keep this draft');
+  await expect(page.getByTestId('save-code')).toHaveValue(draft);
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('save-open')).toBeVisible();
   await page.keyboard.press('Escape');

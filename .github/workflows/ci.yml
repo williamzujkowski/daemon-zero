@@ -34,8 +34,20 @@ jobs:
 
       # tests/audio-assets.spec.ts measures the committed audio with ffmpeg and ffprobe, and fails
       # rather than skips when CI is set and they are missing.
+      # A slow package mirror once held this step for 16 minutes and ran the job into its
+      # time limit (2026-11-17), so each attempt is bounded and retried rather than waited on.
       - name: Install ffmpeg (audio file checks)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+        timeout-minutes: 8
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 150 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update \
+              && timeout 150 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 \
+                install -y --no-install-recommends ffmpeg; then
+              exit 0
+            fi
+            echo "ffmpeg install attempt $attempt failed or timed out; retrying"
+          done
+          exit 1
 
       - name: Typecheck, lint, content, tests, balance
         run: make verify
