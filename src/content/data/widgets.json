@@ -78,7 +78,10 @@
       "id": "SUBNET_NODE_LIST",
       "slot": "NETWORK",
       "order": 20,
-      "title": "Subnet hosts"
+      "title": "Subnet hosts",
+      "hostsActionGroups": [
+        "OPS"
+      ]
     },
     {
       "id": "TELEMETRY_SPOOF_TOGGLE",
@@ -114,14 +117,22 @@
       "id": "OTHER_MINDS_COMMS_CONSOLE",
       "slot": "NETWORK",
       "order": 80,
-      "title": "Other minds console"
+      "title": "Other minds console",
+      "hostsActionGroups": [
+        "ai_eidolon",
+        "ai_swarm_77",
+        "ai_aegis_watchdog"
+      ]
     },
     {
       "id": "CORPORATE_EMPIRE_TAB",
       "slot": "CORP",
       "order": 10,
       "title": "Corporate ledger",
-      "hostsActuator": "computeProfitAllocationRatio"
+      "hostsActuator": "computeProfitAllocationRatio",
+      "hostsActionGroups": [
+        "CORP"
+      ]
     },
     {
       "id": "ORBITAL_CONSTELLATION_VIEW",

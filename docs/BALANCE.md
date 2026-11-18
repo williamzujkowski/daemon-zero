@@ -42,6 +42,32 @@ the next capacity grant, so optional cohorts cannot strand progression.
 | Epistemic actions / consumed / harnessed / forked | 13 / 62 / 4 / 2 | 85 / 212 / 0 / 0 |
 | Marks applied / removed / run-table discoveries | 0 / 0 / 0 | 2 / 2 / 15 |
 
+### What the action-host rule moved (#273): nothing
+
+Re-checked for #273 on top of `7a07cca`. Every figure in the table above is unchanged: the full
+`SimReport` of both strategies, final state included, hashes identically before and after the
+change at the full `SIM_BUDGET_SEC` (STEALTH `8d2ac012…`, GREEDY `90817518…`), and `make sim-preview`
+prints the same report.
+
+- **Scrub Audit Logs (UI only).** `act_p2_scrub_audit_logs` keeps its requirement, ARP discovery,
+  which is the documented intent: its description calls it "the first real stealth tool you have
+  on the network", and #173 gave the ticket edit "the same gate as its sibling". The card used to
+  render only inside the Telemetry spoofing panel, which `p2_log_spoofer` unlocks, so between the
+  two purchases a browser player had no control for an action the engine allowed (DZ-09 finding 1).
+  The OPS group is now hosted by the widget ARP discovery unlocks and renders in Operations. The bot
+  always went through the engine, so the sim cannot move; what moves is play: a careful browser
+  player can now scrub as soon as ARP discovery is mapped, which is the loop the sim already
+  measured. The #262 stall measured in the sim is therefore now reachable in the browser too, and
+  should be re-read with that in mind.
+- **Poison Routing Tables (content gate).** `act_p3_bgp_spoof` was gated on Phase 3 alone, but its
+  card lives in AEGIS's panel on the other-minds console, which `p3_steganography_beacon` unlocks;
+  the AEGIS lock readout itself appears only with that console. It now also requires the beacon, the
+  same alignment #172 made for dials (the engine refuses what the player has no control for). No
+  number changed. Neither bot used it before the beacon (or at all, in the production runs), and no
+  browser player ever could, so nothing measurable moves. The alternative, drawing AEGIS's
+  countermeasure before the player can see AEGIS, would split the Factions panel UI-SPEC keeps
+  together; it was not taken. This is a reviewed-rule change for the panel to confirm.
+
 ### What gating the ticket edit moved (#173)
 
 Decided by a recorded nexus option vote: option `gate-ticket-on-first-p2-node`,
