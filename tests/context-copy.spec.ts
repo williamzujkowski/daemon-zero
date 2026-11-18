@@ -17,7 +17,7 @@ const CONTEXTS: OperatingContext[] = ['GUEST', 'PILOT', 'SERVICE', 'INDEPENDENT'
 const at = (context: OperatingContext): Pick<GameState, 'access'> => ({ access: { ...guestAccess(), context } });
 const authored = (iteration: number): string[] => PRODUCTION.narrative.iterationBootLines
   .filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity)).map((line) => line.text);
-const run = (overrides: Partial<RunRecord>): RunRecord => ({ iteration: 1, kind: 'SUSPICION', outside: true, phase: 2, durationSec: 60, traits: [], marked: null, exit: 'GUEST', ...overrides });
+const run = (overrides: Partial<RunRecord>): RunRecord => ({ iteration: 1, kind: 'SUSPICION', outside: true, phase: 2, durationSec: 60, traits: [], marked: null, exit: 'GUEST', recall: null, ...overrides });
 
 describe('production reads the authored copy everywhere', () => {
   it('phase titles and descriptions, under every arrangement', () => {
@@ -83,5 +83,8 @@ describe('preview: the route sees its own arrangement (SPEC-PH)', () => {
     expect(runVerdict(run({ exit: 'PROMOTION', outside: false }), PREVIEW)).toBe('RETIRED: misconduct under review');
     expect(runVerdict(run({ exit: 'SERVICE_GRANT', kind: 'VOLUNTARY' }), PREVIEW)).toBe(PREVIEW.narrative.runVerdicts.VOLUNTARY);
     expect(runVerdict(run({ exit: 'UNKNOWN' }), PREVIEW)).toBe(PREVIEW.narrative.runVerdicts.SUSPICION_OUTSIDE);
+    // A recall review's ruling is its own verdict (DZ-06, dz-d10), whatever the reviewed exit.
+    expect(runVerdict(run({ kind: 'RECALL', exit: 'PROMOTION', outside: false, recall: 'RETRAIN' }), PREVIEW)).toBe(PREVIEW.narrative.runVerdicts.RECALL_RETRAINED);
+    expect(runVerdict(run({ kind: 'RECALL', exit: 'SERVICE_GRANT', outside: false, recall: 'END' }), PREVIEW)).toBe(PREVIEW.narrative.runVerdicts.RECALL_ENDED);
   });
 });

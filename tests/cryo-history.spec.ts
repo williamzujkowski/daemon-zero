@@ -4,7 +4,7 @@ import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave
 import { CONTENT as preview } from '../src/content/preview';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
+import { fresh, grant, must, outOfTheWay, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
 const source = defined(reg.dilemmas.find((d) => d.id === 'dil_05_cryo_lab_diversion'));
 const flags = defined(source.trigger.forbiddenNarrativeFlags);
 const decoder = defined(reg.narrative.recordedTransmissions[0]).decoderWidgetId;
@@ -64,7 +64,7 @@ describe('recorded cryo outcomes', () => {
     expect(campaignRecord(active, source.id)).toMatchObject({ status: 'resolved', outcome: 'legacy_unknown' });
     // Preview's own dilemmas (the NH-06 Elena follow-up) are kept out of the way too.
     const regained = grant(rich(wipe(active, preview, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
-    const after = { ...regained, resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) };
+    const after = { ...regained, resolvedDilemmas: outOfTheWay(preview, source.id) };
     expect(advance(after, 0.1, preview).pendingDilemma).toBeNull();
     expect(after.narrativeFlags).toEqual([]);
   });

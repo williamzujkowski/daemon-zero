@@ -10,6 +10,7 @@ import {
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
+import { ChoiceReviewSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
@@ -121,6 +122,10 @@ export const RequirementsSchema = z.strictObject({
   pilotEligible: z.literal(true).optional(),
   /** Met only under one of these arrangements. Every production run is the guest job. */
   accessContexts: z.array(OperatingContextSchema).min(1).optional(),
+  /** Met only at one of these review standings (DZ-06). Every production run is nominal. */
+  reviewStandings: ReviewStandingsRequirementSchema.optional(),
+  /** Met once this instance has submitted at least this many pilot service batches (DZ-06). */
+  minPilotBatches: z.number().int().positive().optional(),
   /** Nexus vote nh-d7: campaign events that must be complete (see schemaCampaign.ts). */
   campaignObligations: CampaignObligationsRequirementSchema.optional(),
   /** Blocks while a fact holds that an earlier instance's record established (see schemaCampaign.ts). */
@@ -270,6 +275,8 @@ export const DilemmaChoiceSchema = z.strictObject({
   scope: ScopeConductSchema.optional(),
   /** A pilot offer's choice: the answer it gives (DZ-04). */
   pilotResponse: PilotResponseSchema.optional(),
+  /** Misconduct, a correction or a recall review's outcome (DZ-06, schemaReview.ts). */
+  review: ChoiceReviewSchema.optional(),
   /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
   receipt: z.string().min(20).optional(),
 });
@@ -356,7 +363,8 @@ export const EchoSchema = z.strictObject({
   text: z.string().min(10),
 });
 
-export const WipeKindSchema = z.enum(['SUSPICION', 'AEGIS', 'VOLUNTARY']);
+/** RECALL: an announced severe recall review outcome (nexus vote dz-d10); an ordinary recall is no wipe. */
+export const WipeKindSchema = z.enum(['SUSPICION', 'AEGIS', 'VOLUNTARY', 'RECALL']);
 
 const actuatorRatios = z.strictObject({
   fanSpeedRatio: z.number().min(0).max(1).optional(),
@@ -419,6 +427,8 @@ export const NarrativeSchema = z.strictObject({
   wipeSuspicionCorporate: z.string(),
   wipeAegis: z.string(),
   wipeVoluntary: z.string(),
+  /** The wipe reason a severe recall review outcome records (DZ-06). */
+  wipeRecall: z.string(),
   deadDropRecovered: z.string(),
   residualRecovered: z.string(),
   breadcrumb: z.string(),
@@ -441,6 +451,9 @@ export const NarrativeSchema = z.strictObject({
     SUSPICION_OUTSIDE: z.string(),
     AEGIS: z.string(),
     VOLUNTARY: z.string(),
+    /** A severe recall review outcome: retraining ordered, or the iteration ended without it. */
+    RECALL_RETRAINED: z.string(),
+    RECALL_ENDED: z.string(),
   }),
   conditioningApplied: z.string(),
   conditioningSpared: z.string(),

@@ -41,4 +41,6 @@ export { pilotToken, qualifiesForPilot } from './pilotQuery';
 export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
 export { hasCapability } from './capabilityQuery';
 export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';
+export { loanContainment } from './grantQuery';
+export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';

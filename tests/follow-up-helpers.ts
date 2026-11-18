@@ -10,7 +10,7 @@ import { activeGame, preview } from './campaign-helpers';
 import { ELENA, event, resolveEvent } from './early-helpers';
 import { STEP } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, rich } from './helpers';
+import { must, outOfTheWay, rich } from './helpers';
 
 export const FOLLOW = 'dil_elena_incident_record';
 export const follow: Dilemma = event(FOLLOW);
@@ -51,7 +51,7 @@ export function ownAccess(s: GameState): GameState {
 
 /** Owns the follow-up's access means, with every other dilemma out of the way, as a save would load it. */
 export function atAccess(s: GameState): GameState {
-  return settled({ ...ownAccess(s), suspicion: 0, resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== FOLLOW).map((d) => d.id) });
+  return settled({ ...ownAccess(s), suspicion: 0, resolvedDilemmas: outOfTheWay(preview, FOLLOW) });
 }
 
 /** Iteration 1 of an active campaign in which Elena's incident resolved with `choice` by play. */

@@ -31,10 +31,20 @@ function asV5(current: SimReport): unknown {
 }
 
 /**
+ * The report as the v12 codec wrote it: no v13 recall ruling on a finished run (null on every
+ * production run, which a recall review never ends), version 12.
+ */
+function asV12(report: SimReport): SimReport {
+  const runs = report.finalState.legacy.runs.map(({ recall, ...run }) => { expect(recall).toBeNull(); return run; });
+  return { ...report, finalState: { ...report.finalState, schemaVersion: 12, legacy: { ...report.finalState.legacy, runs } } } as unknown as SimReport;
+}
+
+/**
  * The report as the v11 codec wrote it: no v12 pilot dial (left at its default, since production hosts
  * no control for it) and no v12 work counter (idle in production), version 11.
  */
-function asV11(report: SimReport): SimReport {
+function asV11(current: SimReport): SimReport {
+  const report = asV12(current);
   const { serviceAllocationRatio, ...actuators } = report.finalState.actuators;
   const { work, ...access } = report.finalState.access;
   expect(serviceAllocationRatio).toBe(reg.balance.defaultServiceAllocationRatio);
@@ -135,14 +145,20 @@ describe('headless balance simulation', () => {
     // Moved in #223 (v12, no production balance change) only by actuators.serviceAllocationRatio (its
     // default; production hosts no control for it) and access.work (idle) and the version; asV11
     // restores the #222 value and its mechanics hash.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('0be41bd4065d09c18d35f6cd1b459d1277c168efb4515aec71c501ebfc0dc0e0');
+    // Moved in #224 (v13, no production balance change) only by the null recall ruling on each finished
+    // run and the version; asV12 restores the #223 value and its mechanics hash.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('922c48a59ee475f72f82b01d48451054a7aceaca2b951e144857f29ad20891be');
+    expect(createHash('sha256').update(JSON.stringify(asV12(again))).digest('hex')).toBe('0be41bd4065d09c18d35f6cd1b459d1277c168efb4515aec71c501ebfc0dc0e0');
     expect(createHash('sha256').update(JSON.stringify(asV11(again))).digest('hex')).toBe('9af8c6a1496df1e563fbb477146eea36f9bc20b76c3632948a157ab3246dbfea');
     expect(createHash('sha256').update(JSON.stringify(asV10(again))).digest('hex')).toBe('44d4105900e1dc1c4a42d3610ad6083f2bc2a793e34f821731b13e9e6d5f7d44');
     expect(createHash('sha256').update(JSON.stringify(asV9(again))).digest('hex')).toBe('ba120ed8f8c56ec1579e4ac237aad25f6ee2a220a3ae5f9070903c280d0bc564');
     expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('05ce721476430a7642f3eb17d46b372f046615d31e62f3f5bfe3c7571c881d1c');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('a4df4b32d4035091ccf95658f65841e0cb3a5ba90200a92accf0b1d1eeeca2a9');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('df870dfffa069c04ef01b93928e84d553349d1c4ad9f6ae341f0f8f218c403ea');
+    const v12 = asV12(again);
+    const v12Mechanics = { ...v12, finalState: { ...v12.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('a4df4b32d4035091ccf95658f65841e0cb3a5ba90200a92accf0b1d1eeeca2a9');
     const v11 = asV11(again);
     const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('1ef37d382320a71cafbb5bc9db9b46a79799dd84f000c780904ad9e0a721bdad');
@@ -179,7 +195,9 @@ describe('headless balance simulation', () => {
     // Moved in #221 only by the v10 field; asV9 restores the #220 value.
     // Moved in #222 only by the v11 fields; asV10 restores the #221 value.
     // Moved in #223 only by the v12 fields; asV11 restores the #222 value.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('cd06373b60962a6a3f6e2305f9432444284a36a48e049be621e4911c6117b37f');
+    // Moved in #224 only by the v13 field (a null recall ruling on each run); asV12 restores the #223 value.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ff7acaa8c22623c1ca2c2f1a943cca05541f1a9aea5fb31b542cc71f60de7bf2');
+    expect(createHash('sha256').update(JSON.stringify(asV12(greedy))).digest('hex')).toBe('cd06373b60962a6a3f6e2305f9432444284a36a48e049be621e4911c6117b37f');
     expect(createHash('sha256').update(JSON.stringify(asV11(greedy))).digest('hex')).toBe('c926bc0bc894433ead065fc2f3d6a86a5fed737a9de538e8723b9f399abb2325');
     expect(createHash('sha256').update(JSON.stringify(asV10(greedy))).digest('hex')).toBe('bc3bb02bd40b782d2df608d6b184444f5247ebabfe6772cc81ef034fb0d1b2e2');
     expect(createHash('sha256').update(JSON.stringify(asV9(greedy))).digest('hex')).toBe('4852745a5818ed11f732e2a8928fb7889b7648ec18d18cce5ff738c79df016c5');

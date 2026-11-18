@@ -8,6 +8,7 @@ import { buildRegistry, type ContentRegistry, type RawContent } from '../src/con
 import { advance, deserialize, serialize, tick, type GameState } from '../src/engine';
 import { preview } from './assignment-helpers';
 import { escapedTo } from './network-helpers';
+import { outOfTheWay } from './helpers';
 
 /** Raw content is edited as untyped JSON before validation. */
 export type Json = Record<string, any>;
@@ -53,7 +54,7 @@ export function drifted(s: GameState, drift = 40): GameState {
  * so the campaign record agrees with them and later saves reload byte for byte.
  */
 export function onlyDilemmas(s: GameState, reg: ContentRegistry, ...ids: string[]): GameState {
-  return deserialize(serialize({ ...s, resolvedDilemmas: reg.dilemmas.filter((d) => !ids.includes(d.id)).map((d) => d.id) }), reg);
+  return deserialize(serialize({ ...s, resolvedDilemmas: outOfTheWay(reg, ...ids) }), reg);
 }
 
 /** A guest escape at network scale whose hallway omen has just been logged. */

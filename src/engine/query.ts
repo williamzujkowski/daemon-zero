@@ -15,7 +15,6 @@ export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   if (!req) return true;
-  if (!meetsEpistemicRequirements(s, req, reg)) return false;
   if (req.resolvedDilemmas?.some((id) => !s.resolvedDilemmas.includes(id))) return false;
   if (req.forbidsResolvedDilemmas?.some((id) => s.resolvedDilemmas.includes(id))) return false;
   if (req.nodes && !req.nodes.every((id) => s.unlockedNodes.includes(id))) return false;
@@ -28,7 +27,10 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined, r
   if (req.forbidsTraits?.some((trait) => hasEverHeld(s, trait))) return false;
   if (req.forbidsNodes?.some((id) => s.unlockedNodes.includes(id))) return false;
   if (!inIterationWindow(s, req)) return false;
-  return Object.entries(req.minTrust ?? {}).every(([id, min]) => (s.trust[id] ?? 0) >= min);
+  if (!Object.entries(req.minTrust ?? {}).every(([id, min]) => (s.trust[id] ?? 0) >= min)) return false;
+  // Every check is pure, so order never changes the answer; the cheap field reads above run first because
+  // the scheduler asks every dilemma's trigger on every tick, and most fail on hardware or history.
+  return meetsEpistemicRequirements(s, req, reg);
 }
 
 function inIterationWindow(s: GameState, req: Requirements | undefined): boolean {

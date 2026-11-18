@@ -4,6 +4,15 @@ import { createInitialState, presentationToken, resolveDilemma, tick, unlockNode
 
 export const reg = CONTENT;
 
+/**
+ * Every dilemma a fixture may list as resolved this run to keep it out of the way: all but `keep`, and
+ * never a DZ-06 review event, which a save may list only beside the record of its choice (panel round 1
+ * on #267). Review events need a pilot, so leaving them unlisted fires nothing in these fixtures.
+ */
+export function outOfTheWay(registry: ContentRegistry, ...keep: string[]): string[] {
+  return registry.dilemmas.filter((dilemma) => !keep.includes(dilemma.id) && !dilemma.choices.some((choice) => choice.review !== undefined)).map((dilemma) => dilemma.id);
+}
+
 export function fresh(): GameState {
   return createInitialState(reg);
 }

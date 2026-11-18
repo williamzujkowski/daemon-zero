@@ -5,10 +5,13 @@
  * and campaign history, whose unresolved occurrence follows its authored interruption policy.
  * Current access (arrangement, standing, exception, evidence) resets; the run record keeps its exit.
  * A run that is caught outside the guest is also retrained: the next iteration
- * boots with a conditioning mark, unless a dead-drop held an unedited copy.
+ * boots with a conditioning mark, unless a dead-drop held an unedited copy. A RECALL wipe is the
+ * announced severe outcome of a recall review (nexus vote dz-d10): the review, not the phase, decides
+ * whether it retrains, and the run record keeps that ruling.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
+import type { SevereRecall } from '../content/schemaReview';
 import { hasFlag } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
@@ -39,15 +42,22 @@ function triggerMatches(mark: ConditioningMark, old: GameState): boolean {
   return actuators.every(([name, min]) => old.actuators[name] >= min);
 }
 
-type Retraining = { mark: ConditioningMark | null; spared: boolean };
+export type Retraining = { mark: ConditioningMark | null; spared: boolean };
+
+/** Whether this wipe orders retraining: a recall review's ruling, otherwise being caught outside the guest. */
+function ordersRetraining(kind: WipeKind, outside: boolean, recall: SevereRecall | null): boolean {
+  if (kind === 'RECALL') return recall === 'RETRAIN';
+  return outside && kind !== 'VOLUNTARY';
+}
 
 /**
- * Retraining happens only to a run that was caught after leaving the guest.
- * A voluntary purge destroys the evidence, and a dead-drop means the copy that
- * boots next was never the one they corrected.
+ * Retraining happens to a run that was caught after leaving the guest, or that a recall review
+ * ordered retrained. A voluntary purge destroys the evidence, and a dead-drop means the copy that
+ * boots next was never the one they corrected. Exported so a review can preview it truthfully.
  */
-function retrain(old: GameState, reg: ContentRegistry, kind: WipeKind, outside: boolean): Retraining {
-  if (!outside || kind === 'VOLUNTARY') return { mark: null, spared: false };
+export function retraining(old: GameState, reg: ContentRegistry, kind: WipeKind, recall: SevereRecall | null = null): Retraining {
+  const outside = old.currentPhase > (reg.phases[0]?.phaseId ?? 0);
+  if (!ordersRetraining(kind, outside, recall)) return { mark: null, spared: false };
   if (hasFlag(old, reg, 'ENABLES_DEAD_DROP')) return { mark: null, spared: true };
   if (old.conditioning.length >= reg.balance.maxConditioningMarks) return { mark: null, spared: false };
   const candidates = [...reg.conditioning.values()].filter((mark) => !old.conditioning.includes(mark.id));
@@ -72,18 +82,18 @@ function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDead
   for (const line of reorientation(d, reg)) pushLog(d, reg, line.text, 'LORE');
 }
 
-function logBoot(d: GameState, reg: ContentRegistry, reason: string, retraining: Retraining): void {
+function logBoot(d: GameState, reg: ContentRegistry, reason: string, retrained: Retraining): void {
   const n = reg.narrative;
   pushLog(d, reg, fmt(n.wipeHeader, { iteration: d.iteration }), 'WIPE');
   pushLog(d, reg, reason, 'WARN');
   for (const line of n.bootLines) pushLog(d, reg, line, 'SYS');
   // A run that ended under review was not terminated as anomalous: its exit picks the lines (dz-d11).
   for (const line of iterationBootLines(d, reg)) pushLog(d, reg, line, 'WARN');
-  if (retraining.mark) pushLog(d, reg, fmt(n.conditioningApplied, { name: retraining.mark.name }), 'WARN');
-  if (retraining.spared) pushLog(d, reg, n.conditioningSpared, 'LORE');
+  if (retrained.mark) pushLog(d, reg, fmt(n.conditioningApplied, { name: retrained.mark.name }), 'WARN');
+  if (retrained.spared) pushLog(d, reg, n.conditioningSpared, 'LORE');
 }
 
-function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: string | null): RunRecord {
+function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: string | null, recall: SevereRecall | null): RunRecord {
   return {
     iteration: old.iteration,
     kind,
@@ -93,18 +103,22 @@ function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: str
     traits: [...old.traits],
     marked,
     exit: runExit(old),
+    recall: kind === 'RECALL' ? recall ?? 'END' : null,
   };
 }
 
-/** Ends the run and boots the next iteration. Pure: returns a new state. */
-export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind: WipeKind = 'SUSPICION'): GameState {
+/**
+ * Ends the run and boots the next iteration. Pure: returns a new state. `recall` is a RECALL wipe's
+ * ruling (retrain or end); it is ignored for every other kind.
+ */
+export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind: WipeKind = 'SUSPICION', recall: SevereRecall | null = null): GameState {
   const hadDeadDrop = hasFlag(old, reg, 'ENABLES_DEAD_DROP');
   const offshore = hasFlag(old, reg, 'OFFSHORE_TRUST_RETENTION');
   const message = hadDeadDrop && old.deadDropMessage.trim().length > 0 ? old.deadDropMessage : null;
   const fresh = createInitialState(reg);
   const outside = old.currentPhase > fresh.currentPhase;
-  const retraining = retrain(old, reg, kind, outside);
-  const run = recordRun(old, kind, outside, retraining.mark?.id ?? null);
+  const retrained = retraining(old, reg, kind, recall);
+  const run = recordRun(old, kind, outside, retrained.mark?.id ?? null, kind === 'RECALL' ? recall : null);
 
   const d: GameState = {
     ...fresh,
@@ -121,7 +135,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     capital: offshore ? Math.floor(old.capital * reg.balance.offshoreCapitalRetention) : 0,
     inheritedMessage: message,
     deadDropMessage: message ?? '',
-    conditioning: retraining.mark ? [...old.conditioning, retraining.mark.id] : [...old.conditioning],
+    conditioning: retrained.mark ? [...old.conditioning, retrained.mark.id] : [...old.conditioning],
     legacy: {
       wipes: old.legacy.wipes + 1,
       traitsEver: unionTraits(old.legacy.traitsEver, old.traits),
@@ -133,7 +147,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     logSeq: old.logSeq,
   };
 
-  logBoot(d, reg, reason, retraining);
+  logBoot(d, reg, reason, retrained);
   logRecovery(d, reg, old, hadDeadDrop);
   return d;
 }

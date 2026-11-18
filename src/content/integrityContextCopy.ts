@@ -97,7 +97,9 @@ function bootLineProblems(reg: ContentRegistry): string[] {
 
 function verdictProblems(reg: ContentRegistry): string[] {
   const keys = reg.contextCopy.runVerdicts.flatMap((verdict) => verdict.exits.map((exit) => `${exit}:${verdict.kind}`));
-  return keys.filter((key, index) => keys.indexOf(key) !== index).map((key) => `contextCopy.runVerdicts: a second verdict for ${key}`);
+  // A recall review's ruling is the verdict of a RECALL run (DZ-06), so a variant for one would never be read.
+  const recall = reg.contextCopy.runVerdicts.some((verdict) => verdict.kind === 'RECALL') ? ['contextCopy.runVerdicts: a RECALL run reads its review\'s ruling, so it takes no variant'] : [];
+  return [...recall, ...keys.filter((key, index) => keys.indexOf(key) !== index).map((key) => `contextCopy.runVerdicts: a second verdict for ${key}`)];
 }
 
 function threatResponseProblems(reg: ContentRegistry): string[] {

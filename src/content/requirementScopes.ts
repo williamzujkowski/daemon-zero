@@ -44,6 +44,10 @@ export const REQUIREMENT_SCOPES = {
   // Pilot evidence and the arrangement are this instance's, and reset with it.
   pilotEligible: 'access',
   accessContexts: 'access',
+  // Review standing is this instance's (DZ-06): a wipe resets it, so what waited on it is interrupted.
+  reviewStandings: 'access',
+  // Submitted batches are this instance's work and only grow until a wipe resets them.
+  minPilotBatches: 'access',
   // Completion is world history under campaign rules: once complete, an obligation never reopens.
   campaignObligations: 'context',
   forbidsInheritedFacts: 'context',

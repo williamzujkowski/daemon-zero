@@ -13,12 +13,12 @@ import { activeGame, decoder, preview } from './campaign-helpers';
 import { BAIT, ELENA, event, near, nextIteration, NIGHT, omenOf, resolveEvent, TRUE_NOTE, VANCE } from './early-helpers';
 import { caught, commit, noteOmen, STEP, toIteration, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, rich } from './helpers';
+import { must, outOfTheWay, rich } from './helpers';
 
 /** The job 7731 receipts this state can read, by id. */
 const receipts = (s: GameState) => recordedTransmissions(s, preview, decoder).filter((record) => record.sourceDilemmaId === NIGHT).map((record) => record.id);
 /** A later iteration that has decoded speech again, with nothing else happening. */
-const listening = (s: GameState): GameState => ({ ...near(nextIteration(s), ELENA), resolvedDilemmas: preview.dilemmas.map((dilemma) => dilemma.id).filter((id) => id !== NIGHT) });
+const listening = (s: GameState): GameState => ({ ...near(nextIteration(s), ELENA), resolvedDilemmas: outOfTheWay(preview, NIGHT) });
 
 describe('Miller and job 7731 return receipts (H20)', () => {
   it.each([

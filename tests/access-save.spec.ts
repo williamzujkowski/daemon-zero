@@ -146,7 +146,7 @@ describe('contradictory access or provenance is refused whole (V15)', () => {
       access: { context: 'INDEPENDENT', standing: 'NOMINAL', exception: null, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: 5 }, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } } },
     [{ kind: 'PROMOTION', iteration: s.iteration, atSimSec: 5 }, { kind: 'RELEASE', iteration: s.iteration, atSimSec: 6 }]), /qualification/],
     ['evidence from the future', (s: GameState) => ({ ...s, access: { ...s.access, qualification: { result: 'COMPLETED', discrepancy: false, recordedAtSimSec: s.simTimeSec + 1 } } }), /qualification/],
-    ['a run exit its route does not prove', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: s.iteration, kind: 'VOLUNTARY', outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'RELEASE' }] } }), /run exit/],
+    ['a run exit its route does not prove', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: s.iteration, kind: 'VOLUNTARY', outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'RELEASE', recall: null }] } }), /run exit/],
   ];
   it.each(PREVIEW_CASES)('refuses %s on preview', (_name, change, reason) => {
     expect(() => deserialize(edit(pilot(), change), preview)).toThrow(reason);
@@ -161,7 +161,7 @@ describe('contradictory access or provenance is refused whole (V15)', () => {
   const PRODUCTION_CASES: [string, Change, RegExp][] = [
     ['route access', (s: GameState) => ({ ...s, access: { ...s.access, context: 'PILOT' as const } }), /without campaign rules/],
     ['qualification evidence', (s: GameState) => ({ ...s, access: { ...s.access, qualification: { result: 'COMPLETED' as const, discrepancy: false, recordedAtSimSec: 0 } } }), /without campaign rules/],
-    ['a route exit', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: 1, kind: 'VOLUNTARY' as const, outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'PROMOTION' as const }] } }), /without campaign rules/],
+    ['a route exit', (s: GameState) => ({ ...s, legacy: { ...s.legacy, runs: [{ iteration: 1, kind: 'VOLUNTARY' as const, outside: false, phase: 0, durationSec: 1, traits: [], marked: null, exit: 'PROMOTION' as const, recall: null }] } }), /without campaign rules/],
     ['route history', (s: GameState) => ({ ...s, campaign: { ...s.campaign, route: [{ kind: 'PROMOTION' as const, iteration: 1, atSimSec: 0 }] } }), /campaign history without campaign rules/],
   ];
   it.each(PRODUCTION_CASES)('production refuses %s on a legacy save', (_name, change, reason) => {

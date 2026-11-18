@@ -8,11 +8,12 @@ import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
 import { ContentChannelSchema } from '../content/schemaChannel';
+import { SevereRecallSchema } from '../content/schemaReview';
 import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -53,6 +54,8 @@ export const RunRecordSchema = z.strictObject({
   marked: z.string().nullable(),
   /** How its arrangement came about (accessState.ts). UNKNOWN for runs recorded before v9. */
   exit: RunExitSchema,
+  /** What the recall review decided for a RECALL run (nexus vote dz-d10); null for every other kind. */
+  recall: SevereRecallSchema.nullable(),
 });
 
 /** A cohort shares its autonomy policy and quirk; new forks inherit that policy. */

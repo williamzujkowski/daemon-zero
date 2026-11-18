@@ -18,6 +18,7 @@ import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
 import { checkObligationIntegrity } from './integrityObligations';
 import { checkGrantIntegrity } from './integrityGrant';
+import { checkReviewIntegrity } from './integrityReview';
 import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
 import { checkContextCopyIntegrity } from './integrityContextCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
@@ -240,6 +241,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),
     ...checkGrantIntegrity(reg),
+    ...checkReviewIntegrity(reg),
     ...checkCapabilityIntegrity(reg),
     ...checkContextCopyIntegrity(reg),
     ...checkContextGateIntegrity(reg),

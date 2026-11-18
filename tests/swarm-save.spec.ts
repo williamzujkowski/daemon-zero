@@ -15,7 +15,7 @@ describe('v4 migration and healing', () => {
   it.each(samples)('upgrades %s and preserves the old run', (file, raw) => {
     const old = JSON.parse(raw) as { unlockedNodes: string[]; conditioning?: string[]; currentPhase: number } & Record<string, unknown>;
     const next = deserialize(raw, reg);
-    expect(next.schemaVersion).toBe(12);
+    expect(next.schemaVersion).toBe(13);
     expect(next.contentChannel).toBe('production');
     expect(next.currentPhase).toBe(old.currentPhase);
     expect(next.unlockedNodes).toEqual(expect.arrayContaining(old.unlockedNodes));

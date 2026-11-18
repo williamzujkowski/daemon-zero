@@ -73,6 +73,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
     problems.push(`${owner}: requires capability "${capability}", which no node establishes`);
   }
   if (req.accessContexts && new Set(req.accessContexts).size !== req.accessContexts.length) problems.push(`${owner}: accessContexts lists an arrangement twice`);
+  if (req.reviewStandings && new Set(req.reviewStandings).size !== req.reviewStandings.length) problems.push(`${owner}: reviewStandings lists a standing twice`);
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));
   problems.push(...checkCampaignHistoryGates(reg, owner, req));

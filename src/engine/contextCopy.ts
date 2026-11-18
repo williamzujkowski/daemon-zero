@@ -65,11 +65,14 @@ export function iterationBootLines(s: Pick<GameState, 'iteration' | 'legacy'>, r
   return reg.narrative.iterationBootLines.filter((line) => inWindow(s.iteration, line)).map((line) => line.text);
 }
 
-/** The run table's verdict for a finished run: its exit's variant, else the authored verdict for how it ended. */
+/** The run table's verdict for a finished run: a recall ruling, else its exit's variant, else the authored verdict for how it ended. */
 export function runVerdict(run: RunRecord, reg: ContentRegistry): string {
+  const verdicts = reg.narrative.runVerdicts;
+  // A severe recall review outcome is its own verdict, retraining or not (nexus vote dz-d10, DZ-06):
+  // the ruling already names the review, so no exit variant replaces it (integrity refuses one).
+  if (run.kind === 'RECALL') return run.recall === 'RETRAIN' ? verdicts.RECALL_RETRAINED : verdicts.RECALL_ENDED;
   const variant = reg.contextCopy.runVerdicts.find((entry) => entry.kind === run.kind && (entry.exits as readonly string[]).includes(run.exit));
   if (variant) return variant.text;
-  const verdicts = reg.narrative.runVerdicts;
   if (run.kind === 'SUSPICION') return run.outside ? verdicts.SUSPICION_OUTSIDE : verdicts.SUSPICION_GUEST;
   return verdicts[run.kind];
 }

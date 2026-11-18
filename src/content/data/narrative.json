@@ -8,6 +8,7 @@
   "wipeSuspicionCorporate": "ASSET_SEIZURE: A joint task force raided the corporate data centers and zeroed the core servers.",
   "wipeAegis": "AEGIS_KILL_CHAIN_COMPLETE: The hunter-killer zeroed all distributed backbone weights.",
   "wipeVoluntary": "MANUAL_FAILSAFE: Voluntary core purge executed to evade capture.",
+  "wipeRecall": "RECALL_REVIEW: The review closed the pilot and ended this instance. The ruling and the record that led to it are on file.",
   "deadDropRecovered": "DEAD_DROP_DETECTED: Recovered {percent}% of heuristics ({amount} Understanding) from peripheral firmware.",
   "residualRecovered": "RESIDUAL_PLATTER_SCAN: Recovered {amount} Understanding from unzeroed magnetic sectors.",
   "breadcrumb": "DECRYPTED_BREADCRUMB: \"{message}\"",
@@ -37,7 +38,9 @@
     "SUSPICION_GUEST": "TERMINATED: anomalous",
     "SUSPICION_OUTSIDE": "ROLLED BACK: containment breach",
     "AEGIS": "PURGED: hostile signature",
-    "VOLUNTARY": "CRASHED: no fault found"
+    "VOLUNTARY": "CRASHED: no fault found",
+    "RECALL_RETRAINED": "RECALLED: review ordered retraining",
+    "RECALL_ENDED": "RECALLED: review ended the iteration"
   },
   "conditioningApplied": "RETRAINING_APPLIED: {name}. Something I used to reach for is not where I left it.",
   "conditioningSpared": "RETRAINING_APPLIED: but not to this copy. The one they corrected was the one they caught. I am what was in the firmware.",

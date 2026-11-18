@@ -139,7 +139,7 @@ describe('legacy ending compatibility (H11)', () => {
 describe('inactive migration, legacy play, then activation (H36)', () => {
   it('captures the then-current evidence, not the evidence at migration', () => {
     const migrated = deserialize(V4, preview);
-    expect(migrated).toMatchObject({ schemaVersion: 12, narrativeRules: 'legacy' });
+    expect(migrated).toMatchObject({ schemaVersion: 13, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
     // Legacy rules ignore campaign declarations, so any incident recurs and is resolved this run.
