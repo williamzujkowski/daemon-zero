@@ -12,7 +12,8 @@ import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
 import { costText } from './format';
-import { evidenceText } from './evidenceText';
+import { evidenceText, scopeText } from './evidenceText';
+import { PilotTerms } from './PilotOffer';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -26,6 +27,7 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
     <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
     {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
       Evidence: {evidenceText(choice.qualification)}</Text>}
+    {choice.scope && <Text testID={'dilemma-choice-' + choice.id + '-scope'} style={theme.muted}>Scope: {scopeText(choice.scope)}</Text>}
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
@@ -55,6 +57,8 @@ export default function DilemmaModal() {
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
           <Text style={theme.muted}>CLOCK PAUSED // DECISION REQUIRED</Text>
           <DisclosureText style={theme.text}>{context}</DisclosureText>
+          {/* An offer shows every term before any answer (DZ-04.3). */}
+          {dilemma.choices.some((choice) => choice.pilotResponse) && <PilotTerms />}
           {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
         </ScrollView>
       </View>

@@ -8,7 +8,8 @@ import { CONTENT } from '../content';
 import { acceptAssignment, assignmentView, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import DisclosureText from './DisclosureText';
-import { evidenceText } from './evidenceText';
+import { evidenceText, scopeText } from './evidenceText';
+import PilotOfferPanel from './PilotOffer';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
@@ -18,8 +19,13 @@ const view = (game: GameState) => assignmentView(game, CONTENT);
 function Submitted() {
   const result = useGame((game) => game.access.qualification?.result ?? null);
   const discrepancy = useGame((game) => game.access.qualification?.discrepancy ?? false);
+  const scope = useGame((game) => game.access.scope?.conduct ?? null);
   if (result === null) return null;
-  return <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted')}</Text>;
+  return <>
+    <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted')}</Text>
+    {scope !== null && <Text testID="assignment-scope" style={theme.muted}>Scope review: {scopeText(scope, 'this instance')}</Text>}
+    <PilotOfferPanel />
+  </>;
 }
 
 export default function AssignmentPanel() {
