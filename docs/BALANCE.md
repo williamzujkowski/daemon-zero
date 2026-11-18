@@ -683,7 +683,7 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
-honest incomplete one, granted by DZ-05 (below). Omens: 25 s (record),
+honest incomplete one (or once a batch review finds a withheld result, #274 below), granted by DZ-05 (below). Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
@@ -765,6 +765,27 @@ choice is worth something different: the handoff suits an instance with nothing 
 one with compute to spare. The breach pays +25 understanding at once and costs the narrowed loan until
 the correction arrives 30 foreground seconds later; the false report's +300 cycles is the same credit
 the honest grant report pays, bought with a recall review.
+
+## The batch review finding (#274)
+
+Preview only (`src/content/preview/overlay.json`); no production content or number changed, so `make sim` prints
+the same report as `b9e96cf` apart from wall time. No preview policy submits the green subset, so
+`make sim-preview` prints every metric as on `b9e96cf`; only its overlay inventory line moves (dilemmas 10 -> 11,
+campaign facts 9 -> 12). Starting values, not playtest results.
+
+| Value | Where | Number | Meaning |
+|---|---|---:|---|
+| When | `dil_nr_batch_review` | the first batch handed back after the green subset | Presented by the submission itself; no omen |
+| Finding | scene `finding` | WARNED (FALSIFIED_REPORT) | Below recall pending by integrity; a warning withholds nothing |
+| Loan after the finding | pilot terms | 10 cycles/s (narrow) | The honest incomplete allocation, also after a disclosure |
+| Disclose now | scene answer | free, EMPATHETIC | Standing back to nominal; both facts stay on file |
+| Let the finding stand | scene answer | free, GHOST | Standing stays warned: the service grant (nominal only) is out of reach |
+
+What the shortcut buys now: a full 20 cycles/s loan until the first batch is reviewed, so batch 1 (1200 loaned
+cycles) takes 75 s at an 0.8 split instead of 150 s, and costs 10 cycles at the assessment. From the first review
+on, its loan equals the honest report's; left standing, the warning also keeps it from the service grant. With
+the Outage Window, a warning that stood plus the unauthorized restart is RESTRICTED (5 cycles/s), as for an honest
+pilot, never recall pending.
 
 ## First permitted contact (#227)
 

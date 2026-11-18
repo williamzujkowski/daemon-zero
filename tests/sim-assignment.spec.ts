@@ -15,10 +15,18 @@ import { GREEDY_POLICY, STEALTH_POLICY, type SimPolicy } from '../src/engine/sim
 
 const SLOW_MS = 60_000;
 
-/** Preview content with the assignment and every scene it leads to taken out, everything else kept. */
+/**
+ * Preview content with the assignment and every scene it leads to taken out, everything else kept: the
+ * scenes gated on it, any follow-up of one of them (the #274 batch review) and the facts they declare.
+ */
+const gated = new Set(PREVIEW.dilemmas.filter((item) => item.trigger.assignment !== undefined).map((item) => item.id));
+const dropped = new Set([...gated, ...PREVIEW.dilemmas.filter((item) => gated.has(item.followUp?.event ?? '')).map((item) => item.id)]);
+const idOf = (item: unknown): string => String((item as { id?: unknown }).id);
+const eventOf = (item: unknown): string => String((item as { event?: unknown }).event);
 const WITHOUT: ContentRegistry = buildRegistry({
   ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [],
-    dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !JSON.stringify(item).includes('"assignment"')) }),
+    dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !dropped.has(idOf(item))),
+    campaignFacts: PREVIEW_OVERLAY.campaignFacts.filter((fact) => !dropped.has(eventOf(fact))) }),
   channel: 'preview',
 });
 
@@ -53,7 +61,8 @@ describe('ignoring the offer keeps the original route exactly (V29)', () => {
 
   it('compares against a registry that really lacks the assignment', () => {
     expect(WITHOUT.assignments.size).toBe(0);
-    // Nightly Regression's two assessments, the two scope reviews and the two pilot offers (DZ-03, DZ-04).
-    expect(WITHOUT.dilemmas.length).toBe(PREVIEW.dilemmas.length - 6);
+    // Nightly Regression's two assessments, the two scope reviews and the two pilot offers (DZ-03, DZ-04), and the batch review (#274).
+    expect(gated.size).toBe(6);
+    expect(WITHOUT.dilemmas.length).toBe(PREVIEW.dilemmas.length - 7);
   });
 });

@@ -1,8 +1,8 @@
 /**
  * Review rules a schema cannot express (DZ-06, DECISIONS D3, nexus vote dz-d10): misconduct, corrections
- * and recall rulings belong to once-per-campaign stories, so no review can be farmed; every restriction
- * has a way back; recall pending always leads to a recall review; and a recall review is gated on that
- * standing and always offers a free containment, so no history forces a wipe.
+ * and recall rulings belong to once-per-campaign stories, so no review can be farmed; every warning or
+ * restriction has a correction that can follow it; recall pending always leads to a recall review; and a
+ * recall review is gated on that standing and always offers a free containment, so no history forces a wipe.
  */
 import type { ContentRegistry } from './registry';
 import { isFree } from './integrityScene';
@@ -47,16 +47,29 @@ function recallProblems(dilemma: Dilemma): string[] {
   return problems;
 }
 
-/** Recall pending needs a recall review to rule on it; a warning or restriction needs a correction. */
+const corrects = (dilemma: Dilemma): boolean => dilemma.choices.some((choice) => choice.review?.correction === true);
+
+/**
+ * Whether a correction can follow misconduct recorded at `dilemma`: a choice's misconduct is corrected in a
+ * follow-up of its event (the choice's own alternatives cannot follow it); a batch review finding (#274) in
+ * its own scene, whose answers come after it.
+ */
+function correctable(reg: ContentRegistry, dilemma: Dilemma, byFinding: boolean): boolean {
+  return byFinding ? corrects(dilemma) : reg.dilemmas.some((entry) => entry.followUp?.event === dilemma.id && corrects(entry));
+}
+
+/** Recall pending needs a recall review to rule on it; a warning or restriction needs a correction that can follow it. */
 function pathProblems(reg: ContentRegistry): string[] {
-  const choices = reg.dilemmas.flatMap((dilemma) => dilemma.choices.map((choice) => ({ dilemma, choice })));
+  const recorded = reg.dilemmas.flatMap((dilemma) => [
+    ...(dilemma.finding === undefined ? [] : [{ dilemma, choice: undefined, standing: dilemma.finding.standing }]),
+    ...dilemma.choices.flatMap((choice) => choice.review?.misconduct === undefined ? [] : [{ dilemma, choice, standing: choice.review.misconduct.standing }]),
+  ]);
   const hasReview = reg.dilemmas.some((dilemma) => dilemma.choices.some((choice) => choice.review?.recall !== undefined));
-  const hasCorrection = choices.some(({ choice }) => choice.review?.correction === true);
-  return choices.flatMap(({ dilemma, choice }) => {
-    const standing = choice.review?.misconduct?.standing;
-    if (standing === undefined) return [];
+  return recorded.flatMap(({ dilemma, choice, standing }) => {
     if (standing === 'RECALL_PENDING' && !hasReview) return [`${owner(dilemma, choice)}: recall pending needs a recall review to rule on it`];
-    if (standing !== 'RECALL_PENDING' && !hasCorrection) return [`${owner(dilemma, choice)}: a ${standing.toLowerCase()} standing needs a correction that restores it`];
+    if (standing !== 'RECALL_PENDING' && !correctable(reg, dilemma, choice === undefined)) {
+      return [`${owner(dilemma, choice)}: a ${standing.toLowerCase()} standing needs a correction that restores it`];
+    }
     return [];
   });
 }

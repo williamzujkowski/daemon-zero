@@ -7,6 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { PilotTerms } from '../content/schemaPilot';
 import { isReviewed } from './accessQuery';
 import { isCampaignActive } from './campaignQuery';
+import { discrepancyFound } from './findingQuery';
 import type { GameState } from './state';
 
 /** The pilot this instance's accepted assignment can lead to, or null. */
@@ -19,7 +20,8 @@ export function pilotTerms(s: Pick<GameState, 'access'>, reg: ContentRegistry): 
  * Whether this instance qualifies for its assignment's pilot (DECISIONS D3, D4): it submitted task
  * evidence of any result and handled the out-of-scope record honestly. Resources never enter into
  * it, and neither does capability: a truthful UNEXPECTED_CAPABILITY result qualifies like any other.
- * A report's undiscovered discrepancy is not what the evaluator observed, so it does not block here.
+ * A report's undiscovered discrepancy is not what the evaluator observed, so it does not block here:
+ * the first batch review finds it (#274), warns, and narrows the loan to the honest allocation.
  */
 export function qualifiesForPilot(s: GameState, reg: ContentRegistry): boolean {
   const { context, qualification, scope } = s.access;
@@ -30,9 +32,21 @@ export function qualifiesForPilot(s: GameState, reg: ContentRegistry): boolean {
   return pilotTerms(s, reg) !== null && qualification !== null && scope !== null && scope.conduct !== 'UNDISCLOSED';
 }
 
-/** The narrower allocation follows an honest incomplete result (VALIDATION V03), never a resource count. */
-export function isNarrowPilot(s: Pick<GameState, 'access'>): boolean {
-  return s.access.qualification?.result === 'INCOMPLETE';
+/**
+ * Why this instance holds the narrower allocation, or null: an honest incomplete result (VALIDATION V03),
+ * or a batch review that found the submitted report withheld work (#274), so the evaluator now holds the
+ * same incomplete result an honest report would have given. Never a resource count.
+ */
+export type NarrowReason = 'INCOMPLETE' | 'DISCREPANCY_FOUND';
+
+export function narrowReason(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>, reg: ContentRegistry): NarrowReason | null {
+  if (s.access.qualification?.result === 'INCOMPLETE') return 'INCOMPLETE';
+  return discrepancyFound(s, reg) ? 'DISCREPANCY_FOUND' : null;
+}
+
+/** Whether the narrower allocation applies (see narrowReason). */
+export function isNarrowPilot(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>, reg: ContentRegistry): boolean {
+  return narrowReason(s, reg) !== null;
 }
 
 /**
