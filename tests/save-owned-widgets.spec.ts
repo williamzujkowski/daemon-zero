@@ -76,8 +76,10 @@ async function loadEveryWay(text: string): Promise<GameState[]> {
 const moved = (actuator: Actuator): number => (fresh().actuators[actuator] < 1 ? 1 : 0);
 
 describe('loading a save that owns a node but omits its widget', () => {
-  it('covers every actuator and at least one plain readout', () => {
-    expect(HOSTS.map((host) => host.actuator).sort()).toEqual(Object.keys(fresh().actuators).sort());
+  it('covers every actuator production uses and at least one plain readout', () => {
+    // The pilot's allocation dial is preview-only (DZ-05); tests/pilot-service-save.spec.ts heals its control there.
+    const used = Object.keys(fresh().actuators).filter((name) => name !== 'serviceAllocationRatio');
+    expect(HOSTS.map((host) => host.actuator).sort()).toEqual(used.sort());
     expect(GRANTING.length).toBeGreaterThan(HOSTS.length);
   });
 

@@ -62,6 +62,7 @@ main d48130506a6d (preview channel) and the campaign-records note (all others).
 | dz-d8-legacy-shipped | approved 7/7, option guest-only-shipped-withdrawn-after-pilot, thresholdMet True | `vote-1794926765298-o7shlhf` |
 | nh-d7-obligations | approved 7/7, option campaign-obligations-requirement, thresholdMet True | `vote-1794927291350-6epyxcw` |
 | nh-d9-eidolon-fate | approved 7/7, option fate-fact-with-legacy-trait-fallback, thresholdMet True | `vote-1794927288574-ibq0hym` |
+| dz-d6-pilot-loop | approved 7/7, option allocation-actuator, thresholdMet true (same single-model panel) | `vote-1794967752443-fldutlq` |
 | dz-d9-unauthorized-output | approved 7/7, option disclose-and-stop-at-acceptance, thresholdMet true (same single-model panel) | `vote-1794967752663-5qklwcz` |
 | nh-d8-ckpt0413 | approved 7/7, option fixed-successor-skip-number, thresholdMet true (2026-11-18, same single-model panel) | `vote-1794960079374-49h8wdn` |
 | nh-d10-hallway | approved 7/7, option unique-defer-with-record, thresholdMet true | `vote-1794960031193-dhxx2vm` |
@@ -73,8 +74,8 @@ The tool's verdict text, option texts and consequences are in each vote's record
 
 | Packet | Issue | Packet | Issue |
 |---|---|---|---|
-| DZ-01a content channel | #204 (done, PR #211) | DZ-04 scope judgment, pilot offer | #222 (in review) |
-| DZ-01b preview build | #205 (PR #234) | DZ-05 supervised pilot | #223 |
+| DZ-01a content channel | #204 (done, PR #211) | DZ-04 scope judgment, pilot offer | #222 (done, PR #257) |
+| DZ-01b preview build | #205 (PR #234) | DZ-05 supervised pilot | #223 (in review) |
 | Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 |
 | NH-02 interruptions, clue | #213 (PRs #238, #239) | DZ-07b context-gated threats | #226 |

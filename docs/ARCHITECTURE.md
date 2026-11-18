@@ -121,6 +121,7 @@ Public API is `src/engine/index.ts`.
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
 | `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
+| `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`submitPilotBatch`, `pilotServiceView`, revoke and restore) (#223). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -157,8 +158,8 @@ tick(state, dt):
 - **Save healing.** `reconcile` runs on every load (inside `deserialize`, so `importSave` and the app's storage slot go through it too) and returns a state play could have reached. It restores the prerequisite ancestors of every owned node, so a save written before a phase was inserted still loads, then enforces the ownership invariant: **a state that owns a node holds the widget that node's `unlocksUiComponent` grants** (#176). The invariant follows from the engine's only two writers of `unlockedWidgets`: `unlockNode` adds the node and its widget together, and `wipe` clears both lists. Suspending a node (`disabledNodes`) keeps its widget, and nothing else removes one. Missing widgets are appended in ownership order and existing entries keep their order, so a healthy save loads byte-identical (asserted for every generated fixture). Remembered hardware (`legacy.knownNodes`) is not owned and grants nothing. The converse is not enforced: a hand-edited save holding a widget for a node it does not own keeps it. That shows a readout early, or a control whose dial drives nothing until its node is owned, and a wipe clears it. Duplicate node and widget entries are dropped.
 - **Remembered hardware.** A wipe adds every unlocked node to `legacy.knownNodes`. `nodeCost(state, node, reg)` halves cycles and understanding for those (`rediscoveryCostMultiplier`). Always charge and display `nodeCost`, never `node.cost`.
 - **Traits outlive wipes.** `requirements.forbidsTraits` checks current traits and `legacy.traitsEver`.
-- **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`.
-- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator, a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
+- **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`. `actuatorMode: "complement"` (grant nodes only, DZ-05) scales all of the node's output by one minus the value instead; `grantQuery.nodeOutputScale` is the one place either rule is applied, for `computeRates` and `cycleContributions` alike.
+- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator content uses (a widget hosts it or a node puts it into effect; the pilot's `serviceAllocationRatio` is used only in preview, so production needs no host for it), a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
 - **Power grid.** Megawatt shortfall throttles only the cycle output of megawatt-consuming sources, never the whole economy.
 - **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive cycle income is diverted to capital at `usdPerDivertedCycle`, times the revenue multiplier from operatives.
 
@@ -203,9 +204,9 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add run-gated content.** Give a node, dilemma, action or echo an iteration window. Use a one-run window (`minIteration` = `maxIteration`) for something that must happen exactly once across a save.
 
-**Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
+**Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v10; `tests/fixtures/` holds genuine v1-v9 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v12; `tests/fixtures/` holds genuine v1-v11 codec outputs.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -827,7 +828,7 @@ offer from the job surface; it is refused unchanged for a stale token, an earlie
 during a decision, or once the instance stops qualifying. Under accepted terms, mapping or resuming
 named output is an ordinary refusal (`withheldByGrant`, DECISIONS D2), so it cannot run under the grant
 and no misconduct can arise from it through ordinary controls; an authored breach, if wanted, is DZ-05
-or DZ-06 work. No grant mechanics yet (DZ-05).
+or DZ-06 work. The grant itself is DZ-05 (below).
 
 **Shipped (dz-d8).** `p0_pass_evaluation` gained `accessContexts: ["GUEST"]`, a new requirement (scope
 `access`) that every production run meets, so production play is byte-identical. Once a pilot is
@@ -843,7 +844,7 @@ a disclosure without acceptance or of output the terms do not name or the instan
 named output running under accepted terms. A PROMOTION with no offer record (DZ-02 and DZ-03 fixtures)
 still loads.
 
-**Not done here.** The pilot loop and grant-tagged output (DZ-05); the review response to misconduct
+**Not done here.** The pilot loop and grant-tagged output (DZ-05, see the next section); the review response to misconduct
 (DZ-06); leaving the sandbox while piloted is not yet a recorded departure (DZ-11).
 
 **Sim.** The truthful policies (#252) now also answer a scope review honestly (respect or ask) and
@@ -911,6 +912,63 @@ rules); the #214 upgrade path never invents a follow-up record from `resolvedDil
 Tests: `tests/elena-follow-up.spec.ts` (H19, H02, H04, H09, multi-wipe, receipts, saves, round trips),
 `follow-up-content.spec.ts` (corruption cases), `ui-elena-follow-up.spec.ts` and
 `tests/e2e/elena-follow-up.preview.ts`.
+
+## The supervised pilot and permitted work (#223)
+
+DZ-05 of the Earned Access plan (SPEC §3, stories 12 and 15; DECISIONS D2, D3, D7; NARRATIVE-HISTORY
+N12). Decided by Nexus votes dz-d6 (`vote-1794967752443-fldutlq`, allocation-actuator, 7 of 7; the
+alternatives were `finance-style-diversion` and `two-repeatables`) and dz-d9
+(`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, carried from #222). Preview only.
+
+**Grant-tagged output.** A node may declare `grant: "LOANED_CAPACITY"` (`schemaGrant.ts`). Owning it is
+capability; using it is permission, decided by the DZ-02 profile (`isPermitted`). `nodeUseBlocker`
+(`grantQuery.ts`) is the one rule: output the accepted terms stop (dz-d9), or a grant node whose grant
+is withheld, is refused at purchase (`unlockNode`, `isNodeAvailable`), at resume (`toggleNode`), at its
+dial (`setActuator` via `actuatorUseBlocker`) and in passive output (`nodeOutputScale`, read by
+`computeRates` and `cycleContributions`), so the UI's disabled button is never the guard. A grant node
+under an arrangement that can never grant it is not discoverable, so a guest never sees the loan; a
+recalled pilot still sees it. Grant output also scales by the instance's loan share (the narrow
+allocation after an honest incomplete result). Integrity (`integrityGrant.ts`): a grant node carries no
+`memoryCapIncrease`, phase, ending, one-shot trace or system flag, is suspendable software, is offered
+only under reviewed arrangements, and shares its dial with no node of another grant.
+
+**The loop (dz-d6).** The pilot terms' `service` names the grant node (`p0_pilot_triage_queue`, bought
+free under PILOT), a bounded `batchCycles`, an advertised `batchReturn` and a `submitLog`. The ceiling
+is the terms' capacity for this instance's evidence (20 or 10 cycles/s). The new `serviceAllocationRatio`
+actuator, hosted by `PILOT_SERVICE_ALLOCATION`, splits it: the service share `ratio × ceiling` fills the
+batch (the `integratePilotService` stage, after resources), and study is the node's own Understanding
+output on a complement binding, `× (1 − ratio) × loan share`. Loaned compute never enters the player's
+cycle pool. A derived forecast alone was insufficient: progress depends on every split the player chose
+since the batch began, so the batch is one bounded counter (`access.work`), capped at one batch.
+`pilotServiceView` derives the forecast, `(batchCycles − progress) / service rate`, or null when nothing
+flows. `submitPilotBatch(s, reg, batchToken(s))` is the only way a batch pays: explicit, once per batch
+(the token carries the batch number), through `applyEffects` with operational evidence, never a trait,
+flag or capacity. Completed work waits with no deadline, expiry or sanction. The NH-07 seam feeds the task
+detail only (`queueContext`, the latest routine notice); the loop keys idempotency on its own batch
+number so a batch stays submittable when no routine notice is eligible.
+
+**Revoke and restore.** `revokeLoanedCapacity` moves standing to RECALL_PENDING, which withholds loaned
+capacity in `permittedUses`; `restoreLoanedCapacity` returns it to NOMINAL. Nothing else changes: earned
+resources, memory and its reservations, cohorts, the work counter, the dial and every owned node stay,
+so a restore is byte-identical to the state before the revoke, and a repeat of either is refused
+unchanged. Submission is refused while withdrawn and the work is kept. DZ-06 owns the incident content
+that calls these.
+
+**Dormancy and later instances.** Absent time fills the batch at the offline efficiency and never more
+than one batch; nothing is submitted, expired or chosen while away (V17). A wipe resets access, so the
+next instance starts a guest with no loan, an idle counter and the default dial; it earns a fresh grant
+only through the requalification, the scope statement and the renewal (DZ-03, DZ-04), never the original
+scenes (H26).
+
+**Saved shape (v12).** `actuators.serviceAllocationRatio` and `access.work` (`{ progressCycles,
+batches }`). `MIGRATIONS[11]` writes 0.5 and an idle counter. Load refuses (`serviceProblem`) work under
+legacy rules, work without an accepted pilot service, and more progress than one batch. Production hosts
+no control for the dial and has no grant node, so `make sim` is identical to main and the sim hashes move
+only by the two inert fields and the version (`asV11` in `tests/sim.spec.ts`).
+
+Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.ts` (V08, V28, V17,
+H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
+fixture, V15 refusals) and `grant-content.spec.ts` (integrity corruption).
 
 ## Optional soundtrack foundation (#88)
 

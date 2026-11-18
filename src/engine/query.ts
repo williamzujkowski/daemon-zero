@@ -9,7 +9,7 @@ import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epis
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
 import { endingEvidence } from './campaignQuery';
-import { withheldByGrant } from './pilotQuery';
+import { grantDiscoverable, nodeOutputScale, nodeUseBlocker } from './grantQuery';
 export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
@@ -36,10 +36,11 @@ function inIterationWindow(s: GameState, req: Requirements | undefined): boolean
 
 /**
  * Whether a node should be shown at all. Hardware outside its iteration window
- * is hidden, not locked: a first run must not learn that later runs find more.
+ * is hidden, not locked: a first run must not learn that later runs find more. A
+ * loan the arrangement can never grant is hidden the same way (DZ-05).
  */
 export function isNodeDiscoverable(s: GameState, node: RegistryNode): boolean {
-  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements);
+  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements) && grantDiscoverable(s, node);
 }
 
 /**
@@ -119,7 +120,7 @@ export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): b
 export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
   if (s.unlockedNodes.includes(node.id)) return false;
   if (!node.prerequisites.every((id) => s.unlockedNodes.includes(id))) return false;
-  if (reg && withheldByGrant(s, node.id, reg)) return false;
+  if (reg && nodeUseBlocker(s, node, reg) !== null) return false;
   return meetsRequirements(s, node.requirements, reg);
 }
 
@@ -245,9 +246,10 @@ export function cycleContributions(s: GameState, reg: ContentRegistry): { id: st
   const scaled = (cycles: number, mw: number): number => cycles > 0 && mw < 0 ? cycles * rates.gridEfficiency : cycles;
   const sources: { id: string; kind: 'node' | 'repeatable' | 'action' | 'shard'; cyclesPerSec: number }[] = [];
   for (const node of reg.nodes.values()) {
-    if (!s.unlockedNodes.includes(node.id) || s.disabledNodes.includes(node.id)) continue;
-    const actuator = node.actuatorBinding ? s.actuators[node.actuatorBinding] : 1;
-    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * actuator, node.tickDelta.megawattsDelta) });
+    // The same rule as computeRates: suspended or not permitted contributes nothing (DECISIONS D2).
+    const output = s.unlockedNodes.includes(node.id) ? nodeOutputScale(s, node, reg) : null;
+    if (output === null) continue;
+    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.megawattsDelta) });
   }
   for (const rep of reg.repeatables.values()) {
     const level = repeatableLevel(s, rep.id);

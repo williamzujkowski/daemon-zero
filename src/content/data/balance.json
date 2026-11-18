@@ -31,6 +31,7 @@
   "defaultFanSpeedRatio": 0.35,
   "defaultProfitAllocationRatio": 0.2,
   "defaultQuotaSkimRatio": 0.25,
+  "defaultServiceAllocationRatio": 0.5,
   "dilemmaOmenSec": 45,
   "rediscoveryCostMultiplier": 0.5,
   "escalationHysteresis": 8,

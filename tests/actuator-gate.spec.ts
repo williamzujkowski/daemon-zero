@@ -105,7 +105,7 @@ describe('setActuator is gated on the control being unlocked', () => {
 describe('a save that holds moved dials behind locked controls', () => {
   const tampered = (): GameState => ({
     ...justBefore(hostNode('quotaSkimRatio').node.id),
-    actuators: { quotaSkimRatio: 1, fanSpeedRatio: 0, computeProfitAllocationRatio: 0.8 },
+    actuators: { quotaSkimRatio: 1, fanSpeedRatio: 0, computeProfitAllocationRatio: 0.8, serviceAllocationRatio: 0.5 },
   });
 
   it('loads as written, and the dials do nothing until their hardware is owned', () => {

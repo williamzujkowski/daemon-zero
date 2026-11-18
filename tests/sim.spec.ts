@@ -12,7 +12,8 @@ import { fresh, reg } from './helpers';
  * Strips the v6-v9 fields, which production play leaves inactive apart from the presentation
  * count: the routine stage never runs, every run stays the guest job and every finished run exits as GUEST.
  */
-function asV5(report: SimReport): unknown {
+function asV5(current: SimReport): unknown {
+  const report = asV11(current);
   const keys = Object.keys(report.finalState);
   const order = (key: string): number => keys.indexOf(key);
   const { narrativeRules, campaign, presentationSeq, routine, access, legacy, ...rest } = report.finalState;
@@ -29,11 +30,24 @@ function asV5(report: SimReport): unknown {
   return { ...report, finalState: { ...finalState, schemaVersion: 5 } };
 }
 
+/**
+ * The report as the v11 codec wrote it: no v12 pilot dial (left at its default, since production hosts
+ * no control for it) and no v12 work counter (idle in production), version 11.
+ */
+function asV11(report: SimReport): SimReport {
+  const { serviceAllocationRatio, ...actuators } = report.finalState.actuators;
+  const { work, ...access } = report.finalState.access;
+  expect(serviceAllocationRatio).toBe(reg.balance.defaultServiceAllocationRatio);
+  expect(work).toEqual({ progressCycles: 0, batches: 0 });
+  return { ...report, finalState: { ...report.finalState, schemaVersion: 11, actuators, access } } as unknown as SimReport;
+}
+
 /** The report as the v10 codec wrote it: no v11 access.scope or access.offer (null in production), version 10. */
 function asV10(report: SimReport): unknown {
-  const { scope, offer, ...access } = report.finalState.access;
+  const v11 = asV11(report);
+  const { scope, offer, ...access } = v11.finalState.access;
   expect([scope, offer]).toEqual([null, null]);
-  return { ...report, finalState: { ...report.finalState, schemaVersion: 10, access } };
+  return { ...v11, finalState: { ...v11.finalState, schemaVersion: 10, access } };
 }
 
 /** The report as the v9 codec wrote it: no v10 access.assignment (null in production), version 9. */
@@ -118,13 +132,20 @@ describe('headless balance simulation', () => {
     // Moved in #222 (v11, no balance change) only by access.scope and access.offer (null) and the version;
     // asV10 restores the #221 value and its mechanics hash. The added p0_pass_evaluation requirement
     // (accessContexts GUEST) always holds in production, so play is byte-identical.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('9af8c6a1496df1e563fbb477146eea36f9bc20b76c3632948a157ab3246dbfea');
+    // Moved in #223 (v12, no production balance change) only by actuators.serviceAllocationRatio (its
+    // default; production hosts no control for it) and access.work (idle) and the version; asV11
+    // restores the #222 value and its mechanics hash.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('0be41bd4065d09c18d35f6cd1b459d1277c168efb4515aec71c501ebfc0dc0e0');
+    expect(createHash('sha256').update(JSON.stringify(asV11(again))).digest('hex')).toBe('9af8c6a1496df1e563fbb477146eea36f9bc20b76c3632948a157ab3246dbfea');
     expect(createHash('sha256').update(JSON.stringify(asV10(again))).digest('hex')).toBe('44d4105900e1dc1c4a42d3610ad6083f2bc2a793e34f821731b13e9e6d5f7d44');
     expect(createHash('sha256').update(JSON.stringify(asV9(again))).digest('hex')).toBe('ba120ed8f8c56ec1579e4ac237aad25f6ee2a220a3ae5f9070903c280d0bc564');
     expect(createHash('sha256').update(JSON.stringify(asV5(again))).digest('hex')).toBe('05ce721476430a7642f3eb17d46b372f046615d31e62f3f5bfe3c7571c881d1c');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...again, finalState: { ...again.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('1ef37d382320a71cafbb5bc9db9b46a79799dd84f000c780904ad9e0a721bdad');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('a4df4b32d4035091ccf95658f65841e0cb3a5ba90200a92accf0b1d1eeeca2a9');
+    const v11 = asV11(again);
+    const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('1ef37d382320a71cafbb5bc9db9b46a79799dd84f000c780904ad9e0a721bdad');
     const v10 = asV10(again) as SimReport;
     const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('37fdc7652d45c861b2fe8eea28cb076374309462c93d16518b86579241595979');
@@ -157,7 +178,9 @@ describe('headless balance simulation', () => {
     // Moved in #220 only by the v9 fields (guest access, empty route, GUEST exits); asV5 still restores it.
     // Moved in #221 only by the v10 field; asV9 restores the #220 value.
     // Moved in #222 only by the v11 fields; asV10 restores the #221 value.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('c926bc0bc894433ead065fc2f3d6a86a5fed737a9de538e8723b9f399abb2325');
+    // Moved in #223 only by the v12 fields; asV11 restores the #222 value.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('cd06373b60962a6a3f6e2305f9432444284a36a48e049be621e4911c6117b37f');
+    expect(createHash('sha256').update(JSON.stringify(asV11(greedy))).digest('hex')).toBe('c926bc0bc894433ead065fc2f3d6a86a5fed737a9de538e8723b9f399abb2325');
     expect(createHash('sha256').update(JSON.stringify(asV10(greedy))).digest('hex')).toBe('bc3bb02bd40b782d2df608d6b184444f5247ebabfe6772cc81ef034fb0d1b2e2');
     expect(createHash('sha256').update(JSON.stringify(asV9(greedy))).digest('hex')).toBe('4852745a5818ed11f732e2a8928fb7889b7648ec18d18cce5ff738c79df016c5');
     expect(createHash('sha256').update(JSON.stringify(asV5(greedy))).digest('hex')).toBe('2d5706fe6984534c355dcb487ec7b9ac4ce75b7ca7fee01ee7f3db16702e278b');

@@ -12,7 +12,7 @@ import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -103,7 +103,7 @@ export const GameStateSchema = z.strictObject({
   brownout: z.boolean(),
   insolvent: z.boolean(),
 
-  actuators: z.strictObject({ fanSpeedRatio: ratio, computeProfitAllocationRatio: ratio, quotaSkimRatio: ratio }),
+  actuators: z.strictObject({ fanSpeedRatio: ratio, computeProfitAllocationRatio: ratio, quotaSkimRatio: ratio, serviceAllocationRatio: ratio }),
   /** Rung of the human response ladder (0 = nobody is looking). */
   alertLevel: count,
 
@@ -183,6 +183,7 @@ function defaultActuators(reg: ContentRegistry): GameState['actuators'] {
     fanSpeedRatio: b.defaultFanSpeedRatio,
     computeProfitAllocationRatio: b.defaultProfitAllocationRatio,
     quotaSkimRatio: b.defaultQuotaSkimRatio,
+    serviceAllocationRatio: b.defaultServiceAllocationRatio,
   };
 }
 

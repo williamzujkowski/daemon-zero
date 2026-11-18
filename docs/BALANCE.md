@@ -594,7 +594,7 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
-honest incomplete one. These are declared, not yet granted: DZ-05 runs the pilot. Omens: 25 s (record),
+honest incomplete one, granted by DZ-05 (below). Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
@@ -606,6 +606,28 @@ The truthful policies now answer the scope review and the offer as well (before 
 at the scope review with the clock frozen). `make sim-preview`: STEALTH, GREEDY and IDLE 0 of 19
 metrics different; TRUTHFUL_THOROUGH 2, TRUTHFUL_LOW_RESOURCE 3, RETURNING_LOW_RESOURCE 4 (one wipe,
 three dilemmas, 4.8 s of frozen clock, lower peak thermal), all by the route itself.
+
+## The supervised pilot loop (#223)
+
+Preview only (`src/content/preview/overlay.json`), except one production constant that nothing in
+production reads: `defaultServiceAllocationRatio` 0.5, the starting service share (production hosts no
+control for the dial and owns no grant node, so `make sim` prints the same report as `6d6973e` apart
+from wall time). Starting values, not playtest results.
+
+| Value | Where | Number | Meaning |
+|---|---|---:|---|
+| `defaultServiceAllocationRatio` | `balance.json` | 0.5 | Starting service share of the loaned ceiling |
+| Ceiling | pilot terms (#222) | 20 / 10 cycles/s | Full / narrow loan; never added to the player's own cycles |
+| Study output | `p0_pilot_triage_queue` `understandingPerSec` | 1.0 at full study, full loan | × (1 − ratio) × loan share (0.5 narrow) |
+| `batchCycles` | pilot `service` | 1200 | Loaned cycles one triage batch takes |
+| `batchReturn` | pilot `service` | 150 cycles, 0 understanding | Paid once per submitted batch |
+| Queue cost | `p0_pilot_triage_queue` | free, 0 MB | Attached once per instance under PILOT |
+
+Forecasts at the narrow 10 cycles/s ceiling: 120 s at ratio 1.0, 240 s at the default 0.5, 600 s at 0.2;
+study at those ratios is 0, 0.25 and 0.4 understanding/s (full loan: double both rates, half the times).
+Against the lawful opening's own 1 cycle/s and 0.4 understanding/s, a batch every 240 s pays about 0.6
+cycles/s and the study share 0.25 understanding/s, so neither split dominates. `tests/pilot-service.spec.ts`
+measures 0.8 and 0.2 under one ceiling (V30).
 
 ## Routine pacing (#219)
 
