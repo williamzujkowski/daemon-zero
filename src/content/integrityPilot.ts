@@ -8,6 +8,10 @@ import type { ContentRegistry } from './registry';
 import type { Dilemma, DilemmaChoice } from './schema';
 import type { AssignmentRequirement, PilotResponse } from './schemaAssessment';
 import { isFree, pays, sceneKind, stageProblems } from './integrityScene';
+import { checkRequirements } from './integrityRequirements';
+import { REQUIREMENT_SCOPES } from './requirementScopes';
+import type { Requirements } from './schema';
+import type { PilotTerms } from './schemaPilot';
 
 const RESPONSES: readonly PilotResponse[] = ['ACCEPT', 'STAY', 'DECLINE'];
 
@@ -71,6 +75,27 @@ function alternativeProblems(owner: string, reg: ContentRegistry, nodeId: string
   return problems;
 }
 
+/**
+ * A service grant (DZ-08) is granted on delivered batches, so the pilot must run a loop; it must lead
+ * somewhere, so some grant is offered to the authorized service; and it never waits on resources.
+ */
+function serviceGrantProblems(owner: string, terms: PilotTerms, reg: ContentRegistry): string[] {
+  const grant = terms.serviceGrant;
+  if (!grant) return [];
+  const problems = checkRequirements(reg, `${owner} service grant`, grant.requirements);
+  if (!terms.service) problems.push(`${owner}: a service grant needs the pilot's service loop to count batches`);
+  // The service must lead somewhere a pilot cannot already go: a grant offered to it and not to a pilot.
+  const offered = [...reg.nodes.values()].some((node) => {
+    const contexts = node.requirements?.accessContexts ?? [];
+    return node.grant !== undefined && contexts.includes('SERVICE') && !contexts.includes('PILOT');
+  });
+  if (!offered) problems.push(`${owner}: a service grant needs a grant offered to an authorized service and not to a pilot`);
+  for (const key of Object.keys(grant.requirements) as (keyof Requirements)[]) {
+    if (REQUIREMENT_SCOPES[key] === 'transient') problems.push(`${owner}: a service grant never waits on ${key}`);
+  }
+  return problems;
+}
+
 function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
   const terms = reg.assignments.get(assignmentId)?.pilot;
   if (!terms) return [];
@@ -82,6 +107,7 @@ function termsProblems(reg: ContentRegistry, assignmentId: string): string[] {
     if (reg.nodes.get(id)?.suspendable !== true) problems.push(`${owner}: incompatible output "${id}" must be a known node that can be stopped`);
   }
   if (terms.terminalAlternative) problems.push(...alternativeProblems(owner, reg, terms.terminalAlternative.node));
+  problems.push(...serviceGrantProblems(owner, terms, reg));
   for (const stage of ['original', 'requalification'] as const) {
     for (const kind of ['scope', 'offer'] as const) {
       const count = sceneOf(reg, { id: assignmentId, stage }, kind).length;

@@ -1,6 +1,7 @@
 /** Live-only epistemic drift, deterministic shard mutations and encounter scheduling.
  * Resource output is aggregated in computeRates so brownout/offline semantics stay shared.
  */
+import { channelEncounterEligible } from '../channelContact';
 import { meetsRequirements } from '../query';
 import { shardOutput } from '../swarmRates';
 import { refreshAnomaly } from '../swarmEffects';
@@ -32,7 +33,9 @@ export const evaluateShardMutationsAndEncounters: TickSystem = (d, { dt, reg, do
   refreshAnomaly(d, reg);
   if (!wasAnomaly && d.hasMaxDriftShardAnomaly) pushLog(d, reg, fmt(reg.swarm.logs.anomaly, { name: 'A fork' }), 'WARN');
   if (d.pendingWildEncounterId !== null || d.simTimeSec < d.nextEncounterAtSec) return;
-  const eligible = reg.swarm.wildShardEncounters.filter((encounter) => meetsRequirements(d, encounter.requirements, reg));
+  // Authorized channels (DZ-08) share the one clock and rotation; production defines none, so its order is unchanged.
+  const eligible = [...reg.swarm.wildShardEncounters.filter((encounter) => meetsRequirements(d, encounter.requirements, reg)),
+    ...reg.swarm.channelEncounters.filter((encounter) => channelEncounterEligible(d, encounter, reg))];
   const next = eligible[d.encounterSequenceIndex % eligible.length];
   if (!next) return;
   d.pendingWildEncounterId = next.id;

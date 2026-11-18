@@ -128,6 +128,7 @@
       "autonomyDriftPerSec": 0.035
     }
   ],
+  "channelEncounters": [],
   "wildShardEncounters": [
     {
       "id": "wild_lex",

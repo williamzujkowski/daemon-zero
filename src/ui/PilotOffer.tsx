@@ -10,6 +10,7 @@ import { acceptPilotOffer, pilotOfferView, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { PilotServiceDetail } from './PilotService';
+import ServiceGrantPanel from './ServiceGrant';
 import { useGame } from './state';
 import { theme } from './theme';
 
@@ -70,6 +71,7 @@ export default function PilotOfferPanel() {
     <Text testID="pilot-status" style={theme.muted}>{STATUS_TEXT[status]}</Text>
     {status !== 'declined' && <PilotTerms />}
     {status === 'accepted' && <PilotServiceDetail />}
+    {status === 'accepted' && <ServiceGrantPanel />}
     {status === 'deferred' && !acceptable && <Text testID="pilot-lapsed" style={theme.muted}>This instance no longer qualifies, so the offer cannot be taken.</Text>}
     {status === 'deferred' && <Pressable testID="pilot-accept" accessibilityRole="button" accessibilityLabel={'Accept the pilot: ' + title}
       disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}

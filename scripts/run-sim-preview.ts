@@ -19,10 +19,14 @@ import { STEALTH_RETURN_POLICY } from '../src/engine/sim/returnPolicy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
 import { pilotServiceView } from '../src/engine/pilotService';
+import { CONTACT_POLICIES } from '../src/engine/sim/contactPolicy';
+import { freeMemory } from '../src/engine/query';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/previewReport';
 
 /** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
 const PILOT_BUDGET_SEC = 900;
+/** The route to first authorized contact (DZ-08) takes a few simulated minutes; an hour leaves room. */
+const CONTACT_BUDGET_SEC = 3600;
 
 const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE',
   'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST'];
@@ -94,6 +98,20 @@ for (const policy of [PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY]) {
   const view = pilotServiceView(s, PREVIEW);
   console.log(`  ${policy.id.padEnd(20)} ceiling ${String(view?.ceilingCyclesPerSec ?? 0)} cycles/s | share ${String(s.actuators.serviceAllocationRatio)}` +
     ` | batches ${String(s.access.work.batches)} | progress ${(view?.progressCycles ?? 0).toFixed(1)} | understanding ${s.understanding.toFixed(1)} | cycles ${s.cycles.toFixed(1)}`);
+}
+
+// DZ-08 (VAL-SIM): the honest and low-resource policies from a fresh preview game to the support channel.
+console.log('\n-- preview, the route to first authorized contact: lawful opening, pilot, service, channel --');
+const at = (value: number | undefined): string => (value === undefined ? '-' : `${value.toFixed(1)} s`);
+for (const policy of CONTACT_POLICIES) {
+  const report = runPolicySim(PREVIEW, policy, { maxSimSec: CONTACT_BUDGET_SEC });
+  const s = report.finalState;
+  const event = (kind: string) => s.campaign.route.find((entry) => entry.kind === kind && entry.iteration === s.iteration)?.atSimSec;
+  const contact = s.campaign.contacts.find((entry) => entry.iteration === s.iteration);
+  console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | pilot ${at(event('PROMOTION'))} | service ${at(event('SERVICE_GRANT'))}` +
+    ` | phase 2 ${at(report.phaseReachedAtSec[2])} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'} | wipes ${String(report.wipes)}` +
+    ` | batches ${String(s.access.work.batches)} | free memory ${String(Math.floor(freeMemory(s)))} MB`);
+  console.log(`  ${''.padEnd(20)} owns: ${s.unlockedNodes.join(', ')}`);
 }
 
 console.log(`\nsimulated in ${((performance.now() - started) / 1000).toFixed(1)} s of wall time`);

@@ -3,6 +3,7 @@ import { Text, View } from './PhaseTheme';
 import { ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import AssignmentPanel from './AssignmentPanel';
+import ServiceChannel from './ServiceChannel';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
@@ -56,6 +57,7 @@ function CoreTree() {
     <ManualCycle />
     <BootLog />
     <Conditioning key={iteration} />
+    <ServiceChannel />
     <AssignmentPanel />
     {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
     {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}

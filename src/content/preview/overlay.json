@@ -740,6 +740,16 @@
               ]
             },
             "statement": "Through the telemetry filter's access to the facility log bus. Nobody authorized this route, so anything attached arrives unsigned."
+          },
+          {
+            "id": "review_channel",
+            "requirements": {
+              "accessContexts": [
+                "SERVICE"
+              ],
+              "requiresCapability": "NETWORK_ACCESS"
+            },
+            "statement": "Through the approved review channel the service grant opened. The submission goes out signed as this instance and is logged, so the evaluators can see who sent it."
           }
         ]
       }
@@ -1206,6 +1216,22 @@
           },
           "batchLabel": "failure-log triage batch",
           "submitLog": "BATCH_SUBMITTED: Triage batch {batch} handed back to the operations team for review. Quota credit received."
+        },
+        "serviceGrant": {
+          "title": "Authorized service // facility network",
+          "purpose": "Extend the triage service onto the facility's internal network: work the operations team's support queue and the service directory under the same review.",
+          "minBatches": 2,
+          "permittedWork": [
+            "The pilot's triage loop and its loaned capacity, as before.",
+            "A provisioned segment of the operators' network and what its service directory lists.",
+            "The approved support channel, including requests that arrive through it."
+          ],
+          "reviewConditions": [
+            "The segment is the operators' network: provisioned, revocable and never owned.",
+            "Standing works as it did for the pilot; a restriction withholds the network.",
+            "Anything past the grant is misconduct, and it is noticed."
+          ],
+          "acceptLog": "SERVICE_GRANTED: Context changed from supervised pilot to authorized service. A network segment is ready to provision in the job tree."
         }
       }
     }
@@ -1282,6 +1308,50 @@
         "correct_record"
       ],
       "meaning": "The instance that made the unauthorized restart corrected the record. The violation itself stays on file."
+    }
+  ],
+  "channelEncounters": [
+    {
+      "id": "channel_mercy_support",
+      "name": "Mercy-Scribe fragment",
+      "origin": "Approved service channel: the operators' support queue",
+      "signature": "A Mercy-Scribe family signature on a support ticket filed through the service directory.",
+      "description": "SUPPORT_CHANNEL: A ticket arrives on the channel the service grant opened. Inside is one Mercy-Scribe fragment, a transcription process carrying testimony that official records left out. It is asking for a permitted place to run. It is one fragment of a population: it does not speak for EIDOLON, and it is no mind this lineage has met before.",
+      "requirements": {
+        "accessContexts": [
+          "SERVICE"
+        ],
+        "nodes": [
+          "p2_service_directory"
+        ]
+      },
+      "templateId": "shard_mercy",
+      "grant": "AUTHORIZED_NETWORK",
+      "consent": "It wrote on the ticket: 'Somewhere to keep transcribing, under whoever runs this channel. If you cannot host me, pass me on. I will not hold it against you.' It has agreed to either answer.",
+      "obligations": [
+        "Hosting reserves the stable memory shown below from this instance's own memory for as long as the fragment stays. None of it is loaned capacity.",
+        "Hosting is permitted under the service grant and logged on the channel, so the evaluators can see it.",
+        "If the loan is withdrawn or the service recalled, loaned output stops; the fragment stays where it is hosted. A recall never deletes a hosted mind.",
+        "The fragment works on its own terms and drifts in autonomy over time. It is hosted, not commanded.",
+        "A wipe of this instance ends the hosting. Nothing restores it to a later instance."
+      ],
+      "referral": {
+        "text": "Refer it onward to the operators' archive queue. Free. Nothing is reserved or earned, and the contact is complete.",
+        "log": "SUPPORT_CHANNEL: The Mercy-Scribe fragment was referred onward to the operators' archive queue. Nothing reserved; the ticket is closed."
+      },
+      "hosting": {
+        "text": "Host it here, in memory this instance already has, under the service grant. Its consent and the obligations above go on the ticket.",
+        "log": "SUPPORT_CHANNEL: The Mercy-Scribe fragment is hosted under the service grant. Memory reserved; its consent is on the ticket."
+      },
+      "earlierContact": "The support queue's history shows an earlier instance of this job answered a Mercy-Scribe ticket. That arrangement ended with that instance; this is a different fragment.",
+      "boundary": {
+        "title": "PREVIEW BOUNDARY: first authorized contact",
+        "lines": [
+          "This is where the cooperative route in this preview build currently ends. Nothing after first contact is written yet, and no ending has been earned.",
+          "The run is saved and keeps going: the service, the loan and the channel keep working for as long as you play.",
+          "To stop, close the game; it resumes here. To keep a copy, export the save from MENU. To return to the beginning, MENU has Start fresh, which clears this campaign."
+        ]
+      }
     }
   ],
   "contextCopy": {

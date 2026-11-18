@@ -166,3 +166,14 @@ Incident and recall input (#224):
   ruling, which v12 did not have. SHA256: `a1fc06c6001f2123d1cebf169ed7900568228cb275b6d53e756e9dc05cbc867f`.
   `tests/review-save.spec.ts` loads it in preview (a null ruling, then a renewed pilot that meets the
   outage, which no earlier instance lived); production refuses it.
+
+First permitted contact input (#227):
+- `pre-contact-v13.json`: genuine version 13 codec output from `1d1b61d` (the DZ-06 head before v14),
+  from source extracted by `git archive` outside the repository: the DZ-05 test helpers' accepted narrow
+  pilot on the preview registry (lawful opening, `report_incomplete`, `exclude_report`, pilot accepted,
+  queue attached), the dial at 0.8, live seconds with every interrupt given its first free answer (the
+  Outage Window's safe handoff and its record's callback) until two batches were submitted, 120 more
+  seconds, `serialize`. Iteration 1, a nominal pilot with two delivered batches and no contact record,
+  which v13 did not have. SHA256: `505583472dede21088fb15ae30436bbeb62e8c935e5f7365404c1d1afcf17f8f`.
+  `tests/channel-contact-save.spec.ts` loads it in preview (an empty contact record, then the service
+  grant, the segment, the directory and the channel by public actions); production refuses it.

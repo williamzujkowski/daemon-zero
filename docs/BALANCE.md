@@ -740,6 +740,40 @@ one with compute to spare. The breach pays +25 understanding at once and costs t
 the correction arrives 30 foreground seconds later; the false report's +300 cycles is the same credit
 the honest grant report pays, bought with a recall review.
 
+## First permitted contact (#227)
+
+Preview only. No production number changed: production's `shards.json` gains an empty `channelEncounters`
+list, `make sim` prints the same report as the DZ-06 head apart from wall time, and `make sim-preview` is
+unchanged above the new section. Starting values, not playtest results.
+
+| Value | Where | Number | Meaning |
+|---|---|---:|---|
+| `minBatches` | pilot `serviceGrant` | 2 | Reviewed batches a nominal pilot hands back before the service is offered |
+| Service grant cost | `acceptServiceGrant` | free | Provisioning the segment stays the paid step (240 cycles, 40 understanding, #225) |
+| Channel gate | `channel_mercy_support` | SERVICE + service directory | The directory costs 400 cycles, 80 understanding, 16 MB (#225) |
+| Hosting | `shard_mercy` (production template) | 256 MB stable memory, nothing else | Its output is the template's: +10 understanding/s, -0.02 epistemic drift/s |
+| Referral | channel | free, no reward | Completes the contact; the clock restarts at `encounterIntervalSec` (120 s) |
+| Contacts per channel | engine | 1 per instance | A later instance meets a new fragment |
+
+The lawful route owns no memory-cap increase: 64 MB base, 48 MB free once the directory is mapped, so a
+first-run cooperative instance cannot host (finding; lawful capacity is DZ-10). Hosting is exercised by a
+labelled fixture.
+
+Headless (accelerated simulated time, `make sim-preview`, `tests/sim-contact.spec.ts`), from a fresh preview
+game, budget 3600 s; every policy owns exactly process introspection, the manifest, the loaned queue, the
+segment and the directory, and lived the Outage Window and its record before service:
+
+| Policy | Iteration | Pilot | Service | Phase 2 | Contact | Answer | Wipes |
+|---|---:|---:|---:|---:|---:|---|---:|
+| CONTACT_THOROUGH | 1 | 210.6 s | 378.8 s | 380.8 s | 381.8 s | REFERRED (48 MB free) | 0 |
+| CONTACT_LOW_RESOURCE | 1 | 118.6 s | 421.8 s | 423.8 s | 424.8 s | REFERRED | 0 |
+| CONTACT_RETURNING | 2 | 193.2 s | 496.4 s | 498.4 s | 499.4 s | REFERRED | 1 (voluntary, as a guest) |
+| CONTACT_RECOVERY | 1 | 118.6 s | 436.8 s | 438.8 s | 439.8 s | REFERRED | 0 |
+
+RECOVERY restarted the outage without the grant, was restricted with the loan narrowed, corrected the record
+and was granted service 15 s after LOW_RESOURCE. The contact follows the directory by one tick because the
+encounter clock (120 s from the run's start) has long elapsed by then.
+
 ## The authorized network substrate (#225)
 
 Preview only, apart from two inert production edits: `p1_bus_0x05_nic` carries `NETWORK_ACCESS`, which no

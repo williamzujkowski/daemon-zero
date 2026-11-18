@@ -29,6 +29,8 @@ export const PreviewOverlaySchema = z.strictObject({
   assignments: items,
   /** Declared campaign facts about overlay events (NH-06), appended to campaign.json's facts. */
   campaignFacts: items.default([]),
+  /** Authorized-channel encounters (DZ-08), appended to shards.json's empty list. */
+  channelEncounters: items.default([]),
   /** Context copy lists (nexus vote dz-d11), each appended to production's context-copy.json list. */
   contextCopy: z.strictObject({ phases: items, thresholds: items, bootLines: items, runVerdicts: items, threatResponses: items })
     .default({ phases: [], thresholds: [], bootLines: [], runVerdicts: [], threatResponses: [] }),
@@ -50,8 +52,8 @@ function idOf(item: unknown): string | null {
 
 /** Every id an overlay adds, in overlay order. Tests use it to prove production holds none of them. */
 export function overlayIds(overlay: PreviewOverlay): string[] {
-  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts } = overlay;
-  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts]
+  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts, channelEncounters } = overlay;
+  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts, channelEncounters]
     .flatMap((list: readonly unknown[]) => list.map(idOf))
     .filter((id): id is string => id !== null);
 }
@@ -122,6 +124,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     routines: append(base.routines, 'routines', overlay.routines, problems),
     assignments: append(base.assignments, 'assignments', overlay.assignments, problems),
     campaign: append(base.campaign, 'facts', overlay.campaignFacts, problems),
+    swarm: append(base.swarm, 'channelEncounters', overlay.channelEncounters, problems),
     contextCopy: appendCopy(base.contextCopy, overlay.contextCopy, problems),
   };
   if (problems.length > 0) throw new ContentError(problems);

@@ -35,6 +35,7 @@ function gatedItems(reg: ContentRegistry): Gated[] {
     ...[...reg.actions.values()].map((action) => item(`action "${action.id}"`, action.requirements)),
     ...reg.swarm.playerSwarmTemplates.map((template) => item(`swarm template "${template.id}"`, template.requirements)),
     ...reg.swarm.wildShardEncounters.map((encounter) => item(`wild encounter "${encounter.id}"`, encounter.requirements)),
+    ...reg.swarm.channelEncounters.map((encounter) => item(`channel encounter "${encounter.id}"`, encounter.requirements)),
   ];
 }
 
@@ -71,6 +72,7 @@ function forbidSurfaces(reg: ContentRegistry): { owner: string; req: Requirement
     ...reg.dilemmas.map((d) => ({ owner: `dilemma "${d.id}"`, req: d.trigger })),
     ...[...reg.actions.values()].map((action) => ({ owner: `action "${action.id}"`, req: action.requirements })),
     ...reg.routines.map((routine) => ({ owner: `routine "${routine.id}"`, req: routine.requirements })),
+    ...reg.swarm.channelEncounters.map((encounter) => ({ owner: `channel encounter "${encounter.id}"`, req: encounter.requirements })),
     ...reg.narrative.ambientChatter.map((line) => ({ owner: `ambient line "${line.id}"`, req: line.requirements })),
   ];
 }

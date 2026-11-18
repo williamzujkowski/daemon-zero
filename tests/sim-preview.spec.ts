@@ -23,7 +23,8 @@ const SEQUENCE_SEC = 4 * 3600;
 function previewWithoutSharedContent() {
   const nodes = PREVIEW_OVERLAY.nodes.filter((node) => !JSON.stringify(node).includes('"requiresCapability"'));
   expect(nodes.length).toBeLessThan(PREVIEW_OVERLAY.nodes.length);
-  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes }), channel: 'preview' });
+  // The authorized channel (DZ-08) opens only for a service and names the shared directory, so it goes too.
+  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes, channelEncounters: [] }), channel: 'preview' });
 }
 
 describe('preview comparison', () => {

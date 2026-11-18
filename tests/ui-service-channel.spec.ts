@@ -1,0 +1,104 @@
+// @vitest-environment happy-dom
+/**
+ * DZ-08 surfaces on preview content, pressed through the real runtime: the service terms and their
+ * accept control on the job surface, the channel contact with consent, obligations, authorization and
+ * memory before either answer, a refused host explained beside a working referral (V20), and the
+ * prototype boundary after the answer. Production renders none of it.
+ */
+import type { HTMLElement, Window } from 'happy-dom';
+import { act, createElement, type ReactElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../src/content', async () => await import('../src/content/preview'));
+const storage = vi.hoisted(() => new Map<string, string>());
+vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
+  storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
+  lifecycle: { current: () => true, subscribe: () => () => undefined },
+}) }));
+import type { GameState } from '../src/engine';
+import { gameRuntime, gameStore } from '../src/app/session';
+import { settle } from './app-helpers';
+import AssignmentPanel from '../src/ui/AssignmentPanel';
+import ServiceChannel from '../src/ui/ServiceChannel';
+import { CHANNEL_ENCOUNTER, contactPending, delivered, GRANT_TERMS, MERCY_MB, withMemory } from './contact-helpers';
+import { freshCampaign } from './assignment-helpers';
+
+const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
+host.IS_REACT_ACT_ENVIRONMENT = true;
+const mounted = new Set<() => void>();
+let stop: (() => void) | undefined;
+afterEach(() => { for (const close of mounted) close(); stop?.(); stop = undefined; vi.useRealTimers(); });
+
+async function mount(state: GameState, element: ReactElement) {
+  if (!stop) {
+    vi.useFakeTimers();
+    stop = gameRuntime.start();
+    await settle();
+  }
+  const container = host.document.createElement('div'), root = createRoot(container);
+  host.document.body.appendChild(container);
+  await act(async () => { gameStore.initialize(state, 0, null); root.render(element); await settle(); });
+  const find = (id: string) => host.document.querySelector<HTMLElement>('[data-testid="' + id + '"]');
+  const click = (id: string) => { act(() => { find(id)?.click(); }); };
+  const close = () => { act(() => { root.unmount(); }); container.remove(); mounted.delete(close); };
+  mounted.add(close);
+  return { find, click, container };
+}
+
+const game = () => gameStore.store.getState().game;
+const pending = contactPending();
+
+describe('the service terms on the job surface', () => {
+  it('lists every term and what is still needed, with the accept control disabled', async () => {
+    const view = await mount(delivered(1), createElement(AssignmentPanel));
+    expect(view.find('service-grant-purpose')?.textContent).toContain(GRANT_TERMS.purpose);
+    expect(view.find('service-grant')?.textContent).toContain(GRANT_TERMS.reviewConditions[0]);
+    expect(view.find('service-grant')?.textContent).toContain('1 so far');
+    expect(view.find('service-grant-accept')?.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('accepts once offered and then says it is granted', async () => {
+    const view = await mount(delivered(), createElement(AssignmentPanel));
+    expect(view.find('service-grant-status')?.textContent).toContain('offers this service now');
+    view.click('service-grant-accept');
+    expect(game().access.context).toBe('SERVICE');
+    expect(view.find('service-grant-status')?.textContent).toContain('Granted');
+    expect(view.find('service-grant-accept')).toBeNull();
+  });
+});
+
+describe('the channel contact (V20)', () => {
+  it('shows consent, obligations, authorization and memory before the answers, and refers for free', async () => {
+    const view = await mount(pending, createElement(ServiceChannel));
+    const text = view.find('service-channel')?.textContent ?? '';
+    expect(text.indexOf('Consent:')).toBeLessThan(text.indexOf('[ REFER ONWARD ]'));
+    expect(view.find('channel-consent')?.textContent).toContain(CHANNEL_ENCOUNTER.consent);
+    expect(view.find('channel-authorization')?.textContent).toBe('Current authorization: authorized service, standing nominal. Hosting is permitted under the service grant.');
+    expect(view.find('channel-obligations')?.textContent).toContain(CHANNEL_ENCOUNTER.obligations[2]);
+    expect(view.find('channel-memory')?.textContent).toContain(`${String(MERCY_MB)} MB of stable memory reserved`);
+    expect(view.find('channel-host-unmet')?.textContent).toContain('Referral is still open.');
+    expect(view.find('channel-host')?.getAttribute('aria-disabled')).toBe('true');
+    view.click('channel-host');
+    expect(game().campaign.contacts).toEqual([]);
+    view.click('channel-refer');
+    expect(game().campaign.contacts.map((entry) => entry.response)).toEqual(['REFERRED']);
+    expect(view.find('channel-answered')?.textContent).toContain('Referred onward');
+    expect(view.find('prototype-boundary')?.textContent).toContain('PREVIEW BOUNDARY');
+    view.click('prototype-boundary-toggle');
+    expect(view.find('prototype-boundary')?.textContent).not.toContain('no ending has been earned');
+    expect(view.find('prototype-boundary')?.textContent).toContain('[ SHOW NOTE ]');
+  });
+
+  it('FIXTURE memory: hosting reserves memory and the surface shows the hosted cohort', async () => {
+    const view = await mount(withMemory(pending), createElement(ServiceChannel));
+    view.click('channel-host');
+    expect(game().activeShards['shard_mercy']?.count).toBe(1);
+    expect(view.find('channel-hosted')?.textContent).toBe(`Hosted: Mercy-Scribe cohort ×1, ${String(MERCY_MB)} MB reserved.`);
+  });
+
+  it('renders nothing for a guest with no channel', async () => {
+    const view = await mount(freshCampaign(), createElement(ServiceChannel));
+    expect(view.find('service-channel')).toBeNull();
+    expect(view.find('prototype-boundary')).toBeNull();
+  });
+});
