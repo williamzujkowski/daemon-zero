@@ -667,8 +667,12 @@ An emulator is not a phone, and neither capture says how anything sounds. With a
 Android phone, in this order, a release build (`make android-release`) and music and speech
 at their 30% defaults unless a step says otherwise:
 
-1. **Sound at all.** MENU > Audio > RESUME MUSIC. Is the phase score audible on the speaker
-   and on headphones? Note the phone's media volume step.
+1. **Sound at all.** Cold start with music on and tap the terminal once: since #249 that
+   first tap starts the score (SOUNDTRACK.md, "Starting on native"). Is the phase score
+   audible on the speaker and on headphones? Note the phone's media volume step. Then, with
+   TalkBack on, cold start and double-tap a control: the score is expected *not* to start
+   (an accessibility action is not a touch) and `[ RESUME MUSIC ]` to start it; confirm or
+   correct that.
 2. **The start.** Switch music off and on five times. Does the score swell in over about half
    a second each time, or does it sometimes start abruptly at full level? (Emulator, before
    #198: one start of two was abrupt. The fade-in now waits for the player's position to move,
