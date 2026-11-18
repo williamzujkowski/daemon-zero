@@ -4,9 +4,28 @@
  * DZ-05 runs the pilot: `service` names the loop the loaned capacity carries.
  */
 import { z } from 'zod';
+import { RequirementsSchema } from './schema';
 import { PilotServiceSchema } from './schemaGrant';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
+
+/**
+ * The authorized network service a working pilot can be granted (DZ-08 integration, nexus vote dz-d7:
+ * the service grant moves PILOT to SERVICE at Phase 0; provisioning the segment then opens Phase 2).
+ * It is offered on the job surface, never modally, once the pilot has handed back `minBatches` batches
+ * under nominal standing and `requirements` hold; every term is shown before the player accepts.
+ */
+export const ServiceGrantTermsSchema = z.strictObject({
+  title: z.string().min(5),
+  purpose: z.string().min(20),
+  /** Reviewed batches the pilot must have handed back first: the evaluator grants service on delivered work. */
+  minBatches: z.number().int().min(1),
+  permittedWork: z.array(z.string().min(10)).min(1),
+  reviewConditions: z.array(z.string().min(10)).min(1),
+  /** Further conditions on what this instance holds or what the campaign established (never resources). */
+  requirements: RequirementsSchema.default({}),
+  acceptLog: z.string().min(10),
+});
 
 export const PilotTermsSchema = z.strictObject({
   /** The deployment's name on the offer and the job surface. */
@@ -37,6 +56,9 @@ export const PilotTermsSchema = z.strictObject({
   acceptLog: z.string().min(10),
   /** The service-versus-study loop the grant runs (DZ-05, nexus vote dz-d6). */
   service: PilotServiceSchema.optional(),
+  /** The authorized service this pilot can lead to (DZ-08). Needs `service`: it is granted on delivered batches. */
+  serviceGrant: ServiceGrantTermsSchema.optional(),
 });
 
 export type PilotTerms = z.infer<typeof PilotTermsSchema>;
+export type ServiceGrantTerms = z.infer<typeof ServiceGrantTermsSchema>;

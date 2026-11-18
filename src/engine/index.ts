@@ -28,7 +28,7 @@ export * from './campaignClue';
 export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
 export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
-export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
+export type { CampaignClue, CampaignRecord, CampaignState, ChannelContact, NarrativeRules } from './campaignState';
 
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';
 export type { RoutineState } from './routineState';
@@ -40,6 +40,8 @@ export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOffe
 export { pilotToken, qualifiesForPilot } from './pilotQuery';
 export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
 export { hasCapability } from './capabilityQuery';
+export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGrantView } from './serviceGrant';
+export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';
 export { loanContainment } from './grantQuery';
 export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';

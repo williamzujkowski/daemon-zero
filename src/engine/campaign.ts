@@ -96,6 +96,8 @@ function legacyHistory(s: GameState, reg: ContentRegistry): CampaignState {
     clue: null,
     // Route events exist only under campaign rules, so a legacy save has none to capture.
     route: [],
+    // Authorized-channel contacts likewise exist only under campaign rules.
+    contacts: [],
   };
 }
 

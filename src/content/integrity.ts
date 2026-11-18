@@ -5,6 +5,7 @@
  */
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
+import { checkChannelIntegrity } from './integrityChannel';
 import type { ContentRegistry, RegistryNode } from './registry';
 import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
@@ -246,6 +247,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkContextCopyIntegrity(reg),
     ...checkContextGateIntegrity(reg),
     ...checkSwarmIntegrity(reg),
+    ...checkChannelIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),
     ...checkReachability(reg),
