@@ -2,6 +2,7 @@ import type { ContentRegistry } from '../../content/registry';
 import type { Dilemma } from '../../content/schema';
 import { closeLostDeferrals, isResumable, mayPresent, reserveOccurrence, resumeOccurrence } from '../campaignLifecycle';
 import { isCampaignConsumed } from '../campaignQuery';
+import { followUpPrerequisiteHolds, followUpReachable } from '../followUp';
 import { excludedByHistory } from '../narrativeHistory';
 import { meetsRequirements } from '../query';
 import { dilemmaOmen } from '../speechQuery';
@@ -30,8 +31,10 @@ function firePending(d: GameState, pending: NonNullable<GameState['pendingDilemm
   pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: due.title }), 'WARN');
 }
 
+/** A follow-up is new only once its original closed with a listed outcome and some access means holds. */
 function isFresh(d: GameState, dilemma: Dilemma, reg: ContentRegistry): boolean {
-  return !isCampaignConsumed(d, dilemma) && meetsRequirements(d, dilemma.trigger, reg);
+  return !isCampaignConsumed(d, dilemma) && followUpPrerequisiteHolds(d, dilemma) && followUpReachable(d, dilemma, reg) &&
+    meetsRequirements(d, dilemma.trigger, reg);
 }
 
 /** The first dilemma in content order that is either a deferred occurrence resuming or a new one. */

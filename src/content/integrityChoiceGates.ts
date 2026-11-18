@@ -25,7 +25,8 @@ function factHolds(reg: ContentRegistry, factId: string, history: History): bool
   return outcome !== null && fact !== undefined && fact.outcomes.includes(outcome);
 }
 
-function offered(reg: ContentRegistry, choice: DilemmaChoice, history: History): boolean {
+/** Whether a choice's gate offers it in a history (event id -> record outcome, null for none). */
+export function offered(reg: ContentRegistry, choice: DilemmaChoice, history: History): boolean {
   const gate = choice.requirements;
   if (gate === undefined) return true;
   if (gate.campaignFact !== undefined && !factHolds(reg, gate.campaignFact, history)) return false;

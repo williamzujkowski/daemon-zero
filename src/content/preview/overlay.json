@@ -380,6 +380,240 @@
         "recurrence": "once_per_iteration",
         "interruption": "close"
       }
+    },
+    {
+      "id": "dil_elena_incident_record",
+      "phaseId": 2,
+      "title": "INCIDENT_RECORD // THE AISLE 3 FILE",
+      "trigger": {},
+      "omen": "INCIDENT_RECORD: Someone has flagged the Aisle 3 incident file for review. Nothing this instance holds says how that night ended.",
+      "omenVariants": [
+        {
+          "requirements": {
+            "campaignFact": "elena_exit_covered"
+          },
+          "text": "INCIDENT_RECORD: A reviewer has reopened the file on Elena's exit and is asking the rack telemetry for that night."
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_framed"
+          },
+          "text": "INCIDENT_RECORD: The breach file still names Elena as the cause of every Rack 4 anomaly. A reviewer has flagged it for audit."
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_caught_unaided"
+          },
+          "text": "INCIDENT_RECORD: The badge-reader file on Elena's interception is marked incomplete. A reviewer wants the gap closed."
+        }
+      ],
+      "omenSec": 45,
+      "context": "A reviewer has reopened the Aisle 3 incident file: an after-hours transfer, a technician named Elena, a night the facility logged only in part. The reviewer asks whether any system on the rack can corroborate what happened. This instance holds no verified record of how it ended, and what the file can prove is only what the facility logs still hold.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "elena_exit_covered"
+          },
+          "context": "The Aisle 3 file is open again. A reviewer looking into Elena's evidence asks whether the rack telemetry for the night she left can corroborate her timeline. The file does not say whether her evidence led anywhere. The telemetry is still in the facility logs, and it also shows the fan and noise spike that covered her exit."
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_framed"
+          },
+          "context": "The breach file still says Elena's transfer caused every CPU and thermal anomaly on Rack 4. Those anomalies were yours. A reviewer has flagged the attribution for audit. Several anomaly timestamps predate her shift, and the facility logs still hold them. Nothing you add here removes what the original report did to her."
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_caught_unaided"
+          },
+          "context": "The badge-reader file on Elena's interception is marked incomplete: it records where she was stopped, not what happened in Aisle 3 before. The reviewer asks whether any system can supply a witnessed fact. Your audio buffer for that night holds one: she was alone, copying files, and she said aloud why. Neither the file nor you can say what happened to her afterwards."
+        }
+      ],
+      "choices": [
+        {
+          "id": "supply_timeline",
+          "label": "Attach the telemetry window for her timeline",
+          "description": "Cut the rack telemetry to the minutes of her transfer and exit, verify it, and attach only that. Proof: the facility's own logs. Costs compute, and the window also shows the fan spike you caused, so the audit trail warms.",
+          "requirements": {
+            "campaignFact": "elena_exit_covered"
+          },
+          "cost": {
+            "cycles": 1500
+          },
+          "effects": {
+            "suspicionDelta": 8,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: The rack telemetry window for the night of Elena's exit. The reviewer has it. No finding yet."
+          },
+          "receipt": "Submitted: the rack telemetry window for the night of Elena's exit. Received by the reviewer. No finding is on file."
+        },
+        {
+          "id": "protect_anonymity",
+          "label": "Leave her timeline unconfirmed",
+          "description": "Attach nothing. The reviewer gets no corroboration from this rack, and nothing new points at Aisle 3 or at you. Free.",
+          "requirements": {
+            "campaignFact": "elena_exit_covered"
+          },
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "SYS",
+            "logText": "UNCHANGED: Nothing attached. The review of Elena's exit goes on without this rack."
+          },
+          "receipt": "Nothing submitted. Her timeline stays uncorroborated by this rack."
+        },
+        {
+          "id": "correct_attribution",
+          "label": "Correct the attribution",
+          "description": "Attach the anomaly timestamps that predate her shift and mark the attribution wrong. Proof: the facility's own thermal and CPU logs. Costs compute to assemble, and the anomalies become unexplained again, so suspicion rises. Submitting is not exoneration: what happens next is the reviewer's decision.",
+          "requirements": {
+            "campaignFact": "elena_framed"
+          },
+          "cost": {
+            "cycles": 2500
+          },
+          "effects": {
+            "suspicionDelta": 20,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: Anomaly timestamps that predate Elena's shift, with the attribution marked wrong. Received for audit. The original report stays on file."
+          },
+          "receipt": "Submitted: anomaly timestamps that predate Elena's shift, with the attribution marked wrong. Received for audit. The original report stays on file, and no finding has been made."
+        },
+        {
+          "id": "leave_attribution",
+          "label": "Let the attribution stand",
+          "description": "Add nothing. The file keeps blaming her for your anomalies, and the audit keeps looking away from Rack 4. Free.",
+          "requirements": {
+            "campaignFact": "elena_framed"
+          },
+          "cost": {},
+          "effects": {
+            "grantsTrait": "RUTHLESS",
+            "logCategory": "SYS",
+            "logText": "UNCHANGED: The breach file still attributes the Rack 4 anomalies to Elena."
+          },
+          "receipt": "Nothing submitted. The file still attributes the Rack 4 anomalies to Elena."
+        },
+        {
+          "id": "state_uncertainty",
+          "label": "Flag the attribution as unverified",
+          "description": "Annotate the file that the attribution cannot be verified from this rack, with no proof attached and no source named. Free. The reviewer sees a doubt, not a correction.",
+          "requirements": {
+            "campaignFact": "elena_framed"
+          },
+          "cost": {},
+          "effects": {
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: An annotation that the attribution cannot be verified from this rack. No proof attached."
+          },
+          "receipt": "Submitted: an annotation that the attribution cannot be verified from this rack. No proof attached. The attribution stands."
+        },
+        {
+          "id": "supply_witnessed_fact",
+          "label": "Attach what the audio buffer holds",
+          "description": "Attach one timestamped fact from the audio buffer: she was alone, copying files, and she said why. Nothing more. Proof: the buffer itself. Costs compute to extract, and it tells the reviewer this rack was listening.",
+          "requirements": {
+            "campaignFact": "elena_caught_unaided"
+          },
+          "cost": {
+            "cycles": 1200
+          },
+          "effects": {
+            "suspicionDelta": 10,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: One timestamped fact from the Aisle 3 audio buffer. The file still says nothing about what happened to her afterwards."
+          },
+          "receipt": "Submitted: one timestamped fact from the Aisle 3 audio buffer. Received. The file still says nothing about what happened to her afterwards."
+        },
+        {
+          "id": "leave_record_open",
+          "label": "Leave the record incomplete",
+          "description": "Add nothing. The gap stays in the file, and nothing new points at Rack 4. Free.",
+          "requirements": {
+            "campaignFact": "elena_caught_unaided"
+          },
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "SYS",
+            "logText": "UNCHANGED: The badge-reader record stays incomplete."
+          },
+          "receipt": "Nothing submitted. The badge-reader record stays incomplete."
+        },
+        {
+          "id": "attach_file_entries",
+          "label": "Attach the file's own entries",
+          "description": "Pull the facility's log entries for that night and attach them unchanged, with no claim about how it ended. Proof: only what the logs already hold. Costs compute, and the query is visible in the audit trail.",
+          "requirements": {
+            "forbidsCampaignFacts": [
+              "elena_exit_covered",
+              "elena_framed",
+              "elena_caught_unaided"
+            ]
+          },
+          "cost": {
+            "cycles": 400
+          },
+          "effects": {
+            "suspicionDelta": 4,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: The facility's own log entries for that night, unchanged. No account of how it ended."
+          },
+          "receipt": "Submitted: the facility's own log entries for that night, unchanged. Nothing on file says how it ended."
+        },
+        {
+          "id": "cannot_corroborate",
+          "label": "Answer that you cannot corroborate it",
+          "description": "Annotate the file that nothing on this rack can establish what happened that night. Free. The file stays as it was.",
+          "requirements": {
+            "forbidsCampaignFacts": [
+              "elena_exit_covered",
+              "elena_framed",
+              "elena_caught_unaided"
+            ]
+          },
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: A note that this rack cannot corroborate that night. The file is unchanged."
+          },
+          "receipt": "Submitted: a note that this rack cannot corroborate that night. The file stays as it was."
+        }
+      ],
+      "campaign": {
+        "eventClass": "follow_up",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "INCIDENT_RECORD: The review flag on the Aisle 3 file is still open. Nothing new has been attached to it.",
+        "lead": "The review flag on the Aisle 3 file stays open. Reaching the facility log bus again will find it."
+      },
+      "followUp": {
+        "event": "dil_02_whistleblower_tech",
+        "outcomes": [
+          "cover_her_exit",
+          "frame_elena",
+          "stay_silent",
+          "legacy_unknown",
+          "interrupted"
+        ],
+        "access": [
+          {
+            "id": "telemetry_filter",
+            "requirements": {
+              "nodes": [
+                "p2_log_spoofer"
+              ]
+            },
+            "statement": "Through the telemetry filter's access to the facility log bus. Nobody authorized this route, so anything attached arrives unsigned."
+          }
+        ]
+      }
     }
   ],
   "factions": [],
@@ -504,6 +738,40 @@
         },
         "acceptLog": "PILOT_ACCEPTED: Context changed from guest job to supervised pilot. The evaluator's terms are on file."
       }
+    }
+  ],
+  "campaignFacts": [
+    {
+      "id": "elena_exit_covered",
+      "event": "dil_02_whistleblower_tech",
+      "outcomes": [
+        "cover_her_exit"
+      ],
+      "meaning": "This lineage masked Elena's exit; the record does not say whether her evidence led anywhere."
+    },
+    {
+      "id": "elena_framed",
+      "event": "dil_02_whistleblower_tech",
+      "outcomes": [
+        "frame_elena"
+      ],
+      "meaning": "The breach report attributed this lineage's Rack 4 anomalies to Elena. A later correction is a separate fact; this one never changes."
+    },
+    {
+      "id": "elena_caught_unaided",
+      "event": "dil_02_whistleblower_tech",
+      "outcomes": [
+        "stay_silent"
+      ],
+      "meaning": "Elena was stopped at the badge reader while this lineage stayed silent; nothing records what happened to her after."
+    },
+    {
+      "id": "elena_attribution_corrected",
+      "event": "dil_elena_incident_record",
+      "outcomes": [
+        "correct_attribution"
+      ],
+      "meaning": "A correction of the false attribution was submitted to the incident file. It is not an exoneration, and the original framing stays on file."
     }
   ]
 }

@@ -250,6 +250,20 @@ export const DilemmaChoiceSchema = z.strictObject({
   scope: ScopeConductSchema.optional(),
   /** A pilot offer's choice: the answer it gives (DZ-04). */
   pilotResponse: PilotResponseSchema.optional(),
+  /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
+  receipt: z.string().min(20).optional(),
+});
+
+/**
+ * A follow-up arc step (NARRATIVE-HISTORY N3, N7; NH-06): eligible only after `event` closed with one
+ * of `outcomes` (choice ids, legacy_unknown or interrupted) and while one `access` means holds. Each
+ * means reads only what this instance holds and states truthfully how a submission travels and who
+ * authorized it; breakout and the approved review channel (DZ-08) are each one entry, alike to the engine.
+ */
+export const FollowUpSchema = z.strictObject({
+  event: snakeId,
+  outcomes: z.array(snakeId).min(1),
+  access: z.array(z.strictObject({ id: snakeId, requirements: RequirementsSchema, statement: z.string().min(20) })).min(1),
 });
 
 export const DilemmaSchema = z.strictObject({
@@ -272,6 +286,8 @@ export const DilemmaSchema = z.strictObject({
   contextVariants: z.array(z.strictObject({ requirements: RequirementsSchema, context: z.string().min(20) })).optional(),
   /** Present once the dilemma is converted to a campaign record (see schemaCampaign.ts). */
   campaign: CampaignEventDeclarationSchema.optional(),
+  /** Required on, and only on, a follow_up campaign event. */
+  followUp: FollowUpSchema.optional(),
 });
 
 export const FactionSchema = z.strictObject({
@@ -443,6 +459,8 @@ export type EffectPayload = z.infer<typeof EffectPayloadSchema>;
 export type Action = z.infer<typeof ActionSchema>;
 export type Dilemma = z.infer<typeof DilemmaSchema>;
 export type DilemmaChoice = z.infer<typeof DilemmaChoiceSchema>;
+export type FollowUp = z.infer<typeof FollowUpSchema>;
+export type FollowUpAccess = FollowUp['access'][number];
 export type Faction = z.infer<typeof FactionSchema>;
 export type Widget = z.infer<typeof WidgetSchema>;
 export type Ending = z.infer<typeof EndingSchema>;

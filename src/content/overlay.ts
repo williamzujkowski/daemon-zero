@@ -27,6 +27,8 @@ export const PreviewOverlaySchema = z.strictObject({
   routines: items,
   /** Assigned work an instance may accept (DZ-03). */
   assignments: items,
+  /** Declared campaign facts about overlay events (NH-06), appended to campaign.json's facts. */
+  campaignFacts: items.default([]),
 });
 
 export type PreviewOverlay = z.infer<typeof PreviewOverlaySchema>;
@@ -45,8 +47,8 @@ function idOf(item: unknown): string | null {
 
 /** Every id an overlay adds, in overlay order. Tests use it to prove production holds none of them. */
 export function overlayIds(overlay: PreviewOverlay): string[] {
-  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments } = overlay;
-  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments]
+  const { nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts } = overlay;
+  return [nodes, repeatables, actions, dilemmas, factions, widgets, endings, echoes, marks, routines, assignments, campaignFacts]
     .flatMap((list: readonly unknown[]) => list.map(idOf))
     .filter((id): id is string => id !== null);
 }
@@ -111,6 +113,7 @@ export function applyOverlay(base: RawContent, overlay: PreviewOverlay): RawCont
     conditioning: append(base.conditioning, 'marks', overlay.marks, problems),
     routines: append(base.routines, 'routines', overlay.routines, problems),
     assignments: append(base.assignments, 'assignments', overlay.assignments, problems),
+    campaign: append(base.campaign, 'facts', overlay.campaignFacts, problems),
   };
   if (problems.length > 0) throw new ContentError(problems);
   return composed;
