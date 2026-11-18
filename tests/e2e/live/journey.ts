@@ -6,7 +6,7 @@
 import type { Page, TestInfo } from '@playwright/test';
 import { expect, observeMusicMedia } from '../helpers';
 import type { GameState } from '../../../src/engine';
-import { assertBoundary, scorePlaysPhase } from './checks';
+import { assertBoundary, BASE_PREFIX, scorePlaysPhase } from './checks';
 import { bootLive, describe, Interrupted, LivePlayer, PRESS_TIMEOUT_MS } from './player';
 
 /** Simulated seconds between journal status lines. */
@@ -51,7 +51,12 @@ export class Journey {
   private seen = '';
   private lastStatus = -STATUS_EVERY_SIM_SEC;
 
-  private constructor(readonly player: LivePlayer, readonly journal: string[]) {}
+  /**
+   * @param outsideBase Same-origin requests the app made outside the deployment path. The test
+   *   server serves all of dist/, which can also hold a root export, so a Pages build that asked
+   *   for /audio/... at the root would be answered there and pass unless this is checked.
+   */
+  private constructor(readonly player: LivePlayer, readonly journal: string[], readonly outsideBase: string[]) {}
 
   static async start(page: Page, info: TestInfo, stepMs: number): Promise<Journey> {
     const journal: string[] = [];
@@ -70,6 +75,8 @@ export class Journey {
     // installed clock keeps flowing, so more simulated time passes inside each decision.
     if (slow.cpu > 1) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: slow.cpu });
     await observeMusicMedia(page);
+    const outsideBase = watchBase(page, info);
+    log('BASE ' + BASE_PREFIX);
     await bootLive(page);
     const player = new LivePlayer(page, { stepMs, lagMs: slow.lagMs, log });
     if (slow.cpu > 1 || slow.lagMs > 0) log('SLOWED cpu x' + String(slow.cpu) + ', ' + String(slow.lagMs) + ' ms of clock before each press');
@@ -77,7 +84,7 @@ export class Journey {
     expect(fresh.unlockedNodes, 'the profile starts with no progress').toEqual([]);
     expect(fresh.iteration).toBe(1);
     expect(fresh.simTimeSec, 'the run starts at the beginning').toBeLessThan(5);
-    return new Journey(player, journal);
+    return new Journey(player, journal, outsideBase);
   }
 
   get wallSec(): number { return (Date.now() - this.startedMs) / 1000; }
@@ -143,9 +150,23 @@ export class Journey {
 
   summary(): string {
     const { player } = this;
-    return ['wall ' + this.wallSec.toFixed(1) + 's', 'boundaries ' + this.boundaries.join(' '), 'errands ' + [...this.done].join(','),
+    return ['wall ' + this.wallSec.toFixed(1) + 's', 'base ' + BASE_PREFIX, 'boundaries ' + this.boundaries.join(' '), 'errands ' + [...this.done].join(','),
       'stats ' + JSON.stringify(player.stats), 'unreachable ' + JSON.stringify([...player.unreachable]),
       'bot moves on dials the UI had not unlocked ' + JSON.stringify([...player.lockedWants]),
-      'blocked ' + JSON.stringify(player.blocked), 'console ' + JSON.stringify(player.problems.slice(0, 5))].join('\n  ');
+      'blocked ' + JSON.stringify(player.blocked), 'console ' + JSON.stringify(player.problems.slice(0, 5)),
+      'outside base ' + JSON.stringify(this.outsideBase.slice(0, 5))].join('\n  ');
   }
+}
+
+/** Collects every request to the test server whose path is outside the deployment path. */
+function watchBase(page: Page, info: TestInfo): string[] {
+  const served = info.project.use.baseURL;
+  if (served === undefined) throw new Error('The live journey needs the baseURL tests/e2e/config.ts sets');
+  const origin = new URL(served).origin;
+  const outside: string[] = [];
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.origin === origin && !url.pathname.startsWith(BASE_PREFIX)) outside.push(url.pathname);
+  });
+  return outside;
 }
