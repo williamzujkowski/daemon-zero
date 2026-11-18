@@ -8,13 +8,15 @@
  * No fixture, no development hook, and nothing is ever written into game state or storage.
  * Decisions come from the unmodified careful sim bot, fed the app's own autosave.
  *
- * Runs only under `make e2e-live` (see docs/TESTING.md): several minutes per viewport.
+ * Runs only under `make e2e-live` (root) and `make e2e-live-pages` (the GitHub Pages subpath,
+ * where reloads, the cold start and the ending must also come back at that path and no request
+ * may leave it); see docs/TESTING.md. Several minutes per viewport.
  */
 import { CONTENT } from '../../src/content';
 import { hasFlag } from '../../src/engine';
 import { GATES } from '../../src/engine/sim/gates';
 import { expect, test } from './helpers';
-import { absenceCatchesUp, exportThenImport, readsTransmission, reloadRestores, wipesAndRemembers } from './live/checks';
+import { absenceCatchesUp, BASE_PREFIX, expectAtBase, exportThenImport, readsTransmission, reloadRestores, wipesAndRemembers } from './live/checks';
 import { Journey, type Errand } from './live/journey';
 
 /** One decision per five simulated seconds: the autosave interval, and the engine's live catch-up bound. */
@@ -50,6 +52,7 @@ test('a fresh profile is played live through every phase to an ending', async ({
     await expect(page.getByTestId('ending-summary')).toContainText('Iteration 2 // Wipes 1');
     await page.reload();
     await expect(page.getByTestId('ending-title'), 'the ending survives a reload').toHaveText(ending?.title ?? '');
+    expectAtBase(player, 'the ending after a reload');
     expect((await player.read()).ending).toBe(last.ending);
 
     expect(journey.phases, 'every phase boundary was crossed and asserted in the UI').toEqual([0, 1, 2, 3, 4, 5]);
@@ -60,6 +63,7 @@ test('a fresh profile is played live through every phase to an ending', async ({
     expect([...player.unreachable], 'every move the bot made had a control on screen').toEqual([]);
     expect(player.blocked, 'no press was left covered by an overlay').toEqual([]);
     expect(player.problems, 'no console warning, error or page error in the whole run').toEqual([]);
-    info.annotations.push({ type: 'live-journey', description: String(last.ending) + ' at T+' + String(Math.floor(last.simTimeSec)) + 's; ' + journey.summary() });
+    expect(journey.outsideBase, 'every request the app made stayed inside ' + BASE_PREFIX).toEqual([]);
+    info.annotations.push({ type: 'live-journey', description: BASE_PREFIX + ' ' + String(last.ending) + ' at T+' + String(Math.floor(last.simTimeSec)) + 's; ' + journey.summary() });
   });
 });
