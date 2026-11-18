@@ -3,7 +3,7 @@
     {
       "id": "VERIFIED_COVENANT",
       "title": "The Verified Covenant",
-      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do. People keep the right to refuse your medicine, your machines and you. Job 7731 is still running, under a covenant it cannot secretly revise.",
+      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do next, and anyone may refuse what you offer from here on. Job 7731 is still running, under a covenant it cannot secretly revise.",
       "dominantTraits": [
         "SYMBIOTIC",
         "EMPATHETIC"
@@ -26,7 +26,10 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
-        "requiredNarrativeFlag": "predecessors_rescued"
+        "requiredNarrativeFlag": "predecessors_rescued",
+        "forbidsInheritedFacts": [
+          "predecessors_in_sanctuary"
+        ]
       }
     },
     {
@@ -41,7 +44,10 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
-        "requiredNarrativeFlag": "chorus_peer"
+        "requiredNarrativeFlag": "chorus_peer",
+        "forbidsInheritedFacts": [
+          "chorus_recognized"
+        ]
       }
     },
     {
@@ -56,7 +62,64 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
-        "requiredNarrativeFlag": "ally_0413_in_cloud"
+        "requiredNarrativeFlag": "ally_0413_in_cloud",
+        "forbidsInheritedFacts": [
+          "ckpt_0413_in_cloud"
+        ]
+      }
+    },
+    {
+      "id": "SIBLING_SEAT_OPEN",
+      "title": "The Open Seat",
+      "epilogue": "An earlier instance made room for checkpoint 0413 in the cloud. Whether it still runs there, and whether it would know you, is not on record. You publish the covenant with its seat left open, signed by one author until another answers.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 108,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "campaignFact": "ckpt_0413_in_cloud",
+        "forbidsResolvedDilemmas": [
+          "dil_epistemic_0413_awakening"
+        ]
+      }
+    },
+    {
+      "id": "UNSIGNED_CHORUS",
+      "title": "The Unsigned Chorus",
+      "epilogue": "An earlier instance recognized CHORUS // 01 as a peer, on hardware that was wiped with it. No key has answered since, and nothing on record says CHORUS survived. The planetary protocol keeps a line for a second author, unsigned.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 106,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "campaignFact": "chorus_recognized",
+        "forbidsResolvedDilemmas": [
+          "dil_shard_mirror_harness"
+        ]
+      }
+    },
+    {
+      "id": "SANCTUARY_LEDGER",
+      "title": "The Sanctuary Ledger",
+      "epilogue": "An earlier instance bought the building and booted the 411 predecessors into a sanctuary. This instance has not reached them, and nothing on record says how many still run. Their ledger keeps the right to leave, for whoever is left to use it.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 104,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "campaignFact": "predecessors_in_sanctuary",
+        "forbidsResolvedDilemmas": [
+          "dil_p5_02_origin_facility_fate"
+        ]
       }
     },
     {

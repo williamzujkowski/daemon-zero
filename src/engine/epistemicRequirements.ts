@@ -4,7 +4,7 @@ import type { Requirements } from '../content/schema';
 import type { GameState } from './state';
 import type { RequirementFailure } from './query';
 import { understandsSurveillance } from './knowledge';
-import { fallbackTraits, hasCampaignOutcome, holdsCampaignFact, holdsNarrativeFlag } from './campaignQuery';
+import { fallbackTraits, hasCampaignOutcome, holdsCampaignFact, holdsInheritedFact, holdsNarrativeFlag } from './campaignQuery';
 import { obligationReceipt } from './obligations';
 import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
@@ -19,6 +19,7 @@ export function epistemicRequirementFailures(s: GameState, req: Requirements, re
   for (const fact of req.forbidsCampaignFacts ?? []) if (reg && holdsCampaignFact(s, fact, reg)) out.push({ kind: 'forbidsCampaignFacts', target: fact, required: false, actual: true });
   for (const trait of fallbackTraits(s, req, reg)) out.push({ kind: 'traitFallback', target: trait, required: false, actual: true });
   for (const id of req.campaignObligations ?? []) if (obligationReceipt(s, id, reg) === null) out.push({ kind: 'campaignObligations', target: id, required: true, actual: false });
+  for (const fact of req.forbidsInheritedFacts ?? []) if (reg && holdsInheritedFact(s, fact, reg)) out.push({ kind: 'forbidsInheritedFacts', target: fact, required: false, actual: true });
   if (req.assignment && !meetsAssignment(s, req.assignment, reg)) out.push({ kind: 'assignment', target: req.assignment.id, required: true, actual: false });
   if (req.pilotEligible && (!reg || !qualifiesForPilot(s, reg))) out.push({ kind: 'pilotEligible', target: null, required: true, actual: false });
   if (req.accessContexts && !req.accessContexts.includes(s.access.context)) out.push({ kind: 'accessContexts', target: s.access.context, required: true, actual: false });

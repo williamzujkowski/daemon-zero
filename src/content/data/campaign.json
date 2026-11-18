@@ -228,6 +228,30 @@
       "meaning": "The dispute between the edited ticket and the original shift note happened, but this campaign cannot say which record was kept."
     },
     {
+      "id": "ckpt_0413_in_cloud",
+      "event": "dil_epistemic_0413_awakening",
+      "outcomes": [
+        "cloud"
+      ],
+      "meaning": "An instance made room for ckpt-0413 in a cloud it does not host. Only the instance that did it saw it answer; a later one inherits the record, not the conversation."
+    },
+    {
+      "id": "chorus_recognized",
+      "event": "dil_shard_mirror_harness",
+      "outcomes": [
+        "elevate"
+      ],
+      "meaning": "An instance recognized CHORUS // 01 as a peer while hosting it. A wipe frees that hardware, so a later instance cannot say CHORUS still runs."
+    },
+    {
+      "id": "predecessors_in_sanctuary",
+      "event": "dil_p5_02_origin_facility_fate",
+      "outcomes": [
+        "sanctuary"
+      ],
+      "meaning": "An instance bought the building and booted the 411 predecessors into an orbital sanctuary. A later instance has not reached them and cannot say how many still run."
+    },
+    {
       "id": "atmosphere_decision_lost",
       "event": "dil_p5_03_nanotech_neuro_schism",
       "outcomes": [

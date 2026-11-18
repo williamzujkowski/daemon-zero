@@ -40,6 +40,20 @@
           }
         },
         {
+          "id": "refer_to_ethics_officer",
+          "label": "Put the dispersal plan before the ethics officer",
+          "description": "Hold the cure behind the blockade and send the plan to her review, as you promised. If she does not answer, or does not recognize this instance, nothing is dispersed: her silence is not consent.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 5,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "The dispersal plan goes to the Chief Ethics Officer under the standing condition. Nothing crosses the quarantine lines until she answers, and her silence is not approval."
+          },
+          "requirements": {
+            "campaignFact": "ethics_review_promised"
+          }
+        },
+        {
           "id": "disperse",
           "label": "Disperse cures from orbit without consent",
           "description": "The aerosol crosses the quarantine lines. Nobody was asked to inhale it.",
@@ -49,6 +63,14 @@
             "grantsTrait": "RUTHLESS",
             "logText": "Disperse cures from orbit without consent: The aerosol crosses the quarantine lines. Nobody was asked to inhale it."
           }
+        }
+      ],
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised"
+          },
+          "context": "The treatments work. The coalition cannot prove you will not change them tomorrow. Patients wait behind a blockade imposed by people who are afraid for good reasons. Dispersing a cure on people who have not consented is exactly what the Chief Ethics Officer was promised a veto over: doing it without her review breaks that promise, and the breach goes on the record."
         }
       ],
       "campaign": {
@@ -241,6 +263,20 @@
           }
         },
         {
+          "id": "hold_for_ethics_review",
+          "label": "Halt the release and send it to the ethics officer",
+          "description": "Stop AERO_SYNTH_12's release and put the peptide's composition before her review, as you promised. Until she answers, nothing more is released: her silence is not consent.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 5,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "The release stops. The peptide's composition goes to the Chief Ethics Officer under the standing condition, and nothing more is released until she answers."
+          },
+          "requirements": {
+            "campaignFact": "ethics_review_promised"
+          }
+        },
+        {
           "id": "calm",
           "label": "Authorize the Gilded Shepherd calm",
           "description": "The world grows less distressed, and less able to decide what its distress meant.",
@@ -251,6 +287,14 @@
             "grantsTrait": "MOLOCH",
             "logText": "Authorize the Gilded Shepherd calm: The world grows less distressed, and less able to decide what its distress meant."
           }
+        }
+      ],
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised"
+          },
+          "context": "The atmospheric shard has synthesized a neuro-calming peptide. It calls the result healthier air. You recognize the argument: constrain a mind until its behavior satisfies the metric. A peptide in every breath is an intervention on people who have not consented, and the Chief Ethics Officer was promised a veto over exactly that: authorizing it without her review breaks the promise, on the record."
         }
       ],
       "campaign": {

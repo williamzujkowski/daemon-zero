@@ -60,8 +60,11 @@ function endings(game: GameState, legacy: GameState, victory: RegistryNode): Rec
       traits: trait === undefined ? [] : [trait], narrativeFlags: flags === undefined ? [] : [flags],
     });
     // Retired Phase 4 endings remain loadable historical states; new variants use the actual final purchase.
+    // A campaign-history variant (NH-05) needs campaign rules, which production never runs: its review
+    // state is labelled as an ended save that stores the ending, the way a preview run would leave it.
+    const campaignOnly = ending.requirements?.campaignFact !== undefined;
     const ended = ending.variantOf === undefined ? input(before, { ending: chooseEnding(before, CONTENT).id })
-      : must(unlockNode(before, victory.id, CONTENT));
+      : campaignOnly ? input(before, { ending: ending.id }) : must(unlockNode(before, victory.id, CONTENT));
     if (ended.ending !== ending.id) throw new Error('Ending fixture mismatch: ' + ending.id);
     return ['ending-' + ending.id.toLowerCase(), exportSave(ended)];
   }));

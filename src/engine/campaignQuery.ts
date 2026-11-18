@@ -70,6 +70,16 @@ export function holdsCampaignFact(s: History, factId: string, reg: ContentRegist
 }
 
 /**
+ * Whether a fact holds from a record an earlier instance made: the fact holds, and this instance did
+ * not resolve its event (the current run's resolved list is truthful under campaign rules). An
+ * ending may claim only what this instance saw; what it inherited is history (NARRATIVE-HISTORY N6).
+ */
+export function holdsInheritedFact(s: History & Pick<GameState, 'resolvedDilemmas'>, factId: string, reg: ContentRegistry): boolean {
+  const fact = reg.campaign.facts.get(factId);
+  return fact !== undefined && holdsCampaignFact(s, factId, reg) && !s.resolvedDilemmas.includes(fact.event);
+}
+
+/**
  * Nexus vote nh-d9: the traits a trait-history fallback blocks on now. Under legacy rules, every
  * listed trait ever held, exactly as forbidsTraits (production is unchanged); under campaign rules,
  * only while the named fact holds, i.e. while history cannot state the fate. A known fate decides
