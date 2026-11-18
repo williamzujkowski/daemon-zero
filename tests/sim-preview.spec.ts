@@ -13,6 +13,7 @@ import { reg } from './helpers';
 const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 30_000;
+const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter']);
 const SEQUENCE_SEC = 4 * 3600;
 
 /**
@@ -21,10 +22,20 @@ const SEQUENCE_SEC = 4 * 3600;
  * exactly as production does.
  */
 function previewWithoutSharedContent() {
-  const nodes = PREVIEW_OVERLAY.nodes.filter((node) => !JSON.stringify(node).includes('"requiresCapability"'));
+  // The lawful economy (DZ-10) is built on the shared directory, so it goes with it (no guest can buy it
+  // anyway), and with it the release that names it and the copy for the scale it opens.
+  const nodes = PREVIEW_OVERLAY.nodes.filter((node) => !JSON.stringify(node).includes('"requiresCapability"') && !LAWFUL.has(String(node.id)));
   expect(nodes.length).toBeLessThan(PREVIEW_OVERLAY.nodes.length);
+  const assignments = PREVIEW_OVERLAY.assignments.map((item) => {
+    const copied = JSON.parse(JSON.stringify(item)) as { pilot?: { serviceGrant?: { release?: unknown } } };
+    delete copied.pilot?.serviceGrant?.release;
+    return copied;
+  });
+  const copy = PREVIEW_OVERLAY.contextCopy;
+  const contextCopy = { ...copy, phases: copy.phases.filter((item) => !JSON.stringify(item).includes('"phaseId":4')),
+    thresholds: copy.thresholds.filter((item) => !JSON.stringify(item).includes('"toPhase":4')) };
   // The authorized channel (DZ-08) opens only for a service and names the shared directory, so it goes too.
-  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes, channelEncounters: [] }), channel: 'preview' });
+  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes, assignments, contextCopy, channelEncounters: [] }), channel: 'preview' });
 }
 
 describe('preview comparison', () => {

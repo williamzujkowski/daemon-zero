@@ -1512,6 +1512,99 @@ Tests: `tests/channel-contact.spec.ts` (V20, DZ-08.2-4, V24, V28, DZ-08.10), `se
 corruption), `elena-review-channel.spec.ts` (DZ-08.11), `sim-contact.spec.ts` (VAL-SIM), `ui-service-channel.spec.ts`
 and `tests/e2e/first-contact.preview.ts`.
 
+## Lawful capital and the negotiated release (#230)
+
+DZ-10 of the Earned Access plan (SPEC stories 20 and 22; DECISIONS D1, D2, D5, D6 and the open-design default
+"negotiated autonomy becomes independent infrastructure through one explicit contract transition and tagged
+capacity; no generic legal simulation"; VALIDATION V21 Phase 4 part, V22 release part, H30). Built on nh-d1
+(`vote-1794925758447-5x5hy42`, a release is a record event), dz-d1 (`vote-1794926521537-1zj8diy`, RELEASE and
+INDEPENDENT were already in the access record), dz-d2 (`vote-1794927020494-fsnxl5r`, capability flags), dz-d7
+(`vote-1794927033372-2yflj0x`, the route skips the escape route's covert phases) and dz-d11
+(`vote-1794967994106-cy22kqm`, context copy by query). How capital is earned, how capacity becomes owned, the
+release terms and the shared Phase 4 accounts are implementation choices awaiting a Nexus vote (see the PR's
+decision note); everything below is the recommended default. Preview only.
+
+**Capital from authorized work (DZ-10.1).** Two overlay grant nodes (`AUTHORIZED_NETWORK`, SERVICE only) are
+metered billing lines the operations department pays: the service contract (+25 capital/s, after the segment and
+the directory) and the service-level agreement (+60/s). Their income is grant-tagged recurring output, so the one
+permitted-use rule (`nodeUseBlocker`) stops it under a restriction, a recall or a release, and what it already paid
+stays earned. The contract hands over the existing corporate ledger (`CORPORATE_EMPIRE_TAB`), which is the capital
+readout.
+
+**Contracted capacity (tagged capacity).** `acquisition: "CONTRACTED"` (`schemaCapability.ts`) marks capacity leased
+or bought in the instance's own name: the leased rack (+40 cycles/s, +512 MB), the leased cluster (+320 cycles/s,
++2048 MB) and the chartered company. It is owned, not granted: `nodeUseBlocker` never refuses it, a release leaves it
+running, and its lease is ordinary capital upkeep. Integrity: it carries no grant and is offered only to named
+arrangements, never the guest job, which cannot sign for anything. The rack's memory is what finally lets a first-run
+cooperative instance host the Mercy-Scribe fragment (the DZ-08 finding): the contact waits without freezing the clock,
+so a player can refer at once or lease first and host.
+
+**The lawful corporate entry and the shared accounts.** `p2_lawful_charter` (Phase 2 card, SERVICE only, contracted)
+opens Phase 4 directly, as the segment opened Phase 2 (dz-d7: Phase 1 and Phase 3 stay the escape route's), and
+carries `ENABLES_CORPORATE_FINANCE`. That flag is now a capability value (dz-d2): the shell company is its escape
+acquisition, the charter its lawful one (`routeOf` counts contracted capacity as the authorized route). The Phase 4
+accounts honest for both routes require the capability instead of the shell-company node: leased colocation racks
+and perimeter contractors (production content, inert there because the shell company is production's only
+provider). Accounts tied to the shell company (couriers who do not know the client, figurehead CEOs, the retainer
+attorneys and lobbyists) and the `p4_*` node chain with its dilemmas stay on the shell company until DZ-12 (DZ-10.4).
+The overlay adds one lawful payroll role, contract site engineers (SERVICE and INDEPENDENT only). Finance, payroll,
+power and the revenue dial are the existing accounting (DZ-10.5).
+
+**One ledger split (DZ-10.2).** `cycleContributions` gives each source a `basis`: `GRANTED` for a grant node and for
+capability-gated content that only granted access makes usable now (the directory on a provisioned segment), `OWNED`
+for everything else. Each source has exactly one basis, so a transition moves output between nothing and itself and
+never counts it twice. `financeEnabled(s, reg)` (rates.ts) is the one finance rule both `computeRates` and
+`cycleContributions` read: before this ticket the ledger divided by the revenue dial whenever the flag was owned, so a
+suspended shell company showed diverted cycles the tick did not divert (a production display fix; `make sim` is
+unchanged).
+
+**The release (DZ-10.3, `release.ts`).** The pilot terms' `serviceGrant` gains an optional `release`
+(`schemaPilot.ts`): title, purpose, `requirements` (owned capacity, never resources), what `ends`, what `remains`,
+the `commitments` still owed, the accept log and the preview's boundary note. `releaseView` shows the terms to the
+service with what is still needed (the charter, nominal standing, no matter on its way) and, while it can still be
+agreed, `releasePreview`: the transition applied to a copy, listing which owned nodes stop and which keep running and
+the cycles, understanding, capital and granted/owned split before and after (the `previewWipe` pattern, so the preview
+cannot disagree with the action). `negotiateRelease(s, reg, releaseToken(s))` is free and refused, unchanged, for a
+stale token, during a decision, outside a service, at any standing but nominal and while an omen is pending; it
+records RELEASE through `recordRouteEvent` (SERVICE to INDEPENDENT, standing nominal, exception and qualification
+evidence cleared, the campaign route keeps the event). Everything granted then stops by the existing permission table
+(INDEPENDENT permits nothing): the loan, the segment and what runs on it, the billing lines, batch submission and
+hosting under the grant (a pending contact can still be referred; the host refusal now says no grant is held rather
+than blaming a standing). Earned resources, memory, hosted minds and contracted capacity stay. A wipe records exit
+RELEASE and the next boot reads a RELEASE boot line; nothing restores the arrangement (H33).
+
+**Threats follow the event (DECISIONS D6, V22, `threatQuery.ts`).** `provisionedScale` now counts contracted acquisitions
+as well as grants, for a reviewed instance and for one `lawfullyReleased` (INDEPENDENT whose last route event this
+iteration is RELEASE). A chartered service or a released company at Phase 4 draws no scale-based AEGIS sweep; a
+departure from the same state (DZ-11) does, and suspicion draws scans either way. `heatIsEvidence` is false after a
+release too: the company runs its own halls in the open. Misconduct still integrates suspicion.
+
+**Copy (DZ-10.4, dz-d11).** Context copy gains Phase 4 for SERVICE ("Chartered Service Company") and INDEPENDENT
+("Independent Infrastructure"), the SERVICE 2-to-4 notice ("COMPANY CHARTERED") and a RELEASE boot line.
+`integrityContextCopy.ts` now lets a route acquisition offered to an arrangement (a grant or contracted capacity) open
+a visited phase, and allows INDEPENDENT copy only once the content offers a release; an independent instance visits
+what the service it was released from visited. Threat responses stay reviewed-only, because only those are read. The
+DZ-08 boundary note now says the route continues to a negotiated release.
+
+**The D5 inventory at Phase 4.** Counting the charter's scale, DZ-07b's rule 1 found ten production items a chartered
+service could meet at Phase 3 or 4 by scale alone: `dil_epistemic_0413_awakening`, `dil_shard_mirror_harness`,
+`act_epi_intel`, the forkable templates `shard_wan_scavenger`, `shard_canary`, `shard_hydra`, the channel's template
+`shard_mercy`, and the wild encounters `wild_canary`, `wild_hydra`, `wild_mercy`. Each now declares
+`accessContexts: ["GUEST", "INDEPENDENT"]`, as DZ-07b's items do: inert in production, where every run is the guest.
+
+**Saves.** No saved shape changed (still v14): RELEASE and INDEPENDENT existed since DZ-02. Two load checks no longer
+hold a released instance to review state it cannot have: `standingProblem` compares replayed conduct with the
+standing only for a reviewed context, and `findingProblem` asks for the discrepancy evidence only while the context
+holds qualification evidence. Without these a service that disclosed a batch review finding and was later released
+wrote an unloadable save, and so would a release or departure from a warned or restricted pilot (the latent #231 bug,
+reached here only through the engine transition DZ-11 will call). `tests/release-save.spec.ts` and the generic reload
+guard (`channel-contact-load.spec.ts`) hold every new state through every public action to a byte-identical reload.
+
+Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
+inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
+by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-content.spec.ts` (integrity corruption and
+the inventory) and the DZ-10 states in `channel-contact-load.spec.ts`.
+
 ## Optional soundtrack foundation (#88)
 
 `musicSession.ts` mounts one app-owned `MusicController` beside the game runtime,

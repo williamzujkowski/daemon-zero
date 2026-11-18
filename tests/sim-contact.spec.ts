@@ -14,7 +14,9 @@ import { CHANNEL } from './contact-helpers';
 
 const BUDGET_SEC = 3600;
 /** The lawful opening, the pilot's queue, the provisioned segment and the directory the channel names. */
-const ROUTE = ['p0_proc_self', 'p0_job_manifest', 'p0_pilot_triage_queue', 'p0_service_network_segment', 'p2_service_directory'];
+// The service contract (DZ-10) is a grant offered to the service, so these policies take it too; the
+// service-level agreement after it needs a leased rack, which they never sign for.
+const ROUTE = ['p0_proc_self', 'p0_job_manifest', 'p0_pilot_triage_queue', 'p0_service_network_segment', 'p2_service_directory', 'p2_service_contract'];
 
 describe('the honest and low-resource policies reach authorized contact (VAL-SIM)', () => {
   it.each(CONTACT_POLICIES.map((policy) => [policy.id, policy] as const))('%s', (_id, policy) => {

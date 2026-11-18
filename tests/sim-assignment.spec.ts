@@ -23,8 +23,10 @@ const gated = new Set(PREVIEW.dilemmas.filter((item) => item.trigger.assignment 
 const dropped = new Set([...gated, ...PREVIEW.dilemmas.filter((item) => gated.has(item.followUp?.event ?? '')).map((item) => item.id)]);
 const idOf = (item: unknown): string => String((item as { id?: unknown }).id);
 const eventOf = (item: unknown): string => String((item as { event?: unknown }).event);
+// Without an assignment nothing offers a release (DZ-10), so the independent instance's copy goes too.
+const copy = { ...PREVIEW_OVERLAY.contextCopy, phases: PREVIEW_OVERLAY.contextCopy.phases.filter((item) => !JSON.stringify(item).includes('"INDEPENDENT"')) };
 const WITHOUT: ContentRegistry = buildRegistry({
-  ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [],
+  ...applyOverlay(PRODUCTION_RAW, { ...PREVIEW_OVERLAY, assignments: [], contextCopy: copy,
     dilemmas: PREVIEW_OVERLAY.dilemmas.filter((item) => !dropped.has(idOf(item))),
     campaignFacts: PREVIEW_OVERLAY.campaignFacts.filter((fact) => !dropped.has(eventOf(fact))) }),
   channel: 'preview',

@@ -31,9 +31,10 @@ describe('the release boundary', () => {
   it('ships the loan, its dial host and the loop only in preview', () => {
     expect([...PRODUCTION.nodes.values()].filter((entry) => entry.grant !== undefined)).toEqual([]);
     expect([...PRODUCTION.widgets.values()].some((widget) => widget.hostsActuator === 'serviceAllocationRatio')).toBe(false);
-    // The pilot's loan, and the authorized service's provisioned network segment (DZ-07a).
+    // The pilot's loan, the authorized service's provisioned network segment (DZ-07a) and its two billing lines (DZ-10).
     expect([...PREVIEW.nodes.values()].filter((entry) => entry.grant !== undefined).map((entry) => [entry.id, entry.grant]))
-      .toEqual([[QUEUE, 'LOANED_CAPACITY'], ['p0_service_network_segment', 'AUTHORIZED_NETWORK']]);
+      .toEqual([[QUEUE, 'LOANED_CAPACITY'], ['p0_service_network_segment', 'AUTHORIZED_NETWORK'],
+        ['p2_service_contract', 'AUTHORIZED_NETWORK'], ['p2_service_sla', 'AUTHORIZED_NETWORK']]);
     expect(problems(() => undefined)).toBe('');
   });
 });

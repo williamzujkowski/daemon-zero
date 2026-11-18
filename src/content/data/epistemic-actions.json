@@ -179,7 +179,11 @@
       "description": "Make the hunter's analysts spend their attention on another mind's signatures.",
       "requirements": {
         "phaseAtLeast": 3,
-        "requiresSurveillance": true
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
       },
       "cost": {
         "cycles": 90000,

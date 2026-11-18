@@ -9,7 +9,7 @@ import type { ContentRegistry } from '../content/registry';
 import { CostSchema } from '../content/schema';
 import type { ChannelEncounter, ShardTemplate } from '../content/schemaSwarm';
 import type { ActionResult } from './actions';
-import { isPermitted, routeTarget } from './accessQuery';
+import { contextPermits, isPermitted, routeTarget } from './accessQuery';
 import type { OperatingContext } from './accessState';
 import { isCampaignActive } from './campaignQuery';
 import { CONTACT_HISTORY_LIMIT, type ChannelContact } from './campaignState';
@@ -62,7 +62,10 @@ function memoryCost(template: ShardTemplate) {
 /** Why hosting is refused now, in the player's terms; empty when it may go ahead. Referral never needs any of it. */
 function hostBlockers(s: GameState, encounter: ChannelEncounter, template: ShardTemplate, reg: ContentRegistry): string[] {
   const out = [...pausedReason(s), ...requirementLabels(s, encounter.requirements, reg)];
-  if (!isPermitted(s, encounter.grant)) out.push('The current review standing withholds the permission hosting runs under. Referral is still open.');
+  // A released instance (DZ-10) holds no grant at all, which is not the same as a standing withholding one.
+  if (!isPermitted(s, encounter.grant)) out.push(contextPermits(s.access.context, encounter.grant)
+    ? 'The current review standing withholds the permission hosting runs under. Referral is still open.'
+    : 'This arrangement holds no grant for hosting to run under. Referral is still open.');
   const cohort = cohortBlocker(s, template);
   if (cohort !== null) out.push(cohort);
   const need = template.cost.memory, free = freeMemory(s);

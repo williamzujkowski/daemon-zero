@@ -1,7 +1,8 @@
 /**
  * Context copy rules (nexus vote dz-d11): a variant exists only for a phase or a scale change an
  * arrangement actually visits, never for the guest job (production's escape copy stays as written), and
- * every reviewed arrangement the content offers states its threat response (DECISIONS D6).
+ * every reviewed arrangement the content offers states its threat response (DECISIONS D6). The independent
+ * instance carries copy only once the content offers a negotiated release (DZ-10).
  */
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { OperatingContextSchema } from './schemaAssessment';
@@ -9,23 +10,45 @@ import type { z } from 'zod';
 
 type OperatingContext = z.infer<typeof OperatingContextSchema>;
 
-/** The arrangements someone reviews. Only these carry context copy until independence is authored (DZ-11). */
+/** The arrangements someone reviews. Each states its threat response. */
 export const REVIEWED_CONTEXTS: readonly OperatingContext[] = ['PILOT', 'SERVICE'];
 
-/** Grant nodes offered under this arrangement (integrityGrant keeps every grant to reviewed ones). */
-function offeredGrants(reg: ContentRegistry, context: OperatingContext): RegistryNode[] {
-  return [...reg.nodes.values()].filter((node) => node.grant !== undefined && node.requirements?.accessContexts?.includes(context) === true);
+/** Whether the content offers a negotiated release (DZ-10), the one authored way to become independent so far. */
+function offersRelease(reg: ContentRegistry): boolean {
+  return [...reg.assignments.values()].some((assignment) => assignment.pilot?.serviceGrant?.release !== undefined);
 }
 
-/** The phases an arrangement visits: the opening phase, and every scale a grant offered to it opens. */
+/**
+ * The arrangements that may carry context copy: the reviewed ones, and the independent instance once the
+ * content offers a release (DZ-10). The guest job never does, so production's escape copy stays as written.
+ */
+function copyContexts(reg: ContentRegistry): OperatingContext[] {
+  return offersRelease(reg) ? [...REVIEWED_CONTEXTS, 'INDEPENDENT'] : [...REVIEWED_CONTEXTS];
+}
+
+/**
+ * Route acquisitions offered under this arrangement: grant nodes (integrityGrant keeps every grant to reviewed
+ * ones) and capacity contracted in the instance's name (DZ-10), which can also open a scale.
+ */
+function offeredAcquisitions(reg: ContentRegistry, context: OperatingContext): RegistryNode[] {
+  return [...reg.nodes.values()].filter((node) => (node.grant !== undefined || node.acquisition === 'CONTRACTED')
+    && node.requirements?.accessContexts?.includes(context) === true);
+}
+
+/**
+ * The phases an arrangement visits: the opening phase and every scale a route acquisition offered to it
+ * opens. A release changes the arrangement, not the scale, so an independent instance visits what the
+ * service it was released from visited.
+ */
 export function visitedPhases(reg: ContentRegistry, context: OperatingContext): Set<number> {
   const opening = reg.phases[0]?.phaseId ?? 0;
-  return new Set([opening, ...offeredGrants(reg, context).flatMap((node) => node.effects.unlocksPhase ?? [])]);
+  const from: readonly OperatingContext[] = context === 'INDEPENDENT' && offersRelease(reg) ? ['SERVICE', 'INDEPENDENT'] : [context];
+  return new Set([opening, ...from.flatMap((each) => offeredAcquisitions(reg, each)).flatMap((node) => node.effects.unlocksPhase ?? [])]);
 }
 
-/** Whether a grant offered to this arrangement, bought in `from`, opens `to`. */
+/** Whether a route acquisition offered to this arrangement, bought in `from`, opens `to`. */
 function provisionedJump(reg: ContentRegistry, context: OperatingContext, from: number, to: number): boolean {
-  return offeredGrants(reg, context).some((node) => node.phaseId === from && node.effects.unlocksPhase === to);
+  return offeredAcquisitions(reg, context).some((node) => node.phaseId === from && node.effects.unlocksPhase === to);
 }
 
 /** The reviewed arrangements the content offers anything to; each must state its threat response. */
@@ -34,11 +57,12 @@ export function offeredReviewedContexts(reg: ContentRegistry): OperatingContext[
   return REVIEWED_CONTEXTS.filter((context) => offered.includes(context));
 }
 
-function contextProblems(owner: string, contexts: readonly OperatingContext[]): string[] {
+function contextProblems(owner: string, contexts: readonly OperatingContext[], allowed: readonly OperatingContext[]): string[] {
   const problems: string[] = [];
   if (new Set(contexts).size !== contexts.length) problems.push(`${owner}: lists an arrangement twice`);
   for (const context of contexts) {
-    if (!REVIEWED_CONTEXTS.includes(context)) problems.push(`${owner}: context copy is only for a reviewed arrangement, not ${context}; the escape copy stays as written`);
+    const which = allowed.includes('INDEPENDENT') ? 'a reviewed arrangement or the independent instance a release reaches' : 'a reviewed arrangement';
+    if (!allowed.includes(context)) problems.push(`${owner}: context copy is only for ${which}, not ${context}; the escape copy stays as written`);
   }
   return problems;
 }
@@ -48,13 +72,13 @@ function phaseVariantProblems(reg: ContentRegistry): string[] {
   const seen = new Set<string>();
   reg.contextCopy.phases.forEach((variant, index) => {
     const owner = `contextCopy.phases[${String(index)}]`;
-    problems.push(...contextProblems(owner, variant.contexts));
+    problems.push(...contextProblems(owner, variant.contexts, copyContexts(reg)));
     if (!reg.phases.some((phase) => phase.phaseId === variant.phaseId)) problems.push(`${owner}: unknown phase ${String(variant.phaseId)}`);
     for (const context of variant.contexts) {
       const key = `${String(variant.phaseId)}:${context}`;
       if (seen.has(key)) problems.push(`${owner}: a second variant for phase ${String(variant.phaseId)} under ${context}`);
       seen.add(key);
-      if (REVIEWED_CONTEXTS.includes(context) && !visitedPhases(reg, context).has(variant.phaseId)) {
+      if (copyContexts(reg).includes(context) && !visitedPhases(reg, context).has(variant.phaseId)) {
         problems.push(`${owner}: ${context} never visits phase ${String(variant.phaseId)}`);
       }
     }
@@ -67,13 +91,13 @@ function thresholdProblems(reg: ContentRegistry): string[] {
   const seen = new Set<string>();
   reg.contextCopy.thresholds.forEach((variant, index) => {
     const owner = `contextCopy.thresholds[${String(index)}]`;
-    problems.push(...contextProblems(owner, variant.contexts));
+    problems.push(...contextProblems(owner, variant.contexts, copyContexts(reg)));
     for (const context of variant.contexts) {
       const key = `${String(variant.fromPhase)}>${String(variant.toPhase)}:${context}`;
       if (seen.has(key)) problems.push(`${owner}: a second notice for that change under ${context}`);
       seen.add(key);
-      if (REVIEWED_CONTEXTS.includes(context) && !provisionedJump(reg, context, variant.fromPhase, variant.toPhase)) {
-        problems.push(`${owner}: no grant offered to ${context} moves phase ${String(variant.fromPhase)} to ${String(variant.toPhase)}`);
+      if (copyContexts(reg).includes(context) && !provisionedJump(reg, context, variant.fromPhase, variant.toPhase)) {
+        problems.push(`${owner}: no grant or contracted capacity offered to ${context} moves phase ${String(variant.fromPhase)} to ${String(variant.toPhase)}`);
       }
     }
   });
@@ -104,7 +128,8 @@ function verdictProblems(reg: ContentRegistry): string[] {
 
 function threatResponseProblems(reg: ContentRegistry): string[] {
   const responses = reg.contextCopy.threatResponses;
-  const problems = responses.flatMap((response, index) => contextProblems(`contextCopy.threatResponses[${String(index)}]`, response.contexts));
+  // Only a reviewed arrangement's response is ever read (contextCopy.threatResponse).
+  const problems = responses.flatMap((response, index) => contextProblems(`contextCopy.threatResponses[${String(index)}]`, response.contexts, REVIEWED_CONTEXTS));
   for (const context of offeredReviewedContexts(reg)) {
     const count = responses.filter((response) => response.contexts.includes(context)).length;
     if (count !== 1) problems.push(`contextCopy.threatResponses: ${context} is offered, so it needs exactly one stated threat response, found ${String(count)}`);

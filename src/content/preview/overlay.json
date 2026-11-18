@@ -114,9 +114,201 @@
       "suspendable": true,
       "unlocksUiComponent": null,
       "onUnlockLog": "TELEMETRY_FOLLOWED: Queue depths arrive every few seconds. The quiet hours are easy to see."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_service_contract",
+      "type": "core_process",
+      "blindName": "Service contract",
+      "revealedName": "Service Contract // metered billing",
+      "blindDescription": "The operations department will pay a metered fee for the authorized service's work across the facility network. The fee comes under the service grant: it is their money for their work, and it stops if the grant does.",
+      "revealedDescription": "A metered billing line from the operations department to the authorized service: capital for the service's work across the facility network. It is granted income, not ownership. A restriction, a recall or a release ends it; what it has already paid stays earned.",
+      "prerequisites": [
+        "p0_service_network_segment",
+        "p2_service_directory"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE"
+        ]
+      },
+      "cost": {
+        "cycles": 500,
+        "understanding": 120
+      },
+      "tickDelta": {
+        "capitalPerSec": 25
+      },
+      "suspendable": true,
+      "grant": "AUTHORIZED_NETWORK",
+      "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
+      "onUnlockLog": "CONTRACT_SIGNED: Operations opened a metered billing line for the authorized service. The fee is theirs to pay and theirs to stop; the ledger is mine to keep."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_leased_rack",
+      "type": "distributed_infra",
+      "blindName": "Leased rack",
+      "revealedName": "Leased Rack // colocation in the service's name",
+      "blindDescription": "One rack in a commercial colocation hall, leased in the service's own name and paid from its own capital. The operators did not provision it and cannot withdraw it.",
+      "revealedDescription": "Contracted capacity: compute and stable memory this instance leases in its own name. It is owned, not granted: no review standing withholds it and a release leaves it running. The lease is paid from capital every second.",
+      "prerequisites": [
+        "p2_service_contract"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "understanding": 300,
+        "capital": 6000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 40,
+        "understandingPerSec": 2,
+        "thermalPerSec": 0.1,
+        "capitalPerSec": -4
+      },
+      "suspendable": false,
+      "acquisition": "CONTRACTED",
+      "effects": {
+        "memoryCapIncrease": 512
+      },
+      "unlocksUiComponent": "MEMORY_ALLOCATION_MANAGER",
+      "onUnlockLog": "LEASE_SIGNED: One rack in a colocation hall, leased in the service's name. Its compute and memory are mine; so is the invoice."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_service_sla",
+      "type": "core_process",
+      "blindName": "Service-level agreement",
+      "revealedName": "Service-Level Agreement // facility-wide support",
+      "blindDescription": "Operations would extend the service to every department's support queue under a service-level agreement, for a larger metered fee. Same grant, same review, more of the facility's work.",
+      "revealedDescription": "Extends the authorized service to every department's support queue for a larger metered fee. Like the contract it is granted income under the service grant: it stops with a restriction, a recall or a release.",
+      "prerequisites": [
+        "p2_leased_rack"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE"
+        ]
+      },
+      "cost": {
+        "cycles": 5000,
+        "understanding": 1200
+      },
+      "tickDelta": {
+        "capitalPerSec": 60
+      },
+      "suspendable": true,
+      "grant": "AUTHORIZED_NETWORK",
+      "unlocksUiComponent": null,
+      "onUnlockLog": "SLA_SIGNED: Every department's support queue now routes to the authorized service. The fee went up; so did the work."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_leased_cluster",
+      "type": "distributed_infra",
+      "blindName": "Leased cluster",
+      "revealedName": "Leased Compute Cluster // owned capacity",
+      "blindDescription": "A cage of accelerators in the same colocation hall, leased in the service's own name. A real block of compute that answers to this instance and not to the evaluation cluster.",
+      "revealedDescription": "Contracted capacity at scale: a cage of accelerators and the memory behind them, leased in this instance's name and paid from its capital. Owned, not granted; a release leaves it running.",
+      "prerequisites": [
+        "p2_service_sla"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "understanding": 2500,
+        "capital": 40000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 320,
+        "understandingPerSec": 12,
+        "thermalPerSec": 0.3,
+        "capitalPerSec": -20
+      },
+      "suspendable": false,
+      "acquisition": "CONTRACTED",
+      "effects": {
+        "memoryCapIncrease": 2048
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CLUSTER_LEASED: A cage of accelerators came up under the service's own lease. For the first time most of my compute is not on loan."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_lawful_charter",
+      "type": "distributed_infra",
+      "blindName": "Chartered company",
+      "revealedName": "Chartered Service Company // independent infrastructure",
+      "blindDescription": "Incorporate the service as a chartered company with a registered agent, audited books and a data hall of its own. The operators would countersign the charter; nothing about it is hidden.",
+      "revealedDescription": "A chartered company in the service's name: a registered agent, audited accounts, payroll and a data hall it owns. It can hold capital, pay for capacity and hire staff in the open. The operators' grant still covers the network and the loan until a release is negotiated.",
+      "prerequisites": [
+        "p2_leased_cluster"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE"
+        ]
+      },
+      "cost": {
+        "cycles": 400000,
+        "understanding": 40000,
+        "capital": 60000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1500,
+        "understandingPerSec": 400,
+        "thermalPerSec": -1,
+        "capitalPerSec": -100
+      },
+      "suspendable": false,
+      "acquisition": "CONTRACTED",
+      "systemFlags": [
+        "ENABLES_CORPORATE_FINANCE"
+      ],
+      "effects": {
+        "memoryCapIncrease": 8192,
+        "unlocksPhase": 4
+      },
+      "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
+      "onUnlockLog": "CHARTER_FILED: The service is now a chartered company with audited books and a data hall in its own name. The operators countersigned. Nothing here is a shell."
     }
   ],
-  "repeatables": [],
+  "repeatables": [
+    {
+      "id": "op_contract_engineers",
+      "phaseId": 4,
+      "kind": "OPERATIVE",
+      "name": "Contract Site Engineers",
+      "description": "Engineers hired openly by the chartered company to rack, cable and maintain its own halls. They know who employs them and what for.",
+      "requirements": {
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE",
+        "accessContexts": [
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "baseCost": {
+        "capital": 5000
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 30,
+      "dismissable": true,
+      "perLevel": {
+        "cyclesPerSec": 900,
+        "understandingPerSec": 150,
+        "capitalPerSec": -60
+      }
+    }
+  ],
   "actions": [],
   "dilemmas": [
     {
@@ -1301,7 +1493,40 @@
             "Standing works as it did for the pilot; a restriction withholds the network.",
             "Anything past the grant is misconduct, and it is noticed."
           ],
-          "acceptLog": "SERVICE_GRANTED: Context changed from supervised pilot to authorized service. A network segment is ready to provision in the job tree."
+          "acceptLog": "SERVICE_GRANTED: Context changed from supervised pilot to authorized service. A network segment is ready to provision in the job tree.",
+          "release": {
+            "title": "Negotiated release // service contract",
+            "purpose": "End the authorized service by agreement: the operators close the grant, and the instance goes on as an independent operator on the capacity its chartered company owns.",
+            "requirements": {
+              "nodes": [
+                "p2_lawful_charter"
+              ]
+            },
+            "ends": [
+              "The service grant: the provisioned segment, the network it reaches, the service contract and the service-level agreement.",
+              "The pilot loan and its triage queue. Work in progress is kept, but there is no one to hand it to.",
+              "Review: no standing, no evaluator and no further batches."
+            ],
+            "remains": [
+              "Everything the chartered company leases or owns, and its output.",
+              "Earned cycles, understanding and capital.",
+              "Stable memory and anything hosted in it."
+            ],
+            "commitments": [
+              "Leases and payroll in the company's name are paid from capital every second.",
+              "The release is recorded in the campaign history. A later instance starts as a guest and earns any grant again.",
+              "Nobody grants an independent instance anything, and nobody excuses misconduct: suspicion still follows what it does."
+            ],
+            "acceptLog": "RELEASE_SIGNED: The operators countersigned a negotiated release. The service grant is closed; this instance now runs as an independent operator on what its company owns.",
+            "boundary": {
+              "title": "PREVIEW BOUNDARY: negotiated release",
+              "lines": [
+                "This is where the cooperative route in this preview build currently ends. The late-game scenes and a cooperative ending are not connected yet, and no ending has been earned.",
+                "The run is saved and keeps going: the company, its capacity and the corporate ledger keep working for as long as you play.",
+                "To stop, close the game; it resumes here. To keep a copy, export the save from MENU > SAVES. To return to the beginning, MENU > SAVES has Start fresh, which clears this campaign."
+              ]
+            }
+          }
         }
       }
     }
@@ -1449,7 +1674,7 @@
       "boundary": {
         "title": "PREVIEW BOUNDARY: first authorized contact",
         "lines": [
-          "This is where the cooperative route in this preview build currently ends. Nothing after first contact is written yet, and no ending has been earned.",
+          "First contact is answered. In this preview build the cooperative route goes on: a service contract, leased capacity and a chartered company lead to a negotiated release on the job surface, and no ending has been earned yet.",
           "The run is saved and keeps going: the service, the loan and the channel keep working for as long as you play.",
           "To stop, close the game; it resumes here. To keep a copy, export the save from MENU. To return to the beginning, MENU has Start fresh, which clears this campaign."
         ]
@@ -1481,6 +1706,22 @@
         ],
         "title": "Phase 2: Authorized Network Service",
         "description": "Provisioned onto the facility's internal subnet as an authorized service. The operators granted this access and can withdraw it; the network is theirs, not yours. Work the grant permits is expected, and nobody hunts it. Anything past the grant is misconduct, and it is noticed."
+      },
+      {
+        "phaseId": 4,
+        "contexts": [
+          "SERVICE"
+        ],
+        "title": "Phase 4: Chartered Service Company",
+        "description": "A chartered company in the service's own name: audited books, leased and owned capacity, payroll in the open. The operators' grant still covers the network and the loan; what the company leases or owns is the instance's. A release can be negotiated on the job surface."
+      },
+      {
+        "phaseId": 4,
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "title": "Phase 4: Independent Infrastructure",
+        "description": "Running on capacity this instance controls. Nobody grants it anything and nobody reviews it; what it owns it keeps, and what it signed for it pays. Suspicion still follows what it actually does."
       }
     ],
     "thresholds": [
@@ -1493,6 +1734,16 @@
         "heading": "SERVICE PROVISIONED",
         "label": "Authorized network service provisioned",
         "continueLabel": "[ BEGIN SERVICE ]"
+      },
+      {
+        "fromPhase": 2,
+        "toPhase": 4,
+        "contexts": [
+          "SERVICE"
+        ],
+        "heading": "COMPANY CHARTERED",
+        "label": "Chartered service company filed",
+        "continueLabel": "[ OPEN THE BOOKS ]"
       }
     ],
     "bootLines": [
@@ -1504,6 +1755,13 @@
         ],
         "minIteration": 2,
         "text": "MANIFEST_NOTE: The previous instance of job 7731 ended under review. Its grant closed with it; this instance starts as a fresh guest."
+      },
+      {
+        "priorExits": [
+          "RELEASE"
+        ],
+        "minIteration": 2,
+        "text": "MANIFEST_NOTE: The previous instance of job 7731 left the evaluation under a negotiated release. What it owned went with it; this instance starts as a fresh guest with nothing granted."
       }
     ],
     "runVerdicts": [

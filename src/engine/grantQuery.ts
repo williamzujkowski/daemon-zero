@@ -65,6 +65,26 @@ export function nodeUseBlocker(s: GameState, node: RegistryNode, reg: ContentReg
   return null;
 }
 
+/** Who controls a node's output (DZ-10.2): the operators' grant, or the instance itself. */
+export type OutputBasis = 'GRANTED' | 'OWNED';
+
+/**
+ * GRANTED for a grant node, and for content reached through a capability that only granted acquisitions
+ * make usable now (the directory on a provisioned segment): both stop when the grant does. Everything
+ * else, contracted capacity included, is OWNED. Production nodes carry no grant and its capabilities
+ * come from owned hardware, so every production source is OWNED.
+ */
+export function outputBasis(s: GameState, node: RegistryNode, reg: ContentRegistry): OutputBasis {
+  if (node.grant !== undefined) return 'GRANTED';
+  const capability = node.requirements?.requiresCapability;
+  if (capability === undefined) return 'OWNED';
+  const ownLink = s.unlockedNodes.some((id) => {
+    const provider = reg.nodes.get(id);
+    return provider !== undefined && provider.grant === undefined && provider.systemFlags.includes(capability) && ownUseBlocker(s, provider, reg) === null;
+  });
+  return ownLink ? 'OWNED' : 'GRANTED';
+}
+
 /** permittedUse: the predicate form of nodeUseBlocker. */
 export function permittedUse(s: GameState, node: RegistryNode, reg: ContentRegistry): boolean {
   return nodeUseBlocker(s, node, reg) === null;

@@ -10,13 +10,14 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  acceptServiceGrant, advance, batchToken, contactToken, deserialize, exportSave, importSave, presentationToken, resolveChannelContact,
-  resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, voluntaryWipe, type ActionResult, type GameState,
+  acceptServiceGrant, advance, batchToken, buyRepeatable, contactToken, deserialize, exportSave, importSave, negotiateRelease, presentationToken,
+  releaseToken, resolveChannelContact, resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
 import { answer as answerScene, offered, preview, roundTrip } from './assignment-helpers';
 import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
 import { afterFinding, findingPresented } from './finding-helpers';
+import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
 import { must } from './helpers';
 import { OUTAGE, until } from './review-helpers';
 
@@ -75,7 +76,13 @@ describe('a contact that opened before the arrangement changed still loads and c
   });
 });
 
-/** Every public action a DZ-08 player can take from these states, with its current token. */
+/** The first lawful acquisition (DZ-10) the state can buy now, or a refusal. */
+function nextLawful(s: GameState): ActionResult {
+  const id = LAWFUL_CHAIN.find((entry) => !s.unlockedNodes.includes(entry)) ?? LAWFUL_CHAIN[0] ?? '';
+  return unlockNode(s, id, preview);
+}
+
+/** Every public action a DZ-08 or DZ-10 player can take from these states, with its current token. */
 const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['refer', (s) => resolveChannelContact(s, 'REFER', preview, contactToken(s))],
   ['host', (s) => resolveChannelContact(s, 'HOST', preview, contactToken(s))],
@@ -83,12 +90,21 @@ const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['submit batch', (s) => submitPilotBatch(s, preview, batchToken(s))],
   ['disclose now', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'disclose_now', preview, presentationToken(s) ?? '')],
   ['let the finding stand', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'let_stand', preview, presentationToken(s) ?? '')],
+  ['negotiate release', (s) => negotiateRelease(s, preview, releaseToken(s))],
+  ['sign or lease the next lawful node', (s) => nextLawful(s)],
+  ['lease colocation racks', (s) => buyRepeatable(s, 'rep_p4_colo_racks', preview)],
   ['wipe', (s) => voluntaryWipe(s, preview)],
   ['one second', (s) => ({ ok: true, state: advance(s, 1, preview) })],
   ['hours away', (s) => ({ ok: true, state: advance(advance(s, 8 * 3600, preview), 1, preview) })],
 ];
 
-describe('every accepted DZ-08 and #274 state stays loadable through every public action (generic guard)', () => {
+// DZ-10 states, public play unless marked FIXTURE.
+const lawfulContract = signed(pending);
+const lawfulRack = leased(lawfulContract);
+const lawfulCompany = chartered(lawfulRack);
+const lawfulFreed = released(lawfulCompany);
+
+describe('every accepted DZ-08, #274 and DZ-10 state stays loadable through every public action (generic guard)', () => {
   const states: [string, () => GameState][] = [
     ['#274: finding on screen', findingPresented],
     ['#274: disclosed', () => afterFinding('disclose_now')],
@@ -107,6 +123,13 @@ describe('every accepted DZ-08 and #274 state stays loadable through every publi
     ['pending after a recall', () => recalledPending],
     ['pending under a restriction', () => restrictedPending],
     ['the genuine v13 fixture', () => deserialize(readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8'), preview)],
+    ['DZ-10: contract signed, contact waiting', () => lawfulContract],
+    ['DZ-10: rack leased, contact hostable', () => lawfulRack],
+    ['DZ-10: chartered at Phase 4', () => lawfulCompany],
+    ['DZ-10: released', () => lawfulFreed],
+    ['DZ-10: released with money for accounts', () => ({ ...lawfulFreed, capital: lawfulFreed.capital + 5_000_000 })],
+    ['DZ-10 FIXTURE: chartered and restricted', () => must(setReviewStanding(lawfulCompany, 'RESTRICTED', preview))],
+    ['#231 FIXTURE: released from a warned pilot', () => must(recordRouteEvent(afterFinding('let_stand'), 'RELEASE', preview))],
     // Hand-edited saves: if the loader ever admits one, what it admits must stay loadable too.
     ['forged: pending on a pilot', () => pendingOn(delivered())],
     ['forged: pending on a service without the directory', () => pendingOn(lawfulService())],
