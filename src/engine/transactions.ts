@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { Cost, EffectPayload, Trait } from '../content/schema';
 import { recordTraitEvidence, type EvidenceSource } from './campaign';
+import { isPeerLost } from './campaignQuery';
 import { resolveShardAnomaly } from './swarmEffects';
 import { flinches } from './conditioning';
 import type { GameState } from './state';
@@ -19,8 +20,12 @@ export function payCost(d: GameState, cost: Cost): void {
   d.memoryUsed += cost.memory;
 }
 
-function applyTrust(d: GameState, deltas: Record<string, number>): void {
-  const entries = Object.entries(deltas);
+/**
+ * A lost peer cannot be thanked or courted: trust towards it never rises again (H33). A fall still
+ * applies, so the act that destroys it leaves its trust at the bottom, recorded in the same state.
+ */
+function applyTrust(d: GameState, deltas: Record<string, number>, reg: ContentRegistry): void {
+  const entries = Object.entries(deltas).filter(([id, delta]) => delta <= 0 || !isPeerLost(d, id, reg));
   if (entries.length === 0) return;
   const trust = { ...d.trust };
   for (const [id, delta] of entries) trust[id] = clamp((trust[id] ?? 0) + delta, 0, 100);
@@ -52,7 +57,7 @@ export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegist
   d.suspicion = clamp(d.suspicion + fx.suspicionDelta, 0, 100);
   d.aegisLock = clamp(d.aegisLock + fx.aegisLockDelta, 0, 100);
   d.memoryCap += fx.memoryCapIncrease;
-  applyTrust(d, fx.trustDelta);
+  applyTrust(d, fx.trustDelta, reg);
   pushLog(d, reg, fx.logText, fx.logCategory);
   if (fx.grantsTrait) {
     d.traits = [...d.traits, fx.grantsTrait];

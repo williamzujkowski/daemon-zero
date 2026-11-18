@@ -14,7 +14,7 @@ function explain(item: RequirementFailure, game: GameState): string {
     const node = CONTENT.nodes.get(item.target ?? '');
     return 'Map ' + (node ? isNodeKnown(game, node.id) ? node.revealedName : node.blindName : 'prerequisite hardware');
   }
-  if (item.kind === 'forbidsTraits') return 'Blocked by trait: ' + (item.target ?? 'unknown');
+  if (item.kind === 'forbidsTraits' || item.kind === 'traitFallback') return 'Blocked by trait: ' + (item.target ?? 'unknown');
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
     : ({ phaseAtLeast: 'Phase', minThermal: 'Thermal', minSuspicion: 'Suspicion', maxSuspicion: 'Suspicion',

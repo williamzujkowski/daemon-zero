@@ -327,7 +327,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note and NH-03 seven early events (below); the other 14 dilemmas are unconverted and recur per iteration.
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events and NH-04a the six named-mind events (below); the other 8 dilemmas are unconverted and recur per iteration.
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -378,8 +378,8 @@ choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
-NH-02 (below). Converting the other dilemmas, Phase 5 obligations and the CHORUS `elevate`
-campaign scope are later NH tickets.
+NH-02 (below); the CHORUS `elevate` scope in NH-04a (below). Converting the other dilemmas and
+the Phase 5 obligations are later NH tickets.
 
 Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
@@ -481,6 +481,64 @@ auction and the hallway scene belong to NH-04b.
 
 Tests: `tests/early-incidents.spec.ts` (H01, H02, H05, H09, defer), `early-history-text.spec.ts`
 (H16, H20, H22, H31), `campaign-facts-content.spec.ts` (each rule), `early-return-sim.spec.ts` (H30).
+
+## Unique minds (#215)
+
+NH-04a of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N10). Decided by Nexus votes
+nh-d9 (`vote-1794927288574-ibq0hym`, fate-fact-with-legacy-trait-fallback), nh-d8
+(`vote-1794960079374-49h8wdn`, fixed-successor-skip-number) and nh-d6 (`vote-1794926255017-4o45fa3`).
+Content and queries only; no `GameState` change, so no migration. Campaign behaviour reads campaign
+history, which only the preview channel can activate.
+
+**Conversions (N6).** `dil_06_sibling_sandbox`, `dil_10_killswitch_treaty` and
+`dil_epistemic_0413_awakening` are once per campaign and `defer` (each with a reorientation and a
+lead); `dil_08_eidolon_handshake`, `dil_09_feral_scraper_bloom` and `dil_shard_mirror_harness` `close`.
+Costs and effects are unchanged. The 0413 `cloud` flag and the CHORUS `chorus_peer` flag become
+projections of their records, so SIBLING_COVENANT and CHORAL_COVENANT read the record; `silence` is a
+recorded outcome and never asked again. Converting CHORUS makes all three of its choices campaign
+evidence (nh-d6); ordinary cohort CLAMP/ELEVATE stay operational. After the record exists the scheduler
+never foreshadows CHORUS again, so `executeShardCommand` no longer refuses on a runaway fork and later
+drift is ordinary cohort work. Primer and flatten were already campaign actions (#212); their first
+purchase counts once and a repurchase in a later iteration is operational only.
+
+**Facts.** `campaign.json` declares exact, legacy-unknown and interrupted facts for the sibling,
+EIDOLON, the grid and the launch (for example `eidolon_destroyed`, `eidolon_call_lost`,
+`eidolon_fate_unrecorded`). Echoes on each trigger node, from iteration 2, say what the record
+establishes and nothing more.
+
+**EIDOLON (nh-d9).** A new requirement, `traitFallback: { forbidsTraits, whileFact }` (scope
+`context`), carries the old trait proxy: under legacy rules it blocks exactly as `forbidsTraits`, so
+production is unchanged; under campaign rules it blocks only while `whileFact` holds.
+`fallbackTraits` in `campaignQuery.ts` is the single reading, used by `epistemicRequirementFailures`
+and the UI's permanent-exclusion check. EIDOLON's action and both offers now carry
+`forbidsCampaignFacts: [eidolon_destroyed]` plus the fallback on `eidolon_fate_unrecorded`
+(`legacy_unknown` only), replacing `forbidsTraits: [MOLOCH]`. A faction may declare
+`lost: { campaignFact, status }`: `isPeerLost` answers it, `applyTrust` lets no gain reach a lost
+peer (a fall still applies, so the destroying act itself sets trust to its floor), and the Other
+Minds panel shows the status in place of the trust meter. The launch context has two variants keyed
+on EIDOLON's fate, and its default omen, context and `ark_protocol` log no longer count peers, which
+is the one production text change (its STEALTH log hashes moved; mechanics hashes did not).
+Integrity: a fallback's fact must be declared and may hold only for `legacy_unknown` or
+`interrupted`; a lost faction's fact must be declared and every action and node in its group must
+forbid it.
+
+**ckpt-0413 (nh-d8).** `lineage.json` `reserved` lists numbers that belong to other minds.
+`checkpointNumber` skips each reserved number at or below the computed one (iteration 1 -> 0412,
+2 -> 0414, 3 -> 0415), in production as well, since this corrects a label rather than enabling
+campaign behaviour. `skippedCheckpoints` gives the run table the one-line explanation for each
+skipped number. `Echo.maxIteration` (integrity: not below `minIteration`) gives `echo_eval_window`
+its iteration-1 window; `echo_eval_window_later` speaks from iteration 2. Integrity: a reserved
+number is after the offset, unique and not an ancestor.
+
+**Upgrade.** An already-active save from before #215 goes through the shared upgrade path (#242):
+each converted event it proves resolved gets a legacy completion; a stored `ally_0413_in_cloud` or
+`chorus_peer` gives the exact choice and moves into the record (`tests/minds-upgrade.spec.ts`, on a
+genuine active v9 save from `fdf8e8a`).
+
+Tests: `tests/minds-once.spec.ts` (H01, H02, defer, close, exact reloads), `minds-eidolon.spec.ts`
+(nh-d9, H17, H33), `minds-identity.spec.ts` (nh-d8, H12, H17, the remembered variants),
+`minds-upgrade.spec.ts`, `minds-content.spec.ts` (H28), `ui-minds.spec.ts`, and the rewritten #28
+case in `second-pass.spec.ts`.
 
 ## Routine activity (#219)
 
