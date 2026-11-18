@@ -61,3 +61,12 @@ Run access input (#220):
   v8 `891807d597df041189207e44feb2bb01dbe09ae6f3586f43e38f01807ed044f0`.
 
 `tests/access-save.spec.ts` loads all eight inputs in production and preview.
+
+Accepted-assignment input (#221):
+- `pre-assignment-v9.json`: genuine version 9 codec output from `9c7f668` (main before v10), from
+  source extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`,
+  the STEALTH bot and fixed ticks for 120 s, then `recordRouteEvent` (`PROMOTION`) and
+  `recordQualification` (`INCOMPLETE`), 30 more seconds, `serialize`. A preview PILOT with evidence,
+  so the v10 step must keep every access field and add only a null acceptance. SHA256:
+  `63190f30dd8db30d7b174a61658879874004d12d5d3ac4f8c4cbf9aa82a5e70a`.
+  `tests/assignment-save.spec.ts` loads it in preview; production refuses it.

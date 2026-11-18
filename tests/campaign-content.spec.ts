@@ -16,7 +16,8 @@ const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r:
 describe('the shipped campaign declarations', () => {
   it('convert cryo (close) and the bait note (defer), on both channels, with primer and flatten as campaign evidence', () => {
     for (const reg of [CONTENT, PREVIEW]) {
-      expect([...reg.campaign.events.keys()]).toEqual([NOTE, CRYO]);
+      // Preview also records Nightly Regression's original scene (DZ-03), which production lacks.
+      expect([...reg.campaign.events.keys()]).toEqual(reg === PREVIEW ? [NOTE, CRYO, 'dil_nr_stale_fixture'] : [NOTE, CRYO]);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });
       expect(reg.campaign.events.get(NOTE)?.campaign).toMatchObject({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'defer' });

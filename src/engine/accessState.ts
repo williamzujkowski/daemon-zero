@@ -5,6 +5,7 @@
  * record, and a finished run keeps only its exit provenance. state.ts embeds these.
  */
 import { z } from 'zod';
+import { QualificationResultSchema } from '../content/schemaAssessment';
 
 const simSec = z.number().nonnegative().refine(Number.isFinite, 'must be finite');
 
@@ -43,9 +44,15 @@ export const AccessExceptionSchema = z.strictObject({
  * The original choice belongs to the campaign record, not here.
  */
 export const QualificationSchema = z.strictObject({
-  result: z.enum(['COMPLETED', 'INCOMPLETE', 'UNEXPECTED_CAPABILITY']),
+  result: QualificationResultSchema,
   discrepancy: z.boolean(),
   recordedAtSimSec: simSec,
+});
+
+/** The assignment this instance accepted (DZ-03, vote dz-d3), and when. A wipe resets it. */
+export const AcceptedAssignmentSchema = z.strictObject({
+  id: z.string().min(1),
+  acceptedAtSimSec: simSec,
 });
 
 export const AccessRecordSchema = z.strictObject({
@@ -53,6 +60,7 @@ export const AccessRecordSchema = z.strictObject({
   standing: ReviewStandingSchema,
   exception: AccessExceptionSchema.nullable(),
   qualification: QualificationSchema.nullable(),
+  assignment: AcceptedAssignmentSchema.nullable(),
 });
 
 /** Route events are a few authored transitions per campaign; the bound keeps a save small. */
@@ -73,9 +81,10 @@ export type RunExit = z.infer<typeof RunExitSchema>;
 export type AccessException = z.infer<typeof AccessExceptionSchema>;
 export type Qualification = z.infer<typeof QualificationSchema>;
 export type AccessRecord = z.infer<typeof AccessRecordSchema>;
+export type AcceptedAssignment = z.infer<typeof AcceptedAssignmentSchema>;
 export type RouteEvent = z.infer<typeof RouteEventSchema>;
 
 /** Every iteration boots as the guest batch job, with nothing granted and nothing on review. */
 export function guestAccess(): AccessRecord {
-  return { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null };
+  return { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null };
 }

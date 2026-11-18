@@ -129,7 +129,7 @@ describe('legacy ending compatibility (H11)', () => {
 describe('inactive migration, legacy play, then activation (H36)', () => {
   it('captures the then-current evidence, not the evidence at migration', () => {
     const migrated = deserialize(V4, preview);
-    expect(migrated).toMatchObject({ schemaVersion: 9, narrativeRules: 'legacy' });
+    expect(migrated).toMatchObject({ schemaVersion: 10, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
     const incident = defined(preview.dilemmas.find((dilemma) => dilemma.phaseId === 0 && dilemma.campaign === undefined));

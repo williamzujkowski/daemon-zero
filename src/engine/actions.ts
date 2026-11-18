@@ -7,6 +7,7 @@ import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
 import { actionAvailable, actionCost } from './epistemic';
 import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
+import { recordSubmittedEvidence } from './assignment';
 import { structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { actuatorLimit } from './conditioning';
@@ -188,6 +189,8 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   payCost(d, choice.cost);
   // Record, payment, effects and evidence commit together in the returned state.
   applyEffects(d, recordResolution(d, dilemma, choice), reg, dilemmaEvidence(dilemma), choice.cost.memory);
+  // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
+  recordSubmittedEvidence(d, choice);
   return accept(d);
 }
 

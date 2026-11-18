@@ -37,7 +37,8 @@ export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: Conten
   if (s.campaign.route.length >= ROUTE_HISTORY_LIMIT) return refuse(s, 'the route record is full');
   const event = { kind, iteration: s.iteration, atSimSec: s.simTimeSec };
   return { ok: true, state: { ...s,
-    access: { context, standing: 'NOMINAL', exception: null, qualification: holdsQualification(context) ? s.access.qualification : null },
+    // An accepted assignment is a fact of this iteration's work and outlives the arrangement change.
+    access: { ...s.access, context, standing: 'NOMINAL', exception: null, qualification: holdsQualification(context) ? s.access.qualification : null },
     campaign: { ...s.campaign, route: [...s.campaign.route, event] } } };
 }
 

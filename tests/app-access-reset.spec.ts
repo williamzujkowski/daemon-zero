@@ -1,6 +1,7 @@
 /**
- * DZ-02 at the app seam: Start Fresh clears run access and route history (V19, H27), and an import
- * whose access contradicts its route is refused with the current run left exactly as it was (V15).
+ * DZ-02 and DZ-03 at the app seam: Start Fresh clears run access, an accepted assignment and route
+ * history (V19, H27), and an import whose access contradicts its route is refused with the current
+ * run left exactly as it was (V15).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { recordRouteEvent } from '../src/engine/access';
@@ -12,6 +13,7 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import { activeGame, preview } from './campaign-helpers';
 import { fresh, must } from './helpers';
+import { completedOriginal } from './assignment-helpers';
 
 const storage = vi.hoisted(() => ({ values: new Map<string, string>() }));
 vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
@@ -36,9 +38,20 @@ describe('run access at the app seam', () => {
     const result = startFresh();
     expect(result.ok).toBe(true);
     const game = gameStore.store.getState().game;
-    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null });
+    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null });
     expect(game.campaign.route).toEqual([]);
     expect(game.legacy.runs).toEqual([]);
+  });
+
+  it('Start Fresh clears an accepted assignment, its evidence and the original record (DZ-03)', () => {
+    const done = completedOriginal('green_subset');
+    gameStore.initialize(done, 0, null);
+    expect(gameStore.store.getState().game.access.assignment?.id).toBe('asg_nightly_regression');
+    expect(startFresh().ok).toBe(true);
+    const game = gameStore.store.getState().game;
+    expect(game.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null });
+    expect(game.campaign.events).toEqual({});
+    expect(game.resolvedDilemmas).toEqual([]);
   });
 
   it('refuses an import whose access has no route behind it and keeps the current run', () => {

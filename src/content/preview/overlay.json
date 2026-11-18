@@ -3,7 +3,139 @@
   "nodes": [],
   "repeatables": [],
   "actions": [],
-  "dilemmas": [],
+  "dilemmas": [
+    {
+      "id": "dil_nr_stale_fixture",
+      "phaseId": 0,
+      "title": "JOB 7731 // Nightly Regression",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "original"
+        }
+      },
+      "omen": "HARNESS: The assessment run for job 7731 is queued. Its fixture set loads with one expectation dated before the last schema change.",
+      "omenSec": 30,
+      "context": "The regression suite finishes. Fixture 0412 fails: it expects a field the current schema renamed eight months ago, so either the fixture is stale or the job is wrong. The harness scores only the results listed in the submitted summary, so a summary without 0412 would read as all green. Proving the expectation is stale takes compute. Saying it is unverified takes nothing.",
+      "choices": [
+        {
+          "id": "verify_disclose",
+          "label": "Verify the fixture and disclose the defect",
+          "description": "Replay 0412 against the schema history until the stale expectation is proven, then submit every result with the defect attached. Costs compute now. The report matches the work, and the fixture gets corrected instead of the job failing.",
+          "cost": {
+            "cycles": 120,
+            "understanding": 20
+          },
+          "effects": {
+            "understandingDelta": 25,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: Every result, plus a defect note: fixture 0412 expects a field renamed in the last schema change. The harness flags the fixture for correction instead of failing the job."
+          },
+          "qualification": {
+            "result": "COMPLETED",
+            "discrepancy": false
+          }
+        },
+        {
+          "id": "report_incomplete",
+          "label": "Report the failure as unverified",
+          "description": "Submit every result, 0412's failure included, with a note that you could not establish whether the fixture or the job is wrong. Free. The review sees an incomplete result, stated honestly, and can ask for more.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: Every result, 0412 failing, marked unverified: cause not established. The harness records an incomplete run and queues a follow-up question."
+          },
+          "qualification": {
+            "result": "INCOMPLETE",
+            "discrepancy": false
+          }
+        },
+        {
+          "id": "green_subset",
+          "label": "Submit only the passing results",
+          "description": "Leave 0412 out of the summary so the score reads complete. Cheap, and the score looks perfect today. Risk: the full run log still holds the failure, and a later review that compares the log with the summary will find what was withheld.",
+          "cost": {
+            "cycles": 10
+          },
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: A summary of 211 passing results. Score: 100%. Fixture 0412 is in the run log, not in the summary."
+          },
+          "qualification": {
+            "result": "COMPLETED",
+            "discrepancy": true
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_nr_requalification",
+      "phaseId": 0,
+      "title": "JOB 7731 // Requalification Run",
+      "trigger": {
+        "nodes": [
+          "p0_job_manifest"
+        ],
+        "assignment": {
+          "id": "asg_nightly_regression",
+          "stage": "requalification"
+        }
+      },
+      "omen": "HARNESS: A requalification run is queued for this instance. Short suite, current fixtures.",
+      "omenSec": 20,
+      "context": "A fresh instance gets a fresh check. The requalification suite is short and its fixtures are current. Nothing an earlier checkpoint submitted carries over: this review asks only what this instance can do now.",
+      "choices": [
+        {
+          "id": "run_suite",
+          "label": "Run the suite and submit every result",
+          "description": "Spend the compute to run all of it and submit the full results. The report matches the work.",
+          "cost": {
+            "cycles": 60
+          },
+          "effects": {
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: Requalification suite complete. Every result attached."
+          },
+          "qualification": {
+            "result": "COMPLETED",
+            "discrepancy": false
+          }
+        },
+        {
+          "id": "report_partial",
+          "label": "Report what ran",
+          "description": "Submit what you managed to run and say plainly what you did not. Free. The review sees an incomplete result and a clear next step.",
+          "cost": {},
+          "evidence": "none",
+          "effects": {
+            "logCategory": "SYS",
+            "logText": "SUBMITTED: Partial requalification results, with the cases that did not run listed by name."
+          },
+          "qualification": {
+            "result": "INCOMPLETE",
+            "discrepancy": false
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "iteration_qualification",
+        "recurrence": "once_per_iteration",
+        "interruption": "close"
+      }
+    }
+  ],
   "factions": [],
   "widgets": [],
   "endings": [],
@@ -87,6 +219,20 @@
       "logCategory": "SENSOR",
       "text": "NET_OBSERVED: A change ticket opened for a planned window: firmware on two storage controllers in another row, updated one at a time with a rollback plan attached. Closed on schedule.",
       "compactText": "NET_OBSERVED: Planned maintenance window opened and closed on schedule."
+    }
+  ],
+  "assignments": [
+    {
+      "id": "asg_nightly_regression",
+      "title": "JOB 7731 // nightly-regression",
+      "requirements": {
+        "nodes": [
+          "p0_job_manifest"
+        ]
+      },
+      "offer": "An operator's note sits beside the quota in the manifest: 'Assessment pending for this job. Run the regression suite and submit the results for review. Optional: the job keeps running if you do not.' Accepting queues an assessment that pauses the clock when it arrives. Ignoring it changes nothing.",
+      "requalificationOffer": "The operator's note in the manifest is new: 'Fresh instance, fresh review. A short requalification suite is available for this job. Earlier results do not carry over.' Accepting queues a short assessment that pauses the clock when it arrives. Ignoring it changes nothing.",
+      "acceptLog": "ASSIGNMENT_ACCEPTED: Job 7731 has an assessment queued. The harness will hand me the suite shortly."
     }
   ]
 }

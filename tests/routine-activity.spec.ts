@@ -209,7 +209,7 @@ describe('lifetime and saves', () => {
     const v7 = JSON.parse(serialize(s)) as Record<string, unknown>;
     delete v7.routine;
     const loaded = deserialize(JSON.stringify({ ...v7, schemaVersion: 7 }), PREVIEW);
-    expect(loaded.schemaVersion).toBe(9);
+    expect(loaded.schemaVersion).toBe(10);
     expect(loaded.routine).toEqual(INITIAL_ROUTINE);
   });
 
