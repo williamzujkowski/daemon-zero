@@ -64,6 +64,13 @@ different one.
   correction. All four reach the first authorized contact from a fresh preview game on lawful sources only
   (VAL-SIM, `tests/sim-contact.spec.ts`); `make sim-preview` prints their route times. `pilotPolicy.ts`
   exports its unchanged `serve` step for them.
+- **EVALUATING_RETURN** (`evaluatingPolicy.ts`, #262) commits DZ-09 part B's evaluating careful return
+  (REVIEW-EARNED-ACCESS-VALIDATION.md B.6): iteration 1 is STEALTH_RETURN unchanged; each return plays
+  STEALTH with three knobs (answer suspicion from 45, only with an action costing at most a quarter of the
+  cycle bank, and never stop buying noisy income) and leaves on entering phase 5. The knobs are
+  `botStep`'s optional `overrides`, which neither STEALTH nor GREEDY sets, so both play exactly as before
+  (`make sim` is byte-identical; `tests/evaluating-policy.spec.ts`). `returnObserver.ts` wraps a policy to
+  report each iteration's peak suspicion and suspicion-reducing actions without changing a decision.
 
 To add a route or return-iteration policy (truthful-thorough, truthful-low-resource,
 violation-then-recovery, multi-wipe return), write a new module beside `bot.ts` that exports a
@@ -77,7 +84,8 @@ instrument (AGENTS.md).
 registry and on the preview registry (`src/content/preview`) and prints a row per metric, with
 `*` on rows that differ, then a GREEDY wipe sequence on each channel and one more on preview
 with campaign rules active from a fresh campaign (#214), then `STEALTH_RETURN` (STEALTH leaving
-voluntarily on entering phase 5) under legacy and campaign rules (#216). It prints the overlay's
+voluntarily on entering phase 5) under legacy and campaign rules (#216), then `EVALUATING_RETURN`
+under legacy and campaign rules with each iteration's peak suspicion (#262). It prints the overlay's
 sentinel and item counts so a report names the overlay it measured. Choose policies with
 `make sim-preview SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the default is STEALTH, GREEDY,
 IDLE, TRUTHFUL_THOROUGH and TRUTHFUL_LOW_RESOURCE.
