@@ -54,6 +54,8 @@ fi
 echo "[bootstrap] versions"
 echo "  node $(mise exec -- node --version)"
 echo "  pnpm $(mise exec -- pnpm --version)"
+# ffmpeg and ffprobe come from mise.toml too (tests/audio-assets.spec.ts); no apt package needed.
+echo "  ffmpeg $(mise exec -- ffmpeg -hide_banner -version | awk 'NR == 1 { print $3 }')"
 
 if [ -e /dev/kvm ]; then
   echo "[bootstrap] /dev/kvm present: Android emulator acceleration will be available in M1"
