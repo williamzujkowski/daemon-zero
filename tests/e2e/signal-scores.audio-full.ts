@@ -7,15 +7,15 @@
  * with a neighbouring phase's file, which must not match.
  *
  * Clock: real browser timers (`boot(..., { realTimers: true })` installs no page clock at all),
- * so the ramp's 25 ms steps run in the same real time as the audio clock the capture is on.
+ * so the ramp's 25 ms steps run in real time; ramps are read on the render clock (`rampOf`).
  */
 import tracks from '../../assets/audio/music/tracks.json';
 import { FADE_IN_MS } from '../../src/app/musicController';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
-import { correlation, median, peak, ramp, rms, toDb, truePeak } from '../audio/dsp';
+import { correlation, median, peak, rms, toDb, truePeak } from '../audio/dsp';
 import { boot, dismissBoot, expect, test } from './helpers';
-import { BLOCK, BLOCK_MS, LARGEST_RAMP_JUMP, LONGEST_RAMP, matched, PHASE_FIXTURES, LEVEL, report } from './signalMeasure';
-import { assetPath, captured, installSignalTap, SAMPLE_RATE, signalTapReady } from './signalTap';
+import { BLOCK, LONGEST_RAMP, matched, PHASE_FIXTURES, LEVEL, rampOf, renderClock, report, reportRamp } from './signalMeasure';
+import { assetPath, captured, installSignalTap, SAMPLE_RATE, settle, signalTapReady } from './signalTap';
 
 const LISTEN_MS = 1800;
 /** One volume write, as a fraction of the whole fade. */
@@ -28,7 +28,7 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   await signalTapReady(page);
 
   // Music is on by default but nothing has been pressed: the output is zeros, and measured as such.
-  await page.waitForTimeout(300);
+  await settle(page, 300);
   const before = await captured(page);
   expect(before.elements, 'no player before a gesture').toHaveLength(0);
   expect(before.mix.quanta, 'the output tap was running').toBeGreaterThan(50);
@@ -37,8 +37,8 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   await dismissBoot(page);
   await page.getByTestId('terminal-screen').click({ position: { x: 2, y: 2 } });
   await expect.poll(async () => (await captured(page)).elements[0]?.audible ?? null, 'the score becomes audible').not.toBeNull();
-  await page.waitForTimeout(LISTEN_MS);
-  const { elements, mix } = await captured(page);
+  await settle(page, LISTEN_MS);
+  const { elements, mix, renderedAt } = await captured(page);
   expect(elements, 'one score element').toHaveLength(1);
   const score = elements[0];
   if (!score) throw new Error('No score was captured.');
@@ -47,17 +47,17 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' renders its 
   const own = await matched(page, score);
   const other = await matched(page, score, (tracks[(track.phase + 1) % tracks.length]?.path ?? '').replace('assets/', ''));
   // The fade-in: from zero to the preference level, in steps, upwards only.
-  const fade = ramp(own.envelope, 0, LEVEL, BLOCK_MS);
+  const fade = rampOf(own.envelope, renderClock(renderedAt, score), 0, LEVEL, FADE_IN_MS);
   if (!fade) throw new Error('No fade-in was found in the gain envelope.');
-  report(info, name + ' fade-in, first audible sample to preference level', fade.durationMs, 'ms');
+  reportRamp(info, name + ' fade-in from the first audible sample', fade);
   report(info, name + ' fade-in largest single step', fade.largestStep * LEVEL, 'gain');
   expect(fade.reversals, 'upwards only').toBe(0);
   report(info, name + ' fade-in largest single step, in volume writes', fade.largestStep / STEP, 'steps');
-  expect(fade.largestStep, 'a ramp in the signal, not a step').toBeLessThanOrEqual(LARGEST_RAMP_JUMP);
+  expect(fade.excess, 'a ramp in the signal, not a step').toBeLessThanOrEqual(0);
   // The ramp waits for the player's position to move, so the audible part is close to the
-  // whole constant; the floor stays loose because a busy main thread bunches late ticks.
-  expect(fade.durationMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
-  expect(fade.durationMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
+  // whole constant; the floor stays where it was before durations were read on the render clock.
+  expect(fade.renderMs).toBeGreaterThanOrEqual(FADE_IN_MS * 0.5);
+  expect(fade.renderMs).toBeLessThanOrEqual(FADE_IN_MS * LONGEST_RAMP);
 
   const steadyFrom = (fade.endBlock + 2) * BLOCK;
   // Over everything at rest, not just the window the alignment used: a bass note can line up

@@ -199,6 +199,46 @@ export function ramp(envelope: Samples, from: number, to: number, blockMs: numbe
   return { startBlock, endBlock, durationMs: (endBlock - startBlock) * blockMs, largestStep, reversals };
 }
 
+export interface ClockedRamp extends Ramp {
+  /** `startBlock` to `endBlock` on the clock the blocks were rendered by. */
+  renderMs: number;
+  /** The most render time spanned by two neighbouring readable blocks on the way. */
+  longestGapMs: number;
+  /** How far the worst jump between neighbouring readable blocks went past `allowed` for the
+   *  render time between them, as a fraction of the move. At or under zero: none did. */
+  excess: number;
+}
+
+/** When each block's first and last samples were rendered, in ms on one clock; NaN when unknown. */
+export interface RenderClock { first: Samples; last: Samples }
+
+/**
+ * `ramp`, with each block's render time beside it. A ramp written on a wall clock reaches the
+ * samples as the renderer pulls them, so while the renderer is stalled no samples are made and
+ * every write meanwhile lands at one sample instant: a ramp that is shorter in samples than it
+ * was in time, with one large jump. `allowed(elapsedMs)` is the most of the move that may arrive
+ * between two blocks, given the render time from the first sample of one to the last of the
+ * other (a block can straddle a stall). An unknown time is read as `blockMs` per block.
+ */
+export function clockedRamp(envelope: Samples, clock: RenderClock, from: number, to: number, blockMs: number,
+  allowed: (elapsedMs: number) => number, tolerance = 0.05): ClockedRamp | null {
+  const found = ramp(envelope, from, to, blockMs, tolerance);
+  if (!found) return null;
+  const known = (ms: number, blocks: number): number => Number.isNaN(ms) ? blocks * blockMs : ms;
+  const across = (a: number, b: number): number => known((clock.last[b] ?? Number.NaN) - (clock.first[a] ?? Number.NaN), b - a + 1);
+  let longestGapMs = 0; let excess = Number.NEGATIVE_INFINITY; let last = found.startBlock;
+  for (let block = found.startBlock + 1; block <= found.endBlock; block++) {
+    const value = envelope[block] ?? Number.NaN;
+    if (Number.isNaN(value)) continue;
+    const elapsed = across(last, block);
+    longestGapMs = Math.max(longestGapMs, elapsed);
+    excess = Math.max(excess, (value - (envelope[last] ?? 0)) / (to - from) - allowed(elapsed));
+    last = block;
+  }
+  const renderMs = known((clock.first[found.endBlock] ?? Number.NaN) - (clock.first[found.startBlock] ?? Number.NaN), found.endBlock - found.startBlock);
+  return { ...found, renderMs, longestGapMs, excess };
+}
+
 /** A sine of known amplitude, for calibrating the functions above. */
 export function sine(amplitude: number, hz: number, seconds: number, rate: number, phase = 0): Float32Array {
   const out = new Float32Array(Math.round(seconds * rate));

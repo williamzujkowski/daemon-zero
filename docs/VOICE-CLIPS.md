@@ -519,7 +519,11 @@ ducked, the fourteen bundled clips sit 8.6 to 12.0 dB above the six scores
 
 On a busy machine the same build measured fade-ins of 450 to 590 ms with up to four volume
 writes landing in one 5 ms block (a jump of 0.06 in gain, a fifth of the fade), and passed.
-Late timer ticks bunch; they are not dropped.
+The main thread does not bunch them: Chromium drops the interval ticks a stalled main thread
+missed, and a ramp counts steps, so a busy main thread only stretches it. Writes land together
+in the samples when the output stops pulling samples for a while and the ramp goes on writing
+in real time (#244); the specs read ramps on the render clock for that reason
+([TESTING.md](TESTING.md), "Clocks").
 
 ### Findings
 
@@ -672,8 +676,8 @@ the status they produce is exercised.
   web build's rendered signal a duck takes 175 to 185 ms in eight instantaneous steps, a
   fade-out 430 to 465 ms in twenty, and a fade-in 450 to 560 ms; whether a linear ramp in
   25 ms steps sounds smooth or audibly stepped is still unknown. Two limits came out of
-  measuring: late timer ticks bunch on a busy main thread (four writes in one 5 ms block were
-  seen), and a start whose file arrived after `FADE_IN_MS` was a step, not a fade (finding 2;
+  measuring: a stalled output lands several writes in one 5 ms block of samples (four were
+  seen; the main thread drops late ticks rather than bunching them, #244), and a start whose file arrived after `FADE_IN_MS` was a step, not a fade (finding 2;
   fixed in #198 for a file up to `FADE_IN_WAIT_MS` late, measured on web only). The loop dip
   is a staircase too, of 5 ms steps, and equally unheard. The element-level specs (`tests/app-volume-ramp.spec.ts`, `tests/app-music-ramps.spec.ts`,
   `tests/app-music-fadeout.spec.ts`, `tests/e2e/music-ducking.e2e.ts`,
