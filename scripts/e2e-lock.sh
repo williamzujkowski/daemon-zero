@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Runs a browser-suite command in its own slot: a port and the lock that goes with it.
 # tests/e2e/config.ts serves the export on $DAEMON_E2E_PORT, so suites in different checkouts
-# can run side by side as long as each has its own port. `make e2e`, `e2e-pages`, `e2e-live` and
-# `e2e-audio` all go through here. Up to $DAEMON_E2E_SLOTS suites run at once (default 3: the
+# can run side by side as long as each has its own port. `make e2e`, `e2e-pages`, `e2e-live`,
+# `e2e-live-pages` and `e2e-audio` all go through here. Up to $DAEMON_E2E_SLOTS suites run at once (default 3: the
 # timing-sensitive cases get flaky when the machine is saturated); the next one waits.
 # Safe to call from inside `flock <lock> ...`: see below.
 set -euo pipefail

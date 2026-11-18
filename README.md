@@ -64,6 +64,7 @@ make dev       # start Expo without choosing a platform
 make build-web # export the production web app
 make e2e-pages # build and test the GitHub Pages subpath export
 make e2e-live  # play the whole game live in the browser, fresh profile to an ending (~6 min)
+make e2e-live-pages # the same live playthrough under the GitHub Pages subpath (~6 min)
 make e2e-audio # measure the rendered audio signal for every phase score and loop seam (~1 min)
 ```
 

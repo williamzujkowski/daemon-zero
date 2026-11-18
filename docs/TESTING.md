@@ -499,7 +499,7 @@ the game rather than in the test:
 |---|---|---|
 | `live-smoke.e2e.ts` | `make e2e`, `make e2e-pages`, CI; phone and desktop | Fresh boot, the guest's interrupt answered on its modal, phase 0 → 1, both boundaries asserted, MENU → SAVES export then import, reload restores the run and the loop keeps advancing. About 11 s per viewport. |
 | `live-player-race.e2e.ts` | `make e2e`, `make e2e-pages`, CI; phone and desktop | The player itself: an interrupt that fires between deciding and pressing, behind a tab press (phone tier only; the wider tiers have no tabs at that point), and inside the save transfer is answered first and the move or errand is made again. About 1.5 s per case. |
-| `live-journey.e2e.ts` | `make e2e-live` only (`live-phone`, `live-desktop` projects, enabled by `DAEMON_E2E_LIVE=1`) | Fresh boot through phases 0–5 to an ending screen, with every cross-cutting system below. |
+| `live-journey.e2e.ts` | `make e2e-live` (root) and `make e2e-live-pages` (Pages subpath) only (`live-phone`, `live-desktop` projects, enabled by `DAEMON_E2E_LIVE=1`) | Fresh boot through phases 0–5 to an ending screen, with every cross-cutting system below. |
 
 At every phase boundary the journey asserts: the header's `phase-value` shows the
 new phase; no console warning, error or page error so far; no horizontal document
@@ -580,6 +580,44 @@ What it does **not** prove:
   fixture-driven scenarios and the headless sim, not here.
 - Layout is checked only for horizontal overflow at 390x844 and 1440x900;
   `ui-sizes.e2e.ts` and the a11y audit own the rest.
+
+### At the Pages subpath
+
+`make e2e-live-pages` plays the same journey against the GitHub Pages export
+(`make build-pages`, written to `dist/daemon-zero/`) served at `/daemon-zero/`, the path
+the site is deployed at. It takes its own slot like `make e2e-live`; do not run the two at
+once in one checkout, because they share `dist/` and `test-results/`. Every check above
+runs unchanged, and two more apply at either path (at the root the prefix is `/`):
+
+- after the mid-run reload, the cold start that follows the absence, and the reload of the
+  ending screen, the page is back at the deployment path itself, not at a root fallback;
+- every request the app makes to the test server, from the first boot to the ending
+  (the page, its scripts, all six phase scores, the voice clip, the favicon), has a path inside the
+  deployment path. The server serves all of `dist/`, which can also hold a root export, so
+  a Pages build that asked for a root asset would otherwise be answered and pass. A
+  throwaway spec that fetched `/assets/...` from a booted journey was recorded by this
+  check (run once, not kept).
+
+The journal's first line, its summary and the test's `live-journey` annotation name the
+base path, so a log says which run it came from.
+
+Save transfer, the reload, the wipe and the absence restore through the same
+`daemon-zero.save.v1` key at either path: browser storage belongs to the origin, not the
+path, so the journey proves the subpath build reads and writes its saves and comes back to
+the same run there, not that the two paths keep separate saves (they do not).
+
+Measured on the development machine on 2026-11-18, both viewports in parallel, first run:
+`make e2e-live-pages` passed in 6.1 minutes (Playwright's wall time, build excluded),
+desktop 329.6 s and phone 363.6 s, both ending `LINEAGE_COVENANT` at T+10,655 s and
+T+10,819 s in iteration 2, with no request outside `/daemon-zero/`.
+`make e2e-live` at the root, run right after on the same change, passed in 7.5 minutes
+(desktop 417.3 s, phone 448.0 s, `LINEAGE_COVENANT` at T+10,908 s and T+11,117 s). One
+pass of each is a single observation, not a variance measurement; the nightly workflow
+runs both.
+
+What the subpath run does not add: it is still Python's static server on 127.0.0.1, not
+GitHub Pages itself (its caching, headers and 404 page are not exercised; `make e2e-remote`
+loads the real site, read-only), and everything in the list above still applies.
 
 ## Audio signal measurement
 
@@ -860,7 +898,7 @@ that matches the question:
 | Check what GitHub Pages serves, and from which commit | `make e2e-remote` (see "Published build smoke check") |
 
 The scripted commands need the production export (`make build-web`) and start their own
-server. `make e2e`, `make e2e-pages`, `make e2e-live` and `make e2e-audio` each take a slot
+server. `make e2e`, `make e2e-pages`, `make e2e-live`, `make e2e-live-pages` and `make e2e-audio` each take a slot
 through `scripts/e2e-lock.sh`: the first free port from 4173 up, exported as
 `DAEMON_E2E_PORT` for `tests/e2e/config.ts`, plus that port's lock
 (`/tmp/daemon-zero-e2e.lock` for 4173, `/tmp/daemon-zero-e2e.lock.<port>` above it). So
@@ -1053,12 +1091,16 @@ than skip under `CI`. Only a successful `main` run deploys the tested Pages expo
 Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on
 every push and pull request and weekly. `dependency-review.yml` checks what a pull request
 changes in the dependency tree: it fails on a newly introduced vulnerability of moderate
-severity or worse and on a copyleft or source-available license. `live-journey.yml` runs `make e2e-live` nightly and
-on demand (`gh workflow run live-journey`): the full journey takes about five minutes, too
-long for the `ci` job's budget, so it reports rather than gates. A red nightly run means the
-shipped web build no longer plays through to an ending. The journey's milestone lines are in
-the job log, and `test-results/` (the failure screenshot) is uploaded as the
-`live-journey-results` artifact whenever the run does not succeed, a timeout included.
+severity or worse and on a copyleft or source-available license. `live-journey.yml` runs `make e2e-live`
+and then `make e2e-live-pages` nightly and on demand (`gh workflow run live-journey`): each
+full journey takes about five minutes, too long for the `ci` job's budget, so they report
+rather than gate. The Pages run starts whether or not the root run passed. A red nightly run
+means the shipped web build no longer plays through to an ending at the root, under the
+Pages subpath, or both; the step name says which. The journeys' milestone lines are in the
+job log, and `test-results/` (the failure screenshot) is uploaded as `live-journey-results`
+(root) or `live-journey-pages-results` (subpath) whenever that run does not succeed, a
+timeout included. The root results are uploaded before the subpath run starts, because
+Playwright empties `test-results/` at the start of every run.
 
 The milestone sections below retain their original verification procedures and
 counts; use the current commands above and the linked review documents when

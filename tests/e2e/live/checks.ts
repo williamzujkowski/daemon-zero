@@ -17,6 +17,18 @@ import { describe, Interrupted, type LivePlayer } from './player';
 
 interface Sized { document: { documentElement: { scrollWidth: number; clientWidth: number } } }
 
+/**
+ * The path the export was built for and is served under: '' at the root (`make e2e-live`),
+ * '/daemon-zero' for the GitHub Pages project URL (`make e2e-live-pages`), as tests/e2e/config.ts
+ * reads it. Every page the journey opens and every request the app makes must stay inside it.
+ */
+export const BASE_PREFIX = (process.env.DAEMON_WEB_BASE_PATH ?? '') + '/';
+
+/** After a reload or a cold start the app is still the one at the deployment path, not a root fallback. */
+export function expectAtBase(player: LivePlayer, what: string): void {
+  expect(new URL(player.page.url()).pathname, what + ' comes back at the deployment path').toBe(BASE_PREFIX);
+}
+
 /** What survives any save, reload or transfer exactly; clocks and balances move underneath it. */
 function durable(state: GameState) {
   return { iteration: state.iteration, phase: state.currentPhase, nodes: state.unlockedNodes, levels: state.levels,
@@ -62,6 +74,7 @@ export async function reloadRestores(player: LivePlayer): Promise<boolean> {
   const before = await player.read();
   await player.page.reload();
   await loaded(player);
+  expectAtBase(player, 'the reload');
   const after = await player.read();
   expect(durable(after), 'a reload restores the same run').toEqual(durable(before));
   // The autosave is at most one interval old and the reload costs a little real time.
@@ -85,6 +98,7 @@ export async function absenceCatchesUp(player: LivePlayer, seconds: number): Pro
   await page.clock.fastForward(seconds * 1000);
   await page.goto('./');
   await loaded(player);
+  expectAtBase(player, 'the cold start');
   const after = await player.read();
   const banner = CONTENT.narrative.dormantResume.split('{')[0] ?? '';
   expect(after.logs.some((entry) => entry.text.startsWith(banner)), 'the kernel log records the hibernation').toBe(true);
