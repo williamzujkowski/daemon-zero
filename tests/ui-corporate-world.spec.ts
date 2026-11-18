@@ -21,6 +21,7 @@ import { settle } from './app-helpers';
 import DilemmaModal from '../src/ui/DilemmaModal';
 import NodeCard from '../src/ui/NodeCard';
 import OmenNotice from '../src/ui/OmenNotice';
+import InterruptBudget from '../src/ui/widgets/InterruptBudget';
 import { Camera } from '../src/ui/widgets/Sensory';
 import { activeGame, preview } from './campaign-helpers';
 import { at, AUCTION, omen, ORDER, play } from './corporate-helpers';
@@ -47,7 +48,7 @@ async function mount(state: GameState, element: ReactElement) {
   const click = (id: string) => { act(() => { find(id)?.click(); }); };
   const close = () => { act(() => { root.unmount(); }); container.remove(); mounted.delete(close); };
   mounted.add(close);
-  return { container, find, click };
+  return { container, find, click, close };
 }
 
 const game = () => gameStore.store.getState().game;
@@ -76,6 +77,16 @@ describe('the Rack 4 decommissioning order follows custody', () => {
     view.click('dilemma-choice-sanctuary');
     expect(holdsNarrativeFlag(game(), 'predecessors_rescued', preview)).toBe(true);
     expect(campaignRecord(game(), AUCTION)).toMatchObject({ outcome: 'buy_and_pension' });
+  });
+});
+
+describe('the forecast budget names only prices this history can charge', () => {
+  it('a shredded rack shows no rescue budget; a vaulted one still does', async () => {
+    const gone = await mount(omen(at(auctioned('buy_and_purge'), ORDER), ORDER), createElement(InterruptBudget));
+    expect(gone.find('interrupt-budget')).toBeNull();
+    gone.close();
+    const kept = await mount(omen(at(auctioned('buy_and_pension'), ORDER), ORDER), createElement(InterruptBudget));
+    expect(kept.find('interrupt-budget')?.textContent).toContain('20,000,000');
   });
 });
 

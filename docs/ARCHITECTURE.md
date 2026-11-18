@@ -507,8 +507,9 @@ approval), `journalist_discredited` and `inquiry_unrecorded`. Also `town_grid_un
 **Choice gates.** `DilemmaChoiceSchema.requirements`, limited to `campaignFact` and
 `forbidsCampaignFacts` (`integrityChoiceGates.ts`). `offeredChoices` and `isChoiceOffered`
 (`speechQuery.ts`) answer which choices a history offers; `resolveDilemma` refuses any other before
-payment ("that choice is not open in this history"), `DilemmaModal` renders only offered choices, and
-the sim bot, which tries choices in rank order until one is accepted, needs no change. The Rack 4
+payment ("that choice is not open in this history"), `DilemmaModal` renders only offered choices, the
+forecast's paid-budget line lists only their prices, and the live E2E player ranks only the choices on
+screen. The sim bot, which tries choices in rank order until one is accepted, needs no change. The Rack 4
 decommissioning order (`dil_p5_02_origin_facility_fate`) keeps rescue and harvest behind
 `forbidsCampaignFacts: [rack4_destroyed, rack4_custody_unknown]` and adds two free, unrewarded answers
 for each of those histories (enter the destruction in the docket or let it close; hold for a physical
