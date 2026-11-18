@@ -62,7 +62,9 @@ describe('recorded cryo outcomes', () => {
 
     const active = must(activateCampaignRules(deserialize(serialize(old), preview), preview));
     expect(campaignRecord(active, source.id)).toMatchObject({ status: 'resolved', outcome: 'legacy_unknown' });
-    const after = withoutOthers(grant(rich(wipe(active, preview, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)));
+    // Preview's own dilemmas (the NH-06 Elena follow-up) are kept out of the way too.
+    const regained = grant(rich(wipe(active, preview, 'test', 'VOLUNTARY')), ...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3));
+    const after = { ...regained, resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== source.id).map((d) => d.id) };
     expect(advance(after, 0.1, preview).pendingDilemma).toBeNull();
     expect(after.narrativeFlags).toEqual([]);
   });

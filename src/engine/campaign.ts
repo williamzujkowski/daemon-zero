@@ -60,13 +60,15 @@ export function recordResolution(d: GameState, dilemma: Dilemma | undefined, cho
 /**
  * What a save proves about one event it holds no record for (NARRATIVE-HISTORY N11): one outcome
  * flag gives the exact choice; a resolved id without one gives legacy_unknown; nothing gives
- * nothing. Several outcome flags of one event that content allows together (the predecessor pair,
- * set by different iterations of a legacy save) are legitimate old ambiguity, so they give
- * legacy_unknown, never the most flattering or latest-looking branch (H10). Legacy history cannot
- * postdate activation, so an event resolved in a later iteration of an already-active campaign
- * (content converted it since) keeps no source iteration.
+ * nothing, and nothing proves a follow-up or a recovery review. Several outcome flags of one event
+ * that content allows together (the predecessor pair, set by different iterations of a legacy save)
+ * are legitimate old ambiguity, so they give legacy_unknown, never the most flattering or
+ * latest-looking branch (H10). Legacy history cannot postdate activation, so an event resolved in a
+ * later iteration of an already-active campaign (content converted it since) keeps no source iteration.
  */
 export function legacyRecord(s: GameState, event: Dilemma): CampaignRecord | null {
+  // A follow-up never existed outside campaign rules, so no legacy evidence can prove one (NH-06).
+  if (event.followUp !== undefined) return null;
   // A recovery review exists only under campaign rules, which record it when it resolves, so no
   // legacy history can prove one; a bare resolved id never completes an obligation (H06).
   if (event.campaign?.eventClass === 'recovery_review') return null;

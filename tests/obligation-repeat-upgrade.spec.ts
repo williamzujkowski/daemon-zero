@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { ContentRegistry } from '../src/content/registry';
 import {
-  activateCampaignRules, campaignRecord, createInitialState, deserialize, holdsNarrativeFlag, presentationToken, resolveDilemma, serialize,
+  activateCampaignRules, campaignRecord, createInitialState, deserialize, holdsNarrativeFlag, offeredChoices, presentationToken, resolveDilemma, serialize,
   tick, unlockNode, voluntaryWipe, type GameState,
 } from '../src/engine';
 import { preview } from './campaign-helpers';
@@ -31,10 +31,18 @@ function own(s: GameState, id: string, reg: ContentRegistry): GameState {
   return parents.unlockedNodes.includes(id) ? parents : must(unlockNode(parents, id, reg));
 }
 
+/**
+ * Ticks until `done`. Any other story that presents itself on the way (NH-06's Elena follow-up, for
+ * one) is answered with its first free offered choice, as a player clearing the screen would.
+ */
 function until(s: GameState, reg: ContentRegistry, done: (state: GameState) => boolean): GameState {
   let state = s;
-  for (let i = 0; i < 20_000 && !done(state); i++) state = tick(state, STEP, reg);
-  if (!done(state)) throw new Error('the expected moment never came');
+  for (let i = 0; i < 20_000 && !done(state); i++) {
+    const other = reg.dilemmas.find((dilemma) => dilemma.id === state.activeDilemmaId);
+    const free = other && offeredChoices(state, other, reg).find((choice) => Object.values(choice.cost).every((amount) => amount === 0));
+    state = other && free ? must(resolveDilemma(state, other.id, free.id, reg, presentationToken(state) ?? '')) : tick(state, STEP, reg);
+  }
+  if (!done(state)) throw new Error(`the expected moment never came: pending ${state.pendingDilemma?.id ?? '-'} active ${state.activeDilemmaId ?? '-'} iteration ${String(state.iteration)}`);
   return state;
 }
 

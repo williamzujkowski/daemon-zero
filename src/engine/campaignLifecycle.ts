@@ -9,6 +9,7 @@ import type { Dilemma } from '../content/schema';
 import { requirementsInScope } from '../content/requirementScopes';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
 import type { CampaignRecord } from './campaignState';
+import { followUpPrerequisiteHolds, followUpReachable } from './followUp';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
 import { pushLog } from './util';
@@ -24,14 +25,20 @@ function setRecord(d: GameState, id: string, record: CampaignRecord): void {
   d.campaign = { ...d.campaign, events: { ...d.campaign.events, [id]: record } };
 }
 
-/** The established world history the scene depends on still holds. Losing it closes the scene. */
+/**
+ * The established world history the scene depends on still holds, including a follow-up's closed
+ * original. Losing it closes the scene.
+ */
 export function contextHolds(s: GameState, dilemma: Dilemma, reg: ContentRegistry): boolean {
-  return meetsRequirements(s, requirementsInScope(dilemma.trigger, 'context'), reg);
+  return followUpPrerequisiteHolds(s, dilemma) && meetsRequirements(s, requirementsInScope(dilemma.trigger, 'context'), reg);
 }
 
-/** This instance holds the access the scene needs. A wipe resets it; a deferred scene waits for it. */
+/**
+ * This instance holds the access the scene needs, including one of a follow-up's declared means. A
+ * wipe resets it; a deferred scene waits for it.
+ */
 export function accessHolds(s: GameState, dilemma: Dilemma, reg: ContentRegistry): boolean {
-  return meetsRequirements(s, requirementsInScope(dilemma.trigger, 'access'), reg);
+  return followUpReachable(s, dilemma, reg) && meetsRequirements(s, requirementsInScope(dilemma.trigger, 'access'), reg);
 }
 
 /**

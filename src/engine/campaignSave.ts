@@ -10,6 +10,7 @@ import { dropStaleRepeats, reserveLivePointers } from './campaignLifecycle';
 import { obligationProblem } from './obligations';
 import { campaignRulesSupported, isCampaignActive, projectableFlags } from './campaignQuery';
 import type { CampaignRecord, CampaignState } from './campaignState';
+import { followUpPrerequisiteHolds } from './followUp';
 import type { GameState } from './state';
 
 type Check<T> = (id: string, value: T) => string | null;
@@ -96,6 +97,16 @@ function upgradeConvertedEvents(s: GameState, reg: ContentRegistry, events: Camp
   return { events: { ...events, ...added }, narrativeFlags: s.narrativeFlags.filter((flag) => !claimed.has(flag)) };
 }
 
+/** A follow-up record exists only after its original closed with a listed outcome (NH-06); an edited save cannot skip it. */
+function followUpProblem(s: GameState, reg: ContentRegistry, events: CampaignState['events']): string | null {
+  const history = { narrativeRules: s.narrativeRules, campaign: { ...s.campaign, events } };
+  const orphan = Object.keys(events).find((id) => {
+    const event = reg.campaign.events.get(id);
+    return event !== undefined && !followUpPrerequisiteHolds(history, event);
+  });
+  return orphan === undefined ? null : `save records follow-up "${orphan}" before the original it follows closed`;
+}
+
 /** Returns the reconciled state, or why the save must be refused without loading anything. */
 export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): GameState | string {
   if (!isCampaignActive(loaded)) return isInactive(loaded.campaign) ? loaded : 'save carries campaign history without campaign rules';
@@ -114,6 +125,9 @@ export function reconcileCampaign(loaded: GameState, reg: ContentRegistry): Game
   const { events, narrativeFlags } = upgraded;
   // A v6 save could hold an omen with no reserved occurrence; reserve it once history is known.
   const s = reserveLivePointers(dropStaleRepeats({ ...loaded, narrativeFlags, campaign: { ...c, events } }, reg), reg);
+  // Follow-ups are checked against the history as reserved, as before the round 1 reordering.
+  const orphan = followUpProblem(s, reg, s.campaign.events);
+  if (orphan !== null) return orphan;
   const projected = projectableFlags(reg);
   if (narrativeFlags.some((flag) => projected.has(flag))) return 'save stores an outcome flag that its campaign record owns';
   const twice = obligationProblem({ campaign: { ...c, events } }, reg);

@@ -78,6 +78,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
 - `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
+- `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
@@ -210,6 +211,8 @@ engine's public actions or `advance`, not the store or UI.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group, or declare `ambiguousLegacyOutcomes` when old rules let several be set (none of them may then be in an exclusive group). Integrity rejects anything else. A current-run `resolvedDilemmas` gate on it is refused: require it with `campaignObligations` instead, and give a closing obligation one `recovery_review` that names it. Production behaviour does not change until campaign rules are activated.
 
+**Add a follow-up arc step.** In the overlay, add a dilemma with `campaign.eventClass: follow_up` and a `followUp` block naming the original event, the closed outcomes it follows and at least one access means; give every choice a `receipt`. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
+
 **Add an assignment.** In the overlay, add an `assignments` entry and two dilemmas gated on it, an `original` and a `requalification`; see [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221) for the rules integrity enforces.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
@@ -330,7 +333,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event.
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event. NH-06 adds the first `follow_up` event (preview only).
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -918,6 +921,62 @@ returning low-resource policies both reach and accept an offer from the lawful o
 Tests: `tests/scope-review.spec.ts`, `pilot-offer.spec.ts`, `pilot-save.spec.ts` (every transition
 reloads byte for byte; the genuine v10 fixture), `pilot-content.spec.ts`, `ui-pilot.spec.ts`,
 `sim-pilot.spec.ts`, the v10-stripped hashes in `sim.spec.ts` and `tests/e2e/pilot-offer.preview.ts`.
+
+## The Incident Record: Elena's follow-up (#218)
+
+NH-06 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N7, N10; SPEC story 32). Decided by
+nh-d1 (`per-event-campaign-record`: the follow-up has its own record and the original is never
+edited) and trait-rule-free-choices (unchanged: `follow_up` is not a no-evidence class, so every
+answer grants a trait and counts once as campaign evidence). No `GameState` change, so no migration.
+Preview only: the dilemma and its facts live in the overlay.
+
+**Content.** `dil_elena_incident_record` (overlay) is one once-per-campaign `follow_up` event that
+`defer`s, with a reorientation and a lead. Its `followUp` block names `dil_02_whistleblower_tech`,
+the outcomes it follows (all three choices, `legacy_unknown` and `interrupted`) and its access means.
+Choice gates give four presentations of one decision: a covered exit (attach the bounded telemetry
+window, or leave her timeline unconfirmed), a framing (correct the attribution, let it stand, or flag
+it as unverified), silence (attach one witnessed fact, or leave the record incomplete) and an unknown
+or interrupted original (attach the file's own entries, or answer that the rack cannot corroborate).
+Each presentation has a free answer; descriptions state the cost, the proof and its risk; every
+answer has a `receipt`. The overlay key `campaignFacts` (appended to `campaign.json`'s facts, never
+redefining one) declares `elena_exit_covered`, `elena_framed`, `elena_caught_unaided` and
+`elena_attribution_corrected`, the correction as a second fact beside the framing.
+
+**Eligibility.** `followUpPrerequisiteHolds` (`followUp.ts`) is true only under campaign rules once
+the original is resolved with a listed outcome or interrupted with `interrupted` listed; an open,
+deferred or missing original never unlocks it. The scheduler also needs an access means
+(`followUpAccess`), and `contextHolds` / `accessHolds` include both, so omen expiry, commit, load and
+resumption revalidate them like any trigger. It becomes eligible in the same iteration as the
+original (the telemetry filter is four nodes past Elena's trigger, in Phase 2) or after a wipe and
+rediscovery; no wipe is needed. A wipe during its omen defers it; it resumes with its source
+iteration and remaining omen time once a means holds again, and resolves once.
+
+**Access means (DZ-08 seam).** `followUp.access` is a list of `{ id, requirements, statement }`.
+Requirements may read only the `access` scope, and the follow-up's own trigger may not, so no route
+is hard-coded where the engine looks. Breakout ships one means (`telemetry_filter`, `p2_log_spoofer`)
+whose statement says nobody authorized the route. DZ-08 adds the approved review channel as another
+entry (for example gated on its capability or `isPermitted` once those land); `followUpAccess`
+returns the first means that holds, and `DilemmaModal` prints its statement before any commit.
+
+**Receipts.** `followUpReceipts(state, reg)` returns, for each resolved follow-up, the receipt of the
+recorded answer, but only while this instance holds an access means, so a wiped instance learns
+nothing before it can reach the record again (N9). The run table shows them under the reorientation.
+Reading or re-rendering calls no action and changes nothing.
+
+**Honesty rules (`integrityFollowUp.ts`).** `follow_up` and `followUp` come together; the original is
+another, original once-per-campaign event and the outcomes are its own; means are unique, read only
+access and need an access requirement; every follow-up answer has a receipt and nothing else does; a
+branch-specific answer (offered for some recorded choices of the original but not all) is never
+offered when the original is `legacy_unknown` or `interrupted`. The existing choice-gate check proves
+every history, including no record, still offers a free answer.
+
+**Saves.** `reconcileCampaign` refuses a follow-up record whose original has not closed with a listed
+outcome; `reconcileDilemmaHistory` drops a live pointer to such a follow-up (always, under legacy
+rules); the #214 upgrade path never invents a follow-up record from `resolvedDilemmas`.
+
+Tests: `tests/elena-follow-up.spec.ts` (H19, H02, H04, H09, multi-wipe, receipts, saves, round trips),
+`follow-up-content.spec.ts` (corruption cases), `ui-elena-follow-up.spec.ts` and
+`tests/e2e/elena-follow-up.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

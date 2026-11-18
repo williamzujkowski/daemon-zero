@@ -22,6 +22,7 @@ function idsByKind(reg: ContentRegistry): Record<string, string[]> {
     marks: [...reg.conditioning.keys()],
     routines: reg.routines.map((routine) => routine.id),
     assignments: [...reg.assignments.keys()],
+    facts: [...reg.campaign.facts.keys()],
   };
 }
 

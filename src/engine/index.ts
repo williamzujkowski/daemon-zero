@@ -25,6 +25,7 @@ export * from './speechQuery';
 export { activateCampaignRules } from './campaign';
 export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycle';
 export * from './campaignClue';
+export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
 export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
