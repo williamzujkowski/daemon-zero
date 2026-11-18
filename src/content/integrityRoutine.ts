@@ -10,7 +10,7 @@ import type { Requirements } from './schema';
 /** Requirement fields that gate on a story's outcome. A routine that needs one is a follow-up. */
 const STORY_GATES: readonly (keyof Requirements)[] = [
   'resolvedDilemmas', 'forbidsResolvedDilemmas', 'requiredNarrativeFlag', 'forbiddenNarrativeFlags', 'campaignOutcome',
-  'campaignFact', 'forbidsCampaignFacts',
+  'campaignFact', 'forbidsCampaignFacts', 'campaignObligations',
 ];
 
 function otherContentIds(reg: ContentRegistry): Set<string> {

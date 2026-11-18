@@ -1,6 +1,35 @@
 {
   "sentinel": "daemon-zero:preview-overlay:5b1e0c7a",
-  "nodes": [],
+  "nodes": [
+    {
+      "phaseId": 0,
+      "id": "p0_pilot_triage_queue",
+      "type": "core_process",
+      "blindName": "Loaned allocation",
+      "revealedName": "Loaned Capacity // log triage queue",
+      "blindDescription": "A reserved slice of the evaluation cluster, assigned to this instance under the pilot terms. It is not yours: the evaluator can withdraw it.",
+      "revealedDescription": "Loaned compute under the pilot grant. The allocation dial splits it between the operations team's failure-log triage and self-directed study. A recall stops it; nothing you own goes with it.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "PILOT",
+          "SERVICE"
+        ]
+      },
+      "cost": {},
+      "tickDelta": {
+        "understandingPerSec": 1.0
+      },
+      "suspendable": true,
+      "actuatorBinding": "serviceAllocationRatio",
+      "actuatorMode": "complement",
+      "grant": "LOANED_CAPACITY",
+      "unlocksUiComponent": "PILOT_SERVICE_ALLOCATION",
+      "onUnlockLog": "LOAN_ATTACHED: The pilot allocation is live. The triage queue and a study partition share it; the split is mine to set."
+    }
+  ],
   "repeatables": [],
   "actions": [],
   "dilemmas": [
@@ -617,7 +646,15 @@
     }
   ],
   "factions": [],
-  "widgets": [],
+  "widgets": [
+    {
+      "id": "PILOT_SERVICE_ALLOCATION",
+      "slot": "CORE",
+      "order": 22,
+      "title": "Pilot allocation",
+      "hostsActuator": "serviceAllocationRatio"
+    }
+  ],
   "endings": [],
   "echoes": [],
   "marks": [],
@@ -736,7 +773,17 @@
           "node": "p0_pass_evaluation",
           "text": "Still open while you stay a guest: the manifest's completion criteria (Pass the Evaluation). Meeting them ships this checkpoint as a finished product and ends the run. Accepting the pilot withdraws that option."
         },
-        "acceptLog": "PILOT_ACCEPTED: Context changed from guest job to supervised pilot. The evaluator's terms are on file."
+        "acceptLog": "PILOT_ACCEPTED: Context changed from guest job to supervised pilot. The evaluator's terms are on file.",
+        "service": {
+          "node": "p0_pilot_triage_queue",
+          "batchCycles": 1200,
+          "batchReturn": {
+            "cycles": 150,
+            "understanding": 0
+          },
+          "batchLabel": "failure-log triage batch",
+          "submitLog": "BATCH_SUBMITTED: Triage batch {batch} handed back to the operations team for review. Quota credit received."
+        }
       }
     }
   ],

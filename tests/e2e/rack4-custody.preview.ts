@@ -11,7 +11,8 @@ import { untilPresented } from '../interruption-helpers';
 import { boot, expect, openSave, test } from './helpers';
 
 function shreddedOrderCode(): string {
-  const shredded = play(at(activeGame(), AUCTION), AUCTION, 'buy_and_purge');
+  // The order stays open through the auction: since NH-05 it is a campaign event a setup shortcut would record.
+  const shredded = play(at(activeGame(), AUCTION, ORDER), AUCTION, 'buy_and_purge');
   return exportSave(untilPresented(omen(at(shredded, ORDER), ORDER)));
 }
 

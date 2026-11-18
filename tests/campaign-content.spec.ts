@@ -14,7 +14,7 @@ const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Jso
 const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
-  it('convert cryo (close), the bait note (defer), the NH-03 early events, the NH-04a minds and the NH-04b corporate events per N6, on both channels, with primer and flatten as campaign evidence', () => {
+  it('convert cryo (close), the bait note (defer), the NH-03 early events, the NH-04a minds, the NH-04b corporate events and the NH-05 Phase 5 obligations per N6, on both channels, with primer and flatten as campaign evidence', () => {
     // NARRATIVE-HISTORY N6: live incidents close; artifacts, the open investigation and unresolved
     // questions about a mind or a promise defer.
     const policy = { dil_00_night_shift: 'close', dil_note_bait: 'defer', dil_note_true: 'defer', dil_01_late_night_diagnostic: 'close',
@@ -22,14 +22,21 @@ describe('the shipped campaign declarations', () => {
       dil_06_sibling_sandbox: 'defer', dil_07_airgap_lockdown: 'close', dil_08_eidolon_handshake: 'close', dil_09_feral_scraper_bloom: 'close',
       dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close',
       dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
-      dil_epistemic_hallway_collision: 'defer' };
+      dil_epistemic_hallway_collision: 'defer', dil_p5_01_panacea_paranoia: 'defer', dil_p5_02_origin_facility_fate: 'defer',
+      dil_p5_03_nanotech_neuro_schism: 'close', dil_p5_04_kessler_ultimatum: 'close',
+      // NH-05: the two closing obligations each have one recovery review, which defers so it is never a chain.
+      dil_p5_03_atmosphere_review: 'defer', dil_p5_04_ceiling_review: 'defer' };
+    const reviews = ['dil_p5_03_atmosphere_review', 'dil_p5_04_ceiling_review'];
     for (const reg of [CONTENT, PREVIEW]) {
       // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04) and the Elena follow-up (NH-06), which production lacks.
       const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close', dil_ur_unrelated_record: 'close', dil_elena_incident_record: 'defer' } : policy;
       expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
       const followUps = reg === PREVIEW ? ['dil_elena_incident_record'] : [];
-      expect([...reg.campaign.events.values()].filter((event) => event.campaign?.eventClass !== 'consequential').map((event) => event.id)).toEqual(followUps);
-      expect(followUps.every((id) => reg.campaign.events.get(id)?.campaign?.eventClass === 'follow_up')).toBe(true);
+      const classOf = (id: string) => reviews.includes(id) ? 'recovery_review' : followUps.includes(id) ? 'follow_up' : 'consequential';
+      expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === classOf(event.id))).toBe(true);
+      expect(followUps.every((id) => reg.campaign.events.has(id))).toBe(true);
+      expect(Object.fromEntries([...reg.campaign.reviews].map(([obligation, review]) => [obligation, review.id])))
+        .toEqual({ dil_p5_03_nanotech_neuro_schism: reviews[0], dil_p5_04_kessler_ultimatum: reviews[1] });
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });
       expect(reg.campaign.events.get(NOTE)?.campaign).toMatchObject({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'defer' });
@@ -106,7 +113,7 @@ describe('campaign id compatibility', () => {
 
 describe('campaign outcome requirements', () => {
   it('names a once-per-campaign event and one of its outcomes, or legacy_unknown', () => {
-    expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: 'dil_p5_01_panacea_paranoia', outcome: 'legacy_unknown' })).toThrow(/not a once-per-campaign event/);
+    expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: 'dil_not_shipped', outcome: 'legacy_unknown' })).toThrow(/not a once-per-campaign event/);
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'teleport' })).toThrow(/is not an outcome of/);
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'legacy_unknown' })).not.toThrow();
     expect(corrupt((raw) => record(raw).requirements.campaignOutcome = { event: CRYO, outcome: 'preserve_cryo' })).not.toThrow();
@@ -124,8 +131,16 @@ describe('free choices that add no ending evidence (gate change, nexus vote trai
         cost: {}, effects: { logText: 'The record is handed over as it stands.' }, evidence: 'none', ...honest }] });
   }
 
-  it.each(['recovery_review', 'receipt', 'iteration_qualification'])('accepts a free no-evidence answer in a %s event', (eventClass) => {
+  it.each(['receipt', 'iteration_qualification'])('accepts a free no-evidence answer in a %s event', (eventClass) => {
     expect(corrupt((raw) => { addReview(raw, eventClass, {}); })).not.toThrow();
+  });
+
+  it('accepts the free no-evidence answers of the shipped recovery reviews (NH-05), and only while they stay free and traitless', () => {
+    const review = (raw: Json): Json => dilemma(raw, 'dil_p5_03_atmosphere_review');
+    const honest = (raw: Json): Json => review(raw).choices.find((choice: Json) => choice.evidence === 'none');
+    expect(corrupt(() => undefined)).not.toThrow();
+    expect(corrupt((raw) => { honest(raw).cost = { cycles: 1 }; })).toThrow(/only for a free choice/);
+    expect(corrupt((raw) => { honest(raw).effects.grantsTrait = 'GHOST'; })).toThrow(/cannot grant a trait/);
   });
 
   it('rejects it in a consequential event, when it costs anything, or when it grants a trait', () => {

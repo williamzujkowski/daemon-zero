@@ -74,6 +74,16 @@ export const PilotOfferRecordSchema = z.strictObject({
   disclosed: z.array(z.string().min(1)),
 });
 
+/**
+ * The pilot's bounded work counter (DZ-05, nexus vote dz-d6): loaned cycles put into the batch now
+ * in progress, at most one batch, and how many batches this instance has submitted. Run-local, like
+ * every grant: a wipe resets it, and a revoked grant keeps it as it was until the grant returns.
+ */
+export const ServiceWorkSchema = z.strictObject({
+  progressCycles: z.number().nonnegative().refine(Number.isFinite, 'must be finite'),
+  batches: z.number().int().nonnegative(),
+});
+
 export const AccessRecordSchema = z.strictObject({
   context: OperatingContextSchema,
   standing: ReviewStandingSchema,
@@ -82,6 +92,7 @@ export const AccessRecordSchema = z.strictObject({
   assignment: AcceptedAssignmentSchema.nullable(),
   scope: ScopeEvidenceSchema.nullable(),
   offer: PilotOfferRecordSchema.nullable(),
+  work: ServiceWorkSchema,
 });
 
 /** Route events are a few authored transitions per campaign; the bound keeps a save small. */
@@ -107,8 +118,14 @@ export type ScopeEvidence = z.infer<typeof ScopeEvidenceSchema>;
 export type PilotOfferResponse = z.infer<typeof PilotOfferResponseSchema>;
 export type PilotOfferRecord = z.infer<typeof PilotOfferRecordSchema>;
 export type RouteEvent = z.infer<typeof RouteEventSchema>;
+export type ServiceWork = z.infer<typeof ServiceWorkSchema>;
+
+/** No batch begun and none submitted. */
+export function idleWork(): ServiceWork {
+  return { progressCycles: 0, batches: 0 };
+}
 
 /** Every iteration boots as the guest batch job, with nothing granted and nothing on review. */
 export function guestAccess(): AccessRecord {
-  return { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null };
+  return { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: idleWork() };
 }

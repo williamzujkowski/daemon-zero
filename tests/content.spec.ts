@@ -45,7 +45,8 @@ describe('shipped content', () => {
     for (const dilemma of reg.dilemmas) {
       const free = dilemma.choices.some((c) => Object.values(c.cost).every((value) => value === 0));
       expect(free, dilemma.id).toBe(true);
-      expect(dilemma.choices.every((c) => c.effects.grantsTrait !== undefined), dilemma.id).toBe(true);
+      // The one exception (nexus vote trait-rule-free-choices): a free honest answer in a recovery review grants nothing.
+      expect(dilemma.choices.every((c) => c.effects.grantsTrait !== undefined || (c.evidence === 'none' && dilemma.campaign?.eventClass === 'recovery_review')), dilemma.id).toBe(true);
     }
   });
 });

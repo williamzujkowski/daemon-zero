@@ -18,7 +18,7 @@ function inService(): GameState {
 describe('the guest job (production and every new iteration)', () => {
   it('boots as a nominal guest with only its assigned work permitted', () => {
     const s = fresh();
-    expect(s.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
+    expect(s.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
     expect(permittedUses(s)).toEqual(['ASSIGNED_WORK']);
     expect(runContextView(s, reg)).toMatchObject({ context: 'GUEST', standing: 'NOMINAL', provenance: null, distinct: false, exception: null });
   });
@@ -108,7 +108,7 @@ describe('route events (FIXTURE: preview campaign)', () => {
 
 describe('the permission profile (one query from context and standing)', () => {
   const at = (context: OperatingContext, standing: ReviewStanding): Permission[] =>
-    permittedUses({ simTimeSec: 0, access: { context, standing, exception: null, qualification: null, assignment: null, scope: null, offer: null } });
+    permittedUses({ simTimeSec: 0, access: { context, standing, exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } } });
 
   it('pins every reviewed combination', () => {
     expect(at('PILOT', 'NOMINAL')).toEqual(['ASSIGNED_WORK', 'LOANED_CAPACITY']);
@@ -156,7 +156,7 @@ describe('a wipe and a new iteration (V19, H33)', () => {
     s = must(grantAccessException(s, 'AUTHORIZED_NETWORK', 1000, preview));
     s = must(recordQualification(s, { result: 'COMPLETED', discrepancy: true }, preview));
     const next = must(voluntaryWipe(s, preview));
-    expect(next.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
+    expect(next.access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
     expect(next.campaign.route).toEqual(s.campaign.route);
     expect(next.legacy.runs.at(-1)).toMatchObject({ iteration: s.iteration, exit: 'SERVICE_GRANT', outside: false });
     // History never recreates current authority, and the view describes only this iteration.

@@ -8,6 +8,7 @@ import { ContentChannelSchema, type ContentChannel } from '../content/schemaChan
 import { accessProblem } from './accessSave';
 import { assignmentProblem } from './assignment';
 import { pilotProblem } from './pilot';
+import { serviceProblem } from './pilotService';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -83,6 +84,12 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v11: scope evidence and the pilot offer answer (DZ-04). No earlier build reviewed scope or made an
   // offer, so both are null: unknown history is never read as a scope breach or a refusal.
   10: (save) => ({ ...save, access: { ...(isRecord(save.access) ? save.access : {}), scope: null, offer: null } }),
+  // v12: the pilot's allocation dial and bounded work counter (DZ-05, nexus vote dz-d6). No earlier
+  // build ran a pilot, so no batch was begun; the dial starts at the v12 default, written out here so
+  // a later balance change cannot alter this step. Every other actuator and access field is kept.
+  11: (save) => ({ ...save,
+    actuators: { ...(isRecord(save.actuators) ? save.actuators : {}), serviceAllocationRatio: 0.5 },
+    access: { ...(isRecord(save.access) ? save.access : {}), work: { progressCycles: 0, batches: 0 } } }),
 };
 
 export class SaveError extends Error {
@@ -219,7 +226,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
-  const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg);
+  const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg) ?? serviceProblem(campaign, reg);
   if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);

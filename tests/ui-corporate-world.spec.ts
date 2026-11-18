@@ -55,7 +55,8 @@ const game = () => gameStore.store.getState().game;
 const order = event(ORDER);
 /** The modal renders in a portal, so its choices are read from the document. */
 const choiceIds = () => [...host.document.querySelectorAll('[data-testid^="dilemma-choice-"]')].map((el) => el.getAttribute('data-testid'));
-const auctioned = (choice: string) => play(at(activeGame(), AUCTION), AUCTION, choice);
+// The order stays open through the auction: since NH-05 it is a campaign event a shortcut would record.
+const auctioned = (choice: string) => play(at(activeGame(), AUCTION, ORDER), AUCTION, choice);
 
 describe('the Rack 4 decommissioning order follows custody', () => {
   it('after shredding it shows the empty cage and only the record, and commits one', async () => {

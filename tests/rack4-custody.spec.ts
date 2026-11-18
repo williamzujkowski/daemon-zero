@@ -19,7 +19,7 @@ import { defined } from './m7-helpers';
 import { choose, must, rich } from './helpers';
 
 const order = event(ORDER);
-const finalNode = defined([...preview.nodes.values()].find((node) => node.requirements?.resolvedDilemmas?.includes(ORDER)));
+const finalNode = defined([...preview.nodes.values()].find((node) => node.requirements?.campaignObligations?.includes(ORDER)));
 const PREDECESSOR_FLAGS = order.choices.flatMap((choice) => choice.effects.setsNarrativeFlag ?? []);
 const ORIGINAL = ['sanctuary', 'gradients'];
 const offered = (s: GameState) => offeredChoices(s, order, preview).map((choice) => choice.id);
@@ -28,13 +28,13 @@ const contextFor = (fact: string) => defined(order.contextVariants?.find((varian
 
 /** The decommissioning order on screen after the auction ended with `choice`, in the same iteration. */
 function orderAfter(choice: string): GameState {
-  const auctioned = play(at(activeGame(), AUCTION), AUCTION, choice);
+  const auctioned = play(at(activeGame(), AUCTION, ORDER), AUCTION, choice);
   return untilPresented(omen(at(auctioned, ORDER), ORDER));
 }
 
 /** The order on screen after a wipe interrupted the auction's omen. */
 function orderAfterLostAuction(): GameState {
-  const lost = caught(ticks(omen(at(activeGame(), AUCTION), AUCTION), 1));
+  const lost = caught(ticks(omen(at(activeGame(), AUCTION, ORDER), AUCTION), 1));
   return untilPresented(omen(at(lost, ORDER), ORDER));
 }
 
@@ -43,9 +43,10 @@ function honest(presented: GameState, choiceId: string): GameState {
   const chosen = roundTrips(must(commit(presented, choiceId, ORDER)));
   for (const flag of PREDECESSOR_FLAGS) expect(holdsNarrativeFlag(chosen, flag, preview)).toBe(false);
   expect([chosen.cycles, chosen.understanding, chosen.capital]).toEqual([presented.cycles, presented.understanding, presented.capital]);
-  // The order counts as answered for the final protocol whichever honest answer was given.
-  expect(unmetRequirements(chosen, finalNode.requirements, preview).filter((failure) => failure.kind === 'resolvedDilemmas')).toEqual([]);
-  expect(unmetRequirements(presented, finalNode.requirements, preview).some((failure) => failure.kind === 'resolvedDilemmas')).toBe(true);
+  // The order counts as answered for the final protocol whichever honest answer was given (NH-05: its campaign obligation).
+  const orderUnmet = (s: GameState) => unmetRequirements(s, finalNode.requirements, preview).filter((failure) => failure.kind === 'campaignObligations' && failure.target === ORDER);
+  expect(orderUnmet(chosen)).toEqual([]);
+  expect(orderUnmet(presented)).toHaveLength(1);
   return chosen;
 }
 
@@ -67,7 +68,7 @@ describe('a shredded Rack 4 cannot be rescued or harvested afterwards (E11)', ()
   });
 
   it('after a wipe the destruction still holds and the order still offers no rescue', () => {
-    const shredded = play(at(activeGame(), AUCTION), AUCTION, 'buy_and_purge');
+    const shredded = play(at(activeGame(), AUCTION, ORDER), AUCTION, 'buy_and_purge');
     const later = rich(caught(shredded));
     const presented = untilPresented(omen(at(later, ORDER), ORDER));
     expect(offered(presented)).toEqual(['record_the_destruction', 'close_the_docket']);

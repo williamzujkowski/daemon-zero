@@ -28,6 +28,11 @@ export interface CampaignIndex {
   facts: ReadonlyMap<string, CampaignFact>;
   /** Reorientation and clue labels. */
   labels: CampaignLabels;
+  /**
+   * Recovery reviews by the obligation event each completes (NARRATIVE-HISTORY N4). Integrity allows
+   * one review per event; a later duplicate would be reported, never silently preferred.
+   */
+  reviews: ReadonlyMap<string, S.Dilemma>;
 }
 
 export interface ContentRegistry {
@@ -142,6 +147,7 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
     retired: new Set(manifest.retired),
     facts: new Map(manifest.facts.map((fact) => [fact.id, fact])),
     labels: manifest.labels,
+    reviews: new Map(dilemmas.flatMap((d) => d.campaign?.eventClass === 'recovery_review' && d.campaign.obligation !== undefined ? [[d.campaign.obligation, d] as const] : [])),
   };
 }
 

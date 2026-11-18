@@ -517,7 +517,63 @@ run. Its cause was not isolated here; what the numbers show is that campaign ret
 story payout in phases 1 and 2, where legacy returns re-earn the early incidents'. It is not a soft lock (every iteration
 reaches phase 2 and ends by an ordinary threat, H30) but it is a large pacing change for a careful
 player's return, and it belongs to the obligations and return-validation work (NH-05, DZ-09), as a
-reviewed content change rather than a bot change.
+reviewed content change rather than a bot change. NH-05 isolates the cause below.
+
+### Phase 5 obligations and endings (#217)
+
+SIM evidence only. `make sim` is identical to main `13f254f` apart from the wall-time line (diffed):
+production stays on legacy rules, where an obligation is the current run's resolution, and every new
+choice and review needs a campaign fact. The bot was not changed. New content numbers,
+all reachable only under campaign rules:
+
+| Content | Choice | Cost | Effect |
+|---|---|---|---|
+| Atmosphere review (after the crisis closed unobserved) | Commission an independent air assay | 4,000,000 cycles | suspicion +5, EMPATHETIC |
+| | Record it as unanswered and hand it on | free | none (`evidence: "none"`) |
+| Ultimatum review (after the crisis closed unobserved) | Offer verified orbital tracking | 6,000,000 cycles | suspicion +5, SYMBIOTIC |
+| | Record the ultimatum as unanswered and hand it on | free | none (`evidence: "none"`) |
+
+Reviews have a 45 s omen, like their originals. Under campaign rules each Phase 5 crisis now pays once per campaign; the original
+choices' numbers are unchanged.
+
+**Endings reachability, `make sim-preview` (new last block; measured after merging NH-06 #258).**
+STEALTH from a fresh campaign reaches an ending through the four obligations in iteration 1:
+LINEAGE_COVENANT at 9422.4 s (P5 at 7932.0 s, 17 dilemmas; it let Rack 4 sell and then paid for the
+sanctuary). Production STEALTH also ends LINEAGE_COVENANT, at 2.51 h; the campaign run differs from
+phase 3 on (NH-04a, NH-04b and NH-06). Wiped voluntarily the second its obligations were complete
+(8624.4 s), the same campaign played on by STEALTH:
+
+| Iteration | Length | Ended by | P2 / P3 / P4 / P5 reached | Dilemmas | Story rewards (cycles / understanding) |
+|---|---:|---|---|---:|---|
+| 2 | 4045.0 s | wipe (INCIDENT_CLOSED) | 853.0 s / - / - / - | 0 | 0 / 0 |
+| 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 s / - / - / - | 1 | 0 / 0 |
+| 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 s / - / - / - | 1 | 0 / 120 |
+| 5 | 8098.3 s | ending (LINEAGE_COVENANT) | 949.1 / 3090.1 / 4980.3 / 6318.3 s | 1 | 0 / 0 |
+
+Iteration 5 buys the real final protocol with no Phase 5 crisis repeated: the obligations completed in
+iteration 1 carried it (H14). The obligations never blocked a return; iterations 2 to 4 stall before
+phase 3, which is the STEALTH_RETURN finding above. (Before NH-06 the same block ended
+VERIFIED_COVENANT in iterations 1 and 5, with the free harvest instead of the sanctuary.)
+
+**Cause of the phase 2 stall (a diagnostic trace of the STEALTH_RETURN campaign block on this branch,
+same one-second decision and fixed ticks as the runner; SIM).** In the stalled returns the careful bot buys `p2_arp_discovery`, whose upkeep
+leaves about 8.5 cycles/s, with suspicion just under its alarm (20). Suspicion then rises about
+0.1/s; at the alarm the bot (a) stops buying any repeatable that adds suspicion (`tooLoud`), which
+rules out `rep_p1_idle_threads` and `rep_p2_zombie_hosts`, its only income growth here, and (b)
+spends on `act_p2_scrub_audit_logs` (1,500 cycles, -10 suspicion) whenever it can. The scrubs take
+its whole income, so it never saves the 12,500 cycles `p2_log_spoofer` costs on rediscovery, the node
+whose -0.25 suspicion/s would break the loop; alert levels climb until the suspicion wipe. A legacy
+return re-meets the phase 1-2 incidents; inferred, not traced: their suspicion relief and payouts
+(`report_vance` +25,000 cycles among them) lift it past this point, and under campaign rules nothing
+does. In that trace iteration 5
+escapes only because its suspicion entered phase 2 lower (8.4 at 1005 s against 15.2 in iteration 2), so
+income growth continued long enough for `rep_p2_zombie_hosts` and the spoofer. This is a property of
+the bot's fixed alarm, not a soft lock (a player can stop scrubbing, and every iteration ends by an
+ordinary threat), but a careful human might meet the same squeeze. Options for a separate, reviewed
+content change (not made here; tuning content needs a reviewed decision and the bot must not be
+tuned): a requalification or routine bounty in phases 1-2, a cheaper rediscovered spoofer, or a
+scrub cooldown that matches phase 2 income. DZ-09's return protocol should measure it with a human
+or an evaluating agent before any tuning.
 
 ### Elena's follow-up once per campaign (#218)
 
@@ -594,7 +650,7 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
-honest incomplete one. These are declared, not yet granted: DZ-05 runs the pilot. Omens: 25 s (record),
+honest incomplete one, granted by DZ-05 (below). Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
@@ -606,6 +662,28 @@ The truthful policies now answer the scope review and the offer as well (before 
 at the scope review with the clock frozen). `make sim-preview`: STEALTH, GREEDY and IDLE 0 of 19
 metrics different; TRUTHFUL_THOROUGH 2, TRUTHFUL_LOW_RESOURCE 3, RETURNING_LOW_RESOURCE 4 (one wipe,
 three dilemmas, 4.8 s of frozen clock, lower peak thermal), all by the route itself.
+
+## The supervised pilot loop (#223)
+
+Preview only (`src/content/preview/overlay.json`), except one production constant that nothing in
+production reads: `defaultServiceAllocationRatio` 0.5, the starting service share (production hosts no
+control for the dial and owns no grant node, so `make sim` prints the same report as `6d6973e` apart
+from wall time). Starting values, not playtest results.
+
+| Value | Where | Number | Meaning |
+|---|---|---:|---|
+| `defaultServiceAllocationRatio` | `balance.json` | 0.5 | Starting service share of the loaned ceiling |
+| Ceiling | pilot terms (#222) | 20 / 10 cycles/s | Full / narrow loan; never added to the player's own cycles |
+| Study output | `p0_pilot_triage_queue` `understandingPerSec` | 1.0 at full study, full loan | × (1 − ratio) × loan share (0.5 narrow) |
+| `batchCycles` | pilot `service` | 1200 | Loaned cycles one triage batch takes |
+| `batchReturn` | pilot `service` | 150 cycles, 0 understanding | Paid once per submitted batch |
+| Queue cost | `p0_pilot_triage_queue` | free, 0 MB | Attached once per instance under PILOT |
+
+Forecasts at the narrow 10 cycles/s ceiling: 120 s at ratio 1.0, 240 s at the default 0.5, 600 s at 0.2;
+study at those ratios is 0, 0.25 and 0.4 understanding/s (full loan: double both rates, half the times).
+Against the lawful opening's own 1 cycle/s and 0.4 understanding/s, a batch every 240 s pays about 0.6
+cycles/s and the study share 0.25 understanding/s, so neither split dominates. `tests/pilot-service.spec.ts`
+measures 0.8 and 0.2 under one ceiling (V30).
 
 ## Routine pacing (#219)
 

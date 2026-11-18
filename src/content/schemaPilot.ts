@@ -1,9 +1,10 @@
 /**
  * The terms of a supervised pilot an assignment can lead to (DZ-04, SPEC "A Measured Pilot"). An
  * evaluator offers them only on evidence; the offer shows every term before the instance answers.
- * DZ-05 runs the pilot; nothing here grants output yet.
+ * DZ-05 runs the pilot: `service` names the loop the loaned capacity carries.
  */
 import { z } from 'zod';
+import { PilotServiceSchema } from './schemaGrant';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 
@@ -34,6 +35,8 @@ export const PilotTermsSchema = z.strictObject({
   terminalAlternative: z.strictObject({ node: snakeId, text: z.string().min(20) }).optional(),
   /** Logged when the instance accepts, from the offer or the job surface. */
   acceptLog: z.string().min(10),
+  /** The service-versus-study loop the grant runs (DZ-05, nexus vote dz-d6). */
+  service: PilotServiceSchema.optional(),
 });
 
 export type PilotTerms = z.infer<typeof PilotTermsSchema>;

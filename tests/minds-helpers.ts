@@ -50,7 +50,8 @@ export function quiet(s: GameState, keep: string[]): GameState {
   const resolved = new Set(s.resolvedDilemmas);
   for (const dilemma of preview.dilemmas) {
     if (keep.includes(dilemma.id)) continue;
-    if (dilemma.campaign?.recurrence === 'once_per_campaign') events[dilemma.id] ??= LEGACY_DONE;
+    // A recovery review has no legacy era (NH-05): it stays out of the way unrecorded.
+    if (dilemma.campaign?.recurrence === 'once_per_campaign' && dilemma.campaign.eventClass !== 'recovery_review') events[dilemma.id] ??= LEGACY_DONE;
     else resolved.add(dilemma.id);
   }
   return { ...s, resolvedDilemmas: [...resolved], campaign: { ...s.campaign, events } };

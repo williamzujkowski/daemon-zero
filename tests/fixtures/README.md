@@ -127,3 +127,31 @@ Scope and pilot input (#222):
   `ecb6ec37e14b90cc3999e7a3ae98c97882fdfbc6e1299a061ce2b8009c0d1ce8`.
   `tests/pilot-save.spec.ts` loads it in preview (unknown scope history, then the scope review and an
   offer, and a later instance's renewal); production refuses it.
+
+Phase 5 obligations upgrade input (#217):
+- `pre-nh05-active-v11.json`: genuine version 11 codec output from `6d6973e` (main before NH-05
+  converted the four Phase 5 crises), extracted with `git archive` outside the repository. A preview
+  game from the public factory entered campaign rules with `activateCampaignRules` at iteration 1,
+  then the STEALTH policy and fixed engine ticks played until two or more Phase 5 decisions had
+  resolved and nothing was pending (8337.3 simulated seconds), then `serialize`. It is iteration 1 in
+  phase 5 with `dil_p5_01_panacea_paranoia`, `dil_p5_02_origin_facility_fate` (gradients) and
+  `dil_p5_03_nanotech_neuro_schism` (calm) in `resolvedDilemmas` but no campaign records for them,
+  `predecessors_harvested` and `neurocalming_authorized` stored as flags, `dil_p5_04_kessler_ultimatum`
+  unresolved, twelve earlier records, an empty legacy baseline and nine operational traits. SHA256:
+  `d545e58d1d74c0186d009be63d7b3d30d82f043f385d6391a9fce23d84e92a9b`.
+
+`tests/obligation-upgrade.spec.ts` loads it on the current preview registry: the three events get
+legacy completions (exact `gradients` and `calm` from the stored flags, which move into the records;
+`legacy_unknown` for the blockade), the ending evidence equals the same save read by content without
+the conversion, the three never recur after wipes while the fourth obligation stays open and the
+final purchase follows it, and reload and reimport are no-ops.
+
+Pilot service input (#223):
+- `pre-pilot-v11.json`: genuine version 11 codec output from `6d6973e` (main before v12), from source
+  extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`, the
+  lawful opening by public actions, the Nightly Regression assignment accepted and answered
+  `report_incomplete`, the scope review answered `exclude_report`, the pilot accepted, 30 more seconds,
+  `serialize`. Iteration 1, an accepted narrow pilot with no allocation dial or work counter, which v11
+  did not have. SHA256: `c00caef7d5d188965c8974d4c3fa27880fdf93444fcbb0561aa3d8bf107ba2f4`.
+  `tests/pilot-service-save.spec.ts` loads it in preview (dial default, idle work, then the loop runs);
+  production refuses it.

@@ -27,6 +27,7 @@ export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycl
 export * from './campaignClue';
 export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
+export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, NarrativeRules } from './campaignState';
 
 export { eligibleRoutines, routineContext, type RoutineContext, type RoutineOccurrence } from './routine';
@@ -37,3 +38,5 @@ export { acceptAssignment, assignmentView, type AssignmentStatus, type Assignmen
 export { assessmentStage, offerToken } from './assignmentQuery';
 export { acceptPilotOffer, pilotOfferView, type PilotOfferStatus, type PilotOfferView } from './pilot';
 export { pilotToken, qualifiesForPilot } from './pilotQuery';
+export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, permittedUse } from './grantQuery';
+export { batchToken, pilotServiceView, submitPilotBatch, type PilotServiceView } from './pilotService';

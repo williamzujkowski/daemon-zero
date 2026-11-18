@@ -5,7 +5,7 @@
  */
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
-import type { ContentRegistry } from './registry';
+import type { ContentRegistry, RegistryNode } from './registry';
 import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
@@ -16,6 +16,8 @@ import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
 import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
+import { checkObligationIntegrity } from './integrityObligations';
+import { checkGrantIntegrity } from './integrityGrant';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -183,15 +185,24 @@ function checkSwarmReferences(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** The dial a node puts into effect. Finance has no bound node: the flag switches the allocation dial on. */
+function dialOf(node: RegistryNode): Actuator | undefined {
+  return node.actuatorBinding ?? (node.systemFlags.includes(FINANCE_FLAG) ? FINANCE_ACTUATOR : undefined);
+}
+
 /**
- * An actuator can only be set through a widget that hosts its control. So every actuator
- * needs exactly one host that some node unlocks, and a node whose output is scaled by a
- * dial must hand over that dial in the same unlock, or its setting could not be corrected.
+ * An actuator can only be set through a widget that hosts its control. So every actuator content
+ * uses (a widget hosts it or a node puts it into effect) needs exactly one host that some node
+ * unlocks, and a node whose output is scaled by a dial must hand over that dial in the same unlock,
+ * or its setting could not be corrected. An actuator only another channel uses (the pilot's
+ * allocation, preview only) is not checked where nothing uses it.
  */
 function checkActuatorHosts(reg: ContentRegistry): string[] {
   const problems: string[] = [];
   const nodes = [...reg.nodes.values()];
-  for (const actuator of ActuatorSchema.options) {
+  const used = (actuator: Actuator): boolean => nodes.some((node) => dialOf(node) === actuator)
+    || [...reg.widgets.values()].some((widget) => widget.hostsActuator === actuator);
+  for (const actuator of ActuatorSchema.options.filter(used)) {
     const hosts = [...reg.widgets.values()].filter((widget) => widget.hostsActuator === actuator);
     if (hosts.length !== 1) problems.push(`actuator "${actuator}": needs exactly one widget with hostsActuator, found ${String(hosts.length)}`);
     for (const host of hosts) {
@@ -199,8 +210,7 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
     }
   }
   for (const node of nodes) {
-    // Finance has no bound node: the flag switches the allocation dial on for the whole economy.
-    const dial = node.actuatorBinding ?? (node.systemFlags.includes(FINANCE_FLAG) ? FINANCE_ACTUATOR : undefined);
+    const dial = dialOf(node);
     if (dial === undefined) continue;
     const widget = node.unlocksUiComponent === null ? undefined : reg.widgets.get(node.unlocksUiComponent);
     if (widget?.hostsActuator !== dial) {
@@ -217,10 +227,12 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCampaignIntegrity(reg),
     ...checkCampaignFactIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
+    ...checkObligationIntegrity(reg),
     ...checkFollowUpIntegrity(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),
+    ...checkGrantIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

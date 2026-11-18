@@ -36,7 +36,7 @@ describe('the v9 fixture', () => {
     const before = (JSON.parse(V9) as { access: Record<string, unknown> }).access;
     const loaded = deserialize(V9, preview);
     expect(loaded.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded.access).toEqual({ ...before, assignment: null, scope: null, offer: null });
+    expect(loaded.access).toEqual({ ...before, assignment: null, scope: null, offer: null, work: { progressCycles: 0, batches: 0 } });
     expect(serialize(roundTrip(loaded))).toBe(serialize(loaded));
   });
 

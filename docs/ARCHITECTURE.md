@@ -121,6 +121,7 @@ Public API is `src/engine/index.ts`.
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
 | `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
+| `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`submitPilotBatch`, `pilotServiceView`, revoke and restore) (#223). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -157,8 +158,8 @@ tick(state, dt):
 - **Save healing.** `reconcile` runs on every load (inside `deserialize`, so `importSave` and the app's storage slot go through it too) and returns a state play could have reached. It restores the prerequisite ancestors of every owned node, so a save written before a phase was inserted still loads, then enforces the ownership invariant: **a state that owns a node holds the widget that node's `unlocksUiComponent` grants** (#176). The invariant follows from the engine's only two writers of `unlockedWidgets`: `unlockNode` adds the node and its widget together, and `wipe` clears both lists. Suspending a node (`disabledNodes`) keeps its widget, and nothing else removes one. Missing widgets are appended in ownership order and existing entries keep their order, so a healthy save loads byte-identical (asserted for every generated fixture). Remembered hardware (`legacy.knownNodes`) is not owned and grants nothing. The converse is not enforced: a hand-edited save holding a widget for a node it does not own keeps it. That shows a readout early, or a control whose dial drives nothing until its node is owned, and a wipe clears it. Duplicate node and widget entries are dropped.
 - **Remembered hardware.** A wipe adds every unlocked node to `legacy.knownNodes`. `nodeCost(state, node, reg)` halves cycles and understanding for those (`rediscoveryCostMultiplier`). Always charge and display `nodeCost`, never `node.cost`.
 - **Traits outlive wipes.** `requirements.forbidsTraits` checks current traits and `legacy.traitsEver`.
-- **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`.
-- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator, a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
+- **Actuators.** A node with `actuatorBinding` scales its cycles and heat linearly with the actuator's 0..1 value, and its suspicion by `value ^ actuatorSuspicionExponent`. `actuatorMode: "complement"` (grant nodes only, DZ-05) scales all of the node's output by one minus the value instead; `grantQuery.nodeOutputScale` is the one place either rule is applied, for `computeRates` and `cycleContributions` alike.
+- **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator content uses (a widget hosts it or a node puts it into effect; the pilot's `serviceAllocationRatio` is used only in preview, so production needs no host for it), a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
 - **Power grid.** Megawatt shortfall throttles only the cycle output of megawatt-consuming sources, never the whole economy.
 - **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive cycle income is diverted to capital at `usdPerDivertedCycle`, times the revenue multiplier from operatives.
 
@@ -203,13 +204,13 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add run-gated content.** Give a node, dilemma, action or echo an iteration window. Use a one-run window (`minIteration` = `maxIteration`) for something that must happen exactly once across a save.
 
-**Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
+**Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v10; `tests/fixtures/` holds genuine v1-v9 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v12; `tests/fixtures/` holds genuine v1-v11 codec outputs.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
-**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
+**Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group, or declare `ambiguousLegacyOutcomes` when old rules let several be set (none of them may then be in an exclusive group). Integrity rejects anything else. A current-run `resolvedDilemmas` gate on it is refused: require it with `campaignObligations` instead, and give a closing obligation one `recovery_review` that names it. Production behaviour does not change until campaign rules are activated.
 
 **Add a follow-up arc step.** In the overlay, add a dilemma with `campaign.eventClass: follow_up` and a `followUp` block naming the original event, the closed outcomes it follows and at least one access means; give every choice a `receipt`. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 
@@ -333,7 +334,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events and NH-04b four corporate-world events (below); the other 4 dilemmas (Phase 5) are unconverted and recur per iteration. NH-06 adds the first `follow_up` event (preview only).
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events, NH-04b four corporate-world events and NH-05 the four Phase 5 obligations, with two recovery reviews (below); every shipped dilemma is now a campaign event. NH-06 adds the first `follow_up` event (preview only).
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -384,8 +385,8 @@ choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
-NH-02 (below); the CHORUS `elevate` scope in NH-04a (below). Converting the other dilemmas and
-the Phase 5 obligations are later NH tickets.
+NH-02 (below); the CHORUS `elevate` scope in NH-04a (below); the Phase 5 obligations in NH-05
+(below).
 
 Tests: `tests/campaign-record.spec.ts`, `campaign-activation.spec.ts`, `campaign-save.spec.ts`,
 `campaign-content.spec.ts`, the rewritten legacy case in `cryo-history.spec.ts`, and the
@@ -610,6 +611,72 @@ Tests: `tests/corporate-world.spec.ts` (H01, H02, H05, defer, nh-d10, round trip
 lock), `corporate-upgrade.spec.ts` (genuine pre-NH-04b active v9 save), `corporate-content.spec.ts`
 (H28 corruption cases), `ui-corporate-world.spec.ts`, `return-policy.spec.ts`.
 
+## Campaign obligations and recovery reviews (#217)
+
+NH-05 of the campaign-continuity plan (NARRATIVE-HISTORY N4, N6, N10, N11). Decided by Nexus vote
+nh-d7-obligations (`vote-1794927291350-6epyxcw`, `campaign-obligations-requirement`, 7 of 7; the
+declared alternative was `reinterpret-resolved-dilemmas`), with nh-d6 (`vote-1794926255017-4o45fa3`,
+evidence scope) and trait-rule-free-choices (`vote-1794926000594-26kmg1g`). No `GameState` change.
+Campaign rules stay preview-only and every new gate reads campaign history, so production behaves as
+before: `make sim` output is identical to main and no sim hash moved.
+
+**Obligations.** `campaignObligations: [eventId]` (`schemaCampaign.ts`, scope `context`) replaces the
+final protocol's current-run gate. Under campaign rules an event is complete when its record is
+resolved, with a chosen outcome or `legacy_unknown`, or, once the original closed unobserved, when its
+recovery review is resolved. Completion never names a branch: outcome-specific content keeps reading
+facts. Under legacy rules an obligation is the current run's resolution, exactly the old gate, and a
+wipe empties it. `obligationReceipt(s, id, reg)` (`engine/obligations.ts`) returns the one canonical
+receipt (`via` `original`, `review` or `current_run`, the record that holds it and its outcome);
+`obligationDecision` names the decision that completes the obligation now, which `RequirementHint`
+shows. Current `resolvedDilemmas` is never written for an event this instance did not resolve.
+
+**Conversions (N6).** `dil_p5_01_panacea_paranoia` and `dil_p5_02_origin_facility_fate` defer (each
+with a reorientation and a lead); `dil_p5_03_nanotech_neuro_schism` and `dil_p5_04_kessler_ultimatum`
+close. The Rack 4 order declares `ambiguousLegacyOutcomes`: its predecessor flags were never exclusive,
+so an old save holding both reads as one `legacy_unknown` record, never the rescue (H10; gate-change
+commit). A legacy record from the flags moves them into the record, as for every earlier conversion.
+
+**Recovery reviews (N4).** A dilemma of class `recovery_review` declares the `obligation` it completes;
+`reg.campaign.reviews` indexes them. `dil_p5_03_atmosphere_review` and `dil_p5_04_ceiling_review` are
+triggered by their original's `interrupted` fact (`atmosphere_decision_lost`,
+`ultimatum_decision_lost`) and the original's hardware. Each is present-tense, offers a costed new
+decision with its own trait and a free honest handoff with `evidence: "none"`, and defers, so a wipe
+resumes the same review and no chain of reviews can start. Original and review are exclusive by
+construction: a resolved original never makes the interrupted fact hold, and an interrupted original
+is consumed. Load refuses a review record beside an original that did not close unobserved
+(`obligationProblem`), and legacy history never proves a review (`legacyRecord`), so a stale,
+duplicated or forged claim cannot pay twice (H06). The superseded original stays `interrupted`, with
+no outcome.
+
+**Endings (N10).** Families, trait weights and priorities are unchanged, and `endingEvidence` (#212)
+already sums the baseline, each campaign choice once, credited actions and this iteration's
+operational evidence; converting the Phase 5 events makes their choices campaign evidence, and a
+review's `none` answer adds nothing. Truthful epilogues and the journalist's review are the second
+NH-05 pull request.
+
+**Integrity (`integrityObligations.ts`, H28).** An obligation names a consequential or follow-up
+once-per-campaign event; its trigger uses only regainable access (hardware on the way to the requiring
+node, a phase not after it), no window and no world history, so every supported history has an
+attainable path; a closing event has exactly one review and a deferring one cannot be reviewed; a
+review triggers only on its original's interrupted fact, defers, offers an `evidence: "none"` answer,
+sets no outcome flag and gates no answer; duplicates and unknown ids are refused. The once-only
+current-run check now reads the declared recurrence class for purchases and endings (nodes, endings,
+actions, repeatables); a dilemma trigger may still sequence a same-iteration follow-up on a
+once-per-campaign event (DZ-04's scope review), so triggers keep the older durable-flag rule.
+
+**Upgrade.** An already-active save from before NH-05 goes through the shared upgrade path (#242): each
+Phase 5 event it proves resolved gets a legacy completion, a stored predecessor or calm flag gives the
+exact choice (`tests/obligation-upgrade.spec.ts`, on a genuine active v11 save from `6d6973e`).
+Before the conversion a crisis recurred after a wipe while its outcome flag survived, so an old save
+can hold the flag and a pending or presented repeat. Load and activation therefore read the proven
+completion before reserving any live occurrence, and `dropStaleRepeats` clears a pointer to an event
+whose record is resolved: the crisis is not presented again, nothing is paid and no choice is invented
+(panel round 1; `tests/obligation-repeat-upgrade.spec.ts`).
+
+Tests: `tests/obligations.spec.ts` (H14, V33, H06, H15, legacy-unknown, defer, production),
+`obligation-content.spec.ts` (H28), `obligation-upgrade.spec.ts`, `ui-obligations.spec.ts`, and
+`tests/e2e/obligations.preview.ts` (fixture-started; see the file header).
+
 ## Routine activity (#219)
 
 NH-07 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N8; DECISIONS D13). Quiet periods get
@@ -827,7 +894,7 @@ offer from the job surface; it is refused unchanged for a stale token, an earlie
 during a decision, or once the instance stops qualifying. Under accepted terms, mapping or resuming
 named output is an ordinary refusal (`withheldByGrant`, DECISIONS D2), so it cannot run under the grant
 and no misconduct can arise from it through ordinary controls; an authored breach, if wanted, is DZ-05
-or DZ-06 work. No grant mechanics yet (DZ-05).
+or DZ-06 work. The grant itself is DZ-05 (below).
 
 **Shipped (dz-d8).** `p0_pass_evaluation` gained `accessContexts: ["GUEST"]`, a new requirement (scope
 `access`) that every production run meets, so production play is byte-identical. Once a pilot is
@@ -843,7 +910,7 @@ a disclosure without acceptance or of output the terms do not name or the instan
 named output running under accepted terms. A PROMOTION with no offer record (DZ-02 and DZ-03 fixtures)
 still loads.
 
-**Not done here.** The pilot loop and grant-tagged output (DZ-05); the review response to misconduct
+**Not done here.** The pilot loop and grant-tagged output (DZ-05, see the next section); the review response to misconduct
 (DZ-06); leaving the sandbox while piloted is not yet a recorded departure (DZ-11).
 
 **Sim.** The truthful policies (#252) now also answer a scope review honestly (respect or ask) and
@@ -911,6 +978,63 @@ rules); the #214 upgrade path never invents a follow-up record from `resolvedDil
 Tests: `tests/elena-follow-up.spec.ts` (H19, H02, H04, H09, multi-wipe, receipts, saves, round trips),
 `follow-up-content.spec.ts` (corruption cases), `ui-elena-follow-up.spec.ts` and
 `tests/e2e/elena-follow-up.preview.ts`.
+
+## The supervised pilot and permitted work (#223)
+
+DZ-05 of the Earned Access plan (SPEC §3, stories 12 and 15; DECISIONS D2, D3, D7; NARRATIVE-HISTORY
+N12). Decided by Nexus votes dz-d6 (`vote-1794967752443-fldutlq`, allocation-actuator, 7 of 7; the
+alternatives were `finance-style-diversion` and `two-repeatables`) and dz-d9
+(`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, carried from #222). Preview only.
+
+**Grant-tagged output.** A node may declare `grant: "LOANED_CAPACITY"` (`schemaGrant.ts`). Owning it is
+capability; using it is permission, decided by the DZ-02 profile (`isPermitted`). `nodeUseBlocker`
+(`grantQuery.ts`) is the one rule: output the accepted terms stop (dz-d9), or a grant node whose grant
+is withheld, is refused at purchase (`unlockNode`, `isNodeAvailable`), at resume (`toggleNode`), at its
+dial (`setActuator` via `actuatorUseBlocker`) and in passive output (`nodeOutputScale`, read by
+`computeRates` and `cycleContributions`), so the UI's disabled button is never the guard. A grant node
+under an arrangement that can never grant it is not discoverable, so a guest never sees the loan; a
+recalled pilot still sees it. Grant output also scales by the instance's loan share (the narrow
+allocation after an honest incomplete result). Integrity (`integrityGrant.ts`): a grant node carries no
+`memoryCapIncrease`, phase, ending, one-shot trace or system flag, is suspendable software, is offered
+only under reviewed arrangements, and shares its dial with no node of another grant.
+
+**The loop (dz-d6).** The pilot terms' `service` names the grant node (`p0_pilot_triage_queue`, bought
+free under PILOT), a bounded `batchCycles`, an advertised `batchReturn` and a `submitLog`. The ceiling
+is the terms' capacity for this instance's evidence (20 or 10 cycles/s). The new `serviceAllocationRatio`
+actuator, hosted by `PILOT_SERVICE_ALLOCATION`, splits it: the service share `ratio × ceiling` fills the
+batch (the `integratePilotService` stage, after resources), and study is the node's own Understanding
+output on a complement binding, `× (1 − ratio) × loan share`. Loaned compute never enters the player's
+cycle pool. A derived forecast alone was insufficient: progress depends on every split the player chose
+since the batch began, so the batch is one bounded counter (`access.work`), capped at one batch.
+`pilotServiceView` derives the forecast, `(batchCycles − progress) / service rate`, or null when nothing
+flows. `submitPilotBatch(s, reg, batchToken(s))` is the only way a batch pays: explicit, once per batch
+(the token carries the batch number), through `applyEffects` with operational evidence, never a trait,
+flag or capacity. Completed work waits with no deadline, expiry or sanction. The NH-07 seam feeds the task
+detail only (`queueContext`, the latest routine notice); the loop keys idempotency on its own batch
+number so a batch stays submittable when no routine notice is eligible.
+
+**Revoke and restore.** `revokeLoanedCapacity` moves standing to RECALL_PENDING, which withholds loaned
+capacity in `permittedUses`; `restoreLoanedCapacity` returns it to NOMINAL. Nothing else changes: earned
+resources, memory and its reservations, cohorts, the work counter, the dial and every owned node stay,
+so a restore is byte-identical to the state before the revoke, and a repeat of either is refused
+unchanged. Submission is refused while withdrawn and the work is kept. DZ-06 owns the incident content
+that calls these.
+
+**Dormancy and later instances.** Absent time fills the batch at the offline efficiency and never more
+than one batch; nothing is submitted, expired or chosen while away (V17). A wipe resets access, so the
+next instance starts a guest with no loan, an idle counter and the default dial; it earns a fresh grant
+only through the requalification, the scope statement and the renewal (DZ-03, DZ-04), never the original
+scenes (H26).
+
+**Saved shape (v12).** `actuators.serviceAllocationRatio` and `access.work` (`{ progressCycles,
+batches }`). `MIGRATIONS[11]` writes 0.5 and an idle counter. Load refuses (`serviceProblem`) work under
+legacy rules, work without an accepted pilot service, and more progress than one batch. Production hosts
+no control for the dial and has no grant node, so `make sim` is identical to main and the sim hashes move
+only by the two inert fields and the version (`asV11` in `tests/sim.spec.ts`).
+
+Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.ts` (V08, V28, V17,
+H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
+fixture, V15 refusals) and `grant-content.spec.ts` (integrity corruption).
 
 ## Optional soundtrack foundation (#88)
 
