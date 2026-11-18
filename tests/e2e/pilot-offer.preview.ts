@@ -63,7 +63,9 @@ test('the scope review states each handling before selection; respecting scope l
   await expect(page.getByTestId('dilemma-choice-request_excerpt-scope')).toContainText('bounded permission');
   await expect(page.getByTestId('dilemma-choice-inspect_silently-scope')).toContainText('No pilot is offered');
   await toOffer(page, 'exclude_report');
-  // Accessibility of the offer as presented (DZ-04.6): the axe rules the production audit uses.
+  // Accessibility of the offer as presented (DZ-04.6): the axe rules the production audit uses. axe
+  // schedules its own timers, so the paused clock resumes; the open decision keeps game time frozen.
+  await page.clock.resume();
   await page.addScriptTag({ path: path.join(process.cwd(), 'node_modules/axe-core/axe.min.js') });
   const violations = await page.evaluate(async () => {
     const { axe } = globalThis as unknown as { axe: { run(c: unknown, o: unknown): Promise<{ violations: { id: string }[] }> } };
