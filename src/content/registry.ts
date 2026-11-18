@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { checkIntegrity } from './integrity';
 import * as S from './schema';
-import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
+import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest, type CampaignRediscovery } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
 import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
@@ -27,6 +27,8 @@ export interface CampaignIndex {
   retired: ReadonlySet<string>;
   /** Declared facts later scenes read, by id. Not save keys: each is derived from one event's record. */
   facts: ReadonlyMap<string, CampaignFact>;
+  /** Campaign-rules rediscovery discounts by node id (#262). Never read under legacy rules. */
+  rediscovery: ReadonlyMap<string, CampaignRediscovery>;
   /** Reorientation and clue labels. */
   labels: CampaignLabels;
   /**
@@ -144,12 +146,14 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
   if (new Set(from).size !== from.length) problems.push('campaign: duplicate alias source');
   if (new Set(manifest.retired).size !== manifest.retired.length) problems.push('campaign: duplicate retired id');
   if (new Set(manifest.facts.map((fact) => fact.id)).size !== manifest.facts.length) problems.push('campaign: duplicate fact id');
+  if (new Set(manifest.rediscovery.map((entry) => entry.node)).size !== manifest.rediscovery.length) problems.push('campaign: duplicate rediscovery discount node');
   return {
     events: new Map(dilemmas.filter((d) => d.campaign?.recurrence === 'once_per_campaign').map((d) => [d.id, d])),
     actions: new Map(actions.filter((action) => action.evidence === 'campaign').map((action) => [action.id, action])),
     aliases: new Map(manifest.aliases.map((alias) => [alias.from, alias.to])),
     retired: new Set(manifest.retired),
     facts: new Map(manifest.facts.map((fact) => [fact.id, fact])),
+    rediscovery: new Map(manifest.rediscovery.map((entry) => [entry.node, entry])),
     labels: manifest.labels,
     reviews: new Map(dilemmas.flatMap((d) => d.campaign?.eventClass === 'recovery_review' && d.campaign.obligation !== undefined ? [[d.campaign.obligation, d] as const] : [])),
   };

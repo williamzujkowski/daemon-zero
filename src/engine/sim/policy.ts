@@ -2,7 +2,8 @@
  * The extension point for headless simulation players. A policy makes one decision per
  * simulated second through public engine actions only. The bot's STEALTH and GREEDY
  * strategies are wrapped here unchanged; every later route or return-iteration policy is a
- * new SimPolicy in its own module, listed in ./policies.ts, never an edit to bot.ts.
+ * new SimPolicy in its own module, listed in ./policies.ts, never a change to how those two
+ * play. A module may pass botStep's overrides to play a strategy with other knobs (#262).
  */
 import type { ContentRegistry } from '../../content/registry';
 import type { GameState } from '../state';

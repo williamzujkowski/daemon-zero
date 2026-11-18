@@ -1406,6 +1406,13 @@
       "meaning": "After the finding, the instance disclosed the withheld fixture itself. The finding and the original summary stay on file."
     }
   ],
+  "campaignRediscovery": [
+    {
+      "node": "p2_log_spoofer",
+      "cyclesMultiplier": 0.5,
+      "reason": "#262, nexus decision i262-return-balance (vote-1795006680826-xhy7znt, cheaper-rediscovered-spoofer, 6 of 7; 1 for no-change): early incidents no longer repeat under campaign rules, so a careful return pays 6,250 cycles, not 12,500, for the spoofer that breaks the scrub loop."
+    }
+  ],
   "channelEncounters": [
     {
       "id": "channel_mercy_support",

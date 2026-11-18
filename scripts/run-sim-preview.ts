@@ -16,6 +16,8 @@ import { GREEDY_POLICY, STEALTH_POLICY } from '../src/engine/sim/policy';
 import { voluntaryWipe } from '../src/engine/actions';
 import { untilObligationsComplete } from '../src/engine/sim/obligationRun';
 import { STEALTH_RETURN_POLICY } from '../src/engine/sim/returnPolicy';
+import { EVALUATING_RETURN_POLICY } from '../src/engine/sim/evaluatingPolicy';
+import { formatWatch, observeReturns } from '../src/engine/sim/returnObserver';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY } from '../src/engine/sim/pilotPolicy';
 import { pilotServiceView } from '../src/engine/pilotService';
@@ -71,6 +73,16 @@ console.log('\n-- preview, STEALTH leaving on entering phase 5: legacy rules, th
 for (const start of [createInitialState(PREVIEW), campaign.state]) {
   const run = runWipeSequence(PREVIEW, STEALTH_RETURN_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: RETURN_BUDGET_SEC, initialState: start });
   for (const line of formatWipeSequence(run)) console.log(line);
+}
+
+// #262 (DZ-09 part B, B.6): the fixed alarm scrubs every cycle away, so the return balance is read
+// from a careful player who keeps its income and scrubs sparingly. Same budget and starts as above.
+console.log('\n-- preview, EVALUATING_RETURN (#262): legacy rules, then campaign rules --');
+for (const start of [createInitialState(PREVIEW), campaign.state]) {
+  const watched = observeReturns(EVALUATING_RETURN_POLICY);
+  const run = runWipeSequence(PREVIEW, watched.policy, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: RETURN_BUDGET_SEC, initialState: start });
+  for (const line of formatWipeSequence(run)) console.log(line);
+  console.log(formatWatch(watched.byIteration, run.iterations.map((entry) => entry.iteration)));
 }
 
 // NH-05 (H14, endings reachability): STEALTH under campaign rules from a fresh campaign, to an ending

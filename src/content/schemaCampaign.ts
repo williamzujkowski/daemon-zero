@@ -108,6 +108,19 @@ export const CampaignFactSchema = z.strictObject({
 });
 
 /**
+ * A campaign rediscovery discount (#262, nexus decision i262-return-balance). Under campaign rules a
+ * returning instance pays this share of a remembered node's ordinary rediscovery cycle price (after
+ * balance.rediscoveryCostMultiplier). Under legacy rules, and for a node met for the first time, it is
+ * never read. Understanding, memory and capital keep the ordinary rediscovery price.
+ */
+export const CampaignRediscoverySchema = z.strictObject({
+  node: id,
+  cyclesMultiplier: z.number().gt(0).lt(1),
+  /** Why the discount exists, naming its decision. Documentation for authors; never shown. */
+  reason: z.string().min(10),
+});
+
+/**
  * The ordinary labels reorientation and the clue use (NARRATIVE-HISTORY N9). Each status text
  * says only what the record establishes: an interrupted or unknown outcome is never a verdict.
  */
@@ -136,6 +149,8 @@ export const CampaignManifestSchema = z.strictObject({
   aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
   retired: z.array(id),
   facts: z.array(CampaignFactSchema).default([]),
+  /** Rediscovery discounts that apply under campaign rules only. Production ships none. */
+  rediscovery: z.array(CampaignRediscoverySchema).default([]),
   labels: CampaignLabelsSchema,
 });
 
@@ -144,3 +159,4 @@ export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
 export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;
 export type CampaignFact = z.infer<typeof CampaignFactSchema>;
 export type CampaignLabels = z.infer<typeof CampaignLabelsSchema>;
+export type CampaignRediscovery = z.infer<typeof CampaignRediscoverySchema>;
