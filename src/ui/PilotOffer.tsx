@@ -22,6 +22,7 @@ const view = (game: GameState) => pilotOfferView(game, CONTENT);
  */
 const NARROW_TEXT: Readonly<Record<NarrowReason, string>> = {
   INCOMPLETE: ', the provisional allocation, because the submitted result was incomplete',
+  AWAITING_REVIEW: ', the provisional allocation, because the submission was a summary rather than every result; the first batch review checks it against the run log',
   DISCREPANCY_FOUND: ', the provisional allocation an incomplete result receives, because the batch review found the summary left out a failing result',
 };
 /** A stable empty list, so a selector with nothing to show returns the same value every render. */

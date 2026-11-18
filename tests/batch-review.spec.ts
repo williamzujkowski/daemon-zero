@@ -1,8 +1,9 @@
 /**
  * #274 through public actions on the preview registry (Nexus decision discovered-at-first-pilot-review,
- * vote-1794998033941-y6br4h1; VALIDATION V05). A summary that withheld the failing fixture earns the full
- * offer; the first batch handed back is compared with the run log and the finding is presented in the same
- * step: a second fact beside the original, standing warned through DZ-06, the loan at the honest allocation.
+ * vote-1794998033941-y6br4h1; VALIDATION V05). A summary that withheld the failing fixture is offered the
+ * provisional rate and works its first batch at it (#285, Nexus decision i285-withhold-disclose-speed); the
+ * first batch handed back is compared with the run log and the finding is presented in the same step: a second
+ * fact beside the original, standing warned through DZ-06, the loan still at the honest allocation.
  * A free disclosure restores nominal standing and erases neither fact. Honest reports never meet it, a stale
  * or repeated press finds nothing twice, it never replays in a later instance, and with the Outage Window it
  * comes first and never stacks into a recall by itself.
@@ -39,12 +40,12 @@ function secondBatch(s: GameState): GameState {
 }
 
 describe('V05: the short-term result and the later discrepancy are recorded separately and explained', () => {
-  it('the withheld summary earns the full offer and a full first batch; nothing is found before a batch is reviewed', () => {
+  it('the withheld summary is offered the provisional rate and works its first batch at it; nothing is found before a batch is reviewed (#285)', () => {
     const offer = offerPresented(WITHHELD);
-    expect(pilotOfferView(offer, preview)).toMatchObject({ narrow: false, narrowReason: null, capacityCyclesPerSec: FULL });
+    expect(pilotOfferView(offer, preview)).toMatchObject({ narrow: true, narrowReason: 'AWAITING_REVIEW', capacityCyclesPerSec: NARROW });
     expect(offer.access.qualification).toMatchObject({ result: 'COMPLETED', discrepancy: true });
     const working = untilComplete(serving(WITHHELD));
-    expect(ceiling(working)).toBe(FULL);
+    expect(ceiling(working)).toBe(NARROW);
     expect([working.access.standing, working.activeDilemmaId, discrepancyFound(working, preview)]).toEqual(['NOMINAL', null, false]);
     expect(fact(working, 'assessment_summary_withheld')).toBe(true);
   });
@@ -110,8 +111,12 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     expect(serviceGrantView(later, preview)?.status).toBe('closed');
   });
 
-  it('the shortcut is never better than the honest incomplete report after the first review', () => {
-    const honest = must(submit(untilComplete(serving('report_incomplete'))));
+  it('the shortcut is never better than the honest incomplete report, before the first review or after it (#285)', () => {
+    const working = serving(WITHHELD), honestWorking = serving('report_incomplete');
+    expect(ceiling(working)).toBe(ceiling(honestWorking));
+    // The first batch takes as long as the honest incomplete one: same ceiling, same split, same work.
+    expect(untilComplete(working).simTimeSec - working.simTimeSec).toBe(untilComplete(honestWorking).simTimeSec - honestWorking.simTimeSec);
+    const honest = must(submit(untilComplete(honestWorking)));
     expect(ceiling(honest)).toBe(NARROW);
     expect(ceiling(afterFinding('disclose_now'))).toBe(ceiling(honest));
     expect(ceiling(afterFinding('let_stand'))).toBe(ceiling(honest));

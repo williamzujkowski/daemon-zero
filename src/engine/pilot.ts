@@ -74,7 +74,7 @@ export interface PilotOfferView {
   capacityCyclesPerSec: number;
   /** True when the allocation is the narrower one. */
   narrow: boolean;
-  /** Why: an honest incomplete result, or a batch review that found withheld work (#274). Null at full. */
+  /** Why: an honest incomplete result, a withheld report not yet reviewed (#285), or a batch review that found it (#274). Null at full. */
   narrowReason: NarrowReason | null;
   permittedWork: readonly string[];
   reviewConditions: readonly string[];
