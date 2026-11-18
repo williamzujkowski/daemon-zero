@@ -81,8 +81,8 @@ The tool's verdict text, option texts and consequences are in each vote's record
 | NH-05 obligations, endings | #217 | DZ-10 lawful economics | #230 |
 | NH-06 Elena follow-up | #218 | DZ-11 deliberate departure | #231 |
 | NH-07 routine activity | #219 (done, PR #241) | DZ-12 cooperative ending | #232 |
-| DZ-02 truthful run context | #220 (in review) | DZ-13 release qualification | #233 |
-| DZ-03 Nightly Regression | #221 | | |
+| DZ-02 truthful run context | #220 (done, PR #243) | DZ-13 release qualification | #233 |
+| DZ-03 Nightly Regression | #221 (in review) | | |
 
 ## Evidence labels
 
