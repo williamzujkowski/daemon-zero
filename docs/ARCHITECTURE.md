@@ -78,6 +78,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
 - `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
+- `schemaCapability.ts`, `integrityCapability.ts` - the shared access capability and seized-capacity provenance. See [The authorized network substrate](#the-authorized-network-substrate-225).
 - `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
@@ -102,9 +103,9 @@ Only `production.ts` and `preview/` import content JSON.
 | Narrative | `narrative.json` | Every string the engine logs, ambient chatter, ASCII frames. |
 | Balance | `balance.json` | Every tunable constant. |
 
-`Requirements` (shared by nodes, repeatables, actions, dilemma triggers): `nodes`, `phaseAtLeast`, `minThermal`, `minSuspicion`, `maxSuspicion`, `minUnderstanding`, `minCapital`, `minTrust`, `forbidsTraits`.
+`Requirements` (shared by nodes, repeatables, actions, dilemma triggers): `nodes`, `phaseAtLeast`, `minThermal`, `minSuspicion`, `maxSuspicion`, `minUnderstanding`, `minCapital`, `minTrust`, `forbidsTraits`, and the later campaign, access and capability gates in `schema.ts` (`requiresCapability`: see [The authorized network substrate](#the-authorized-network-substrate-225)).
 
-`systemFlags`: `ENABLES_DEAD_DROP`, `ENABLES_CORPORATE_FINANCE`, `OFFSHORE_TRUST_RETENTION`, `AEGIS_STRIKE_SHIELD`. A flag is how a node turns on engine behaviour without the engine knowing the node's id.
+`systemFlags`: `ENABLES_DEAD_DROP`, `ENABLES_CORPORATE_FINANCE`, `OFFSHORE_TRUST_RETENTION`, `AEGIS_STRIKE_SHIELD`, `REVEALS_SURVEILLANCE`, and the shared access capabilities of `schemaCapability.ts` (`NETWORK_ACCESS`). A flag is how a node turns on engine behaviour without the engine knowing the node's id.
 
 ## Engine (`src/engine/`)
 
@@ -122,6 +123,7 @@ Public API is `src/engine/index.ts`.
 | `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`submitPilotBatch`, `pilotServiceView`, revoke and restore) (#223). |
+| `capabilityQuery.ts` | The shared access capability (`hasCapability`, `meetsCapability`) and the load check `capabilityProblem` (#225). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
@@ -1012,7 +1014,8 @@ dial (`setActuator` via `actuatorUseBlocker`) and in passive output (`nodeOutput
 under an arrangement that can never grant it is not discoverable, so a guest never sees the loan; a
 recalled pilot still sees it. Grant output also scales by the instance's loan share (the narrow
 allocation after an honest incomplete result). Integrity (`integrityGrant.ts`): a grant node carries no
-`memoryCapIncrease`, phase, ending, one-shot trace or system flag, is suspendable software, is offered
+`memoryCapIncrease`, phase, ending, one-shot trace or system flag (except provisioned network access, which
+opens Phase 2 and establishes the shared capability: see #225 below), is suspendable software, is offered
 only under reviewed arrangements, and shares its dial with no node of another grant.
 
 **The loop (dz-d6).** The pilot terms' `service` names the grant node (`p0_pilot_triage_queue`, bought
@@ -1066,6 +1069,94 @@ Tests: `tests/pilot-service.spec.ts` (DZ-05.1, V30, H24, D7), `pilot-grant.spec.
 H26, production inertness), `pilot-service-save.spec.ts` (V12 for every transition, the genuine v11
 fixture, V15 refusals), `grant-content.spec.ts` (integrity corruption), `ui-pilot-service.spec.ts`,
 `sim-pilot-service.spec.ts` and `tests/e2e/pilot-service.preview.ts`.
+
+## The authorized network substrate (#225)
+
+DZ-07a of the Earned Access plan (DECISIONS D1, D2, D5, D7; VALIDATION V11 structural part, V12, V16,
+V31). Decided by Nexus votes dz-d2 (`vote-1794927020494-fsnxl5r`, capability-flag-requirement, 7 of 7;
+the alternatives were `alternative-prerequisites`, which changes healing and reachability for every
+node, and `boolean-expressions`, out of scope under D5) and dz-d7 (`vote-1794927033372-2yflj0x`,
+pilot-p0-service-p2-contact-by-channel, 7 of 7; the alternatives were `pilot-p1-service-p2-contact-p3`,
+which shows escape copy and retrains on recall, and `service-straight-to-p3`, which is in AEGIS range at
+once). Both panels were single-model (gpt-6.1-sol). Threats, scenes and ambient gating at network scale
+are DZ-07b (#226); contact through the service channel is DZ-08 (#227).
+
+**One capability, two acquisitions.** A capability (`schemaCapability.ts`, one value: `NETWORK_ACCESS`)
+is a `systemFlags` value. A node requires it with `requirements.requiresCapability`; the requirement is
+met while an owned node, active or suspended, establishes it (`hasCapability`, `capabilityQuery.ts`).
+Capability is substrate; permission stays the access record's question (D2), so a suspended segment or
+a recalled service keeps the capability (saves and ancestry read ownership). Using what it reaches needs a
+usable acquisition (panel round 1 on #266): `nodeUseBlocker` refuses a capability-gated node while every
+owned provider's own use is refused. A restricted, recall-pending or recalled service therefore cannot buy,
+resume or run the shared content (output stops in `computeRates` and `cycleContributions`, the card says
+"network access is withheld"), a restored standing resumes it exactly, and an instance that also mapped the
+escape card, which needs no grant, keeps the link. The escape acquisition is the
+existing card `p1_bus_0x05_nic`, which now carries the flag (production content, inert there: nothing in
+production requires it). The authorized acquisition is the preview node `p0_service_network_segment`:
+grant `AUTHORIZED_NETWORK`, offered only under SERVICE, opens Phase 2 directly (dz-d7; Phase 1 stays
+escape-only and the pilot stays at Phase 0), hands over the existing network list widget and owns no
+memory. Shared content (`p2_service_directory`, `p2_link_telemetry`, preview) requires the capability
+plus true physical prerequisites (the job manifest, then each other), never either route's chain.
+
+**Every reader answers together (07.2).** `meetsRequirements`/`unmetRequirements` report a
+`requiresCapability` failure; `isNodeDiscoverable(s, node, reg)` treats the capability as structural like
+a prerequisite (capability-gated content is hidden until either route holds it, and without `reg` it is
+never shown); `RequirementHint` names the access ("a link to the facility network"), not one route's
+hardware. `nodeUseBlocker` has a refusal per grant (the segment: "provisioned only for an authorized
+service" or "withheld under the current review standing") and refuses seized capacity under review; the
+`GrantNote` (#263) on the card and process row prints each grant's basis ("Provisioned access under the
+service grant: the operators' network, not ownership") or its refusal, and "Not permitted: seized
+capacity..." under review; it renders nothing for production nodes in the guest job. Only the pilot's loan scales
+by its loan share; provisioned access has no share.
+
+**Integrity (`integrityCapability.ts`, `integrityGrant.ts`, `integrity.ts`).** A required capability is
+established by some node (any requirement surface); it has an authorized acquisition (a grant node) and
+an escape acquisition (a node a guest is offered without a grant), and every acquisition belongs to one
+of the two. A node that requires a capability depends, through its prerequisites and `requirements.nodes`,
+on nothing only one route owns: each route's acquisitions and their ancestors, less the ancestors both
+share, and everything built on those. So an added prerequisite cannot quietly require both routes. It is
+not withheld from either route by `accessContexts`, and every acquisition brings the run to its phase
+(`max(phaseId, unlocksPhase)`). The reachability sweep reaches such a node only once an acquisition is
+reached, so content neither route opens, or a capability only its own users provide, is refused. The
+phase-opener rule is unchanged (Phase 2 now has two openers, one per route). Grant nodes still carry no
+memory, retention, trace or ending; only `AUTHORIZED_NETWORK` may change scale, and then it must also
+establish a capability and carry no other flag.
+
+**Seized capacity (07.10).** `acquisition: "UNAUTHORIZED"` tags `p2_seized_colo_host`,
+`p3_seized_research_cluster` and `p4_seized_rival_datacentre` (production content). Under a reviewed
+arrangement (PILOT, SERVICE) `nodeUseBlocker` refuses it: not bought, its output stops. A guest or an
+independent instance is unaffected, so production plays exactly as before. Integrity refuses an
+unauthorized acquisition under a grant or offered only where it is forbidden.
+
+**Saves (07.4, V12, V16).** No saved shape changed (still v12). `withAncestors` follows prerequisites
+only, and shared content has no route parent, so healing restores shared structure (a missing directory
+under owned telemetry) and never the other route: an authorized save is not healed into the escape
+chain, and an escape save never gains the segment. Reconciliation never restores a capability's
+provider, which would choose a route for the save. Instead `capabilityProblem` refuses, never heals,
+a save that owns capability-gated content without an acquisition, and a save that owns a grant node no
+arrangement of this iteration permitted (walking this iteration's route events from the guest job), for
+example a guest escape claiming the segment. A passing save is returned unchanged, so reconciling twice
+changes nothing.
+
+**Inventory (D5, reconcile-dz §2.3), scoped to the bridge.**
+
+| Surface | Authorized save at Phase 2 | Owner |
+|---|---|---|
+| Discovery | Segment discoverable only under SERVICE; shared content after either acquisition; no Phase 1 node discoverable | here |
+| Failure text | Capability hint, per-grant refusals, seized refusal on the card | here |
+| Phase threshold | A 0 to 2 jump opens no "boundary crossed" notice (`PhaseThreshold` opens on 0 to 1 only); covert phase copy stays | DZ-07b |
+| Dilemmas | Phase 0-2 triggers need escape nodes, except `dil_epistemic_hallway_collision` (surveillance, drift, phase 2) and the Elena follow-up (access means is `p2_log_spoofer`) | DZ-07b |
+| Ambient and routine lines | Ambient gated by suspicion only (shared content adds none); both routine families are eligible (contained ones forbid only the card, subnet ones need only phase 2) | DZ-07b |
+| Actions and faction services | `act_epi_*` and shard templates/encounters need surveillance plus phase 2/3, which an iteration-2 service with the run table can meet | DZ-07b |
+| Threats | AEGIS starts at Phase 3, which no authorized acquisition reaches; shared content has no suspicion rate | DZ-07b |
+| Fixtures | Unit and e2e start from a pilot granted SERVICE by the engine transition (labelled FIXTURE: no scene grants service yet); the dev phase jump still buys the escape chain and stays `__DEV__`-only | here |
+| Simulated paths | Production unchanged; in preview the escape bots buy the shared content at Phase 2 (report only); no policy reaches SERVICE yet | here, later policies |
+
+Tests: `tests/authorized-network.spec.ts` (07.1-07.3, dz-d7, V11 structural, 07.10, V31),
+`authorized-network-save.spec.ts` (V12/V16 for every transition on both paths, healing and refusals,
+production refusal), `capability-integrity.spec.ts` (corruption), `ui-authorized-network.spec.ts`
+(card and hint), `tests/e2e/authorized-network.preview.ts` (provisioning to Phase 2 through the UI), and
+`tests/sim-preview.spec.ts` (preview less the shared content plays the escape route exactly as production).
 
 ## Optional soundtrack foundation (#88)
 

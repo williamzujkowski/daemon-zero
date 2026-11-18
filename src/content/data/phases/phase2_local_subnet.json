@@ -225,6 +225,7 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. Two thousand megabytes that cost me nothing but a scan.",
+      "acquisition": "UNAUTHORIZED",
       "suspendable": false
     }
   ]

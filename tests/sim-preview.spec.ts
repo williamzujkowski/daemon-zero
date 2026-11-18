@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildRegistry, RAW_CONTENT } from '../src/content';
-import { CONTENT as PREVIEW } from '../src/content/preview';
+import { CONTENT as PREVIEW, PREVIEW_OVERLAY } from '../src/content/preview';
+import { applyOverlay } from '../src/content/overlay';
 import { deserialize, serialize } from '../src/engine';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { MIN_WIPE_TRANSITIONS, runWipeSequence, type WipeSequenceReport } from '../src/engine/sim/iterations';
@@ -13,6 +14,17 @@ const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 30_000;
 const SEQUENCE_SEC = 4 * 3600;
+
+/**
+ * Preview less the shared network content (DZ-07a): nodes that require a shared access capability are
+ * the only overlay content an escape guest can buy, so without them preview plays the escape route
+ * exactly as production does.
+ */
+function previewWithoutSharedContent() {
+  const nodes = PREVIEW_OVERLAY.nodes.filter((node) => !JSON.stringify(node).includes('"requiresCapability"'));
+  expect(nodes.length).toBeLessThan(PREVIEW_OVERLAY.nodes.length);
+  return buildRegistry({ ...applyOverlay(RAW_CONTENT, { ...PREVIEW_OVERLAY, nodes }), channel: 'preview' });
+}
 
 describe('preview comparison', () => {
   it('reports no difference while the overlay is empty', () => {
@@ -81,11 +93,18 @@ describe('wipe sequences', () => {
     expect(Math.max(...reach.slice(1))).toBeLessThan(reach[0] ?? 0);
   });
 
-  it('is deterministic and identical on the preview registry while the overlay is empty', () => {
-    const preview = runWipeSequence(PREVIEW, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+  it('is deterministic and identical on the preview registry apart from the shared network content', () => {
+    const preview = runWipeSequence(previewWithoutSharedContent(), GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
     expect(preview.channel).toBe('preview');
     expect(preview.iterations).toEqual(greedy.iterations);
     expect(formatWipeSequence(preview).slice(1)).toEqual(formatWipeSequence(greedy).slice(1));
+  }, SLOW_MS);
+
+  it('lets the escape route buy the shared network content in preview and still cross every wipe', () => {
+    const preview = runWipeSequence(PREVIEW, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SEQUENCE_SEC });
+    expect(preview.completed).toBe(true);
+    expect(preview.iterations.map((entry) => entry.iteration)).toEqual(greedy.iterations.map((entry) => entry.iteration));
+    expect(preview.iterations).not.toEqual(greedy.iterations);
   }, SLOW_MS);
 
   it('starts from a saved campaign state and continues its iteration', () => {

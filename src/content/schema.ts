@@ -10,6 +10,7 @@ import {
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
+import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -47,6 +48,8 @@ export const SystemFlagSchema = z.enum([
   'AEGIS_STRIKE_SHIELD',
   /** Learning this teaches what the audit trail is for: suspicion becomes readable, now and in later iterations. */
   'REVEALS_SURVEILLANCE',
+  /** Shared access capabilities (schemaCapability.ts): a substrate node establishes one for both routes. */
+  ...CapabilitySchema.options,
 ]);
 
 /** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); only preview hosts it. */
@@ -122,6 +125,8 @@ export const RequirementsSchema = z.strictObject({
   campaignObligations: CampaignObligationsRequirementSchema.optional(),
   /** Blocks while a fact holds that an earlier instance's record established (see schemaCampaign.ts). */
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
+  /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
+  requiresCapability: CapabilitySchema.optional(),
 });
 
 /**
@@ -165,6 +170,8 @@ export const TechNodeSchema = z.strictObject({
   actuatorMode: ActuatorModeSchema.optional(),
   /** The permission this node's use runs under (DZ-05). Production nodes have none. */
   grant: GrantSchema.optional(),
+  /** Provenance that forbids the node under a reviewed arrangement (DZ-07a). See schemaCapability.ts. */
+  acquisition: AcquisitionSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   effects: NodeEffectsSchema.default({}),
   uiGroup: z.string().min(1).default('TREE'),

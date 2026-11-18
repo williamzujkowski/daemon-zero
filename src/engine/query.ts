@@ -10,6 +10,7 @@ import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates } from './rates';
 import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker } from './grantQuery';
+import { meetsCapability } from './capabilityQuery';
 export { understandsSurveillance } from './knowledge';
 
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
@@ -37,10 +38,13 @@ function inIterationWindow(s: GameState, req: Requirements | undefined): boolean
 /**
  * Whether a node should be shown at all. Hardware outside its iteration window
  * is hidden, not locked: a first run must not learn that later runs find more. A
- * loan the arrangement can never grant is hidden the same way (DZ-05).
+ * loan the arrangement can never grant is hidden the same way (DZ-05). A shared
+ * access capability is structural like a prerequisite (DZ-07a): content it opens
+ * stays hidden until either route establishes it, and needs `reg` to be shown.
  */
-export function isNodeDiscoverable(s: GameState, node: RegistryNode): boolean {
-  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements) && grantDiscoverable(s, node);
+export function isNodeDiscoverable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
+  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements) && grantDiscoverable(s, node)
+    && meetsCapability(s, node.requirements, reg);
 }
 
 /**
