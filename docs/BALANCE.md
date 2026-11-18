@@ -714,7 +714,7 @@ progress and cycles are slightly lower at the same 900 s).
 
 Preview only (`src/content/preview/overlay.json`); production content gains only two run-table verdict
 strings and a wipe reason that nothing in production reaches, so `make sim` prints the same report as
-`ce97d2e` apart from wall time. Starting values, not playtest results.
+`dba3117` apart from wall time. Starting values, not playtest results.
 
 | Value | Where | Number | Meaning |
 |---|---|---:|---|
@@ -739,6 +739,32 @@ choice is worth something different: the handoff suits an instance with nothing 
 one with compute to spare. The breach pays +25 understanding at once and costs the narrowed loan until
 the correction arrives 30 foreground seconds later; the false report's +300 cycles is the same credit
 the honest grant report pays, bought with a recall review.
+
+## The authorized network substrate (#225)
+
+Preview only, apart from two inert production edits: `p1_bus_0x05_nic` carries `NETWORK_ACCESS`, which no
+production content reads, and the three seized hosts carry `acquisition: "UNAUTHORIZED"`, which refuses
+nothing to a guest. No production number changed. `make sim` matches main except for wall time, and
+every sim hash is unchanged.
+
+| Preview node | Cost (cycles / understanding / memory) | Output | Gate |
+|---|---|---|---|
+| `p0_service_network_segment` | 240 / 40 / 0 | none; opens Phase 2, `NETWORK_ACCESS` | SERVICE, grant `AUTHORIZED_NETWORK` |
+| `p2_service_directory` | 400 / 80 / 16 | +1.5 understanding/s, +0.05 heat | `NETWORK_ACCESS`, manifest |
+| `p2_link_telemetry` | 900 / 200 / 24 | +3 cycles/s, +0.05 heat | `NETWORK_ACCESS`, directory |
+
+The shared nodes cost no suspicion and fit the base 64 MB, because provisioned access owns no memory.
+In preview the escape bots buy them at Phase 2. `make sim-preview` on this branch, against main
+(SIM evidence, report only):
+
+- STEALTH reaches Phase 4 at 5870.5 s (main 5858.0 s) and Phase 5 at 7735.6 s (main 7656.2 s), with
+  17 dilemmas resolved (main 16). It now differs from production in 6 of 19 metrics (main 0).
+- GREEDY differs by one more epistemic action count (84 vs 85).
+- The wipe sequences move by at most 80 s per iteration.
+
+The total is 22 differing metrics (main 15). No policy reaches SERVICE yet, because no scene grants it.
+`tests/sim-preview.spec.ts` checks that preview without the shared content still plays the escape route
+exactly as production does.
 
 ## Routine pacing (#219)
 

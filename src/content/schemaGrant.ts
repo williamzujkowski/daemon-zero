@@ -10,10 +10,12 @@ const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeri
 const amount = z.number().nonnegative();
 
 /**
- * The permission a node's use runs under. Version one has one grant: loaned capacity under a
- * supervised pilot (DECISIONS D2). Each value is also a run-access permission (engine accessState).
+ * The permission a node's use runs under (DECISIONS D2). LOANED_CAPACITY: compute loaned under a
+ * supervised pilot. AUTHORIZED_NETWORK: a network segment the operators provision for an authorized
+ * service (DZ-07a); it is access, not ownership. Each value is also a run-access permission (engine
+ * accessState).
  */
-export const GrantSchema = z.enum(['LOANED_CAPACITY']);
+export const GrantSchema = z.enum(['LOANED_CAPACITY', 'AUTHORIZED_NETWORK']);
 
 /**
  * How a bound node follows its dial. `linear` (the default) scales cycles and heat by the setting;

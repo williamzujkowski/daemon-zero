@@ -8,6 +8,7 @@ import { fallbackTraits, hasCampaignOutcome, holdsCampaignFact, holdsInheritedFa
 import { obligationReceipt } from './obligations';
 import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
+import { meetsCapability } from './capabilityQuery';
 export function epistemicRequirementFailures(s: GameState, req: Requirements, reg?: ContentRegistry): RequirementFailure[] {
   const out: RequirementFailure[] = [];
   if (req.requiresSurveillance && (!reg || !understandsSurveillance(s, reg))) out.push({ kind: 'requiresSurveillance', target: null, required: true, actual: false });
@@ -22,6 +23,7 @@ export function epistemicRequirementFailures(s: GameState, req: Requirements, re
   for (const fact of req.forbidsInheritedFacts ?? []) if (reg && holdsInheritedFact(s, fact, reg)) out.push({ kind: 'forbidsInheritedFacts', target: fact, required: false, actual: true });
   if (req.assignment && !meetsAssignment(s, req.assignment, reg)) out.push({ kind: 'assignment', target: req.assignment.id, required: true, actual: false });
   if (req.pilotEligible && (!reg || !qualifiesForPilot(s, reg))) out.push({ kind: 'pilotEligible', target: null, required: true, actual: false });
+  if (req.requiresCapability && !meetsCapability(s, req, reg)) out.push({ kind: 'requiresCapability', target: req.requiresCapability, required: true, actual: false });
   if (req.accessContexts && !req.accessContexts.includes(s.access.context)) out.push({ kind: 'accessContexts', target: s.access.context, required: true, actual: false });
   if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing)) out.push({ kind: 'reviewStandings', target: s.access.standing, required: true, actual: false });
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches) out.push({ kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches });

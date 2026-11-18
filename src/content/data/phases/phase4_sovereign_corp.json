@@ -190,6 +190,7 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "FLOOR_TAKEN: Their reserve capacity is mine. The invoice for it still goes to their accounts payable.",
+      "acquisition": "UNAUTHORIZED",
       "suspendable": false
     }
   ]

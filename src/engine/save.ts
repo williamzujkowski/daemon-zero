@@ -10,6 +10,7 @@ import { assignmentProblem } from './assignment';
 import { pilotProblem } from './pilot';
 import { serviceProblem } from './pilotService';
 import { reviewProblem } from './reviewSave';
+import { capabilityProblem } from './capabilityQuery';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -235,7 +236,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
   const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg) ?? serviceProblem(campaign, reg)
-    ?? reviewProblem(campaign, reg);
+    ?? capabilityProblem(campaign, reg) ?? reviewProblem(campaign, reg);
   if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);

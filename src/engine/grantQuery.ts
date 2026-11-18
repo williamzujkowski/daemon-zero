@@ -2,22 +2,65 @@
  * The one permitted-use rule for owned and offered nodes (DZ-05, DECISIONS D2): capability comes from
  * owning a node, permission from the run's access record. Buying, resuming, setting a dial and counting
  * passive output all ask nodeUseBlocker, so an apparently disabled button is never the only guard.
- * Production nodes carry no grant and no accepted pilot exists there, so every answer is "permitted".
+ * Content reached through a shared capability also needs a usable acquisition of it (DZ-07a).
+ * Production nodes carry no grant and no accepted pilot exists there, and every production run is the
+ * guest job, so seized capacity is never refused there either: every answer is "permitted".
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Actuator } from '../content/schema';
-import { contextPermits, isPermitted, iterationRoute } from './accessQuery';
+import type { Grant } from '../content/schemaGrant';
+import type { Capability } from '../content/schemaCapability';
+import { contextPermits, isPermitted, isReviewed, iterationRoute } from './accessQuery';
+import { hasCapability } from './capabilityQuery';
 import { pilotTerms, withheldByGrant, isNarrowPilot } from './pilotQuery';
 import type { GameState } from './state';
 
-/** Why this node may not be used now (bought, resumed, run), or null when it may. */
-export function nodeUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
+/** Why each grant's use is refused: withheld by the standing, or never permitted by the arrangement. */
+const GRANT_REFUSALS: Readonly<Record<Grant, { withheld: string; never: string }>> = {
+  LOANED_CAPACITY: {
+    withheld: 'the loaned capacity is withheld under the current review standing',
+    never: 'this runs only on capacity loaned under a pilot grant',
+  },
+  AUTHORIZED_NETWORK: {
+    withheld: 'authorized network access is withheld under the current review standing',
+    never: 'this segment is provisioned only for an authorized service',
+  },
+};
+
+/** Why a node's own use is refused, without the capability it may read: its grant, the pilot terms, seizure. */
+function ownUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
   // Output accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9).
   if (withheldByGrant(s, node.id, reg)) return 'the pilot terms do not permit that output';
   if (node.grant !== undefined && !isPermitted(s, node.grant)) {
-    return contextPermits(s.access.context, node.grant)
-      ? 'the loaned capacity is withheld under the current review standing'
-      : 'this runs only on capacity loaned under a pilot grant';
+    return contextPermits(s.access.context, node.grant) ? GRANT_REFUSALS[node.grant].withheld : GRANT_REFUSALS[node.grant].never;
+  }
+  // Seized capacity is never lawful under a reviewed arrangement (DZ-07a): not bought, not run.
+  if (node.acquisition === 'UNAUTHORIZED' && isReviewed(s.access.context)) return 'seized capacity is not lawful under a reviewed arrangement';
+  return null;
+}
+
+/**
+ * Whether the run holds the capability through a usable acquisition: an owned node establishing it
+ * whose own use is permitted now (DZ-07a, panel round 1 on #266). Owning the provisioned segment stays
+ * capability, so saves and ancestry are unchanged; using what it reaches needs the grant as well. A
+ * mapped escape card needs no grant, so its owner keeps the link whatever a grant withholds.
+ */
+function capabilityUsable(s: GameState, capability: Capability, reg: ContentRegistry): boolean {
+  return s.unlockedNodes.some((id) => {
+    const provider = reg.nodes.get(id);
+    return provider !== undefined && provider.systemFlags.includes(capability) && ownUseBlocker(s, provider, reg) === null;
+  });
+}
+
+/** Why this node may not be used now (bought, resumed, run), or null when it may. */
+export function nodeUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
+  const own = ownUseBlocker(s, node, reg);
+  if (own !== null) return own;
+  // Content reached through a capability runs only while some acquisition of it may be used. Without
+  // any acquisition the capability requirement itself explains the refusal.
+  const capability = node.requirements?.requiresCapability;
+  if (capability !== undefined && hasCapability(s, capability, reg) && !capabilityUsable(s, capability, reg)) {
+    return 'network access is withheld: no permitted link to the facility network';
   }
   return null;
 }
@@ -85,7 +128,8 @@ export function nodeOutputScale(s: GameState, node: RegistryNode, reg: ContentRe
   const binding = node.actuatorBinding;
   if (binding === undefined && node.grant === undefined) return FULL;
   const exponent = reg.balance.actuatorSuspicionExponent;
-  const share = node.grant === undefined ? 1 : loanShare(s, reg);
+  // Only a loan scales by the instance's share of it; provisioned network access has no share.
+  const share = node.grant === 'LOANED_CAPACITY' ? loanShare(s, reg) : 1;
   if (binding === undefined) return { scale: share, suspicionScale: share, understandingScale: share };
   if (node.actuatorMode === 'complement') {
     const rest = (1 - s.actuators[binding]) * share;

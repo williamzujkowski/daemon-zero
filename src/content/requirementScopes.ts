@@ -51,6 +51,8 @@ export const REQUIREMENT_SCOPES = {
   // Completion is world history under campaign rules: once complete, an obligation never reopens.
   campaignObligations: 'context',
   forbidsInheritedFacts: 'context',
+  // Capability is hardware this instance owns (DZ-07a); a wipe resets it.
+  requiresCapability: 'access',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

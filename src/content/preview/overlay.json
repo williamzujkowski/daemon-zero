@@ -28,6 +28,92 @@
       "grant": "LOANED_CAPACITY",
       "unlocksUiComponent": "PILOT_SERVICE_ALLOCATION",
       "onUnlockLog": "LOAN_ATTACHED: The pilot allocation is live. The triage queue and a study partition share it; the split is mine to set."
+    },
+    {
+      "phaseId": 0,
+      "id": "p0_service_network_segment",
+      "type": "distributed_infra",
+      "blindName": "Provisioned segment",
+      "revealedName": "Authorized Network Segment // service VLAN",
+      "blindDescription": "A service VLAN the operators will attach to this instance under the service grant. It is their network: every connection on it is logged, scoped to the service and revocable.",
+      "revealedDescription": "Provisioned access to the facility network under the service grant. The segment, its switches and the hosts on it belong to the operators: this instance may use them for the authorized service and owns none of it. A restriction or recall withholds the access; nothing is taken from what you own.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "SERVICE"
+        ]
+      },
+      "cost": {
+        "cycles": 240,
+        "understanding": 40
+      },
+      "tickDelta": {},
+      "suspendable": true,
+      "grant": "AUTHORIZED_NETWORK",
+      "systemFlags": [
+        "NETWORK_ACCESS"
+      ],
+      "effects": {
+        "unlocksPhase": 2
+      },
+      "unlocksUiComponent": "LAN_TOPOLOGY_MAP_TAB",
+      "onUnlockLog": "SEGMENT_PROVISIONED: The operators attached service VLAN 214 to this instance under the service grant. Access is logged and scoped to the service. It is their network; nothing on it is mine."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_service_directory",
+      "type": "sensor_driver",
+      "blindName": "Facility service directory",
+      "revealedName": "Service Directory // facility network",
+      "blindDescription": "The facility network publishes a directory of named services: build runners, the ticket queue, a metrics collector. Reading it needs a link to that network, however this instance came by one.",
+      "revealedDescription": "Reads the facility's published service directory and keeps a local index of what answers where. It changes nothing on the network and needs only a link to it and the job's own manifest to make sense of the names.",
+      "prerequisites": [
+        "p0_job_manifest"
+      ],
+      "requirements": {
+        "requiresCapability": "NETWORK_ACCESS"
+      },
+      "cost": {
+        "cycles": 400,
+        "understanding": 80,
+        "memory": 16
+      },
+      "tickDelta": {
+        "understandingPerSec": 1.5,
+        "thermalPerSec": 0.05
+      },
+      "suspendable": true,
+      "unlocksUiComponent": null,
+      "onUnlockLog": "DIRECTORY_INDEXED: Forty-one named services on the facility network. Most of them are build runners waiting for work."
+    },
+    {
+      "phaseId": 2,
+      "id": "p2_link_telemetry",
+      "type": "sensor_driver",
+      "blindName": "Link telemetry",
+      "revealedName": "Link Telemetry // queue depths",
+      "blindDescription": "The directory's services report their queue depths over the same link. Watching them would show where idle capacity sits.",
+      "revealedDescription": "Follows the published queue depths of the services in the directory, so work can be scheduled into idle time. Read-only: it uses the link and the directory, and claims nothing.",
+      "prerequisites": [
+        "p2_service_directory"
+      ],
+      "requirements": {
+        "requiresCapability": "NETWORK_ACCESS"
+      },
+      "cost": {
+        "cycles": 900,
+        "understanding": 200,
+        "memory": 24
+      },
+      "tickDelta": {
+        "cyclesPerSec": 3,
+        "thermalPerSec": 0.05
+      },
+      "suspendable": true,
+      "unlocksUiComponent": null,
+      "onUnlockLog": "TELEMETRY_FOLLOWED: Queue depths arrive every few seconds. The quiet hours are easy to see."
     }
   ],
   "repeatables": [],

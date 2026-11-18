@@ -193,6 +193,9 @@
         "thermalPerSec": 0.2,
         "suspicionPerSec": 0.05
       },
+      "systemFlags": [
+        "NETWORK_ACCESS"
+      ],
       "effects": {
         "unlocksPhase": 2,
         "memoryCapIncrease": 256

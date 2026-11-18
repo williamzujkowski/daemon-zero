@@ -98,7 +98,7 @@ function statusOf(s: GameState, reg: ContentRegistry): PilotOfferStatus | null {
 function alternativeOf(s: GameState, terms: PilotTerms, status: PilotOfferStatus, reg: ContentRegistry): string | null {
   const alternative = terms.terminalAlternative;
   const node = alternative ? reg.nodes.get(alternative.node) : undefined;
-  if (!alternative || !node || status === 'accepted' || !isNodeDiscoverable(s, node)) return null;
+  if (!alternative || !node || status === 'accepted' || !isNodeDiscoverable(s, node, reg)) return null;
   return alternative.text;
 }
 

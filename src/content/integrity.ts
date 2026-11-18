@@ -19,6 +19,7 @@ import { checkAssignmentIntegrity } from './integrityAssignment';
 import { checkObligationIntegrity } from './integrityObligations';
 import { checkGrantIntegrity } from './integrityGrant';
 import { checkReviewIntegrity } from './integrityReview';
+import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -43,7 +44,11 @@ function checkPrerequisites(reg: ContentRegistry): string[] {
   return problems;
 }
 
-/** Kahn-style sweep: anything never reached is cyclic or depends on something that is. */
+/**
+ * Kahn-style sweep: anything never reached is cyclic or depends on something that is. A node that
+ * requires a capability is reached only once some node establishing it is (DZ-07a), so content that
+ * neither route's acquisition opens, or a capability only its own users provide, is stuck.
+ */
 function checkReachability(reg: ContentRegistry): string[] {
   const reached = new Set<string>();
   let progressed = true;
@@ -51,7 +56,7 @@ function checkReachability(reg: ContentRegistry): string[] {
     progressed = false;
     for (const node of reg.nodes.values()) {
       if (reached.has(node.id)) continue;
-      if (node.prerequisites.every((id) => reached.has(id))) {
+      if (node.prerequisites.every((id) => reached.has(id)) && capabilityReached(reg, node, reached)) {
         reached.add(node.id);
         progressed = true;
       }
@@ -235,6 +240,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkAssignmentIntegrity(reg),
     ...checkGrantIntegrity(reg),
     ...checkReviewIntegrity(reg),
+    ...checkCapabilityIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),

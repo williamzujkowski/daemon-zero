@@ -33,9 +33,9 @@ export function own(s: GameState, ...ids: string[]): GameState {
   return missing.reduce((state, id) => must(unlockNode(state, id, preview)), s);
 }
 
-/** The node that opens a phase. */
+/** The escape-route node that opens a phase (the authorized substrate also opens Phase 2, DZ-07a). */
 export function opener(phase: number): string {
-  return defined([...preview.nodes.values()].find((node) => node.effects.unlocksPhase === phase)).id;
+  return defined([...preview.nodes.values()].find((node) => node.effects.unlocksPhase === phase && node.grant === undefined)).id;
 }
 
 /** The record a load upgrade would write for an event proven resolved without a choice. */
