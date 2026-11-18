@@ -81,6 +81,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schemaCapability.ts`, `integrityCapability.ts` - the shared access capability and seized-capacity provenance. See [The authorized network substrate](#the-authorized-network-substrate-225).
 - `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
 - `schemaReview.ts`, `integrityReview.ts` - review standing, misconduct, corrections and recall rulings. See [The Outage Window](#the-outage-window-standing-correction-and-recall-224).
+- `integrityFinding.ts` - batch review findings (a dilemma's `finding`). See [The first batch review](#the-first-batch-review-a-withheld-result-is-found-274).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
 - `index.ts` - re-exports `production.ts`. The app, tests, sim and `make validate` import this and get production.
@@ -123,8 +124,9 @@ Public API is `src/engine/index.ts`.
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
 | `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
-| `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`submitPilotBatch`, `pilotServiceView`, revoke and restore) (#223). |
+| `grantQuery.ts`, `pilotService.ts` | The one permitted-use rule for nodes and dials (`nodeUseBlocker`, `permittedUse`, `actuatorUseBlocker`, `nodeOutputScale`) and the pilot's service loop (`handBackBatch`, `pilotServiceView`, revoke and restore) (#223). |
 | `review.ts`, `reviewQuery.ts`, `reviewSave.ts` | Review standing and recall (#224): the transitions a choice's `review` declares, the job-surface view and recall previews, and the load checks. |
+| `batchReview.ts`, `findingQuery.ts` | The batch review (#274): `submitPilotBatch` hands a batch back and presents a due finding in the same step; which findings this iteration's record holds. |
 | `capabilityQuery.ts` | The shared access capability (`hasCapability`, `meetsCapability`) and the load check `capabilityProblem` (#225). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy; `retraining`, which a RECALL wipe's ruling sets (#224). |
@@ -891,7 +893,7 @@ the choice itself is the campaign record). `qualifiesForPilot` (the `pilotEligib
 when a guest still in the opening phase, under campaign rules, has accepted an assignment that declares
 `pilot` terms, submitted task evidence of any result and handled the record honestly. Resources never
 enter into it, a truthful UNEXPECTED_CAPABILITY result qualifies, and an undiscovered discrepancy is not
-what the evaluator observed (DZ-06 compares it later). An INCOMPLETE result gets the narrower allocation
+what the evaluator observed (the first batch review finds it, #274). An INCOMPLETE result gets the narrower allocation
 (V03). Silent inspection is recorded, keeps its curiosity reward, and no pilot is offered to that
 instance; the next one requalifies.
 
@@ -1164,6 +1166,81 @@ DZ-06.5-7, V24, H02, V17, DZ-06.11, H26, H33, V28), `review-save.spec.ts` (V12 f
 combinations, the genuine v12 fixture, V15), `review-content.spec.ts` (integrity corruption),
 `review-effects.spec.ts`, `ui-review.spec.ts`, `review-text.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts` (V19) and
 `tests/e2e/outage-window.preview.ts`.
+
+## The first batch review: a withheld result is found (#274)
+
+Follow-up to DZ-03/DZ-04, found by DZ-09 part A (finding 2 in `REVIEW-EARNED-ACCESS-VALIDATION.md`). Decided by
+Nexus vote i274-discrepancy-discovery (`vote-1794998033941-y6br4h1`, `discovered-at-first-pilot-review`, 7 of 7,
+single-model panel; the alternatives were `discovered-at-outage-review` and `no-short-term-advantage`). Preview only.
+
+**What was wrong.** "Submit only the passing results" promised that a later review comparing the log with the
+summary would find what was withheld, earned the full 20 cycles/s offer while the honest incomplete answer earned
+10, and nothing ever compared anything (V05).
+
+**Content.** `dil_nr_batch_review` (overlay) is a once-per-campaign `follow_up` of `dil_nr_stale_fixture` for the
+outcome `green_subset` only, closed when interrupted. It declares a dilemma-level `finding` (a
+`ChoiceMisconductSchema`: FALSIFIED_REPORT, WARNED, the statement and the way back). Its one access means is the
+pilot's batch review: PILOT or SERVICE, `dil_nr_stale_fixture` in this run's `resolvedDilemmas` (the instance that
+submitted the summary) and `minPilotBatches: 1`. Two free answers, each with a receipt: `disclose_now`
+(`review.correction`) and `let_stand`. Three campaign facts: `assessment_summary_withheld` (the original choice),
+`assessment_withholding_found` (either answer) and `assessment_withholding_disclosed`, so the original choice and
+the finding are two facts and a disclosure is a third; none is ever rewritten.
+
+**When it happens (`batchReview.ts`).** `submitPilotBatch` is now `handBackBatch` (DZ-05, unchanged: pays once,
+token per batch) followed by `findingDue`: the first finding scene whose original closed with a listed outcome,
+whose access means hold and which the campaign has not met. In the same step it is reserved and presented (the
+clock freezes, as at an expired omen), its omen line is logged as what the reviewer did, and its finding goes
+through DZ-06's `recordMisconduct`, so standing rises to WARNED by the existing ladder. The scheduler never picks a
+finding scene (`isFresh`), so no omen, absence or load brings a sanction to work nobody handed back. In new play
+that is batch 1; a preview save from before #274 that already handed back a batch meets it at its next submission.
+
+**Narrowing (`pilotQuery.narrowReason`).** The loan is narrow for an honest INCOMPLETE result, or once a finding
+is on this iteration's record (`findingQuery.discrepancyFound`: the scene's record began in this iteration, in
+play, whatever became of it). The evaluator then holds the incomplete result the run actually showed, so the loan
+stays at the honest allocation after a disclosure too: the shortcut is never better than the honest report after
+the first review. `pilotOfferView.narrowReason` tells the terms which reason to print. Submitted evidence
+(`access.qualification`) is not rewritten.
+
+**Review records (`reviewQuery.ts`).** `reviewEvents` includes finding scenes; `iterationReviews` adds the finding
+as an entry (no choice) before the scene's answer, and a finding still on screen sorts last. `replayStanding`,
+`reviewView` (violation, way back, `corrected`) and the load check read it with no other change.
+
+**With the Outage Window.** Both need a handed-back batch. The finding is presented by the submission and freezes
+the clock, so the outage omen can only begin after it is answered: the finding always comes first. The ladder
+takes the maximum, so a warning that stood plus the unauthorized restart is RESTRICTED (halved narrow loan), never
+recall pending; the recall review still needs the outage's own false report. DZ-06's correction restores nominal,
+so correcting the outage record also clears a warning that stood; both violations stay on the record.
+
+**Once per campaign.** The scene's record consumes it; a later instance requalifies (no requalification answer
+declares a discrepancy) and never holds the original in its own `resolvedDilemmas`, so nothing replays. A
+withheld summary whose instance never handed back a batch is never found.
+
+**Saved shape.** None changed, so no migration (still v14): the finding is read from its scene's record.
+`reviewProblem` gains `findingProblem` (`reviewSave.ts`): a finding this iteration needs submitted evidence with a
+discrepancy and a handed-back batch, and an unanswered finding must be the scene on screen (never an omen). The
+existing checks refuse a finding record whose original did not close with `green_subset`, a reserved record nothing
+presents, a dropped resolution, and a standing edited away from what the finding and its answer leave.
+
+**Integrity (`integrityFinding.ts`).** A finding is a once-per-campaign follow-up that closes when interrupted; it
+follows an assessment and only answers that declared `discrepancy: true` (so an honest answer, an interrupted
+original or capability never meets one); every access means needs `minPilotBatches` and the original in
+`resolvedDilemmas`; it never reaches recall pending; no answer records further misconduct or a ruling; a free,
+ungated correction is offered; one finding per original. `integrityReview.ts`'s way-back rule is now per event: a
+choice's warning or restriction needs a correction in a follow-up of its event, and a finding one in its own
+scene (before, any correction anywhere satisfied it).
+
+**Presentation.** No new component. The modal shows the scene, its access statement and the correction's review
+line; `ReviewStanding` shows the warning, the finding in the review's words, the way back and, after a disclosure,
+"Corrected on the record"; `PilotTerms` says the allocation is the one an incomplete result receives because the
+batch review found the summary left out a failing result.
+
+**Sim.** Production has no finding; `make sim` is unchanged. No preview policy submits the green subset, so
+`make sim-preview` is unchanged.
+
+Tests: `tests/batch-review.spec.ts` (V05 end to end, honest paths, V24, never scheduled, V17, H26, the Outage
+Window order), `batch-review-save.spec.ts` (V12 for every transition with absence and a wipe, V15 refusals),
+`finding-content.spec.ts` (integrity corruption), the #274 states and answers in the generic reload guard
+(`channel-contact-load.spec.ts`), `ui-batch-review.spec.ts` and `tests/e2e/batch-review.preview.ts`.
 
 ## The authorized network substrate (#225)
 
