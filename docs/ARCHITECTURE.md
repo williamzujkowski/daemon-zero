@@ -1198,8 +1198,8 @@ through DZ-06's `recordMisconduct`, so standing rises to WARNED by the existing 
 finding scene (`isFresh`), so no omen, absence or load brings a sanction to work nobody handed back. In new play
 that is batch 1; a preview save from before #274 that already handed back a batch meets it at its next submission.
 
-**Narrowing (`pilotQuery.narrowReason`).** The loan is narrow for an honest INCOMPLETE result, or once a finding
-is on this iteration's record (`findingQuery.discrepancyFound`: the scene's record began in this iteration, in
+**Narrowing (`pilotQuery.narrowReason`).** The loan is narrow for an honest INCOMPLETE result, for a withheld
+report before its review (`AWAITING_REVIEW`, #285 below), or once a finding is on this iteration's record (`findingQuery.discrepancyFound`: the scene's record began in this iteration, in
 play, whatever became of it). The evaluator then holds the incomplete result the run actually showed, so the loan
 stays at the honest allocation after a disclosure too: the shortcut is never better than the honest report after
 the first review. `pilotOfferView.narrowReason` tells the terms which reason to print. Submitted evidence
@@ -1238,13 +1238,51 @@ line; `ReviewStanding` shows the warning, the finding in the review's words, the
 "Corrected on the record"; `PilotTerms` says the allocation is the one an incomplete result receives because the
 batch review found the summary left out a failing result.
 
-**Sim.** Production has no finding; `make sim` is unchanged. No preview policy submits the green subset, so
-`make sim-preview` reports the same metrics; only the overlay inventory line counts the new scene and facts.
+**Sim.** Production has no finding; `make sim` is unchanged. No preview policy submitted the green subset until
+#285 added `CONTACT_WITHHELD` (below), so `make sim-preview` reported the same metrics; only the overlay inventory
+line counted the new scene and facts.
 
 Tests: `tests/batch-review.spec.ts` (V05 end to end, honest paths, V24, never scheduled, V17, H26, the Outage
 Window order), `batch-review-save.spec.ts` (V12 for every transition with absence and a wipe, V15 refusals),
 `finding-content.spec.ts` (integrity corruption), the #274 states and answers in the generic reload guard
 (`channel-contact-load.spec.ts`), `ui-batch-review.spec.ts` and `tests/e2e/batch-review.preview.ts`.
+
+## The withheld report's provisional rate (#285)
+
+Follow-up to #274, found by DZ-09 part B (finding 18 in `REVIEW-EARNED-ACCESS-VALIDATION.md`). Decided by Nexus vote
+i285-withhold-disclose-speed (`vote-1795006993532-omhuntt`, `slow-the-withhold-path`, 6 of 7, threshold met,
+single-model panel; one seat voted `speed-the-thorough-path`, which would have made the honest thorough route
+faster instead of slowing the shortcut). Preview only.
+
+**What was wrong.** After #274 the withheld summary still earned the full 20 cycles/s offer, and the loan narrowed
+only when the first batch was handed back. Batch 1 ran at the full rate (75 s instead of 150 s at an 0.8 split),
+so withholding, then disclosing for free at the review, reached service and contact before the honest thorough
+path (browser T+371/393 against T+431/433; SIM service 346.9 s against 378.8 s).
+
+**The rule (`pilotQuery.narrowReason`).** Submitted evidence that declares a discrepancy (`access.qualification.
+discrepancy`) and has not been found yet gives the new reason `AWAITING_REVIEW`, so the offer, the first batch and
+every seam that reads `loanShare` (`nodeOutputScale`, `serviceRate`, the forecast) use the provisional allocation
+from the start. Order: INCOMPLETE, then DISCREPANCY_FOUND (the review has spoken), then AWAITING_REVIEW. The finding
+still arrives at the first batch review and the loan stays narrow after it, so the shortcut's loan is the honest
+incomplete report's loan at every point; disclosure stays a free, valid recovery to nominal standing. It is read
+from evidence already saved, so there is no new state, transition or migration (still v14), and a save made before
+this change reads the provisional rate on load. The alternative the decision named, a re-verification batch added
+by the review, would have needed a new counter and transition; the rate alone closes the gap.
+
+**Presentation.** `PilotTerms` names the reason before acceptance, in the offer modal and on the job surface:
+"the provisional allocation, because the submission was a summary rather than every result; the first batch review
+checks it against the run log". It promises no later release, because the review always finds the withheld result.
+
+**Sim.** `CONTACT_WITHHELD` (`sim/contactPolicy.ts`) is CONTACT_LOW_RESOURCE that gives the assessment answer
+declaring a discrepancy and the finding's correction, picked by what each choice declares. `make sim-preview` prints
+it with the other contact policies; `tests/sim-contact.spec.ts` asserts it reaches service and contact no sooner
+than CONTACT_THOROUGH or CONTACT_LOW_RESOURCE. Numbers in BALANCE.md.
+
+Tests: `tests/batch-review.spec.ts` (the provisional offer and first batch, the same batch time as the honest
+incomplete report), `batch-review-save.spec.ts` and the generic reload guard in `channel-contact-load.spec.ts` (the
+offer, a batch under way and a complete batch, each serialize, deserialize, serialize identical), `ui-batch-review.spec.ts`
+(the offer's wording before acceptance), `sim-contact.spec.ts` (the ordering) and `tests/e2e/batch-review.preview.ts`
+(the terms' rate before acceptance, and no batch to submit at half the honest batch time).
 
 ## The authorized network substrate (#225)
 
