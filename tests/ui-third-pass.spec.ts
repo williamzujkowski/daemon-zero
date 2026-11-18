@@ -4,6 +4,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
+import { labelMismatches } from './labelInName';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -40,6 +41,7 @@ describe('lineage interface', () => {
     view.click('cond-' + mark.id + '-shed');
     expect(game().conditioning).toEqual([]);
     expect(view.find('conditioning-reclaimed')?.textContent).toContain(mark.name);
+    expect(labelMismatches(view.find('conditioning-reclaimed') ?? view.container)).toEqual([]);
     view.click('conditioning-reclaimed-continue');
     expect(view.find('conditioning')).toBeNull();
     view.close();

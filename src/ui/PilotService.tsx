@@ -55,7 +55,7 @@ function Submit() {
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const enabled = complete && withheld === null && !blocked;
   return <Pressable testID="pilot-service-submit" accessibilityRole="button"
-    accessibilityLabel={'Submit the batch for review, paying ' + String(reward) + ' cycles'}
+    accessibilityLabel={'Submit batch for review +' + String(reward) + ' cycles, earned on submission'}
     disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
     onPress={() => { gameRuntime.dispatch((game) => submitPilotBatch(game, CONTENT, token)); }}>
     <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{reward} cycles</Text>

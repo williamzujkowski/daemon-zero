@@ -73,7 +73,7 @@ export default function PilotOfferPanel() {
     {status === 'accepted' && <PilotServiceDetail />}
     {status === 'accepted' && <ServiceGrantPanel />}
     {status === 'deferred' && !acceptable && <Text testID="pilot-lapsed" style={theme.muted}>This instance no longer qualifies, so the offer cannot be taken.</Text>}
-    {status === 'deferred' && <Pressable testID="pilot-accept" accessibilityRole="button" accessibilityLabel={'Accept the pilot: ' + title}
+    {status === 'deferred' && <Pressable testID="pilot-accept" accessibilityRole="button" accessibilityLabel={'Accept pilot: ' + title}
       disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => acceptPilotOffer(game, CONTENT, token)); }}>
       <Text style={theme.text}>[ ACCEPT PILOT ]</Text>

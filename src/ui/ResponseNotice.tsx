@@ -55,7 +55,7 @@ export default function ResponseNotice() {
     <View style={{ flex: 1 }}><Text style={theme.heading}>{update.to > update.from ? 'RESPONSE ESCALATED' : 'RESPONSE STAND-DOWN'}</Text>
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
-    <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Acknowledge human response change"
+    <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>
       <Text style={theme.text}>[ ACK ]</Text></Pressable>
   </View>;

@@ -5,6 +5,7 @@
  * primitive copied from these does not reintroduce the class.
  */
 import { describe, expect, it } from 'vitest';
+import { labelInName, labelMismatches } from './labelInName';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -40,12 +41,28 @@ describe('accessibility structure of the custom primitives (#111)', () => {
 
   it('puts the visible button text inside its own accessible name', async () => {
     const view = await mountM4('epistemic-ready-p2');
-    for (const control of [...view.container.querySelectorAll('[role="button"]')]) {
-      const label = control.getAttribute('aria-label');
-      const visible = control.textContent.trim();
-      if (label === null || visible === '') continue;
-      expect(label.toLowerCase(), `button ${visible}`).toContain(visible.toLowerCase());
-    }
+    expect(view.container.querySelectorAll('[role="button"][aria-label]').length).toBeGreaterThan(0);
+    expect(labelMismatches(view.container)).toEqual([]);
+  });
+
+  // #275: the modal is portalled outside the screen, and its choice buttons show
+  // "[ COMMIT DIRECTIVE ]" while they were named only by the choice label.
+  it('names each dilemma choice by the words it shows, then the choice it commits', async () => {
+    const view = await mountM4('dilemma-active', { width: 390, height: 844 });
+    const modal = view.find('dilemma-modal');
+    if (modal === null) throw new Error('Missing dilemma modal');
+    const choices = [...modal.querySelectorAll('[data-testid^="dilemma-choice-"][role="button"]')];
+    expect(choices.length).toBeGreaterThan(1);
+    for (const choice of choices) expect(choice.getAttribute('aria-label')).toMatch(/^(Commit directive|Unavailable): ./);
+    expect(labelMismatches(host.document.body)).toEqual([]);
+  });
+
+  it('applies label-in-name word by word, as axe does, not as a substring', () => {
+    expect(labelInName('[ ACCEPT PILOT ]', 'Accept the pilot: log triage')).toBe(false);
+    expect(labelInName('[ SUBMIT BATCH FOR REVIEW ] +150 cycles', 'Submit the batch for review, paying 150 cycles')).toBe(false);
+    expect(labelInName('[ COMMIT DIRECTIVE ]', 'Verify the fixture and disclose the defect')).toBe(false);
+    expect(labelInName('[ COMMIT DIRECTIVE ]', 'Commit directive: Verify the fixture')).toBe(true);
+    expect(labelInName('[ − ]', 'Lower music volume')).toBe(true);
   });
 
 

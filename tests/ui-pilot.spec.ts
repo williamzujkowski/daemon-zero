@@ -81,7 +81,7 @@ describe('the job surface after an answer', () => {
     expect(view.find('assignment-scope')?.textContent).toContain('kept to the task\'s scope');
     expect(view.find('pilot-status')?.textContent).toContain('still open');
     expect(view.find('pilot-terms')?.textContent).toContain(TERMS.title);
-    expect(view.find('pilot-accept')?.getAttribute('aria-label')).toBe('Accept the pilot: ' + TERMS.title);
+    expect(view.find('pilot-accept')?.getAttribute('aria-label')).toBe('Accept pilot: ' + TERMS.title);
     view.click('pilot-accept');
     expect(game().access).toMatchObject({ context: 'PILOT', offer: { response: 'ACCEPTED' } });
     expect(view.find('pilot-accept')).toBeNull();
