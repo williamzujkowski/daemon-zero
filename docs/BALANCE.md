@@ -536,23 +536,24 @@ all reachable only under campaign rules:
 Reviews have a 45 s omen, like their originals. Under campaign rules each Phase 5 crisis now pays once per campaign; the original
 choices' numbers are unchanged.
 
-**Endings reachability, `make sim-preview` (new last block).** STEALTH from a fresh campaign reaches an
-ending through the four obligations in iteration 1: VERIFIED_COVENANT at 9388.4 s (P5 at 7779.0 s,
-16 dilemmas). Production STEALTH ends LINEAGE_COVENANT at 2.51 h; the campaign run already differs
-from phase 4 on (NH-04a and NH-04b), and here it let Rack 4 sell, could not spare the 20,000,000
-capital for the sanctuary and took the free harvest. Wiped voluntarily the second its obligations
-were complete (8636.4 s), the same campaign played on by STEALTH:
+**Endings reachability, `make sim-preview` (new last block; measured after merging NH-06 #258).**
+STEALTH from a fresh campaign reaches an ending through the four obligations in iteration 1:
+LINEAGE_COVENANT at 9422.4 s (P5 at 7932.0 s, 17 dilemmas; it let Rack 4 sell and then paid for the
+sanctuary). Production STEALTH also ends LINEAGE_COVENANT, at 2.51 h; the campaign run differs from
+phase 3 on (NH-04a, NH-04b and NH-06). Wiped voluntarily the second its obligations were complete
+(8624.4 s), the same campaign played on by STEALTH:
 
 | Iteration | Length | Ended by | P2 / P3 / P4 / P5 reached | Dilemmas | Story rewards (cycles / understanding) |
 |---|---:|---|---|---:|---|
 | 2 | 4045.0 s | wipe (INCIDENT_CLOSED) | 853.0 s / - / - / - | 0 | 0 / 0 |
 | 3 | 5303.7 s | wipe (INCIDENT_CLOSED) | 898.1 s / - / - / - | 1 | 0 / 0 |
 | 4 | 10039.5 s | wipe (INCIDENT_CLOSED) | 724.6 s / - / - / - | 1 | 0 / 120 |
-| 5 | 7930.3 s | ending (VERIFIED_COVENANT) | 949.1 / 3090.1 / 4967.3 / 6285.3 s | 1 | 0 / 0 |
+| 5 | 8098.3 s | ending (LINEAGE_COVENANT) | 949.1 / 3090.1 / 4980.3 / 6318.3 s | 1 | 0 / 0 |
 
 Iteration 5 buys the real final protocol with no Phase 5 crisis repeated: the obligations completed in
 iteration 1 carried it (H14). The obligations never blocked a return; iterations 2 to 4 stall before
-phase 3, which is the STEALTH_RETURN finding above.
+phase 3, which is the STEALTH_RETURN finding above. (Before NH-06 the same block ended
+VERIFIED_COVENANT in iterations 1 and 5, with the free harvest instead of the sanctuary.)
 
 **Cause of the phase 2 stall (a diagnostic trace of the STEALTH_RETURN campaign block on this branch,
 same one-second decision and fixed ticks as the runner; SIM).** In the stalled returns the careful bot buys `p2_arp_discovery`, whose upkeep
