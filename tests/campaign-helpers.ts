@@ -8,7 +8,7 @@ import {
   activateCampaignRules, createInitialState, exportSave, importSave, unlockNode, wipe, type GameState,
 } from '../src/engine';
 import { defined } from './m7-helpers';
-import { must, PHASE0, PHASE1, PHASE2, rich, choose } from './helpers';
+import { must, outOfTheWay, PHASE0, PHASE1, PHASE2, rich, choose } from './helpers';
 
 export const preview = PREVIEW;
 export const cryo = defined(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_05_cryo_lab_diversion'));
@@ -29,7 +29,7 @@ export function activeGame(base: GameState = rich(createInitialState(PREVIEW))):
 export function nearCryo(s: GameState): GameState {
   const missing = [...PHASE0, ...PHASE1, ...PHASE2.slice(0, 3)].filter((id) => !s.unlockedNodes.includes(id));
   return { ...pgrant(s, ...missing),
-    resolvedDilemmas: PREVIEW.dilemmas.filter((dilemma) => dilemma.id !== cryo.id).map((dilemma) => dilemma.id) };
+    resolvedDilemmas: outOfTheWay(PREVIEW, cryo.id) };
 }
 
 /** Resolves cryo with the given choice through the public action. */

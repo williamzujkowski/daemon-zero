@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
-  advance, createInitialState, deserialize, MIGRATIONS, SaveChannelError, SCHEMA_VERSION, serialize, unlockNode, voluntaryWipe, type GameState,
+  advance, createInitialState, deserialize, exportSave, importSave, MIGRATIONS, SaveChannelError, SCHEMA_VERSION, serialize, unlockNode, voluntaryWipe, type GameState,
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { answer, funded, preview, roundTrip } from './assignment-helpers';
@@ -112,6 +112,34 @@ describe('impossible review records are refused whole (V15)', () => {
   ] as const)('%s', (_name, build, reason) => {
     const registry = _name === 'a recall under legacy rules' ? PRODUCTION : preview;
     expect(() => deserialize(build(), registry)).toThrow(reason);
+  });
+
+  /** FIXTURE: drops ids from the iteration's resolution list, leaving the campaign records intact. */
+  const without = (s: GameState, ...ids: string[]): GameState => ({ ...s, resolvedDilemmas: s.resolvedDilemmas.filter((id) => !ids.includes(id)) });
+  /** FIXTURE: drops records from the campaign, leaving the iteration's resolution list intact. */
+  const unrecorded = (s: GameState, ...ids: string[]): GameState => ({ ...s,
+    campaign: { ...s.campaign, events: Object.fromEntries(Object.entries(s.campaign.events).filter(([id]) => !ids.includes(id))) } });
+  const OMITTED = /resolution list disagrees with its review records/;
+
+  // Panel round 1 on #267: the conduct a record attributes to this iteration cannot be hidden from the list.
+  it.each([
+    ['a restriction hidden by dropping the outage from the list', () => ({ ...without(afterOutage('act_without_grant'), OUTAGE.id),
+      access: { ...afterOutage('act_without_grant').access, standing: 'NOMINAL' as const } })],
+    ['the same with the standing left as recorded', () => without(afterOutage('act_without_grant'), OUTAGE.id)],
+    ['a false report hidden from the list', () => without(falsified(), RECORD.id)],
+    ['a lawful handoff missing from the list', () => without(afterOutage('safe_handoff'), OUTAGE.id)],
+    ['a review choice listed with no record behind it', () => unrecorded(afterOutage('act_without_grant'), OUTAGE.id)],
+    ['a follow-up listed with no record behind it', () => unrecorded(must(answer(recordPresented('act_without_grant'), 'correct_record')), RECORD.id)],
+  ] as const)('%s is refused through deserialize and importSave', (_name, build) => {
+    const forged = build();
+    expect(() => deserialize(JSON.stringify(forged), preview)).toThrow(OMITTED);
+    expect(() => importSave(exportSave(forged), preview)).toThrow(OMITTED);
+  });
+
+  it('a record from an earlier iteration needs no entry in this iteration\'s list', () => {
+    const next = must(voluntaryWipe(must(answer(recordPresented('act_without_grant'), 'correct_record')), preview));
+    expect(next.resolvedDilemmas).toEqual([]);
+    expect(serialize(importSave(exportSave(next), preview))).toBe(serialize(next));
   });
 
   it('a stray review on screen at the wrong standing is closed on load, never shown unanswerable', () => {

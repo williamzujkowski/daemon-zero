@@ -1131,7 +1131,9 @@ names the standing and the run table the ruling.
 run. Standing, violations and containment need no new field: standing is DZ-02's, the rest is derived from
 records and the route. `reviewProblem` (`reviewSave.ts`) refuses a RECALL run without its ruling or a ruling on
 another kind, a recall under legacy rules, a recall run whose review record does not hold that ruling or
-whose exit is not a reviewed arrangement, a standing below what this iteration's review choices leave
+whose exit is not a reviewed arrangement, an iteration whose resolution list and review records name
+different review events (either side dropped; panel round 1 on #267: conduct is read from the records,
+not the list), a standing below what this iteration's review choices leave
 (only DZ-05's withdrawal to recall pending may stand above it), and a recorded containment without its RECALL
 event. A review on screen at the wrong standing fails its `access` scope and is closed on load.
 

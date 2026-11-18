@@ -27,18 +27,30 @@ export interface ReviewEntry {
   review: ChoiceReview;
 }
 
+/** Campaign events at which a choice can declare a review effect. */
+export function reviewEvents(reg: ContentRegistry): string[] {
+  return [...reg.campaign.events.values()].filter((event) => event.choices.some((choice) => choice.review !== undefined)).map((event) => event.id);
+}
+
+/** Whether the campaign records this review event as resolved in play during the current iteration. */
+export function resolvedThisIteration(s: GameState, eventId: string): boolean {
+  const record = campaignRecord(s, eventId);
+  return record?.status === 'resolved' && record.origin === 'play' && record.sourceIteration === s.iteration;
+}
+
 /**
- * This iteration's resolved choices that declared a review effect, in the order they were made: the
- * campaign record says which choice was taken, the iteration's resolution list says when. Empty under
- * legacy rules, where no record exists.
+ * This iteration's resolved choices that declared a review effect. The campaign records are the
+ * authority on which choices were made (panel round 1 on #267): a record's conduct counts even if the
+ * iteration's resolution list lost it, which the loader refuses (reviewSave.ts). The list only orders
+ * them, as resolution appends to it; an unlisted record sorts last. Empty under legacy rules.
  */
 export function iterationReviews(s: GameState, reg: ContentRegistry): ReviewEntry[] {
   if (!isCampaignActive(s)) return [];
+  const order = (id: string): number => { const at = s.resolvedDilemmas.indexOf(id); return at === -1 ? Infinity : at; };
   const out: ReviewEntry[] = [];
-  for (const eventId of s.resolvedDilemmas) {
+  for (const eventId of reviewEvents(reg).filter((id) => resolvedThisIteration(s, id)).sort((a, b) => order(a) - order(b))) {
     const record = campaignRecord(s, eventId);
-    if (record?.status !== 'resolved' || record.origin !== 'play' || record.sourceIteration !== s.iteration) continue;
-    const choice = reg.campaign.events.get(eventId)?.choices.find((entry) => entry.id === record.outcome);
+    const choice = reg.campaign.events.get(eventId)?.choices.find((entry) => entry.id === (record?.status === 'resolved' ? record.outcome : null));
     if (choice?.review) out.push({ eventId, choice, review: choice.review });
   }
   return out;

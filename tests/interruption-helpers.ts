@@ -9,7 +9,7 @@ import {
 } from '../src/engine';
 import { activeGame, cryo, nearCryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
-import { rich } from './helpers';
+import { outOfTheWay, rich } from './helpers';
 
 export const STEP = 1 / preview.balance.tickHz;
 export const note = defined(preview.dilemmas.find((dilemma) => dilemma.id === 'dil_note_bait'));
@@ -27,7 +27,7 @@ export function toIteration(s: GameState, iteration: number): GameState {
 /** Owns the share's hardware, with every other dilemma of this iteration out of the way. */
 export function readShare(s: GameState): GameState {
   const missing = SHARE.filter((id) => !s.unlockedNodes.includes(id));
-  return { ...pgrant(s, ...missing), resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== note.id).map((d) => d.id) };
+  return { ...pgrant(s, ...missing), resolvedDilemmas: outOfTheWay(preview, note.id) };
 }
 
 export function ticks(s: GameState, seconds: number): GameState {

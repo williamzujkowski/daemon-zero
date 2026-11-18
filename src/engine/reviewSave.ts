@@ -6,7 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { iterationRoute } from './accessQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
-import { iterationReviews, replayStanding } from './reviewQuery';
+import { iterationReviews, replayStanding, resolvedThisIteration, reviewEvents } from './reviewQuery';
 import type { GameState, RunRecord } from './state';
 
 /** Exits a recall can follow: only a reviewed arrangement is recalled. */
@@ -48,7 +48,18 @@ function standingProblem(s: GameState, reg: ContentRegistry): string | null {
   return contained && !recalled ? 'save records a contained pilot without its recall' : null;
 }
 
+/**
+ * The iteration's resolution list and its review records must name the same review events (panel round 1
+ * on #267): a record this iteration resolved is listed, and a listed review event has that record. Dropping
+ * either side cannot hide recorded conduct or invent a resolution.
+ */
+function listProblem(s: GameState, reg: ContentRegistry): string | null {
+  if (!isCampaignActive(s)) return null;
+  const disagree = reviewEvents(reg).some((id) => s.resolvedDilemmas.includes(id) !== resolvedThisIteration(s, id));
+  return disagree ? 'save resolution list disagrees with its review records' : null;
+}
+
 /** Why the save's review state must be refused, or null. */
 export function reviewProblem(s: GameState, reg: ContentRegistry): string | null {
-  return runProblem(s, reg) ?? standingProblem(s, reg);
+  return runProblem(s, reg) ?? listProblem(s, reg) ?? standingProblem(s, reg);
 }

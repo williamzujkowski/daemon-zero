@@ -19,7 +19,7 @@ import {
 } from './follow-up-helpers';
 import { caught, commit, remaining, STEP, ticks, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
-import { must, PHASE0, PHASE1, rich } from './helpers';
+import { must, outOfTheWay, PHASE0, PHASE1, rich } from './helpers';
 
 const original = event(ELENA);
 /** Plays the follow-up from its access means to the accepted answer. */
@@ -35,7 +35,7 @@ const elenaInterrupted = (): GameState => caught(omenOf(activeGame(), ELENA));
 function inPhaseWithoutAccess(s: GameState): GameState {
   const owned = pgrant(s, ...defined(preview.nodes.get(ACCESS_NODE)).prerequisites.flatMap((id) => [...PHASE0, ...PHASE1, id]).filter((id, at, all) => all.indexOf(id) === at && !s.unlockedNodes.includes(id)));
   expect(owned.unlockedNodes).not.toContain(ACCESS_NODE);
-  return { ...owned, suspicion: 0, resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== FOLLOW).map((d) => d.id) };
+  return { ...owned, suspicion: 0, resolvedDilemmas: outOfTheWay(preview, FOLLOW) };
 }
 
 describe('each recorded original reaches its own presentation of one follow-up (H19)', () => {
@@ -72,7 +72,7 @@ describe('each recorded original reaches its own presentation of one follow-up (
     // Elena's own omen is pending: the original is open, so nothing follows it yet.
     const pending = omenOf(activeGame(), ELENA);
     expect(campaignRecord(pending, ELENA)?.status).toBe('foreshadowed');
-    const owned = ownAccess({ ...pending, pendingDilemma: null, resolvedDilemmas: preview.dilemmas.filter((d) => d.id !== FOLLOW).map((d) => d.id) });
+    const owned = ownAccess({ ...pending, pendingDilemma: null, resolvedDilemmas: outOfTheWay(preview, FOLLOW) });
     expect(owned.unlockedNodes).toContain(ACCESS_NODE);
     expect(tick(owned, STEP, preview).pendingDilemma).toBeNull();
     // Recorded original and the follow-up's phase, but no access means: a minute passes without it.
