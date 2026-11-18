@@ -86,7 +86,7 @@ function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactVie
       <Text style={theme.heading}>{boundary.title}</Text>
     </View>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
-    <Pressable testID="prototype-boundary-toggle" accessibilityRole="button"
+    <Pressable testID="prototype-boundary-toggle" accessibilityRole="button" accessibilityState={{ expanded: open }} aria-expanded={open}
       accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>

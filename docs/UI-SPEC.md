@@ -496,3 +496,17 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   answered contact does not take focus. The note names the real path: `MENU > SAVES`.
 - **The pilot status line follows the grant (#284).** After `[ ACCEPT SERVICE ]`, `pilot-status`
   says the pilot led to the authorized service instead of "runs as a supervised pilot".
+
+
+## Route surface accessibility (DZ-13.4, preview only)
+
+- **Disclosures say whether they are open.** The departure's `[ REVIEW DEPARTURE ]` / `[ HIDE DETAILS ]`
+  control and the three boundary notes' `[ KEEP PLAYING ]` / `[ SHOW NOTE ]` controls expose
+  `aria-expanded`. On web `accessibilityState` alone never reached the DOM, so each passes
+  `aria-expanded` beside it, as `CardDetails` and `ReferencePanel` already did.
+- **The open departure control keeps its words in its name:** `Hide details: <title>`, not
+  "Hide departure details", which split the visible words (WCAG 2.5.3, axe
+  `label-content-name-mismatch`).
+- Every route surface is held to axe, keyboard, semantics, 200% text, reduced motion and the phone
+  layout contract by the preview specs in [TESTING.md](TESTING.md); results and the limits of that
+  evidence are in [REVIEW-ROUTE-A11Y.md](REVIEW-ROUTE-A11Y.md).

@@ -84,8 +84,11 @@ describe('the channel contact (V20)', () => {
     expect(game().campaign.contacts.map((entry) => entry.response)).toEqual(['REFERRED']);
     expect(view.find('channel-answered')?.textContent).toContain('Referred onward');
     expect(view.find('prototype-boundary')?.textContent).toContain('PREVIEW BOUNDARY');
+    expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('prototype-boundary-toggle');
     expect(view.find('prototype-boundary')?.textContent).not.toContain('no ending has been earned');
+    // DZ-13.4: the fold is a disclosure, so its state reaches the DOM.
+    expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
     expect(view.find('prototype-boundary')?.textContent).toContain('[ SHOW NOTE ]');
   });
 
