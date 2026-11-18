@@ -7,7 +7,7 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { DilemmaChoice } from '../content/schema';
-import { canAfford, dilemmaContext, presentationToken, resolveDilemma } from '../engine';
+import { canAfford, dilemmaContext, offeredChoices, presentationToken, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -46,6 +46,8 @@ export default function DilemmaModal() {
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
   // Variants read only world history, which cannot change while the clock is stopped here.
   const context = useGame((game) => dilemma ? dilemmaContext(game, dilemma, CONTENT) : '');
+  // A primitive selector over the same history: choices a world without their subject cannot offer stay hidden.
+  const offered = useGame((game) => dilemma ? offeredChoices(game, dilemma, CONTENT).map((choice) => choice.id).join(' ') : '').split(' ');
   if (!dilemma || ended || token === null) return null;
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
     accessibilityLabel={dilemma.title}>
@@ -55,7 +57,7 @@ export default function DilemmaModal() {
           <Text accessibilityRole="header" style={theme.heading}>{dilemma.title}</Text>
           <Text style={theme.muted}>CLOCK PAUSED // DECISION REQUIRED</Text>
           <DisclosureText style={theme.text}>{context}</DisclosureText>
-          {dilemma.choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
+          {dilemma.choices.filter((choice) => offered.includes(choice.id)).map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
         </ScrollView>
       </View>
     </SafeOverlay>

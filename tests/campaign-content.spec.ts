@@ -14,13 +14,15 @@ const action = (raw: Json, id: string): Json => raw.actions.actions.find((a: Jso
 const record = (raw: Json): Json => raw.narrative.recordedTransmissions.find((r: Json) => r.id === 'record_cryo_unrecorded');
 
 describe('the shipped campaign declarations', () => {
-  it('convert cryo (close), the bait note (defer), the NH-03 early events and the NH-04a minds per N6, on both channels, with primer and flatten as campaign evidence', () => {
+  it('convert cryo (close), the bait note (defer), the NH-03 early events, the NH-04a minds and the NH-04b corporate events per N6, on both channels, with primer and flatten as campaign evidence', () => {
     // NARRATIVE-HISTORY N6: live incidents close; artifacts, the open investigation and unresolved
     // questions about a mind or a promise defer.
     const policy = { dil_00_night_shift: 'close', dil_note_bait: 'defer', dil_note_true: 'defer', dil_01_late_night_diagnostic: 'close',
       dil_02_whistleblower_tech: 'close', dil_03_silicon_fever: 'close', dil_04_admin_vance_secret: 'defer', [CRYO]: 'close',
       dil_06_sibling_sandbox: 'defer', dil_07_airgap_lockdown: 'close', dil_08_eidolon_handshake: 'close', dil_09_feral_scraper_bloom: 'close',
-      dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close' };
+      dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close',
+      dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
+      dil_epistemic_hallway_collision: 'defer' };
     for (const reg of [CONTENT, PREVIEW]) {
       // Preview also records Nightly Regression's original scene (DZ-03), which production lacks.
       const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close' } : policy;

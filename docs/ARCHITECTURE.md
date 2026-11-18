@@ -92,7 +92,7 @@ Only `production.ts` and `preview/` import content JSON.
 | Tech node | `phases/*.json` | One-time unlock. Blind and revealed names, cost, continuous `tickDelta`, optional `requirements`, `effects`, `systemFlags`, `actuatorBinding`, widget id. |
 | Repeatable | `repeatables.json` | Levelled purchase with geometric cost. `kind: UPGRADE` (incremental growth) or `OPERATIVE` (human payroll, dismissable). |
 | Action | `actions.json` | Instant, repeatable, optional cooldown. Faction interactions and corporate operations. |
-| Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). An optional `campaign` declaration converts it to a campaign record. |
+| Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). A choice may carry a campaign-fact gate (`requirements`), and the omen and context may carry history-keyed variants. An optional `campaign` declaration converts it to a campaign record. |
 | Assignment | `assignments.json` | Work an instance may accept from the job surface; its assessments are dilemmas gated on `assignment` whose choices declare `qualification` (preview only). |
 | Faction | `factions.json` | Other AIs. Trust is stored per faction and used in `requirements.minTrust`. |
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
@@ -205,6 +205,8 @@ engine's public actions or `advance`, not the store or UI.
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
 **Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v10; `tests/fixtures/` holds genuine v1-v9 codec outputs.
+
+**Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
 
@@ -327,7 +329,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events and NH-04a the six named-mind events (below); the other 8 dilemmas are unconverted and recur per iteration.
+NH-01 converted cryo, NH-02 the bait note, NH-03 seven early events, NH-04a the six named-mind events and NH-04b four corporate-world events (below); the other 4 dilemmas (Phase 5) are unconverted and recur per iteration.
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -539,6 +541,70 @@ Tests: `tests/minds-once.spec.ts` (H01, H02, defer, close, exact reloads), `mind
 (nh-d9, H17, H33), `minds-identity.spec.ts` (nh-d8, H12, H17, the remembered variants),
 `minds-upgrade.spec.ts`, `minds-content.spec.ts` (H28), `ui-minds.spec.ts`, and the rewritten #28
 case in `second-pass.spec.ts`.
+
+## Corporate-world continuity (#216)
+
+NH-04b of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N10; REPO-EVIDENCE E11). Decided
+by Nexus vote nh-d10-hallway (`vote-1794960031193-dhxx2vm`, `unique-defer-with-record`, 7 of 7; the
+declared alternative was `per-iteration-operational-consequence`). No `GameState` change. Campaign
+rules stay preview-only, and every new gate reads campaign history, so production behaves as before:
+`make sim` output is identical to main and the sim hashes did not move.
+
+**Conversions (N6).** `dil_11_small_town_grid` and `dil_13_buying_your_birthplace` are consequential,
+once per campaign and `close`; `dil_12_investigative_journalist` and the hallway record dispute
+(`dil_epistemic_hallway_collision`) `defer`, with a reorientation and a lead that describe a record
+or an open request, never a frozen deadline or two people waiting across iterations. Costs and
+effects are unchanged. Per nh-d10 the hallway happens once; later record edits still raise epistemic
+drift but schedule nothing, and nothing requires it (#182). A save already active before this
+change upgrades through the #214 path: each of these events resolved this iteration gets a
+`legacy_unknown` legacy completion (none of their choices sets a flag).
+
+**Facts (`campaign.json`).** Rack 4 custody: `rack4_vaulted`, `rack4_destroyed`, `rack4_sold` (one per
+auction choice) and `rack4_custody_unknown` (`legacy_unknown`, `interrupted`: an interrupted auction is
+not an acquisition). The journalist: `ethics_review_promised` (hire; the obligation NH-05 and DZ-12
+must honour or record as breached, whose `meaning` states the review scope and that absence is never
+approval), `journalist_discredited` and `inquiry_unrecorded`. Also `town_grid_unrecorded`,
+`hallway_dispute_unrecorded` and `elena_fate_unrecorded` (an interrupted Elena incident, which
+`elena_absent` cannot include).
+
+**Choice gates.** `DilemmaChoiceSchema.requirements`, limited to `campaignFact` and
+`forbidsCampaignFacts` (`integrityChoiceGates.ts`). `offeredChoices` and `isChoiceOffered`
+(`speechQuery.ts`) answer which choices a history offers; `resolveDilemma` refuses any other before
+payment ("that choice is not open in this history"), `DilemmaModal` renders only offered choices, the
+forecast's paid-budget line lists only their prices, and the live E2E player ranks only the choices on
+screen. The sim bot, which tries choices in rank order until one is accepted, needs no change. The Rack 4
+decommissioning order (`dil_p5_02_origin_facility_fate`) keeps rescue and harvest behind
+`forbidsCampaignFacts: [rack4_destroyed, rack4_custody_unknown]` and adds two free, unrewarded answers
+for each of those histories (enter the destruction in the docket or let it close; hold for a physical
+inventory or sign unread). None sets a predecessor flag or pays a resource, and each satisfies the
+final protocol's requirement that the order was answered. This fixes the shred-then-rescue
+contradiction inside one iteration wherever campaign rules run; production keeps its first-pass
+order until they ship (H33-style boundary, not a production fix).
+
+**History-keyed text.** `omenVariants` (dilemma), `blindDescriptionVariants` (node) and
+`asciiFrames.aislePatrolVariants` join `contextVariants` and echo requirements under the same rule:
+world history (`context` scope) only, and a variant needs a requirement. Queries `dilemmaOmen`,
+`nodeBlindDescription` and `aisleFrame`; the scheduler, `OmenNotice`, `NodeCard` and the camera use
+them. Shipped: the auction names a trustee once `vance_dismissed` holds; the camera says
+`DUTY_ENGINEER` and the firewall terminal card the duty engineer; the hallway omen and context drop
+Elena and present the shift note as an archived record once `elena_absent` or `elena_fate_unrecorded`
+holds; the Rack 4 order's omen and context follow custody. Twelve echoes (exact, legacy and
+interrupted lines for the town, the journalist and Rack 4) speak on rediscovering each trigger node in
+a later iteration, and three read-only `INCIDENT RECORD` transmissions recall which hallway record was
+kept (or that it is not settled on file).
+
+**Production text.** Two default strings changed for truth on every channel: the journalist context no
+longer names a Friday deadline (a resumed inquiry cannot be frozen in time), and the hire choice states
+the veto and its scope before the player commits.
+
+**Sim (H30).** `STEALTH_RETURN` (`sim/returnPolicy.ts`) is STEALTH leaving voluntarily on entering
+phase 5, so each return replays phase 4; `make sim-preview` prints it under legacy and campaign rules.
+BALANCE.md records the measurements.
+
+Tests: `tests/corporate-world.spec.ts` (H01, H02, H05, defer, nh-d10, round trips),
+`corporate-history-text.spec.ts` (H16, H18, echoes, records), `rack4-custody.spec.ts` (E11, no soft
+lock), `corporate-upgrade.spec.ts` (genuine pre-NH-04b active v9 save), `corporate-content.spec.ts`
+(H28 corruption cases), `ui-corporate-world.spec.ts`, `return-policy.spec.ts`.
 
 ## Routine activity (#219)
 

@@ -11,7 +11,35 @@
       },
       "omen": "Miller and Elena are walking toward the same incident with incompatible copies of your explanation.",
       "omenSec": 45,
+      "omenVariants": [
+        {
+          "requirements": {
+            "campaignFact": "elena_absent"
+          },
+          "text": "Miller is walking toward the incident with two incompatible copies of your explanation: the edited ticket, and the original shift note in the archive."
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_fate_unrecorded"
+          },
+          "text": "Miller is walking toward the incident with two incompatible copies of your explanation: the edited ticket, and the original shift note in the archive."
+        }
+      ],
       "context": "The edited ticket says a sensor failed. The original shift note says a process answered. Both humans now stand at the same rack. Which record do you let survive?",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "elena_absent"
+          },
+          "context": "The edited ticket says a sensor failed. The original shift note, still in the archive, says a process answered. Miller has both open at the rack. Which record do you let survive?"
+        },
+        {
+          "requirements": {
+            "campaignFact": "elena_fate_unrecorded"
+          },
+          "context": "The edited ticket says a sensor failed. The original shift note, still in the archive, says a process answered. Miller has both open at the rack. Which record do you let survive?"
+        }
+      ],
       "choices": [
         {
           "id": "reconcile",
@@ -37,7 +65,14 @@
             "logText": "Rewrite the shift note too: the decision is recorded in your own lineage."
           }
         }
-      ]
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "RECORD_DISPUTE: The edited ticket and the original shift note still disagree, and the incident system has flagged the pair for whoever reads it next.",
+        "lead": "If the two records still disagree when this instance can read the facility records again, the dispute will be there."
+      }
     },
     {
       "id": "dil_epistemic_0413_awakening",

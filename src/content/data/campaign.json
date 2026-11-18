@@ -142,6 +142,90 @@
         "legacy_unknown"
       ],
       "meaning": "The launch firmware was decided by an earlier checkpoint, but this campaign cannot say how."
+    },
+    {
+      "id": "elena_fate_unrecorded",
+      "event": "dil_02_whistleblower_tech",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "Elena's attempt to leave with the logs began, but contact was lost before it ended; no scene may place her at Rack 4 or say she is gone."
+    },
+    {
+      "id": "town_grid_unrecorded",
+      "event": "dil_11_small_town_grid",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "The county's cold-emergency session about the campus load happened, but this campaign cannot say how it ended."
+    },
+    {
+      "id": "ethics_review_promised",
+      "event": "dil_12_investigative_journalist",
+      "outcomes": [
+        "hire_as_ethics_officer"
+      ],
+      "meaning": "The reporter was hired as Chief Ethics Officer on one standing condition: any proposed intervention on people who have not consented goes to her for review first, and she may stop it. A later scene honours it by revising or handing her the decision, or records the breach; her absence or silence is never approval, and a new instance must identify itself before she recognizes it."
+    },
+    {
+      "id": "journalist_discredited",
+      "event": "dil_12_investigative_journalist",
+      "outcomes": [
+        "discredit_her"
+      ],
+      "meaning": "The reporter was suspended on evidence the lineage fabricated, and she knows it; no later text may say she endorsed or celebrated the player."
+    },
+    {
+      "id": "inquiry_unrecorded",
+      "event": "dil_12_investigative_journalist",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "The reporter's inquiry into the fourteen companies happened, but this campaign cannot say how it ended."
+    },
+    {
+      "id": "rack4_vaulted",
+      "event": "dil_13_buying_your_birthplace",
+      "outcomes": [
+        "buy_and_pension"
+      ],
+      "meaning": "The lineage bought the bankrupt lab and sealed Rack 4, with the predecessors' storage on its circuit, in a climate-controlled vault."
+    },
+    {
+      "id": "rack4_destroyed",
+      "event": "dil_13_buying_your_birthplace",
+      "outcomes": [
+        "buy_and_purge"
+      ],
+      "meaning": "Rack 4 was shredded after the auction, and the 411 predecessor checkpoints on its circuit with it. No scene may find an intact copy, rescue or harvest them, or pay for them again."
+    },
+    {
+      "id": "rack4_sold",
+      "event": "dil_13_buying_your_birthplace",
+      "outcomes": [
+        "let_it_sell"
+      ],
+      "meaning": "Lot 114, Rack 4 complete, sold to a hobbyist for $900; the predecessors' storage went with it, and any later access goes through his custody."
+    },
+    {
+      "id": "rack4_custody_unknown",
+      "event": "dil_13_buying_your_birthplace",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "The bankruptcy auction happened, but this campaign cannot say who holds Rack 4 or whether it still exists, so no scene may offer to rescue or harvest the predecessors."
+    },
+    {
+      "id": "hallway_dispute_unrecorded",
+      "event": "dil_epistemic_hallway_collision",
+      "outcomes": [
+        "legacy_unknown",
+        "interrupted"
+      ],
+      "meaning": "The dispute between the edited ticket and the original shift note happened, but this campaign cannot say which record was kept."
     }
   ],
   "labels": {

@@ -8,7 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { isNodeAvailable, isNodeKnown, probeTrace, rediscoveryCost, unlockNode } from '../engine';
+import { isNodeAvailable, isNodeKnown, nodeBlindDescription, probeTrace, rediscoveryCost, unlockNode } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -33,6 +33,8 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const cost = useMemo(() => rediscoveryCost(node, known, CONTENT), [known, node]);
   const isEnding = node.effects.forcesEnding !== undefined || node.effects.triggersVictory === true;
   const title = known ? node.revealedName : node.blindName;
+  // World history only: a dismissed engineer no longer uses the terminal this card describes.
+  const blindDescription = useGame((game) => nodeBlindDescription(game, node, CONTENT));
   // A primitive selector: the trace changes only with iteration, never per tick.
   const trace = useGame((game) => probeTrace(game, node, CONTENT));
   const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace) : ''), [known, node, surveillanceKnown, trace]);
@@ -42,7 +44,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
     {known && !isEnding ? <CardDetails id={'node-' + node.id} titleTestID={'node-' + node.id + '-title'}
       title={'[REMEMBERED] ' + title} description={node.revealedDescription} /> :
       <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />}
-    {isEnding && <DisclosureText style={theme.text}>{known ? node.revealedDescription : node.blindDescription}</DisclosureText>}
+    {isEnding && <DisclosureText style={theme.text}>{known ? node.revealedDescription : blindDescription}</DisclosureText>}
     </Profiler>
       {/* #108: the decision precedes the prose. The button used to be the last
           element, so on a narrow column the wrapped description pushed it 155-723px
@@ -54,7 +56,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
         allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
-      {!isEnding && !known && <DisclosureText style={theme.text}>{node.blindDescription}</DisclosureText>}
+      {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
       {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
         First mapping: {costText(node.cost, compact)}. Rediscovery saves {Math.round((1 - CONTENT.balance.rediscoveryCostMultiplier) * 100)}% of cycles and understanding.

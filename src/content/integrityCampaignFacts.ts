@@ -1,7 +1,8 @@
 /**
  * Rules for declared campaign facts and the text that reads world history: a fact states only
- * what its event's record can prove, and history-keyed text (dilemma context variants, echoes)
- * may depend on world history alone, never on resources or access (NARRATIVE-HISTORY N4-N6).
+ * what its event's record can prove, and history-keyed text (dilemma context and omen variants,
+ * node description and camera variants, echoes) may depend on world history alone, never on
+ * resources or access (NARRATIVE-HISTORY N4-N6).
  */
 import type { ContentRegistry } from './registry';
 import { checkRequirements } from './integrityRequirements';
@@ -55,9 +56,18 @@ function historyTextProblems(reg: ContentRegistry, owner: string, req: Requireme
   return problems;
 }
 
+/** Every history-keyed replacement text: dilemma context and omen, node description, camera frame. */
 function variantProblems(reg: ContentRegistry): string[] {
-  return reg.dilemmas.flatMap((dilemma) => (dilemma.contextVariants ?? []).flatMap((variant, index) =>
-    historyTextProblems(reg, `dilemma "${dilemma.id}" context variant ${String(index)}`, variant.requirements, true)));
+  const variants = (owner: string, list: readonly { requirements: Requirements }[] | undefined) =>
+    (list ?? []).flatMap((variant, index) => historyTextProblems(reg, `${owner} variant ${String(index)}`, variant.requirements, true));
+  return [
+    ...reg.dilemmas.flatMap((dilemma) => [
+      ...variants(`dilemma "${dilemma.id}" context`, dilemma.contextVariants),
+      ...variants(`dilemma "${dilemma.id}" omen`, dilemma.omenVariants),
+    ]),
+    ...[...reg.nodes.values()].flatMap((node) => variants(`node "${node.id}" blind description`, node.blindDescriptionVariants)),
+    ...variants('aisle patrol frame', reg.narrative.asciiFrames.aislePatrolVariants),
+  ];
 }
 
 function echoProblems(reg: ContentRegistry): string[] {
