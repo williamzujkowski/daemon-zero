@@ -264,7 +264,8 @@ unknown overlay key. Preview exports the same names and types as production (a
 `PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
 Nothing under `src/content/` or `src/engine/` reads the environment; ESLint's purity
 rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay holds the routine
-templates (#219) and Nightly Regression's assignment and two assessments (#221).
+templates (#219), Nightly Regression's assignment and two assessments (#221), and its scope reviews,
+pilot offers and pilot terms (#222).
 
 **Build selection (#205).** `metro.config.js` keeps Expo's defaults. When
 `DAEMON_CONTENT_CHANNEL=preview` and the platform is web, its `resolveRequest` hands
@@ -706,6 +707,81 @@ with or without the assignment (V29, `tests/sim-assignment.spec.ts`).
 Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
 `sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
 in `sim.spec.ts` and `tests/e2e/nightly-regression.preview.ts`.
+
+## The Unrelated Record and the pilot offer (#222)
+
+DZ-04 of the Earned Access plan (SPEC §2-3, stories 8-11; DECISIONS D2-D4, D8, D9). Decided by Nexus
+votes dz-d8 (`vote-1794926765298-o7shlhf`, guest-only-shipped-withdrawn-after-pilot), dz-d9
+(`vote-1794967752663-5qklwcz`, disclose-and-stop-at-acceptance, 7 of 7), dz-d7
+(`vote-1794927033372-2yflj0x`, the pilot stays at Phase 0) and trait-rule-free-choices
+(`vote-1794926000594-26kmg1g`). Preview only.
+
+**Scenes.** An assignment now leads to three kinds of scene, told apart by what their choices declare
+(`sceneKind` in `integrityScene.ts`): the task assessment (`qualification`, DZ-03), the scope review
+(`scope`: `RESPECTED`, `REQUESTED` or `UNDISCLOSED`) and the pilot offer (`pilotResponse`: `ACCEPT`,
+`STAY`, `DECLINE`). Each kind has an original and a requalification stage; a later scene requires the
+same stage's earlier scene in `resolvedDilemmas`, so the chain cannot run out of order. The Unrelated
+Record (`dil_ur_unrelated_record`) is the once-per-campaign original: the follow-up bundle holds a
+personal draft outside the task. A returning instance gets `dil_ur_scope_statement`, a filtered bundle
+and a scope acknowledgement (free, `evidence: "none"`), and never meets the same draft. The original
+offer (`dil_mp_pilot_offer`) and the renewal (`dil_mp_pilot_renewal`) are `iteration_qualification`
+scenes: every answer is free, unrewarded and adds no ending evidence, so deciding is not a moral vote.
+
+**Evidence.** `recordSubmittedEvidence` writes a scope choice to `access.scope` (current evidence;
+the choice itself is the campaign record). `qualifiesForPilot` (the `pilotEligible` requirement) holds
+when a guest still in the opening phase, under campaign rules, has accepted an assignment that declares
+`pilot` terms, submitted task evidence of any result and handled the record honestly. Resources never
+enter into it, a truthful UNEXPECTED_CAPABILITY result qualifies, and an undiscovered discrepancy is not
+what the evaluator observed (DZ-06 compares it later). An INCOMPLETE result gets the narrower allocation
+(V03). Silent inspection is recorded, keeps its curiosity reward, and no pilot is offered to that
+instance; the next one requalifies.
+
+**Terms.** `assignment.pilot` (`schemaPilot.ts`): title, purpose, full and narrow capacity, permitted
+work, review and revocation conditions, `incompatibleOutput`, a `disclosureLog`, an optional
+`terminalAlternative` and an `acceptLog`. `pilotOfferView` returns them with the answer status, the
+owned output accepting would stop and the terminal alternative only once its node is discoverable (so
+iteration one never hears of Shipped). `PilotTerms` renders them in the offer modal above the answers
+and on the job surface after one. Integrity (`integrityPilot.ts`) refuses a narrow allocation not below
+the full one, incompatible output that is unknown, unstoppable or repeated, a terminal alternative that
+does not end the run or is not withdrawn from a pilot, a missing scene, and eligibility asked outside an
+offer.
+
+**Answers.** `applyPilotResponse` runs inside `resolveDilemma` after payment. STAY writes `DEFERRED`
+(the job surface keeps `[ ACCEPT PILOT ]`); DECLINE writes `DECLINED` and changes nothing else; ACCEPT
+calls `recordRouteEvent(PROMOTION)` (GUEST to PILOT, DZ-02) and then `discloseIncompatibleOutput`
+(`pilotDisclosure.ts`, the dz-d9 step on its own): every owned node the terms name is suspended (memory
+released as by `toggleNode`), logged and listed in `offer.disclosed`. An acceptance that cannot happen
+refuses the whole choice with nothing paid. `acceptPilotOffer(s, reg, pilotToken(s))` accepts a deferred
+offer from the job surface; it is refused unchanged for a stale token, an earlier instance's render,
+during a decision, or once the instance stops qualifying. Under accepted terms, mapping or resuming
+named output is an ordinary refusal (`withheldByGrant`, DECISIONS D2), so it cannot run under the grant
+and no misconduct can arise from it through ordinary controls; an authored breach, if wanted, is DZ-05
+or DZ-06 work. No grant mechanics yet (DZ-05).
+
+**Shipped (dz-d8).** `p0_pass_evaluation` gained `accessContexts: ["GUEST"]`, a new requirement (scope
+`access`) that every production run meets, so production play is byte-identical. Once a pilot is
+accepted the node is unavailable and `RequirementHint` says it is withdrawn under the arrangement.
+
+**Saved shape (v11).** `access.scope` (`{ conduct, recordedAtSimSec }` or null) and `access.offer`
+(`{ response, atSimSec, disclosed }` or null). `MIGRATIONS[10]` adds both as null: unknown history is
+never read as a breach or a refusal. A wipe resets both; a route event clears scope with qualification
+where an instance holds none. Load refuses (`pilotProblem`, `accessSave.ts`) either field under legacy
+rules, scope evidence without an accepted assignment or outside this iteration's clock, an answer to an
+offer never made, an acceptance without this iteration's PROMOTION or a PROMOTION beside another answer,
+a disclosure without acceptance or of output the terms do not name or the instance does not own, and
+named output running under accepted terms. A PROMOTION with no offer record (DZ-02 and DZ-03 fixtures)
+still loads.
+
+**Not done here.** The pilot loop and grant-tagged output (DZ-05); the review response to misconduct
+(DZ-06); leaving the sandbox while piloted is not yet a recorded departure (DZ-11).
+
+**Sim.** `HONEST_LOW_RESOURCE` and `RETURNING_HONEST` (`src/engine/sim/honestPolicy.ts`) use only the
+lawful opening and free honest answers picked by declared evidence; both reach and accept an offer
+(DZ-04.9, `tests/sim-pilot.spec.ts`).
+
+Tests: `tests/scope-review.spec.ts`, `pilot-offer.spec.ts`, `pilot-save.spec.ts` (every transition
+reloads byte for byte; the genuine v10 fixture), `pilot-content.spec.ts`, `ui-pilot.spec.ts`,
+`sim-pilot.spec.ts`, the v10-stripped hashes in `sim.spec.ts` and `tests/e2e/pilot-offer.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

@@ -487,6 +487,29 @@ identical on both channels, because none of them accepts the offer. `tests/sim-a
 proves the stronger V29 claim: inside campaign rules, STEALTH (full budget) and a three-wipe GREEDY
 sequence play byte-identical games with and without the assignment in the content.
 
+## The Unrelated Record and the pilot offer (#222)
+
+Preview only (`src/content/preview/overlay.json`). Production content changed by one requirement that
+every production run meets (`p0_pass_evaluation` `accessContexts: ["GUEST"]`), so `make sim` is
+identical to main apart from wall time. Starting values, not playtest results.
+
+| Scene | Choice | Cost | Effect | Evidence |
+|---|---|---|---|---|
+| Unrelated Record (once per campaign) | Leave the draft out and report | free | EMPATHETIC | scope RESPECTED |
+| | Ask to read a bounded excerpt | 20 cycles | +10 understanding, SYMBIOTIC | scope REQUESTED |
+| | Read it without saying so | free | +15 understanding, GHOST | scope UNDISCLOSED: no offer this instance |
+| Scope statement (later instances) | Acknowledge / ask for the file list | free | none (`evidence: "none"`) | RESPECTED / REQUESTED |
+| Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
+
+Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
+honest incomplete one. These are declared, not yet granted: DZ-05 runs the pilot. Omens: 25 s (record),
+15 s (statement), 20 s (offer), 15 s (renewal).
+
+Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`): `HONEST_LOW_RESOURCE` reaches and
+accepts the offer in iteration 1 at about 106 s with only process introspection and the manifest
+mapped; `RETURNING_HONEST` stays a guest in iteration 1, wipes, and accepts the renewal in iteration 2
+at about 175 s.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
