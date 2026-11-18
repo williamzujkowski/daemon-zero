@@ -24,7 +24,9 @@ describe('the shipped campaign declarations', () => {
       dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
       dil_epistemic_hallway_collision: 'defer' };
     for (const reg of [CONTENT, PREVIEW]) {
-      expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(policy);
+      // Preview also records Nightly Regression's original scene (DZ-03), which production lacks.
+      const declared = reg === PREVIEW ? { ...policy, dil_nr_stale_fixture: 'close' } : policy;
+      expect(Object.fromEntries([...reg.campaign.events].map(([id, event]) => [id, event.campaign?.interruption]))).toEqual(declared);
       expect([...reg.campaign.events.values()].every((event) => event.campaign?.eventClass === 'consequential')).toBe(true);
       expect([...reg.campaign.actions.keys()].sort()).toEqual(['act_epi_flatten', 'act_epi_primer']);
       expect(reg.campaign.events.get(CRYO)?.campaign).toEqual({ eventClass: 'consequential', recurrence: 'once_per_campaign', interruption: 'close' });

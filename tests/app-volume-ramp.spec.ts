@@ -203,6 +203,23 @@ describe('volume ramp', () => {
     expect(levels).toEqual([0.5, 1]);
     expect(stop).toHaveBeenCalledOnce();
   });
+  // #244: a browser drops the interval ticks a busy main thread missed (Chromium measured: ticks
+  // at 25, 50, 75, then 256 and 275 ms after a 180 ms stall). A ramp counted in steps then
+  // stretches by the stall and still moves one step per tick, where one computed from elapsed
+  // time would jump the whole stall at once: an audible step on exactly the slow phone.
+  it('moves one step per tick however late the ticks come, so a stall stretches a ramp and never collapses it', () => {
+    const ticks: Array<() => void> = [];
+    const levels: number[] = [];
+    const ramp = new VolumeRamp((level) => { levels.push(level); }, undefined, { every: (_ms, tick) => { ticks.push(tick); return () => undefined; } });
+    ramp.to(1, 8 * RAMP_STEP_MS);
+    const tick = ticks[0];
+    if (!tick) throw new Error('No timer was started.');
+    // Fake timers model the browser's clock here: the gaps are the delays, and nothing fires twice.
+    for (const delayMs of [25, 25, 181, 19, 25, 300, 25, 25]) { vi.advanceTimersByTime(delayMs); tick(); }
+    expect(levels).toHaveLength(8);
+    levels.forEach((level, index) => { expect(level, 'step ' + String(index + 1) + ' of 8').toBeCloseTo((index + 1) / 8, 10); });
+  });
+
   it('holds a gated ramp at its start until the gate opens, then takes the whole ramp from there', () => {
     const { ramp, levels } = recording(0);
     let flowing = false;

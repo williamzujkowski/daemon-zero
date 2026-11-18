@@ -13,7 +13,7 @@ import tracks from '../../assets/audio/music/tracks.json';
 import { align, correlation, mono, rms, toDb, type Samples } from '../audio/dsp';
 import { expect, test } from './helpers';
 import { isScore as music, PHASE_FIXTURES, LEVEL, report, startScore } from './signalMeasure';
-import { assetPath, captured, reference, SAMPLE_RATE, serveByteRanges, signalFrame } from './signalTap';
+import { assetPath, captured, reference, SAMPLE_RATE, serveByteRanges, settle, signalFrame } from './signalTap';
 
 interface Seekable { __signalTap: { taps: { element: { currentTime: number; duration: number } | null }[] } }
 
@@ -60,7 +60,7 @@ for (const track of tracks) test('phase ' + String(track.phase) + ' loop seam, a
   // A seek lands on a frame boundary near the target, and 100 ms then play.
   expect(landed, 'the seek reached the tail instead of snapping to the start').toBeGreaterThan(2);
   expect(landed).toBeLessThan(4);
-  await page.waitForTimeout(4400);
+  await settle(page, 4400);
   const score = (await captured(page, from)).elements.filter(music).at(-1);
   if (!score) throw new Error('No score was captured.');
   const signal = mono(score.left, score.right);

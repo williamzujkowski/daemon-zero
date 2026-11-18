@@ -108,3 +108,12 @@ Unique minds upgrade input (#215):
 `tests/minds-upgrade.spec.ts` loads it on the current preview registry: the three events get legacy
 completions, ending evidence matches the content before the conversion, the unknown EIDOLON fate keeps
 the MOLOCH fallback, the crises never recur after wipes, and reload and reimport are no-ops.
+
+Accepted-assignment input (#221):
+- `pre-assignment-v9.json`: genuine version 9 codec output from `9c7f668` (main before v10), from
+  source extracted by `git archive` outside the repository: preview registry, `activateCampaignRules`,
+  the STEALTH bot and fixed ticks for 120 s, then `recordRouteEvent` (`PROMOTION`) and
+  `recordQualification` (`INCOMPLETE`), 30 more seconds, `serialize`. A preview PILOT with evidence,
+  so the v10 step must keep every access field and add only a null acceptance. SHA256:
+  `63190f30dd8db30d7b174a61658879874004d12d5d3ac4f8c4cbf9aa82a5e70a`.
+  `tests/assignment-save.spec.ts` loads it in preview; production refuses it.

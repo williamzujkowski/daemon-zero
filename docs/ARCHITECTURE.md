@@ -76,6 +76,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `integrity.ts` - cross-file checks: prerequisite graph (unknown ids, cycles, reachability, phase order), every id reference, widget ids, actuator hosts (below), the dilemma soft-lock rule, phase openers, victory node, default ending.
 - `registry.ts` - `buildRegistry(raw)` returns an indexed `ContentRegistry` or throws `ContentError` listing every problem. The registry carries its `channel` (`production` or `preview`, `schemaChannel.ts`) and a `campaign` index (once-per-campaign events, campaign-evidence actions, id aliases, retired ids).
 - `schemaRoutine.ts`, `integrityRoutine.ts`, `data/routines.json` - routine operation templates (production ships none). See [Routine activity](#routine-activity-219).
+- `schemaAssignment.ts`, `schemaAssessment.ts`, `integrityAssignment.ts`, `data/assignments.json` - assigned work and its assessment evidence (production ships none). See [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221).
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `RAW_CONTENT` and `CONTENT` with channel `production`.
@@ -92,6 +93,7 @@ Only `production.ts` and `preview/` import content JSON.
 | Repeatable | `repeatables.json` | Levelled purchase with geometric cost. `kind: UPGRADE` (incremental growth) or `OPERATIVE` (human payroll, dismissable). |
 | Action | `actions.json` | Instant, repeatable, optional cooldown. Faction interactions and corporate operations. |
 | Dilemma | `dilemmas.json` | Clock-freezing choice. `trigger` is a `Requirements` block; each choice has a cost and an `EffectPayload` that grants a trait (or, in a review, receipt or requalification event, a free choice may declare `evidence: "none"`). A choice may carry a campaign-fact gate (`requirements`), and the omen and context may carry history-keyed variants. An optional `campaign` declaration converts it to a campaign record. |
+| Assignment | `assignments.json` | Work an instance may accept from the job surface; its assessments are dilemmas gated on `assignment` whose choices declare `qualification` (preview only). |
 | Faction | `factions.json` | Other AIs. Trust is stored per faction and used in `requirements.minTrust`. |
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
 | Ending | `endings.json` | Chosen at victory from the player's most frequent trait. |
@@ -116,6 +118,7 @@ Public API is `src/engine/index.ts`.
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
+| `assignment.ts`, `assignmentQuery.ts` | Assigned work: `acceptAssignment`, `assignmentView`, the stage an acceptance leads to, submitted evidence and the load check (#221). |
 | `campaign*.ts` | Campaign records: `campaignState.ts` (saved shape), `campaignQuery.ts` (shared reads, occurrence status, ending evidence), `campaign.ts` (activation, record writes, evidence), `campaignLifecycle.ts` (reserve, revalidate, interrupt, resume, wipe carry-over), `campaignClue.ts` (pinned clue, reorientation), `campaignSave.ts` (load checks). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy. |
@@ -201,11 +204,13 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema`, the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v9; `tests/fixtures/` holds genuine v1-v8 codec outputs.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v10; `tests/fixtures/` holds genuine v1-v9 codec outputs.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
 **Convert a dilemma to a campaign record.** Give it a `campaign` declaration (class, recurrence, interruption; a `defer` event also declares `reorientation` and `lead`). Its outcome flags must have one owner and, if there are several, form one exclusive group. Integrity rejects anything else. Production behaviour does not change until campaign rules are activated.
+
+**Add an assignment.** In the overlay, add an `assignments` entry and two dilemmas gated on it, an `original` and a `requalification`; see [Nightly Regression](#nightly-regression-assigned-work-and-assessment-evidence-221) for the rules integrity enforces.
 
 **Add unfinished content.** Put it in `src/content/preview/overlay.json`, not `data/`. The overlay may only add items; production stays playable and unchanged without it.
 
@@ -260,8 +265,8 @@ unknown overlay key. Preview exports the same names and types as production (a
 `satisfies` check fails to compile otherwise), plus `PREVIEW_OVERLAY` and
 `PREVIEW_SENTINEL`, a string that appears in a bundle only if the overlay does.
 Nothing under `src/content/` or `src/engine/` reads the environment; ESLint's purity
-rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay is empty today
-apart from its sentinel.
+rule bans `process.env` there (`tests/purity-lint.spec.ts`). The overlay holds the routine
+templates (#219) and Nightly Regression's assignment and two assessments (#221).
 
 **Build selection (#205).** `metro.config.js` keeps Expo's defaults. When
 `DAEMON_CONTENT_CHANNEL=preview` and the platform is web, its `resolveRequest` hands
@@ -677,8 +682,8 @@ and verdicts.
 PILOT: plus loaned capacity; SERVICE: plus authorized network; INDEPENDENT: nothing granted),
 less what the standing withholds (RESTRICTED: network; RECALL_PENDING: loaned capacity and
 network), plus an unexpired exception's scope, which may restore a withheld use but never one
-the context lacks. `isPermitted` wraps it. Nothing consumes it yet; DZ-05 and DZ-07 gate
-output and actions through it, not through a second check.
+the context lacks. `isPermitted` wraps it. The assignment offer (#221) is its first consumer
+(`ASSIGNED_WORK`); DZ-05 and DZ-07 gate output and actions through it, not through a second check.
 
 **Transitions.** `src/engine/access.ts` (`recordRouteEvent`, `setReviewStanding`,
 `grantAccessException`, `recordQualification`) returns a whole new state or refuses with the
@@ -716,6 +721,57 @@ Tests: `tests/access-record.spec.ts`, `access-save.spec.ts` (v1-v8 fixtures, V12
 `access-roundtrip.spec.ts` (every transition from every reachable access shape reloads unchanged),
 `app-access-reset.spec.ts`, `ui-run-context.spec.ts`, and the v9-stripped sim hashes in
 `sim.spec.ts`.
+
+## Nightly Regression: assigned work and assessment evidence (#221)
+
+DZ-03 of the Earned Access plan (DECISIONS D1-D4, D9; NARRATIVE-HISTORY N12). Decided by Nexus votes
+dz-d3 (`vote-1794926533352-3ajggfh`, engine-action-from-manifest; `phase0-node-card` would be bought
+by the sim bot, `offering-dilemma` would fire modally for everyone) and trait-rule-free-choices
+(`vote-1794926000594-26kmg1g`); the evidence split follows nh-d1 and dz-d1. Preview only.
+
+**Content.** `assignments.json` (production: empty) and the overlay's `assignments` declare an `asg_`
+id, a title, `requirements` for where the offer is found (Nightly Regression: the job manifest, so
+the lawful opening suffices), an `offer`, a `requalificationOffer` and an `acceptLog`. An assessment
+is a dilemma whose trigger has `assignment: { id, stage }` (`original` or `requalification`, `access`
+scope) and whose every choice declares `qualification: { result, discrepancy }`.
+`integrityAssignment.ts` requires one original (once per campaign, `close`) and one requalification
+(`iteration_qualification`) per assignment, evidence on every assessment choice and nowhere else, a
+free choice reporting the work incomplete without a discrepancy, no discrepancy on
+`UNEXPECTED_CAPABILITY`, no reward or outcome flag on a requalification, and valid offer requirements.
+
+**Accepting.** `acceptAssignment(s, id, reg, offerToken(s, id))` is free and once per instance. It
+is refused, state unchanged, after the run ends, during a presentation, without campaign rules (so
+in production), for an unknown id, a token from another instance, a second acceptance, or an offer
+not shown (requirements unmet or no `ASSIGNED_WORK`). It writes `access.assignment` and logs. It
+schedules nothing itself: the trigger now holds, so the ordinary scheduler logs the omen and the
+assessment freezes the clock when it arrives. An ignored offer changes nothing.
+
+**Stage.** `assessmentStage` reads the original's campaign record: none, or one begun in this
+iteration, means the original; one from an earlier instance, resolved or interrupted, means the
+requalification. So the original happens once per campaign, a wipe during its omen closes it with
+no outcome, and the instance that lived it never sees the requalification.
+
+**Evidence.** Resolving an assessment choice writes the campaign record (the original's outcome is
+the choice id) and, through `recordSubmittedEvidence`, `access.qualification` from the declared
+evidence: what happened is history; what this instance submitted is current evidence and resets
+with it. Choices and numbers are in BALANCE.md. Requalification traits are operational, so routine
+qualification adds no permanent ending evidence and never repays the original.
+
+**Saved shape (v10).** `access.assignment` is `{ id, acceptedAtSimSec }` or null; `MIGRATIONS[9]`
+adds null. A route event keeps it. Load refuses an acceptance under legacy rules, outside this
+iteration's clock or for an unknown id, and an assessment on screen or pending that this instance
+did not accept (`assignmentProblem`).
+
+**Presentation.** `assignmentView` (status, stage text, token, evidence) feeds `AssignmentPanel` in
+the core pane: non-modal, an explicit `[ ACCEPT ASSIGNMENT ]`, nothing in production.
+`DilemmaModal` adds an evidence line per choice naming any discrepancy risk (`evidenceText.ts`).
+
+**Sim.** STEALTH, GREEDY and IDLE never accept and, inside campaign rules, play identical games
+with or without the assignment (V29, `tests/sim-assignment.spec.ts`).
+
+Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
+`sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
+in `sim.spec.ts` and `tests/e2e/nightly-regression.preview.ts`.
 
 ## Optional soundtrack foundation (#88)
 

@@ -15,7 +15,7 @@ const GOOD = {
 
 function problemsWith(...routines: unknown[]): string {
   const overlay = parseOverlay({ sentinel: 'routine-content-probe-overlay', nodes: [], repeatables: [], actions: [], dilemmas: [],
-    factions: [], widgets: [], endings: [], echoes: [], marks: [], routines });
+    factions: [], widgets: [], endings: [], echoes: [], marks: [], routines, assignments: [] });
   try {
     buildRegistry({ ...applyOverlay(PRODUCTION_RAW, overlay), channel: 'preview' });
   } catch (error) {

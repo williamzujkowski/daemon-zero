@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
 import { accessProblem } from './accessSave';
+import { assignmentProblem } from './assignment';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -75,6 +76,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     return { ...save, access: { context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null },
       campaign: { ...campaign, route: [] }, legacy: { ...legacy, runs } };
   },
+  // v10: the assignment an instance explicitly accepted (DZ-03, nexus vote dz-d3). No earlier build
+  // offered one, so nothing was accepted; every other access field is kept as it was.
+  9: (save) => ({ ...save, access: { ...(isRecord(save.access) ? save.access : {}), assignment: null } }),
 };
 
 export class SaveError extends Error {
@@ -211,7 +215,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
-  const access = accessProblem(campaign);
+  const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg);
   if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);

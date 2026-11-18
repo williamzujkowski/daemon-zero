@@ -9,6 +9,7 @@ import * as S from './schema';
 import { CampaignManifestSchema, type CampaignFact, type CampaignLabels, type CampaignManifest } from './schemaCampaign';
 import { ContentChannelSchema, type ContentChannel } from './schemaChannel';
 import { RoutinesManifestSchema, type RoutineTemplate } from './schemaRoutine';
+import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
@@ -51,6 +52,8 @@ export interface ContentRegistry {
   campaign: CampaignIndex;
   /** Routine operation templates in authoring order (#219). Production ships none. */
   routines: readonly RoutineTemplate[];
+  /** Assigned work an instance may accept (DZ-03), by id. Production ships none. */
+  assignments: ReadonlyMap<string, Assignment>;
 }
 
 export interface RawContent {
@@ -70,6 +73,7 @@ export interface RawContent {
   lineage: unknown;
   campaign: unknown;
   routines: unknown;
+  assignments: unknown;
 }
 
 export class ContentError extends Error {
@@ -158,7 +162,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const lineage = parse(S.LineageSchema, raw.lineage, 'lineage', problems);
   const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
   const routines = parse(RoutinesManifestSchema, raw.routines, 'routines', problems);
-  if (!campaign || !routines) return null;
+  const assignments = parse(AssignmentsManifestSchema, raw.assignments, 'assignments', problems);
+  if (!campaign || !routines || !assignments) return null;
   if (!channel || !swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -184,6 +189,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     lineage,
     campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
     routines: routines.routines,
+    assignments: toMap(assignments.assignments, 'assignments', problems),
   };
 }
 

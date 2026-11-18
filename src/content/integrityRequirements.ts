@@ -46,6 +46,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
     if (!reg.factions.has(id)) problems.push(`${owner}: requirement references unknown faction "${id}"`);
   }
   if (req.campaignOutcome) problems.push(...checkCampaignOutcome(reg, owner, req.campaignOutcome));
+  if (req.assignment && !reg.assignments.has(req.assignment.id)) problems.push(`${owner}: requirement references unknown assignment "${req.assignment.id}"`);
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));
   return problems;

@@ -9,10 +9,14 @@
  * without that control none of the level measurements would mean anything.
  *
  * Time: the context runs on the audio clock whatever the Playwright page clock is doing, and all
- * taps share its frame counter, so two captures are aligned to the sample.
+ * taps share its frame counter, so two captures are aligned to the sample. That clock is not the
+ * wall clock the app writes its ramps on: while the output stops pulling (an audio device, or
+ * headless Chromium's fake output thread starved of CPU on a loaded CI runner) time passes and no
+ * samples are made (#244). So every quantum also carries when it was rendered, and waits for
+ * samples are counted in samples (`settle`).
  */
 import path from 'node:path';
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export const SAMPLE_RATE = 48_000;
 const ASSETS = path.resolve(__dirname, '../../assets');
@@ -40,11 +44,14 @@ export interface Capture {
   /** Where the element was in its file when its first non-zero sample arrived. */
   audible: { frame: number; mediaSeconds: number } | null;
 }
-export interface Captured { frame: number; mix: Capture; elements: Capture[] }
+/** When each quantum of a capture was rendered, in ms of the render thread's wall clock (null if
+ *  no tap reported it): `ms[i]` is the quantum that starts at frame `from + 128 * i`. */
+export interface RenderedAt { from: number; ms: (number | null)[] }
+export interface Captured { frame: number; mix: Capture; elements: Capture[]; renderedAt: RenderedAt }
 
 /** The project compiles without the DOM library, so the few Web Audio shapes used are named here. */
 interface Node_ { connect(target: unknown): void }
-interface Quantum { frame: number; left?: Float32Array; right?: Float32Array }
+interface Quantum { frame: number; wall: number; left?: Float32Array; right?: Float32Array }
 interface Decoded { sampleRate: number; length: number; numberOfChannels: number; getChannelData(channel: number): Float32Array }
 interface Context {
   sampleRate: number; currentTime: number; state: string; destination: unknown;
@@ -74,9 +81,11 @@ export async function installSignalTap(page: Page): Promise<void> {
   await page.addInitScript((rate) => {
     const browser = globalThis as unknown as Browser;
     const context = new browser.AudioContext({ sampleRate: rate });
-    const processor = 'class Tap extends AudioWorkletProcessor { process(inputs) { const input = inputs[0];'
-      + ' if (input.length === 0) this.port.postMessage({ frame: currentFrame });'
-      + ' else this.port.postMessage({ frame: currentFrame, left: input[0].slice(), right: (input[1] || input[0]).slice() });'
+    // `wall` is read on the render thread as the quantum is made. The worklet scope has no
+    // `performance`, so it is Date.now(): whole milliseconds, ample against 25 ms ramp steps.
+    const processor = 'class Tap extends AudioWorkletProcessor { process(inputs) { const input = inputs[0]; const wall = Date.now();'
+      + ' if (input.length === 0) this.port.postMessage({ frame: currentFrame, wall });'
+      + ' else this.port.postMessage({ frame: currentFrame, wall, left: input[0].slice(), right: (input[1] || input[0]).slice() });'
       + ' return true; } } registerProcessor("signal-tap", Tap);';
     const ready = context.audioWorklet.addModule(browser.URL.createObjectURL(new browser.Blob([processor], { type: 'application/javascript' })));
     const bus = context.createGain();
@@ -153,6 +162,18 @@ export async function signalFrame(page: Page): Promise<number> {
   });
 }
 
+/**
+ * Wait `ms`, then until the context has also rendered `ms` of samples since the call. A wait for
+ * samples to exist is counted in samples: a stalled output renders less than the wall time that
+ * passed, and a capture taken after a wall-clock wait would then be short of what it measures.
+ */
+export async function settle(page: Page, ms: number): Promise<void> {
+  const from = await signalFrame(page);
+  await page.waitForTimeout(ms);
+  await expect.poll(async () => await signalFrame(page) - from, { message: 'the output renders ' + String(ms) + ' ms of samples', timeout: 10_000 + ms })
+    .toBeGreaterThanOrEqual(Math.round(ms / 1000 * SAMPLE_RATE));
+}
+
 /** How many tapped elements of a kind (a path fragment such as `/voice/`) are playing now. */
 export async function playing(page: Page, kind: string): Promise<number> {
   return page.evaluate((fragment) => (globalThis as unknown as Browser).__signalTap.taps
@@ -192,10 +213,14 @@ export async function captured(page: Page, fromFrame = 0): Promise<Captured> {
       }
       return { source: record.source, startFrame: start, left: encode(left), right: encode(right), quanta: quanta.length, audible: record.audible };
     };
-    return { frame, mix: flatten(mix), elements: taps.map(flatten) };
+    // The bus tap reports every quantum the context renders, so its stamps are the render clock.
+    const first = Math.floor(start / 128) * 128;
+    const ms: (number | null)[] = Array.from({ length: Math.ceil((end - first) / 128) }, () => null);
+    for (const quantum of reported) if (quantum.frame >= first && quantum.frame < end) ms[Math.floor((quantum.frame - first) / 128)] = quantum.wall;
+    return { frame, mix: flatten(mix), elements: taps.map(flatten), renderedAt: { from: first, ms } };
   }, fromFrame);
   const decode = (item: typeof raw.mix): Capture => ({ ...item, left: floats(item.left), right: floats(item.right) });
-  return { frame: raw.frame, mix: decode(raw.mix), elements: raw.elements.map(decode) };
+  return { frame: raw.frame, mix: decode(raw.mix), elements: raw.elements.map(decode), renderedAt: raw.renderedAt };
 }
 
 /** The committed file behind a served asset URL, as a path under `assets/`. */

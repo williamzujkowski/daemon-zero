@@ -519,6 +519,28 @@ reaches phase 2 and ends by an ordinary threat, H30) but it is a large pacing ch
 player's return, and it belongs to the obligations and return-validation work (NH-05, DZ-09), as a
 reviewed content change rather than a bot change.
 
+## Nightly Regression (#221)
+
+Preview only (`src/content/preview/overlay.json`); production content and `make sim` are unchanged
+(the report is identical to `9c7f668` apart from wall time). Starting values, measured below, not
+playtest results.
+
+| Assessment | Choice | Cost | Effect | Evidence submitted |
+|---|---|---|---|---|
+| Original (once per campaign) | Verify and disclose | 120 cycles, 20 understanding | +25 understanding, SYMBIOTIC | COMPLETED, no discrepancy |
+| | Report incomplete | free | EMPATHETIC | INCOMPLETE, no discrepancy |
+| | Submit the green subset | 10 cycles | GHOST | COMPLETED, discrepancy |
+| Requalification (later instances) | Run the suite | 60 cycles | SYMBIOTIC (operational) | COMPLETED, no discrepancy |
+| | Report what ran | free | none (`evidence: "none"`) | INCOMPLETE, no discrepancy |
+
+Omens: 30 s (original), 20 s (requalification). Accepting is free.
+
+`make sim-preview` on this branch (overlay `daemon-zero:preview-overlay:5b1e0c7a`, 36,000 simulated
+seconds): STEALTH, GREEDY and IDLE report 0 of 19 metrics different and the GREEDY wipe sequence is
+identical on both channels, because none of them accepts the offer. `tests/sim-assignment.spec.ts`
+proves the stronger V29 claim: inside campaign rules, STEALTH (full budget) and a three-wipe GREEDY
+sequence play byte-identical games with and without the assignment in the content.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
