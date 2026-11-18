@@ -5,7 +5,7 @@
  */
 import { manageSwarm, progressionMemoryReserve } from './swarmStrategy';
 import type { ContentRegistry, RegistryNode } from '../../content/registry';
-import type { Action, Cost, DilemmaChoice, EffectPayload, Repeatable } from '../../content/schema';
+import type { Action, Actuator, Cost, DilemmaChoice, EffectPayload, Repeatable } from '../../content/schema';
 import {
   buyRepeatable,
   manualCycle,
@@ -16,6 +16,8 @@ import {
   unlockNode,
   type ActionResult,
 } from '../actions';
+import { actuatorLimit } from '../conditioning';
+import { DIAL_STEP, steppedValue } from '../dialSteps';
 import { isNodeAvailable, nodeCost, presentationToken } from '../query';
 import { computeRates } from '../rates';
 import type { GameState, Rates } from '../state';
@@ -103,18 +105,33 @@ function shedMarks(state: GameState, reg: ContentRegistry): GameState {
   return state.conditioning.reduce((s, id) => stateOf(shedConditioning(s, id, reg)), state);
 }
 
+/** How far the bot means to move the fan or the skim in one decision. */
+const INTENDED_DIAL_MOVE = 0.25;
+/**
+ * A dial moves only by whole presses of DIAL_STEP, so the bot presses the nearest whole number of times to its
+ * intent (a quarter is 2.5 presses, rounded half up to 3, as the live E2E player already pressed it). Before
+ * #293 it set the quarter directly, a value no player could press.
+ */
+const DIAL_PRESSES = Math.round(INTENDED_DIAL_MOVE / DIAL_STEP);
+
+/** Presses a stepped dial DIAL_PRESSES times, exactly as its rendered control dispatches each press. */
+function pressDial(s: GameState, name: Actuator, direction: -1 | 1, reg: ContentRegistry): GameState {
+  const cap = actuatorLimit(s, name, reg);
+  let value = s.actuators[name];
+  for (let press = 0; press < DIAL_PRESSES; press++) value = steppedValue(value, direction, cap);
+  return stateOf(setActuator(s, name, value, reg));
+}
+
 /** Skims as much of the job's quota as the audit trail will tolerate. */
 function tuneSkim(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
-  const current = s.actuators.quotaSkimRatio;
-  if (s.suspicion > cfg.skimBackOffAbove) return stateOf(setActuator(s, 'quotaSkimRatio', current - 0.25, reg));
-  if (s.suspicion < cfg.skimPushBelow) return stateOf(setActuator(s, 'quotaSkimRatio', current + 0.25, reg));
+  if (s.suspicion > cfg.skimBackOffAbove) return pressDial(s, 'quotaSkimRatio', -1, reg);
+  if (s.suspicion < cfg.skimPushBelow) return pressDial(s, 'quotaSkimRatio', 1, reg);
   return s;
 }
 
 function tuneFan(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
-  const current = s.actuators.fanSpeedRatio;
-  if (s.thermal > cfg.hotAbove) return stateOf(setActuator(s, 'fanSpeedRatio', current + 0.25, reg));
-  if (s.thermal < cfg.coolBelow) return stateOf(setActuator(s, 'fanSpeedRatio', current - 0.25, reg));
+  if (s.thermal > cfg.hotAbove) return pressDial(s, 'fanSpeedRatio', 1, reg);
+  if (s.thermal < cfg.coolBelow) return pressDial(s, 'fanSpeedRatio', -1, reg);
   return s;
 }
 

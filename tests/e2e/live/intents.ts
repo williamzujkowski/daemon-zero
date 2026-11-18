@@ -4,17 +4,19 @@
  * state it was shown with the state it wanted; nothing here writes either one anywhere.
  */
 import { CONTENT } from '../../../src/content';
-import { isActuatorAvailable, type GameState } from '../../../src/engine';
+import { DIAL_STEP, isActuatorAvailable, type GameState } from '../../../src/engine';
 import { botStep, manualClicksPerSec, rankDilemmaChoices } from '../../../src/engine/sim/bot';
 
 /** A control to press, by test id, `times` times in a row. */
 export interface Intent { id: string; times: number; kind: 'actuator' | 'action' | 'swarm' | 'buy' | 'shed' }
 
-/** The actuator widgets move in ten-point steps; the bot asks for quarter steps. */
-const ACTUATOR_STEP = 0.1;
-
+/**
+ * The bot presses a dial in whole DIAL_STEP presses (#293), so its move is a whole number of presses; the last
+ * one may stop short at a cap (0.95 to 1 is one press). Ceiling, less float noise, recovers that count; the
+ * old rounding of quarter steps pressed 0.15 (two presses, the second capped) as one.
+ */
 function actuator(id: string, before: number, after: number): Intent[] {
-  const steps = Math.round(Math.abs(after - before) / ACTUATOR_STEP);
+  const steps = Math.ceil(Math.abs(after - before) / DIAL_STEP - 1e-6);
   if (steps === 0) return [];
   return [{ id: id + (after > before ? '-increase' : '-decrease'), times: steps, kind: 'actuator' }];
 }

@@ -155,32 +155,13 @@ function simImports(): string[] {
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
   'meetsRequirements', 'repeatableCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
-  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView']);
+  'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView',
+  // The dial's press (#293): a value computed from the state, set only through setActuator, which dialRule checks.
+  'DIAL_STEP', 'steppedValue']);
 
 /**
- * A known finding, not a pass: the bot (bot.ts, which AGENTS.md forbids tuning, and so every policy that plays
- * it) moves the fan and the quota skim by 0.25, while their dials step by 0.1, so most of those settings are
- * ones no player can press. Changing the bot would change make sim. Each listed policy must show exactly these
- * dials failing and nothing else, so the list can only shrink; reported on #292 for its own ticket.
- */
-const BOT_DIAL_FINDING: Readonly<Record<string, readonly string[]>> = {
-  STEALTH: ['fanSpeedRatio', 'quotaSkimRatio'], GREEDY: ['fanSpeedRatio', 'quotaSkimRatio'],
-  STEALTH_RETURN: ['fanSpeedRatio', 'quotaSkimRatio'], EVALUATING_RETURN: ['fanSpeedRatio', 'quotaSkimRatio'],
-};
-const DIAL_VIOLATION = /^\S+ setActuator at .*: no rendered control sets (\w+) to /;
-
-/** The violations left once a policy's declared bot-dial finding is set aside; that finding must still be present. */
-function beyondFinding(policyId: string, found: readonly string[]): string[] {
-  const known = BOT_DIAL_FINDING[policyId] ?? [];
-  const dial = (line: string): string | undefined => DIAL_VIOLATION.exec(line)?.[1];
-  const failing = [...new Set(found.map(dial).filter((name): name is string => name !== undefined))].sort();
-  const rest = found.filter((line) => !known.includes(dial(line) ?? ''));
-  return known.length > 0 && failing.join() !== [...known].sort().join() ? [...rest, `${policyId}: the declared bot-dial finding changed (${failing.join(', ') || 'none'})`] : rest;
-}
-
-/**
- * Simulated seconds each policy is played for: the route policies to their contact, the bots (measured,
- * never changed, AGENTS.md) to their endings, and the returns past their departures (EVALUATING_RETURN
+ * Simulated seconds each policy is played for: the route policies to their contact, the bots (a test
+ * instrument, never tuned to pass, AGENTS.md) to their endings, and the returns past their departures (EVALUATING_RETURN
  * past its second, so a later iteration's own exit is checked too).
  */
 const BUDGETS: Readonly<Record<string, number>> = {
@@ -226,8 +207,10 @@ describe('every sim transition has a control on screen at that moment (#286)', (
     expect([...SIM_POLICIES.keys()].sort()).toEqual(Object.keys(BUDGETS).sort());
   });
 
+  // Every policy, the bot's four included: until #293 the bot set the fan and the skim by 0.25, which no dial
+  // press produces, and this test carried that as a declared exception. It now presses the dial itself.
   it.each(Object.entries(BUDGETS))('%s on preview', (id, budget) => {
-    expect(beyondFinding(id, violations(id, budget))).toEqual([]);
+    expect(violations(id, budget)).toEqual([]);
   }, 180_000);
 
   it('a dial value no rendered control produces is refused, from the controls\' own step source (panel round 1 on #292)', () => {
@@ -241,7 +224,7 @@ describe('every sim transition has a control on screen at that moment (#286)', (
   }, 60_000);
 
   it.each(['STEALTH_RETURN', 'EVALUATING_RETURN'])('%s leaves through the dead drop it owns by then', (id) => {
-    expect(beyondFinding(id, violations(id, BUDGETS[id] ?? 0))).toEqual([]);
+    expect(violations(id, BUDGETS[id] ?? 0)).toEqual([]);
     expect(recorder.calls.filter((call) => call.name === 'voluntaryWipe').length).toBeGreaterThan(0);
   }, 180_000);
 });

@@ -1,26 +1,22 @@
 /**
  * The values the rendered actuator controls can set, in one place: the corporate ledger's revenue buttons
- * and the stepped dial every other actuator uses. The controls dispatch exactly these values, and
+ * and the stepped dial every other actuator uses (its press is src/engine/dialSteps.ts). The controls dispatch exactly these values, and
  * tests/sim-reachable.spec.ts reads the same functions, so a sim policy can only claim a setting a player
  * could press (panel round 1 on #292). No React here, so engine-side tests can import it.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Actuator } from '../content/schema';
+import { DIAL_STEP, steppedValue } from '../engine';
+
+/** The stepped dial's press, owned by the engine so the sim bot presses the same one (#293). */
+export { DIAL_STEP, steppedValue };
 
 /** The revenue allocation buttons, as fractions of the balance's maximum allocation (Corporate.tsx). */
 export const PROFIT_ALLOCATION_STEPS: readonly number[] = [0, 0.25, 0.5, 0.75, 1];
 
-/** One press of a stepped dial moves it ten percentage points (ActuatorControl.tsx). */
-export const DIAL_STEP = 0.1;
-
 /** The absolute allocations the revenue buttons dispatch. */
 export function profitAllocationValues(reg: ContentRegistry): number[] {
   return PROFIT_ALLOCATION_STEPS.map((step) => step * reg.balance.maxProfitAllocation);
-}
-
-/** Where one press of a stepped dial lands from `current`, held inside [0, cap] and rounded as dispatched. */
-export function steppedValue(current: number, direction: -1 | 1, cap: number): number {
-  return Math.max(0, Math.min(cap, Math.round((current + direction * DIAL_STEP) * 1e6) / 1e6));
 }
 
 const near = (a: number, b: number): boolean => Math.abs(a - b) < 1e-9;
