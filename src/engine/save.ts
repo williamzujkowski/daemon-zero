@@ -9,12 +9,13 @@ import { accessProblem } from './accessSave';
 import { assignmentProblem } from './assignment';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
-import { hasConflictingNarrativeFlags, reconcileDilemmaHistory } from './narrativeHistory';
+import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
+const CONTRADICTION = 'save contains contradictory narrative outcomes';
 export type RawSave = Record<string, unknown>;
 export type Migration = (save: RawSave) => RawSave;
 
@@ -209,11 +210,14 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
   }, reg), reg);
+  // Checked on the flags as stored too: the campaign upgrade moves outcome flags into records, and
+  // must never consume the evidence of a contradiction before it is seen (#242 panel round 2).
+  if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
   const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg);
   if (access !== null) throw new SaveError(access);
-  if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError('save contains contradictory narrative outcomes');
+  if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);
 }
 

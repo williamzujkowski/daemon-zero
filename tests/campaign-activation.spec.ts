@@ -67,7 +67,10 @@ describe('old ambiguity versus contradiction (H10)', () => {
     const loaded = importSave(exportSave(old), preview);
     const active = reload(reload(activate(loaded)));
     expect(active.narrativeFlags).toEqual(ambiguous);
-    expect(Object.keys(active.campaign.events)).toEqual([cryo.id]);
+    // The ambiguous flags stay flags; only converted events the save resolved become records.
+    const converted = old.resolvedDilemmas.filter((id) => preview.campaign.events.has(id));
+    expect(Object.keys(active.campaign.events).sort()).toEqual(converted.sort());
+    expect(converted).toContain(cryo.id);
   });
 
   it('still refuses the old cryo contradiction atomically, on either channel', () => {
@@ -132,7 +135,7 @@ describe('inactive migration, legacy play, then activation (H36)', () => {
     expect(migrated).toMatchObject({ schemaVersion: 10, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
-    const incident = defined(preview.dilemmas.find((dilemma) => dilemma.phaseId === 0 && dilemma.campaign === undefined));
+    const incident = defined(preview.dilemmas.find((dilemma) => dilemma.campaign === undefined));
     const choice = defined(incident.choices.find((entry) => entry.cost.cycles === 0));
     const playedOn = must(choose({ ...wiped, activeDilemmaId: incident.id }, incident.id, choice.id, preview));
     expect(playedOn.traits).toEqual([choice.effects.grantsTrait]);

@@ -10,6 +10,14 @@ function checkCampaignOutcome(reg: ContentRegistry, owner: string, gate: Campaig
   return known ? [] : [`${owner}: campaignOutcome "${gate.outcome}" is not an outcome of "${gate.event}"`];
 }
 
+/** A fact gate names a declared fact, and never requires and forbids the same one. */
+function checkCampaignFacts(reg: ContentRegistry, owner: string, req: Requirements): string[] {
+  const named = [...(req.campaignFact === undefined ? [] : [req.campaignFact]), ...(req.forbidsCampaignFacts ?? [])];
+  const problems = named.filter((id) => !reg.campaign.facts.has(id)).map((id) => `${owner}: requirement references unknown campaign fact "${id}"`);
+  if (req.campaignFact !== undefined && req.forbidsCampaignFacts?.includes(req.campaignFact)) problems.push(`${owner}: requires and forbids campaign fact "${req.campaignFact}"`);
+  return problems;
+}
+
 export function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
@@ -26,6 +34,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   }
   if (req.campaignOutcome) problems.push(...checkCampaignOutcome(reg, owner, req.campaignOutcome));
   if (req.assignment && !reg.assignments.has(req.assignment.id)) problems.push(`${owner}: requirement references unknown assignment "${req.assignment.id}"`);
+  problems.push(...checkCampaignFacts(reg, owner, req));
   return problems;
 }
 

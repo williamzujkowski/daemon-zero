@@ -98,6 +98,10 @@ export const RequirementsSchema = z.strictObject({
   maxIteration: z.number().int().min(1).optional(),
   /** Met only under campaign rules, by a campaign record with exactly this outcome. */
   campaignOutcome: CampaignOutcomeRequirementSchema.optional(),
+  /** Met only under campaign rules, when this declared campaign fact holds. */
+  campaignFact: snakeId.optional(),
+  /** Blocks while any of these declared campaign facts holds. Under legacy rules none holds. */
+  forbidsCampaignFacts: z.array(snakeId).optional(),
   assignment: AssignmentRequirementSchema.optional(),
 });
 
@@ -231,6 +235,11 @@ export const DilemmaSchema = z.strictObject({
   omenSec: amount.optional(),
   context: z.string().min(20),
   choices: z.array(DilemmaChoiceSchema).min(2),
+  /**
+   * The context to show instead when established history says more (first match wins). Variants
+   * only read world history, never resources or access, so the text cannot change while it is on screen.
+   */
+  contextVariants: z.array(z.strictObject({ requirements: RequirementsSchema, context: z.string().min(20) })).optional(),
   /** Present once the dilemma is converted to a campaign record (see schemaCampaign.ts). */
   campaign: CampaignEventDeclarationSchema.optional(),
 });
@@ -269,6 +278,8 @@ export const EchoSchema = z.strictObject({
   id: snakeId,
   onNode: snakeId,
   minIteration: z.number().int().min(1),
+  /** World history the memory depends on: a voice that is no longer here is not recognized. */
+  requirements: RequirementsSchema.optional(),
   text: z.string().min(10),
 });
 

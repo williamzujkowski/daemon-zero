@@ -20,16 +20,19 @@ function checkGroups(reg: ContentRegistry): string[] {
 
 /**
  * A record states one outcome of its source: an outcome flag the source produces, or a campaign
- * outcome of the source event. The second is how a neutral record (legacy_unknown) is gated:
- * it must not claim either exact outcome, so it cannot carry an outcome flag.
+ * outcome of the source event, or a declared fact about the source event. The last two are how a
+ * neutral record (legacy_unknown, interrupted) is gated: it must not claim an exact outcome, so it
+ * cannot carry an outcome flag.
  */
-function checkRecordOutcome(record: ContentRegistry['narrative']['recordedTransmissions'][number], source: ContentRegistry['dilemmas'][number] | undefined): string[] {
+function checkRecordOutcome(reg: ContentRegistry, record: ContentRegistry['narrative']['recordedTransmissions'][number], source: ContentRegistry['dilemmas'][number] | undefined): string[] {
   const flag = record.requirements.requiredNarrativeFlag;
   const gate = record.requirements.campaignOutcome;
-  if ((flag === undefined) === (gate === undefined)) return [record.id + ': record needs one outcome gate, an outcome flag or a campaign outcome'];
+  const fact = record.requirements.campaignFact;
+  if ([flag, gate, fact].filter((entry) => entry !== undefined).length !== 1) return [record.id + ': record needs one outcome gate, an outcome flag, a campaign outcome or a campaign fact'];
   if (!source) return [];
   if (flag !== undefined && !source.choices.some((choice) => choice.effects.setsNarrativeFlag === flag)) return [record.id + ': outcome is not produced by source'];
   if (gate !== undefined && gate.event !== source.id) return [record.id + ': campaign outcome is not the source event'];
+  if (fact !== undefined && reg.campaign.facts.get(fact)?.event !== source.id) return [record.id + ': campaign fact is not about the source event'];
   return [];
 }
 
@@ -46,7 +49,7 @@ function checkSpeech(reg: ContentRegistry): string[] {
     const source = reg.dilemmas.find((dilemma) => dilemma.id === record.sourceDilemmaId);
     if (!source) errors.push(record.id + ': unknown source dilemma');
     else if ((record.requirements.phaseAtLeast ?? 0) < source.phaseId) errors.push(record.id + ': record reveals an earlier phase');
-    errors.push(...checkRecordOutcome(record, source));
+    errors.push(...checkRecordOutcome(reg, record, source));
     if ((record.requirements.minIteration ?? 1) < 2) errors.push(record.id + ': record needs a return iteration gate');
     if (!record.requirements.forbidsResolvedDilemmas?.includes(record.sourceDilemmaId)) errors.push(record.id + ': record needs a later-run source gate');
     const decoders = [...reg.nodes.values()].filter((node) => node.unlocksUiComponent === record.decoderWidgetId);

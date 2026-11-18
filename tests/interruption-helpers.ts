@@ -5,7 +5,7 @@
  */
 import type { ContentRegistry } from '../src/content/registry';
 import {
-  campaignRecord, deserialize, presentationToken, resolveDilemma, serialize, tick, wipe, type ActionResult, type GameState,
+  campaignRecord, deserialize, presentationToken, resolveDilemma, serialize, tick, wipe, type ActionResult, type CampaignRecord, type GameState,
 } from '../src/engine';
 import { activeGame, cryo, nearCryo, pgrant, preview } from './campaign-helpers';
 import { defined } from './m7-helpers';
@@ -78,6 +78,20 @@ export function stableThroughReloads(s: GameState, reg: ContentRegistry = previe
   const third = deserialize(serialize(second), reg);
   if (JSON.stringify(third) !== JSON.stringify(first) || JSON.stringify(second) !== JSON.stringify(first)) throw new Error('state changed across reloads');
   return first;
+}
+
+/**
+ * The campaign a state's save reloads to (stable through reloads), minus what the load upgrade adds
+ * for setup shortcuts. Setups here mark other dilemmas resolved this run to keep them out of the way;
+ * under campaign rules a campaign event resolved this run always has a record, so the codec records
+ * each such event as a legacy completion (the upgrade path for content that converted it later).
+ * Every record the state already had must come back unchanged.
+ */
+export function reloadedHistory(s: GameState, reg: ContentRegistry = preview): GameState['campaign'] {
+  const loaded = stableThroughReloads(s, reg).campaign;
+  const upgraded = (id: string, record: CampaignRecord): boolean =>
+    !Object.hasOwn(s.campaign.events, id) && record.status === 'resolved' && record.origin === 'legacy' && s.resolvedDilemmas.includes(id);
+  return { ...loaded, events: Object.fromEntries(Object.entries(loaded.events).filter(([id, record]) => !upgraded(id, record))) };
 }
 
 export const status = (s: GameState, id = note.id) => campaignRecord(s, id)?.status ?? null;

@@ -36,6 +36,8 @@ export const REQUIREMENT_SCOPES = {
   minIteration: 'window',
   maxIteration: 'window',
   campaignOutcome: 'context',
+  campaignFact: 'context',
+  forbidsCampaignFacts: 'context',
   // An accepted assignment is this instance's: a wipe resets it, so the occurrence it led to is interrupted.
   assignment: 'access',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
