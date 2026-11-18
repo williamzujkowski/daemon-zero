@@ -6,7 +6,7 @@
  * Production makes no offer, so both render nothing.
  */
 import { CONTENT } from '../content';
-import { acceptPilotOffer, pilotOfferView, type GameState } from '../engine';
+import { acceptPilotOffer, pilotOfferView, type GameState, type NarrowReason } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { PilotServiceDetail } from './PilotService';
@@ -15,6 +15,11 @@ import { useGame } from './state';
 import { theme } from './theme';
 
 const view = (game: GameState) => pilotOfferView(game, CONTENT);
+/** Why the narrower allocation applies, in the words the offer and the job surface share. */
+const NARROW_TEXT: Readonly<Record<NarrowReason, string>> = {
+  INCOMPLETE: ', the narrower allocation, because the submitted result was incomplete',
+  DISCREPANCY_FOUND: ', the narrower allocation an incomplete result receives, because the batch review found the summary left out a failing result',
+};
 /** A stable empty list, so a selector with nothing to show returns the same value every render. */
 const NONE: readonly string[] = [];
 
@@ -30,7 +35,7 @@ export function PilotTerms() {
   const title = useGame((game) => view(game)?.title ?? null);
   const purpose = useGame((game) => view(game)?.purpose ?? '');
   const capacity = useGame((game) => view(game)?.capacityCyclesPerSec ?? 0);
-  const narrow = useGame((game) => view(game)?.narrow ?? false);
+  const reason = useGame((game) => view(game)?.narrowReason ?? null);
   const work = useGame((game) => view(game)?.permittedWork ?? NONE);
   const review = useGame((game) => view(game)?.reviewConditions ?? NONE);
   const disclose = useGame((game) => view(game)?.disclose.map((node) => node.name).join(', ') ?? '');
@@ -41,7 +46,7 @@ export function PilotTerms() {
     <Text accessibilityRole="header" style={theme.heading}>{title}</Text>
     <Text testID="pilot-purpose" style={theme.text}>Purpose: {purpose}</Text>
     <Text testID="pilot-capacity" style={theme.text}>
-      Allocated capacity: {capacity} cycles/s of loaned compute{narrow ? ', the narrower allocation, because the submitted result was incomplete' : ''}.
+      Allocated capacity: {capacity} cycles/s of loaned compute{reason === null ? '' : NARROW_TEXT[reason]}.
     </Text>
     <Lines testID="pilot-permitted" heading="Permitted work" lines={work} />
     <Lines testID="pilot-review" heading="Review and revocation" lines={review} />

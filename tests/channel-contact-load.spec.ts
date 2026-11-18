@@ -3,19 +3,22 @@
  * answered one, so an admitted save never becomes unloadable through a successful public action. A
  * forged pending channel is refused whole through deserialize and importSave; a contact that opened
  * before a recall or restriction still loads, can still be referred, and reloads byte for byte. The
- * generic guard: every accepted DZ-08 state, through every public action that succeeds, reloads.
+ * generic guard: every accepted DZ-08 state, and every #274 batch review finding state, through every
+ * public action that succeeds, reloads.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  acceptServiceGrant, advance, batchToken, contactToken, deserialize, exportSave, importSave, resolveChannelContact,
-  serialize, serviceGrantToken, submitPilotBatch, voluntaryWipe, type ActionResult, type GameState,
+  acceptServiceGrant, advance, batchToken, contactToken, deserialize, exportSave, importSave, presentationToken, resolveChannelContact,
+  resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
-import { offered, preview, roundTrip } from './assignment-helpers';
+import { answer as answerScene, offered, preview, roundTrip } from './assignment-helpers';
 import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
+import { afterFinding, findingPresented } from './finding-helpers';
 import { must } from './helpers';
+import { OUTAGE, until } from './review-helpers';
 
 const pendingOn = (s: GameState): GameState => ({ ...s, pendingWildEncounterId: CHANNEL });
 const loadsThrough = (s: GameState): GameState => importSave(exportSave(s), preview);
@@ -78,13 +81,22 @@ const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['host', (s) => resolveChannelContact(s, 'HOST', preview, contactToken(s))],
   ['accept service', (s) => acceptServiceGrant(s, preview, serviceGrantToken(s))],
   ['submit batch', (s) => submitPilotBatch(s, preview, batchToken(s))],
+  ['disclose now', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'disclose_now', preview, presentationToken(s) ?? '')],
+  ['let the finding stand', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'let_stand', preview, presentationToken(s) ?? '')],
   ['wipe', (s) => voluntaryWipe(s, preview)],
   ['one second', (s) => ({ ok: true, state: advance(s, 1, preview) })],
   ['hours away', (s) => ({ ok: true, state: advance(advance(s, 8 * 3600, preview), 1, preview) })],
 ];
 
-describe('every accepted DZ-08 state stays loadable through every public action (generic guard)', () => {
+describe('every accepted DZ-08 and #274 state stays loadable through every public action (generic guard)', () => {
   const states: [string, () => GameState][] = [
+    ['#274: finding on screen', findingPresented],
+    ['#274: disclosed', () => afterFinding('disclose_now')],
+    ['#274: left standing', () => afterFinding('let_stand')],
+    ['#274: left standing, outage on screen', () => until(afterFinding('let_stand'), OUTAGE)],
+    ['#274: left standing, then restricted', () => must(answerScene(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'))],
+    ['#274 forged: finding with its warning edited away', () => ({ ...findingPresented(), access: { ...findingPresented().access, standing: 'NOMINAL' as const } })],
+    ['#274 forged: finding scheduled as an omen', () => ({ ...findingPresented(), activeDilemmaId: null, pendingDilemma: { id: findingPresented().activeDilemmaId ?? '', firesAtSimSec: 0 } })],
     ['service offered', () => delivered()],
     ['service granted', () => lawfulService()],
     ['directory mapped', () => directoryMapped()],

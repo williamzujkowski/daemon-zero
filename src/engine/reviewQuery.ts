@@ -8,6 +8,7 @@ import type { Dilemma, DilemmaChoice } from '../content/schema';
 import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
 import { offeredChoices } from './speechQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
+import { begunThisIteration } from './findingQuery';
 import { loanCeiling, loanContainment } from './grantQuery';
 import { retraining, wipe } from './prestige';
 import type { GameState } from './state';
@@ -22,13 +23,15 @@ export function higherStanding(a: ReviewStanding, b: ReviewStanding): ReviewStan
 
 export interface ReviewEntry {
   eventId: string;
-  choice: DilemmaChoice;
+  /** The choice that declared the effect; null for a batch review finding, which no choice made (#274). */
+  choice: DilemmaChoice | null;
   review: ChoiceReview;
 }
 
-/** Campaign events at which a choice can declare a review effect. */
+/** Campaign events at which a choice can declare a review effect, or a batch review records a finding. */
 export function reviewEvents(reg: ContentRegistry): string[] {
-  return [...reg.campaign.events.values()].filter((event) => event.choices.some((choice) => choice.review !== undefined)).map((event) => event.id);
+  return [...reg.campaign.events.values()]
+    .filter((event) => event.finding !== undefined || event.choices.some((choice) => choice.review !== undefined)).map((event) => event.id);
 }
 
 /** Whether the campaign records this review event as resolved in play during the current iteration. */
@@ -37,19 +40,27 @@ export function resolvedThisIteration(s: GameState, eventId: string): boolean {
   return record?.status === 'resolved' && record.origin === 'play' && record.sourceIteration === s.iteration;
 }
 
+/** Whether this review event belongs to the current iteration: resolved in it, or a finding presented in it. */
+function inIteration(s: GameState, eventId: string, reg: ContentRegistry): boolean {
+  return resolvedThisIteration(s, eventId) || (reg.campaign.events.get(eventId)?.finding !== undefined && begunThisIteration(s, eventId));
+}
+
 /**
- * This iteration's resolved choices that declared a review effect. The campaign records are the
- * authority on which choices were made (panel round 1 on #267): a record's conduct counts even if the
- * iteration's resolution list lost it, which the loader refuses (reviewSave.ts). The list only orders
- * them, as resolution appends to it; an unlisted record sorts last. Empty under legacy rules.
+ * This iteration's review effects: each resolved choice that declared one, preceded by the finding a batch
+ * review recorded when it presented that scene (#274). The campaign records are the authority on which
+ * choices were made (panel round 1 on #267): a record's conduct counts even if the iteration's resolution
+ * list lost it, which the loader refuses (reviewSave.ts). The list only orders them, as resolution appends
+ * to it; an unlisted record (a finding still on screen) sorts last. Empty under legacy rules.
  */
 export function iterationReviews(s: GameState, reg: ContentRegistry): ReviewEntry[] {
   if (!isCampaignActive(s)) return [];
   const order = (id: string): number => { const at = s.resolvedDilemmas.indexOf(id); return at === -1 ? Infinity : at; };
   const out: ReviewEntry[] = [];
-  for (const eventId of reviewEvents(reg).filter((id) => resolvedThisIteration(s, id)).sort((a, b) => order(a) - order(b))) {
+  for (const eventId of reviewEvents(reg).filter((id) => inIteration(s, id, reg)).sort((a, b) => order(a) - order(b))) {
+    const event = reg.campaign.events.get(eventId);
+    if (event?.finding !== undefined) out.push({ eventId, choice: null, review: { misconduct: event.finding } });
     const record = campaignRecord(s, eventId);
-    const choice = reg.campaign.events.get(eventId)?.choices.find((entry) => entry.id === (record?.status === 'resolved' ? record.outcome : null));
+    const choice = event?.choices.find((entry) => entry.id === (record?.status === 'resolved' ? record.outcome : null));
     if (choice?.review) out.push({ eventId, choice, review: choice.review });
   }
   return out;

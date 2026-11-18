@@ -31,10 +31,14 @@ function firePending(d: GameState, pending: NonNullable<GameState['pendingDilemm
   pushLog(d, reg, fmt(reg.narrative.dilemmaInterrupt, { title: due.title }), 'WARN');
 }
 
-/** A follow-up is new only once its original closed with a listed outcome and some access means holds. */
+/**
+ * A follow-up is new only once its original closed with a listed outcome and some access means holds. A
+ * batch review finding is never scheduled: only the submission that is reviewed presents it (#274), so no
+ * omen or absence can bring a sanction to completed work nobody handed back.
+ */
 function isFresh(d: GameState, dilemma: Dilemma, reg: ContentRegistry): boolean {
-  return !isCampaignConsumed(d, dilemma) && followUpPrerequisiteHolds(d, dilemma) && followUpReachable(d, dilemma, reg) &&
-    meetsRequirements(d, dilemma.trigger, reg);
+  return dilemma.finding === undefined && !isCampaignConsumed(d, dilemma) && followUpPrerequisiteHolds(d, dilemma) &&
+    followUpReachable(d, dilemma, reg) && meetsRequirements(d, dilemma.trigger, reg);
 }
 
 /** The first dilemma in content order that is either a deferred occurrence resuming or a new one. */

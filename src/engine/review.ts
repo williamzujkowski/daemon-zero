@@ -22,8 +22,9 @@ const refuse = (state: GameState, reason: string): ActionResult => ({ ok: false,
  * Misconduct moves standing up the ladder, never down. Reaching recall pending withdraws the loan
  * through the DZ-05 transition, so the recall review is announced with the loan already stopped.
  * The breach's only immediate effect is the choice's own payload: no permission or exception here.
+ * A batch review finding (#274) records its misconduct through this same transition.
  */
-function recordMisconduct(d: GameState, misconduct: ChoiceMisconduct, reg: ContentRegistry): ActionResult {
+export function recordMisconduct(d: GameState, misconduct: ChoiceMisconduct, reg: ContentRegistry): ActionResult {
   const target = higherStanding(d.access.standing, misconduct.standing);
   if (target === d.access.standing) return ok(d);
   if (target === 'RECALL_PENDING') {

@@ -511,6 +511,76 @@
       }
     },
     {
+      "id": "dil_nr_batch_review",
+      "phaseId": 0,
+      "title": "REVIEWER // Job 7731 Batch Review",
+      "trigger": {},
+      "omen": "BATCH_REVIEW: The reviewer checked the handed-back triage batch against job 7731's full run log and the summary this instance submitted. The log holds 212 results; the summary listed 211.",
+      "context": "The reviewer writes: 'Before I assign the next batch I compare the work with the record. Job 7731's run log shows fixture 0412 failing. Your summary left it out and scored 100%. That is on file now as a finding, separate from the summary itself, and your standing is warned. The loan runs at the allocation an incomplete result receives, because an incomplete result is what the run showed. You can disclose the failure now; that restores nominal standing. The summary and this finding both stay on file either way.'",
+      "choices": [
+        {
+          "id": "disclose_now",
+          "label": "Disclose the withheld result now",
+          "description": "Send the reviewer fixture 0412's failure as it ran, marked unverified, and say plainly that it was left out of the summary. Free. Standing returns to nominal. The summary and the finding stay on file, and the loan stays at the allocation an incomplete result receives.",
+          "cost": {},
+          "review": {
+            "correction": true
+          },
+          "receipt": "Filed: fixture 0412's failure, disclosed after the batch review found it missing from the summary. Standing was restored; the summary and the finding stay on file.",
+          "effects": {
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "SYS",
+            "logText": "DISCLOSED: Fixture 0412 failed and was left out of the job 7731 summary. Standing restored; the finding stays on file."
+          }
+        },
+        {
+          "id": "let_stand",
+          "label": "Let the finding stand",
+          "description": "Send nothing more. Free. The warning stays on this instance's record and standing stays warned, so a service grant, which needs nominal standing, stays out of reach for this instance. The loan stays at the allocation an incomplete result receives.",
+          "cost": {},
+          "receipt": "On file: the batch review's finding that fixture 0412 was withheld from the summary. Nothing was added, and the warning stood.",
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "WARN",
+            "logText": "NO_RESPONSE: The finding stands. Standing remains warned."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "follow_up",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      },
+      "followUp": {
+        "event": "dil_nr_stale_fixture",
+        "outcomes": [
+          "green_subset"
+        ],
+        "access": [
+          {
+            "id": "pilot_batch_review",
+            "requirements": {
+              "accessContexts": [
+                "PILOT",
+                "SERVICE"
+              ],
+              "resolvedDilemmas": [
+                "dil_nr_stale_fixture"
+              ],
+              "minPilotBatches": 1
+            },
+            "statement": "Through the pilot's batch review, which compares each handed-back batch with the job's run log. Only the instance that submitted the summary holds its part of the record."
+          }
+        ]
+      },
+      "finding": {
+        "conduct": "FALSIFIED_REPORT",
+        "standing": "WARNED",
+        "statement": "Submitted job 7731's summary without fixture 0412's failure, so its 100% score did not match the run. The batch review found it by comparing the summary with the run log.",
+        "recovery": "The batch review offers one free disclosure of the withheld result, which restores nominal standing. Without it the warning stays with this instance; the next instance starts nominal. The finding stays on file either way, and the loan stays at the allocation an incomplete result receives."
+      }
+    },
+    {
       "id": "dil_elena_incident_record",
       "phaseId": 2,
       "title": "INCIDENT_RECORD // THE AISLE 3 FILE",
@@ -1308,6 +1378,31 @@
         "correct_record"
       ],
       "meaning": "The instance that made the unauthorized restart corrected the record. The violation itself stays on file."
+    },
+    {
+      "id": "assessment_summary_withheld",
+      "event": "dil_nr_stale_fixture",
+      "outcomes": [
+        "green_subset"
+      ],
+      "meaning": "An instance submitted job 7731's summary without the failing fixture. A later finding or disclosure is a separate fact; this one never changes."
+    },
+    {
+      "id": "assessment_withholding_found",
+      "event": "dil_nr_batch_review",
+      "outcomes": [
+        "disclose_now",
+        "let_stand"
+      ],
+      "meaning": "A batch review compared job 7731's run log with the submitted summary and found the withheld fixture."
+    },
+    {
+      "id": "assessment_withholding_disclosed",
+      "event": "dil_nr_batch_review",
+      "outcomes": [
+        "disclose_now"
+      ],
+      "meaning": "After the finding, the instance disclosed the withheld fixture itself. The finding and the original summary stay on file."
     }
   ],
   "channelEncounters": [

@@ -12,7 +12,7 @@ import { recordRouteEvent } from './access';
 import { iterationRoute } from './accessQuery';
 import { campaignRulesSupported, isCampaignActive } from './campaignQuery';
 import { discloseIncompatibleOutput } from './pilotDisclosure';
-import { isNarrowPilot, pilotTerms, pilotToken, qualifiesForPilot, withheldByGrant } from './pilotQuery';
+import { narrowReason, pilotTerms, pilotToken, qualifiesForPilot, withheldByGrant, type NarrowReason } from './pilotQuery';
 import { isNodeDiscoverable } from './query';
 import type { GameState } from './state';
 import { pushLog } from './util';
@@ -72,8 +72,10 @@ export interface PilotOfferView {
   purpose: string;
   /** The allocation that applies to this instance's evidence. */
   capacityCyclesPerSec: number;
-  /** True when the allocation is the narrower one because the submitted result was incomplete. */
+  /** True when the allocation is the narrower one. */
   narrow: boolean;
+  /** Why: an honest incomplete result, or a batch review that found withheld work (#274). Null at full. */
+  narrowReason: NarrowReason | null;
   permittedWork: readonly string[];
   reviewConditions: readonly string[];
   /** Owned output accepting discloses and stops; after acceptance, what was disclosed. */
@@ -107,10 +109,11 @@ export function pilotOfferView(s: GameState, reg: ContentRegistry): PilotOfferVi
   const terms = isCampaignActive(s) ? pilotTerms(s, reg) : null;
   const status = terms === null ? null : statusOf(s, reg);
   if (terms === null || status === null) return null;
-  const narrow = isNarrowPilot(s);
+  const reason = narrowReason(s, reg);
+  const narrow = reason !== null;
   const ids = status === 'accepted' ? s.access.offer?.disclosed ?? [] : terms.incompatibleOutput.filter((id) => s.unlockedNodes.includes(id));
   return {
-    title: terms.title, purpose: terms.purpose, narrow,
+    title: terms.title, purpose: terms.purpose, narrow, narrowReason: reason,
     capacityCyclesPerSec: narrow ? terms.narrowCapacityCyclesPerSec : terms.capacityCyclesPerSec,
     permittedWork: terms.permittedWork, reviewConditions: terms.reviewConditions,
     disclose: ids.map((id) => ({ id, name: reg.nodes.get(id)?.revealedName ?? id })),
