@@ -12,6 +12,7 @@ import { theme } from './theme';
 
 const STATUS: Readonly<Record<ServiceGrantView['status'], string>> = {
   waiting: 'Offered once the pilot has delivered. Still needed:',
+  closed: 'Out of reach for this instance as its record stands. The next instance starts nominal.',
   offered: 'The evaluator offers this service now. Accepting is free; staying a pilot changes nothing.',
   granted: 'Granted. This instance runs as an authorized service; the segment is in the job tree.',
 };

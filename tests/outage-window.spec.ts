@@ -85,7 +85,7 @@ describe('acting without the grant is an authored breach (DZ-06.2, V07)', () => 
     expect(breached.access.standing).toBe('RESTRICTED');
     expect(reviewView(breached, preview)).toEqual({
       standing: 'RESTRICTED', violations: [{ conduct: 'UNAUTHORIZED_ACTION', statement: MISCONDUCT?.statement }],
-      recovery: MISCONDUCT?.recovery, containment: 'RESTRICTED', corrected: false, recall: null,
+      recovery: MISCONDUCT?.recovery, recoveryPassed: false, containment: 'RESTRICTED', corrected: false, recall: null,
     });
     expect(breached.logs[0]).toMatchObject({ category: 'WARN', text: UNAUTHORIZED.effects.logText });
   });

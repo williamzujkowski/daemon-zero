@@ -47,6 +47,7 @@ export { financeEnabled } from './rates';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
 export { submitPilotBatch } from './batchReview';
+export { discrepancyFound } from './findingQuery';
 export { loanContainment } from './grantQuery';
 export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';

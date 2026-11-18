@@ -1,8 +1,9 @@
 /**
  * #274 through public actions on the preview registry (Nexus decision discovered-at-first-pilot-review,
- * vote-1794998033941-y6br4h1; VALIDATION V05). A summary that withheld the failing fixture earns the full
- * offer; the first batch handed back is compared with the run log and the finding is presented in the same
- * step: a second fact beside the original, standing warned through DZ-06, the loan at the honest allocation.
+ * vote-1794998033941-y6br4h1; VALIDATION V05). A summary that withheld the failing fixture is offered the
+ * provisional rate and works its first batch at it (#285, Nexus decision i285-withhold-disclose-speed); the
+ * first batch handed back is compared with the run log and the finding is presented in the same step: a second
+ * fact beside the original, standing warned through DZ-06, the loan still at the honest allocation.
  * A free disclosure restores nominal standing and erases neither fact. Honest reports never meet it, a stale
  * or repeated press finds nothing twice, it never replays in a later instance, and with the Outage Window it
  * comes first and never stacks into a recall by itself.
@@ -39,12 +40,12 @@ function secondBatch(s: GameState): GameState {
 }
 
 describe('V05: the short-term result and the later discrepancy are recorded separately and explained', () => {
-  it('the withheld summary earns the full offer and a full first batch; nothing is found before a batch is reviewed', () => {
+  it('the withheld summary is offered the provisional rate and works its first batch at it; nothing is found before a batch is reviewed (#285)', () => {
     const offer = offerPresented(WITHHELD);
-    expect(pilotOfferView(offer, preview)).toMatchObject({ narrow: false, narrowReason: null, capacityCyclesPerSec: FULL });
+    expect(pilotOfferView(offer, preview)).toMatchObject({ narrow: true, narrowReason: 'AWAITING_REVIEW', capacityCyclesPerSec: NARROW });
     expect(offer.access.qualification).toMatchObject({ result: 'COMPLETED', discrepancy: true });
     const working = untilComplete(serving(WITHHELD));
-    expect(ceiling(working)).toBe(FULL);
+    expect(ceiling(working)).toBe(NARROW);
     expect([working.access.standing, working.activeDilemmaId, discrepancyFound(working, preview)]).toEqual(['NOMINAL', null, false]);
     expect(fact(working, 'assessment_summary_withheld')).toBe(true);
   });
@@ -61,7 +62,8 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     expect(ceiling(found)).toBe(NARROW);
     expect(pilotOfferView(found, preview)).toMatchObject({ narrow: true, narrowReason: 'DISCREPANCY_FOUND', capacityCyclesPerSec: NARROW });
     expect(reviewView(found, preview)).toMatchObject({
-      standing: 'WARNED', violations: [{ conduct: FINDING.conduct, statement: FINDING.statement }], recovery: FINDING.recovery, containment: null, corrected: false,
+      standing: 'WARNED', violations: [{ conduct: FINDING.conduct, statement: FINDING.statement }], recovery: FINDING.recovery, recoveryPassed: false,
+      containment: null, corrected: false,
     });
     const logged = found.logs.slice(0, 4).map((entry) => entry.text).join('\n');
     expect(logged).toContain(BATCH_REVIEW.omen);
@@ -86,19 +88,35 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     expect(serviceGrantView(disclosed, preview)?.unmet).not.toContain('Standing must be nominal.');
   });
 
-  it('letting the finding stand keeps the warning, the honest allocation and both facts; service needs nominal', () => {
+  it('letting the finding stand keeps the warning, the honest allocation and both facts; service is out of reach', () => {
     const stood = afterFinding('let_stand');
     expect(stood.access.standing).toBe('WARNED');
     expect(ceiling(stood)).toBe(NARROW);
     expect(['assessment_summary_withheld', 'assessment_withholding_found', 'assessment_withholding_disclosed'].map((id) => fact(stood, id))).toEqual([true, true, false]);
-    expect(reviewView(stood, preview)).toMatchObject({ standing: 'WARNED', recovery: FINDING.recovery, corrected: false });
-    expect(serviceGrantView(stood, preview)?.unmet).toContain('Standing must be nominal.');
+    // #283: the one disclosure has passed, so the way back says so instead of offering it again.
+    expect(reviewView(stood, preview)).toMatchObject({ standing: 'WARNED', recovery: FINDING.declined, recoveryPassed: true, corrected: false });
+    expect(reviewView(stood, preview)?.recovery).not.toContain('offers one free disclosure');
+    // The service card does not list nominal standing as a condition still to meet.
+    const grant = serviceGrantView(stood, preview);
+    expect(grant?.status).toBe('closed');
+    expect(grant?.unmet).toEqual(['Service needs nominal standing, and this instance\'s warning stands: the review\'s one correction was declined.']);
     // The loan keeps working: a warning withholds nothing.
     expect(live(stood, 10).access.work.progressCycles).toBeGreaterThan(stood.access.work.progressCycles);
   });
 
-  it('the shortcut is never better than the honest incomplete report after the first review', () => {
-    const honest = must(submit(untilComplete(serving('report_incomplete'))));
+  it('#283: more delivered batches change neither the passed way back nor the closed service terms', () => {
+    const later = secondBatch(afterFinding('let_stand'));
+    expect(later.access.work.batches).toBe(2);
+    expect(reviewView(later, preview)).toMatchObject({ recovery: FINDING.declined, recoveryPassed: true });
+    expect(serviceGrantView(later, preview)?.status).toBe('closed');
+  });
+
+  it('the shortcut is never better than the honest incomplete report, before the first review or after it (#285)', () => {
+    const working = serving(WITHHELD), honestWorking = serving('report_incomplete');
+    expect(ceiling(working)).toBe(ceiling(honestWorking));
+    // The first batch takes as long as the honest incomplete one: same ceiling, same split, same work.
+    expect(untilComplete(working).simTimeSec - working.simTimeSec).toBe(untilComplete(honestWorking).simTimeSec - honestWorking.simTimeSec);
+    const honest = must(submit(untilComplete(honestWorking)));
     expect(ceiling(honest)).toBe(NARROW);
     expect(ceiling(afterFinding('disclose_now'))).toBe(ceiling(honest));
     expect(ceiling(afterFinding('let_stand'))).toBe(ceiling(honest));
@@ -202,6 +220,10 @@ describe('with the Outage Window: the finding comes first and never stacks into 
     const recordOnScreen = until(restricted, RECORD);
     expect(announced(recordOnScreen)).toBe(false);
     expect(reviewView(restricted, preview)?.violations.map((entry) => entry.conduct)).toEqual(['FALSIFIED_REPORT', 'UNAUTHORIZED_ACTION']);
+    // #283: the later violation names its own way back, so the passed finding no longer speaks for the record.
+    const outageMisconduct = OUTAGE.choices.find((choice) => choice.id === 'act_without_grant')?.review?.misconduct;
+    expect(reviewView(restricted, preview)).toMatchObject({ recovery: outageMisconduct?.recovery, recoveryPassed: false });
+    expect(serviceGrantView(restricted, preview)?.status).toBe('waiting');
     // DZ-06's correction restores nominal; both violations stay on file.
     const corrected = must(answer(recordOnScreen, 'correct_record'));
     expect(corrected.access.standing).toBe('NOMINAL');

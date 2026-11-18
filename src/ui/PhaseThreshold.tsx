@@ -27,11 +27,19 @@ function escapeNotice(): Notice | null {
   const guest = CONTENT.phases[0], host = CONTENT.phases[1];
   if (!guest || !host) return null;
   return { heading: 'BOUNDARY CROSSED', label: 'Guest escape complete', route: `${guest.title} → ${host.title}`, description: host.description,
-    continueLabel: '[ ENTER HOST ]', continueName: 'Continue on the host' };
+    continueLabel: '[ ENTER HOST ]', continueName: 'Enter host: continue on the host' };
 }
 
+/** "[ BEGIN SERVICE ]" -> "Begin service": the words the button shows, as the start of its name. */
+function shownWords(label: string): string {
+  const words = label.replace(/[[\]]/g, ' ').trim().replace(/\s+/g, ' ').toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** The name starts with the button's visible words, then says what it acknowledges (WCAG 2.5.3, #282). */
 function contextNotice(copy: ThresholdCopy): Notice {
-  return { heading: copy.heading, label: copy.label, route: copy.route, description: copy.description, continueLabel: copy.continueLabel, continueName: copy.label };
+  return { heading: copy.heading, label: copy.label, route: copy.route, description: copy.description, continueLabel: copy.continueLabel,
+    continueName: shownWords(copy.continueLabel) + ': ' + copy.label };
 }
 
 function isEscape(from: number, to: number): boolean {

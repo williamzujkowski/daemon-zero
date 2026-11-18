@@ -221,7 +221,10 @@ Never encode state by colour alone: meters show numbers, warnings have text.
   `[ MENU ] Game menu`, `+ Increase fan output by up to 10 percentage points`. A dilemma
   choice button reads `Commit directive: <choice label>` (or `Unavailable: ...`), and the
   pilot's submit control `Submit batch for review +150 cycles, earned on submission`
-  (#275): the name says what the control does to the player, never the reverse.
+  (#275): the name says what the control does to the player, never the reverse. The
+  phase threshold's continue button reads `Enter host: continue on the host` on the guest
+  escape and `<visible words>: <notice label>` on an arrangement's own notice, for
+  example `Begin service: Authorized network service provisioned` (#282).
 - Focus is visible: one injected `:focus-visible` rule draws a 2px accent outline.
   The browser default measures about 1.1:1 against this palette.
 - One `main` landmark per screen and a level-1 title; cards and panels sit beneath it.
@@ -242,8 +245,9 @@ description. It deliberately
 does not install the suite's paused fake clock: axe's async work never settles
 against a frozen clock, and the live loop changes numbers, not structure. It runs
 as part of `make e2e`, which CI already requires. It includes one dilemma modal
-state, and `tests/e2e/a11y-audit.preview.ts` covers the Earned Access modals and panels
-on the preview export; both bring each control of those surfaces into view before
+state and the guest escape notice (opened by a live crossing, since a restored save never
+replays it; #282), and `tests/e2e/a11y-audit.preview.ts` covers the Earned Access modals and panels,
+and the service threshold notice, on the preview export; both bring each control of those surfaces into view before
 auditing it, because axe skips a control whose text is scrolled out of its pane.
 
 ## Test ids
@@ -471,3 +475,24 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   the engine's `reorientation()` lines), as the pin panel promises. Legacy rules (production) carry
   no clue, so production shows nothing new.
 
+
+## Earned Access follow-ups from DZ-09 part B (#283, #284, preview only)
+
+- **Copy follows the record (#283).** Once a batch review finding was answered without its
+  correction, `review-recovery` reads `Way back passed: ` and the finding's authored `declined`
+  text, never the disclosure that is no longer offered. The service terms then read
+  `Out of reach for this instance as its record stands.` with only the reason
+  (`serviceGrantView` status `closed`), instead of "Still needed: Standing must be nominal."
+  The assessment record states the finding (`Found: ...`) instead of the discrepancy risk once a
+  review has run.
+- **A waiting ticket off screen (#284).** The phone tier shows one pane, so while a support
+  channel ticket waits on CORE and another pane is open, the chrome shows a non-modal notice
+  (`contact-notice`, polite live region, `[ OPEN CORE ]`) beside the omen and response notices,
+  and the CORE tab reads `CORE •` with `CORE pane, a support ticket is waiting` as its name. The
+  tab bar stays on screen when the pane is scrolled. Wider tiers always show CORE and render
+  neither.
+- **After an answer (#284).** Answering the ticket on screen moves focus to the boundary note's
+  heading (`prototype-boundary-heading`), which also scrolls it into view; a restored, already
+  answered contact does not take focus. The note names the real path: `MENU > SAVES`.
+- **The pilot status line follows the grant (#284).** After `[ ACCEPT SERVICE ]`, `pilot-status`
+  says the pilot led to the authorized service instead of "runs as a supervised pilot".

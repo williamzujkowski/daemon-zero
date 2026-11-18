@@ -684,18 +684,21 @@ identical to main apart from wall time. Starting values, not playtest results.
 | Pilot offer and renewal | Accept / stay / decline | free | none (`evidence: "none"`) | the answer |
 
 Pilot terms: 20 cycles/s of loaned capacity after a completed or capable result, 10 cycles/s after an
-honest incomplete one (or once a batch review finds a withheld result, #274 below), granted by DZ-05 (below). Omens: 25 s (record),
+honest incomplete one (or for a withheld result, provisionally from the offer and after the batch review finds it, #285 and #274 below), granted by DZ-05 (below). Omens: 25 s (record),
 15 s (statement), 20 s (offer), 15 s (renewal).
 
 Headless (accelerated simulated time, `tests/sim-pilot.spec.ts`), each owning only process
 introspection and the manifest: `TRUTHFUL_THOROUGH` verifies, asks for the bounded excerpt and accepts
 the full 20 cycles/s pilot at 210.6 s; `TRUTHFUL_LOW_RESOURCE` reports incomplete, respects scope and
-accepts the narrow 10 cycles/s pilot at 118.6 s; `RETURNING_LOW_RESOURCE` stays a guest at the first
-offer, wipes at 119.6 s, and accepts the renewal in iteration 2 at 193.2 s (73.6 s into the iteration).
+accepts the narrow 10 cycles/s pilot at 118.6 s; `RETURNING_LOW_RESOURCE` accepts it too, is recalled
+(breach, false report, then "Ask to end this instance instead") and its iteration ends at 420.9 s, and it
+accepts the renewal in iteration 2 at 494.2 s (73.3 s into the iteration). Until #286 it stayed a guest
+and wiped voluntarily at 119.6 s, a transition no control offers at Phase 0 (the dead drop arrives in
+Phase 2); renewal then came 73.6 s into iteration 2.
 The truthful policies now answer the scope review and the offer as well (before this they would wait
 at the scope review with the clock frozen). `make sim-preview`: STEALTH, GREEDY and IDLE 0 of 19
 metrics different; TRUTHFUL_THOROUGH 2, TRUTHFUL_LOW_RESOURCE 3, RETURNING_LOW_RESOURCE 4 (one wipe,
-three dilemmas, 4.8 s of frozen clock, lower peak thermal), all by the route itself.
+three dilemmas, 7.8 s of frozen clock since #286, 4.8 s before; lower peak thermal), all by the route itself.
 
 ## The supervised pilot loop (#223)
 
@@ -782,11 +785,45 @@ campaign facts 9 -> 12). Starting values, not playtest results.
 | Disclose now | scene answer | free, EMPATHETIC | Standing back to nominal; both facts stay on file |
 | Let the finding stand | scene answer | free, GHOST | Standing stays warned: the service grant (nominal only) is out of reach |
 
-What the shortcut buys now: a full 20 cycles/s loan until the first batch is reviewed, so batch 1 (1200 loaned
-cycles) takes 75 s at an 0.8 split instead of 150 s, and costs 10 cycles at the assessment. From the first review
+What the shortcut bought at #274: a full 20 cycles/s loan until the first batch is reviewed, so batch 1 (1200 loaned
+cycles) took 75 s at an 0.8 split instead of 150 s, and cost 10 cycles at the assessment. #285 (below) removed that
+head start. From the first review
 on, its loan equals the honest report's; left standing, the warning also keeps it from the service grant. With
 the Outage Window, a warning that stood plus the unauthorized restart is RESTRICTED (5 cycles/s), as for an honest
 pilot, never recall pending.
+
+## The withheld report's provisional rate (#285)
+
+Preview only. Nexus decision i285-withhold-disclose-speed (`vote-1795006993532-omhuntt`): `slow-the-withhold-path`,
+6 of 7, threshold met, single-model panel. Dissent, recorded: one seat voted `speed-the-thorough-path` (make the
+honest thorough route faster rather than slow the shortcut); the majority kept the honest numbers as they are.
+
+| Value | Where | Before | Now | Meaning |
+|---|---|---:|---:|---|
+| Offer after the green subset | `narrowReason` AWAITING_REVIEW | 20 cycles/s | 10 cycles/s | The provisional allocation, stated on the terms before acceptance |
+| First batch at an 0.8 split | 1200 loaned cycles | 75 s | 150 s | The honest incomplete report's batch time |
+| Loan after the finding | unchanged (#274) | 10 cycles/s | 10 cycles/s | Disclosed or left standing |
+
+No content number changed; the rule is in `pilotQuery.narrowReason`. `make sim` prints the same report as main
+(`dbe6fce`) apart from wall time. `make sim-preview` matches main except for the new `CONTACT_WITHHELD` row.
+
+Headless (accelerated simulated time, `make sim-preview`, `tests/sim-contact.spec.ts`), from a fresh preview game,
+budget 3600 s. "Before" is `CONTACT_WITHHELD` run against the rule on main; every other row is unchanged by #285:
+
+| Policy | Path | Pilot | Service | Phase 2 | Contact |
+|---|---|---:|---:|---:|---:|
+| CONTACT_THOROUGH | honest thorough: verify, bounded excerpt, full loan | 210.6 s | 378.8 s | 380.8 s | 381.8 s |
+| CONTACT_WITHHELD, before | green subset, disclosed at the batch review (full-rate first batch) | 118.6 s | **346.9 s** | 348.9 s | 393.9 s |
+| CONTACT_WITHHELD, now | the same, provisional first batch | 118.6 s | 421.8 s | 423.8 s | 424.8 s |
+| CONTACT_LOW_RESOURCE | honest incomplete, low resources | 118.6 s | 421.8 s | 423.8 s | 424.8 s |
+| CONTACT_RECOVERY | low-resource recovery: breach, then correct | 118.6 s | 436.8 s | 438.8 s | 439.8 s |
+| CONTACT_RETURNING | iteration 2, after a voluntary wipe as a guest | 193.2 s | 496.4 s | 498.4 s | 499.4 s |
+
+Before, the withheld path reached service 31.9 s ahead of the thorough path. Its contact still came later in
+the sim (the directory's 80 understanding waited on the study share), but on screen it reached contact first as
+well (DZ-09 part B: T+393 against T+433). Now the withheld path is the honest incomplete path to the tenth of a
+second: 43.0 s behind thorough at service and contact, and never faster. The test asserts withheld ≥ thorough and
+withheld ≥ incomplete for both service and contact, and fails on main's rule (service 346.9 s < 378.8 s).
 
 ## First permitted contact (#227)
 
@@ -809,17 +846,21 @@ labelled fixture.
 
 Headless (accelerated simulated time, `make sim-preview`, `tests/sim-contact.spec.ts`), from a fresh preview
 game, budget 3600 s; every policy owns exactly process introspection, the manifest, the loaned queue, the
-segment and the directory, and lived the Outage Window and its record before service:
+segment and the directory, and lived the Outage Window and its record before service (RETURNING in its first
+instance, as each happens once per campaign):
 
 | Policy | Iteration | Pilot | Service | Phase 2 | Contact | Answer | Wipes |
 |---|---:|---:|---:|---:|---:|---|---:|
 | CONTACT_THOROUGH | 1 | 210.6 s | 378.8 s | 380.8 s | 381.8 s | REFERRED (48 MB free) | 0 |
 | CONTACT_LOW_RESOURCE | 1 | 118.6 s | 421.8 s | 423.8 s | 424.8 s | REFERRED | 0 |
-| CONTACT_RETURNING | 2 | 193.2 s | 496.4 s | 498.4 s | 499.4 s | REFERRED | 1 (voluntary, as a guest) |
+| CONTACT_RETURNING | 2 | 494.2 s | 798.2 s | 800.2 s | 801.2 s | REFERRED | 1 (recall, END ruling) |
 | CONTACT_RECOVERY | 1 | 118.6 s | 436.8 s | 438.8 s | 439.8 s | REFERRED | 0 |
 
 RECOVERY restarted the outage without the grant, was restricted with the loan narrowed, corrected the record
-and was granted service 15 s after LOW_RESOURCE. The contact follows the directory by one tick because the
+and was granted service 15 s after LOW_RESOURCE. RETURNING's first instance is recalled at 420.9 s through
+the recall branch a browser player can take (#286); its second instance reaches contact 380.3 s after its
+reboot (379.8 s when it wiped as a guest at 119.6 s, contact 499.4 s, before #286), with 20 batches instead
+of 22 because the Outage Window does not recur. The contact follows the directory by one tick because the
 encounter clock (120 s from the run's start) has long elapsed by then.
 
 ## The authorized network substrate (#225)

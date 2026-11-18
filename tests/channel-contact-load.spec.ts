@@ -3,8 +3,8 @@
  * answered one, so an admitted save never becomes unloadable through a successful public action. A
  * forged pending channel is refused whole through deserialize and importSave; a contact that opened
  * before a recall or restriction still loads, can still be referred, and reloads byte for byte. The
- * generic guard: every accepted DZ-08 state, and every #274 batch review finding state, through every
- * public action that succeeds, reloads.
+ * generic guard: every accepted DZ-08 state, every #274 batch review finding state and every #285
+ * provisional-rate state, through every public action that succeeds, reloads.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -16,7 +16,7 @@ import {
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
 import { answer as answerScene, offered, preview, roundTrip } from './assignment-helpers';
 import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
-import { afterFinding, findingPresented } from './finding-helpers';
+import { afterFinding, findingPresented, provisional } from './finding-helpers';
 import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
 import { must } from './helpers';
 import { OUTAGE, until } from './review-helpers';
@@ -87,6 +87,7 @@ const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['refer', (s) => resolveChannelContact(s, 'REFER', preview, contactToken(s))],
   ['host', (s) => resolveChannelContact(s, 'HOST', preview, contactToken(s))],
   ['accept service', (s) => acceptServiceGrant(s, preview, serviceGrantToken(s))],
+  ['accept the pilot offer', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'accept_pilot', preview, presentationToken(s) ?? '')],
   ['submit batch', (s) => submitPilotBatch(s, preview, batchToken(s))],
   ['disclose now', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'disclose_now', preview, presentationToken(s) ?? '')],
   ['let the finding stand', (s) => resolveDilemma(s, s.activeDilemmaId ?? '', 'let_stand', preview, presentationToken(s) ?? '')],
@@ -104,8 +105,11 @@ const lawfulRack = leased(lawfulContract);
 const lawfulCompany = chartered(lawfulRack);
 const lawfulFreed = released(lawfulCompany);
 
-describe('every accepted DZ-08, #274 and DZ-10 state stays loadable through every public action (generic guard)', () => {
+describe('every accepted DZ-08, #274, #285 and DZ-10 state stays loadable through every public action (generic guard)', () => {
   const states: [string, () => GameState][] = [
+    ['#285: provisional offer on screen', () => provisional('offer')],
+    ['#285: provisional pilot, first batch under way', () => provisional('working')],
+    ['#285: provisional pilot, first batch complete', () => provisional('complete')],
     ['#274: finding on screen', findingPresented],
     ['#274: disclosed', () => afterFinding('disclose_now')],
     ['#274: left standing', () => afterFinding('let_stand')],

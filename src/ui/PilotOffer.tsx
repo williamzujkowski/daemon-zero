@@ -22,6 +22,7 @@ const view = (game: GameState) => pilotOfferView(game, CONTENT);
  */
 const NARROW_TEXT: Readonly<Record<NarrowReason, string>> = {
   INCOMPLETE: ', the provisional allocation, because the submitted result was incomplete',
+  AWAITING_REVIEW: ', the provisional allocation, because the submission was a summary rather than every result; the first batch review checks it against the run log',
   DISCREPANCY_FOUND: ', the provisional allocation an incomplete result receives, because the batch review found the summary left out a failing result',
 };
 /** A stable empty list, so a selector with nothing to show returns the same value every render. */
@@ -70,6 +71,8 @@ const STATUS_TEXT = {
   declined: 'Declined. Nothing on record counts against this instance.',
   accepted: 'Accepted. This instance runs as a supervised pilot.',
 } as const;
+/** Once the pilot has led to the service grant, the status line says so instead of "supervised pilot" (#284). */
+const GRANTED_TEXT = 'Accepted. The pilot led to the authorized service below; this instance no longer runs as a pilot.';
 
 /** The job surface's record of the answer, with the deferred offer's accept control. */
 export default function PilotOfferPanel() {
@@ -78,10 +81,11 @@ export default function PilotOfferPanel() {
   const token = useGame((game) => view(game)?.token ?? '');
   const title = useGame((game) => view(game)?.title ?? '');
   const blocked = useGame((game) => game.activeDilemmaId !== null);
+  const granted = useGame((game) => game.access.context === 'SERVICE');
   if (status === null || status === 'eligible') return null;
   const enabled = acceptable && !blocked;
   return <View testID="pilot-offer" style={theme.panel}>
-    <Text testID="pilot-status" style={theme.muted}>{STATUS_TEXT[status]}</Text>
+    <Text testID="pilot-status" style={theme.muted}>{status === 'accepted' && granted ? GRANTED_TEXT : STATUS_TEXT[status]}</Text>
     {status !== 'declined' && <PilotTerms />}
     {status === 'accepted' && <PilotServiceDetail />}
     {status === 'accepted' && <ServiceGrantPanel />}

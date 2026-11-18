@@ -5,7 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, DilemmaChoice } from '../content/schema';
-import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
+import type { ChoiceMisconduct, ChoiceReview, Finding, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
 import { offeredChoices } from './speechQuery';
 import { campaignRecord, isCampaignActive } from './campaignQuery';
 import { begunThisIteration } from './findingQuery';
@@ -138,6 +138,8 @@ export interface ReviewView {
   violations: { conduct: Misconduct; statement: string }[];
   /** The way back from the current standing, or null at nominal. */
   recovery: string | null;
+  /** True when the way back was a finding scene's correction that has passed unanswered: `recovery` then says so (#283). */
+  recoveryPassed: boolean;
   /** Whether review holds the loan to the narrower allocation now, and why. */
   containment: 'RESTRICTED' | 'CONTAINED' | null;
   /** True once an authored correction restored nominal standing this iteration. */
@@ -155,6 +157,25 @@ function announcedReview(s: GameState, reg: ContentRegistry): ReviewView['recall
   return { presented: review === presented, outcomes };
 }
 
+/**
+ * The finding whose way back has passed: standing is still off nominal, the latest violation is a batch
+ * review finding, and its scene is no longer awaiting an answer. The scene is the only place its correction
+ * is offered (integrityFinding.ts) and a correction restores nominal, so it was answered without one or
+ * closed. Null otherwise, including while a later violation names its own way back (#283).
+ */
+export function passedFinding(s: GameState, reg: ContentRegistry): Finding | null {
+  if (s.access.standing === 'NOMINAL') return null;
+  const last = iterationReviews(s, reg).filter((entry) => entry.review.misconduct !== undefined).at(-1);
+  if (last === undefined || last.choice !== null) return null;
+  if (campaignRecord(s, last.eventId)?.status === 'foreshadowed') return null;
+  return reg.campaign.events.get(last.eventId)?.finding ?? null;
+}
+
+function recoveryText(s: GameState, misconduct: readonly ChoiceMisconduct[], passed: Finding | null): string | null {
+  if (s.access.standing === 'NOMINAL') return null;
+  return passed?.declined ?? misconduct.at(-1)?.recovery ?? null;
+}
+
 /** The job surface's review record for this instance, or null when there is nothing to say. */
 export function reviewView(s: GameState, reg: ContentRegistry): ReviewView | null {
   const entries = iterationReviews(s, reg);
@@ -163,10 +184,12 @@ export function reviewView(s: GameState, reg: ContentRegistry): ReviewView | nul
   const recall = announcedReview(s, reg);
   const standing = s.access.standing;
   if (misconduct.length === 0 && standing === 'NOMINAL' && containment === null && recall === null) return null;
+  const passed = passedFinding(s, reg);
   return {
     standing,
     violations: misconduct.map((entry) => ({ conduct: entry.conduct, statement: entry.statement })),
-    recovery: standing === 'NOMINAL' ? null : misconduct.at(-1)?.recovery ?? null,
+    recovery: recoveryText(s, misconduct, passed),
+    recoveryPassed: passed !== null,
     containment,
     corrected: entries.some((entry) => entry.review.correction === true),
     recall,
