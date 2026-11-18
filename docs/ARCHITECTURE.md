@@ -322,7 +322,7 @@ and interruption policy (`close` or `defer`; enforced since NH-02, #213). An act
 grants a trait must declare `evidence: campaign | operational`. `data/campaign.json` lists
 renamed ids (`aliases`, with the save version that introduced each) and retired ids. A
 `campaignOutcome` requirement gates content on a record. The engine mentions no content id.
-NH-01 converted cryo and NH-02 the bait note; the other 21 dilemmas are unconverted and recur per iteration.
+NH-01 converted cryo, NH-02 the bait note and NH-03 seven early events (below); the other 14 dilemmas are unconverted and recur per iteration.
 
 **Saved shape (v6).** `narrativeRules` is `legacy` or `campaign_v1`, distinct from
 `contentChannel`. `campaign` holds `events` (one record per once-per-campaign event:
@@ -358,7 +358,18 @@ dilemmas, ordinary cohort commands and encounters as operational.
 **Loading.** `reconcileCampaign` refuses, never filters: campaign state on a legacy save, an
 incomplete activation, a stored outcome flag that a record owns, an unknown event, outcome or
 action, an impossible source iteration, or an id recorded twice. Aliased ids are re-keyed;
-retired ids stay as tombstones (they add no score). Importing a save replaces the campaign
+retired ids stay as tombstones (they add no score). **Upgrade path** (#214 panel round 1): when
+content converts more events after a campaign was activated, activation cannot run again, so load
+gives each converted event the save proves resolved, but holds no record for, a completed record
+read exactly as activation reads it: a guarded outcome flag gives the choice (the flag moves into
+the record), otherwise `legacy_unknown`; origin `legacy`, with a source iteration only when it is
+not after activation. The baseline is not recaptured and a `legacy` record adds no ending evidence
+(the trait already sits in that iteration's operational evidence). Recorded events are never
+touched, so a flag stored beside its record is still refused, and a second load is a no-op
+(`tests/campaign-upgrade.spec.ts`, on a genuine pre-#242 active save). An upgrade never consumes
+evidence a later check needs: `deserialize` checks the stored flags for contradictions before
+`reconcileCampaign` runs, and the upgrade refuses two stored outcomes of one event rather than
+choosing one (#242 panel round 2). Importing a save replaces the campaign
 snapshot wholesale; there is no merge and no anti-rollback claim.
 
 **Not done here.** Presentation tokens and the foreshadowed/interrupted lifecycle landed in
@@ -418,6 +429,53 @@ and a closing event may declare neither.
 Tests: `tests/campaign-interruption.spec.ts`, `campaign-defer.spec.ts`, `campaign-clue.spec.ts`,
 `campaign-lifecycle-save.spec.ts`, `ui-campaign-clue.spec.ts`, the interruption cases in
 `campaign-content.spec.ts`, and the rewritten dormancy case in `second-pass.spec.ts`.
+
+## Early incidents and declared facts (#214)
+
+NH-03 of the campaign-continuity plan (NARRATIVE-HISTORY N3, N6, N7). Content and queries only;
+no `GameState` change. Campaign rules stay preview-only, and every gate below reads campaign
+history, so production (legacy rules) behaves exactly as before: `make sim` and its hashes are
+unchanged.
+
+**Conversions (N6).** `dil_00_night_shift`, `dil_01_late_night_diagnostic`,
+`dil_02_whistleblower_tech`, `dil_03_silicon_fever` and `dil_07_airgap_lockdown` are consequential,
+once per campaign and `close`; `dil_note_true` and `dil_04_admin_vance_secret` `defer`, with a
+reorientation and a lead. Costs and effects are untouched: the first accepted choice pays as before,
+and the NH-01/NH-02 record, scheduler and lifecycle stop a second one.
+
+**Declared facts.** `data/campaign.json` `facts` names questions later scenes ask about one event:
+`{ id, event, outcomes, meaning }`, where an outcome is a choice id, `legacy_unknown` or
+`interrupted`. `holdsCampaignFact` (in `campaignQuery.ts`) is true under campaign rules when the
+event's record is resolved with a listed outcome, or closed unobserved and the fact lists
+`interrupted`; it is false under legacy rules, for an open occurrence and with no record. The
+requirements `campaignFact` and `forbidsCampaignFacts` read it (scope `context`). Integrity
+(`integrityCampaignFacts.ts`): the event is a once-per-campaign event; outcomes are its own and
+distinct; `interrupted` never shares a fact with a choice (an unobserved occurrence proves no
+branch); `legacy_unknown` joins choices only when the fact covers every choice; no choice id may be
+a reserved outcome; a requirement names a declared fact and never requires and forbids the same
+one. Shipped: `vance_dismissed` (`report_vance`), `elena_absent` (every Elena outcome and
+`legacy_unknown`; read by NH-04b's hallway and auction scenes, decision D-10 pending) and
+`job_7731_unrecorded` (`legacy_unknown`, `interrupted`).
+
+**History-keyed text.** A dilemma may carry `contextVariants` (`{ requirements, context }`, first
+match wins) and an echo may carry `requirements`; both may read world history (`context` scope)
+only, so the text cannot change while it is on screen. `dilemmaContext(s, dilemma, reg)` in
+`speechQuery.ts` picks the context and `DilemmaModal` renders it. The true note's default context
+claims nothing about the bait; three variants follow the bait's recorded outcome.
+
+**Receipts.** Four `recordedTransmissions` with source `dil_00_night_shift`, on the decoded-speech
+surface: one per exact outcome (`campaignOutcome`) and an honest fallback gated on
+`job_7731_unrecorded`. A record may now gate on a campaign fact about its own source event; it still
+needs exactly one outcome gate, a return iteration and a later-run source gate.
+
+**Presence.** `ambient_02` ("did Vance sign off…") and `echo_audio` (his voiceprint) forbid
+`vance_dismissed`; `ambient_13` and `echo_audio_vance_gone` are the neutral lines that require it.
+`frame_elena`'s "Chief Vance" stays: the scheduler always meets Elena's incident before Vance's
+investigation (registry order, and Vance's trigger implies Elena's), which a test pins. The `dil_13`
+auction and the hallway scene belong to NH-04b.
+
+Tests: `tests/early-incidents.spec.ts` (H01, H02, H05, H09, defer), `early-history-text.spec.ts`
+(H16, H20, H22, H31), `campaign-facts-content.spec.ts` (each rule), `early-return-sim.spec.ts` (H30).
 
 ## Routine activity (#219)
 
