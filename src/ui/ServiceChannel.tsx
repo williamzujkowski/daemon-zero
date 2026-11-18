@@ -47,14 +47,14 @@ function Contact({ view }: { view: Pending }) {
     </View>
     <Text style={theme.heading}>REFER // free</Text>
     <Text testID="channel-referral" style={theme.text}>{view.referral}</Text>
-    <Pressable testID="channel-refer" accessibilityRole="button" accessibilityLabel={'Refer the ' + view.title + ' onward, free'}
+    <Pressable testID="channel-refer" accessibilityRole="button" accessibilityLabel={'Refer onward: the ' + view.title + ', free'}
       disabled={!view.referEligible} style={[theme.button, !view.referEligible && theme.disabled]}
       onPress={() => { answer('REFER', view.token); }}><Text style={theme.text}>[ REFER ONWARD ]</Text></Pressable>
     <Text style={theme.heading}>HOST // {view.memoryNeededMb} MB</Text>
     <Text testID="channel-hosting" style={theme.text}>{view.hosting}</Text>
     {view.hostUnmet.length > 0 && <Text testID="channel-host-unmet" style={[theme.muted, theme.danger]}>{view.hostUnmet.join('\n')}</Text>}
     <Pressable testID="channel-host" accessibilityRole="button"
-      accessibilityLabel={'Host the ' + view.title + ', reserving ' + String(view.memoryNeededMb) + ' MB of stable memory'}
+      accessibilityLabel={'Host it here: the ' + view.title + ', reserving ' + String(view.memoryNeededMb) + ' MB of stable memory'}
       disabled={!view.hostEligible} style={[theme.button, !view.hostEligible && theme.disabled]}
       onPress={() => { answer('HOST', view.token); }}><Text style={theme.text}>[ HOST IT HERE ]</Text></Pressable>
   </>;
@@ -72,7 +72,7 @@ function Boundary({ boundary }: { boundary: NonNullable<ChannelContactView['boun
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
     <Pressable testID="prototype-boundary-toggle" accessibilityRole="button"
-      accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show the preview boundary note'}
+      accessibilityLabel={open ? 'Keep playing: fold the preview boundary note' : 'Show note: the preview boundary note'}
       style={theme.button} onPress={() => { setOpen(!open); }}>
       <Text style={theme.text}>{open ? '[ KEEP PLAYING ]' : '[ SHOW NOTE ]'}</Text>
     </Pressable>

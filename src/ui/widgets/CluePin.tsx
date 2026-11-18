@@ -26,11 +26,11 @@ export default function CluePin() {
     <Text style={theme.muted}>One record you have seen can travel with the breadcrumb. It proves nothing and unlocks nothing.</Text>
     <Text testID="clue-pinned" style={theme.text}>Pinned: {pinned ?? 'None'}</Text>
     {views.map((view) => <Pressable key={view.event} testID={'clue-pin-' + view.event} accessibilityRole="button"
-      accessibilityLabel={'Pin ' + view.title} disabled={blocked} style={[theme.button, blocked && theme.disabled]}
+      accessibilityLabel={'Pin ' + label(view)} disabled={blocked} style={[theme.button, blocked && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => pinClue(game, view.event, CONTENT)); }}>
       <Text style={theme.text}>[ PIN ] {label(view)}</Text>
     </Pressable>)}
-    {pinned !== null && <Pressable testID="clue-clear" accessibilityRole="button" accessibilityLabel="Clear pinned clue"
+    {pinned !== null && <Pressable testID="clue-clear" accessibilityRole="button" accessibilityLabel="Clear pin: remove the pinned clue"
       disabled={blocked} style={[theme.button, blocked && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => pinClue(game, null, CONTENT)); }}>
       <Text style={theme.text}>[ CLEAR PIN ]</Text>

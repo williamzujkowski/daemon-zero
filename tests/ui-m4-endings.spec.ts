@@ -6,6 +6,7 @@ import { CONTENT } from '../src/content';
 import { startOver } from '../src/app/newRun';
 import { gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { labelMismatches } from './labelInName';
 
 setupM4Tests();
 describe('M4 endings', () => {
@@ -23,6 +24,9 @@ describe('M4 endings', () => {
 
   it('cancels reset, then confirms an engine-factory restart that clears the whole run', async () => {
     const view = await mountM4('ending-the_ark');
+    // #275: the name starts with the words on the control (WCAG 2.5.3).
+    expect(view.find('start-over')?.getAttribute('aria-label')).toBe('Start over: begin a new run');
+    expect(labelMismatches(host.document.body)).toEqual([]);
     view.click('start-over');
     expect(view.find('start-over-dialog')?.textContent).toContain('legacy history and breadcrumbs');
     view.click('start-over-cancel');

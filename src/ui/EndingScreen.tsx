@@ -49,7 +49,7 @@ export default function EndingScreen() {
         <Text testID="ending-epilogue" style={theme.text}>{ending.epilogue}</Text>
         <RunSummary />
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
-        <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start a new run"
+        <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start over: begin a new run"
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>
         <MenuLauncher menu={menu} /><DevelopmentTools location="ending" />
       </View>
