@@ -29,6 +29,12 @@
   `remarkedAsProduction(text)` (a genuine pre-release preview save re-marked as production, so upgrade
   tests keep covering the load-time conversions those codec outputs exercise; their refusal as genuine
   preview saves is asserted separately). `previewSaveCode()` is the paste code of a genuine preview save.
+- Specs that prove an architectural ESLint rule (`tests/purity-lint.spec.ts`, `tests/ui-lint.spec.ts`)
+  lint sample code at real file paths through `ruleLinter(ruleId)` in `tests/lint-helpers.ts`. It loads the
+  real `eslint.config.mjs`, runs only the rule under test, and turns off the parser's type information:
+  these are syntax-tree rules, and building the TypeScript program took most of each spec's time (#306).
+  Each spec also asserts that every message comes from that rule (a parse error or an ignored path fails
+  the check) and that each path gets exactly the rule set the unmodified config gives it.
 
 ## Balance simulation
 
