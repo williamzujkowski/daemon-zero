@@ -541,6 +541,18 @@ identical on both channels, because none of them accepts the offer. `tests/sim-a
 proves the stronger V29 claim: inside campaign rules, STEALTH (full budget) and a three-wipe GREEDY
 sequence play byte-identical games with and without the assignment in the content.
 
+The truthful policies differ from production where the route exists: one dilemma resolved and
+under a second of frozen clock while it was answered (both), plus LOW_RESOURCE's peak thermal,
+because in production, with no offer to work toward, it never maps a node and keeps clicking.
+Step by step (accelerated time):
+
+| Policy | Manifest mapped | Accepted | Assessment shown | Answer | Resources at acceptance |
+|---|---:|---:|---:|---|---|
+| TRUTHFUL_THOROUGH | 20.0 s | 135.0 s | 165.2 s | verify and disclose | 123 cycles, 107 understanding |
+| TRUTHFUL_LOW_RESOURCE | 42.0 s | 43.0 s | 73.2 s | report incomplete | 1 cycle, 0 understanding |
+
+Neither owns anything beyond process introspection and the manifest, and neither is wiped.
+
 ## Routine pacing (#219)
 
 Two `balance.json` constants pace routine activity (ARCHITECTURE.md "Routine activity"). They are
