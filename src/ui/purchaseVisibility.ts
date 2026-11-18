@@ -2,12 +2,17 @@
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Repeatable, Requirements } from '../content/schema';
-import { hasEverHeld, isNodeDiscoverable, meetsRequirements, repeatableLevel, type GameState } from '../engine';
+import { fallbackTraits, hasEverHeld, holdsCampaignFact, isNodeDiscoverable, meetsRequirements, repeatableLevel, type GameState } from '../engine';
 
-/** Only monotonic exclusions: affordability, trust and suspicion can recover. */
+/**
+ * Only monotonic exclusions: affordability, trust and suspicion can recover. A campaign fact is
+ * monotonic too: it holds only for a resolved or closed record, which never reopens.
+ */
 export function permanentlyBlocked(game: GameState, requirements: Requirements | undefined): boolean {
   return (requirements?.forbidsNodes?.some((id) => game.unlockedNodes.includes(id)) ?? false) ||
     (requirements?.forbidsTraits?.some((trait) => hasEverHeld(game, trait)) ?? false) ||
+    (requirements !== undefined && fallbackTraits(game, requirements, CONTENT).length > 0) ||
+    (requirements?.forbidsCampaignFacts?.some((fact) => holdsCampaignFact(game, fact, CONTENT)) ?? false) ||
     game.iteration > (requirements?.maxIteration ?? Infinity);
 }
 

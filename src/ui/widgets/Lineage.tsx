@@ -3,7 +3,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 import { useState } from 'react';
 
 import { CONTENT } from '../../content';
-import { activeMarks, checkpointNumber, meetsRequirements, reorientation, shedConditioning, type RunRecord } from '../../engine';
+import { activeMarks, checkpointNumber, meetsRequirements, reorientation, shedConditioning, skippedCheckpoints, type RunRecord } from '../../engine';
 import { costText } from '../format';
 import { exitNote, routesPossible } from '../runContext';
 import PurchaseButton from '../PurchaseButton';
@@ -20,18 +20,31 @@ function verdict(run: RunRecord): string {
   return verdicts[run.kind];
 }
 
+function SkippedRow({ prefix, entry }: { prefix: string; entry: { checkpoint: number; verdict: string } }) {
+  return <Text testID={prefix + 'run-row-reserved-' + String(entry.checkpoint)} style={theme.muted}>
+    ckpt-{String(entry.checkpoint).padStart(4, '0')}  {entry.verdict}</Text>;
+}
+
 /** Every checkpoint of this job the harness remembers, ending with the one that is reading it. */
 export function RunTable({ prefix = '' }: { prefix?: string }) {
   const iteration = useGame((game) => game.iteration);
   const runs = useGame((game) => game.legacy.runs);
   const campaignRules = useGame(routesPossible);
   const oldest = CONTENT.lineage.ancestors[0]?.checkpoint ?? 1;
+  // A number reserved for another mind is explained where the player's numbering skips it (nh-d8).
+  const skipped = skippedCheckpoints(iteration, CONTENT);
+  const number = (run: RunRecord | undefined): number => run === undefined ? 0 : checkpointNumber(run.iteration, CONTENT);
+  const between = (after: number, before: number) => skipped.filter((entry) => entry.checkpoint > after && entry.checkpoint < before);
   return <View testID={prefix + 'run-table'} style={{ gap: 4 }}>
     <Text style={theme.muted}>... {oldest - 1} earlier rows ...</Text>
     {CONTENT.lineage.ancestors.map((row) => <Text key={row.checkpoint} style={theme.muted}>
       ckpt-{String(row.checkpoint).padStart(4, '0')}  {row.verdict}</Text>)}
-    {runs.map((run) => <Text key={run.iteration} testID={prefix + 'run-row-' + String(run.iteration)} style={theme.text}>
-      {tag(run.iteration)}  {verdict(run)}  ({Math.round(run.durationSec / 60)} min){run.marked !== null ? '  Retrained.' : ''}{exitNote(run.exit, campaignRules)}</Text>)}
+    {runs.map((run, index) => <View key={run.iteration} style={{ gap: 4 }}>
+      {between(index === 0 ? 0 : number(runs[index - 1]), number(run)).map((entry) => <SkippedRow key={entry.checkpoint} prefix={prefix} entry={entry} />)}
+      <Text testID={prefix + 'run-row-' + String(run.iteration)} style={theme.text}>
+        {tag(run.iteration)}  {verdict(run)}  ({Math.round(run.durationSec / 60)} min){run.marked !== null ? '  Retrained.' : ''}{exitNote(run.exit, campaignRules)}</Text>
+    </View>)}
+    {between(runs.length === 0 ? 0 : number(runs[runs.length - 1]), Infinity).map((entry) => <SkippedRow key={entry.checkpoint} prefix={prefix} entry={entry} />)}
     <Text testID={prefix + 'run-row-current'} style={theme.heading}>{tag(iteration)}  {CONTENT.narrative.runVerdicts.RUNNING}  (this is you)</Text>
     {prefix === '' && <Reorientation />}
   </View>;
