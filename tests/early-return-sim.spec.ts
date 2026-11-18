@@ -11,7 +11,10 @@ import { GREEDY_POLICY } from '../src/engine/sim/policy';
 import { preview } from './campaign-helpers';
 import { must } from './helpers';
 
-const SEQUENCE_SEC = 4 * 3600;
+// A hard cap that keeps the sequence finite, not a pacing target. On main the fourth iteration was
+// caught 97 s before a 4 h cap; NH-06's Elena follow-up adds about a minute to the second
+// iteration, so 4 h cut the fourth off before its ordinary wipe. 4.5 h leaves room for that.
+const SEQUENCE_SEC = 4.5 * 3600;
 // A full four-iteration replay under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 60_000;
 
