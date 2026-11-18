@@ -5,6 +5,7 @@
  */
 export * from './actions';
 export * from './conditioning';
+export { DIAL_STEP, steppedValue } from './dialSteps';
 export { computeRates } from './rates';
 export { wipe } from './prestige';
 export * from './query';
