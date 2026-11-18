@@ -41,7 +41,7 @@ function probeRegistry(): ContentRegistry {
   const node = raw.phases[0].nodes.find((entry: { id: string }) => entry.id === 'p0_device_enum');
   const repeatable = raw.repeatables.repeatables.find((entry: { id: string }) => entry.id === 'rep_p0_slice_batching');
   const overlay = parseOverlay({ sentinel: 'save-channel-probe-overlay', actions: [], dilemmas: [], factions: [], widgets: [],
-    endings: [], echoes: [], marks: [], routines: [],
+    endings: [], echoes: [], marks: [], routines: [], assignments: [],
     nodes: [{ ...node, id: 'p0_preview_probe', prerequisites: ['p0_proc_self'], phaseId: 0 }],
     repeatables: [{ ...repeatable, id: 'rep_p0_preview_probe', requirements: { nodes: ['p0_preview_probe'] } }] });
   return buildRegistry({ ...applyOverlay(RAW_CONTENT, overlay), channel: 'preview' });
@@ -105,7 +105,7 @@ describe('production refuses preview saves atomically (T2)', () => {
 describe('ordinary saves are unaffected (T3)', () => {
   it.each(FIXTURES)('loads the %s fixture as a production save', (_version, raw) => {
     const loaded = deserialize(raw, PRODUCTION);
-    expect(loaded).toMatchObject({ schemaVersion: 9, contentChannel: 'production', narrativeRules: 'legacy' });
+    expect(loaded).toMatchObject({ schemaVersion: 10, contentChannel: 'production', narrativeRules: 'legacy' });
     expect(serialize(deserialize(serialize(loaded), PRODUCTION))).toBe(serialize(loaded));
   });
 

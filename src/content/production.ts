@@ -4,6 +4,7 @@
  * ./preview instead. Nothing outside this folder imports JSON directly.
  */
 import actions from './data/actions.json';
+import assignments from './data/assignments.json';
 import epistemicActions from './data/epistemic-actions.json';
 import swarm from './shards.json';
 import swarmNarrative from './narrative/m7.json';
@@ -47,6 +48,7 @@ export const RAW_CONTENT: RawContent = {
   lineage,
   campaign,
   routines,
+  assignments,
 };
 
 /** The validated game content. Importing this module throws if content is invalid. */

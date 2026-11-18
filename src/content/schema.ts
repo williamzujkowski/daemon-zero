@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignOutcomeRequirementSchema, ChoiceEvidenceSchema } from './schemaCampaign';
+import { AssignmentRequirementSchema, ChoiceQualificationSchema } from './schemaAssessment';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -107,6 +108,7 @@ export const RequirementsSchema = z.strictObject({
    * unrecorded outcome) holds, so a known fate, not any trait source, decides.
    */
   traitFallback: z.strictObject({ forbidsTraits: z.array(TraitSchema).min(1), whileFact: snakeId }).optional(),
+  assignment: AssignmentRequirementSchema.optional(),
 });
 
 export const NodeEffectsSchema = z.strictObject({
@@ -225,6 +227,7 @@ export const DilemmaChoiceSchema = z.strictObject({
   effects: EffectPayloadSchema,
   /** 'none': a free honest answer that grants no trait. Only review, receipt and requalification events. */
   evidence: ChoiceEvidenceSchema.optional(),
+  qualification: ChoiceQualificationSchema.optional(),
 });
 
 export const DilemmaSchema = z.strictObject({
@@ -399,7 +402,6 @@ export const NarrativeSchema = z.strictObject({
     patrolSuspicionThreshold: z.number().min(0).max(100),
   }),
 });
-
 
 export type Trait = z.infer<typeof TraitSchema>;
 export type SystemFlag = z.infer<typeof SystemFlagSchema>;

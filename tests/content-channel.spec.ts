@@ -21,11 +21,12 @@ function idsByKind(reg: ContentRegistry): Record<string, string[]> {
     echoes: reg.echoes.map((echo) => echo.id),
     marks: [...reg.conditioning.keys()],
     routines: reg.routines.map((routine) => routine.id),
+    assignments: [...reg.assignments.keys()],
   };
 }
 
 const EMPTY: PreviewOverlay = parseOverlay({ sentinel: 'test-overlay-sentinel-0001', nodes: [], repeatables: [], actions: [],
-  dilemmas: [], factions: [], widgets: [], endings: [], echoes: [], marks: [], routines: [] });
+  dilemmas: [], factions: [], widgets: [], endings: [], echoes: [], marks: [], routines: [], assignments: [] });
 
 function production(kind: string, id: string): Json {
   const raw = Production.RAW_CONTENT as Json;

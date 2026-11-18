@@ -205,7 +205,7 @@ describe('save migration from version 1', () => {
     delete old.iterationStartedAtSimSec;
     Object.assign(old, { schemaVersion: 1 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded.schemaVersion).toBe(9);
+    expect(loaded.schemaVersion).toBe(10);
     expect(loaded.conditioning).toEqual([]);
     expect(loaded.legacy.runs).toEqual([]);
     expect(loaded.actuators.quotaSkimRatio).toBe(0.25);

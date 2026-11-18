@@ -13,6 +13,7 @@ import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
 import { checkPeerIntegrity } from './integrityPeers';
+import { checkAssignmentIntegrity } from './integrityAssignment';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -215,6 +216,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCampaignFactIntegrity(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),
+    ...checkAssignmentIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkSwarmReferences(reg),
     ...checkPrerequisites(reg),
