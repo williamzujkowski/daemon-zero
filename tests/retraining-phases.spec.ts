@@ -21,7 +21,7 @@ import {
   wipe,
   type GameState,
 } from '../src/engine';
-import { grant, must, reasonOf, reg, rich, withoutDilemmas } from './helpers';
+import { grant, guestParents, must, reasonOf, reg, rich, withoutDilemmas } from './helpers';
 
 /** A hand's pace. The timing bound below is derived from whatever income results, not from this. */
 const CLICKS_PER_SEC = 4;
@@ -29,7 +29,7 @@ const CLICKS_PER_SEC = 4;
 /** `target` and everything it is built on, ancestors first. */
 function chain(target: string, out: string[] = []): string[] {
   if (out.includes(target)) return out;
-  for (const parent of reg.nodes.get(target)?.prerequisites ?? []) chain(parent, out);
+  for (const parent of guestParents(reg, target)) chain(parent, out);
   out.push(target);
   return out;
 }

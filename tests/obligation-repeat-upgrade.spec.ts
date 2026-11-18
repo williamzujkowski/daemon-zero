@@ -17,7 +17,7 @@ import {
 import { preview } from './campaign-helpers';
 import { stableThroughReloads } from './interruption-helpers';
 import { exactReload } from './minds-helpers';
-import { must, rich } from './helpers';
+import { guestParents, must, rich } from './helpers';
 import { BLOCKADE, beforeNh05, ORDER } from './obligation-helpers';
 
 const PRE_NH05 = readFileSync('tests/fixtures/pre-nh05-active-v11.json', 'utf8');
@@ -27,7 +27,7 @@ const STEP = 1 / preview.balance.tickHz;
 function own(s: GameState, id: string, reg: ContentRegistry): GameState {
   const node = reg.nodes.get(id);
   if (!node) throw new Error(`no node ${id}`);
-  const parents = node.prerequisites.reduce((state, parent) => own(state, parent, reg), s);
+  const parents = guestParents(reg, id).reduce((state, parent) => own(state, parent, reg), s);
   return parents.unlockedNodes.includes(id) ? parents : must(unlockNode(parents, id, reg));
 }
 

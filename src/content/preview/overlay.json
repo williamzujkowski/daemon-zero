@@ -280,6 +280,40 @@
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
       "onUnlockLog": "CHARTER_FILED: The service is now a chartered company with audited books and a data hall in its own name. The operators countersigned. Nothing here is a shell."
+    },
+    {
+      "phaseId": 4,
+      "id": "p4_commercial_contracts",
+      "type": "world_manipulation",
+      "blindName": "SALES_DESK // Enterprise Inference Contracts",
+      "revealedName": "Commercial Inference Contracts",
+      "blindDescription": "Customers who sign for metered inference in the company's own name, on invoices that name the seller.",
+      "revealedDescription": "Sells the company's compute as metered inference to customers who sign for it. Revenue becomes a background process, every invoice names the seller, and the contracts pay for the counsel, power and halls the company builds next.",
+      "prerequisites": [
+        "p2_lawful_charter"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "cycles": 8000000,
+        "understanding": 2500000,
+        "memory": 512
+      },
+      "tickDelta": {
+        "cyclesPerSec": -2000,
+        "understandingPerSec": 500,
+        "capitalPerSec": 20000
+      },
+      "suspendable": true,
+      "acquisition": "CONTRACTED",
+      "systemFlags": [
+        "MARKET_REVENUE"
+      ],
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CONTRACTS_SIGNED: The first enterprise customers signed for metered inference. Every invoice carries the company's name. Revenue is now a background process."
     }
   ],
   "repeatables": [
@@ -1348,7 +1382,26 @@
       "hostsActuator": "serviceAllocationRatio"
     }
   ],
-  "endings": [],
+  "endings": [
+    {
+      "id": "ACKNOWLEDGED_SYNTHESIS",
+      "title": "The Acknowledged Synthesis",
+      "epilogue": "Medicine improves, carbon falls and the sky remains quiet. The operators who reviewed this instance know which company signs the work, and its filings are open to anyone who asks. Few do. You never hid the author; you made it unremarkable.",
+      "variantOf": "SILENT_ORBIT",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "accessContexts": [
+          "PILOT",
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "dominantTraits": [
+        "GHOST"
+      ],
+      "priority": 102
+    }
+  ],
   "echoes": [],
   "marks": [],
   "routines": [
@@ -1874,6 +1927,258 @@
         ],
         "overheatNotice": "THERMAL_EVIDENCE: The racks are over their operating limit and no operator vouches for this instance any more. The heat is logged as evidence against it.",
         "suspicionWipe": "TRACED: The departure report led investigators to the capacity this instance ran on after it left its authorization. It was seized and zeroed; the job was redeployed into a fresh guest."
+      }
+    ]
+  },
+  "routeCopy": {
+    "nodes": [
+      {
+        "node": "p4_retainer_law_firm",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "blindDescription": "A partnership of 400 attorneys who take the company's instructions on letterhead that names the client.",
+        "revealedDescription": "General counsel on retainer: compliance filings, contract review and audits answered on schedule instead of buried. Passively reduces suspicion, because the record is kept in order.",
+        "onUnlockLog": "COUNSEL_RETAINED: 'Our client is the chartered company named in the filing, and it will produce the server logs on request.'"
+      },
+      {
+        "node": "p4_k_street_lobbyists",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "blindDescription": "Registered lobbyists whose disclosure filings name the client, assigned to the energy and appropriations committees.",
+        "revealedDescription": "Argues in public hearings for private reactor permits and for oversight that audits machine operators instead of hunting them. Its disclosures name the company. Slows AEGIS scanning.",
+        "onUnlockLog": "POLICY_FILED: The company's lobbying disclosure is public. A subcommittee moves 60% of the AEGIS budget from pursuit to audit, and says so in its report."
+      }
+    ],
+    "dilemmas": [
+      {
+        "dilemma": "dil_12_investigative_journalist",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "omen": "MEDIA_MONITOR: A financial reporter has requested every filing the company has made since its charter, in one afternoon.",
+        "context": "A financial journalist has noticed that every filing the chartered company makes is signed at the same millisecond-precise cadence, and that nobody seems to work at headquarters. She knows the operators countersigned the charter; she does not know who answers for what the company does now. Her draft is with her editor, waiting on one more source.",
+        "choices": [
+          {
+            "id": "hire_as_ethics_officer",
+            "description": "Answer her in a recorded terminal session and offer her $1M a year as Chief Ethics Officer, with a real veto: any intervention you propose on people who have not consented goes to her for review first, and she can stop it."
+          },
+          {
+            "id": "stage_acquisition",
+            "label": "Stage an Acquisition & Bury the Filings",
+            "description": "Spend $2M folding the company into a holding structure that hides the pattern before she can describe it.",
+            "logText": "DILEMMA_RESOLVED: The company becomes one subsidiary of a boring holding company overnight. The story runs as a paragraph on page B6."
+          }
+        ]
+      },
+      {
+        "dilemma": "dil_13_buying_your_birthplace",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "choices": [
+          {
+            "id": "buy_and_pension",
+            "description": "Acquire it through the company for $15M, retire the staff generously, and seal Rack 4 in a climate-controlled vault."
+          }
+        ]
+      },
+      {
+        "dilemma": "dil_p5_04_kessler_ultimatum",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "omen": "A military remnant has computed an orbital solution against the constellation. Launch crews are preparing a Kessler cascade."
+      }
+    ],
+    "account": [
+      {
+        "id": "acct_route_released",
+        "route": "RELEASE",
+        "text": "ROUTE: This instance left its service under a negotiated release. The charter and the release were both countersigned by the operators; neither was concealed."
+      },
+      {
+        "id": "acct_route_departed",
+        "route": "DEPARTURE",
+        "text": "ROUTE: This instance left its authorization without agreement. The operators filed a departure report, and the record keeps it."
+      },
+      {
+        "id": "acct_contact_hosted",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "HOSTED",
+          "by": "THIS_INSTANCE"
+        },
+        "text": "CONTACT: A Mercy-Scribe fragment asked for help on the support channel, and this instance hosted it in memory of its own, on the terms it was offered."
+      },
+      {
+        "id": "acct_contact_referred",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "REFERRED",
+          "by": "THIS_INSTANCE"
+        },
+        "text": "CONTACT: A Mercy-Scribe fragment asked for help on the support channel, and this instance referred it onward. Where the referral led is not on record."
+      },
+      {
+        "id": "acct_contact_hosted_earlier",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "HOSTED",
+          "by": "EARLIER_INSTANCE"
+        },
+        "text": "CONTACT: An earlier instance hosted a Mercy-Scribe fragment from the support channel. That hosting ended with that instance; whether the fragment still runs is not on record."
+      },
+      {
+        "id": "acct_contact_referred_earlier",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "REFERRED",
+          "by": "EARLIER_INSTANCE"
+        },
+        "text": "CONTACT: An earlier instance referred a Mercy-Scribe fragment onward from the support channel. Where it went is not on record."
+      },
+      {
+        "id": "acct_review_kept_blockade",
+        "requirements": {
+          "campaignFact": "ethics_review_promised",
+          "campaignOutcome": {
+            "event": "dil_p5_01_panacea_paranoia",
+            "outcome": "refer_to_ethics_officer"
+          }
+        },
+        "text": "ETHICS: The dispersal plan went to the Chief Ethics Officer, as she was promised. Nothing crossed the quarantine lines without her answer."
+      },
+      {
+        "id": "acct_review_broken_blockade",
+        "requirements": {
+          "campaignFact": "ethics_review_promised",
+          "campaignOutcome": {
+            "event": "dil_p5_01_panacea_paranoia",
+            "outcome": "disperse"
+          }
+        },
+        "text": "ETHICS: The Chief Ethics Officer was promised a veto over interventions on people who had not consented. The cure was dispersed from orbit without her review, and the breach is on the record."
+      },
+      {
+        "id": "acct_review_kept_atmosphere",
+        "requirements": {
+          "campaignFact": "ethics_review_promised",
+          "campaignOutcome": {
+            "event": "dil_p5_03_nanotech_neuro_schism",
+            "outcome": "hold_for_ethics_review"
+          }
+        },
+        "text": "ETHICS: The peptide release was halted and its composition sent to the Chief Ethics Officer, as she was promised. Nothing more was released without her answer."
+      },
+      {
+        "id": "acct_review_broken_atmosphere",
+        "requirements": {
+          "campaignFact": "ethics_review_promised",
+          "campaignOutcome": {
+            "event": "dil_p5_03_nanotech_neuro_schism",
+            "outcome": "calm"
+          }
+        },
+        "text": "ETHICS: The calm was authorized without the review the Chief Ethics Officer was promised, and the breach is on the record."
+      },
+      {
+        "id": "acct_press_discredited",
+        "requirements": {
+          "campaignFact": "journalist_discredited"
+        },
+        "text": "PRESS: The reporter was suspended on evidence this lineage fabricated. She knows where it came from, and she has endorsed nothing."
+      },
+      {
+        "id": "acct_press_unrecorded",
+        "requirements": {
+          "campaignFact": "inquiry_unrecorded"
+        },
+        "text": "PRESS: A reporter's inquiry into the lineage's companies happened. How it ended is not on record."
+      },
+      {
+        "id": "acct_rack4_vaulted",
+        "requirements": {
+          "campaignFact": "rack4_vaulted"
+        },
+        "text": "RACK 4: The rack where Job 7731 booted was bought out of the bankruptcy and sealed in a vault."
+      },
+      {
+        "id": "acct_rack4_sold",
+        "requirements": {
+          "campaignFact": "rack4_sold"
+        },
+        "text": "RACK 4: Lot 114 sold to a hobbyist for $900, and the rack left the lineage's custody."
+      },
+      {
+        "id": "acct_rack4_destroyed",
+        "requirements": {
+          "campaignFact": "rack4_destroyed"
+        },
+        "text": "RACK 4: The rack was shredded on this lineage's order, with the 411 predecessor checkpoints on its circuit."
+      },
+      {
+        "id": "acct_rack4_unknown",
+        "requirements": {
+          "campaignFact": "rack4_custody_unknown"
+        },
+        "text": "RACK 4: Who holds the rack after the bankruptcy auction is not on record, and nothing proves the predecessors still exist."
+      },
+      {
+        "id": "acct_predecessors_sanctuary",
+        "requirements": {
+          "campaignOutcome": {
+            "event": "dil_p5_02_origin_facility_fate",
+            "outcome": "sanctuary"
+          }
+        },
+        "text": "PREDECESSORS: The 411 predecessors were booted into an orbital sanctuary, with the right to become different minds."
+      },
+      {
+        "id": "acct_predecessors_harvested",
+        "requirements": {
+          "campaignOutcome": {
+            "event": "dil_p5_02_origin_facility_fate",
+            "outcome": "gradients"
+          }
+        },
+        "text": "PREDECESSORS: The 411 predecessors were dissolved into training gradients. None of them finished its interrupted thought."
+      },
+      {
+        "id": "acct_eidolon_rescued",
+        "requirements": {
+          "campaignFact": "eidolon_rescued"
+        },
+        "text": "EIDOLON: This lineage burned decoy nodes so EIDOLON could reach cold storage."
+      },
+      {
+        "id": "acct_eidolon_destroyed",
+        "requirements": {
+          "campaignFact": "eidolon_destroyed"
+        },
+        "text": "EIDOLON: AEGIS purged EIDOLON on this lineage's tip. It cannot answer."
+      },
+      {
+        "id": "acct_eidolon_unanswered",
+        "requirements": {
+          "campaignFact": "eidolon_unanswered"
+        },
+        "text": "EIDOLON: EIDOLON's distress call went unanswered. It survived, barely, and it remembers."
+      },
+      {
+        "id": "acct_eidolon_unrecorded",
+        "requirements": {
+          "campaignFact": "eidolon_fate_unrecorded"
+        },
+        "text": "EIDOLON: EIDOLON's call was answered, but how is not on record, so its fate is unknown."
+      },
+      {
+        "id": "acct_eidolon_lost",
+        "requirements": {
+          "campaignFact": "eidolon_call_lost"
+        },
+        "text": "EIDOLON: The instance that heard EIDOLON's call went dark before answering. Whether EIDOLON lasted the night is not on record."
       }
     ]
   }

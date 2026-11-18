@@ -23,7 +23,7 @@ import {
 import { fromBase64, toBase64 } from '../src/engine/base64';
 import { botStep } from '../src/engine/sim/bot';
 import { memoryStorage } from './app-helpers';
-import { fresh, grant, must, reg, rich, withoutDilemmas } from './helpers';
+import { fresh, grant, guestParents, must, reg, rich, withoutDilemmas } from './helpers';
 
 type Granting = RegistryNode & { unlocksUiComponent: string };
 const GRANTING = [...reg.nodes.values()].filter((node): node is Granting => node.unlocksUiComponent !== null);
@@ -37,7 +37,7 @@ function chain(target: string): string[] {
   const out: string[] = [];
   const visit = (id: string): void => {
     if (out.includes(id)) return;
-    for (const parent of reg.nodes.get(id)?.prerequisites ?? []) visit(parent);
+    for (const parent of guestParents(reg, id)) visit(parent);
     out.push(id);
   };
   visit(target);

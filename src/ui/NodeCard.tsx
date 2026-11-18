@@ -8,7 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode } from '../engine';
+import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -44,8 +44,10 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const cost = useMemo(() => rediscoveryCost(node, { known, campaign }, CONTENT), [campaign, known, node]);
   const isEnding = node.effects.forcesEnding !== undefined || node.effects.triggersVictory === true;
   const title = known ? node.revealedName : node.blindName;
-  // World history only: a dismissed engineer no longer uses the terminal this card describes.
-  const blindDescription = useGame((game) => nodeBlindDescription(game, node, CONTENT));
+  // World history (a dismissed engineer no longer uses the terminal this card describes), then this
+  // arrangement's route copy (DZ-12): a chartered company's counsel is not a shell's.
+  const blindDescription = useGame((game) => nodeText(game, node, CONTENT, nodeBlindDescription(game, node, CONTENT)).blindDescription);
+  const revealedDescription = useGame((game) => nodeText(game, node, CONTENT).revealedDescription);
   // A primitive selector: the trace changes only with iteration, never per tick.
   const trace = useGame((game) => probeTrace(game, node, CONTENT));
   const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace) : ''), [known, node, surveillanceKnown, trace]);
@@ -53,9 +55,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
     {known && !isEnding ? <CardDetails id={'node-' + node.id} titleTestID={'node-' + node.id + '-title'}
-      title={'[REMEMBERED] ' + title} description={node.revealedDescription} /> :
+      title={'[REMEMBERED] ' + title} description={revealedDescription} /> :
       <NodeTitle id={node.id} name={title} owned={false} status={known ? '[REMEMBERED] ' : '[UNMAPPED] '} />}
-    {isEnding && <DisclosureText style={theme.text}>{known ? node.revealedDescription : blindDescription}</DisclosureText>}
+    {isEnding && <DisclosureText style={theme.text}>{known ? revealedDescription : blindDescription}</DisclosureText>}
     </Profiler>
       {/* #108: the decision precedes the prose. The button used to be the last
           element, so on a narrow column the wrapped description pushed it 155-723px
