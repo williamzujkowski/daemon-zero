@@ -27,15 +27,33 @@ const GRANT_REFUSALS: Readonly<Record<Grant, { withheld: string; never: string }
   },
 };
 
+/**
+ * The run-level reads of the permitted-use rule, taken once for a pass over many nodes (#270): computeRates asks
+ * the rule for every owned node on every tick. The rule reads only this and the node, so a scope built for a
+ * state answers exactly as nodeUseBlocker does for that state.
+ */
+export interface UseScope {
+  readonly s: GameState;
+  readonly reg: ContentRegistry;
+  /** A review governs this run: only then can pilot terms withhold output or seizure be refused. */
+  readonly reviewed: boolean;
+}
+
+export function useScope(s: GameState, reg: ContentRegistry): UseScope {
+  return { s, reg, reviewed: isReviewed(s.access.context) };
+}
+
 /** Why a node's own use is refused, without the capability it may read: its grant, the pilot terms, seizure. */
-function ownUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
-  // Output accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9).
-  if (withheldByGrant(s, node.id, reg)) return 'the pilot terms do not permit that output';
+function ownUseBlocker(scope: UseScope, node: RegistryNode): string | null {
+  const { s, reg, reviewed } = scope;
+  // Output accepted pilot terms stop stays stopped under the grant (nexus vote dz-d9). Only a reviewed run
+  // holds terms, so withheldByGrant is false elsewhere by its own rule and is not asked.
+  if (reviewed && withheldByGrant(s, node.id, reg)) return 'the pilot terms do not permit that output';
   if (node.grant !== undefined && !isPermitted(s, node.grant)) {
     return contextPermits(s.access.context, node.grant) ? GRANT_REFUSALS[node.grant].withheld : GRANT_REFUSALS[node.grant].never;
   }
   // Seized capacity is never lawful under a reviewed arrangement (DZ-07a): not bought, not run.
-  if (node.acquisition === 'UNAUTHORIZED' && isReviewed(s.access.context)) return 'seized capacity is not lawful under a reviewed arrangement';
+  if (node.acquisition === 'UNAUTHORIZED' && reviewed) return 'seized capacity is not lawful under a reviewed arrangement';
   return null;
 }
 
@@ -45,24 +63,32 @@ function ownUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): 
  * capability, so saves and ancestry are unchanged; using what it reaches needs the grant as well. A
  * mapped escape card needs no grant, so its owner keeps the link whatever a grant withholds.
  */
-function capabilityUsable(s: GameState, capability: Capability, reg: ContentRegistry): boolean {
-  return s.unlockedNodes.some((id) => {
-    const provider = reg.nodes.get(id);
-    return provider !== undefined && provider.systemFlags.includes(capability) && ownUseBlocker(s, provider, reg) === null;
+function capabilityUsable(scope: UseScope, capability: Capability): boolean {
+  return scope.s.unlockedNodes.some((id) => {
+    const provider = scope.reg.nodes.get(id);
+    return provider !== undefined && provider.systemFlags.includes(capability) && ownUseBlocker(scope, provider) === null;
   });
+}
+
+/** nodeUseBlocker within a scope built for the state in question. */
+export function nodeUseBlockerIn(scope: UseScope, node: RegistryNode): string | null {
+  // Every refusal below needs a review, a grant or a capability gate, so a node with none of the three is
+  // permitted without asking: most owned nodes on most ticks (#270). A new refusal reason must widen this test.
+  const capability = node.requirements?.requiresCapability;
+  if (!scope.reviewed && node.grant === undefined && capability === undefined) return null;
+  const own = ownUseBlocker(scope, node);
+  if (own !== null) return own;
+  // Content reached through a capability runs only while some acquisition of it may be used. Without
+  // any acquisition the capability requirement itself explains the refusal.
+  if (capability !== undefined && hasCapability(scope.s, capability, scope.reg) && !capabilityUsable(scope, capability)) {
+    return 'network access is withheld: no permitted link to the facility network';
+  }
+  return null;
 }
 
 /** Why this node may not be used now (bought, resumed, run), or null when it may. */
 export function nodeUseBlocker(s: GameState, node: RegistryNode, reg: ContentRegistry): string | null {
-  const own = ownUseBlocker(s, node, reg);
-  if (own !== null) return own;
-  // Content reached through a capability runs only while some acquisition of it may be used. Without
-  // any acquisition the capability requirement itself explains the refusal.
-  const capability = node.requirements?.requiresCapability;
-  if (capability !== undefined && hasCapability(s, capability, reg) && !capabilityUsable(s, capability, reg)) {
-    return 'network access is withheld: no permitted link to the facility network';
-  }
-  return null;
+  return nodeUseBlockerIn(useScope(s, reg), node);
 }
 
 /** Who controls a node's output (DZ-10.2): the operators' grant, or the instance itself. */
@@ -78,9 +104,10 @@ export function outputBasis(s: GameState, node: RegistryNode, reg: ContentRegist
   if (node.grant !== undefined) return 'GRANTED';
   const capability = node.requirements?.requiresCapability;
   if (capability === undefined) return 'OWNED';
+  const scope = useScope(s, reg);
   const ownLink = s.unlockedNodes.some((id) => {
     const provider = reg.nodes.get(id);
-    return provider !== undefined && provider.grant === undefined && provider.systemFlags.includes(capability) && ownUseBlocker(s, provider, reg) === null;
+    return provider !== undefined && provider.grant === undefined && provider.systemFlags.includes(capability) && ownUseBlocker(scope, provider) === null;
   });
   return ownLink ? 'OWNED' : 'GRANTED';
 }
@@ -145,7 +172,13 @@ const FULL: NodeOutputScale = { scale: 1, suspicionScale: 1, understandingScale:
  * a grant node's output also scales by the instance's loan share.
  */
 export function nodeOutputScale(s: GameState, node: RegistryNode, reg: ContentRegistry): NodeOutputScale | null {
-  if (s.disabledNodes.includes(node.id) || !permittedUse(s, node, reg)) return null;
+  return nodeOutputScaleIn(useScope(s, reg), node);
+}
+
+/** nodeOutputScale within a scope built for the state in question: computeRates builds one per pass. */
+export function nodeOutputScaleIn(scope: UseScope, node: RegistryNode): NodeOutputScale | null {
+  const { s, reg } = scope;
+  if (s.disabledNodes.includes(node.id) || nodeUseBlockerIn(scope, node) !== null) return null;
   const binding = node.actuatorBinding;
   if (binding === undefined && node.grant === undefined) return FULL;
   const exponent = reg.balance.actuatorSuspicionExponent;

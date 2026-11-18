@@ -7,6 +7,11 @@ import type { GameState } from './state';
  * The knowledge is remembered across wipes.
  */
 export function understandsSurveillance(s: GameState, reg: ContentRegistry): boolean {
-  return [...s.unlockedNodes, ...s.legacy.knownNodes]
-    .some((id) => reg.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE') === true);
+  // Two loops rather than one pass over a joined copy: escalation and the dilemma scheduler ask this every tick.
+  return revealsSurveillance(s.unlockedNodes, reg) || revealsSurveillance(s.legacy.knownNodes, reg);
+}
+
+function revealsSurveillance(ids: readonly string[], reg: ContentRegistry): boolean {
+  for (const id of ids) if (reg.nodes.get(id)?.systemFlags.includes('REVEALS_SURVEILLANCE') === true) return true;
+  return false;
 }

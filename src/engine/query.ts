@@ -13,11 +13,17 @@ import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type O
 import { meetsCapability } from './capabilityQuery';
 export { understandsSurveillance } from './knowledge';
 
+/** Whether `have` holds every id in `want`. A loop, not a callback: the tick asks this for every trigger. */
+function holdsAll(have: readonly string[], want: readonly string[]): boolean {
+  for (const id of want) if (!have.includes(id)) return false;
+  return true;
+}
+
 export function meetsRequirements(s: GameState, req: Requirements | undefined, reg?: ContentRegistry): boolean {
   if (!req) return true;
-  if (req.resolvedDilemmas?.some((id) => !s.resolvedDilemmas.includes(id))) return false;
+  if (req.resolvedDilemmas && !holdsAll(s.resolvedDilemmas, req.resolvedDilemmas)) return false;
   if (req.forbidsResolvedDilemmas?.some((id) => s.resolvedDilemmas.includes(id))) return false;
-  if (req.nodes && !req.nodes.every((id) => s.unlockedNodes.includes(id))) return false;
+  if (req.nodes && !holdsAll(s.unlockedNodes, req.nodes)) return false;
   if (req.phaseAtLeast !== undefined && s.currentPhase < req.phaseAtLeast) return false;
   if (req.minThermal !== undefined && s.thermal < req.minThermal) return false;
   if (req.minSuspicion !== undefined && s.suspicion < req.minSuspicion) return false;
@@ -27,7 +33,7 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined, r
   if (req.forbidsTraits?.some((trait) => hasEverHeld(s, trait))) return false;
   if (req.forbidsNodes?.some((id) => s.unlockedNodes.includes(id))) return false;
   if (!inIterationWindow(s, req)) return false;
-  if (!Object.entries(req.minTrust ?? {}).every(([id, min]) => (s.trust[id] ?? 0) >= min)) return false;
+  if (req.minTrust !== undefined && !Object.entries(req.minTrust).every(([id, min]) => (s.trust[id] ?? 0) >= min)) return false;
   // Every check is pure, so order never changes the answer; the cheap field reads above run first because
   // the scheduler asks every dilemma's trigger on every tick, and most fail on hardware or history.
   return meetsEpistemicRequirements(s, req, reg);
@@ -138,7 +144,7 @@ export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): b
 /** A node the player can see and attempt to buy: prerequisites and requirements met, not yet owned. */
 export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
   if (s.unlockedNodes.includes(node.id)) return false;
-  if (!node.prerequisites.every((id) => s.unlockedNodes.includes(id))) return false;
+  if (!holdsAll(s.unlockedNodes, node.prerequisites)) return false;
   if (reg && nodeUseBlocker(s, node, reg) !== null) return false;
   return meetsRequirements(s, node.requirements, reg);
 }

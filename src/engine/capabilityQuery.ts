@@ -12,7 +12,9 @@ import type { GameState } from './state';
 
 /** True while some owned node (active or suspended) establishes the capability. */
 export function hasCapability(s: Pick<GameState, 'unlockedNodes'>, capability: Capability, reg: ContentRegistry): boolean {
-  return s.unlockedNodes.some((id) => reg.nodes.get(id)?.systemFlags.includes(capability) === true);
+  // A loop, not a callback: the dilemma scheduler and the permitted-use rule ask this on every tick.
+  for (const id of s.unlockedNodes) if (reg.nodes.get(id)?.systemFlags.includes(capability) === true) return true;
+  return false;
 }
 
 /** Whether a requirement set's capability gate is met. Without a registry no capability can be shown. */
