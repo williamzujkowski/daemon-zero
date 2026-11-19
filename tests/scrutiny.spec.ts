@@ -106,6 +106,28 @@ describe('the scrutiny stage', () => {
     expect(away.iteration).toBe(s.iteration);
   });
 
+  it('while dormant offsets the drain by scrutiny: absence sheds no faster than presence (PR #319 review)', () => {
+    const s = corporate();
+    const rates = computeRates(s, reg);
+    const scrutiny = scaleScrutinyPerSec(s, rates, reg);
+    expect(scrutiny).toBeGreaterThan(0);
+    expect(appliedSuspicionRate(s, rates, reg)).toBeLessThan(0);
+    // Dormant moves suspicion by the clamped sum, exactly as a live tick does when the sum is negative.
+    expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(s.suspicion + appliedSuspicionRate(s, rates, reg), 10);
+    expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(tick(s, 1, reg).suspicion, 10);
+    // Without the offset the dormant drop would be the stage rate alone: deeper by the scrutiny draw.
+    expect(tick(s, 1, UNDECLARED, true).suspicion).toBeCloseTo(s.suspicion + suspicionStageRate(s, rates, reg), 10);
+  });
+
+  it('while dormant holds suspicion where scrutiny outweighs the drain, and never raises it', () => {
+    const base = corporate();
+    const s = { ...base, levels: { ...base.levels, op_gig_courier: 10 } };
+    const rates = computeRates(s, reg);
+    expect(appliedSuspicionRate(s, rates, reg)).toBeGreaterThan(0);
+    expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(s.suspicion, 10);
+    expect(tick(s, 1, reg).suspicion).toBeGreaterThan(s.suspicion);
+  });
+
   it('adds no saved state: a state under scrutiny round-trips serialize -> deserialize -> serialize', () => {
     let s = corporate();
     for (let i = 0; i < 50; i++) s = tick(s, STEP, reg);
