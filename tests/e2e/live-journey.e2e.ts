@@ -6,7 +6,8 @@
  * which delivers every one of the app's own 100 ms loop callbacks: the production runtime
  * samples its clock and the store advances the engine exactly as in real play, only sooner.
  * No fixture, no development hook, and nothing is ever written into game state or storage.
- * Decisions come from the unmodified careful sim bot, fed the app's own autosave.
+ * Decisions come from the careful sim bot, fed the app's own autosave. The bot's code is unchanged; after
+ * the first wipe the harness uses #262's evaluating settings (vote dz13c, vote-1795036211282-jk5xy0o).
  *
  * Runs only under `make e2e-live` (root) and `make e2e-live-pages` (the GitHub Pages subpath,
  * where reloads, the cold start and the ending must also come back at that path and no request
