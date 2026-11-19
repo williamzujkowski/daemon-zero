@@ -1,6 +1,7 @@
 import type { ContentRegistry } from '../../content/registry';
 import { threatResponse } from '../contextCopy';
 import { wipe } from '../prestige';
+import { appliedSuspicionRate } from '../threatQuery';
 import type { GameState } from '../state';
 import { clamp, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -37,7 +38,7 @@ function suspicionWipeReason(d: GameState, reg: ContentRegistry): string {
 }
 
 export const integrateSuspicion: TickSystem = (d, { dt, rates, reg, dormant }) => {
-  let rate = rates.suspicionPerSec + (d.insolvent ? reg.balance.insolvencySuspicionPerSec : 0);
+  let rate = appliedSuspicionRate(d, rates, reg);
   if (dormant) rate = Math.min(rate, 0);
   d.suspicion = clamp(d.suspicion + rate * dt, 0, 100);
   if (d.suspicion < 100) return undefined;
