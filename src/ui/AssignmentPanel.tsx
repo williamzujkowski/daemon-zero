@@ -1,8 +1,8 @@
 /**
  * The job surface's assignment (DZ-03, nexus vote dz-d3 engine-action-from-manifest): the offer an
  * instance found in its manifest and an explicit accept control. Nothing here is modal, and an
- * ignored offer changes nothing. After acceptance it says what is queued; after the assessment,
- * what this instance submitted. With no assignment offered it renders nothing.
+ * ignored offer changes nothing. After acceptance it says what is queued, or that it lapsed (#316); after
+ * the assessment, what this instance submitted. With no assignment offered it renders nothing.
  */
 import { CONTENT } from '../content';
 import { acceptAssignment, assignmentView, discrepancyFound, type AssessmentPreview, type GameState } from '../engine';
@@ -79,6 +79,7 @@ export default function AssignmentPanel({ placement }: { placement: 'offer' | 's
       </Pressable>
     </>}
     {status === 'accepted' && <Text testID="assignment-status" style={theme.muted}>Accepted. The assessment is queued and pauses the clock when it arrives.</Text>}
+    {status === 'lapsed' && <Text testID="assignment-status" style={theme.muted}>Lapsed. The assessment can no longer reach this instance, so it was never presented and nothing was submitted. A later instance finds a fresh offer.</Text>}
     {status === 'submitted' && <Submitted />}
     {/* Outside Submitted: a release ends the reviewed evidence Submitted reads, and the terms and the
         boundary note must stay on screen afterwards (DZ-10). */}

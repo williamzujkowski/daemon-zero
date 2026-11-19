@@ -44,22 +44,34 @@ function assessmentProblems(dilemma: Dilemma, reg: ContentRegistry): string[] {
   return problems;
 }
 
-/**
- * A pilot is offered only inside the opening phase (nexus vote dz-d7), so an offer that leads to one
- * must close when a guest leaves that phase: otherwise accepting outside it spends the campaign's
- * unique opening scenes on an instance no pilot can follow. Every opening-phase node a guest can buy
- * that unlocks a later phase (the escape) must be forbidden; a node only a granted arrangement can
- * buy is reached after acceptance, so the offer is already gone.
- */
-function windowProblems(reg: ContentRegistry, assignment: Assignment): string[] {
-  if (assignment.pilot === undefined) return [];
+/** Every opening-phase node a guest can buy that unlocks a later phase: the escape. */
+function guestExits(reg: ContentRegistry): string[] {
   const opening = reg.phases[0]?.phaseId ?? 0;
-  const forbidden = assignment.requirements.forbidsNodes ?? [];
   return [...reg.nodes.values()]
     .filter((node) => node.phaseId === opening && (node.effects.unlocksPhase ?? opening) > opening)
     .filter((node) => node.requirements?.accessContexts?.includes('GUEST') ?? true)
-    .filter((node) => !forbidden.includes(node.id))
-    .map((node) => `assignment "${assignment.id}": an offer that leads to a pilot must close when the instance leaves the opening phase: forbid "${node.id}"`);
+    .map((node) => node.id);
+}
+
+/**
+ * A pilot is offered only inside the opening phase (nexus vote dz-d7), so an assignment that leads to
+ * one belongs to the guest (#316). Its offer closes at the escape (vote close-at-escape) and so does
+ * every scene it leads to: a scene queued in the guest and not yet presented lapses there under its
+ * interruption policy (vote scenes-lapse-at-escape). Both are declared by forbidding every guest exit,
+ * an access requirement the lifecycle revalidates at a purchase. A node only a granted arrangement can
+ * buy is reached after the scenes, so it need not be listed.
+ */
+function windowProblems(reg: ContentRegistry, assignment: Assignment): string[] {
+  if (assignment.pilot === undefined) return [];
+  const exits = guestExits(reg);
+  const missing = (forbidden: readonly string[] | undefined): string[] => exits.filter((id) => !(forbidden ?? []).includes(id));
+  const problems = missing(assignment.requirements.forbidsNodes)
+    .map((id) => `assignment "${assignment.id}": an offer that leads to a pilot must close when the instance leaves the opening phase: forbid "${id}"`);
+  for (const scene of reg.dilemmas.filter((dilemma) => dilemma.trigger.assignment?.id === assignment.id)) {
+    problems.push(...missing(scene.trigger.forbidsNodes)
+      .map((id) => `dilemma "${scene.id}": a scene of an assignment that leads to a pilot must lapse when the instance leaves the opening phase: forbid "${id}"`));
+  }
+  return problems;
 }
 
 function coverageProblems(reg: ContentRegistry): string[] {

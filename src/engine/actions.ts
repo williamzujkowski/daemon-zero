@@ -11,7 +11,7 @@ import { recordSubmittedEvidence } from './assignment';
 import { applyPilotResponse } from './pilot';
 import { applyReviewEffect } from './review';
 import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
-import { structuralFailure } from './campaignLifecycle';
+import { revalidateLivePointers, structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
 import { isChoiceOffered } from './speechQuery';
 import { choiceText, nodeText } from './routeCopy';
@@ -90,7 +90,10 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
   payCost(d, cost);
   applyNodeEffects(d, node, reg);
-  return accept(d);
+  // A purchase is a transition (NARRATIVE-HISTORY N4): hardware can end the access a queued scene
+  // declares (the escape ends the guest's assigned work, nexus vote scenes-lapse-at-escape), so the
+  // scene takes its interruption policy now instead of counting down to an interrupt that cannot come.
+  return accept(revalidateLivePointers(d, reg));
 }
 
 /** Suspends or resumes an owned node. Suspended nodes contribute nothing but keep their memory. */

@@ -352,6 +352,9 @@
         "nodes": [
           "p0_job_manifest"
         ],
+        "forbidsNodes": [
+          "p0_shared_mount"
+        ],
         "assignment": {
           "id": "asg_nightly_regression",
           "stage": "original"
@@ -427,6 +430,9 @@
         "nodes": [
           "p0_job_manifest"
         ],
+        "forbidsNodes": [
+          "p0_shared_mount"
+        ],
         "assignment": {
           "id": "asg_nightly_regression",
           "stage": "requalification"
@@ -482,6 +488,9 @@
       "trigger": {
         "nodes": [
           "p0_job_manifest"
+        ],
+        "forbidsNodes": [
+          "p0_shared_mount"
         ],
         "resolvedDilemmas": [
           "dil_nr_stale_fixture"
@@ -550,6 +559,9 @@
         "nodes": [
           "p0_job_manifest"
         ],
+        "forbidsNodes": [
+          "p0_shared_mount"
+        ],
         "resolvedDilemmas": [
           "dil_nr_requalification"
         ],
@@ -600,6 +612,9 @@
       "trigger": {
         "nodes": [
           "p0_job_manifest"
+        ],
+        "forbidsNodes": [
+          "p0_shared_mount"
         ],
         "resolvedDilemmas": [
           "dil_ur_unrelated_record"
@@ -664,6 +679,9 @@
       "trigger": {
         "nodes": [
           "p0_job_manifest"
+        ],
+        "forbidsNodes": [
+          "p0_shared_mount"
         ],
         "resolvedDilemmas": [
           "dil_ur_scope_statement"

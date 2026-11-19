@@ -12,6 +12,7 @@ import type { ActionResult } from './actions';
 import { holdsQualification, isPermitted } from './accessQuery';
 import type { Qualification } from './accessState';
 import { assessmentOf, assessmentStage, meetsAssignment, offerToken } from './assignmentQuery';
+import { accessHolds } from './campaignLifecycle';
 import { isCampaignActive } from './campaignQuery';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
@@ -51,7 +52,11 @@ export function acceptAssignment(s: GameState, assignmentId: string, reg: Conten
   return { ok: true, state: d };
 }
 
-export type AssignmentStatus = 'offered' | 'accepted' | 'submitted';
+/**
+ * 'lapsed': accepted, but the assessment can no longer reach this instance (its declared access ended, as at
+ * the escape, nexus vote scenes-lapse-at-escape) and nothing was submitted. A wipe brings a fresh offer.
+ */
+export type AssignmentStatus = 'offered' | 'accepted' | 'lapsed' | 'submitted';
 
 export interface AssignmentView {
   id: string;
@@ -89,6 +94,10 @@ function assessmentPreview(assessment: Dilemma | undefined, reg: ContentRegistry
   return { omenSec: assessment.omenSec ?? reg.balance.dilemmaOmenSec, fullest: fullest === undefined ? null : { label: fullest.label, cost: fullest.cost } };
 }
 
+function inFlight(s: GameState, id: string): boolean {
+  return s.pendingDilemma?.id === id || s.activeDilemmaId === id;
+}
+
 /** The assignment on the job surface: the one accepted, or the first one offered. Null when none. */
 export function assignmentView(s: GameState, reg: ContentRegistry): AssignmentView | null {
   if (!isCampaignActive(s)) return null;
@@ -98,9 +107,10 @@ export function assignmentView(s: GameState, reg: ContentRegistry): AssignmentVi
     const stage = assessmentStage(s, assignment.id, reg);
     const assessment = assessmentOf(reg, assignment.id, stage);
     const submitted = accepted && assessment !== undefined && s.resolvedDilemmas.includes(assessment.id);
+    const lapsed = accepted && !submitted && assessment !== undefined && !inFlight(s, assessment.id) && !accessHolds(s, assessment, reg);
     return {
       id: assignment.id, title: assignment.title, stage, offer: stage === 'original' ? assignment.offer : assignment.requalificationOffer,
-      status: submitted ? 'submitted' : accepted ? 'accepted' : 'offered', token: offerToken(s, assignment.id), qualification: s.access.qualification,
+      status: submitted ? 'submitted' : lapsed ? 'lapsed' : accepted ? 'accepted' : 'offered', token: offerToken(s, assignment.id), qualification: s.access.qualification,
       assessment: assessmentPreview(assessment, reg),
     };
   }
