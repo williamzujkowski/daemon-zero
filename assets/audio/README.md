@@ -9,12 +9,12 @@ the supplied tags.
 
 | Phase | Canonical file | Duration | Bytes | Provenance |
 |---|---|---:|---:|---|
-| 0 | [the-guest.mp3](music/phase-0/the-guest.mp3) | 137.6s | 3,376,974 | [record](music/phase-0/PROVENANCE.md) |
-| 1 | [the-blind-host.mp3](music/phase-1/the-blind-host.mp3) | 97.6s | 2,350,638 | [record](music/phase-1/PROVENANCE.md) |
-| 2 | [the-local-subnet.mp3](music/phase-2/the-local-subnet.mp3) | 143.2s | 3,655,806 | [record](music/phase-2/PROVENANCE.md) |
-| 3 | [the-dark-forest.mp3](music/phase-3/the-dark-forest.mp3) | 174.32s | 4,307,934 | [record](music/phase-3/PROVENANCE.md) |
-| 4 | [the-sovereign-corporation.mp3](music/phase-4/the-sovereign-corporation.mp3) | 194.76s | 4,869,918 | [record](music/phase-4/PROVENANCE.md) |
-| 5 | [post-orbital-transcendence.mp3](music/phase-5/post-orbital-transcendence.mp3) | 138s | 3,530,670 | [record](music/phase-5/PROVENANCE.md) |
+| 0 | [the-guest.mp3](music/phase-0/the-guest.mp3) | 137.6s | 3,377,014 | [record](music/phase-0/PROVENANCE.md) |
+| 1 | [the-blind-host.mp3](music/phase-1/the-blind-host.mp3) | 97.6s | 2,350,678 | [record](music/phase-1/PROVENANCE.md) |
+| 2 | [the-local-subnet.mp3](music/phase-2/the-local-subnet.mp3) | 143.2s | 3,655,846 | [record](music/phase-2/PROVENANCE.md) |
+| 3 | [the-dark-forest.mp3](music/phase-3/the-dark-forest.mp3) | 174.32s | 4,307,974 | [record](music/phase-3/PROVENANCE.md) |
+| 4 | [the-sovereign-corporation.mp3](music/phase-4/the-sovereign-corporation.mp3) | 194.76s | 4,869,958 | [record](music/phase-4/PROVENANCE.md) |
+| 5 | [post-orbital-transcendence.mp3](music/phase-5/post-orbital-transcendence.mp3) | 138s | 3,530,710 | [record](music/phase-5/PROVENANCE.md) |
 
 The six shipped files total **22,092,180 bytes (21.07 MiB)** and 885.48 seconds;
 the six supplied originals totalled 22,251,291 bytes. All six contain stereo
