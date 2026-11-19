@@ -41,9 +41,9 @@ export default defineConfig(
         'error',
         { object: 'Math', property: 'random', message: 'The engine is deterministic. Thread a seeded RNG through state instead.' },
         { object: 'Date', property: 'now', message: 'The engine never reads a clock. Callers pass elapsed time in.' },
-        // Content channel selection happens in metro.config.js at bundle time (#204/#205): content read
+        // Every build ships one composition, fixed in src/content/production.ts since #233: content read
         // from the environment would also follow a developer's shell into tests, the sim and validation.
-        { object: 'process', property: 'env', message: 'src/engine and src/content never read the environment. Build-time selection belongs in metro.config.js.' },
+        { object: 'process', property: 'env', message: 'src/engine and src/content never read the environment. Content is composed in src/content/production.ts.' },
       ],
       'no-restricted-globals': ['error', { name: 'setTimeout', message: 'No timers in the engine.' }, { name: 'setInterval', message: 'No timers in the engine.' }],
     },
@@ -90,14 +90,4 @@ export default defineConfig(
     },
   },
   { files: ['**/*.mjs'], ...tseslint.configs.disableTypeChecked },
-  {
-    // Metro loads its config with Node's require, so it is CommonJS and outside the TypeScript project.
-    files: ['metro.config.js'],
-    languageOptions: {
-      ...tseslint.configs.disableTypeChecked.languageOptions,
-      sourceType: 'commonjs',
-      globals: { require: 'readonly', module: 'writable', __dirname: 'readonly', process: 'readonly' },
-    },
-    rules: { ...tseslint.configs.disableTypeChecked.rules, '@typescript-eslint/no-require-imports': 'off' },
-  },
 );

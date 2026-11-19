@@ -198,17 +198,17 @@ The reckless run moves more because each wipe restarts it from a different dial 
 difference in the first iteration compounds across the later ones; the retraining mark it reaches
 (skim at or above 0.75) is now reached in 21 iterations instead of 2. Nothing gates GREEDY.
 
-`make sim-preview` moves with it, since STEALTH_RETURN, EVALUATING_RETURN and the GREEDY wipe sequences play
-the bot. Preview-only figures recorded in the sections below were measured with the quarter-step bot; they
-are historical and are not re-baselined here. The preview-versus-production comparison still reports 0 of 19
-metrics different for GREEDY (it reported 1 before, an epistemic action count).
+`make sim-preview` (before #233; now `make sim-report`) moved with it, since STEALTH_RETURN, EVALUATING_RETURN
+and the GREEDY wipe sequences play the bot. Preview-only figures recorded in the sections below were measured
+with the quarter-step bot; they are historical and are not re-baselined here. The preview-versus-production
+comparison then reported 0 of 19 metrics different for GREEDY (it reported 1 before, an epistemic action count).
 
 ### What the action-host rule moved (#273): nothing
 
 Re-checked for #273 on top of `7a07cca`. Every figure in the table above is unchanged: the full
 `SimReport` of both strategies, final state included, hashes identically before and after the
 change at the full `SIM_BUDGET_SEC` (STEALTH `8d2ac012…`, GREEDY `90817518…`), and `make sim-preview`
-prints the same report.
+(before #233) printed the same report.
 
 - **Scrub Audit Logs (UI only).** `act_p2_scrub_audit_logs` keeps its requirement, ARP discovery,
   which is the documented intent: its description calls it "the first real stealth tool you have
@@ -432,7 +432,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - **Network interface cut from 10,000 to 6,500 cycles** to shorten the wait at the end of Phase 1 (issue #23).
 - **Chronic suspicion from income repeatables halved** (idle threads 0.001, dormant workstations 0.0015 per level). Before the ladder, natural decay hid these; with it, 60 idle threads alone would outrun decay.
 - **Log scrubbing moved to the start of Phase 2** (needs the subnet mapper, costs 1,500 cycles, removes 10). Without it, early Phase 2 had suspicion sources and no countermeasure until the 25,000-cycle spoofer, and the only winning move was to buy through it.
-- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration. A second iteration clears Phase 0 in about a minute and Phase 1 in about eight. Under campaign rules (preview only) content may discount a remembered node's cycles further; only the log spoofer has such a discount (#262, below).
+- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration. A second iteration clears Phase 0 in about a minute and Phase 1 in about eight. Under campaign rules (preview only before #233; every game since) content may discount a remembered node's cycles further; only the log spoofer has such a discount (#262, below).
 
 ## How the economy is shaped
 
