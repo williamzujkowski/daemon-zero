@@ -425,9 +425,9 @@ close that gap. They share three rules:
   engine would treat as dormant time. No development hook is involved: the specs
   assert `__daemon` and the dev drawer are absent, as `boot()` does.
 - **Only on-screen controls.** `tests/e2e/live/player.ts` reads the app's own
-  autosave through `deserialize()` (it never writes storage), asks the unmodified
-  careful bot (`botStep(..., 'STEALTH')`; after the deliberate wipe, with the evaluating
-  overrides `EVALUATING_OVERRIDES` of #262, see below) what it would do, recovers the moves by
+  autosave through `deserialize()` (it never writes storage), asks the careful bot
+  (`botStep(..., 'STEALTH')`, its code unchanged; after the deliberate wipe, with the evaluating
+  overrides `EVALUATING_OVERRIDES` of #262, vote dz13c, see below) what it would do, recovers the moves by
   comparing the two states (`live/intents.ts`), and presses the matching control
   by test id only if it is visible and enabled. Reaching a control uses the game's
   navigation alone: tabs, workspace areas and collapsed `[ + ]` reference panels.

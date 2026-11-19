@@ -1,5 +1,7 @@
 /**
- * Turns one decision of the unmodified careful sim bot into presses of on-screen controls.
+ * Turns one decision of the careful sim bot into presses of on-screen controls. The bot's code is
+ * unchanged; the first iteration plays its default settings, and after the first wipe the harness passes
+ * #262's evaluating settings (EVALUATING_OVERRIDES; vote dz13c, vote-1795036211282-jk5xy0o).
  * The bot returns a state, not a move list, so the moves are recovered by comparing the
  * state it was shown with the state it wanted; nothing here writes either one anywhere.
  */
