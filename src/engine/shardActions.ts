@@ -60,6 +60,22 @@ export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', 
 }
 
 export type ShardCommand = 'PRUNE' | 'CLAMP' | 'ELEVATE';
+
+const NOT_COMMANDED = 'Hosted through an authorized channel on the terms it was offered: it is not commanded.';
+
+/**
+ * Why no command is offered on this cohort, or null (#309). A member this instance hosted through an
+ * authorized channel (DZ-08) came on the terms it was offered, which say it is hosted, not commanded, and
+ * the ending account repeats them; any cohort command would act on that member. Read from the campaign's
+ * contact record, so nothing is stored, and a wipe, which ends the hosting, ends this too.
+ */
+export function shardCommandTerms(s: GameState, id: string, reg: ContentRegistry): string | null {
+  const templateId = s.activeShards[id]?.templateId;
+  const hosted = reg.swarm.channelEncounters.some((encounter) => encounter.templateId === templateId && s.campaign.contacts.some((entry) =>
+    entry.encounter === encounter.id && entry.iteration === s.iteration && entry.response === 'HOSTED'));
+  return hosted ? NOT_COMMANDED : null;
+}
+
 export function shardCommandCost(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): Cost {
   const base = command === 'PRUNE' ? reg.swarm.balance.pruneCost : command === 'ELEVATE' ? reg.swarm.balance.elevateCost : CostSchema.parse({});
   const count = s.activeShards[id]?.count ?? 0;
@@ -71,6 +87,8 @@ export function executeShardCommand(s: GameState, id: string, command: ShardComm
   if (unavailable(s)) return refuse(s, 'run is paused');
   const shard = s.activeShards[id];
   if (!shard || shard.autonomyMode !== 'STANDARD') return refuse(s, 'no autonomous cohort');
+  const terms = shardCommandTerms(s, id, reg);
+  if (terms !== null) return refuse(s, terms);
   const pending = reg.dilemmas.find((dilemma) => dilemma.id === s.pendingDilemma?.id);
   if (shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly) return refuse(s, 'anomaly decision is approaching');
   if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) return refuse(s, 'drift is below elevation threshold');

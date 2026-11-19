@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  acceptServiceGrant, advance, batchToken, buyRepeatable, contactToken, departAuthorization, departureToken, deserialize, exportSave, importSave, negotiateRelease, presentationToken,
+  acceptServiceGrant, advance, batchToken, buyRepeatable, contactToken, departAuthorization, departureToken, deserialize, executeShardCommand, exportSave, importSave, negotiateRelease, presentationToken,
   releaseToken, resolveChannelContact, resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
@@ -22,7 +22,7 @@ import { afterFinding, findingPresented, provisional } from './finding-helpers';
 import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
 import { depart, recallAnnouncedWithUplink } from './departure-helpers';
 import { must, remarkedAsProduction } from './helpers';
-import { OUTAGE, until } from './review-helpers';
+import { OUTAGE, RECORD, until } from './review-helpers';
 
 const pendingOn = (s: GameState): GameState => ({ ...s, pendingWildEncounterId: CHANNEL });
 const loadsThrough = (s: GameState): GameState => importSave(exportSave(s), preview);
@@ -98,6 +98,9 @@ const ACTIONS: [string, (s: GameState) => ActionResult][] = [
   ['leave authorization', (s) => departAuthorization(s, preview, departureToken(s))],
   ['sign or lease the next lawful node', (s) => nextLawful(s)],
   ['lease colocation racks', (s) => buyRepeatable(s, 'rep_p4_colo_racks', preview)],
+  // #309: cohort commands, including on a channel-hosted cohort, which refuses them unchanged.
+  ...(['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command): [string, (s: GameState) => ActionResult] =>
+    [`${command.toLowerCase()} the first cohort`, (s) => executeShardCommand(s, Object.keys(s.activeShards)[0] ?? '', command, preview)]),
   ['wipe', (s) => voluntaryWipe(s, preview)],
   ['one second', (s) => ({ ok: true, state: advance(s, 1, preview) })],
   ['hours away', (s) => ({ ok: true, state: advance(advance(s, 8 * 3600, preview), 1, preview) })],
@@ -142,6 +145,7 @@ const LOADABLE: [string, () => GameState][] = [
   ['#274: left standing', () => afterFinding('let_stand')],
   ['#274: left standing, outage on screen', () => until(afterFinding('let_stand'), OUTAGE)],
   ['#274: left standing, then restricted', () => must(answerScene(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'))],
+  ['#309: left standing, restricted, corrected', () => must(answerScene(until(must(answerScene(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant')), RECORD), 'correct_record'))],
   ['service offered', () => delivered()],
   ['service granted', () => lawfulService()],
   ['directory mapped', () => directoryMapped()],
@@ -194,8 +198,8 @@ describe('every accepted DZ-08, #274, #285, DZ-10 and DZ-11 state stays loadable
     expect(() => loadsThrough(build())).toThrow(message);
   });
 
-  it('checks every listed state: 34 loadable and 7 refused forgeries, none skipped', () => {
-    expect([LOADABLE.length, FORGERIES.length]).toEqual([34, 7]);
+  it('checks every listed state: 35 loadable and 7 refused forgeries, none skipped', () => {
+    expect([LOADABLE.length, FORGERIES.length]).toEqual([35, 7]);
     expect(new Set([...LOADABLE, ...FORGERIES].map(([name]) => name)).size).toBe(LOADABLE.length + FORGERIES.length);
   });
 });

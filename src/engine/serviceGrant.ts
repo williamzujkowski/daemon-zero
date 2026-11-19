@@ -11,7 +11,7 @@ import { recordRouteEvent } from './access';
 import { iterationRoute, isPermitted } from './accessQuery';
 import { isCampaignActive } from './campaignQuery';
 import { pilotTerms } from './pilotQuery';
-import { passedFinding } from './reviewQuery';
+import { declinedFinding } from './reviewQuery';
 import { meetsRequirements } from './query';
 import { requirementLabels } from './queryPresentation';
 import type { GameState } from './state';
@@ -27,14 +27,19 @@ export function serviceGrantTerms(s: GameState, reg: ContentRegistry): ServiceGr
   return pilotTerms(s, reg)?.serviceGrant ?? null;
 }
 
+/** Why the grant is closed to an instance whose batch review finding stood (#283, #309). */
+const DECLINED_FINDING_REASON = 'Service is not granted to this instance: the batch review\'s one correction was declined, so its finding stood.';
+
 /**
  * What this instance can no longer change, so the grant is out of its reach: a recall in this iteration
- * (service follows an unbroken pilot), or a warning whose only way back has passed (#283). Empty otherwise.
+ * (service follows an unbroken pilot), or a batch review finding whose one correction was declined (#283).
+ * The second holds whatever standing a later correction restores (#309): the declined answer said service
+ * stays out of reach for this instance, and correcting an unrelated record is not that finding's correction.
  */
 function closedReasons(s: GameState, reg: ContentRegistry): string[] {
   const out: string[] = [];
   if (iterationRoute(s, s.iteration).some((event) => event.kind === 'RECALL')) out.push('This instance was recalled; service is not granted to it.');
-  if (passedFinding(s, reg) !== null) out.push('Service needs nominal standing, and this instance\'s warning stands: the review\'s one correction was declined.');
+  if (declinedFinding(s, reg) !== null) out.push(DECLINED_FINDING_REASON);
   return out;
 }
 
@@ -43,7 +48,7 @@ function blockers(s: GameState, terms: ServiceGrantTerms, reg: ContentRegistry):
   const out = closedReasons(s, reg);
   // The arrangement does not change under a matter already on its way (an incident and its record).
   if (s.pendingDilemma !== null) out.push('A matter is on its way to this pilot; it comes first.');
-  if (s.access.standing !== 'NOMINAL' && passedFinding(s, reg) === null) out.push('Standing must be nominal.');
+  if (s.access.standing !== 'NOMINAL' && declinedFinding(s, reg) === null) out.push('Standing must be nominal.');
   if (!isPermitted(s, 'LOANED_CAPACITY')) out.push('The loan must be running.');
   const done = s.access.work.batches;
   if (done < terms.minBatches) out.push(`Hand back ${String(terms.minBatches)} reviewed batches first; ${String(done)} so far.`);

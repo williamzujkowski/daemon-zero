@@ -99,7 +99,7 @@ describe('V05: the short-term result and the later discrepancy are recorded sepa
     // The service card does not list nominal standing as a condition still to meet.
     const grant = serviceGrantView(stood, preview);
     expect(grant?.status).toBe('closed');
-    expect(grant?.unmet).toEqual(['Service needs nominal standing, and this instance\'s warning stands: the review\'s one correction was declined.']);
+    expect(grant?.unmet).toEqual(['Service is not granted to this instance: the batch review\'s one correction was declined, so its finding stood.']);
     // The loan keeps working: a warning withholds nothing.
     expect(live(stood, 10).access.work.progressCycles).toBeGreaterThan(stood.access.work.progressCycles);
   });
@@ -223,10 +223,12 @@ describe('with the Outage Window: the finding comes first and never stacks into 
     // #283: the later violation names its own way back, so the passed finding no longer speaks for the record.
     const outageMisconduct = OUTAGE.choices.find((choice) => choice.id === 'act_without_grant')?.review?.misconduct;
     expect(reviewView(restricted, preview)).toMatchObject({ recovery: outageMisconduct?.recovery, recoveryPassed: false });
-    expect(serviceGrantView(restricted, preview)?.status).toBe('waiting');
-    // DZ-06's correction restores nominal; both violations stay on file.
+    // #309: the declined finding keeps service out of reach; a later violation does not reopen it as a condition.
+    expect(serviceGrantView(restricted, preview)?.status).toBe('closed');
+    // DZ-06's correction restores nominal; both violations stay on file, and service stays out of reach (#309).
     const corrected = must(answer(recordOnScreen, 'correct_record'));
     expect(corrected.access.standing).toBe('NOMINAL');
+    expect(serviceGrantView(corrected, preview)?.status).toBe('closed');
     expect(reviewView(corrected, preview)?.violations).toHaveLength(2);
     expect(ceiling(corrected)).toBe(NARROW);
   });

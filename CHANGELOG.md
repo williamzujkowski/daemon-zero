@@ -26,6 +26,10 @@ On `main` and deployed to GitHub Pages; not yet in a versioned build (the latest
   thresholds (BALANCE.md, "Release (#233)").
 - The notes after first contact, the release and a departure say what comes next instead of
   calling the route unfinished.
+- A batch review finding left standing keeps the service grant out of reach for that instance even
+  after a later, unrelated violation is corrected (#309); the correction still restores nominal
+  standing. A Mercy-Scribe fragment hosted through the support channel is offered no cohort
+  command (PRUNE, CLAMP or ELEVATE): it is hosted, not commanded, as its terms say (#309).
 
 ### Compatibility
 
