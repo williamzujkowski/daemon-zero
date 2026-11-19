@@ -494,6 +494,13 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
   (`serviceGrantView` status `closed`), instead of "Still needed: Standing must be nominal."
   The assessment record states the finding (`Found: ...`) instead of the discrepancy risk once a
   review has run.
+  The terms stay out of reach after a later violation and its correction (#309), with the reason
+  `Service is not granted to this instance: the batch review's one correction was declined, so its
+  finding stood.`
+- **A hosted fragment is not commanded (#309).** The swarm row of a cohort holding a fragment hosted
+  through the support channel shows `shard-terms-<id>` with `Hosted through an authorized channel on
+  the terms it was offered: it is not commanded.` in place of the PRUNE / CLAMP / ELEVATE help line
+  and controls.
 - **A waiting ticket off screen (#284).** The phone tier shows one pane, so while a support
   channel ticket waits on CORE and another pane is open, the chrome shows a non-modal notice
   (`contact-notice`, polite live region, `[ OPEN CORE ]`) beside the omen and response notices,

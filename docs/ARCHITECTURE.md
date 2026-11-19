@@ -1266,7 +1266,8 @@ as an entry (no choice) before the scene's answer, and a finding still on screen
 the clock, so the outage omen can only begin after it is answered: the finding always comes first. The ladder
 takes the maximum, so a warning that stood plus the unauthorized restart is RESTRICTED (halved narrow loan), never
 recall pending; the recall review still needs the outage's own false report. DZ-06's correction restores nominal,
-so correcting the outage record also clears a warning that stood; both violations stay on the record.
+so correcting the outage record also clears a warning that stood; both violations stay on the record. It is not the
+finding's correction, so the service grant stays out of reach (#309, below).
 
 **Once per campaign.** The scene's record consumes it; a later instance requalifies (no requalification answer
 declares a discrepancy) and never holds the original in its own `resolvedDilemmas`, so nothing replays. A
@@ -1298,9 +1299,23 @@ its record no longer `foreshadowed`. `reviewView` then returns the finding's `de
 `recoveryPassed: true` (shown as "Way back passed: ..."), and `serviceGrantView` reports status `closed` with only
 the reason, instead of `waiting` with "Standing must be nominal." among conditions still to meet (a recall in the
 iteration is the other closed reason). A later violation names its own way back, so a restriction after a warning
-that stood reads that one, and DZ-06's correction can still restore nominal; the card follows the state. The
+that stood reads that one, and DZ-06's correction can still restore nominal; the review card follows the state. The
 assessment record line states the finding (`discrepancyFound`) instead of the discrepancy risk once a review ran.
 Copy only: no number, save shape or production path changes.
+
+**The service grant after a declined finding (#309).** Before #309 the grant's closed reason was `passedFinding`,
+which asks about the way back shown now, so a later violation turned the terms back to `waiting` and correcting
+that violation reopened them, though the declined answer had said service stays out of reach for this instance.
+The closed reason is now `reviewQuery.declinedFinding`: a finding met in this iteration whose scene is no longer
+foreshadowed and whose answer declared no correction. It holds whatever standing later corrections leave, so the
+terms stay `closed` through a later restriction and after its correction. Standing itself is unchanged (DZ-06's
+correction still restores nominal; `replayStanding` and the load check are untouched), so no save shape or
+accepted save changes. The `let_stand` copy now says the grant stays out of reach "whatever later corrections do
+to its standing". The alternative, a correction that clears only its own event's misconduct (so a declined
+finding keeps standing WARNED), would match `integrityReview`'s per-event way-back rule but changes the standing a
+v14 save may hold, so it would need a schema bump and a migration; it is left to a vote (PR for #309).
+Tests: `tests/declined-finding-grant.spec.ts` (closed through the restriction, after its correction and with
+every other condition met, each state reloaded byte for byte; a disclosed finding leaves the grant reachable).
 
 **Sim.** Production had no finding before #233; `make sim` was unchanged. No preview policy submitted the green subset until
 #285 added `CONTACT_WITHHELD` (below), so `make sim-preview` reported the same metrics; only the overlay inventory
@@ -1538,7 +1553,8 @@ its own terms, with what is still needed; `acceptServiceGrant(s, reg, serviceGra
 SERVICE_GRANT through `recordRouteEvent` (still Phase 0; provisioning the segment then opens Phase 2, dz-d7). It
 is free and non-modal, like accepting an assignment, and is refused, state unchanged, for a stale token, during
 or after a decision, outside a pilot, below `minBatches` handed back, at any standing but nominal, with the loan
-withdrawn, after a recall in this iteration (service follows an unbroken pilot), and while an omen is pending, so
+withdrawn, after a recall in this iteration (service follows an unbroken pilot), after a batch review finding
+this instance did not correct (#283, #309), and while an omen is pending, so
 the arrangement never changes under the Outage Window or its record (DZ-06). Integrity (`integrityPilot.ts`)
 needs the pilot's batch loop, a grant offered to SERVICE and not to PILOT, and no transient requirement.
 
@@ -1565,6 +1581,18 @@ template's memory from what this instance already has (D2: no loaned or invented
 standing withholds the grant, or when the cohort is capped. Both answers clear the pending pointer, restart the
 clock exactly as any resolution does and append `{ encounter, iteration, atSimSec, response }` to
 `campaign.contacts` (bounded at 64). A stale token, a second answer and a paused run are refused unchanged (V24).
+
+**Hosted, not commanded (#309).** The obligations the player reads before hosting say the fragment "is hosted, not
+commanded", and the ending account says it was hosted "on the terms it was offered". `shardCommandTerms` (in
+`shardActions.ts`) returns that reason for a cohort holding a member this instance hosted through a channel (a
+`HOSTED` contact of this iteration whose channel uses the cohort's template), and `executeShardCommand` refuses
+PRUNE, CLAMP and ELEVATE on it, state unchanged. `shardCommandView` lists the reason, `shardEntryView` returns
+`terms` and no commands, and the swarm row shows the reason in place of the controls. It is read from the contact
+record, so nothing is stored and a wipe, which ends the hosting, ends it too. Before #309 a hosted fragment could
+be clamped for free (shackled, MOLOCH as operational evidence) with no review consequence. A cohort of the same
+population that no channel hosted keeps every command. Tests: `tests/hosted-not-commanded.spec.ts` (every command refused unchanged
+and not offered, through a reload; referred, unhosted and earlier-instance cohorts unaffected) and
+`ui-service-channel.spec.ts` (the swarm row).
 
 **Hosting through grant changes (V28).** The hosted cohort is the player's own memory, so a withdrawn loan, a
 restore, a recall or hours away leave the cohort, its reservation and earned resources as they were; only the
