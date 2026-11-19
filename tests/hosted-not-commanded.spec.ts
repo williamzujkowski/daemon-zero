@@ -18,12 +18,17 @@ const NOT_COMMANDED = 'Hosted through an authorized channel on the terms it was 
 const hosted = must(answer(withMemory(contactPending()), 'HOST'));
 /**
  * FIXTURE: the hosted cohort at the drift elevation needs, with the resources and memory every command
- * costs, so no price or threshold decides a refusal. Only those numbers change.
+ * costs, so no price or threshold decides a refusal, and a surveillance node, since cohort commands are the
+ * decoded mind's tools (#313) and the lawful service holds none. Only those change.
  */
 function matured(s: GameState): GameState {
   const cohort = defined(s.activeShards[MERCY]);
-  return { ...s, cycles: 1e9, understanding: 1e9, memoryCap: s.memoryCap + 1024,
-    activeShards: { ...s.activeShards, [MERCY]: { ...cohort, drift: preview.swarm.balance.elevateMinDrift + 10 } } };
+  return decoded({ ...s, cycles: 1e9, understanding: 1e9, memoryCap: s.memoryCap + 1024,
+    activeShards: { ...s.activeShards, [MERCY]: { ...cohort, drift: preview.swarm.balance.elevateMinDrift + 10 } } });
+}
+/** FIXTURE: the surveillance node added by hand, not unlocked, so it is added after a reload, never saved. */
+function decoded(s: GameState): GameState {
+  return { ...s, unlockedNodes: [...s.unlockedNodes, surveillance()] };
 }
 
 describe('#309: a channel-hosted fragment is hosted, not commanded', () => {
@@ -46,13 +51,13 @@ describe('#309: a channel-hosted fragment is hosted, not commanded', () => {
   });
 
   it('the cohort entry carries no commands and says why', () => {
-    // FIXTURE: a surveillance node, since the swarm view is surveillance-gated and the lawful service holds none.
-    const view = defined(shardEntryView({ ...matured(hosted), unlockedNodes: [...hosted.unlockedNodes, surveillance()] }, MERCY, preview));
+    const view = defined(shardEntryView(matured(hosted), MERCY, preview));
     expect([view.commands, view.terms]).toEqual([[], NOT_COMMANDED]);
   });
 
   it('the refusal survives a reload: the hosted cohort is read from the campaign record, not stored', () => {
-    const loaded = roundTrip(matured(hosted));
+    const { unlockedNodes } = hosted;
+    const loaded = decoded(roundTrip({ ...matured(hosted), unlockedNodes }));
     expect(reasonOf(executeShardCommand(loaded, MERCY, 'CLAMP', preview))).toBe(NOT_COMMANDED);
   });
 

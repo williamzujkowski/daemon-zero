@@ -1594,6 +1594,17 @@ population that no channel hosted keeps every command. Tests: `tests/hosted-not-
 and not offered, through a reload; referred, unhosted and earlier-instance cohorts unaffected) and
 `ui-service-channel.spec.ts` (the swarm row).
 
+**One gate for cohort commands (#313).** `shardCommandUnmet` (in `shardActions.ts`) is the only place a cohort
+command's legality is decided: a paused run, a mind that has not decoded its audit trail (`understandsSurveillance`,
+live or remembered, since the swarm controls are the decoded mind's tools), a missing or stabilized cohort, the
+channel terms above, the ELEVATE drift threshold, the approaching anomaly and the price, in that order.
+`shardCommandView` lists them and is eligible only when there are none; `executeShardCommand` refuses with the first,
+state unchanged, so a caller that skips the view (a test, the sim, a future screen) cannot issue a command no
+player could reach. Before #313 the view required the decoded audit trail without saying so and the action did not
+check it at all. The sim never relied on the gap: `make sim` output was identical before and after. Tests:
+`tests/shard-command-gate.spec.ts` (every command refused without the knowledge, with the view's first reason;
+accepted once it is remembered; view and action agree on acceptance and reason across every gate).
+
 **Hosting through grant changes (V28).** The hosted cohort is the player's own memory, so a withdrawn loan, a
 restore, a recall or hours away leave the cohort, its reservation and earned resources as they were; only the
 loan's tagged output stops, and reloading changes nothing. A wipe ends the hosting (`createInitialState`); the

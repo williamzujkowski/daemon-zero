@@ -147,7 +147,8 @@ describe('source-scoped ending evidence (H12, H13)', () => {
   it('counts ordinary cohort commands as operational and resets them on a wipe', () => {
     const shard = { templateId: defined(preview.swarm.playerSwarmTemplates[0]).id, count: 1, drift: 0, quirkId: null,
       autonomyMode: 'STANDARD' as const, memoryAllocatedMb: 0 };
-    const start = { ...activeGame(), activeShards: { [shard.templateId]: shard } };
+    // The swarm controls are the decoded mind's tools (#313), so the commanding state has decoded its audit trail.
+    const start = pgrantSurveillance({ ...activeGame(), activeShards: { [shard.templateId]: shard } });
     const clamped = must(executeShardCommand(start, shard.templateId, 'CLAMP', preview));
     expect(clamped.campaign.operationalEvidence).toEqual(clamped.traits);
     expect(clamped.traits).toHaveLength(1);

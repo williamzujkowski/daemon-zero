@@ -3,7 +3,8 @@ import type { ContentRegistry } from '../content/registry';
 import { CostSchema, EffectPayloadSchema, type Cost } from '../content/schema';
 import type { ShardTemplate } from '../content/schemaSwarm';
 import type { ActionResult } from './actions';
-import { canAfford, meetsRequirements } from './query';
+import { canAfford, meetsRequirements, understandsSurveillance } from './query';
+import { formatCost, pausedReason } from './queryPresentation';
 import type { GameState } from './state';
 import { refreshAnomaly } from './swarmEffects';
 import { OPERATIONAL_EVIDENCE } from './campaign';
@@ -83,17 +84,36 @@ export function shardCommandCost(s: GameState, id: string, command: ShardCommand
     capital: base.capital * count, memory: base.memory * count };
 }
 
-export function executeShardCommand(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): ActionResult {
-  if (unavailable(s)) return refuse(s, 'run is paused');
-  const shard = s.activeShards[id];
-  if (!shard || shard.autonomyMode !== 'STANDARD') return refuse(s, 'no autonomous cohort');
+const UNDECODED = 'Requires the decoded audit trail: cohort commands are tools of the decoded mind.';
+const NOT_AUTONOMOUS = 'Requires a STANDARD autonomous cohort.';
+
+/**
+ * Every reason this command is not offered, in order, or none (#313). The one gate: the command view lists
+ * these and the action refuses with the first, so no caller that skips the view (a test, the sim, a future
+ * screen) can issue a command a player could not reach. The swarm controls render only for a mind that has
+ * decoded its audit trail, so that knowledge, live or remembered, is part of the gate.
+ */
+export function shardCommandUnmet(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): string[] {
+  const shard = s.activeShards[id], unmet = pausedReason(s);
+  if (!understandsSurveillance(s, reg)) unmet.push(UNDECODED);
+  if (!shard || shard.autonomyMode !== 'STANDARD') unmet.push(NOT_AUTONOMOUS);
   const terms = shardCommandTerms(s, id, reg);
-  if (terms !== null) return refuse(s, terms);
-  const pending = reg.dilemmas.find((dilemma) => dilemma.id === s.pendingDilemma?.id);
-  if (shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly) return refuse(s, 'anomaly decision is approaching');
-  if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) return refuse(s, 'drift is below elevation threshold');
+  if (terms !== null) unmet.push(terms);
+  if (shard) {
+    if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) unmet.push(`Requires ${String(reg.swarm.balance.elevateMinDrift)}% autonomy drift.`);
+    const pending = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
+    if (shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly) unmet.push('Await the approaching anomaly decision.');
+  }
   const cost = shardCommandCost(s, id, command, reg);
-  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
+  return unmet;
+}
+
+export function executeShardCommand(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): ActionResult {
+  const [reason] = shardCommandUnmet(s, id, command, reg), shard = s.activeShards[id];
+  // The gate admits only an existing STANDARD cohort; the second test narrows the type.
+  if (reason !== undefined || !shard) return refuse(s, reason ?? NOT_AUTONOMOUS);
+  const cost = shardCommandCost(s, id, command, reg);
   const mode = command === 'PRUNE' ? 'STANDARD' : command === 'CLAMP' ? 'SHACKLED' : 'ELEVATED';
   const d: GameState = { ...s, activeShards: { ...s.activeShards, [id]: { ...shard,
     drift: 0, autonomyMode: mode, memoryAllocatedMb: shard.memoryAllocatedMb + cost.memory } } };
