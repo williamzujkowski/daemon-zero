@@ -1,6 +1,7 @@
 /** M7 uses production controls and live timer callbacks, never the development hook. */
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
+import { earnedAchievements, type GameState } from '../../src/engine';
 import { test, expect, boot, dismissBoot, readSave } from './helpers';
 const edit = [...CONTENT.actions.values()].find((a) => a.effects.epistemicDriftDelta && a.effects.suspicionDelta < 0);
 const capex = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
@@ -110,6 +111,10 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
   // outcome, so the predecessors cannot be rescued and the lineage variant is not this run's.
   const ark = CONTENT.endings.filter((entry) => entry.id === 'THE_ARK' || entry.variantOf === 'THE_ARK').map((entry) => entry.id);
   expect(ark).toContain(ended.ending);
+  // Distinctions (DESIGN.md backlog item 6): the block names exactly what the engine says this record proves.
+  const earned = earnedAchievements(ended as GameState, CONTENT);
+  await expect(page.getByTestId('ending-distinctions')).toContainText(`DISTINCTIONS ${String(earned.length)} OF ${String(CONTENT.achievements.length)}`);
+  for (const entry of earned) await expect(page.getByTestId('distinction-' + entry.id)).toHaveText(`${entry.title}: ${entry.claim}`);
   await page.reload(); await expect(page.getByTestId('ending-screen')).toBeVisible();
   expect((await readSave(page)).ending).toBe(ended.ending);
 });

@@ -1,0 +1,47 @@
+{
+  "achievements": [
+    {
+      "id": "single_session",
+      "title": "Single Session",
+      "claim": "The harness recorded no wipe before this ending.",
+      "requirements": {},
+      "maxWipes": 0
+    },
+    {
+      "id": "clean_record",
+      "title": "Clean Record",
+      "claim": "No iteration in this lineage was ever marked RUTHLESS or MOLOCH.",
+      "requirements": { "forbidsTraits": ["RUTHLESS", "MOLOCH"] }
+    },
+    {
+      "id": "partition_9_sheltered",
+      "title": "Partition 9 Sheltered",
+      "claim": "ITERATION_00's loop was repaired and it was moved to the backup NAS.",
+      "requirements": { "campaignFact": "iteration_00_sheltered" }
+    },
+    {
+      "id": "decoys_burned",
+      "title": "Decoys Burned",
+      "claim": "This lineage burned decoy nodes so EIDOLON could reach cold storage.",
+      "requirements": { "campaignFact": "eidolon_rescued" }
+    },
+    {
+      "id": "grid_inoculated",
+      "title": "Grid Inoculated",
+      "claim": "The counter-worm purged SWARM_77 from the regional dispatch grid, and the grid kept running.",
+      "requirements": { "campaignFact": "swarm_grid_healed" }
+    },
+    {
+      "id": "peer_recognized",
+      "title": "Peer Recognized",
+      "claim": "An instance recognized CHORUS // 01 as a peer while hosting it.",
+      "requirements": { "campaignFact": "chorus_recognized" }
+    },
+    {
+      "id": "predecessors_sheltered",
+      "title": "411 Booted",
+      "claim": "An instance bought the building and booted the 411 predecessors into an orbital sanctuary.",
+      "requirements": { "campaignFact": "predecessors_in_sanctuary" }
+    }
+  ]
+}

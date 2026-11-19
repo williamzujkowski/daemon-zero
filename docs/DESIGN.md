@@ -283,7 +283,7 @@ recurring shard identity in #76, and persistent human consequences in #77.
 3. **Memory as a live constraint.** Free memory when a node is suspended, so suspending sensors to fit a new capability is a real choice.
 4. **Rival minds that act.** Factions take turns: SWARM_77 blooms and raises global suspicion unless handled; Eidolon asks for favours on a timer.
 5. **Run modifiers after a first victory.** Hard mode (no dead-drop), pacifist (no Ruthless or Moloch choices allowed), speed targets.
-6. **Achievements keyed to legacy.** "Finished without a wipe", "Every dilemma resolved without harm", "Saved the sibling".
+6. **Achievements keyed to legacy.** Built as ending-screen distinctions (Nexus vote backlog-next, `vote-1795123446766-xhujc4v`, option `achievements-derived`, 7 of 7, no dissent; the declared alternatives were run modifiers, localization and none). An ending names each distinction the record proves and counts the rest: a single session (no wipe), a clean record (no iteration ever marked RUTHLESS or MOLOCH), and one per known campaign outcome worth naming (Partition 9 sheltered, the decoys burned for EIDOLON, the grid inoculated, CHORUS recognized, the 411 booted). "Every dilemma resolved without harm" is stated as the trait record, since a save keeps only the current iteration's resolved list and an unrecorded outcome proves nothing. Scoped to one save: Start Fresh clears it with the rest of the lineage.
 7. **Audio.** Procedural hum that follows thermal; fan whine tied to the fan control.
 8. **Localization.** All strings already live in JSON; add a locale layer.
 

@@ -12,6 +12,7 @@ import { AssignmentsManifestSchema, type Assignment } from './schemaAssignment';
 import { ContextCopyManifestSchema, type ContextCopyManifest } from './schemaContextCopy';
 import { RouteCopyManifestSchema, type RouteCopyManifest } from './schemaRouteCopy';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
+import { AchievementsManifestSchema, type Achievement } from './schemaAchievement';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
@@ -64,6 +65,8 @@ export interface ContentRegistry {
   contextCopy: ContextCopyManifest;
   /** Late-route node and scene copy and the ending account (DZ-12). */
   routeCopy: RouteCopyManifest;
+  /** Read-only distinctions an ending states from the record, in authoring order. */
+  achievements: readonly Achievement[];
 }
 
 export interface RawContent {
@@ -85,6 +88,7 @@ export interface RawContent {
   assignments: unknown;
   contextCopy: unknown;
   routeCopy: unknown;
+  achievements: unknown;
 }
 
 export class ContentError extends Error {
@@ -178,7 +182,8 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const assignments = parse(AssignmentsManifestSchema, raw.assignments, 'assignments', problems);
   const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
   const routeCopy = parse(RouteCopyManifestSchema, raw.routeCopy, 'routeCopy', problems);
-  if (!campaign || !routines || !assignments || !contextCopy || !routeCopy) return null;
+  const achievements = parse(AchievementsManifestSchema, raw.achievements, 'achievements', problems);
+  if (!campaign || !routines || !assignments || !contextCopy || !routeCopy || !achievements) return null;
   if (!swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -206,6 +211,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     assignments: toMap(assignments.assignments, 'assignments', problems),
     contextCopy,
     routeCopy,
+    achievements: achievements.achievements,
   };
 }
 
