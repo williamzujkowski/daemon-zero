@@ -12,6 +12,7 @@ import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContex
 import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
+import { ScaleScrutinySchema } from './schemaScrutiny';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -191,6 +192,8 @@ export const PhaseSchema = z.strictObject({
   title: z.string().min(5),
   description: z.string().min(10),
   nodes: z.array(TechNodeSchema).min(1),
+  /** While this phase is current, net income draws suspicion (#210). Absent: size draws none. */
+  scaleScrutiny: ScaleScrutinySchema.optional(),
 });
 
 export const RepeatableEffectsSchema = z.strictObject({
