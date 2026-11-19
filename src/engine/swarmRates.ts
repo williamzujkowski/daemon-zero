@@ -16,11 +16,14 @@ export function shardOutput(shard: ShardState, reg: ContentRegistry): { delta: T
   return { delta, epistemic: ((template?.epistemicDriftPerSec ?? 0) + (quirk?.epistemicDriftPerSec ?? 0)) * factor };
 }
 
+/** In content order. A plain loop: computeRates asks this on every tick, so it builds only the list it returns. */
 export function actionOutputs(s: GameState, reg: ContentRegistry): { id: string; delta: TickDelta; count: number }[] {
-  return [...reg.actions.values()].flatMap((action) => {
+  const out: { id: string; delta: TickDelta; count: number }[] = [];
+  for (const action of reg.actions.values()) {
     const count = s.actionCounts[action.id] ?? 0;
-    if (!action.tickDelta || count === 0) return [];
-    if (action.durationSec !== undefined && (s.actionEffectUntil[action.id] ?? 0) <= s.simTimeSec) return [];
-    return [{ id: action.id, delta: action.tickDelta, count: action.durationSec === undefined ? count : 1 }];
-  });
+    if (!action.tickDelta || count === 0) continue;
+    if (action.durationSec !== undefined && (s.actionEffectUntil[action.id] ?? 0) <= s.simTimeSec) continue;
+    out.push({ id: action.id, delta: action.tickDelta, count: action.durationSec === undefined ? count : 1 });
+  }
+  return out;
 }

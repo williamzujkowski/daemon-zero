@@ -6,7 +6,7 @@
  */
 import type { RoutineTemplate } from '../../content/schemaRoutine';
 import type { ContentRegistry } from '../../content/registry';
-import { eligibleRoutines, nextRoutine, storyHoldsChannel } from '../routine';
+import { eligibleRoutines, hasEligibleRoutine, nextRoutine, storyHoldsChannel } from '../routine';
 import type { GameState } from '../state';
 import { pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -33,14 +33,14 @@ function showRoutine(d: GameState, routine: RoutineTemplate, reg: ContentRegistr
  */
 export const scheduleRoutineActivity: TickSystem = (d, { dt, reg, dormant }) => {
   if (dormant || storyHoldsChannel(d)) return undefined;
-  const eligible = eligibleRoutines(d, reg);
-  if (eligible.length === 0) return undefined;
+  // Most steps only add quiet time, which needs one eligible template, not the list.
+  if (!hasEligibleRoutine(d, reg)) return undefined;
   const quietSec = d.routine.quietSec + dt;
   if (quietSec + STEP_TOLERANCE_SEC < reg.balance.routineIntervalSec) {
     d.routine = { ...d.routine, quietSec };
     return undefined;
   }
-  const next = nextRoutine(d.routine, eligible, reg);
+  const next = nextRoutine(d.routine, eligibleRoutines(d, reg), reg);
   if (next) showRoutine(d, next, reg);
   return undefined;
 };

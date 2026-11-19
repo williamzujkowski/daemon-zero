@@ -14,6 +14,11 @@ export function eligibleRoutines(s: GameState, reg: ContentRegistry): RoutineTem
   return reg.routines.filter((routine) => meetsRequirements(s, routine.requirements, reg));
 }
 
+/** Whether any template fits now: the same answer as a non-empty eligibleRoutines, stopping at the first. */
+export function hasEligibleRoutine(s: GameState, reg: ContentRegistry): boolean {
+  return reg.routines.some((routine) => meetsRequirements(s, routine.requirements, reg));
+}
+
 /** A dilemma that is foreshadowed or on screen owns the narrative channel; routine stays quiet. */
 export function storyHoldsChannel(s: GameState): boolean {
   return s.activeDilemmaId !== null || s.pendingDilemma !== null;
