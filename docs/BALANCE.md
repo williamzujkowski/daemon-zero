@@ -11,6 +11,81 @@ All tunable numbers live in content manifests (`src/content/data/` and `src/cont
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
+## Scale scrutiny (#210)
+
+Implements the Nexus decision `scale-driven-late-suspicion` (7/7, `vote-1795070014405-l286t3e`) on the measurements
+in [PLAYTEST-210-MEASUREMENTS.md](PLAYTEST-210-MEASUREMENTS.md) (a) and (c). From late Phase 3 a careful run's
+suspicion sat at 0 (90% of Phase 4, all of Phase 5) and STEALTH met no threat event for its last 3733 s. Phases 4 and
+5 now declare `scaleScrutiny` in their manifests: while the phase is current, a covert run's net income draws
+suspicion, `min(max, atMillion x (income / $1M/s) ^ exponent)` per second, through its own pipeline stage. An instance
+the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6, the rule the hunter's
+scale sweep follows). The FINANCE ledger states the draw; the forecast counts on it.
+
+| Phase | Draw at $1M/s | Income exponent | Ceiling | Why |
+|---|---:|---:|---:|---|
+| 4 | 1.1 /s | 0.5 | 2 /s | The square root tracks the Phase 4 answers (law firm, lobby, staff) as income grows: about 0.6/s at $0.3M/s against a -0.55/s net, the 2/s ceiling at $3.3M/s against -1.6 to -1.9/s |
+| 5 | 1.25 /s | 0.5 | 6 /s | The fog's income jump (about $10M/s to $19M/s) lifts the draw by a third, not a half, so the bloom, the blitz and the Covenant can still answer it |
+
+No other content number, no bot rule and no gate changed. The square root and the ceilings were chosen by sweeping the
+content in memory against the same measurement harness the playtest note used (linear draws either left Phase 5 quiet
+or outran the answers between the fog and the Covenant). All times are accelerated simulated seconds, never wall-clock play.
+
+**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`, gates unchanged):
+
+| STEALTH | Legacy rules before | Legacy rules after | Campaign rules before | Campaign rules after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9347.4 s | Lineage Covenant, 9082.1 s | Lineage Covenant, 9298.6 s | Lineage Covenant, 9387.6 s |
+| Phase 4 / 5 reached | 5896.8 / 7687.0 s | 5896.8 / 7678.7 s | 6097.7 / 7899.2 s | 6097.7 / 7962.2 s |
+| Phase 4 / 5 duration | 1790.2 / 1660.4 s | 1781.9 / 1403.4 s | 1801.5 / 1399.4 s | 1864.5 / 1425.4 s |
+| Wipes / dilemmas | 0 / 17 | 0 / 17 | 0 / 18 | 0 / 18 |
+| Peak suspicion | 29.2% | 30.0% | 29.2% | 29.2% |
+| Epistemic actions | 13 | 23 | 12 | 18 |
+
+Phases 0 to 3 are identical to the tenth of a second. GREEDY never reaches Phase 4 under either rule set, so its
+reports do not move (legacy 23 wipes, campaign 16, neither finishes in 10 h). The original game alone (the
+`tests/sim.spec.ts` historical hashes, which move with this change): Phase 5 7701.1 -> 7551.3 s, victory 9223.5 ->
+9280.8 s, Phase 4 duration 1823.3 -> 1673.5 s, Phase 5 duration 1522.4 -> 1729.5 s (inside the 1800 s bound, closer to
+it), dilemmas 16 -> 17, wipes 0.
+
+**Late pressure, campaign rules** (the playtest note's harness and definitions: a threat event is a rung climbed,
+thermal crossing 75 C, the lock crossing 25/50/75/90, a performed action that lowers suspicion or the lock, or a wipe;
+"rising" is the rate the tick applies, scrutiny included, above zero; CAUTIOUS is STEALTH with the #262 evaluating
+knobs, suspicion answered from 45 with at most a quarter of the bank):
+
+| | STEALTH before | STEALTH after | CAUTIOUS before | CAUTIOUS after |
+|---|---|---|---|---|
+| Phase 4 suspicion mean / max | 0.7 / 13.2 | 4.8 / 20.3 | 0.6 / 13.2 | 9.0 / 45.3 |
+| Phase 4 seconds rising / mean applied rate | 0% / -0.934 | 44% / -0.020 | 0% / -0.966 | 40% / -0.027 |
+| Phase 5 suspicion mean / max | 0.0 / 0.0 | 2.5 / 20.6 | 0.0 / 0.0 | 11.2 / 46.6 |
+| Phase 5 seconds rising / mean applied rate | 0% / -7.487 | 24% / -3.144 | 0% / -7.798 | 31% / -2.521 |
+| Seconds at rung >= 1, Phases 4 / 5 | 0% / 0% | 0% / 0% | 0% / 0% | 19% / 29% |
+| Threat events, Phases 4 / 5 | 0 / 0 | 8 / 11 | 2 / 0 | 8 / 15 |
+| Last threat event; quiet stretch to the end | 5566 s; 3732 s | 8537 s; 851 s | 6690 s; 3091 s | 8865 s; 681 s |
+| Longest threat-free stretch from Phase 4 entry | 3201 s (all of it) | 851 s | 3091 s | 972 s |
+| Victory / wipes | 9298.6 s / 0 | 9387.6 s / 0 | 9781.0 s / 0 | 9546.0 s / 0 |
+
+STEALTH's late answers are the existing ones: Threat-Intel tickets, tone corrections, the decoy, the biotech patent and
+the lobbying blitz (17 answers and 2 lock crossings in Phases 4 and 5, against none before). The remaining quiet stretch is the end of Phase 5 after
+the Cryptographic Covenant (`p5_verification_proof_engine`, -6 suspicion/s): the Covenant is the late answer and,
+unchanged, outweighs the 6/s ceiling. Trimming it is listed as an option in the PR, not done here.
+
+**Slow roll** (each snapshot handed to IDLE for 1800 s; before -> after):
+
+| Snapshot | STEALTH | CAUTIOUS |
+|---|---|---|
+| Phase 4 at 10% | suspicion wipe at +778 s -> at +772 s | AEGIS strike at +995 s -> at +1010 s |
+| Phase 4 at 50% | nothing -> nothing (the draw is under the net there) | nothing -> nothing |
+| Phase 4 at 90% | nothing -> suspicion wipe at +338 s | nothing -> suspicion wipe at +200 s |
+| Phase 5 at 10% | nothing (peak 10.4) -> nothing (peak 13.9) | nothing (peak 11.5) -> nothing (peak 35.7, rung 1) |
+| Phase 5 at 50% | nothing -> nothing (after the Covenant) | nothing -> suspicion wipe at +53 s (snapshot near its 45 alarm, before the Covenant) |
+| Phase 5 at 90% | nothing -> nothing | nothing -> nothing |
+
+**Routes.** `make sim-report`: COOPERATIVE_ENDING is unchanged (LINEAGE_COVENANT at 11,431.6 s, no threat event; the
+released company is not covert). DEPARTURE_CHARTERED is swept harder: its first iteration now ends (AEGIS, exit
+DEPARTURE) 690.7 s after leaving instead of 3494.3 s, because the departed company's income draws scrutiny, which feeds
+the hunter's suspicion term; the report counts 2 wipes in its budget instead of 1. That follows the D6 rule (an
+instance that left without agreement is swept like any covert actor); the PR lists it as an option to vote on.
+
 ## Release (#233)
 
 The release folds the Earned Access pack into production content and admits every game to campaign
@@ -19,6 +94,8 @@ the bot is unchanged (`bot.ts` has no diff). What changed is what the gate measu
 (`scripts/run-sim.ts`) now plays STEALTH and GREEDY on the full composition from a new game on legacy
 rules and from a new game admitted to campaign rules, and gates STEALTH under each. Measured on the
 release branch after the fold, against `make sim` on `main` before it. All times are accelerated simulated seconds, never wall-clock play.
+Since #210 the Phase 4 and 5 figures of the production columns are superseded by "Scale scrutiny (#210)" above; Phases
+0 to 3 are unchanged.
 
 **`make sim`, STEALTH** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`):
 
@@ -444,10 +521,11 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - **Suspicion:** baseline decay is 0.05/s. Phase 1 is roughly neutral; Phase 2 nodes push it positive, so the spoofer, traffic shapers and log scrubbing are needed, not optional.
 - **AEGIS:** `0.03 + 0.3 * suspicion/100` per second, so about 55 minutes to a strike at zero suspicion and about 9 minutes at 50%. Route poisoning (-30, 45 s cooldown) keeps a quiet player ahead; a loud player cannot afford it fast enough.
 - **Capital:** each diverted cycle/s yields $1.50/s before multipliers. Allocation is capped at 80%.
+- **Scale scrutiny:** in Phases 4 and 5 net income draws `atMillion x sqrt(income / $1M/s)` suspicion/s, capped (1.1 capped at 2 in Phase 4, 1.25 capped at 6 in Phase 5). Diverting less to revenue lowers it, as do the staff and countermeasures that already cut suspicion.
 
 ## Known soft spots
 
-- Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue. Measured for #210 in [PLAYTEST-210-MEASUREMENTS.md](PLAYTEST-210-MEASUREMENTS.md): under campaign rules STEALTH meets no threat event for its last 3733 s, most operative levels are hired with suspicion at 0 or AEGIS reduction at its 90% cap, and the hunter is retired 1184 s into Phase 4. Options there; nothing retuned.
+- ~~Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online.~~ Addressed by "Scale scrutiny (#210)" above: net income now draws suspicion in Phases 4 and 5, STEALTH answers threats 17 times there and its threat-free tail is 851 s instead of 3733 s. What remains: the end of Phase 5 after the Cryptographic Covenant (-6 suspicion/s) is still quiet, and the middle of Phase 4 (about $0.5M/s of income) draws less than the net holds down, so a 30-minute idle there still meets nothing. AEGIS reduction still reaches its 90% cap in Phase 4; the hunter's suspicion term now has suspicion to read.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).
@@ -1255,7 +1333,7 @@ budget 7200 s. DEPARTURE_CHARTERED plays LAWFUL_RELEASE's route and leaves at th
 | Policy | Phase 4 | Departure | After leaving | Iteration 1 ended | Wipes |
 |---|---:|---:|---|---|---:|
 | LAWFUL_RELEASE | 2371.8 s | (release at 2371.8 s) | no sweep, AEGIS lock 0 | still running at the budget | 0 |
-| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3494.3 s after leaving (3330.7 s before DZ-12, whose contracts a departed company also signs) | 1 |
+| DEPARTURE_CHARTERED | 2371.8 s | 2371.8 s | the Phase 4 sweep (0.075/s at first, 0.03/s once the report's suspicion decays) | AEGIS, exit DEPARTURE, 3494.3 s after leaving (3330.7 s before DZ-12, whose contracts a departed company also signs); 690.7 s after leaving since #210, when the departed company's income began to draw scale scrutiny | 1 (2 since #210) |
 
 In the public-play chartered state of `tests/lawful-helpers.ts`, departing keeps the owned output (1,488.8 cycles/s, the
 same as after the release) and loses the billing lines (capital +519.3/s to +434.3/s). It cannot yet afford the AEGIS-reducing payroll the released company

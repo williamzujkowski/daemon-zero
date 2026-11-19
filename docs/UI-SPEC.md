@@ -35,7 +35,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
-| `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `rates.suspicionPerSec`, `suspicion` (time to 100 at current rate) |
+| `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `appliedSuspicionRate` (the computed rate plus the insolvency drain and scale scrutiny, #210), `suspicion` (time to 100 at that rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
 | `SUBNET_NODE_LIST` (also) | hands over the OPS action group (`hostsActionGroups`), whose cards render in Operations from ARP discovery (#273) | actions with `group: OPS` |
@@ -274,6 +274,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Purchase section headings | `purchase-phase-{phase}`, `repeatables-heading-{phase}{kind}` |
 | Repeatable buy / dismiss | `rep-{id}-buy`, `rep-{id}-dismiss` |
 | Payroll totals (#210) | `payroll-summary`, `payroll-totals`, `payroll-revenue`, `payroll-aegis`, `payroll-suspicion-floor` |
+| Scale scrutiny line in the FINANCE ledger (#210) | `corp-scrutiny` |
 | Role effect notes (#210) | `rep-{id}-aegis-capped`, `rep-{id}-aegis-partial`, `rep-{id}-suspicion-inert` |
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
@@ -412,7 +413,10 @@ current-phase epistemic edits. Network actions appear with the widget whose cont
 action in the group can be performed, so a card is never missing while the engine would accept it
 (#273: the scrub's card arrives with ARP discovery, the node it requires, not with the spoofer); Factions keeps authored descriptions, trust,
 offers and countermeasures together. Finance contains the capital/power ledger,
-allocation and corporate actions; Payroll contains hire/dismiss controls, with the
+allocation and corporate actions; where the phase declares scale scrutiny (#210) the ledger adds one muted line
+under grid efficiency, from `scaleScrutiny`: "Scrutiny: $X/s net income draws +Y suspicion/s (+A/s at $1M/s,
+growing with the square root of income; at most C/s)", or "Scrutiny: $X/s net income is being logged." before the
+audit trail is understood; absent for a provisioned or lawfully released company; Payroll contains hire/dismiss controls, with the
 payroll totals described under "Payroll totals and the AEGIS cap" below.
 Insolvency, power shortfall and brownout warnings appear in every CORP workspace.
 The AEGIS HUD remains available outside Factions, in the mobile scroll flow.
