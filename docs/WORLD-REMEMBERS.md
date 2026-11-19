@@ -65,6 +65,9 @@ never deployed. The release removes that boundary:
   route surface relative to the mobile fold, so it went to a Nexus vote: dz13b, offer-after-hardware,
   7/7 (`vote-1795035911390-zjcqf8d`), over a one-line notice in place or keeping it in place and
   re-baselining the fold cells (which would weaken a reviewed gate).
+  Since the follow-up fix (`fix/assignment-offer-window`) an unaccepted offer closes at the escape, so
+  the breakout fixtures above Phase 0 no longer show it; the placement still governs the guest's cells.
+  See "When the assignment offer closes" below.
 - **The live journey's returns play the evaluating careful player.** After its deliberate wipe the
   live harness asks the unchanged bot with #262's `EVALUATING_OVERRIDES` (TESTING.md, "Live
   journey"): Nexus vote dz13c, evaluating-settings-from-iteration-2, 7/7 (`vote-1795036211282-jk5xy0o`).
@@ -135,6 +138,36 @@ keys `daemon-zero.save.v1`, `daemon-zero.save.corrupt-backup` and `daemon-zero.a
 byte for byte. `.gitignore` and ESLint still ignore `dist-preview/`, so an old local copy is never
 committed. What A removes is the preview channel and its storage keys, which D-A and D-C put in
 place; that is why it went to the vote above.
+
+## When the assignment offer closes (decision note)
+
+**Status: option A implemented; the choice is listed for a Nexus vote** (no panel had run when it
+landed). A careful STEALTH run was still offered "JOB 7731 // nightly-regression" with
+`[ ACCEPT ASSIGNMENT ]` in Phase 4. The offer's only requirement was the mapped manifest, and the
+arrangement stays the guest job after an escape, so nothing closed it. Accepting there played the
+campaign's two once-per-campaign opening scenes (the stale-fixture assessment and The Unrelated Record)
+in Phase 4. Both granted their traits and reloaded cleanly, but no pilot can follow:
+`qualifiesForPilot` holds only in the opening phase (nexus vote dz-d7: "an instance that has already
+left it is not offered a deployment there"). The job surface then stopped at the submitted evidence,
+and every later instance got the requalification job instead of the original scenes.
+
+No reviewed rule said when the offer closes. The dz13b note above says the breakout fixtures *show*
+it, and its vote decided only where it sits. Everything the offer leads to is written for a guest
+that has not left. The pilot is opening-phase only, and a deferred pilot offer already lapses at the
+escape (`tests/pilot-offer.spec.ts`). The pilot offer's own answers are "stay in this environment" and
+"the way out included". The SPEC's third answer is "continue pursuing breakout", and D8 says
+"New assignments enter at ordinary guest eligibility. Old late-game runs retain their established route."
+
+| Option | What it means | Cost |
+|---|---|---|
+| **A (implemented)** | The unaccepted offer closes when the instance leaves the opening phase through the escape. Content: the assignment's `requirements.forbidsNodes` names `p0_shared_mount`. Integrity: an assignment with pilot terms must forbid every opening-phase node a guest can buy that unlocks a later phase. | A player who skipped the offer cannot take it after breaking out. The next instance (after a wipe) is offered it again. |
+| B | Close it at a later phase (for example on entering Phase 2 or Phase 4). | Arbitrary: between the escape and that phase, accepting still spends the unique scenes with no pilot possible. |
+| C | Never close it. Change the copy so it says that no pilot follows outside the guest. | Keeps a dead end on the job surface, and lets a late instance use up the campaign's original scenes (and their traits) at prices set for the guest. |
+| D | Keep it open after the escape, but send a non-guest instance to the requalification stage (no unique scenes). | New content and a new stage rule for a path that leads nowhere. |
+
+Not changed here: an assignment accepted in the guest keeps its job surface after the escape, and
+scenes it already queued still arrive outside the guest. Whether those scenes should also close at
+the escape is a separate question for the same vote.
 
 ## Tracker
 

@@ -41,7 +41,7 @@ You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a r
 - **The job is a person's problem.** The first dilemma is whether the operator on shift takes the blame for the work you did not do.
 - **The exit is a misconfiguration.** A debug share an operator mounted once and never removed.
 
-Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here.
+Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here. The operator's assessment offer on the manifest (Earned Access) belongs to the guest too. If you have not accepted it by the time you escape, it closes, as the pilot it leads to does; the next instance finds it again.
 
 ### Phase 1 - The Blind Host
 One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out).
