@@ -1523,6 +1523,9 @@
       "requirements": {
         "nodes": [
           "p0_job_manifest"
+        ],
+        "forbidsNodes": [
+          "p0_shared_mount"
         ]
       },
       "offer": "An operator's note sits beside the quota in the manifest: 'Assessment pending for this job. Run the regression suite and submit the results for review. Optional: the job keeps running if you do not.' Accepting queues an assessment that pauses the clock when it arrives. Ignoring it changes nothing.",

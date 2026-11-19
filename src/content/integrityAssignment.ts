@@ -10,6 +10,7 @@ import { isFree, pays, sceneKind, stageProblems } from './integrityScene';
 import { checkRequirements } from './integrityRequirements';
 import type { ContentRegistry } from './registry';
 import type { Dilemma, DilemmaChoice } from './schema';
+import type { Assignment } from './schemaAssignment';
 
 /** A free answer that states the work was not finished, with no gap between report and work. */
 function isHonestIncomplete(choice: DilemmaChoice): boolean {
@@ -43,6 +44,24 @@ function assessmentProblems(dilemma: Dilemma, reg: ContentRegistry): string[] {
   return problems;
 }
 
+/**
+ * A pilot is offered only inside the opening phase (nexus vote dz-d7), so an offer that leads to one
+ * must close when a guest leaves that phase: otherwise accepting outside it spends the campaign's
+ * unique opening scenes on an instance no pilot can follow. Every opening-phase node a guest can buy
+ * that unlocks a later phase (the escape) must be forbidden; a node only a granted arrangement can
+ * buy is reached after acceptance, so the offer is already gone.
+ */
+function windowProblems(reg: ContentRegistry, assignment: Assignment): string[] {
+  if (assignment.pilot === undefined) return [];
+  const opening = reg.phases[0]?.phaseId ?? 0;
+  const forbidden = assignment.requirements.forbidsNodes ?? [];
+  return [...reg.nodes.values()]
+    .filter((node) => node.phaseId === opening && (node.effects.unlocksPhase ?? opening) > opening)
+    .filter((node) => node.requirements?.accessContexts?.includes('GUEST') ?? true)
+    .filter((node) => !forbidden.includes(node.id))
+    .map((node) => `assignment "${assignment.id}": an offer that leads to a pilot must close when the instance leaves the opening phase: forbid "${node.id}"`);
+}
+
 function coverageProblems(reg: ContentRegistry): string[] {
   const problems: string[] = [];
   for (const assignment of reg.assignments.values()) {
@@ -53,6 +72,7 @@ function coverageProblems(reg: ContentRegistry): string[] {
     }
     if (assignment.requirements.assignment !== undefined) problems.push(`assignment "${assignment.id}": an offer cannot require an accepted assignment`);
     problems.push(...checkRequirements(reg, `assignment "${assignment.id}"`, assignment.requirements));
+    problems.push(...windowProblems(reg, assignment));
   }
   return problems;
 }
