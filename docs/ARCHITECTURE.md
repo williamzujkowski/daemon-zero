@@ -1624,7 +1624,8 @@ an admitted arrangement, or another channel requirement such as the directory do
 no longer holds, and a channel pending again after this instance answered it. The arrangement is read from the
 route, not the current context, so a contact that opened before a recall or restriction loads and can be referred
 (panel round 1 on #271). An earlier instance's HOSTED record needs no cohort. `tests/channel-contact-load.spec.ts`
-holds every accepted DZ-08 state, through every public action that succeeds, to a byte-identical reload.
+holds every accepted DZ-08 state, through every public action that succeeds, to a byte-identical reload. Each listed
+state must itself build and load, and each listed forgery must be refused by name, so no case passes by skipping (#309).
 
 **Lawful memory (finding).** The lawful route owns no memory-cap increase (base 64 MB; the directory reserves 16),
 so a first-run cooperative instance cannot host the 256 MB fragment: the refusal is shown with exact numbers and

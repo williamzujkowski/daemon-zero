@@ -31,7 +31,7 @@ describe('camera artwork by tier', () => {
     view.click('camera-expand');
     expect(view.container.querySelectorAll('[data-testid^="camera-row-"]')).toHaveLength(9);
     expect(view.find('camera-status')).toBeNull();
-    expect(view.find('camera-collapse')?.getAttribute('aria-expanded')).toBeTruthy();
+    expect(view.find('camera-collapse')?.getAttribute('aria-expanded')).toBe('true');
     view.click('camera-collapse');
     expect(view.find('camera-status')).not.toBeNull();
     expect(view.container.querySelectorAll('[data-testid^="camera-row-"]')).toHaveLength(0);

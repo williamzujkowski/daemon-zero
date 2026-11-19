@@ -425,9 +425,9 @@ close that gap. They share three rules:
   engine would treat as dormant time. No development hook is involved: the specs
   assert `__daemon` and the dev drawer are absent, as `boot()` does.
 - **Only on-screen controls.** `tests/e2e/live/player.ts` reads the app's own
-  autosave through `deserialize()` (it never writes storage), asks the unmodified
-  careful bot (`botStep(..., 'STEALTH')`; after the deliberate wipe, with the evaluating
-  overrides `EVALUATING_OVERRIDES` of #262, see below) what it would do, recovers the moves by
+  autosave through `deserialize()` (it never writes storage), asks the careful bot
+  (`botStep(..., 'STEALTH')`, its code unchanged; after the deliberate wipe, with the evaluating
+  overrides `EVALUATING_OVERRIDES` of #262, vote dz13c, see below) what it would do, recovers the moves by
   comparing the two states (`live/intents.ts`), and presses the matching control
   by test id only if it is visible and enabled. Reaching a control uses the game's
   navigation alone: tabs, workspace areas and collapsed `[ + ]` reference panels.
@@ -998,11 +998,11 @@ Use it for exploratory passes ("play Phase 1 and tell me where the UI is confusi
 Start the app first (`make web`), then ask the agent to open `http://localhost:8081`.
 
 The server is restricted to the origins listed in `.mcp.json`: `localhost:8081` (the dev
-server), `localhost:8088` and `localhost:8089`. To drive the production export through it,
+server), `localhost:8088`, `localhost:8089` and the published site,
+`https://williamzujkowski.github.io` (#303). To drive the production export through it,
 serve `dist` on 8088. 8089 served the preview export until #233 and has no assigned use now. Any other
-port is refused. Other browser tools are not limited this way. For the published site, use
-a task-owned override instead of editing `.mcp.json` (see "Driving the live site through
-Playwright MCP").
+origin is refused. Other browser tools are not limited this way. For the published site, see
+"Driving the live site through Playwright MCP".
 
 ## Validation evidence records (DZ-09)
 
@@ -1130,7 +1130,7 @@ tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e`
 and `make e2e-pages`; these browser suites are separate from
 `make verify-full`. All of it runs in the one required `verify` job, whose limit is
-20 minutes.
+30 minutes (`timeout-minutes: 30`, raised from 20 in #301).
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
 `make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file
@@ -1296,7 +1296,8 @@ are distinct from a signed Android release build or physical device check.
 ## M3 review setup
 
 Playwright MCP remains pinned to 0.0.85. Its `--help` was checked before editing
-`.mcp.json`. Headed mode is the default; the exact configured arguments are:
+`.mcp.json`. Headed mode is the default; at M3 the configured arguments were (the origin list
+has since gained `localhost:8089` and, in #303, the published site; `.mcp.json` is current):
 
 ```text
 -y @playwright/mcp@0.0.85 --browser chrome --isolated
@@ -1307,7 +1308,7 @@ Playwright MCP remains pinned to 0.0.85. Its `--help` was checked before editing
 The semicolon-separated origin list is one CLI argument. It allows the local
 Expo app, its HMR socket and the local production preview. Upstream explicitly
 notes this request allow-list does not cover redirects or form a security
-boundary. Review only the local app. The isolated profile is held in memory.
+boundary. The M3 review drove only the local app. The isolated profile is held in memory.
 No `--headless` flag is used.
 
 For an already-running connector that cannot reload workspace configuration,

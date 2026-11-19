@@ -83,10 +83,15 @@ describe('the channel contact (V20)', () => {
     view.click('channel-refer');
     expect(game().campaign.contacts.map((entry) => entry.response)).toEqual(['REFERRED']);
     expect(view.find('channel-answered')?.textContent).toContain('Referred onward');
+    // #309: the fold is checked against the note's own shipped lines, not copy a release has since replaced.
+    const [firstLine = 'the note has no lines'] = CHANNEL_ENCOUNTER.boundary.lines;
+    expect(view.find('prototype-boundary-heading')?.textContent).toBe(CHANNEL_ENCOUNTER.boundary.title);
     expect(view.find('prototype-boundary')?.textContent).toContain('WHAT COMES NEXT');
+    expect(view.find('prototype-boundary')?.textContent).toContain(firstLine);
     expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('prototype-boundary-toggle');
-    expect(view.find('prototype-boundary')?.textContent).not.toContain('no ending has been earned');
+    expect(view.find('prototype-boundary')?.textContent).not.toContain(firstLine);
+    expect(view.find('prototype-boundary-heading')?.textContent).toBe(CHANNEL_ENCOUNTER.boundary.title);
     // DZ-13.4: the fold is a disclosure, so its state reaches the DOM.
     expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
     expect(view.find('prototype-boundary')?.textContent).toContain('[ SHOW NOTE ]');

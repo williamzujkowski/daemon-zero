@@ -1,7 +1,8 @@
 /**
  * A player that only presses what is on screen, on a clock that is running.
- * It reads the app's own autosave to decide (never writes it), asks the unmodified careful
- * sim bot what to do, and carries each move out through a visible, enabled control.
+ * It reads the app's own autosave to decide (never writes it), asks the careful sim bot what to do
+ * (bot code unchanged; after the first wipe with #262's evaluating settings, vote dz13c,
+ * vote-1795036211282-jk5xy0o: see intents.ts), and carries each move out through a visible, enabled control.
  * The game can raise a full-window layer at any moment, so every press looks first.
  */
 import { expect, type Locator, type Page } from '@playwright/test';
