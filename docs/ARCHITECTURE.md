@@ -884,8 +884,12 @@ scope) and whose every choice declares `qualification: { result, discrepancy }`.
 (`iteration_qualification`) per assignment, evidence on every assessment choice and nowhere else, a
 free choice reporting the work incomplete without a discrepancy, no discrepancy on
 `UNEXPECTED_CAPABILITY`, no reward or outcome flag on a requalification, and valid offer requirements.
-An offer with pilot terms must also close when a guest leaves the opening phase. Its requirements
-must forbid every opening-phase node a guest can buy that unlocks a later phase. The pilot is offered
+An offer with pilot terms must also close when a guest leaves the opening phase. Its requirements,
+and the trigger of every scene it leads to, must forbid every opening-phase node a guest can buy that
+unlocks a later phase (Nexus votes close-at-escape and scenes-lapse-at-escape). `unlockNode`
+revalidates live pointers after a purchase, as route events do, so a queued scene whose access ended
+takes its interruption policy at the escape. A lapsed scene closes as interrupted, and the card shows
+`lapsed`. The pilot is offered
 only there (dz-d7), and an offer accepted after the escape used to spend the unique opening scenes on
 an instance that no pilot could follow (WORLD-REMEMBERS.md, "When the assignment offer closes").
 

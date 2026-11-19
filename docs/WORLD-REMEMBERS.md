@@ -141,8 +141,14 @@ place; that is why it went to the vote above.
 
 ## When the assignment offer closes (decision note)
 
-**Status: option A implemented; the choice is listed for a Nexus vote** (no panel had run when it
-landed). A careful STEALTH run was still offered "JOB 7731 // nightly-regression" with
+**Decided (#316, PR #317).** Two multi-model Nexus `consensus_vote`s, every option declared
+(artifact `daemon-zero-agent-plan/execution/decision-316-offer-window.md`):
+
+- **Offer window:** close-at-escape, 7/7, `vote-1795070565875-457msa4` (option A below).
+- **Scenes already queued at the escape:** scenes-lapse-at-escape, 5/7, `vote-1795070741286-2kjn9rj`.
+  Dissent: 2 for scenes-still-play-with-truthful-copy.
+
+A careful STEALTH run was still offered "JOB 7731 // nightly-regression" with
 `[ ACCEPT ASSIGNMENT ]` in Phase 4. The offer's only requirement was the mapped manifest, and the
 arrangement stays the guest job after an escape, so nothing closed it. Accepting there played the
 campaign's two once-per-campaign opening scenes (the stale-fixture assessment and The Unrelated Record)
@@ -165,9 +171,26 @@ escape (`tests/pilot-offer.spec.ts`). The pilot offer's own answers are "stay in
 | C | Never close it. Change the copy so it says that no pilot follows outside the guest. | Keeps a dead end on the job surface, and lets a late instance use up the campaign's original scenes (and their traits) at prices set for the guest. |
 | D | Keep it open after the escape, but send a non-guest instance to the requalification stage (no unique scenes). | New content and a new stage rule for a path that leads nowhere. |
 
-Not changed here: an assignment accepted in the guest keeps its job surface after the escape, and
-scenes it already queued still arrive outside the guest. Whether those scenes should also close at
-the escape is a separate question for the same vote.
+**Scenes queued at the escape (scenes-lapse-at-escape).** An assignment accepted in the guest keeps
+its card after the escape. A scene the acceptance queued and that has not yet been presented lapses at
+the escape. It is recorded as interrupted under the existing campaign lifecycle (NH-02), not presented,
+and never submits evidence. It is all declared in content and the engine names no id:
+
+- Each scene gated on the assignment adds the same `forbidsNodes: ["p0_shared_mount"]` to its trigger.
+  That is an access requirement (`requirementScopes.ts`), so it fails once the guest is gone.
+- `unlockNode` now revalidates the live pointers after any purchase, as route events already do
+  (N4: "revalidate structure at transition"). A queued scene whose access ended takes its declared
+  interruption policy at once instead of counting down to an interrupt that cannot come.
+- A scene that never began has no record, and none begins outside the guest.
+- Every assignment scene declares `close` (integrity requires originals to close). A lapsed original
+  therefore returns for a later instance in the guest the way any closed original does: as the
+  requalification job (`assessmentStage`). A scene that never began returns as the original.
+- The job surface says "Lapsed." (`assignmentView` status `lapsed`): the assessment can no longer reach
+  this instance, it was never presented and nothing was submitted.
+- Integrity requires every scene of an assignment with pilot terms to forbid the same guest exits as
+  its offer.
+
+The headless sim is byte-identical to main: no bot accepts an assignment and then escapes.
 
 ## Tracker
 
