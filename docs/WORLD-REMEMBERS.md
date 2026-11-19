@@ -185,6 +185,16 @@ and never submits evidence. It is all declared in content and the engine names n
 - Every assignment scene declares `close` (integrity requires originals to close). A lapsed original
   therefore returns for a later instance in the guest the way any closed original does: as the
   requalification job (`assessmentStage`). A scene that never began returns as the original.
+- **Iteration-scoped scenes** (panel round 1 on #317). The requalification, the scope statement and
+  both pilot offers are `once_per_iteration` and keep no campaign record. Revalidation used to cover
+  only once-per-campaign events, so one of these queued at the escape still presented on the host
+  and committed its trait and evidence. Structural revalidation (`structuralFailure`) now covers
+  every dilemma that declares a campaign policy, which since NH-05 is every shipped dilemma:
+  consequential events, recovery reviews, follow-ups and iteration qualifications. A dilemma with no
+  declaration stays outside the lifecycle, as before. For an iteration-scoped scene, a lapse records
+  what a wipe already records for it, which is nothing. The pointer is dropped, nothing is presented
+  or committed, its own trigger keeps it closed for the rest of this instance, and the next instance
+  in the guest meets it fresh. No new rule was added.
 - The job surface says "Lapsed." (`assignmentView` status `lapsed`): the assessment can no longer reach
   this instance, it was never presented and nothing was submitted.
 - Integrity requires every scene of an assignment with pilot terms to forbid the same guest exits as

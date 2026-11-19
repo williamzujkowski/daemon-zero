@@ -466,8 +466,9 @@ Nothing chooses a branch, grants a trait or pays a reward.
 
 **Structure, not triggers.** `structuralFailure` checks the trigger's `context` scope
 (narrative flags, campaign outcomes, `forbidsTraits`) and `access` scope (nodes, phase,
-knowledge), never `transient` fields or the first-discovery `window`. It runs at omen expiry,
-at commit and on load; a deferred occurrence resumes when `access` holds again and closes when
+knowledge), never `transient` fields or the first-discovery `window`. It covers every dilemma that
+declares a campaign policy, iteration-scoped ones included (#317). It runs at omen expiry, at commit,
+on load, after a route event and after a purchase; a deferred occurrence resumes when `access` holds again and closes when
 `context` fails (`closeLostDeferrals`). Resumption keeps the source iteration and the remaining
 omen time and logs the declared `reorientation` instead of the original omen. DZ-07b and DZ-11
 can reuse `requirementScopes.ts` and `structuralFailure`.
@@ -889,7 +890,10 @@ and the trigger of every scene it leads to, must forbid every opening-phase node
 unlocks a later phase (Nexus votes close-at-escape and scenes-lapse-at-escape). `unlockNode`
 revalidates live pointers after a purchase, as route events do, so a queued scene whose access ended
 takes its interruption policy at the escape. A lapsed scene closes as interrupted, and the card shows
-`lapsed`. The pilot is offered
+`lapsed`. `structuralFailure` revalidates every dilemma that declares a campaign policy, not only the
+once-per-campaign events in `reg.campaign.events`. An iteration-scoped scene keeps no record, so its
+lapse writes nothing, as a wipe writes nothing for it, and the next instance meets it fresh (panel
+round 1 on #317). The pilot is offered
 only there (dz-d7), and an offer accepted after the escape used to spend the unique opening scenes on
 an instance that no pilot could follow (WORLD-REMEMBERS.md, "When the assignment offer closes").
 
