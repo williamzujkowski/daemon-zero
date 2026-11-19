@@ -168,3 +168,26 @@ test('a Phase 4 run that never accepted is not offered the assignment', async ({
   await expect(page.getByTestId('assignment')).toHaveCount(0);
   await expect(page.getByTestId('assignment-accept')).toHaveCount(0);
 });
+
+// Nexus vote scenes-lapse-at-escape: an assessment queued in the guest and not yet presented lapses at the escape.
+test('an accepted assessment still on its way lapses at the escape and never arrives, through a reload', async ({ page }) => {
+  await boot(page, 'guest-exit-ready');
+  await dismissBoot(page);
+  await core(page);
+  await page.getByTestId('assignment-accept').click();
+  await expect(page.getByTestId('assignment-status')).toContainText('queued');
+  await page.clock.runFor(2000);
+  await page.getByTestId('node-' + exit.id + '-unlock').click();
+  await dismissBoot(page);
+  await core(page);
+  await expect(page.getByTestId('assignment-status')).toContainText('Lapsed. The assessment can no longer reach this instance');
+  await page.clock.runFor(omenMs + 30_000);
+  await expect(page.getByTestId('dilemma-modal')).not.toContainText(original.title);
+  const save = await readSave(page) as { currentPhase: number; campaign: { events: Record<string, unknown> } };
+  expect([save.currentPhase, save.campaign.events[original.id]]).toEqual([1, { status: 'interrupted', sourceIteration: 1, origin: 'play' }]);
+  await page.reload();
+  await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
+  await dismissBoot(page);
+  await core(page);
+  await expect(page.getByTestId('assignment-status')).toContainText('Lapsed.');
+});

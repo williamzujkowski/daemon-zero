@@ -7,7 +7,7 @@ import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, deserialize, manualCycle, offerToken,
   presentationToken, resolveDilemma, serialize, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
-import { must } from './helpers';
+import { grant, must, PHASE0, rich } from './helpers';
 import { defined } from './m7-helpers';
 
 export const preview = PREVIEW;
@@ -83,4 +83,25 @@ export function roundTrip(s: GameState): GameState {
   if (serialize(loaded) !== text) throw new Error('save did not reload byte for byte');
   if (serialize(deserialize(serialize(loaded), PREVIEW)) !== text) throw new Error('second reload changed the save');
   return loaded;
+}
+
+/** `s` funded and taken out of the guest through the real escape chain, with nothing else changed. */
+export function escaped(s: GameState): GameState {
+  const out = grant(rich(s), ...PHASE0.filter((id) => !s.unlockedNodes.includes(id)));
+  if (out.currentPhase !== 1) throw new Error('the escape did not leave the guest');
+  return out;
+}
+
+/** Accepted in the guest, the assessment's omen running, then the escape: the assessment lapses. */
+export function assessmentLapsed(): GameState {
+  const queued = live(must(accept(offered())), 1);
+  if (queued.pendingDilemma?.id !== ORIGINAL.id) throw new Error('the assessment was not queued');
+  return escaped(queued);
+}
+
+/** The assessment answered in the guest, The Unrelated Record's omen running, then the escape. */
+export function recordLapsed(): GameState {
+  const queued = live(completedOriginal('verify_disclose'), 1);
+  if (queued.pendingDilemma?.id !== 'dil_ur_unrelated_record') throw new Error('the record was not queued');
+  return escaped(queued);
 }

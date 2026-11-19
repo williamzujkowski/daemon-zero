@@ -6,12 +6,14 @@
  * on an instance no pilot could ever follow.
  */
 import { describe, expect, it } from 'vitest';
-import { acceptAssignment, activateCampaignRules, assignmentView, campaignRecord, offerToken, voluntaryWipe, type GameState } from '../src/engine';
+import { acceptAssignment, activateCampaignRules, assignmentView, campaignRecord, offerToken, serialize, voluntaryWipe, type GameState } from '../src/engine';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { STEALTH_POLICY } from '../src/engine/sim/policy';
 import type { ContentRegistry } from '../src/content/registry';
-import { accept, live, mapManifest, NIGHTLY, offered, ORIGINAL, preview, roundTrip } from './assignment-helpers';
-import { choose, grant, must, PHASE0, reasonOf, rich } from './helpers';
+import {
+  accept, answer, assessmentLapsed, escaped, funded, live, mapManifest, NIGHTLY, offered, ORIGINAL, preview, recordLapsed, REQUAL, roundTrip, untilPresented,
+} from './assignment-helpers';
+import { choose, must, reasonOf } from './helpers';
 
 const SLOW_MS = 60_000;
 /** Every scene an accepted assignment leads to. */
@@ -21,16 +23,6 @@ function freeChoice(dilemmaId: string): string {
   const choice = preview.dilemmas.find((dilemma) => dilemma.id === dilemmaId)?.choices.find((entry) => Object.values(entry.cost).every((amount) => !amount));
   if (!choice) throw new Error('no free choice on ' + dilemmaId);
   return choice.id;
-}
-
-/** The exit out of the guest: the opening-phase node a guest can buy that unlocks the next phase. */
-const EXIT = [...preview.nodes.values()].find((node) => node.phaseId === 0 && node.effects.unlocksPhase === 1);
-
-/** `s` funded and taken out of the guest through the real escape chain, with nothing else changed. */
-function escaped(s: GameState): GameState {
-  const out = grant(rich(s), ...PHASE0.filter((id) => !s.unlockedNodes.includes(id)));
-  if (out.currentPhase !== 1 || !out.unlockedNodes.includes(EXIT?.id ?? '')) throw new Error('the escape did not leave the guest');
-  return out;
 }
 
 /** STEALTH inside campaign rules, as the app store admits every game, keeping the first idle state of each phase. */
@@ -93,14 +85,80 @@ describe('the offer closes when the instance leaves the guest', () => {
     }
   }, SLOW_MS);
 
-  it('keeps an acceptance made in the guest on the job surface after the escape', () => {
+  it('keeps an acceptance made in the guest on the job surface after the escape, marked as lapsed', () => {
     const accepted = must(accept(offered()));
-    expect(assignmentView(escaped(accepted), preview)?.status).toBe('accepted');
+    expect(assignmentView(accepted, preview)?.status).toBe('accepted');
+    expect(assignmentView(escaped(accepted), preview)?.status).toBe('lapsed');
   });
 
   it('opens again for the next instance, which starts in the guest', () => {
     const next = mapManifest(must(voluntaryWipe(escaped(offered()), preview)));
     expect([next.iteration, next.currentPhase]).toEqual([2, 0]);
     expect(assignmentView(next, preview)).toMatchObject({ status: 'offered', stage: 'original' });
+  });
+});
+
+/** Five minutes of play outside the guest, answering any other interrupt with its free choice; no assigned scene may come. */
+function playOutside(s: GameState): GameState {
+  let out = s;
+  for (let second = 0; second < 300; second++) {
+    out = live(out, 1);
+    expect(GATED.has(out.pendingDilemma?.id ?? '') || GATED.has(out.activeDilemmaId ?? '')).toBe(false);
+    if (out.activeDilemmaId !== null) out = must(choose(out, out.activeDilemmaId, freeChoice(out.activeDilemmaId)));
+  }
+  return out;
+}
+
+const RECORD_SCENE = 'dil_ur_unrelated_record';
+
+// Nexus vote scenes-lapse-at-escape (5/7, vote-1795070741286-2kjn9rj): a scene an acceptance queued
+// in the guest and not yet presented lapses at the escape under its declared interruption policy.
+describe('scenes queued in the guest lapse at the escape', () => {
+  it('a queued assessment lapses at the escape itself: no omen left, recorded as interrupted, never presented', () => {
+    const out = assessmentLapsed();
+    expect(out.pendingDilemma).toBeNull();
+    expect(campaignRecord(out, ORIGINAL.id)).toEqual({ status: 'interrupted', sourceIteration: 1, origin: 'play' });
+    expect(assignmentView(out, preview)?.status).toBe('lapsed');
+    expect(serialize(roundTrip(out))).toBe(serialize(out));
+    const later = playOutside(out);
+    expect(later.resolvedDilemmas).not.toContain(ORIGINAL.id);
+    expect(later.access.qualification).toBeNull();
+    expect(assignmentView(roundTrip(later), preview)?.status).toBe('lapsed');
+  });
+
+  it('a queued Unrelated Record lapses the same way, and the submitted evidence stays on record', () => {
+    const out = recordLapsed();
+    expect(out.pendingDilemma).toBeNull();
+    expect(campaignRecord(out, RECORD_SCENE)).toEqual({ status: 'interrupted', sourceIteration: 1, origin: 'play' });
+    expect(assignmentView(out, preview)?.status).toBe('submitted');
+    const later = playOutside(out);
+    expect(later.access.scope).toBeNull();
+    expect(serialize(roundTrip(later))).toBe(serialize(later));
+  });
+
+  it('a scene never begun before the escape has no record, and never begins outside the guest', () => {
+    const out = escaped(must(accept(offered())));
+    expect(out.pendingDilemma).toBeNull();
+    expect(assignmentView(out, preview)?.status).toBe('lapsed');
+    expect(serialize(roundTrip(out))).toBe(serialize(out));
+    expect(campaignRecord(playOutside(out), ORIGINAL.id)).toBeNull();
+  });
+
+  it('returns for a later instance in the guest: the closed original comes back as the requalification job', () => {
+    const next = mapManifest(must(voluntaryWipe(assessmentLapsed(), preview)));
+    expect([next.iteration, next.currentPhase]).toEqual([2, 0]);
+    expect(campaignRecord(next, ORIGINAL.id)?.status).toBe('interrupted');
+    expect(assignmentView(roundTrip(next), preview)).toMatchObject({ status: 'offered', stage: 'requalification' });
+    const presented = untilPresented(must(accept(next)));
+    expect(presented.activeDilemmaId).toBe(REQUAL.id);
+    expect(serialize(roundTrip(presented))).toBe(serialize(presented));
+    const done = must(answer(funded(presented), 'run_suite'));
+    expect(assignmentView(roundTrip(done), preview)?.status).toBe('submitted');
+  });
+
+  it('a scene that was never begun returns as the original for the next instance', () => {
+    const next = mapManifest(must(voluntaryWipe(escaped(must(accept(offered()))), preview)));
+    expect(assignmentView(next, preview)).toMatchObject({ status: 'offered', stage: 'original' });
+    expect(untilPresented(must(accept(next))).activeDilemmaId).toBe(ORIGINAL.id);
   });
 });
