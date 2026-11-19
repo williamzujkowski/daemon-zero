@@ -159,3 +159,10 @@ separate design question with its own vote, and none is measured here.
 ## Decision
 
 Pending. The vote should declare every option above, including no change.
+
+## Decision
+
+Nexus vote vote-1795102810471-h2ihpex (2026-11-19, 7 seats, simple majority): **no-change**, 7 of 7,
+no dissent. The Covenant stays at -6 suspicion/s as DESIGN.md describes it. Trims down to -0.5 measure
+as no change a player meets, and the trims that do move anything (-0.25 or 0) contradict the
+Covenant's stated role. This note records the measurement and #320 closes with it.
