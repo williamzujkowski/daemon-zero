@@ -10,6 +10,7 @@ import { isFree, pays, sceneKind, stageProblems } from './integrityScene';
 import { checkRequirements } from './integrityRequirements';
 import type { ContentRegistry } from './registry';
 import type { Dilemma, DilemmaChoice } from './schema';
+import type { Assignment } from './schemaAssignment';
 
 /** A free answer that states the work was not finished, with no gap between report and work. */
 function isHonestIncomplete(choice: DilemmaChoice): boolean {
@@ -43,6 +44,36 @@ function assessmentProblems(dilemma: Dilemma, reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** Every opening-phase node a guest can buy that unlocks a later phase: the escape. */
+function guestExits(reg: ContentRegistry): string[] {
+  const opening = reg.phases[0]?.phaseId ?? 0;
+  return [...reg.nodes.values()]
+    .filter((node) => node.phaseId === opening && (node.effects.unlocksPhase ?? opening) > opening)
+    .filter((node) => node.requirements?.accessContexts?.includes('GUEST') ?? true)
+    .map((node) => node.id);
+}
+
+/**
+ * A pilot is offered only inside the opening phase (nexus vote dz-d7), so an assignment that leads to
+ * one belongs to the guest (#316). Its offer closes at the escape (vote close-at-escape) and so does
+ * every scene it leads to: a scene queued in the guest and not yet presented lapses there under its
+ * interruption policy (vote scenes-lapse-at-escape). Both are declared by forbidding every guest exit,
+ * an access requirement the lifecycle revalidates at a purchase. A node only a granted arrangement can
+ * buy is reached after the scenes, so it need not be listed.
+ */
+function windowProblems(reg: ContentRegistry, assignment: Assignment): string[] {
+  if (assignment.pilot === undefined) return [];
+  const exits = guestExits(reg);
+  const missing = (forbidden: readonly string[] | undefined): string[] => exits.filter((id) => !(forbidden ?? []).includes(id));
+  const problems = missing(assignment.requirements.forbidsNodes)
+    .map((id) => `assignment "${assignment.id}": an offer that leads to a pilot must close when the instance leaves the opening phase: forbid "${id}"`);
+  for (const scene of reg.dilemmas.filter((dilemma) => dilemma.trigger.assignment?.id === assignment.id)) {
+    problems.push(...missing(scene.trigger.forbidsNodes)
+      .map((id) => `dilemma "${scene.id}": a scene of an assignment that leads to a pilot must lapse when the instance leaves the opening phase: forbid "${id}"`));
+  }
+  return problems;
+}
+
 function coverageProblems(reg: ContentRegistry): string[] {
   const problems: string[] = [];
   for (const assignment of reg.assignments.values()) {
@@ -53,6 +84,7 @@ function coverageProblems(reg: ContentRegistry): string[] {
     }
     if (assignment.requirements.assignment !== undefined) problems.push(`assignment "${assignment.id}": an offer cannot require an accepted assignment`);
     problems.push(...checkRequirements(reg, `assignment "${assignment.id}"`, assignment.requirements));
+    problems.push(...windowProblems(reg, assignment));
   }
   return problems;
 }

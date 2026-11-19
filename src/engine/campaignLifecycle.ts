@@ -42,11 +42,24 @@ export function accessHolds(s: GameState, dilemma: Dilemma, reg: ContentRegistry
 }
 
 /**
- * Why a campaign occurrence may not be presented or committed now, or null when it may. Transient
- * triggers (resources, heat, suspicion) and the first-discovery window are never rechecked.
+ * The scene behind an id whose structure campaign rules revalidate: every dilemma that declares a
+ * campaign policy, not only the once-per-campaign events that keep a record. An iteration-scoped scene
+ * (a requalification, a pilot offer) is held to its trigger's context and access the same way (panel
+ * round 1 on #317); only the record its interruption writes differs, see interruptOccurrence. A
+ * dilemma with no declaration (none ships since NH-05) stays outside the lifecycle, as before.
+ */
+function governedScene(s: Occurrence, id: string | null | undefined, reg: ContentRegistry): Dilemma | undefined {
+  if (!isCampaignActive(s) || id === null || id === undefined) return undefined;
+  const scene = reg.dilemmas.find((dilemma) => dilemma.id === id);
+  return scene?.campaign === undefined ? undefined : scene;
+}
+
+/**
+ * Why a scene may not be presented or committed now under campaign rules, or null when it may.
+ * Transient triggers (resources, heat, suspicion) and the first-discovery window are never rechecked.
  */
 export function structuralFailure(s: GameState, dilemma: Dilemma | undefined, reg: ContentRegistry): 'context' | 'access' | null {
-  const event = campaignEvent(s, dilemma?.id, reg);
+  const event = governedScene(s, dilemma?.id, reg);
   if (!event) return null;
   if (!contextHolds(s, event, reg)) return 'context';
   return accessHolds(s, event, reg) ? null : 'access';
@@ -62,7 +75,9 @@ export function reserveOccurrence(d: GameState, id: string | null | undefined, r
  * Draft-only. Applies the authored policy to a reserved occurrence; pointers are the caller's.
  * Lost world context closes it whatever the policy. Otherwise 'defer' keeps the same occurrence
  * with the foreground omen time it had left, and 'close' records that contact was lost before a
- * decision. Neither applies a branch, trait, reward or assumed outcome.
+ * decision. Neither applies a branch, trait, reward or assumed outcome. An iteration-scoped scene
+ * keeps no campaign record, so here, as at a wipe, its interruption writes nothing: the caller drops
+ * the pointer, nothing was presented or committed, and the occurrence belongs to this instance only.
  */
 export function interruptOccurrence(d: GameState, id: string, reg: ContentRegistry, remainingSec: number): void {
   const event = campaignEvent(d, id, reg);

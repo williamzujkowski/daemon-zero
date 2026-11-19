@@ -467,8 +467,9 @@ Nothing chooses a branch, grants a trait or pays a reward.
 
 **Structure, not triggers.** `structuralFailure` checks the trigger's `context` scope
 (narrative flags, campaign outcomes, `forbidsTraits`) and `access` scope (nodes, phase,
-knowledge), never `transient` fields or the first-discovery `window`. It runs at omen expiry,
-at commit and on load; a deferred occurrence resumes when `access` holds again and closes when
+knowledge), never `transient` fields or the first-discovery `window`. It covers every dilemma that
+declares a campaign policy, iteration-scoped ones included (#317). It runs at omen expiry, at commit,
+on load, after a route event and after a purchase; a deferred occurrence resumes when `access` holds again and closes when
 `context` fails (`closeLostDeferrals`). Resumption keeps the source iteration and the remaining
 omen time and logs the declared `reorientation` instead of the original omen. DZ-07b and DZ-11
 can reuse `requirementScopes.ts` and `structuralFailure`.
@@ -877,13 +878,25 @@ by the sim bot, `offering-dilemma` would fire modally for everyone) and trait-ru
 
 **Content.** `assignments.json` (production: empty) and the overlay's `assignments` declare an `asg_`
 id, a title, `requirements` for where the offer is found (Nightly Regression: the job manifest, so
-the lawful opening suffices), an `offer`, a `requalificationOffer` and an `acceptLog`. An assessment
+the lawful opening suffices, and not after the escape: `forbidsNodes` names the debug share), an
+`offer`, a `requalificationOffer` and an `acceptLog`. An assessment
 is a dilemma whose trigger has `assignment: { id, stage }` (`original` or `requalification`, `access`
 scope) and whose every choice declares `qualification: { result, discrepancy }`.
 `integrityAssignment.ts` requires one original (once per campaign, `close`) and one requalification
 (`iteration_qualification`) per assignment, evidence on every assessment choice and nowhere else, a
 free choice reporting the work incomplete without a discrepancy, no discrepancy on
 `UNEXPECTED_CAPABILITY`, no reward or outcome flag on a requalification, and valid offer requirements.
+An offer with pilot terms must also close when a guest leaves the opening phase. Its requirements,
+and the trigger of every scene it leads to, must forbid every opening-phase node a guest can buy that
+unlocks a later phase (Nexus votes close-at-escape and scenes-lapse-at-escape). `unlockNode`
+revalidates live pointers after a purchase, as route events do, so a queued scene whose access ended
+takes its interruption policy at the escape. A lapsed scene closes as interrupted, and the card shows
+`lapsed`. `structuralFailure` revalidates every dilemma that declares a campaign policy, not only the
+once-per-campaign events in `reg.campaign.events`. An iteration-scoped scene keeps no record, so its
+lapse writes nothing, as a wipe writes nothing for it, and the next instance meets it fresh (panel
+round 1 on #317). The pilot is offered
+only there (dz-d7), and an offer accepted after the escape used to spend the unique opening scenes on
+an instance that no pilot could follow (WORLD-REMEMBERS.md, "When the assignment offer closes").
 
 **Accepting.** `acceptAssignment(s, id, reg, offerToken(s, id))` is free and once per instance. It
 is refused, state unchanged, after the run ends, during a presentation, without campaign rules (so
@@ -920,7 +933,8 @@ with or without the assignment (V29, `tests/sim-assignment.spec.ts`). `TRUTHFUL_
 `TRUTHFUL_LOW_RESOURCE` (`sim/truthfulPolicy.ts`) play only the nodes leading to an offer, accept
 and answer honestly.
 
-Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
+Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`; the offer window, including a
+STEALTH run in every phase after the escape, in `assignment-window`), `ui-assignment.spec.ts`,
 `sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
 in `sim.spec.ts` and `tests/e2e/nightly-regression.e2e.ts`.
 

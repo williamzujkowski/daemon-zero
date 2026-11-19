@@ -17,7 +17,7 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
 import DilemmaModal from '../src/ui/DilemmaModal';
-import { accept, completedOriginal, funded, nextInstance, offered, ORIGINAL, preview, REQUAL, untilPresented } from './assignment-helpers';
+import { accept, assessmentLapsed, completedOriginal, funded, nextInstance, offered, ORIGINAL, preview, REQUAL, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
@@ -89,6 +89,14 @@ describe('the assignment on the job surface', () => {
     const view = await mount(nextInstance(completedOriginal('report_incomplete')), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('assignment-wait')?.textContent).toContain('about ' + String(REQUAL.omenSec) + ' s');
     expect(view.find('assignment-wait')?.textContent).toContain('"Run the suite and submit every result", costs 60 cycles.');
+  });
+
+  it('says plainly that an assessment lapsed at the escape, with no accept control and nothing queued (#316)', async () => {
+    const view = await mount(assessmentLapsed(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const status = view.find('assignment-status')?.textContent ?? '';
+    expect(status).toContain('Lapsed. The assessment can no longer reach this instance');
+    expect(status).not.toContain('queued');
+    expect(view.find('assignment-accept')).toBeNull();
   });
 
   it('renders nothing before the manifest is mapped', async () => {

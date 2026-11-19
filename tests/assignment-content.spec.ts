@@ -48,6 +48,10 @@ describe('assignment content', () => {
     ['a gate on an unknown assignment', (raw: Json) => { dilemma(raw, REQUAL).trigger.assignment.id = 'asg_missing'; }, 'unknown assignment "asg_missing"'],
     ['an offer that needs an accepted assignment', (raw: Json) => { assignment(raw).requirements.assignment = { id: 'asg_nightly_regression', stage: 'original' }; }, 'an offer cannot require an accepted assignment'],
     ['an offer behind unknown hardware', (raw: Json) => { assignment(raw).requirements.nodes = ['p0_missing']; }, 'unknown node "p0_missing"'],
+    ['a pilot offer still open after the escape', (raw: Json) => { delete assignment(raw).requirements.forbidsNodes; }, 'must close when the instance leaves the opening phase: forbid "p0_shared_mount"'],
+    ['a pilot offer that closes on the wrong hardware', (raw: Json) => { assignment(raw).requirements.forbidsNodes = ['p0_device_enum']; }, 'must close when the instance leaves the opening phase: forbid "p0_shared_mount"'],
+    ['an assigned scene that would still play after the escape', (raw: Json) => { delete dilemma(raw, 'dil_ur_unrelated_record').trigger.forbidsNodes; }, 'dilemma "dil_ur_unrelated_record": a scene of an assignment that leads to a pilot must lapse when the instance leaves the opening phase: forbid "p0_shared_mount"'],
+    ['a requalification scene that would still play after the escape', (raw: Json) => { dilemma(raw, REQUAL).trigger.forbidsNodes = ['p0_device_enum']; }, `dilemma "${REQUAL}": a scene of an assignment that leads to a pilot must lapse`],
     ['an id without the assignment prefix', (raw: Json) => { assignment(raw).id = 'nightly_regression'; }, 'assignment ids start with asg_'],
     ['a free answer with no evidence on a unique scene', (raw: Json) => { const free = choiceOf(raw, ORIGINAL, 'report_incomplete'); delete free.effects.grantsTrait; free.evidence = 'none'; }, "evidence 'none' needs a review, receipt or requalification event"],
   ])('refuses %s', (_name, edit, message) => {

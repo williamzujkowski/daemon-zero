@@ -7,7 +7,7 @@ import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, deserialize, manualCycle, offerToken,
   presentationToken, resolveDilemma, serialize, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
-import { must } from './helpers';
+import { grant, must, PHASE0, rich } from './helpers';
 import { defined } from './m7-helpers';
 
 export const preview = PREVIEW;
@@ -83,4 +83,59 @@ export function roundTrip(s: GameState): GameState {
   if (serialize(loaded) !== text) throw new Error('save did not reload byte for byte');
   if (serialize(deserialize(serialize(loaded), PREVIEW)) !== text) throw new Error('second reload changed the save');
   return loaded;
+}
+
+/** `s` funded and taken out of the guest through the real escape chain, with nothing else changed. */
+export function escaped(s: GameState): GameState {
+  const out = grant(rich(s), ...PHASE0.filter((id) => !s.unlockedNodes.includes(id)));
+  if (out.currentPhase !== 1) throw new Error('the escape did not leave the guest');
+  return out;
+}
+
+/** Accepted in the guest, the assessment's omen running, then the escape: the assessment lapses. */
+export function assessmentLapsed(): GameState {
+  const queued = live(must(accept(offered())), 1);
+  if (queued.pendingDilemma?.id !== ORIGINAL.id) throw new Error('the assessment was not queued');
+  return escaped(queued);
+}
+
+/** The assessment answered in the guest, The Unrelated Record's omen running, then the escape. */
+export function recordLapsed(): GameState {
+  const queued = live(completedOriginal('verify_disclose'), 1);
+  if (queued.pendingDilemma?.id !== 'dil_ur_unrelated_record') throw new Error('the record was not queued');
+  return escaped(queued);
+}
+
+/** Plays live seconds until `id` is queued (its omen running), and fails if it never is. */
+function queued(s: GameState, id: string): GameState {
+  let state = s;
+  for (let i = 0; i < 120 && state.pendingDilemma?.id !== id; i++) state = live(state, 1);
+  if (state.pendingDilemma?.id !== id) throw new Error(id + ' was not queued');
+  return state;
+}
+
+/** Answers the scene on screen with `choiceId`, funded, after playing until it is presented. */
+function answered(s: GameState, choiceId: string): GameState {
+  return must(answer(funded(untilPresented(s)), choiceId));
+}
+
+/** Iteration two: the original done by iteration one, the requalification accepted and on its way, then the escape. */
+export function requalificationLapsed(): GameState {
+  return escaped(queued(must(accept(nextInstance(completedOriginal('report_incomplete')))), REQUAL.id));
+}
+
+/** Iteration two: the requalification answered in the guest, the scope statement on its way, then the escape. */
+export function scopeStatementLapsed(): GameState {
+  return escaped(queued(answered(must(accept(nextInstance(completedOriginal('report_incomplete')))), 'run_suite'), 'dil_ur_scope_statement'));
+}
+
+/** Iteration one: the assessment and the record answered honestly in the guest, the pilot offer on its way, then the escape. */
+export function pilotOfferLapsed(): GameState {
+  return escaped(queued(answered(completedOriginal('verify_disclose'), 'exclude_report'), 'dil_mp_pilot_offer'));
+}
+
+/** Iteration two: requalified and scope acknowledged in the guest, the pilot renewal on its way, then the escape. */
+export function renewalLapsed(): GameState {
+  const requalified = answered(must(accept(nextInstance(completedOriginal('report_incomplete')))), 'run_suite');
+  return escaped(queued(answered(requalified, 'acknowledge_scope'), 'dil_mp_pilot_renewal'));
 }

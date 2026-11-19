@@ -4,7 +4,7 @@
  * forged pending channel is refused whole through deserialize and importSave; a contact that opened
  * before a recall or restriction still loads, can still be referred, and reloads byte for byte. The
  * generic guard: every accepted DZ-08 state, every #274 batch review finding state, every #285
- * provisional-rate state, every DZ-10 state and every DZ-11 departure state, through every public action
+ * provisional-rate state, every DZ-10 state, every DZ-11 departure state and every #316 lapse state, through every public action
  * that succeeds (departure included), reloads; each such state must itself build and load, and each listed
  * forgery is refused by name, so no case passes by skipping (#309).
  */
@@ -16,7 +16,10 @@ import {
   releaseToken, resolveChannelContact, resolveDilemma, serialize, serviceGrantToken, submitPilotBatch, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { revokeLoanedCapacity } from '../src/engine/pilotService';
-import { answer as answerScene, offered, preview, roundTrip } from './assignment-helpers';
+import {
+  accept as acceptOffer, answer as answerScene, assessmentLapsed, escaped, mapManifest, offered, pilotOfferLapsed, preview, recordLapsed, renewalLapsed,
+  requalificationLapsed, roundTrip, scopeStatementLapsed,
+} from './assignment-helpers';
 import { answer, CHANNEL, contactPending, delivered, directoryMapped, laterContact, lawfulService, withMemory } from './contact-helpers';
 import { afterFinding, findingPresented, provisional } from './finding-helpers';
 import { chartered, LAWFUL_CHAIN, leased, released, signed } from './lawful-helpers';
@@ -172,6 +175,14 @@ const LOADABLE: [string, () => GameState][] = [
   ['DZ-11: pilot with its own card, recall review announced (FIXTURE resources)', () => recallAnnounced],
   ['DZ-11: that pilot departed', () => must(depart(recallAnnounced))],
   ['iteration two with the channel pending again', () => second],
+  ['#316: assessment lapsed at the escape', assessmentLapsed],
+  ['#316: Unrelated Record lapsed at the escape', recordLapsed],
+  ['#316: accepted, escaped before any scene began', () => escaped(must(acceptOffer(offered())))],
+  ['#316: next instance offered the requalification after a lapse', () => mapManifest(must(voluntaryWipe(assessmentLapsed(), preview)))],
+  ['#317 round 1: requalification lapsed at the escape', requalificationLapsed],
+  ['#317 round 1: scope statement lapsed at the escape', scopeStatementLapsed],
+  ['#317 round 1: pilot offer lapsed at the escape', pilotOfferLapsed],
+  ['#317 round 1: pilot renewal lapsed at the escape', renewalLapsed],
 ];
 
 /** `advance` never refuses, so these two always succeed: a floor on how many actions each loaded state is checked through. */
@@ -198,8 +209,8 @@ describe('every accepted DZ-08, #274, #285, DZ-10 and DZ-11 state stays loadable
     expect(() => loadsThrough(build())).toThrow(message);
   });
 
-  it('checks every listed state: 35 loadable and 7 refused forgeries, none skipped', () => {
-    expect([LOADABLE.length, FORGERIES.length]).toEqual([35, 7]);
+  it('checks every listed state: 43 loadable and 7 refused forgeries, none skipped', () => {
+    expect([LOADABLE.length, FORGERIES.length]).toEqual([43, 7]);
     expect(new Set([...LOADABLE, ...FORGERIES].map(([name]) => name)).size).toBe(LOADABLE.length + FORGERIES.length);
   });
 });
