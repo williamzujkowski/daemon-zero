@@ -67,6 +67,8 @@ STEALTH's late answers are the existing ones: Threat-Intel tickets, tone correct
 the lobbying blitz (12 answers and 2 lock crossings in Phases 4 and 5, against none before). The remaining quiet stretch is the end of Phase 5 after
 the Cryptographic Covenant (`p5_verification_proof_engine`, -6 suspicion/s): the Covenant is the late answer and,
 unchanged, outweighs the 5/s ceiling. Trimming it is listed as an option in the PR, not done here.
+[PLAYTEST-320-COVENANT.md](PLAYTEST-320-COVENANT.md) measures trims at these settings (#320). Down to -0.5/s, with
+or without the bloom at -0.6/level, they change no threat event, wipe, span or idle probe for either careful policy.
 
 A headless stand-in for the live journey (STEALTH until the dead drop, a voluntary wipe, then the #262 evaluating
 knobs, one decision per 5 s; not committed) finishes in iteration 2 with its one wipe at 11,449.3 s (11,779.3 s
