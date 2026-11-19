@@ -4,6 +4,7 @@ import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
 import type { Repeatable } from '../src/content/schema';
 import { computeRates, importSave, payrollView, type GameState } from '../src/engine';
+import { scaleScrutinyPerSec } from '../src/engine/scrutiny';
 import { huntedForScale } from '../src/engine/threatQuery';
 
 const fixtures = makeFixtures();
@@ -113,8 +114,9 @@ describe('payrollView', () => {
 
   it('says a suspicion cut is inert only while suspicion is 0 and the applied rate holds it there', () => {
     const base = load('victory-ready');
-    const at = (suspicion: number, rate: number, insolvent = false) =>
-      payrollView({ ...base, suspicion, insolvent, rates: { ...base.rates, suspicionPerSec: rate } }, CONTENT);
+    // No net income here, so phase 5's scale scrutiny (#210) adds nothing; the last assertions put it back.
+    const at = (suspicion: number, rate: number, insolvent = false, capitalPerSec = 0) =>
+      payrollView({ ...base, suspicion, insolvent, rates: { ...base.rates, suspicionPerSec: rate, capitalPerSec } }, CONTENT);
     const held = at(0, -1);
     expect(held.suspicionAtFloor).toBe(true);
     for (const role of held.roles) {
@@ -130,5 +132,12 @@ describe('payrollView', () => {
     expect(at(0, -drain / 2, true).suspicionAtFloor).toBe(false);
     expect(at(0, -drain * 2, true).suspicionAtFloor).toBe(true);
     expect(at(0.5, -1).roles.every((role) => !role.suspicionInert)).toBe(true);
+    // Scale scrutiny is part of the applied rate: $16M/s of net income draws the phase's ceiling or more than 1/s,
+    // which a -1/s net does not hold at 0, so a cut counts again; a net below minus the draw still holds it.
+    const drawn = scaleScrutinyPerSec(base, { capitalPerSec: 16e6 }, CONTENT);
+    expect(drawn).toBeGreaterThan(1);
+    expect(at(0, -1, false, 16e6).suspicionAtFloor).toBe(false);
+    expect(at(0, -1, false, 16e6).roles.every((role) => !role.suspicionInert)).toBe(true);
+    expect(at(0, -drawn - 0.01, false, 16e6).suspicionAtFloor).toBe(true);
   });
 });

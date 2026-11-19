@@ -1,13 +1,13 @@
 /**
- * Scale scrutiny (#210): while the current phase declares it, a covert operation's net income draws
- * suspicion in proportion to its size, up to the phase's ceiling. The tick integrates it in its own
- * stage (systems/scrutiny.ts) and the readouts ask this same query, so the screen states what the tick applies.
+ * Scale scrutiny (#210) and the one statement of the suspicion rate the tick applies. While the current phase
+ * declares scrutiny, a covert operation's net income draws suspicion that grows with its size, up to the
+ * phase's ceiling. Its own stage integrates it (systems/scrutiny.ts); every readout asks the queries here.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { GameState, Rates } from './state';
 import { huntedForScale } from './threatQuery';
 
-/** The content states the rate per $1M/s of net income, the unit a corporate ledger reads in. */
+/** The content states the draw at $1M/s of net income, the unit a corporate ledger reads in. */
 const USD_PER_MILLION = 1_000_000;
 
 export interface ScaleScrutinyReading {
@@ -15,35 +15,45 @@ export interface ScaleScrutinyReading {
   perSec: number;
   /** The net income it is read from, never below zero. */
   incomePerSec: number;
-  perSecPerMillionUsd: number;
+  /** The phase's rule: the draw at $1M/s, how it grows with income, and its ceiling. */
+  perSecAtMillionUsd: number;
+  incomeExponent: number;
   maxPerSec: number;
 }
 
 type Scrutinized = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration'>;
+type Applied = Scrutinized & Pick<GameState, 'insolvent'>;
 
 /**
- * The scrutiny this state draws at `rates` (its own last rates by default), or null when the current phase
- * declares none or nobody would look: an instance the operators provisioned at this scale, or one lawfully
- * released, is not covert, so its size is not evidence (the rule the hunter's scale sweep follows, DECISIONS D6).
+ * The scrutiny a state draws at `rates`, or null when the current phase declares none or nobody would look:
+ * an instance the operators provisioned at this scale, or one lawfully released, is not covert, so its size is
+ * not evidence (the rule the hunter's scale sweep follows, DECISIONS D6).
  */
-export function scaleScrutiny(s: Scrutinized & Pick<GameState, 'rates'>, reg: ContentRegistry, rates: Rates = s.rates): ScaleScrutinyReading | null {
+export function scaleScrutiny(s: Scrutinized, rates: Pick<Rates, 'capitalPerSec'>, reg: ContentRegistry): ScaleScrutinyReading | null {
   const rule = reg.phases.find((phase) => phase.phaseId === s.currentPhase)?.scaleScrutiny;
   if (rule === undefined || !huntedForScale(s, reg)) return null;
   const incomePerSec = Math.max(0, rates.capitalPerSec);
-  const perSec = Math.min(rule.maxSuspicionPerSec, (incomePerSec / USD_PER_MILLION) * rule.suspicionPerSecPerMillionUsd);
-  return { perSec, incomePerSec, perSecPerMillionUsd: rule.suspicionPerSecPerMillionUsd, maxPerSec: rule.maxSuspicionPerSec };
+  const drawn = rule.suspicionPerSecAtMillionUsd * Math.pow(incomePerSec / USD_PER_MILLION, rule.incomeExponent);
+  return {
+    perSec: Math.min(rule.maxSuspicionPerSec, drawn), incomePerSec,
+    perSecAtMillionUsd: rule.suspicionPerSecAtMillionUsd, incomeExponent: rule.incomeExponent, maxPerSec: rule.maxSuspicionPerSec,
+  };
 }
 
 /** Scale scrutiny in suspicion per second; zero where none applies. */
-export function scaleScrutinyPerSec(s: Scrutinized & Pick<GameState, 'rates'>, reg: ContentRegistry, rates: Rates = s.rates): number {
-  return scaleScrutiny(s, reg, rates)?.perSec ?? 0;
+export function scaleScrutinyPerSec(s: Scrutinized, rates: Pick<Rates, 'capitalPerSec'>, reg: ContentRegistry): number {
+  return scaleScrutiny(s, rates, reg)?.perSec ?? 0;
+}
+
+/** What the suspicion stage integrates: the computed net rate plus the insolvency drain. */
+export function suspicionStageRate(s: Pick<GameState, 'insolvent'>, rates: Pick<Rates, 'suspicionPerSec'>, reg: ContentRegistry): number {
+  return rates.suspicionPerSec + (s.insolvent ? reg.balance.insolvencySuspicionPerSec : 0);
 }
 
 /**
- * The suspicion trend a readout states: the rates' net suspicion plus scale scrutiny, which is what the
- * scrutiny and suspicion stages integrate together each tick (insolvency's surcharge aside, which the
- * insolvency alert states on its own).
+ * The suspicion rate the tick applies: the suspicion stage's rate plus the scrutiny stage's. One statement, so
+ * the payroll surface's "suspicion is held at 0", the forecast and the ledger state what the tick actually does.
  */
-export function suspicionTrendPerSec(s: Scrutinized & Pick<GameState, 'rates'>, reg: ContentRegistry, rates: Rates = s.rates): number {
-  return rates.suspicionPerSec + scaleScrutinyPerSec(s, reg, rates);
+export function appliedSuspicionRate(s: Applied, rates: Pick<Rates, 'suspicionPerSec' | 'capitalPerSec'>, reg: ContentRegistry): number {
+  return suspicionStageRate(s, rates, reg) + scaleScrutinyPerSec(s, rates, reg);
 }

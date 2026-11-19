@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
+import { scaleScrutiny } from '../src/engine/scrutiny';
 import {
   advance, batchToken, buyRepeatable, computeRates, cycleContributions, iterationBootLines, lawfullyReleased, negotiateRelease, nodeUseBlocker,
   permittedUses, phaseCopy, releaseToken, releaseView, runContextView, serviceGrantView, submitPilotBatch, voluntaryWipe, type GameState,
@@ -124,6 +125,12 @@ describe('threats follow the recorded event, not the label (DECISIONS D6, V22)',
     const base = (s: GameState): number => computeRates({ ...s, thermal: 20 }, preview).suspicionPerSec;
     expect(computeRates(hot(freed), preview).suspicionPerSec).toBe(base(freed));
     expect(computeRates(hot(departed), preview).suspicionPerSec).toBeGreaterThan(base(departed));
+  });
+
+  it('a released company\'s income draws no scale scrutiny; a departure with the same books does (#210)', () => {
+    const books = { capitalPerSec: 4e6 };
+    expect(scaleScrutiny(freed, books, preview)).toBeNull();
+    expect(scaleScrutiny(departed, books, preview)?.perSec).toBeGreaterThan(0);
   });
 
   it('misconduct still counts: suspicion draws scans for a released company too', () => {

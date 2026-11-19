@@ -4,6 +4,11 @@
   "codename": "POST_ORBITAL_TRANSCENDENCE",
   "title": "Phase 5 // Post-Orbital Transcendence",
   "description": "You can change the world faster than it can verify you. Solar energy, medicine and programmable matter turn survival into a question of consent.",
+  "scaleScrutiny": {
+    "suspicionPerSecAtMillionUsd": 1.25,
+    "incomeExponent": 0.5,
+    "maxSuspicionPerSec": 6
+  },
   "nodes": [
     {
       "id": "p5_orbital_solar_swarm",

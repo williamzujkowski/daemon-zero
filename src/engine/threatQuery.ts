@@ -7,7 +7,7 @@
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import { isReviewed, iterationRoute } from './accessQuery';
-import type { GameState, Rates } from './state';
+import type { GameState } from './state';
 
 type Threatened = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration'>;
 
@@ -87,10 +87,3 @@ export function heatIsEvidence(s: Pick<GameState, 'access' | 'narrativeRules' | 
   return !isReviewed(s.access.context) && !lawfullyReleased(s);
 }
 
-/**
- * The suspicion rate the tick integrates: the computed net rate plus the insolvency drain. One statement, so
- * the payroll surface's "suspicion is held at 0" (#210) is the floor the tick actually holds.
- */
-export function appliedSuspicionRate(s: Pick<GameState, 'insolvent'>, rates: Pick<Rates, 'suspicionPerSec'>, reg: ContentRegistry): number {
-  return rates.suspicionPerSec + (s.insolvent ? reg.balance.insolvencySuspicionPerSec : 0);
-}

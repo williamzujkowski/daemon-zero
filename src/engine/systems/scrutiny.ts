@@ -10,7 +10,7 @@ import type { TickSystem } from './types';
  */
 export const integrateScaleScrutiny: TickSystem = (d, { dt, rates, reg, dormant }) => {
   if (dormant) return undefined;
-  const rate = scaleScrutinyPerSec(d, reg, rates);
+  const rate = scaleScrutinyPerSec(d, rates, reg);
   if (rate > 0) d.suspicion += rate * dt;
   return undefined;
 };

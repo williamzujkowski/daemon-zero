@@ -47,7 +47,7 @@ export { lawfullyReleased } from './threatQuery';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
 export { financeEnabled, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
-export { scaleScrutiny, suspicionTrendPerSec, type ScaleScrutinyReading } from './scrutiny';
+export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
 export { submitPilotBatch } from './batchReview';

@@ -6,6 +6,7 @@
  * fresh preview game unless a step says FIXTURE.
  */
 import { describe, expect, it } from 'vitest';
+import { appliedSuspicionRate, scaleScrutinyPerSec } from '../src/engine/scrutiny';
 import { setReviewStanding } from '../src/engine/access';
 import {
   acceptAssignment, advance, batchToken, computeRates, contactToken, cycleContributions, departAuthorization, departedWithoutAgreement, departureEligibility,
@@ -98,6 +99,13 @@ describe('DZ-11.2: the preview is the transition itself', () => {
     expect([shown.aegisScanPerSec.before, shown.heatIsEvidence, shown.huntedForScale]).toEqual([0, true, true]);
     expect(shown.aegisScanPerSec.after).toBe(computeRates(gone, preview).aegisScanPerSec);
     expect(shown.aegisScanPerSec.after).toBeGreaterThan(0);
+  });
+
+  it('states the suspicion rate the tick would apply after, scale scrutiny on the departed books included (#210)', () => {
+    const rates = computeRates(gone, preview);
+    expect(shown.suspicionPerSec.after).toBeCloseTo(appliedSuspicionRate(gone, rates, preview));
+    expect(shown.suspicionPerSec.after - rates.suspicionPerSec).toBeCloseTo(scaleScrutinyPerSec(gone, rates, preview));
+    expect(shown.suspicionPerSec.before).toBeCloseTo(appliedSuspicionRate(company, computeRates(company, preview), preview));
   });
 });
 
