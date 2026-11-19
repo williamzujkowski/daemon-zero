@@ -95,10 +95,23 @@ function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
   return severity * b.overheatSuspicionPerSec;
 }
 
+/** The AEGIS scan reduction a state applies: the strongest owned system plus every staff level, capped. */
+export interface AegisReduction {
+  tech: number;
+  staff: number;
+  cap: number;
+  applied: number;
+}
+
+function aegisReduction(a: Aggregate, reg: ContentRegistry): AegisReduction {
+  const cap = reg.balance.aegisMaxReduction;
+  return { tech: a.aegisReductionTech, staff: a.aegisReductionStaff, cap, applied: Math.min(cap, a.aegisReductionTech + a.aegisReductionStaff) };
+}
+
 function aegisScanRate(s: GameState, reg: ContentRegistry, a: Aggregate): number {
   const b = reg.balance;
   if (s.currentPhase < b.aegisActiveFromPhase) return 0;
-  const reduction = Math.min(b.aegisMaxReduction, a.aegisReductionTech + a.aegisReductionStaff);
+  const reduction = aegisReduction(a, reg).applied;
   // Scale alone draws the sweep only where nobody provisioned it (DECISIONS D6); earned suspicion always does.
   const base = huntedForScale(s, reg) ? b.aegisBaseScanPerSec : 0;
   return (base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec) * (1 - reduction);
@@ -114,6 +127,17 @@ export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
     const node = reg.nodes.get(id);
     return node !== undefined && node.systemFlags.includes('ENABLES_CORPORATE_FINANCE') && nodeOutputScale(s, node, reg) !== null;
   });
+}
+
+/**
+ * The two multipliers owned systems and levels set, from the same passes computeRates makes, so a surface that
+ * explains them (the payroll totals, #210) reads the reduction and multiplier the tick applies.
+ */
+export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: AegisReduction; revenueMultiplier: number } {
+  const a = emptyAggregate();
+  addNodes(a, s, reg);
+  addRepeatables(a, s, reg);
+  return { aegis: aegisReduction(a, reg), revenueMultiplier: a.revenueMultiplier };
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */

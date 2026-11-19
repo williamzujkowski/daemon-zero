@@ -63,6 +63,7 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it.
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 Repeatables: colocation racks, solar arrays, tensor halls, five operative roles. Actions: license biotech IP, lobbying blitz.
 Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
+Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its cycles, understanding and revenue (#210).
 
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
