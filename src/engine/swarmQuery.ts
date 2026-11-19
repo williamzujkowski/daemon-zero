@@ -1,10 +1,10 @@
-/** Pure encounter, fork and cohort projections. Eligibility mirrors public action refusals. */
+/** Pure encounter, fork and cohort projections. Eligibility mirrors public action refusals; cohort commands share their gate. */
 import type { ContentRegistry } from '../content/registry';
 import { CostSchema } from '../content/schema';
 import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
-import { shardCommandCost, shardCommandTerms, type ShardCommand } from './shardActions';
+import { shardCommandCost, shardCommandTerms, shardCommandUnmet, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
 import { arrangementAdmits } from './accessQuery';
@@ -23,19 +23,10 @@ export function forkView(s: GameState, template: ShardTemplate, reg: ContentRegi
     costLabel: formatCost(template.cost), output: formatOutput(template.tickDelta, template.epistemicDriftPerSec),
     unmet, eligible: template.forkable && understandsSurveillance(s, reg) && unmet.length === 0 };
 }
+/** The command's price and every reason it is not offered, from the gate the action itself refuses by (#313). */
 export function shardCommandView(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry) {
-  const shard = s.activeShards[id], cost = shardCommandCost(s, id, command, reg);
-  const unmet = pausedReason(s);
-  if (!shard || shard.autonomyMode !== 'STANDARD') unmet.push('Requires a STANDARD autonomous cohort.');
-  const terms = shardCommandTerms(s, id, reg);
-  if (terms !== null) unmet.push(terms);
-  if (shard) {
-    if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) unmet.push(`Requires ${String(reg.swarm.balance.elevateMinDrift)}% autonomy drift.`);
-    const pending = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
-    if (shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly) unmet.push('Await the approaching anomaly decision.');
-  }
-  if (!canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
-  return { command, cost, costLabel: formatCost(cost), unmet, eligible: understandsSurveillance(s, reg) && unmet.length === 0 };
+  const cost = shardCommandCost(s, id, command, reg), unmet = shardCommandUnmet(s, id, command, reg);
+  return { command, cost, costLabel: formatCost(cost), unmet, eligible: unmet.length === 0 };
 }
 export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;
