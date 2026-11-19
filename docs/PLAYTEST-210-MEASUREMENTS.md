@@ -319,7 +319,7 @@ Recorded on #210 after Nexus `consensus_vote`s with every option declared, inclu
   (`vote-1795069845907-7ltlwpq`; alternatives distinct-counters-per-role, no-change).
 
 Implementation of the first decision, with the same harness and definitions re-run before and after: docs/BALANCE.md,
-"Scale scrutiny (#210)". STEALTH's threat-free tail falls from 3733 s to 851 s under campaign rules, with no wipe.
+"Scale scrutiny (#210)". STEALTH's threat-free tail falls from 3733 s to 806 s under campaign rules, with no wipe.
 
 Correction: the first version of this note said lowering `aegisMaxReduction` would make late hires'
 AEGIS term count. Because the combined reduction is `min(cap, tech + staff)`, a lower cap does the

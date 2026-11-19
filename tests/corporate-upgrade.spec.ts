@@ -28,8 +28,9 @@ const raw = JSON.parse(PRE_NH04B) as { iteration: number; resolvedDilemmas: stri
 
 /**
  * The order's setup owns the Phase 5 earners without the late answers, so its net income draws more scale scrutiny
- * (#210) than its suspicion cuts hold and would end the run inside the 45 s omen. Diverting nothing to revenue, as
- * a player would, keeps it under the reimage while the order is presented; the custody reading is unchanged.
+ * (#210) than its suspicion cuts hold, and suspicion climbs toward a reimage through the 45 s omen (about 1.8/s at
+ * the shipped numbers; it ended the run there at an earlier, higher draw). Diverting nothing to revenue, as a player
+ * would, keeps the presentation clear of that whatever the late numbers are; the custody reading is unchanged.
  */
 function quietBooks(s: GameState): GameState {
   return must(setActuator(s, 'computeProfitAllocationRatio', 0, preview));
