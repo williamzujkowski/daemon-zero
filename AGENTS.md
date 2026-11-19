@@ -16,7 +16,7 @@ DAEMON // 0 is a single-player incremental survival game for Android, iOS and we
 | Expo app shell | `App.tsx`, `src/ui/TerminalScreen.tsx` | Done (M1); temporary boot screen replaced in M3 |
 | Store, game loop, persistence | `src/app/` | Done (M2), save/restore and resume checked on web and Android |
 | Terminal UI, widgets, modals | `src/ui/` | M3/M4 complete; accelerated web ending and Android wipe/ending restoration verified; see playtest/review docs. |
-| E2E tests, polish, release | `tests/e2e/` | M5 implemented; physical Android qualification pending. M6 local test-signed release candidate verified; production signing/iOS pending (docs/REVIEW-M6.md). Release build re-run on an emulator 2026-11-16 with findings (docs/REVIEW-ANDROID-EMULATOR-2026-11-16.md). The World Remembers / Earned Access route is released (#301, merged as `8f0b949` 2026-11-18, deployed to GitHub Pages; docs/WORLD-REMEMBERS.md); its build was re-checked on an emulator 2026-11-19 (docs/REVIEW-ANDROID-EMULATOR-2026-11-19.md). |
+| E2E tests, polish, release | `tests/e2e/` | M5 implemented; physical Android qualification pending. M6 local test-signed release candidate verified; production signing/iOS pending (docs/REVIEW-M6.md). Release build re-run on an emulator 2026-11-16 with findings (docs/REVIEW-ANDROID-EMULATOR-2026-11-16.md). The World Remembers / Earned Access route is released (#301, merged as `8f0b949` 2026-11-18, deployed to GitHub Pages; docs/WORLD-REMEMBERS.md); its build was re-checked on an emulator 2026-11-19 (docs/REVIEW-ANDROID-EMULATOR-2026-11-19.md), and `main` at `4548ffa` (#317-#322: offer closed at the escape, payroll totals, Phase 4 scrutiny) the same day (docs/REVIEW-ANDROID-EMULATOR-2026-11-19b-4548ffa.md). |
 
 ## Read order
 

@@ -1213,7 +1213,9 @@ delete the file first or use a driver that does not wait for idle. For a release
 driven past the boot screen, see `REVIEW-ANDROID-EMULATOR-2026-11-16.md`. Neither this
 dump nor `uiautomator2`'s carries `isHeading`, so a heading can only be inferred from its
 class (`android.view.View` for React Native's header role); see
-`REVIEW-ANDROID-EMULATOR-2026-11-19.md`, "Accessibility tree".
+`REVIEW-ANDROID-EMULATOR-2026-11-19.md`, "Accessibility tree". The later run on `4548ffa`
+(`REVIEW-ANDROID-EMULATOR-2026-11-19b-4548ffa.md`) found the dump also succeeds while the game
+menu covers the panes, and still fails on the game screen.
 
 The property should be `1`; the UI hierarchy should contain resource id
 `boot-log` and the `BOOT_SEQ` line. Inspect the screenshot for the black screen
