@@ -182,7 +182,8 @@ test('an accepted assessment still on its way lapses at the escape and never arr
   await core(page);
   await expect(page.getByTestId('assignment-status')).toContainText('Lapsed. The assessment can no longer reach this instance');
   await page.clock.runFor(omenMs + 30_000);
-  await expect(page.getByTestId('dilemma-modal')).not.toContainText(original.title);
+  // Another scene may legitimately arrive on the host; the assessment never does.
+  await expect(page.getByTestId('dilemma-modal').filter({ hasText: original.title })).toHaveCount(0);
   const save = await readSave(page) as { currentPhase: number; campaign: { events: Record<string, unknown> } };
   expect([save.currentPhase, save.campaign.events[original.id]]).toEqual([1, { status: 'interrupted', sourceIteration: 1, origin: 'play' }]);
   await page.reload();
