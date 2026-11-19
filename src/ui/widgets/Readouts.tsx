@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import { CONTENT } from '../../content';
+import { appliedSuspicionRate } from '../../engine';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import { isPhoneWidth } from '../layout';
@@ -29,7 +30,7 @@ export function Thermal() {
  */
 export function UnreadableAuditTrail({ prefix = '', compact = false }: { prefix?: string; compact?: boolean }) {
   const reduced = useReducedMotion();
-  const rate = useGame((game) => game.rates.suspicionPerSec);
+  const rate = useGame((game) => appliedSuspicionRate(game, game.rates, CONTENT));
   const value = useGame((game) => game.suspicion);
   const time = useGame((game) => Math.floor(game.simTimeSec * 2) / 2);
   const [write, setWrite] = useState({ value, until: 0 });
@@ -64,8 +65,11 @@ export function Forecast() {
   const known = useSurveillanceKnown();
   const inbound = useGame((game) => game.pendingDilemma === null ? null
     : Math.max(0, Math.ceil(game.pendingDilemma.firesAtSimSec - game.simTimeSec)));
-  const seconds = useGame((game) => game.rates.suspicionPerSec > 0
-    ? Math.ceil((100 - game.suspicion) / game.rates.suspicionPerSec) : null);
+  // The rate the tick applies, scale scrutiny and insolvency included (#210), so the countdown is the one play keeps.
+  const seconds = useGame((game) => {
+    const rate = appliedSuspicionRate(game, game.rates, CONTENT);
+    return rate > 0 ? Math.ceil((100 - game.suspicion) / rate) : null;
+  });
   const compact = isPhoneWidth(useWindowDimensions().width);
   const full = forecastSentence({ known, seconds, inbound });
   // #89: the sentence wrapped to two or three lines on every phone width. The
