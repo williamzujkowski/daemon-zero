@@ -11,13 +11,25 @@ import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { STEALTH_POLICY } from '../src/engine/sim/policy';
 import type { ContentRegistry } from '../src/content/registry';
 import {
-  accept, answer, assessmentLapsed, escaped, funded, live, mapManifest, NIGHTLY, offered, ORIGINAL, preview, recordLapsed, REQUAL, roundTrip, untilPresented,
+  accept, answer, assessmentLapsed, escaped, funded, live, mapManifest, NIGHTLY, offered, ORIGINAL, pilotOfferLapsed, preview, recordLapsed,
+  renewalLapsed, REQUAL, requalificationLapsed, roundTrip, scopeStatementLapsed, untilPresented,
 } from './assignment-helpers';
 import { choose, must, reasonOf } from './helpers';
 
 const SLOW_MS = 60_000;
 /** Every scene an accepted assignment leads to. */
 const GATED = new Set(preview.dilemmas.filter((dilemma) => dilemma.trigger.assignment !== undefined).map((dilemma) => dilemma.id));
+
+/** What the free choice of a scene grants, if anything. */
+function freeTrait(dilemmaId: string): string[] {
+  const trait = preview.dilemmas.find((dilemma) => dilemma.id === dilemmaId)?.choices.find((entry) => entry.id === freeChoice(dilemmaId))?.effects.grantsTrait;
+  return trait === undefined ? [] : [trait];
+}
+
+/** The scenes resolved between two states, in order. */
+function answeredOutside(before: GameState, after: GameState): string[] {
+  return after.resolvedDilemmas.filter((id) => !before.resolvedDilemmas.includes(id));
+}
 
 function freeChoice(dilemmaId: string): string {
   const choice = preview.dilemmas.find((dilemma) => dilemma.id === dilemmaId)?.choices.find((entry) => Object.values(entry.cost).every((amount) => !amount));
@@ -160,5 +172,45 @@ describe('scenes queued in the guest lapse at the escape', () => {
     const next = mapManifest(must(voluntaryWipe(escaped(must(accept(offered()))), preview)));
     expect(assignmentView(next, preview)).toMatchObject({ status: 'offered', stage: 'original' });
     expect(untilPresented(must(accept(next))).activeDilemmaId).toBe(ORIGINAL.id);
+  });
+});
+
+// Panel round 1 on #317: the four iteration-scoped scenes (requalification, scope statement, pilot offer,
+// renewal) keep no campaign record, and revalidation used to skip them, so one queued at the escape still
+// presented and committed its trait and evidence outside the guest.
+describe('iteration-scoped scenes queued in the guest lapse at the escape too', () => {
+  it.each([
+    ['the requalification', REQUAL.id, requalificationLapsed],
+    ['the scope statement', 'dil_ur_scope_statement', scopeStatementLapsed],
+    ['the pilot offer', 'dil_mp_pilot_offer', pilotOfferLapsed],
+    ['the pilot renewal', 'dil_mp_pilot_renewal', renewalLapsed],
+  ] as const)('%s: dropped at the escape, never presented, no trait, evidence or answer committed, no record', (_name, id, build) => {
+    const out = build();
+    expect(preview.dilemmas.find((dilemma) => dilemma.id === id)?.campaign?.recurrence).toBe('once_per_iteration');
+    expect(out.currentPhase).toBe(1);
+    expect(out.pendingDilemma).toBeNull();
+    expect(campaignRecord(out, id)).toBeNull();
+    expect(serialize(roundTrip(out))).toBe(serialize(out));
+    const later = playOutside(out);
+    expect(later.resolvedDilemmas).not.toContain(id);
+    // Only the other scenes answered on the host (with their free choice) add traits.
+    expect(later.traits).toEqual([...out.traits, ...answeredOutside(out, later).flatMap(freeTrait)]);
+    expect(later.access).toEqual(out.access);
+    expect(serialize(roundTrip(later))).toBe(serialize(later));
+  });
+
+  it('the lapsed requalification leaves nothing submitted, and the job surface says it lapsed', () => {
+    const out = requalificationLapsed();
+    expect(out.access.qualification).toBeNull();
+    expect(assignmentView(out, preview)).toMatchObject({ stage: 'requalification', status: 'lapsed' });
+  });
+
+  it('returns fresh for the next instance in the guest: an iteration-scoped scene is per instance', () => {
+    const next = mapManifest(must(voluntaryWipe(requalificationLapsed(), preview)));
+    expect([next.iteration, next.currentPhase]).toEqual([3, 0]);
+    expect(assignmentView(roundTrip(next), preview)).toMatchObject({ status: 'offered', stage: 'requalification' });
+    const presented = untilPresented(must(accept(next)));
+    expect(presented.activeDilemmaId).toBe(REQUAL.id);
+    expect(serialize(roundTrip(presented))).toBe(serialize(presented));
   });
 });

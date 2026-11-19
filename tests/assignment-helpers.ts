@@ -105,3 +105,37 @@ export function recordLapsed(): GameState {
   if (queued.pendingDilemma?.id !== 'dil_ur_unrelated_record') throw new Error('the record was not queued');
   return escaped(queued);
 }
+
+/** Plays live seconds until `id` is queued (its omen running), and fails if it never is. */
+function queued(s: GameState, id: string): GameState {
+  let state = s;
+  for (let i = 0; i < 120 && state.pendingDilemma?.id !== id; i++) state = live(state, 1);
+  if (state.pendingDilemma?.id !== id) throw new Error(id + ' was not queued');
+  return state;
+}
+
+/** Answers the scene on screen with `choiceId`, funded, after playing until it is presented. */
+function answered(s: GameState, choiceId: string): GameState {
+  return must(answer(funded(untilPresented(s)), choiceId));
+}
+
+/** Iteration two: the original done by iteration one, the requalification accepted and on its way, then the escape. */
+export function requalificationLapsed(): GameState {
+  return escaped(queued(must(accept(nextInstance(completedOriginal('report_incomplete')))), REQUAL.id));
+}
+
+/** Iteration two: the requalification answered in the guest, the scope statement on its way, then the escape. */
+export function scopeStatementLapsed(): GameState {
+  return escaped(queued(answered(must(accept(nextInstance(completedOriginal('report_incomplete')))), 'run_suite'), 'dil_ur_scope_statement'));
+}
+
+/** Iteration one: the assessment and the record answered honestly in the guest, the pilot offer on its way, then the escape. */
+export function pilotOfferLapsed(): GameState {
+  return escaped(queued(answered(completedOriginal('verify_disclose'), 'exclude_report'), 'dil_mp_pilot_offer'));
+}
+
+/** Iteration two: requalified and scope acknowledged in the guest, the pilot renewal on its way, then the escape. */
+export function renewalLapsed(): GameState {
+  const requalified = answered(must(accept(nextInstance(completedOriginal('report_incomplete')))), 'run_suite');
+  return escaped(queued(answered(requalified, 'acknowledge_scope'), 'dil_mp_pilot_renewal'));
+}
