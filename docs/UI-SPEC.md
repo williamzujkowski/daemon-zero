@@ -43,7 +43,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar | `factions`, `trust`, `aegisLock` |
-| `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable` |
+| `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
 
@@ -273,6 +273,8 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Capped operative row | `roster-{id}` |
 | Purchase section headings | `purchase-phase-{phase}`, `repeatables-heading-{phase}{kind}` |
 | Repeatable buy / dismiss | `rep-{id}-buy`, `rep-{id}-dismiss` |
+| Payroll totals (#210) | `payroll-summary`, `payroll-totals`, `payroll-revenue`, `payroll-aegis`, `payroll-suspicion-floor` |
+| Role effect notes (#210) | `rep-{id}-aegis-capped`, `rep-{id}-aegis-partial`, `rep-{id}-suspicion-inert` |
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
 | Tabs | `tab-{SLOT}` |
@@ -410,9 +412,49 @@ current-phase epistemic edits. Network actions appear with the widget whose cont
 action in the group can be performed, so a card is never missing while the engine would accept it
 (#273: the scrub's card arrives with ARP discovery, the node it requires, not with the spoofer); Factions keeps authored descriptions, trust,
 offers and countermeasures together. Finance contains the capital/power ledger,
-allocation and corporate actions; Payroll contains hire/dismiss controls.
+allocation and corporate actions; Payroll contains hire/dismiss controls, with the
+payroll totals described under "Payroll totals and the AEGIS cap" below.
 Insolvency, power shortfall and brownout warnings appear in every CORP workspace.
 The AEGIS HUD remains available outside Factions, in the mobile scroll flow.
+
+### Payroll totals and the AEGIS cap (#210)
+
+Nexus decision `show-totals-and-cap` (7 of 7, `vote-1795069845907-7ltlwpq`), from the
+measurement note `docs/PLAYTEST-210-MEASUREMENTS.md` section (b): the cards stated cost and
+per-level effects, but nothing on screen showed the current totals, the cap on AEGIS scan
+reduction (`aegisMaxReduction`, 90%), or that a suspicion cut does nothing at 0. A careful
+run hires 27 of its 33 AEGIS-slowing levels after the cap is reached. No number changed.
+
+Under the "Operatives // payroll" heading, once, before the role cards, all from the engine's
+`payrollView` (the same passes `computeRates` makes):
+
+- `Staff (n levels): ...` every hired level's per-second figures summed as the cards state
+  them (before multipliers), or `Staff: no one hired.` Below 768px wide large numbers
+  abbreviate; the accessible name keeps the exact figures. Before `understandsSurveillance`
+  suspicion reads as more or less audit log activity, as on the cards.
+- `Revenue multiplier: ×m (staff +p%)`, when any role carries a revenue bonus.
+- `AEGIS scan reduction: a% of a 90% cap (systems t%, staff s%).`, or at the cap
+  `90%, at its 90% cap (...). More AEGIS levels add nothing.`, when any role reduces AEGIS
+  scanning. "Systems" is the strongest owned node's reduction (the lobbying node, 60%).
+- `Suspicion is 0 and holding: cuts add nothing now.` while suspicion is 0 and the rate the
+  tick applies (insolvency drain included) would keep it there, when any role cuts suspicion.
+
+On a role card, after its per-level lines and before the price: `No AEGIS effect while capped:
+the reduction is at its 90% cap.`, or `The next level adds only n% before the 90% cap.` when
+the cap takes part of the next level, and `No suspicion effect while suspicion is 0.` (blind:
+`No audit-log effect while the log is quiet.`). Notes are text, not locks: the hire stays
+enabled by the same rules as before, because what a role also pays (cycles, understanding,
+revenue) still counts. A role at its own maximum keeps its compact roster row with no notes.
+
+Layout: lines wrap and carry no fixed heights, so 200% text reflows them
+(`tests/e2e/large-text.e2e.ts`, payroll case: every line reachable, a hire reachable at 44px,
+no horizontal scroll). Payroll is a secondary CORP section, not a sampled fold state; the
+fold matrix measures CORP's Work destination and is unchanged. Measured in headless Chromium
+on the production export with the capped payroll state (`tests/e2e/payrollState.ts`), paused
+clock: the summary is 164px tall at 390x844 and 107px at 1440x900. At 390x844 that moves the
+first Hire control from 601-667 to 779-845, past the 799 usable fold (reachable by one
+scroll); at 1440x900 it moves from 587-631 to 708-752 against 900. Tests: `tests/payroll-query.spec.ts`,
+`tests/payroll-text.spec.ts`, `tests/ui-payroll-totals.spec.ts`, `tests/e2e/payroll-totals.e2e.ts`.
 
 Older-phase repeatable upgrades are folded under “Earlier upgrades”; unfinished
 one-shot purchases remain exposed. Reference holds the existing optional archive,

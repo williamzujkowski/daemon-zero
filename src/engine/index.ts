@@ -45,7 +45,8 @@ export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGr
 export { negotiateRelease, releasePreview, releaseToken, releaseView, type ReleaseLedger, type ReleasePreview, type ReleaseView } from './release';
 export { lawfullyReleased } from './threatQuery';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
-export { financeEnabled } from './rates';
+export { financeEnabled, type AegisReduction } from './rates';
+export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
 export { scaleScrutiny, suspicionTrendPerSec, type ScaleScrutinyReading } from './scrutiny';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';

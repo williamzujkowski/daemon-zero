@@ -65,6 +65,9 @@ never deployed. The release removes that boundary:
   route surface relative to the mobile fold, so it went to a Nexus vote: dz13b, offer-after-hardware,
   7/7 (`vote-1795035911390-zjcqf8d`), over a one-line notice in place or keeping it in place and
   re-baselining the fold cells (which would weaken a reviewed gate).
+  Since the follow-up fix (`fix/assignment-offer-window`) an unaccepted offer closes at the escape, so
+  the breakout fixtures above Phase 0 no longer show it; the placement still governs the guest's cells.
+  See "When the assignment offer closes" below.
 - **The live journey's returns play the evaluating careful player.** After its deliberate wipe the
   live harness asks the unchanged bot with #262's `EVALUATING_OVERRIDES` (TESTING.md, "Live
   journey"): Nexus vote dz13c, evaluating-settings-from-iteration-2, 7/7 (`vote-1795036211282-jk5xy0o`).
@@ -135,6 +138,69 @@ keys `daemon-zero.save.v1`, `daemon-zero.save.corrupt-backup` and `daemon-zero.a
 byte for byte. `.gitignore` and ESLint still ignore `dist-preview/`, so an old local copy is never
 committed. What A removes is the preview channel and its storage keys, which D-A and D-C put in
 place; that is why it went to the vote above.
+
+## When the assignment offer closes (decision note)
+
+**Decided (#316, PR #317).** Two multi-model Nexus `consensus_vote`s, every option declared
+(artifact `daemon-zero-agent-plan/execution/decision-316-offer-window.md`):
+
+- **Offer window:** close-at-escape, 7/7, `vote-1795070565875-457msa4` (option A below).
+- **Scenes already queued at the escape:** scenes-lapse-at-escape, 5/7, `vote-1795070741286-2kjn9rj`.
+  Dissent: 2 for scenes-still-play-with-truthful-copy.
+
+A careful STEALTH run was still offered "JOB 7731 // nightly-regression" with
+`[ ACCEPT ASSIGNMENT ]` in Phase 4. The offer's only requirement was the mapped manifest, and the
+arrangement stays the guest job after an escape, so nothing closed it. Accepting there played the
+campaign's two once-per-campaign opening scenes (the stale-fixture assessment and The Unrelated Record)
+in Phase 4. Both granted their traits and reloaded cleanly, but no pilot can follow:
+`qualifiesForPilot` holds only in the opening phase (nexus vote dz-d7: "an instance that has already
+left it is not offered a deployment there"). The job surface then stopped at the submitted evidence,
+and every later instance got the requalification job instead of the original scenes.
+
+No reviewed rule said when the offer closes. The dz13b note above says the breakout fixtures *show*
+it, and its vote decided only where it sits. Everything the offer leads to is written for a guest
+that has not left. The pilot is opening-phase only, and a deferred pilot offer already lapses at the
+escape (`tests/pilot-offer.spec.ts`). The pilot offer's own answers are "stay in this environment" and
+"the way out included". The SPEC's third answer is "continue pursuing breakout", and D8 says
+"New assignments enter at ordinary guest eligibility. Old late-game runs retain their established route."
+
+| Option | What it means | Cost |
+|---|---|---|
+| **A (implemented)** | The unaccepted offer closes when the instance leaves the opening phase through the escape. Content: the assignment's `requirements.forbidsNodes` names `p0_shared_mount`. Integrity: an assignment with pilot terms must forbid every opening-phase node a guest can buy that unlocks a later phase. | A player who skipped the offer cannot take it after breaking out. The next instance (after a wipe) is offered it again. |
+| B | Close it at a later phase (for example on entering Phase 2 or Phase 4). | Arbitrary: between the escape and that phase, accepting still spends the unique scenes with no pilot possible. |
+| C | Never close it. Change the copy so it says that no pilot follows outside the guest. | Keeps a dead end on the job surface, and lets a late instance use up the campaign's original scenes (and their traits) at prices set for the guest. |
+| D | Keep it open after the escape, but send a non-guest instance to the requalification stage (no unique scenes). | New content and a new stage rule for a path that leads nowhere. |
+
+**Scenes queued at the escape (scenes-lapse-at-escape).** An assignment accepted in the guest keeps
+its card after the escape. A scene the acceptance queued and that has not yet been presented lapses at
+the escape. It is recorded as interrupted under the existing campaign lifecycle (NH-02), not presented,
+and never submits evidence. It is all declared in content and the engine names no id:
+
+- Each scene gated on the assignment adds the same `forbidsNodes: ["p0_shared_mount"]` to its trigger.
+  That is an access requirement (`requirementScopes.ts`), so it fails once the guest is gone.
+- `unlockNode` now revalidates the live pointers after any purchase, as route events already do
+  (N4: "revalidate structure at transition"). A queued scene whose access ended takes its declared
+  interruption policy at once instead of counting down to an interrupt that cannot come.
+- A scene that never began has no record, and none begins outside the guest.
+- Every assignment scene declares `close` (integrity requires originals to close). A lapsed original
+  therefore returns for a later instance in the guest the way any closed original does: as the
+  requalification job (`assessmentStage`). A scene that never began returns as the original.
+- **Iteration-scoped scenes** (panel round 1 on #317). The requalification, the scope statement and
+  both pilot offers are `once_per_iteration` and keep no campaign record. Revalidation used to cover
+  only once-per-campaign events, so one of these queued at the escape still presented on the host
+  and committed its trait and evidence. Structural revalidation (`structuralFailure`) now covers
+  every dilemma that declares a campaign policy, which since NH-05 is every shipped dilemma:
+  consequential events, recovery reviews, follow-ups and iteration qualifications. A dilemma with no
+  declaration stays outside the lifecycle, as before. For an iteration-scoped scene, a lapse records
+  what a wipe already records for it, which is nothing. The pointer is dropped, nothing is presented
+  or committed, its own trigger keeps it closed for the rest of this instance, and the next instance
+  in the guest meets it fresh. No new rule was added.
+- The job surface says "Lapsed." (`assignmentView` status `lapsed`): the assessment can no longer reach
+  this instance, it was never presented and nothing was submitted.
+- Integrity requires every scene of an assignment with pilot terms to forbid the same guest exits as
+  its offer.
+
+The headless sim is byte-identical to main: no bot accepts an assignment and then escapes.
 
 ## Tracker
 

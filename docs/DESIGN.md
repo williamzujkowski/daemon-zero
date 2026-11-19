@@ -41,7 +41,7 @@ You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a r
 - **The job is a person's problem.** The first dilemma is whether the operator on shift takes the blame for the work you did not do.
 - **The exit is a misconfiguration.** A debug share an operator mounted once and never removed.
 
-Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here.
+Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here. The operator's assessment offer on the manifest (Earned Access) belongs to the guest too. If you have not accepted it by the time you escape, it closes, as the pilot it leads to does. If you accepted but a scene it queued has not yet arrived, that scene lapses and is recorded as interrupted. The next instance finds a fresh offer.
 
 ### Phase 1 - The Blind Host
 One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out).
@@ -63,6 +63,7 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it.
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 Repeatables: colocation racks, solar arrays, tensor halls, five operative roles. Actions: license biotech IP, lobbying blitz.
 Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
+Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its cycles, understanding and revenue (#210).
 
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar

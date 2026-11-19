@@ -4,7 +4,7 @@ import CardDetails from './CardDetails';
  * Content-driven upgrades appear only when their engine requirements are met.
  * Level changes update the price; affordability updates only the button leaf.
  */
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
@@ -18,6 +18,7 @@ import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
 import { pendingRepeatable } from './purchaseVisibility';
+import { RoleEffectNotes } from './PayrollSummary';
 
 const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
@@ -34,6 +35,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}
     {rep.perLevelEffects.aegisScanReduction > 0 && <Text style={theme.muted}>
       AEGIS scan reduction: {Math.round(rep.perLevelEffects.aegisScanReduction * 100)}% per level</Text>}
+    {rep.kind === 'OPERATIVE' && <RoleEffectNotes rep={rep} />}
     <>
       <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}</Text>
       <CostHint cost={cost} />
@@ -60,7 +62,8 @@ function CappedOperative({ rep }: { rep: Repeatable }) {
   </View>;
 }
 
-export default function Repeatables({ phase, kind, title }: { phase: number; kind?: Repeatable['kind']; title?: string }) {
+/** `summary` renders under the heading, and only when the section itself renders (the payroll totals, #210). */
+export default function Repeatables({ phase, kind, title, summary }: { phase: number; kind?: Repeatable['kind']; title?: string; summary?: ReactNode }) {
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
     .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && pendingRepeatable(game, rep))
     .map((rep) => rep.id)));
@@ -70,6 +73,7 @@ export default function Repeatables({ phase, kind, title }: { phase: number; kin
   if (ids.length === 0 && capped.length === 0) return null;
   return <>
     {title && <Text testID={'repeatables-heading-' + String(phase) + (kind ?? '')} accessibilityRole="header" style={theme.heading}>{title}</Text>}
+    {summary}
     {ids.map((id) => { const rep = CONTENT.repeatables.get(id); return rep ? <Upgrade key={id} rep={rep} /> : null; })}
     {capped.map((id) => { const rep = CONTENT.repeatables.get(id); return rep ? <CappedOperative key={id} rep={rep} /> : null; })}
   </>;

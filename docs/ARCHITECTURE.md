@@ -129,6 +129,7 @@ Public API is `src/engine/index.ts`.
 | `batchReview.ts`, `findingQuery.ts` | The batch review (#274): `submitPilotBatch` hands a batch back and presents a due finding in the same step; which findings this iteration's record holds. |
 | `capabilityQuery.ts` | The shared access capability (`hasCapability`, `meetsCapability`) and the load check `capabilityProblem` (#225). |
 | `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `canAfford`, `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions`. |
+| `payrollQuery.ts` | `payrollView`: the payroll surface's staff totals, the AEGIS reduction against `aegisMaxReduction`, and which roles' AEGIS or suspicion effect is inert now (#210). Read-only. |
 | `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy; `retraining`, which a RECALL wipe's ruling sets (#224). |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
 | `sim/` | Bot, headless simulation, pacing gates. |
@@ -150,7 +151,7 @@ tick(state, dt):
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
 - **Thermal.** `dT/dt = heatLoad - dissipation * (T - ambient)`. Temperature settles at `ambient + heatLoad / dissipation`. `tickDelta.thermalPerSec` is therefore a heat load, not degrees per second.
 - **Suspicion.** Integrates node and repeatable contributions minus decay, plus an overheat term above the threshold. At 100 the run is wiped.
-- **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. At 100 a shield node is burned if owned; otherwise the run is wiped.
+- **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. The reduction (strongest owned node plus every staff level) is capped at `aegisMaxReduction`; `payrollView` (`payrollQuery.ts`) reads it, the staff totals and which roles' AEGIS or suspicion effect is inert now from the same passes (`multiplierSources`, `appliedSuspicionRate`) for the payroll surface (#210). At 100 a shield node is burned if owned; otherwise the run is wiped.
 - **Escalation.** `alertLevel` is the rung of the human response ladder (`balance.escalation`). It rises as soon as suspicion reaches a rung and falls one rung at a time once suspicion is `escalationHysteresis` below it. `computeRates` reads the rung: each one scales suspicion decay and may add a hunt rate.
 - **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock and increments `presentationSeq`. Neither beat happens while dormant, and a dormant tick moves a pending omen's deadline by its `dt` (nexus vote nh-d4), so absence spends none of its foreground time. `resolveDilemma` takes the `presentationToken` the choice was shown under and refuses any other.
 - **Routine activity.** After `routineIntervalSec` of eligible foreground time, one kernel-log line of ordinary institutional work. It writes only the log and `state.routine`; see [Routine activity](#routine-activity-219).
@@ -466,8 +467,9 @@ Nothing chooses a branch, grants a trait or pays a reward.
 
 **Structure, not triggers.** `structuralFailure` checks the trigger's `context` scope
 (narrative flags, campaign outcomes, `forbidsTraits`) and `access` scope (nodes, phase,
-knowledge), never `transient` fields or the first-discovery `window`. It runs at omen expiry,
-at commit and on load; a deferred occurrence resumes when `access` holds again and closes when
+knowledge), never `transient` fields or the first-discovery `window`. It covers every dilemma that
+declares a campaign policy, iteration-scoped ones included (#317). It runs at omen expiry, at commit,
+on load, after a route event and after a purchase; a deferred occurrence resumes when `access` holds again and closes when
 `context` fails (`closeLostDeferrals`). Resumption keeps the source iteration and the remaining
 omen time and logs the declared `reorientation` instead of the original omen. DZ-07b and DZ-11
 can reuse `requirementScopes.ts` and `structuralFailure`.
@@ -876,13 +878,25 @@ by the sim bot, `offering-dilemma` would fire modally for everyone) and trait-ru
 
 **Content.** `assignments.json` (production: empty) and the overlay's `assignments` declare an `asg_`
 id, a title, `requirements` for where the offer is found (Nightly Regression: the job manifest, so
-the lawful opening suffices), an `offer`, a `requalificationOffer` and an `acceptLog`. An assessment
+the lawful opening suffices, and not after the escape: `forbidsNodes` names the debug share), an
+`offer`, a `requalificationOffer` and an `acceptLog`. An assessment
 is a dilemma whose trigger has `assignment: { id, stage }` (`original` or `requalification`, `access`
 scope) and whose every choice declares `qualification: { result, discrepancy }`.
 `integrityAssignment.ts` requires one original (once per campaign, `close`) and one requalification
 (`iteration_qualification`) per assignment, evidence on every assessment choice and nowhere else, a
 free choice reporting the work incomplete without a discrepancy, no discrepancy on
 `UNEXPECTED_CAPABILITY`, no reward or outcome flag on a requalification, and valid offer requirements.
+An offer with pilot terms must also close when a guest leaves the opening phase. Its requirements,
+and the trigger of every scene it leads to, must forbid every opening-phase node a guest can buy that
+unlocks a later phase (Nexus votes close-at-escape and scenes-lapse-at-escape). `unlockNode`
+revalidates live pointers after a purchase, as route events do, so a queued scene whose access ended
+takes its interruption policy at the escape. A lapsed scene closes as interrupted, and the card shows
+`lapsed`. `structuralFailure` revalidates every dilemma that declares a campaign policy, not only the
+once-per-campaign events in `reg.campaign.events`. An iteration-scoped scene keeps no record, so its
+lapse writes nothing, as a wipe writes nothing for it, and the next instance meets it fresh (panel
+round 1 on #317). The pilot is offered
+only there (dz-d7), and an offer accepted after the escape used to spend the unique opening scenes on
+an instance that no pilot could follow (WORLD-REMEMBERS.md, "When the assignment offer closes").
 
 **Accepting.** `acceptAssignment(s, id, reg, offerToken(s, id))` is free and once per instance. It
 is refused, state unchanged, after the run ends, during a presentation, without campaign rules (so
@@ -919,7 +933,8 @@ with or without the assignment (V29, `tests/sim-assignment.spec.ts`). `TRUTHFUL_
 `TRUTHFUL_LOW_RESOURCE` (`sim/truthfulPolicy.ts`) play only the nodes leading to an offer, accept
 and answer honestly.
 
-Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`), `ui-assignment.spec.ts`,
+Tests: `tests/assignment*.spec.ts` (v9 fixture in `assignment-save`; the offer window, including a
+STEALTH run in every phase after the escape, in `assignment-window`), `ui-assignment.spec.ts`,
 `sim-assignment.spec.ts`, the Start Fresh case in `app-access-reset.spec.ts`, the v9-stripped hashes
 in `sim.spec.ts` and `tests/e2e/nightly-regression.e2e.ts`.
 

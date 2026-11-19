@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { HTMLElement, Window } from 'happy-dom';
 import { CONTENT } from '../../src/content';
 import { openSave, test, expect, boot, dismissBoot, readSave, openKernelHistory, closeKernelHistory } from './helpers';
+import { AEGIS_ROLES, cappedPayroll } from './payrollState';
 
 async function doubleText(page: Page): Promise<void> {
   // Controlled text-only stress; this is deliberately not labelled browser/native zoom.
@@ -114,5 +115,20 @@ test('short landscape keeps corporate warnings and purchases available without r
   await reachable(page.getByTestId('workspace-CORP-finance')); await page.getByTestId('workspace-CORP-finance').click();
   await page.getByTestId('power-ledger').scrollIntoViewIfNeeded();
   await expect(page.getByTestId('power-ledger')).toBeInViewport();
+  await noHorizontalScroll(page);
+});
+
+test('200% text keeps the payroll totals, the AEGIS cap note and a hire reachable (#210)', async ({ page }) => {
+  const strongest = AEGIS_ROLES[0];
+  if (!strongest) throw new Error('Missing AEGIS role');
+  await boot(page, 'victory-ready', { patch: cappedPayroll }); await openArea(page, 'CORP', 'payroll');
+  await doubleText(page);
+  for (const id of ['payroll-totals', 'payroll-aegis', 'payroll-suspicion-floor', 'rep-' + strongest.id + '-aegis-capped']) {
+    const line = page.getByTestId(id);
+    await line.scrollIntoViewIfNeeded();
+    await expect(line).toBeInViewport();
+  }
+  await expect(page.getByTestId('payroll-aegis')).toContainText('More AEGIS levels add nothing.');
+  await reachable(page.getByTestId('rep-' + strongest.id + '-buy'));
   await noHorizontalScroll(page);
 });

@@ -7,6 +7,7 @@ import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
+import PayrollSummary from '../PayrollSummary';
 import Repeatables from '../Repeatables';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
@@ -99,12 +100,16 @@ function Allocation() {
 export default function Corporate({ area = 'work' }: { area?: WorkspaceArea }) {
   const current = useGame((game) => game.currentPhase);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORP' && phase.phaseId <= current).slice().reverse();
+  // The totals cover every role, so they sit once, under the newest phase that authors payroll roles.
+  const payrollPhase = phases.find((phase) => [...CONTENT.repeatables.values()]
+    .some((rep) => rep.kind === 'OPERATIVE' && rep.phaseId === phase.phaseId))?.phaseId;
   // Before any corporate phase (a service's billing ledger, DZ-10) the work area shows the ledger, not nothing.
   if (area === 'work' && phases.length === 0) return <Ledger />;
   if (area === 'finance') return <View style={{ gap: 14 }}><Ledger /><Allocation /><ActionsPanel group="CORP" /></View>;
   return <View style={{ gap: 14 }}>
     {phases.map((phase) => <View key={phase.phaseId} style={{ gap: 14 }}>
-      {area === 'payroll' ? <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll" />
+      {area === 'payroll' ? <Repeatables phase={phase.phaseId} kind="OPERATIVE" title="Operatives // payroll"
+        summary={phase.phaseId === payrollPhase ? <PayrollSummary /> : undefined} />
         : <><NodeList phase={phase.phaseId} /><UpgradeFeed phase={phase.phaseId} title="Infrastructure" /></>}
     </View>)}
   </View>;
