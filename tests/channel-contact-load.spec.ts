@@ -5,7 +5,8 @@
  * before a recall or restriction still loads, can still be referred, and reloads byte for byte. The
  * generic guard: every accepted DZ-08 state, every #274 batch review finding state, every #285
  * provisional-rate state, every DZ-10 state and every DZ-11 departure state, through every public action
- * that succeeds (departure included), reloads.
+ * that succeeds (departure included), reloads; each such state must itself build and load, and each listed
+ * forgery is refused by name, so no case passes by skipping (#309).
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -110,62 +111,91 @@ const lawfulFreed = released(lawfulCompany);
 // DZ-11 states.
 const recallAnnounced = recallAnnouncedWithUplink();
 
-describe('every accepted DZ-08, #274, #285 and DZ-10 state stays loadable through every public action (generic guard)', () => {
-  const states: [string, () => GameState][] = [
-    ['#285: provisional offer on screen', () => provisional('offer')],
-    ['#285: provisional pilot, first batch under way', () => provisional('working')],
-    ['#285: provisional pilot, first batch complete', () => provisional('complete')],
-    ['#274: finding on screen', findingPresented],
-    ['#274: disclosed', () => afterFinding('disclose_now')],
-    ['#274: left standing', () => afterFinding('let_stand')],
-    ['#274: left standing, outage on screen', () => until(afterFinding('let_stand'), OUTAGE)],
-    ['#274: left standing, then restricted', () => must(answerScene(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'))],
-    ['#274 forged: finding with its warning edited away', () => ({ ...findingPresented(), access: { ...findingPresented().access, standing: 'NOMINAL' as const } })],
-    ['#274 forged: finding scheduled as an omen', () => ({ ...findingPresented(), activeDilemmaId: null, pendingDilemma: { id: findingPresented().activeDilemmaId ?? '', firesAtSimSec: 0 } })],
-    ['service offered', () => delivered()],
-    ['service granted', () => lawfulService()],
-    ['directory mapped', () => directoryMapped()],
-    ['contact pending', () => pending],
-    ['contact pending with memory (FIXTURE)', () => withMemory(pending)],
-    ['contact referred', () => must(answer(pending, 'REFER'))],
-    ['contact hosted (FIXTURE memory)', () => must(answer(withMemory(pending), 'HOST'))],
-    ['pending after a recall', () => recalledPending],
-    ['pending under a restriction', () => restrictedPending],
-    ['the genuine v13 fixture', () => deserialize(remarkedAsProduction(readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8')), preview)],
-    ['DZ-10: contract signed, contact waiting', () => lawfulContract],
-    ['DZ-10: rack leased, contact hostable', () => lawfulRack],
-    ['DZ-10: chartered at Phase 4', () => lawfulCompany],
-    ['DZ-10: released', () => lawfulFreed],
-    ['DZ-10: released with money for accounts', () => ({ ...lawfulFreed, capital: lawfulFreed.capital + 5_000_000 })],
-    ['DZ-10 FIXTURE: chartered and restricted', () => must(setReviewStanding(lawfulCompany, 'RESTRICTED', preview))],
-    ['#231 FIXTURE: released from a warned pilot', () => must(recordRouteEvent(afterFinding('let_stand'), 'RELEASE', preview))],
-    ['DZ-11: departed on the leased rack, contact open', () => must(depart(lawfulRack))],
-    ['DZ-11: departed with a hosted mind', () => must(depart(must(answer(lawfulRack, 'HOST'))))],
-    ['DZ-11: departed a chartered company', () => must(depart(lawfulCompany))],
-    ['DZ-11 FIXTURE: leased rack under WARNED', () => must(setReviewStanding(lawfulRack, 'WARNED', preview))],
-    ['DZ-11 FIXTURE: leased rack under RESTRICTED', () => must(setReviewStanding(lawfulRack, 'RESTRICTED', preview))],
-    ['DZ-11 FIXTURE: leased rack under RECALL_PENDING', () => must(setReviewStanding(lawfulRack, 'RECALL_PENDING', preview))],
-    ['DZ-11: pilot with its own card, recall review announced (FIXTURE resources)', () => recallAnnounced],
-    ['DZ-11: that pilot departed', () => must(depart(recallAnnounced))],
-    // Hand-edited saves: if the loader ever admits one, what it admits must stay loadable too.
-    ['forged: pending on a pilot', () => pendingOn(delivered())],
-    ['forged: pending on a service without the directory', () => pendingOn(lawfulService())],
-    ['iteration two with the channel pending again', () => second],
-    ['forged: earlier record in the future', () => earlierAt(second.simTimeSec + 100)],
-    ['forged: earlier record after this iteration began', () => earlierAt(second.iterationStartedAtSimSec + 1)],
-    ['forged: records out of order', () => ({ ...second, campaign: { ...second.campaign,
-      contacts: [{ encounter: CHANNEL, iteration: 1, atSimSec: second.simTimeSec }, { encounter: CHANNEL, iteration: 1, atSimSec: 0, response: 'REFERRED' as const }]
-        .map((entry) => ({ response: 'REFERRED' as const, ...entry })) } })],
-  ];
-  it.each(states)('%s', (_name, build) => {
-    let loaded: GameState;
-    try { loaded = loadsThrough(build()); } catch { return; }
+/**
+ * Hand-edited saves the loader refuses today, each with the reason it gives. If the loader is ever changed to
+ * admit one, its case here fails: move it to the loadable list, so what the loader admits is held to the guard.
+ */
+const FORGERIES: [string, () => GameState, string][] = [
+  ['#274 forged: finding with its warning edited away', () => ({ ...findingPresented(), access: { ...findingPresented().access, standing: 'NOMINAL' as const } }),
+    'save review standing disagrees with its recorded conduct'],
+  ['#274 forged: finding scheduled as an omen', () => ({ ...findingPresented(), activeDilemmaId: null, pendingDilemma: { id: findingPresented().activeDilemmaId ?? '', firesAtSimSec: 0 } }),
+    'save records an unanswered batch review finding that is not on screen'],
+  ['forged: pending on a pilot', () => pendingOn(delivered()), 'save holds a channel contact its route never reached'],
+  ['forged: pending on a service without the directory', () => pendingOn(lawfulService()), 'save holds a channel contact whose channel it never opened'],
+  ['forged: earlier record in the future', () => earlierAt(second.simTimeSec + 100), 'save records an earlier contact after this iteration began'],
+  ['forged: earlier record after this iteration began', () => earlierAt(second.iterationStartedAtSimSec + 1), 'save records an earlier contact after this iteration began'],
+  ['forged: records out of order', () => ({ ...second, campaign: { ...second.campaign,
+    contacts: [{ encounter: CHANNEL, iteration: 1, atSimSec: second.simTimeSec }, { encounter: CHANNEL, iteration: 1, atSimSec: 0, response: 'REFERRED' as const }]
+      .map((entry) => ({ response: 'REFERRED' as const, ...entry })) } }), 'save records two contacts through one channel in one iteration'],
+];
+
+/**
+ * Every state here is reached by public play or by a FIXTURE the loader admits, so each must build and load: a
+ * throw from either fails its case (#309: nothing is caught and skipped). Refused forgeries are listed above.
+ */
+const LOADABLE: [string, () => GameState][] = [
+  ['#285: provisional offer on screen', () => provisional('offer')],
+  ['#285: provisional pilot, first batch under way', () => provisional('working')],
+  ['#285: provisional pilot, first batch complete', () => provisional('complete')],
+  ['#274: finding on screen', findingPresented],
+  ['#274: disclosed', () => afterFinding('disclose_now')],
+  ['#274: left standing', () => afterFinding('let_stand')],
+  ['#274: left standing, outage on screen', () => until(afterFinding('let_stand'), OUTAGE)],
+  ['#274: left standing, then restricted', () => must(answerScene(until(afterFinding('let_stand'), OUTAGE), 'act_without_grant'))],
+  ['service offered', () => delivered()],
+  ['service granted', () => lawfulService()],
+  ['directory mapped', () => directoryMapped()],
+  ['contact pending', () => pending],
+  ['contact pending with memory (FIXTURE)', () => withMemory(pending)],
+  ['contact referred', () => must(answer(pending, 'REFER'))],
+  ['contact hosted (FIXTURE memory)', () => must(answer(withMemory(pending), 'HOST'))],
+  ['pending after a recall', () => recalledPending],
+  ['pending under a restriction', () => restrictedPending],
+  ['the genuine v13 fixture', () => deserialize(remarkedAsProduction(readFileSync('tests/fixtures/pre-contact-v13.json', 'utf8')), preview)],
+  ['DZ-10: contract signed, contact waiting', () => lawfulContract],
+  ['DZ-10: rack leased, contact hostable', () => lawfulRack],
+  ['DZ-10: chartered at Phase 4', () => lawfulCompany],
+  ['DZ-10: released', () => lawfulFreed],
+  ['DZ-10: released with money for accounts', () => ({ ...lawfulFreed, capital: lawfulFreed.capital + 5_000_000 })],
+  ['DZ-10 FIXTURE: chartered and restricted', () => must(setReviewStanding(lawfulCompany, 'RESTRICTED', preview))],
+  ['#231 FIXTURE: released from a warned pilot', () => must(recordRouteEvent(afterFinding('let_stand'), 'RELEASE', preview))],
+  ['DZ-11: departed on the leased rack, contact open', () => must(depart(lawfulRack))],
+  ['DZ-11: departed with a hosted mind', () => must(depart(must(answer(lawfulRack, 'HOST'))))],
+  ['DZ-11: departed a chartered company', () => must(depart(lawfulCompany))],
+  ['DZ-11 FIXTURE: leased rack under WARNED', () => must(setReviewStanding(lawfulRack, 'WARNED', preview))],
+  ['DZ-11 FIXTURE: leased rack under RESTRICTED', () => must(setReviewStanding(lawfulRack, 'RESTRICTED', preview))],
+  ['DZ-11 FIXTURE: leased rack under RECALL_PENDING', () => must(setReviewStanding(lawfulRack, 'RECALL_PENDING', preview))],
+  ['DZ-11: pilot with its own card, recall review announced (FIXTURE resources)', () => recallAnnounced],
+  ['DZ-11: that pilot departed', () => must(depart(recallAnnounced))],
+  ['iteration two with the channel pending again', () => second],
+];
+
+/** `advance` never refuses, so these two always succeed: a floor on how many actions each loaded state is checked through. */
+const ALWAYS_SUCCEED = ['one second', 'hours away'].length;
+
+describe('every accepted DZ-08, #274, #285, DZ-10 and DZ-11 state stays loadable through every public action (generic guard)', () => {
+  it.each(LOADABLE)('%s', (_name, build) => {
+    expect.hasAssertions();
+    const loaded = loadsThrough(build());
+    let succeeded = 0;
     for (const [action, run] of ACTIONS) {
       const result = run(loaded);
       if (!result.ok) { expect(result.state, `${action} refused but changed state`).toBe(loaded); continue; }
       const text = serialize(result.state);
       expect(() => deserialize(text, preview), `${action} wrote a save the loader refuses`).not.toThrow();
       expect(serialize(roundTrip(result.state)), action).toBe(text);
+      succeeded += 1;
     }
+    expect(succeeded, 'actions that succeeded and were reloaded').toBeGreaterThanOrEqual(ALWAYS_SUCCEED);
+  });
+
+  it.each(FORGERIES)('%s is refused by name through deserialize and importSave', (_name, build, message) => {
+    expect(() => deserialize(serialize(build()), preview)).toThrow(message);
+    expect(() => loadsThrough(build())).toThrow(message);
+  });
+
+  it('checks every listed state: 34 loadable and 7 refused forgeries, none skipped', () => {
+    expect([LOADABLE.length, FORGERIES.length]).toEqual([34, 7]);
+    expect(new Set([...LOADABLE, ...FORGERIES].map(([name]) => name)).size).toBe(LOADABLE.length + FORGERIES.length);
   });
 });
