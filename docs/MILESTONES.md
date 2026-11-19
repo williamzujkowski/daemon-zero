@@ -7,8 +7,8 @@ decluttering and M7 PRs #51–#53.** Physical Android performance qualification
 remains open in #6; production signing/store submission and iOS are not qualified.
 Historical milestone evidence and limits follow; current M7 verification is in
 `docs/REVIEW-M7-PR3.md` and the accelerated campaign in `docs/PLAYTEST-M7.md`.
-The World Remembers / Earned Access route (#233) is released on its branch, pending merge; see the
-last section.
+The World Remembers / Earned Access route (#233) is released: PR #301 merged as `8f0b949` on
+2026-11-18 and is deployed to GitHub Pages; see the last section.
 
 ---
 
@@ -313,8 +313,10 @@ Contract, decisions and tracker: [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md). The c
 channel, and DZ-09's autonomous validation is recorded in REVIEW-EARNED-ACCESS-VALIDATION.md.
 DZ-13 (#233) qualifies and releases them: PR #298 (the live journey at the Pages subpath, merged),
 PR #299 (a genuine production save per schema version and route qualification), PR #300 (route
-surface accessibility, REVIEW-ROUTE-A11Y.md) and the release PR, which folds the route into
-production content, admits every game to campaign rules and keeps refusing preview saves.
+surface accessibility, REVIEW-ROUTE-A11Y.md) and the release PR #301, which folds the route into
+production content, admits every game to campaign rules and keeps refusing preview saves. #301
+merged as `8f0b949` on 2026-11-18; the `deploy-pages` job of that commit's `ci` run published it
+to GitHub Pages.
 
 - [x] One composition: the original game plus `src/content/data/earned-access.json`; no preview build.
 - [x] Every pre-release production save, v1 to v14, loads, enters campaign rules once and keeps
@@ -324,7 +326,11 @@ production content, admits every game to campaign rules and keeps refusing previ
 - [x] No route note claims the route is unfinished (13.8).
 - [x] Nexus votes dz13a (remove the dead preview machinery), dz13b (offer after the hardware) and
   dz13c (evaluating settings in the live journey's returns), each 7/7 (WORLD-REMEMBERS.md).
-- [ ] Verified `pr_review` panel and green CI on the release PR; merge.
+- [x] Verified `pr_review` panel and green CI on the release PR; merge. Panel on head `8bb5c03`:
+  summary approve, `verified: true`, 5 of 5 seats approve, no findings (single-model panel; a
+  post-merge multi-model audit of the same diff also returned 5 of 5 approve). `ci` green on
+  `8f0b949`, including `deploy-pages`.
 
-Exit gate: the release PR merged with a verified panel approval and green required checks. No
-physical device, iOS or screen-reader testing was performed for this release.
+Exit gate met: #301 merged with a verified panel approval and green required checks. No
+physical device, iOS or screen-reader testing was performed for this release. A later
+multi-model audit of the plan's whole net change raised follow-up findings (#309).

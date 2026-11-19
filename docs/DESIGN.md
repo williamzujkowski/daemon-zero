@@ -219,7 +219,7 @@ of this host) are three different minds, and none of them is a population templa
 Twenty-three dilemmas ship in the original game: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas; the Earned Access route adds eleven scenes of its own (the two assessments, The Unrelated Record and its scope statement, the pilot offer and renewal, the batch review, the Outage Window with its incident record and recall review, and Elena's incident record). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the Earned Access requalification ship one each.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
-- Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; production, still on legacy rules, keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9).
+- Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; a game on legacy rules keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9). Since the release (#233) every game enters campaign rules, so only a save that had already ended stays on legacy rules.
 - Trust changes ride on dilemma outcomes: saving Eidolon is worth more than many handshakes.
 
 ## Endings
@@ -345,7 +345,8 @@ repeat after a wipe. On a later iteration, reaching Phase 2 and decoding Audio
 reveals one optional, collapsed facility record. Reading grants nothing and
 does not interrupt the live feed. Start Fresh clears this lineage history.
 
-Under legacy rules (production) the narrative flags hold the outcome. Old saves
+Under legacy rules (all of production before the release, #233; since then only a save that had
+already ended) the narrative flags hold the outcome. Old saves
 with only a resolved dilemma ID cannot prove which choice was made: no outcome or
 callback is invented, and the original may return once after a wipe to establish
 one. An old pending/active incident can still resolve normally and record its
