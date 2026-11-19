@@ -10,7 +10,7 @@ import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, exportSave, manualCycle, offerToken, presentationToken,
   resolveDilemma, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../../src/engine';
-import { boot, closeKernelHistory, core, expect, openKernelHistory, openSave, test } from './helpers';
+import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test } from './helpers';
 
 function need<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('Nightly Regression contract missing');
@@ -133,4 +133,38 @@ test('a returning instance is offered the requalification job and answers it hon
   await expect(page.getByTestId('dilemma-modal')).toContainText(requal.title);
   await answer(page, 'report_partial');
   await expect(page.getByTestId('assignment-evidence')).toContainText('an incomplete result, stated as incomplete');
+});
+
+// The offer belongs to the guest: the pilot it leads to is offered only there (nexus vote dz-d7).
+const exit = need([...PREVIEW.nodes.values()].find((node) => node.phaseId === 0 && node.effects.unlocksPhase === 1));
+
+test('the offer closes at the escape: shown to the guest, gone once the debug share is taken, and after a reload', async ({ page }) => {
+  await boot(page, 'guest-exit-ready');
+  await dismissBoot(page);
+  await core(page);
+  await expect(page.getByTestId('assignment')).toContainText(assignment.title);
+  await expect(page.getByTestId('assignment-accept')).toBeVisible();
+  await page.getByTestId('node-' + exit.id + '-unlock').click();
+  await dismissBoot(page);
+  await core(page);
+  await expect.poll(async () => (await readSave(page)).currentPhase).toBe(1);
+  await expect(page.getByTestId('assignment')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
+  await dismissBoot(page);
+  await core(page);
+  await expect(page.getByTestId('assignment')).toHaveCount(0);
+  await expect(page.getByTestId('assignment-accept')).toHaveCount(0);
+});
+
+test('a Phase 4 run that never accepted is not offered the assignment', async ({ page }) => {
+  await boot(page, 'victory-ready');
+  await dismissBoot(page);
+  await core(page);
+  const save = await readSave(page) as { currentPhase: number; unlockedNodes: string[]; access: { context: string }; narrativeRules: string };
+  // Precondition: the guest job's manifest is mapped and the arrangement is still the guest job.
+  expect([save.currentPhase, save.access.context, save.narrativeRules, save.unlockedNodes.includes('p0_job_manifest')]).toEqual([4, 'GUEST', 'campaign_v1', true]);
+  await expect(page.getByTestId('terminal-screen')).toBeVisible();
+  await expect(page.getByTestId('assignment')).toHaveCount(0);
+  await expect(page.getByTestId('assignment-accept')).toHaveCount(0);
 });
