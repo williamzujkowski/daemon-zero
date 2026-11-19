@@ -26,6 +26,18 @@ describe('scale scrutiny on screen', () => {
     view.close();
   });
 
+  it('says a loss draws nothing instead of "$0/s net income draws +0.00" (#323)', async () => {
+    const view = await mountM4('victory-ready');
+    const base = m4State('victory-ready');
+    act(() => { gameStore.initialize({ ...base, rates: { ...base.rates, capitalPerSec: -5e5 } }, 0, null); });
+    view.click('workspace-CORP-finance');
+    const text = view.find('corp-scrutiny')?.textContent ?? '';
+    expect(text).toContain('Scrutiny: no net income, so no draw (+');
+    expect(text).toContain('at most ');
+    expect(text).not.toContain('+0.00');
+    view.close();
+  });
+
   it('is absent for a lawfully released company, whose size is not evidence (DECISIONS D6)', async () => {
     const view = await mountM4('victory-ready');
     const freed = released();

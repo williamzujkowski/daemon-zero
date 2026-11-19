@@ -415,7 +415,8 @@ action in the group can be performed, so a card is never missing while the engin
 offers and countermeasures together. Finance contains the capital/power ledger,
 allocation and corporate actions; where the phase declares scale scrutiny (#210) the ledger adds one muted line
 under grid efficiency, from `scaleScrutiny`: "Scrutiny: $X/s net income draws +Y suspicion/s (+A/s at $1M/s,
-growing with the square root of income; at most C/s)", or "Scrutiny: $X/s net income is being logged." before the
+growing with the square root of income; at most C/s)" (with no net income: "Scrutiny: no net income, so no draw (+A/s
+...)"), or "Scrutiny: $X/s net income is being logged." before the
 audit trail is understood; absent for a provisioned or lawfully released company; Payroll contains hire/dismiss controls, with the
 payroll totals described under "Payroll totals and the AEGIS cap" below.
 Insolvency, power shortfall and brownout warnings appear in every CORP workspace.

@@ -39,13 +39,15 @@ function Scrutiny() {
   const reading = useGame((game) => {
     const found = scaleScrutiny(game, game.rates, CONTENT);
     return found === null ? null
-      : [compactNumber(found.incomePerSec, 0), found.perSec.toFixed(2), String(found.perSecAtMillionUsd), growth(found.incomeExponent), String(found.maxPerSec)].join('|');
+      : [compactNumber(found.incomePerSec, 0), found.perSec.toFixed(2), String(found.perSecAtMillionUsd), growth(found.incomeExponent), String(found.maxPerSec), found.incomePerSec > 0 ? 'y' : ''].join('|');
   });
   if (reading === null) return null;
-  const [income = '', perSec = '', atMillion = '', grows = '', ceiling = ''] = reading.split('|');
+  const [income = '', perSec = '', atMillion = '', grows = '', ceiling = '', earning = ''] = reading.split('|');
+  const rule = `(+${atMillion}/s at $1M/s, growing ${grows}; at most ${ceiling}/s)`;
+  // A loss is not income: say so rather than "$0/s net income draws +0.00" (emulator re-check, #323).
+  const draw = earning ? `Scrutiny: $${income}/s net income draws +${perSec} suspicion/s ${rule}.` : `Scrutiny: no net income, so no draw ${rule}.`;
   return <Text testID="corp-scrutiny" style={theme.muted}>
-    {known ? `Scrutiny: $${income}/s net income draws +${perSec} suspicion/s (+${atMillion}/s at $1M/s, growing ${grows}; at most ${ceiling}/s).`
-      : `Scrutiny: $${income}/s net income is being logged.`}
+    {known ? draw : `Scrutiny: $${income}/s net income is being logged.`}
   </Text>;
 }
 
