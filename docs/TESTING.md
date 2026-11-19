@@ -1210,7 +1210,10 @@ adb exec-out screencap -p > /tmp/daemon-zero-m1.png
 `uiautomator dump` only works while the screen is idle: once the game clock runs it
 returns `ERROR: could not get idle state` and leaves any earlier file untouched, so
 delete the file first or use a driver that does not wait for idle. For a release build
-driven past the boot screen, see `REVIEW-ANDROID-EMULATOR-2026-11-16.md`.
+driven past the boot screen, see `REVIEW-ANDROID-EMULATOR-2026-11-16.md`. Neither this
+dump nor `uiautomator2`'s carries `isHeading`, so a heading can only be inferred from its
+class (`android.view.View` for React Native's header role); see
+`REVIEW-ANDROID-EMULATOR-2026-11-19.md`, "Accessibility tree".
 
 The property should be `1`; the UI hierarchy should contain resource id
 `boot-log` and the `BOOT_SEQ` line. Inspect the screenshot for the black screen
