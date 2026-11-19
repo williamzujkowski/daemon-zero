@@ -99,7 +99,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     const terms = view.find('service-grant')?.textContent ?? '';
     expect(terms).not.toContain('Still needed');
     expect(terms).not.toContain('Standing must be nominal.');
-    expect(terms).toContain('the review\'s one correction was declined');
+    expect(terms).toContain('the batch review\'s one correction was declined');
     expect(view.find('service-grant-accept')?.getAttribute('aria-disabled')).toBe('true');
     expect(view.find('assignment-evidence')?.textContent).toContain('Found:');
   });

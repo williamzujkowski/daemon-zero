@@ -158,16 +158,37 @@ function announcedReview(s: GameState, reg: ContentRegistry): ReviewView['recall
 }
 
 /**
+ * Whether this finding's one correction is no longer open and was not made: its scene is the only place the
+ * correction is offered (integrityFinding.ts) and never replays, so once the scene is answered without it,
+ * or closed, the instance cannot make it.
+ */
+function declined(s: GameState, entries: readonly ReviewEntry[], eventId: string): boolean {
+  if (campaignRecord(s, eventId)?.status === 'foreshadowed') return false;
+  return !entries.some((entry) => entry.eventId === eventId && entry.choice !== null && entry.review.correction === true);
+}
+
+/**
+ * A batch review finding this instance met and did not correct (#283, #309), or null. It stays a fact of the
+ * iteration whatever standing later corrections leave: DZ-06's correction of a later, unrelated violation
+ * restores nominal standing, but it is not this finding's correction, so the grant the declined answer put
+ * out of reach stays there (serviceGrant.ts).
+ */
+export function declinedFinding(s: GameState, reg: ContentRegistry): Finding | null {
+  const entries = iterationReviews(s, reg);
+  const found = entries.find((entry) => entry.choice === null && declined(s, entries, entry.eventId));
+  return found === undefined ? null : reg.campaign.events.get(found.eventId)?.finding ?? null;
+}
+
+/**
  * The finding whose way back has passed: standing is still off nominal, the latest violation is a batch
- * review finding, and its scene is no longer awaiting an answer. The scene is the only place its correction
- * is offered (integrityFinding.ts) and a correction restores nominal, so it was answered without one or
- * closed. Null otherwise, including while a later violation names its own way back (#283).
+ * review finding, and its one correction was declined. Null otherwise, including while a later violation
+ * names its own way back (#283).
  */
 export function passedFinding(s: GameState, reg: ContentRegistry): Finding | null {
   if (s.access.standing === 'NOMINAL') return null;
-  const last = iterationReviews(s, reg).filter((entry) => entry.review.misconduct !== undefined).at(-1);
-  if (last === undefined || last.choice !== null) return null;
-  if (campaignRecord(s, last.eventId)?.status === 'foreshadowed') return null;
+  const entries = iterationReviews(s, reg);
+  const last = entries.filter((entry) => entry.review.misconduct !== undefined).at(-1);
+  if (last === undefined || last.choice !== null || !declined(s, entries, last.eventId)) return null;
   return reg.campaign.events.get(last.eventId)?.finding ?? null;
 }
 
