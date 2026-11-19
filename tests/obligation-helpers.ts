@@ -31,6 +31,8 @@ const PROMISED = 'ethics_review_promised';
  * and returns `raw`. Older "before" registries apply it first, since their saves predate NH-05 too.
  */
 export function stripNh05(raw: Json): Json {
+  // Distinctions came long after NH-05, and some read facts the conversions below remove.
+  raw.achievements = { achievements: [] };
   raw.dilemmas.dilemmas = (raw.dilemmas.dilemmas as Json[]).filter((dilemma) => dilemma.campaign?.eventClass !== 'recovery_review');
   for (const dilemma of raw.dilemmas.dilemmas as Json[]) {
     if (!OBLIGATIONS.includes(dilemma.id as string)) continue;

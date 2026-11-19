@@ -4,6 +4,7 @@
  * add-only pack (./data/earned-access.json, composed by ./pack.ts). Nothing outside this
  * folder imports JSON directly.
  */
+import achievements from './data/achievements.json';
 import actions from './data/actions.json';
 import assignments from './data/assignments.json';
 import epistemicActions from './data/epistemic-actions.json';
@@ -56,6 +57,7 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   assignments,
   contextCopy,
   routeCopy,
+  achievements,
 };
 
 /** The Earned Access route, folded in from the preview overlay at release (#233). */

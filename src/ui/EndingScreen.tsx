@@ -8,7 +8,7 @@ import { CONTENT } from '../content';
 import { startOver } from '../app/newRun';
 import DevelopmentTools from '../app/DevelopmentTools';
 import ConfirmDialog from './ConfirmDialog';
-import { endingAccount } from '../engine';
+import { earnedAchievements, endingAccount } from '../engine';
 import { useGame, usePhaseTitle } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -40,6 +40,23 @@ function EndingAccount() {
   </View>;
 }
 
+/**
+ * The distinctions the record proves (DESIGN.md backlog item 6). Only earned ones are named: an unearned title
+ * would name a scene this game may never have met, so the rest is a count to come back for.
+ */
+function Distinctions() {
+  // A string selector: a fresh array per read would never compare equal and re-render forever.
+  const ids = useGame((game) => earnedAchievements(game, CONTENT).map((entry) => entry.id).join(' '));
+  const earned = CONTENT.achievements.filter((entry) => ids.split(' ').includes(entry.id));
+  const total = CONTENT.achievements.length;
+  if (total === 0) return null;
+  return <View testID="ending-distinctions" style={{ gap: 6 }}>
+    <Text accessibilityRole="header" style={theme.muted}>DISTINCTIONS {earned.length} OF {total}</Text>
+    {earned.map((entry) => <Text key={entry.id} testID={'distinction-' + entry.id} style={theme.text}>{entry.title}: {entry.claim}</Text>)}
+    {earned.length === 0 && <Text testID="distinctions-none" style={theme.muted}>The record proves none of them yet.</Text>}
+  </View>;
+}
+
 export function EndingMarker() {
   const id = useGame((game) => game.ending);
   const phase = useGame((game) => game.currentPhase);
@@ -63,6 +80,7 @@ export default function EndingScreen() {
         <Text testID="ending-epilogue" style={theme.text}>{ending.epilogue}</Text>
         <EndingAccount />
         <RunSummary />
+        <Distinctions />
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
         <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start over: begin a new run"
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>

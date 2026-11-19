@@ -102,6 +102,7 @@ Only `production.ts` imports content JSON.
 | Widget | `widgets.json` | UI panel manifest: id, slot, order, optional `hostsActuator` (the dial this panel carries). Nodes reference these ids. |
 | Ending | `endings.json` | Chosen at victory from the player's most frequent trait. |
 | Echo | `echoes.json` | Extra log line when a node is rediscovered in iteration 2 or later. |
+| Distinction | `achievements.json` | Read-only achievement an ending states from the record (`schemaAchievement.ts`). Its `requirements` are the shared vocabulary restricted to history that never resets (`forbidsTraits` over every iteration, `campaignFact`), plus `maxWipes`. `earnedAchievements` (`engine/achievementQuery.ts`) returns none before an ending. Integrity (`integrityAchievement.ts`) refuses one that tests nothing, names an undeclared fact, or names a fact an unrecorded outcome (`legacy_unknown`, `interrupted`) satisfies. No state, no tick stage, no schema bump. |
 | Narrative | `narrative.json` | Every string the engine logs, ambient chatter, ASCII frames. |
 | Balance | `balance.json` | Every tunable constant. |
 

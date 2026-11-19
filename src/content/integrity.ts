@@ -27,6 +27,7 @@ import { checkContextCopyIntegrity } from './integrityContextCopy';
 import { checkRouteCopyIntegrity } from './integrityRouteCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
+import { checkAchievementIntegrity } from './integrityAchievement';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -235,6 +236,7 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
 
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
+    ...checkAchievementIntegrity(reg),
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkCampaignIntegrity(reg),

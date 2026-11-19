@@ -129,6 +129,8 @@ iteration/wipe totals, hardware/upgrade totals and traits. Back/Escape cannot
 dismiss it. Start Over requires a second confirmation listing everything erased;
 cancel preserves the ending. Ended runs suppress pending dilemma/reboot modals.
 
+The ending screen shows, under the run summary, `DISTINCTIONS k OF n`: each distinction the record proves by title and claim, and a count for the rest, never their titles (an unearned title would name a scene the game may never have met). When the record proves none it says so. Data: `earnedAchievements`, `achievements.json`; tests `tests/ui-distinctions.spec.ts`, `tests/e2e/distinctions.e2e.ts`.
+
 Development builds have a labelled DEV launcher, including on the ending screen.
 Its scrollable drawer grants resources, generates a funded phase review state,
 forces registry dilemmas/wipes and exports/imports save codes. Generating a phase
