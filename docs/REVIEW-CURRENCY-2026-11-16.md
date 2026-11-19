@@ -81,7 +81,7 @@ every cold install.
 | Item | Pinned | Latest | Status | Verdict |
 |---|---|---|---|---|
 | `typescript` | 6.0.3 | 7.0.2 (`latest` since 2026-07-08) | 6.0.3 not deprecated | **HOLD** (H1) |
-| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed. Test fix **done 2026-11-17**; the version bump waits for the one-day release-age rule (see S2) |
+| `typescript-eslint` | 8.72.2 | 8.73.0 | not deprecated | **SEPARATE** (S2): 8.73.0 was tried and `make lint` failed. Test fix **done 2026-11-17**; bumped 2026-11-19 (addendum) |
 | `axe-core` | 4.14.0 | 4.14.1 | - | **NOW** -> 4.14.1 |
 | `eslint` 10.15.0, `@eslint/js` 10.0.1, `eslint-plugin-react-hooks` 7.1.1, `eslint-plugin-security` 4.2.1, `@playwright/test` 1.65.1, `vitest` and `@vitest/coverage-v8` 5.1.0, `happy-dom` 21.0.4, `tsx` 4.23.15, `@types/react` and `@types/react-dom` 19.3.0 | as listed | identical | - | CURRENT |
 | pnpm override `minimatch@>=10 <11.0.1` -> 11.0.1 | - | minimatch 11.0.9 | still needed: `@expo/fingerprint` 0.21.10 (its latest) requests `^10.2.6` and no patched 10.x exists. eslint and typescript-eslint now request 11.x themselves | **HOLD**: remove when `@expo/fingerprint` moves to minimatch 11 |
@@ -179,7 +179,7 @@ install prints no deprecation warning and asks to run no new build script.
   update `mise.toml`, `mise.lock`, `packageManager`, `SECURITY.md` and AGENTS.md, and decide
   whether the one-day release-age default is wanted.
   Covered by `make setup`, `make verify`, `make security`, CI.
-- **S2. typescript-eslint 8.72.2 -> 8.73.0. Test fix DONE 2026-11-17; bump NOT done** (branch
+- **S2. typescript-eslint 8.72.2 -> 8.73.0. Test fix DONE 2026-11-17; bump DONE 2026-11-19 (see the addendum)** (branch
   `chore/typescript-eslint-bump`). The two mocks are now real objects: the computed style of
   a real element that carries the insets, and `new DOMRect(...)` from happy-dom. No rule,
   comment or config was changed. With 8.73.0 installed (under pnpm 10, before S1 merged)
@@ -286,3 +286,18 @@ install prints no deprecation warning and asks to run no new build script.
 - When GitHub will move `ubuntu-latest` to 26.04.
 - iOS and App Store requirements: no iOS build exists for this project.
 - The text of the Android Gradle deprecation warnings: no native build was run.
+
+## Addendum 2026-11-19: patch bumps past the release-age window
+
+`pnpm outdated` and `npx expo install --check` re-run on `main` at 8a45e77:
+
+| Package | From | To | Published | Note |
+|---|---|---|---|---|
+| `expo` | 58.0.25 | 58.0.26 | 2026-11-17T12:01Z | `npx expo install --check` asked for `~58.0.26`; pinned exactly per AGENTS.md. Check now reports "Dependencies are up to date" |
+| `typescript-eslint` | 8.72.2 | 8.73.0 | 2026-11-16T17:07Z | S2 finished: the test fix had already merged, so this is the one command S2 left. `make lint` is clean with no new finding |
+| `vitest`, `@vitest/coverage-v8` | 5.1.0 | 5.1.1 | 2026-11-18T07:35Z | patch |
+
+Every version was past `minimumReleaseAge` (1440 min) when installed, and no exclusion was added.
+Still held, blockers unchanged: React 19.3.1 (SDK 58 pins 19.3.0), async-storage 3.x, TypeScript 7.x
+(typescript-eslint 8.73.0 still declares `typescript >=4.8.4 <6.1.0`), JDK 21.
+`make verify`, `make security` and `make sbom` pass on the bumped tree.
