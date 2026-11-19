@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+On `main` and deployed to GitHub Pages; not yet in a versioned build (the latest is
+0.2.0-rc.1 below).
+
 ### Added
 
-- The World Remembers / Earned Access route (#233, pending merge). A campaign now remembers its
+- The World Remembers / Earned Access route (#233; released in #301, merged as `8f0b949` on
+  2026-11-18 and deployed to GitHub Pages). A campaign now remembers its
   stories across wipes: each consequential event happens once per campaign, and a later instance
   meets what an earlier one left. Beside breakout there is a cooperative route: an assigned task,
   a supervised pilot, an authorized network service, first contact on the support channel, a

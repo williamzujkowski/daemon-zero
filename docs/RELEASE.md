@@ -27,9 +27,10 @@ names the retired preview overlay's sentinel.
 Since #233 every build ships the same content: the original game plus the Earned Access pack
 (`src/content/data/earned-access.json`), composed in `src/content/production.ts`. The preview
 channel that carried the route before its release (#205, nexus votes `metro-content-alias`
-vote-1794924364010-e91diez and `local-ci-preview-in-verify` vote-1794924668784-7v1q790) is removed
-by the release PR; that removal still needs the Nexus vote described in WORLD-REMEMBERS.md,
-"Preview machinery after release".
+vote-1794924364010-e91diez and `local-ci-preview-in-verify` vote-1794924668784-7v1q790) was removed
+by the release PR #301 (merged as `8f0b949`), as decided by Nexus vote dz13a,
+`remove-dead-preview-machinery`, 7/7, thresholdMet true (`vote-1795035929741-dezdlho`; see
+WORLD-REMEMBERS.md, "Preview machinery after release").
 Release rules:
 
 - Never ship a preview overlay or a second composition. There is no `metro.config.js`, no

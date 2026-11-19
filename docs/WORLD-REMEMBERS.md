@@ -1,8 +1,10 @@
 # The World Remembers / Earned Access: contract and decision record
 
-Status: released in #233, pending merge (started 2026-11-17). The release PR folds the route into
-production content and enables campaign rules for every game; until it merges, `main` still ships the
-route only in the preview build. This page is the repository's durable record of the plan's contract,
+Status: released (started 2026-11-17). The release PR #301 (DZ-13, #233) merged to `main` as
+`8f0b949` on 2026-11-18 and the `deploy-pages` job of that commit's `ci` run published it to GitHub
+Pages the same day. It folds the route into production content and enables campaign rules for every
+game; there is no preview build any more (dz13a), and production still refuses preview saves (X.3).
+This page is the repository's durable record of the plan's contract,
 its Nexus decisions and its tracker. The working plan packet
 (`daemon-zero-agent-plan/`, kept out of git) holds the full specification; this page is
 what a future agent needs when that folder is not present.
@@ -120,7 +122,7 @@ Because removing them undoes infrastructure the reviewed votes D-A (`metro-conte
 
 | Option | What it means | Cost |
 |---|---|---|
-| **A (chosen in the release PR)** | Remove the dead machinery: `make build-preview`, `make e2e-preview`, `make sim-preview` (now `make sim-report`), the `dist-preview/` output, the preview storage keys in `src/app/storage.ts`, `src/ui/PreviewMarker.tsx`, the CI "Preview web E2E" step, `DAEMON_CONTENT_CHANNEL` and `DAEMON_E2E_CHANNEL`/`DAEMON_E2E_DIST`. Keep only the save marker's `preview` value, `SaveChannelError` and the import and storage refusal messages. | Future unfinished content has no channel to merge into; it stays on a branch until a reviewed decision says otherwise. |
+| **A (chosen; shipped in #301)** | Remove the dead machinery: `make build-preview`, `make e2e-preview`, `make sim-preview` (now `make sim-report`), the `dist-preview/` output, the preview storage keys in `src/app/storage.ts`, `src/ui/PreviewMarker.tsx`, the CI "Preview web E2E" step, `DAEMON_CONTENT_CHANNEL` and `DAEMON_E2E_CHANNEL`/`DAEMON_E2E_DIST`. Keep only the save marker's `preview` value, `SaveChannelError` and the import and storage refusal messages. | Future unfinished content has no channel to merge into; it stays on a branch until a reviewed decision says otherwise. |
 | B | Keep an empty preview overlay and the Metro alias for future unfinished content. | A second composition, build, CI step and key set kept alive with nothing in them; every export test keeps proving an empty overlay absent. |
 | C | Keep the preview build with its own keys, serving the same content as production. | Two builds of identical content and two storage slots on one origin; nothing to test that production does not already test. |
 
@@ -141,7 +143,7 @@ Issue states as of 2026-11-18.
 | Packet | Issue | Packet | Issue |
 |---|---|---|---|
 | DZ-01a content channel | #204 (done, PR #211) | DZ-04 scope judgment, pilot offer | #222 (done, PR #257) |
-| DZ-01b preview build | #205 (done, PR #234; retired by the release PR) | DZ-05 supervised pilot | #223 (done, PRs #261, #263) |
+| DZ-01b preview build | #205 (done, PR #234; retired by #301) | DZ-05 supervised pilot | #223 (done, PRs #261, #263) |
 | Pages smoke check | #206 (done, PR #209) | DZ-06 incident, recall | #224 (done, PRs #267, #268) |
 | NH-01 campaign record (cryo) | #212 (done, PR #236) | DZ-07a authorized network | #225 (done, PR #266) |
 | NH-02 interruptions, clue | #213 (done, PRs #238, #239) | DZ-07b context-gated threats | #226 (done, PR #269) |
@@ -151,7 +153,7 @@ Issue states as of 2026-11-18.
 | NH-05 obligations, endings | #217 (done, PRs #259, #260) | DZ-10 lawful economics | #230 (done, PRs #291, #292) |
 | NH-06 Elena follow-up | #218 (done, PR #258) | DZ-11 deliberate departure | #231 (done, PR #294) |
 | NH-07 routine activity | #219 (done, PR #241) | DZ-12 cooperative ending | #232 (done, PRs #296, #297) |
-| DZ-02 truthful run context | #220 (done, PR #243) | DZ-13 release qualification | #233 (open: PR #298 merged; PRs #299, #300 and the release PR in review) |
+| DZ-02 truthful run context | #220 (done, PR #243) | DZ-13 release qualification | #233 (done, PRs #298, #299, #300, #301) |
 | DZ-03 Nightly Regression | #221 (done, PRs #250, #252) | | |
 
 ## Evidence labels
