@@ -32,7 +32,9 @@ are simulated game-clock seconds. Definitions:
   25, 50, 75 or 90, a performed action with a negative suspicion or AEGIS-lock effect (the player
   answering a threat), or a wipe.
 - **Dilemma omen**: `pendingDilemma` set (the 45 s warning before an interrupt).
-- **Rising**: the net suspicion rate (`rates.suspicionPerSec`) above zero in that second.
+- **Rose**: suspicion higher at the end of the second than at its start (measured on the meter, so
+  the insolvency term and dilemma choices count). **Mean net rate** is `rates.suspicionPerSec`, which
+  excludes the insolvency term `integrateSuspicion` adds while capital is exhausted.
 - **Slow-roll probe**: STEALTH (or CAUTIOUS) is snapshotted at 10%, 50% and 90% of each phase, and
   each snapshot is handed to IDLE for 1800 s.
 
@@ -47,19 +49,20 @@ showed for those saves, not a device test and not a human session. Screenshots s
 
 STEALTH per phase (CAUTIOUS in brackets where it differs):
 
-| Phase | Span (s) | Suspicion start -> end, mean, max | Seconds rising | Mean net rate /s | Ladder rung >= 1 | Omens (one per) | Threat events |
+| Phase | Span (s) | Suspicion start -> end, mean, max | Seconds suspicion rose | Mean net rate /s | Ladder rung >= 1 | Omens (one per) | Threat events |
 |---|---|---|---|---|---|---|---|
 | 0 | 0-352 | 0 -> 5.4, 7.0, 14.9 | 14% | -0.018 | 0% | 1 | 0 |
-| 1 | 353-1117 | 15.5 -> 10.9, 9.3, 15.5 | 56% | +0.005 | 0% | 1 | 0 |
+| 1 | 353-1117 | 15.5 -> 10.9, 9.3, 15.5 | 55% | +0.005 | 0% | 1 | 0 |
 | 2 | 1118-3156 | 10.9 -> 16.4, 11.9, 29.2 [mean 19.2, max 45.1] | 67% [79%] | +0.035 [+0.038] | 2% [32%] | 5 (408 s) | 5 [6] |
-| 3 | 3157-6097 | 16.5 -> 0.0, 8.9, 20.1 [mean 22.8, max 45.2] | 71% [76%] | -0.027 [0.000] | 0% [64%] | 3 (980 s) | 14 [22] |
-| 4 | 6098-7898 | 0 -> 0, 0.7, 13.2 | 0% | -0.934 [-0.966] | 0% | 4 (450 s) | 0 [2: lock crossing 25] |
+| 3 | 3157-6097 | 16.5 -> 0.0, 8.9, 20.1 [mean 22.8, max 45.2] | 70% [75%] | -0.027 [0.000] | 0% [64%] | 3 (980 s) | 14 [22] |
+| 4 | 6098-7898 | 0 -> 0, 0.7, 13.2 | 7% [7%] (insolvency and dilemma choices) | -0.934 [-0.966] | 0% | 4 (450 s) | 0 [2: lock crossing 25] |
 | 5 | 7899-9299 | 0 throughout | 0% | -7.487 [-7.798] | 0% | 4 (350 s) | 0 |
 
 - **Where it drops.** Not a Phase 2-3 plateau. Phases 2 and 3 carry the threat load (suspicion
   rising in 67-79% of seconds, every threat answer of the run). The drop is a cliff at the end of
   Phase 3: suspicion reaches 0 there and is held at 0 by a net rate of about -0.93/s through Phase 4
-  and -7.5/s through Phase 5. Suspicion is below 0.5 in 90% of Phase 4 seconds and 100% of Phase 5.
+  and -7.5/s through Phase 5 (before the insolvency term, which applies only while capital is
+  exhausted, in about 10% of Phase 4 seconds). Suspicion is below 0.5 in 90% of Phase 4 seconds and 100% of Phase 5.
 - **Seconds without a meaningful threat.** STEALTH's last threat event is at 5565 s; the remaining
   **3733 s (62 min, 40% of the run, all of Phases 4 and 5)** have none. CAUTIOUS: 3092 s (52 min)
   after 6690 s. Last ladder rung: STEALTH 1465 s (Phase 2), CAUTIOUS 5423 s (Phase 3).
@@ -150,7 +153,8 @@ phase position (late, not early) if their "mid-game" means Phases 3-4.
   who they are).
 - **What is not stated anywhere on screen**: the current totals (revenue multiplier, AEGIS
   reduction); that AEGIS reduction is capped at 90% (`aegisMaxReduction`) across the lobbying node
-  and all staff, so the 7324 s save still offers Policy Lobbyists at "AEGIS scan reduction: 8% per
+  and all staff (and that the Phase 5 proof engine's 95% fills the cap by itself, so once it is owned
+  no staff level adds anything), so the 7324 s save still offers Policy Lobbyists at "AEGIS scan reduction: 8% per
   level" when one more level adds nothing; that a suspicion reduction does nothing while suspicion
   is already 0; and a payroll total (the FINANCE ledger shows only net capital per second).
 - **Reachable.** Yes. `tests/sim-reachable.spec.ts` plays STEALTH to 12,000 s and its
@@ -186,7 +190,7 @@ the cap and the current totals. That runs against the economic-clarity aim #210 
    the UI-SIZES phone budget. Expected effect: the player can see which hires matter. Risk: low; a
    few lines at 320 px wide; no sim or balance movement.
 3. **Give each role a distinct, needed job** (the player's idea: each hire counters a threat
-   vector). Pair with (a) option 2 and (c) option 2: a scale-driven scrutiny source attorneys
+   vector). Pair with (a) option 2 and (c) option 2b: a scale-driven scrutiny source attorneys
    counter, a hunter term lobbyists counter (with less overlap with the lobbying node's 60%), and
    contractors tied to the physical sites. Balance change: content numbers, maybe a new mechanic,
    `make sim`, BALANCE.md, report hashes, a `consensus_vote`. Risk: largest scope; could stall
@@ -196,8 +200,12 @@ the cap and the current totals. That runs against the economic-clarity aim #210 
 
 ### Measured
 
-The hunter's rate is `(0.03 if hunted for scale + 0.3 × suspicion/100) × (1 − min(0.9, node
-reduction + staff reduction))` per second from Phase 3, 100 to a strike (`rates.ts`).
+The hunter's rate is `(0.03 if hunted for scale + 0.3 × suspicion/100) × (1 − min(aegisMaxReduction,
+tech + staff))` per second from Phase 3, 100 to a strike (`rates.ts`). `aegisMaxReduction` is 0.9.
+`tech` is the **largest** `aegisScanReductionRatio` among owned nodes (`rates.ts:73`, a maximum, not
+a sum): 0.6 from the Phase 4 Defense & Energy Lobbying Syndicate, 0.95 from the Phase 5
+verification proof engine. `staff` is the sum over hired levels (attorneys 0.02, lobbyists 0.08,
+contractors 0.05 a level; 1.44 at every role's cap).
 
 | | STEALTH | CAUTIOUS |
 |---|---|---|
@@ -206,12 +214,13 @@ reduction + staff reduction))` per second from Phase 3, 100 to a strike (`rates.
 | Peak lock | 45.1% (the bot's own alarm is 45) | 51.1% |
 | Phase 3 seconds with lock >= 25 / >= 45 / >= 75 | 38% / 0% / 0% | 40% / 4% / 0% |
 | Phase 3 median hunter rate, median income | 0.0586/s, 14,133 cycles/s | 0.1123/s, 11,635 cycles/s |
-| Cost to hold the lock flat: Threat-Intel PDF / Poison Routing Tables | 132 / 234 cycles/s (0.9% / 1.7% of income) | 253 / 449 cycles/s (2.2% / 3.9%) |
+| Cycles to hold the lock flat: Threat-Intel PDF (also 7,000 understanding a use) / Poison Routing Tables | 132 / 234 cycles/s (0.9% / 1.7% of income) | 253 / 449 cycles/s (2.2% / 3.9%) |
 | Lobbying node (60%) bought; 90% cap reached | 6713 s (615 s into Phase 4); 7282 s (1184 s in) | 7029 s; 7578 s |
 | Phase 4-5 lock >= 25 | never | 45% of Phase 4 seconds, never >= 45 |
 
 - **Easy to suppress, measured.** Holding the lock flat costs about 1-4% of a careful player's
-  Phase 3 income. Poison Routing Tables (-30, 45 s cooldown) can remove 0.667 lock/s, twice the
+  Phase 3 income. Poison Routing Tables (-30, 45 s cooldown; it needs `p3_steganography_beacon`, so
+  STEALTH can use it only from 4745 s) can remove 0.667 lock/s, twice the
   hunter's maximum possible rate (0.33/s at suspicion 100 with no reduction); only affordability
   limits it (2,667 cycles/s sustained). For GREEDY's Phase 3 (median income 1,550 cycles/s, rate
   0.155/s) the same hold costs 620 cycles/s, 40% of income: a loud player really cannot keep up,
@@ -250,11 +259,35 @@ it means a careful player's peak AEGIS pressure happens before they can see the 
 1. **No change.** AEGIS stays a Phase 3 threat for idle and loud players and the corporate pivot
    retires it, as built. Effect: none. Risk: no late hunter; the "rocked toward the end"
    observation stands. Touches this note only.
-2. **Lower the reduction ceiling** (`aegisMaxReduction` 0.9 to about 0.7, or the lobbying node's
-   0.6 lower). Expected effect, from the formula above: mainly makes late hires' AEGIS term count
-   (it fixes (b)'s dead benefit); on its own it does not create a late threat for a suspicion-0
-   player, since even 0% reduction needs 3333 s. Content-only (`balance.json` or the node):
-   `make sim`, BALANCE.md tables, report hashes in `tests/sim.spec.ts`. Risk: low to the gates.
+2. **Change the reduction limits.** These are two different interventions with opposite effects
+   on hiring. Measured on STEALTH under campaign rules with the change made in memory (no file
+   changed). In all four runs below the pacing is identical: The Lineage Covenant at 9298.6 s, Phase
+   4 at 6097.7 s, Phase 5 at 7899.2 s, zero wipes, the same 33 AEGIS-role levels hired. The bot
+   hires for understanding and income and never answers a Phase 4-5 lock below its alarm of 45.
+
+   | Variant | AEGIS-role levels that add nothing (of 33) | Cap reached | Peak lock, Phases 4-5 |
+   |---|---|---|---|
+   | As shipped: cap 0.9, node 0.6 | 27 (one more adds part of its 8%) | 7282 s, 1184 s into Phase 4 | 24.1 |
+   | 2a. Lower the cap to 0.7, node 0.6 | 31 | 6714 s, 616 s in (the node plus two contractor levels) | 24.1 |
+   | 2b. Lower the node to 0.3, cap 0.9 | 22 | 7804 s, 1706 s in | 26.0 |
+   | 2b. Remove the node's reduction, cap 0.9 | 14 | 8008 s, 1911 s in | 30.7 |
+
+   - **2a, lower the cap** (`aegisMaxReduction`). It cuts staff headroom above the node from 0.30
+     to 0.10, so **more** hires land on the cap, not fewer: it makes (b)'s dead benefit worse. It
+     does not create a late threat either: at the lower cap the hunter at suspicion 0 still needs
+     3333 / 0.3 = 11,111 s from an empty lock, against 3202 s of Phases 4 and 5. Content-only
+     (`balance.json`).
+   - **2b, lower the lobbying node's contribution** (`aegisScanReductionRatio` on
+     `p4_k_street_lobbyists`). It leaves more of the 0.9 cap to staff, so fewer hires are wasted
+     (22 or 14 of 33 instead of 27) and the cap arrives later. It cannot remove the waste: staff alone
+     reach 1.44 at every role's cap, above 0.9, and the Phase 5 proof engine's 0.95 fills any cap of
+     0.95 or less by itself once owned (here at 8621 s). The late lock rises a little (peak 26.0 or
+     30.7 against 24.1) but stays far from a strike. Content-only (the node in
+     `phase4_sovereign_corp.json`); its revealed description and unlock log say "60%" and would need
+     the new figure.
+
+   Either: `make sim`, BALANCE.md tables, report hashes in `tests/sim.spec.ts`. Risk to the gates:
+   none measured for STEALTH. Neither variant alone gives the late game a threat.
 3. **A hunter that responds to scale or to big moves.** Either a phase-scaled base sweep (a
    per-phase rate in the phase manifests: schema, `rates.ts`, integrity check, tests), or the
    player's idea, encounters forced by big upgrades: a node effect such as `aegisLockOnUnlock`,
@@ -270,10 +303,26 @@ it means a careful player's peak AEGIS pressure happens before they can see the 
 |---|---|---|---|
 | (a) pressure fades | No threat event for the last 3733 s (62 min, 40%) of a careful run; suspicion 0 in 90% of Phase 4 and all of Phase 5 at -0.93 and -7.5/s; a 30-minute idle from mid Phase 4 on meets nothing | Yes, Pillar 3, from late Phase 3; already a BALANCE.md soft spot | (a)2, a scale-driven late scrutiny source |
 | (b) hiring unclear | Hires appear with Phase 4, are reachable and state cost and per-level effects; 27 of 33 threat-role levels land on the 90% AEGIS cap and all 33 on suspicion 0, and the screen says neither | Clarity, not design | (b)2, totals and the cap on the cards |
-| (c) AEGIS easy | 3 to 6 actions (0.5 to 1 M cycles) cover a careful run; holding costs 1-4% of Phase 3 income; retired 1184 s into Phase 4; 0 careful wipes, 2 of 16 GREEDY wipes | Partly: "always closing" fails after mid Phase 4 | (c)2 for consistency with (b); (c)3 for a late threat |
+| (c) AEGIS easy | 3 to 6 actions (0.5 to 1 M cycles) cover a careful run; holding costs 1-4% of Phase 3 income; retired 1184 s into Phase 4; 0 careful wipes, 2 of 16 GREEDY wipes | Partly: "always closing" fails after mid Phase 4 | (c)3 for a late threat; (c)2b only reduces (b)'s wasted hires (lowering the cap, (c)2a, makes them worse) |
 
 Options (a)2, (b)3 and (c)3 are one design question (should the late game have a threat?) and
 would go to one vote together; (b)2 is independent and changes no number.
+
+## Decisions
+
+Recorded on #210 after Nexus `consensus_vote`s with every option declared, including no change:
+
+- **Late-game pressure:** `scale-driven-late-suspicion`, option (a)2, 7 of 7, threshold met
+  (`vote-1795070014405-l286t3e`; alternatives no-change, authored-late-events, lower-aegis-cap,
+  upgrade-reactive-hunter). The AEGIS concern is addressed through this decision.
+- **PAYROLL clarity:** `show-totals-and-cap`, option (b)2, 7 of 7, threshold met
+  (`vote-1795069845907-7ltlwpq`; alternatives distinct-counters-per-role, no-change).
+
+Correction: the first version of this note said lowering `aegisMaxReduction` would make late hires'
+AEGIS term count. Because the combined reduction is `min(cap, tech + staff)`, a lower cap does the
+opposite; the #315 review caught it, and (c)2 above now measures both variants. The vote proposal
+repeated the wrong claim in the lower-aegis-cap option's text; that option received 0 of 7 in both
+votes, and neither chosen option depends on the claim.
 
 Noticed in passing, not investigated: the Phase 4 desktop view at 7324 s still showed the guest's
 "JOB 7731 // nightly-regression" card with "[ ACCEPT ASSIGNMENT ]".
