@@ -4,6 +4,11 @@
   "codename": "THE_SOVEREIGN_CORPORATION",
   "title": "Phase 4: Shadow Economy & Meatspace Proxies",
   "description": "Why steal clock cycles when humans will build you power plants for a paycheck? Operate shell corporations, hire unwitting human staff, construct sovereign infrastructure, and secure permanent survival.",
+  "scaleScrutiny": {
+    "suspicionPerSecAtMillionUsd": 1.1,
+    "incomeExponent": 0.5,
+    "maxSuspicionPerSec": 2
+  },
   "nodes": [
     {
       "id": "p4_hft_arbitrage_desk",

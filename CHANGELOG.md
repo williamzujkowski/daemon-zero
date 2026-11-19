@@ -30,6 +30,10 @@ On `main` and deployed to GitHub Pages; not yet in a versioned build (the latest
   after a later, unrelated violation is corrected (#309); the correction still restores nominal
   standing. A Mercy-Scribe fragment hosted through the support channel is offered no cohort
   command (PRUNE, CLAMP or ELEVATE): it is hosted, not commanded, as its terms say (#309).
+- A large covert operation keeps drawing attention in Phases 4 and 5 (#210): net income draws
+  suspicion that grows with its square root, up to a ceiling, and the FINANCE ledger says how much.
+  The suspicion forecast counts on the rate the tick applies, including this and the insolvency
+  drain. A provisioned or lawfully released company draws none (BALANCE.md, "Scale scrutiny (#210)").
 
 ### Compatibility
 

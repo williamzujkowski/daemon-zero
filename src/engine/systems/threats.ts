@@ -1,7 +1,7 @@
 import type { ContentRegistry } from '../../content/registry';
 import { threatResponse } from '../contextCopy';
 import { wipe } from '../prestige';
-import { appliedSuspicionRate } from '../threatQuery';
+import { suspicionStageRate } from '../scrutiny';
 import type { GameState } from '../state';
 import { clamp, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -38,7 +38,8 @@ function suspicionWipeReason(d: GameState, reg: ContentRegistry): string {
 }
 
 export const integrateSuspicion: TickSystem = (d, { dt, rates, reg, dormant }) => {
-  let rate = appliedSuspicionRate(d, rates, reg);
+  // Scale scrutiny is added by the stage before this one; appliedSuspicionRate states both (#210).
+  let rate = suspicionStageRate(d, rates, reg);
   if (dormant) rate = Math.min(rate, 0);
   d.suspicion = clamp(d.suspicion + rate * dt, 0, 100);
   if (d.suspicion < 100) return undefined;

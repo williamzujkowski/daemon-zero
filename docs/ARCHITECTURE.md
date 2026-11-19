@@ -118,7 +118,8 @@ Public API is `src/engine/index.ts`.
 | `state.ts` | `GameStateSchema` (Zod), inferred `GameState`, `createInitialState`. |
 | `rates.ts` | `computeRates(state, reg)`: the only reader of `tickDelta`. Used by the tick, the UI readouts and the bot. |
 | `tick.ts` | `tick` (one fixed step through `TICK_PIPELINE`) and `advance` (elapsed seconds to ticks). |
-| `systems/` | Pipeline stages: resources, thermal, suspicion, escalation, AEGIS, swarm, dilemmas, routine activity. |
+| `systems/` | Pipeline stages: resources, thermal, scale scrutiny, suspicion, escalation, AEGIS, swarm, dilemmas, routine activity. |
+| `scrutiny.ts` | Scale scrutiny (`scaleScrutiny`) and the one statement of the suspicion rate the tick applies (`appliedSuspicionRate`, `suspicionStageRate`) (#210). |
 | `actions.ts` | Player intents. Each returns `{ ok, state }` or `{ ok: false, state, reason }`. |
 | `transactions.ts` | `payCost`, `applyEffects`. `applyEffects` takes the `EvidenceSource` of any trait it grants. |
 | `routine.ts`, `routineState.ts` | Routine operations: eligible templates, the deterministic rotation, the `routineContext` task-context query, load healing, and the saved scheduling shape. |
@@ -144,13 +145,14 @@ Public API is `src/engine/index.ts`.
 tick(state, dt):
   if ending or active dilemma: return state unchanged      (clock is frozen)
   rates = computeRates(state)                               (once per tick)
-  integrateResources -> integrateThermal -> integrateSuspicion -> integrateEscalation -> integrateAegis
+  integrateResources -> integrateThermal -> integrateScaleScrutiny -> integrateSuspicion -> integrateEscalation -> integrateAegis
     -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> evaluateDilemmas -> scheduleRoutineActivity
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
 - **Thermal.** `dT/dt = heatLoad - dissipation * (T - ambient)`. Temperature settles at `ambient + heatLoad / dissipation`. `tickDelta.thermalPerSec` is therefore a heat load, not degrees per second.
-- **Suspicion.** Integrates node and repeatable contributions minus decay, plus an overheat term above the threshold. At 100 the run is wiped.
+- **Suspicion.** Integrates node and repeatable contributions minus decay, plus an overheat term above the threshold and the insolvency drain. At 100 the run is wiped.
+- **Scale scrutiny (#210).** A phase manifest may declare `scaleScrutiny` (`schemaScrutiny.ts`): while that phase is current, net income draws `min(maxSuspicionPerSec, suspicionPerSecAtMillionUsd x (income / $1M/s) ^ incomeExponent)` suspicion/s, the exponent at most 1. Production declares it for Phases 4 and 5 (docs/BALANCE.md). `integrateScaleScrutiny` runs immediately before `integrateSuspicion` and only adds; the suspicion stage then integrates its own rate, clamps, and decides any wipe on the sum, so scrutiny has no wipe path of its own and a strongly negative net still holds suspicion at 0. Dormant time cannot raise suspicion, but there scrutiny still offsets the drain, so the dormant change is `min(stage rate + scrutiny, 0)` and absence sheds no faster than presence (PR #319 review). It follows the hunter's scale rule (`huntedForScale`, DECISIONS D6): an instance provisioned at this scale, or lawfully released, draws none. `appliedSuspicionRate` (`scrutiny.ts`) is the sum both stages apply; the forecast, the unreadable audit trail's activity, the payroll floor note and the departure preview read it, and the FINANCE ledger states the draw (`scaleScrutiny`). Integrity (`integrityScrutiny.ts`) refuses a declaration on a phase with no capital source yet, or with no action or repeatable that lowers suspicion available by then. No state field: nothing is saved.
 - **AEGIS.** From `aegisActiveFromPhase`, lock grows at a base rate plus a suspicion-proportional rate, reduced by lobbying and staff. The reduction (strongest owned node plus every staff level) is capped at `aegisMaxReduction`; `payrollView` (`payrollQuery.ts`) reads it, the staff totals and which roles' AEGIS or suspicion effect is inert now from the same passes (`multiplierSources`, `appliedSuspicionRate`) for the payroll surface (#210). At 100 a shield node is burned if owned; otherwise the run is wiped.
 - **Escalation.** `alertLevel` is the rung of the human response ladder (`balance.escalation`). It rises as soon as suspicion reaches a rung and falls one rung at a time once suspicion is `escalationHysteresis` below it. `computeRates` reads the rung: each one scales suspicion decay and may add a hunt rate.
 - **Dilemmas.** Two beats. When a trigger is first met, the dilemma's `omen` is logged and `pendingDilemma` records when it fires (`omenSec` or `balance.dilemmaOmenSec`); the clock keeps running. At that time it becomes active, which freezes the clock and increments `presentationSeq`. Neither beat happens while dormant, and a dormant tick moves a pending omen's deadline by its `dt` (nexus vote nh-d4), so absence spends none of its foreground time. `resolveDilemma` takes the `presentationToken` the choice was shown under and refuses any other.

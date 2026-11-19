@@ -15,6 +15,7 @@ import { checkFollowUpIntegrity } from './integrityFollowUp';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
+import { checkScrutinyIntegrity } from './integrityScrutiny';
 import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
 import { checkObligationIntegrity } from './integrityObligations';
@@ -260,6 +261,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPurchasables(reg),
     ...checkDilemmas(reg),
     ...checkPhases(reg),
+    ...checkScrutinyIntegrity(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
     ...checkActuatorHosts(reg),

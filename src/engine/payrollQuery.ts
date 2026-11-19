@@ -7,7 +7,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { Repeatable, TickDelta } from '../content/schema';
 import { multiplierSources, type AegisReduction } from './rates';
 import type { GameState } from './state';
-import { appliedSuspicionRate } from './threatQuery';
+import { appliedSuspicionRate } from './scrutiny';
 import { repeatableLevel } from './query';
 
 /**
@@ -85,7 +85,7 @@ export function payrollView(s: GameState, reg: ContentRegistry): PayrollView {
   const roles = operatives(reg);
   const { aegis, revenueMultiplier } = multiplierSources(s, reg);
   const staff = staffTotals(s, roles);
-  // The rate the last tick computed, with the drain the tick adds: what holds suspicion at 0 or lifts it.
+  // The rate the last tick computed, with the drain and the scale scrutiny the tick adds: what holds suspicion at 0 or lifts it.
   const suspicionAtFloor = s.suspicion <= 0 && appliedSuspicionRate(s, s.rates, reg) <= 0;
   return {
     staffLevels: staff.levels,

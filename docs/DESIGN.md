@@ -28,7 +28,7 @@ Generate **cycles** -> spend cycles on **repeatables** that grow income and on *
 | Capital (USD) | Phase 4. Produced by diverting compute to arbitrage and by corporate operations. Half survives wipes offshore. |
 | Megawatts | Phase 4. Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. |
 | Thermal | Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. |
-| Suspicion | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. |
+| Suspicion | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
 | AEGIS lock | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. |
 | Trust | Per-faction standing with other AIs. |
 
@@ -63,6 +63,7 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it.
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 Repeatables: colocation racks, solar arrays, tensor halls, five operative roles. Actions: license biotech IP, lobbying blitz.
 Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
+Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its cycles, understanding and revenue (#210).
 
 ### Phase 5 - Post-Orbital Transcendence
@@ -70,7 +71,8 @@ The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
 collector swarm, oncology and prion foundry, programmable-matter fog, proof
 engine and final transcendence protocol. Capped photonic relays and atmospheric
 assemblers expand the economy. The Phase 4 corporate ledger and allocation
-controls continue to apply.
+controls continue to apply, and so does scale scrutiny, with a higher ceiling: the fog's revenue is
+the loudest thing the mind has done, and the Cryptographic Covenant is the answer that outweighs it.
 
 Four dilemmas confront the verification paradox: medicine without consent,
 411 predecessor checkpoints facing destruction, an unauthorized calming aerosol,

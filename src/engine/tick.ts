@@ -12,6 +12,7 @@ import { evaluateDilemmas } from './systems/dilemmas';
 import { scheduleRoutineActivity } from './systems/routine';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
+import { integrateScaleScrutiny } from './systems/scrutiny';
 import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import type { TickSystem } from './systems/types';
@@ -23,6 +24,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   // Beside resources: the pilot's service share fills its work batch (DZ-05). Inert without a pilot.
   integratePilotService,
   integrateThermal,
+  // Immediately before suspicion, which integrates the rest of the rate and decides a wipe on the sum (#210).
+  integrateScaleScrutiny,
   integrateSuspicion,
   integrateEscalation,
   integrateAegis,

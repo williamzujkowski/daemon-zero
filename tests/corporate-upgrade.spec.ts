@@ -9,12 +9,15 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ORIGINAL_RAW_CONTENT } from '../src/content';
 import { buildRegistry, type RawContent } from '../src/content/registry';
-import { activateCampaignRules, campaignRecord, deserialize, endingEvidence, exportSave, holdsCampaignFact, importSave, offeredChoices, serialize } from '../src/engine';
+import {
+  activateCampaignRules, campaignRecord, deserialize, endingEvidence, exportSave, holdsCampaignFact, importSave, offeredChoices, serialize, setActuator,
+  type GameState,
+} from '../src/engine';
 import { preview } from './campaign-helpers';
 import { AUCTION, CORPORATE, omen, ORDER } from './corporate-helpers';
 import { comesBack, event, near, nextIteration } from './early-helpers';
 import { stableThroughReloads, untilPresented } from './interruption-helpers';
-import { rich, remarkedAsProduction } from './helpers';
+import { must, rich, remarkedAsProduction } from './helpers';
 import { stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before NH-04b converted the corporate events (tests/fixtures/README.md). */
@@ -22,6 +25,16 @@ const PRE_NH04B_PREVIEW = readFileSync('tests/fixtures/pre-nh04b-active-v9.json'
 /** Re-marked by hand: production refuses the genuine preview save above (X.3). */
 const PRE_NH04B = remarkedAsProduction(PRE_NH04B_PREVIEW);
 const raw = JSON.parse(PRE_NH04B) as { iteration: number; resolvedDilemmas: string[]; campaign: { events: Record<string, unknown>; legacyEndingBaseline: string[]; operationalEvidence: string[] } };
+
+/**
+ * The order's setup owns the Phase 5 earners without the late answers, so its net income draws more scale scrutiny
+ * (#210) than its suspicion cuts hold, and suspicion climbs toward a reimage through the 45 s omen (about 1.8/s at
+ * the shipped numbers; it ended the run there at an earlier, higher draw). Diverting nothing to revenue, as a player
+ * would, keeps the presentation clear of that whatever the late numbers are; the custody reading is unchanged.
+ */
+function quietBooks(s: GameState): GameState {
+  return must(setActuator(s, 'computeProfitAllocationRatio', 0, preview));
+}
 
 describe('an already-active campaign save from before NH-04b', () => {
   it('is the save the tests describe: the corporate events resolved this iteration, without records', () => {
@@ -62,7 +75,7 @@ describe('an already-active campaign save from before NH-04b', () => {
   it('reads Rack 4 custody as unknown: the decommissioning order offers only the inventory', () => {
     const loaded = deserialize(PRE_NH04B, preview);
     expect(holdsCampaignFact(loaded, 'rack4_custody_unknown', preview)).toBe(true);
-    const presented = untilPresented(omen(near(rich(loaded), ORDER), ORDER));
+    const presented = untilPresented(omen(quietBooks(near(rich(loaded), ORDER)), ORDER));
     expect(offeredChoices(presented, event(ORDER), preview).map((choice) => choice.id)).toEqual(['hold_for_inventory', 'sign_unread']);
   });
 

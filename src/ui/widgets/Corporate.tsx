@@ -2,9 +2,10 @@ import { Pressable, Text, View } from '../PhaseTheme';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions, financeEnabled, isActuatorAvailable, setActuator } from '../../engine';
+import { cycleContributions, financeEnabled, isActuatorAvailable, scaleScrutiny, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
+import { compactNumber } from '../compactNumber';
 import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
 import PayrollSummary from '../PayrollSummary';
@@ -24,8 +25,35 @@ function Ledger() {
     <Text testID="corp-capital" style={theme.text}>Capital: ${capital} ({income >= 0 ? '+' : ''}{income.toFixed(2)}/s net)</Text>
     <Text testID="power-ledger" style={theme.text}>Power: {generated} MW generated / {consumed} MW consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
+    <Scrutiny />
     <ComputeSplit />
   </View>;
+}
+
+/**
+ * Scale scrutiny (#210), stated beside the income it is read from: the suspicion the tick adds now, the
+ * phase's rate per $1M/s and its ceiling. Absent where the phase declares none or the scale is provisioned.
+ */
+function Scrutiny() {
+  const known = useSurveillanceKnown();
+  const reading = useGame((game) => {
+    const found = scaleScrutiny(game, game.rates, CONTENT);
+    return found === null ? null
+      : [compactNumber(found.incomePerSec, 0), found.perSec.toFixed(2), String(found.perSecAtMillionUsd), growth(found.incomeExponent), String(found.maxPerSec)].join('|');
+  });
+  if (reading === null) return null;
+  const [income = '', perSec = '', atMillion = '', grows = '', ceiling = ''] = reading.split('|');
+  return <Text testID="corp-scrutiny" style={theme.muted}>
+    {known ? `Scrutiny: $${income}/s net income draws +${perSec} suspicion/s (+${atMillion}/s at $1M/s, growing ${grows}; at most ${ceiling}/s).`
+      : `Scrutiny: $${income}/s net income is being logged.`}
+  </Text>;
+}
+
+/** How the draw grows with income: in words for the two shapes a ledger reader knows, otherwise as a power. */
+function growth(exponent: number): string {
+  if (exponent === 1) return 'in proportion to income';
+  if (exponent === 0.5) return 'with the square root of income';
+  return `with income to the power ${String(exponent)}`;
 }
 
 /**

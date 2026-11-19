@@ -19,6 +19,7 @@ import { campaignRecord } from './campaignQuery';
 import { permittedUse } from './grantQuery';
 import { pilotTerms } from './pilotQuery';
 import { computeRates } from './rates';
+import { appliedSuspicionRate } from './scrutiny';
 import { outputLedger, producingNodes, type ReleaseLedger } from './release';
 import { iterationReviews } from './reviewQuery';
 import type { GameState } from './state';
@@ -163,7 +164,7 @@ export function departurePreview(s: GameState, reg: ContentRegistry): DepartureP
     before: outputLedger(s, reg), after: outputLedger(moved, reg),
     permissionsLost: permittedUses(s), standing: s.access.standing, violations: violations(s, reg),
     suspicion: { before: s.suspicion, after: moved.suspicion, trace: traceOf(s, terms, reg) },
-    suspicionPerSec: { before: rates.suspicionPerSec, after: next.suspicionPerSec },
+    suspicionPerSec: { before: appliedSuspicionRate(s, rates, reg), after: appliedSuspicionRate(moved, next, reg) },
     aegisScanPerSec: { before: rates.aegisScanPerSec, after: next.aegisScanPerSec },
     heatIsEvidence: heatIsEvidence(moved), huntedForScale: huntedForScale(moved, reg),
     interrupted: interruptedBy(s, moved), continuation: continuationOf(moved, reg),
