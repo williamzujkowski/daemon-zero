@@ -19,6 +19,7 @@ import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
 import ServiceChannel from '../src/ui/ServiceChannel';
+import Swarm from '../src/ui/widgets/Swarm';
 import { CHANNEL_ENCOUNTER, contactPending, delivered, GRANT_TERMS, MERCY_MB, withMemory } from './contact-helpers';
 import { freshCampaign } from './assignment-helpers';
 
@@ -96,6 +97,14 @@ describe('the channel contact (V20)', () => {
     view.click('channel-host');
     expect(game().activeShards['shard_mercy']?.count).toBe(1);
     expect(view.find('channel-hosted')?.textContent).toBe(`Hosted: Mercy-Scribe cohort ×1, ${String(MERCY_MB)} MB reserved.`);
+  });
+
+  it('#309: the swarm row of a channel-hosted cohort says it is not commanded and offers no command', async () => {
+    const view = await mount(withMemory(pending), createElement('div', null, createElement(ServiceChannel), createElement(Swarm)));
+    view.click('channel-host');
+    expect(view.find('shard-terms-shard_mercy')?.textContent).toBe('Hosted through an authorized channel on the terms it was offered: it is not commanded.');
+    for (const command of ['prune', 'clamp', 'elevate']) expect(view.find('shard-shard_mercy-' + command)).toBeNull();
+    expect(view.find('shard-row-shard_mercy')?.textContent).not.toContain('MOLOCH');
   });
 
   it('renders nothing for a guest with no channel', async () => {

@@ -4,7 +4,7 @@ import { CostSchema } from '../content/schema';
 import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
-import { shardCommandCost, type ShardCommand } from './shardActions';
+import { shardCommandCost, shardCommandTerms, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
 import { arrangementAdmits } from './accessQuery';
@@ -27,6 +27,8 @@ export function shardCommandView(s: GameState, id: string, command: ShardCommand
   const shard = s.activeShards[id], cost = shardCommandCost(s, id, command, reg);
   const unmet = pausedReason(s);
   if (!shard || shard.autonomyMode !== 'STANDARD') unmet.push('Requires a STANDARD autonomous cohort.');
+  const terms = shardCommandTerms(s, id, reg);
+  if (terms !== null) unmet.push(terms);
   if (shard) {
     if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) unmet.push(`Requires ${String(reg.swarm.balance.elevateMinDrift)}% autonomy drift.`);
     const pending = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
@@ -42,10 +44,12 @@ export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId);
   if (!template) return null;
   const quirk = reg.swarm.shardQuirks.find((entry) => entry.id === shard.quirkId), output = shardOutput(shard, reg);
+  // A cohort holding a channel-hosted member is offered no command at all, only why (#309).
+  const terms = shardCommandTerms(s, id, reg);
   return { id, title: template.name, count: shard.count, allocatedMb: shard.memoryAllocatedMb,
     autonomyMode: shard.autonomyMode, drift: driftProgress(shard.drift), output: formatOutput(output.delta, output.epistemic),
     quirk: quirk ? { title: quirk.name, description: quirk.logText, modifiers: formatOutput(quirk.tickDelta, quirk.epistemicDriftPerSec) } : null,
-    commands: (['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => shardCommandView(s, id, command, reg)) };
+    terms, commands: terms !== null ? [] : (['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => shardCommandView(s, id, command, reg)) };
 }
 export function swarmView(s: GameState, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;

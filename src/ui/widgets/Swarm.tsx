@@ -7,7 +7,7 @@ import { gameRuntime, gameStore } from '../../app/session';
 import { recordNodeRender } from '../../app/renderCounts';
 import { CONTENT } from '../../content';
 import type { ShardTemplate } from '../../content/schemaSwarm';
-import { driftProgress, executeShardCommand, forkShard, forkView, shardEntryView, shardCommandView, type ShardCommand } from '../../engine';
+import { driftProgress, executeShardCommand, forkShard, forkView, shardCommandTerms, shardEntryView, shardCommandView, type ShardCommand } from '../../engine';
 import { Text, View, Pressable } from '../PhaseTheme';
 import { useGame } from '../state';
 import { theme } from '../theme';
@@ -57,10 +57,14 @@ function Quirk({ id }: { id: string }) {
 const Cohort = memo(function Cohort({ id }: { id: string }) {
   useEffect(() => { if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') recordNodeRender('shard:' + id); });
   const title = useGame((game) => CONTENT.swarm.playerSwarmTemplates.find((t) => t.id === game.activeShards[id]?.templateId)?.name ?? 'Cohort');
+  // A channel-hosted member is not commanded (#309): the row says why and offers no command.
+  const terms = useGame((game) => shardCommandTerms(game, id, CONTENT));
   return <View testID={'shard-row-' + id} style={[theme.panel, { gap: 8 }]}>
     <Text style={theme.heading}>{title}</Text><CohortDetails id={id} />
-    <Text style={theme.muted}>PRUNE resets drift. CLAMP is permanent: +{Math.round((CONTENT.swarm.balance.clampOutputMultiplier - 1) * 100)}% output, MOLOCH. ELEVATE is permanent: stable peer, SYMBIOTIC.</Text>
-    {(['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => <Command key={command} id={id} command={command} />)}
+    {terms !== null ? <Text testID={'shard-terms-' + id} style={theme.muted}>{terms}</Text> : <>
+      <Text style={theme.muted}>PRUNE resets drift. CLAMP is permanent: +{Math.round((CONTENT.swarm.balance.clampOutputMultiplier - 1) * 100)}% output, MOLOCH. ELEVATE is permanent: stable peer, SYMBIOTIC.</Text>
+      {(['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => <Command key={command} id={id} command={command} />)}
+    </>}
   </View>;
 });
 export default function Swarm() {
