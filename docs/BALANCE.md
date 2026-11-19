@@ -447,7 +447,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 
 ## Known soft spots
 
-- Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue.
+- Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online; the phase's tension comes from capital and megawatts instead. Consider a Phase 4 scrutiny source that scales with revenue. Measured for #210 in [PLAYTEST-210-MEASUREMENTS.md](PLAYTEST-210-MEASUREMENTS.md): under campaign rules STEALTH meets no threat event for its last 3733 s, most operative levels are hired with suspicion at 0 or AEGIS reduction at its 90% cap, and the hunter is retired 1184 s into Phase 4. Options there; nothing retuned.
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).
