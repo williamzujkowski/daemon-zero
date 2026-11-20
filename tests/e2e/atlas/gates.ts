@@ -18,8 +18,9 @@ export const COWAN_MAX = 4;
 
 export type GateRule = 'axe' | 'target-size' | 'font-sizes' | 'timely-fold' | 'inactive-contrast' | 'contract-item';
 
-export interface GateFailure {
-  stage: string; viewport: string; item: string; rule: GateRule;
+/** One failure, generic over its rule set so the transitions spec (transitionCheck.ts) reports in the same shape. */
+export interface GateFailure<R extends string = GateRule> {
+  stage: string; viewport: string; item: string; rule: R;
   measured: { box?: Rect | null; visibleRatio?: number; fold?: number | null; value?: number | string; detail?: string };
   /** The gallery card's id: `#<stage>--<viewport>`. */
   anchor: string;
@@ -50,7 +51,7 @@ export function gateFailures(input: CellInput): GateFailure[] {
 }
 
 /** One line a reviewer can act on: where, what, which rule, the numbers, and the gallery card. */
-export function formatFailure(failure: GateFailure): string {
+export function formatFailure(failure: GateFailure<string>): string {
   const { measured } = failure;
   const parts = [
     measured.box ? `box ${[measured.box.x, measured.box.y, measured.box.width, measured.box.height].map((v) => String(Math.round(v))).join(',')}` : '',

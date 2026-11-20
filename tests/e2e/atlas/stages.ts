@@ -1,5 +1,5 @@
 /**
- * The stage atlas (#341): the 56 P1 rows of the stage inventory, in disclosure order. Each row is one cell per
+ * The stage atlas (#341): the 56 P1 rows of the stage inventory plus the host exit (vote-1795150367732-oqyajz6), in disclosure order. Each row is one cell per
  * viewport. The gates run on these rows at 390x844 and 1440x900 inside `make e2e`; `make e2e-atlas` adds 360x640
  * and each row's extra viewports, reported only.
  */

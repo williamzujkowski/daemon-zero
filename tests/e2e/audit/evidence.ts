@@ -35,6 +35,6 @@ export function writeCell(card: GalleryCard): boolean {
   fs.mkdirSync(CELLS_DIR, { recursive: true });
   if (card.screenshotPng !== null) writeEvidence(stem, 'png', card.screenshotPng);
   writeEvidence(stem, 'aria.yml', card.aria ?? '');
-  writeEvidence(stem, 'json', JSON.stringify({ metrics: card.metrics, atlas: card.atlas ?? null, status: card.status }, null, 2));
+  writeEvidence(stem, 'json', JSON.stringify({ metrics: card.metrics, atlas: card.atlas ?? null, transition: card.transition ?? null, status: card.status }, null, 2));
   return true;
 }
