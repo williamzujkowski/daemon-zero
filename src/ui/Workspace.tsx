@@ -33,16 +33,15 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
     </View>
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
-      {/* It wrapped to two lines at 360 and cost 66px; one line gives 22px back to the
-          purchase below it. Only the signal name truncates - [ REVIEW ] is its own element so
-          the affordance can never be ellipsed away, and the full label is still the visible
-          text of the control, which axe's label-content-name-mismatch requires (CI caught a
-          shortened prefix failing it; this keeps the prefix).
-          [ REVIEW ] must not shrink (#162): react-native-web lets every Text give way, so the
-          two shared the shortfall in proportion to their widths and the affordance broke onto
-          three lines at 360 - an 88px notice where the one-line design promised 44. */}
+      {/* The name may take two lines (vote-1795208946788-lpjbyc5, #359): held to one, it lost about 91px at 390
+          ("Lex Parse..."), so a sighted player could not read which signal waits. Two lines bound the cost to
+          about 22px over the one-line notice; past two the name still ellipses. [ REVIEW ] is its own element so
+          the affordance can never be ellipsed away, and the full label is still the visible text of the
+          control, which axe's label-content-name-mismatch requires.
+          [ REVIEW ] must not shrink (#162): react-native-web lets every Text give way, so the two shared the
+          shortfall in proportion to their widths and the affordance broke onto three lines at 360. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 }}>
-        <Text numberOfLines={1} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>SIGNAL PENDING // {signal}</Text>
+        <Text testID="wild-signal-name" numberOfLines={2} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>SIGNAL PENDING // {signal}</Text>
         <Text testID="wild-signal-review" style={[theme.text, { flexShrink: 0 }]}>[ REVIEW ]</Text>
       </View>
     </Pressable>}

@@ -49,6 +49,8 @@ phase, special state and viewport:
 | Visual evidence | No committed PNGs. Screenshots are per-run gallery artifacts; committed text ARIA snapshots and numeric gates are the regression net | `vote-1795138316809-98i34no`, 7/7 |
 | Judgment findings | Each panel seat scores independently (Nielsen severity 0-4 plus the four cognitive-walkthrough questions); a finding is filed when at least two seats raise it at mean severity 2 or more; a reproducible defect (failing check, screenshot evidence) is filed regardless of seat count; fixes are chosen by vote; the maintainer playtest is the final check | `vote-1795138566908-3j8yemi`, 7/7 |
 | Ending after a game-menu round trip (#364) | Focus returns to the menu launcher and the player keeps their place, as in every utility menu (WCAG 2.4.3); the atlas check `t-ending-menu` requires the launcher focused and in view, and no longer expects the title in view | `vote-1795202661293-vk191wx`, 7/7 |
+| Dilemma choices on a phone (#371) | An index under the context lists every offered choice in authored order with its cost and whether it can be paid, each jumping to its card; nothing is reordered or privileged | `vote-1795206922704-4ljmpd2`, 6 to 1 |
+| Wild-signal pointer (#359) | The signal name may wrap to two lines so a sighted player can read which signal waits; [ REVIEW ] stays unbroken. This reverses #162's one-line rule at a cost of 22px where the name wraps | `vote-1795208946788-lpjbyc5`, 6 to 1 |
 
 ### Thresholds
 

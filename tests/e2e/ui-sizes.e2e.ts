@@ -110,14 +110,17 @@ type DomElement = NonNullable<ReturnType<Window['document']['querySelector']>>;
  *  is a sample of a running game rather than a precise value - the point is its scale. */
 const RUNNING_CLOCK_SETTLE_MS = 1500;
 
-/** How far a running clock moves the first purchase, per state, at EVERY size (#162). Mid-game
- *  mounts one time-gated notice above it: the one-line wild-signal-notice (44px control + 4px gap).
- *  It read 112 while the fixture's response rung trailed its suspicion, so the first tick also
- *  escalated and mounted response-notice (64px), a state play never shows from that save (#382).
- *  It read 134-156 on seven cells while [ REVIEW ] could shrink and wrap inside the wild-signal
- *  notice; a multiple of 22 over this figure means a notice is wrapping again, any other change
- *  means a block mounted or left. */
-const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'epistemic-ready-p2': 48, 'corporate-insolvent': 0 } as const;
+/** How far a running clock moves the first purchase, per state (#162). Mid-game mounts one time-gated notice above
+ *  it, the wild-signal pointer. Its name may take two lines (vote-1795208946788-lpjbyc5, #359): 48px (44px control +
+ *  4px gap) where the name fits one line, 70px where it wraps to a second. Measured at all twelve sizes. It read 112
+ *  while the fixture's response rung trailed its suspicion (#382), and 134-156 while [ REVIEW ] could shrink and wrap
+ *  inside the notice (#162); any other change means a block mounted or left, or the name took a third line. */
+const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'corporate-insolvent': 0 } as const;
+const WILD_NAME_WRAPS: ReadonlySet<string> = new Set(['small-phone', 'phone-360', 'phone-390', 'phone-large', 'tablet-portrait', 'breakpoint-edge', 'breakpoint-three']);
+function runningOffset(fixture: (typeof states)[number], size: string): number {
+  if (fixture === 'epistemic-ready-p2') return WILD_NAME_WRAPS.has(size) ? 70 : 48;
+  return RUNNING_CLOCK_OFFSET[fixture];
+}
 
 function readGeometry(): Geometry {
   const browser = globalThis as unknown as Window;
@@ -211,7 +214,7 @@ test.describe('size matrix invariants', () => {
           const running = await page.evaluate(readGeometry);
           test.info().annotations.push({ type: 'geometry-running', description: JSON.stringify({ fixture, ...running }) });
           expect((running.firstUnlockTop ?? 0) - (geometry.firstUnlockTop ?? 0), `${fixture} running-clock offset at ${size.name}`)
-            .toBe(RUNNING_CLOCK_OFFSET[fixture]);
+            .toBe(runningOffset(fixture, size.name));
           expect(geometry.overflow, `${fixture} horizontal overflow at ${size.name}`).toBe(false);
           expect(geometry.undersized, `${fixture} controls under 44px at ${size.name}`).toEqual([]);
           expect(geometry.paneHeights.length, `${fixture} rendered no pane at ${size.name}`).toBeGreaterThan(0);
