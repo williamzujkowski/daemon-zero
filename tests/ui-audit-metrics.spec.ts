@@ -10,7 +10,7 @@ import {
 const VIEWPORT = { width: 390, height: 844 };
 const raw = (over: Partial<RawElement> = {}): RawElement => ({
   kind: 'interactive', role: 'button', name: 'GO', testId: 'go', rect: { x: 10, y: 10, width: 100, height: 44 },
-  clips: [], overflowX: 0, overflowY: 0, ...over,
+  clips: [], overflowX: 0, overflowY: 0, excluded: null, disabled: false, inactive: false, textContrast: null, ...over,
 });
 
 function metrics(over: Partial<AuditMetrics> = {}): AuditMetrics {
@@ -20,7 +20,7 @@ function metrics(over: Partial<AuditMetrics> = {}): AuditMetrics {
     wallMs: { boot: 200, audit: 150, total: 350 },
     axe: { violations: [], contrastIncomplete: [], violationCount: 0 },
     aria: { lines: 4 }, page: { overflowX: 0, truncatedText: [] },
-    counts: countMetrics(elements, [12, 14]), fontSizes: [12, 14], elements, ...over,
+    counts: countMetrics(elements, [12, 14]), fontSizes: [12, 14], contentFontSizes: [12, 14], dialogOpen: false, elements, ...over,
   };
 }
 

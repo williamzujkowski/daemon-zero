@@ -1,22 +1,13 @@
 /**
- * The UI audit's entry points (#338): open one cell (a fixture save on a paused clock) and measure the view
- * as it stands. `audit` asserts nothing; it returns typed metrics and attaches the screenshot, the ARIA
+ * The UI audit's entry point (#338): measure one opened cell (a stage save on a paused clock, atlas/open.ts) as
+ * it stands. `audit` asserts nothing; it returns typed metrics and attaches the screenshot, the ARIA
  * snapshot and the metrics JSON to the test, where the gallery reporter (galleryReporter.ts) finds them.
  */
 import { test, type Page } from '@playwright/test';
 import { axeReport } from '../axe';
-import { boot, dismissBoot } from '../helpers';
 import { collectElements } from './collect';
 import { ATTACHMENTS } from './gallery';
 import { countMetrics, distinctSizes, truncatedText, type AuditCell, type AuditMetrics } from './metrics';
-
-/** Boots `cell.fixture` with the clock paused and the native timers kept aside for axe; returns the boot wall time in ms. */
-export async function openAuditCell(page: Page, cell: AuditCell): Promise<number> {
-  const started = performance.now();
-  await boot(page, cell.fixture, { axeTimers: true, ...(cell.ending === true ? { ending: true } : {}) });
-  if (cell.ending !== true) await dismissBoot(page);
-  return performance.now() - started;
-}
 
 /**
  * Measures the current view and attaches the evidence. Geometry is read before axe, because nothing here may
@@ -37,7 +28,8 @@ export async function audit(page: Page, cell: AuditCell, bootMs: number): Promis
     axe: { violations: axe.violations, contrastIncomplete: axe.contrastIncomplete, violationCount: axe.violations.length },
     aria: { lines: aria.split('\n').filter((line) => line.trim() !== '').length },
     page: { overflowX: Math.max(0, geometry.documentScrollWidth - geometry.viewport.width), truncatedText: truncatedText(geometry.clippedText) },
-    counts: countMetrics(elements, geometry.fontSizes, geometry.clippedText), fontSizes, elements,
+    counts: countMetrics(elements, geometry.fontSizes, geometry.clippedText), fontSizes,
+    contentFontSizes: geometry.contentFontSizes, dialogOpen: geometry.dialogOpen, elements,
   };
   const info = test.info();
   await info.attach(ATTACHMENTS.screenshot, { body: screenshot, contentType: 'image/png' });
