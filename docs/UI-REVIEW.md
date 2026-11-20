@@ -25,11 +25,12 @@ phase, special state and viewport:
   rubric), `research/ui-review-playwright` (harness tooling), `research/ui-review-incremental`
   (what incremental-game designers and researchers recommend; 25 review questions) and
   `research/ui-review-stage-inventory` (87 atlas rows, 56 for v1, nine gaps with recipes).
-- **Harness.** A Playwright stage atlas loads each stage save with the clock frozen and audits it:
+- **Harness.** The Playwright stage atlas being built on this map loads each stage save with the clock frozen and audits it:
   axe (with the real-timer swap that lets axe finish under a paused clock), the accessibility
   tree, and geometry (first-viewport membership inside clipping panes, occlusion, target size,
-  truncation, overflow). Every run writes a self-contained HTML gallery to
-  `test-results/ui-atlas/` (never committed). The first pieces are built by ticket #338 (PR #346).
+  truncation, overflow). A run that includes audit cells writes a self-contained HTML gallery to
+  `test-results/ui-atlas/` (never committed). So far only the audit helper, the gallery and a
+  three-stage spike exist (#338, merged in #346); the full atlas is a later ticket.
 - **Disclosure walk.** Besides static stages, the review plays the unfolding in order in a headed
   browser against the production export and records what appears, where, whether it is announced
   and what it displaces; the atlas then checks those transitions.
@@ -47,6 +48,9 @@ phase, special state and viewport:
 
 ### Thresholds
 
+Decided values. "Hard" means the check will fail the atlas run once the atlas and its gates are
+built; none of these is enforced by the atlas yet (the 44 px rule is already enforced by `ui-sizes`).
+
 | Check | Value | Gate | Record |
 |---|---|---|---|
 | Pointer target size | 44x44 CSS px for every interactive element (unchanged project rule) | hard | `vote-1795139717692-ell0m5n`, 6 to 1 |
@@ -63,10 +67,11 @@ construction today, since `theme.disabled` changes border and background but not
 
 ### Auto-updating content (WCAG 2.2 SC 2.2.2)
 
-The game meets SC 2.2.2 with a **persisted pause in MENU** that also suspends wall-clock catch-up
-while paused, rather than claiming the ticking counters are essential (`vote-1795140352659-zhp6hsv`:
-4 for the pause, 2 for a display refresh-rate setting, 1 for the essential exception). Building it
-is a fix-backlog item (#347); until then this is a known gap, recorded in `UI-SPEC.md`.
+The game does **not** meet SC 2.2.2 today. The decision is to meet it with a **persisted pause in
+MENU** that also suspends wall-clock catch-up while paused, rather than claiming the ticking counters
+are essential (`vote-1795140352659-zhp6hsv`: 4 for the pause, 2 for a display refresh-rate setting,
+1 for the essential exception). The pause is not built yet; building it is a fix-backlog item
+(#347). Until it ships this is a known gap, recorded as such in `UI-SPEC.md`.
 
 ## Still to decide
 
