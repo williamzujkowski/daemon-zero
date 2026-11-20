@@ -14,7 +14,8 @@ import { COLUMN_MIN_WIDTH } from './layout';
  * the verb stays, the prominence does not.
  */
 import { recordManualInput } from '../app/renderCounts';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { registerPrimaryAction } from './primaryFocus';
 
 import { CONTENT } from '../content';
 import { manualCycle } from '../engine';
@@ -39,6 +40,9 @@ export default function ManualCycle() {
   const counter = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.cycles));
   const demoted = useGame((game) => shouldDemoteManualCycle(game.rates.cyclesPerSec));
   const [feedback, setFeedback] = useState({ iteration, count: 0 });
+  // A closing dialog returns focus here rather than to the page body (#364).
+  const self = useRef<ComponentRef<typeof Pressable>>(null);
+  useEffect(() => registerPrimaryAction({ focus: () => { self.current?.focus(); } }), []);
   const count = feedback.iteration === iteration ? feedback.count : 0;
   // The accessible name contains the visible text either way (WCAG 2.5.3).
   // At the column tiers the control otherwise stretches the whole core column (measured
@@ -46,7 +50,7 @@ export default function ManualCycle() {
   // width because there the width is the touch target.
   const wide = useWindowDimensions().width >= COLUMN_MIN_WIDTH;
   const label = demoted ? '[ cycle ] +1 — execute clock cycle' : '[ EXECUTE_CLOCK_CYCLE ] Execute clock cycle';
-  return <View style={{ gap: 6 }}><Pressable testID="manual-cycle" accessibilityRole="button" accessibilityLabel={label}
+  return <View style={{ gap: 6 }}><Pressable ref={self} testID="manual-cycle" accessibilityRole="button" accessibilityLabel={label}
     disabled={!ready || blocked} style={[theme.button, demoted && styles.demoted, wide && !demoted && styles.wide, (!ready || blocked) && theme.disabled]}
     onPress={() => {
       const result = gameRuntime.dispatch((game) => manualCycle(game, CONTENT));

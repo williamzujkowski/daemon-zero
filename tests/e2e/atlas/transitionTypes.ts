@@ -36,8 +36,11 @@ export interface AppearExpectation {
   announce?: RegExp;
   /** C1.10: the live regions this condition may use: at most one, with a role that matches its politeness. */
   alerts?: RegExp;
-  /** Focus must land on an element (not the page body) after the trigger. */
-  focus?: true;
+  /**
+   * Focus must land on an element (not the page body) after the trigger; a test id names the element it must land
+   * on (the ending's menu round trip returns focus to the launcher, vote-1795202661293-vk191wx).
+   */
+  focus?: true | string;
 }
 
 /** C2: what must still be in the main view after the trigger. */

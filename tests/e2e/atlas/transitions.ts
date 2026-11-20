@@ -32,6 +32,9 @@ const cardTitle = (key: string, node: () => { id: string }) => (): ContractItem 
 const unlockId = (node: () => { id: string }) => 'node-' + node().id + '-unlock';
 const PHASE = /phase|boundary/i;
 const AEGIS_ALERT = 90;
+/** The ending's game-menu launcher, where focus returns after a menu round trip. */
+const ENDING_LAUNCHER: ContractItem = { key: 'ending.menu-launcher', kind: 'timely', rank: 50,
+  locate: { by: 'test-id', testId: 'menu-open', why: 'the launcher is named by its role elsewhere; the test id is unique here' } };
 /** The purchase that schedules the first guest dilemma, whose omen is the first log line a player meets. */
 const guestOmenNode = () => {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === CONTENT.phases[0]?.phaseId && (entry.trigger.nodes?.length ?? 0) > 0);
@@ -137,7 +140,10 @@ const VIEW_ROWS: readonly TransitionRow[] = [
     setup: async (page) => { await page.getByRole('button', { name: /^Start over/ }).scrollIntoViewIfNeeded(); },
     trigger: { kind: 'ui', label: 'open the menu and return to the ending', run: async (page) => {
       await page.getByTestId('menu-open').click(); await page.getByRole('button', { name: /return to ending/i }).click(); } },
-    keep: {}, why: 'After a menu round trip the ending reopens with its title in view.' },
+    // vote-1795202661293-vk191wx (7 of 7): focus returns to the launcher and the player keeps their place, as in
+    // every utility menu (WCAG 2.4.3). The title-in-view expectation is dropped for this transition.
+    appear: { item: () => ENDING_LAUNCHER, focus: 'menu-open' },
+    why: 'After a menu round trip the ending returns focus to the menu launcher, in view, so the player keeps their place.' },
 ];
 
 function missing(): never {
