@@ -35,6 +35,10 @@ function NoPanel() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
+/** The AEGIS lock at which the hunters are close: the alert, the HUD word and the announcement share it. */
+export const AEGIS_CRITICAL = 90;
+/** Critical as the player reads it: the HUD shows the lock to one decimal, so 89.95 reads 90.0 and counts. */
+export const aegisCritical = (lock: number): boolean => Math.round(lock * 10) / 10 >= AEGIS_CRITICAL;
 export const thermalWidget = 'THERMAL_AND_SUSPICION_BARS';
 export const guestPinnedWidgets: readonly string[] = ['QUOTA_SKIM_CONTROL', 'AUDIT_TRACE_MONITOR'];
 export const referenceWidgets: readonly string[] = [
