@@ -121,6 +121,10 @@ describe('recorded transition gaps', () => {
     expect(TRANSITION_GAPS.filter((gap) => !isStageId(gap.stage) || !gap.stage.startsWith('t-') || gap.measured === '' || gap.reason === '')).toEqual([]);
   });
 
+  it('each cite a real issue number, not a shape the type merely admits (#0, #1e3)', () => {
+    expect(TRANSITION_GAPS.filter((gap) => !/^#[1-9]\d*$/.test(gap.issue))).toEqual([]);
+  });
+
   it('a row checks what its expectations declare', () => {
     const row = (over: Partial<TransitionRow>): TransitionRow => ({ id: 't-x', walk: [], before: { stage: 'p0-cold-start' }, trigger: { kind: 'click', testId: 'x' }, why: '', ...over });
     expect(checksOf(row({}))).toEqual([]);

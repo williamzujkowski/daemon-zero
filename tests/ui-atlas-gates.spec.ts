@@ -9,6 +9,8 @@ import { KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
 import { isStageId } from './e2e/atlas/types';
 import { summarize } from './e2e/audit/atlasCard';
 
+/** A GitHub issue reference: '#' and a positive decimal with no leading zero. */
+const ISSUE_REF = /^#[1-9]\d*$/;
 const VIEWPORT = { width: 390, height: 844 };
 const raw = (over: Partial<RawElement> = {}): RawElement => ({
   kind: 'interactive', role: 'button', name: 'GO', testId: 'go', rect: { x: 10, y: 10, width: 100, height: 44 },
@@ -108,6 +110,11 @@ describe('known gaps', () => {
       expect(['390x844', '1440x900']).toContain(entry.viewport);
       expect(entry.reason.length).toBeGreaterThan(20);
     }
+  });
+
+  it('cites a real issue number on every entry (the type also admits #0 or #1e3)', () => {
+    expect(KNOWN_GAPS.filter((entry) => !ISSUE_REF.test(entry.issue))).toEqual([]);
+    expect(['#0', '#1e3', '#-1', '#01'].filter((ref) => ISSUE_REF.test(ref))).toEqual([]);
   });
 });
 
