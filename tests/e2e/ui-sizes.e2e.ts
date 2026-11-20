@@ -111,11 +111,13 @@ type DomElement = NonNullable<ReturnType<Window['document']['querySelector']>>;
 const RUNNING_CLOCK_SETTLE_MS = 1500;
 
 /** How far a running clock moves the first purchase, per state, at EVERY size (#162). Mid-game
- *  mounts two time-gated notices above it: response-notice (64px) and the one-line
- *  wild-signal-notice (44px control + 4px gap). It read 134-156 on seven cells while
- *  [ REVIEW ] could shrink and wrap inside that notice; a multiple of 22 over this figure
- *  means a notice is wrapping again, any other change means a block mounted or left. */
-const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'epistemic-ready-p2': 112, 'corporate-insolvent': 0 } as const;
+ *  mounts one time-gated notice above it: the one-line wild-signal-notice (44px control + 4px gap).
+ *  It read 112 while the fixture's response rung trailed its suspicion, so the first tick also
+ *  escalated and mounted response-notice (64px), a state play never shows from that save (#382).
+ *  It read 134-156 on seven cells while [ REVIEW ] could shrink and wrap inside the wild-signal
+ *  notice; a multiple of 22 over this figure means a notice is wrapping again, any other change
+ *  means a block mounted or left. */
+const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'epistemic-ready-p2': 48, 'corporate-insolvent': 0 } as const;
 
 function readGeometry(): Geometry {
   const browser = globalThis as unknown as Window;
