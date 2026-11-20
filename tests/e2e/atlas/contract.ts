@@ -77,7 +77,7 @@ export const BAND_ITEMS = {
   insolvent: [item('band.insolvent', 'timely', alert(/^INSOLVENT: /), 5)],
   shortfall: [item('band.shortfall', 'timely', alert(/^POWER SHORTFALL: /), 5)],
   brownout: [item('band.brownout', 'timely', alert(/^BROWNOUT: cycle deficit/), 5)],
-  omen: [item('notice.omen', 'timely', testId('omen-notice', 'an alert takes no name from its content; several alerts share the band'), 12)],
+  omen: [item('notice.omen', 'timely', testId('omen-notice', 'a status region takes no name from its content; several notices share the band'), 12)],
   wild: [item('notice.wild', 'timely', role('button', /^SIGNAL PENDING \/\/ /), 15)],
 } as const satisfies Readonly<Record<string, readonly ContractItem[]>>;
 

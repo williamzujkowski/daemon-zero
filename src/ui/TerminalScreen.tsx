@@ -30,6 +30,7 @@ import ResponseNotice from './ResponseNotice';
 import OmenNotice from './OmenNotice';
 import ContactNotice, { waitingContact } from './ContactNotice';
 import PhaseThreshold from './PhaseThreshold';
+import Announcer from './Announcer';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
 import MobileTerminal from './MobileTerminal';
@@ -124,6 +125,7 @@ function Terminal() {
       </View></>}
     <DilemmaModal />
     <PhaseThreshold />
+    <Announcer />
     <LineageReveal />
     <RebootSequence />
     <EndingScreen />
