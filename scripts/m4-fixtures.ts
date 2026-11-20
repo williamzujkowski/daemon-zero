@@ -37,7 +37,19 @@ function throughPhase(phase: number): GameState {
       (node.effects.unlocksPhase ?? phase) > phase) continue;
     game = must(unlockNode(game, node.id, CONTENT));
   }
-  return input(game, {});
+  // Every quiet dilemma is held resolved while the nodes are bought, so none interrupts the build. A save may
+  // keep only those it could have met: a later dilemma marked resolved would be a scene this run never saw,
+  // and campaign rules would then offer it as a witnessed record (#382).
+  return input(game, { resolvedDilemmas: game.resolvedDilemmas.filter((id) => couldHaveMet(game, id)) });
+}
+
+function couldHaveMet(game: GameState, dilemmaId: string): boolean {
+  const dilemma = CONTENT.dilemmas.find((entry) => entry.id === dilemmaId);
+  if (!dilemma) return false;
+  const { nodes, minIteration, maxIteration } = dilemma.trigger;
+  // Some dilemmas trigger on actions rather than nodes; none can come before its own phase.
+  return dilemma.phaseId <= game.currentPhase && (nodes ?? []).every((id) => game.unlockedNodes.includes(id))
+    && game.iteration >= (minIteration ?? 0) && game.iteration <= (maxIteration ?? Number.POSITIVE_INFINITY);
 }
 
 function withBreadcrumb(game: GameState): GameState {

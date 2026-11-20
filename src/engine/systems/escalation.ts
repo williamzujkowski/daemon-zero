@@ -1,13 +1,8 @@
 import type { ContentRegistry } from '../../content/registry';
-import { understandsSurveillance } from '../query';
+import { responseRungFor, understandsSurveillance } from '../query';
 import type { GameState } from '../state';
 import { pushLog } from '../util';
 import type { TickSystem } from './types';
-
-/** The rung the humans should be on for this much suspicion, ignoring hysteresis. */
-function rungFor(suspicion: number, reg: ContentRegistry): number {
-  return reg.balance.escalation.filter((rung) => suspicion >= rung.at).length;
-}
 
 function announce(d: GameState, reg: ContentRegistry): void {
   const level = reg.narrative.alertLevels[d.alertLevel];
@@ -28,7 +23,7 @@ function announce(d: GameState, reg: ContentRegistry): void {
  */
 export const integrateEscalation: TickSystem = (d, { reg }) => {
   const b = reg.balance;
-  const target = rungFor(d.suspicion, reg);
+  const target = responseRungFor(d.suspicion, reg);
   if (target > d.alertLevel) {
     d.alertLevel = target;
     announce(d, reg);

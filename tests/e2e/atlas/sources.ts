@@ -9,6 +9,7 @@ import { importSave, serialize, type GameState } from '../../../src/engine';
 import { moment } from '../../cooperative-helpers';
 import { fixtureCode } from '../helpers';
 import { ROUTE_STATES } from '../routeStates';
+import { reachable } from '../../../scripts/reachable-fixture';
 import { campaignMoment } from './campaignSaves';
 import type { StageRow, StageSource } from './types';
 
@@ -37,7 +38,8 @@ export function stageState(row: StageRow): GameState {
   const key = sourceKey(row.source);
   const base = built.get(key) ?? resolve(row.source);
   built.set(key, base);
-  const state = row.patch ? row.patch(base) : base;
+  // A row patch (or a transition's earlier-state recipe) is lifted the same way fixtures are (#382).
+  const state = reachable(row.patch ? row.patch(base) : base);
   if (row.ending !== undefined && state.ending !== row.ending) {
     throw new Error(`${row.id}: the save holds ending ${String(state.ending)}, not ${row.ending}`);
   }

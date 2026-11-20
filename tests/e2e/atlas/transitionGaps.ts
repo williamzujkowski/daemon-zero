@@ -9,7 +9,7 @@ import type { KnownGap } from './knownGaps';
 import type { TransitionRule } from './transitionCheck';
 
 const HOST_EXIT = 'host to subnet adds and auto-selects the NETWORK pane with no notice, no live text and focus left where it was; only the kernel log (not a live region) says PHASE_2_INITIATED (walk A1, B2)';
-const PHASE = 'phase changes after the first open no notice and write no phase live text (walk A1); the one live text is a RESPONSE ESCALATED alert that the crossing\'s suspicion raises';
+const PHASE = 'phase changes after the first open no notice and write no phase live text (walk A1)';
 const BADGE = 'a widget that arrives on a pane the phone is not showing puts no attention marker on that pane\'s tab (walk A2); the route\'s CORE badge (#284) is the pattern to copy';
 const UNLOCK = 'a purchase that unlocks a control writes only a kernel log line, which is not a live region, and moves no focus (walk A2, B7)';
 const WILD = 'a wild signal arrives with no live text and no marker on the SWARM area (walk A2)';
@@ -26,8 +26,8 @@ const FOCUS = 'Continue boot closes the reboot dialog without moving focus, whic
 const SCROLL = 'on the phone the HUD, forecast and notices scroll with the cards, so reaching a purchase below the fold takes every timely readout out of view (walk C-b)';
 
 export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
-  { stage: 't-aegis-90', viewport: '1440x900', item: 'hud.aegis', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: AEGIS, issue: '#360' },
-  { stage: 't-aegis-90', viewport: '390x844', item: 'hud.aegis', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: AEGIS, issue: '#360' },
+  { stage: 't-aegis-90', viewport: '1440x900', item: 'hud.aegis', rule: 'new-announced', measured: 'nothing announced', reason: AEGIS, issue: '#360' },
+  { stage: 't-aegis-90', viewport: '390x844', item: 'hud.aegis', rule: 'new-announced', measured: 'nothing announced', reason: AEGIS, issue: '#360' },
   { stage: 't-brownout', viewport: '1440x900', item: 'alerts', rule: 'one-alert', measured: 'value 2; brownout-warning, cycle-deficit', reason: BROWNOUT, issue: '#363' },
   { stage: 't-brownout', viewport: '390x844', item: 'alerts', rule: 'one-alert', measured: 'value 2; brownout-warning, cycle-deficit', reason: BROWNOUT, issue: '#363' },
   { stage: 't-ending-menu', viewport: '390x844', item: 'ending.title', rule: 'timely-kept', measured: 'box 16,-432,358,22; visibleRatio 0; fold 828', reason: ENDING, issue: '#364' },
@@ -40,12 +40,12 @@ export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
   { stage: 't-overheat-on-core', viewport: '390x844', item: 'sensors.overheat', rule: 'new-in-view', measured: 'SENSORS is not shown and tab-SENSORS carries no badge', reason: OVERHEAT, issue: '#358' },
   { stage: 't-phase-1-to-2', viewport: '1440x900', item: 'network.map', rule: 'new-announced', measured: 'nothing announced', reason: HOST_EXIT, issue: '#356' },
   { stage: 't-phase-1-to-2', viewport: '390x844', item: 'network.map', rule: 'new-announced', measured: 'nothing announced', reason: HOST_EXIT, issue: '#356' },
-  { stage: 't-phase-2-to-3', viewport: '1440x900', item: 'phase3.first-node', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
-  { stage: 't-phase-2-to-3', viewport: '390x844', item: 'phase3.first-node', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
-  { stage: 't-phase-3-to-4', viewport: '1440x900', item: 'hud.capital', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
-  { stage: 't-phase-3-to-4', viewport: '390x844', item: 'hud.capital', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
-  { stage: 't-phase-4-to-5', viewport: '1440x900', item: 'corp.reference-tab', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
-  { stage: 't-phase-4-to-5', viewport: '390x844', item: 'corp.reference-tab', rule: 'new-announced', measured: 'live alert: RESPONSE ESCALATEDNOMINAL → TICKET OPEN[ ACK ]', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-2-to-3', viewport: '1440x900', item: 'phase3.first-node', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-2-to-3', viewport: '390x844', item: 'phase3.first-node', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-3-to-4', viewport: '1440x900', item: 'hud.capital', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-3-to-4', viewport: '390x844', item: 'hud.capital', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-4-to-5', viewport: '1440x900', item: 'corp.reference-tab', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
+  { stage: 't-phase-4-to-5', viewport: '390x844', item: 'corp.reference-tab', rule: 'new-announced', measured: 'nothing announced', reason: PHASE, issue: '#356' },
   { stage: 't-pilot-accept', viewport: '1440x900', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },
   { stage: 't-pilot-accept', viewport: '1440x900', item: 'pilot.service-card', rule: 'new-in-view', measured: 'box 371,1863,698,22; visibleRatio 0; fold 900', reason: PILOT, issue: '#361' },
   { stage: 't-pilot-accept', viewport: '390x844', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },

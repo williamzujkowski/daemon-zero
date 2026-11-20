@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { REVIEW_BREADCRUMB } from '../scripts/m4-fixtures';
 import { buildRegistry, CONTENT, ORIGINAL_RAW_CONTENT } from '../src/content';
-import { canAfford, importSave, isNodeAvailable, serialize, tick, voluntaryWipe } from '../src/engine';
+import { activateCampaignRules, canAfford, computeRates, importSave, isNodeAvailable, pinnableClues, responseRungFor, serialize, tick, voluntaryWipe } from '../src/engine';
 
 const saves = makeFixtures();
 /** The review states are breakout states: the original game's operatives and endings (#233). */
@@ -21,6 +21,38 @@ describe('M4 review fixtures', () => {
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);
+  });
+
+  it('holds only states play can reach: the response rung never trails suspicion (#382)', () => {
+    const behind = Object.entries(saves).filter(([, code]) => {
+      const game = importSave(code, CONTENT);
+      return game.alertLevel < responseRungFor(game.suspicion, CONTENT);
+    }).map(([name]) => name);
+    expect(behind).toEqual([]);
+    // Nor do the stored rates the HUD reads trail the state (route-release-terms read +361 for +1488.8 cycles/s).
+    const stale = Object.entries(saves).filter(([, code]) => {
+      const game = importSave(code, CONTENT);
+      return JSON.stringify(game.rates) !== JSON.stringify(computeRates(game, CONTENT));
+    }).map(([name]) => name);
+    expect(stale).toEqual([]);
+    // The one the audit caught: a patched 99 % that still read NOMINAL.
+    expect(state('suspicion-99').alertLevel).toBe(CONTENT.balance.escalation.length);
+  });
+
+  it('offers only records of dilemmas the save could have met (#382)', () => {
+    for (const name of ['deaddrop-breadcrumb', 'suspicion-99']) {
+      // The store admits every loaded save into campaign rules, capturing its history (src/app/store.ts).
+      const admitted = activateCampaignRules(state(name), CONTENT);
+      expect(admitted.ok).toBe(true);
+      const game = admitted.state;
+      const unmet = pinnableClues(game, CONTENT).filter((id) => {
+        const nodes = CONTENT.dilemmas.find((entry) => entry.id === id)?.trigger.nodes ?? [];
+        return !nodes.every((node) => game.unlockedNodes.includes(node));
+      });
+      expect(unmet).toEqual([]);
+      expect(game.currentPhase).toBe(2);
+      expect(pinnableClues(game, CONTENT).every((id) => (CONTENT.dilemmas.find((entry) => entry.id === id)?.phaseId ?? 9) <= 2)).toBe(true);
+    }
   });
 
   it('preserves the breadcrumb through real voluntary and fixed-tick forced wipes', () => {

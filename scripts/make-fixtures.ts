@@ -7,9 +7,10 @@ import { makeLineageUiFixtures } from './lineage-ui-fixtures';
  */
 import { CONTENT } from '../src/content';
 import type { RegistryNode } from '../src/content/registry';
-import { canAfford, createInitialState, exportSave, isNodeAvailable, nodeCost, tick, type GameState } from '../src/engine';
+import { canAfford, createInitialState, exportSave, importSave, isNodeAvailable, nodeCost, tick, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
 import { makeLaterFixtures } from './m4-fixtures';
+import { reachable } from './reachable-fixture';
 import { makeThirdPassFixtures } from './third-pass-fixtures';
 import { makeSecondPassFixtures } from './second-pass-fixtures';
 
@@ -81,7 +82,9 @@ export function makeFixtures(): Record<string, string> {
   const third = { ...second, ...makeThirdPassFixtures(second) };
   const lineage = { ...third, ...makeLineageUiFixtures(third) };
   const m7 = { ...lineage, ...makeM7Fixtures(lineage) };
-  return { ...m7, ...makeCryoFixtures(m7) };
+  const all = { ...m7, ...makeCryoFixtures(m7) };
+  // Patched saves never tick; lift each to what play shows (#382) so no review state is unreachable.
+  return Object.fromEntries(Object.entries(all).map(([name, code]) => [name, exportSave(reachable(importSave(code, CONTENT)))]));
 }
 
 if (process.argv[1]?.endsWith('make-fixtures.ts')) process.stdout.write(JSON.stringify(makeFixtures(), null, 2) + '\n');

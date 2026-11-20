@@ -89,6 +89,14 @@ export function skippedCheckpoints(iteration: number, reg: ContentRegistry): Lin
 }
 
 /** Traits follow a mind across wipes: what an earlier iteration did still counts. */
+/**
+ * The rung of the human response ladder this much suspicion reaches, ignoring hysteresis. Climbing is
+ * immediate (systems/escalation.ts), so a state below this rung is one play never shows after a tick.
+ */
+export function responseRungFor(suspicion: number, reg: ContentRegistry): number {
+  return reg.balance.escalation.filter((rung) => suspicion >= rung.at).length;
+}
+
 export function hasEverHeld(s: GameState, trait: Trait): boolean {
   return s.traits.includes(trait) || s.legacy.traitsEver.includes(trait);
 }
