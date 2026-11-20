@@ -5,12 +5,10 @@ import { countMetrics, elementMetric, type AuditMetrics, type RawElement } from 
 import { expectedTemplate, parseBaseline, renderBaseline, templateLine } from './e2e/atlas/ariaTemplate';
 import type { ItemMeasure } from './e2e/atlas/contractCheck';
 import { cowanFlags, formatFailure, gateFailures, hickJumps, reported, type GateFailure } from './e2e/atlas/gates';
-import { KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
+import { ISSUE_REF, KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
 import { isStageId } from './e2e/atlas/types';
 import { summarize } from './e2e/audit/atlasCard';
 
-/** A GitHub issue reference: '#' and a positive decimal with no leading zero. */
-const ISSUE_REF = /^#[1-9]\d*$/;
 const VIEWPORT = { width: 390, height: 844 };
 const raw = (over: Partial<RawElement> = {}): RawElement => ({
   kind: 'interactive', role: 'button', name: 'GO', testId: 'go', rect: { x: 10, y: 10, width: 100, height: 44 },

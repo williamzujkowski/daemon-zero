@@ -9,6 +9,9 @@ import type { GateFailure, GateRule } from './gates';
 
 export type GatedViewport = '390x844' | '1440x900';
 
+/** A GitHub issue reference, '#' and a positive decimal: the `#${number}` type also admits '#0' or '#1e3'. */
+export const ISSUE_REF = /^#[1-9]\d*$/;
+
 interface GapBase {
   stage: string; viewport: GatedViewport; item: string;
   measured: string; reason: string; issue: `#${number}`;
