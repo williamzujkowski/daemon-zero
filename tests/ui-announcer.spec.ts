@@ -28,7 +28,11 @@ it('speaks a phase change the boundary dialog does not already open for (#356)',
   const next = CONTENT.phases.find((phase) => phase.phaseId === before.currentPhase + 1);
   if (!next) throw new Error('no next phase');
   advanceTo({ ...before, currentPhase: next.phaseId });
-  expect(view.find('announcer')?.textContent).toBe(`Phase ${String(next.phaseId)}: ${next.title}.`);
+  const spoken = view.find('announcer')?.textContent ?? '';
+  // Pinned on its shape, not on the component's own template: one "Phase N" lead, never doubled.
+  expect(spoken).toMatch(new RegExp('^Phase ' + String(next.phaseId) + '\\b'));
+  expect(spoken).not.toMatch(/Phase \d+\W+Phase/);
+  expect(spoken).toBe(next.title + '.');
 });
 
 it('speaks each newly unlocked widget by its title and slot (#357)', async () => {
@@ -48,7 +52,9 @@ it('speaks the AEGIS lock crossing its critical mark once, and the HUD says it i
   advanceTo({ ...gameStore.store.getState().game, aegisLock: 90.2 });
   expect(view.find('announcer')?.textContent).toContain('AEGIS hunter lock past 90%');
   expect(view.find('aegis-hud')?.textContent).toContain('CRITICAL');
-  const spoken = view.find('announcer')?.textContent;
+  // A further rise is no new event; falling back below the mark clears the stale warning.
   advanceTo({ ...gameStore.store.getState().game, aegisLock: 91 });
-  expect(view.find('announcer')?.textContent).toBe(spoken);
+  expect(view.find('announcer')?.textContent).toContain('AEGIS hunter lock past 90%');
+  advanceTo({ ...gameStore.store.getState().game, aegisLock: 70 });
+  expect(view.find('announcer')?.textContent).toBe('');
 });

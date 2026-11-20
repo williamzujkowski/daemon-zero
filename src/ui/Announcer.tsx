@@ -25,8 +25,9 @@ function opensDialog(access: Parameters<typeof thresholdCopy>[0]['access'], from
 function eventLines(seen: Seen, now: Omit<Seen, 'message' | 'seq'>, access: Parameters<typeof opensDialog>[0]): string[] {
   const lines: string[] = [];
   if (now.phase > seen.phase && !opensDialog(access, seen.phase, now.phase)) {
-    const phase = CONTENT.phases.find((entry) => entry.phaseId === now.phase);
-    lines.push(`Phase ${String(now.phase)}${phase ? ': ' + phase.title : ''}.`);
+    // Phase titles already lead with their number ("Phase 3: Distributed Survival..."); speak them as written.
+    const title = CONTENT.phases.find((entry) => entry.phaseId === now.phase)?.title;
+    lines.push(title === undefined ? `Phase ${String(now.phase)}.` : /^phase\b/i.test(title) ? `${title}.` : `Phase ${String(now.phase)}: ${title}.`);
   }
   const before = new Set(seen.widgets.split(' '));
   for (const id of now.widgets.split(' ')) {
@@ -52,7 +53,9 @@ export default function Announcer() {
     if (seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) setSeen({ ...now, message: '', seq: seen.seq });
   } else if (seen.phase !== phase || seen.widgets !== widgets || seen.aegis !== aegis) {
     const lines = eventLines(seen, now, access);
-    setSeen({ ...now, message: lines.length > 0 ? lines.join(' ') : seen.message, seq: seen.seq + (lines.length > 0 ? 1 : 0) });
+    // A change with nothing to say (the lock falling back, say) clears the region, so a virtual cursor never
+    // reads a warning that no longer holds.
+    setSeen({ ...now, message: lines.join(' '), seq: seen.seq + (lines.length > 0 ? 1 : 0) });
   }
   return <View testID="announcer" role="status" accessibilityLiveRegion="polite" style={styles.hidden}>
     {seen.message !== '' && <Text key={seen.seq} style={theme.text}>{seen.message}</Text>}
