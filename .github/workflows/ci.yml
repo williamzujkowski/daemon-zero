@@ -14,12 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: verify
+  # Three independent legs run in parallel; the required check `verify` (below) passes only when all of them do.
+  # One serial job measured 21-30+ min against a 30 min limit (#397 era), mostly two browser suites in a row.
+  checks:
+    name: checks
     runs-on: ubuntu-26.04
-    # The route suites folded into `make e2e` and `make e2e-pages` at release (#233) add about three
-    # minutes to each; the job measured 16.6 min before them against this limit (see the PR).
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       # Third-party actions are pinned by commit SHA; the comment records the tag.
       - name: Checkout
@@ -50,28 +50,74 @@ jobs:
       - name: Typecheck, lint, content, tests, balance
         run: make verify
 
-      - name: Install E2E browser
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Production web E2E
-        run: make e2e
-
-      # The stage atlas's gallery and per-cell evidence from `make e2e` (#341). Uploaded before the Pages run,
-      # because Playwright empties test-results/ when it starts; link it in UI PRs.
-      - name: Upload the stage atlas gallery
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: ui-atlas
-          path: test-results/ui-atlas/
-          if-no-files-found: warn
-          retention-days: 7
-
       - name: Security scans
         run: make security
 
       - name: SBOM
         run: make sbom
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          if-no-files-found: error
+
+  # `make e2e` split across two runners with Playwright's built-in sharding.
+  e2e:
+    name: e2e (${{ matrix.shard }}/2)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned toolchain (mise.toml)
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install E2E browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Production web E2E
+        run: make e2e E2E_ARGS="--shard=${{ matrix.shard }}/2"
+
+      # The stage atlas's gallery and per-cell evidence from `make e2e` (#341), one part per shard; link it in UI PRs.
+      - name: Upload the stage atlas gallery
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-atlas-${{ matrix.shard }}
+          path: test-results/ui-atlas/
+          if-no-files-found: warn
+          retention-days: 7
+
+  pages:
+    name: pages
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned toolchain (mise.toml)
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install E2E browser
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: GitHub Pages production web E2E
         run: make e2e-pages
@@ -82,12 +128,24 @@ jobs:
         with:
           path: dist/daemon-zero
 
-      - name: Upload SBOM
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: sbom-cyclonedx
-          path: sbom.cdx.json
-          if-no-files-found: error
+  # The required status check. Its name is unchanged, so branch protection and the deploy gate keep working;
+  # it fails unless every leg succeeded (a skipped, failed or timed-out leg is not a pass). A superseded run
+  # (concurrency) is cancelled whole and leaves no verdict on its abandoned commit.
+  verify:
+    name: verify
+    if: ${{ !cancelled() }}
+    needs: [checks, e2e, pages]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - name: All legs passed
+        env:
+          RESULTS: ${{ needs.checks.result }} ${{ needs.e2e.result }} ${{ needs.pages.result }}
+        run: |
+          echo "checks e2e pages: $RESULTS"
+          for result in $RESULTS; do
+            test "$result" = success || { echo "::error::a verification leg did not succeed ($RESULTS)"; exit 1; }
+          done
 
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
