@@ -116,8 +116,8 @@ const RUNNING_CLOCK_SETTLE_MS = 1500;
  *  while the fixture's response rung trailed its suspicion (#382), and 134-156 while [ REVIEW ] could shrink and wrap
  *  inside the notice (#162); any other change means a block mounted or left, or the name took a third line. */
 const RUNNING_CLOCK_OFFSET = { 'phase-1-widgets': 0, 'corporate-insolvent': 0 } as const;
-const WILD_NAME_WRAPS: ReadonlySet<string> = new Set(['small-phone', 'phone-360', 'phone-390', 'phone-large', 'tablet-portrait', 'breakpoint-edge', 'breakpoint-three']);
-function runningOffset(fixture: (typeof states)[number], size: string): number {
+const WILD_NAME_WRAPS: ReadonlySet<SizeName> = new Set<SizeName>(['small-phone', 'phone-360', 'phone-390', 'phone-large', 'tablet-portrait', 'breakpoint-edge', 'breakpoint-three']);
+function runningOffset(fixture: (typeof states)[number], size: SizeName): number {
   if (fixture === 'epistemic-ready-p2') return WILD_NAME_WRAPS.has(size) ? 70 : 48;
   return RUNNING_CLOCK_OFFSET[fixture];
 }
