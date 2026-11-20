@@ -8,6 +8,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { Element, HTMLElement, Window } from 'happy-dom';
 import { openRouteState } from './routeSave';
+import { overlaps, type MeasuredBox } from './textOverlap';
 import { enabledButtons, ROUTE_STATES } from './routeStates';
 
 async function doubleText(page: Page): Promise<void> {
@@ -27,15 +28,14 @@ async function doubleText(page: Page): Promise<void> {
 }
 
 /**
- * Text runs that spill out of their own box or out of the surface sideways, and pairs of text runs or
- * controls whose boxes overlap, measured in the page. A run nested in another, or in a control, is not a pair.
- * Overlap compares what is painted: each box is clipped to its scrolling ancestors, so a line scrolled under a
- * dialog's pinned footer (#371) is hidden by its scroll body, not drawn over the footer.
+ * Text runs that spill out of their own box or out of the surface sideways, measured in the page, and the boxes of
+ * text runs and controls with their scrolling ancestors, for the overlap test (textOverlap.ts). A run nested in
+ * another, or in a control, is not a pair. Runs in the page, so it carries its own helpers and imports nothing.
  */
-function layoutProblems(scopeId: string): { runs: number; problems: string[] } {
+function layoutProblems(scopeId: string): { runs: number; problems: string[]; boxes: MeasuredBox[]; nested: string[] } {
   const browser = globalThis as unknown as Window;
   const scope = browser.document.querySelector('[data-testid="' + scopeId + '"]');
-  if (scope === null) return { runs: 0, problems: ['no surface ' + scopeId] };
+  if (scope === null) return { runs: 0, problems: ['no surface ' + scopeId], boxes: [], nested: [] };
   const edge = scope.getBoundingClientRect();
   const name = (element: Element) => (element.getAttribute('data-testid') ?? '') + ' "' + element.textContent.trim().slice(0, 40) + '"';
   const leaves = [...scope.querySelectorAll<HTMLElement>('[dir="auto"]')].filter((element) => element.querySelector('[dir="auto"]') === null
@@ -46,27 +46,23 @@ function layoutProblems(scopeId: string): { runs: number; problems: string[] } {
     if (element.scrollWidth > element.clientWidth + 1 && browser.getComputedStyle(element).display !== 'inline') problems.push('spills its box: ' + name(element));
     if (box.left < edge.left - 1 || box.right > edge.right + 1) problems.push('outside the surface: ' + name(element));
   }
-  const boxes = [...leaves.filter((element) => element.closest('[role="button"]') === null), ...scope.querySelectorAll('[role="button"]')];
-  const painted = (element: Element) => {
-    let { left, top, right, bottom } = element.getBoundingClientRect();
+  const elements = [...leaves.filter((element) => element.closest('[role="button"]') === null), ...scope.querySelectorAll('[role="button"]')];
+  const rect = (element: Element) => { const r = element.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; };
+  const scrollers = new Map<Element, number>();
+  const clipsOf = (element: Element) => {
+    const clips: { id: number; rect: ReturnType<typeof rect> }[] = [];
     for (let parent = element.parentElement; parent !== null && parent !== scope.parentElement; parent = parent.parentElement) {
       const style = browser.getComputedStyle(parent);
       if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
-      const clip = parent.getBoundingClientRect();
-      left = Math.max(left, clip.left); top = Math.max(top, clip.top); right = Math.min(right, clip.right); bottom = Math.min(bottom, clip.bottom);
+      if (!scrollers.has(parent)) scrollers.set(parent, scrollers.size);
+      clips.push({ id: scrollers.get(parent) ?? -1, rect: rect(parent) });
     }
-    return { left, top, right, bottom };
+    return clips;
   };
-  for (let i = 0; i < boxes.length; i++) {
-    for (let j = i + 1; j < boxes.length; j++) {
-      const a = boxes[i], b = boxes[j];
-      if (!a || !b || a.contains(b) || b.contains(a)) continue;
-      const p = painted(a), q = painted(b);
-      const width = Math.min(p.right, q.right) - Math.max(p.left, q.left), height = Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top);
-      if (width > 1 && height > 1) problems.push('overlap: ' + name(a) + ' / ' + name(b));
-    }
-  }
-  return { runs: leaves.length, problems };
+  const boxes = elements.map((element) => ({ name: name(element), rect: rect(element), clips: clipsOf(element) }));
+  const nested: string[] = [];
+  elements.forEach((a, i) => { elements.forEach((b, j) => { if (i < j && (a.contains(b) || b.contains(a))) nested.push(`${String(i)}|${String(j)}`); }); });
+  return { runs: leaves.length, problems, boxes, nested };
 }
 
 for (const entry of ROUTE_STATES) {
@@ -87,7 +83,8 @@ for (const entry of ROUTE_STATES) {
     await expect(page.getByTestId(entry.reach)).toBeInViewport();
     const layout = await page.evaluate(layoutProblems, entry.scope);
     expect(layout.runs, 'text runs measured').toBeGreaterThan(0);
-    expect(layout.problems).toEqual([]);
+    const nested = new Set(layout.nested);
+    expect([...layout.problems, ...overlaps(layout.boxes, (i, j) => nested.has(`${String(i)}|${String(j)}`))]).toEqual([]);
     expect(await page.evaluate(() => {
       const browser = globalThis as unknown as Window;
       return browser.document.documentElement.scrollWidth <= browser.innerWidth + 1;
