@@ -1,7 +1,8 @@
 /**
  * Measured hard-gate failures of today's UI (#341), recorded rather than hidden: the gates keep their voted
  * thresholds and every row stays in the table. Each entry is asserted to STILL fail, so a fix flips the cell and
- * forces the entry out. `measured` is what the first atlas run recorded; `issue` is filled in by the audit ticket.
+ * forces the entry out. `measured` is what the first atlas run recorded; `issue` is the filed issue the fix lands under
+ * (the first audit, #343, filed them); a new entry needs its issue filed first.
  * Do not add an entry to get green without measuring it, and never loosen a threshold instead.
  */
 import type { GateFailure, GateRule } from './gates';
@@ -10,7 +11,7 @@ export type GatedViewport = '390x844' | '1440x900';
 
 interface GapBase {
   stage: string; viewport: GatedViewport; item: string;
-  measured: string; reason: string; issue: 'pending-audit' | `#${number}`;
+  measured: string; reason: string; issue: `#${number}`;
 }
 
 /**
@@ -31,14 +32,14 @@ const STANDING = 'the Review standing panel is fifth in the CORE pane, below the
 const RECALL = 'the recall announcement is inside that Review standing panel, so it shares its place far below the fold; it is an alert but nothing in the chrome carries it';
 
 export const KNOWN_GAPS: readonly KnownGap[] = [
-  { stage: 'menu-hazard-status', viewport: '390x844', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: 'pending-audit' },
-  { stage: 'menu-hazard-status', viewport: '1440x900', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: 'pending-audit' },
-  { stage: 'route-standing-restricted', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,2897,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: 'pending-audit' },
-  { stage: 'route-standing-restricted', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1883,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: 'pending-audit' },
-  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,3077,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: 'pending-audit' },
-  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1968,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: 'pending-audit' },
-  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 46,3425,298,584; visibleRatio 0; fold 844', reason: RECALL, issue: 'pending-audit' },
-  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.recall', rule: 'timely-fold', measured: 'box 386,2184,668,254; visibleRatio 0; fold 900', reason: RECALL, issue: 'pending-audit' },
+  { stage: 'menu-hazard-status', viewport: '390x844', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: '#366' },
+  { stage: 'menu-hazard-status', viewport: '1440x900', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: '#366' },
+  { stage: 'route-standing-restricted', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,2897,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
+  { stage: 'route-standing-restricted', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1883,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,3077,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1968,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 46,3425,298,584; visibleRatio 0; fold 844', reason: RECALL, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.recall', rule: 'timely-fold', measured: 'box 386,2184,668,254; visibleRatio 0; fold 900', reason: RECALL, issue: '#367' },
 ];
 
 const gapKey = (entry: { stage: string; viewport: string; rule: string; item: string }): string =>

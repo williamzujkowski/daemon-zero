@@ -76,9 +76,9 @@ describe('hard gates', () => {
 
 describe('known gaps', () => {
   const gap = (over: { viewport?: '390x844' | '1440x900' } = {}): KnownGap => ({ stage: 'p0-cold-start', viewport: '390x844', item: 'hud.cycles',
-    rule: 'timely-fold', measured: 'm', reason: 'r', issue: 'pending-audit', ...over });
+    rule: 'timely-fold', measured: 'm', reason: 'r', issue: '#1', ...over });
   const axeGap: KnownGap = { stage: 'menu-hazard-status', viewport: '390x844', item: 'label-content-name-mismatch', rule: 'axe',
-    axeNodes: { count: 1, targets: ['button[aria-label="Save code transfer"]'] }, measured: 'm', reason: 'r', issue: 'pending-audit' };
+    axeNodes: { count: 1, targets: ['button[aria-label="Save code transfer"]'] }, measured: 'm', reason: 'r', issue: '#1' };
   const axeFailure = (count: number, detail: string): GateFailure => ({ stage: 'menu-hazard-status', viewport: '390x844',
     item: 'label-content-name-mismatch', rule: 'axe', measured: { value: count, detail }, anchor: 'menu-hazard-status--390x844' });
   const failing = gateFailures(cell(metrics([raw()]), [measure({ inFirstViewport: false })]));

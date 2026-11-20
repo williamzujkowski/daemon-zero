@@ -109,7 +109,7 @@ describe('C2 and B5: what stays put', () => {
 describe('recorded transition gaps', () => {
   it('reconcile under the atlas rule: a recorded failure is known, an unrecorded one is not, a vanished one is fixed', () => {
     const failing = transitionFailures(input({ appear: appear({ focus: true }) }));
-    const gap: KnownGap<TransitionRule> = { stage: 't-skim-unlock', viewport: '390x844', item: 'skim.increase', rule: 'focus-lost', measured: 'focus is on the page body', reason: 'x', issue: 'pending-audit' };
+    const gap: KnownGap<TransitionRule> = { stage: 't-skim-unlock', viewport: '390x844', item: 'skim.increase', rule: 'focus-lost', measured: 'focus is on the page body', reason: 'x', issue: '#1' };
     expect(reconcile(failing, [gap], 't-skim-unlock', '390x844')).toMatchObject({ unexpected: [], fixed: [] });
     expect(reconcile(failing, [], 't-skim-unlock', '390x844').unexpected).toHaveLength(1);
     expect(reconcile([], [gap], 't-skim-unlock', '390x844').fixed).toEqual([gap]);

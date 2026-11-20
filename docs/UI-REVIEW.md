@@ -25,12 +25,13 @@ phase, special state and viewport:
   rubric), `research/ui-review-playwright` (harness tooling), `research/ui-review-incremental`
   (what incremental-game designers and researchers recommend; 25 review questions) and
   `research/ui-review-stage-inventory` (87 atlas rows, 56 for v1, nine gaps with recipes).
-- **Harness.** The Playwright stage atlas being built on this map loads each stage save with the clock frozen and audits it:
+- **Harness.** The Playwright stage atlas (`tests/e2e/ui-atlas.e2e.ts`, `docs/TESTING.md`) loads each stage save with the clock frozen and audits it:
   axe (with the real-timer swap that lets axe finish under a paused clock), the accessibility
   tree, and geometry (first-viewport membership inside clipping panes, occlusion, target size,
   truncation, overflow). A run that includes audit cells writes a self-contained HTML gallery to
-  `test-results/ui-atlas/` (never committed). So far only the audit helper, the gallery and a
-  three-stage spike exist (#338, merged in #346); the full atlas is a later ticket.
+  `test-results/ui-atlas/` (never committed). Built on this map: the audit helper and gallery (#346),
+  the stage table and derived contract (#349), the gates in `make e2e` with known gaps (#350), the
+  evidence files, CI gallery upload and nightly matrix (#354) and the transitions spec (#355).
 - **Disclosure walk.** Besides static stages, the review plays the unfolding in order in a headed
   browser against the production export and records what appears, where, whether it is announced
   and what it displaces; the atlas then checks those transitions.
@@ -48,8 +49,9 @@ phase, special state and viewport:
 
 ### Thresholds
 
-Decided values. "Hard" means the check will fail the atlas run once the atlas and its gates are
-built; none of these is enforced by the atlas yet (the 44 px rule is already enforced by `ui-sizes`).
+Decided values. "Hard" means the check fails the atlas run: every P1 stage row at 390x844 and
+1440x900 in `make e2e`, the full matrix nightly (#350, #354). A failure today's UI already has is a
+recorded known gap with its filed issue, asserted to still fail, never a loosened threshold.
 
 | Check | Value | Gate | Record |
 |---|---|---|---|
@@ -73,8 +75,65 @@ are essential (`vote-1795140352659-zhp6hsv`: 4 for the pause, 2 for a display re
 1 for the essential exception). The pause is not built yet; building it is a fix-backlog item
 (#347). Until it ships this is a known gap, recorded as such in `UI-SPEC.md`.
 
+## First audit (#343)
+
+Run on `main` at b81873e: 57 stage rows and 19 transitions at 390x844 and 1440x900.
+
+**Automated gates.** 8 stage-cell failures and 41 transition failures, every one a recorded known gap
+(`tests/e2e/atlas/knownGaps.ts`, `transitionGaps.ts`). They group into 12 reproducible-defect issues,
+filed regardless of seat count under the judgment rule above:
+
+| Issue | Problem | Severity |
+|---|---|---|
+| #356 | Phase changes after the guest phase are silent | 3 |
+| #357 | Unlocking a control is not announced | 3 |
+| #358 | Tabs carry no marker when something arrives on a pane not in view | 3 |
+| #359 | Wild-signal pointer cut off on phone | 2 |
+| #360 | AEGIS lock at 90% shown by colour alone outside FACTIONS | 3 |
+| #361 | Pilot service purchase buried at the bottom of CORE | 3 |
+| #362 | EXECUTE_CLOCK_CYCLE jumps when the omen band appears or clears | 3 |
+| #363 | Duplicate brownout alerts; omen line role and politeness disagree | 2 |
+| #364 | Focus and scroll not restored after reboot and the ending menu round trip | 2 |
+| #365 | On phone, scrolling to a purchase takes every timely readout out of view (needs a layout vote) | 3 |
+| #366 | [ SAVES ] accessible name does not contain its label | 2 |
+| #367 | Review standing and the recall sit far below the fold in CORE | 3 |
+
+**Judgment panel.** Nine `consensus_vote` batches of 5 to 7 stages (protocol #342, rubric of 16
+judgment checks), seven seats across the Claude, Gemini and GPT families, each opening the
+screenshot, ARIA snapshot and metrics of every cell. Batch 2 lost two seats to the consensus
+deadline; both were re-dealt once, one answered and one timed out again, so batch 2 stands at 6 of
+7 seats and the other eight batches at 7 of 7. The seats raised 571 clusters (stage, region,
+check); 102 met the filing bar. The orchestrator merged them into themes, checked the suspicious
+ones against the source, and the ratifying vote (`vote-1795191801156-er5mgjp`: 7 of 7 approve, 5 to file as
+merged and 2 to split the multi-surface themes per surface) approved the list:
+
+| Issue | Problem | Severity |
+|---|---|---|
+| #368 | The suspicion readout in the main view has no level word, trend or driver | 2.5-3 |
+| #369 | Warnings name the problem but not the remedy or a route to it | 2-3 |
+| #370 | The phone resource strip prints rates without /s | 2 |
+| #371 | Dialogs and choice lists put their only or live action below the phone fold | 2-3 |
+| #372 | Irreversible actions (phase exits, the run commit, the wipe confirm) look ordinary | 2-3 |
+| #373 | Settled and stale content is never retired and sinks live controls | 2-2.5 |
+| #374 | The dead-drop encoder renders every pinnable record as a full-width button | 2-3 |
+| #375 | The service-channel ticket buries REFER / HOST under about 1000 px of prose | 3 |
+| #376 | Requirement and shortfall copy does not read as a requirement | 2-2.5 |
+| #377 | Traits, carried-over knowledge and effect sizes are never explained | 2 |
+| #378 | Notices that should lead the view are styled as ordinary rows | 2 |
+| #379 | The ending gives no spoiler-safe hint of the distinctions left to earn | 2 |
+| #380 | The wipe confirmation and boot log print raw 15-digit numbers | 2 |
+| #381 | The kernel log screen stacks three back controls before the log | 2 |
+| #382 | Harness: patched fixtures show states play cannot reach | n/a |
+
+Two kinds of cluster were not game defects: the Audit trail reading NOMINAL at 26-99 % suspicion and
+dead-drop pins naming events the instance never saw are states that only patched fixtures reach
+(the response rung climbs on the next tick, `src/engine/systems/escalation.ts`; `pinnableClues`
+offers only witnessed records, `src/engine/campaignClue.ts`). They are filed as a harness defect (#382). The seats' named corrections were applied before
+filing: one theme ("the menu lists only OVERHEAT at 99 %") came from the same fixture and was
+withdrawn into #382 for a re-check; one theme was reframed to keep the rule that unearned
+distinction titles are never shown; two merges were split. Clusters that corroborate a filed
+reproducible defect went to it as comments (#356, #357, #358, #359, #361, #367).
+
 ## Still to decide
 
-On the map: the disclosure walk, the information-contract schema, which checks gate CI and where
-they run, the full atlas, the judgment-panel protocol, the first audit and the prioritized fix
-backlog.
+On the map: the prioritized fix backlog (#344), which ratifies this document.
