@@ -26,6 +26,12 @@ export async function closeKernelHistory(page: Page, opened: 'band' | 'menu'): P
 
 interface BrowserStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
 const fixtures = makeFixtures();
+/** One fixture's save code from the set this worker already generated; the stage atlas reads it too. */
+export function fixtureCode(name: string): string {
+  const code = fixtures[name];
+  if (!code) throw new Error('Missing fixture ' + name);
+  return code;
+}
 
 export const test = base.extend<{ cleanConsole: undefined }>({
   cleanConsole: [async ({ page }, use) => {
@@ -59,8 +65,7 @@ export async function boot(page: Page, fixture?: string,
     await page.clock.pauseAt(Date.now() + 1000);
   }
   if (fixture) {
-    const code = fixtures[fixture];
-    if (!code) throw new Error('Missing fixture ' + fixture);
+    const code = fixtureCode(fixture);
     // `patch` reaches states no engine-played fixture holds (a decoded forecast with an
     // interrupt inbound). The result still goes through serialize and normal hydration.
     const loaded = importSave(code, CONTENT);
