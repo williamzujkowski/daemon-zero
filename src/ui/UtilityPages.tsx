@@ -16,7 +16,8 @@ export function MenuButton({ id, label, press, danger = false, caption = label }
 
 function RootPage({ menu }: { menu: UtilityMenu }) {
   return <View testID="menu-root" style={{ gap: 14 }}>
-    <MenuButton id="save-open" label="Save code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
+    {/* The accessible name starts with the visible word so voice control can say what it sees (WCAG 2.5.3, #366). */}
+    <MenuButton id="save-open" label="Saves: code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
     <MenuButton id="menu-audio" label="Audio" press={() => { menu.navigate('audio'); }} />
     <MenuButton id="menu-help" label="Help and about" press={() => { menu.navigate('help'); }} />
     {/* The phone tier drops the kernel dock band to keep the first purchase above the fold
@@ -26,9 +27,9 @@ function RootPage({ menu }: { menu: UtilityMenu }) {
   </View>;
 }
 
-function KernelPage({ menu }: { menu: UtilityMenu }) {
+function KernelPage() {
   return <View testID="menu-kernel-log" style={{ gap: 12, flex: 1, minHeight: 0 }}>
-    <MenuButton id="kernel-back" label="Back to menu" press={menu.back} />
+    {/* The menu chrome already carries Back and Close; a third control here only pushed the log down (#381). */}
     <KernelLog />
   </View>;
 }
@@ -79,6 +80,6 @@ export default function UtilityPages({ menu }: { menu: UtilityMenu }) {
   if (menu.route === 'save') return <SavePage menu={menu} />;
   if (menu.route === 'audio') return <AudioSettings />;
   if (menu.route === 'help') return <HelpPage />;
-  if (menu.route === 'log') return <KernelPage menu={menu} />;
+  if (menu.route === 'log') return <KernelPage />;
   return <Confirmation menu={menu} />;
 }

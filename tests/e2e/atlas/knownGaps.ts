@@ -29,14 +29,10 @@ export interface AxeNodes { count: number; targets: readonly string[] }
  */
 export type KnownGap<R extends string = GateRule> = GapBase & (R extends 'axe' ? { rule: R; axeNodes: AxeNodes } : { rule: R });
 
-const LABEL = 'the menu button reads "[ SAVES ]" but is named "Save code transfer" (WCAG 2.5.3); no other spec opens the root menu with axe';
-const SAVES_NODE = { count: 1, targets: ['button[aria-label="Save code transfer"]'] } as const;
 const STANDING = 'the Review standing panel is fifth in the CORE pane, below the job, pilot, pilot service and service panels (about 1.9k px down at 1440, 3k at 390); nothing in the chrome names it';
 const RECALL = 'the recall announcement is inside that Review standing panel, so it shares its place far below the fold; it is an alert but nothing in the chrome carries it';
 
 export const KNOWN_GAPS: readonly KnownGap[] = [
-  { stage: 'menu-hazard-status', viewport: '390x844', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: '#366' },
-  { stage: 'menu-hazard-status', viewport: '1440x900', item: 'label-content-name-mismatch', rule: 'axe', axeNodes: SAVES_NODE, measured: '1 node: button[aria-label="Save code transfer"]', reason: LABEL, issue: '#366' },
   { stage: 'route-standing-restricted', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,2897,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
   { stage: 'route-standing-restricted', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1883,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: '#367' },
   { stage: 'route-recall-announced', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,3077,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
