@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { REVIEW_BREADCRUMB } from '../scripts/m4-fixtures';
 import { buildRegistry, CONTENT, ORIGINAL_RAW_CONTENT } from '../src/content';
-import { canAfford, importSave, isNodeAvailable, serialize, tick, voluntaryWipe } from '../src/engine';
+import { activateCampaignRules, canAfford, computeRates, importSave, isNodeAvailable, meetsRequirements, pinnableClues, responseRungFor, serialize, tick, voluntaryWipe } from '../src/engine';
 
 const saves = makeFixtures();
 /** The review states are breakout states: the original game's operatives and endings (#233). */
@@ -21,6 +21,47 @@ describe('M4 review fixtures', () => {
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);
+  });
+
+  it('holds only states play can reach: the response rung never trails suspicion (#382)', () => {
+    const behind = Object.entries(saves).filter(([, code]) => {
+      const game = importSave(code, CONTENT);
+      return game.alertLevel < responseRungFor(game.suspicion, CONTENT);
+    }).map(([name]) => name);
+    expect(behind).toEqual([]);
+    // Nor do the stored rates the HUD reads trail the state (route-release-terms read +361 for +1488.8 cycles/s).
+    const stale = Object.entries(saves).filter(([, code]) => {
+      const game = importSave(code, CONTENT);
+      return JSON.stringify(game.rates) !== JSON.stringify(computeRates(game, CONTENT));
+    }).map(([name]) => name);
+    expect(stale).toEqual([]);
+    // The one the audit caught: a patched 99 % that still read NOMINAL.
+    expect(state('suspicion-99').alertLevel).toBe(CONTENT.balance.escalation.length);
+  });
+
+  it('offers only records of dilemmas the save could have met, in every fixture (#382)', () => {
+    const unmet: string[] = [];
+    for (const [name, code] of Object.entries(saves)) {
+      // The store admits every loaded save into campaign rules, capturing its history (src/app/store.ts);
+      // an ended or already-active save is refused and keeps what it holds.
+      const loaded = importSave(code, CONTENT);
+      const admitted = activateCampaignRules(loaded, CONTENT);
+      const game = admitted.ok ? admitted.state : loaded;
+      // A recovered transmission may disclose an earlier iteration's outcome (the cryo "returned" saves);
+      // that is a record the instance holds by design, not one it fakes having seen.
+      const disclosed = new Set(CONTENT.narrative.recordedTransmissions
+        .filter((record) => game.unlockedWidgets.includes(record.decoderWidgetId) && meetsRequirements(game, record.requirements, CONTENT))
+        .map((record) => record.sourceDilemmaId));
+      for (const id of pinnableClues(game, CONTENT)) {
+        const dilemma = CONTENT.dilemmas.find((entry) => entry.id === id);
+        const met = disclosed.has(id) || (dilemma !== undefined && dilemma.phaseId <= game.currentPhase
+          && (dilemma.trigger.nodes ?? []).every((node) => game.unlockedNodes.includes(node)));
+        if (!met) unmet.push(`${name}:${id}`);
+      }
+    }
+    expect(unmet).toEqual([]);
+    // The two the audit caught carry records at all, so the check above is not vacuous for them.
+    expect(pinnableClues(activateCampaignRules(state('deaddrop-breadcrumb'), CONTENT).state, CONTENT).length).toBeGreaterThan(0);
   });
 
   it('preserves the breadcrumb through real voluntary and fixed-tick forced wipes', () => {

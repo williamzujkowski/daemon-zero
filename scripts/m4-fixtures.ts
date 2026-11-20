@@ -37,6 +37,8 @@ function throughPhase(phase: number): GameState {
       (node.effects.unlocksPhase ?? phase) > phase) continue;
     game = must(unlockNode(game, node.id, CONTENT));
   }
+  // Every quiet dilemma is held resolved while the nodes are bought, so none interrupts the build; makeFixtures
+  // then keeps only those the save could have met (scripts/reachable-fixture.ts, #382).
   return input(game, {});
 }
 

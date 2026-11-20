@@ -20,7 +20,7 @@ export const LATE_STAGES: readonly StageRow[] = [
     pane: 'CONTINGENCY', prepare: click('wipe-button'), reach: 'wipe-dialog', overrides: { overlay: 'confirm-wipe' },
     extraViewports: OVERLAY_SIZES, why: 'The destructive confirm for a voluntary wipe.' },
   { id: 'p2-max-hazard', phase: 2, access: 'GUEST', source: { kind: 'fixture', name: 'suspicion-99' }, tags: ['hazard', 'patched'],
-    reach: 'thermal-meter', extraViewports: ['844x390'], why: 'Every hazard at once: suspicion 99, thermal 100, fan off.' },
+    reach: 'thermal-meter', extraViewports: ['844x390'], why: 'Every hazard at once: suspicion 99, thermal 100, fan already at 100%.' },
   { id: 'p2-cryo-modal', phase: 2, access: 'GUEST', source: { kind: 'fixture', name: 'cryo-decision-ready' }, tags: ['modal', 'wild'],
     reach: 'dilemma-modal', extraViewports: OVERLAY_SIZES, why: 'The recorded-transmission dilemma, with voice.' },
   { id: 'p3-mid-density', phase: 3, access: 'GUEST', source: { kind: 'campaign', name: 'phase-3-mid' }, tags: ['density'],
