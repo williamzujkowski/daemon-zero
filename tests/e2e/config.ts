@@ -40,7 +40,8 @@ const remoteProjects = [
 export default defineConfig({
   testDir: '.', testMatch: '**/*.e2e.ts', fullyParallel: true, forbidOnly: !!process.env.CI,
   retries: 0, workers: 2, timeout: 60_000,
-  reporter: process.env.CI ? 'github' : 'list',
+  // The gallery reporter writes test-results/ui-atlas/ only when a run holds UI audit cells (ui-atlas-spike).
+  reporter: [[process.env.CI ? 'github' : 'list'], ['./audit/galleryReporter.ts']],
   use: { baseURL, testIdAttribute: 'data-testid', trace: 'retain-on-failure' },
   projects: remote ? remoteProjects : [
     { name: 'phone', testIgnore: ignored, use: { viewport: { width: 390, height: 844 } } },
