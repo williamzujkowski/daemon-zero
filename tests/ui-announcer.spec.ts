@@ -5,7 +5,7 @@ import { act } from 'react';
 import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import type { GameState } from '../src/engine';
+import { thresholdCopy, type GameState } from '../src/engine';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -33,6 +33,22 @@ it('speaks a phase change the boundary dialog does not already open for (#356)',
   expect(spoken).toMatch(new RegExp('^Phase ' + String(next.phaseId) + '\\b'));
   expect(spoken).not.toMatch(/Phase \d+\W+Phase/);
   expect(spoken).toBe(next.title + '.');
+});
+
+it('speaks the arrangement\'s own phase title, not the guest\'s (#394 panel)', async () => {
+  const view = await mountM4('phase-2-unlocked', { width: 390, height: 844 });
+  const before = gameStore.store.getState().game;
+  // An arrangement whose phase has its own title and whose crossing opens no boundary dialog.
+  const variant = CONTENT.contextCopy.phases.find((entry) => entry.provenance === undefined && entry.phaseId > 0
+    && entry.contexts.every((context) => thresholdCopy({ access: { ...before.access, context } }, entry.phaseId - 1, entry.phaseId, CONTENT) === null));
+  const context = variant?.contexts[0];
+  if (!variant || context === undefined) throw new Error('no arrangement phase title without a boundary dialog');
+  const access = { ...before.access, context };
+  advanceTo({ ...before, access, currentPhase: variant.phaseId - 1 });
+  advanceTo({ ...gameStore.store.getState().game, currentPhase: variant.phaseId });
+  const guest = CONTENT.phases.find((phase) => phase.phaseId === variant.phaseId)?.title;
+  expect(view.find('announcer')?.textContent).toBe(variant.title + '.');
+  expect(variant.title).not.toBe(guest);
 });
 
 it('speaks each newly unlocked widget by its title and slot (#357)', async () => {

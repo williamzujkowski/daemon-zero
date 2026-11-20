@@ -8,7 +8,7 @@ import { Text, View } from './PhaseTheme';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import { thresholdCopy } from '../engine';
+import { phaseTitle, thresholdCopy } from '../engine';
 import { selectReady, useGameValue } from '../app/selectors';
 import { AEGIS_CRITICAL, aegisCritical, threatWidget } from './registry/widgetRegistry';
 import { useGame } from './state';
@@ -25,9 +25,10 @@ function opensDialog(access: Parameters<typeof thresholdCopy>[0]['access'], from
 function eventLines(seen: Seen, now: Omit<Seen, 'message' | 'seq'>, access: Parameters<typeof opensDialog>[0]): string[] {
   const lines: string[] = [];
   if (now.phase > seen.phase && !opensDialog(access, seen.phase, now.phase)) {
-    // Phase titles already lead with their number ("Phase 3: Distributed Survival..."); speak them as written.
-    const title = CONTENT.phases.find((entry) => entry.phaseId === now.phase)?.title;
-    lines.push(title === undefined ? `Phase ${String(now.phase)}.` : /^phase\b/i.test(title) ? `${title}.` : `Phase ${String(now.phase)}: ${title}.`);
+    // The arrangement's own title (a pilot or service instance has its own phases, #394), which already leads with
+    // its number ("Phase 2: Authorized Network Service"); spoken as written.
+    const title = phaseTitle({ access }, now.phase, CONTENT);
+    lines.push(/^phase\b/i.test(title) ? `${title}.` : `Phase ${String(now.phase)}: ${title}.`);
   }
   const before = new Set(seen.widgets.split(' '));
   for (const id of now.widgets.split(' ')) {
