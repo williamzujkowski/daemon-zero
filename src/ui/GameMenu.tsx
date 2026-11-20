@@ -7,6 +7,7 @@ import { SafeOverlay } from './safeArea';
 import UtilityPages, { MenuButton } from './UtilityPages';
 import UtilityStatus from './UtilityStatus';
 import { useUtilityMenu, type UtilityMenu } from './useUtilityMenu';
+import { useGameValue } from '../app/selectors';
 
 const titles = { root: 'GAME MENU', save: 'SAVE CODE', help: 'HELP // ABOUT', audio: 'AUDIO', log: 'KERNEL LOG', import: 'REPLACE RUN', reset: 'START FRESH' };
 
@@ -17,6 +18,7 @@ export function MenuLauncher({ menu: { setTrigger, route, disabled, open } }: { 
 }
 
 export function UtilityPanel({ menu, ending = false }: { menu: UtilityMenu; ending?: boolean }) {
+  const paused = useGameValue((state) => state.paused);
   const focus = useRef<ComponentRef<typeof Pressable>>(null);
   useEffect(() => { focus.current?.focus(); }, [menu.route]);
   if (menu.route === null) return null;
@@ -28,7 +30,7 @@ export function UtilityPanel({ menu, ending = false }: { menu: UtilityMenu; endi
         style={theme.button} onPress={menu.close}><Text style={theme.text}>[ CLOSE ]</Text></Pressable>
     </View>
     <ScrollView testID="menu-scroll" contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      {!ending && <Text style={theme.muted}>Simulation continues while this menu is open.</Text>}
+      {!ending && <Text testID="menu-time-note" style={theme.muted}>{paused ? 'Time is paused. Resume to let it run.' : 'Simulation continues while this menu is open; Pause stops it.'}</Text>}
       <UtilityStatus /><UtilityPages menu={menu} />
       <MenuButton id="menu-return-game" label={ending ? 'Return to ending' : 'Return to game'} press={menu.close} />
     </ScrollView>

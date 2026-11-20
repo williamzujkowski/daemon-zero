@@ -74,11 +74,11 @@ construction today, since `theme.disabled` changes border and background but not
 
 ### Auto-updating content (WCAG 2.2 SC 2.2.2)
 
-The game does **not** meet SC 2.2.2 today. The decision is to meet it with a **persisted pause in
-MENU** that also suspends wall-clock catch-up while paused, rather than claiming the ticking counters
-are essential (`vote-1795140352659-zhp6hsv`: 4 for the pause, 2 for a display refresh-rate setting,
-1 for the essential exception). The pause is not built yet; building it is a fix-backlog item
-(#347). Until it ships this is a known gap, recorded as such in `UI-SPEC.md`.
+The game meets SC 2.2.2 with a **persisted pause in MENU** that also suspends wall-clock catch-up
+while paused, rather than claiming the ticking counters are essential (`vote-1795140352659-zhp6hsv`:
+4 for the pause, 2 for a display refresh-rate setting, 1 for the essential exception). It shipped in
+fix batch F7 (#347). The flag is stored in the save envelope beside `savedAtMs`, not in `GameState`
+(`vote-1795214789307-78d7g5s`, 7/7), so the engine is unchanged and exported save codes do not carry it.
 
 ## First audit (#343)
 

@@ -89,8 +89,10 @@ export class LivePlayer {
   async read(): Promise<GameState> {
     const stored = () => this.page.evaluate((key) => (globalThis as unknown as { localStorage: Storage }).localStorage.getItem(key), SAVE_KEY);
     await expect.poll(stored, 'the app writes its autosave').not.toBeNull();
-    const envelope = JSON.parse(await stored() ?? '{}') as { version: number; savedAtMs: number; game: string };
-    expect(envelope.version).toBe(1);
+    const envelope = JSON.parse(await stored() ?? '{}') as { version: number; savedAtMs: number; paused?: boolean; game: string };
+    // Version 2 carries the player's pause (#347); a live run is never paused unless it chose to be.
+    expect(envelope.version).toBe(2);
+    expect(envelope.paused).toBe(false);
     const state = deserialize(envelope.game, CONTENT);
     this.where = describe(state);
     return state;

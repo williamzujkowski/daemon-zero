@@ -45,8 +45,10 @@ scoped to the iteration so they cannot survive a live wipe.
   async native write cannot overwrite a newer checkpoint. A web pagehide write
   starts synchronously before returning to the browser.
 
-The strict app envelope is `{ version: 1, savedAtMs, game: serialize(game) }` under
-`daemon-zero.save.v1`. `GameState` itself is unchanged. Reads validate the bounded
+The strict app envelope is `{ version: 2, savedAtMs, paused, game: serialize(game) }` under
+`daemon-zero.save.v1`; a version 1 envelope (no `paused`) is read as not paused. `paused` is the
+player's pause (#347): while it is set the store's `step` applies no time, live or as catch-up, and a
+paused save loads with no catch-up for the time away. `GameState` itself is unchanged. Reads validate the bounded
 JSON envelope and use engine `deserialize` to validate/migrate/reconcile the game.
 The loader also bounds pending live time before passing untrusted state to catch-up.
 On `SaveError`, the original raw value is stored at
