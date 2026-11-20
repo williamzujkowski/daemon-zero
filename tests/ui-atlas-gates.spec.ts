@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { countMetrics, elementMetric, type AuditMetrics, type RawElement } from './e2e/audit/metrics';
 import { expectedTemplate, parseBaseline, renderBaseline, templateLine } from './e2e/atlas/ariaTemplate';
 import type { ItemMeasure } from './e2e/atlas/contractCheck';
-import { cowanFlags, formatFailure, gateFailures, hickJumps, reported } from './e2e/atlas/gates';
+import { cowanFlags, formatFailure, gateFailures, hickJumps, reported, type GateFailure } from './e2e/atlas/gates';
 import { KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
 import { isStageId } from './e2e/atlas/types';
 import { summarize } from './e2e/audit/atlasCard';
@@ -75,13 +75,24 @@ describe('hard gates', () => {
 });
 
 describe('known gaps', () => {
-  const gap = (over: Partial<KnownGap> = {}): KnownGap => ({ stage: 'p0-cold-start', viewport: '390x844', item: 'hud.cycles', rule: 'timely-fold',
-    measured: 'm', reason: 'r', issue: 'pending-audit', ...over });
+  const gap = (over: { viewport?: '390x844' | '1440x900' } = {}): KnownGap => ({ stage: 'p0-cold-start', viewport: '390x844', item: 'hud.cycles',
+    rule: 'timely-fold', measured: 'm', reason: 'r', issue: 'pending-audit', ...over });
+  const axeGap: KnownGap = { stage: 'menu-hazard-status', viewport: '390x844', item: 'label-content-name-mismatch', rule: 'axe',
+    axeNodes: { count: 1, targets: ['button[aria-label="Save code transfer"]'] }, measured: 'm', reason: 'r', issue: 'pending-audit' };
+  const axeFailure = (count: number, detail: string): GateFailure => ({ stage: 'menu-hazard-status', viewport: '390x844',
+    item: 'label-content-name-mismatch', rule: 'axe', measured: { value: count, detail }, anchor: 'menu-hazard-status--390x844' });
   const failing = gateFailures(cell(metrics([raw()]), [measure({ inFirstViewport: false })]));
 
   it('separates recorded failures from new ones', () => {
     expect(reconcile(failing, [gap()], 'p0-cold-start', '390x844')).toMatchObject({ unexpected: [], fixed: [] });
     expect(reconcile(failing, [], 'p0-cold-start', '390x844').unexpected).toHaveLength(1);
+  });
+
+  it('waives only the recorded axe nodes, never a whole rule: a new node under the same rule is unexpected', () => {
+    const recorded = 'button[aria-label="Save code transfer"]';
+    expect(reconcile([axeFailure(1, recorded)], [axeGap], 'menu-hazard-status', '390x844')).toMatchObject({ unexpected: [], fixed: [] });
+    expect(reconcile([axeFailure(2, `${recorded} | button[aria-label="Audio"]`)], [axeGap], 'menu-hazard-status', '390x844').unexpected).toHaveLength(1);
+    expect(reconcile([axeFailure(1, 'button[aria-label="Audio"]')], [axeGap], 'menu-hazard-status', '390x844').unexpected).toHaveLength(1);
   });
 
   it('reports a recorded gap the cell no longer shows, so a fix forces the entry out', () => {
