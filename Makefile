@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim sim-report verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-atlas-aria e2e-live e2e-live-pages e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
+.PHONY: help setup typecheck lint validate test sim sim-report verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-atlas e2e-atlas-aria e2e-live e2e-live-pages e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -96,9 +96,15 @@ e2e-live: build-web ## Full live playthrough, fresh profile to an ending, phone 
 e2e-audio: build-web ## Rendered-audio signal measurements for every phase score and loop seam (~1 min)
 	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_AUDIO=1 pnpm exec playwright test --config tests/e2e/config.ts --project audio $(E2E_ARGS)
 
-# The stage atlas (#341): `make e2e` runs its gated cells (every P1 row at 390x844 and 1440x900). This
-# rewrites tests/e2e/atlas/aria-baseline.txt from those cells. Run it in a Playwright-bump PR, or when a
-# contract item is renamed on purpose, and review the diff; gate failures still print but do not stop it.
+# The stage atlas (#341). `make e2e` already runs its gated cells (every P1 row at 390x844 and 1440x900).
+# This adds the full matrix: each row at the 360x640 floor and its extra sizes, reported only. The nightly
+# `ui-atlas` workflow runs it. See docs/TESTING.md, "Stage atlas".
+ATLAS_PROJECTS := --project phone --project desktop --project atlas-matrix
+e2e-atlas: build-web ## Stage atlas full matrix: every row at 390x844, 1440x900, 360x640 and its extra sizes (gallery in test-results/ui-atlas/)
+	$(E2E_LOCK) $(E2E_ENV) DAEMON_E2E_ATLAS=1 pnpm exec playwright test --config tests/e2e/config.ts ui-atlas $(ATLAS_PROJECTS) $(E2E_ARGS)
+
+# Rewrites tests/e2e/atlas/aria-baseline.txt from the gated cells. Run it in a Playwright-bump PR, or when a
+# contract item is renamed on purpose, and review the diff; gate failures still print but do not stop the rewrite.
 e2e-atlas-aria: build-web ## Regenerate the stage atlas's committed partial ARIA baseline
 	$(E2E_LOCK) $(E2E_ENV) DAEMON_ATLAS_ARIA=update pnpm exec playwright test --config tests/e2e/config.ts ui-atlas.e2e --project phone --project desktop $(E2E_ARGS)
 

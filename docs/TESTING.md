@@ -199,6 +199,7 @@ The stage atlas audits every screen a player meets, one cell per stage and viewp
 ```bash
 make build-web
 bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas.e2e --project phone --project desktop
+make e2e-atlas        # the full matrix: also 360x640 and each stage's extra sizes, reported only
 make e2e-atlas-aria   # regenerate the committed partial ARIA baseline (Playwright bumps, deliberate renames)
 ```
 
@@ -208,7 +209,7 @@ make e2e-atlas-aria   # regenerate the committed partial ARIA baseline (Playwrig
 gap recipe built in place and labelled FIXTURE), an optional patch, tags, the tab and workspace area, a page
 step for live-only overlays (thresholds, reveals, the live reboot, the response notice, menus, PROC, confirms),
 the test id that proves the cell reached its stage, the ending an ended save must hold, overrides for the
-contract, and extra viewports (from the inventory's viewport note, for a full-matrix run). `atlas/open.ts` writes the save into a fresh context, installs and
+contract, and extra viewports for the matrix. `atlas/open.ts` writes the save into a fresh context, installs and
 pauses the clock with the native timers kept for axe, keeps or passes the reboot screen, opens the tab and area,
 runs the page step and waits for the reach id. Saves are generated once per worker and memoised
 (`atlas/sources.ts`): `makeFixtures()` when `helpers.ts` loads, the careful campaign once, the cooperative
@@ -237,7 +238,7 @@ computed from the composited colours; and every contract item present. Elements 
 separately. **Reported only** (gallery, `summary.json`): the Hick curve (enabled controls in the first viewport;
 a stage-to-stage rise above 3 is flagged), Cowan groups (numbers that change over one game second, run last in
 the cell, more than 4 in one labelled group flagged), the largest-size run count, controls under a dialog, the
-role-less fallback count.
+role-less fallback count, and in the matrix every gate at 360x640 and the extra sizes.
 
 A failure prints one line: stage, viewport, item, rule, measured numbers (box, visible ratio, fold) and the
 gallery anchor (`#<stage>--<width>x<height>`). **Known gaps.** A failure today's UI already has is recorded in
@@ -254,8 +255,10 @@ is renamed on purpose, and review the diff.
 
 **Evidence.** The gallery reporter (`tests/e2e/audit/galleryReporter.ts`) writes, under the gitignored
 `test-results/ui-atlas/`: `index.html` (one self-contained card per cell: screenshot, figures, gate failures with
-known gaps marked, contract items, reported metrics, ARIA snapshot and metrics) and `summary.json`. Screenshots
-are never committed; attach the gallery to a UI PR. The audit
+known gaps marked, contract items, reported metrics, ARIA snapshot and metrics), `summary.json`, and for the
+judgment panel `cells/<stage>--<width>x<height>.png`, `.aria.yml` and `.json` per cell. CI uploads the folder as
+the `ui-atlas` artifact (7 days) after `make e2e`, before `make e2e-pages` empties it; the nightly `ui-atlas`
+workflow runs `make e2e-atlas` and uploads `ui-atlas-matrix`. Screenshots are never committed. The audit
 helper itself (geometry, axe on the paused clock through `captureRealTimers`, the pure rules in
 `tests/ui-audit-metrics.spec.ts`) is unchanged from the #338 spike, which the atlas replaces.
 
@@ -1208,7 +1211,9 @@ checks are: the job gets ffmpeg from the mise toolchain (cached), and those chec
 than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
 
-Three other workflows run beside it. `codeql.yml` analyses the source and the workflows on
+Four other workflows run beside it. `ui-atlas.yml` runs `make e2e-atlas` (the stage atlas's full matrix,
+see "Stage atlas") nightly and on demand and uploads its gallery as `ui-atlas-matrix`; the matrix sizes report,
+only a gated cell or an unreachable stage turns it red. `codeql.yml` analyses the source and the workflows on
 every push and pull request and weekly. `dependency-review.yml` checks what a pull request
 changes in the dependency tree: it fails on a newly introduced vulnerability of moderate
 severity or worse and on a copyleft or source-available license. `live-journey.yml` runs `make e2e-live`

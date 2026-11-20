@@ -18,7 +18,11 @@ const live = process.env.DAEMON_E2E_LIVE === '1';
 const audioFull = process.env.DAEMON_E2E_AUDIO === '1';
 // The layout-contract specs set their own viewport per case, so they run once, in the `sizes` project.
 const SIZES = ['**/ui-sizes.e2e.ts', '**/route-sizes.e2e.ts'];
-const ignored = [...SIZES, JOURNEY];
+// The stage atlas's full matrix (360x640 and each row's extra sizes, reported only) sets its own viewport per
+// cell and runs only under `make e2e-atlas` (nightly); the gated 390x844 and 1440x900 cells run in `make e2e`.
+const ATLAS_MATRIX = '**/ui-atlas-matrix.e2e.ts';
+const atlasMatrix = process.env.DAEMON_E2E_ATLAS === '1';
+const ignored = [...SIZES, JOURNEY, ATLAS_MATRIX];
 
 /** The published URL as a base for `./`: http(s) only, always ending in a slash. */
 // `unknown`: Expo widens Node's environment index, so an unlisted variable reads as `any`.
@@ -53,6 +57,7 @@ export default defineConfig({
       launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } } },
     // Sets its own viewport per case; running it under the two projects would duplicate every load.
     { name: 'sizes', testMatch: SIZES, use: { viewport: { width: 390, height: 844 } } },
+    ...(atlasMatrix ? [{ name: 'atlas-matrix', testMatch: ATLAS_MATRIX, use: { viewport: { width: 360, height: 640 } } }] : []),
     // A trace of several thousand presses is hundreds of megabytes; the journey keeps its own
     // log and failure screenshot instead.
     ...(live ? [
