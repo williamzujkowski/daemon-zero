@@ -8,8 +8,9 @@ import type { GateFailure, GateRule } from './gates';
 
 export type GatedViewport = '390x844' | '1440x900';
 
-export interface KnownGap {
-  stage: string; viewport: GatedViewport; item: string; rule: GateRule;
+/** Generic over the rule set, so the transitions spec records its gaps (transitionGaps.ts) under the same rule. */
+export interface KnownGap<R extends string = GateRule> {
+  stage: string; viewport: GatedViewport; item: string; rule: R;
   measured: string; reason: string; issue: 'pending-audit' | `#${number}`;
 }
 
@@ -32,8 +33,8 @@ const gapKey = (entry: { stage: string; viewport: string; rule: string; item: st
   [entry.stage, entry.viewport, entry.rule, entry.item].join('|');
 
 /** Splits one cell's failures into new ones and recorded ones, and lists recorded gaps the cell no longer shows. */
-export function reconcile(failures: readonly GateFailure[], gaps: readonly KnownGap[], stage: string, viewport: string):
-  { unexpected: GateFailure[]; known: GateFailure[]; fixed: KnownGap[] } {
+export function reconcile<F extends GateFailure<string>, G extends KnownGap<string>>(failures: readonly F[], gaps: readonly G[], stage: string, viewport: string):
+  { unexpected: F[]; known: F[]; fixed: G[] } {
   const recorded = new Set(gaps.filter((gap) => gap.stage === stage && gap.viewport === viewport).map(gapKey));
   const seen = new Set(failures.map(gapKey));
   return {
@@ -43,6 +44,6 @@ export function reconcile(failures: readonly GateFailure[], gaps: readonly Known
   };
 }
 
-export function describeGap(gap: KnownGap): string {
+export function describeGap(gap: KnownGap<string>): string {
   return `${gap.stage} @ ${gap.viewport} | ${gap.item} | ${gap.rule} | recorded ${gap.measured}`;
 }
