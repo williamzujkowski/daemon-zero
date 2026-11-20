@@ -203,8 +203,10 @@ make e2e-atlas        # the full matrix: also 360x640 and each stage's extra siz
 make e2e-atlas-aria   # regenerate the committed partial ARIA baseline (Playwright bumps, deliberate renames)
 ```
 
-**Stages.** `tests/e2e/atlas/stages*.ts` hold the 56 P1 rows of the stage inventory
-(`research/ui-review-stage-inventory`, section 1), typed by `atlas/types.ts`. A row names its save's source
+**Stages.** `tests/e2e/atlas/stages*.ts` hold 57 P1 rows: the 56 of the stage inventory
+(`research/ui-review-stage-inventory`, section 1) and `p1-exit-ready` (the host exit affordable, from the
+`phase-2-ready` fixture), added by nexus vote `vote-1795150367732-oqyajz6` so the host-to-subnet transition
+references a stage id. Rows are typed by `atlas/types.ts`. A row names its save's source
 (a `makeFixtures()` name, a `ROUTE_STATES` entry, a cooperative-campaign moment, a careful-campaign moment, or a
 gap recipe built in place and labelled FIXTURE), an optional patch, tags, the tab and workspace area, a page
 step for live-only overlays (thresholds, reveals, the live reboot, the response notice, menus, PROC, confirms),
@@ -273,9 +275,10 @@ bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts 
 
 **Table.** `tests/e2e/atlas/transitions.ts` holds 19 rows (types in `atlas/transitionTypes.ts`). A row names its
 before-state by **reference**: an atlas stage id, opened exactly as that stage's cell opens it (save, tab, area,
-prepare step), or a `makeFixtures()` name where the atlas holds no such stage (`phase-2-ready`). Two rows need a
+prepare step). Two rows need a
 state one engine step earlier than a saved stage (the AEGIS lock just under 90, the deficit save before brownout
-is computed); each carries a labelled `patch` recipe, shown as FIXTURE on its card. The trigger is a real click,
+is computed); each carries a labelled `patch` recipe, shown as FIXTURE on its card, and a real trigger (accepted
+by nexus vote `vote-1795150222283-8vx17o6`). A kernel log line is not an announcement (`vote-1795150633083-3vv62d6`). The trigger is a real click,
 a sequence of real UI actions (tabs, scrolls, menus, a dilemma's zero-cost choice, a play loop), or the paused
 clock one tick at a time until a condition holds; for a long wait the engine counts the ticks first so the clock
 can jump to just before the event. After expectations reference contract items (`contract.ts`) and a stage's

@@ -1,8 +1,8 @@
 /**
  * The transitions table (#339, wayfinder #341): the disclosure walk's "Transitions the atlas should check" (11 C1 and
  * 9 C2, docs/research/ui-review-disclosure-walk.md) plus B5 for the primary action. Each row references an atlas
- * stage (its save, tab, area and prepare step) and that stage's composed timely set; a fixture names the before-state
- * only where the atlas holds none, and a `patch` recipe only where the event cannot be reached by a real step.
+ * stage (its save, tab, area and prepare step) and that stage's composed timely set; a labelled `patch` recipe
+ * edits it only where the event cannot be reached by a real step (vote-1795150222283-8vx17o6).
  */
 import { CONTENT } from '../../../src/content';
 import type { GameState } from '../../../src/engine';
@@ -41,7 +41,7 @@ const guestOmenNode = () => {
 };
 
 const PHASE_ROWS: readonly TransitionRow[] = [
-  { id: 't-phase-1-to-2', walk: ['C1.1', 'C2.9'], before: { fixture: 'phase-2-ready', reach: unlockId(() => phaseExit(1)) },
+  { id: 't-phase-1-to-2', walk: ['C1.1', 'C2.9'], before: { stage: 'p1-exit-ready' },
     trigger: { kind: 'click', testId: unlockId(() => phaseExit(1)) },
     appear: { item: widgetTitle('network.map', 'LAN_TOPOLOGY_MAP_TAB'), announce: PHASE },
     keep: { stage: 'p2-start', pointer: true }, why: 'The NETWORK pane is added and auto-selected: is the change said, and what is under the finger now?' },

@@ -43,12 +43,9 @@ export function stageRow(id: string): StageRow {
   return row;
 }
 
-/** The stage row the before-state opens: the referenced row (its prepare kept or swapped for a reach), or a fixture. */
+/** The stage row the before-state opens: the referenced row, with its recipe, its prepare left out or its reach replaced. */
 export function beforeRow(row: TransitionRow): StageRow {
   const { before } = row;
-  if ('fixture' in before) {
-    return { id: row.id, phase: 0, access: 'GUEST', source: { kind: 'fixture', name: before.fixture }, tags: [], reach: before.reach, why: row.why };
-  }
   const { prepare, patch, ...base } = stageRow(before.stage);
   const recipe = before.patch;
   const combined = recipe === undefined ? patch : (game: GameState) => recipe.apply(patch ? patch(game) : game);
@@ -59,7 +56,6 @@ export function beforeRow(row: TransitionRow): StageRow {
   };
 }
 
-const describeBefore = (row: TransitionRow): string => 'fixture' in row.before ? 'fixture:' + row.before.fixture : row.before.stage;
 const describeTrigger = (trigger: Trigger): string => trigger.kind === 'click' ? 'click ' + trigger.testId : trigger.label;
 
 async function boxOf(locator: Locator): Promise<Rect | null> {
@@ -208,8 +204,8 @@ export async function runTransition(page: Page, row: TransitionRow, order: numbe
     primary: { before: primaryBefore, after: core, kept: row.keep?.primary === true, steady: row.steady === true },
     ...(appear === undefined ? {} : { appear }), ...(pointer === undefined ? {} : { pointer }) });
   return {
-    order, id: row.id, viewport, project: test.info().project.name, before: describeBefore(row),
-    recipe: 'stage' in row.before ? row.before.patch?.recipe ?? null : null, trigger: describeTrigger(row.trigger), checks: checksOf(row),
+    order, id: row.id, viewport, project: test.info().project.name, before: row.before.stage,
+    recipe: row.before.patch?.recipe ?? null, trigger: describeTrigger(row.trigger), checks: checksOf(row),
     walk: row.walk, why: row.why, observed, tabsBefore: frame.tabs, appear: appear?.item ?? null, kept,
     primary: { before: primaryBefore, after: core.found ? core.box : null, displacement: displacement(primaryBefore, core.found ? core.box : null) },
     pointer: pointer ?? null, failures, knownGaps: [],

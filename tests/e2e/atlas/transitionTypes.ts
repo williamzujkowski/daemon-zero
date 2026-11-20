@@ -1,6 +1,6 @@
 /**
- * The transitions table's row type (#339, wayfinder #341): a before-state that REFERENCES a stage row of the atlas
- * (or, where the atlas holds none, names a fixture), a trigger that is a real UI action or a step of the paused
+ * The transitions table's row type (#339, wayfinder #341): a before-state that REFERENCES a stage row of the atlas,
+ * a trigger that is a real UI action or a step of the paused
  * clock, and the after expectations by check: C1 (the new element is in view and announced), C2 (a stage's timely
  * set stays in the main view) and B5 (the primary action does not move).
  */
@@ -10,15 +10,12 @@ import type { ContractItem } from './contractTypes';
 
 export type TransitionCheck = 'C1' | 'C2' | 'B5';
 
-export type TransitionBefore =
-  /**
+/**
    * A stage row by id, opened as the atlas opens it. `patch` is a labelled recipe for the state one engine step
    * earlier; `prepare: 'skip'` leaves out the row's page step (the trigger is that step); `reach` replaces the row's
    * reach id when the before-frame does not show it yet.
    */
-  | { stage: string; patch?: { recipe: string; apply: (game: GameState) => GameState }; prepare?: 'skip'; reach?: string }
-  /** A `makeFixtures()` save the stage table does not hold, opened on its landing tab. */
-  | { fixture: string; reach: string };
+export interface TransitionBefore { stage: string; patch?: { recipe: string; apply: (game: GameState) => GameState }; prepare?: 'skip'; reach?: string }
 
 export type Trigger =
   /** A real click on one control: its centre is the pointer the C2.9 check reads. */
