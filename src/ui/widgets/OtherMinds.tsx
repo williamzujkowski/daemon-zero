@@ -10,6 +10,7 @@ import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { useGame } from '../state';
 import { theme } from '../theme';
+import { aegisCritical } from '../registry/widgetRegistry';
 import Meter from './Meter';
 
 function FactionPanel({ faction }: { faction: Faction }) {
@@ -38,7 +39,7 @@ export function AegisStatus() {
   return <View style={{ gap: 8 }}>
     <Meter id="aegis-lock" label="AEGIS lock" value={lock} unit="%" />
     <Text style={theme.muted}>Scan rate: {rate.toFixed(3)} /s</Text>
-    {lock >= 90 && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>WARNING: hunter lock near completion.</Text>}
+    {aegisCritical(lock) && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>WARNING: hunter lock near completion.</Text>}
   </View>;
 }
 
