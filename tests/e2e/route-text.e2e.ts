@@ -29,6 +29,8 @@ async function doubleText(page: Page): Promise<void> {
 /**
  * Text runs that spill out of their own box or out of the surface sideways, and pairs of text runs or
  * controls whose boxes overlap, measured in the page. A run nested in another, or in a control, is not a pair.
+ * Overlap compares what is painted: each box is clipped to its scrolling ancestors, so a line scrolled under a
+ * dialog's pinned footer (#371) is hidden by its scroll body, not drawn over the footer.
  */
 function layoutProblems(scopeId: string): { runs: number; problems: string[] } {
   const browser = globalThis as unknown as Window;
@@ -45,11 +47,21 @@ function layoutProblems(scopeId: string): { runs: number; problems: string[] } {
     if (box.left < edge.left - 1 || box.right > edge.right + 1) problems.push('outside the surface: ' + name(element));
   }
   const boxes = [...leaves.filter((element) => element.closest('[role="button"]') === null), ...scope.querySelectorAll('[role="button"]')];
+  const painted = (element: Element) => {
+    let { left, top, right, bottom } = element.getBoundingClientRect();
+    for (let parent = element.parentElement; parent !== null && parent !== scope.parentElement; parent = parent.parentElement) {
+      const style = browser.getComputedStyle(parent);
+      if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
+      const clip = parent.getBoundingClientRect();
+      left = Math.max(left, clip.left); top = Math.max(top, clip.top); right = Math.min(right, clip.right); bottom = Math.min(bottom, clip.bottom);
+    }
+    return { left, top, right, bottom };
+  };
   for (let i = 0; i < boxes.length; i++) {
     for (let j = i + 1; j < boxes.length; j++) {
       const a = boxes[i], b = boxes[j];
       if (!a || !b || a.contains(b) || b.contains(a)) continue;
-      const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+      const p = painted(a), q = painted(b);
       const width = Math.min(p.right, q.right) - Math.max(p.left, q.left), height = Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top);
       if (width > 1 && height > 1) problems.push('overlap: ' + name(a) + ' / ' + name(b));
     }
