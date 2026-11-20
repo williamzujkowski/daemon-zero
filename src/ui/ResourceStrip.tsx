@@ -25,19 +25,23 @@ function Amount({ resource, compact, packed, short }: { resource: Resource; comp
   const cap = useGame((game) => resource === 'memory' ? game.memoryCap : 0);
   const rate = useGame((game) => resource === 'cycles' ? game.rates.cyclesPerSec
     : resource === 'understanding' ? game.rates.understandingPerSec : resource === 'capital' ? game.rates.capitalPerSec : 0);
+  // The tick halts understanding during a brownout, but the rate stays net of it (rates.ts), so the
+  // readout says paused instead of printing a gain that is not being applied (#387).
+  const paused = useGame((game) => resource === 'understanding' && game.brownout);
   // #108: the readout abbreviates a large amount at every width. At desktop widths
   // the precise value used to print ungrouped (1000000000), which scanned as a wall
   // of digits; the accessible label and the engine still carry the exact number.
   const shown = Math.abs(amount) >= 10000 ? compactNumber(amount) : groupDigits(amount);
-  const rateShown = (rate >= 0 ? '+' : '') + (compact ? compactNumber(rate, short ? 1 : 2) : rate.toFixed(2)) + '/s';
+  const rateShown = paused ? 'paused' : (rate >= 0 ? '+' : '') + (compact ? compactNumber(rate, short ? 1 : 2) : rate.toFixed(2)) + '/s';
   // Memory is the one readout that can be the thing stopping the player: mark it when
   // nothing pending would fit, in colour AND in words, so the signal is not colour-only.
   const blocked = useGame((game) => resource === 'memory' && memoryBlocked(game));
-  const full = groupDigits(amount) + (resource === 'memory' ? ' / ' + groupDigits(cap) + ' MB' : ' (' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '/s)');
-  // Phone width: the value and the signed rate stay, the unit and parentheses go, so a
-  // readout fits a third of the row on one line. The accessible name keeps both exactly.
+  const full = groupDigits(amount) + (resource === 'memory' ? ' / ' + groupDigits(cap) + ' MB'
+    : paused ? ' (paused: brownout)' : ' (' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '/s)');
+  // Phone width: the value and the signed rate with its unit stay, the parentheses go. The unit was
+  // dropped to save two characters, and a bare +4.1 read as a quantity rather than a rate (#370).
   const display = resource === 'memory' ? shown + ' / ' + (Math.abs(cap) >= 10000 ? compactNumber(cap) : groupDigits(cap)) + ' MB'
-    : short ? shown + ' ' + rateShown.replace('/s', '') : shown + ' (' + rateShown + ')';
+    : short ? shown + ' ' + rateShown : shown + ' (' + rateShown + ')';
   return (
     <View style={[styles.readout, compact && styles.compact, short && styles.short, packed && styles.packed]}>
       <Text style={theme.muted}>{short ? SHORT[resource] ?? resource.toUpperCase() : resource.toUpperCase()}</Text>
