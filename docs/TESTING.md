@@ -298,7 +298,7 @@ EXECUTE's displacement is recorded on every row and gated only on B5 rows.
 
 **Failures and known gaps.** A failure prints the same line as a stage cell: transition id, viewport, item,
 rule, measured numbers and the gallery anchor `#<transition>--<width>x<height>`. Today's failures are recorded in
-`atlas/transitionGaps.ts` (`KnownGap<TransitionRule>`, issue `pending-audit`) under the stage atlas's rule: each
+`atlas/transitionGaps.ts` (`KnownGap<TransitionRule>`, each with its filed issue) under the stage atlas's rule: each
 is asserted to still fail, and a fix flips the cell and forces the entry out. The pure rules are unit-tested in
 `tests/ui-atlas-transitions.spec.ts`. Each cell runs the audit on its after-frame, so the gallery and
 `cells/` hold a card per transition (screenshot after the trigger, failures, announcements, focus, displacement).
