@@ -17,6 +17,8 @@ function input(state: GameState, patch: Partial<GameState>): GameState {
 
 const guestExit = () => nodeWhere((node) => node.phaseId === CONTENT.phases[0]?.phaseId && node.effects.unlocksPhase !== undefined
   && node.grant === undefined && node.acquisition === undefined, 'the guest exit');
+const hostExit = () => nodeWhere((node) => node.phaseId === 1 && node.effects.unlocksPhase !== undefined
+  && node.grant === undefined && node.acquisition === undefined, 'the host exit');
 const runTable = () => nodeWhere((node) => node.unlocksUiComponent === 'RUN_TABLE', 'the run table');
 const parser = () => nodeWhere((node) => node.phaseId === 1 && node.systemFlags.includes('REVEALS_SURVEILLANCE'), 'the audit parser');
 const ESCALATION_START = CONTENT.balance.escalation[0]?.at ?? 25;
@@ -93,5 +95,8 @@ export const EARLY_STAGES: readonly StageRow[] = [
   { id: 'p1-overheat', phase: 1, access: 'GUEST', tags: ['overheat', 'patched'], pane: 'SENSORS',
     source: { kind: 'build', build: overheated, recipe: 'G7: phase-1-widgets with thermal 15 °C past the threshold' },
     reach: 'widget-THERMAL_AND_SUSPICION_BARS', why: 'Overheat warning findability on its own.' },
+  // Added by vote-1795150367732-oqyajz6 so the host-to-subnet transition references a stage, not a bare fixture.
+  { id: 'p1-exit-ready', phase: 1, access: 'GUEST', source: { kind: 'fixture', name: 'phase-2-ready' }, tags: [],
+    reach: 'node-' + hostExit().id + '-unlock', why: 'The host exit affordable: can the player find how to leave the host?' },
 ];
 

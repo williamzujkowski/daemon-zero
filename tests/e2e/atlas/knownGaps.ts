@@ -17,10 +17,13 @@ interface GapBase {
  * An axe gap records the exact violating nodes (count and the targets axe samples), so a NEW node under the same
  * rule on the same cell is not waived by it: only the measured failure is recorded, never the whole rule.
  */
-export type KnownGap = GapBase & (
-  | { rule: Exclude<GateRule, 'axe'> }
-  | { rule: 'axe'; axeNodes: { count: number; targets: readonly string[] } }
-);
+export interface AxeNodes { count: number; targets: readonly string[] }
+
+/**
+ * Generic over the rule set, so the transitions spec records its gaps (transitionGaps.ts) under the same rules.
+ * Distributes over the union: for the atlas rules an `axe` entry must carry `axeNodes`; every other rule must not.
+ */
+export type KnownGap<R extends string = GateRule> = GapBase & (R extends 'axe' ? { rule: R; axeNodes: AxeNodes } : { rule: R });
 
 const LABEL = 'the menu button reads "[ SAVES ]" but is named "Save code transfer" (WCAG 2.5.3); no other spec opens the root menu with axe';
 const SAVES_NODE = { count: 1, targets: ['button[aria-label="Save code transfer"]'] } as const;
@@ -42,10 +45,10 @@ const gapKey = (entry: { stage: string; viewport: string; rule: string; item: st
   [entry.stage, entry.viewport, entry.rule, entry.item].join('|');
 
 /** Splits one cell's failures into new ones and recorded ones, and lists recorded gaps the cell no longer shows. */
-export function reconcile(failures: readonly GateFailure[], gaps: readonly KnownGap[], stage: string, viewport: string):
-  { unexpected: GateFailure[]; known: GateFailure[]; fixed: KnownGap[] } {
+export function reconcile<F extends GateFailure<string>, G extends KnownGap<string>>(failures: readonly F[], gaps: readonly G[], stage: string, viewport: string):
+  { unexpected: F[]; known: F[]; fixed: G[] } {
   const cellGaps = gaps.filter((gap) => gap.stage === stage && gap.viewport === viewport);
-  const isKnown = (failure: GateFailure): boolean => cellGaps.some((gap) => matches(failure, gap));
+  const isKnown = (failure: F): boolean => cellGaps.some((gap) => matches(failure, gap));
   return {
     unexpected: failures.filter((failure) => !isKnown(failure)),
     known: failures.filter(isKnown),
@@ -53,13 +56,15 @@ export function reconcile(failures: readonly GateFailure[], gaps: readonly Known
   };
 }
 
+const hasAxeNodes = (gap: object): gap is { axeNodes: AxeNodes } => 'axeNodes' in gap;
+
 /** Same cell, rule and item; for axe also the same violating nodes, so a gap never waives a rule wholesale. */
-function matches(failure: GateFailure, gap: KnownGap): boolean {
+function matches(failure: GateFailure<string>, gap: KnownGap<string>): boolean {
   if (gapKey(failure) !== gapKey(gap)) return false;
-  if (gap.rule !== 'axe') return true;
-  return failure.measured.value === gap.axeNodes.count && failure.measured.detail === gap.axeNodes.targets.join(' | ');
+  if (failure.rule !== 'axe') return true;
+  return hasAxeNodes(gap) && failure.measured.value === gap.axeNodes.count && failure.measured.detail === gap.axeNodes.targets.join(' | ');
 }
 
-export function describeGap(gap: KnownGap): string {
+export function describeGap(gap: KnownGap<string>): string {
   return `${gap.stage} @ ${gap.viewport} | ${gap.item} | ${gap.rule} | recorded ${gap.measured}`;
 }

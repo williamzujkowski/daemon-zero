@@ -7,8 +7,9 @@
 import fs from 'node:fs';
 import type { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { renderBaseline, type BaselineLine } from '../atlas/ariaTemplate';
-import { ARIA_ATTACHMENT, ATLAS_ATTACHMENT, ARIA_UPDATE } from '../atlas/attachments';
+import { ARIA_ATTACHMENT, ATLAS_ATTACHMENT, ARIA_UPDATE, TRANSITION_ATTACHMENT } from '../atlas/attachments';
 import type { AtlasRecord } from '../atlas/cell';
+import type { TransitionRecord } from '../atlas/transitionRun';
 import { summarize } from './atlasCard';
 import { writeCell } from './evidence';
 import { ATTACHMENTS, renderGallery, type GalleryCard } from './gallery';
@@ -39,9 +40,11 @@ export default class GalleryReporter implements Reporter {
     const metrics = body(result, ATTACHMENTS.metrics);
     if (metrics === null) return;
     const atlas = body(result, ATLAS_ATTACHMENT);
+    const transition = body(result, TRANSITION_ATTACHMENT);
     const card: GalleryCard = { metrics: JSON.parse(metrics.toString('utf8')) as AuditMetrics, screenshotPng: body(result, ATTACHMENTS.screenshot),
       aria: body(result, ATTACHMENTS.aria)?.toString('utf8') ?? null, status: result.status,
-      ...(atlas === null ? {} : { atlas: JSON.parse(atlas.toString('utf8')) as AtlasRecord }) };
+      ...(atlas === null ? {} : { atlas: JSON.parse(atlas.toString('utf8')) as AtlasRecord }),
+      ...(transition === null ? {} : { transition: JSON.parse(transition.toString('utf8')) as TransitionRecord }) };
     this.projects.add(card.metrics.cell.project);
     this.cards.push(card);
   }
