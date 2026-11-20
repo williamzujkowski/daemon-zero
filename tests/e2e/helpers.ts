@@ -4,6 +4,7 @@ import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize, type GameState } from '../../src/engine';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
+import { captureRealTimers } from './axe';
 /**
  * The phone tier has no kernel band - its 44px tap target set a 57px floor the first
  * purchase could not afford - so history opens from the utility menu there, while the
@@ -45,7 +46,11 @@ export { expect };
  * when looping.
  */
 export async function boot(page: Page, fixture?: string,
-  options: { audio?: boolean | Record<string, unknown>; patch?: (game: GameState) => GameState; realTimers?: boolean } = {}): Promise<void> {
+  options: { audio?: boolean | Record<string, unknown>; patch?: (game: GameState) => GameState; realTimers?: boolean;
+    axeTimers?: boolean; ending?: boolean } = {}): Promise<void> {
+  // `axeTimers` keeps the native timers aside for axeReport, which needs them on the paused clock;
+  // it must be registered before the clock is installed (see captureRealTimers).
+  if (options.axeTimers === true) await captureRealTimers(page);
   // `realTimers` leaves the browser's own timers in place. A resumed Playwright clock is not the
   // same thing: after a stall it fires every interval tick it missed at once, where a browser
   // drops them, and the audio-signal specs measure exactly that difference.
@@ -78,6 +83,8 @@ export async function boot(page: Page, fixture?: string,
   }
   await page.goto('./');
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
+  // An ended run renders its ending without the terminal underneath.
+  else if (options.ending === true) await expect(page.getByTestId('ending-screen')).toBeVisible();
   else await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
   await expect.poll(() => page.evaluate(() => '__daemon' in globalThis)).toBe(false);
   await expect(page.getByTestId('dev-open')).toHaveCount(0);
