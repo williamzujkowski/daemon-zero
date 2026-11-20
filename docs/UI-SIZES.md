@@ -277,25 +277,25 @@ control's bottom edge with the tab bar's top edge at 595:
 | State | Frozen (contract) | Running (1500ms) | Delta | Clears the 595 fold |
 | --- | --- | --- | --- | --- |
 | `phase-1-widgets` | 427 | 427 | 0 | yes / yes |
-| `epistemic-ready-p2` | 505 | 553 | **48** | **yes / no** (597 against 595) |
+| `epistemic-ready-p2` | 505 | 575 | **70** | **yes / no** (619 against 595) |
 | `corporate-insolvent` | 628 | 628 | 0 | no / no |
 
 The mid-game cell is the one that flips: it clears the fold on the paused clock and misses it
 once time passes, because time-gated notices appear above the purchase. The opening and
-insolvency states do not move. Measured across the whole matrix, only that one state shifts,
-and by the same 48px at every size:
+insolvency states do not move. Measured across the whole matrix, only that one state shifts:
+70px where the wild-signal name wraps to a second line, 48px where it fits one:
 
 | Size | Mid-game frozen | Mid-game running | Delta | Inside the viewport, frozen / running |
 | --- | --- | --- | --- | --- |
-| 320x568 | 517 | 565 | 48 | yes / **no** |
-| 360x640 | 505 | 553 | 48 | yes / yes |
-| 390x844 | 489 | 537 | 48 | yes / yes |
-| 414x896 | 470 | 518 | 48 | yes / yes |
-| 768x1024 | 597 | 645 | 48 | yes / yes |
+| 320x568 | 517 | 587 | 70 | yes / **no** |
+| 360x640 | 505 | 575 | 70 | yes / yes |
+| 390x844 | 489 | 559 | 70 | yes / yes |
+| 414x896 | 470 | 540 | 70 | yes / yes |
+| 768x1024 | 597 | 667 | 70 | yes / yes |
 | 844x390 | 376 | 424 | 48 | no / no |
-| 900x640 | 529 | 577 | 48 | yes / yes |
+| 900x640 | 529 | 599 | 70 | yes / **no** |
 | 1024x768 | 529 | 577 | 48 | yes / yes |
-| 1080x800 | 525 | 573 | 48 | yes / yes |
+| 1080x800 | 525 | 595 | 70 | yes / yes |
 | 1440x900 | 405 | 453 | 48 | yes / yes |
 | 1920x1080 | 405 | 453 | 48 | yes / yes |
 | 2560x1440 | 405 | 453 | 48 | yes / yes |
@@ -304,13 +304,15 @@ Both tables carry the figures measured after #89's forecast compaction, which lo
 frozen and the running figure by the same 22px on 360-414 (44px at 320) and so changes no
 delta, and after the fix for #162 below.
 
-The 48 is one block that mounts once time passes, and nothing else moves: `wild-signal-notice`
-at 44px plus a 4px gap. Until #382 the figure was 112, because the fixture's response rung trailed
+The offset is one block that mounts once time passes, and nothing else moves: `wild-signal-notice`,
+44px plus a 4px gap on one line, 22px more where its name wraps to a second line. Since
+vote-1795208946788-lpjbyc5 (#359) the name may take two lines; held to one, it lost about 91px at 390. Until #382 the figure was 112, because the fixture's response rung trailed
 its suspicion and the first tick escalated it, mounting `response-notice` (64px) as well: a state
 play never shows from that save. The fixture now holds the rung its suspicion reaches, so the
-running column above was re-measured on that branch (same method, all twelve sizes); the frozen
-column did not move. At 360x640 and 900x640 the purchase now stays inside the viewport while the
-clock runs; at 360x640 it still misses the 595 tab-bar fold, by 2px. Before #382, diffing every
+running column was re-measured then, and again after #359 (same method, all twelve sizes); the
+frozen column did not move. With the name on two lines, the running purchase stays inside the
+viewport at 360x640 but misses the 595 tab-bar fold by 24px, and at 900x640 it ends 3px past the
+viewport. Before #382, diffing every
 testID'd block before and after resuming the clock gave those two blocks at 360x640 and at 1440x900.
 
 **#162: the delta read 156 and 134 on seven cells, and the cause was one wrapped label.**
