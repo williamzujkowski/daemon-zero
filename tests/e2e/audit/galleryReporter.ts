@@ -1,6 +1,7 @@
 /**
  * Playwright reporter that turns the UI audit's attachments into one self-contained gallery file (#338) at
- * test-results/ui-atlas/index.html and a summary.json (both gitignored). In an ARIA update run (DAEMON_ATLAS_ARIA=update) it also
+ * test-results/ui-atlas/index.html, per-cell evidence files under test-results/ui-atlas/cells/ for the judgment
+ * panel (#342), and a summary.json (all gitignored). In an ARIA update run (DAEMON_ATLAS_ARIA=update) it also
  * rewrites the committed partial ARIA baseline from every cell. It does nothing in a run without audit cells.
  */
 import fs from 'node:fs';
@@ -9,6 +10,7 @@ import { renderBaseline, type BaselineLine } from '../atlas/ariaTemplate';
 import { ARIA_ATTACHMENT, ATLAS_ATTACHMENT, ARIA_UPDATE } from '../atlas/attachments';
 import type { AtlasRecord } from '../atlas/cell';
 import { summarize } from './atlasCard';
+import { writeCell } from './evidence';
 import { ATTACHMENTS, renderGallery, type GalleryCard } from './gallery';
 import type { AuditMetrics } from './metrics';
 
@@ -49,13 +51,14 @@ export default class GalleryReporter implements Reporter {
     fs.mkdirSync(GALLERY_DIR, { recursive: true });
     // One file, rewritten whole each run, so a cell that no longer exists cannot linger in the gallery.
     fs.writeFileSync(GALLERY_FILE, renderGallery(this.cards, new Date().toISOString()));
+    const written = this.cards.filter(writeCell).length;
     const atlas = this.cards.flatMap((card) => card.atlas === undefined ? [] : [card.atlas]);
     if (atlas.length > 0) fs.writeFileSync(SUMMARY_FILE, JSON.stringify(summarize(atlas), null, 2));
     if (ARIA_UPDATE && this.ariaLines.length > 0) {
       fs.writeFileSync(ARIA_BASELINE_FILE, renderBaseline(this.ariaLines, [...this.projects].sort(), BASELINE_HEADER));
       process.stdout.write(`Partial ARIA baseline rewritten: ${ARIA_BASELINE_FILE} (${String(this.ariaLines.length)} item lines)\n`);
     }
-    process.stdout.write(`UI audit gallery: ${GALLERY_FILE} (${String(this.cards.length)} cells)\n`);
+    process.stdout.write(`UI audit gallery: ${GALLERY_FILE} (${String(this.cards.length)} cells, ${String(written)} evidence sets)\n`);
   }
 
   printsToStdio(): boolean { return false; }
