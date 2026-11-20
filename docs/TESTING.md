@@ -190,6 +190,40 @@ pnpm exec playwright test --config tests/e2e/config.ts --list
 the GitHub Pages deployment. Counts in milestone sections below are historical,
 not the current suite size.
 
+### UI audit spike and gallery (#338)
+
+`tests/e2e/ui-atlas-spike.e2e.ts` audits three fixtures (`tick-0` as the opening,
+`epistemic-ready-p2` as Phase 2 mid-game, `ending-shipped` as an ending) under the
+`phone` (390x844) and `desktop` (1440x900) projects. It runs in `make e2e`; on its own:
+
+```bash
+make build-web
+bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas-spike
+```
+
+Each cell boots its save with `boot(page, fixture, { axeTimers: true })` (the clock is
+paused) and calls `audit(page, cell, bootMs)` from `tests/e2e/audit/audit.ts`, which
+returns `AuditMetrics` (`tests/e2e/audit/metrics.ts`) and attaches a PNG screenshot, the
+ARIA snapshot (YAML) and the metrics (JSON) to the test. The metrics cover axe violations
+plus axe's `incomplete` colour-contrast nodes, which `axeViolations` drops. For every
+control and heading they record whether it is fully visible at rest inside the window and
+every pane that clips it (on the phone tier, the one primary scroll), whether something
+else takes the pointer at its centre, its size against the 44px rule, and whether it is
+truncated. Page-wide, they record clipped text runs, horizontal page overflow, the distinct
+font sizes, and the wall time per cell. axe runs on the paused clock because
+`captureRealTimers` (`tests/e2e/axe.ts`) keeps the native `setTimeout`/`clearTimeout`
+aside before the clock is installed, and `axeReport` swaps them in for that one call only.
+Without the swap, axe never settles.
+
+The spike asserts only that the audit ran and its metrics are well formed
+(`metricsProblems`); its figures are reported, not gated. The gallery reporter
+(`tests/e2e/audit/galleryReporter.ts`, registered in `tests/e2e/config.ts`) writes one
+self-contained page, `test-results/ui-atlas/index.html` (gitignored), with a card per
+cell. Each card holds the inlined screenshot, the key figures, and the ARIA snapshot and
+full metrics behind disclosures. A run without audit cells writes nothing. Screenshots are
+per-run artifacts and are never committed. Attach the gallery file to a PR instead. The
+pure rules are unit-tested in `tests/ui-audit-metrics.spec.ts`.
+
 ### Content composition and preview saves
 
 Since the release (#233) there is one content composition: the original game plus the Earned Access
