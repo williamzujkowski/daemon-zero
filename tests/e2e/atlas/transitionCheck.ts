@@ -27,7 +27,7 @@ export interface TransitionInput {
   id: string; viewport: string; observed: Observed; tabsBefore: Readonly<Record<string, string>>;
   appear?: {
     item: ItemMeasure; inDialog: boolean; pane: string | null; paneShown: boolean; truncatedPx: number;
-    announce?: RegExp; alerts?: RegExp; focus?: boolean;
+    announce?: RegExp; alerts?: RegExp; focus?: boolean | string;
   };
   /** The C2 set, measured after the trigger: timely items, extra items and the first card. */
   kept: readonly ItemMeasure[];
@@ -73,6 +73,9 @@ function appearFailures(input: TransitionInput, fail: Fail): TransitionFailure[]
   if (pattern !== undefined && !heard && badged.length === 0 && !focused) failures.push(fail(item.key, 'new-announced', { detail: quote(live) }));
   if (appear.truncatedPx > TRUNCATION_SLACK) failures.push(fail(item.key, 'new-truncated', { value: appear.truncatedPx, box: item.box }));
   if (appear.focus === true && observed.focus === null) failures.push(fail(item.key, 'focus-lost', { detail: 'focus is on the page body' }));
+  if (typeof appear.focus === 'string' && observed.focus !== appear.focus) {
+    failures.push(fail(item.key, 'focus-lost', { detail: `focus is on ${observed.focus ?? 'the page body'}, not ${appear.focus}` }));
+  }
   return [...failures, ...alertFailures(input, fail)];
 }
 

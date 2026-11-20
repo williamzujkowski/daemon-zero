@@ -182,7 +182,7 @@ async function appearInput(page: Page, row: TransitionRow, before: StageRow) {
     item: measured, inDialog: item.inDialog === true, pane: item.pane ?? null, paneShown: item.pane === undefined || panes.includes(item.pane),
     truncatedPx: await truncatedPx(itemLocator(page, item)),
     ...(appear.announce === undefined ? {} : { announce: appear.announce }), ...(appear.alerts === undefined ? {} : { alerts: appear.alerts }),
-    ...(appear.focus === true ? { focus: true } : {}),
+    ...(appear.focus === undefined ? {} : { focus: appear.focus }),
   };
 }
 

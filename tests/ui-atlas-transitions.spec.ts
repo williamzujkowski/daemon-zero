@@ -63,6 +63,13 @@ describe('C1: the new item', () => {
     expect(rules(input({ appear: appear({ focus: true }), observed: observed({ focus: 'manual-cycle' }) }))).toEqual([]);
   });
 
+  it('flags focus that lands anywhere but the named element when a test id is expected', () => {
+    expect(rules(input({ appear: appear({ focus: 'menu-open' }), observed: observed({ focus: 'menu-open' }) }))).toEqual([]);
+    const elsewhere = transitionFailures(input({ appear: appear({ focus: 'menu-open' }), observed: observed({ focus: 'start-over' }) }));
+    expect(elsewhere.map((failure) => [failure.rule, failure.measured.detail])).toEqual([['focus-lost', 'focus is on start-over, not menu-open']]);
+    expect(rules(input({ appear: appear({ focus: 'menu-open' }) }))).toEqual(['focus-lost']);
+  });
+
   it('allows one alert region per condition, and flags a role whose politeness contradicts it', () => {
     const alerts = /brownout|deficit/i;
     const two = [said({ testId: 'brownout-warning', text: 'BROWNOUT: cycle deficit' }), said({ testId: 'cycle-deficit', text: 'net -10 cycles/s: deficit' })];
