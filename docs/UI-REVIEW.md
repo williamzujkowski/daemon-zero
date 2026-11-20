@@ -1,7 +1,9 @@
 # UI review and improvement round
 
-Status: **draft**. This document collects the decisions of the UI review map (issue #327) as
-they are made; it is ratified by the last ticket on that map, together with the voted fix backlog.
+Status: **ratified** (#344, `vote-1795192273900-2ct3ek4` and `vote-1795192362627-ufk4d96`). This
+document records the decisions of the UI review map (issue #327), the first audit and the voted fix
+backlog. Fixes land against the backlog below; a fix that changes a decision here updates it in the
+same PR.
 
 ## Why
 
@@ -134,6 +136,47 @@ withdrawn into #382 for a re-check; one theme was reframed to keep the rule that
 distinction titles are never shown; two merges were split. Clusters that corroborate a filed
 reproducible defect went to it as comments (#356, #357, #358, #359, #361, #367).
 
-## Still to decide
+## Fix backlog (#344)
 
-On the map: the prioritized fix backlog (#344), which ratifies this document.
+Ordered by two votes. Batch order: `vote-1795192273900-2ct3ek4`, 7 of 7 approve, 6 for this order
+and 1 for pause first. Prototypes: `vote-1795192362627-ufk4d96`, 7 of 7 approve, 6 for two
+prototypes and 1 for the phone prototype only.
+
+Each batch is one PR or a short PR series. A fix removes its known-gap entries, so the atlas
+assertion that the gap still fails becomes the acceptance test. The maintainer playtest is the
+final check on shipped fixes.
+
+| Batch | Issues | What it does | Lands |
+|---|---|---|---|
+| F0 Harness truth | #382 | Patched fixtures tick once, so the atlas never shows a state play cannot reach; then re-check the menu status at 99 %, the brownout rate and the release preview | first |
+| F1 Announcements and attention | #356, #357, #358, #359, #360, #362, #363, #378 | One notice and live-region path, tab badges (the route CORE badge #284 is the pattern), notices that lead styled to lead, EXECUTE no longer displaced by the omen band | after F0 |
+| F2 Threat in the main view | #368, #369 | Level word, trend and top driver beside suspicion; every warning names its remedy and routes to the control, built on F1's notice component | after F1 |
+| F3 CORE and route order | #361, #367, #373, #374, #375 | One CORE ordering policy, chosen by prototype #385; settled terms and dead widgets fold to one line | after #385 |
+| F4a Phone actions | #364, #371 | Focus and scroll restore; dialog actions pinned to the dialog foot | any time after F0 |
+| F4 Phone main view | #365 | What stays in view while scrolling, chosen by prototype #384 and a vote on the one-scroll rule | after #384 and that vote |
+| F5 Decision and copy clarity | #372, #376, #377, #379, #380 | Irreversible actions marked and previewed, "Requires:" lines, trait and carry-over glosses, a spoiler-safe distinctions hint, number formatting | after F3 |
+| F6 Quick fixes | #366, #370, #381 | Label in name, /s on phone rates, one back control on the kernel log | in parallel |
+| F7 Pause | #347 | Persisted MENU pause that also suspends wall-clock catch-up; changes `GameState`, so a schema bump and migration, and a forged paused flag in an imported save must not suppress or inflate catch-up | in parallel |
+| F8 Coverage | #353 | Transition rows for the remaining C1 and C2 cases, including F1's new announcements | after F1 |
+
+Re-cuts that a majority of seats named were applied before ratification: #362 moved into F1, since
+the omen band F1 rewrites causes it on desktop too; #370 moved into F6; #364 and #371 moved into
+F4a, which does not wait for the one-scroll vote. One seat's suggestion to move #360 into F2 was
+not applied. Dissent: one seat wanted the pause first, because it is a level A gap whose cost
+across persistence and runtime an interleaved PR understates; one seat judged the CORE prototype
+over-engineering, because each CORE finding already names its fix.
+
+**Prototypes.** #384 (phone main view, three variants) and #385 (CORE ordering, three
+variants). Each builds a whitelisted `?variant=` switch and removes it afterwards. Each is judged
+by a panel on the atlas gallery over the corrected fixtures, including a scrolled purchase and
+enlarged text, then decided by `consensus_vote`. The suspicion readout (#368) is decided by its
+copy inside F2, without a prototype.
+
+**Not ticketed** (all seats accepted):
+- **Design tokens:** the type-size gate passes everywhere, and no finding names spacing. Revisit
+  if a prototype needs a scale.
+- **Separate voice and capitalisation pass:** F5 covers the copy findings.
+- **Theme and visual identity:** no finding blames the theme itself, and the theme is a
+  maintainer question.
+- **Component consolidation:** folded into F1 and F2.
+- **Late-phase layout:** folded into F3 (#373).

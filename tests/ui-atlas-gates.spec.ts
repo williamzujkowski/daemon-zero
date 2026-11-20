@@ -5,7 +5,7 @@ import { countMetrics, elementMetric, type AuditMetrics, type RawElement } from 
 import { expectedTemplate, parseBaseline, renderBaseline, templateLine } from './e2e/atlas/ariaTemplate';
 import type { ItemMeasure } from './e2e/atlas/contractCheck';
 import { cowanFlags, formatFailure, gateFailures, hickJumps, reported, type GateFailure } from './e2e/atlas/gates';
-import { KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
+import { ISSUE_REF, KNOWN_GAPS, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
 import { isStageId } from './e2e/atlas/types';
 import { summarize } from './e2e/audit/atlasCard';
 
@@ -108,6 +108,11 @@ describe('known gaps', () => {
       expect(['390x844', '1440x900']).toContain(entry.viewport);
       expect(entry.reason.length).toBeGreaterThan(20);
     }
+  });
+
+  it('cites a real issue number on every entry (the type also admits #0 or #1e3)', () => {
+    expect(KNOWN_GAPS.filter((entry) => !ISSUE_REF.test(entry.issue))).toEqual([]);
+    expect(['#0', '#1e3', '#-1', '#01'].filter((ref) => ISSUE_REF.test(ref))).toEqual([]);
   });
 });
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { Announcement, Observed } from './e2e/atlas/announce';
 import type { ItemMeasure } from './e2e/atlas/contractCheck';
 import { formatFailure } from './e2e/atlas/gates';
-import { reconcile, type KnownGap } from './e2e/atlas/knownGaps';
+import { ISSUE_REF, reconcile, type KnownGap } from './e2e/atlas/knownGaps';
 import { B5_TOLERANCE_PX, badgedTabs, displacement, transitionFailures, type TransitionInput, type TransitionRule } from './e2e/atlas/transitionCheck';
 import { TRANSITION_GAPS } from './e2e/atlas/transitionGaps';
 import type { TransitionRecord } from './e2e/atlas/transitionRun';
@@ -119,6 +119,10 @@ describe('recorded transition gaps', () => {
     const keys = TRANSITION_GAPS.map((gap) => [gap.stage, gap.viewport, gap.rule, gap.item].join('|'));
     expect(new Set(keys).size).toBe(keys.length);
     expect(TRANSITION_GAPS.filter((gap) => !isStageId(gap.stage) || !gap.stage.startsWith('t-') || gap.measured === '' || gap.reason === '')).toEqual([]);
+  });
+
+  it('each cite a real issue number, not a shape the type merely admits (#0, #1e3)', () => {
+    expect(TRANSITION_GAPS.filter((gap) => !ISSUE_REF.test(gap.issue))).toEqual([]);
   });
 
   it('a row checks what its expectations declare', () => {
