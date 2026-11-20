@@ -262,6 +262,44 @@ workflow runs `make e2e-atlas` and uploads `ui-atlas-matrix`. Screenshots are ne
 helper itself (geometry, axe on the paused clock through `captureRealTimers`, the pure rules in
 `tests/ui-audit-metrics.spec.ts`) is unchanged from the #338 spike, which the atlas replaces.
 
+#### Transitions
+
+`tests/e2e/ui-atlas-transitions.e2e.ts` checks what happens between stages (#339, the disclosure walk's
+"Transitions the atlas should check"). It runs in `make e2e` under the same two gated projects; on its own:
+
+```bash
+bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas-transitions --project phone --project desktop
+```
+
+**Table.** `tests/e2e/atlas/transitions.ts` holds 19 rows (types in `atlas/transitionTypes.ts`). A row names its
+before-state by **reference**: an atlas stage id, opened exactly as that stage's cell opens it (save, tab, area,
+prepare step), or a `makeFixtures()` name where the atlas holds no such stage (`phase-2-ready`). Two rows need a
+state one engine step earlier than a saved stage (the AEGIS lock just under 90, the deficit save before brownout
+is computed); each carries a labelled `patch` recipe, shown as FIXTURE on its card. The trigger is a real click,
+a sequence of real UI actions (tabs, scrolls, menus, a dilemma's zero-cost choice, a play loop), or the paused
+clock one tick at a time until a condition holds; for a long wait the engine counts the ticks first so the clock
+can jump to just before the event. After expectations reference contract items (`contract.ts`) and a stage's
+**composed** timely set, never a copy.
+
+| Check | Rule | Rows |
+|---|---|---|
+| C1: the new item is in view and announced | `new-in-view` (fully visible; when its pane is not shown, a badge on that pane's tab instead), `new-announced` (live text or a dialog matching the row's pattern, a tab badge, or focus inside the new dialog; a kernel log line is recorded but does not count), `new-truncated`, `focus-lost`, and for C1.10 `one-alert` (one live region per condition) and `politeness` (`role=alert` with `aria-live=polite`, or `role=status` with `assertive`) | the four phase crossings, a SENSORS widget, a wild signal, the skim unlock, AEGIS 90, pilot accepted, the omen log line, the omen giving way to its dilemma, brownout, live reboot, Continue boot, overheat on CORE (14 rows) |
+| C2: timely items stay in the main view | `timely-kept` (the referenced stage's timely set, composed for the panes now shown, plus named items such as a dilemma's first choice, plus the first work card's title), `primary-kept` (EXECUTE stays in view), `pointer-target` (no different enabled control under the click point) | the four phase crossings, skim, regrowth, the omen appearing, the omen giving way to its dilemma, the dilemma closing, brownout, scroll to a purchase, overheat, the ending after a menu round trip (13 rows) |
+| B5: the primary action does not move | `primary-shift`: EXECUTE's displacement between the last frame before the event and one tick after it, at most `B5_TOLERANCE_PX` (4) | the omen appearing, the omen clearing, the dilemma closing |
+
+**Observer.** `atlas/announce.ts` installs a `MutationObserver` before the trigger, on `[aria-live]`,
+`role=status|alert|log` regions and the kernel log, and records each text a region gains (with its role and
+politeness), each dialog that opens, where focus lands and every tab's name. One tick passes after every trigger.
+EXECUTE's displacement is recorded on every row and gated only on B5 rows.
+
+**Failures and known gaps.** A failure prints the same line as a stage cell: transition id, viewport, item,
+rule, measured numbers and the gallery anchor `#<transition>--<width>x<height>`. Today's failures are recorded in
+`atlas/transitionGaps.ts` (`KnownGap<TransitionRule>`, issue `pending-audit`) under the stage atlas's rule: each
+is asserted to still fail, and a fix flips the cell and forces the entry out. The pure rules are unit-tested in
+`tests/ui-atlas-transitions.spec.ts`. Each cell runs the audit on its after-frame, so the gallery and
+`cells/` hold a card per transition (screenshot after the trigger, failures, announcements, focus, displacement).
+`make e2e-atlas` runs the transitions too, at the two gated sizes only.
+
 ### Content composition and preview saves
 
 Since the release (#233) there is one content composition: the original game plus the Earned Access
