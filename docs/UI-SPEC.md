@@ -241,6 +241,10 @@ Never encode state by colour alone: meters show numbers, warnings have text.
   Headings outside a widget keep the level they had. Semantics only: no style changes.
 - Respect reduced-motion (no scramble, no blinking) and font scaling.
 - Touch targets at least 44 pt.
+- Auto-updating readouts (WCAG 2.2 SC 2.2.2 Pause, Stop, Hide): the ticking counters are not
+  claimed as essential. The decision (`vote-1795140352659-zhp6hsv`, `docs/UI-REVIEW.md`) is a
+  persisted pause in MENU that also suspends wall-clock catch-up while paused. It is not built
+  yet (#347), so this is a known gap, not a met criterion.
 - Palette contrast is asserted, not maintained by eye: body text at or above 4.5:1
   and every non-text token (border, accent, warning, danger) at or above 3:1, on
   `background`, `surface` and `raised`, for the current palette and every phase
