@@ -25,12 +25,26 @@ export interface RawElement {
   clips: Rect[];
   /** Largest scroll-minus-client overflow on the element or a clipping descendant, per axis. */
   overflowX: number; overflowY: number;
+  /** Left out of the geometry gates: inside an aria-hidden or inert subtree, or behind an open dialog. */
+  excluded: Exclusion;
+  disabled: boolean;
+  /** An unselected tab: the inactive state the contrast gate covers alongside disabled. */
+  inactive: boolean;
+  /** Lowest text contrast inside a disabled or inactive control, from computed colours; null otherwise. */
+  textContrast: number | null;
 }
+
+export type Exclusion = 'hidden' | 'under-modal' | null;
 
 /** A text run whose own box hides part of it (RN Web numberOfLines: ellipsis or line clamp), as measured. */
 export interface ClippedText { testId: string | null; text: string; overflowX: number; overflowY: number }
 
-export interface RawGeometry { viewport: Size; documentScrollWidth: number; elements: RawElement[]; fontSizes: number[]; clippedText: ClippedText[] }
+export interface RawGeometry {
+  viewport: Size; documentScrollWidth: number; elements: RawElement[]; fontSizes: number[];
+  /** Font sizes of the text runs the gates read: not hidden, not inert, not behind an open dialog. */
+  contentFontSizes: number[];
+  clippedText: ClippedText[]; dialogOpen: boolean;
+}
 
 export interface ContrastNode { target: string; reason: string; fgColor: string | null; bgColor: string | null; ratio: number | null }
 export interface AxeReport { violations: Finding[]; contrastIncomplete: ContrastNode[] }
@@ -45,6 +59,7 @@ export interface ElementMetric {
   /** Interactive only: under the repo's 44px rule. Always false for a heading. */
   underTarget: boolean;
   truncated: { x: boolean; y: boolean };
+  excluded: Exclusion; disabled: boolean; inactive: boolean; textContrast: number | null;
 }
 
 export interface AuditCounts {
@@ -64,6 +79,9 @@ export interface AuditMetrics {
   page: { overflowX: number; truncatedText: ClippedText[] };
   counts: AuditCounts;
   fontSizes: number[];
+  /** Every content text run's size (not hidden, not behind a dialog), one entry per run: the font-size gate's input. */
+  contentFontSizes: number[];
+  dialogOpen: boolean;
   elements: ElementMetric[];
 }
 
@@ -101,6 +119,8 @@ export function elementMetric(raw: RawElement, viewport: Size, occluded: boolean
     minSide: Math.round(minSide * 10) / 10,
     underTarget: raw.kind === 'interactive' && minSide < TARGET_MIN,
     truncated: { x: raw.overflowX > TRUNCATION_SLACK, y: raw.overflowY > TRUNCATION_SLACK },
+    excluded: raw.excluded, disabled: raw.disabled, inactive: raw.inactive,
+    textContrast: raw.textContrast === null ? null : Math.round(raw.textContrast * 100) / 100,
   };
 }
 

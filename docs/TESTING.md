@@ -190,39 +190,74 @@ pnpm exec playwright test --config tests/e2e/config.ts --list
 the GitHub Pages deployment. Counts in milestone sections below are historical,
 not the current suite size.
 
-### UI audit spike and gallery (#338)
+### Stage atlas (#341)
 
-`tests/e2e/ui-atlas-spike.e2e.ts` audits three fixtures (`tick-0` as the opening,
-`epistemic-ready-p2` as Phase 2 mid-game, `ending-shipped` as an ending) under the
-`phone` (390x844) and `desktop` (1440x900) projects. It runs in `make e2e`; on its own:
+The stage atlas audits every screen a player meets, one cell per stage and viewport, on a paused clock.
+`tests/e2e/ui-atlas.e2e.ts` runs in `make e2e` (and `make e2e-pages`) under the `phone` (390x844) and `desktop`
+(1440x900) projects; on its own:
 
 ```bash
 make build-web
-bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas-spike
+bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas.e2e --project phone --project desktop
+make e2e-atlas-aria   # regenerate the committed partial ARIA baseline (Playwright bumps, deliberate renames)
 ```
 
-Each cell boots its save with `boot(page, fixture, { axeTimers: true })` (the clock is
-paused) and calls `audit(page, cell, bootMs)` from `tests/e2e/audit/audit.ts`, which
-returns `AuditMetrics` (`tests/e2e/audit/metrics.ts`) and attaches a PNG screenshot, the
-ARIA snapshot (YAML) and the metrics (JSON) to the test. The metrics cover axe violations
-plus axe's `incomplete` colour-contrast nodes, which `axeViolations` drops. For every
-control and heading they record whether it is fully visible at rest inside the window and
-every pane that clips it (on the phone tier, the one primary scroll), whether something
-else takes the pointer at its centre, its size against the 44px rule, and whether it is
-truncated. Page-wide, they record clipped text runs, horizontal page overflow, the distinct
-font sizes, and the wall time per cell. axe runs on the paused clock because
-`captureRealTimers` (`tests/e2e/axe.ts`) keeps the native `setTimeout`/`clearTimeout`
-aside before the clock is installed, and `axeReport` swaps them in for that one call only.
-Without the swap, axe never settles.
+**Stages.** `tests/e2e/atlas/stages*.ts` hold the 56 P1 rows of the stage inventory
+(`research/ui-review-stage-inventory`, section 1), typed by `atlas/types.ts`. A row names its save's source
+(a `makeFixtures()` name, a `ROUTE_STATES` entry, a cooperative-campaign moment, a careful-campaign moment, or a
+gap recipe built in place and labelled FIXTURE), an optional patch, tags, the tab and workspace area, a page
+step for live-only overlays (thresholds, reveals, the live reboot, the response notice, menus, PROC, confirms),
+the test id that proves the cell reached its stage, the ending an ended save must hold, overrides for the
+contract, and extra viewports (from the inventory's viewport note, for a full-matrix run). `atlas/open.ts` writes the save into a fresh context, installs and
+pauses the clock with the native timers kept for axe, keeps or passes the reboot screen, opens the tab and area,
+runs the page step and waits for the reach id. Saves are generated once per worker and memoised
+(`atlas/sources.ts`): `makeFixtures()` when `helpers.ts` loads, the careful campaign once, the cooperative
+campaign once. The three late-game density rows come from the careful (STEALTH) campaign played under campaign
+rules from a fresh game, as a new player is (`atlas/campaignSaves.ts`, inventory gap G1), captured by condition:
+`phase-N-end` is the last quiet frame before the next phase, `phase-N-mid` the frame at the purchase that took
+the phase's own node count to half of what it held on leaving. It takes about 2 s.
 
-The spike asserts only that the audit ran and its metrics are well formed
-(`metricsProblems`); its figures are reported, not gated. The gallery reporter
-(`tests/e2e/audit/galleryReporter.ts`, registered in `tests/e2e/config.ts`) writes one
-self-contained page, `test-results/ui-atlas/index.html` (gitignored), with a card per
-cell. Each card holds the inlined screenshot, the key figures, and the ARIA snapshot and
-full metrics behind disclosures. A run without audit cells writes nothing. Screenshots are
-per-run artifacts and are never committed. Attach the gallery file to a PR instead. The
-pure rules are unit-tested in `tests/ui-audit-metrics.spec.ts`.
+**Contract.** `atlas/contract.ts` maps every surface a save can unlock to its items: the chrome, every widget in
+content (an empty list is a recorded decision), the alert band and notices, the overlays, the ending and the
+route's surfaces. `atlas/compose.ts` composes a stage from the save; the row adds only what the save cannot tell
+(an overlay its page step opened, route surfaces) and the tier adds which panes are rendered. An ended run shows
+only its ending; a blocking overlay (row first, then an active dilemma) shows only itself; otherwise everything
+composes. A surface with no entry throws (`Unmapped surface: widget:...`). Items are timely readouts, primary
+actions, destructive actions or required regions, each with a rank; the lowest rank is the stage's single
+top-priority item. Each is found by role and accessible name; a test id, an alert's visible text or plain text
+is an allowed fallback for a role-less readout, carries its reason, and is counted (`roleLess`) in the gallery.
+Composition, precedence and the loud failure are unit-tested in `tests/ui-atlas-contract.spec.ts`.
+
+**Hard gates** (`atlas/gates.ts`, unit-tested in `tests/ui-atlas-gates.spec.ts`), at 390x844 and 1440x900:
+axe 0 violations (the repo rule set); every interactive element at least 44x44 CSS px; at most 3 distinct
+content font sizes; every contract timely item fully inside the first viewport (visible ratio 0.99, clipped by
+the window and every pane it scrolls in); disabled and inactive (unselected tab) control text at least 3:1,
+computed from the composited colours; and every contract item present. Elements inside an `aria-hidden` or
+`inert` subtree, and controls behind an open dialog, are left out of the geometry and visual gates and counted
+separately. **Reported only** (gallery, `summary.json`): the Hick curve (enabled controls in the first viewport;
+a stage-to-stage rise above 3 is flagged), Cowan groups (numbers that change over one game second, run last in
+the cell, more than 4 in one labelled group flagged), the largest-size run count, controls under a dialog, the
+role-less fallback count.
+
+A failure prints one line: stage, viewport, item, rule, measured numbers (box, visible ratio, fold) and the
+gallery anchor (`#<stage>--<width>x<height>`). **Known gaps.** A failure today's UI already has is recorded in
+`atlas/knownGaps.ts` with its measured value, a reason and an issue, and the cell asserts it still fails: a fix
+flips the cell, and the entry must then be removed. Thresholds are never loosened and rows are never skipped to
+get green.
+
+**Partial ARIA baseline.** `tests/e2e/atlas/aria-baseline.txt` holds one template line per contract item
+(`<stage> <item> <project|*> <template>`; `*` when phone and desktop agree): the item's role, name and states
+with every number turned into a pattern; bare-text readouts have no node to pin and are left out. Each line is
+matched with `toMatchAriaSnapshot` against the item itself. `make e2e-atlas-aria` rewrites the file from every
+cell (the gallery reporter writes it once, at the end); run it in a Playwright-bump PR, or when a contract item
+is renamed on purpose, and review the diff.
+
+**Evidence.** The gallery reporter (`tests/e2e/audit/galleryReporter.ts`) writes, under the gitignored
+`test-results/ui-atlas/`: `index.html` (one self-contained card per cell: screenshot, figures, gate failures with
+known gaps marked, contract items, reported metrics, ARIA snapshot and metrics) and `summary.json`. Screenshots
+are never committed; attach the gallery to a UI PR. The audit
+helper itself (geometry, axe on the paused clock through `captureRealTimers`, the pure rules in
+`tests/ui-audit-metrics.spec.ts`) is unchanged from the #338 spike, which the atlas replaces.
 
 ### Content composition and preview saves
 
