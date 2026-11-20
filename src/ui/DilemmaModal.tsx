@@ -46,13 +46,18 @@ function ChoiceIndexRow({ choice, dilemmaId, jump }: { choice: DilemmaChoice; di
 }
 
 /** `token` is the presentation this choice was rendered for; a press against any other is refused. */
-function Choice({ choice, dilemmaId, token, place }: { choice: DilemmaChoice; dilemmaId: string; token: string; place: (y: number) => void }) {
+function Choice({ choice, dilemmaId, token, place, heading }: {
+  choice: DilemmaChoice; dilemmaId: string; token: string; place: (y: number) => void; heading: (target: { focus: () => void } | null) => void;
+}) {
   const affordable = useGame((game) => canAfford(game, choice.cost));
   // This arrangement's words for the choice (DZ-12); the arrangement cannot change while the clock is stopped here.
   const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
   const description = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).description);
   return <View testID={'dilemma-card-' + choice.id} style={theme.panel} onLayout={(event) => { place(event.nativeEvent.layout.y); }}>
-    <Text style={theme.heading}>{label}</Text>
+    {/* A jump from the index lands focus here, so a keyboard user arrives at the card, not only the view (#391). */}
+    <View ref={heading} testID={'dilemma-card-' + choice.id + '-heading'} tabIndex={-1} accessibilityRole="header">
+      <Text style={theme.heading}>{label}</Text>
+    </View>
     <DisclosureText style={theme.text}>{description}</DisclosureText>
     <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
     {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
@@ -89,6 +94,7 @@ export default function DilemmaModal() {
   const access = useGame((game) => dilemma ? followUpAccess(game, dilemma, CONTENT)?.statement ?? null : null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const cardTop = useRef<Record<string, number>>({});
+  const cardHeading = useRef<Record<string, { focus: () => void } | null>>({});
   if (!dilemma || ended || token === null) return null;
   const choices = dilemma.choices.filter((choice) => offered.includes(choice.id));
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
@@ -102,13 +108,13 @@ export default function DilemmaModal() {
           {choices.length > 1 && <View testID="dilemma-index" style={styles.index}>
             <Text style={theme.muted}>{choices.length} CHOICES</Text>
             {choices.map((choice) => <ChoiceIndexRow key={choice.id} choice={choice} dilemmaId={dilemma.id}
-              jump={() => { scroll.current?.scrollTo({ y: cardTop.current[choice.id] ?? 0, animated: false }); }} />)}
+              jump={() => { scroll.current?.scrollTo({ y: cardTop.current[choice.id] ?? 0, animated: false }); cardHeading.current[choice.id]?.focus(); }} />)}
           </View>}
           {/* An offer shows every term before any answer (DZ-04.3). */}
           {dilemma.choices.some((choice) => choice.pilotResponse) && <PilotTerms />}
           {access !== null && <Text testID="dilemma-access" style={theme.muted}>Access: {access}</Text>}
           {choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token}
-            place={(y) => { cardTop.current[choice.id] = y; }} />)}
+            place={(y) => { cardTop.current[choice.id] = y; }} heading={(target) => { cardHeading.current[choice.id] = target; }} />)}
         </ScrollView>
       </View>
     </SafeOverlay>
