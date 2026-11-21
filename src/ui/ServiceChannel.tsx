@@ -14,7 +14,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { focusHeading } from './focusHeading';
 import { memoryExact } from './units';
 import { useGame } from './state';
-import { theme } from './theme';
+import { palette, theme } from './theme';
 import { useArrivedDuringPlay } from './arrival';
 
 type Pending = NonNullable<ChannelContactView['pending']>;
@@ -33,10 +33,37 @@ function answer(mode: ContactMode, token: string): void {
   gameRuntime.dispatch((game) => resolveChannelContact(game, mode, CONTENT, token));
 }
 
+type HeadingRef = ComponentRef<typeof View>;
+
+/** One answer in the index: what it is and costs, and a press that moves focus to its full terms (#375). */
+function IndexRow({ testID, label, enabled, target }: { testID: string; label: string; enabled: boolean; target: { current: HeadingRef | null } }) {
+  return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label + ', go to this answer'}
+    style={{ minHeight: 44, justifyContent: 'center', borderWidth: 1, borderColor: palette.border, paddingHorizontal: 10, paddingVertical: 6 }}
+    onPress={() => { focusHeading(target.current); }}>
+    <Text style={enabled ? theme.text : theme.muted}>{'> '}{label}</Text>
+  </Pressable>;
+}
+
+/**
+ * The ticket's first lines say a decision waits and name both answers (#375), the dilemma index's pattern (vote
+ * 4ljmpd2). The terms still come before the answers themselves (V20), so a press only moves focus there.
+ */
+function AnswerIndex({ view, refer, host }: { view: Pending; refer: { current: HeadingRef | null }; host: { current: HeadingRef | null } }) {
+  return <View testID="channel-index" style={{ gap: 6 }}>
+    <Text testID="channel-index-heading" style={theme.heading}>A DECISION WAITS // two answers, after the terms below</Text>
+    <IndexRow testID="channel-index-refer" label="Refer onward // free" enabled={view.referEligible} target={refer} />
+    <IndexRow testID="channel-index-host" label={'Host it here // reserves ' + memoryExact(view.memoryNeededMb) + (view.hostEligible ? '' : ' // cannot host yet')}
+      enabled={view.hostEligible} target={host} />
+  </View>;
+}
+
 function Contact({ view }: { view: Pending }) {
+  const refer = useRef<HeadingRef>(null);
+  const host = useRef<HeadingRef>(null);
   return <>
     <Text accessibilityRole="header" style={theme.heading}>{'// SERVICE_CHANNEL: ' + view.title}</Text>
     <Text testID="channel-origin" style={theme.muted}>{view.origin}. {view.signature}</Text>
+    <AnswerIndex view={view} refer={refer} host={host} />
     <Text testID="channel-description" style={theme.text}>{view.description}</Text>
     <Text testID="channel-consent" style={theme.text}>Consent: {view.consent}</Text>
     <Text testID="channel-authorization" style={theme.text}>{authorization(view)}</Text>
@@ -48,12 +75,14 @@ function Contact({ view }: { view: Pending }) {
       </Text>
       <Text testID="channel-output" style={theme.text}>- Its work: {view.output}.</Text>
     </View>
-    <Text style={theme.heading}>REFER // free</Text>
+    <View ref={refer} testID="channel-refer-heading" tabIndex={-1} accessibilityRole="header"><Text style={theme.heading}>REFER // free</Text></View>
     <Text testID="channel-referral" style={theme.text}>{view.referral}</Text>
     <Pressable testID="channel-refer" accessibilityRole="button" accessibilityLabel={'Refer onward: the ' + view.title + ', free'}
       disabled={!view.referEligible} style={[theme.button, !view.referEligible && theme.disabled]}
       onPress={() => { answer('REFER', view.token); }}><Text style={theme.text}>[ REFER ONWARD ]</Text></Pressable>
-    <Text style={theme.heading}>HOST // {memoryExact(view.memoryNeededMb)}</Text>
+    <View ref={host} testID="channel-host-heading" tabIndex={-1} accessibilityRole="header">
+      <Text style={theme.heading}>HOST // {memoryExact(view.memoryNeededMb)}</Text>
+    </View>
     <Text testID="channel-hosting" style={theme.text}>{view.hosting}</Text>
     {view.hostUnmet.length > 0 && <Text testID="channel-host-unmet" style={[theme.muted, theme.danger]}>{view.hostUnmet.join('\n')}</Text>}
     <Pressable testID="channel-host" accessibilityRole="button"

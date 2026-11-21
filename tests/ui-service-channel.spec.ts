@@ -69,6 +69,23 @@ describe('the service terms on the job surface', () => {
 });
 
 describe('the channel contact (V20)', () => {
+  it('#375: says a decision waits before the terms, names both answers, and a press moves focus to that answer', async () => {
+    const view = await mount(pending, createElement(ServiceChannel));
+    const text = view.find('service-channel')?.textContent ?? '';
+    // The index leads, the terms follow, and the answers themselves still come after the terms (V20).
+    expect(text.indexOf('A DECISION WAITS')).toBeLessThan(text.indexOf('Consent:'));
+    expect(text.indexOf('Consent:')).toBeLessThan(text.indexOf('[ REFER ONWARD ]'));
+    expect(view.find('channel-index-refer')?.textContent).toBe('> Refer onward // free');
+    // Hosting is refused in this state (memory), and the index says so instead of offering it as open.
+    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${String(MERCY_MB)} MB // cannot host yet`);
+    view.click('channel-index-host');
+    expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-host-heading');
+    view.click('channel-index-refer');
+    expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-refer-heading');
+    // Pressing the index answers nothing.
+    expect(game().campaign.contacts).toEqual([]);
+  });
+
   it('shows consent, obligations, authorization and memory before the answers, and refers for free', async () => {
     const view = await mount(pending, createElement(ServiceChannel));
     const text = view.find('service-channel')?.textContent ?? '';
