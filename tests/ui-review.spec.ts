@@ -107,6 +107,13 @@ describe('the job surface', () => {
     const view = await mount(scheduled, createElement('div', null, createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('run-context')?.textContent).toBe('PILOT · RECALL PENDING');
     expect(view.find('review-announced')?.textContent).toContain('Recall review announced');
+    // vote-1795259663677-ebg4049: the alert interrupts with the headline only; the previews are outside it.
+    const alert = view.find('review-announced-alert');
+    expect(alert?.getAttribute('role')).toBe('alert');
+    expect(alert?.textContent).toBe('Recall review announced. Its possible outcomes:');
+    expect(view.find('review-outcome-CONTAIN')).not.toBeNull();
+    expect(alert?.querySelector('[data-testid="review-outcome-CONTAIN"]')).toBeNull();
+    expect(view.find('review-announced')?.getAttribute('role')).toBeNull();
     // #367: the announced recall follows the standing, ahead of the record and the way back.
     const panel = view.find('review')?.textContent ?? '';
     expect(panel.indexOf('Recall review announced')).toBeGreaterThan(panel.indexOf('Standing:'));

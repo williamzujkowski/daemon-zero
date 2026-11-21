@@ -56,6 +56,7 @@ phase, special state and viewport:
 | Number units (#380, #404) | One scheme everywhere: K/M/B/T/P with three significant digits for live amounts; memory in binary MB/GB/TB with used/capacity in the capacity's unit; prices lossless (unit change or abbreviation only when exact); live readouts spoken in words | `vote-1795228570236-gzx0uif`, 7/7 |
 | CORE order (#385, F3) | Status-first: the omen, a non-nominal standing with the recall, and retraining lead; route work before the purchases; settled terms fold | `vote-1795245515054-vgmv0a9`, 7/7; judgment `vote-1795241588594-4apdzcm`, 5/2, both dissents' defects corrected before the decision |
 | History readouts under status-first (#385) | After the purchases (compacting them fixed none of the regressions they caused) | `vote-1795246136374-t01m4ug`, 7/7 |
+| Recall alert extent (#367) | The alert interrupts with its headline only; the three outcome previews follow as ordinary text (the announcer already speaks the omen for the event) | `vote-1795259663677-ebg4049`, 7/7 |
 
 ### Thresholds
 
