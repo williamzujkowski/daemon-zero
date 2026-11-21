@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import { CONTENT } from '../../content';
-import { appliedSuspicionRate } from '../../engine';
+import { appliedSuspicionRate, isActuatorAvailable } from '../../engine';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import { isPhoneWidth } from '../layout';
 import { forecastCompact, forecastSentence } from '../forecastText';
 import ResponseRungs from './ResponseRungs';
+import { overheatRemedy } from '../remedyText';
 import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
 
@@ -17,10 +18,14 @@ export function Thermal() {
   const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;
   const known = useSurveillanceKnown();
+  const fanAvailable = useGame((game) => isActuatorAvailable(game, 'fanSpeedRatio', CONTENT));
+  const fanFull = useGame((game) => game.actuators.fanSpeedRatio >= 1);
+  const hot = thermal > threshold;
   return <>
-    <Text style={[theme.muted, thermal > threshold && theme.danger]}>
-      {thermal > threshold ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
+    <Text style={[theme.muted, hot && theme.danger]}>
+      {hot ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
     </Text>
+    {hot && <Text testID="overheat-remedy" style={theme.text}>{overheatRemedy({ available: fanAvailable, full: fanFull })}</Text>}
   </>;
 }
 

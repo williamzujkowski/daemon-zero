@@ -7,7 +7,8 @@ import { useState } from 'react';
 
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
-import type { LogEntry } from '../engine';
+import { isActuatorAvailable, type LogEntry } from '../engine';
+import { standDownBelow } from './remedyText';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 
@@ -25,6 +26,7 @@ function changes(logs: readonly LogEntry[], after: number, from: number, to: num
 }
 
 export default function ResponseNotice() {
+  const skim = useGame((game) => isActuatorAvailable(game, 'quotaSkimRatio', CONTENT));
   const known = useSurveillanceKnown();
   const ready = useGameValue(selectReady);
   const level = useGame((game) => game.alertLevel);
@@ -54,6 +56,9 @@ export default function ResponseNotice() {
     style={{ borderWidth: 2, borderColor: palette.warning, padding: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <View style={{ flex: 1 }}><Text style={theme.heading}>{update.to > update.from ? 'RESPONSE ESCALATED' : 'RESPONSE STAND-DOWN'}</Text>
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
+      {/* What brings it back down (#369): the rule escalation.ts applies, not a hint. */}
+      {update.to > update.from && standDownBelow(update.to) !== null && <Text testID="response-stand-down" style={theme.muted}>
+        It stands down when suspicion falls below {standDownBelow(update.to)}%: {skim ? 'lower the skim or ' : ''}suspend noisy hardware in PROC.</Text>}
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
     <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>
