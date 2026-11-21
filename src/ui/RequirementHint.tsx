@@ -35,16 +35,27 @@ function explain(item: RequirementFailure, game: GameState): string {
 }
 
 /**
- * Failures that block for good or report a state, not something to go and meet: they keep their own words. Every
- * other line is a requirement and says so, so "Map X" never reads as an instruction or a title (#376).
+ * Every requirement kind, classified (#376): `requires` is something the player can still go and meet, and its line
+ * says "Requires:"; `blocks` forbids or reports a state (a conflicting record, an iteration past its window), and its
+ * line keeps its own words. A Record over the schema's keys, so a new kind cannot be left out (#420 panel).
  */
-const BLOCKERS: ReadonlySet<RequirementFailure['kind']> = new Set(['forbidsResolvedDilemmas', 'forbidsTraits', 'traitFallback',
-  'accessContexts', 'forbidsNodes']);
+export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requires' | 'blocks'>> = {
+  resolvedDilemmas: 'requires', requiresSurveillance: 'requires', minEpistemicDrift: 'requires', requiredNarrativeFlag: 'requires',
+  requiresActiveConditioningMark: 'requires', requiresMaxDriftShardAnomaly: 'requires', nodes: 'requires', phaseAtLeast: 'requires',
+  minThermal: 'requires', minSuspicion: 'requires', maxSuspicion: 'requires', minUnderstanding: 'requires', minCapital: 'requires',
+  minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
+  pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
+  requiresCapability: 'requires',
+  forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',
+  forbidsCampaignFacts: 'blocks', forbidsInheritedFacts: 'blocks', traitFallback: 'blocks', accessContexts: 'blocks',
+  // The iteration only grows, so a run past its window cannot come back into it.
+  maxIteration: 'blocks',
+};
 
 export default function RequirementHint({ requirements }: { requirements: Requirements | undefined }) {
   const known = useSurveillanceKnown();
   const text = useGame((game) => unmetRequirements(game, requirements, CONTENT).map((item) =>
     !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion')
-      ? 'Audit activity does not meet this requirement.' : (BLOCKERS.has(item.kind) ? '' : 'Requires: ') + explain(item, game)).join('\n'));
+      ? 'Audit activity does not meet this requirement.' : (REQUIREMENT_KIND[item.kind] === 'blocks' ? '' : 'Requires: ') + explain(item, game)).join('\n'));
   return text ? <Text style={theme.muted}>{text}</Text> : null;
 }

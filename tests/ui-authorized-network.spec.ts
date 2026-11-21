@@ -19,7 +19,7 @@ import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import NodeCard from '../src/ui/NodeCard';
-import RequirementHint from '../src/ui/RequirementHint';
+import RequirementHint, { REQUIREMENT_KIND } from '../src/ui/RequirementHint';
 import { defined } from './m7-helpers';
 import { DIRECTORY, escapedTo, granted, networked, provisioned, SEGMENT } from './network-helpers';
 import { must } from './helpers';
@@ -98,5 +98,23 @@ describe('requirement copy (#376)', () => {
     const blocked = await mount(state, createElement(RequirementHint, { requirements: { forbidsNodes: [owned] } }));
     expect(blocked.container.textContent).toMatch(/^No longer possible: you mapped /);
     expect(blocked.container.textContent).not.toContain('Requires:');
+  });
+});
+
+describe('requirement kinds (#420 panel)', () => {
+  it('classifies every forbidding kind as a blocker, including records and story flags', () => {
+    for (const kind of Object.keys(REQUIREMENT_KIND) as (keyof typeof REQUIREMENT_KIND)[]) {
+      if (kind.startsWith('forbid')) expect(REQUIREMENT_KIND[kind], kind).toBe('blocks');
+    }
+    expect([REQUIREMENT_KIND.forbidsCampaignFacts, REQUIREMENT_KIND.forbidsInheritedFacts, REQUIREMENT_KIND.forbiddenNarrativeFlags])
+      .toEqual(['blocks', 'blocks', 'blocks']);
+    expect(REQUIREMENT_KIND.maxIteration).toBe('blocks');
+    expect(REQUIREMENT_KIND.nodes).toBe('requires');
+  });
+
+  it('leaves a forbidden story flag in its own words, never "Requires:"', async () => {
+    const state = { ...granted(), narrativeFlags: ['probe_flag'] };
+    const view = await mount(state, createElement(RequirementHint, { requirements: { forbiddenNarrativeFlags: ['probe_flag'] } }));
+    expect(view.container.textContent).toBe('Conflicting story condition: blocks this action');
   });
 });
