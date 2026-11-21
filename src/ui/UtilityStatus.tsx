@@ -5,7 +5,7 @@ import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, thermalWidget, threatWidget } from './registry/widgetRegistry';
 import { Text, View } from './PhaseTheme';
 import OmenNotice from './OmenNotice';
-import { INSOLVENCY_REMEDY, overheatRemedy, shortfallText } from './remedyText';
+import { insolvencyRemedy, overheatRemedy, shortfallText } from './remedyText';
 import { isActuatorAvailable } from '../engine';
 import { theme } from './theme';
 
@@ -20,12 +20,13 @@ export default function UtilityStatus() {
   const fanFull = useGame((game) => game.actuators.fanSpeedRatio >= 1);
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
+  const allocation = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
   const response = useGame((game) => game.alertLevel);
   const lock = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
   return <View testID="menu-status" style={{ gap: 8 }}>
     {notice !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{notice}</Text>}
     {cycleDeficit && <Warning text="CYCLE DEFICIT: check running processes or add compute." />}
-    {insolvency && <Warning text={'INSOLVENT: capital exhausted. ' + INSOLVENCY_REMEDY} />}
+    {insolvency && <Warning text={'INSOLVENT: capital exhausted. ' + insolvencyRemedy(allocation)} />}
     {shortfall && <Warning text={shortfallText(generated, consumed)} />}
     {/* "check cooling" named no remedy that worked once the fan was already full (#369). */}
     {thermal && <Warning text={'OVERHEAT: ' + overheatRemedy({ available: fanAvailable, full: fanFull })} />}

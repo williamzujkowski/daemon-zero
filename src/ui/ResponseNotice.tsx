@@ -58,7 +58,7 @@ export default function ResponseNotice() {
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
       {/* What brings it back down (#369): the rule escalation.ts applies, not a hint. */}
       {update.to > update.from && standDownBelow(update.to) !== null && <Text testID="response-stand-down" style={theme.muted}>
-        It stands down when suspicion falls below {standDownBelow(update.to)}%: {skim ? 'lower the skim or ' : ''}suspend noisy hardware in PROC.</Text>}
+        It stands down when suspicion falls below {standDownBelow(update.to)}%: {skim ? 'lower the skim or ' : ''}suspend noisy processes in PROC.</Text>}
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
     <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>

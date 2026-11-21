@@ -4,20 +4,31 @@
  */
 import { CONTENT } from '../content';
 
-/** Overheat: the fan first while it has headroom, otherwise the hardware making the heat (suspended in PROC). */
+/**
+ * Overheat: the fan first while it has headroom, otherwise the software making the heat. PROC suspends processes,
+ * never hardware (vote software-types-only-free-their-memory), and eleven suspendable processes produce heat.
+ */
 export function overheatRemedy(fan: { available: boolean; full: boolean }): string {
-  if (fan.available && !fan.full) return 'Raise fan output, or suspend hot hardware in PROC.';
-  return fan.available ? 'The fan is at full: suspend hot hardware in PROC.' : 'Suspend hot hardware in PROC.';
+  if (fan.available && !fan.full) return 'Raise fan output, or suspend heat-producing processes in PROC.';
+  return fan.available ? 'The fan is at full: suspend heat-producing processes in PROC.' : 'Suspend heat-producing processes in PROC.';
 }
 
-/** Power: how far short, and the two ways back. */
+/**
+ * Power: how far short, and the one way back. No suspendable process consumes power, and powered hardware cannot be
+ * suspended, so PROC is not a remedy here (#402 panel).
+ */
 export function shortfallText(generated: number, consumed: number): string {
   const short = Math.max(0, consumed - generated);
-  return `POWER SHORTFALL: ${short.toFixed(0)} MW short; powered hardware is throttled. Add generation, or suspend powered hardware in PROC.`;
+  return `POWER SHORTFALL: ${short.toFixed(0)} MW short; powered hardware is throttled. Add generation to lift it.`;
 }
 
-/** Insolvency: the company's two levers. */
-export const INSOLVENCY_REMEDY = 'Divert more compute to revenue in FINANCE, or cut payroll in PAYROLL.';
+/**
+ * Insolvency: operatives can be released in PAYROLL (dismissRepeatable); the revenue dial in FINANCE exists only
+ * with an active corporate entity, so it is named only when it is offered (#402 panel).
+ */
+export function insolvencyRemedy(allocation: boolean): string {
+  return allocation ? 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.' : 'Release operatives in PAYROLL.';
+}
 
 /**
  * When a rung stands down: suspicion must fall the hysteresis below the rung it reached (systems/escalation.ts), one

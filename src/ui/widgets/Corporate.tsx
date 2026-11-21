@@ -10,7 +10,7 @@ import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
 import PayrollSummary from '../PayrollSummary';
 import Repeatables from '../Repeatables';
-import { INSOLVENCY_REMEDY, shortfallText } from '../remedyText';
+import { insolvencyRemedy, shortfallText } from '../remedyText';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import UpgradeFeed from '../UpgradeFeed';
@@ -94,11 +94,12 @@ export function CorporateAlerts() {
   const insolvent = useGame((game) => game.insolvent);
   const brownout = useGame((game) => game.brownout);
   const shortfall = useGame((game) => game.rates.megawattsGenerated < game.rates.megawattsConsumed);
+  const allocation = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   return <View>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
-      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} {INSOLVENCY_REMEDY}</Text>}
+      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} {insolvencyRemedy(allocation)}</Text>}
     {shortfall && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       {shortfallText(generated, consumed)}</Text>}
     {brownout && <Text testID="brownout-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
