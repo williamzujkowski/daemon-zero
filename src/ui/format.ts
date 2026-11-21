@@ -3,7 +3,7 @@
  * Heat load is labelled separately from temperature change to match the engine.
  */
 import { exactCompactNumber } from './compactNumber';
-import { compactAmount, groupDigits } from '../engine';
+import { amountFigure, groupDigits } from '../engine';
 import { memoryExact } from './units';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
@@ -22,10 +22,8 @@ const deltaUnits: Record<keyof TickDelta, string> = {
   suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW',
 };
 
-/** An authored amount or rate: large ones in K/M/B ("650K"), small ones exactly as authored ("0.02", "15"). */
-export function amountFigure(value: number): string {
-  return Math.abs(value) >= 10000 ? compactAmount(value) : String(value);
-}
+// Large authored amounts in K/M/B, small ones as authored: one definition, in the engine (#406 panel note).
+export { amountFigure } from '../engine';
 
 /** With `blind`, suspicion has no number yet: only whether the unreadable log gets busier or quieter. */
 export function deltaText(delta: TickDelta, blind = false): string {

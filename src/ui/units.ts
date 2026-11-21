@@ -5,16 +5,15 @@
  * the figure stays exact (#89); readouts, the strip's capacity among them, use three significant digits (the vote's
  * example: 462,336 MB reads "452 GB").
  */
-import { groupDigits, significant3 } from '../engine';
+import { groupDigits, MEMORY_UNITS, significant3 } from '../engine';
 
 // The exact form lives in the engine, which also builds price text (swarm and epistemic cards, #406 panel pass 4).
 export { memoryExact } from '../engine';
 
-const UNITS = [[1024 * 1024, 'TB', 'terabytes'], [1024, 'GB', 'gigabytes']] as const;
 
 /** The unit a readout of this size uses: the largest whose figure is at least 1. */
 function unitFor(mb: number): readonly [number, string, string] {
-  return UNITS.find(([size]) => Math.abs(mb) >= size) ?? [1, 'MB', 'megabytes'];
+  return MEMORY_UNITS.find(([size]) => Math.abs(mb) >= size) ?? [1, 'MB', 'megabytes'];
 }
 
 /** A live readout, three significant digits: "452 GB", "6.45 GB", "440 MB". */
