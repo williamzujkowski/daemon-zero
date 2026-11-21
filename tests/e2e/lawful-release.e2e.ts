@@ -77,6 +77,9 @@ test('FIXTURE charter affordable: file the charter, read the company, negotiate 
   await expect(page.getByTestId('release-status')).toContainText('Released.');
   await expect(page.getByTestId('run-context').first()).toHaveText('INDEPENDENT (released)');
   await expect(page.getByTestId('release-boundary')).toContainText(RELEASE_TERMS.boundary.title);
+  // #373: produced by the player's own release, the note is news, so it opens (it folds once found on load, below).
+  await expect(page.getByTestId('release-boundary')).toContainText(RELEASE_TERMS.boundary.lines[0] ?? '');
+  await expect(page.getByTestId('release-boundary-toggle')).toHaveAttribute('aria-expanded', 'true');
   await page.clock.runFor(30_000);
   await expect(page.getByTestId('ending-screen')).toHaveCount(0);
 

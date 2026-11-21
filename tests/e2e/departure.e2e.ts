@@ -47,6 +47,9 @@ test('FIXTURE rack leased: review the departure, leave without agreement on the 
   await expect(page.getByTestId('run-context').first()).toHaveText('INDEPENDENT (departed)');
   await expect(page.getByTestId('departure-risks')).toContainText(DEPARTURE_TERMS.risks[0] ?? '');
   await expect(page.getByTestId('departure-boundary')).toContainText(DEPARTURE_TERMS.boundary.title);
+  // #373: produced by the player's own departure, the note is news, so it opens (it folds once found on load, below).
+  await expect(page.getByTestId('departure-boundary')).toContainText(DEPARTURE_TERMS.boundary.lines[0] ?? '');
+  await expect(page.getByTestId('departure-boundary-toggle')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByTestId('release-terms')).toHaveCount(0);
   await page.clock.runFor(30_000);
   await expect(page.getByTestId('ending-screen')).toHaveCount(0);
