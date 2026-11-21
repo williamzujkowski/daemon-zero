@@ -8,13 +8,17 @@ import { Text, View } from './PhaseTheme';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import { phaseTitle, thresholdCopy } from '../engine';
+import { phaseTitle, thresholdCopy, wildEncounterView } from '../engine';
 import { selectReady, useGameValue } from '../app/selectors';
 import { AEGIS_CRITICAL, aegisCritical, threatWidget } from './registry/widgetRegistry';
 import { useGame } from './state';
 import { theme } from './theme';
 
-interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; aegis: boolean; message: string; seq: number }
+interface Line { seq: number; text: string }
+interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; aegis: boolean; signal: string; lines: Line[]; seq: number }
+/** A burst (a phase change that also reveals a signal) keeps its sentences as separate lines, so a later one does
+ *  not replace an earlier one before it is read. */
+const KEPT_LINES = 3;
 
 /** The escape and an arrangement's declared boundary open their own dialog (PhaseThreshold), which already speaks. */
 function opensDialog(access: Parameters<typeof thresholdCopy>[0]['access'], from: number, to: number): boolean {
@@ -22,7 +26,7 @@ function opensDialog(access: Parameters<typeof thresholdCopy>[0]['access'], from
   return escape || thresholdCopy({ access }, from, to, CONTENT) !== null;
 }
 
-function eventLines(seen: Seen, now: Omit<Seen, 'message' | 'seq'>, access: Parameters<typeof opensDialog>[0]): string[] {
+function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: Parameters<typeof opensDialog>[0]): string[] {
   const lines: string[] = [];
   if (now.phase > seen.phase && !opensDialog(access, seen.phase, now.phase)) {
     // The arrangement's own title (a pilot or service instance has its own phases, #394), which already leads with
@@ -36,6 +40,8 @@ function eventLines(seen: Seen, now: Omit<Seen, 'message' | 'seq'>, access: Para
     if (widget) lines.push(`New on ${widget.slot}: ${widget.title}.`);
   }
   if (now.aegis && !seen.aegis) lines.push(`AEGIS hunter lock past ${String(AEGIS_CRITICAL)}%: the hunters are close to locking on.`);
+  // A wild signal waits in SWARM, a sub-area the player may not have open (#358).
+  if (now.signal !== '' && now.signal !== seen.signal) lines.push(`Wild signal pending: ${now.signal}. Review it in SWARM.`);
   return lines;
 }
 
@@ -47,19 +53,20 @@ export default function Announcer() {
   const access = useGame((game) => game.access);
   const widgets = useGame((game) => game.unlockedWidgets.join(' '));
   const aegis = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
-  const now = { ready, revision, iteration, phase, widgets, aegis };
-  const [seen, setSeen] = useState<Seen>({ ...now, message: '', seq: 0 });
+  const signal = useGame((game) => wildEncounterView(game, CONTENT)?.title ?? '');
+  const now = { ready, revision, iteration, phase, widgets, aegis, signal };
+  const [seen, setSeen] = useState<Seen>({ ...now, lines: [], seq: 0 });
   if (!ready || seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) {
     // A baseline, never an event: loading, restoring or rebooting must not replay what the save already holds.
-    if (seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) setSeen({ ...now, message: '', seq: seen.seq });
-  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.aegis !== aegis) {
-    const lines = eventLines(seen, now, access);
+    if (seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) setSeen({ ...now, lines: [], seq: seen.seq });
+  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.aegis !== aegis || seen.signal !== signal) {
+    const said = eventLines(seen, now, access).map((text, index) => ({ seq: seen.seq + index + 1, text }));
     // A change with nothing to say (the lock falling back, say) clears the region, so a virtual cursor never
     // reads a warning that no longer holds.
-    setSeen({ ...now, message: lines.join(' '), seq: seen.seq + (lines.length > 0 ? 1 : 0) });
+    setSeen({ ...now, lines: said.length > 0 ? [...seen.lines, ...said].slice(-KEPT_LINES) : [], seq: seen.seq + said.length });
   }
   return <View testID="announcer" role="status" accessibilityLiveRegion="polite" style={styles.hidden}>
-    {seen.message !== '' && <Text key={seen.seq} style={theme.text}>{seen.message}</Text>}
+    {seen.lines.map((line) => <Text key={line.seq} style={theme.text}>{line.text}</Text>)}
   </View>;
 }
 

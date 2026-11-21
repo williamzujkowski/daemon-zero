@@ -10,7 +10,9 @@ import { dilemmaOmen } from '../engine';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 
-export default function OmenNotice({ id: noticeId = 'omen-notice' }: { id?: string } = {}) {
+/** `compact` sets the label inline ("OMEN // ...") so the desktop chrome's reserved slot holds a typical omen in two
+ *  lines (#362); elsewhere the label sits on its own line. */
+export default function OmenNotice({ id: noticeId = 'omen-notice', compact = false }: { id?: string; compact?: boolean } = {}) {
   const id = useGame((game) => game.pendingDilemma?.id ?? null);
   const ended = useGame((game) => game.ending !== null);
   const dilemma = CONTENT.dilemmas.find((item) => item.id === id);
@@ -22,7 +24,8 @@ export default function OmenNotice({ id: noticeId = 'omen-notice' }: { id?: stri
   // footnote weaker than every button (#378); the word carries the warning, not the colour alone.
   return <View testID={noticeId} role="status" accessibilityLiveRegion="polite"
     style={{ borderLeftWidth: 3, borderColor: palette.warning, paddingHorizontal: 12, paddingVertical: 8, gap: 2 }}>
-    <Text style={[theme.text, { color: palette.warning }]}>OMEN</Text>
-    <DisclosureText style={theme.text}>{omen}</DisclosureText>
+    {compact
+      ? <Text style={theme.text}><Text style={{ color: palette.warning }}>{'OMEN // '}</Text><DisclosureText style={theme.text}>{omen}</DisclosureText></Text>
+      : <><Text style={[theme.text, { color: palette.warning }]}>OMEN</Text><DisclosureText style={theme.text}>{omen}</DisclosureText></>}
   </View>;
 }

@@ -71,7 +71,7 @@ describe('second-pass presentation follow-up', () => {
     const game = gameStore.store.getState().game;
     const due = CONTENT.dilemmas.find((dilemma) => dilemma.id === game.pendingDilemma?.id);
     if (!due || !game.pendingDilemma) throw new Error('Missing pending dilemma');
-    expect(view.find('omen-notice')?.textContent).toBe('OMEN' + due.omen);
+    expect(view.find('omen-notice')?.textContent).toBe('OMEN // ' + due.omen);
     expect(view.find('inspection-forecast')).toBeNull();
     expect(view.find('dilemma-modal')).toBeNull();
     const delay = Math.ceil((game.pendingDilemma.firesAtSimSec - game.simTimeSec) * 1000) + 200;
@@ -121,7 +121,7 @@ describe('second-pass presentation follow-up', () => {
     const game = m4State('phase-1-widgets'), dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === game.currentPhase);
     if (!dilemma) throw new Error('Missing dilemma');
     load({ ...game, pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + 30 } });
-    expect(view.find('omen-notice')?.textContent).toBe('OMEN' + dilemma.omen);
+    expect(view.find('omen-notice')?.textContent).toBe('OMEN // ' + dilemma.omen);
     expect(view.find('inspection-forecast')?.textContent).toContain('30s');
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(view.find('inspection-forecast')?.textContent).toContain('29s');

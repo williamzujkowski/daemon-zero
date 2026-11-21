@@ -51,6 +51,18 @@ it('speaks the arrangement\'s own phase title, not the guest\'s (#394 panel)', a
   expect(variant.title).not.toBe(guest);
 });
 
+it('keeps a burst of events as separate lines, so a later sentence does not replace an earlier one', async () => {
+  const view = await mountM4('phase-2-unlocked', { width: 390, height: 844 });
+  const before = gameStore.store.getState().game;
+  const next = CONTENT.phases.find((phase) => phase.phaseId === before.currentPhase + 1);
+  const fresh = [...CONTENT.widgets.values()].find((widget) => !before.unlockedWidgets.includes(widget.id));
+  if (!next || !fresh) throw new Error('fixture has no next phase or locked widget');
+  advanceTo({ ...before, currentPhase: next.phaseId });
+  advanceTo({ ...gameStore.store.getState().game, unlockedWidgets: [...gameStore.store.getState().game.unlockedWidgets, fresh.id] });
+  const lines = [...(view.find('announcer')?.children ?? [])].map((child) => child.textContent);
+  expect(lines).toEqual([next.title + '.', `New on ${fresh.slot}: ${fresh.title}.`]);
+});
+
 it('speaks each newly unlocked widget by its title and slot (#357)', async () => {
   const view = await mountM4('phase-1-widgets', { width: 390, height: 844 });
   const before = gameStore.store.getState().game;

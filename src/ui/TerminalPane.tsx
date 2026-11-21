@@ -1,10 +1,11 @@
 import { Text, View } from './PhaseTheme';
 /** One scrollable pane renders only the unlocked manifest slots requested by its layout. */
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import AssignmentPanel from './AssignmentPanel';
 import ServiceChannel from './ServiceChannel';
 import ManualCycle from './ManualCycle';
+import OmenNotice from './OmenNotice';
 import NodeList from './NodeList';
 import { Conditioning } from './widgets/Lineage';
 import UpgradeFeed from './UpgradeFeed';
@@ -15,7 +16,7 @@ import { HeadingLevel, SECTION_LEVEL } from './headingLevel';
 import { useGame, useWidgetIds } from './state';
 import { selectBootLogText, selectOpening, selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
-import { CONTENT_MAX_WIDTH } from './layout';
+import { CONTENT_MAX_WIDTH, layoutFor } from './layout';
 import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
 import { NetworkActions } from './widgets/Network';
@@ -49,12 +50,18 @@ function BootLog() {
 
 /** Hardware of every phase hosted in the core pane, newest first, available before owned. */
 function CoreTree() {
+  const { width, height } = useWindowDimensions();
+  const phone = layoutFor(width, height).mode === 'mobile';
   const current = useGame((game) => game.currentPhase);
   const iteration = useGame((game) => game.iteration);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
   return <>
     <ManualCycle />
+    {/* On the phone, below the primary action, never above it: inserted above, its arrival and clearing moved EXECUTE
+        54 px under the player's finger (vote-1795217200867-j2buva4, #362); off CORE the CORE tab marks it (#358).
+        Column tiers keep it in the fixed chrome with a reserved slot instead (vote-1795219347137-c21nx42). */}
+    {phone && <OmenNotice />}
     <BootLog />
     <Conditioning key={iteration} />
     <ServiceChannel />
