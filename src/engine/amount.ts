@@ -18,10 +18,11 @@ export function groupDigits(value: number): string {
   return (value < 0 ? '-' : '') + grouped;
 }
 
-/** Three significant digits, trailing zeros dropped: 1.25, 12.5, 125, 1. */
+/** Three significant digits, trailing zeros dropped: 1.25, 12.5, 125, 1, and below 1 still three (0.0434, not 0.04). */
 export function significant3(value: number): string {
   const abs = Math.abs(value);
-  const text = abs >= 100 ? String(Math.round(abs)) : abs >= 10 ? abs.toFixed(1) : abs.toFixed(2);
+  const text = abs >= 100 ? String(Math.round(abs)) : abs >= 10 ? abs.toFixed(1) : abs >= 1 ? abs.toFixed(2)
+    : String(Number(abs.toPrecision(3)));
   const trimmed = text.includes('.') ? text.replace(/\.?0+$/, '') : text;
   return (value < 0 ? '-' : '') + trimmed;
 }

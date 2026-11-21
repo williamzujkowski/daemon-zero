@@ -29,9 +29,18 @@ export function memoryReadout(mb: number): string {
   return (size === 1 ? groupDigits(Math.round(mb)) : significant3(mb / size)) + ' ' + unit;
 }
 
-/** Used of capacity in the capacity's unit, so the two compare at a glance: "6.45 / 452 GB". */
+/** Below this, a used figure in the capacity's unit stops being readable, so it reads "<0.001", never 0 (#406). */
+const SMALLEST_SHOWN = 0.001;
+
+/**
+ * Used of capacity in the capacity's unit, so the two compare at a glance: "6.45 / 452 GB", "0.0434 / 1.14 TB".
+ * Used keeps three significant digits even far below the capacity, and memory held is never shown as 0.
+ */
 export function memoryPair(used: number, cap: number): { shown: string; spoken: string } {
   const [size, unit, word] = unitFor(cap);
   const figure = (mb: number) => size === 1 ? groupDigits(Math.round(mb)) : significant3(mb / size);
-  return { shown: figure(used) + ' / ' + figure(cap) + ' ' + unit, spoken: figure(used) + ' of ' + figure(cap) + ' ' + word };
+  const tiny = size > 1 && used > 0 && used / size < SMALLEST_SHOWN;
+  const usedShown = tiny ? '<' + String(SMALLEST_SHOWN) : figure(used);
+  const usedSpoken = tiny ? 'less than ' + String(SMALLEST_SHOWN) : usedShown;
+  return { shown: usedShown + ' / ' + figure(cap) + ' ' + unit, spoken: usedSpoken + ' of ' + figure(cap) + ' ' + word };
 }

@@ -8,6 +8,11 @@ describe('amounts', () => {
     expect(['1.25', '12.5', '125', '1', '10', '9.99'].map(Number).map(significant3)).toEqual(['1.25', '12.5', '125', '1', '10', '9.99']);
     expect(significant3(1.2)).toBe('1.2');
     expect(significant3(-45.5)).toBe('-45.5');
+    // Below 1 it is still three significant digits, not two decimals (#406 panel).
+    expect(significant3(0.04339)).toBe('0.0434');
+    expect(significant3(0.0035)).toBe('0.0035');
+    expect(significant3(0.9996)).toBe('1');
+    expect(significant3(0)).toBe('0');
   });
 
   it('groups in full under 10,000 and abbreviates from there', () => {
@@ -54,5 +59,14 @@ describe('memory', () => {
     expect(memoryPair(6608, 462336)).toEqual({ shown: '6.45 / 452 GB', spoken: '6.45 of 452 gigabytes' });
     expect(memoryPair(440, 3584)).toEqual({ shown: '0.43 / 3.5 GB', spoken: '0.43 of 3.5 gigabytes' });
     expect(memoryPair(152, 192)).toEqual({ shown: '152 / 192 MB', spoken: '152 of 192 megabytes' });
+  });
+
+  it('keeps used memory readable against a terabyte capacity and never shows held memory as 0', () => {
+    // The panel's cases: 45,500 MB of ~1.14 TB read "0.04", 4 GB read "0" (#406).
+    expect(memoryPair(45500, 1200000).shown).toBe('0.0434 / 1.14 TB');
+    expect(memoryPair(19112, 1050112).shown).toBe('0.0182 / 1 TB');
+    expect(memoryPair(4096, 1200000).shown).toBe('0.00391 / 1.14 TB');
+    expect(memoryPair(5, 1200000)).toEqual({ shown: '<0.001 / 1.14 TB', spoken: 'less than 0.001 of 1.14 terabytes' });
+    expect(memoryPair(0, 1200000).shown).toBe('0 / 1.14 TB');
   });
 });
