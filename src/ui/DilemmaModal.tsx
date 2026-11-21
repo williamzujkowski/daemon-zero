@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from './PhaseTheme';
+import { focusHeading } from './focusHeading';
 import { useEffect, useRef, type ComponentRef } from 'react';
 import { feedback } from '../app/feedback';
 import { useReducedMotion } from '../app/useReducedMotion';
@@ -47,7 +48,7 @@ function ChoiceIndexRow({ choice, dilemmaId, jump }: { choice: DilemmaChoice; di
 
 /** `token` is the presentation this choice was rendered for; a press against any other is refused. */
 function Choice({ choice, dilemmaId, token, place, heading }: {
-  choice: DilemmaChoice; dilemmaId: string; token: string; place: (y: number) => void; heading: (target: { focus: () => void } | null) => void;
+  choice: DilemmaChoice; dilemmaId: string; token: string; place: (y: number) => void; heading: (target: ComponentRef<typeof View> | null) => void;
 }) {
   const affordable = useGame((game) => canAfford(game, choice.cost));
   // This arrangement's words for the choice (DZ-12); the arrangement cannot change while the clock is stopped here.
@@ -94,7 +95,7 @@ export default function DilemmaModal() {
   const access = useGame((game) => dilemma ? followUpAccess(game, dilemma, CONTENT)?.statement ?? null : null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const cardTop = useRef<Record<string, number>>({});
-  const cardHeading = useRef<Record<string, { focus: () => void } | null>>({});
+  const cardHeading = useRef<Record<string, ComponentRef<typeof View> | null>>({});
   if (!dilemma || ended || token === null) return null;
   const choices = dilemma.choices.filter((choice) => offered.includes(choice.id));
   return <Modal visible transparent animationType="none" onRequestClose={() => undefined}
@@ -108,7 +109,7 @@ export default function DilemmaModal() {
           {choices.length > 1 && <View testID="dilemma-index" style={styles.index}>
             <Text style={theme.muted}>{choices.length} CHOICES</Text>
             {choices.map((choice) => <ChoiceIndexRow key={choice.id} choice={choice} dilemmaId={dilemma.id}
-              jump={() => { scroll.current?.scrollTo({ y: cardTop.current[choice.id] ?? 0, animated: false }); cardHeading.current[choice.id]?.focus(); }} />)}
+              jump={() => { scroll.current?.scrollTo({ y: cardTop.current[choice.id] ?? 0, animated: false }); focusHeading(cardHeading.current[choice.id] ?? null); }} />)}
           </View>}
           {/* An offer shows every term before any answer (DZ-04.3). */}
           {dilemma.choices.some((choice) => choice.pilotResponse) && <PilotTerms />}

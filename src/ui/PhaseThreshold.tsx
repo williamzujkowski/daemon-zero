@@ -7,7 +7,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { useState } from 'react';
 import { Modal, ScrollView } from 'react-native';
 import { CONTENT } from '../content';
-import { thresholdCopy, type ThresholdCopy } from '../engine';
+import { thresholdCopy, type GameState, type ThresholdCopy } from '../engine';
 import { selectReady, useGameValue } from '../app/selectors';
 import { useGame } from './state';
 import { palette, theme } from './theme';
@@ -46,6 +46,12 @@ function isEscape(from: number, to: number): boolean {
   return from === CONTENT.phases[0]?.phaseId && to === CONTENT.phases[1]?.phaseId;
 }
 
+/** Whether a phase change opens this boundary dialog (the escape, or a boundary the arrangement declares), which
+ *  speaks for itself; the chrome announcer stays silent for exactly these (#394 panel: one rule, not two copies). */
+export function opensBoundaryDialog(access: GameState['access'], from: number, to: number): boolean {
+  return isEscape(from, to) || thresholdCopy({ access }, from, to, CONTENT) !== null;
+}
+
 export default function PhaseThreshold() {
   const ready = useGameValue(selectReady);
   const phase = useGame((game) => game.currentPhase);
@@ -58,8 +64,7 @@ export default function PhaseThreshold() {
     return null;
   }
   if (seen.phase !== phase) {
-    const declared = thresholdCopy({ access }, seen.phase, phase, CONTENT) !== null;
-    setSeen({ ready, phase, iteration, open: declared || isEscape(seen.phase, phase), from: seen.phase }); return null;
+    setSeen({ ready, phase, iteration, open: opensBoundaryDialog(access, seen.phase, phase), from: seen.phase }); return null;
   }
   const copy = thresholdCopy({ access }, seen.from, phase, CONTENT);
   const notice = copy ? contextNotice(copy) : escapeNotice();

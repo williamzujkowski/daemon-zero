@@ -57,3 +57,20 @@ it('saves the pause at once and reloads paused with no catch-up for the time awa
   expect(reopened.game.store.getState().game.simTimeSec).toBe(atPause);
   again();
 });
+
+it('counts hidden time as it ran when the pause is toggled while hidden (#397 panel)', async () => {
+  const h = runtimeHarness();
+  const release = h.runtime.start();
+  await settle();
+  h.runtime.setPaused(true);
+  const atPause = h.game.store.getState().game.simTimeSec;
+  h.activity(false);
+  vi.setSystemTime(Date.now() + 600_000);
+  // Lifted while hidden: the ten paused minutes do not count, the next five unpaused ones do.
+  h.runtime.setPaused(false);
+  vi.setSystemTime(Date.now() + 300_000);
+  h.activity(true);
+  await settle();
+  expect(h.game.store.getState().game.simTimeSec).toBeCloseTo(atPause + 300, 0);
+  release();
+});

@@ -8,11 +8,12 @@ import { Text, View } from './PhaseTheme';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import { dilemmaOmen, phaseTitle, thresholdCopy, wildEncounterView } from '../engine';
+import { dilemmaOmen, phaseTitle, wildEncounterView, type GameState } from '../engine';
+import { opensBoundaryDialog } from './PhaseThreshold';
 import { gameStore } from '../app/session';
 import { disclosed } from './DisclosureText';
 import { selectReady, useGameValue } from '../app/selectors';
-import { AEGIS_CRITICAL, aegisCritical, threatWidget } from './registry/widgetRegistry';
+import { AEGIS_CRITICAL, aegisCritical, offSlotWidgets, threatWidget } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
@@ -24,15 +25,10 @@ interface Seen { ready: boolean; revision: number; iteration: number; phase: num
 const KEPT_LINES = 3;
 const BURST_SEC = 2;
 
-/** The escape and an arrangement's declared boundary open their own dialog (PhaseThreshold), which already speaks. */
-function opensDialog(access: Parameters<typeof thresholdCopy>[0]['access'], from: number, to: number): boolean {
-  const escape = from === CONTENT.phases[0]?.phaseId && to === CONTENT.phases[1]?.phaseId;
-  return escape || thresholdCopy({ access }, from, to, CONTENT) !== null;
-}
 
-function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: Parameters<typeof opensDialog>[0]): string[] {
+function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: GameState['access']): string[] {
   const lines: string[] = [];
-  if (now.phase > seen.phase && !opensDialog(access, seen.phase, now.phase)) {
+  if (now.phase > seen.phase && !opensBoundaryDialog(access, seen.phase, now.phase)) {
     // The arrangement's own title (a pilot or service instance has its own phases, #394), which already leads with
     // its number ("Phase 2: Authorized Network Service"); spoken as written.
     const title = phaseTitle({ access }, now.phase, CONTENT);
@@ -41,7 +37,8 @@ function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: Parame
   const before = new Set(seen.widgets.split(' '));
   for (const id of now.widgets.split(' ')) {
     const widget = id !== '' && !before.has(id) ? CONTENT.widgets.get(id) : undefined;
-    if (widget) lines.push(`New on ${widget.slot}: ${widget.title}.`);
+    // A widget whose control is not on its content slot's pane (a strip readout, the PROC spoofer) is not "on" it.
+    if (widget) lines.push(offSlotWidgets.includes(widget.id) ? `New: ${widget.title}.` : `New on ${widget.slot}: ${widget.title}.`);
   }
   if (now.aegis && !seen.aegis) lines.push(`AEGIS hunter lock past ${String(AEGIS_CRITICAL)}%: the hunters are close to locking on.`);
   // The omen: on the phone its notice lives in CORE and is absent off CORE, so its arrival is spoken here (#399, #393).

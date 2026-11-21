@@ -7,11 +7,11 @@
  * renders nothing there.
  */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { AccessibilityInfo, Platform } from 'react-native';
 import { CONTENT } from '../content';
 import { channelContactView, resolveChannelContact, type ChannelContactView, type ContactMode } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
+import { focusHeading } from './focusHeading';
 import { useGame } from './state';
 import { theme } from './theme';
 
@@ -66,15 +66,8 @@ const ANSWERED: Readonly<Record<'REFERRED' | 'HOSTED', string>> = {
   HOSTED: 'Hosted here under the service grant. Its consent and your obligations are on the ticket.',
 };
 
-/**
- * Moves focus to the note's heading, which also scrolls it into view: answering folds the scene above it,
- * so without this the outcome landed off-screen and focus fell to the page body (#284).
- */
-function focusHeading(node: ComponentRef<typeof View> | null): void {
-  if (node === null) return;
-  if (Platform.OS === 'web') (node as unknown as { focus?: () => void }).focus?.();
-  else AccessibilityInfo.sendAccessibilityEvent(node, 'focus');
-}
+// Focus moves to the note's heading (src/ui/focusHeading.ts): answering folds the scene above it, so without this the
+// outcome landed off-screen and focus fell to the page body (#284).
 
 /** What comes next on the route, honestly, with the way to keep going or stop. */
 function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactView['boundary']>; focus: boolean }) {
