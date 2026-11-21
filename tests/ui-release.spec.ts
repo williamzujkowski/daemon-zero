@@ -25,12 +25,13 @@ import Corporate from '../src/ui/widgets/Corporate';
 import { defined } from './m7-helpers';
 import { chartered, CHARTER, CONTRACT, leased, RACK, RELEASE_TERMS, released, signed } from './lawful-helpers';
 import { jobSurface } from './jobSurface';
+import { loadKey, markLoaded, resetLoaded } from '../src/ui/arrival';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
 const mounted = new Set<() => void>();
 let stop: (() => void) | undefined;
-afterEach(() => { for (const close of mounted) close(); stop?.(); stop = undefined; vi.useRealTimers(); });
+afterEach(() => { for (const close of mounted) close(); stop?.(); stop = undefined; vi.useRealTimers(); resetLoaded(); });
 
 async function mount(state: GameState, element: ReactElement) {
   if (!stop) {
@@ -89,6 +90,17 @@ describe('the release terms on the job surface', () => {
     view.click('release-boundary-toggle');
     // DZ-13.4: the fold is a disclosure, so its state reaches the DOM.
     expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
+  });
+});
+
+describe('the boundary note after a release (#373)', () => {
+  it('opens when the release happens in play, after the load is recorded', async () => {
+    const view = await mount(company, createElement('div', null, jobSurface()));
+    const { restoreRevision, game: loadedGame } = gameStore.store.getState();
+    markLoaded(loadedGame, loadKey(restoreRevision, loadedGame.iteration));
+    view.click('release-accept');
+    expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
+    expect(view.find('release-boundary')?.textContent).toContain(RELEASE_TERMS.boundary.lines[0]);
   });
 });
 

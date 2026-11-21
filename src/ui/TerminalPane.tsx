@@ -60,7 +60,8 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
   const shown = ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
     (!workspace.slot || workspaceWidgetVisible(id, workspace.active))).sort(compareWidgetPresentation);
-  // CORE's own widgets take their place in CorePane's order; other slots sharing the pane follow it.
+  // CORE's own widgets take their place in CorePane's order; other slots sharing the pane follow it. No layout shares
+  // CORE's pane today (the phone shows one slot per tab, the columns give CORE its own), so the split changes no order.
   const isCore = (id: string) => CONTENT.widgets.get(id)?.slot === 'CORE';
   const content = <>
     {slots.includes('CORE') && <CoreTree widgetIds={shown.filter(isCore)} area={workspace.active} />}
