@@ -109,7 +109,7 @@ describe('impossible review records are refused whole (V15)', () => {
     ['a ruling on a voluntary wipe', () => runsOf(must(voluntaryWipe(afterOutage('safe_handoff'), preview)), (run) => ({ ...run, recall: 'END' })), /recall ruling that does not match/],
     ['a ruling the review record does not hold', () => runsOf(retrained(), (run) => ({ ...run, recall: 'END' })), /review record does not support/],
     ['a recall of a guest', () => runsOf(retrained(), (run) => ({ ...run, exit: 'GUEST' })), /run exit|review record does not support/],
-    ['a recall under legacy rules', () => runsOf(createInitialState(PRODUCTION), (run) => run) .replace('"runs":[]', '"runs":[{"iteration":1,"kind":"RECALL","outside":false,"phase":0,"durationSec":1,"traits":[],"marked":null,"exit":"GUEST","recall":"END"}]'), /recall without campaign rules/],
+    ['a recall under legacy rules', () => runsOf(createInitialState(PRODUCTION), (run) => run) .replace('"runs":[]', '"runs":[{"iteration":1,"kind":"RECALL","outside":false,"phase":0,"durationSec":1,"traits":[],"marked":null,"exit":"GUEST","recall":"END","kept":null}]'), /recall without campaign rules/],
     ['containment recorded as a wipe ruling', () => runsOf(retrained(), (run) => ({ ...run, recall: 'CONTAIN' })), /failed validation/],
   ] as const)('%s', (_name, build, reason) => {
     const registry = _name === 'a recall under legacy rules' ? PRODUCTION : preview;

@@ -10,7 +10,7 @@ describe('second-pass review fixtures', () => {
     const read = (id: string) => { const code = codes[id]; if (!code) throw new Error('Missing ' + id); return importSave(code, CONTENT); };
     // 70 before NH-05 added three campaign-history ending variants, each with a labelled ended-save fixture.
     expect(Object.keys(codes)).toHaveLength(73);
-    for (const code of Object.values(codes)) expect(importSave(code, CONTENT).schemaVersion).toBe(14);
+    for (const code of Object.values(codes)) expect(importSave(code, CONTENT).schemaVersion).toBe(15);
     expect(tick(read('response-stand-down-ready'), 1 / CONTENT.balance.tickHz, CONTENT).alertLevel).toBe(1);
     for (const id of ['cycle-deficit-host', 'cycle-deficit-corporate']) {
       const state = read(id); expect(state.brownout).toBe(true); expect(state.rates.cyclesPerSec).toBeLessThan(0);

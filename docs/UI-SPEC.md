@@ -439,8 +439,11 @@ displayed size in words ("1.25 billion, gaining 1.26 million per second"); price
 numbers are formatted by the engine, since they are stored in saved log text. Warnings remain explicit.
 
 Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
-knowledge and cheaper remapping. No retention percentage, recovery price or
-conditioning behavior changes in this UI pass.
+knowledge and cheaper remapping. It names what the wipe carried (#377): "Kept: 1.23K Understanding (the run
+could keep 10% of it), $X offshore capital; N mapped hardware remembered, cheaper to map again", read from the
+run record the wipe wrote (`RunRecord.kept`, save v15), so a restored checkpoint whose balance has moved on still
+reports the wipe. A run recorded before v15 keeps the general sentence and no amount is invented (`carryOverText`,
+`src/ui/carryText.ts`). Capital appears only when some crossed, hardware only when any is remembered.
 
 ## Post-M7 density review: focused workspaces
 

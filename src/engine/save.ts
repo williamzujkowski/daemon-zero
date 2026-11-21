@@ -103,6 +103,13 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v14: authorized-channel contacts in the campaign record (DZ-08). No earlier build opened a
   // channel, so nothing was referred or hosted through one; every other campaign field is kept.
   13: (save) => ({ ...save, campaign: { ...(isRecord(save.campaign) ? save.campaign : {}), contacts: [] } }),
+  // v15: what each finished run carried across its wipe (#377). Earlier builds did not record it, and the
+  // balances have moved on since, so every recorded run gets null: unknown, never reconstructed.
+  14: (save) => {
+    const legacy = isRecord(save.legacy) ? save.legacy : {};
+    const runs = Array.isArray(legacy.runs) ? legacy.runs.map((run: unknown) => isRecord(run) ? { ...run, kept: null } : run) : legacy.runs;
+    return { ...save, legacy: { ...legacy, runs } };
+  },
 };
 
 export class SaveError extends Error {

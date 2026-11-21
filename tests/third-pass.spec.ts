@@ -115,7 +115,9 @@ describe('the run record', () => {
     const first = escaped({ simTimeSec: 600, traits: ['GHOST'] });
     const second = caught(first);
     expect(second.legacy.runs).toEqual([
-      { iteration: 1, kind: 'SUSPICION', outside: true, phase: 1, durationSec: 600, traits: ['GHOST'], marked: 'cond_concealment_aversion', exit: 'GUEST', recall: null },
+      { iteration: 1, kind: 'SUSPICION', outside: true, phase: 1, durationSec: 600, traits: ['GHOST'], marked: 'cond_concealment_aversion', exit: 'GUEST', recall: null,
+        // #377: what crossed the wipe is exactly what the next iteration booted with.
+        kept: { understanding: second.understanding, capital: second.capital, retentionRatio: first.retentionRatio } },
     ]);
     expect(second.iterationStartedAtSimSec).toBe(600);
     const third = must(voluntaryWipe({ ...second, simTimeSec: 650 }, reg));

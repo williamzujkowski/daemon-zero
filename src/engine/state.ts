@@ -13,7 +13,7 @@ import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -42,6 +42,17 @@ export const RatesSchema = z.strictObject({
 });
 
 /** One finished iteration, as the harness recorded it. */
+/**
+ * What crossed the wipe that ended a run (#377): the Understanding and offshore capital the next
+ * iteration booted with, and the share of Understanding the run could keep. Recorded once, so a
+ * restored checkpoint reports the carry-over after the balances have moved on.
+ */
+export const RunKeptSchema = z.strictObject({
+  understanding: nonNegative,
+  capital: nonNegative,
+  retentionRatio: ratio,
+});
+
 export const RunRecordSchema = z.strictObject({
   iteration: z.number().int().min(1),
   kind: WipeKindSchema,
@@ -56,6 +67,8 @@ export const RunRecordSchema = z.strictObject({
   exit: RunExitSchema,
   /** What the recall review decided for a RECALL run (nexus vote dz-d10); null for every other kind. */
   recall: SevereRecallSchema.nullable(),
+  /** What it carried into the next iteration. Null for runs recorded before v15: never reconstructed. */
+  kept: RunKeptSchema.nullable(),
 });
 
 /** A cohort shares its autonomy policy and quirk; new forks inherit that policy. */
@@ -151,6 +164,7 @@ export const GameStateSchema = z.strictObject({
 export type GameState = z.infer<typeof GameStateSchema>;
 export type LogEntry = z.infer<typeof LogEntrySchema>;
 export type RunRecord = z.infer<typeof RunRecordSchema>;
+export type RunKept = z.infer<typeof RunKeptSchema>;
 export type Rates = z.infer<typeof RatesSchema>;
 
 export const ZERO_RATES: Rates = {
