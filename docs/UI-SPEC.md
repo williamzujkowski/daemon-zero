@@ -156,7 +156,7 @@ dismiss it. Above Start Over a line says what a new run keeps: nothing (`start-o
 boots the engine's initial state. Start Over requires a second confirmation listing everything erased;
 cancel preserves the ending. Ended runs suppress pending dilemma/reboot modals.
 
-The ending screen shows, under the run summary, `DISTINCTIONS k OF n`: each distinction the record proves by title and claim, and a count for the rest, never their titles (an unearned title would name a scene the game may never have met). When the record proves none it says so. Data: `earnedAchievements`, `achievements.json`; tests `tests/ui-distinctions.spec.ts`, `tests/e2e/distinctions.e2e.ts`.
+The ending screen shows, under the run summary, `DISTINCTIONS k OF n`: each distinction the record proves by title and claim, and a count for the rest, never their titles (an unearned title would name a scene the game may never have met). When the record proves none it says so. Below them a spoiler-safe next goal counts what is left by kind and names nothing (#379): "Still to earn: 1 for how the lineage plays, 4 for how scenes it meets turn out" (`distinctions-remaining`). A distinction resting on a campaign fact is an outcome of a scene the lineage may never meet; the rest are conduct (`distinctionKind`, `unearnedByKind`). Data: `earnedAchievements`, `achievements.json`; tests `tests/ui-distinctions.spec.ts`, `tests/e2e/distinctions.e2e.ts`.
 
 Development builds have a labelled DEV launcher, including on the ending screen.
 Its scrollable drawer grants resources, generates a funded phase review state,
