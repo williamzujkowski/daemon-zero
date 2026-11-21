@@ -260,7 +260,7 @@ is renamed on purpose, and review the diff.
 `test-results/ui-atlas/`: `index.html` (one self-contained card per cell: screenshot, figures, gate failures with
 known gaps marked, contract items, reported metrics, ARIA snapshot and metrics), `summary.json`, and for the
 judgment panel `cells/<stage>--<width>x<height>.png`, `.aria.yml` and `.json` per cell. CI uploads the folder as
-the `ui-atlas` artifact (7 days) after `make e2e`, before `make e2e-pages` empties it; the nightly `ui-atlas`
+the `ui-atlas-1` and `ui-atlas-2` artifacts (7 days), one per `make e2e` shard, each holding the cells that shard ran; the nightly `ui-atlas`
 workflow runs `make e2e-atlas` and uploads `ui-atlas-matrix`. Screenshots are never committed. The audit
 helper itself (geometry, axe on the paused clock through `captureRealTimers`, the pure rules in
 `tests/ui-audit-metrics.spec.ts`) is unchanged from the #338 spike, which the atlas replaces.
@@ -1244,8 +1244,11 @@ CI runs the gates from `make verify-full`: typecheck, lint, content validation,
 tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e`
 and `make e2e-pages`; these browser suites are separate from
-`make verify-full`. All of it runs in the one required `verify` job, whose limit is
-30 minutes (`timeout-minutes: 30`, raised from 20 in #301).
+`make verify-full`. They run as parallel jobs: `checks` (`make verify`, security scans, SBOM), `e2e (1/2)` and
+`e2e (2/2)` (`make e2e` split with Playwright's `--shard`), and `pages` (`make e2e-pages`), each with a 20-minute
+limit. The required status check `verify` is a final job that passes only when every one of them succeeded, so
+branch protection and the deploy gate key on one name. One serial job used to take 21-30+ minutes against a
+30-minute limit and was cancelled at that limit on busy days.
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
 `make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file

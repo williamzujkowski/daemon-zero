@@ -2,7 +2,7 @@
 import { CONTENT } from '../content';
 import { selectNotice, useGameValue } from '../app/selectors';
 import { useGame, useSurveillanceKnown } from './state';
-import { resourceWidgets, thermalWidget, threatWidget } from './registry/widgetRegistry';
+import { aegisCritical, resourceWidgets, thermalWidget, threatWidget } from './registry/widgetRegistry';
 import { Text, View } from './PhaseTheme';
 import OmenNotice from './OmenNotice';
 import { theme } from './theme';
@@ -15,7 +15,7 @@ export default function UtilityStatus() {
   const shortfall = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.rates.megawattsGenerated < game.rates.megawattsConsumed);
   const thermal = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
   const response = useGame((game) => game.alertLevel);
-  const lock = useGame((game) => game.unlockedWidgets.includes(threatWidget) && game.aegisLock >= 90);
+  const lock = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
   return <View testID="menu-status" style={{ gap: 8 }}>
     {notice !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{notice}</Text>}
     {cycleDeficit && <Warning text="CYCLE DEFICIT: check running processes or add compute." />}
