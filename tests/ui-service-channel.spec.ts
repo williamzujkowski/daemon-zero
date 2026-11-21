@@ -18,7 +18,7 @@ import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
-import ServiceChannel from '../src/ui/ServiceChannel';
+import ServiceChannel, { hostIndexLabel } from '../src/ui/ServiceChannel';
 import Swarm from '../src/ui/widgets/Swarm';
 import { CHANNEL_ENCOUNTER, contactPending, delivered, GRANT_TERMS, MERCY_MB, withMemory } from './contact-helpers';
 import { freshCampaign } from './assignment-helpers';
@@ -77,13 +77,21 @@ describe('the channel contact (V20)', () => {
     expect(text.indexOf('Consent:')).toBeLessThan(text.indexOf('[ REFER ONWARD ]'));
     expect(view.find('channel-index-refer')?.textContent).toBe('> Refer onward // free');
     // Hosting is refused in this state (memory), and the index says so instead of offering it as open.
-    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${String(MERCY_MB)} MB // cannot host yet`);
+    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${String(MERCY_MB)} MB // hosting refused: the reason is below`);
     view.click('channel-index-host');
     expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-host-heading');
     view.click('channel-index-refer');
     expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-refer-heading');
     // Pressing the index answers nothing.
     expect(game().campaign.contacts).toEqual([]);
+  });
+
+  it('#410 panel: the host row never promises hosting will open, since a refusal can be permanent', () => {
+    // Temporary (memory) and permanent (a departed or released instance's context) refusals read the same, without "yet".
+    const refused = hostIndexLabel({ memoryNeededMb: MERCY_MB, hostEligible: false });
+    expect(refused).toBe(`Host it here // reserves ${String(MERCY_MB)} MB // hosting refused: the reason is below`);
+    expect(refused).not.toMatch(/\byet\b|later|soon/);
+    expect(hostIndexLabel({ memoryNeededMb: 1024, hostEligible: true })).toBe('Host it here // reserves 1 GB');
   });
 
   it('shows consent, obligations, authorization and memory before the answers, and refers for free', async () => {

@@ -45,6 +45,15 @@ function IndexRow({ testID, label, enabled, target }: { testID: string; label: s
 }
 
 /**
+ * The host row says what hosting reserves and, when it is refused, only that it is refused: a refusal can be
+ * temporary (memory, a withheld permission) or permanent (a departed or released instance's context never regains
+ * the permission), so the index never says "yet" (#410 panel). The HOST section below carries the engine's reason.
+ */
+export function hostIndexLabel(view: Pick<Pending, 'memoryNeededMb' | 'hostEligible'>): string {
+  return 'Host it here // reserves ' + memoryExact(view.memoryNeededMb) + (view.hostEligible ? '' : ' // hosting refused: the reason is below');
+}
+
+/**
  * The ticket's first lines say a decision waits and name both answers (#375), the dilemma index's pattern (vote
  * 4ljmpd2). The terms still come before the answers themselves (V20), so a press only moves focus there.
  */
@@ -52,8 +61,7 @@ function AnswerIndex({ view, refer, host }: { view: Pending; refer: { current: H
   return <View testID="channel-index" style={{ gap: 6 }}>
     <Text testID="channel-index-heading" style={theme.heading}>A DECISION WAITS // two answers, after the terms below</Text>
     <IndexRow testID="channel-index-refer" label="Refer onward // free" enabled={view.referEligible} target={refer} />
-    <IndexRow testID="channel-index-host" label={'Host it here // reserves ' + memoryExact(view.memoryNeededMb) + (view.hostEligible ? '' : ' // cannot host yet')}
-      enabled={view.hostEligible} target={host} />
+    <IndexRow testID="channel-index-host" label={hostIndexLabel(view)} enabled={view.hostEligible} target={host} />
   </View>;
 }
 
