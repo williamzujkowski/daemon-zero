@@ -51,6 +51,8 @@ phase, special state and viewport:
 | Ending after a game-menu round trip (#364) | Focus returns to the menu launcher and the player keeps their place, as in every utility menu (WCAG 2.4.3); the atlas check `t-ending-menu` requires the launcher focused and in view, and no longer expects the title in view | `vote-1795202661293-vk191wx`, 7/7 |
 | Dilemma choices on a phone (#371) | An index under the context lists every offered choice in authored order with its cost and whether it can be paid, each jumping to its card; nothing is reordered or privileged | `vote-1795206922704-4ljmpd2`, 6 to 1 |
 | Wild-signal pointer (#359) | The signal name may wrap to two lines so a sighted player can read which signal waits; [ REVIEW ] stays unbroken. This reverses #162's one-line rule at a cost of 22px where the name wraps | `vote-1795208946788-lpjbyc5`, 6 to 1 |
+| The one announcement path (#356, #357, #360) | One visually hidden polite live region in the chrome speaks phase changes (in the arrangement's words), new widgets, the AEGIS critical crossing and a pending wild signal; no replay on restore; the AEGIS HUD says CRITICAL | `vote-1795210455666-e01ydjc`, 7/7 |
+| The omen and EXECUTE (#362) | The omen never sits above the primary action in one flow: on the phone it renders under EXECUTE in CORE (the CORE tab marks it off-pane); on column tiers it stays in the fixed chrome in a reserved slot, label inline | `vote-1795217200867-j2buva4` (4 to 3), refined by `vote-1795219347137-c21nx42` (7/7) after the desktop scroll-away |
 
 ### Thresholds
 

@@ -27,8 +27,9 @@ import BlindAuditStatus from './BlindAuditStatus';
 import GameMenu from './GameMenu';
 import RunStatus from './RunStatus';
 import ResponseNotice from './ResponseNotice';
-import OmenNotice from './OmenNotice';
 import ContactNotice, { waitingContact } from './ContactNotice';
+import { useTabAttention } from './useTabAttention';
+import OmenNotice from './OmenNotice';
 import PhaseThreshold from './PhaseThreshold';
 import Announcer from './Announcer';
 import ProcessManager from './ProcessManager';
@@ -95,6 +96,7 @@ function Terminal() {
   const active = slots.includes(selection.slot) ? selection.slot : 'CORE';
   // Only the phone tier hides CORE behind a tab, so only there does a waiting ticket need pointing to (#284).
   const contactAway = useGame((game) => waitingContact(game) !== null) && active !== 'CORE';
+  const attention = useTabAttention(active);
   const openCore = () => { select({ phase, slot: 'CORE' }); };
   const ready = useGameValue(selectReady);
   const ended = useGame((game) => game.ending !== null);
@@ -109,7 +111,7 @@ function Terminal() {
     <StatusBar barStyle="light-content" />
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
-        select={(slot) => { select({ phase, slot }); }} horizontal attention={contactAway ? { CORE: 'a support ticket is waiting' } : {}} />}
+        select={(slot) => { select({ phase, slot }); }} horizontal attention={attention} />}
         header={<ChromeHeader landmark />} band={<AlertBand landmark />}
         body={<ChromeBody landmark {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
@@ -149,7 +151,7 @@ function MusicToggle() {
  *  alert band (see MobileTerminal); the wider tiers keep them in one region. */
 function TerminalChrome() {
   return <View role="region" aria-label="Terminal status">
-    <ChromeHeader /><AlertBand /><ChromeBody />
+    <ChromeHeader /><AlertBand /><ChromeBody omenSlot />
   </View>;
 }
 
@@ -188,19 +190,33 @@ function AlertBand({ landmark }: { landmark?: boolean }) {
   return <View testID="alert-band" {...landmarkAttrs('Run ending alerts', landmark)}><CorporateAlerts /></View>;
 }
 
-function ChromeBody({ landmark, openCore }: { landmark?: boolean; openCore?: () => void }) {
+function ChromeBody({ landmark, openCore, omenSlot = false }: { landmark?: boolean; openCore?: () => void; omenSlot?: boolean }) {
   const notice = useGameValue(selectNotice);
   return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
     <TopForecast />
     <BlindAuditStatus />
-    <ResponseNotice /><OmenNotice />
+    <ResponseNotice />
+    {omenSlot && <OmenSlot />}
     {openCore !== undefined && <ContactNotice open={openCore} />}
   </View>;
 }
 
+/**
+ * Column tiers keep the omen in the fixed chrome, so it stays in view while a column scrolls, and reserve its height
+ * once play has begun, so its arrival and clearing move nothing below (vote-1795219347137-c21nx42, #362). The phone
+ * shows it under EXECUTE in CORE instead (TerminalPane).
+ */
+function OmenSlot() {
+  const begun = useGame((game) => game.unlockedWidgets.length > 0);
+  return <View testID="omen-slot" style={begun ? styles.omenSlot : undefined}><OmenNotice compact /></View>;
+}
+
 const styles = StyleSheet.create({
+  // One compact omen at desktop width: two lines with the label inline, plus its padding. 84 px (label on its own
+  // line) pushed the Audit trail's response line below the 900 fold on phase 4 stages.
+  omenSlot: { minHeight: 60 },
   screen: { flex: 1, minHeight: 0, backgroundColor: palette.background },
   header: { minHeight: 64, paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderColor: palette.border },
   headerNarrow: { paddingHorizontal: 10, gap: 6 },

@@ -24,10 +24,13 @@ it('keeps the CORE hint as the alert for a deficit before brownout, which no ban
   expect(view.find('cycle-deficit')?.getAttribute('role')).toBe('alert');
 });
 
-it('presents the omen as a labelled polite status at body size (#363, #378)', async () => {
+it('shows the omen with a label word, and speaks its arrival once through the polite announcer (#363, #378, #399)', async () => {
   const view = await mountM4('guest-omen', { width: 390, height: 844 });
   const omen = view.find('omen-notice');
-  expect(omen?.getAttribute('role')).toBe('status');
-  expect(omen?.getAttribute('aria-live')).toBe('polite');
+  // The visible notice is not a live region (on the phone it is absent off CORE); the announcer is the one path.
+  expect(omen?.getAttribute('role')).toBeNull();
   expect(omen?.textContent.startsWith('OMEN')).toBe(true);
+  const announcer = view.find('announcer');
+  expect(announcer?.getAttribute('role')).toBe('status');
+  expect(announcer?.getAttribute('aria-live')).toBe('polite');
 });
