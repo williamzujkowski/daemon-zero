@@ -22,6 +22,7 @@ import NodeTitle from './NodeTitle';
 import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from './headingLevel';
 import GrantNote from './GrantNote';
 import SettledFold from './SettledFold';
+import { oneWayText } from './oneWayText';
 
 /** What rediscovery saves, from the same multipliers the price uses, so the line cannot drift (#262). */
 function savingText(node: RegistryNode, campaign: boolean): string {
@@ -32,12 +33,26 @@ function savingText(node: RegistryNode, campaign: boolean): string {
     : `Rediscovery saves ${String(cycles)}% of cycles and ${String(understanding)}% of understanding.`;
 }
 
-function NodeCard({ node }: { node: RegistryNode }) {
+/**
+ * Right above the control it qualifies (#372): an exit used to look like any other [ WRITE DRIVER ]. A string
+ * selector, so it changes only when the run's phase does.
+ */
+function OneWayLine({ node }: { node: RegistryNode }) {
+  const text = useGame((game) => oneWayText(node, game.currentPhase));
+  return text === null ? null : <Text testID={'node-' + node.id + '-one-way'} style={[theme.text, theme.danger]}>{text}</Text>;
+}
+
+/** Development web builds count each card's renders (renderCounts.ts). */
+function useRenderRecord(id: string): void {
   useEffect(() => {
     if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') {
-      recordNodeRender(node.id);
+      recordNodeRender(id);
     }
   });
+}
+
+function NodeCard({ node }: { node: RegistryNode }) {
+  useRenderRecord(node.id);
   // Hardware mapped in an earlier iteration is remembered by name and costs less to map again.
   const compact = isCompactViewport(useWindowDimensions().width);
   const level = useHeadingLevel() ?? SECTION_LEVEL;
@@ -79,6 +94,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       {refusal === null && <GrantNote node={node} />}
+      <OneWayLine node={node} />
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
         allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}

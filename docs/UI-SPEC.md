@@ -92,6 +92,11 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 ## Destructive actions
 
 Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept.
+Every confirmation puts CANCEL before the red CONFIRM, and the wipe and Start Over add their own line: "This cannot
+be undone: only a backup exported before this can restore the run" (`{id}-no-undo`, #372); there is one save slot.
+A node that ends the run or opens a later phase says so in red right above its control ("Cannot be undone: this run
+moves on to Phase 1 and cannot go back", `node-{id}-one-way`, `oneWayText`), read from its own effects; a phase
+opener behind the current phase says nothing, since the phase only rises within a run.
 
 MENU → SAVES includes START FRESH during a run as well as after an ending. It
 returns to the engine's initial state, clearing all game progress, retained

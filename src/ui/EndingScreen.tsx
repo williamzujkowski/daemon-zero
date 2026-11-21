@@ -91,7 +91,7 @@ export default function EndingScreen() {
         <MenuLauncher menu={menu} /><DevelopmentTools location="ending" />
       </View>
     </ScrollView>}</SafeOverlay>
-    {confirming && <ConfirmDialog id="start-over" title="Start a new run" cancel={() => { confirm(false); }}
+    {confirming && <ConfirmDialog id="start-over" title="Start a new run" irreversible cancel={() => { confirm(false); }}
       detail="Erase all hardware, resources, upgrades, traits, legacy history and breadcrumbs. Begin iteration 1 with no retained run progress."
       confirm={() => { const result = startOver(); if (!result.ok) setError(result.reason); confirm(false); }} />}
   </Modal>;
