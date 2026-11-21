@@ -40,8 +40,8 @@ export type BlockKey = 'manual' | 'omen' | 'objective' | 'boot' | 'conditioning'
 export const ORDERS: Readonly<Record<CoreVariant, readonly BlockKey[]>> = {
   'next-action': ['manual', 'channel', 'grantCards', 'service', 'controls', 'grant', 'release', 'departure', 'omen',
     'standing', 'cards', 'upgrades', 'offer', 'conditioning', 'record', 'readouts', 'boot'],
-  status: ['manual', 'omen', 'standing', 'conditioning', 'readouts', 'channel', 'grantCards', 'service', 'controls',
-    'grant', 'release', 'departure', 'record', 'cards', 'upgrades', 'offer', 'boot'],
+  status: ['manual', 'omen', 'standing', 'conditioning', 'channel', 'grantCards', 'service', 'controls',
+    'grant', 'release', 'departure', 'record', 'cards', 'upgrades', 'offer', 'readouts', 'boot'],
   objective: ['manual', 'omen', 'objective', 'boot', 'cards', 'upgrades', 'channel', 'grantCards', 'service', 'controls',
     'grant', 'release', 'departure', 'standing', 'conditioning', 'record', 'offer', 'readouts'],
 };
