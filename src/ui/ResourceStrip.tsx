@@ -5,6 +5,7 @@ import { Text, View } from './PhaseTheme';
  */
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { memoryBlocked } from '../app/selectors';
+import { CONTENT } from '../content';
 import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
@@ -87,6 +88,11 @@ function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: b
   const value = useGame((game) => Math.round((thermal ? game.thermal : game.suspicion) * 10) / 10);
   const label = thermal ? 'Thermal' : 'Suspicion';
   const unit = thermal ? ' °C' : '%';
+  // The response rung beside the percentage once the humans have escalated (#368): the level word lived only in the
+  // Audit trail card, below the fold on desktop and on another tab on a phone. The strip shows its first word
+  // (TICKET, ON-CALL, INCIDENT); the name carries the full label. NOMINAL adds nothing, so the early strip is unchanged.
+  const rung = useGame((game) => thermal ? null : CONTENT.narrative.alertLevels[game.alertLevel]?.label ?? null);
+  const escalated = rung !== null && rung !== CONTENT.narrative.alertLevels[0]?.label ? rung : null;
   const text = value.toFixed(1) + unit;
   return <View style={[styles.readout, compact && styles.sensorCompact, short && styles.short, packed && styles.packed]}>
     <Text style={theme.muted}>{short ? SHORT[thermal ? 'thermal' : 'suspicion'] : label.toUpperCase()}</Text>
@@ -94,8 +100,9 @@ function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: b
       {/* #111: aria-valuetext needs a role that carries a value, so this readout is
         a meter with an explicit range rather than a bare text node. */}
       <Text testID={thermal ? 'thermal-meter' : 'suspicion-meter'} role="meter"
-        accessibilityLabel={label + ': ' + text} aria-valuetext={text}
-        aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} style={theme.text}>{text}</Text>
+        accessibilityLabel={label + ': ' + text + (escalated ? ', response ' + escalated : '')} aria-valuetext={text}
+        aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} style={theme.text}>{text}{escalated
+          ? <Text testID="suspicion-rung" style={theme.danger}>{' ' + (escalated.split(' ')[0] ?? escalated)}</Text> : null}</Text>
       {/* Holds the width open in the same font; zero height and hidden from assistive technology. */}
       <Text aria-hidden testID={thermal ? 'thermal-meter-width' : 'suspicion-meter-width'} style={[theme.text, styles.widthHold]}>{SENSOR_MIN_DIGITS + unit}</Text>
     </View>
