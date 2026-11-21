@@ -47,6 +47,8 @@ export interface RouteState {
   phoneOnly?: boolean;
   /** A control that shows or hides part of the surface in place, which must expose that state. */
   disclosure?: string;
+  /** Live lines this surface must render; route-semantics checks each one's announcement attribute (#414 panel). */
+  live?: readonly string[];
   prepare?: (page: Page) => Promise<void>;
   operate?: Operation;
 }
@@ -101,7 +103,7 @@ export const ROUTE_STATES: readonly RouteState[] = [
     operate: { control: choice('safe_handoff'), key: 'Enter', then: gone('dilemma-modal') } },
   { name: 'restricted standing', state: () => afterOutage('act_without_grant'), scope: 'pane-scroll-CORE', reach: 'review-standing' },
   { name: 'incident record modal', state: () => recordPresented('act_without_grant'), scope: 'dilemma-modal', reach: choice('correct_record'), modal: true },
-  { name: 'recall announced', state: () => falsified(), scope: 'pane-scroll-CORE', reach: 'review-announced' },
+  { name: 'recall announced', live: ['review-announced-alert'], state: () => falsified(), scope: 'pane-scroll-CORE', reach: 'review-announced' },
   { name: 'recall review modal', state: () => reviewPresented(), scope: 'dilemma-modal', reach: choice('submit_full_logs'), modal: true },
   { name: 'service terms offered', state: () => delivered(), scope: 'service-grant', reach: 'service-grant-accept',
     operate: { control: 'service-grant-accept', key: 'Enter', then: shows('service-grant-status', 'Granted.') } },
@@ -112,21 +114,21 @@ export const ROUTE_STATES: readonly RouteState[] = [
   { name: 'service channel ticket', state: () => contactPending(), scope: 'service-channel', reach: 'channel-refer',
     operate: { control: 'channel-refer', key: 'Enter', then: async (page) => { await expect(page.getByTestId('prototype-boundary-heading')).toBeFocused(); } } },
   // #284: the phone tier names a waiting ticket in the chrome while another pane is open.
-  { name: 'waiting ticket notice', state: () => contactPending(), pane: 'NETWORK', scope: 'contact-notice', reach: 'contact-notice-open', phoneOnly: true,
+  { name: 'waiting ticket notice', live: ['contact-notice'], state: () => contactPending(), pane: 'NETWORK', scope: 'contact-notice', reach: 'contact-notice-open', phoneOnly: true,
     operate: { control: 'contact-notice-open', key: 'Enter', then: async (page) => { await expect(page.getByTestId('tab-CORE')).toHaveAttribute('aria-selected', 'true'); } } },
   { name: 'channel boundary note', state: () => must(answerContact(contactPending(), 'REFER')), scope: 'prototype-boundary', reach: 'prototype-boundary-toggle', disclosure: 'prototype-boundary-toggle',
     operate: { control: 'prototype-boundary-toggle', key: 'Space', then: expanded('prototype-boundary-toggle', true) } },
   { name: 'owned rack card', state: () => signed(), pane: 'NETWORK', scope: 'node-' + RACK, reach: 'node-' + RACK + '-grant' },
-  { name: 'release terms offered', state: () => chartered(), scope: 'release-terms', reach: 'release-accept',
+  { name: 'release terms offered', live: ['release-status'], state: () => chartered(), scope: 'release-terms', reach: 'release-accept',
     operate: { control: 'release-accept', key: 'Enter', then: shows('release-status', 'Released.') } },
   { name: 'corporate ledger split', state: () => chartered(), pane: 'CORP', area: 'finance', scope: 'pane-scroll-CORP', reach: 'corp-compute-split' },
-  { name: 'release boundary note', state: () => released(), scope: 'release-terms', reach: 'release-boundary-toggle', disclosure: 'release-boundary-toggle',
+  { name: 'release boundary note', live: ['release-status'], state: () => released(), scope: 'release-terms', reach: 'release-boundary-toggle', disclosure: 'release-boundary-toggle',
     operate: { control: 'release-boundary-toggle', key: 'Space', then: expanded('release-boundary-toggle', true) } },
-  { name: 'departure folded', state: () => leased(), scope: 'departure-terms', reach: 'departure-review', disclosure: 'departure-review',
+  { name: 'departure folded', live: ['departure-status'], state: () => leased(), scope: 'departure-terms', reach: 'departure-review', disclosure: 'departure-review',
     operate: { control: 'departure-review', key: 'Enter', then: expanded('departure-review', true) } },
-  { name: 'departure terms open', state: () => leased(), scope: 'departure-terms', reach: 'departure-accept', disclosure: 'departure-review', prepare: click('departure-review'),
+  { name: 'departure terms open', live: ['departure-status'], state: () => leased(), scope: 'departure-terms', reach: 'departure-accept', disclosure: 'departure-review', prepare: click('departure-review'),
     operate: { control: 'departure-accept', key: 'Enter', then: shows('departure-status', 'Departed.') } },
-  { name: 'departed boundary note', state: () => must(depart(leased())), scope: 'departure-terms', reach: 'departure-boundary-toggle', disclosure: 'departure-boundary-toggle',
+  { name: 'departed boundary note', live: ['departure-status'], state: () => must(depart(leased())), scope: 'departure-terms', reach: 'departure-boundary-toggle', disclosure: 'departure-boundary-toggle',
     operate: { control: 'departure-boundary-toggle', key: 'Enter', then: expanded('departure-boundary-toggle', true) } },
   { name: 'obligation recovery review', state: recoveryReview, reboot: 'pass', scope: 'dilemma-modal', reach: choice('hand_to_health_authorities'), modal: true },
   { name: 'follow-up record modal', state: elenaFollowUp, reboot: 'pass', scope: 'dilemma-modal', reach: choice('correct_attribution'), modal: true },

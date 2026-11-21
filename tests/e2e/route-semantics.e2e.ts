@@ -36,6 +36,12 @@ async function controlProblems(scope: Locator): Promise<string[]> {
   return problems;
 }
 
+test('every live line is expected by at least one route state, so none can drop out of the check', () => {
+  const expected = new Set(ROUTE_STATES.flatMap((entry) => entry.live ?? []));
+  expect(Object.keys(LIVE).filter((id) => !expected.has(id))).toEqual([]);
+  expect([...expected].filter((id) => !(id in LIVE))).toEqual([]);
+});
+
 for (const entry of ROUTE_STATES) {
   test('semantics route ' + entry.name, async ({ page }, info) => {
     test.skip(entry.phoneOnly === true && info.project.name !== 'phone', 'only the phone tier renders this surface');
@@ -53,8 +59,12 @@ for (const entry of ROUTE_STATES) {
       if (surface) await expect(scope.getByRole('heading', { level: expectedLevel(surface), name: surface.title }).first()).toBeAttached();
     }
     if (entry.disclosure !== undefined) await expect(page.getByTestId(entry.disclosure)).toHaveAttribute('aria-expanded', /^(true|false)$/);
+    // An expected live line must be there: a renamed test id fails here instead of skipping (#414 panel). Live ids are
+    // unique, so they are found page-wide: a scope's own root (the contact notice is both) is not inside the scope,
+    // and the scoped lookup silently skipped it.
+    for (const id of entry.live ?? []) await expect(page.getByTestId(id), id + ' is rendered').not.toHaveCount(0);
     for (const [id, [attribute, value]] of Object.entries(LIVE)) {
-      if (await scope.getByTestId(id).count()) await expect(scope.getByTestId(id)).toHaveAttribute(attribute, value);
+      if (await page.getByTestId(id).count()) await expect(page.getByTestId(id)).toHaveAttribute(attribute, value);
     }
     if (entry.modal === true) {
       const dialog = page.locator('[aria-modal="true"]').filter({ has: page.getByTestId(entry.reach) });
