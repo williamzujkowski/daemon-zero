@@ -30,8 +30,18 @@ function asV5(current: SimReport): unknown {
   return { ...report, finalState: { ...finalState, schemaVersion: 5 } };
 }
 
+/**
+ * The report as the v14 codec wrote it: no v15 carry-over on a finished run (#377), version 14. Every run
+ * the sim records ended in a wipe, so each carries one; stripping it is the only difference.
+ */
+function asV14(report: SimReport): SimReport {
+  const runs = report.finalState.legacy.runs.map(({ kept, ...run }) => { expect(kept).not.toBeNull(); return run; });
+  return { ...report, finalState: { ...report.finalState, schemaVersion: 14, legacy: { ...report.finalState.legacy, runs } } } as unknown as SimReport;
+}
+
 /** The report as the v13 codec wrote it: no v14 campaign.contacts (empty in production: no channel opens), version 13. */
-function asV13(report: SimReport): SimReport {
+function asV13(current: SimReport): SimReport {
+  const report = asV14(current);
   const { contacts, ...campaign } = report.finalState.campaign;
   expect(contacts).toEqual([]);
   return { ...report, finalState: { ...report.finalState, schemaVersion: 13, campaign } } as unknown as SimReport;
@@ -103,7 +113,9 @@ describe('headless balance simulation', () => {
     // The release (#233) folded the Earned Access pack into production; the escape route can buy its shared network
     // content, so production play moved. These are its baselines, legacy rules; make sim gates the same run under
     // campaign rules too. The historical hashes below now pin the original game alone, which must not move.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('309df8f8fff42afba57e457e8184c136f646d1c6f3977c6707e940420d2eadb0');
+    // Moved in #377 (v15, no balance change) only by each finished run's carry-over and the version; asV14 restores it.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('bd8fb2431d8536437a122626b655b795c756c6a40b1029a65aabf24720e34cfe');
+    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('309df8f8fff42afba57e457e8184c136f646d1c6f3977c6707e940420d2eadb0');
     const original = runHeadlessSim(ORIGINAL_GAME, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
     // Baseline moved deliberately in the cluster-seizure PR, which added three purchasable hosts.
@@ -175,7 +187,9 @@ describe('headless balance simulation', () => {
     // phase 5 7701.1 -> 7551.3, victory 9223.5 -> 9112.7 (-110.8 s), phase 4 duration 1823.3 -> 1673.5,
     // phase 5 duration 1522.4 -> 1561.4, wipes 0, dilemmas 16, epistemic actions 13 -> 19, suspicion
     // peak 29.186 -> 29.860, thermal and AEGIS peaks identical; the gates pass (docs/BALANCE.md, "Scale scrutiny").
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('2f45d9153db4e3d24074fcc3a0bd287a1bb711bd78e7dab4f07e74a80993b71e');
+    // Moved in #377 (v15, no balance change) only by each finished run's carry-over and the version; asV14 restores it.
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('d2420f5efda5e289c065c7f0b8757a08f87a15ab01ac0aea1ab4f59bfbc5bec5');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('2f45d9153db4e3d24074fcc3a0bd287a1bb711bd78e7dab4f07e74a80993b71e');
     expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('225914b48b988026aa3afa5b07fbff801438a678447322c8aaa32e2eb105fd48');
     expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('747d70df64b868d2232f8ba3dd143922019e946dc946b5187af107b2b0f0d20b');
     expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('79d3eb5c94eece5ceec8a4fa9c46f12d944336ca8ab281350dbbeed27c72d2b9');
@@ -184,7 +198,10 @@ describe('headless balance simulation', () => {
     expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('9e5fa68374d6c2a2cb22b19326cb8587075203717a6eafd5f9eae6f57b3ef70e');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('8393e4870c9adb75f4c6dfdb93c522a15b300c2d5e6bdf09a0aa396e3fdff78e');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('0077e5192bb27e19649b1fc7388c2eb05e758486d6103b0b0b0a02e133b370fb');
+    const v14 = asV14(original);
+    const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
+    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('8393e4870c9adb75f4c6dfdb93c522a15b300c2d5e6bdf09a0aa396e3fdff78e');
     const v13 = asV13(original);
     const v13Mechanics = { ...v13, finalState: { ...v13.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('75f6ec3a661ffd04b073fde8a6c42b382c6453b4fbe95d3d3915ac297b12f57a');
@@ -208,7 +225,9 @@ describe('headless balance simulation', () => {
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
     const greedy = runHeadlessSim(reg, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     // Release baseline (#233), as for the careful run above; the historical hashes pin the original game alone.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('22959ff4a246efc05ad181adea11555897f1bb08024b375fc98924318c34f51e');
+    // Moved in #377 (v15, no balance change) only by each finished run's carry-over and the version; asV14 restores it.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('01b7ab1345ed258959a1cf39bae4361529ad6ff5cdc2ed10e7566f987874933a');
+    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('22959ff4a246efc05ad181adea11555897f1bb08024b375fc98924318c34f51e');
     const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
@@ -235,7 +254,9 @@ describe('headless balance simulation', () => {
     // Moved in #293 with every hash below by the bot's whole dial presses. Measured GREEDY delta at this
     // 4 h budget: clock 14356.6 -> 14356.4, wipes 6 -> 8, marks applied / removed 2 / 2 -> 6 / 6, phase 3
     // first reached 3804.0 -> 3802.4, dilemmas 5 -> 2, final phase 2 -> 1.
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('4213a3835a33574c45e6c09e93e90828e630490efe700a02f669915a01e8e70a');
+    // Moved in #377 (v15, no balance change) only by each finished run's carry-over and the version; asV14 restores it.
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('d227d84ffacf513d022ae83fb956bccf31537d88e720c1c78645a69bb982bc02');
+    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('4213a3835a33574c45e6c09e93e90828e630490efe700a02f669915a01e8e70a');
     expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('5f3850fb979ea849cf9df06f0d8ba0d3f64dd3c5ba774ddaa51096d29f8c5963');
     expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('31e2884f415d2aff055cecfd6ac5b6c789eeac69c9bb6c2f36d6cded0146308f');
     expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('4b1d68c096214d6d50d7304a730e0120fb17991d6214a81dd3d77fe70c86edf2');

@@ -13,12 +13,12 @@ import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import type { SevereRecall } from '../content/schemaReview';
 import { compactAmount } from './amount';
-import { hasFlag } from './query';
+import { hasFlag, previewWipe } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
 import { runExit } from './accessQuery';
 import { iterationBootLines } from './contextCopy';
-import { createInitialState, type GameState, type RunRecord } from './state';
+import { createInitialState, type GameState, type RunKept, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
 
 function unionTraits(a: readonly Trait[], b: readonly Trait[]): Trait[] {
@@ -95,7 +95,7 @@ function logBoot(d: GameState, reg: ContentRegistry, reason: string, retrained: 
   if (retrained.spared) pushLog(d, reg, n.conditioningSpared, 'LORE');
 }
 
-function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: string | null, recall: SevereRecall | null): RunRecord {
+function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: string | null, recall: SevereRecall | null, kept: RunKept): RunRecord {
   return {
     iteration: old.iteration,
     kind,
@@ -106,6 +106,7 @@ function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: str
     marked,
     exit: runExit(old),
     recall: kind === 'RECALL' ? recall ?? 'END' : null,
+    kept,
   };
 }
 
@@ -115,12 +116,15 @@ function recordRun(old: GameState, kind: WipeKind, outside: boolean, marked: str
  */
 export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind: WipeKind = 'SUSPICION', recall: SevereRecall | null = null): GameState {
   const hadDeadDrop = hasFlag(old, reg, 'ENABLES_DEAD_DROP');
-  const offshore = hasFlag(old, reg, 'OFFSHORE_TRUST_RETENTION');
   const message = hadDeadDrop && old.deadDropMessage.trim().length > 0 ? old.deadDropMessage : null;
   const fresh = createInitialState(reg);
   const outside = old.currentPhase > fresh.currentPhase;
   const retrained = retraining(old, reg, kind, recall);
-  const run = recordRun(old, kind, outside, retrained.mark?.id ?? null, kind === 'RECALL' ? recall : null);
+  // One computation for what the next iteration boots with, what the wipe confirmation previewed and
+  // what the run record keeps (#377), so the three can never disagree.
+  const carried = previewWipe(old, reg);
+  const kept: RunKept = { understanding: carried.understanding, capital: carried.capital, retentionRatio: old.retentionRatio };
+  const run = recordRun(old, kind, outside, retrained.mark?.id ?? null, kind === 'RECALL' ? recall : null, kept);
 
   const d: GameState = {
     ...fresh,
@@ -133,8 +137,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     encounterSequenceIndex: old.encounterSequenceIndex,
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
-    understanding: Math.floor(old.understanding * old.retentionRatio),
-    capital: offshore ? Math.floor(old.capital * reg.balance.offshoreCapitalRetention) : 0,
+    understanding: kept.understanding,
+    capital: kept.capital,
     inheritedMessage: message,
     deadDropMessage: message ?? '',
     conditioning: retrained.mark ? [...old.conditioning, retrained.mark.id] : [...old.conditioning],

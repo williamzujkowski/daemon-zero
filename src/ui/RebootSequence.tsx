@@ -13,6 +13,7 @@ import { Reorientation } from './widgets/Lineage';
 import { selectReady, useGameValue } from '../app/selectors';
 import { focusPrimaryAction } from './primaryFocus';
 import { TRAIT_RULE } from './traitText';
+import { carryOverText } from './carryText';
 
 export default function RebootSequence() {
   const ready = useGameValue(selectReady);
@@ -21,6 +22,8 @@ export default function RebootSequence() {
   const inherited = useGame((game) => game.inheritedMessage);
   const cause = useGame((game) => game.legacy.lastWipeCause);
   const traits = useGame((game) => game.legacy.traitsEver.join(', '));
+  // The run that ended into this iteration recorded what it carried (#377); a string keeps the selector stable.
+  const carried = useGame((game) => carryOverText(game.legacy.runs.at(-1)?.kept ?? null, game.legacy.knownNodes.length));
   const ended = useGame((game) => game.ending !== null);
   // The previous run's exit picks the lines (dz-d11); joined so the selector returns a stable string.
   const bootLines = useGame((game) => iterationBootLines(game, CONTENT).join('\n'));
@@ -41,9 +44,7 @@ export default function RebootSequence() {
       <ScrollView testID="reboot-body" focusable accessibilityLabel="Reboot details" style={styles.body} contentContainerStyle={styles.content}>
         <CheckpointLabel id="reboot-checkpoint" /><Text testID="reboot-heading" accessibilityRole="header" style={theme.heading}>{seen.live ? 'REBOOT' : 'RESTORED CHECKPOINT'}</Text>
         <Text style={[theme.text, theme.danger]}>{cause}</Text>
-        <Text testID="reboot-recovery-explanation" style={theme.text}>
-          The run's cycles and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.
-        </Text>
+        <Text testID="reboot-recovery-explanation" style={theme.text}>{carried}</Text>
         {CONTENT.narrative.bootLines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {bootLines.split('\n').filter((line) => line !== '').map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
         {inherited !== null && <Text testID="reboot-breadcrumb" style={theme.text}>{inherited}</Text>}
