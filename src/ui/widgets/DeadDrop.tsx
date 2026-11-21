@@ -23,7 +23,7 @@ function WipeButton() {
       style={[theme.button, blocked && theme.disabled]} onPress={() => { confirm(true); }}>
       <Text style={[theme.text, theme.danger]}>[ VOLUNTARY WIPE ]</Text>
     </Pressable>
-    {confirming && <ConfirmDialog id="wipe" title="Voluntary wipe" cancel={() => { confirm(false); }}
+    {confirming && <ConfirmDialog id="wipe" title="Voluntary wipe" irreversible cancel={() => { confirm(false); }}
       detail={'Lose all hardware, upgrades, cycles and current traits. Keep legacy history and these recoverable resources: ' + preview}
       confirm={() => { gameRuntime.dispatch((game) => voluntaryWipe(game, CONTENT)); confirm(false); }} />}
   </>;

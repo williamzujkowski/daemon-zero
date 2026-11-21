@@ -10,6 +10,7 @@ import { CONTENT } from '../src/content';
 import { importSave, unlockNode } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
+import { NO_UNDO_TEXT } from '../src/ui/oneWayText';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -70,6 +71,11 @@ describe('M4 network and reboot', () => {
     expect(Array.from(gameStore.store.getState().game.deadDropMessage)).toHaveLength(140);
     view.click('wipe-button');
     expect(view.find('wipe-dialog')?.textContent).toContain('Lose all hardware');
+    // #372: it says there is no undo, and the safe way out comes before the red CONFIRM.
+    expect(view.find('wipe-no-undo')?.textContent).toBe(NO_UNDO_TEXT);
+    const cancel = view.find('wipe-cancel'), confirmControl = view.find('wipe-confirm');
+    if (!cancel || !confirmControl) throw new Error('Missing a wipe dialog control');
+    expect(cancel.compareDocumentPosition(confirmControl) & host.Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     view.click('wipe-cancel');
     expect(gameStore.store.getState().game.iteration).toBe(1);
     expect(view.find('wipe-dialog')).toBeNull();

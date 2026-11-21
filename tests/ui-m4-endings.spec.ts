@@ -34,6 +34,7 @@ describe('M4 endings', () => {
     expect(view.find('start-over-keeps')?.textContent).toContain('A new run keeps nothing from this one');
     view.click('start-over');
     expect(view.find('start-over-dialog')?.textContent).toContain('legacy history and breadcrumbs');
+    expect(view.find('start-over-no-undo')).not.toBeNull();
     view.click('start-over-cancel');
     expect(view.find('ending-screen')).not.toBeNull();
     view.click('start-over'); view.click('start-over-confirm');
