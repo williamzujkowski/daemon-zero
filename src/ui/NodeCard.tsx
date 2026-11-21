@@ -74,7 +74,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       {/* A card the engine's permitted-use rule refuses is dead here (#373): its grant note, the refusal in the card's
           own words (withheld grant or not permitted), stays in view and the rest of the card folds. */}
       {refusal !== null && <GrantNote node={node} />}
-      <SettledFold settled={refusal !== null} summary="Card details" testID={'node-' + node.id + '-fold'}>
+      <SettledFold settled={refusal !== null} summary="Card details" subject={title} testID={'node-' + node.id + '-fold'}>
       <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
