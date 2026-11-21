@@ -8,12 +8,9 @@
 import type { KnownGap } from './knownGaps';
 import type { TransitionRule } from './transitionCheck';
 
-const PILOT = 'after accepting the pilot, the purchase that opens the service dial is the last card in CORE (about 2.8k px down at 390, 1.9k at 1440) and nothing names it (walk B3)';
 const SCROLL = 'on the phone the HUD, forecast and notices scroll with the cards, so reaching a purchase below the fold takes every timely readout out of view (walk C-b)';
 
 export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
-  { stage: 't-pilot-accept', viewport: '1440x900', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },
-  { stage: 't-pilot-accept', viewport: '390x844', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.cycles', rule: 'timely-kept', measured: 'box 42,-455,67,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.forecast', rule: 'timely-kept', measured: 'box 16,-370,358,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.memory', rule: 'timely-kept', measured: 'box 42,-429,101,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
