@@ -20,3 +20,22 @@ export function earnedAchievements(s: GameState, reg: ContentRegistry): Achievem
   if (s.ending === null) return [];
   return reg.achievements.filter((entry) => recordProves(s, entry, reg));
 }
+
+/**
+ * What an unearned distinction is about, without naming it (#379). An OUTCOME rests on a campaign fact, a
+ * scene this lineage may never meet, so its title would spoil the scene; CONDUCT is how the lineage played
+ * (wipes, traits). Derived from the requirement itself, so a new distinction is classified by its data.
+ */
+export type DistinctionKind = 'CONDUCT' | 'OUTCOME';
+
+export function distinctionKind(entry: Achievement): DistinctionKind {
+  return entry.requirements.campaignFact === undefined ? 'CONDUCT' : 'OUTCOME';
+}
+
+/** How many distinctions this ended game has not earned, by kind; nothing before an ending. */
+export function unearnedByKind(s: GameState, reg: ContentRegistry): Record<DistinctionKind, number> {
+  const counts: Record<DistinctionKind, number> = { CONDUCT: 0, OUTCOME: 0 };
+  if (s.ending === null) return counts;
+  for (const entry of reg.achievements) if (!recordProves(s, entry, reg)) counts[distinctionKind(entry)] += 1;
+  return counts;
+}

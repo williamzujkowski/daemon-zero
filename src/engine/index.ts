@@ -55,7 +55,7 @@ export { submitPilotBatch } from './batchReview';
 export { discrepancyFound } from './findingQuery';
 export { loanContainment } from './grantQuery';
 export { recallPreview, reviewView, type RecallPreview, type ReviewView } from './reviewQuery';
-export { earnedAchievements, recordProves } from './achievementQuery';
+export { distinctionKind, earnedAchievements, recordProves, unearnedByKind, type DistinctionKind } from './achievementQuery';
 export type { Achievement } from '../content/schemaAchievement';
 export { choiceText, dilemmaRouteCopy, endingAccount, nodeText, type ChoiceText, type NodeText } from './routeCopy';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';

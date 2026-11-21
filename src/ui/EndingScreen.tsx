@@ -8,7 +8,8 @@ import { CONTENT } from '../content';
 import { startOver } from '../app/newRun';
 import DevelopmentTools from '../app/DevelopmentTools';
 import ConfirmDialog from './ConfirmDialog';
-import { earnedAchievements, endingAccount } from '../engine';
+import { earnedAchievements, endingAccount, unearnedByKind } from '../engine';
+import { remainingText } from './distinctionText';
 import { useGame, usePhaseTitle } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
@@ -47,6 +48,8 @@ function EndingAccount() {
 function Distinctions() {
   // A string selector: a fresh array per read would never compare equal and re-render forever.
   const ids = useGame((game) => earnedAchievements(game, CONTENT).map((entry) => entry.id).join(' '));
+  // A spoiler-safe next goal (#379): the rest counted by kind, never named; a string keeps the selector stable.
+  const remaining = useGame((game) => remainingText(unearnedByKind(game, CONTENT)));
   const earned = CONTENT.achievements.filter((entry) => ids.split(' ').includes(entry.id));
   const total = CONTENT.achievements.length;
   if (total === 0) return null;
@@ -54,6 +57,7 @@ function Distinctions() {
     <Text accessibilityRole="header" style={theme.muted}>DISTINCTIONS {earned.length} OF {total}</Text>
     {earned.map((entry) => <Text key={entry.id} testID={'distinction-' + entry.id} style={theme.text}>{entry.title}: {entry.claim}</Text>)}
     {earned.length === 0 && <Text testID="distinctions-none" style={theme.muted}>The record proves none of them yet.</Text>}
+    <Text testID="distinctions-remaining" style={theme.muted}>{remaining}</Text>
   </View>;
 }
 
