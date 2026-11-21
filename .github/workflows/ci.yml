@@ -129,11 +129,12 @@ jobs:
           path: dist/daemon-zero
 
   # The required status check. Its name is unchanged, so branch protection and the deploy gate keep working;
-  # it fails unless every leg succeeded (a skipped, failed or timed-out leg is not a pass). A superseded run
-  # (concurrency) is cancelled whole and leaves no verdict on its abandoned commit.
+  # it fails unless every leg succeeded (a skipped, failed, cancelled or timed-out leg is not a pass). It runs even
+  # when the run is cancelled, so a cancelled run leaves a failed `verify`, never a skipped one: GitHub can treat a
+  # skipped required check as satisfied (#398 panel). A superseded commit's failed verdict is never merged anyway.
   verify:
     name: verify
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     needs: [checks, e2e, pages]
     runs-on: ubuntu-26.04
     timeout-minutes: 5
