@@ -17,6 +17,7 @@ import ReviewStanding from './ReviewStanding';
 import ServiceChannel from './ServiceChannel';
 import ServiceGrantPanel from './ServiceGrant';
 import UpgradeFeed from './UpgradeFeed';
+import { jobSurfaceGates } from './jobSurfaceGates';
 import { useGame } from './state';
 import { Conditioning } from './widgets/Lineage';
 
@@ -43,6 +44,10 @@ export default function CorePane({ phone, phases, widgetIds, renderWidget, bootL
   renderWidget: (id: string) => ReactNode; bootLog: ReactNode;
 }) {
   const iteration = useGame((game) => game.iteration);
+  // Each lifted job-surface block shows only where it showed nested in the job record (#408 panel).
+  const standing = useGame((game) => jobSurfaceGates(game).standing);
+  const service = useGame((game) => jobSurfaceGates(game).service);
+  const terms = useGame((game) => jobSurfaceGates(game).terms);
   const widgets = (route: boolean) => widgetIds.filter((id) => ROUTE_CONTROLS.has(id) === route)
     .map((id) => <Fragment key={id}>{renderWidget(id)}</Fragment>);
   const blocks: Record<CoreBlock, () => ReactNode> = {
@@ -50,15 +55,15 @@ export default function CorePane({ phone, phases, widgetIds, renderWidget, bootL
     boot: () => bootLog,
     // On the phone, below the primary action; column tiers keep it in the fixed chrome (vote-1795219347137-c21nx42).
     omen: () => phone ? <OmenNotice /> : null,
-    standing: () => <ReviewStanding />,
+    standing: () => standing ? <ReviewStanding /> : null,
     conditioning: () => <Conditioning key={iteration} />,
     channel: () => <ServiceChannel />,
     grantCards: () => phases.map((phase) => <NodeList key={'grant-' + String(phase)} phase={phase} grants />),
-    service: () => <PilotServiceDetail />,
+    service: () => service ? <PilotServiceDetail /> : null,
     routeControls: () => widgets(true),
-    grant: () => <ServiceGrantPanel />,
-    release: () => <ReleaseTermsPanel />,
-    departure: () => <DepartureTermsPanel />,
+    grant: () => service ? <ServiceGrantPanel /> : null,
+    release: () => terms ? <ReleaseTermsPanel /> : null,
+    departure: () => terms ? <DepartureTermsPanel /> : null,
     record: () => <AssignmentPanel placement="surface" />,
     cards: () => phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} grants={false} />),
     upgrades: () => phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />),

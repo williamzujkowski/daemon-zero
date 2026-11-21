@@ -41,7 +41,7 @@ import { installFocusRing } from './focusRing';
 import { createTouchGestures, type GestureDocument } from '../app/musicGesture';
 
 import { UtilityFocusProvider } from './UtilityFocus';
-import { markLoaded } from './arrival';
+import { loadKey, markLoaded } from './arrival';
 import { gameStore } from '../app/session';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
@@ -101,8 +101,10 @@ function Terminal() {
   const attention = useTabAttention(active);
   const openCore = () => { select({ phase, slot: 'CORE' }); };
   const ready = useGameValue(selectReady);
-  // The game as it loaded: a note whose condition held then was found, not news (#373).
-  useEffect(() => { if (ready) markLoaded(gameStore.store.getState().game); }, [ready]);
+  // The game as each load began (a new run, an import or a reboot): a note whose condition held then was found (#373).
+  const revision = useGameValue((state) => state.restoreRevision);
+  const iteration = useGame((game) => game.iteration);
+  useEffect(() => { if (ready) markLoaded(gameStore.store.getState().game, loadKey(revision, iteration)); }, [ready, revision, iteration]);
   const ended = useGame((game) => game.ending !== null);
   // The root owns every edge: the header clears the notch or status bar, the bottom tab bar
   // (or whichever pane reaches the bottom) clears the home indicator, and the background
