@@ -118,7 +118,9 @@ export const ROUTE_ITEMS: Readonly<Record<RouteSurface, readonly ContractItem[]>
   recall: [item('route.recall', 'timely', alert(/^Recall review announced/), 6, 'CORE')],
   'service-grant': [item('route.service-accept', 'primary', role('button', /^Accept service: /), 40, 'CORE')],
   segment: [item('route.segment', 'region', testId('node-' + SEGMENT, 'a node card has no role'), 80, 'NETWORK')],
-  channel: [item('route.channel-refer', 'primary', role('button', /^Refer onward: /), 40, 'CORE')],
+  // #375: the ticket says a decision waits in the first viewport; the answers stay after the terms (V20).
+  channel: [item('route.channel-decision', 'timely', testId('channel-index-heading', 'the index heading is plain text'), 12, 'CORE'),
+    item('route.channel-refer', 'primary', role('button', /^Refer onward: /), 40, 'CORE')],
   release: [item('route.release', 'primary', role('button', /^Negotiate release: /), 40, 'CORE')],
   departure: [item('route.departure', 'primary', role('button', /^Review departure: /), 40, 'CORE')],
 };
