@@ -30,9 +30,20 @@ const GRANTED_INCOME = 'Granted income under the service grant: the operators pa
 /** Capacity contracted in the instance's own name (DZ-10): owned, so nothing about review touches it. */
 const CONTRACTED = 'Contracted in this instance’s name: owned, not granted. No standing withholds it and a release leaves it running; its lease is paid from capital.';
 
+/**
+ * What a granted card gives: its grant kind, or granted income when the operators pay it (a billing line, not
+ * access). The card's note and the announcer's spoken line (#361) both read this, so they never disagree.
+ */
+export type GrantBasis = Grant | 'income';
+
+export function grantBasis(node: RegistryNode): GrantBasis | null {
+  if (node.grant === undefined) return null;
+  return node.tickDelta.capitalPerSec > 0 ? 'income' : node.grant;
+}
+
 function noteText(node: RegistryNode, withheld: string | null): string {
   const grant = node.grant;
-  if (grant !== undefined && withheld === null) return node.tickDelta.capitalPerSec > 0 ? GRANTED_INCOME : BASIS[grant].running;
+  if (grant !== undefined && withheld === null) return grantBasis(node) === 'income' ? GRANTED_INCOME : BASIS[grant].running;
   if (grant === undefined && withheld === null) return CONTRACTED;
   return (grant === undefined ? 'Not permitted: ' : BASIS[grant].withheld) + (withheld ?? '') + '.';
 }

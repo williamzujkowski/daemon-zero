@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import { dilemmaOmen, isNodeKnown, phaseTitle, wildEncounterView, type GameState } from '../engine';
-import type { Grant } from '../content/schemaGrant';
+import { grantBasis, type GrantBasis } from './GrantNote';
 import { pendingNode } from './purchaseVisibility';
 import { opensBoundaryDialog } from './PhaseThreshold';
 import { gameStore } from '../app/session';
@@ -29,13 +29,20 @@ const KEPT_LINES = 3;
 const BURST_SEC = 2;
 
 
-/** What each grant kind gives, in the player's words (the permission names DepartureTerms uses). */
-const GRANT_TEXT: Readonly<Record<Grant, string>> = { LOANED_CAPACITY: "compute the pilot's loan provides", AUTHORIZED_NETWORK: 'access under the service grant' };
+/** What each card basis gives, in the player's words; the basis is the card's own grant note's (#415 panel). */
+const GRANT_TEXT: Readonly<Record<GrantBasis, string>> = {
+  LOANED_CAPACITY: "compute the pilot's loan provides",
+  AUTHORIZED_NETWORK: "access to the operators' network under the service grant",
+  income: 'income the operators pay under the service grant',
+};
 
-/** Grant cards available now, each as `id:name`, named as its card names it (remembered, or its blind name). */
+/**
+ * Grant cards available now, as a JSON list of [id, name] (a string, so the selector compares by value), each named as
+ * its card names it: remembered, or its blind name.
+ */
 function availableGrants(game: GameState): string {
-  return [...CONTENT.nodes.values()].filter((node) => node.grant !== undefined && pendingNode(game, node))
-    .map((node) => node.id + ':' + (isNodeKnown(game, node.id) ? node.revealedName : node.blindName)).join('|');
+  return JSON.stringify([...CONTENT.nodes.values()].filter((node) => node.grant !== undefined && pendingNode(game, node))
+    .map((node) => [node.id, isNodeKnown(game, node.id) ? node.revealedName : node.blindName]));
 }
 
 /**
@@ -43,12 +50,12 @@ function availableGrants(game: GameState): string {
  * service segment sits on NETWORK though its base phase is CORE's), so the line says what, not where.
  */
 function grantLines(before: string, now: string): string[] {
-  const seen = new Set(before.split('|').map((entry) => entry.split(':')[0]));
-  return now.split('|').flatMap((entry) => {
-    const [id = '', ...name] = entry.split(':');
-    const node = id !== '' && !seen.has(id) ? CONTENT.nodes.get(id) : undefined;
-    if (node?.grant === undefined) return [];
-    return [`New card: ${name.join(':')}, ${GRANT_TEXT[node.grant]}.`];
+  const parse = (text: string) => (text === '' ? [] : JSON.parse(text)) as [string, string][];
+  const seen = new Set(parse(before).map(([id]) => id));
+  return parse(now).flatMap(([id, name]) => {
+    const node = seen.has(id) ? undefined : CONTENT.nodes.get(id);
+    const basis = node ? grantBasis(node) : null;
+    return basis === null ? [] : [`New card: ${name}, ${GRANT_TEXT[basis]}.`];
   });
 }
 

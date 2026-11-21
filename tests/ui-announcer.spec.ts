@@ -158,3 +158,14 @@ it('speaks a newly available grant card by the name its card shows, with what it
   expect(next).toContain(fresh.title);
   expect(next).not.toContain('New card:');
 });
+
+it('speaks an authorized-network card with what its grant note says it gives (#415 panel)', async () => {
+  const view = await mountM4('phase-2-unlocked', { width: 390, height: 844 });
+  const before = gameStore.store.getState().game;
+  advanceTo({ ...before, access: { ...before.access, context: 'SERVICE' } });
+  const spoken = view.find('announcer')?.textContent ?? '';
+  const segment = [...CONTENT.nodes.values()].find((node) => node.grant === 'AUTHORIZED_NETWORK' && node.tickDelta.capitalPerSec <= 0);
+  if (!segment) throw new Error('no authorized-network access card in content');
+  const name = isNodeKnown(gameStore.store.getState().game, segment.id) ? segment.revealedName : segment.blindName;
+  expect(spoken).toContain(`New card: ${name}, access to the operators' network under the service grant.`);
+});
