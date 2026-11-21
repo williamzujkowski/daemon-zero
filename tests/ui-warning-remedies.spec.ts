@@ -4,17 +4,32 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { insolvencyRemedy, overheatRemedy, shortfallText, standDownBelow } from '../src/ui/remedyText';
+import { insolvencyRemedy, overheatRemedy, shortfallText, standDownBelow, standDownRemedy } from '../src/ui/remedyText';
 import { knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
 describe('remedy text', () => {
-  it('points the overheat at the fan while it has headroom, and at PROC once it is full', () => {
-    expect(overheatRemedy({ available: true, full: false })).toBe('Raise fan output, or suspend heat-producing processes in PROC.');
-    expect(overheatRemedy({ available: true, full: true })).toBe('The fan is at full: suspend heat-producing processes in PROC.');
-    expect(overheatRemedy({ available: false, full: false })).toBe('Suspend heat-producing processes in PROC.');
+  it('names the fan only below its limit and PROC only while a heat-producing process runs (#402 panel)', () => {
+    const host = m4State('phase-1-widgets');
+    const heat = host.unlockedNodes.filter((id) => { const node = CONTENT.nodes.get(id); return node?.suspendable === true && node.tickDelta.thermalPerSec > 0; });
+    expect(heat.length).toBeGreaterThan(0);
+    const fanAt = (ratio: number, disabled: string[] = []) => ({ ...host, disabledNodes: disabled, actuators: { ...host.actuators, fanSpeedRatio: ratio } });
+    expect(overheatRemedy(fanAt(0))).toBe('Raise fan output, or suspend heat-producing processes in PROC.');
+    expect(overheatRemedy(fanAt(1))).toBe('The fan is at full: suspend heat-producing processes in PROC.');
+    expect(overheatRemedy(fanAt(0, heat))).toBe('Raise fan output.');
+    expect(overheatRemedy(fanAt(1, heat))).toBe('No running process can be suspended to cool it, and the fan is at full.');
     // PROC suspends processes, never hardware: no copy may promise to suspend hardware (#402 panel).
-    for (const text of [overheatRemedy({ available: true, full: true }), shortfallText(1, 2), insolvencyRemedy(m4State('corporate-insolvent'))]) expect(text).not.toMatch(/suspend[^.]*hardware/i);
+    for (const text of [overheatRemedy(fanAt(1)), shortfallText(1, 2), insolvencyRemedy(m4State('corporate-insolvent'))]) expect(text).not.toMatch(/suspend[^.]*hardware/i);
+  });
+
+  it('names the skim only above zero and PROC only while a noisy process runs (#402 panel)', () => {
+    const guest = m4State('response-ticket');
+    const noisy = guest.unlockedNodes.filter((id) => { const node = CONTENT.nodes.get(id); return node?.suspendable === true && node.tickDelta.suspicionPerSec > 0; });
+    const below = standDownBelow(2);
+    const at = (skim: number, disabled: string[] = []) => standDownRemedy({ ...guest, disabledNodes: disabled, actuators: { ...guest.actuators, quotaSkimRatio: skim } }, 2);
+    expect(at(0, noisy)).toBe(`It stands down when suspicion falls below ${String(below)}%, as it decays.`);
+    if (noisy.length > 0) expect(at(0)).toBe(`It stands down when suspicion falls below ${String(below)}%: suspend noisy processes in PROC.`);
+    expect(at(0.5, noisy)).toMatch(/: lower the skim\.$/);
   });
 
   it('says how far short the power is', () => {

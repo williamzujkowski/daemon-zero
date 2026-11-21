@@ -6,7 +6,6 @@ import { aegisCritical, resourceWidgets, thermalWidget, threatWidget } from './r
 import { Text, View } from './PhaseTheme';
 import OmenNotice from './OmenNotice';
 import { insolvencyRemedy, overheatRemedy, shortfallText } from './remedyText';
-import { isActuatorAvailable } from '../engine';
 import { theme } from './theme';
 
 export default function UtilityStatus() {
@@ -16,8 +15,7 @@ export default function UtilityStatus() {
   const insolvency = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.insolvent);
   const shortfall = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.rates.megawattsGenerated < game.rates.megawattsConsumed);
   const thermal = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
-  const fanAvailable = useGame((game) => isActuatorAvailable(game, 'fanSpeedRatio', CONTENT));
-  const fanFull = useGame((game) => game.actuators.fanSpeedRatio >= 1);
+  const cool = useGame((game) => overheatRemedy(game));
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   const remedy = useGame((game) => insolvencyRemedy(game));
@@ -29,7 +27,7 @@ export default function UtilityStatus() {
     {insolvency && <Warning text={'INSOLVENT: capital exhausted. ' + remedy} />}
     {shortfall && <Warning text={shortfallText(generated, consumed)} />}
     {/* "check cooling" named no remedy that worked once the fan was already full (#369). */}
-    {thermal && <Warning text={'OVERHEAT: ' + overheatRemedy({ available: fanAvailable, full: fanFull })} />}
+    {thermal && <Warning text={'OVERHEAT: ' + cool} />}
     {known && response > 0 && <Warning text={'Response: ' + (CONTENT.narrative.alertLevels[response]?.label ?? 'Elevated')} />}
     {lock && <Warning text="AEGIS LOCK CRITICAL: return to the game." />}
     <OmenNotice id="menu-omen-notice" />
