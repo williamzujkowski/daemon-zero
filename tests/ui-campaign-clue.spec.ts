@@ -59,10 +59,18 @@ describe('the clue pin beside the breadcrumb', () => {
   it('offers only the disclosed record, pins it, shows it and clears it', async () => {
     const view = await mount(withDeadDrop(noteOmen()), createElement(DeadDrop));
     expect(view.find('clue-pinned')?.textContent).toBe('Pinned: None');
+    // #374: the records fold behind one control that says how many there are; the pinned line stays in view.
+    expect(view.container.querySelectorAll('[data-testid^="clue-pin-"]')).toHaveLength(0);
+    expect(view.find('clue-choose')?.textContent).toBe('[ + ] Choose a record to pin (1 record seen)');
+    expect(view.find('clue-choose')?.getAttribute('aria-expanded')).toBe('false');
+    view.click('clue-choose');
+    expect(view.find('clue-choose')?.getAttribute('aria-expanded')).toBe('true');
     expect(view.container.querySelectorAll('[data-testid^="clue-pin-"]')).toHaveLength(1);
     expect(labelMismatches(view.container)).toEqual([]);
     view.click('clue-pin-' + note.id);
     expect(game().campaign.clue?.event).toBe(note.id);
+    // Pinning answers the choice, so the list folds again.
+    expect(view.container.querySelectorAll('[data-testid^="clue-pin-"]')).toHaveLength(0);
     expect(view.find('clue-clear')?.getAttribute('aria-label')).toBe('Clear pin: remove the pinned clue');
     expect(labelMismatches(view.container)).toEqual([]);
     expect(view.find('clue-pinned')?.textContent).toBe(`Pinned: ${note.title} // ${preview.campaign.labels.foreshadowed}`);
