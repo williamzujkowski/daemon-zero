@@ -1,19 +1,29 @@
 /**
  * Memory in the unit its size reads best in (vote-1795228570236-gzx0uif): binary, 1 GB = 1024 MB, switching at
  * 1024. Content authors memory in powers of two, so 524288 MB reads as exactly 512 GB. Display only: the engine keeps
- * megabytes. Prices and capacities change unit only when the figure stays exact (the #89 rule for prices); readouts
- * use three significant digits.
+ * megabytes. What a player buys or is short by (a price, a shortfall, a card's capacity gain) changes unit only when
+ * the figure stays exact (#89); readouts, the strip's capacity among them, use three significant digits (the vote's
+ * example: 462,336 MB reads "452 GB").
  */
 import { groupDigits, significant3 } from '../engine';
 
 const UNITS = [[1024 * 1024, 'TB', 'terabytes'], [1024, 'GB', 'gigabytes']] as const;
 
-/** An exact figure for a price or a capacity: "512 GB", "1.5 GB", "6,608 MB" (not exact in GB, so megabytes). */
+/** Decimals an exact figure may carry before the next smaller unit reads better: 353.5 GB, but not 1.15576171875 TB. */
+const EXACT_DECIMALS = 2;
+
+/**
+ * An exact figure for what a player buys or is short by: "512 GB", "353.5 GB", "1,183.5 GB" (1,211,904 MB is not a
+ * short exact TB figure, so the next unit down), "6,608 MB". The vote: if three digits would round, print enough
+ * decimals to be exact.
+ */
 export function memoryExact(mb: number): string {
   for (const [size, unit] of UNITS) {
     if (Math.abs(mb) < size) continue;
-    const figure = significant3(mb / size);
-    if (Number(figure) * size === mb) return figure + ' ' + unit;
+    const figure = Number((mb / size).toFixed(EXACT_DECIMALS));
+    if (figure * size !== mb) continue;
+    const [whole = '', fraction] = String(Math.abs(figure)).split('.');
+    return (figure < 0 ? '-' : '') + groupDigits(Number(whole)) + (fraction === undefined ? '' : '.' + fraction) + ' ' + unit;
   }
   return groupDigits(mb) + ' MB';
 }

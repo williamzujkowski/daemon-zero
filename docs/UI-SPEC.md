@@ -403,8 +403,10 @@ Numbers follow one scheme on every surface (vote-1795228570236-gzx0uif; the form
 memory units `src/ui/units.ts`). Live amounts and rates at 10,000 and above use K/M/B/T/P with three significant
 digits and no trailing ".0" (`1.25B`, `45.5K`, `+405K/s`); smaller amounts are grouped in full and small rates keep
 their decimals. Memory is binary: MB below 1024 MB, then GB and TB, three significant digits, with used/capacity in
-the capacity's unit (`MEM 6.7 / 458 GB`). Prices and capacities stay lossless: a cost abbreviates, or changes memory
-unit, only when the figure stays exact (`16384 MB` is `16 GB`; `6608 MB` stays `6,608 MB`), and a price that cannot
+the capacity's unit (`MEM 6.7 / 458 GB`); the strip's capacity is a readout like the rest of the strip, rounded to
+three significant digits (the vote's own example: 462,336 MB reads `452 GB`), and held memory never reads 0. Figures a
+player buys or is short by stay lossless: a price, a shortfall or a card's capacity gain abbreviates, or changes memory
+unit, only when the figure stays exact (`16384 MB` is `16 GB`; `6608 MB` stays `6,608 MB`), and one that cannot
 abbreviate exactly is grouped in full, never bare. Capital carries `$`. Accessible names of live readouts speak the
 displayed size in words ("1.25 billion, gaining 1.26 million per second"); prices keep exact figures. The boot log's
 numbers are formatted by the engine, since they are stored in saved log text. Warnings remain explicit.

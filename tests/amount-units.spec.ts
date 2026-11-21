@@ -61,6 +61,17 @@ describe('memory', () => {
     expect(memoryPair(152, 192)).toEqual({ shown: '152 / 192 MB', spoken: '152 of 192 megabytes' });
   });
 
+  it('rounds the strip capacity as a readout but keeps the same capacity exact where a player buys it', () => {
+    // vote-1795228570236-gzx0uif: the pair is a readout ("MEM 6.5 / 452 GB"); prices and capacity gains are lossless.
+    // 361,984 MB (353.5 GB) is the phase 4 capacity the #406 panel measured.
+    expect(memoryPair(0, 361984).shown).toBe('0 / 354 GB');
+    expect(memoryExact(361984)).toBe('353.5 GB');
+    expect(memoryExact(262144)).toBe('256 GB');
+    // Not a short exact TB figure (1.15576171875 TB): the next unit down, still exact.
+    expect(memoryExact(1211904)).toBe('1,183.5 GB');
+    expect(memoryExact(1048576 + 524288)).toBe('1.5 TB');
+  });
+
   it('keeps used memory readable against a terabyte capacity and never shows held memory as 0', () => {
     // The panel's cases: 45,500 MB of ~1.14 TB read "0.04", 4 GB read "0" (#406).
     expect(memoryPair(45500, 1200000).shown).toBe('0.0434 / 1.14 TB');
