@@ -134,6 +134,8 @@ describe('the channel contact (V20)', () => {
     expect(view.find('channel-host')?.getAttribute('aria-disabled')).not.toBe('true');
     view.click('channel-index-host');
     expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-host-heading');
+    // Neither answer was given: no contact on record (a REFER) and no cohort hosted (a HOST).
+    expect(game().campaign.contacts).toEqual([]);
     expect(game().activeShards['shard_mercy']).toBeUndefined();
     view.click('channel-host');
     expect(game().activeShards['shard_mercy']?.count).toBe(1);
