@@ -41,6 +41,8 @@ import { installFocusRing } from './focusRing';
 import { createTouchGestures, type GestureDocument } from '../app/musicGesture';
 
 import { UtilityFocusProvider } from './UtilityFocus';
+import { markLoaded } from './arrival';
+import { gameStore } from '../app/session';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
  *  The tablet tier passes every non-core slot so a narrow panel still reaches all
@@ -99,6 +101,8 @@ function Terminal() {
   const attention = useTabAttention(active);
   const openCore = () => { select({ phase, slot: 'CORE' }); };
   const ready = useGameValue(selectReady);
+  // The game as it loaded: a note whose condition held then was found, not news (#373).
+  useEffect(() => { if (ready) markLoaded(gameStore.store.getState().game); }, [ready]);
   const ended = useGame((game) => game.ending !== null);
   // The root owns every edge: the header clears the notch or status bar, the bottom tab bar
   // (or whichever pane reaches the bottom) clears the home indicator, and the background

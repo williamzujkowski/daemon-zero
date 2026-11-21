@@ -6,13 +6,14 @@
  */
 import { useState } from 'react';
 import { CONTENT } from '../content';
-import { departAuthorization, departureView, type DeparturePreview, type DepartureView, type Permission } from '../engine';
+import { departAuthorization, departureView, type DeparturePreview, type DepartureView, type Permission, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { compactNumber } from './compactNumber';
 import { Pressable, Text, View } from './PhaseTheme';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
+import { useArrivedDuringPlay } from './arrival';
 
 const STATUS: Readonly<Record<DepartureView['status'], string>> = {
   offered: 'This instance holds capacity outside the grant and could leave without agreement. Nothing is decided until you confirm; staying changes nothing.',
@@ -94,8 +95,11 @@ function Preview({ preview }: { preview: DeparturePreview }) {
   </View>;
 }
 
+const isDeparted = (game: GameState): boolean => departureView(game, CONTENT)?.status === 'departed';
+
 function Boundary({ boundary }: { boundary: DepartureView['boundary'] }) {
-  const [open, setOpen] = useState(true);
+  // News when it arrives during play; found on load it is settled, folded with its heading in view (#373).
+  const [open, setOpen] = useState(useArrivedDuringPlay(isDeparted));
   return <View testID="departure-boundary" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}

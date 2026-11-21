@@ -118,6 +118,10 @@ test('fresh profile -> pilot -> batch -> outage and record -> batch -> service -
   await core(page);
   await expect(page.getByTestId('run-context').first()).toHaveText('SERVICE');
   await expect(page.getByTestId('channel-answered')).toContainText('Referred onward');
+  // #373: found on load, the read note is settled: folded with its heading in view, open on request.
+  await expect(page.getByTestId('prototype-boundary')).toContainText(channel.boundary.title);
+  await expect(page.getByTestId('prototype-boundary')).not.toContainText(channel.boundary.lines[0] ?? '');
+  await page.getByTestId('prototype-boundary-toggle').click();
   await expect(page.getByTestId('prototype-boundary')).toContainText(channel.boundary.lines[0] ?? '');
 });
 

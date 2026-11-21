@@ -28,6 +28,7 @@ import RunStatus from '../src/ui/RunStatus';
 import { BATCH_REVIEW, FINDING, WITHHELD } from './finding-helpers';
 import { offerPresented, TERMS } from './pilot-helpers';
 import { serving, untilComplete } from './service-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -83,7 +84,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
   });
 
   it('#283: after letting the finding stand, the job surface names no way back that is gone and no condition left to meet', async () => {
-    const view = await mount(untilComplete(serving(WITHHELD)), createElement('div', null, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })), createElement(DilemmaModal)));
+    const view = await mount(untilComplete(serving(WITHHELD)), createElement('div', null, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })), createElement(DilemmaModal)));
     expect(view.find('assignment-evidence')?.textContent).toContain('Discrepancy risk: the report leaves out work that a later review can find.');
     view.click('pilot-service-submit');
     await act(async () => { await settle(); });

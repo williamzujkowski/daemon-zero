@@ -8,13 +8,14 @@
  */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../content';
-import { channelContactView, resolveChannelContact, type ChannelContactView, type ContactMode } from '../engine';
+import { channelContactView, resolveChannelContact, type ChannelContactView, type ContactMode, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { focusHeading } from './focusHeading';
 import { memoryExact } from './units';
 import { useGame } from './state';
 import { theme } from './theme';
+import { useArrivedDuringPlay } from './arrival';
 
 type Pending = NonNullable<ChannelContactView['pending']>;
 
@@ -70,9 +71,13 @@ const ANSWERED: Readonly<Record<'REFERRED' | 'HOSTED', string>> = {
 // Focus moves to the note's heading (src/ui/focusHeading.ts): answering folds the scene above it, so without this the
 // outcome landed off-screen and focus fell to the page body (#284).
 
+/** The channel's boundary note shows once the ticket is answered. */
+const channelAnswered = (game: GameState): boolean => channelContactView(game, CONTENT)?.boundary != null;
+
 /** What comes next on the route, honestly, with the way to keep going or stop. */
 function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactView['boundary']>; focus: boolean }) {
-  const [open, setOpen] = useState(true);
+  // News when it arrives during play; found on load it is settled, folded with its heading in view (#373).
+  const [open, setOpen] = useState(useArrivedDuringPlay(channelAnswered));
   const heading = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => { if (focus) focusHeading(heading.current); }, [focus]);
   return <View testID="prototype-boundary" style={[theme.panel, { gap: 6 }]}>

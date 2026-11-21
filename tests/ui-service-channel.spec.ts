@@ -22,6 +22,7 @@ import ServiceChannel from '../src/ui/ServiceChannel';
 import Swarm from '../src/ui/widgets/Swarm';
 import { CHANNEL_ENCOUNTER, contactPending, delivered, GRANT_TERMS, MERCY_MB, withMemory } from './contact-helpers';
 import { freshCampaign } from './assignment-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -50,7 +51,7 @@ const pending = contactPending();
 
 describe('the service terms on the job surface', () => {
   it('lists every term and what is still needed, with the accept control disabled', async () => {
-    const view = await mount(delivered(1), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(delivered(1), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('service-grant-purpose')?.textContent).toContain(GRANT_TERMS.purpose);
     expect(view.find('service-grant')?.textContent).toContain(GRANT_TERMS.reviewConditions[0]);
     expect(view.find('service-grant')?.textContent).toContain('1 so far');
@@ -58,7 +59,7 @@ describe('the service terms on the job surface', () => {
   });
 
   it('accepts once offered and then says it is granted', async () => {
-    const view = await mount(delivered(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(delivered(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('service-grant-status')?.textContent).toContain('offers this service now');
     view.click('service-grant-accept');
     expect(game().access.context).toBe('SERVICE');
@@ -87,6 +88,10 @@ describe('the channel contact (V20)', () => {
     const [firstLine = 'the note has no lines'] = CHANNEL_ENCOUNTER.boundary.lines;
     expect(view.find('prototype-boundary-heading')?.textContent).toBe(CHANNEL_ENCOUNTER.boundary.title);
     expect(view.find('prototype-boundary')?.textContent).toContain('WHAT COMES NEXT');
+    // #373: the note starts folded with its heading in view; it opens on request and folds again.
+    expect(view.find('prototype-boundary')?.textContent).not.toContain(firstLine);
+    expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
+    view.click('prototype-boundary-toggle');
     expect(view.find('prototype-boundary')?.textContent).toContain(firstLine);
     expect(view.find('prototype-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('prototype-boundary-toggle');

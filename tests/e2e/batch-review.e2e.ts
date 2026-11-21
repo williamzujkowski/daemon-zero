@@ -50,6 +50,8 @@ test('the first batch review finds the withheld fixture; disclosing restores nom
   await expect(page.getByTestId('review-corrected')).toBeVisible();
   await expect(page.getByTestId('review-recovery')).toHaveCount(0);
   await expect(page.getByTestId('pilot-service-ceiling')).toContainText(NARROW);
+  // #373: accepted terms are settled, folded to one line until asked for.
+  await page.getByTestId('pilot-terms-fold-toggle').click();
   await expect(page.getByTestId('pilot-capacity')).toContainText('because the batch review found the summary left out a failing result');
   await page.reload();
   await core(page);

@@ -12,9 +12,6 @@ import DisclosureText from './DisclosureText';
 import { evidenceText, scopeText } from './evidenceText';
 import { costText } from './format';
 import PilotOfferPanel from './PilotOffer';
-import DepartureTermsPanel from './DepartureTerms';
-import ReleaseTermsPanel from './ReleaseTerms';
-import ReviewStanding from './ReviewStanding';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
@@ -31,7 +28,6 @@ function Submitted() {
     <Text testID="assignment-evidence" style={theme.muted}>On record for this instance: {evidenceText({ result, discrepancy }, 'submitted', found)}</Text>
     {scope !== null && <Text testID="assignment-scope" style={theme.muted}>Scope review: {scopeText(scope, 'this instance')}</Text>}
     <PilotOfferPanel />
-    <ReviewStanding />
   </>;
 }
 
@@ -80,11 +76,7 @@ export default function AssignmentPanel({ placement }: { placement: 'offer' | 's
     </>}
     {status === 'accepted' && <Text testID="assignment-status" style={theme.muted}>Accepted. The assessment is queued and pauses the clock when it arrives.</Text>}
     {status === 'lapsed' && <Text testID="assignment-status" style={theme.muted}>Lapsed. The assessment can no longer reach this instance, so it was never presented and nothing was submitted. A later instance finds a fresh offer.</Text>}
+    {/* The review standing, the release and the departure are their own CORE blocks (#385, src/ui/CorePane.tsx). */}
     {status === 'submitted' && <Submitted />}
-    {/* Outside Submitted: a release ends the reviewed evidence Submitted reads, and the terms and the
-        boundary note must stay on screen afterwards (DZ-10). */}
-    {status === 'submitted' && <ReleaseTermsPanel />}
-    {/* Departure (DZ-11) sits below the release: it appears only once capacity outside the grant exists. */}
-    {status === 'submitted' && <DepartureTermsPanel />}
   </View>;
 }

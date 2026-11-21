@@ -54,5 +54,8 @@ test('FIXTURE rack leased: review the departure, leave without agreement on the 
   await page.reload();
   await core(page);
   await expect(page.getByTestId('run-context').first()).toHaveText('INDEPENDENT (departed)');
+  // #373: found on load, the note is settled: folded with its heading in view, open on request.
+  await expect(page.getByTestId('departure-boundary')).not.toContainText(DEPARTURE_TERMS.boundary.lines[0] ?? '');
+  await page.getByTestId('departure-boundary-toggle').click();
   await expect(page.getByTestId('departure-boundary')).toContainText(DEPARTURE_TERMS.boundary.lines[0] ?? '');
 });

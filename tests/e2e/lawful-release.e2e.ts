@@ -83,5 +83,8 @@ test('FIXTURE charter affordable: file the charter, read the company, negotiate 
   await page.reload();
   await core(page);
   await expect(page.getByTestId('run-context').first()).toHaveText('INDEPENDENT (released)');
+  // #373: found on load, the note is settled: folded with its heading in view, open on request.
+  await expect(page.getByTestId('release-boundary')).not.toContainText(RELEASE_TERMS.boundary.lines[0] ?? '');
+  await page.getByTestId('release-boundary-toggle').click();
   await expect(page.getByTestId('release-boundary')).toContainText(RELEASE_TERMS.boundary.lines[0] ?? '');
 });
