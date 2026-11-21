@@ -21,6 +21,8 @@ import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
 import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
+import CoreOrder from './CoreOrder';
+import { coreVariant, type CoreVariant } from './coreVariant';
 
 /**
  * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
@@ -72,17 +74,30 @@ function CoreTree() {
   </>;
 }
 
+/** PROTOTYPE #385: under a CORE variant, CoreOrder places the core pane's blocks and its own widgets. */
+function VariantCore({ variant, widgetIds, area }: { variant: CoreVariant; widgetIds: readonly string[]; area: WorkspaceArea }) {
+  const { width, height } = useWindowDimensions();
+  const current = useGame((game) => game.currentPhase);
+  const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
+    .map((phase) => phase.phaseId).sort((left, right) => right - left);
+  return <CoreOrder variant={variant} phone={layoutFor(width, height).mode === 'mobile'} phases={phases} widgetIds={widgetIds}
+    renderWidget={(id) => <Widget id={id} area={area} />} bootLog={<BootLog />} />;
+}
+
 export default function TerminalPane({ slots, flow = false }: { slots: string[]; flow?: boolean }) {
   const ids = useWidgetIds();
   const phase = useGame((game) => game.currentPhase);
   const workspace = useWorkspace(slots, ids);
   const pinned = slots.includes('CORE') && phase === CONTENT.phases[0]?.phaseId
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
+  const variant = slots.includes('CORE') ? coreVariant() : null;
+  const shown = ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
+    (!workspace.slot || workspaceWidgetVisible(id, workspace.active))).sort(compareWidgetPresentation);
+  const isCore = (id: string) => CONTENT.widgets.get(id)?.slot === 'CORE';
   const content = <>
-    {slots.includes('CORE') && <CoreTree />}
-    {ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
-      (!workspace.slot || workspaceWidgetVisible(id, workspace.active)))
-      .sort(compareWidgetPresentation).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
+    {slots.includes('CORE') && (variant === null ? <CoreTree />
+      : <VariantCore variant={variant} widgetIds={shown.filter(isCore)} area={workspace.active} />)}
+    {shown.filter((id) => variant === null || !isCore(id)).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}

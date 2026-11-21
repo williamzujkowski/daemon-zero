@@ -10,6 +10,7 @@ import type { Element, HTMLElement, Window } from 'happy-dom';
 import { openRouteState } from './routeSave';
 import { overlaps, type MeasuredBox } from './textOverlap';
 import { enabledButtons, ROUTE_STATES } from './routeStates';
+import { ENTRY } from './variantEntry';
 
 async function doubleText(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -65,29 +66,52 @@ function layoutProblems(scopeId: string): { runs: number; problems: string[]; bo
   return { runs: leaves.length, problems, boxes, nested };
 }
 
+/**
+ * PROTOTYPE #385: a CORE variant lifts these parts out of the job surface, so an 'assignment'-scoped entry would no
+ * longer reach them; under a variant they are checked as scopes of their own, with every settled fold expanded.
+ */
+const HOISTED = ['review', 'pilot-service', 'service-grant', 'release-terms', 'departure-terms'];
+
+async function scopesFor(page: Page, scope: string): Promise<string[]> {
+  if (ENTRY === './') return [scope];
+  // A dialog or the ending covers the pane: its folds are not what this entry is about, and cannot be pressed.
+  if (await page.locator('[role="dialog"], [aria-modal="true"], [data-testid="ending-screen"]').count() > 0) return [scope];
+  // Expanding a fold drops it from this selector, so always press the first one left (bounded, in case one never opens).
+  const folded = page.locator('[data-testid$="-fold-toggle"][aria-expanded="false"]');
+  for (let pressed = 0; pressed < 10 && await folded.count() > 0; pressed += 1) await folded.first().click();
+  const present: string[] = [];
+  for (const id of HOISTED) if (id !== scope && await page.getByTestId(id).count() > 0) present.push(id);
+  return [scope, ...present];
+}
+
 for (const entry of ROUTE_STATES) {
   test('200% text route ' + entry.name, async ({ page }, info) => {
     test.skip(entry.phoneOnly === true && info.project.name !== 'phone', 'only the phone tier renders this surface');
     await openRouteState(page, entry);
     await doubleText(page);
-    for (const control of await enabledButtons(page.getByTestId(entry.scope))) {
-      await control.scrollIntoViewIfNeeded();
-      await expect(control).toBeInViewport();
-      // `trial` checks that nothing else would take the click at the control's centre.
-      await control.click({ trial: true, timeout: 5000 });
-      const box = await control.boundingBox();
-      expect(box?.width).toBeGreaterThanOrEqual(44);
-      expect(box?.height).toBeGreaterThanOrEqual(44);
-    }
+    for (const scope of await scopesFor(page, entry.scope)) await checkScope(page, scope);
     await page.getByTestId(entry.reach).scrollIntoViewIfNeeded();
     await expect(page.getByTestId(entry.reach)).toBeInViewport();
-    const layout = await page.evaluate(layoutProblems, entry.scope);
-    expect(layout.runs, 'text runs measured').toBeGreaterThan(0);
-    const nested = new Set(layout.nested);
-    expect([...layout.problems, ...overlaps(layout.boxes, (i, j) => nested.has(`${String(i)}|${String(j)}`))]).toEqual([]);
     expect(await page.evaluate(() => {
       const browser = globalThis as unknown as Window;
       return browser.document.documentElement.scrollWidth <= browser.innerWidth + 1;
     }), 'no horizontal page scroll').toBe(true);
   });
+}
+
+/** Every enabled control in a scope is reachable at 44 px, and its text neither clips nor overlaps. */
+async function checkScope(page: Page, scope: string): Promise<void> {
+  for (const control of await enabledButtons(page.getByTestId(scope))) {
+    await control.scrollIntoViewIfNeeded();
+    await expect(control).toBeInViewport();
+    // `trial` checks that nothing else would take the click at the control's centre.
+    await control.click({ trial: true, timeout: 5000 });
+    const box = await control.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  const layout = await page.evaluate(layoutProblems, scope);
+  expect(layout.runs, 'text runs measured in ' + scope).toBeGreaterThan(0);
+  const nested = new Set(layout.nested);
+  expect([...layout.problems, ...overlaps(layout.boxes, (i, j) => nested.has(`${String(i)}|${String(j)}`))], scope).toEqual([]);
 }

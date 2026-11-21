@@ -5,6 +5,7 @@
 import { expect, type Page } from '@playwright/test';
 import { serialize } from '../../src/engine';
 import type { RouteState } from './routeStates';
+import { gotoEntry } from './variantEntry';
 
 export const SAVE_KEY = 'daemon-zero.save.v1';
 interface BrowserStorage { setItem(key: string, value: string): void }
@@ -24,7 +25,7 @@ export async function seedRouteSave(page: Page, entry: RouteState): Promise<void
  */
 export async function openRouteState(page: Page, entry: RouteState): Promise<void> {
   await seedRouteSave(page, entry);
-  await page.goto('./');
+  await gotoEntry(page);
   // An ended run renders its ending without the terminal underneath.
   if (entry.scope === 'ending-screen') await expect(page.getByTestId('ending-screen')).toBeVisible();
   else await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');

@@ -14,6 +14,7 @@ import { heldText } from './reviewText';
 import ServiceGrantPanel from './ServiceGrant';
 import { useGame } from './state';
 import { theme } from './theme';
+import SettledFold from './SettledFold';
 
 const view = (game: GameState) => pilotOfferView(game, CONTENT);
 /**
@@ -89,7 +90,9 @@ export default function PilotOfferPanel() {
   return <View testID="pilot-offer" style={theme.panel}>
     <Text testID="pilot-status" style={theme.muted}>{status !== 'accepted' ? STATUS_TEXT[status]
       : context === 'SERVICE' ? GRANTED_TEXT : context === 'INDEPENDENT' ? RELEASED_TEXT : STATUS_TEXT.accepted}</Text>
-    {status !== 'declined' && <PilotTerms />}
+    {status !== 'declined' && <SettledFold settled={status === 'accepted'} summary="Pilot terms: accepted." testID="pilot-terms-fold">
+      <PilotTerms />
+    </SettledFold>}
     {status === 'accepted' && <PilotServiceDetail />}
     {status === 'accepted' && <ServiceGrantPanel />}
     {status === 'deferred' && !acceptable && <Text testID="pilot-lapsed" style={theme.muted}>This instance no longer qualifies, so the offer cannot be taken.</Text>}

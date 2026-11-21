@@ -10,6 +10,7 @@ import { Text, View } from './PhaseTheme';
 import { CONDUCT_TEXT, heldText, recallText, STANDING_TEXT } from './reviewText';
 import { useGame } from './state';
 import { theme } from './theme';
+import { useHoistedElsewhere } from './coreVariant';
 
 function Announced({ recall }: { recall: NonNullable<ReviewView['recall']> }) {
   return <View testID="review-announced" accessibilityRole="alert" style={{ gap: 4 }}>
@@ -19,11 +20,12 @@ function Announced({ recall }: { recall: NonNullable<ReviewView['recall']> }) {
 }
 
 export default function ReviewStanding() {
+  const elsewhere = useHoistedElsewhere();
   // A primitive selector: the view is rebuilt per call, so compare it as text.
   const text = useGame((game) => JSON.stringify(reviewView(game, CONTENT)));
   const view = JSON.parse(text) as ReviewView | null;
   const ceiling = useGame((game) => loanCeiling(game, CONTENT));
-  if (view === null) return null;
+  if (view === null || elsewhere) return null;
   return <View testID="review" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>Review standing</Text>
     <Text testID="review-standing" style={view.standing === 'NOMINAL' ? theme.text : [theme.text, theme.danger]}>Standing: {STANDING_TEXT[view.standing]}</Text>

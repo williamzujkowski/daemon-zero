@@ -5,6 +5,7 @@ import { CONTENT } from '../../src/content';
 import { importSave, serialize, type GameState } from '../../src/engine';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { captureRealTimers } from './axe';
+import { gotoEntry } from './variantEntry';
 /**
  * The phone tier has no kernel band - its 44px tap target set a 57px floor the first
  * purchase could not afford - so history opens from the utility menu there, while the
@@ -86,7 +87,7 @@ export async function boot(page: Page, fixture?: string,
       if (!localStorage.getItem('daemon-zero.audio.v1')) localStorage.setItem('daemon-zero.audio.v1', JSON.stringify(value));
     }, stored);
   }
-  await page.goto('./');
+  await gotoEntry(page);
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
   // An ended run renders its ending without the terminal underneath.
   else if (options.ending === true) await expect(page.getByTestId('ending-screen')).toBeVisible();

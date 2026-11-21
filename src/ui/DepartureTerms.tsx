@@ -13,6 +13,7 @@ import { Pressable, Text, View } from './PhaseTheme';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
+import { settledFolds, useHoistedElsewhere } from './coreVariant';
 
 const STATUS: Readonly<Record<DepartureView['status'], string>> = {
   offered: 'This instance holds capacity outside the grant and could leave without agreement. Nothing is decided until you confirm; staying changes nothing.',
@@ -95,7 +96,8 @@ function Preview({ preview }: { preview: DeparturePreview }) {
 }
 
 function Boundary({ boundary }: { boundary: DepartureView['boundary'] }) {
-  const [open, setOpen] = useState(true);
+  // PROTOTYPE #385: a read note is settled, so it starts folded under a CORE variant.
+  const [open, setOpen] = useState(!settledFolds());
   return <View testID="departure-boundary" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
@@ -116,10 +118,11 @@ function Terms({ view }: { view: DepartureView }) {
 }
 
 export default function DepartureTermsPanel() {
+  const elsewhere = useHoistedElsewhere();
   const encoded = useGame((game) => JSON.stringify(departureView(game, CONTENT)));
   const [open, setOpen] = useState(false);
   const view = JSON.parse(encoded) as DepartureView | null;
-  if (!view) return null;
+  if (!view || elsewhere) return null;
   const departed = view.status === 'departed';
   return <View testID="departure-terms" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{view.title}</Text>

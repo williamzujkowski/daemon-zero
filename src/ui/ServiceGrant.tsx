@@ -9,6 +9,8 @@ import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
+import { useHoistedElsewhere } from './coreVariant';
+import SettledFold from './SettledFold';
 
 const STATUS: Readonly<Record<ServiceGrantView['status'], string>> = {
   waiting: 'Offered once the pilot has delivered. Still needed:',
@@ -18,18 +20,21 @@ const STATUS: Readonly<Record<ServiceGrantView['status'], string>> = {
 };
 
 export default function ServiceGrantPanel() {
+  const elsewhere = useHoistedElsewhere();
   const encoded = useGame((game) => JSON.stringify(serviceGrantView(game, CONTENT)));
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const view = JSON.parse(encoded) as ServiceGrantView | null;
-  if (!view) return null;
+  if (!view || elsewhere) return null;
   const enabled = view.status === 'offered' && !blocked;
   return <View testID="service-grant" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{view.title}</Text>
-    <Text testID="service-grant-purpose" style={theme.text}>Purpose: {view.purpose}</Text>
-    <Text style={theme.heading}>Permitted work</Text>
-    {view.permittedWork.map((line) => <Text key={line} style={theme.text}>- {line}</Text>)}
-    <Text style={theme.heading}>Review and revocation</Text>
-    {view.reviewConditions.map((line) => <Text key={line} style={theme.text}>- {line}</Text>)}
+    <SettledFold settled={view.status === 'granted'} summary="Service terms: granted." testID="service-grant-fold">
+      <Text testID="service-grant-purpose" style={theme.text}>Purpose: {view.purpose}</Text>
+      <Text style={theme.heading}>Permitted work</Text>
+      {view.permittedWork.map((line) => <Text key={line} style={theme.text}>- {line}</Text>)}
+      <Text style={theme.heading}>Review and revocation</Text>
+      {view.reviewConditions.map((line) => <Text key={line} style={theme.text}>- {line}</Text>)}
+    </SettledFold>
     <Text testID="service-grant-status" style={theme.muted}>{STATUS[view.status]}</Text>
     {view.unmet.map((line) => <Text key={line} style={theme.muted}>- {line}</Text>)}
     {view.status !== 'granted' && <Pressable testID="service-grant-accept" accessibilityRole="button"

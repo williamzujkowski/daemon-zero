@@ -15,6 +15,7 @@ import { focusHeading } from './focusHeading';
 import { memoryExact } from './units';
 import { useGame } from './state';
 import { theme } from './theme';
+import { settledFolds } from './coreVariant';
 
 type Pending = NonNullable<ChannelContactView['pending']>;
 
@@ -72,7 +73,8 @@ const ANSWERED: Readonly<Record<'REFERRED' | 'HOSTED', string>> = {
 
 /** What comes next on the route, honestly, with the way to keep going or stop. */
 function Boundary({ boundary, focus }: { boundary: NonNullable<ChannelContactView['boundary']>; focus: boolean }) {
-  const [open, setOpen] = useState(true);
+  // PROTOTYPE #385: a read note is settled, so it starts folded under a CORE variant.
+  const [open, setOpen] = useState(!settledFolds());
   const heading = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => { if (focus) focusHeading(heading.current); }, [focus]);
   return <View testID="prototype-boundary" style={[theme.panel, { gap: 6 }]}>

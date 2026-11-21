@@ -13,6 +13,7 @@ import { useGame } from './state';
 import { theme } from './theme';
 import { compactNumber } from './compactNumber';
 import { amountFigure } from './format';
+import { useHoistedElsewhere } from './coreVariant';
 
 const view = (game: GameState) => pilotServiceView(game, CONTENT);
 
@@ -79,13 +80,14 @@ function Submit() {
 
 /** The task detail of an accepted pilot. */
 export function PilotServiceDetail() {
+  const elsewhere = useHoistedElsewhere();
   const label = useGame((game) => view(game)?.batchLabel ?? null);
   const ceiling = useGame((game) => view(game)?.ceilingCyclesPerSec ?? 0);
   const started = useGame((game) => view(game)?.started ?? false);
   const withheld = useGame((game) => view(game)?.withheld ?? null);
   const submitted = useGame((game) => view(game)?.batchesSubmitted ?? 0);
   const queue = useGame((game) => view(game)?.queueContext ?? null);
-  if (label === null) return null;
+  if (label === null || elsewhere) return null;
   return <View testID="pilot-service" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>Pilot service // {label}</Text>
     <Text testID="pilot-service-ceiling" style={theme.text}>

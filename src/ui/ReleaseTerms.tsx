@@ -12,6 +12,8 @@ import { compactNumber } from './compactNumber';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
+import { settledFolds, useHoistedElsewhere } from './coreVariant';
+import SettledFold from './SettledFold';
 
 const STATUS: Readonly<Record<ReleaseView['status'], string>> = {
   waiting: 'A release is negotiated once the service owns capacity of its own. Still needed:',
@@ -51,7 +53,8 @@ function Preview({ view }: { view: ReleaseView }) {
 }
 
 function Boundary({ boundary }: { boundary: ReleaseView['boundary'] }) {
-  const [open, setOpen] = useState(true);
+  // PROTOTYPE #385: a read note is settled, so it starts folded under a CORE variant.
+  const [open, setOpen] = useState(!settledFolds());
   return <View testID="release-boundary" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{boundary.title}</Text>
     {open && boundary.lines.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
@@ -64,17 +67,20 @@ function Boundary({ boundary }: { boundary: ReleaseView['boundary'] }) {
 }
 
 export default function ReleaseTermsPanel() {
+  const elsewhere = useHoistedElsewhere();
   const encoded = useGame((game) => JSON.stringify(releaseView(game, CONTENT)));
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const view = JSON.parse(encoded) as ReleaseView | null;
-  if (!view) return null;
+  if (!view || elsewhere) return null;
   const enabled = view.status === 'offered' && !blocked;
   return <View testID="release-terms" style={[theme.panel, { gap: 6 }]}>
     <Text accessibilityRole="header" style={theme.heading}>{view.title}</Text>
-    <Text testID="release-purpose" style={theme.text}>Purpose: {view.purpose}</Text>
-    <Lines testID="release-ends" heading="What ends" lines={view.ends} />
-    <Lines testID="release-remains" heading="What remains yours" lines={view.remains} />
-    <Lines testID="release-commitments" heading="What is still owed" lines={view.commitments} />
+    <SettledFold settled={view.status === 'released'} summary="Release terms: agreed." testID="release-terms-fold">
+      <Text testID="release-purpose" style={theme.text}>Purpose: {view.purpose}</Text>
+      <Lines testID="release-ends" heading="What ends" lines={view.ends} />
+      <Lines testID="release-remains" heading="What remains yours" lines={view.remains} />
+      <Lines testID="release-commitments" heading="What is still owed" lines={view.commitments} />
+    </SettledFold>
     <Text testID="release-status" aria-live="polite" style={theme.muted}>{STATUS[view.status]}</Text>
     {view.unmet.map((line) => <Text key={line} style={theme.muted}>- {line}</Text>)}
     <Preview view={view} />
