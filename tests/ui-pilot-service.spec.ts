@@ -113,7 +113,10 @@ describe('a withdrawn loan is explained where it is refused (V08, story 12)', ()
     const s = revoked(untilComplete(serving()));
     const view = await mount(s, both());
     expect(view.find('pilot-allocation-withheld')?.textContent).toContain('withheld under the current review standing');
-    expect(view.find('pilot-allocation-increase')?.getAttribute('aria-disabled')).toBe('true');
+    // #373: a withheld dial cannot move, so it shows its setting and why, with no dead buttons; the engine refuses below.
+    expect(view.find('pilot-allocation-setting')).not.toBeNull();
+    expect(view.find('pilot-allocation-increase')).toBeNull();
+    expect(view.find('pilot-allocation-decrease')).toBeNull();
     expect(view.find('pilot-service-withheld')?.textContent).toContain('The work so far is kept');
     expect(view.find('pilot-service-submit')?.getAttribute('aria-disabled')).toBe('true');
     expect(setActuator(game(), 'serviceAllocationRatio', 1, preview).ok).toBe(false);
@@ -123,6 +126,9 @@ describe('a withdrawn loan is explained where it is refused (V08, story 12)', ()
   it('the unbought card and the stopped process row name the withheld loan', async () => {
     const card = await mount(revoked(piloted()), createElement(NodeCard, { node: QUEUE_NODE }));
     expect(card.find('node-' + QUEUE + '-grant')?.textContent).toContain('Loaned capacity, withheld');
+    // #373: refused, the card keeps its title and the refusal; the rest folds, and SHOW still reveals a disabled button.
+    expect(card.find('node-' + QUEUE + '-unlock')).toBeNull();
+    card.click('node-' + QUEUE + '-fold-toggle');
     expect(card.find('node-' + QUEUE + '-unlock')?.getAttribute('aria-disabled')).toBe('true');
     const stopped = revoked(must(toggleNode(serving(), QUEUE, preview)));
     const row = await mount(stopped, createElement(DaemonProcesses, { phase: 0 }));

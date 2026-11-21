@@ -41,6 +41,9 @@ test('accepted pilot -> attached loan -> allocation -> a submitted batch -> relo
 
   // Output the terms stop is an ordinary refusal with its reason on the card (story 15).
   await expect(page.getByTestId('node-p0_quota_skimmer-grant')).toContainText('Not permitted: the pilot terms do not permit that output');
+  // #373: refused, the card keeps its title and the refusal; the rest folds, and SHOW reveals the disabled driver.
+  await expect(page.getByTestId('node-p0_quota_skimmer-unlock')).toHaveCount(0);
+  await page.getByTestId('node-p0_quota_skimmer-fold-toggle').click();
   await expect(page.getByTestId('node-p0_quota_skimmer-unlock')).toBeDisabled();
 
   // The batch completes and waits: no deadline, nothing submitted on its own.

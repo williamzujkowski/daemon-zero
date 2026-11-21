@@ -30,8 +30,9 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
   return <>
     <View style={styles.row}>
       <Text testID={id + '-setting'} style={[theme.text, styles.value]}>{label}: {Math.round(ratio * 100)}%</Text>
-      {([-1, 1] as const).map((direction) => {
-        const disabled = blocked || withheld !== null || (direction < 0 ? ratio <= 0 : ratio >= limit);
+      {/* Withheld, the dial cannot move at all, so it shows its setting and why, not two dead buttons (#373). */}
+      {withheld === null && ([-1, 1] as const).map((direction) => {
+        const disabled = blocked || (direction < 0 ? ratio <= 0 : ratio >= limit);
         return <Pressable key={direction} testID={id + (direction < 0 ? '-decrease' : '-increase')}
           accessibilityRole="button" accessibilityLabel={(direction < 0 ? '− Decrease ' : '+ Increase ') + label.toLowerCase() + ' by up to 10 percentage points'}
           disabled={disabled} style={[theme.button, disabled && theme.disabled]} onPress={() => { step(direction); }}>

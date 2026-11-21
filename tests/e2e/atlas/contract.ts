@@ -5,7 +5,7 @@
  * widget holds nothing a player must watch or act on to understand the game now.
  */
 import { CONTENT } from '../../../src/content';
-import { offeredChoices, understandsSurveillance, type GameState } from '../../../src/engine';
+import { actuatorUseBlocker, offeredChoices, understandsSurveillance, type GameState } from '../../../src/engine';
 import { SEGMENT } from '../../network-helpers';
 import type { ContractItem, ItemKind, Locate, SurfaceItems } from './contractTypes';
 import type { OverlayId, Pane, RouteSurface } from './types';
@@ -69,7 +69,11 @@ export const WIDGET_ITEMS: Readonly<Record<string, SurfaceItems>> = {
   ORBITAL_CONSTELLATION_VIEW: [],
   DEAD_DROP_ENCODER_TAB: [item('deaddrop.wipe', 'destructive', role('button', 'Voluntary wipe'), 70, 'CONTINGENCY')],
   // The service share is a setting the player chose, not a readout that moves by itself: its control is the item.
-  PILOT_SERVICE_ALLOCATION: [item('pilot.increase', 'primary', role('button', /^\+ Increase service share/), 40, 'CORE')],
+  // Withheld, the dial cannot move and shows no buttons (#373), so the item is the line that says why. A region, not
+  // timely: the recall alert and the omen are the timely word on a withdrawn loan, and both lead the pane.
+  PILOT_SERVICE_ALLOCATION: ({ state }) => actuatorUseBlocker(state, 'serviceAllocationRatio', CONTENT) === null
+    ? [item('pilot.increase', 'primary', role('button', /^\+ Increase service share/), 40, 'CORE')]
+    : [item('pilot.withheld', 'region', testId('pilot-allocation-withheld', 'the withheld line is plain text'), 40, 'CORE')],
 };
 
 /** The alert band and the notices, keyed by the condition compose.ts reads from the save. */
