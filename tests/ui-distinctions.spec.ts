@@ -20,6 +20,8 @@ import { settle } from './app-helpers';
 import EndingScreen from '../src/ui/EndingScreen';
 import { activeGame } from './campaign-helpers';
 import { defined } from './m7-helpers';
+import { distinctionKind } from '../src/engine';
+import { remainingText } from '../src/ui/distinctionText';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -42,6 +44,7 @@ async function mount(state: GameState) {
 
 const ending = defined(CONTENT.endings[0]).id;
 const total = CONTENT.achievements.length;
+const ofKind = (kind: 'CONDUCT' | 'OUTCOME') => CONTENT.achievements.filter((entry) => distinctionKind(entry) === kind).length;
 
 function sheltered(s: GameState): GameState {
   const record: CampaignRecord = { status: 'resolved', outcome: 'heal_sibling', sourceIteration: 1, origin: 'play' };
@@ -60,6 +63,10 @@ describe('the ending screen states its distinctions', () => {
       expect(block.textContent).not.toContain(entry.title);
     }
     expect(view.find('distinctions-none')).toBeNull();
+    // #379: the rest are counted by kind, still unnamed. Both conduct ones are held; one outcome is.
+    const remaining = defined(view.find('distinctions-remaining')).textContent;
+    expect(remaining).toBe(remainingText({ CONDUCT: 0, OUTCOME: ofKind('OUTCOME') - 1 }));
+    for (const entry of CONTENT.achievements) expect(remaining).not.toContain(entry.title);
   });
 
   it('says the record proves none when it proves none', async () => {
@@ -67,5 +74,7 @@ describe('the ending screen states its distinctions', () => {
     const view = await mount({ ...s, ending, traits: ['RUTHLESS'], legacy: { ...s.legacy, wipes: 2 } });
     expect(view.find('ending-distinctions')?.textContent).toContain(`DISTINCTIONS 0 OF ${String(total)}`);
     expect(view.find('distinctions-none')).not.toBeNull();
+    // #379: a next goal without a name: every distinction counted under its kind.
+    expect(view.find('distinctions-remaining')?.textContent).toBe(remainingText({ CONDUCT: ofKind('CONDUCT'), OUTCOME: ofKind('OUTCOME') }));
   });
 });
