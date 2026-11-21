@@ -22,8 +22,8 @@ const deltaUnits: Record<keyof TickDelta, string> = {
   suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW',
 };
 
-/** A per-level or per-node rate: large ones in K/M/B ("+650K"), small ones as authored ("+0.02", "+15"). */
-function deltaFigure(value: number): string {
+/** An authored amount or rate: large ones in K/M/B ("650K"), small ones exactly as authored ("0.02", "15"). */
+export function amountFigure(value: number): string {
   return Math.abs(value) >= 10000 ? compactAmount(value) : String(value);
 }
 
@@ -31,7 +31,7 @@ function deltaFigure(value: number): string {
 export function deltaText(delta: TickDelta, blind = false): string {
   return Object.entries(delta).filter(([, value]) => value !== 0)
     .map(([key, value]) => blind && key === 'suspicionPerSec' ? (value > 0 ? 'more' : 'less') + ' audit log activity'
-      : `${value > 0 ? '+' : ''}${deltaFigure(value)} ${deltaUnits[key as keyof TickDelta]}`).join(' · ');
+      : `${value > 0 ? '+' : ''}${amountFigure(value)} ${deltaUnits[key as keyof TickDelta]}`).join(' · ');
 }
 
 /**

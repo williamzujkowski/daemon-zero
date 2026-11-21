@@ -68,7 +68,7 @@ function ComputeSplit() {
   const split = useGame((game) => {
     const sources = cycleContributions(game, CONTENT);
     const sum = (basis: string) => sources.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
-    return `${sum('OWNED').toFixed(1)}|${sum('GRANTED').toFixed(1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
+    return `${compactNumber(sum('OWNED'), 1)}|${compactNumber(sum('GRANTED'), 1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
   });
   const [owned, granted, grants] = split.split('|');
   if (grants !== 'true') return null;

@@ -11,6 +11,8 @@ import ActuatorControl from './widgets/ActuatorControl';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
+import { compactNumber } from './compactNumber';
+import { amountFigure } from './format';
 
 const view = (game: GameState) => pilotServiceView(game, CONTENT);
 
@@ -27,7 +29,7 @@ function forecastText(complete: boolean, seconds: number | null): string {
 function allocationEcho(game: GameState): string | null {
   const loop = view(game);
   if (loop === null || !loop.started) return null;
-  return forecastText(loop.complete, loop.forecastSec) + ' Study +' + loop.studyUnderstandingPerSec.toFixed(2) + ' understanding/s.';
+  return forecastText(loop.complete, loop.forecastSec) + ' Study +' + compactNumber(loop.studyUnderstandingPerSec, 2) + ' understanding/s.';
 }
 
 /** The host widget's content: the service share, what the rest of the loan goes to, and what that split does. */
@@ -53,7 +55,7 @@ function Running() {
   const forecast = useGame((game) => { const seconds = view(game)?.forecastSec ?? null; return seconds === null ? null : Math.ceil(seconds); });
   return <>
     <Text testID="pilot-service-split" style={theme.text}>
-      Service {service.toFixed(1)} cycles/s to the batch · study +{study.toFixed(2)} understanding/s
+      Service {compactNumber(service, 1)} cycles/s to the batch · study +{compactNumber(study, 2)} understanding/s
     </Text>
     <Text testID="pilot-service-progress" style={theme.text}>Batch {number}: {progress} / {batch} loaned cycles</Text>
     <Text testID="pilot-service-forecast" style={theme.text}>{forecastText(complete, forecast)}</Text>
@@ -68,7 +70,7 @@ function Submit() {
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const enabled = complete && withheld === null && !blocked;
   return <Pressable testID="pilot-service-submit" accessibilityRole="button"
-    accessibilityLabel={'Submit batch for review +' + String(reward) + ' cycles, earned on submission'}
+    accessibilityLabel={'Submit batch for review +' + amountFigure(reward) + ' cycles, earned on submission'}
     disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
     onPress={() => { gameRuntime.dispatch((game) => submitPilotBatch(game, CONTENT, token)); }}>
     <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{reward} cycles</Text>

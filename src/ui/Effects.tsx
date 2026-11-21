@@ -6,12 +6,12 @@ import { CONTENT } from '../content';
 import { useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import { memoryExact } from './units';
-import { compactAmount } from '../engine';
+import { amountFigure } from './format';
 
 /** A one-shot effect: memory in its unit ("+512 GB memory capacity"), large amounts in K/M/B ("+20M cycles", #404). */
 function effectFigure(label: string, value: number): string {
   if (label === 'memory capacity') return memoryExact(value) + ' ' + label;
-  return (Math.abs(value) >= 10000 ? compactAmount(value) : String(value)) + ' ' + label;
+  return amountFigure(value) + ' ' + label;
 }
 
 export default function Effects({ effects }: { effects: EffectPayload }) {

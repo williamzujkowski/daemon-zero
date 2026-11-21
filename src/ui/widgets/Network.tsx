@@ -3,13 +3,14 @@ import DisclosureText from '../DisclosureText';
 /** Registry phase/group metadata builds one network tree without duplicate cards. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions } from '../../engine';
+import { cycleContributions, type GameState } from '../../engine';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { hasPhasePurchases } from '../purchaseVisibility';
 import UpgradeFeed from '../UpgradeFeed';
 import { useGame, usePhaseTitle } from '../state';
 import { theme } from '../theme';
+import { compactNumber } from '../compactNumber';
 
 function NetworkPhase({ phase }: { phase: number }) {
   const title = usePhaseTitle(phase);
@@ -56,12 +57,17 @@ export function Lore() {
     .map((log) => <DisclosureText key={log.seq} style={theme.text}>{log.text}</DisclosureText>)}</View>;
 }
 
-export function Cluster() {
-  const text = useGame((game) => cycleContributions(game, CONTENT).map((source) => {
+/** One line per cycle source, its rate in the shared number scheme ("520K cycles/s", #406). */
+export function clusterText(game: GameState): string {
+  return cycleContributions(game, CONTENT).map((source) => {
     const name = CONTENT.nodes.get(source.id)?.revealedName ?? CONTENT.repeatables.get(source.id)?.name ??
       CONTENT.actions.get(source.id)?.label ?? CONTENT.swarm.playerSwarmTemplates.find((template) => template.id === source.id)?.name;
     // Granted output is marked (DZ-10.2); owned output reads as it always did.
-    return (name ?? 'Source') + ': ' + source.cyclesPerSec.toFixed(2) + ' cycles/s' + (source.basis === 'GRANTED' ? ' (granted)' : '');
-  }).join('\n'));
+    return (name ?? 'Source') + ': ' + compactNumber(source.cyclesPerSec, 2) + ' cycles/s' + (source.basis === 'GRANTED' ? ' (granted)' : '');
+  }).join('\n');
+}
+
+export function Cluster() {
+  const text = useGame(clusterText);
   return <Text testID="cycle-sources" style={theme.text}>{text || 'No active cycle sources'}</Text>;
 }
