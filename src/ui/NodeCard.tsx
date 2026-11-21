@@ -8,7 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
-import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode } from '../engine';
+import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -21,6 +21,7 @@ import CostHint from './CostHint';
 import NodeTitle from './NodeTitle';
 import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from './headingLevel';
 import GrantNote from './GrantNote';
+import SettledFold from './SettledFold';
 
 /** What rediscovery saves, from the same multipliers the price uses, so the line cannot drift (#262). */
 function savingText(node: RegistryNode, campaign: boolean): string {
@@ -52,6 +53,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const revealedDescription = useGame((game) => nodeText(game, node, CONTENT).revealedDescription);
   // A primitive selector: the trace changes only with iteration, never per tick.
   const trace = useGame((game) => probeTrace(game, node, CONTENT));
+  const refusal = useGame((game) => nodeUseBlocker(game, node, CONTENT));
   const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace) : ''), [known, node, surveillanceKnown, trace]);
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
@@ -69,10 +71,14 @@ function NodeCard({ node }: { node: RegistryNode }) {
           below the fold (measured: 51% of that offset was app chrome, 27% this card
           body). Every element still renders - the description simply follows the
           action, except on a node that ends the run, where it stays above it. */}
+      {/* A card the engine's permitted-use rule refuses is dead here (#373): its grant note, the refusal in the card's
+          own words (withheld grant or not permitted), stays in view and the rest of the card folds. */}
+      {refusal !== null && <GrantNote node={node} />}
+      <SettledFold settled={refusal !== null} summary="Card details" testID={'node-' + node.id + '-fold'}>
       <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
-      <GrantNote node={node} />
+      {refusal === null && <GrantNote node={node} />}
       <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
         allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
@@ -80,6 +86,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
         First mapping: {costText(node.cost, compact)}. {savingText(node, campaign)}
       </Text>}
+      </SettledFold>
   </View>;
 }
 
