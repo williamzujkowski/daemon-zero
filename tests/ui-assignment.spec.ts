@@ -76,7 +76,8 @@ describe('the assignment on the job surface', () => {
     const view = await mount(state, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('assignment-wait')?.textContent).toBe('The assessment arrives about 30 s after you accept and pauses the clock: the answers open then are the ones you can afford then.'
       + ' Its fullest answer, "Verify the fixture and disclose the defect", costs 120 cycles · 20 understanding. Nothing is due, so you can bank compute before accepting.');
-    const short = 'Short by ' + String(120 - Math.floor(state.cycles)) + ' cycles';
+    // #376: the shortfall names its answer, so it never reads as the free ACCEPT's price.
+    const short = 'For "Verify the fixture and disclose the defect", short by ' + String(120 - Math.floor(state.cycles)) + ' cycles';
     expect(view.find('assignment-before')?.textContent).toContain(short);
     // Banking first clears the shortfall; the line itself stays.
     const banked = await mount(funded(offered()), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));

@@ -13,6 +13,7 @@ import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
 import { costText } from './format';
+import CostHint from './CostHint';
 import { evidenceText, scopeText } from './evidenceText';
 import { PilotTerms } from './PilotOffer';
 import { recallText, reviewEffectText } from './reviewText';
@@ -69,7 +70,8 @@ function Choice({ choice, dilemmaId, token, place, heading }: {
     <ReviewLine choice={choice} />
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
-    {!affordable && <Text style={[theme.text, theme.danger]}>Insufficient resources or free memory.</Text>}
+    {/* The exact shortfall, as a card says it (#376): there is no memory resource in phase 0 to be short of. */}
+    {!affordable && <CostHint cost={choice.cost} lead="Cannot pay yet: short by" danger />}
     {/* The name starts with the words on the button, then says which choice it commits (WCAG 2.5.3). */}
     <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button"
       accessibilityLabel={(affordable ? 'Commit directive: ' : 'Unavailable: ') + label}

@@ -82,8 +82,21 @@ describe('the capability hint', () => {
   it('names the access either route can provide, and disappears once it is held', async () => {
     const requirements = defined(PREVIEW.nodes.get(DIRECTORY)).requirements;
     const without = await mount(granted(), createElement(RequirementHint, { requirements }));
-    expect(without.container.textContent).toBe('Needs a link to the facility network (provisioned access or a mapped network card)');
+    expect(without.container.textContent).toBe('Requires: a link to the facility network (provisioned access or a mapped network card)');
     const held = await mount(networked(), createElement(RequirementHint, { requirements }));
     expect(held.container.textContent).toBe('');
+  });
+});
+
+describe('requirement copy (#376)', () => {
+  it('labels a requirement "Requires:" and leaves a blocker in its own words', async () => {
+    const state = granted();
+    const owned = state.unlockedNodes[0];
+    if (owned === undefined) throw new Error('fixture owns no node');
+    const required = await mount(state, createElement(RequirementHint, { requirements: { nodes: [DIRECTORY] } }));
+    expect(required.container.textContent).toMatch(/^Requires: Map /);
+    const blocked = await mount(state, createElement(RequirementHint, { requirements: { forbidsNodes: [owned] } }));
+    expect(blocked.container.textContent).toMatch(/^No longer possible: you mapped /);
+    expect(blocked.container.textContent).not.toContain('Requires:');
   });
 });

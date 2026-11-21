@@ -53,14 +53,14 @@ const game = () => gameStore.store.getState().game;
 describe('the final protocol names what completes each obligation now', () => {
   it('lists the four originals while all are open', async () => {
     const view = await mount(exactReload(own(activeGame(), ...FINAL.prerequisites)), hint());
-    expect(view.container.textContent).toBe(OBLIGATIONS.map((id) => 'Resolve ' + event(id).title).join('\n'));
+    expect(view.container.textContent).toBe(OBLIGATIONS.map((id) => 'Requires: Resolve ' + event(id).title).join('\n'));
   });
 
   it('names the recovery review once the original closed unobserved, and the modal commits its honest handoff', async () => {
     const lost = exactReload(caught(ticks(omen(activeGame(), ATMOSPHERE, [CEILING]), 5)));
     const view = await mount(exactReload(own(lost, ...FINAL.prerequisites)), hint());
     // The blockade and the order were completed by the setup; the closed crisis is answered through its review.
-    expect(view.container.textContent).toBe(['Resolve ' + event(ATMOSPHERE_REVIEW).title, 'Resolve ' + event(CEILING).title].join('\n'));
+    expect(view.container.textContent).toBe(['Requires: Resolve ' + event(ATMOSPHERE_REVIEW).title, 'Requires: Resolve ' + event(CEILING).title].join('\n'));
     view.close();
     const modal = await mount(untilPresented(omen(lost, ATMOSPHERE_REVIEW, [CEILING])), createElement(DilemmaModal));
     modal.click('dilemma-choice-hand_to_health_authorities');
