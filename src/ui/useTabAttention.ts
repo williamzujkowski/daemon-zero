@@ -19,7 +19,8 @@ function withFresh(seen: Fresh, widgets: string, active: string): Record<string,
   const marks = { ...seen.marks };
   for (const id of widgets.split(' ')) {
     const widget = id !== '' && !before.has(id) ? CONTENT.widgets.get(id) : undefined;
-    if (widget && widget.slot !== active) marks[widget.slot] = [...(marks[widget.slot] ?? []), 'new: ' + widget.title];
+    const reason = widget ? 'new: ' + widget.title : '';
+    if (widget && widget.slot !== active && !(marks[widget.slot] ?? []).includes(reason)) marks[widget.slot] = [...(marks[widget.slot] ?? []), reason];
   }
   return marks;
 }

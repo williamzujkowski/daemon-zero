@@ -19,10 +19,11 @@ export default function OmenNotice({ id: noticeId = 'omen-notice', compact = fal
   // The omen reads world history only, which cannot change while it is pending.
   const omen = useGame((game) => dilemma ? dilemmaOmen(game, dilemma, CONTENT) : '');
   if (!dilemma || ended) return null;
-  // A heads-up, not an emergency: a polite status, whose role now matches its politeness (it was role=alert with
-  // aria-live=polite, #363). It leads the view, so it reads at body size with a label word rather than as a grey
-  // footnote weaker than every button (#378); the word carries the warning, not the colour alone.
-  return <View testID={noticeId} role="status" accessibilityLiveRegion="polite"
+  // Its arrival is spoken once by the chrome's announcer, which exists on every tab; on the phone this notice lives
+  // under EXECUTE in CORE and is absent off CORE (#362), so it is not a live region itself (#399 panel, #393).
+  // It leads the view, so it reads at body size with a label word rather than as a grey footnote (#378); the word
+  // carries the warning, not the colour alone.
+  return <View testID={noticeId}
     style={{ borderLeftWidth: 3, borderColor: palette.warning, paddingHorizontal: 12, paddingVertical: 8, gap: 2 }}>
     {compact
       ? <Text style={theme.text}><Text style={{ color: palette.warning }}>{'OMEN // '}</Text><DisclosureText style={theme.text}>{omen}</DisclosureText></Text>
