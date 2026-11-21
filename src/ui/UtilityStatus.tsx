@@ -20,13 +20,13 @@ export default function UtilityStatus() {
   const fanFull = useGame((game) => game.actuators.fanSpeedRatio >= 1);
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
-  const allocation = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
+  const remedy = useGame((game) => insolvencyRemedy(game));
   const response = useGame((game) => game.alertLevel);
   const lock = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
   return <View testID="menu-status" style={{ gap: 8 }}>
     {notice !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{notice}</Text>}
     {cycleDeficit && <Warning text="CYCLE DEFICIT: check running processes or add compute." />}
-    {insolvency && <Warning text={'INSOLVENT: capital exhausted. ' + insolvencyRemedy(allocation)} />}
+    {insolvency && <Warning text={'INSOLVENT: capital exhausted. ' + remedy} />}
     {shortfall && <Warning text={shortfallText(generated, consumed)} />}
     {/* "check cooling" named no remedy that worked once the fan was already full (#369). */}
     {thermal && <Warning text={'OVERHEAT: ' + overheatRemedy({ available: fanAvailable, full: fanFull })} />}

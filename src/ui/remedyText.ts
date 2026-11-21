@@ -3,6 +3,8 @@
  * is, not only the problem. Shared by the in-game warnings and the game menu's status lines so they say the same.
  */
 import { CONTENT } from '../content';
+import { actuatorLimit, financeEnabled, isActuatorAvailable, repeatableLevel, type GameState } from '../engine';
+import { profitAllocationValues } from './actuatorSteps';
 
 /**
  * Overheat: the fan first while it has headroom, otherwise the software making the heat. PROC suspends processes,
@@ -23,11 +25,19 @@ export function shortfallText(generated: number, consumed: number): string {
 }
 
 /**
- * Insolvency: operatives can be released in PAYROLL (dismissRepeatable); the revenue dial in FINANCE exists only
- * with an active corporate entity, so it is named only when it is offered (#402 panel).
+ * Insolvency: each lever is named only when it can act (#402 panel). The FINANCE dial is offered only with an active
+ * corporate entity, the way Allocation() decides, and only helps below its top setting; operatives can be released in
+ * PAYROLL (dismissRepeatable) only if some are hired.
  */
-export function insolvencyRemedy(allocation: boolean): string {
-  return allocation ? 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.' : 'Release operatives in PAYROLL.';
+export function insolvencyRemedy(game: GameState): string {
+  const ratio = game.actuators.computeProfitAllocationRatio;
+  const top = Math.min(actuatorLimit(game, 'computeProfitAllocationRatio', CONTENT), Math.max(...profitAllocationValues(CONTENT)));
+  const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6;
+  const release = [...CONTENT.repeatables.values()].some((rep) => rep.dismissable && repeatableLevel(game, rep.id) > 0);
+  if (divert && release) return 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.';
+  if (divert) return 'Divert more compute to revenue in FINANCE.';
+  if (release) return 'Release operatives in PAYROLL.';
+  return 'Capital recovers only as revenue outgrows what the company pays each second.';
 }
 
 /**

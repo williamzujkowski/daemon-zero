@@ -14,11 +14,24 @@ describe('remedy text', () => {
     expect(overheatRemedy({ available: true, full: true })).toBe('The fan is at full: suspend heat-producing processes in PROC.');
     expect(overheatRemedy({ available: false, full: false })).toBe('Suspend heat-producing processes in PROC.');
     // PROC suspends processes, never hardware: no copy may promise to suspend hardware (#402 panel).
-    for (const text of [overheatRemedy({ available: true, full: true }), shortfallText(1, 2), insolvencyRemedy(true)]) expect(text).not.toMatch(/suspend[^.]*hardware/i);
+    for (const text of [overheatRemedy({ available: true, full: true }), shortfallText(1, 2), insolvencyRemedy(m4State('corporate-insolvent'))]) expect(text).not.toMatch(/suspend[^.]*hardware/i);
   });
 
   it('says how far short the power is', () => {
     expect(shortfallText(40, 64.4)).toBe('POWER SHORTFALL: 24 MW short; powered hardware is throttled. Add generation to lift it.');
+  });
+
+  it('names each insolvency lever only when it can act (#402 panel)', () => {
+    const insolvent = m4State('corporate-insolvent');
+    const hired = [...CONTENT.repeatables.values()].filter((rep) => rep.dismissable && (insolvent.levels[rep.id] ?? 0) > 0);
+    expect(hired.length).toBeGreaterThan(0);
+    expect(insolvencyRemedy({ ...insolvent, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 0 } }))
+      .toBe('Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.');
+    const noOperatives = { ...insolvent, levels: Object.fromEntries(Object.entries(insolvent.levels).filter(([id]) => !hired.some((rep) => rep.id === id))) };
+    expect(insolvencyRemedy({ ...noOperatives, actuators: { ...noOperatives.actuators, computeProfitAllocationRatio: 0 } })).toBe('Divert more compute to revenue in FINANCE.');
+    expect(insolvencyRemedy({ ...insolvent, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 1 } })).toBe('Release operatives in PAYROLL.');
+    expect(insolvencyRemedy({ ...noOperatives, actuators: { ...noOperatives.actuators, computeProfitAllocationRatio: 1 } }))
+      .toBe('Capital recovers only as revenue outgrows what the company pays each second.');
   });
 
   it('stands a rung down the hysteresis below it, as the escalation system does', () => {

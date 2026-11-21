@@ -94,12 +94,12 @@ export function CorporateAlerts() {
   const insolvent = useGame((game) => game.insolvent);
   const brownout = useGame((game) => game.brownout);
   const shortfall = useGame((game) => game.rates.megawattsGenerated < game.rates.megawattsConsumed);
-  const allocation = useGame((game) => isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT));
+  const remedy = useGame((game) => insolvencyRemedy(game));
   const generated = useGame((game) => game.rates.megawattsGenerated);
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   return <View>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
-      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} {insolvencyRemedy(allocation)}</Text>}
+      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} {remedy}</Text>}
     {shortfall && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       {shortfallText(generated, consumed)}</Text>}
     {brownout && <Text testID="brownout-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
