@@ -51,7 +51,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   </View>;
 });
 
-/** A capped payroll role still needs a dismissal control, but no purchase tile. */
+/** A hired payroll role that cannot be bought now (capped, or requirements unmet) keeps a dismissal control only. */
 function CappedOperative({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
   return <View testID={'roster-' + rep.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -67,9 +67,11 @@ export default function Repeatables({ phase, kind, title, summary }: { phase: nu
   const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
     .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && pendingRepeatable(game, rep))
     .map((rep) => rep.id)));
+  // A hired role that cannot be bought now (capped, or its requirements no longer hold) keeps its dismissal: the engine
+  // allows it (dismissRepeatable), and a role the player pays for must never become unreleasable (#402 panel).
   const capped = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
     .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && rep.dismissable &&
-      repeatableLevel(game, rep.id) >= rep.maxLevel).map((rep) => rep.id)));
+      repeatableLevel(game, rep.id) > 0 && !pendingRepeatable(game, rep)).map((rep) => rep.id)));
   if (ids.length === 0 && capped.length === 0) return null;
   return <>
     {title && <Text testID={'repeatables-heading-' + String(phase) + (kind ?? '')} accessibilityRole="header" style={theme.heading}>{title}</Text>}

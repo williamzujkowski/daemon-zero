@@ -10,6 +10,7 @@ import { theme } from '../theme';
 import { isPhoneWidth } from '../layout';
 import { forecastCompact, forecastSentence } from '../forecastText';
 import ResponseRungs from './ResponseRungs';
+import { overheatRemedy } from '../remedyText';
 import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
 
@@ -17,10 +18,13 @@ export function Thermal() {
   const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
   const threshold = CONTENT.balance.thermalThresholdForSuspicion;
   const known = useSurveillanceKnown();
+  const remedy = useGame((game) => overheatRemedy(game));
+  const hot = thermal > threshold;
   return <>
-    <Text style={[theme.muted, thermal > threshold && theme.danger]}>
-      {thermal > threshold ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
+    <Text style={[theme.muted, hot && theme.danger]}>
+      {hot ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
     </Text>
+    {hot && <Text testID="overheat-remedy" style={theme.text}>{remedy}</Text>}
   </>;
 }
 
