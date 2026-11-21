@@ -3,12 +3,15 @@ import { Text, View } from './PhaseTheme';
  * The one announcement path for events that change what the player can do (vote-1795210455666-e01ydjc, F1b): a
  * visually hidden polite live region in the chrome. It speaks a phase change the boundary dialog does not already
  * open for (#356), each newly unlocked widget by its content title and slot (#357), and the AEGIS lock crossing its
- * critical mark (#360). A restore, a wipe or the first frame sets the baseline and says nothing, so nothing replays.
+ * critical mark (#360), and a newly available grant card, the route's free capacity (#361). A restore, a wipe or the
+ * first frame sets the baseline and says nothing, so nothing replays.
  */
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import { dilemmaOmen, phaseTitle, wildEncounterView, type GameState } from '../engine';
+import { dilemmaOmen, isNodeKnown, phaseTitle, wildEncounterView, type GameState } from '../engine';
+import type { Grant } from '../content/schemaGrant';
+import { pendingNode } from './purchaseVisibility';
 import { opensBoundaryDialog } from './PhaseThreshold';
 import { gameStore } from '../app/session';
 import { disclosed } from './DisclosureText';
@@ -18,13 +21,36 @@ import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 interface Line { seq: number; text: string; at: number }
-interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; aegis: boolean; signal: string; omen: string; lines: Line[]; seq: number }
+interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; grants: string; aegis: boolean; signal: string; omen: string; lines: Line[]; seq: number }
 /** A burst (a phase change that also reveals a signal) keeps its sentences as separate lines, so a later one does
  *  not replace an earlier one before it is read; lines older than the burst window are dropped, so nothing from
  *  minutes ago is re-presented with a new event. */
 const KEPT_LINES = 3;
 const BURST_SEC = 2;
 
+
+/** What each grant kind gives, in the player's words (the permission names DepartureTerms uses). */
+const GRANT_TEXT: Readonly<Record<Grant, string>> = { LOANED_CAPACITY: "compute the pilot's loan provides", AUTHORIZED_NETWORK: 'access under the service grant' };
+
+/** Grant cards available now, each as `id:name`, named as its card names it (remembered, or its blind name). */
+function availableGrants(game: GameState): string {
+  return [...CONTENT.nodes.values()].filter((node) => node.grant !== undefined && pendingNode(game, node))
+    .map((node) => node.id + ':' + (isNodeKnown(game, node.id) ? node.revealedName : node.blindName)).join('|');
+}
+
+/**
+ * A new grant card and what it gives (#361). No pane is named: an arrangement places a card by its own phases (the
+ * service segment sits on NETWORK though its base phase is CORE's), so the line says what, not where.
+ */
+function grantLines(before: string, now: string): string[] {
+  const seen = new Set(before.split('|').map((entry) => entry.split(':')[0]));
+  return now.split('|').flatMap((entry) => {
+    const [id = '', ...name] = entry.split(':');
+    const node = id !== '' && !seen.has(id) ? CONTENT.nodes.get(id) : undefined;
+    if (node?.grant === undefined) return [];
+    return [`New card: ${name.join(':')}, ${GRANT_TEXT[node.grant]}.`];
+  });
+}
 
 function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: GameState['access']): string[] {
   const lines: string[] = [];
@@ -40,6 +66,7 @@ function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: GameSt
     // A widget whose control is not on its content slot's pane (a strip readout, the PROC spoofer) is not "on" it.
     if (widget) lines.push(offSlotWidgets.includes(widget.id) ? `New: ${widget.title}.` : `New on ${widget.slot}: ${widget.title}.`);
   }
+  lines.push(...grantLines(seen.grants, now.grants));
   if (now.aegis && !seen.aegis) lines.push(`AEGIS hunter lock past ${String(AEGIS_CRITICAL)}%: the hunters are close to locking on.`);
   // The omen: on the phone its notice lives in CORE and is absent off CORE, so its arrival is spoken here (#399, #393).
   if (now.omen !== '' && now.omen !== seen.omen) lines.push(`Omen: ${now.omen}`);
@@ -55,6 +82,7 @@ export default function Announcer() {
   const phase = useGame((game) => game.currentPhase);
   const access = useGame((game) => game.access);
   const widgets = useGame((game) => game.unlockedWidgets.join(' '));
+  const grants = useGame(availableGrants);
   const aegis = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
   const signal = useGame((game) => wildEncounterView(game, CONTENT)?.title ?? '');
   const known = useSurveillanceKnown();
@@ -62,12 +90,12 @@ export default function Announcer() {
     const pending = game.ending === null ? CONTENT.dilemmas.find((entry) => entry.id === game.pendingDilemma?.id) : undefined;
     return pending ? dilemmaOmen(game, pending, CONTENT) : '';
   });
-  const now = { ready, revision, iteration, phase, widgets, aegis, signal, omen: omen === '' ? '' : disclosed(omen, known) };
+  const now = { ready, revision, iteration, phase, widgets, grants, aegis, signal, omen: omen === '' ? '' : disclosed(omen, known) };
   const [seen, setSeen] = useState<Seen>({ ...now, lines: [], seq: 0 });
   if (!ready || seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) {
     // A baseline, never an event: loading, restoring or rebooting must not replay what the save already holds.
     if (seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) setSeen({ ...now, lines: [], seq: seen.seq });
-  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.aegis !== aegis || seen.signal !== signal || seen.omen !== now.omen) {
+  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.grants !== grants || seen.aegis !== aegis || seen.signal !== signal || seen.omen !== now.omen) {
     const at = gameStore.store.getState().game.simTimeSec;
     const said = eventLines(seen, now, access).map((text, index) => ({ seq: seen.seq + index + 1, text, at }));
     // A change with nothing to say (the lock falling back, say) clears the region, so a virtual cursor never

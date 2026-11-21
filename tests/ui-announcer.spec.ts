@@ -5,7 +5,9 @@ import { act } from 'react';
 import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { thresholdCopy, type GameState } from '../src/engine';
+import { isNodeKnown, thresholdCopy, type GameState } from '../src/engine';
+import { must } from './helpers';
+import { offerPresented, respond } from './pilot-helpers';
 import { offSlotWidgets } from '../src/ui/registry/widgetRegistry';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
@@ -46,7 +48,9 @@ it('speaks the arrangement\'s own phase title, not the guest\'s (#394 panel)', a
   if (!variant || context === undefined) throw new Error('no arrangement phase title without a boundary dialog');
   const access = { ...before.access, context };
   advanceTo({ ...before, access, currentPhase: variant.phaseId - 1 });
-  advanceTo({ ...gameStore.store.getState().game, currentPhase: variant.phaseId });
+  // Past the burst window, so what the arrangement change itself announced (its grant cards, #361) has dropped.
+  const changed = gameStore.store.getState().game;
+  advanceTo({ ...changed, currentPhase: variant.phaseId, simTimeSec: changed.simTimeSec + 3 });
   const guest = CONTENT.phases.find((phase) => phase.phaseId === variant.phaseId)?.title;
   expect(view.find('announcer')?.textContent).toBe(variant.title + '.');
   expect(variant.title).not.toBe(guest);
@@ -130,4 +134,27 @@ it('speaks the AEGIS lock crossing its critical mark once, and the HUD says it i
   expect(view.find('announcer')?.textContent).toContain('AEGIS hunter lock past 90%');
   advanceTo({ ...gameStore.store.getState().game, aegisLock: 70 });
   expect(view.find('announcer')?.textContent).toBe('');
+});
+
+it('speaks a newly available grant card by the name its card shows, with what it gives (#361)', async () => {
+  const view = await mountM4('phase-1-widgets', { width: 390, height: 844 });
+  const offered = offerPresented();
+  advanceTo({ ...offered, iteration: gameStore.store.getState().game.iteration });
+  const before = gameStore.store.getState().game;
+  const accepted = must(respond(before, 'accept_pilot'));
+  const card = [...CONTENT.nodes.values()].find((node) => node.grant === 'LOANED_CAPACITY');
+  if (!card) throw new Error('no loaned-capacity card in content');
+  advanceTo(accepted);
+  const spoken = view.find('announcer')?.textContent ?? '';
+  // The card's own name: a card not yet mapped speaks its blind name, as the card shows it.
+  const name = isNodeKnown(accepted, card.id) ? card.revealedName : card.blindName;
+  expect(spoken).toContain(`New card: ${name}, compute the pilot's loan provides.`);
+  expect(spoken).toMatch(/pilot/i);
+  // Already available, it is not spoken again: the next announced event (a widget, past the burst window) is alone.
+  const fresh = [...CONTENT.widgets.values()].find((widget) => !accepted.unlockedWidgets.includes(widget.id));
+  if (!fresh) throw new Error('every widget is already unlocked');
+  advanceTo({ ...accepted, unlockedWidgets: [...accepted.unlockedWidgets, fresh.id], simTimeSec: accepted.simTimeSec + 3 });
+  const next = view.find('announcer')?.textContent ?? '';
+  expect(next).toContain(fresh.title);
+  expect(next).not.toContain('New card:');
 });
