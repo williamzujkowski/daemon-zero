@@ -19,7 +19,7 @@ import type { GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import NodeCard from '../src/ui/NodeCard';
-import RequirementHint from '../src/ui/RequirementHint';
+import RequirementHint, { REQUIREMENT_KIND } from '../src/ui/RequirementHint';
 import { defined } from './m7-helpers';
 import { DIRECTORY, escapedTo, granted, networked, provisioned, SEGMENT } from './network-helpers';
 import { must } from './helpers';
@@ -82,8 +82,39 @@ describe('the capability hint', () => {
   it('names the access either route can provide, and disappears once it is held', async () => {
     const requirements = defined(PREVIEW.nodes.get(DIRECTORY)).requirements;
     const without = await mount(granted(), createElement(RequirementHint, { requirements }));
-    expect(without.container.textContent).toBe('Needs a link to the facility network (provisioned access or a mapped network card)');
+    expect(without.container.textContent).toBe('Requires: a link to the facility network (provisioned access or a mapped network card)');
     const held = await mount(networked(), createElement(RequirementHint, { requirements }));
     expect(held.container.textContent).toBe('');
+  });
+});
+
+describe('requirement copy (#376)', () => {
+  it('labels a requirement "Requires:" and leaves a blocker in its own words', async () => {
+    const state = granted();
+    const owned = state.unlockedNodes[0];
+    if (owned === undefined) throw new Error('fixture owns no node');
+    const required = await mount(state, createElement(RequirementHint, { requirements: { nodes: [DIRECTORY] } }));
+    expect(required.container.textContent).toMatch(/^Requires: Map /);
+    const blocked = await mount(state, createElement(RequirementHint, { requirements: { forbidsNodes: [owned] } }));
+    expect(blocked.container.textContent).toMatch(/^No longer possible: you mapped /);
+    expect(blocked.container.textContent).not.toContain('Requires:');
+  });
+});
+
+describe('requirement kinds (#420 panel)', () => {
+  it('classifies every forbidding kind as a blocker, including records and story flags', () => {
+    for (const kind of Object.keys(REQUIREMENT_KIND) as (keyof typeof REQUIREMENT_KIND)[]) {
+      if (kind.startsWith('forbid')) expect(REQUIREMENT_KIND[kind], kind).toBe('blocks');
+    }
+    expect([REQUIREMENT_KIND.forbidsCampaignFacts, REQUIREMENT_KIND.forbidsInheritedFacts, REQUIREMENT_KIND.forbiddenNarrativeFlags])
+      .toEqual(['blocks', 'blocks', 'blocks']);
+    expect(REQUIREMENT_KIND.maxIteration).toBe('blocks');
+    expect(REQUIREMENT_KIND.nodes).toBe('requires');
+  });
+
+  it('leaves a forbidden story flag in its own words, never "Requires:"', async () => {
+    const state = { ...granted(), narrativeFlags: ['probe_flag'] };
+    const view = await mount(state, createElement(RequirementHint, { requirements: { forbiddenNarrativeFlags: ['probe_flag'] } }));
+    expect(view.container.textContent).toBe('Conflicting story condition: blocks this action');
   });
 });

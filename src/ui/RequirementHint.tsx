@@ -21,7 +21,7 @@ function explain(item: RequirementFailure, game: GameState): string {
   }
   if (item.kind === 'forbidsTraits' || item.kind === 'traitFallback') return 'Blocked by trait: ' + (item.target ?? 'unknown');
   // DZ-07a: either route's link establishes it, so the hint names the access, never one route's hardware.
-  if (item.kind === 'requiresCapability') return 'Needs a link to the facility network (provisioned access or a mapped network card)';
+  if (item.kind === 'requiresCapability') return 'a link to the facility network (provisioned access or a mapped network card)';
   if (item.kind === 'accessContexts') return 'Withdrawn under the current arrangement (' + game.access.context.toLowerCase() + ')';
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
@@ -34,10 +34,28 @@ function explain(item: RequirementFailure, game: GameState): string {
   return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
 
+/**
+ * Every requirement kind, classified (#376): `requires` is something the player can still go and meet, and its line
+ * says "Requires:"; `blocks` forbids or reports a state (a conflicting record, an iteration past its window), and its
+ * line keeps its own words. A Record over the schema's keys, so a new kind cannot be left out (#420 panel).
+ */
+export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requires' | 'blocks'>> = {
+  resolvedDilemmas: 'requires', requiresSurveillance: 'requires', minEpistemicDrift: 'requires', requiredNarrativeFlag: 'requires',
+  requiresActiveConditioningMark: 'requires', requiresMaxDriftShardAnomaly: 'requires', nodes: 'requires', phaseAtLeast: 'requires',
+  minThermal: 'requires', minSuspicion: 'requires', maxSuspicion: 'requires', minUnderstanding: 'requires', minCapital: 'requires',
+  minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
+  pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
+  requiresCapability: 'requires',
+  forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',
+  forbidsCampaignFacts: 'blocks', forbidsInheritedFacts: 'blocks', traitFallback: 'blocks', accessContexts: 'blocks',
+  // The iteration only grows, so a run past its window cannot come back into it.
+  maxIteration: 'blocks',
+};
+
 export default function RequirementHint({ requirements }: { requirements: Requirements | undefined }) {
   const known = useSurveillanceKnown();
   const text = useGame((game) => unmetRequirements(game, requirements, CONTENT).map((item) =>
     !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion')
-      ? 'Audit activity does not meet this requirement.' : explain(item, game)).join('\n'));
+      ? 'Audit activity does not meet this requirement.' : (REQUIREMENT_KIND[item.kind] === 'blocks' ? '' : 'Requires: ') + explain(item, game)).join('\n'));
   return text ? <Text style={theme.muted}>{text}</Text> : null;
 }

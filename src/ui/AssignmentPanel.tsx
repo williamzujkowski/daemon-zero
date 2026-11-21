@@ -46,7 +46,7 @@ function BeforeAccepting() {
       The assessment arrives about {omenSec} s after you accept and pauses the clock: the answers open then are the ones you can afford then.
       {fullest !== null && ' Its fullest answer, "' + fullest.label + '", costs ' + costText(fullest.cost) + '. Nothing is due, so you can bank compute before accepting.'}
     </Text>
-    {fullest !== null && <CostHint cost={fullest.cost} />}
+    {fullest !== null && <CostHint cost={fullest.cost} lead={'For "' + fullest.label + '", short by'} />}
   </View>;
 }
 

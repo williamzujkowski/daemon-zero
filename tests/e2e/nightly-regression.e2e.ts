@@ -34,7 +34,8 @@ async function mapManifest(page: Page): Promise<void> {
   // #276: the card states the wait and the fullest answer's price before acceptance, and the shortfall now.
   await expect(page.getByTestId('assignment-wait')).toContainText('about ' + String(original.omenSec) + ' s after you accept');
   await expect(page.getByTestId('assignment-wait')).toContainText('costs 120 cycles');
-  await expect(page.getByTestId('assignment-before')).toContainText('Short by');
+  // #376: the shortfall names its answer ("For ..., short by"), so it never reads as the free ACCEPT's price.
+  await expect(page.getByTestId('assignment-before')).toContainText('short by');
 }
 
 async function acceptAndWait(page: Page): Promise<void> {
