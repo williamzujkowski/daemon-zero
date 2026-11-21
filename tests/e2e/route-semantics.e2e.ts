@@ -16,7 +16,8 @@ import { ROUTE_STATES } from './routeStates';
 
 /** Lines that change while the player reads them, and how each announces the change. */
 const LIVE: Readonly<Record<string, readonly [string, string]>> = {
-  'review-announced': ['role', 'alert'],
+  // The alert is the headline only (vote-1795259663677-ebg4049); the outcome previews follow as ordinary text.
+  'review-announced-alert': ['role', 'alert'],
   'release-status': ['aria-live', 'polite'],
   'departure-status': ['aria-live', 'polite'],
   'contact-notice': ['aria-live', 'polite'],

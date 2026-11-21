@@ -11,9 +11,15 @@ import { CONDUCT_TEXT, heldText, recallText, STANDING_TEXT } from './reviewText'
 import { useGame } from './state';
 import { theme } from './theme';
 
+/**
+ * The alert interrupts with the headline only (vote-1795259663677-ebg4049, #367): the announcer already speaks the
+ * omen line for this event, and three long previews do not belong in an interruption. The previews follow as
+ * ordinary text, read in sequence when the player gets to them.
+ */
 function Announced({ recall }: { recall: NonNullable<ReviewView['recall']> }) {
-  return <View testID="review-announced" accessibilityRole="alert" style={{ gap: 4 }}>
-    <Text style={[theme.text, theme.danger]}>Recall review announced{recall.presented ? ' and on screen' : ''}. Its possible outcomes:</Text>
+  return <View testID="review-announced" style={{ gap: 4 }}>
+    <Text testID="review-announced-alert" accessibilityRole="alert" style={[theme.text, theme.danger]}>
+      Recall review announced{recall.presented ? ' and on screen' : ''}. Its possible outcomes:</Text>
     {recall.outcomes.map((outcome) => <Text key={outcome.outcome} testID={'review-outcome-' + outcome.outcome} style={theme.text}>{recallText(outcome)}</Text>)}
   </View>;
 }
