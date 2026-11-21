@@ -36,6 +36,11 @@ describe('amounts', () => {
     expect(spokenAmount(4321)).toBe('4,321');
   });
 
+  it('leaves a non-finite value as itself rather than "NaNK" (#406 panel note)', () => {
+    expect(compactAmount(Number.NaN)).toBe('NaN');
+    expect(spokenAmount(Number.POSITIVE_INFINITY)).toBe('Infinity');
+  });
+
   it('groups digits losslessly', () => {
     expect(groupDigits(1_000_000)).toBe('1,000,000');
     expect(groupDigits(-1234)).toBe('-1,234');

@@ -52,7 +52,7 @@ function Contact({ view }: { view: Pending }) {
     <Pressable testID="channel-refer" accessibilityRole="button" accessibilityLabel={'Refer onward: the ' + view.title + ', free'}
       disabled={!view.referEligible} style={[theme.button, !view.referEligible && theme.disabled]}
       onPress={() => { answer('REFER', view.token); }}><Text style={theme.text}>[ REFER ONWARD ]</Text></Pressable>
-    <Text style={theme.heading}>HOST // {view.memoryNeededMb} MB</Text>
+    <Text style={theme.heading}>HOST // {memoryExact(view.memoryNeededMb)}</Text>
     <Text testID="channel-hosting" style={theme.text}>{view.hosting}</Text>
     {view.hostUnmet.length > 0 && <Text testID="channel-host-unmet" style={[theme.muted, theme.danger]}>{view.hostUnmet.join('\n')}</Text>}
     <Pressable testID="channel-host" accessibilityRole="button"

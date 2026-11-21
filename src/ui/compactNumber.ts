@@ -1,6 +1,5 @@
 /** Narrow-screen readouts abbreviate large numbers; accessible labels retain exact values. */
-import { compactAmount, groupDigits } from '../engine';
-const SCALES = [[1e18, 'E'], [1e15, 'P'], [1e12, 'T'], [1e9, 'B'], [1e6, 'M'], [1e3, 'K']] as const;
+import { AMOUNT_SCALES, compactAmount, groupDigits } from '../engine';
 
 /**
  * A live amount: three significant digits with K/M/B (vote-1795228570236-gzx0uif, via the engine's compactAmount);
@@ -14,7 +13,7 @@ export function compactNumber(value: number, decimals = 0): string {
 export function exactCompactNumber(value: number): string {
   // Grouped, not bare: a price that cannot abbreviate exactly read "1978135949" on a phone (#404).
   const full = groupDigits(value);
-  for (const [scale, suffix] of SCALES) {
+  for (const [scale, suffix] of AMOUNT_SCALES) {
     if (Math.abs(value) < scale) continue;
     const decimal = String(Number((value / scale).toFixed(3)));
     const short = decimal + suffix;

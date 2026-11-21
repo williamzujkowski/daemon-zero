@@ -73,7 +73,7 @@ function Submit() {
     accessibilityLabel={'Submit batch for review +' + amountFigure(reward) + ' cycles, earned on submission'}
     disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
     onPress={() => { gameRuntime.dispatch((game) => submitPilotBatch(game, CONTENT, token)); }}>
-    <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{reward} cycles</Text>
+    <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{amountFigure(reward)} cycles</Text>
   </Pressable>;
 }
 
