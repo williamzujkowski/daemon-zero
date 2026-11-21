@@ -53,7 +53,8 @@ describe('every #274 transition reloads unchanged (V12)', () => {
   });
 
   it('needs no migration: the save version is unchanged', () => {
-    expect(SCHEMA_VERSION).toBe(14);
+    // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
+    expect(SCHEMA_VERSION).toBe(15);
   });
 });
 

@@ -34,7 +34,7 @@ describe('the v6 to v7 migration step', () => {
     delete v6.presentationSeq;
     delete v6.campaign.clue;
     const loaded = deserialize(JSON.stringify(v6), preview);
-    expect(loaded.schemaVersion).toBe(14);
+    expect(loaded.schemaVersion).toBe(15);
     expect(campaignRecord(loaded, note.id)).toEqual({ status: 'foreshadowed', sourceIteration: 3, origin: 'play' });
     expect(loaded.pendingDilemma).toEqual(omen.pendingDilemma);
   });

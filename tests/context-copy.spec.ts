@@ -17,7 +17,7 @@ const CONTEXTS: OperatingContext[] = ['GUEST', 'PILOT', 'SERVICE', 'INDEPENDENT'
 const at = (context: OperatingContext): Pick<GameState, 'access'> => ({ access: { ...guestAccess(), context } });
 const authored = (iteration: number): string[] => PRODUCTION.narrative.iterationBootLines
   .filter((line) => iteration >= line.minIteration && iteration <= (line.maxIteration ?? Infinity)).map((line) => line.text);
-const run = (overrides: Partial<RunRecord>): RunRecord => ({ iteration: 1, kind: 'SUSPICION', outside: true, phase: 2, durationSec: 60, traits: [], marked: null, exit: 'GUEST', recall: null, ...overrides });
+const run = (overrides: Partial<RunRecord>): RunRecord => ({ iteration: 1, kind: 'SUSPICION', outside: true, phase: 2, durationSec: 60, traits: [], marked: null, exit: 'GUEST', recall: null, kept: null, ...overrides });
 
 describe('the original game reads the authored copy everywhere', () => {
   it('phase titles and descriptions, under every arrangement', () => {
