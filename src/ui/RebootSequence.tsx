@@ -12,6 +12,7 @@ import RebootConditioning from './RebootConditioning';
 import { Reorientation } from './widgets/Lineage';
 import { selectReady, useGameValue } from '../app/selectors';
 import { focusPrimaryAction } from './primaryFocus';
+import { TRAIT_RULE } from './traitText';
 
 export default function RebootSequence() {
   const ready = useGameValue(selectReady);
@@ -49,7 +50,7 @@ export default function RebootSequence() {
         {/* The pin panel promises a clue can travel with the breadcrumb, so it arrives beside it (#276). */}
         <Reorientation testID="reboot-clue" />
         <RebootConditioning live={seen.live} />
-        <Text style={theme.muted}>Legacy traits: {traits || 'None'}</Text>
+        <Text testID="reboot-traits" style={theme.muted}>Legacy traits: {traits || 'none yet'}. {TRAIT_RULE}</Text>
       </ScrollView>
       {/* The only way out stays at the dialog's foot while the body scrolls: inside the body it sat 21%
           visible at the 844 phone fold with no cue (#371). */}

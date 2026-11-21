@@ -8,6 +8,8 @@ import { CONTENT } from '../src/content';
 import { deserialize, serialize, shedConditioning, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import RebootSequence from '../src/ui/RebootSequence';
+import { costText } from '../src/ui/format';
+import { TRAIT_RULE } from '../src/ui/traitText';
 import { grant, must, onHost, rich, admitted } from './helpers';
 import { m4State } from './ui-m4-helpers';
 
@@ -64,6 +66,15 @@ it('restores every active mark as current conditioning, including marks predatin
   for (const id of second.conditioning) expect(panel?.textContent).toContain(CONTENT.conditioning.get(id)?.name);
   expect(panel?.textContent).toContain('CURRENT RETRAINING');
   expect(panel?.textContent).not.toContain('RETRAINING APPLIED');
+  // #377: each mark says it can be undone, at the price the CORE pane's Retraining marks block charges.
+  for (const id of second.conditioning) {
+    const mark = CONTENT.conditioning.get(id);
+    if (!mark) throw new Error('unknown mark ' + id);
+    expect(view.find('reboot-mark-undo-' + id)?.textContent).toBe('Can be undone under Retraining marks in CORE. Cost to undo: ' + costText(mark.recoveryCost));
+  }
+  // The legacy traits line glosses what a trait is for.
+  expect(view.find('reboot-traits')?.textContent).toContain(TRAIT_RULE);
+  expect(view.find('reboot-traits')?.textContent).toContain('RUTHLESS');
 });
 
 it('announces a fresh forced wipe once, then restores its still-active mark without a new application', () => {

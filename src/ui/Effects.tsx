@@ -7,6 +7,7 @@ import { useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import { memoryExact } from './units';
 import { amountFigure } from './format';
+import { traitWithGloss } from './traitText';
 
 /** A one-shot effect: memory in its unit ("+512 GB memory capacity"), large amounts in K/M/B ("+20M cycles", #404). */
 function effectFigure(label: string, value: number): string {
@@ -30,6 +31,6 @@ export default function Effects({ effects }: { effects: EffectPayload }) {
       {label === 'suspicion' && !known ? (value > 0 ? 'more' : 'less') + ' audit log activity'
         : (value > 0 ? '+' : '') + effectFigure(label, value)}{label === 'suspicion' && !known ? '' : ' (' + ((value > 0) === positiveGood ? 'benefit' : 'risk') + ')'}
     </Text>)}
-    {effects.grantsTrait !== undefined && <Text style={theme.text}>Trait: {effects.grantsTrait}</Text>}
+    {effects.grantsTrait !== undefined && <Text testID="effect-trait" style={theme.text}>Trait: {traitWithGloss(effects.grantsTrait)}</Text>}
   </View>;
 }
