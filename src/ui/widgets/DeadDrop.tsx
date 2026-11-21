@@ -33,6 +33,7 @@ export default function DeadDrop() {
   const saved = useGame((game) => game.deadDropMessage);
   const retention = useGame((game) => Math.round(game.retentionRatio * 100));
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
+  const iteration = useGame((game) => game.iteration);
   const [draft, setDraft] = useState<string | null>(null);
   const value = draft ?? saved;
   const limit = CONTENT.balance.deadDropMaxChars;
@@ -48,7 +49,8 @@ export default function DeadDrop() {
         if (result.ok) setDraft(null);
       }}><Text style={theme.text}>[ SAVE BREADCRUMB ]</Text></Pressable>
     <Text testID="deaddrop-saved" style={theme.muted}>Stored: {saved || 'Empty'}</Text>
-    <CluePin />
+    {/* A reboot is an ordinary dispatch, not a remount (#411 panel), so the key starts each iteration's list folded. */}
+    <CluePin key={iteration} />
     <WipeButton />
   </>;
 }

@@ -14,7 +14,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import { campaignRecord, pinClue, type GameState } from '../src/engine';
+import { campaignRecord, pinClue, voluntaryWipe, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import { labelMismatches } from './labelInName';
@@ -77,6 +77,21 @@ describe('the clue pin beside the breadcrumb', () => {
     view.click('clue-clear');
     expect(game().campaign.clue).toBeNull();
     expect(view.find('clue-clear')).toBeNull();
+  });
+
+  it('starts each iteration folded: a reboot is not a remount (#411 panel)', async () => {
+    const view = await mount(withDeadDrop(noteOmen()), createElement(DeadDrop));
+    // A pinned clue travels with the breadcrumb, so the widget and its control are still there after the wipe.
+    view.click('clue-choose');
+    view.click('clue-pin-' + note.id);
+    view.click('clue-choose');
+    expect(view.find('clue-choose')?.getAttribute('aria-expanded')).toBe('true');
+    const before = game().iteration;
+    act(() => { gameRuntime.dispatch((g) => voluntaryWipe(g, preview)); });
+    expect(game().iteration).toBe(before + 1);
+    expect(game().campaign.clue?.event).toBe(note.id);
+    expect(view.find('clue-choose')?.getAttribute('aria-expanded')).toBe('false');
+    expect(view.container.querySelectorAll('[data-testid^="clue-pin-"]')).toHaveLength(0);
   });
 
   it('renders nothing before this instance has seen any record', async () => {
