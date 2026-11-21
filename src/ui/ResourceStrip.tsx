@@ -14,6 +14,8 @@ import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { compactNumber } from './compactNumber';
 import { groupDigits } from './format';
+import { memoryPair } from './units';
+import { spokenAmount } from '../engine';
 
 type Resource = keyof typeof resourceWidgets;
 /** Phone-width labels. The vote asked for the chrome's state on one compact line; at
@@ -33,16 +35,19 @@ function Amount({ resource, compact, packed, short }: { resource: Resource; comp
   // the precise value used to print ungrouped (1000000000), which scanned as a wall
   // of digits; the accessible label and the engine still carry the exact number.
   const shown = Math.abs(amount) >= 10000 ? compactNumber(amount) : groupDigits(amount);
-  const rateShown = paused ? 'paused' : (rate >= 0 ? '+' : '') + (compact ? compactNumber(rate, short ? 1 : 2) : rate.toFixed(2)) + '/s';
+  // Desktop printed the raw rate ("+1262415.37/s", #404); every width now abbreviates a large one.
+  const rateShown = paused ? 'paused' : (rate >= 0 ? '+' : '') + compactNumber(rate, compact && short ? 1 : 2) + '/s';
   // Memory is the one readout that can be the thing stopping the player: mark it when
   // nothing pending would fit, in colour AND in words, so the signal is not colour-only.
   const blocked = useGame((game) => resource === 'memory' && memoryBlocked(game));
-  const full = groupDigits(amount) + (resource === 'memory' ? ' / ' + groupDigits(cap) + ' MB'
-    : paused ? ' (paused: brownout)' : ' (' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '/s)');
+  // Spoken in words at its displayed size (vote-1795228570236-gzx0uif): "1.25 billion, gaining 1.26 million per second".
+  const pair = memoryPair(amount, cap);
+  const spokenRate = Math.abs(rate) < 10000 ? Math.abs(rate).toFixed(2) : spokenAmount(Math.abs(rate));
+  const full = resource === 'memory' ? pair.spoken
+    : spokenAmount(amount) + (paused ? ' (paused: brownout)' : ', ' + (rate >= 0 ? 'gaining ' : 'losing ') + spokenRate + ' per second');
   // Phone width: the value and the signed rate with its unit stay, the parentheses go. The unit was
   // dropped to save two characters, and a bare +4.1 read as a quantity rather than a rate (#370).
-  const display = resource === 'memory' ? shown + ' / ' + (Math.abs(cap) >= 10000 ? compactNumber(cap) : groupDigits(cap)) + ' MB'
-    : short ? shown + ' ' + rateShown : shown + ' (' + rateShown + ')';
+  const display = resource === 'memory' ? pair.shown : short ? shown + ' ' + rateShown : shown + ' (' + rateShown + ')';
   return (
     <View style={[styles.readout, compact && styles.compact, short && styles.short, packed && styles.packed]}>
       <Text style={theme.muted}>{short ? SHORT[resource] ?? resource.toUpperCase() : resource.toUpperCase()}</Text>

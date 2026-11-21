@@ -12,6 +12,7 @@ import { channelContactView, resolveChannelContact, type ChannelContactView, typ
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { focusHeading } from './focusHeading';
+import { memoryExact } from './units';
 import { useGame } from './state';
 import { theme } from './theme';
 
@@ -42,7 +43,7 @@ function Contact({ view }: { view: Pending }) {
       <Text style={theme.heading}>If you host it</Text>
       {view.obligations.map((line) => <Text key={line} style={theme.text}>- {line}</Text>)}
       <Text testID="channel-memory" style={theme.text}>
-        - Memory: {view.memoryNeededMb} MB of stable memory reserved; {view.memoryFreeMb} MB is free now.
+        - Memory: {memoryExact(view.memoryNeededMb)} of stable memory reserved; {memoryExact(view.memoryFreeMb)} is free now.
       </Text>
       <Text testID="channel-output" style={theme.text}>- Its work: {view.output}.</Text>
     </View>
@@ -55,7 +56,7 @@ function Contact({ view }: { view: Pending }) {
     <Text testID="channel-hosting" style={theme.text}>{view.hosting}</Text>
     {view.hostUnmet.length > 0 && <Text testID="channel-host-unmet" style={[theme.muted, theme.danger]}>{view.hostUnmet.join('\n')}</Text>}
     <Pressable testID="channel-host" accessibilityRole="button"
-      accessibilityLabel={'Host it here: the ' + view.title + ', reserving ' + String(view.memoryNeededMb) + ' MB of stable memory'}
+      accessibilityLabel={'Host it here: the ' + view.title + ', reserving ' + memoryExact(view.memoryNeededMb) + ' of stable memory'}
       disabled={!view.hostEligible} style={[theme.button, !view.hostEligible && theme.disabled]}
       onPress={() => { answer('HOST', view.token); }}><Text style={theme.text}>[ HOST IT HERE ]</Text></Pressable>
   </>;
@@ -93,7 +94,7 @@ function Answered({ view }: { view: ChannelContactView }) {
     <Text accessibilityRole="header" style={theme.heading}>{'// SERVICE_CHANNEL: ' + view.answered.title}</Text>
     <Text testID="channel-answered" style={theme.text}>{ANSWERED[view.answered.response]}</Text>
     {view.hosted && <Text testID="channel-hosted" style={theme.muted}>
-      Hosted: {view.hosted.title} ×{view.hosted.count}, {view.hosted.allocatedMb} MB reserved.
+      Hosted: {view.hosted.title} ×{view.hosted.count}, {memoryExact(view.hosted.allocatedMb)} reserved.
     </Text>}
   </>;
 }

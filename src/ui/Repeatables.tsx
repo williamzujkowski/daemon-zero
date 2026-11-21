@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { Repeatable } from '../content/schema';
 import { buyRepeatable, dismissRepeatable, meetsRequirements, repeatableCost, repeatableLevel } from '../engine';
+import { memoryExact } from './units';
 import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
 import PurchaseButton from './PurchaseButton';
@@ -28,7 +29,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
     <CardDetails id={'rep-' + rep.id} title={rep.name} description={rep.description} />
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
     <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
-      {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${String(rep.perLevelEffects.memoryCapIncrease)} MB capacity` : ''}</Text>
+      {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${memoryExact(rep.perLevelEffects.memoryCapIncrease)} capacity` : ''}</Text>
     {rep.perLevel.megawattsDelta < 0 && <Text style={theme.muted}>
       Compute output is throttled during a power shortfall.</Text>}
     {rep.perLevelEffects.revenueMultiplierBonus > 0 && <Text style={theme.muted}>

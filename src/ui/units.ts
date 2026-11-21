@@ -1,0 +1,37 @@
+/**
+ * Memory in the unit its size reads best in (vote-1795228570236-gzx0uif): binary, 1 GB = 1024 MB, switching at
+ * 1024. Content authors memory in powers of two, so 524288 MB reads as exactly 512 GB. Display only: the engine keeps
+ * megabytes. Prices and capacities change unit only when the figure stays exact (the #89 rule for prices); readouts
+ * use three significant digits.
+ */
+import { groupDigits, significant3 } from '../engine';
+
+const UNITS = [[1024 * 1024, 'TB', 'terabytes'], [1024, 'GB', 'gigabytes']] as const;
+
+/** An exact figure for a price or a capacity: "512 GB", "1.5 GB", "6,608 MB" (not exact in GB, so megabytes). */
+export function memoryExact(mb: number): string {
+  for (const [size, unit] of UNITS) {
+    if (Math.abs(mb) < size) continue;
+    const figure = significant3(mb / size);
+    if (Number(figure) * size === mb) return figure + ' ' + unit;
+  }
+  return groupDigits(mb) + ' MB';
+}
+
+/** The unit a readout of this size uses: the largest whose figure is at least 1. */
+function unitFor(mb: number): readonly [number, string, string] {
+  return UNITS.find(([size]) => Math.abs(mb) >= size) ?? [1, 'MB', 'megabytes'];
+}
+
+/** A live readout, three significant digits: "452 GB", "6.45 GB", "440 MB". */
+export function memoryReadout(mb: number): string {
+  const [size, unit] = unitFor(mb);
+  return (size === 1 ? groupDigits(Math.round(mb)) : significant3(mb / size)) + ' ' + unit;
+}
+
+/** Used of capacity in the capacity's unit, so the two compare at a glance: "6.45 / 452 GB". */
+export function memoryPair(used: number, cap: number): { shown: string; spoken: string } {
+  const [size, unit, word] = unitFor(cap);
+  const figure = (mb: number) => size === 1 ? groupDigits(Math.round(mb)) : significant3(mb / size);
+  return { shown: figure(used) + ' / ' + figure(cap) + ' ' + unit, spoken: figure(used) + ' of ' + figure(cap) + ' ' + word };
+}

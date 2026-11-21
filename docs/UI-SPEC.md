@@ -399,10 +399,15 @@ Forecast and budgets sit below the HUD above every workspace; sensor controls pr
 widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
-On phones, large resource balances/rates use K/M/B/T abbreviations in a two-column
-strip; accessible labels retain full numeric values. Mobile node costs and missing amounts use lossless K/M/B/T abbreviations only; memory remains labelled MB. Small rates retain their
-decimal precision, and warnings remain explicit. Desktop readouts remain full.
-This prevents late-game numbers from turning the status strip into five tall rows.
+Numbers follow one scheme on every surface (vote-1795228570236-gzx0uif; the formatter is `src/engine/amount.ts`,
+memory units `src/ui/units.ts`). Live amounts and rates at 10,000 and above use K/M/B/T/P with three significant
+digits and no trailing ".0" (`1.25B`, `45.5K`, `+405K/s`); smaller amounts are grouped in full and small rates keep
+their decimals. Memory is binary: MB below 1024 MB, then GB and TB, three significant digits, with used/capacity in
+the capacity's unit (`MEM 6.7 / 458 GB`). Prices and capacities stay lossless: a cost abbreviates, or changes memory
+unit, only when the figure stays exact (`16384 MB` is `16 GB`; `6608 MB` stays `6,608 MB`), and a price that cannot
+abbreviate exactly is grouped in full, never bare. Capital carries `$`. Accessible names of live readouts speak the
+displayed size in words ("1.25 billion, gaining 1.26 million per second"); prices keep exact figures. The boot log's
+numbers are formatted by the engine, since they are stored in saved log text. Warnings remain explicit.
 
 Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
 knowledge and cheaper remapping. No retention percentage, recovery price or
