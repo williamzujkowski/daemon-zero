@@ -241,10 +241,10 @@ Never encode state by colour alone: meters show numbers, warnings have text.
   Headings outside a widget keep the level they had. Semantics only: no style changes.
 - Respect reduced-motion (no scramble, no blinking) and font scaling.
 - Touch targets at least 44 pt.
-- Auto-updating readouts (WCAG 2.2 SC 2.2.2 Pause, Stop, Hide): the ticking counters are not
-  claimed as essential. The decision (`vote-1795140352659-zhp6hsv`, `docs/UI-REVIEW.md`) is a
-  persisted pause in MENU that also suspends wall-clock catch-up while paused. It is not built
-  yet (#347), so this is a known gap, not a met criterion.
+- Auto-updating readouts (WCAG 2.2 SC 2.2.2 Pause, Stop, Hide): met by a persisted pause (#347). The game
+  menu's [ PAUSE ] stops all time, live, in the background and across a reload, until [ RESUME ]; the header
+  says PAUSED beside the clock. The flag lives in the save envelope beside `savedAtMs`, not in `GameState`
+  (vote-1795214789307-78d7g5s), so exported save codes do not carry it.
 - Palette contrast is asserted, not maintained by eye: body text at or above 4.5:1
   and every non-text token (border, accent, warning, danger) at or above 3:1, on
   `background`, `surface` and `raised`, for the current palette and every phase

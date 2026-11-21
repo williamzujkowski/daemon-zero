@@ -16,8 +16,30 @@ describe('app save envelopes', () => {
     expect((await saves.load()).savedAtMs).toBeNull();
     const game = must(manualCycle(createInitialState(CONTENT), CONTENT));
     await saves.save(game, 123456);
-    expect(await saves.load()).toEqual({ game, savedAtMs: 123456, notice: null });
+    expect(await saves.load()).toEqual({ game, savedAtMs: 123456, paused: false, notice: null });
     expect(game).not.toHaveProperty('savedAtMs');
+  });
+
+  it('keeps the player\'s pause in the envelope, not in GameState (#347)', async () => {
+    const storage = memoryStorage();
+    const saves = createPersistence(storage);
+    const game = must(manualCycle(createInitialState(CONTENT), CONTENT));
+    await saves.save(game, 99, true);
+    expect(await saves.load()).toEqual({ game, savedAtMs: 99, paused: true, notice: null });
+    expect(game).not.toHaveProperty('paused');
+    expect(JSON.parse(storage.getItem(SAVE_KEY) ?? '{}')).toMatchObject({ version: 2, savedAtMs: 99, paused: true });
+  });
+
+  it('reads a version 1 envelope as not paused, and rejects a version 2 envelope without its flag', async () => {
+    const storage = memoryStorage();
+    const game = createInitialState(CONTENT);
+    storage.setItem(SAVE_KEY, JSON.stringify({ version: 1, savedAtMs: 5, game: serialize(game) }));
+    expect(await createPersistence(storage).load()).toEqual({ game, savedAtMs: 5, paused: false, notice: null });
+    for (const bad of [{ version: 2, savedAtMs: 5, game: serialize(game) }, { version: 2, savedAtMs: 5, paused: 'yes', game: serialize(game) },
+      { version: 1, savedAtMs: 5, paused: true, game: serialize(game) }]) {
+      storage.setItem(SAVE_KEY, JSON.stringify(bad));
+      expect((await createPersistence(storage).load()).notice).toContain('damaged');
+    }
   });
 
   it.each([

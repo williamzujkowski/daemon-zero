@@ -11,11 +11,14 @@ import { createSaveQueue } from './saveQueue';
 export const SAVE_KEY = 'daemon-zero.save.v1';
 export const BACKUP_KEY = 'daemon-zero.save.corrupt-backup';
 const MAX_ENVELOPE_CHARS = 2_100_000;
-const SnapshotSchema = z.strictObject({
-  version: z.literal(1),
-  savedAtMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  game: z.string().max(1_000_000),
-});
+const SAVED_AT = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const GAME = z.string().max(1_000_000);
+// Version 2 adds the persisted pause (vote-1795214789307-78d7g5s, #347): it qualifies savedAtMs, saying whether the
+// gap since that moment counts as elapsed time. A version 1 envelope reads as not paused.
+const SnapshotSchema = z.union([
+  z.strictObject({ version: z.literal(2), savedAtMs: SAVED_AT, paused: z.boolean(), game: GAME }),
+  z.strictObject({ version: z.literal(1), savedAtMs: SAVED_AT, game: GAME }).transform((v1) => ({ ...v1, version: 2 as const, paused: false })),
+]);
 
 export interface KeyValueStorage {
   getItem(key: string): string | null | Promise<string | null>;
@@ -25,6 +28,8 @@ export interface KeyValueStorage {
 export interface LoadedSave {
   game: GameState;
   savedAtMs: number | null;
+  /** The player paused before this save: no wall-clock catch-up on load. */
+  paused: boolean;
   notice: string | null;
 }
 
@@ -43,6 +48,7 @@ function decode(text: string, content: ContentRegistry): LoadedSave {
   return {
     game,
     savedAtMs: snapshot.data.savedAtMs,
+    paused: snapshot.data.paused,
     notice: null,
   };
 }
@@ -60,17 +66,17 @@ export function createPersistence(adapter: KeyValueStorage, content: ContentRegi
   return {
     async load(): Promise<LoadedSave> {
       const raw = await adapter.getItem(SAVE_KEY);
-      if (raw === null) return { game: createInitialState(content), savedAtMs: null, notice: null };
+      if (raw === null) return { game: createInitialState(content), savedAtMs: null, paused: false, notice: null };
       try { return decode(raw, content); }
       catch (error) {
         if (!(error instanceof SaveError)) throw error;
         // A failed backup must stop loading, rather than overwrite the only recoverable copy.
         await adapter.setItem(BACKUP_KEY, raw);
-        return { game: createInitialState(content), savedAtMs: null, notice: refusalNotice(error) };
+        return { game: createInitialState(content), savedAtMs: null, paused: false, notice: refusalNotice(error) };
       }
     },
-    save(game: GameState, savedAtMs: number): Promise<void> {
-      return write(JSON.stringify({ version: 1, savedAtMs, game: serialize(game) }));
+    save(game: GameState, savedAtMs: number, paused = false): Promise<void> {
+      return write(JSON.stringify({ version: 2, savedAtMs, paused, game: serialize(game) }));
     },
   };
 }

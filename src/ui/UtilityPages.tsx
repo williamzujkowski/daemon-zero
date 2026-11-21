@@ -6,6 +6,8 @@ import { version } from '../../package.json';
 import { Pressable, Text, View } from './PhaseTheme';
 import { palette, theme } from './theme';
 import type { UtilityMenu } from './useUtilityMenu';
+import { gameRuntime } from '../app/session';
+import { useGameValue } from '../app/selectors';
 
 export function MenuButton({ id, label, press, danger = false, caption = label }: {
   id: string; label: string; press: () => void; danger?: boolean; caption?: string;
@@ -14,8 +16,17 @@ export function MenuButton({ id, label, press, danger = false, caption = label }
     style={[theme.button, { maxWidth: '100%', flexShrink: 1 }]} onPress={press}><Text style={[theme.text, danger && theme.danger]}>[ {caption.toUpperCase()} ]</Text></Pressable>;
 }
 
+/** WCAG 2.2.2 (#347): one control stops all time, here and while away, until the player lifts it. */
+function PauseButton() {
+  const paused = useGameValue((state) => state.paused);
+  return <MenuButton id="menu-pause" caption={paused ? 'Resume' : 'Pause'}
+    label={paused ? 'Resume: time runs again' : 'Pause: stop time, here and while away'}
+    press={() => { gameRuntime.setPaused(!paused); }} />;
+}
+
 function RootPage({ menu }: { menu: UtilityMenu }) {
   return <View testID="menu-root" style={{ gap: 14 }}>
+    <PauseButton />
     {/* The accessible name starts with the visible word so voice control can say what it sees (WCAG 2.5.3, #366). */}
     <MenuButton id="save-open" label="Saves: code transfer" caption="Saves" press={() => { menu.navigate('save'); }} />
     <MenuButton id="menu-audio" label="Audio" press={() => { menu.navigate('audio'); }} />
