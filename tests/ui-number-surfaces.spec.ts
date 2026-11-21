@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
 import { cycleContributions, importSave, type RecallPreview } from '../src/engine';
+import { formatCost, formatOutput } from '../src/engine/queryPresentation';
+import { forkView } from '../src/engine/swarmQuery';
 import { deficitText } from '../src/ui/CycleDeficit';
 import { heldText, recallText } from '../src/ui/reviewText';
 import { shortfallText } from '../src/ui/remedyText';
@@ -39,5 +41,23 @@ describe('late-game sizes on every surface', () => {
   it('groups a large power shortfall and keeps a small one to a decimal', () => {
     expect(shortfallText(1000, 13345.6)).toContain('12,346 MW short');
     expect(shortfallText(10, 12.5)).toContain('2.5 MW short');
+  });
+
+  it('prices engine-built cards exactly, grouped, with memory in its exact unit (#406 panel pass 4)', () => {
+    // The swarm fork card read "Cost: 45000 cycles · 3000 understanding · 256 MB".
+    expect(formatCost({ cycles: 45000, understanding: 3000, memory: 256, capital: 0 })).toBe('45,000 cycles · 3,000 understanding · 256 MB');
+    expect(formatCost({ cycles: 15000001, understanding: 0, memory: 16384, capital: 0 })).toBe('15,000,001 cycles · 16 GB');
+    expect(formatOutput({ cyclesPerSec: 350000, understandingPerSec: 0.5, thermalPerSec: 0, suspicionPerSec: 0, capitalPerSec: 0, megawattsDelta: 0 }, 0))
+      .toBe('+350K cycles/s · +0.5 understanding/s');
+  });
+
+  it('shows every authored fork price grouped on the card', () => {
+    const late = importSave(defined(makeFixtures()['transcendence-ready']), CONTENT);
+    const priced = CONTENT.swarm.playerSwarmTemplates.filter((template) => template.cost.cycles >= 10000);
+    expect(priced.length).toBeGreaterThan(0);
+    for (const template of priced) {
+      const label = forkView(late, template, CONTENT).costLabel;
+      expect(label, template.id).not.toMatch(/\d{4,}/);
+    }
   });
 });

@@ -7,26 +7,10 @@
  */
 import { groupDigits, significant3 } from '../engine';
 
+// The exact form lives in the engine, which also builds price text (swarm and epistemic cards, #406 panel pass 4).
+export { memoryExact } from '../engine';
+
 const UNITS = [[1024 * 1024, 'TB', 'terabytes'], [1024, 'GB', 'gigabytes']] as const;
-
-/** Decimals an exact figure may carry before the next smaller unit reads better: 353.5 GB, but not 1.15576171875 TB. */
-const EXACT_DECIMALS = 2;
-
-/**
- * An exact figure for what a player buys or is short by: "512 GB", "353.5 GB", "1,183.5 GB" (1,211,904 MB is not a
- * short exact TB figure, so the next unit down), "6,608 MB". The vote: if three digits would round, print enough
- * decimals to be exact.
- */
-export function memoryExact(mb: number): string {
-  for (const [size, unit] of UNITS) {
-    if (Math.abs(mb) < size) continue;
-    const figure = Number((mb / size).toFixed(EXACT_DECIMALS));
-    if (figure * size !== mb) continue;
-    const [whole = '', fraction] = String(Math.abs(figure)).split('.');
-    return (figure < 0 ? '-' : '') + groupDigits(Number(whole)) + (fraction === undefined ? '' : '.' + fraction) + ' ' + unit;
-  }
-  return groupDigits(mb) + ' MB';
-}
 
 /** The unit a readout of this size uses: the largest whose figure is at least 1. */
 function unitFor(mb: number): readonly [number, string, string] {
