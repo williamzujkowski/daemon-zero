@@ -13,9 +13,7 @@ const SCROLL = 'on the phone the HUD, forecast and notices scroll with the cards
 
 export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
   { stage: 't-pilot-accept', viewport: '1440x900', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },
-  { stage: 't-pilot-accept', viewport: '1440x900', item: 'pilot.service-card', rule: 'new-in-view', measured: 'box 371,1863,698,22; visibleRatio 0; fold 900', reason: PILOT, issue: '#361' },
   { stage: 't-pilot-accept', viewport: '390x844', item: 'pilot.service-card', rule: 'new-announced', measured: 'nothing announced', reason: PILOT, issue: '#361' },
-  { stage: 't-pilot-accept', viewport: '390x844', item: 'pilot.service-card', rule: 'new-in-view', measured: 'box 31,2795,328,22; visibleRatio 0; fold 844', reason: PILOT, issue: '#361' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.cycles', rule: 'timely-kept', measured: 'box 42,-455,67,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.forecast', rule: 'timely-kept', measured: 'box 16,-370,358,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.memory', rule: 'timely-kept', measured: 'box 42,-429,101,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },

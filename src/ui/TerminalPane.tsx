@@ -2,13 +2,6 @@ import { Text, View } from './PhaseTheme';
 /** One scrollable pane renders only the unlocked manifest slots requested by its layout. */
 import { ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
-import AssignmentPanel from './AssignmentPanel';
-import ServiceChannel from './ServiceChannel';
-import ManualCycle from './ManualCycle';
-import OmenNotice from './OmenNotice';
-import NodeList from './NodeList';
-import { Conditioning } from './widgets/Lineage';
-import UpgradeFeed from './UpgradeFeed';
 import { palette } from './theme';
 import { compareWidgetPresentation, guestPinnedWidgets, operationsActionGroups, panelFreeWidgets, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
@@ -21,6 +14,7 @@ import { useWorkspace, WorkspaceHeader } from './Workspace';
 import MindTools from './widgets/MindTools';
 import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
+import CorePane from './CorePane';
 
 /**
  * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
@@ -48,28 +42,14 @@ function BootLog() {
   </View>;
 }
 
-/** Hardware of every phase hosted in the core pane, newest first, available before owned. */
-function CoreTree() {
+/** Every phase hosted in the core pane, newest first, in the order CorePane sets (#385). */
+function CoreTree({ widgetIds, area }: { widgetIds: readonly string[]; area: WorkspaceArea }) {
   const { width, height } = useWindowDimensions();
-  const phone = layoutFor(width, height).mode === 'mobile';
   const current = useGame((game) => game.currentPhase);
-  const iteration = useGame((game) => game.iteration);
   const phases = CONTENT.phases.filter((phase) => phase.uiSlot === 'CORE' && phase.phaseId <= current)
     .map((phase) => phase.phaseId).sort((left, right) => right - left);
-  return <>
-    <ManualCycle />
-    {/* On the phone, below the primary action, never above it: inserted above, its arrival and clearing moved EXECUTE
-        54 px under the player's finger (vote-1795217200867-j2buva4, #362); off CORE the CORE tab marks it (#358).
-        Column tiers keep it in the fixed chrome with a reserved slot instead (vote-1795219347137-c21nx42). */}
-    {phone && <OmenNotice />}
-    <BootLog />
-    <Conditioning key={iteration} />
-    <ServiceChannel />
-    <AssignmentPanel placement="surface" />
-    {phases.map((phase) => <NodeList key={'open-' + String(phase)} phase={phase} />)}
-    <AssignmentPanel placement="offer" />
-    {phases.map((phase) => <UpgradeFeed key={'rep-' + String(phase)} phase={phase} />)}
-  </>;
+  return <CorePane phone={layoutFor(width, height).mode === 'mobile'} phases={phases} widgetIds={widgetIds}
+    renderWidget={(id) => <Widget id={id} area={area} />} bootLog={<BootLog />} />;
 }
 
 export default function TerminalPane({ slots, flow = false }: { slots: string[]; flow?: boolean }) {
@@ -78,11 +58,13 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
   const workspace = useWorkspace(slots, ids);
   const pinned = slots.includes('CORE') && phase === CONTENT.phases[0]?.phaseId
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
+  const shown = ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
+    (!workspace.slot || workspaceWidgetVisible(id, workspace.active))).sort(compareWidgetPresentation);
+  // CORE's own widgets take their place in CorePane's order; other slots sharing the pane follow it.
+  const isCore = (id: string) => CONTENT.widgets.get(id)?.slot === 'CORE';
   const content = <>
-    {slots.includes('CORE') && <CoreTree />}
-    {ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
-      (!workspace.slot || workspaceWidgetVisible(id, workspace.active)))
-      .sort(compareWidgetPresentation).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
+    {slots.includes('CORE') && <CoreTree widgetIds={shown.filter(isCore)} area={workspace.active} />}
+    {shown.filter((id) => !isCore(id)).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}

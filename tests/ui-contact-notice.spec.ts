@@ -24,6 +24,7 @@ import TerminalScreen from '../src/ui/TerminalScreen';
 import { answer, CHANNEL_ENCOUNTER, contactPending, delivered } from './contact-helpers';
 import { must } from './helpers';
 import { labelMismatches } from './labelInName';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -121,7 +122,7 @@ describe('after an answer (#284)', () => {
 
 describe('the pilot status line follows the grant (#284)', () => {
   it('reads "supervised pilot" while piloting and names the service once granted', async () => {
-    const view = await mount(delivered(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(delivered(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-status')?.textContent).toBe('Accepted. This instance runs as a supervised pilot.');
     view.click('service-grant-accept');
     expect(gameStore.store.getState().game.access.context).toBe('SERVICE');

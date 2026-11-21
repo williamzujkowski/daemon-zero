@@ -25,6 +25,7 @@ import { must } from './helpers';
 import { labelMismatches } from './labelInName';
 import { offerPresented, respond, TERMS } from './pilot-helpers';
 import { servedOnce } from './review-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -47,7 +48,7 @@ async function mount(state: GameState, element: ReactElement) {
   return { find };
 }
 
-const surfaces = createElement('div', null, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })), createElement(ServiceChannel), createElement(DilemmaModal));
+const surfaces = createElement('div', null, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })), createElement(ServiceChannel), createElement(DilemmaModal));
 const labelled = () => host.document.body.querySelectorAll('[role="button"][aria-label]').length;
 
 describe('label in name on the Earned Access surfaces (#275)', () => {

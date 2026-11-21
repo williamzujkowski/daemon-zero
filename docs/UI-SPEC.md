@@ -16,6 +16,26 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGENCY`.
 
+### CORE pane order (#385)
+
+The CORE pane is status-first (`vote-1795245515054-vgmv0a9`, 7 of 7, chosen over next-action-first and
+objective-first on the stage atlas). The order lives in `CORE_ORDER` (`src/ui/CorePane.tsx`):
+
+1. EXECUTE, with the boot log under it during the opening. The omen follows on the phone, never above EXECUTE.
+2. What can be non-nominal: the review standing with an announced recall, then retraining marks.
+3. What waits on the player in the route: the service channel, free grant cards (the pilot's loaned allocation),
+   the pilot service, the route's own dials (actuator widgets a grant card unlocks), the service grant, the release
+   and the departure.
+4. The job record, then the purchases (hardware newest phase first, then upgrades), then the assignment offer.
+5. Every other CORE widget, in its presentation order: the history readouts (run table, predecessor notes) and the
+   standing dials. Placed ahead of the purchases they scrolled the skim control out of view on the phone and pushed
+   the first phase 1 purchase below the small-phone fold (`vote-1795246136374-t01m4ug`; docs/UI-SIZES.md).
+
+Settled terms fold to one line with a `[ SHOW ]` control (`SettledFold`): accepted pilot terms, granted service
+terms and agreed release terms. A "what comes next" boundary note opens when it arrives during play, and starts
+folded, with its heading in view, when it is already there at load (`src/ui/arrival.ts`), so a read note never
+fills a later first viewport.
+
 Device safe-area insets pad the terminal root and every modal overlay through `src/ui/safeArea.tsx`; they are 0 on web. Unverified on hardware: see UI-SIZES.md, Limits.
 
 ## Widget registry

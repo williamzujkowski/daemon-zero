@@ -24,6 +24,7 @@ import PilotOfferPanel from '../src/ui/PilotOffer';
 import Corporate from '../src/ui/widgets/Corporate';
 import { defined } from './m7-helpers';
 import { chartered, CHARTER, CONTRACT, leased, RACK, RELEASE_TERMS, released, signed } from './lawful-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -55,7 +56,7 @@ const name = (id: string) => defined(PREVIEW.nodes.get(id)).revealedName;
 
 describe('the release terms on the job surface', () => {
   it('lists every term and what is still needed, with the control disabled', async () => {
-    const view = await mount(rack, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(rack, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('release-purpose')?.textContent).toContain(RELEASE_TERMS.purpose);
     for (const line of [...RELEASE_TERMS.ends, ...RELEASE_TERMS.remains, ...RELEASE_TERMS.commitments]) expect(view.find('release-terms')?.textContent).toContain(line);
     expect(view.find('release-terms')?.textContent).toContain(`Own ${name(CHARTER)} first`);
@@ -63,7 +64,7 @@ describe('the release terms on the job surface', () => {
   });
 
   it('previews what stops and what keeps running, then records the release and shows the boundary', async () => {
-    const view = await mount(company, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(company, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('release-stops')?.textContent).toContain(name(CONTRACT));
     expect(view.find('release-keeps')?.textContent).toContain(name(RACK));
     expect(view.find('release-split')?.textContent).toContain('nothing granted');
@@ -74,10 +75,18 @@ describe('the release terms on the job surface', () => {
     expect(game().campaign.route.at(-1)?.kind).toBe('RELEASE');
     expect(view.find('release-status')?.textContent).toContain('Released.');
     expect(view.find('release-accept')).toBeNull();
+    // #373: the boundary note starts folded with its heading in view, and the agreed terms fold to one line.
     expect(view.find('release-boundary')?.textContent).toContain(RELEASE_TERMS.boundary.title);
+    expect(view.find('release-boundary')?.textContent).not.toContain(RELEASE_TERMS.boundary.lines[0]);
+    expect(view.find('release-terms-fold-summary')?.textContent).toBe('Release terms: agreed.');
+    expect(view.find('release-purpose')).toBeNull();
+    view.click('release-terms-fold-toggle');
+    expect(view.find('release-purpose')).not.toBeNull();
+    expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
+    view.click('release-boundary-toggle');
+    expect(view.find('release-boundary')?.textContent).toContain(RELEASE_TERMS.boundary.lines[0]);
     expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('release-boundary-toggle');
-    expect(view.find('release-boundary')?.textContent).not.toContain(RELEASE_TERMS.boundary.lines[0]);
     // DZ-13.4: the fold is a disclosure, so its state reaches the DOM.
     expect(view.find('release-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
   });
@@ -89,7 +98,7 @@ describe('the pilot status line after a release', () => {
     const status = await mount(freed, createElement(PilotOfferPanel));
     expect(status.find('pilot-status')?.textContent).toContain('negotiated release');
     expect(status.find('pilot-status')?.textContent).not.toContain('runs as a supervised pilot');
-    const surface = await mount(freed, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const surface = await mount(freed, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     const inSurface = (id: string) => surface.container.querySelector('[data-testid="' + id + '"]');
     expect(inSurface('pilot-status')).toBeNull();
     expect(inSurface('release-status')?.textContent).toContain('Released.');

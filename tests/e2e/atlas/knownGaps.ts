@@ -29,16 +29,10 @@ export interface AxeNodes { count: number; targets: readonly string[] }
  */
 export type KnownGap<R extends string = GateRule> = GapBase & (R extends 'axe' ? { rule: R; axeNodes: AxeNodes } : { rule: R });
 
-const STANDING = 'the Review standing panel is fifth in the CORE pane, below the job, pilot, pilot service and service panels (about 1.9k px down at 1440, 3k at 390); nothing in the chrome names it';
-const RECALL = 'the recall announcement is inside that Review standing panel, so it shares its place far below the fold; it is an alert but nothing in the chrome carries it';
+const RECALL = 'status-first (#385) puts the Review standing right under EXECUTE and the omen, but on the phone the recall announcement inside it starts 3 px below the fold, after the violations and the way back; nothing in the chrome carries it';
 
 export const KNOWN_GAPS: readonly KnownGap[] = [
-  { stage: 'route-standing-restricted', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,2897,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
-  { stage: 'route-standing-restricted', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1883,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: '#367' },
-  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.standing', rule: 'timely-fold', measured: 'box 46,3077,298,22; visibleRatio 0; fold 844', reason: STANDING, issue: '#367' },
-  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.standing', rule: 'timely-fold', measured: 'box 386,1968,668,22; visibleRatio 0; fold 900', reason: STANDING, issue: '#367' },
-  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 46,3425,298,584; visibleRatio 0; fold 844', reason: RECALL, issue: '#367' },
-  { stage: 'route-recall-announced', viewport: '1440x900', item: 'route.recall', rule: 'timely-fold', measured: 'box 386,2184,668,254; visibleRatio 0; fold 900', reason: RECALL, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 31,847,328,518; visibleRatio 0; fold 844', reason: RECALL, issue: '#367' },
 ];
 
 const gapKey = (entry: { stage: string; viewport: string; rule: string; item: string }): string =>

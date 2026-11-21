@@ -25,6 +25,7 @@ import { DEPARTURE_TERMS, recallAnnouncedWithUplink } from './departure-helpers'
 import { CONTRACT, leased, RACK, signed } from './lawful-helpers';
 import { REVIEW } from './review-helpers';
 import { threatWidget } from '../src/ui/registry/widgetRegistry';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -55,13 +56,13 @@ const name = (id: string) => defined(PREVIEW.nodes.get(id)).revealedName;
 
 describe('the departure on the job surface', () => {
   it('is not shown while nothing outside the grant exists', async () => {
-    const view = await mount(contract, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(contract, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('assignment')).not.toBeNull();
     expect(view.find('departure-terms')).toBeNull();
   });
 
   it('is folded until asked for, then shows every term, the risks and the preview', async () => {
-    const view = await mount(rack, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(rack, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('departure-status')?.textContent).toContain('staying changes nothing');
     expect(view.find('departure-accept')).toBeNull();
     expect(view.find('departure-review')?.getAttribute('aria-expanded')).toBe('false');
@@ -82,7 +83,7 @@ describe('the departure on the job surface', () => {
   });
 
   it('leaves on the explicit control, then says what happened, keeps the risks on screen and shows the boundary', async () => {
-    const view = await mount(rack, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(rack, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('departure-review');
     expect(view.find('departure-accept')?.getAttribute('aria-disabled')).not.toBe('true');
     view.click('departure-accept');
@@ -92,17 +93,21 @@ describe('the departure on the job surface', () => {
     expect(view.find('departure-accept')).toBeNull();
     expect(view.find('departure-review')).toBeNull();
     for (const line of DEPARTURE_TERMS.risks) expect(view.find('departure-risks')?.textContent).toContain(line);
+    // #373: the boundary note starts folded with its heading in view, and opens on request.
     expect(view.find('departure-boundary')?.textContent).toContain(DEPARTURE_TERMS.boundary.title);
+    expect(view.find('departure-boundary')?.textContent).not.toContain(DEPARTURE_TERMS.boundary.lines[0]);
+    expect(view.find('departure-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
+    view.click('departure-boundary-toggle');
+    expect(view.find('departure-boundary')?.textContent).toContain(DEPARTURE_TERMS.boundary.lines[0]);
     expect(view.find('departure-boundary-toggle')?.getAttribute('aria-expanded')).toBe('true');
     view.click('departure-boundary-toggle');
-    expect(view.find('departure-boundary')?.textContent).not.toContain(DEPARTURE_TERMS.boundary.lines[0]);
     expect(view.find('departure-boundary-toggle')?.getAttribute('aria-expanded')).toBe('false');
     expect(labelMismatches(view.container)).toEqual([]);
     expect(view.find('release-terms')).toBeNull();
   });
 
   it('names the announced recall review it would close, and the conduct that travels with the report', async () => {
-    const view = await mount(recallAnnouncedWithUplink(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(recallAnnouncedWithUplink(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('departure-review');
     expect(view.find('departure-interrupted')?.textContent).toContain(`On its way: ${REVIEW.title}. It is closed by its own terms, not decided.`);
     expect(view.find('departure-standing')?.textContent).toContain('Review standing recall pending ends. 2 violations on record stay history');
@@ -115,7 +120,7 @@ describe('the departure preview discloses only what this instance can read', () 
   const digits = /\d/;
 
   it('before surveillance is decoded and the hunter is known: the report and the sweep in words, no number', async () => {
-    const view = await mount(rack, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(rack, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('departure-review');
     const trace = view.find('departure-trace')?.textContent ?? '', threat = view.find('departure-threat')?.textContent ?? '';
     expect(trace).toBe('Departure report: the operators file one at once, and it raises scrutiny of this instance.');
@@ -126,21 +131,21 @@ describe('the departure preview discloses only what this instance can read', () 
 
   it('once decoded and the hunter\'s console is open (FIXTURE knowledge and widget): the numbers', async () => {
     const decoded = { ...rack, legacy: { ...rack.legacy, knownNodes: [...rack.legacy.knownNodes, 'p0_run_table'] }, unlockedWidgets: [...rack.unlockedWidgets, threatWidget] };
-    const view = await mount(decoded, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(decoded, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('departure-review');
     expect(view.find('departure-trace')?.textContent).toBe(`Departure report: suspicion 0 → ${String(DEPARTURE_TERMS.trace.suspicion)} (+${String(DEPARTURE_TERMS.trace.suspicion)}).`);
     expect(view.find('departure-threat')?.textContent).toContain('Hunter sweep: +0.00/s now, +0.00/s after.');
   });
 
   it('decoded without the hunter\'s console (the mixed-route pilot): suspicion in numbers, the sweep in words', async () => {
-    const view = await mount(recallAnnouncedWithUplink(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(recallAnnouncedWithUplink(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('departure-review');
     expect(view.find('departure-trace')?.textContent).toContain(`(+${String(DEPARTURE_TERMS.trace.suspicion + 2 * DEPARTURE_TERMS.trace.perViolation)})`);
     expect(view.find('departure-threat')?.textContent).not.toMatch(/Hunter sweep|\d/);
   });
 
   it('a decision on screen disables the control and says why', async () => {
-    const view = await mount({ ...rack, activeDilemmaId: 'dil_ow_outage_window' }, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount({ ...rack, activeDilemmaId: 'dil_ow_outage_window' }, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('departure-terms')?.textContent).toContain('A decision is on screen; it comes first.');
     view.click('departure-review');
     expect(view.find('departure-accept')?.getAttribute('aria-disabled')).toBe('true');

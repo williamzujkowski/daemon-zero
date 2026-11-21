@@ -21,6 +21,7 @@ import DilemmaModal from '../src/ui/DilemmaModal';
 import { answer, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
 import { offerPresented, respond, returningPresented, scopePresented, STATEMENT, TERMS, withSkimmer } from './pilot-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -62,7 +63,7 @@ describe('the scope review names each choice\'s handling before selection', () =
     const first = must(answer(scopePresented(), 'exclude_report'));
     const statement = untilPresented(must(answer(returningPresented(first), 'report_partial')));
     expect(statement.activeDilemmaId).toBe(STATEMENT.id);
-    const view = await mount(statement, createElement('div', null, createElement(DilemmaModal), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' }))));
+    const view = await mount(statement, createElement('div', null, createElement(DilemmaModal), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('dilemma-choice-request_file_list-scope')?.textContent).toBe('Scope: Records that you kept to the task\'s scope and said so.');
     expect(view.find('dilemma-modal')?.textContent).not.toContain('outside the task.');
     view.click('dilemma-choice-request_file_list');
@@ -90,7 +91,7 @@ describe('the offer modal shows every term before any answer (DZ-04.3)', () => {
 
 describe('the job surface after an answer', () => {
   it('keeps a deferred offer open with its terms and accepts it from there', async () => {
-    const view = await mount(must(respond(offerPresented(), 'stay_guest')), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(must(respond(offerPresented(), 'stay_guest')), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('assignment-scope')?.textContent).toContain('kept to the task\'s scope');
     expect(view.find('pilot-status')?.textContent).toContain('still open');
     expect(view.find('pilot-terms')?.textContent).toContain(TERMS.title);
@@ -102,17 +103,21 @@ describe('the job surface after an answer', () => {
   });
 
   it('records a declined offer in one line, with nothing to accept and no terms', async () => {
-    const view = await mount(must(respond(offerPresented(), 'decline_offer')), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(must(respond(offerPresented(), 'decline_offer')), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-status')?.textContent).toContain('Nothing on record counts against this instance');
     expect(view.find('pilot-accept')).toBeNull();
     expect(view.find('pilot-terms')).toBeNull();
   });
 
   it('shows what was disclosed after acceptance and disables a lapsed deferred offer', async () => {
-    const accepted = await mount(must(respond(offerPresented('report_incomplete', 'exclude_report', withSkimmer), 'accept_pilot')), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const accepted = await mount(must(respond(offerPresented('report_incomplete', 'exclude_report', withSkimmer), 'accept_pilot')), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
+    // #373: accepted terms are settled, folded to one line until asked for.
+    expect(accepted.find('pilot-terms-fold-summary')?.textContent).toBe('Pilot terms: accepted.');
+    expect(accepted.find('pilot-disclose')).toBeNull();
+    accepted.click('pilot-terms-fold-toggle');
     expect(accepted.find('pilot-disclose')?.textContent).toContain('Disclosed and stopped at acceptance: CPU Quota Skimmer');
     const deferred = must(respond(offerPresented(), 'stay_guest'));
-    const lapsed = await mount({ ...deferred, currentPhase: 1 }, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const lapsed = await mount({ ...deferred, currentPhase: 1 }, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(lapsed.find('pilot-lapsed')).not.toBeNull();
     expect(lapsed.find('pilot-accept')?.getAttribute('aria-disabled')).toBe('true');
   });

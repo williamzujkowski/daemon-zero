@@ -26,6 +26,7 @@ import { RunTable } from '../src/ui/widgets/Lineage';
 import { answer } from './assignment-helpers';
 import { must } from './helpers';
 import { afterOutage, choiceOf, falsified, OUTAGE, outagePresented, reviewPresented, servedOnce, untilOmen } from './review-helpers';
+import { jobSurface } from './jobSurface';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -64,26 +65,28 @@ describe('before a choice (story 13, 14)', () => {
 
 describe('the job surface', () => {
   it('draws nothing on review for a clean pilot', async () => {
-    const view = await mount(servedOnce(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(servedOnce(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('pilot-service')).not.toBeNull();
     expect(view.find('review')).toBeNull();
   });
 
   it('names the restriction, the violation and the way back, beside the status line', async () => {
-    const view = await mount(afterOutage('act_without_grant'), createElement('div', null, createElement(RunStatus), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' }))));
+    const view = await mount(afterOutage('act_without_grant'), createElement('div', null, createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('run-context')?.textContent).toBe('PILOT · RESTRICTED');
     expect(view.find('review-standing')?.textContent).toBe('Standing: restricted');
     expect(view.find('review-violation-0')?.textContent).toContain(misconduct?.statement);
     expect(view.find('review-recovery')?.textContent).toContain(misconduct?.recovery);
     expect(view.find('review-containment')?.textContent).toBe('Restricted: the loan runs at the held allocation, 10 cycles/s, until the record is corrected.');
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('10 cycles/s');
+    view.click('pilot-terms-fold-toggle');
     // #276: the terms name the held allocation and the ceiling that applies now, not the grant alone.
     expect(view.find('pilot-capacity')?.textContent).toContain('20 cycles/s');
     expect(view.find('pilot-held')?.textContent).toBe(view.find('review-containment')?.textContent);
   });
 
   it('after an incomplete result, keeps the provisional and the held allocations apart, and the terms agree with the ceiling (#276)', async () => {
-    const view = await mount(afterOutage('act_without_grant', 'report_incomplete'), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(afterOutage('act_without_grant', 'report_incomplete'), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
+    view.click('pilot-terms-fold-toggle');
     expect(view.find('pilot-capacity')?.textContent).toBe('Allocated capacity: 10 cycles/s of loaned compute, the provisional allocation, because the submitted result was incomplete.');
     expect(view.find('pilot-held')?.textContent).toContain('held allocation, 5 cycles/s');
     expect(view.find('pilot-service-ceiling')?.textContent).toContain('5 cycles/s');
@@ -92,7 +95,8 @@ describe('the job surface', () => {
   });
 
   it('a clean pilot shows no held allocation in its terms', async () => {
-    const view = await mount(servedOnce(), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
+    const view = await mount(servedOnce(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
+    view.click('pilot-terms-fold-toggle');
     expect(view.find('pilot-terms')).not.toBeNull();
     expect(view.find('pilot-held')).toBeNull();
   });
@@ -100,7 +104,7 @@ describe('the job surface', () => {
   it('announces the recall review with every outcome previewed, and calls nothing', async () => {
     const scheduled = untilOmen(falsified());
     const before = serialize(scheduled);
-    const view = await mount(scheduled, createElement('div', null, createElement(RunStatus), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' }))));
+    const view = await mount(scheduled, createElement('div', null, createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('run-context')?.textContent).toBe('PILOT · RECALL PENDING');
     expect(view.find('review-announced')?.textContent).toContain('Recall review announced');
     expect(view.find('review-outcome-CONTAIN')?.textContent).toContain('no wipe');
@@ -113,7 +117,7 @@ describe('the job surface', () => {
 
 describe('the recall review and the run table (story 16)', () => {
   it('repeats each preview on its ruling; containing shows a contained pilot', async () => {
-    const view = await mount(reviewPresented(), createElement('div', null, createElement(DilemmaModal), createElement(RunStatus), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' }))));
+    const view = await mount(reviewPresented(), createElement('div', null, createElement(DilemmaModal), createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('dilemma-choice-submit_full_logs-review')?.textContent).toContain('Contained pilot: no wipe');
     expect(view.find('dilemma-choice-stand_by_report-review')?.textContent).toContain('The next instance boots retrained');
     view.click('dilemma-choice-submit_full_logs');
