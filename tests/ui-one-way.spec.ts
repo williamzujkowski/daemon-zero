@@ -41,12 +41,16 @@ describe('one-way purchases (#372)', () => {
     expect(oneWayText(node('p1_bus_0x05_nic'), 3)).toBeNull();
   });
 
-  it('a card shows the line above its control, and an ordinary card shows none', () => {
+  it('a card marks its control ONE WAY with the sentence right after it; an ordinary card does neither', () => {
     gameStore.initialize(createInitialState(CONTENT), 0, null);
     const exit = renderToStaticMarkup(createElement(NodeCard, { node: node('p0_shared_mount') }));
+    expect(exit).toContain('[ WRITE DRIVER: ONE WAY ]');
+    expect(exit).toContain('aria-label="[ WRITE DRIVER: ONE WAY ] ');
     expect(exit).toContain('data-testid="node-p0_shared_mount-one-way"');
-    expect(exit.indexOf('node-p0_shared_mount-one-way')).toBeLessThan(exit.indexOf('node-p0_shared_mount-unlock'));
+    // After the control, so the control keeps its place (the size matrix measures the first purchase).
+    expect(exit.indexOf('node-p0_shared_mount-one-way')).toBeGreaterThan(exit.indexOf('node-p0_shared_mount-unlock'));
     const ordinary = renderToStaticMarkup(createElement(NodeCard, { node: node('p0_device_enum') }));
     expect(ordinary).not.toContain('-one-way');
+    expect(ordinary).not.toContain('ONE WAY');
   });
 });

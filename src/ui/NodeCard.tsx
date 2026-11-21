@@ -8,6 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
+import type { Cost } from '../content/schema';
 import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
@@ -34,12 +35,19 @@ function savingText(node: RegistryNode, campaign: boolean): string {
 }
 
 /**
- * Right above the control it qualifies (#372): an exit used to look like any other [ WRITE DRIVER ]. A string
- * selector, so it changes only when the run's phase does.
+ * The card's purchase control. A one-way purchase is marked on the control itself, "[ WRITE DRIVER: ONE WAY ]",
+ * with the full sentence right after it (#372): an exit used to look like any other [ WRITE DRIVER ]. A line
+ * above the control pushed the first purchase below the measured fold (docs/UI-SIZES.md). A string selector,
+ * so it changes only when the run's phase does.
  */
-function OneWayLine({ node }: { node: RegistryNode }) {
-  const text = useGame((game) => oneWayText(node, game.currentPhase));
-  return text === null ? null : <Text testID={'node-' + node.id + '-one-way'} style={[theme.text, theme.danger]}>{text}</Text>;
+function NodePurchase({ node, cost, title }: { node: RegistryNode; cost: Cost; title: string }) {
+  const oneWay = useGame((game) => oneWayText(node, game.currentPhase));
+  const caption = oneWay === null ? '[ WRITE DRIVER ]' : '[ WRITE DRIVER: ONE WAY ]';
+  return <>
+    <PurchaseButton id={'node-' + node.id + '-unlock'} label={caption + ' ' + title} text={caption} cost={cost}
+      allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
+    {oneWay !== null && <Text testID={'node-' + node.id + '-one-way'} style={[theme.text, theme.danger]}>{oneWay}</Text>}
+  </>;
 }
 
 /** Development web builds count each card's renders (renderCounts.ts). */
@@ -94,9 +102,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       {refusal === null && <GrantNote node={node} />}
-      <OneWayLine node={node} />
-      <PurchaseButton id={'node-' + node.id + '-unlock'} label={'[ WRITE DRIVER ] ' + title} text="[ WRITE DRIVER ]" cost={cost}
-        allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
+      <NodePurchase node={node} cost={cost} title={title} />
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
       {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
