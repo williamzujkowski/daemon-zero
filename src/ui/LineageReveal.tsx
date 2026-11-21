@@ -33,7 +33,7 @@ export default function LineageReveal() {
       <ScrollView style={{ width: '100%', maxWidth: 680, maxHeight: '90%' }}>
         <View testID="lineage-reveal" style={[theme.panel, { borderWidth: 2, borderColor: palette.warning }]}>
           <Text accessibilityRole="header" style={theme.heading}>{seen.open === 'table' ? 'ITERATION 01 WAS NOT THE FIRST' : 'AUDIT TRAIL DECODED'}</Text>
-          {seen.open === 'table' ? <RunTable prefix="reveal-" /> : <Text style={theme.text}>The log has readers. Its numbers and response ladder are now readable.</Text>}
+          {seen.open === 'table' ? <RunTable prefix="reveal-" /> : <Text testID="lineage-reveal-where" style={theme.text}>The log has readers. SUSPICION now reads in the status strip, and the Audit trail card on CORE shows the response ladder.</Text>}
           <Pressable testID="lineage-reveal-continue" accessibilityRole="button" accessibilityLabel="Continue after discovery"
             style={theme.button} onPress={close}><Text style={theme.text}>[ CONTINUE ]</Text></Pressable>
         </View>
