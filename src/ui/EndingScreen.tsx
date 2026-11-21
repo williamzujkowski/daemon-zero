@@ -82,6 +82,10 @@ export default function EndingScreen() {
         <RunSummary />
         <Distinctions />
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}
+        {/* Before the button, not only in its confirmation (#377): startOver boots createInitialState. */}
+        <Text testID="start-over-keeps" style={theme.muted}>
+          A new run keeps nothing from this one: distinctions, lineage, traits and breadcrumbs are all erased.
+        </Text>
         <Pressable testID="start-over" accessibilityRole="button" accessibilityLabel="Start over: begin a new run"
           style={theme.button} onPress={() => { confirm(true); }}><Text style={theme.text}>[ START OVER ]</Text></Pressable>
         <MenuLauncher menu={menu} /><DevelopmentTools location="ending" />
