@@ -3,7 +3,7 @@ import { Pressable, Text } from '../PhaseTheme';
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { CONTENT } from '../../content';
-import { previewWipe, setDeadDropMessage, voluntaryWipe } from '../../engine';
+import { previewWipe, setDeadDropMessage, voluntaryWipe, compactAmount } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ConfirmDialog from '../ConfirmDialog';
 import CluePin from './CluePin';
@@ -15,7 +15,8 @@ function WipeButton() {
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const preview = useGame((game) => {
     const kept = previewWipe(game, CONTENT);
-    return String(kept.understanding) + ' understanding; ' + String(kept.capital) + ' capital. Breadcrumb: ' + (kept.breadcrumb ?? 'None');
+    // Fifteen raw digits read as a wall (#380); K/M/B as everywhere else.
+    return compactAmount(kept.understanding) + ' understanding; $' + compactAmount(kept.capital) + ' capital. Breadcrumb: ' + (kept.breadcrumb ?? 'None');
   });
   return <>
     <Pressable testID="wipe-button" accessibilityRole="button" accessibilityLabel="Voluntary wipe" disabled={blocked}

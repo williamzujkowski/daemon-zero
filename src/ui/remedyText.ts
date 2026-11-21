@@ -3,7 +3,7 @@
  * is, not only the problem. Shared by the in-game warnings and the game menu's status lines so they say the same.
  */
 import { CONTENT } from '../content';
-import { actuatorLimit, financeEnabled, isActuatorAvailable, nodeUseBlocker, repeatableLevel, type GameState } from '../engine';
+import { actuatorLimit, financeEnabled, groupDigits, isActuatorAvailable, nodeUseBlocker, repeatableLevel, type GameState } from '../engine';
 import { profitAllocationValues } from './actuatorSteps';
 
 /**
@@ -39,7 +39,7 @@ export function overheatRemedy(game: GameState): string {
 export function shortfallText(generated: number, consumed: number): string {
   const short = Math.max(0, consumed - generated);
   // One decimal under 10 MW, so a small shortfall never reads "0 MW short" (#402 panel).
-  return `POWER SHORTFALL: ${short.toFixed(short < 10 ? 1 : 0)} MW short; powered hardware is throttled. Add generation to lift it.`;
+  return `POWER SHORTFALL: ${short < 10 ? short.toFixed(1) : groupDigits(Math.round(short))} MW short; powered hardware is throttled. Add generation to lift it.`;
 }
 
 /**

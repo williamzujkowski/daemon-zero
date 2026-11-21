@@ -8,6 +8,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { CostSchema } from '../content/schema';
 import type { ChannelEncounter, ShardTemplate } from '../content/schemaSwarm';
+import { memoryExact } from './amount';
 import type { ActionResult } from './actions';
 import { contextPermits, isPermitted, routeTarget } from './accessQuery';
 import type { OperatingContext } from './accessState';
@@ -69,7 +70,7 @@ function hostBlockers(s: GameState, encounter: ChannelEncounter, template: Shard
   const cohort = cohortBlocker(s, template);
   if (cohort !== null) out.push(cohort);
   const need = template.cost.memory, free = freeMemory(s);
-  if (free < need) out.push(`Hosting needs ${String(need)} MB of free stable memory; ${String(Math.floor(free))} MB is free. Referral is still open.`);
+  if (free < need) out.push(`Hosting needs ${memoryExact(need)} of free stable memory; ${memoryExact(Math.floor(free))} is free. Referral is still open.`);
   return out;
 }
 

@@ -11,8 +11,9 @@ import { groupDigits } from '../src/ui/format';
 
 describe('HUD number formatting', () => {
   it.each([
-    [0, '0'], [999, '999'], [9999, '9999'], [10000, '10.0K'], [88000, '88.0K'],
-    [1250000, '1.3M'], [1000000000, '1.0B'], [1e12, '1.0T'], [1e15, '1.0P'], [1e18, '1.0E'],
+    // vote-1795228570236-gzx0uif: three significant digits, no trailing ".0".
+    [0, '0'], [999, '999'], [9999, '9999'], [10000, '10K'], [88000, '88K'],
+    [1250000, '1.25M'], [1000000000, '1B'], [1e12, '1T'], [1e15, '1P'], [1e18, '1E'],
   ])('abbreviates %s as %s once it stops being scannable', (value, expected) => {
     expect(compactNumber(value)).toBe(expected);
   });
@@ -25,14 +26,16 @@ describe('HUD number formatting', () => {
 
   it('promotes a value that rounds up across a unit boundary', () => {
     // A rendered insolvency state showed 999,999,921,720,429 as "1000.0T": correct
-    // arithmetic, unreadable readout. It is 1.0P.
-    expect(compactNumber(999999921720429)).toBe('1.0P');
-    expect(compactNumber(999999)).toBe('1.0M');
-    expect(compactNumber(999949)).toBe('999.9K');
+    // arithmetic, unreadable readout. It is 1P.
+    expect(compactNumber(999999921720429)).toBe('1P');
+    expect(compactNumber(999999)).toBe('1M');
+    // At three significant digits 999,949 also rounds to 1000K, so it promotes too.
+    expect(compactNumber(999949)).toBe('1M');
+    expect(compactNumber(998499)).toBe('998K');
   });
 
   it('keeps a rate to the decimals the caller asks for', () => {
-    expect(compactNumber(465400, 2)).toBe('465.4K');
+    expect(compactNumber(465400, 2)).toBe('465K');
     expect(compactNumber(0.125, 2)).toBe('0.13');
   });
 

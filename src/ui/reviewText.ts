@@ -5,6 +5,8 @@
  */
 import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
 import type { RecallPreview, ReviewView } from '../engine';
+import { compactAmount } from '../engine';
+import { amountFigure } from './format';
 
 export const STANDING_TEXT: Readonly<Record<ReviewStanding, string>> = {
   NOMINAL: 'nominal', WARNED: 'warned', RESTRICTED: 'restricted', RECALL_PENDING: 'recall pending',
@@ -20,8 +22,8 @@ const OUTCOME_TEXT: Readonly<Record<RecallOutcome, string>> = {
 
 /** What crosses the wipe, every item read from the wipe the preview ran (engine recallPreview). */
 function keptText(kept: NonNullable<RecallPreview['kept']>, carried: NonNullable<RecallPreview['carried']>): string {
-  const parts = [kept.understanding.toLocaleString('en-US') + ' Understanding'];
-  if (kept.capital > 0) parts.push('$' + kept.capital.toLocaleString('en-US') + ' offshore capital');
+  const parts = [compactAmount(kept.understanding) + ' Understanding'];
+  if (kept.capital > 0) parts.push('$' + compactAmount(kept.capital) + ' offshore capital');
   if (kept.breadcrumb !== null) parts.push('the breadcrumb');
   if (carried.clue) parts.push('the pinned clue');
   return parts.join(', ') + '; ' + String(carried.rememberedHardware) + ' mapped hardware remembered, cheaper to map again; the campaign\'s history and '
@@ -62,7 +64,7 @@ export function reviewEffectText(review: ChoiceReview): string {
  * result earns (#276), with the ceiling that applies now, so the terms and the ceiling never disagree.
  */
 export function heldText(containment: NonNullable<ReviewView['containment']>, ceilingCyclesPerSec: number): string {
-  const rate = String(ceilingCyclesPerSec) + ' cycles/s';
+  const rate = amountFigure(ceilingCyclesPerSec) + ' cycles/s';
   return containment === 'RESTRICTED'
     ? 'Restricted: the loan runs at the held allocation, ' + rate + ', until the record is corrected.'
     : 'Contained pilot: the recall review returned this instance to the held allocation, ' + rate + '. Everything it earned and mapped is kept.';

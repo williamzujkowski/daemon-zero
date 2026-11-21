@@ -5,6 +5,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { cycleContributions, nodeUseBlocker, toggleNode } from '../engine';
+import { memoryExact } from './units';
+import { compactNumber } from './compactNumber';
 import { gameStore } from '../app/session';
 import { Text, View } from './PhaseTheme';
 import NodeTitle from './NodeTitle';
@@ -26,7 +28,7 @@ function CycleImpact({ node }: { node: RegistryNode }) {
   // Memory is what the player is hunting when they open this panel: a process that holds
   // 4096 MB has to say so next to the control that takes it back (maintainer playtest note).
   return <Text testID={'daemon-impact-' + node.id} style={theme.muted}>
-    {cycles >= 0 ? '+' : ''}{cycles.toFixed(2)} cycles/s net{held > 0 ? ' · ' + String(held) + ' MB held' : ''}
+    {cycles >= 0 ? '+' : ''}{compactNumber(cycles, 2)} cycles/s net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}
   </Text>;
 }
 
@@ -42,7 +44,7 @@ const Process = memo(function Process({ node }: { node: RegistryNode }) {
         software-types-only-free-their-memory). */}
     {node.suspendable
       ? <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + node.revealedName
-          + (suspended ? '' : ' and free ' + String(node.cost.memory) + ' MB')}
+          + (suspended ? '' : ' and free ' + memoryExact(node.cost.memory))}
         text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
         allowed={(game) => !game.disabledNodes.includes(node.id) || nodeUseBlocker(game, node, CONTENT) === null}
         action={(game) => toggleNode(game, node.id, CONTENT)} />

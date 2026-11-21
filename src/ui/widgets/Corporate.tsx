@@ -2,7 +2,7 @@ import { Pressable, Text, View } from '../PhaseTheme';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions, financeEnabled, isActuatorAvailable, scaleScrutiny, setActuator } from '../../engine';
+import { compactAmount, cycleContributions, financeEnabled, groupDigits, isActuatorAvailable, scaleScrutiny, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import { compactNumber } from '../compactNumber';
@@ -23,8 +23,9 @@ function Ledger() {
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   const efficiency = useGame((game) => Math.round(game.rates.gridEfficiency * 100));
   return <View style={{ gap: 8 }}>
-    <Text testID="corp-capital" style={theme.text}>Capital: ${capital} ({income >= 0 ? '+' : ''}{income.toFixed(2)}/s net)</Text>
-    <Text testID="power-ledger" style={theme.text}>Power: {generated} MW generated / {consumed} MW consumed</Text>
+    {/* "$5010896882 (+26203469.12/s net)" was a wall of digits (#404): capital and rates in K/M/B, like the strip. */}
+    <Text testID="corp-capital" style={theme.text}>Capital: ${compactAmount(capital)} ({income >= 0 ? '+' : ''}{compactNumber(income, 2)}/s net)</Text>
+    <Text testID="power-ledger" style={theme.text}>Power: {groupDigits(Math.round(generated))} MW generated / {groupDigits(Math.round(consumed))} MW consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
     <Scrutiny />
     <ComputeSplit />
@@ -67,7 +68,7 @@ function ComputeSplit() {
   const split = useGame((game) => {
     const sources = cycleContributions(game, CONTENT);
     const sum = (basis: string) => sources.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
-    return `${sum('OWNED').toFixed(1)}|${sum('GRANTED').toFixed(1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
+    return `${compactNumber(sum('OWNED'), 1)}|${compactNumber(sum('GRANTED'), 1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
   });
   const [owned, granted, grants] = split.split('|');
   if (grants !== 'true') return null;

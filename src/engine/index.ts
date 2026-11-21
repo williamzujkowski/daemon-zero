@@ -6,6 +6,7 @@
 export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
+export { compactAmount, groupDigits, memoryExact, significant3, spokenAmount } from './amount';
 export { computeRates } from './rates';
 export { wipe } from './prestige';
 export * from './query';

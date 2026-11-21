@@ -8,6 +8,7 @@ import { recordNodeRender } from '../../app/renderCounts';
 import { CONTENT } from '../../content';
 import type { ShardTemplate } from '../../content/schemaSwarm';
 import { driftProgress, executeShardCommand, forkShard, forkView, shardCommandTerms, shardEntryView, shardCommandView, type ShardCommand } from '../../engine';
+import { memoryExact } from '../units';
 import { Text, View, Pressable } from '../PhaseTheme';
 import { useGame } from '../state';
 import { theme } from '../theme';
@@ -40,7 +41,7 @@ function Drift({ id }: { id: string }) {
 function CohortDetails({ id }: { id: string }) {
   const label = useGame((game) => {
     const view = shardEntryView(game, id, CONTENT);
-    return view ? `${String(view.count)} members · ${String(view.allocatedMb)} MB · ${view.autonomyMode}\n${view.output}` : '';
+    return view ? `${String(view.count)} members · ${memoryExact(view.allocatedMb)} · ${view.autonomyMode}\n${view.output}` : '';
   });
   return <><Text testID={'shard-status-' + id} style={theme.text}>{label}</Text><Drift id={id} />
     <Quirk id={id} /></>;

@@ -4,6 +4,7 @@ import { CostSchema } from '../content/schema';
 import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
+import { memoryExact } from './amount';
 import { shardCommandCost, shardCommandTerms, shardCommandUnmet, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
@@ -56,7 +57,7 @@ export function wildEncounterView(s: GameState, reg: ContentRegistry) {
   const cost = CostSchema.parse({ memory: template.cost.memory });
   const unmet = [...pausedReason(s), ...requirementLabels(s, encounter.requirements, reg)];
   const harnessUnmet = [...unmet, ...bindingReasons(s, template)];
-  if (!canAfford(s, cost)) harnessUnmet.push(`Requires ${String(cost.memory)} MB free memory.`);
+  if (!canAfford(s, cost)) harnessUnmet.push(`Requires ${memoryExact(cost.memory)} free memory.`);
   return { id: encounter.id, title: encounter.name, origin: encounter.origin, signature: encounter.signature,
     description: encounter.description, consume: encounter.consume, consumeEligible: unmet.length === 0, unmet,
     harnessCost: cost, harnessCostLabel: formatCost(cost), harnessOutput: formatOutput(template.tickDelta, template.epistemicDriftPerSec),

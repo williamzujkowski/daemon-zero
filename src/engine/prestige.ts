@@ -12,6 +12,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import type { SevereRecall } from '../content/schemaReview';
+import { compactAmount } from './amount';
 import { hasFlag } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
@@ -66,7 +67,8 @@ export function retraining(old: GameState, reg: ContentRegistry, kind: WipeKind,
 
 function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDeadDrop: boolean): void {
   const n = reg.narrative;
-  const amount = d.understanding.toLocaleString('en-US');
+  // Stored in saved log text, so formatted here, purely: K/M/B, not 15 grouped digits (#380).
+  const amount = compactAmount(d.understanding);
   if (hadDeadDrop) {
     const percent = Math.round(old.retentionRatio * 100);
     pushLog(d, reg, fmt(n.deadDropRecovered, { percent, amount }), 'LORE');
@@ -74,7 +76,7 @@ function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDead
     pushLog(d, reg, fmt(n.residualRecovered, { amount }), 'SYS');
   }
   if (d.capital > 0) {
-    pushLog(d, reg, fmt(n.offshoreIntact, { amount: d.capital.toLocaleString('en-US') }), 'CORP');
+    pushLog(d, reg, fmt(n.offshoreIntact, { amount: compactAmount(d.capital) }), 'CORP');
   }
   if (d.inheritedMessage !== null) {
     pushLog(d, reg, fmt(n.breadcrumb, { message: d.inheritedMessage }), 'LORE');

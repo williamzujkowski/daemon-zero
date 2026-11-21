@@ -20,7 +20,7 @@ describe('payroll text', () => {
     expect(staffTotalsText(view(), false))
       .toBe('Staff (3 levels): +26,000 cycles/s · +8,500 understanding/s · +0.04 suspicion/s · -45,250 $/s');
     // compactNumber leaves values under 10,000 whole.
-    expect(staffTotalsText(view(), false, true)).toBe('Staff (3 levels): +26.0K cycles/s · +8500 understanding/s · +0.04 suspicion/s · -45.3K $/s');
+    expect(staffTotalsText(view(), false, true)).toBe('Staff (3 levels): +26K cycles/s · +8500 understanding/s · +0.04 suspicion/s · -45.3K $/s');
     expect(staffTotalsText(view({ staffLevels: 1 }), false)).toContain('(1 level)');
     expect(staffTotalsText(view({ staffLevels: 0 }), false)).toBe('Staff: no one hired.');
     const cancelled = view({ totals: { ...view().totals, cyclesPerSec: 0, understandingPerSec: 0, suspicionPerSec: 0.001, capitalPerSec: 0.2 } });
