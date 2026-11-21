@@ -70,6 +70,13 @@ export class GameRuntime {
   setPaused(paused: boolean): void {
     if (!this.initialized || this.game.store.getState().paused === paused) return;
     if (this.active) this.sampleLive();
+    else if (this.backgroundAtMs !== null) {
+      // Toggled while hidden (#397 panel): the time away until now counts as it ran (none if it was paused), and
+      // the next resume counts only from this moment.
+      const wall = this.clock.wall();
+      this.game.step(Math.max(0, wall - this.backgroundAtMs) / 1000);
+      this.backgroundAtMs = wall;
+    }
     this.game.setPaused(paused);
     this.lastMono = this.clock.monotonic();
     this.checkpoint();

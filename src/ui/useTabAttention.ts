@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import { waitingContact } from './ContactNotice';
-import { thermalWidget } from './registry/widgetRegistry';
+import { offSlotWidgets, thermalWidget } from './registry/widgetRegistry';
 import { useGame } from './state';
 
 type Attention = Readonly<Partial<Record<string, string>>>;
@@ -18,7 +18,8 @@ function withFresh(seen: Fresh, widgets: string, active: string): Record<string,
   const before = new Set(seen.widgets.split(' '));
   const marks = { ...seen.marks };
   for (const id of widgets.split(' ')) {
-    const widget = id !== '' && !before.has(id) ? CONTENT.widgets.get(id) : undefined;
+    // A widget whose control is not on its slot's pane (a strip readout, the PROC spoofer) marks no tab.
+    const widget = id !== '' && !before.has(id) && !offSlotWidgets.includes(id) ? CONTENT.widgets.get(id) : undefined;
     const reason = widget ? 'new: ' + widget.title : '';
     if (widget && widget.slot !== active && !(marks[widget.slot] ?? []).includes(reason)) marks[widget.slot] = [...(marks[widget.slot] ?? []), reason];
   }

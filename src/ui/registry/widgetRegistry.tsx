@@ -31,6 +31,9 @@ export const stripOnlyWidgets: readonly string[] = [resourceWidgets.cycles, reso
 const spooferWidget = 'TELEMETRY_SPOOF_TOGGLE';
 /** Gates that never draw a pane panel of their own. */
 export const panelFreeWidgets: readonly string[] = [...stripOnlyWidgets, spooferWidget];
+/** Gates whose control is not on their content slot's pane: strip readouts show on every tab, the spoofer's control
+ *  is in PROC. (The fan has no panel of its own but draws inside the thermal gauge on SENSORS, so it is not here.) */
+export const offSlotWidgets: readonly string[] = [resourceWidgets.cycles, resourceWidgets.memory, forecastWidget, spooferWidget];
 function NoPanel() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
