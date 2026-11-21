@@ -83,6 +83,9 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 - Opens whenever `activeDilemmaId` is set; cannot be dismissed.
 - Shows title, context, each choice with cost, effect badges (good/bad colouring) and the trait it grants.
+- A granted trait carries its gloss (`TRAIT_GLOSS`, `src/ui/traitText.ts`, #377): what kind of choice it records, never
+  which ending it feeds, so a card does not spoil the ending table. Before surveillance is understood the suspicion
+  badge stays "more/less audit log activity" with no magnitude (DESIGN.md, "Suspicion is disclosed").
 - Unaffordable choices are disabled and say why. At least one choice is always free.
 - M5 feel pass: fires a warning haptic on open, alongside the haptics dependency listed in MILESTONES.md. M3 establishes mandatory decisions and accessible controls.
 
@@ -117,6 +120,9 @@ Restoration and save import use a RESTORED CHECKPOINT heading; only live iterati
 changes use REBOOT. Conditioning comes from the active mark list, not the prior
 run's historical `marked` field. Restored or carried marks say CURRENT RETRAINING;
 only a newly applied active mark during a live wipe says RETRAINING APPLIED.
+Each mark says it can be undone under Retraining marks in CORE, with the same price and gate that block
+charges (`reboot-mark-undo-{id}`, #377). The legacy traits line says what traits are for: the kinds of
+choice made most often decide the ending (`reboot-traits`).
 A removed mark never returns in the overlay. Restoration identity is local app
 state, so importing even the same iteration resets the presentation correctly
 without changing the game save format.
@@ -146,7 +152,8 @@ of the phone viewport before any ledger/allocation controls were visible.
 
 An ended run replaces play with its registry title, epilogue, simulated duration,
 iteration/wipe totals, hardware/upgrade totals and traits. Back/Escape cannot
-dismiss it. Start Over requires a second confirmation listing everything erased;
+dismiss it. Above Start Over a line says what a new run keeps: nothing (`start-over-keeps`, #377), since it
+boots the engine's initial state. Start Over requires a second confirmation listing everything erased;
 cancel preserves the ending. Ended runs suppress pending dilemma/reboot modals.
 
 The ending screen shows, under the run summary, `DISTINCTIONS k OF n`: each distinction the record proves by title and claim, and a count for the rest, never their titles (an unearned title would name a scene the game may never have met). When the record proves none it says so. Data: `earnedAchievements`, `achievements.json`; tests `tests/ui-distinctions.spec.ts`, `tests/e2e/distinctions.e2e.ts`.

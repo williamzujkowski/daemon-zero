@@ -3,11 +3,12 @@
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
+import { activateCampaignRules, createInitialState } from '../src/engine';
 import { startOver } from '../src/app/newRun';
 import { gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { labelMismatches } from './labelInName';
-import { ORIGINAL_GAME } from './helpers';
+import { must, ORIGINAL_GAME } from './helpers';
 
 setupM4Tests();
 describe('M4 endings', () => {
@@ -29,6 +30,8 @@ describe('M4 endings', () => {
     // #275: the name starts with the words on the control (WCAG 2.5.3).
     expect(view.find('start-over')?.getAttribute('aria-label')).toBe('Start over: begin a new run');
     expect(labelMismatches(host.document.body)).toEqual([]);
+    // #377: what a new run keeps is said before the button, not only in its confirmation.
+    expect(view.find('start-over-keeps')?.textContent).toContain('A new run keeps nothing from this one');
     view.click('start-over');
     expect(view.find('start-over-dialog')?.textContent).toContain('legacy history and breadcrumbs');
     view.click('start-over-cancel');
@@ -37,6 +40,13 @@ describe('M4 endings', () => {
     expect(gameStore.store.getState().game.ending).toBeNull();
     expect(gameStore.store.getState().game.unlockedNodes).toEqual([]);
     expect(gameStore.store.getState().game.legacy.wipes).toBe(0);
+    // ...and the line is true: the lineage, traits, marks, breadcrumb and campaign record are the factory's
+    // (campaign rules active from the first second, as every new game is, with nothing carried in).
+    const fresh = must(activateCampaignRules(createInitialState(CONTENT), CONTENT));
+    const after = gameStore.store.getState().game;
+    expect(after.legacy).toEqual(fresh.legacy);
+    expect([after.traits, after.conditioning, after.inheritedMessage]).toEqual([fresh.traits, fresh.conditioning, fresh.inheritedMessage]);
+    expect(after.campaign).toEqual(fresh.campaign);
     expect(view.find('ending-screen')).toBeNull();
     expect(startOver().ok).toBe(false);
     view.close();

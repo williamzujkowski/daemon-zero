@@ -3,6 +3,8 @@ import { Text, View } from './PhaseTheme';
 import { CONTENT } from '../content';
 import { useGame } from './state';
 import DisclosureText from './DisclosureText';
+import RequirementHint from './RequirementHint';
+import { costText } from './format';
 import { palette, theme } from './theme';
 
 export default function RebootConditioning({ live }: { live: boolean }) {
@@ -20,6 +22,11 @@ export default function RebootConditioning({ live }: { live: boolean }) {
         <Text style={[theme.text, theme.danger]}>{mark.name}</Text>
         <DisclosureText style={theme.text}>{fresh
           ? CONTENT.narrative.conditioningApplied.replace('{name}', mark.name) : mark.description}</DisclosureText>
+        {/* It is not permanent (#377): the same price and gate the CORE pane's Retraining marks block shows. */}
+        <Text testID={'reboot-mark-undo-' + id} style={theme.muted}>
+          Can be undone under Retraining marks in CORE. Cost to undo: {costText(mark.recoveryCost)}
+        </Text>
+        <RequirementHint requirements={mark.recoveryRequirements} />
       </View>;
     })}
   </View>;
