@@ -39,6 +39,8 @@ describe('lineage disclosure', () => {
     expect(view.find('blind-audit-status')).not.toBeNull();
     view.click('node-' + parser.id + '-unlock');
     expect(view.find('lineage-reveal')?.textContent).toContain('AUDIT TRAIL DECODED');
+    // It names where the decoded readouts now are, rather than only that they are readable (#378).
+    expect(view.find('lineage-reveal-where')?.textContent).toMatch(/SUSPICION.*status strip.*Audit trail.*CORE/);
     view.click('lineage-reveal-continue');
     expect(view.find('suspicion-meter')).not.toBeNull();
     expect(view.find('blind-audit-status')).toBeNull();
