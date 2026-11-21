@@ -38,7 +38,8 @@ export function overheatRemedy(game: GameState): string {
  */
 export function shortfallText(generated: number, consumed: number): string {
   const short = Math.max(0, consumed - generated);
-  return `POWER SHORTFALL: ${short.toFixed(0)} MW short; powered hardware is throttled. Add generation to lift it.`;
+  // One decimal under 10 MW, so a small shortfall never reads "0 MW short" (#402 panel).
+  return `POWER SHORTFALL: ${short.toFixed(short < 10 ? 1 : 0)} MW short; powered hardware is throttled. Add generation to lift it.`;
 }
 
 /**
@@ -49,7 +50,10 @@ export function shortfallText(generated: number, consumed: number): string {
 export function insolvencyRemedy(game: GameState): string {
   const ratio = game.actuators.computeProfitAllocationRatio;
   const top = Math.min(actuatorLimit(game, 'computeProfitAllocationRatio', CONTENT), Math.max(...profitAllocationValues(CONTENT)));
-  const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6;
+  // The dial diverts a share of gross cycles, and nothing when gross is not positive (rates.ts); below its top that
+  // is exactly when net cycles are positive, since net = gross - diverted (#402 panel).
+  const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6
+    && game.rates.cyclesPerSec > 0;
   const release = [...CONTENT.repeatables.values()].some((rep) => rep.dismissable && repeatableLevel(game, rep.id) > 0);
   if (divert && release) return 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.';
   if (divert) return 'Divert more compute to revenue in FINANCE.';

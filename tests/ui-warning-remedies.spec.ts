@@ -28,6 +28,8 @@ describe('remedy text', () => {
 
   it('says how far short the power is', () => {
     expect(shortfallText(40, 64.4)).toBe('POWER SHORTFALL: 24 MW short; powered hardware is throttled. Add generation to lift it.');
+    // A small shortfall never reads "0 MW short" (#402 panel).
+    expect(shortfallText(40, 40.3)).toMatch(/^POWER SHORTFALL: 0\.3 MW short;/);
   });
 
   it('names each insolvency lever only when it can act (#402 panel)', () => {
@@ -41,6 +43,9 @@ describe('remedy text', () => {
     expect(insolvencyRemedy({ ...insolvent, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 1 } })).toBe('Release operatives in PAYROLL.');
     expect(insolvencyRemedy({ ...noOperatives, actuators: { ...noOperatives.actuators, computeProfitAllocationRatio: 1 } }))
       .toBe('Capital recovers only as revenue outgrows what the company pays each second.');
+    // With no positive gross cycles the dial diverts nothing, so it is not named (#402 panel).
+    const noCycles = { ...insolvent, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 0 }, rates: { ...insolvent.rates, cyclesPerSec: -5 } };
+    expect(insolvencyRemedy(noCycles)).toBe('Release operatives in PAYROLL.');
   });
 
 });
@@ -61,4 +66,16 @@ it('puts the true overheat remedy in the game menu, not "check cooling" (#402 pa
   const status = view.find('menu-status')?.textContent ?? '';
   expect(status).toContain('OVERHEAT: The fan is at full: suspend heat-producing processes in PROC.');
   expect(status).not.toContain('check cooling');
+});
+
+it('keeps Dismiss in PAYROLL for a hired role whose requirement no longer holds (#402 panel)', async () => {
+  const insolvent = m4State('corporate-insolvent');
+  const gateOf = (rep: { requirements: { nodes?: readonly string[] | undefined } }): string | undefined => (rep.requirements.nodes ?? [])[0];
+  const role = [...CONTENT.repeatables.values()].find((rep) => rep.dismissable && (insolvent.levels[rep.id] ?? 0) > 0 && gateOf(rep) !== undefined);
+  const gate = role ? gateOf(role) : undefined;
+  if (!role || gate === undefined) throw new Error('no hired role with a node requirement');
+  const view = await mountM4('corporate-insolvent', { width: 1440, height: 900 });
+  act(() => { gameStore.initialize({ ...insolvent, unlockedNodes: insolvent.unlockedNodes.filter((id) => id !== gate) }, 0, null); });
+  view.click('workspace-CORP-payroll');
+  expect(view.find('rep-' + role.id + '-dismiss')).not.toBeNull();
 });
