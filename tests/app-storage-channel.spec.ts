@@ -36,14 +36,14 @@ describe('production storage keys', () => {
     const { game } = played();
     await createPersistence(storage).save(game, 7);
     expect([...storage.values.keys()]).toEqual([SAVE_KEY]);
-    expect(await createPersistence(storage).load()).toEqual({ game, savedAtMs: 7, notice: null });
+    expect(await createPersistence(storage).load()).toEqual({ game, savedAtMs: 7, paused: false, notice: null });
   });
 
   it('boots fresh past a preview-key entry and leaves that entry alone', async () => {
     const storage = memoryStorage();
     storage.values.set(PREVIEW_SAVE, PREVIEW_ENVELOPE);
     const loaded = await createPersistence(storage).load();
-    expect(loaded).toEqual({ game: createInitialState(CONTENT), savedAtMs: null, notice: null });
+    expect(loaded).toEqual({ game: createInitialState(CONTENT), savedAtMs: null, paused: false, notice: null });
     expect(storage.getItem).not.toHaveBeenCalledWith(PREVIEW_SAVE);
     expect(storage.setItem).not.toHaveBeenCalled();
     expect(storage.values.get(PREVIEW_SAVE)).toBe(PREVIEW_ENVELOPE);

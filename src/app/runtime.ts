@@ -66,6 +66,15 @@ export class GameRuntime {
     return result;
   }
 
+  /** Pauses or resumes time (#347). Time up to now is applied first, and the choice is saved at once. */
+  setPaused(paused: boolean): void {
+    if (!this.initialized || this.game.store.getState().paused === paused) return;
+    if (this.active) this.sampleLive();
+    this.game.setPaused(paused);
+    this.lastMono = this.clock.monotonic();
+    this.checkpoint();
+  }
+
   private initialize(): Promise<void> {
     if (this.initialized) return Promise.resolve();
     this.loading ??= this.load();
@@ -76,7 +85,7 @@ export class GameRuntime {
     try {
       const saved = await this.persistence.load();
       const elapsed = saved.savedAtMs === null ? 0 : Math.max(0, this.clock.wall() - saved.savedAtMs) / 1000;
-      this.game.initialize(saved.game, elapsed, saved.notice);
+      this.game.initialize(saved.game, elapsed, saved.notice, saved.paused);
     } catch {
       this.savingEnabled = false;
       this.game.initialize(createInitialState(CONTENT), 0,
@@ -131,7 +140,8 @@ export class GameRuntime {
   private checkpoint(): void {
     if (!this.savingEnabled) return;
     this.lastSaveMono = this.clock.monotonic();
-    void this.persistence.save(this.game.store.getState().game, this.clock.wall()).then(
+    const { game, paused } = this.game.store.getState();
+    void this.persistence.save(game, this.clock.wall(), paused).then(
       () => { if (this.game.store.getState().notice === WRITE_ERROR) this.game.notify(null); },
       () => { this.game.notify(WRITE_ERROR); },
     );

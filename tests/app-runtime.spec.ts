@@ -170,7 +170,7 @@ describe('app runtime', () => {
     let resolve: (value: string | null) => void = () => undefined;
     vi.spyOn(h.persistence, 'load').mockImplementation(async () => {
       await new Promise<string | null>((done) => { resolve = done; });
-      return { game: engine.createInitialState(CONTENT), savedAtMs: null, notice: null };
+      return { game: engine.createInitialState(CONTENT), savedAtMs: null, paused: false, notice: null };
     });
     const stop = h.runtime.start();
     h.activity(false);

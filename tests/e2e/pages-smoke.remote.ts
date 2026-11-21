@@ -116,8 +116,10 @@ async function checkpointAfter(page: Page, afterMs: number): Promise<Checkpoint>
   const stored = () => page.evaluate((key) => (globalThis as unknown as { localStorage: Storage }).localStorage.getItem(key), SAVE_KEY);
   const stamp = async () => (JSON.parse(await stored() ?? '{"savedAtMs":0}') as { savedAtMs: number | null }).savedAtMs ?? 0;
   await expect.poll(stamp, { message: 'the app writes a checkpoint after ' + String(afterMs), timeout: AUTOSAVE_TIMEOUT_MS }).toBeGreaterThan(afterMs);
-  const envelope = JSON.parse(await stored() ?? '{}') as { version: number; savedAtMs: number; game: string };
-  expect(envelope.version).toBe(1);
+  const envelope = JSON.parse(await stored() ?? '{}') as { version: number; savedAtMs: number; paused?: boolean; game: string };
+  // Version 2 carries the player's pause (#347); a live run is never paused unless it chose to be.
+  expect(envelope.version).toBe(2);
+  expect(envelope.paused).toBe(false);
   const game = JSON.parse(envelope.game) as StoredGame;
   return { savedAtMs: envelope.savedAtMs, run: { iteration: game.iteration, phase: game.currentPhase, nodes: game.unlockedNodes,
     levels: game.levels, wipes: game.legacy.wipes, simTimeSec: game.simTimeSec } };
