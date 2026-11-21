@@ -107,6 +107,10 @@ describe('the job surface', () => {
     const view = await mount(scheduled, createElement('div', null, createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
     expect(view.find('run-context')?.textContent).toBe('PILOT · RECALL PENDING');
     expect(view.find('review-announced')?.textContent).toContain('Recall review announced');
+    // #367: the announced recall follows the standing, ahead of the record and the way back.
+    const panel = view.find('review')?.textContent ?? '';
+    expect(panel.indexOf('Recall review announced')).toBeGreaterThan(panel.indexOf('Standing:'));
+    expect(panel.indexOf('Recall review announced')).toBeLessThan(panel.indexOf('Violation on record'));
     expect(view.find('review-outcome-CONTAIN')?.textContent).toContain('no wipe');
     expect(view.find('review-outcome-RETRAIN')?.textContent).toMatch(/ends this iteration\. Reset: .*Kept: [\d,]+ Understanding.*mapped hardware remembered.*retrained: /);
     expect(view.find('review-outcome-END')?.textContent).toContain('No retraining');
