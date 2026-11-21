@@ -27,6 +27,7 @@ import { preview } from './assignment-helpers';
 import { must } from './helpers';
 import { piloted, QUEUE, QUEUE_NODE, SERVICE, serving, untilComplete } from './service-helpers';
 import { jobSurface } from './jobSurface';
+import { labelMismatches } from './labelInName';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -47,7 +48,7 @@ async function mount(state: GameState, element: ReactElement) {
   const click = (id: string) => { act(() => { find(id)?.click(); }); };
   const close = () => { act(() => { root.unmount(); }); container.remove(); mounted.delete(close); };
   mounted.add(close);
-  return { find, click };
+  return { find, click, container };
 }
 
 const game = () => gameStore.store.getState().game;
@@ -128,6 +129,11 @@ describe('a withdrawn loan is explained where it is refused (V08, story 12)', ()
     expect(card.find('node-' + QUEUE + '-grant')?.textContent).toContain('Loaned capacity, withheld');
     // #373: refused, the card keeps its title and the refusal; the rest folds, and SHOW still reveals a disabled button.
     expect(card.find('node-' + QUEUE + '-unlock')).toBeNull();
+    // #417 panel: each refused card's toggle names its card, so several on one screen are told apart by a screen reader.
+    const toggleName = card.find('node-' + QUEUE + '-fold-toggle')?.getAttribute('aria-label') ?? '';
+    expect(toggleName).toMatch(/^Show: Card details, /);
+    expect([QUEUE_NODE.blindName, QUEUE_NODE.revealedName].some((name) => toggleName.endsWith(name))).toBe(true);
+    expect(labelMismatches(card.container)).toEqual([]);
     card.click('node-' + QUEUE + '-fold-toggle');
     expect(card.find('node-' + QUEUE + '-unlock')?.getAttribute('aria-disabled')).toBe('true');
     const stopped = revoked(must(toggleNode(serving(), QUEUE, preview)));
