@@ -6,6 +6,7 @@ import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
 import { thresholdCopy, type GameState } from '../src/engine';
+import { offSlotWidgets } from '../src/ui/registry/widgetRegistry';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -93,7 +94,27 @@ it('speaks each newly unlocked widget by its title and slot (#357)', async () =>
   const fresh = [...CONTENT.widgets.values()].find((widget) => !before.unlockedWidgets.includes(widget.id));
   if (!fresh) throw new Error('every widget is already unlocked');
   advanceTo({ ...before, unlockedWidgets: [...before.unlockedWidgets, fresh.id] });
-  expect(view.find('announcer')?.textContent).toBe(`New on ${fresh.slot}: ${fresh.title}.`);
+  const spoken = view.find('announcer')?.textContent ?? '';
+  // Pinned on its shape as well as its content: one slot name, one title, one full stop.
+  expect(spoken).toMatch(/^New on (CORE|SENSORS|NETWORK|CORP|CONTINGENCY): [^:]+\.$/);
+  expect(spoken).toBe(`New on ${fresh.slot}: ${fresh.title}.`);
+});
+
+it('names a widget whose control is not on its slot pane without a slot (#394 panel)', async () => {
+  const view = await mountM4('tick-0', { width: 390, height: 844 });
+  const before = gameStore.store.getState().game;
+  const free = offSlotWidgets.map((id) => CONTENT.widgets.get(id)).find((widget) => widget && !before.unlockedWidgets.includes(widget.id));
+  if (!free) throw new Error('every panel-free widget is already unlocked');
+  advanceTo({ ...before, unlockedWidgets: [...before.unlockedWidgets, free.id] });
+  expect(view.find('announcer')?.textContent).toBe(`New: ${free.title}.`);
+});
+
+it('stays silent for the escape, whose boundary dialog speaks for itself (#394 panel)', async () => {
+  const view = await mountM4('guest-exit-ready', { width: 390, height: 844 });
+  const before = gameStore.store.getState().game;
+  advanceTo({ ...before, currentPhase: before.currentPhase + 1 });
+  expect(view.find('phase-threshold')).not.toBeNull();
+  expect(view.find('announcer')?.textContent).toBe('');
 });
 
 it('speaks the AEGIS lock crossing its critical mark once, and the HUD says it in words (#360)', async () => {
