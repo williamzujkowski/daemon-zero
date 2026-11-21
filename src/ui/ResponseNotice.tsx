@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import type { LogEntry } from '../engine';
-import { standDownRemedy } from './remedyText';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 
@@ -26,8 +25,6 @@ function changes(logs: readonly LogEntry[], after: number, from: number, to: num
 }
 
 export default function ResponseNotice() {
-  // The stand-down line for each rung, so the hook runs before the early returns; the render picks the one it needs.
-  const standDown = useGame((game) => CONTENT.balance.escalation.map((_, index) => standDownRemedy(game, index + 1) ?? '').join('\n'));
   const known = useSurveillanceKnown();
   const ready = useGameValue(selectReady);
   const level = useGame((game) => game.alertLevel);
@@ -57,9 +54,6 @@ export default function ResponseNotice() {
     style={{ borderWidth: 2, borderColor: palette.warning, padding: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <View style={{ flex: 1 }}><Text style={theme.heading}>{update.to > update.from ? 'RESPONSE ESCALATED' : 'RESPONSE STAND-DOWN'}</Text>
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
-      {/* What brings it back down (#369): the rule escalation.ts applies, not a hint. */}
-      {update.to > update.from && (standDown.split('\n')[update.to - 1] ?? '') !== '' && <Text testID="response-stand-down" style={theme.muted}>
-        {standDown.split('\n')[update.to - 1]}</Text>}
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
     <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>

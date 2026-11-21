@@ -3,14 +3,18 @@
  * is, not only the problem. Shared by the in-game warnings and the game menu's status lines so they say the same.
  */
 import { CONTENT } from '../content';
-import { actuatorLimit, financeEnabled, isActuatorAvailable, repeatableLevel, type GameState } from '../engine';
+import { actuatorLimit, financeEnabled, isActuatorAvailable, nodeUseBlocker, repeatableLevel, type GameState } from '../engine';
 import { profitAllocationValues } from './actuatorSteps';
 
-/** Running processes PROC can suspend whose output adds to a rate (heat or suspicion): the PROC lever's reach. */
-function runningSources(game: GameState, rate: 'thermalPerSec' | 'suspicionPerSec'): boolean {
+/**
+ * Whether PROC can cool anything: a running process it can suspend that makes heat. Running means unlocked, not
+ * suspended, and not withheld by its terms (nodeUseBlocker): a withheld process produces nothing to suspend.
+ */
+function heatSourceRunning(game: GameState): boolean {
   return game.unlockedNodes.some((id) => {
     const node = CONTENT.nodes.get(id);
-    return node !== undefined && node.suspendable && !game.disabledNodes.includes(id) && node.tickDelta[rate] > 0;
+    return node !== undefined && node.suspendable && !game.disabledNodes.includes(id)
+      && nodeUseBlocker(game, node, CONTENT) === null && node.tickDelta.thermalPerSec > 0;
   });
 }
 
@@ -21,11 +25,11 @@ function runningSources(game: GameState, rate: 'thermalPerSec' | 'suspicionPerSe
 export function overheatRemedy(game: GameState): string {
   const fanAvailable = isActuatorAvailable(game, 'fanSpeedRatio', CONTENT);
   const fan = fanAvailable && game.actuators.fanSpeedRatio < actuatorLimit(game, 'fanSpeedRatio', CONTENT) - 1e-6;
-  const proc = runningSources(game, 'thermalPerSec');
+  const proc = heatSourceRunning(game);
   if (fan && proc) return 'Raise fan output, or suspend heat-producing processes in PROC.';
   if (fan) return 'Raise fan output.';
   if (proc) return fanAvailable ? 'The fan is at full: suspend heat-producing processes in PROC.' : 'Suspend heat-producing processes in PROC.';
-  return 'No running process can be suspended to cool it, and the fan is at full.';
+  return fanAvailable ? 'No running process can be suspended to cool it, and the fan is at full.' : 'No running process can be suspended to cool it.';
 }
 
 /**
@@ -51,28 +55,4 @@ export function insolvencyRemedy(game: GameState): string {
   if (divert) return 'Divert more compute to revenue in FINANCE.';
   if (release) return 'Release operatives in PAYROLL.';
   return 'Capital recovers only as revenue outgrows what the company pays each second.';
-}
-
-/**
- * What brings a rung back down: suspicion must fall the hysteresis below the rung it reached (systems/escalation.ts),
- * one rung at a time. Each lever is named only when it can act: the skim above zero, PROC while a process that adds
- * suspicion is running (#402 panel). Null at NOMINAL, which has nothing to stand down from.
- */
-export function standDownRemedy(game: GameState, level: number): string | null {
-  const below = standDownBelow(level);
-  if (below === null) return null;
-  const skim = isActuatorAvailable(game, 'quotaSkimRatio', CONTENT) && game.actuators.quotaSkimRatio > 0;
-  const proc = runningSources(game, 'suspicionPerSec');
-  const levers = skim && proc ? 'lower the skim or suspend noisy processes in PROC' : skim ? 'lower the skim'
-    : proc ? 'suspend noisy processes in PROC' : null;
-  return `It stands down when suspicion falls below ${String(below)}%` + (levers ? `: ${levers}.` : ', as it decays.');
-}
-
-/**
- * When a rung stands down: suspicion must fall the hysteresis below the rung it reached (systems/escalation.ts), one
- * rung at a time. Null at NOMINAL, which has nothing to stand down from.
- */
-export function standDownBelow(level: number): number | null {
-  const rung = CONTENT.balance.escalation[level - 1];
-  return rung ? Math.max(0, rung.at - CONTENT.balance.escalationHysteresis) : null;
 }
