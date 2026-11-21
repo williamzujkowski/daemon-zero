@@ -29,10 +29,10 @@ export interface AxeNodes { count: number; targets: readonly string[] }
  */
 export type KnownGap<R extends string = GateRule> = GapBase & (R extends 'axe' ? { rule: R; axeNodes: AxeNodes } : { rule: R });
 
-const RECALL = 'status-first (#385) puts the Review standing right under EXECUTE and the omen, but on the phone the recall announcement inside it starts 3 px below the fold, after the violations and the way back; nothing in the chrome carries it';
+const RECALL = 'the recall announcement now follows the standing line (#367), right under EXECUTE and the omen, but on the phone its alert holds all three outcome previews (518 px), so only 60% of it fits the first viewport; whether the alert should hold the outcomes is an open question on #367';
 
 export const KNOWN_GAPS: readonly KnownGap[] = [
-  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 31,847,328,518; visibleRatio 0; fold 844', reason: RECALL, issue: '#367' },
+  { stage: 'route-recall-announced', viewport: '390x844', item: 'route.recall', rule: 'timely-fold', measured: 'box 31,531,328,518; visibleRatio 0.604; fold 844', reason: RECALL, issue: '#367' },
 ];
 
 const gapKey = (entry: { stage: string; viewport: string; rule: string; item: string }): string =>
