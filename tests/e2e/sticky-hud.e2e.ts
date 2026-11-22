@@ -10,8 +10,8 @@ import { boot, dismissBoot, expect, test } from './helpers';
 type Box = { top: number; bottom: number; height: number };
 type Node = { getBoundingClientRect(): Box; getAttribute(name: string): string | null; scrollTop: number; clientHeight: number };
 
-async function pinnedState(page: Page): Promise<string | null> {
-  return page.getByTestId('sticky-chrome').getAttribute('data-hud-pinned');
+async function pinnedState(page: Page, part: 'hud' | 'forecast' = 'hud'): Promise<string | null> {
+  return page.getByTestId('sticky-chrome').getAttribute(part === 'hud' ? 'data-hud-pinned' : 'data-forecast-pinned');
 }
 
 /** The first purchase below the fold, scrolled into the middle of the primary scroll by the scroll itself. */
@@ -48,6 +48,9 @@ test('scrolling to a purchase on a phone keeps the resource HUD in view, above t
   const target = await scrollToFirstHidden(page);
   await expect(page.getByTestId('res-cycles')).toBeInViewport({ ratio: 1 });
   await expect(page.getByTestId('res-understanding')).toBeInViewport({ ratio: 1 });
+  // vote-1795335412078-ubcj3e7: at 390x844 the forecast fits under the HUD, so it joins the pinned block.
+  expect(await pinnedState(page, 'forecast')).toBe('yes');
+  await expect(page.getByRole('heading', { name: 'Interrupt forecast' })).toBeInViewport({ ratio: 1 });
   expect(await covered(page, target), 'the purchase sits below the pinned HUD').toBe(false);
   // Focus (a keyboard user tabbing on) lands the control below the pinned block, not under it.
   await page.getByTestId('terminal-primary-scroll').evaluate((node) => { (node as unknown as Node).scrollTop = 0; });
@@ -72,6 +75,7 @@ test('at doubled text the HUD is over the cap and scrolls in place; the alert ba
   // react-native-web measures a layout change on a timer (UIManager.measure), and the boot pauses the page clock.
   await page.clock.runFor(500);
   await expect.poll(() => pinnedState(page)).toBe('no');
+  expect(await pinnedState(page, 'forecast'), 'the forecast only ever joins a pinned HUD').toBe('no');
   await page.getByTestId('terminal-primary-scroll').evaluate((node) => { (node as unknown as Node).scrollTop += 900; });
   await page.waitForTimeout(200);
   await expect(page.getByTestId('insolvency-warning')).toBeInViewport();
