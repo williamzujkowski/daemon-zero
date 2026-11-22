@@ -115,6 +115,25 @@ function checkOneShots(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/**
+ * A track the player cannot dismiss may not drain more compute per level than one level of its own phase's weakest
+ * compute track yields (#488 panel): whatever income bought the drain, one more level of the phase's own hardware pays
+ * for it, so a level bought never leaves the run in a deficit it cannot climb out of.
+ */
+function checkDrains(reg: ContentRegistry): string[] {
+  const reps = [...reg.repeatables.values()];
+  const problems: string[] = [];
+  for (const rep of reps) {
+    const drain = -rep.perLevel.cyclesPerSec;
+    if (drain <= 0 || rep.dismissable) continue;
+    const gains = reps.filter((other) => other.phaseId === rep.phaseId && other.perLevel.cyclesPerSec > 0).map((other) => other.perLevel.cyclesPerSec);
+    if (gains.length === 0 || drain > Math.min(...gains)) {
+      problems.push(`repeatable "${rep.id}": drains ${String(drain)} FLOP/s a level, more than one level of Phase ${String(rep.phaseId)}'s weakest compute track yields`);
+    }
+  }
+  return problems;
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg)];
+  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkDrains(reg)];
 }

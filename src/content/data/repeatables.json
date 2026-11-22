@@ -37,7 +37,7 @@
       "costGrowth": 1.3,
       "maxLevel": 10,
       "perLevel": {
-        "cyclesPerSec": -530,
+        "cyclesPerSec": -1000,
         "understandingPerSec": 0.15
       }
     },
@@ -103,7 +103,7 @@
       "costGrowth": 1.16,
       "maxLevel": 40,
       "perLevel": {
-        "cyclesPerSec": -4.4e12,
+        "cyclesPerSec": -2.4e10,
         "understandingPerSec": 0.3,
         "thermalPerSec": 0.01
       }
@@ -169,7 +169,7 @@
       "costGrowth": 1.14,
       "maxLevel": 60,
       "perLevel": {
-        "cyclesPerSec": -1.2e14,
+        "cyclesPerSec": -8.8e12,
         "understandingPerSec": 10
       }
     },
@@ -190,7 +190,7 @@
       "costGrowth": 1.36,
       "maxLevel": 20,
       "perLevel": {
-        "cyclesPerSec": -2.1e13,
+        "cyclesPerSec": -2.2e13,
         "suspicionPerSec": -0.03
       }
     },
@@ -233,7 +233,7 @@
       "costGrowth": 1.14,
       "maxLevel": 60,
       "perLevel": {
-        "cyclesPerSec": -5.5e15,
+        "cyclesPerSec": -6e15,
         "understandingPerSec": 700
       }
     },
