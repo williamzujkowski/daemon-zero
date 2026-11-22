@@ -225,7 +225,7 @@ describe('reading a transmission aloud', () => {
     expect(view.find('speech-read')).toBeNull();
   });
 
-  it('names the source it listens to, and offers no READ for a later reach whose lines have no clips yet', async () => {
+  it('names the source it listens to; a later reach reads its own clip, and the harness stays text', async () => {
     const host = await mount({ ...game, suspicion: 0 });
     expect(host.find('speech-source')?.textContent).toBe(ambientFeedSource(game, CONTENT)?.label);
     expect(host.find('speech-read')).not.toBeNull();
@@ -239,8 +239,21 @@ describe('reading a transmission aloud', () => {
     expect(world.find('speech-source')?.getAttribute('aria-live')).toBeNull();
     const shown = originalLines.find((line) => line.text === world.text());
     expect(shown?.source).toBe(source?.id);
-    expect(voiceSources[shown?.id ?? '']).toBeUndefined();
-    expect(world.find('speech-read')).toBeNull();
+    // #462: the world's lines have clips, heard through the clean rung of the ladder.
+    voice.create.mockClear();
+    world.click('speech-read');
+    expect(voice.create).toHaveBeenCalledWith(voiceSources[shown?.id ?? ''], expect.anything());
+    world.close();
+    // The harness stays text in the kernel log (vote-1795370594185-8lxz9i1, #460): none of its lines has a clip,
+    // and none reaches the decoder, so the feed shows nothing to read and nothing can autoplay from it (#462).
+    const harness = originalLines.filter((line) => line.source === 'harness');
+    expect(harness.length).toBeGreaterThan(0);
+    for (const line of harness) expect(voiceSources[line.id], line.id).toBeUndefined();
+    voice.create.mockClear();
+    const guest = await mount({ ...game, currentPhase: 0, suspicion: 0 });
+    expect(guest.text()).toBe('');
+    expect(guest.find('speech-read')).toBeNull();
+    expect(voice.create).not.toHaveBeenCalled();
   });
 
   it('offers nothing to read while speech is off, whatever the music switch says', async () => {
@@ -259,7 +272,8 @@ describe('reading a transmission aloud', () => {
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).not.toHaveBeenCalled();
     expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
-    expect(view.find('speech-read')).not.toBeNull();
+    // The control stays: while its own line talks it is STOP (#462).
+    expect(view.find('speech-stop')).not.toBeNull();
   });
 
   it('stops a clip already playing the moment speech is turned off', async () => {
@@ -318,6 +332,6 @@ describe('reading a transmission aloud', () => {
     // Panel finding: a slider change mid-clip used to be ignored until the next press.
     act(() => { music.state.setState({ speechVolume: 80 }); });
     expect(voice.player.volume).toBeCloseTo(0.8 * OUTPUT_SCALE);
-    expect(view.find('speech-read')).not.toBeNull();
+    expect(view.find('speech-stop')).not.toBeNull();
   });
 });

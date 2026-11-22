@@ -1,6 +1,7 @@
 /** Fresh current-engine fixtures enter through normal persisted-save hydration. */
 import { expect, test as base, type Page } from '@playwright/test';
 import { makeFixtures } from '../../scripts/make-fixtures';
+import voiceManifest from '../../assets/audio/voice/MANIFEST.json';
 import { CONTENT } from '../../src/content';
 import { importSave, serialize, type GameState } from '../../src/engine';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
@@ -53,7 +54,7 @@ export { expect };
  */
 export async function boot(page: Page, fixture?: string,
   options: { audio?: boolean | Record<string, unknown>; patch?: (game: GameState) => GameState; realTimers?: boolean;
-    axeTimers?: boolean; ending?: boolean } = {}): Promise<void> {
+    axeTimers?: boolean; ending?: boolean; heard?: 'all' | readonly string[] } = {}): Promise<void> {
   // `axeTimers` keeps the native timers aside for axeReport, which needs them on the paused clock;
   // it must be registered before the clock is installed (see captureRealTimers).
   if (options.axeTimers === true) await captureRealTimers(page);
@@ -86,6 +87,18 @@ export async function boot(page: Page, fixture?: string,
       if (!localStorage.getItem('daemon-zero.audio.v1')) localStorage.setItem('daemon-zero.audio.v1', JSON.stringify(value));
     }, stored);
   }
+  // A voiced feed line plays once by itself the first time it is shown (#462). That clip plays in
+  // real time while the page clock is paused, so it could race any spec's own assertions; a booted
+  // page therefore starts with every line already heard, the state of a player who has heard them
+  // all, and READ is the only way to sound one. A spec about autoplay passes `heard: []` (a fresh
+  // install) or the lines it wants heard.
+  const heard = options.heard ?? 'all';
+  await page.addInitScript((value) => {
+    const { localStorage } = globalThis as unknown as { localStorage: BrowserStorage };
+    if (!localStorage.getItem('daemon-zero.voice-heard.v1') && value.length > 0) {
+      localStorage.setItem('daemon-zero.voice-heard.v1', JSON.stringify({ version: 1, heard: value }));
+    }
+  }, heard === 'all' ? voiceManifest.clips.map((clip) => clip.id) : [...heard]);
   await page.goto('./');
   if (fixture === 'guest-dilemma') await expect(page.getByTestId('dilemma-modal')).toBeVisible();
   // An ended run renders its ending without the terminal underneath.

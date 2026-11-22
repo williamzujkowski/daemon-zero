@@ -6,6 +6,7 @@
 import { useContext, type ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { SafeAreaInsetsContext, type EdgeInsets, type Metrics } from 'react-native-safe-area-context';
+import { useOverlayPresence } from '../app/overlayPresence';
 import { View } from './PhaseTheme';
 
 const NO_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -27,9 +28,12 @@ export function useEdgePadding(base = 0): ViewStyle {
 
 /** A modal's backdrop. React Native presents a Modal in its own full-window layer, outside the
  *  padded terminal root, so each overlay keeps its dialog clear of the notch and home indicator
- *  itself. `padding` is the overlay's ordinary gutter; the insets are added to it per edge. */
+ *  itself. `padding` is the overlay's ordinary gutter; the insets are added to it per edge.
+ *  Every modal draws one, so this is also where an open modal is counted (the voice autoplay
+ *  queue waits for none to be open, #462). */
 export function SafeOverlay({ padding, style, children }: {
   padding: number; style?: StyleProp<ViewStyle>; children: ReactNode;
 }) {
+  useOverlayPresence();
   return <View style={[style, useEdgePadding(padding)]}>{children}</View>;
 }

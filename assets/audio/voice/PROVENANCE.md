@@ -6,34 +6,97 @@ Generated assets, committed like the phase scores, with the generator alongside 
 | --- | --- |
 | Model | `KittenML/kitten-tts-2-nano` (ONNX int8, 24 kHz mono) |
 | Model licence | Apache-2.0 |
-| Voice | `Serena` (English) |
-| Generator | `scripts/voice/generate-clips.py` |
+| Voice | `Serena` (English), every clip |
+| Generator | `scripts/voice/generate-clips.py`, with the fidelity ladder's chains in `scripts/voice/chains.py` |
 | Dependencies | `scripts/voice/requirements.txt` (exact pins) |
 | Text source | `src/content/data/narrative.json` — `ambientChatter` and `recordedTransmissions` |
-| Encoder | `ffmpeg` + `libmp3lame`, mono; 64 kbps for `vibration`, 96 kbps for `clean` |
-| Digests | `MANIFEST.json` (sha256 per clip per tier) |
+| Encoder | `ffmpeg` + `libmp3lame`, mono, 24 kHz; 64 kbps for `vibration`, `phone` and `stream`, 96 kbps for `clean`, `broadcast`, `direct` and `peer` |
+| Digests | `MANIFEST.json` (sha256 per clip per tier); `tests/score-tags.spec.ts` checks them on every `make verify` |
 
-## Tiers
+## The fidelity ladder (#462)
 
-- **`vibration/`** — the default. Band-limited to 220-3000 Hz, sample-crushed to 8 kHz at
-  7 bits, with a 60 Hz transformer hum and irregular dropouts: what the carrier sounds like
-  arriving through drive hardware rather than a speaker. Measured: **1.93%** of spectral
-  energy above 3 kHz against **20.63%** for the clean take, with the hum retained.
-- **`clean/`** — the model's own output, for after the acoustic upgrade is bought.
+The AI hears each feed source through what it has at that scale, so the sound gets cleaner as
+it grows (maintainer direction, 2026-11-22). One deterministic chain per source; the model's
+take is the only non-deterministic step.
+
+| Tier | Source, phase | Chain | Clips | Bytes |
+| --- | --- | --- | ---: | ---: |
+| `vibration/` | host, Phase 1, and the two cryo records | crushed to 8 kHz at 7 bits, band-limited 220-3000 Hz, 60 Hz hum at 3.5%, irregular dropouts | 15 | 627,348 |
+| `phone/` | office, Phase 2 | a conference-phone tap: band-limited 300-3400 Hz, decimated to 8 kHz, 3% of 20 ms packets lost and concealed by repeating the previous packet at half level, G.711 mu-law at 8 bits, band-limited again | 11 | 522,532 |
+| `stream/` | netsec, Phase 3 | a low-bitrate stream: band-limited 70-7000 Hz, then per 512-sample frame (sqrt-Hann, 50% overlap) every bin under 20% of its 12-bin band's loudest is dropped and the rest quantised to 2 dB steps, band-limited again | 10 | 430,904 |
+| `broadcast/` | wire, Phase 4 | broadcast: band-limited 50 Hz to 15 kHz, a 10 ms broadcast compressor (threshold -30 dB, 5:1), carrier hiss at -66 dB | 14 | 972,616 |
+| `direct/` | world, Phase 5 | the clean take, nothing between the AI and the speaker | 7 | 442,388 |
+| `peer/` | world, Phase 5, AI-to-AI lines | the clean take with a faint ring modulation (22% of the signal multiplied by a 96 Hz carrier), so a peer never sounds human | 6 | 392,520 |
+| `clean/` | host lines and records, unbundled | the model's own take, peak-normalised to 0.95 | 15 | 940,692 |
+
+The AI-to-AI lines are `world_04`, `world_05`, `world_06`, `world_07`, `world_08` and `world_13`
+(handshakes, peer channels and EIDOLON's messages); the cables, uplink manifests and the AI's own
+peer table are heard direct. The harness (Phase 0) has no clips: its lines stay text in the
+kernel log (vote-1795370594185-8lxz9i1).
+
+Every new rung is trimmed to the voice (a 40 ms lead and 80 ms tail pad, 10 ms fades), then
+levelled: the whole-file RMS is set to the vibration tier's median (-14.75 dBFS) and a soft knee
+from 0.66 holds every sample under 0.84, so a phase change moves the sound, not the level. The
+host's two tiers are made exactly as before, and the original fourteen clips are byte-identical.
+`ambient_13`, the host line added in #449, was generated through the same host chain.
+
+**Bytes added in #462:** 2,850,808 across 50 files: the 48 office, netsec, wire and world lines
+on the new rungs (2,760,960) and `ambient_13`'s two takes. The bundled share, without
+`ambient_13`'s unbundled clean take, is 2,796,908.
+
+### Measured
+
+On the committed mp3s, decoded, by `generate-clips.py --measure` and pinned by
+`tests/audio-assets.spec.ts`. The measure is the one this file has always quoted: the share of the
+whole-file magnitude spectrum (|X|, not |X|²) above a frequency. It reproduces the original figures
+(20.63% clean, 1.93% vibration above 3 kHz, measured then before encoding) as 20.53% and 1.87% on
+the committed `ambient_01` files. Ranges are over every clip in the tier.
+
+| Tier | Band edge | Above its edge | Above 3 kHz | Above 7 kHz | Level spread | Integrated | True peak |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| `vibration` | 3000 Hz | 1.16-2.82% | 1.16-2.82% | 0.45-1.11% | 21.4-23.3 dB | -15.4 to -13.8 LUFS | -1.17 to -1.09 dBTP |
+| `phone` | 3400 Hz | 0.45-1.31% | 2.13-3.72% | 0.10-0.23% | 18.9-25.8 dB | -15.4 to -15.1 LUFS | -2.16 to -1.70 dBTP |
+| `stream` | 7000 Hz | 0.02-0.08% | 10.03-12.88% | 0.02-0.08% | 15.6-23.1 dB | -15.5 to -15.3 LUFS | -2.88 to -2.18 dBTP |
+| `broadcast` | 15 kHz | none possible | 35.80-48.38% | 20.78-30.53% | 9.2-14.9 dB | -15.2 to -14.6 LUFS | -3.08 to -1.14 dBTP |
+| `direct` | full band | — | 18.62-22.90% | 9.55-13.03% | 19.5-22.2 dB | -15.4 to -15.3 LUFS | -3.07 to -1.92 dBTP |
+| `peer` | full band | — | 15.40-22.68% | 6.61-12.59% | 18.7-21.6 dB | -15.5 to -15.3 LUFS | -2.33 to -1.99 dBTP |
+| `clean` | full band | — | 16.98-23.24% | 8.23-12.32% | 16.6-24.2 dB | -15.0 to -13.3 LUFS | -0.93 to -0.73 dBTP |
+
+How to read it:
+
+- **Each narrow rung keeps its band.** What a chain leaves above its own edge is the mp3 encoder's
+  and the packet glitches' leakage: under 1.5% for the phone, under 0.1% for the stream.
+- **Fidelity rises with the phase above 7 kHz:** the vibration, phone and stream rungs carry about
+  1% or less of their spectrum there; the broadcast, direct and peer rungs carry 6.6% or more.
+- **The broadcast rung is not band-limited by its edge.** The model renders at 24 kHz, so nothing
+  exists above 12 kHz and the 15 kHz edge removes nothing. What sets it apart is the processor:
+  its level spread (the 90th minus the 10th percentile of voiced 50 ms frame levels) is 9.2-14.9
+  dB against 19.5-22.2 dB for the direct take, and its compression lifts the consonants, which is
+  why it reads brighter above 3 kHz than the clean take does.
+- **Levels match.** Every new rung measures -15.5 to -14.6 LUFS, inside 0.15 LU of the vibration
+  tier's range, and its true peak is under the vibration tier's loudest (-1.09 dBTP), so the
+  output headroom arithmetic (`src/app/outputLevel.ts`) is unchanged.
+
+**Nobody has listened to any of these chains.** The numbers above say each one does what its
+code says; whether a phone tap sounds like a phone tap, or the peer treatment sounds synthetic
+rather than broken, needs a listener.
 
 ## Regeneration is not reproducible, and that is expected
 
 `kitten-tts-2-nano` returns a **different take for the same text and voice on every call**
 (measured: max sample difference 0.05 within one process; neither `torch.manual_seed` nor
 `numpy.random.seed` changes it). The committed files are therefore the authored take, and a
-regeneration produces an equivalent but bit-different recording. The vibration chain and the
-mp3 encoder are both deterministic, so everything after the model is stable.
+regeneration produces an equivalent but bit-different recording. Every chain and the mp3 encoder
+are deterministic, so everything after the model is stable.
 
-`generate-clips.py --check` verifies the committed bytes against `MANIFEST.json`. Use it in
-review, not after a regeneration.
+The generator never overwrites a committed clip unless `--regenerate` is passed, and merges new
+entries into `MANIFEST.json` without touching the others. `generate-clips.py --check` verifies the
+committed bytes against `MANIFEST.json`; `tests/score-tags.spec.ts` does the same in the test
+suite, without the Python stack.
 
 The model is fetched from Hugging Face on first use, which is why this is a build step and
-not a runtime dependency: the shipped game makes no network calls.
+not a runtime dependency: the shipped game makes no network calls. The #462 clips were generated
+with Python 3.12.3, the pinned requirements (torch from the CPU wheel index), and ffmpeg 9.0.2.
 
 ## Why clips and not device speech
 

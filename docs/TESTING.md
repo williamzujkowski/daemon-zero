@@ -190,6 +190,14 @@ pnpm exec playwright test --config tests/e2e/config.ts --list
 the GitHub Pages deployment. Counts in milestone sections below are historical,
 not the current suite size.
 
+**Voice autoplay and `boot()`.** A voiced feed line plays by itself the first time it is shown
+(#462), in real time, while the page clock is paused. So `boot()` seeds the heard slot
+(`daemon-zero.voice-heard.v1`) with every clip id unless told otherwise: a booted page is a
+player who has heard every line, and READ is the only way to sound one, which keeps a real-time
+clip from racing a spec's own assertions. `tests/e2e/voice-autoplay.e2e.ts` passes `heard: []`
+(a fresh install) to test the rule itself. Specs that load the page without `boot()` (the stage
+atlas, the live journey) start fresh, so they meet autoplay as a new player does.
+
 ### Stage atlas (#341)
 
 The stage atlas audits every screen a player meets, one cell per stage and viewport, on a paused clock.
@@ -695,7 +703,9 @@ previous boundary's. On the way it also does, each once and each asserted:
 - **Read transmission**: the first time `[ ▶ READ ]` is on offer the clip is
   requested and served with bytes, a voice element is playing, the score element's
   volume is the preference times `DUCK_RATIO`, and it returns when the
-  transmission is stepped past or ends.
+  transmission is stepped past or ends. The profile is fresh, so lines also play
+  by themselves the first time they are shown (#462); READ is on offer only on a
+  line that is not talking, and the check waits for every voice to fall silent.
 - **Ending**: the ending screen shows an authored ending, its summary reads
   `Iteration 2 // Wipes 1`, and it survives a reload.
 

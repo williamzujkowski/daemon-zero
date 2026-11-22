@@ -10,6 +10,7 @@ import { CONTENT } from '../content';
 import { selectNotice, selectReady, useGameValue } from '../app/selectors';
 import { useGameLoop } from '../app/useGameLoop';
 import { music, useMusic, useMusicRuntime } from '../app/musicSession';
+import { useVoiceAutoplay } from '../app/voiceSession';
 import LogDock from './LogDock';
 import ResourceStrip from './ResourceStrip';
 import { useGame, useWidgetIds } from './state';
@@ -83,6 +84,8 @@ export default function TerminalScreen() {
   // vote (src/app/musicGesture.ts). The resume is armed with the runtime's own lease, not by
   // the terminal below it, so a root that replaces another always listens (#253).
   useMusicRuntime(gestureDocument);
+  // A voiced feed line plays once when first shown, and not before the same first input (#462).
+  useVoiceAutoplay(gestureDocument);
   const restoreRevision = useGameValue((state) => state.restoreRevision);
   // Replacement saves own fresh presentation state; the runtime keeps its single lease.
   return <PhaseTheme><UtilityFocusProvider><Terminal key={restoreRevision} /></UtilityFocusProvider></PhaseTheme>;
