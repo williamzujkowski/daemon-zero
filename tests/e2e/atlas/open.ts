@@ -8,6 +8,7 @@ import { captureRealTimers } from '../axe';
 import { SAVE_KEY } from '../routeSave';
 import { stageSave, stageState } from './sources';
 import type { StageRow } from './types';
+import { gotoEntry } from '../variantEntry';
 
 interface BrowserStorage { setItem(key: string, value: string): void }
 
@@ -42,7 +43,7 @@ export async function openStage(page: Page, row: StageRow): Promise<number> {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 1000);
   await seed(page, row);
-  await page.goto('./');
+  await gotoEntry(page);
   if (state.ending !== null) await expect(page.getByTestId('ending-screen')).toBeVisible();
   else await expect(page.getByTestId('terminal-screen')).toHaveAttribute('aria-busy', 'false');
   await expect.poll(() => page.evaluate(() => '__daemon' in globalThis)).toBe(false);

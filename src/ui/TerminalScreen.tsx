@@ -3,7 +3,7 @@ import { Pressable, Text, View } from './PhaseTheme';
  * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
 import { useEdgePadding } from './safeArea';
 import { CONTENT } from '../content';
@@ -34,7 +34,9 @@ import PhaseThreshold from './PhaseThreshold';
 import Announcer from './Announcer';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
-import MobileTerminal from './MobileTerminal';
+import MobileTerminal, { PhoneScrolled } from './MobileTerminal';
+import { InStickyBlock, phoneVariant } from './phoneVariant';
+import { SuspicionNow } from './ResourceStrip';
 import TopForecast from './TopForecast';
 import { isNarrowChrome, isVeryNarrowChrome, layoutFor, CORE_COLUMN_MIN_WIDTH, SIDE_COLUMN_MIN_WIDTH } from './layout';
 import { installFocusRing } from './focusRing';
@@ -118,8 +120,9 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal attention={attention} />}
-        header={<ChromeHeader landmark />} band={<AlertBand landmark />}
-        body={<ChromeBody landmark {...(contactAway ? { openCore } : {})} />} />
+        header={<ChromeHeader landmark />} band={<StickyBlock />}
+        body={phoneVariant() === 'collapse' ? <View /> : <ChromeBody landmark hud={phoneVariant() !== 'sticky-hud'}
+          forecast={phoneVariant() !== 'now'} {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
@@ -196,16 +199,54 @@ function AlertBand({ landmark }: { landmark?: boolean }) {
   return <View testID="alert-band" {...landmarkAttrs('Run ending alerts', landmark)}><CorporateAlerts /></View>;
 }
 
-function ChromeBody({ landmark, openCore, omenSlot = false }: { landmark?: boolean; openCore?: () => void; omenSlot?: boolean }) {
+function ChromeBody({ landmark, openCore, omenSlot = false, hud = true, forecast = true }: {
+  landmark?: boolean; openCore?: () => void; omenSlot?: boolean; hud?: boolean; forecast?: boolean;
+}) {
   const notice = useGameValue(selectNotice);
   return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
-    <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
-    <TopForecast />
+    {hud && <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>}
+    {forecast && <TopForecast />}
     <BlindAuditStatus />
     <ResponseNotice />
     {omenSlot && <OmenSlot />}
     {openCore !== undefined && <ContactNotice open={openCore} />}
+  </View>;
+}
+
+/**
+ * PROTOTYPE #384: the phone tier's sticky block, a direct child of the primary scroll (MobileTerminal). With no variant it
+ * is the alert band alone, as before; each variant adds what it pins beneath the band.
+ */
+function StickyBlock() {
+  const variant = phoneVariant();
+  if (variant === null) return <AlertBand landmark />;
+  return <InStickyBlock.Provider value><View testID="phone-sticky" style={styles.sticky}>
+    <AlertBand landmark />
+    {variant === 'sticky-hud' && <View testID="terminal-hud" role="region" aria-label="Pinned status" style={styles.hud}><ResourceStrip /><LogDock /></View>}
+    {variant === 'collapse' && <CollapsingChrome />}
+    {variant === 'now' && <NowStrip />}
+  </View></InStickyBlock.Provider>;
+}
+
+/** PROTOTYPE #384 (collapse): the whole chrome, folded to the HUD and the forecast once the scroll leaves the top. */
+function CollapsingChrome() {
+  const scrolled = useContext(PhoneScrolled);
+  const [expanded, setExpanded] = useState(false);
+  if (!scrolled && expanded) setExpanded(false);
+  const folded = scrolled && !expanded;
+  return <View role="region" aria-label="Terminal status detail">
+    {folded ? <><View testID="terminal-hud" style={styles.hud}><ResourceStrip /></View><TopForecast />
+      <Pressable testID="chrome-expand" accessibilityRole="button" accessibilityLabel="Show all status: expand the status panel"
+        style={[theme.button, styles.expand]} onPress={() => { setExpanded(true); }}><Text style={theme.text}>[ + ALL STATUS ]</Text></Pressable></>
+      : <ChromeBody />}
+  </View>;
+}
+
+/** PROTOTYPE #384 (now): suspicion, the forecast and the newest notice, pinned. */
+function NowStrip() {
+  return <View testID="now-strip" role="region" aria-label="Now" style={styles.hud}>
+    <SuspicionNow /><View style={{ flexBasis: '100%' }}><TopForecast /><OmenNotice compact /></View>
   </View>;
 }
 
@@ -235,4 +276,6 @@ const styles = StyleSheet.create({
   columns: { flex: 1, flexDirection: 'row', minHeight: 0 },
   third: { flex: 1, minWidth: 0, borderLeftWidth: 1, borderColor: palette.border },
   notice: { padding: 12, color: palette.warning },
+  sticky: { backgroundColor: palette.background, borderBottomWidth: 1, borderColor: palette.border },
+  expand: { marginHorizontal: 16, marginBottom: 4, alignSelf: 'flex-start' },
 });

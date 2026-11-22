@@ -9,7 +9,8 @@ import { CONTENT } from '../content';
 import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
-import { isCompactViewport, isShortViewport } from './layout';
+import { isCompactViewport, isShortViewport, layoutFor } from './layout';
+import { phoneVariant } from './phoneVariant';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { compactNumber } from './compactNumber';
@@ -72,11 +73,13 @@ export default function ResourceStrip() {
   const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
   const known = useSurveillanceKnown();
   const threatKnown = useGame((game) => game.unlockedWidgets.includes(threatWidget));
+  // PROTOTYPE #384: the now strip pins suspicion on the phone tier, so the strip leaves it out there.
+  const suspicionHere = !(phoneVariant() === 'now' && layoutFor(width, height).mode === 'mobile');
   const gates = useGame((game) => Object.entries(resourceWidgets)
     .filter(([, id]) => game.unlockedWidgets.includes(id)).map(([key]) => key).join(','));
   if (!gates && !threatKnown && !thermalKnown) return null;
   return <View testID="resource-strip" style={[styles.strip, compact && styles.stripCompact]}>{gates.split(',').filter(Boolean).map((resource) =>
-    <Amount key={resource} resource={resource as Resource} compact={compact} packed={packed} short={short} />)}{thermalKnown && <SensorAmount thermal compact={compact} packed={packed} short={short} />}{auditKnown && known && <SensorAmount compact={compact} packed={packed} short={short} />}{threatKnown && <ThreatAmount packed={packed} />}
+    <Amount key={resource} resource={resource as Resource} compact={compact} packed={packed} short={short} />)}{thermalKnown && <SensorAmount thermal compact={compact} packed={packed} short={short} />}{auditKnown && known && suspicionHere && <SensorAmount compact={compact} packed={packed} short={short} />}{threatKnown && <ThreatAmount packed={packed} />}
     {gates.split(',').includes('understanding') && <ConditioningImpact understanding />}
     {gates.split(',').includes('cycles') && <CycleDeficit />}</View>;
 }
@@ -88,6 +91,13 @@ export default function ResourceStrip() {
  * are drawn exactly as before; below 10 the readout keeps this width.
  */
 const SENSOR_MIN_DIGITS = '00.0';
+
+/** PROTOTYPE #384: the suspicion readout alone, for the phone's now strip. */
+export function SuspicionNow() {
+  const known = useSurveillanceKnown();
+  const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
+  return auditKnown && known ? <SensorAmount compact packed={false} short /> : null;
+}
 
 function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: boolean; compact: boolean; packed: boolean; short: boolean }) {
   const value = useGame((game) => Math.round((thermal ? game.thermal : game.suspicion) * 10) / 10);

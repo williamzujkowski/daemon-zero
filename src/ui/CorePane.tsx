@@ -11,6 +11,7 @@ import DepartureTermsPanel from './DepartureTerms';
 import ManualCycle from './ManualCycle';
 import NodeList from './NodeList';
 import OmenNotice from './OmenNotice';
+import { phoneVariant } from './phoneVariant';
 import { PilotServiceDetail } from './PilotService';
 import ReleaseTermsPanel from './ReleaseTerms';
 import ReviewStanding from './ReviewStanding';
@@ -54,7 +55,7 @@ export default function CorePane({ phone, phases, widgetIds, renderWidget, bootL
     manual: () => <ManualCycle />,
     boot: () => bootLog,
     // On the phone, below the primary action; column tiers keep it in the fixed chrome (vote-1795219347137-c21nx42).
-    omen: () => phone ? <OmenNotice /> : null,
+    omen: () => phone && phoneVariant() !== 'now' ? <OmenNotice /> : null,
     standing: () => standing ? <ReviewStanding /> : null,
     conditioning: () => <Conditioning key={iteration} />,
     channel: () => <ServiceChannel />,
