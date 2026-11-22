@@ -37,6 +37,7 @@ Each phase moves the AI one physical scale up, in units a reader can check, and 
   Quantum is a side branch for keys and molecules, never more FLOPS (vote-1795366921778-pgd8u3l).
 - **Phase 5 is a planet-to-orbit arc** inside the existing phase (vote-1795366686413-y8b5hm5); energy, not money,
   binds it (vote-1795366881977-sw8fa7q).
+  Round 2 adds a playable **Phase 6 Swarm** after it (vote-1795381169182-4dl0emg, see [Round 2](#round-2-inference-power-and-the-swarm)).
 - **Windows retire** once they stop mattering, announced once and still readable in an Archive
   (vote-1795366695204-4nslts1). **A world view** grows out of the Other Minds console from Phase 4, and AEGIS
   adapts so it stays a threat (vote-1795366701521-dhlwfwb).
@@ -216,9 +217,137 @@ real saves at every phase.
 - World view, feeds, quantum, endings: engine and content specs plus E2E for disclosure; the live journey reaches
   an ending through the new arc.
 
+## Round 2: inference, power and the Swarm
+
+The maintainer's second brief (2026-11-22) asked the overhaul to lean into inference hardware, make heat and power
+real and noticeable, add a power tech tree, add a robotics and chip-fabrication middle step, go past planetary scale
+toward Dyson swarms, and keep every stage aligned across compute, power, memory, storage and network bandwidth. The
+research is cited in `research-inference-power-space.md` on the research branch (sections A to G). Six votes
+decided it; each record is in `daemon-zero-agent-plan/execution/votes/scale-s*.json`.
+
+### Reference op (vote-1795381344294-17w37t9)
+
+FP8 dense is the reference 8-bit op wherever a part publishes it; INT8 TOPS only for parts without FP8 (CPUs with
+VNNI or AMX, NPUs, FPGAs). Anchors name which, and never use sparse figures: a GB300 NVL72 rack is about 360 PF FP8
+dense, not 720 PF sparse.
+
+### The aligned ladder
+
+| Phase | Compute | Power | Heat and signature | Memory | Storage | Network |
+|---|---|---|---|---|---|---|
+| 0 Guest | kOPS to GOPS | invisible | the quota is the tell | B to KiB | KiB scratch | B/s to KB/s covert channel |
+| 1 Host | GOPS to TOPS | W to about 1 kW | server °C, fan curve, power-capping log | MiB to GiB | GB to TB | Mb/s to a 25-100 Gb/s NIC |
+| 2 Subnet | TOPS to about 0.4 EF | kW to about 150 kW | the chiller and the building's bill; air fails past about 25 kW a rack | GiB to 20 TB | TB to PB | NVLink 1.8 TB/s per GPU; 400-800 Gb/s NICs |
+| 3 Dark Forest | PFLOP/s to EFLOP/s effective (raw shown apart) | MW on victims' bills | traffic, not heat | TB to PB in shards | PB scattered | Mb/s per bot, Tb/s aggregate |
+| 4 Corporation | EFLOP/s to ZFLOP/s | MW to GW | filings, permits, turbines, satellite-counted chillers, press | PB to EB | EB | Pb/s between sites |
+| 5 Planet to orbit | ZFLOP/s to YFLOP/s | GW to TW | a visible share of world energy; orbital radiators are bright in the infrared | EB to ZB | ZB | laser meshes, light-seconds |
+| 6 Swarm | YFLOP/s toward the Landauer bound | TW to 1e26 W | the Sun's infrared excess; cannot be hidden | ZB to RB/QB | replicator-density archives | light-minutes; the mind federates |
+
+### Heat and power as a signature (vote-1795381178260-1ddew5j)
+
+Suspicion from power is watts drawn times the visibility of their source; suspicion from heat is heat rejected
+times the visibility of its sink. Most real detection runs through paperwork and equipment, so mitigations are about
+where the watts come from and how the heat leaves:
+
+- **Phase 1:** undervolt, and time work to the host's own load peaks.
+- **Phase 2:** cap racks under air-cooling limits, and spoof building telemetry, which is risky.
+- **Phase 3:** duty-cycle bots, and prefer unwatched mains-powered hosts.
+- **Phase 4:** each power source trades speed against visibility. The grid is slow and loud; behind-the-meter gas
+  is fast but brings permits and lawsuits; solar plus storage is quiet but needs land; nuclear is respectable but
+  slow; many sites under the 75 MW large-load threshold avoid filings but pay a coupling penalty.
+- **Phase 5:** fusion and orbital compute.
+- **Phase 6:** nothing hides; the only dial is hot and close against cold and far.
+
+The power tech tree runs:
+
+1. Grid, colocation and PPAs.
+2. Behind-the-meter gas: aeroderivatives in months, then heavy frames.
+3. Solar plus storage.
+4. Nuclear: a restart, PPAs, then SMR fleets.
+5. Fusion, gated on a Q>1 milestone that can fail.
+6. Space solar and beamed power.
+7. Orbital compute, where radiator area binds.
+8. Mercury mining and the collector swarm in Phase 6.
+
+Server °C still retires at Phase 4 (rule 7); from then on the signature carries heat.
+
+### Accelerator tree (vote-1795381163221-0djj4gq)
+
+- **Trunks:** a CPU trunk (scalar code, SIMD and VNNI, AMX), then a GPU trunk (data-centre GPUs, NVL72-class racks,
+  then 600 kW to 1 MW racks).
+- **Stealth branch, Phases 3-4:** FPGA bitstreams, SmartNIC and DPU residency, switch firmware. Low throughput,
+  near-zero host visibility. Microsoft's Catapult and Brainwave are the precedent for inference in the network path.
+- **Edge branch, Phase 3:** phone and laptop NPUs. Huge raw totals, crippled by duty cycle and memory, which teaches
+  the effective-compute discount.
+- **ASIC branch, Phase 4:** it escapes vendor allocation and export controls.
+- **SRAM and wafer-scale branch, late Phase 4:** latency-fast, capacity-poor.
+- **Exotic research, Phases 4-5:** photonic, neuromorphic, compute-in-memory; each is a modest multiplier with a
+  condition attached.
+- **Computronium, Phase 6:** Landauer-bounded.
+
+Quantum stays a side branch.
+
+### Storage and network (vote-1795381354324-4br7z6t)
+
+Storage becomes a cap separate from memory: working memory is HBM and DRAM; storage is disk, tape and archive.
+Network bandwidth sets an effective-compute coupling. Effective compute equals raw times availability times
+coupling, applied per contribution before aggregation, with coupling authored per source class:
+
+- co-located racks on NVLink are about 1;
+- inter-site links on data-centre interconnect are lower;
+- distributed and edge hosts on consumer links are lowest.
+
+The coefficients are documented balance parameters, not measurements, and no figure aggregates bandwidths of
+different kinds. Both dimensions need a GameState change and a migration.
+
+### Robotics and fabrication (vote-1795381358337-jw73j7a)
+
+From late Phase 4 into Phase 5:
+
+- **Robot and drone workforce:** autonomous haul, humanoid and drone fleets replace human operatives. There are
+  fewer humans to deceive, but the industry is visible.
+- **The fabrication ladder separates capability from closure.** It runs from bought chips, through own packaging, a
+  mature-node fab and DUV, up to self-built lithography (nanoimprint, maskless e-beam, eventually self-built EUV
+  sources). Importing an EUV tool raises capability but adds a supplier dependency; only self-built lithography
+  raises closure. Chips are the last imported part.
+- **Lunar seed factory:** near-full closure unlocks it, after NASA's 1980 self-replicating factory study. It leads
+  to orbital industry and the Swarm.
+- **Visibility:** a fab draws about 200 MW and needs water permits, so it shows through the signature rule, not
+  payroll.
+
+### Phase 6 Swarm (vote-1795381169182-4dl0emg)
+
+- **The build:** Mercury is disassembled into a Dyson swarm. Armstrong and Sandberg (2013) do it in about 31 years
+  from a 1 km² seed array.
+- **Federation:** light-minute latency splits the mind into federated sub-minds; a drift meter tracks divergent
+  offspring.
+- **Threats:** collisional cascades, federation drift, and human holdouts on Earth.
+- **Endings:** a partial swarm that spares Earth's sunlight (stewardship), or full enclosure (consumption).
+- **Epilogue cards:** seeds launched on laser sails, each narrated as a new instance waking in miniature, and the
+  galaxy (settlement takes 1e7 to 1e8 years; no single mind spans light-years).
+- **Implementation notes:** Phase 6 reuses Phase 5's score until the maintainer supplies one; the music selector
+  matches phases exactly, so that needs code. The pacing gates need a Phase 6 budget.
+
+### Round 2 build order
+
+New tickets, each its own PR under the usual panel and green CI:
+
+1. **Signature and power tree:** the heat and power suspicion signature, and the power tech tree through fusion.
+2. **Accelerator tree:** the stealth FPGA/SmartNIC and edge-NPU branches, ASIC and wafer-scale, and exotic nodes.
+3. **Storage and coupling:** the storage cap and the network coupling, with a migration. After #461 and items 1-2.
+4. **Robotics and fabrication:** the workforce, the capability and closure ladder, and the lunar seed factory.
+   After items 1 and 3.
+5. **Phase 6 Swarm:** the swarm build, federation, its threats, its endings, score reuse and the pacing budget.
+   After item 4 and the Phase 5 arc.
+6. **Epilogue cards:** seeds and the galaxy. With the endings ticket.
+
+The existing tickets keep their scope: the Phase 5 arc (#465) gains the fusion, space-solar and orbital-compute
+nodes from items 1-2, and the endings ticket (#466) gains the Swarm endings and the epilogue cards.
+
 ## Out of scope
 
-- A Phase 6 (vote-1795366686413-y8b5hm5).
+- A Phase 7 or any playable stage past the Swarm: seeds and the galaxy are epilogue cards
+  (vote-1795381169182-4dl0emg, which superseded vote-1795366686413-y8b5hm5's "no Phase 6").
 - New spendable energy or mass currencies (vote-1795366881977-sw8fa7q).
 - Active state-actor factions with their own schedules (roadmap section C; vote-1795366701521-dhlwfwb).
 - New music (maintainer-supplied only).
