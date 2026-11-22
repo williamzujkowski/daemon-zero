@@ -11,7 +11,7 @@ const voice = vi.hoisted(() => ({ player: { volume: 1, play: vi.fn(), remove: vi
   mode: vi.fn(() => Promise.resolve()) }));
 vi.mock('expo-audio', () => ({ createAudioPlayer: voice.create, setAudioModeAsync: voice.mode }));
 import { CONTENT } from '../src/content';
-import { importSave, wipe, type GameState } from '../src/engine';
+import { ambientFeedSource, importSave, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { music } from '../src/app/musicSession';
 import { voiceSources } from '../src/app/voiceSources';
@@ -26,8 +26,12 @@ import { OUTPUT_SCALE } from '../src/app/outputLevel';
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
 const originalLines = [...CONTENT.narrative.ambientChatter];
-/** A line gated on a campaign fact never speaks under legacy rules, where no fact holds. */
-const legacyLine = (line: (typeof originalLines)[number]) => line.requirements?.campaignFact === undefined;
+/**
+ * A line gated on a campaign fact never speaks under legacy rules, where no fact holds, and only the
+ * source of the fixture's reach is on the air (#449).
+ */
+const legacyLine = (line: (typeof originalLines)[number]) => line.requirements?.campaignFact === undefined
+  && line.source === ambientFeedSource(game, CONTENT)?.id;
 const listeners = new Set<(value: boolean) => void>();
 const mounted = new Set<() => void>();
 let game: GameState;
@@ -214,11 +218,29 @@ describe('reading a transmission aloud', () => {
   });
 
   it('offers nothing to read for a line that has no committed clip', async () => {
-    CONTENT.narrative.ambientChatter.splice(0, Infinity, { id: 'ambient_99', text: 'No clip was ever generated for this line.', minSuspicion: 0, requirements: {} } as never);
+    CONTENT.narrative.ambientChatter.splice(0, Infinity, { id: 'ambient_99', source: ambientFeedSource(game, CONTENT)?.id, text: 'No clip was ever generated for this line.', minSuspicion: 0, requirements: {} } as never);
     const view = await mount({ ...game, suspicion: 0 });
     expect(view.text()).toBe('No clip was ever generated for this line.');
     // Data-driven, not assumed: the control follows the clips that exist.
     expect(view.find('speech-read')).toBeNull();
+  });
+
+  it('names the source it listens to, and offers no READ for a later reach whose lines have no clips yet', async () => {
+    const host = await mount({ ...game, suspicion: 0 });
+    expect(host.find('speech-source')?.textContent).toBe(ambientFeedSource(game, CONTENT)?.label);
+    expect(host.find('speech-read')).not.toBeNull();
+    host.close();
+    const late = { ...game, currentPhase: 5, suspicion: 0 };
+    const world = await mount(late);
+    const source = ambientFeedSource(late, CONTENT);
+    expect(world.find('speech-source')?.textContent).toBe(source?.label);
+    expect(world.find('speech-source')?.textContent).not.toBe(ambientFeedSource(game, CONTENT)?.label);
+    // A plain label: it changes only with the phase and announces nothing on its own.
+    expect(world.find('speech-source')?.getAttribute('aria-live')).toBeNull();
+    const shown = originalLines.find((line) => line.text === world.text());
+    expect(shown?.source).toBe(source?.id);
+    expect(voiceSources[shown?.id ?? '']).toBeUndefined();
+    expect(world.find('speech-read')).toBeNull();
   });
 
   it('offers nothing to read while speech is off, whatever the music switch says', async () => {

@@ -13,6 +13,7 @@ import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
 import { checkChoiceGateIntegrity } from './integrityChoiceGates';
 import { checkFollowUpIntegrity } from './integrityFollowUp';
 import { checkNarrativeHistoryIntegrity } from './integrityNarrativeHistory';
+import { checkFeedIntegrity } from './integrityFeeds';
 import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
 import { checkScrutinyIntegrity } from './integrityScrutiny';
@@ -233,6 +234,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkAchievementIntegrity(reg),
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
+    ...checkFeedIntegrity(reg),
     ...checkCampaignIntegrity(reg),
     ...checkCampaignFactIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),

@@ -1,17 +1,32 @@
 /**
- * Read-only authored text chosen from world history: decoded speech, where recorded consequences
- * never join the timed ambient rotation, the omen, context and choices a dilemma is presented
- * with, the aisle camera and a node's blind description.
+ * Read-only authored text chosen from world history: decoded speech from the source the AI's reach
+ * hears, where recorded consequences never join the timed ambient rotation, the omen, context and
+ * choices a dilemma is presented with, the aisle camera and a node's blind description.
  */
 import type { ContentRegistry } from '../content/registry';
-import type { Dilemma, DilemmaChoice, Requirements, TechNode } from '../content/schema';
+import type { Dilemma, DilemmaChoice, FeedSource, Requirements, TechNode } from '../content/schema';
 import type { GameState } from './state';
 import { meetsRequirements } from './query';
 import { dilemmaRouteCopy } from './routeCopy';
 
+/**
+ * What the feed listens to at this reach (#449): the source authored for the furthest phase not beyond the
+ * current one. Integrity gives every phase exactly one, so in shipped content it is the current phase's own.
+ */
+export function ambientFeedSource(s: GameState, reg: ContentRegistry): FeedSource | null {
+  return reg.narrative.feedSources.reduce<FeedSource | null>((best, source) =>
+    source.phase <= s.currentPhase && (best === null || source.phase > best.phase) ? source : best, null);
+}
+
+/**
+ * The decoded lines that may play now, in authored order: only the current reach's source, so an outgrown
+ * source (the server room in Phase 5) falls silent, and only lines whose gate the state makes true.
+ */
 export function eligibleAmbientSpeech(s: GameState, reg: ContentRegistry, decoderId: string) {
   if (!s.unlockedWidgets.includes(decoderId)) return [];
-  return reg.narrative.ambientChatter.filter((line) => line.minSuspicion <= s.suspicion && meetsRequirements(s, line.requirements, reg));
+  const source = ambientFeedSource(s, reg);
+  return reg.narrative.ambientChatter.filter((line) => line.source === source?.id
+    && line.minSuspicion <= s.suspicion && meetsRequirements(s, line.requirements, reg));
 }
 
 export function recordedTransmissions(s: GameState, reg: ContentRegistry, decoderId: string) {

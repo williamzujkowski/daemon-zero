@@ -18,7 +18,7 @@ import { AUCTION, CORPORATE, omen, ORDER } from './corporate-helpers';
 import { comesBack, event, near, nextIteration } from './early-helpers';
 import { stableThroughReloads, untilPresented } from './interruption-helpers';
 import { must, rich, remarkedAsProduction } from './helpers';
-import { stripNh05 } from './obligation-helpers';
+import { dropUndeclaredFeedLines, stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before NH-04b converted the corporate events (tests/fixtures/README.md). */
 const PRE_NH04B_PREVIEW = readFileSync('tests/fixtures/pre-nh04b-active-v9.json', 'utf8');
@@ -114,5 +114,6 @@ function beforeConversion(): ReturnType<typeof buildRegistry> {
     delete dilemma.contextVariants;
     delete dilemma.omenVariants;
   }
+  dropUndeclaredFeedLines(old);
   return buildRegistry({ ...old } as unknown as RawContent);
 }

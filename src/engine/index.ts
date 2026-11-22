@@ -7,6 +7,7 @@ export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
 export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, MEMORY_UNITS, memoryExact, significant3, spokenAmount } from './amount';
+export { type Dimension, quantityExact, quantityReadout, quantitySpoken } from './physicalUnits';
 export { computeRates } from './rates';
 export { wipe } from './prestige';
 export * from './query';

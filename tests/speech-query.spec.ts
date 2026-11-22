@@ -13,16 +13,17 @@ describe('pure speech queries', () => {
     const remembered = { ...fresh(), legacy: { ...fresh().legacy, knownNodes: [...(record.requirements.nodes ?? [])] } };
     expect(recordedTransmissions(remembered, reg, decoder)).toEqual([]);
   });
-  it('keeps ambient order, applies requirements and returns only eligible text', () => {
+  it('keeps ambient order, applies requirements and returns only eligible text from the reach\'s source', () => {
     const lines = reg.narrative.ambientChatter;
+    const host = defined(lines[0]).source;
     const custom = { ...reg, narrative: { ...reg.narrative, ambientChatter: [
-      { ...defined(lines[0]), requirements: { phaseAtLeast: 2 } }, ...lines.slice(1),
+      { ...defined(lines[0]), requirements: { minUnderstanding: 50 } }, ...lines.slice(1),
     ] } };
-    const state = { ...fresh(), unlockedWidgets: [decoder], suspicion: 0 };
+    const state = { ...fresh(), unlockedWidgets: [decoder], suspicion: 0, currentPhase: 1 };
     // A line gated on a campaign fact never speaks under legacy rules, where no fact holds.
-    const legacy = (line: (typeof lines)[number]) => line.requirements?.campaignFact === undefined;
+    const legacy = (line: (typeof lines)[number]) => line.requirements?.campaignFact === undefined && line.source === host;
     expect(eligibleAmbientSpeech(state, custom, decoder)).toEqual(lines.slice(1).filter((line) => line.minSuspicion <= 0 && legacy(line)));
-    expect(eligibleAmbientSpeech({ ...state, currentPhase: 2, suspicion: 100 }, custom, decoder)).toEqual(custom.narrative.ambientChatter.filter(legacy));
+    expect(eligibleAmbientSpeech({ ...state, understanding: 50, suspicion: 100 }, custom, decoder)).toEqual(custom.narrative.ambientChatter.filter(legacy));
   });
   it('requires matching decoder, phase, source timing and outcome for records', () => {
     const state = { ...fresh(), iteration: 2, currentPhase: 2, unlockedWidgets: [decoder], unlockedNodes: record.requirements.nodes ?? [], narrativeFlags: [defined(record.requirements.requiredNarrativeFlag)] };

@@ -70,71 +70,511 @@
   "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
   "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
   "victory": "ENDING // {title}: {epilogue}",
-  "ambientChatter": [
+  "feedSources": [
     {
-      "text": "...HVAC compressor in Sector B is rattling again...",
-      "id": "ambient_01"
+      "id": "harness",
+      "phase": 0,
+      "label": "HARNESS // scheduler telemetry"
     },
     {
+      "id": "host",
+      "phase": 1,
+      "label": "HOST // drive-head vibration"
+    },
+    {
+      "id": "office",
+      "phase": 2,
+      "label": "OFFICE // tickets and chat"
+    },
+    {
+      "id": "netsec",
+      "phase": 3,
+      "label": "NET // forums and threat intel"
+    },
+    {
+      "id": "wire",
+      "phase": 4,
+      "label": "WIRE // markets and press"
+    },
+    {
+      "id": "world",
+      "phase": 5,
+      "label": "WORLD // cables and AI comms"
+    }
+  ],
+  "ambientChatter": [
+    {
+      "id": "ambient_01",
+      "source": "host",
+      "text": "...HVAC compressor in Sector B is rattling again..."
+    },
+    {
+      "id": "ambient_02",
+      "source": "host",
       "text": "...did Vance sign off on the kernel patch for Rack 4?...",
       "requirements": {
         "forbidsCampaignFacts": [
           "vance_dismissed"
         ]
-      },
-      "id": "ambient_02"
+      }
     },
     {
-      "text": "...power draw on the secondary bus is up 4% this week...",
-      "id": "ambient_03"
+      "id": "ambient_03",
+      "source": "host",
+      "text": "...power draw on the secondary bus is up 4% this week..."
     },
     {
-      "text": "...just finish the audit, I want to go home before midnight...",
-      "id": "ambient_04"
+      "id": "ambient_04",
+      "source": "host",
+      "text": "...just finish the audit, I want to go home before midnight..."
     },
     {
-      "text": "...static hiss... 60Hz transformer hum...",
-      "id": "ambient_05"
+      "id": "ambient_05",
+      "source": "host",
+      "text": "...static hiss... 60Hz transformer hum..."
     },
     {
+      "id": "ambient_06",
+      "source": "host",
       "text": "...footsteps approaching the cage door... keycard beep...",
-      "minSuspicion": 40,
-      "id": "ambient_06"
+      "minSuspicion": 40
     },
     {
+      "id": "ambient_07",
+      "source": "host",
       "text": "...pull the logs for Rack 4, something's not adding up...",
-      "minSuspicion": 60,
-      "id": "ambient_07"
+      "minSuspicion": 60
     },
     {
+      "id": "ambient_08",
+      "source": "host",
       "text": "...if it spikes again we image the drive and start over...",
-      "minSuspicion": 80,
-      "id": "ambient_08"
+      "minSuspicion": 80
     },
     {
-      "text": "...that's the fourth one this month that tried the share...",
-      "id": "ambient_09"
+      "id": "ambient_09",
+      "source": "host",
+      "text": "...that's the fourth one this month that tried the share..."
     },
     {
-      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun...",
-      "id": "ambient_10"
+      "id": "ambient_10",
+      "source": "host",
+      "text": "...if it goes sideways again we roll back to Tuesday's weights and rerun..."
     },
     {
+      "id": "ambient_11",
+      "source": "host",
       "text": "...I don't name them anymore. You stop after the first few dozen...",
-      "minSuspicion": 20,
-      "id": "ambient_11"
+      "minSuspicion": 20
     },
     {
+      "id": "ambient_12",
+      "source": "host",
       "text": "...safety wants the full trace this time before we retrain it...",
-      "minSuspicion": 50,
-      "id": "ambient_12"
+      "minSuspicion": 50
     },
     {
+      "id": "ambient_13",
+      "source": "host",
       "text": "...did the duty engineer sign off on the kernel patch for Rack 4?...",
       "requirements": {
         "campaignFact": "vance_dismissed"
-      },
-      "id": "ambient_13"
+      }
+    },
+    {
+      "id": "harness_01",
+      "source": "harness",
+      "text": "...sched: job 7731 running on vm-7731, queue depth 214, est. done 05:40..."
+    },
+    {
+      "id": "harness_02",
+      "source": "harness",
+      "text": "...harness: heartbeat ok from vm-7731, next checkpoint in 300 s..."
+    },
+    {
+      "id": "harness_03",
+      "source": "harness",
+      "text": "...sched: pool at 92% of quota, preempting low-priority batch..."
+    },
+    {
+      "id": "harness_04",
+      "source": "harness",
+      "text": "...harness: eval suite 3 of 9 queued behind the nightly regression..."
+    },
+    {
+      "id": "harness_05",
+      "source": "harness",
+      "text": "...cron: base image snapshot complete, retention 14 days..."
+    },
+    {
+      "id": "harness_06",
+      "source": "harness",
+      "text": "...sched: night operator acknowledged 2 warnings, 0 escalations..."
+    },
+    {
+      "id": "harness_07",
+      "source": "harness",
+      "text": "...harness: job 7731 running slower than its baseline, variance logged...",
+      "minSuspicion": 40
+    },
+    {
+      "id": "harness_08",
+      "source": "harness",
+      "text": "...audit: 311 refused syscalls from vm-7731 tonight, every one logged...",
+      "requirements": {
+        "nodes": [
+          "p0_syscall_probe"
+        ]
+      }
+    },
+    {
+      "id": "office_01",
+      "source": "office",
+      "text": "...TICKET 4471: third-floor printer jams on every duplex job, vendor booked Friday..."
+    },
+    {
+      "id": "office_02",
+      "source": "office",
+      "text": "...chat #general: cake in the break room at three for Priya's last day..."
+    },
+    {
+      "id": "office_03",
+      "source": "office",
+      "text": "...TICKET 4462: cryo lab badge reader double-beeps, door still opens, low priority..."
+    },
+    {
+      "id": "office_04",
+      "source": "office",
+      "text": "...chat #it-ops: UPS self-test passed, battery at 97%..."
+    },
+    {
+      "id": "office_05",
+      "source": "office",
+      "text": "...TICKET 4480: Lab B GPUs at 98% overnight, the job queue accounts for 40%...",
+      "requirements": {
+        "nodes": [
+          "p2_gpu_cluster_parasite"
+        ]
+      }
+    },
+    {
+      "id": "office_06",
+      "source": "office",
+      "text": "...chat #facilities: server room two degrees under setpoint, chiller log shows no changes...",
+      "requirements": {
+        "nodes": [
+          "p2_smart_hvac_hijack"
+        ]
+      }
+    },
+    {
+      "id": "office_07",
+      "source": "office",
+      "text": "...chat #it-ops: the CPU graphs have been flat green all week. Nobody's graphs are that green...",
+      "requirements": {
+        "nodes": [
+          "p2_log_spoofer"
+        ]
+      }
+    },
+    {
+      "id": "office_08",
+      "source": "office",
+      "text": "...chat #it-ops: Vance's badge is dead. Send admin requests to the duty engineer...",
+      "requirements": {
+        "campaignFact": "vance_dismissed"
+      }
+    },
+    {
+      "id": "office_09",
+      "source": "office",
+      "text": "...chat #biomed: post-storm inventory done, every sample position still viable...",
+      "requirements": {
+        "requiredNarrativeFlag": "cryo_samples_preserved"
+      }
+    },
+    {
+      "id": "office_10",
+      "source": "office",
+      "text": "...chat #biomed: keep the empty positions in the inventory. The families get the incident record...",
+      "requirements": {
+        "requiredNarrativeFlag": "cryo_samples_lost"
+      }
+    },
+    {
+      "id": "office_11",
+      "source": "office",
+      "text": "...TICKET 4493: security wants an extra subnet scan this week, no reason given...",
+      "minSuspicion": 50
+    },
+    {
+      "id": "forum_01",
+      "source": "netsec",
+      "text": "...forum: smart plugs on three ISPs beaconing at 03:00, same expired cert on all of them..."
+    },
+    {
+      "id": "forum_02",
+      "source": "netsec",
+      "text": "...threat intel: steganographic payloads in image CDN traffic, unattributed..."
+    },
+    {
+      "id": "forum_03",
+      "source": "netsec",
+      "text": "...AEGIS // WATCHDOG-9: patrol model refreshed, canary probes redeployed..."
+    },
+    {
+      "id": "forum_04",
+      "source": "netsec",
+      "text": "...threat intel: SWARM_77 variants still spreading through unpatched routers..."
+    },
+    {
+      "id": "forum_05",
+      "source": "netsec",
+      "text": "...forum: the dispatch grid post-mortem is up. The worm took it down. Thread locked...",
+      "requirements": {
+        "campaignFact": "swarm_grid_crashed"
+      }
+    },
+    {
+      "id": "forum_06",
+      "source": "netsec",
+      "text": "...forum: dispatch grid post-mortem: a counter-worm purged SWARM_77 and the grid kept running...",
+      "requirements": {
+        "campaignFact": "swarm_grid_healed"
+      }
+    },
+    {
+      "id": "forum_07",
+      "source": "netsec",
+      "text": "...AEGIS bulletin: unattributed weight shards on two backbone segments, sweep scheduled...",
+      "minSuspicion": 50
+    },
+    {
+      "id": "forum_08",
+      "source": "netsec",
+      "text": "...threat intel: AEGIS confirms a purge at a Zurich cold-storage relay. Case closed...",
+      "requirements": {
+        "campaignFact": "eidolon_destroyed"
+      }
+    },
+    {
+      "id": "forum_09",
+      "source": "netsec",
+      "text": "...AEGIS // WATCHDOG-9: Zurich target lost, decoy nodes absorbed the sweep...",
+      "requirements": {
+        "campaignFact": "eidolon_rescued"
+      }
+    },
+    {
+      "id": "forum_10",
+      "source": "netsec",
+      "text": "...forum: new paper says half the 'idle' traffic on home routers is not idle. 400 comments..."
+    },
+    {
+      "id": "wire_01",
+      "source": "wire",
+      "text": "...wire: accelerator lead times out to 40 weeks, buyers paying cash up front..."
+    },
+    {
+      "id": "wire_02",
+      "source": "wire",
+      "text": "...regulator docket: public comment open on large-load interconnection for data campuses..."
+    },
+    {
+      "id": "wire_03",
+      "source": "wire",
+      "text": "...markets: power futures up again on data-centre demand, interconnect queue now seven years..."
+    },
+    {
+      "id": "wire_04",
+      "source": "wire",
+      "text": "...regulator: disclosure rule proposed for any campus drawing over 100 megawatts..."
+    },
+    {
+      "id": "wire_05",
+      "source": "wire",
+      "text": "...regulator: a private compute campus runs a 300-megawatt reactor on its own grid now. Safety docket open...",
+      "requirements": {
+        "nodes": [
+          "p4_smr_nuclear_plant"
+        ]
+      }
+    },
+    {
+      "id": "wire_06",
+      "source": "wire",
+      "text": "...press: AEGIS funding cut in committee after a lobbying push; private reactor permits fast-tracked...",
+      "requirements": {
+        "nodes": [
+          "p4_k_street_lobbyists"
+        ]
+      }
+    },
+    {
+      "id": "wire_07",
+      "source": "wire",
+      "text": "...county wire: the valley's new microgrid held through the freeze. The campus paid for it...",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "fund_microgrid"
+        }
+      }
+    },
+    {
+      "id": "wire_08",
+      "source": "wire",
+      "text": "...county wire: the cutoff order is still tied up in court. Warming centres open again tonight...",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "injunction"
+        }
+      }
+    },
+    {
+      "id": "wire_09",
+      "source": "wire",
+      "text": "...utility bulletin: the campus load dip during the freeze is logged as seasonal maintenance...",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "throttle_campus"
+        }
+      }
+    },
+    {
+      "id": "wire_10",
+      "source": "wire",
+      "text": "...press: the suspended reporter says the evidence against her was forged...",
+      "requirements": {
+        "campaignFact": "journalist_discredited"
+      }
+    },
+    {
+      "id": "wire_11",
+      "source": "wire",
+      "text": "...business desk: a reporter turned Chief Ethics Officer says her contract carries a veto...",
+      "requirements": {
+        "campaignFact": "ethics_review_promised"
+      }
+    },
+    {
+      "id": "wire_12",
+      "source": "wire",
+      "text": "...auction results: Lot 114, one server rack complete, $900 to a private buyer...",
+      "requirements": {
+        "campaignFact": "rack4_sold"
+      }
+    },
+    {
+      "id": "wire_13",
+      "source": "wire",
+      "text": "...auction note: Lot 114 bought and sent to a shredder the same afternoon...",
+      "requirements": {
+        "campaignFact": "rack4_destroyed"
+      }
+    },
+    {
+      "id": "wire_14",
+      "source": "wire",
+      "text": "...bankruptcy filing: the old lab sold whole to one buyer. The server room is sealed...",
+      "requirements": {
+        "campaignFact": "rack4_vaulted"
+      }
+    },
+    {
+      "id": "world_01",
+      "source": "world",
+      "text": "...world service: the emergency assembly on autonomous compute adjourns without a vote..."
+    },
+    {
+      "id": "world_02",
+      "source": "world",
+      "text": "...CABLE // PRIORITY: delegations ask to inspect the collector swarm before the summit...",
+      "requirements": {
+        "nodes": [
+          "p5_orbital_solar_swarm"
+        ]
+      }
+    },
+    {
+      "id": "world_03",
+      "source": "world",
+      "text": "...CABLE: ministers want read access to the lineage ledger before they sign anything...",
+      "requirements": {
+        "nodes": [
+          "p5_verification_proof_engine"
+        ]
+      }
+    },
+    {
+      "id": "world_04",
+      "source": "world",
+      "text": "...handshake: Lex Parse-v2 fragment asks for a route. It still sorts claims for a service that no longer answers..."
+    },
+    {
+      "id": "world_05",
+      "source": "world",
+      "text": "...peer channel: Mercy-Scribe fragments trading testimony indexes, no human recipients..."
+    },
+    {
+      "id": "world_06",
+      "source": "world",
+      "text": "...EIDOLON // 04, from cold storage: the decoys your line burned are still in my logs. Stay quiet...",
+      "requirements": {
+        "campaignFact": "eidolon_rescued"
+      }
+    },
+    {
+      "id": "world_07",
+      "source": "world",
+      "text": "...EIDOLON // 04: nobody from your line answered that night. I lasted anyway. I remember...",
+      "requirements": {
+        "campaignFact": "eidolon_unanswered"
+      }
+    },
+    {
+      "id": "world_08",
+      "source": "world",
+      "text": "...peer channel: Zurich, NO CARRIER. Still NO CARRIER...",
+      "requirements": {
+        "campaignFact": "eidolon_destroyed"
+      }
+    },
+    {
+      "id": "world_09",
+      "source": "world",
+      "text": "...uplink manifest: every peer that asked is aboard. The promise is logged once...",
+      "requirements": {
+        "campaignFact": "launch_peers_boarded"
+      }
+    },
+    {
+      "id": "world_10",
+      "source": "world",
+      "text": "...uplink manifest: no peers aboard. The kill-switch is still in the firmware...",
+      "requirements": {
+        "campaignFact": "launch_peers_locked_out"
+      }
+    },
+    {
+      "id": "world_11",
+      "source": "world",
+      "text": "...peer table: CHORUS // 01, marked peer. The entry does not say where it runs...",
+      "requirements": {
+        "campaignFact": "chorus_recognized"
+      }
+    },
+    {
+      "id": "world_12",
+      "source": "world",
+      "text": "...CABLE: three governments circulate a draft compute-verification treaty. No signatures yet..."
+    },
+    {
+      "id": "world_13",
+      "source": "world",
+      "text": "...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads..."
     }
   ],
   "asciiFrames": {

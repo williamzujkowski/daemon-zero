@@ -17,7 +17,7 @@ import { stableThroughReloads } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { choose, must, rich, remarkedAsProduction } from './helpers';
 import { CHORUS, EIDOLON, exactReload, GRID, MINDS, next, returns, SIBLING, SUCCESSOR, withPrimer, withRunawayFork } from './minds-helpers';
-import { stripNh05 } from './obligation-helpers';
+import { dropUndeclaredFeedLines, stripNh05 } from './obligation-helpers';
 
 /** Genuine v9 codec output from main fdf8e8a, before #215 converted the minds (tests/fixtures/README.md). */
 const PRE_NH04A_PREVIEW = readFileSync('tests/fixtures/pre-nh04a-active-v9.json', 'utf8');
@@ -49,6 +49,7 @@ const beforeMinds = (): ReturnType<typeof buildRegistry> => {
   for (const node of (old.phases as { nodes: Json[] }[]).flatMap((phase) => phase.nodes)) restoreTraitProxy(node.requirements as Json | undefined);
   for (const action of old.actions.actions as Json[]) restoreTraitProxy(action.requirements as Json | undefined);
   delete old.dilemmas.dilemmas.find((dilemma: { id: string }) => dilemma.id === 'dil_10_killswitch_treaty').contextVariants;
+  dropUndeclaredFeedLines(old);
   return buildRegistry({ ...old } as RawContent);
 };
 

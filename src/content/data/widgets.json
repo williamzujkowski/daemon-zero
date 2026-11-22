@@ -67,7 +67,7 @@
       "id": "AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG",
       "slot": "SENSORS",
       "order": 30,
-      "title": "Vibration stream"
+      "title": "Listening post"
     },
     {
       "id": "INSPECTION_COUNTDOWN_TIMER",
