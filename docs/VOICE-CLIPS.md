@@ -137,7 +137,11 @@ announcer is unchanged.
 **The score and the media session.** An autoplayed clip goes through the same `playVoiceClip` as
 READ, so the score ducks under it and comes back after it exactly as it does under READ
 (`tests/e2e/voice-autoplay.e2e.ts` reads the ducked level on the real build), and the media session
-behaves as before.
+behaves as before. The duck follows whether any clip is talking, not which one: a READ that replaces
+a line playing by itself, a line that starts by itself the moment a READ clip ends, and a READ over a
+READ are each one stretch of speech, and the score comes back only when nothing talks.
+`tests/app-voice-duck.spec.ts` pins all three on the real voice player and soundtrack controller, and
+`voice-autoplay.e2e.ts` pins the first on the real build (a record's READ over a feed line).
 
 **Not verified.** Chromium allows a later `play()` once the page has had a gesture (sticky
 activation); whether Safari allows one outside the gesture is not known and could not be tested

@@ -10,7 +10,7 @@
 import type { Page, Request } from '@playwright/test';
 import { DUCK_RAMP_MS, DUCK_RATIO } from '../../src/app/musicController';
 import { OUTPUT_SCALE } from '../../src/app/outputLevel';
-import { boot, expect, observeMusicMedia, scoreFlowing, soundtrackVolume, test, voiceClipsPlaying } from './helpers';
+import { boot, dismissBoot, expect, observeMusicMedia, scoreFlowing, soundtrackVolume, test, voiceClipsPlaying } from './helpers';
 
 const HEARD_KEY = 'daemon-zero.voice-heard.v1';
 /** Long enough for a clip that was going to be asked for to be asked for; the request is the evidence. */
@@ -76,6 +76,34 @@ test('the score ducks under a line that plays by itself, as it does under READ',
     .toBeCloseTo(0.3 * OUTPUT_SCALE * DUCK_RATIO, 5);
   await expect.poll(() => voiceClipsPlaying(page), { message: 'the clip runs out', timeout: 30_000 }).toBe(0);
   await expect.poll(async () => { await page.clock.runFor(DUCK_RAMP_MS); return soundtrackVolume(page); }, 'and the score comes back')
+    .toBeCloseTo(0.3 * OUTPUT_SCALE, 5);
+});
+
+test('a READ that replaces a line playing by itself keeps the score ducked until nothing talks', async ({ page }) => {
+  await observeMusicMedia(page);
+  // A returned cryo save: the feed and a recorded transmission are both on SENSORS.
+  await boot(page, 'cryo-preserved-returned', { audio: true, heard: [] });
+  await dismissBoot(page);
+  await sensors(page); await touch(page);
+  await expect.poll(() => voiceClipsPlaying(page), 'the feed line plays by itself').toBe(1);
+  await scoreFlowing(page);
+  const ducked = 0.3 * OUTPUT_SCALE * DUCK_RATIO;
+  const afterRamp = async () => { await page.clock.runFor(DUCK_RAMP_MS); return soundtrackVolume(page); };
+  await expect.poll(afterRamp, 'ducked under the line').toBeCloseTo(ducked, 5);
+  // READ on the record while the line still talks: the record's clip replaces the line's.
+  const toggle = page.getByTestId('reference-recorded-transmissions');
+  await toggle.click();
+  const read = page.locator('[data-testid^="recorded-speech-read-"]').first();
+  await read.click();
+  await expect(page.locator('[data-testid^="recorded-speech-stop-"]').first(), 'the record is talking').toBeVisible();
+  // Through the replacement and for a stretch of the record, the score never comes back up.
+  for (let look = 0; look < 6; look++) {
+    expect(await voiceClipsPlaying(page), 'one clip, the record').toBe(1);
+    expect(await afterRamp(), 'still ducked under the record').toBeCloseTo(ducked, 5);
+  }
+  // STOP on the record: if nothing else talks, the score comes back.
+  await page.locator('[data-testid^="recorded-speech-stop-"]').first().click();
+  await expect.poll(async () => (await voiceClipsPlaying(page)) === 0 ? afterRamp() : null, { message: 'back up once every voice is silent', timeout: 30_000 })
     .toBeCloseTo(0.3 * OUTPUT_SCALE, 5);
 });
 
