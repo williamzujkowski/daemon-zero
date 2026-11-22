@@ -58,7 +58,9 @@ describe('mobile scroll flow', () => {
     expect(contains(primary, view.find('power-ledger'))).toBe(true);
     expect(contains(primary, view.find('insolvency-warning'))).toBe(true);
     view.click('tab-CORE');
-    expect(contains(primary, view.find('manual-cycle'))).toBe(true);
+    // EXECUTE has retired by phase 4 (#447); the CORE pane's purchases are what share the flow now.
+    expect(view.find('manual-cycle')).toBeNull();
+    expect(contains(primary, view.find('pane-scroll-CORE'))).toBe(true);
     expect(gameStore.store.getState().game).toBe(state);
   });
 

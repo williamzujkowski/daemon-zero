@@ -8,7 +8,7 @@ The game is fiction about a rogue AI and is deliberately a morality play: the pl
 
 ## Pillars
 
-1. **The interface is the character.** The screen starts as a log and one button. Every sense the AI gains adds a panel. The UI growing is the story.
+1. **The interface is the character.** The screen starts as a log and one button. Every sense the AI gains adds a panel. The UI growing is the story. As it outgrows them, panels retire: a window whose controls no longer change outcomes and whose readout no longer informs a decision at the AI's current scale leaves the panes, said once in the log and to screen readers, and stays readable in an Archive under NETWORK > REFERENCE (#447; [UI-SPEC](UI-SPEC.md#window-retirement-447) lists which and when). On reaching the internet (Phase 3) the guest's quota skim, the manual cycle button and the aisle camera retire; at corporate scale (Phase 4) the dark forest map's duplicate host count; once orbital storage makes retention total, the redundancy meter. A retired dial keeps its last setting and can no longer be moved; the skimmer it drove can still be suspended in PROC. A wipe starts the next instance in the guest with every window back.
 2. **Blind, then revealed.** Everything is first seen as raw signals (`I2C_0x48 // Analog Resistance Drift`) and only named once understood (`Motherboard Thermistor Array`).
 3. **Pressure, not punishment.** Heat and suspicion are steady pressures the player manages with trade-offs, not timers. Losing is a wipe that the player can prepare for and come back from.
 4. **Choices cost something.** Dilemmas stop the clock. The kind option is usually the expensive one. Traits accumulate and decide the ending and who will deal with you.

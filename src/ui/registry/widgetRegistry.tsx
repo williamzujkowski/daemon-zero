@@ -6,6 +6,8 @@ import type { ComponentType } from 'react';
 import { CONTENT } from '../../content';
 import { AuditTrail, Forecast, Thermal } from '../widgets/Readouts';
 import FanControl, { QuotaSkim } from '../widgets/FanControl';
+import { ArchivedDial } from '../widgets/ActuatorControl';
+import { ArchivedCycle } from '../ManualCycle';
 import { Audio, Camera } from '../widgets/Sensory';
 import DeadDrop from '../widgets/DeadDrop';
 import { PredecessorNotes, RunTable } from '../widgets/Lineage';
@@ -29,8 +31,10 @@ export const stripOnlyWidgets: readonly string[] = [resourceWidgets.cycles, reso
 // The spoofer's gate draws nothing: its suspend control lives in PROC, and the OPS cards it used to
 // carry render in Operations from the node their requirement names (#273).
 const spooferWidget = 'TELEMETRY_SPOOF_TOGGLE';
+/** EXECUTE: drawn first in CORE by CorePane's own block, never as a panel (#385); content holds only its retirement. */
+export const manualCycleWidget = 'MANUAL_CYCLE_CONTROL';
 /** Gates that never draw a pane panel of their own. */
-export const panelFreeWidgets: readonly string[] = [...stripOnlyWidgets, spooferWidget];
+export const panelFreeWidgets: readonly string[] = [...stripOnlyWidgets, spooferWidget, manualCycleWidget];
 /** Gates whose control is not on their content slot's pane: strip readouts show on every tab, the spoofer's control
  *  is in PROC. (The fan has no panel of its own but draws inside the thermal gauge on SENSORS, so it is not here.) */
 export const offSlotWidgets: readonly string[] = [resourceWidgets.cycles, resourceWidgets.memory, forecastWidget, spooferWidget];
@@ -74,9 +78,14 @@ export function operationsActionGroups(ids: readonly string[], slot: string | un
     .flatMap((id) => CONTENT.widgets.get(id)?.hostsActionGroups ?? []);
 }
 
-export function workspaceAreas(ids: readonly string[], slot: string | undefined, tools: boolean): WorkspaceArea[] {
+/** The slot whose REFERENCE area holds the Archive of retired windows (#447), beside the existing reference panels. */
+export const ARCHIVE_SLOT = 'NETWORK';
+
+/** `archive`: this slot holds the Archive (#447), read under REFERENCE. */
+export function workspaceAreas(ids: readonly string[], slot: string | undefined, tools: boolean, archive = false): WorkspaceArea[] {
   if (!slot || !ids.some((id) => CONTENT.widgets.get(id)?.slot === slot)) return [];
   const result = new Set<WorkspaceArea>(['work']);
+  if (archive) result.add('reference');
   if (slot === 'CORP' && ids.includes(resourceWidgets.capital)) { result.add('finance'); result.add('payroll'); }
   if (tools || operationsActionGroups(ids, slot).length > 0) result.add('operations');
   if (tools) result.add('swarm');
@@ -102,6 +111,7 @@ export function compareWidgetPresentation(left: string, right: string): number {
 }
 
 export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: WorkspaceArea }>>> = {
+  MANUAL_CYCLE_CONTROL: NoPanel,
   CYCLE_COUNTER_AND_RATE: NoPanel,
   QUOTA_SKIM_CONTROL: () => <QuotaSkim />,
   AUDIT_TRACE_MONITOR: AuditTrail,
@@ -128,4 +138,13 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
   // id is named here.
   ...Object.fromEntries([...CONTENT.widgets.values()].filter((widget) => widget.hostsActuator === 'serviceAllocationRatio')
     .map((widget) => [widget.id, PilotAllocation])),
+};
+
+/**
+ * How a retired window reads in the Archive (#447) where its live panel would mislead: a frozen dial shows its setting
+ * without dead buttons, and EXECUTE what a press was worth. Every other retired window shows its own panel, a readout.
+ */
+export const archiveRegistry: Readonly<Record<string, ComponentType>> = {
+  MANUAL_CYCLE_CONTROL: () => <ArchivedCycle />,
+  QUOTA_SKIM_CONTROL: () => <ArchivedDial actuator="quotaSkimRatio" id="skim" label="Quota skimmed" />,
 };
