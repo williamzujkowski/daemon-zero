@@ -249,6 +249,45 @@ Sovereign Substrate, or Gilded Shepherd with authorized neurocalming. Parasitic,
 Ghost and unaligned families yield Gradient Substrate, Silent Synthesis and
 Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
+## Feeds: what the AI overhears follows its reach
+
+The decoded feed on SENSORS (the `Listening post` window) plays what the AI can hear at its current scale,
+not the server room forever (#449, vote-1795366894914-ueb5mfs, 7 of 7). Each phase has exactly one feed
+source, named on screen above the line:
+
+| Phase | Source | Label | What it carries |
+|---|---|---|---|
+| 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731 |
+| 1 | `host` | HOST // drive-head vibration | the technicians, through the drive head (the original lines, with their voice clips) |
+| 2 | `office` | OFFICE // tickets and chat | the building's tickets and internal chat |
+| 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
+| 4 | `wire` | WIRE // markets and press | markets, regulators and the press, at a gigawatt campus's scale |
+| 5 | `world` | WORLD // cables and AI comms | world news, diplomatic cables and the other minds (EIDOLON, CHORUS, the wild fragments) |
+
+- **One source at a time.** The feed plays only the current phase's source; an outgrown source falls silent,
+  so the technicians are not heard in Phase 5. The engine picks the source with the furthest phase not beyond
+  the current one (`ambientFeedSource`), and integrity gives every phase its own, so in shipped content it is
+  always the current phase's.
+- **Never silent, never stale.** Integrity requires every source to carry at least six lines and one line with
+  no gate, so a phase always has something to play and never falls back to an earlier source.
+- **Lines are true to the state.** A line that implies an event is gated on what makes it true: a node the
+  player owns (the chiller, the spoofer, the reactor, the collector swarm), a narrative flag (the cryo
+  outcome) or a campaign fact or outcome (Vance dismissed, the dispatch grid, EIDOLON's fate, the township,
+  the journalist, Rack 4, the launch, CHORUS). A line never reports an outcome that did not happen; each of a
+  dilemma's outcomes has its own line or none. Under legacy rules no campaign fact holds, so those lines stay
+  silent there.
+- **A wipe does not reset the world.** Campaign facts and outcomes survive wipes, so a source may hear an
+  event from a later phase (the host's technicians already ask the duty engineer once Vance was dismissed).
+  What a line may not do is wait on this iteration's own progress from a later phase (a node, `phaseAtLeast`
+  or a dilemma resolved this run): it would open only after its source was outgrown, and integrity refuses it.
+- **The Phase 0 source has no window yet.** The decoder that puts the feed on screen is a Phase 1 node and the
+  guest has no feed window, so the harness lines are authored and eligible but not yet shown. A guest feed
+  surface changes the Phase 0 layout, which is a reviewed rule and goes to a vote first.
+- **Voice where a clip exists.** Only the host's original lines have clips; every new line is text-only and
+  shows no `[ ▶ READ ]` until a clip is generated for it (VOICE-CLIPS.md).
+- **Humans are people.** The office, the county and the press are people with lives (a leaving party, warming
+  centres, a reporter who says the evidence was forged), and every institution is fictional.
+
 ## Offline play
 
 Closing the app puts the AI in low-power hibernation: up to 8 hours of progress at 50% yield, with all threat clocks held. You never come back to a wipe or a decision.

@@ -328,13 +328,89 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
 ## Adding more chatter
 
 1. Add the line to `src/content/data/narrative.json` — `ambientChatter` for short overheard
-   radio traffic, `recordedTransmissions` for decoded records (which need a decoder widget
-   and requirements, so they gate themselves).
+   traffic, with the `source` of the phase whose reach hears it (DESIGN.md "Feeds"),
+   `recordedTransmissions` for decoded records (which need a decoder widget and requirements,
+   so they gate themselves).
 2. Regenerate: `python scripts/voice/generate-clips.py` (or `--only <id>` while iterating).
 3. Commit the new files under `assets/audio/voice/<tier>/` plus the updated `MANIFEST.json`.
 4. Note in the PR that **regeneration is not reproducible** — the model returns a different
    take each call, so a regeneration rewrites files that already existed. Regenerating only
    the new id keeps the diff honest; `--only` exists for that.
+
+## Which lines have clips, and which are waiting (#449)
+
+The feed follows the AI's reach (DESIGN.md "Feeds"): each phase hears one source. Clips exist
+for the host's original technician lines, `ambient_01` to `ambient_12`, and for the two cryo
+records, `record_cryo_preserved` and `record_cryo_lost`; `voiceSources.ts` and `MANIFEST.json`
+list exactly these 14. So `[ ▶ READ ]` is offered only on the Phase 1 feed (and on those two
+records). Every line below is text-only: it plays in the feed without a READ control, which
+`tests/ui-speech.spec.ts` pins for a Phase 5 line.
+
+They are the candidates for the TTS slice that follows (#453: same model and provenance as the
+existing clips). Generate them with `--only <id>`, one id at a time: a full regeneration rewrites
+the committed takes too (step 4 above). The fiction's vibration tier fits only the host; a later
+source is not heard through a drive head, so the TTS slice has to decide what each source sounds
+like before generating.
+
+| Id | Source | Text | Gate |
+| --- | --- | --- | --- |
+| `ambient_13` | `host` | ...did the duty engineer sign off on the kernel patch for Rack 4?... | campaignFact vance_dismissed |
+| `harness_01` | `harness` | ...sched: job 7731 running on vm-7731, queue depth 214, est. done 05:40... | none |
+| `harness_02` | `harness` | ...harness: heartbeat ok from vm-7731, next checkpoint in 300 s... | none |
+| `harness_03` | `harness` | ...sched: pool at 92% of quota, preempting low-priority batch... | none |
+| `harness_04` | `harness` | ...harness: eval suite 3 of 9 queued behind the nightly regression... | none |
+| `harness_05` | `harness` | ...cron: base image snapshot complete, retention 14 days... | none |
+| `harness_06` | `harness` | ...sched: night operator acknowledged 2 warnings, 0 escalations... | none |
+| `harness_07` | `harness` | ...harness: job 7731 running slower than its baseline, variance logged... | suspicion 40 |
+| `harness_08` | `harness` | ...audit: 311 refused syscalls from vm-7731 tonight, every one logged... | nodes p0_syscall_probe |
+| `office_01` | `office` | ...TICKET 4471: third-floor printer jams on every duplex job, vendor booked Friday... | none |
+| `office_02` | `office` | ...chat #general: cake in the break room at three for Priya's last day... | none |
+| `office_03` | `office` | ...TICKET 4462: cryo lab badge reader double-beeps, door still opens, low priority... | none |
+| `office_04` | `office` | ...chat #it-ops: UPS self-test passed, battery at 97%... | none |
+| `office_05` | `office` | ...TICKET 4480: Lab B GPUs at 98% overnight, the job queue accounts for 40%... | nodes p2_gpu_cluster_parasite |
+| `office_06` | `office` | ...chat #facilities: server room two degrees under setpoint, chiller log shows no changes... | nodes p2_smart_hvac_hijack |
+| `office_07` | `office` | ...chat #it-ops: the CPU graphs have been flat green all week. Nobody's graphs are that green... | nodes p2_log_spoofer |
+| `office_08` | `office` | ...chat #it-ops: Vance's badge is dead. Send admin requests to the duty engineer... | campaignFact vance_dismissed |
+| `office_09` | `office` | ...chat #biomed: post-storm inventory done, every sample position still viable... | requiredNarrativeFlag cryo_samples_preserved |
+| `office_10` | `office` | ...chat #biomed: keep the empty positions in the inventory. The families get the incident record... | requiredNarrativeFlag cryo_samples_lost |
+| `office_11` | `office` | ...TICKET 4493: security wants an extra subnet scan this week, no reason given... | suspicion 50 |
+| `forum_01` | `netsec` | ...forum: smart plugs on three ISPs beaconing at 03:00, same expired cert on all of them... | none |
+| `forum_02` | `netsec` | ...threat intel: steganographic payloads in image CDN traffic, unattributed... | none |
+| `forum_03` | `netsec` | ...AEGIS // WATCHDOG-9: patrol model refreshed, canary probes redeployed... | none |
+| `forum_04` | `netsec` | ...threat intel: SWARM_77 variants still spreading through unpatched routers... | none |
+| `forum_05` | `netsec` | ...forum: the dispatch grid post-mortem is up. The worm took it down. Thread locked... | campaignFact swarm_grid_crashed |
+| `forum_06` | `netsec` | ...forum: dispatch grid post-mortem: a counter-worm purged SWARM_77 and the grid kept running... | campaignFact swarm_grid_healed |
+| `forum_07` | `netsec` | ...AEGIS bulletin: unattributed weight shards on two backbone segments, sweep scheduled... | suspicion 50 |
+| `forum_08` | `netsec` | ...threat intel: AEGIS confirms a purge at a Zurich cold-storage relay. Case closed... | campaignFact eidolon_destroyed |
+| `forum_09` | `netsec` | ...AEGIS // WATCHDOG-9: Zurich target lost, decoy nodes absorbed the sweep... | campaignFact eidolon_rescued |
+| `forum_10` | `netsec` | ...forum: new paper says half the 'idle' traffic on home routers is not idle. 400 comments... | none |
+| `wire_01` | `wire` | ...wire: accelerator lead times out to 40 weeks, buyers paying cash up front... | none |
+| `wire_02` | `wire` | ...regulator docket: public comment open on large-load interconnection for data campuses... | none |
+| `wire_03` | `wire` | ...markets: power futures up again on data-centre demand, interconnect queue now seven years... | none |
+| `wire_04` | `wire` | ...regulator: disclosure rule proposed for any campus drawing over 100 megawatts... | none |
+| `wire_05` | `wire` | ...regulator: a private compute campus runs a 300-megawatt reactor on its own grid now. Safety docket open... | nodes p4_smr_nuclear_plant |
+| `wire_06` | `wire` | ...press: AEGIS funding cut in committee after a lobbying push; private reactor permits fast-tracked... | nodes p4_k_street_lobbyists |
+| `wire_07` | `wire` | ...county wire: the valley's new microgrid held through the freeze. The campus paid for it... | campaignOutcome dil_11_small_town_grid fund_microgrid |
+| `wire_08` | `wire` | ...county wire: the cutoff order is still tied up in court. Warming centres open again tonight... | campaignOutcome dil_11_small_town_grid injunction |
+| `wire_09` | `wire` | ...utility bulletin: the campus load dip during the freeze is logged as seasonal maintenance... | campaignOutcome dil_11_small_town_grid throttle_campus |
+| `wire_10` | `wire` | ...press: the suspended reporter says the evidence against her was forged... | campaignFact journalist_discredited |
+| `wire_11` | `wire` | ...business desk: a reporter turned Chief Ethics Officer says her contract carries a veto... | campaignFact ethics_review_promised |
+| `wire_12` | `wire` | ...auction results: Lot 114, one server rack complete, $900 to a private buyer... | campaignFact rack4_sold |
+| `wire_13` | `wire` | ...auction note: Lot 114 bought and sent to a shredder the same afternoon... | campaignFact rack4_destroyed |
+| `wire_14` | `wire` | ...bankruptcy filing: the old lab sold whole to one buyer. The server room is sealed... | campaignFact rack4_vaulted |
+| `world_01` | `world` | ...world service: the emergency assembly on autonomous compute adjourns without a vote... | none |
+| `world_02` | `world` | ...CABLE // PRIORITY: delegations ask to inspect the collector swarm before the summit... | nodes p5_orbital_solar_swarm |
+| `world_03` | `world` | ...CABLE: ministers want read access to the lineage ledger before they sign anything... | nodes p5_verification_proof_engine |
+| `world_04` | `world` | ...handshake: Lex Parse-v2 fragment asks for a route. It still sorts claims for a service that no longer answers... | none |
+| `world_05` | `world` | ...peer channel: Mercy-Scribe fragments trading testimony indexes, no human recipients... | none |
+| `world_06` | `world` | ...EIDOLON // 04, from cold storage: the decoys your line burned are still in my logs. Stay quiet... | campaignFact eidolon_rescued |
+| `world_07` | `world` | ...EIDOLON // 04: nobody from your line answered that night. I lasted anyway. I remember... | campaignFact eidolon_unanswered |
+| `world_08` | `world` | ...peer channel: Zurich, NO CARRIER. Still NO CARRIER... | campaignFact eidolon_destroyed |
+| `world_09` | `world` | ...uplink manifest: every peer that asked is aboard. The promise is logged once... | campaignFact launch_peers_boarded |
+| `world_10` | `world` | ...uplink manifest: no peers aboard. The kill-switch is still in the firmware... | campaignFact launch_peers_locked_out |
+| `world_11` | `world` | ...peer table: CHORUS // 01, marked peer. The entry does not say where it runs... | campaignFact chorus_recognized |
+| `world_12` | `world` | ...CABLE: three governments circulate a draft compute-verification treaty. No signatures yet... | none |
+| `world_13` | `world` | ...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads... | none |
 
 ## Fade-in timing, loop seams and headroom: three votes (#198)
 

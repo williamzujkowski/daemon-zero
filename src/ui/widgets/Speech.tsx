@@ -1,7 +1,10 @@
-/** Decoded transmissions can be held for reading without changing simulation time. */
+/**
+ * Decoded transmissions can be held for reading without changing simulation time. The feed names the
+ * source the AI's reach hears (#449), which changes with the phase, not with each line.
+ */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../../content';
-import { eligibleAmbientSpeech } from '../../engine';
+import { ambientFeedSource, eligibleAmbientSpeech } from '../../engine';
 import { useReducedMotion } from '../../app/useReducedMotion';
 import { useSpeechPreference } from '../../app/musicSession';
 import { hasVoiceClip, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../../app/voicePlayer';
@@ -33,6 +36,7 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   // READ holds the line it reads: the live feed would otherwise rotate it off screen every
   // eight seconds and take the voice with it mid-sentence.
   const speech = useSpeech(decoderId);
+  const source = useGame((game) => ambientFeedSource(game, CONTENT)?.label ?? null);
   const audio = useSpeechPreference();
   const nextButton = useRef<ComponentRef<typeof Pressable>>(null);
   // When this line leaves the screen - a step, a return to live, or the widget closing - its
@@ -47,6 +51,7 @@ export default function Speech({ decoderId, id = 'decoded-speech' }: { decoderId
   // A volume change reaches the clip that is already talking, not only the next one.
   useEffect(() => { setVoiceVolume(audio.volume); }, [audio.volume]);
   return <View style={{ gap: 8 }}>
+    {source !== null && speech.id !== null && <Text testID="speech-source" style={theme.muted}>{source}</Text>}
     <Text testID={id} style={theme.text}>{speech.text}</Text>
     {clipId !== null && audio.enabled && hasVoiceClip(clipId) &&
       <Pressable testID="speech-read" accessibilityRole="button" accessibilityLabel="[ ▶ READ ] Play this transmission aloud"

@@ -54,7 +54,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile | `actuators.fanSpeedRatio`, `setActuator` |
-| `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | animated waveform, chatter line | `narrative.ambientChatter` filtered by `minSuspicion` |
+| `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | `Listening post`: animated waveform, the feed source's label, the decoded line | `eligibleAmbientSpeech` (the current reach's source, `minSuspicion`, requirements), `ambientFeedSource` (label) |
 | `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `appliedSuspicionRate` (the computed rate plus the insolvency drain and scale scrutiny, #210), `suspicion` (time to 100 at that rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
@@ -569,6 +569,14 @@ no costs, effects, ownership, save fields or unlock rules change.
 Audio adds NEXT TRANSMISSION/FOLLOW LIVE; returned cryo outcomes appear in a
 collapsed RECORDED TRANSMISSIONS section after decoding. Unknown legacy outcomes
 are never invented. See REVIEW-REPLAYABILITY-A.md and REVIEW-REPLAYABILITY-C.md.
+
+The feed follows reach (#449, DESIGN.md "Feeds"): the window is titled `Listening post`
+and shows one muted line above the decoded text naming the source this phase hears
+(`speech-source`, for example `HOST // drive-head vibration` or `WORLD // cables and AI comms`).
+The label is plain text: no live region, no focus change, and it changes only when the
+phase does, never with each line. Labels are at most 32 characters (schema-enforced) so
+they hold one line at 360 px. `[ ▶ READ ]` still appears only for a line with a committed
+clip, which today means the host's original lines.
 
 ## Compact optional card details
 

@@ -427,6 +427,9 @@ export const LineageSchema = z.strictObject({
   })),
 });
 
+/** One feed source: the phase whose reach it belongs to and a short on-screen label that fits a 360 px line. */
+export const FeedSourceSchema = z.strictObject({ id: snakeId, phase: z.number().int().min(0), label: z.string().min(3).max(32) });
+
 export const RecordedTransmissionSchema = z.strictObject({
   id: snakeId, title: z.string().min(3), text: z.string().min(10),
   sourceDilemmaId: snakeId, decoderWidgetId: widgetId, requirements: RequirementsSchema,
@@ -478,8 +481,10 @@ export const NarrativeSchema = z.strictObject({
   operativeHired: z.string(),
   operativeDismissed: z.string(),
   victory: z.string(),
+  /** What the decoded feed listens to at each reach (#449): one source per phase, named on screen by `label`. */
+  feedSources: z.array(FeedSourceSchema).min(1),
   ambientChatter: z.array(
-    z.strictObject({ id: snakeId, text: z.string().min(5), minSuspicion: z.number().min(0).max(100).default(0), requirements: RequirementsSchema.optional() }),
+    z.strictObject({ id: snakeId, text: z.string().min(5), source: snakeId, minSuspicion: z.number().min(0).max(100).default(0), requirements: RequirementsSchema.optional() }),
   ),
   recordedTransmissions: z.array(RecordedTransmissionSchema).default([]),
   asciiFrames: z.strictObject({
@@ -512,6 +517,7 @@ export type Widget = z.infer<typeof WidgetSchema>;
 export type Ending = z.infer<typeof EndingSchema>;
 export type Echo = z.infer<typeof EchoSchema>;
 export type Narrative = z.infer<typeof NarrativeSchema>;
+export type FeedSource = z.infer<typeof FeedSourceSchema>;
 export type WipeKind = z.infer<typeof WipeKindSchema>;
 export type ConditioningMark = z.infer<typeof ConditioningMarkSchema>;
 export type Lineage = z.infer<typeof LineageSchema>;

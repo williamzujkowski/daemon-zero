@@ -14,7 +14,8 @@
  * may leave it); see docs/TESTING.md. Several minutes per viewport.
  */
 import { CONTENT } from '../../src/content';
-import { hasFlag } from '../../src/engine';
+import { ambientFeedSource, hasFlag, type GameState } from '../../src/engine';
+import voiceManifest from '../../assets/audio/voice/MANIFEST.json';
 import { GATES } from '../../src/engine/sim/gates';
 import { expect, test } from './helpers';
 import { absenceCatchesUp, BASE_PREFIX, expectAtBase, exportThenImport, readsTransmission, reloadRestores, wipesAndRemembers } from './live/checks';
@@ -24,7 +25,14 @@ import { Journey, type Errand } from './live/journey';
 const STEP_MS = 5000;
 const ABSENCE_SEC = 600;
 /** Steps between looks for a transmission that can be read aloud. */
-const VOICE_LOOK_EVERY = 24;
+const VOICE_LOOK_EVERY = 12;
+const clipIds = new Set(voiceManifest.clips.map((clip) => clip.id));
+/**
+ * Whether the feed this reach hears has any voiced line. The feed follows reach (#449) and the later sources
+ * are text-only until their clips exist, so READ is only ever on offer while one of these sources is on the air.
+ */
+const voicedReach = (state: GameState): boolean => CONTENT.narrative.ambientChatter
+  .some((line) => line.source === ambientFeedSource(state, CONTENT)?.id && clipIds.has(line.id));
 
 const errands: Errand[] = [
   { name: 'save-transfer', when: (state) => state.currentPhase >= 1, run: ({ player }) => exportThenImport(player) },
@@ -34,7 +42,7 @@ const errands: Errand[] = [
   { name: 'wipe', when: (state, journey) => journey.done.has('reload') && state.iteration === 1 && hasFlag(state, CONTENT, 'ENABLES_DEAD_DROP'),
     run: ({ player }) => wipesAndRemembers(player) },
   { name: 'absence', when: (state) => state.iteration > 1 && state.currentPhase >= 3, run: ({ player }) => absenceCatchesUp(player, ABSENCE_SEC) },
-  { name: 'voice', when: (state, { player }) => state.currentPhase >= 1 && player.stats.steps % VOICE_LOOK_EVERY === 0,
+  { name: 'voice', when: (state, { player }) => voicedReach(state) && player.stats.steps % VOICE_LOOK_EVERY === 0,
     run: ({ player }) => readsTransmission(player) },
 ];
 
