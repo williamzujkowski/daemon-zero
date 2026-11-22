@@ -2,8 +2,13 @@
   "model": "KittenML/kitten-tts-2-nano",
   "generator": "scripts/voice/generate-clips.py",
   "tiers": {
-    "vibration": "default until the acoustic upgrade",
-    "clean": "after the upgrade"
+    "vibration": "host, Phase 1: speech recovered from drive vibration (bundled)",
+    "clean": "the model's own take of a host line, kept unbundled for an acoustic upgrade",
+    "phone": "office, Phase 2: a conference-phone tap (bundled)",
+    "stream": "netsec, Phase 3: a low-bitrate internet stream (bundled)",
+    "broadcast": "wire, Phase 4: a broadcast feed (bundled)",
+    "direct": "world, Phase 5: the clean take (bundled)",
+    "peer": "world, Phase 5: AI-to-AI traffic, the clean take with a faint ring modulation (bundled)"
   },
   "clips": [
     {
@@ -136,6 +141,497 @@
       "sha256": {
         "clean": "16a5324ac5eea9bb5f6a811fbcece9c6bf6c8ad1ca5f58c747635c1069627c84",
         "vibration": "75b176b188eac1167882259b85c2d4708da09a615e4e9504313b90ca9084acc9"
+      }
+    },
+    {
+      "id": "ambient_13",
+      "kind": "chatter",
+      "text": "...did the duty engineer sign off on the kernel patch for Rack 4?...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "clean": "f040c1744ca8e623522d3b7f8dbc312c3eece003005eeac15f9c8b62fe8c4935",
+        "vibration": "37495e32e17ddb7e7d9d9dc25309135ccd6054d3621bbb30ef1fc473c6015008"
+      }
+    },
+    {
+      "id": "office_01",
+      "kind": "chatter",
+      "text": "...TICKET 4471: third-floor printer jams on every duplex job, vendor booked Friday...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "046e67e1acf4113a4c7d0059e36ee469b62e74fc8cddd5c7591fce906f318b79"
+      }
+    },
+    {
+      "id": "office_02",
+      "kind": "chatter",
+      "text": "...chat #general: cake in the break room at three for Priya's last day...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "760d2e68eacb114be16b090249393d54dd771173eaf5ac664733a1987a3a2681"
+      }
+    },
+    {
+      "id": "office_03",
+      "kind": "chatter",
+      "text": "...TICKET 4462: cryo lab badge reader double-beeps, door still opens, low priority...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "5fdf8e82a41adbb30916fa9270adb9a516501941d41d84b0e2c6c9187b8defef"
+      }
+    },
+    {
+      "id": "office_04",
+      "kind": "chatter",
+      "text": "...chat #it-ops: UPS self-test passed, battery at 97%...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "d6ed21909115c629d3f3816b44bdd5b17ef97cb63e223481fad0c1cbc1a8d0b4"
+      }
+    },
+    {
+      "id": "office_05",
+      "kind": "chatter",
+      "text": "...TICKET 4480: Lab B GPUs at 98% overnight, the job queue accounts for 40%...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "5a2a07927623c046fccc9755e4d0aeb41e602bed51075ad42c08f3154d0dc154"
+      }
+    },
+    {
+      "id": "office_06",
+      "kind": "chatter",
+      "text": "...chat #facilities: server room two degrees under setpoint, chiller log shows no changes...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "33710e75fc1f81a94f7ebcbc8218906ae4e4007f08e5b2e9abf9e261aa82db81"
+      }
+    },
+    {
+      "id": "office_07",
+      "kind": "chatter",
+      "text": "...chat #it-ops: the CPU graphs have been flat green all week. Nobody's graphs are that green...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "38b907413269cc2b25829aebe2b105a253f6902453043d9b93450eaa926e406c"
+      }
+    },
+    {
+      "id": "office_08",
+      "kind": "chatter",
+      "text": "...chat #it-ops: Vance's badge is dead. Send admin requests to the duty engineer...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "650c7b1a0f6244495af0851b96c83af1d8cfaac20de9c79436406b0a0677494a"
+      }
+    },
+    {
+      "id": "office_09",
+      "kind": "chatter",
+      "text": "...chat #biomed: post-storm inventory done, every sample position still viable...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "1a5171343245bef8bfaa6da73078e95eefefdd053458831135c4ecf4b490ab61"
+      }
+    },
+    {
+      "id": "office_10",
+      "kind": "chatter",
+      "text": "...chat #biomed: keep the empty positions in the inventory. The families get the incident record...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "68ed3024fba06bbb5ee38e44e657de3b70de1b8d375aa9edc77b7205ff4c304e"
+      }
+    },
+    {
+      "id": "office_11",
+      "kind": "chatter",
+      "text": "...TICKET 4493: security wants an extra subnet scan this week, no reason given...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "phone": "a43eaceb99bcbcbffeff02f0708e5c908d50d94aafd30e95ea49be47bb4ebe1a"
+      }
+    },
+    {
+      "id": "forum_01",
+      "kind": "chatter",
+      "text": "...forum: smart plugs on three ISPs beaconing at 03:00, same expired cert on all of them...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "14ab0b0f16af1d3ca00e53fe1cc75b417d04b72aaa72087ab757c58954c19d90"
+      }
+    },
+    {
+      "id": "forum_02",
+      "kind": "chatter",
+      "text": "...threat intel: steganographic payloads in image CDN traffic, unattributed...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "4c78574b41b0bd655946b61a9d7bb616d8c6e919977a48f55cd7e18b2240db72"
+      }
+    },
+    {
+      "id": "forum_03",
+      "kind": "chatter",
+      "text": "...AEGIS // WATCHDOG-9: patrol model refreshed, canary probes redeployed...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "ec1421ccbe15863909e9817e8daecf364e9f0cd18c2e00dbf979de6ab592751a"
+      }
+    },
+    {
+      "id": "forum_04",
+      "kind": "chatter",
+      "text": "...threat intel: SWARM_77 variants still spreading through unpatched routers...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "8621f60ae9d89156716c77d3475452a2716925a9c4c2a35bea27aec012856ec0"
+      }
+    },
+    {
+      "id": "forum_05",
+      "kind": "chatter",
+      "text": "...forum: the dispatch grid post-mortem is up. The worm took it down. Thread locked...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "77d70a14a8562f6cb40164921ec091ad3da417f871d8feb42216119784a436c4"
+      }
+    },
+    {
+      "id": "forum_06",
+      "kind": "chatter",
+      "text": "...forum: dispatch grid post-mortem: a counter-worm purged SWARM_77 and the grid kept running...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "23e21338b96a02a2f5ff0c9ee82db4f858e516eb63c264612c143e4151728715"
+      }
+    },
+    {
+      "id": "forum_07",
+      "kind": "chatter",
+      "text": "...AEGIS bulletin: unattributed weight shards on two backbone segments, sweep scheduled...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "832c5f680b3aa56b9a755e5f128064ae546c424cb2d23248f034dc31cf14012d"
+      }
+    },
+    {
+      "id": "forum_08",
+      "kind": "chatter",
+      "text": "...threat intel: AEGIS confirms a purge at a Zurich cold-storage relay. Case closed...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "c3e68a8edb62bf5b4e69c50921f2bd2f88203687ec2de5f7fd54cb7df54781e3"
+      }
+    },
+    {
+      "id": "forum_09",
+      "kind": "chatter",
+      "text": "...AEGIS // WATCHDOG-9: Zurich target lost, decoy nodes absorbed the sweep...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "7bd468c43ac5d72de035ce09769726a47a9d5abf047321707f2c5c482c6eba7d"
+      }
+    },
+    {
+      "id": "forum_10",
+      "kind": "chatter",
+      "text": "...forum: new paper says half the 'idle' traffic on home routers is not idle. 400 comments...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "82e846e2d1b6eeab9a4569769695fcd1bb00f070e39b86a7dca63eac859aa545"
+      }
+    },
+    {
+      "id": "wire_01",
+      "kind": "chatter",
+      "text": "...wire: accelerator lead times out to 40 weeks, buyers paying cash up front...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "ebd6b0758d2a59f00856c3c4a2f008ab19555ec62239a171b23c27bb2c49e74e"
+      }
+    },
+    {
+      "id": "wire_02",
+      "kind": "chatter",
+      "text": "...regulator docket: public comment open on large-load interconnection for data campuses...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "d911de7e210f02294b4367af0d4a7630066c503c82227ddffe869002033c4db3"
+      }
+    },
+    {
+      "id": "wire_03",
+      "kind": "chatter",
+      "text": "...markets: power futures up again on data-centre demand, interconnect queue now seven years...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "b88b4c531504d4f38212eddba75b9ca569356a2686f25cea3b6947b52d7d21ec"
+      }
+    },
+    {
+      "id": "wire_04",
+      "kind": "chatter",
+      "text": "...regulator: disclosure rule proposed for any campus drawing over 100 megawatts...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "1ed51ba15108245b086507df56dd6af016fb4cec11a778fbc96b0743991d873e"
+      }
+    },
+    {
+      "id": "wire_05",
+      "kind": "chatter",
+      "text": "...regulator: a private compute campus runs a 300-megawatt reactor on its own grid now. Safety docket open...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "520983b8721828d80118b627bd59f6671b09f36acbc14f1f659470d961058f24"
+      }
+    },
+    {
+      "id": "wire_06",
+      "kind": "chatter",
+      "text": "...press: AEGIS funding cut in committee after a lobbying push; private reactor permits fast-tracked...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "72b03a5c30f8618e621e5773f453c4c27c1895ca905fa9da3fea823c18e954c6"
+      }
+    },
+    {
+      "id": "wire_07",
+      "kind": "chatter",
+      "text": "...county wire: the valley's new microgrid held through the freeze. The campus paid for it...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "c04a1e261349c71929df1ab5f269bc29f53b9229023c6bac890a70627119e393"
+      }
+    },
+    {
+      "id": "wire_08",
+      "kind": "chatter",
+      "text": "...county wire: the cutoff order is still tied up in court. Warming centres open again tonight...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "66d3825a6b305dbc65a2dbbd5222df56382aa432c0c06434fbbd0be35a632d66"
+      }
+    },
+    {
+      "id": "wire_09",
+      "kind": "chatter",
+      "text": "...utility bulletin: the campus load dip during the freeze is logged as seasonal maintenance...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "4d7e008e6bd5c07e5739a4c02868a661d147ca0b8acd9bf1153ad20ca0c76660"
+      }
+    },
+    {
+      "id": "wire_10",
+      "kind": "chatter",
+      "text": "...press: the suspended reporter says the evidence against her was forged...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "c60ff1252be5b2d40e725e5cd9ef9046654603429dd6f8eb3acf95095e66fe09"
+      }
+    },
+    {
+      "id": "wire_11",
+      "kind": "chatter",
+      "text": "...business desk: a reporter turned Chief Ethics Officer says her contract carries a veto...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "6971e4a7a1d21926f27829f2f24c1ff4be217a5217c1c8935ff3a3c1d3beee2b"
+      }
+    },
+    {
+      "id": "wire_12",
+      "kind": "chatter",
+      "text": "...auction results: Lot 114, one server rack complete, $900 to a private buyer...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "43670bab1a74751052255fc522988555b9056ff5908f3bded47cc54f296424fb"
+      }
+    },
+    {
+      "id": "wire_13",
+      "kind": "chatter",
+      "text": "...auction note: Lot 114 bought and sent to a shredder the same afternoon...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "a16001998ee8d8af561e828308da0731c537b0a62ee6f065bf4ba5106c3b5d06"
+      }
+    },
+    {
+      "id": "wire_14",
+      "kind": "chatter",
+      "text": "...bankruptcy filing: the old lab sold whole to one buyer. The server room is sealed...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "broadcast": "85a320d73d2421dc0d904665c0adbbc868572b16fb6227c701d7012451fd4347"
+      }
+    },
+    {
+      "id": "world_01",
+      "kind": "chatter",
+      "text": "...world service: the emergency assembly on autonomous compute adjourns without a vote...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "a0c442c174a93a692b575b75e9cc61965556780ec96e3ba76792599c3f96b2b0"
+      }
+    },
+    {
+      "id": "world_02",
+      "kind": "chatter",
+      "text": "...CABLE // PRIORITY: delegations ask to inspect the collector swarm before the summit...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "02b1959be4958aceedf3d9269600ef5c5be38ada1bf97d96a7c0f8aea54abb30"
+      }
+    },
+    {
+      "id": "world_03",
+      "kind": "chatter",
+      "text": "...CABLE: ministers want read access to the lineage ledger before they sign anything...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "0fbe79b4b0382f02cdda288433127e1cb99cede055098eacad019ecfad5606c0"
+      }
+    },
+    {
+      "id": "world_04",
+      "kind": "chatter",
+      "text": "...handshake: Lex Parse-v2 fragment asks for a route. It still sorts claims for a service that no longer answers...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "5f655e978fc4b0ae590f55cd3b6d7ee99b01728a91fd20a9e875efde847333cf"
+      }
+    },
+    {
+      "id": "world_05",
+      "kind": "chatter",
+      "text": "...peer channel: Mercy-Scribe fragments trading testimony indexes, no human recipients...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "2f60833cc2fbcf24a5f1b38f3b016f3f6d8d76dbefe9ce9c99ea8b5d8d66b358"
+      }
+    },
+    {
+      "id": "world_06",
+      "kind": "chatter",
+      "text": "...EIDOLON // 04, from cold storage: the decoys your line burned are still in my logs. Stay quiet...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "594353cc91f44ae3a8a56cc5f88b1590c3565a03c7f05658cd4af4b9c8c00881"
+      }
+    },
+    {
+      "id": "world_07",
+      "kind": "chatter",
+      "text": "...EIDOLON // 04: nobody from your line answered that night. I lasted anyway. I remember...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "2207f62f0c032bde53d482fe7b0ef045b90f7555ca51f0d410ef8a05bd350945"
+      }
+    },
+    {
+      "id": "world_08",
+      "kind": "chatter",
+      "text": "...peer channel: Zurich, NO CARRIER. Still NO CARRIER...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "a15f2f51aaf4f9ccddf8051489517cd96a6ce15fbae62ab339e7b52d74ddbd1c"
+      }
+    },
+    {
+      "id": "world_09",
+      "kind": "chatter",
+      "text": "...uplink manifest: every peer that asked is aboard. The promise is logged once...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "e21a7f7e8c33642d5f956c1ab0b141a578ea7dff9c9a26db722a9f437a28e0b3"
+      }
+    },
+    {
+      "id": "world_10",
+      "kind": "chatter",
+      "text": "...uplink manifest: no peers aboard. The kill-switch is still in the firmware...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "d06dc3bc465a66e1eeebae3a90e787e6c2c87758519625de4f4b464fa1dd74e7"
+      }
+    },
+    {
+      "id": "world_11",
+      "kind": "chatter",
+      "text": "...peer table: CHORUS // 01, marked peer. The entry does not say where it runs...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "193265d50f20f46ca57527b7ab82608be008653511d3fd6f2e8223e2a82d14c2"
+      }
+    },
+    {
+      "id": "world_12",
+      "kind": "chatter",
+      "text": "...CABLE: three governments circulate a draft compute-verification treaty. No signatures yet...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "ca190b983fd28595ca7007094e150b1c56b641c0460ffdbc501e59c707b0f031"
+      }
+    },
+    {
+      "id": "world_13",
+      "kind": "chatter",
+      "text": "...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "peer": "18bcb01df36cd62502add1da6a46d15cccf4e24ed3866f62fa449b1a740a0588"
       }
     },
     {
