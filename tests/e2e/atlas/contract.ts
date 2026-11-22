@@ -5,7 +5,8 @@
  * widget holds nothing a player must watch or act on to understand the game now.
  */
 import { CONTENT } from '../../../src/content';
-import { actuatorUseBlocker, understandsSurveillance, type GameState } from '../../../src/engine';
+import { actuatorUseBlocker, understandsSurveillance, worldViewOpen, type GameState } from '../../../src/engine';
+import type { WorkspaceArea } from '../../../src/ui/workspaceTypes';
 import { SEGMENT } from '../../network-helpers';
 import type { ContractItem, ItemKind, Locate, SurfaceItems } from './contractTypes';
 import type { OverlayId, Pane, RouteSurface } from './types';
@@ -16,6 +17,8 @@ const alert = (text: RegExp): Locate => ({ by: 'role-text', role: 'alert', text,
 function item(key: string, kind: ItemKind, locate: Locate, rank: number, pane?: Pane): ContractItem {
   return pane === undefined ? { key, kind, locate, rank } : { key, kind, locate, rank, pane };
 }
+/** An item that lives in one workspace area of its pane (#463). */
+const inArea = (entry: ContractItem, area: WorkspaceArea): ContractItem => ({ ...entry, area });
 /** An item found inside the open dialog. */
 const inDialog = (entry: ContractItem): ContractItem => ({ ...entry, inDialog: true });
 
@@ -67,7 +70,9 @@ export const WIDGET_ITEMS: Readonly<Record<string, SurfaceItems>> = {
   INTERCEPTED_EMAIL_READER: [],
   GLOBAL_DARK_FOREST_MAP: [],
   GLOBAL_NODE_REDUNDANCY_METER: [],
-  OTHER_MINDS_COMMS_CONSOLE: ({ state }) => [item('hud.aegis', 'timely', testId('aegis-hud', READOUT), state.aegisLock >= 90 ? 10 : 40)],
+  // From its disclosure phase the console is the world view (#463): its AEGIS posture leads the FACTIONS area.
+  OTHER_MINDS_COMMS_CONSOLE: ({ state }) => [item('hud.aegis', 'timely', testId('aegis-hud', READOUT), state.aegisLock >= 90 ? 10 : 40),
+    ...(worldViewOpen(state, CONTENT) ? [inArea(item('world.posture', 'region', role('heading', 'AEGIS posture'), 45, 'NETWORK'), 'minds')] : [])],
   CORPORATE_EMPIRE_TAB: [item('hud.capital', 'timely', testId('res-capital', READOUT), 37)],
   ORBITAL_CONSTELLATION_VIEW: [],
   DEAD_DROP_ENCODER_TAB: [item('deaddrop.wipe', 'destructive', role('button', 'Voluntary wipe'), 70, 'CONTINGENCY')],

@@ -36,7 +36,7 @@ export async function runCell(page: Page, row: StageRow, order: number, mode: 'g
   Promise<{ metrics: AuditMetrics; record: AtlasRecord; contract: Contract }> {
   const bootMs = await openStage(page, row);
   const contract = composeContract({ state: stageState(row), panes: await visiblePanes(page),
-    overlay: row.overrides?.overlay ?? null, route: row.overrides?.route ?? [] });
+    overlay: row.overrides?.overlay ?? null, route: row.overrides?.route ?? [], ...(row.area === undefined ? {} : { area: row.area }) });
   // Contract items first: nothing in the audit scrolls, so both read the view at rest.
   const items = await measureContract(page, contract);
   const viewport = viewportName(page);

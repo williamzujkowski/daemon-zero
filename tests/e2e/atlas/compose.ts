@@ -64,7 +64,7 @@ export function composeContract(context: ComposeContext): Contract {
   const full = { ...context, state };
   const entries = surfaceEntries(full);
   const items = entries.flatMap(([surface, entry]) => itemsOf(surface, entry, full))
-    .filter((entry) => entry.pane === undefined || context.panes.includes(entry.pane));
+    .filter((entry) => (entry.pane === undefined || context.panes.includes(entry.pane)) && (entry.area === undefined || entry.area === context.area));
   const keys = new Set<string>();
   for (const entry of items) {
     if (keys.has(entry.key)) throw new Error('Contract item composed twice: ' + entry.key);

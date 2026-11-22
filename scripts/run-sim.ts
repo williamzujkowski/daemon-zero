@@ -9,6 +9,7 @@ import { activateCampaignRules } from '../src/engine/campaign';
 import { createInitialState, type GameState } from '../src/engine/state';
 import { checkGates, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
+import { aegisPhaseLine } from '../src/engine/sim/simReport';
 
 function minutes(seconds: number | undefined): string {
   return seconds === undefined ? '   -  ' : (seconds / 60).toFixed(1).padStart(6);
@@ -25,6 +26,8 @@ function print(label: string, report: SimReport): void {
   console.log(`  dilemmas resolved ${String(report.dilemmasResolved)} (${report.traits.join(', ') || 'none'})`);
   const peaks = [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map((v) => v.toFixed(1));
   console.log(`  peaks             thermal ${String(peaks[0])}C | suspicion ${String(peaks[1])}% | aegis ${String(peaks[2])}%`);
+  // The late hunter (#463): AEGIS through Phases 3-5, so a balance change shows whether it still threatens.
+  for (const phase of [3, 4, 5]) console.log(`  aegis P${String(phase)}          ${aegisPhaseLine(report, phase)}`);
 }
 
 /** A new game as the app store admits it: through the one public activation transition. */

@@ -46,13 +46,19 @@ export function revenueText(view: PayrollView): string {
   return `Revenue multiplier: ×${multiplier} (staff +${percent(view.staffRevenueBonus)})`;
 }
 
+/** The cap as a player reads it: the effective cap, and where AEGIS adaptation lowered it from (#463). */
+function capText(view: PayrollView): string {
+  const { cap, nominalCap } = view.aegis;
+  return percent(cap) === percent(nominalCap) ? `${percent(cap)} cap` : `${percent(cap)} cap, lowered from ${percent(nominalCap)} by AEGIS adaptation`;
+}
+
 /** The applied reduction against its cap, with where it comes from, and what the cap means for a hire. */
 export function aegisTotalText(view: PayrollView): string {
-  const { tech, staff, cap, applied, capped } = view.aegis;
+  const { tech, staff, applied, capped } = view.aegis;
   const sources = [tech > 0 ? 'systems ' + percent(tech) : '', staff > 0 ? 'staff ' + percent(staff) : ''].filter(Boolean);
   const from = sources.length > 0 ? ` (${sources.join(', ')})` : '';
-  return capped ? `AEGIS scan reduction: ${percent(applied)}, at its ${percent(cap)} cap${from}. More AEGIS levels add nothing.`
-    : `AEGIS scan reduction: ${percent(applied)} of a ${percent(cap)} cap${from}.`;
+  return capped ? `AEGIS scan reduction: ${percent(applied)}, at its ${capText(view)}${from}. More AEGIS levels add nothing.`
+    : `AEGIS scan reduction: ${percent(applied)} of a ${capText(view)}${from}.`;
 }
 
 export function suspicionFloorText(blind: boolean): string {
@@ -61,12 +67,12 @@ export function suspicionFloorText(blind: boolean): string {
 }
 
 export function roleAegisCappedText(view: PayrollView): string {
-  return `No AEGIS effect while capped: the reduction is at its ${percent(view.aegis.cap)} cap.`;
+  return `No AEGIS effect while capped: the reduction is at its ${capText(view)}.`;
 }
 
 export function roleAegisPartialText(next: number, view: PayrollView): string {
   const gain = Math.round(next * 100) === 0 ? 'under 1%' : percent(next);
-  return `The next level adds only ${gain} before the ${percent(view.aegis.cap)} cap.`;
+  return `The next level adds only ${gain} before the ${capText(view)}.`;
 }
 
 export function roleSuspicionInertText(blind: boolean): string {

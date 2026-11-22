@@ -4,6 +4,7 @@
  * that has no role or no computed name, and every fallback carries its reason so the count is a visible ratchet.
  */
 import type { GameState } from '../../../src/engine';
+import type { WorkspaceArea } from '../../../src/ui/workspaceTypes';
 import type { OverlayId, Pane, RouteSurface } from './types';
 
 /** Timely readouts must sit fully in the first viewport (the hard fold gate); the other kinds must be present. */
@@ -27,6 +28,8 @@ export interface ContractItem {
   locate: Locate;
   /** The pane the item lives in; the item is expected only where that pane is on screen. None: chrome or overlay. */
   pane?: Pane;
+  /** The workspace area inside its pane; the item is expected only where the stage opened that area (#463). */
+  area?: WorkspaceArea;
   /** Lower is more urgent; the stage's single top-priority item is its lowest rank. */
   rank: number;
   /** Found inside the open dialog rather than anywhere on the page. */
@@ -39,6 +42,8 @@ export interface ComposeContext {
   state: GameState;
   /** Panes rendered on this tier right now (a phone shows one; wider tiers show columns). */
   panes: readonly Pane[];
+  /** The workspace area the stage opened, when it opened one. */
+  area?: WorkspaceArea;
   overlay: OverlayId | null;
   route: readonly RouteSurface[];
 }

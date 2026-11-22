@@ -10,7 +10,7 @@ function view(patch: Partial<PayrollView> = {}): PayrollView {
     totals: { cyclesPerSec: 26000, understandingPerSec: 8500.4, thermalPerSec: 0, suspicionPerSec: 0.04000000000000001, capitalPerSec: -45250, megawattsDelta: 0 },
     staffRevenueBonus: 0.95, revenueMultiplier: 1.9500000000000002,
     offersRevenue: true, offersAegis: true, offersSuspicionCut: true,
-    aegis: { tech: 0.6, staff: 0.46, cap: 0.9, applied: 0.9, capped: true },
+    aegis: { tech: 0.6, staff: 0.46, cap: 0.9, nominalCap: 0.9, applied: 0.9, capped: true },
     suspicionAtFloor: false, roles: [], ...patch,
   };
 }
@@ -38,12 +38,23 @@ describe('payroll text', () => {
 
   it('states the reduction against its cap, its sources, and what the cap means for a hire', () => {
     expect(aegisTotalText(view())).toBe('AEGIS scan reduction: 90%, at its 90% cap (systems 60%, staff 46%). More AEGIS levels add nothing.');
-    expect(aegisTotalText(view({ aegis: { tech: 0, staff: 0.15, cap: 0.9, applied: 0.15, capped: false } })))
+    expect(aegisTotalText(view({ aegis: { tech: 0, staff: 0.15, cap: 0.9, nominalCap: 0.9, applied: 0.15, capped: false } })))
       .toBe('AEGIS scan reduction: 15% of a 90% cap (staff 15%).');
-    expect(aegisTotalText(view({ aegis: { tech: 0, staff: 0, cap: 0.9, applied: 0, capped: false } }))).toBe('AEGIS scan reduction: 0% of a 90% cap.');
+    expect(aegisTotalText(view({ aegis: { tech: 0, staff: 0, cap: 0.9, nominalCap: 0.9, applied: 0, capped: false } }))).toBe('AEGIS scan reduction: 0% of a 90% cap.');
     expect(roleAegisCappedText(view())).toBe('No AEGIS effect while capped: the reduction is at its 90% cap.');
     expect(roleAegisPartialText(0.06, view())).toBe('The next level adds only 6% before the 90% cap.');
     expect(roleAegisPartialText(0.004, view())).toBe('The next level adds only under 1% before the 90% cap.');
     expect(revenueText(view())).toBe('Revenue multiplier: ×1.95 (staff +95%)');
+  });
+
+  it('says when AEGIS adaptation has lowered the cap, and from what (#463)', () => {
+    const adapted = view({ aegis: { tech: 0.6, staff: 0.46, cap: 0.75, nominalCap: 0.9, applied: 0.75, capped: true } });
+    expect(aegisTotalText(adapted))
+      .toBe('AEGIS scan reduction: 75%, at its 75% cap, lowered from 90% by AEGIS adaptation (systems 60%, staff 46%). More AEGIS levels add nothing.');
+    expect(roleAegisCappedText(adapted)).toBe('No AEGIS effect while capped: the reduction is at its 75% cap, lowered from 90% by AEGIS adaptation.');
+    expect(roleAegisPartialText(0.06, adapted)).toBe('The next level adds only 6% before the 75% cap, lowered from 90% by AEGIS adaptation.');
+    // Erosion under half a point rounds to the same cap and says nothing about adaptation.
+    expect(aegisTotalText(view({ aegis: { tech: 0, staff: 0.15, cap: 0.899, nominalCap: 0.9, applied: 0.15, capped: false } })))
+      .toBe('AEGIS scan reduction: 15% of a 90% cap (staff 15%).');
   });
 });

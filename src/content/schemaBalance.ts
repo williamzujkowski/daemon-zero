@@ -25,6 +25,25 @@ export const BalanceSchema = z.strictObject({
   aegisSuspicionScanPerSec: amount,
   aegisMaxReduction: z.number().min(0).max(1),
   aegisShieldSuspicionRelief: amount,
+  /**
+   * AEGIS adaptation (#463, vote-1795366701521-dhlwfwb): held at or near its scan-reduction cap, the hunter rotates
+   * keys and, while public trust is low, wins coalition backing; each point of adaptation erodes the cap. Integrity
+   * holds the erosion within the cap, so the effective cap never goes below zero.
+   */
+  aegisAdaptation: z.strictObject({
+    /** Suppression counts as held once the requested reduction is within this of the cap. */
+    nearCap: z.number().min(0).max(1),
+    /** Adaptation points (of 100) gained per second while held. */
+    risePerSec: z.number().positive(),
+    /** Adaptation points lost per second while not held, or above the ceiling. */
+    decayPerSec: z.number().positive(),
+    /** Cap erosion at full adaptation: the effective cap is the cap minus level / 100 times this. */
+    maxErosion: z.number().min(0).max(1),
+    /** Key rotation alone adapts this far; above it AEGIS needs coalition backing. */
+    keyRotationCeiling: z.number().gt(0).max(100),
+    /** Coalitions back AEGIS while public trust is below this. */
+    coalitionTrustBelow: z.number().gt(0).max(100),
+  }),
   offlineCapSec: z.number().positive(),
   offlineEfficiency: z.number().min(0).max(1),
   offlineStepSec: z.number().positive(),

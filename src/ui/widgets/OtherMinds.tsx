@@ -5,13 +5,14 @@ import CardDetails from '../CardDetails';
 
 import { CONTENT } from '../../content';
 import type { Faction } from '../../content/schema';
-import { isPeerLost } from '../../engine';
+import { isPeerLost, worldViewOpen } from '../../engine';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { useGame } from '../state';
 import { theme } from '../theme';
-import { aegisCritical } from '../registry/widgetRegistry';
+import AegisStatus from './AegisStatus';
 import Meter from './Meter';
+import WorldView from './WorldView';
 
 function FactionPanel({ faction }: { faction: Faction }) {
   const trust = useGame((game) => game.trust[faction.id] ?? faction.initialTrust);
@@ -33,19 +34,16 @@ function FactionPanel({ faction }: { faction: Faction }) {
   </View>;
 }
 
-export function AegisStatus() {
-  const lock = useGame((game) => Math.round(game.aegisLock * 10) / 10);
-  const rate = useGame((game) => game.rates.aegisScanPerSec);
-  return <View style={{ gap: 8 }}>
-    <Meter id="aegis-lock" label="AEGIS lock" value={lock} unit="%" />
-    <Text style={theme.muted}>Scan rate: {rate.toFixed(3)} /s</Text>
-    {aegisCritical(lock) && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>WARNING: hunter lock near completion.</Text>}
-  </View>;
-}
-
+/**
+ * Before its disclosure phase the console is AEGIS and the faction panels. From then on it is the world view (#463),
+ * which keeps the same faction panels, once, under Other minds: no parallel faction display.
+ */
 export default function OtherMinds() {
+  const world = useGame((game) => worldViewOpen(game, CONTENT));
+  const factions = [...CONTENT.factions.values()].map((faction) => <FactionPanel key={faction.id} faction={faction} />);
+  if (world) return <WorldView factions={factions} />;
   return <View style={{ gap: 16 }}>
     <AegisStatus />
-    {[...CONTENT.factions.values()].map((faction) => <FactionPanel key={faction.id} faction={faction} />)}
+    {factions}
   </View>;
 }

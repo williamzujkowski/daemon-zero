@@ -132,3 +132,18 @@ test('200% text keeps the payroll totals, the AEGIS cap note and a hire reachabl
   await reachable(page.getByTestId('rep-' + strongest.id + '-buy'));
   await noHorizontalScroll(page);
 });
+
+test('200% text keeps the world view readable and an AEGIS countermeasure reachable (#463)', async ({ page }) => {
+  const action = [...CONTENT.actions.values()].find((entry) => entry.group === 'ai_aegis_watchdog');
+  if (!action) throw new Error('Missing AEGIS countermeasure');
+  await boot(page, 'victory-ready', { patch: (game) => ({ ...game, aegisAdaptation: 80 }) }); await openArea(page, 'NETWORK', 'minds');
+  await doubleText(page);
+  const actor = CONTENT.world.stateActors[0]?.id ?? '';
+  for (const id of ['aegis-adaptation', 'aegis-stage', 'aegis-why', 'aegis-cap', 'aegis-strike', 'public-trust', 'public-trust-coalition', 'actor-' + actor + '-posture']) {
+    const line = page.getByTestId(id);
+    await line.scrollIntoViewIfNeeded();
+    await expect(line).toBeInViewport();
+  }
+  await reachable(page.getByTestId('action-' + action.id));
+  await noHorizontalScroll(page);
+});

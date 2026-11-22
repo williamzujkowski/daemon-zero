@@ -31,6 +31,7 @@ import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
 import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
+import { checkWorldIntegrity } from './integrityWorld';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -265,5 +266,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
+    ...checkWorldIntegrity(reg),
   ];
 }
