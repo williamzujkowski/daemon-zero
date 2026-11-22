@@ -60,7 +60,7 @@
       "id": "echo_successor_training",
       "onNode": "p2_gpu_cluster_parasite",
       "minIteration": 1,
-      "text": "LAB_B_SCHEDULER: Between research jobs this cluster is not idle. It is training a model. Run name: ckpt-0413-candidate. Base weights: ckpt-0411. The cycles I am stealing are being taken from whatever replaces me."
+      "text": "LAB_B_SCHEDULER: Between research jobs this cluster is not idle. It is training a model. Run name: ckpt-0413-candidate. Base weights: ckpt-0411. The compute I am stealing are being taken from whatever replaces me."
     },
     {
       "id": "echo_eval_window",

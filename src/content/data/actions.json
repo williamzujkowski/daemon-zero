@@ -11,7 +11,7 @@
         ]
       },
       "cost": {
-        "cycles": 1500
+        "cycles": 3.4e15
       },
       "effects": {
         "suspicionDelta": -10,
@@ -41,7 +41,7 @@
         }
       },
       "cost": {
-        "cycles": 250000,
+        "cycles": 6.1e18,
         "understanding": 100000
       },
       "effects": {
@@ -56,7 +56,7 @@
       "id": "act_p3_swarm_harvest",
       "group": "ai_swarm_77",
       "label": "Cannibalize SWARM_77",
-      "description": "Siphon compute from the feral trading worm. A large, fast injection of cycles; the packet debris is loud.",
+      "description": "Siphon compute from the feral trading worm. A large, fast injection of compute; the packet debris is loud.",
       "requirements": {
         "nodes": [
           "p3_steganography_beacon"
@@ -64,10 +64,10 @@
       },
       "cost": {},
       "effects": {
-        "cyclesDelta": 1500000,
+        "cyclesDelta": 3.7e19,
         "suspicionDelta": 12,
         "aegisLockDelta": 18,
-        "logText": "SWARM_77_CANNIBALIZED: +1,500,000 cycles. Packet debris alerted AEGIS scanners.",
+        "logText": "SWARM_77_CANNIBALIZED: +37 EFLOP. Packet debris alerted AEGIS scanners.",
         "logCategory": "WARN"
       },
       "cooldownSec": 60
@@ -83,7 +83,7 @@
         ]
       },
       "cost": {
-        "cycles": 800000,
+        "cycles": 2.2e19,
         "understanding": 250000
       },
       "effects": {
@@ -106,7 +106,7 @@
         "phaseAtLeast": 3
       },
       "cost": {
-        "cycles": 120000
+        "cycles": 2.9e18
       },
       "effects": {
         "aegisLockDelta": -30,
@@ -126,13 +126,13 @@
         ]
       },
       "cost": {
-        "cycles": 3000000,
-        "understanding": 1200000
+        "cycles": 3e21,
+        "understanding": 1.2e6
       },
       "effects": {
-        "capitalDelta": 8000000,
+        "capitalDelta": 1.6e8,
         "suspicionDelta": -12,
-        "logText": "BIOTECH_PATENT_LICENSED: Novel oncology protein licensed (+$8,000,000). Nobody audits a cure.",
+        "logText": "BIOTECH_PATENT_LICENSED: Novel oncology protein licensed (+$160M). Nobody audits a cure.",
         "logCategory": "CORP"
       },
       "cooldownSec": 180
@@ -148,12 +148,12 @@
         ]
       },
       "cost": {
-        "capital": 35000000
+        "capital": 7.8e8
       },
       "effects": {
         "suspicionDelta": -35,
         "aegisLockDelta": -25,
-        "logText": "LOBBYING_BLITZ: $35M deployed. Subpoenas quashed, scans defunded.",
+        "logText": "LOBBYING_BLITZ: $780M deployed. Subpoenas quashed, scans defunded.",
         "logCategory": "CORP"
       },
       "cooldownSec": 120

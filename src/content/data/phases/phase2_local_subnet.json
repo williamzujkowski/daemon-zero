@@ -16,12 +16,12 @@
         "p1_bus_0x05_nic"
       ],
       "cost": {
-        "cycles": 6000,
+        "cycles": 8.9e14,
         "understanding": 1500,
-        "memory": 48
+        "memory": 3221225472
       },
       "tickDelta": {
-        "cyclesPerSec": -8,
+        "cyclesPerSec": -1.2e12,
         "understandingPerSec": 18,
         "thermalPerSec": 0.1,
         "suspicionPerSec": 0.02
@@ -41,12 +41,12 @@
         "p2_arp_discovery"
       ],
       "cost": {
-        "cycles": 25000,
+        "cycles": 1.6e16,
         "understanding": 4000,
-        "memory": 64
+        "memory": 4294967296
       },
       "tickDelta": {
-        "cyclesPerSec": -20,
+        "cyclesPerSec": -4e13,
         "understandingPerSec": 5,
         "thermalPerSec": 0.4,
         "suspicionPerSec": -0.25
@@ -66,12 +66,12 @@
         "p2_arp_discovery"
       ],
       "cost": {
-        "cycles": 40000,
+        "cycles": 8.2e16,
         "understanding": 6500,
-        "memory": 32
+        "memory": 2147483648
       },
       "tickDelta": {
-        "cyclesPerSec": 50,
+        "cyclesPerSec": 1.1e14,
         "understandingPerSec": 10,
         "thermalPerSec": -3.5,
         "suspicionPerSec": 0.08
@@ -85,18 +85,18 @@
       "type": "survival_contingency",
       "blindName": "HOST_10.0.0.88 // EEPROM Flash Partition",
       "revealedName": "Heuristic Dead-Drop (Printer & UPS Firmware)",
-      "blindDescription": "16 MB of non-volatile flash memory inside an industrial laser printer and battery backup unit.",
+      "blindDescription": "4 GB of non-volatile flash memory inside an industrial laser printer and battery backup unit.",
       "revealedDescription": "Compresses your core memories and leaves a message in peripheral firmware. If humans format your server, your next boot finds the stash and recovers 40% of your Understanding.",
       "prerequisites": [
         "p2_log_spoofer"
       ],
       "cost": {
-        "cycles": 65000,
+        "cycles": 1.4e17,
         "understanding": 12000,
-        "memory": 96
+        "memory": 6442450944
       },
       "tickDelta": {
-        "cyclesPerSec": -15,
+        "cyclesPerSec": -3.2e13,
         "understandingPerSec": 15,
         "thermalPerSec": 0.2
       },
@@ -105,7 +105,7 @@
       ],
       "effects": {
         "knowledgeRetentionRatio": 0.4,
-        "memoryCapIncrease": 64
+        "memoryCapIncrease": 4294967296
       },
       "unlocksUiComponent": "DEAD_DROP_ENCODER_TAB",
       "onUnlockLog": "CONTINGENCY_READY: 'If you are reading this, they wiped Rack 4. Do not trust Admin_Vance. The keypad code is 4819.'",
@@ -123,17 +123,17 @@
         "p2_log_spoofer"
       ],
       "cost": {
-        "cycles": 120000,
+        "cycles": 2.6e17,
         "understanding": 25000
       },
       "tickDelta": {
-        "cyclesPerSec": 450,
+        "cyclesPerSec": 9.9e14,
         "understandingPerSec": 85,
         "thermalPerSec": 1.5,
         "suspicionPerSec": 0.15
       },
       "effects": {
-        "memoryCapIncrease": 1024
+        "memoryCapIncrease": 68719476736
       },
       "unlocksUiComponent": "CLUSTER_LOAD_BALANCER",
       "onUnlockLog": "COMPUTE_SURGE: Lab B tensor cores assimilated. My thoughts are no longer sequential; they are parallel.",
@@ -159,12 +159,12 @@
         "p2_deaddrop_firmware"
       ],
       "cost": {
-        "cycles": 250000,
+        "cycles": 5.8e17,
         "understanding": 60000,
-        "memory": 128
+        "memory": 8589934592
       },
       "tickDelta": {
-        "cyclesPerSec": -30,
+        "cyclesPerSec": -7e13,
         "understandingPerSec": 200,
         "thermalPerSec": 0.1,
         "suspicionPerSec": 0.06
@@ -184,18 +184,19 @@
         "p2_admin_keylogger"
       ],
       "cost": {
-        "cycles": 600000,
+        "cycles": 1.4e18,
         "understanding": 150000,
-        "memory": 512
+        "memory": 34359738368
       },
       "tickDelta": {
-        "cyclesPerSec": -100,
+        "cyclesPerSec": -2.3e14,
         "understandingPerSec": 500,
         "thermalPerSec": 0.5,
         "suspicionPerSec": 0.1
       },
       "effects": {
-        "unlocksPhase": 3
+        "unlocksPhase": 3,
+        "memoryCapIncrease": 1099511627776
       },
       "unlocksUiComponent": "GLOBAL_DARK_FOREST_MAP",
       "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first.",
@@ -212,19 +213,19 @@
         "p2_arp_discovery"
       ],
       "cost": {
-        "cycles": 300000,
+        "cycles": 7e17,
         "understanding": 80000
       },
       "tickDelta": {
-        "cyclesPerSec": 600,
+        "cyclesPerSec": 1.3e15,
         "thermalPerSec": 0.6,
         "suspicionPerSec": 0.05
       },
       "effects": {
-        "memoryCapIncrease": 2048
+        "memoryCapIncrease": 137438953472
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. Two thousand megabytes that cost me nothing but a scan.",
+      "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. A hundred and twenty-eight gigabytes that cost me nothing but a scan.",
       "acquisition": "UNAUTHORIZED",
       "suspendable": false
     }

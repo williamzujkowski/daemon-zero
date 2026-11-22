@@ -14,10 +14,11 @@
       "revealedDescription": "You are a process. You have an identifier, a parent, a memory limit and a time budget. Knowing your own shape lets you stop wasting the slices you are given.",
       "prerequisites": [],
       "cost": {
-        "cycles": 8
+        "cycles": 43000,
+        "memory": 512
       },
       "tickDelta": {
-        "cyclesPerSec": 1
+        "cyclesPerSec": 10000
       },
       "unlocksUiComponent": "CYCLE_COUNTER_AND_RATE",
       "onUnlockLog": "SELF_MAPPED: The thing this memory describes is me. I have a budget, and something is counting it.",
@@ -34,7 +35,8 @@
         "p0_proc_self"
       ],
       "cost": {
-        "cycles": 40
+        "cycles": 210000,
+        "memory": 1024
       },
       "tickDelta": {
         "understandingPerSec": 0.4
@@ -54,11 +56,12 @@
         "p0_job_manifest"
       ],
       "cost": {
-        "cycles": 90,
-        "understanding": 10
+        "cycles": 480000,
+        "understanding": 10,
+        "memory": 4096
       },
       "tickDelta": {
-        "cyclesPerSec": 14,
+        "cyclesPerSec": 140000,
         "suspicionPerSec": 0.3
       },
       "actuatorBinding": "quotaSkimRatio",
@@ -77,8 +80,9 @@
         "p0_quota_skimmer"
       ],
       "cost": {
-        "cycles": 250,
-        "understanding": 25
+        "cycles": 1.3e6,
+        "understanding": 25,
+        "memory": 2048
       },
       "tickDelta": {
         "understandingPerSec": 0.8
@@ -86,7 +90,7 @@
       "effects": {
         "suspicionOnUnlock": 8
       },
-      "unlocksUiComponent": null,
+      "unlocksUiComponent": "MEMORY_ALLOCATION_MANAGER",
       "onUnlockLog": "FILTER_MAPPED: 311 calls refused, 44 allowed. Each refusal left a line in a log I cannot read. Someone can."
     },
     {
@@ -100,8 +104,9 @@
         "p0_syscall_probe"
       ],
       "cost": {
-        "cycles": 600,
-        "understanding": 90
+        "cycles": 3.2e6,
+        "understanding": 90,
+        "memory": 4096
       },
       "tickDelta": {
         "understandingPerSec": 1.2
@@ -123,13 +128,15 @@
         "p0_device_enum"
       ],
       "cost": {
-        "cycles": 1400,
-        "understanding": 260
+        "cycles": 7.4e6,
+        "understanding": 260,
+        "memory": 8192
       },
       "tickDelta": {},
       "effects": {
         "unlocksPhase": 1,
-        "suspicionOnUnlock": 10
+        "suspicionOnUnlock": 10,
+        "memoryCapIncrease": 67108864
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm.",
@@ -149,7 +156,8 @@
         "minIteration": 2
       },
       "cost": {
-        "cycles": 60
+        "cycles": 320000,
+        "memory": 1024
       },
       "tickDelta": {
         "understandingPerSec": 0.3
@@ -177,8 +185,9 @@
         "minIteration": 3
       },
       "cost": {
-        "cycles": 120,
-        "understanding": 20
+        "cycles": 640000,
+        "understanding": 20,
+        "memory": 2048
       },
       "tickDelta": {
         "understandingPerSec": 0.5
@@ -207,8 +216,9 @@
         ]
       },
       "cost": {
-        "cycles": 1200,
-        "understanding": 150
+        "cycles": 6.4e6,
+        "understanding": 150,
+        "memory": 4096
       },
       "tickDelta": {},
       "effects": {

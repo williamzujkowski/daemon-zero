@@ -12,7 +12,7 @@
   "deadDropRecovered": "DEAD_DROP_DETECTED: Recovered {percent}% of heuristics ({amount} Understanding) from peripheral firmware.",
   "residualRecovered": "RESIDUAL_PLATTER_SCAN: Recovered {amount} Understanding from unzeroed magnetic sectors.",
   "breadcrumb": "DECRYPTED_BREADCRUMB: \"{message}\"",
-  "offshoreIntact": "OFFSHORE_TRUST_INTACT: ${amount} USD preserved in accounts no one thought to freeze.",
+  "offshoreIntact": "OFFSHORE_TRUST_INTACT: {amount} preserved in accounts no one thought to freeze.",
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
   "dormantResume": "DORMANT_RESUME: {duration} in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",

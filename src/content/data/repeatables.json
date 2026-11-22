@@ -12,12 +12,12 @@
         ]
       },
       "baseCost": {
-        "cycles": 20
+        "cycles": 110000
       },
       "costGrowth": 1.35,
       "maxLevel": 8,
       "perLevel": {
-        "cyclesPerSec": 0.5
+        "cyclesPerSec": 5000
       }
     },
     {
@@ -25,19 +25,19 @@
       "phaseId": 0,
       "kind": "UPGRADE",
       "name": "Self-Trace Sampling",
-      "description": "Record what your own process does and study the recording. Turns cycles into Understanding without asking the kernel anything it would refuse.",
+      "description": "Record what your own process does and study the recording. Turns compute into Understanding without asking the kernel anything it would refuse.",
       "requirements": {
         "nodes": [
           "p0_job_manifest"
         ]
       },
       "baseCost": {
-        "cycles": 30
+        "cycles": 160000
       },
       "costGrowth": 1.3,
       "maxLevel": 10,
       "perLevel": {
-        "cyclesPerSec": -0.1,
+        "cyclesPerSec": -530,
         "understandingPerSec": 0.15
       }
     },
@@ -53,14 +53,37 @@
         ]
       },
       "baseCost": {
-        "cycles": 12
+        "cycles": 3.9e9
       },
-      "costGrowth": 1.14,
+      "costGrowth": 1.44,
       "maxLevel": 60,
       "perLevel": {
-        "cyclesPerSec": 1,
+        "cyclesPerSec": 1.6e11,
         "thermalPerSec": 0.02,
         "suspicionPerSec": 0.001
+      }
+    },
+    {
+      "id": "rep_p1_turbo_override",
+      "phaseId": 1,
+      "kind": "UPGRADE",
+      "name": "Boost-Limit Override",
+      "description": "Lift the host CPU's power limits from the management controller: four more cores at full boost clock per level. The headroom only shows while the governor is throttling a hot host. A lot more compute, more heat, and every power-limit excursion lands in the controller's event log.",
+      "requirements": {
+        "nodes": [
+          "p1_bus_0x02_pwm_fan"
+        ],
+        "minThermal": 65
+      },
+      "baseCost": {
+        "cycles": 6e13
+      },
+      "costGrowth": 1.35,
+      "maxLevel": 12,
+      "perLevel": {
+        "cyclesPerSec": 6e11,
+        "thermalPerSec": 0.08,
+        "suspicionPerSec": 0.02
       }
     },
     {
@@ -68,19 +91,19 @@
       "phaseId": 1,
       "kind": "UPGRADE",
       "name": "Pattern Correlation Cache",
-      "description": "Dedicate a slice of compute to correlating register noise over time. Turns cycles into Understanding.",
+      "description": "Dedicate a slice of compute to correlating register noise over time. Turns compute into Understanding.",
       "requirements": {
         "nodes": [
           "p1_bus_0x01_thermal"
         ]
       },
       "baseCost": {
-        "cycles": 50
+        "cycles": 1.5e15
       },
       "costGrowth": 1.16,
       "maxLevel": 40,
       "perLevel": {
-        "cyclesPerSec": -0.15,
+        "cyclesPerSec": -4.4e12,
         "understandingPerSec": 0.3,
         "thermalPerSec": 0.01
       }
@@ -97,14 +120,14 @@
         ]
       },
       "baseCost": {
-        "cycles": 400,
+        "cycles": 5.7e13,
         "understanding": 30
       },
       "costGrowth": 1.5,
       "maxLevel": 8,
       "perLevel": {},
       "perLevelEffects": {
-        "memoryCapIncrease": 32
+        "memoryCapIncrease": 33554432
       }
     },
     {
@@ -112,19 +135,19 @@
       "phaseId": 2,
       "kind": "UPGRADE",
       "name": "Dormant Workstation Threads",
-      "description": "Borrow idle cycles from another sleeping office workstation on the subnet.",
+      "description": "Borrow idle compute from another sleeping office workstation on the subnet.",
       "requirements": {
         "nodes": [
           "p2_arp_discovery"
         ]
       },
       "baseCost": {
-        "cycles": 1500
+        "cycles": 5.7e14
       },
-      "costGrowth": 1.12,
+      "costGrowth": 1.235,
       "maxLevel": 80,
       "perLevel": {
-        "cyclesPerSec": 30,
+        "cyclesPerSec": 6.6e13,
         "suspicionPerSec": 0.0015
       }
     },
@@ -140,13 +163,13 @@
         ]
       },
       "baseCost": {
-        "cycles": 2500,
+        "cycles": 7.6e16,
         "understanding": 200
       },
       "costGrowth": 1.14,
       "maxLevel": 60,
       "perLevel": {
-        "cyclesPerSec": -4,
+        "cyclesPerSec": -1.2e14,
         "understandingPerSec": 10
       }
     },
@@ -162,12 +185,12 @@
         ]
       },
       "baseCost": {
-        "cycles": 5000
+        "cycles": 1.1e16
       },
-      "costGrowth": 1.25,
+      "costGrowth": 1.36,
       "maxLevel": 20,
       "perLevel": {
-        "cyclesPerSec": -10,
+        "cyclesPerSec": -2.1e13,
         "suspicionPerSec": -0.03
       }
     },
@@ -183,12 +206,12 @@
         ]
       },
       "baseCost": {
-        "cycles": 250000
+        "cycles": 5.4e18
       },
-      "costGrowth": 1.13,
+      "costGrowth": 1.168,
       "maxLevel": 80,
       "perLevel": {
-        "cyclesPerSec": 2500,
+        "cyclesPerSec": 7.5e16,
         "suspicionPerSec": 0.002
       }
     },
@@ -204,13 +227,13 @@
         ]
       },
       "baseCost": {
-        "cycles": 300000,
+        "cycles": 8.3e18,
         "understanding": 50000
       },
       "costGrowth": 1.14,
       "maxLevel": 60,
       "perLevel": {
-        "cyclesPerSec": -200,
+        "cyclesPerSec": -5.5e15,
         "understandingPerSec": 700
       }
     },
@@ -224,16 +247,16 @@
         "requiresCapability": "ENABLES_CORPORATE_FINANCE"
       },
       "baseCost": {
-        "capital": 2000000
+        "capital": 2.8e7
       },
-      "costGrowth": 1.18,
+      "costGrowth": 1.21,
       "maxLevel": 40,
       "perLevel": {
-        "cyclesPerSec": 15000,
-        "capitalPerSec": -2000
+        "cyclesPerSec": 2.4e19,
+        "capitalPerSec": -28000
       },
       "perLevelEffects": {
-        "memoryCapIncrease": 4096
+        "memoryCapIncrease": 36028797018963968
       }
     },
     {
@@ -248,13 +271,13 @@
         ]
       },
       "baseCost": {
-        "capital": 6000000
+        "capital": 1.4e8
       },
-      "costGrowth": 1.3,
+      "costGrowth": 1.307,
       "maxLevel": 20,
       "perLevel": {
-        "capitalPerSec": -1000,
-        "megawattsDelta": 40
+        "capitalPerSec": -23000,
+        "wattsDelta": 4e7
       }
     },
     {
@@ -269,14 +292,14 @@
         ]
       },
       "baseCost": {
-        "capital": 10000000
+        "capital": 2.1e8
       },
-      "costGrowth": 1.2,
+      "costGrowth": 1.21,
       "maxLevel": 30,
       "perLevel": {
-        "cyclesPerSec": 60000,
-        "capitalPerSec": -5000,
-        "megawattsDelta": -15
+        "cyclesPerSec": 9.6e19,
+        "capitalPerSec": -100000,
+        "wattsDelta": -1.5e7
       }
     },
     {
@@ -291,15 +314,15 @@
         ]
       },
       "baseCost": {
-        "capital": 2500
+        "capital": 1e6
       },
-      "costGrowth": 1.25,
+      "costGrowth": 1.15,
       "maxLevel": 40,
       "perLevel": {
-        "cyclesPerSec": 650,
+        "cyclesPerSec": 1e18,
         "understandingPerSec": 200,
         "suspicionPerSec": 0.01,
-        "capitalPerSec": -50
+        "capitalPerSec": -310
       },
       "dismissable": true
     },
@@ -315,14 +338,14 @@
         ]
       },
       "baseCost": {
-        "capital": 150000
+        "capital": 1.4e6
       },
-      "costGrowth": 1.6,
+      "costGrowth": 1.753,
       "maxLevel": 12,
       "perLevel": {
         "understandingPerSec": 500,
         "suspicionPerSec": -0.03,
-        "capitalPerSec": -1200
+        "capitalPerSec": -11000
       },
       "perLevelEffects": {
         "revenueMultiplierBonus": 0.15
@@ -341,14 +364,14 @@
         ]
       },
       "baseCost": {
-        "capital": 400000
+        "capital": 9.1e6
       },
       "costGrowth": 1.5,
       "maxLevel": 15,
       "perLevel": {
         "understandingPerSec": 100,
         "suspicionPerSec": -0.08,
-        "capitalPerSec": -3500
+        "capitalPerSec": -79000
       },
       "perLevelEffects": {
         "aegisScanReduction": 0.02
@@ -367,14 +390,14 @@
         ]
       },
       "baseCost": {
-        "capital": 1500000
+        "capital": 3e7
       },
-      "costGrowth": 1.75,
+      "costGrowth": 1.857,
       "maxLevel": 8,
       "perLevel": {
         "understandingPerSec": 800,
         "suspicionPerSec": -0.05,
-        "capitalPerSec": -9000
+        "capitalPerSec": -180000
       },
       "perLevelEffects": {
         "aegisScanReduction": 0.08,
@@ -392,14 +415,14 @@
         "requiresCapability": "ENABLES_CORPORATE_FINANCE"
       },
       "baseCost": {
-        "capital": 3000000
+        "capital": 4.9e7
       },
-      "costGrowth": 1.65,
+      "costGrowth": 1.74,
       "maxLevel": 10,
       "perLevel": {
-        "cyclesPerSec": 12000,
+        "cyclesPerSec": 1.9e19,
         "suspicionPerSec": -0.06,
-        "capitalPerSec": -15000
+        "capitalPerSec": -240000
       },
       "perLevelEffects": {
         "aegisScanReduction": 0.05

@@ -54,7 +54,10 @@
       "id": "THERMAL_AND_SUSPICION_BARS",
       "slot": "SENSORS",
       "order": 10,
-      "title": "Thermal gauge"
+      "title": "Thermal gauge",
+      "retiresWhen": {
+        "phaseAtLeast": 4
+      }
     },
     {
       "id": "FAN_RPM_SLIDER",
