@@ -166,6 +166,19 @@ describe('voice autoplay', () => {
     expect(test.played).toEqual([]);
   });
 
+  it('holds a READ made before the load in memory, and writes the union once the load lands', () => {
+    const test = rig();
+    test.autoplay.markHeard('line_c');
+    expect(test.saved, 'no write that could replace the stored set').toEqual([]);
+    test.autoplay.load(['line_a']);
+    expect(test.saved).toEqual([['line_a', 'line_c']]);
+    // A line read early that storage already held changes nothing, so nothing is written.
+    const again = rig();
+    again.autoplay.markHeard('line_a');
+    again.autoplay.load(['line_a', 'line_b']);
+    expect(again.saved).toEqual([]);
+  });
+
   it('a player that throws leaves the line unheard and the queue moving', () => {
     const played: string[] = [];
     const autoplay = new VoiceAutoplay({ hasClip: () => true, talking: () => false, remember: () => undefined,

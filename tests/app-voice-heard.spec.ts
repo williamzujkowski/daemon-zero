@@ -49,6 +49,59 @@ describe('the stored heard set', () => {
   });
 });
 
+/** Storage whose reads wait until the test lets them through, as AsyncStorage's do on native. */
+function slowStorage(initial: Record<string, string>) {
+  const values = new Map(Object.entries(initial));
+  const pending: (() => void)[] = [];
+  return {
+    values,
+    getItem: (key: string) => new Promise<string | null>((resolve) => { pending.push(() => { resolve(values.get(key) ?? null); }); }),
+    setItem: (key: string, text: string) => { values.set(key, text); },
+    release: async () => { for (const next of pending.splice(0)) next(); for (let tick = 0; tick < 8; tick++) await Promise.resolve(); },
+  };
+}
+
+/** One app process: a policy, its stored heard set, and the load the session starts. */
+function boot(storage: ReturnType<typeof slowStorage>) {
+  const played: string[] = [];
+  const lines = heardLines(storage, KNOWN);
+  const autoplay = new VoiceAutoplay({ hasClip: () => true, talking: () => false, play: (id) => { played.push(id); },
+    remember: (heard) => { void lines.save(heard); } });
+  autoplay.update({ speechEnabled: true, speechVolume: 30, running: true, foreground: true, overlays: 0, unlocked: true });
+  const loading = lines.load().then((heard) => { autoplay.load(heard); });
+  return { autoplay, played, loading };
+}
+
+describe('a READ before the heard slot has loaded (panel finding on #472)', () => {
+  it('does not overwrite what was stored, and storage holds the union once the load lands', async () => {
+    const storage = slowStorage({ [HEARD_KEY]: JSON.stringify({ version: 1, heard: ['ambient_01', 'world_04'] }) });
+    const first = boot(storage);
+    // READ on a line before the slow read returns.
+    first.autoplay.markHeard('office_01');
+    expect(JSON.parse(storage.values.get(HEARD_KEY) ?? '{}')).toEqual({ version: 1, heard: ['ambient_01', 'world_04'] });
+    await storage.release(); await first.loading;
+    expect(JSON.parse(storage.values.get(HEARD_KEY) ?? '{}')).toEqual({ version: 1, heard: ['ambient_01', 'office_01', 'world_04'] });
+    // Restart: every line heard before, and the one read early, stays quiet.
+    const second = boot(storage);
+    await storage.release(); await second.loading;
+    for (const id of KNOWN) second.autoplay.show(id);
+    expect(second.played).toEqual([]);
+  });
+
+  it('writes nothing after the load when nothing was heard early, so a plain start never rewrites the slot', async () => {
+    const stored = JSON.stringify({ version: 1, heard: ['world_04'] });
+    const storage = slowStorage({ [HEARD_KEY]: stored });
+    const writes: string[] = [];
+    const setItem = storage.setItem;
+    storage.setItem = (key, text) => { writes.push(text); setItem(key, text); };
+    const run = boot(storage);
+    await storage.release(); await run.loading;
+    expect(writes).toEqual([]);
+    run.autoplay.show('office_01');
+    expect(run.played).toEqual(['office_01']);
+  });
+});
+
 function sources() {
   const game = createStore<{ ready: boolean; paused: boolean; game: { ending: unknown } }>(() => ({ ready: true, paused: false, game: { ending: null } }));
   const speech = createStore(() => ({ speechEnabled: true, speechVolume: 30 }));

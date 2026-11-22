@@ -47,11 +47,18 @@ export class VoiceAutoplay {
 
   constructor(private readonly ports: AutoplayPorts) {}
 
-  /** Lines already heard, from storage. Merged, so a line heard before the load landed stays heard. */
+  /**
+   * Lines already heard, from storage. Merged, so a line heard before the load landed stays heard. Nothing
+   * is written before this (a write then would replace the stored set with the few lines heard so far:
+   * panel finding on #472), so if any line was heard early the union is written now and storage repairs itself.
+   */
   load(heard: Iterable<string>): void {
-    for (const id of heard) this.heard.add(id);
+    const early = this.heard.size;
+    const stored = new Set(heard);
+    for (const id of stored) this.heard.add(id);
     this.dropHeard();
     this.loaded = true;
+    if (early > 0 && this.heard.size > stored.size) this.ports.remember(this.heard);
     this.pump();
   }
 
@@ -80,7 +87,8 @@ export class VoiceAutoplay {
     this.remove(id);
     if (this.heard.has(id)) return;
     this.heard.add(id);
-    this.ports.remember(this.heard);
+    // Before the load, held in memory only: `load` writes the union.
+    if (this.loaded) this.ports.remember(this.heard);
   }
 
   hasHeard(id: string): boolean { return this.heard.has(id); }

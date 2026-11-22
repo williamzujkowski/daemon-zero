@@ -123,7 +123,10 @@ the audio preference, and not part of `GameState`: no save changes, no schema ve
 an import or a new run does not reset it. An empty slot is a fresh install; anything that is not an
 exact version 1 value (not JSON, an unknown key or version, a malformed id, over 72,000 characters)
 counts every line as heard, the same "damaged storage means silence" rule the audio preference
-follows. The recorded transmissions are never autoplayed: they are long archival records outside
+follows. Nothing is written before the slot has been read: a READ pressed while the read is still
+pending (native storage is asynchronous) is held in memory, and once the read lands the union is
+written, so an early READ can never replace the stored set with itself (panel finding on #472,
+pinned with a delayed storage read in `tests/app-voice-heard.spec.ts`). The recorded transmissions are never autoplayed: they are long archival records outside
 the feed, and stay on demand.
 
 **WCAG 1.4.2 (Audio Control).** The text of every line is always on screen, the voice can be
