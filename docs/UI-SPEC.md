@@ -577,12 +577,21 @@ and shows one muted line above the decoded text naming the source this phase hea
 (`speech-source`, for example `HOST // drive-head vibration` or `WORLD // cables and AI comms`).
 The label is plain text: no live region, no focus change, and it changes only when the
 phase does, never with each line. Labels are at most 32 characters (schema-enforced) so
-they hold one line at 360 px. `[ ▶ READ ]` still appears only for a line with a committed
-clip, which today means the host's original lines.
+they hold one line at 360 px. `[ ▶ READ ]` appears only for a line with a committed
+clip, which since #462 is every line from Phase 1 to Phase 5 (the harness stays text).
+
+While a line's own clip talks, read or autoplayed, its control is `[ ■ STOP ]`
+(`speech-stop`, name "[ ■ STOP ] Stop reading this transmission aloud"; on a record
+`recorded-speech-stop-{id}`) in the same place and at the same 44 px height, so nothing moves;
+it stops the clip and READ returns. A voiced line plays once by itself the first time it is
+shown (VOICE-CLIPS.md, "Autoplay on first detection"). While an autoplayed line talks the feed
+holds it so the rotation cannot cut the voice off; that hold lets go by itself when the clip
+ends and shows no `[ FOLLOW LIVE ]`. No live region is added: the STOP control and the hold
+announce nothing.
 
 ## Compact optional card details
 
-Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and only the current phase’s score; the same page holds a separate SPEECH switch and level that alone gate `[ ▶ READ ]` (VOICE-CLIPS.md). See REVIEW-UTILITY-MENU.md and REVIEW-PHASE-MUSIC.md.
+Optional prose uses inline Details; decision information and blind node prose stay exposed. Contract: REVIEW-COMPACT-DETAILS.md. Actuators step by up to 10 percentage points, clamping to live limits; see REVIEW-ACTUATOR-HUD.md. MENU groups Saves, Audio and Help in one surface; PROC and gameplay navigation remain direct. Audio is silent until Enable/Resume, with persisted numeric volume, actual playing/paused/error status and only the current phase’s score; the same page holds a separate SPEECH switch and level that alone gate `[ ▶ READ ]` and a voiced line's one autoplay (VOICE-CLIPS.md). See REVIEW-UTILITY-MENU.md and REVIEW-PHASE-MUSIC.md.
 
 ## Mobile large text
 

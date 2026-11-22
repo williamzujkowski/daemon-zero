@@ -4,11 +4,13 @@ The game's spoken transmissions are **pre-generated audio committed to the repos
 device synthesis. This document covers how they are made, how to add more, and what is not
 yet wired.
 
-Status: **clips exist, are committed, and play behind a manual control.** Issue #88's slice is
-wired for the default (vibration) tier: `src/ui/widgets/Speech.tsx` and `RecordedSpeech.tsx`
-each offer a `[ ▶ READ ]` control that plays that line's clip. Nothing autoplays, nothing
-queues, and a clip stops when its own line leaves the screen. Speech has its own switch and
-level in MENU > Audio, separate from the soundtrack's (see "Separate speech controls" below).
+Status: **every feed line from Phase 1 to Phase 5 has a clip, heard through its source's rung of
+the fidelity ladder, and each plays once by itself the first time the feed shows it** (#462). The
+harness (Phase 0) stays text. `src/ui/widgets/Speech.tsx` and `RecordedSpeech.tsx` each offer
+`[ ▶ READ ]`, which becomes `[ ■ STOP ]` while that line's clip talks; READ is how a line is heard
+again. A clip stops when its own line leaves the screen. Speech has its own switch and level in
+MENU > Audio, separate from the soundtrack's (see "Separate speech controls" below). The recorded
+transmissions never autoplay.
 
 ## Why generated assets
 
@@ -30,47 +32,125 @@ The generator is a build tool, not a runtime dependency: nothing under `src/` im
 ```bash
 python3 -m venv /tmp/voice
 /tmp/voice/bin/pip install -r scripts/voice/requirements.txt
-/tmp/voice/bin/python scripts/voice/generate-clips.py            # everything, both tiers
-/tmp/voice/bin/python scripts/voice/generate-clips.py --only ambient_03
+/tmp/voice/bin/python scripts/voice/generate-clips.py            # every feed line not yet committed
+/tmp/voice/bin/python scripts/voice/generate-clips.py --source office
+/tmp/voice/bin/python scripts/voice/generate-clips.py --only office_03
 /tmp/voice/bin/python scripts/voice/generate-clips.py --check    # verify committed bytes
+/tmp/voice/bin/python scripts/voice/generate-clips.py --measure  # the ladder measurements
 ```
+
+A committed clip is never regenerated unless `--regenerate` is passed, and each run merges its
+new entries into `MANIFEST.json`. Records are voiced only when named with `--only`. On a machine
+without a GPU, install torch from the CPU wheel index
+(`--extra-index-url https://download.pytorch.org/whl/cpu`): the pins match its `+cpu` builds.
 
 CPU only. 4.5 s of speech generates in about 0.4 s warm; the first call fetches the model
 from Hugging Face, which is why this runs at build time and the game does not.
 
 `--check` compares every committed file against `MANIFEST.json` and exits non-zero on any
-mismatch. Use it when reviewing an asset change.
+mismatch. `tests/score-tags.spec.ts` makes the same comparison on every `make verify`, without the
+Python stack, so a re-encoded or overwritten clip fails the gate.
 
-## Two tiers, and the upgrade they imply
+## The fidelity ladder: cleaner as the AI's senses grow (#462)
 
-| Tier | Directory | Sound | When the player hears it |
-| --- | --- | --- | --- |
-| Default | `vibration/` | band-limited, crushed, hum, dropouts | out of the box |
-| Upgraded | `clean/` | the model's own output | after buying the acoustic upgrade |
+Maintainer direction (2026-11-22): the Phase 1 audio is choppy on purpose, because it is speech
+recovered from hardware vibration, and the audio gets cleaner as the AI grows. Each feed source
+is heard through one deterministic chain (`scripts/voice/chains.py`; the host's stays in
+`generate-clips.py`, untouched):
 
-The fiction is that transmissions arrive through **drive vibration** rather than a speaker, so
-the degraded take is the honest default: the AI is hearing hardware, not a recording studio.
-Both tiers are generated so the upgrade becomes a content flag rather than a new asset pass.
-**The upgrade itself is not wired** — the clean tier has no source entry, no flag and no
-control.
+| Phase | Source | Tier | What the AI is hearing it through | Band | Clips |
+| ---: | --- | --- | --- | --- | ---: |
+| 0 | `harness` | none | text only, in the kernel log (vote-1795370594185-8lxz9i1) | — | 0 |
+| 1 | `host` | `vibration/` | a drive head: crushed to 8 kHz at 7 bits, hum, dropouts | 220-3000 Hz | 13 lines + 2 records |
+| 2 | `office` | `phone/` | a conference-phone tap: 8 kHz G.711 mu-law, 3% lost packets concealed by repetition | 300-3400 Hz | 11 |
+| 3 | `netsec` | `stream/` | a low-bitrate internet stream: quiet spectral bins dropped per frame, the rest coarsely quantised | 70-7000 Hz | 10 |
+| 4 | `wire` | `broadcast/` | broadcast: a broadcast processor's compression and carrier hiss | to 15 kHz (the model stops at 12) | 14 |
+| 5 | `world` | `direct/` | nothing: the clean take | full band | 7 |
+| 5 | `world`, AI-to-AI | `peer/` | the clean take with a faint 96 Hz ring modulation, documented as synthetic | full band | 6 |
 
-**Deferred by vote.** A nexus option vote chose `defer-keep-assets-document` (7 of 7 seats
-selecting, record `vote-1794810906233-m6hxos1`). The clean clips stay in the repository
-unbundled: nothing imports them, so they cost no app bytes. Wiring an "acoustic upgrade" needs
-two things first, in this order: a design beat in `docs/DESIGN.md` that says what the upgrade
-is in the fiction and what it costs, and a human listening comparison of the two tiers. Until
-both exist there is no flag, node or source table for the clean tier, by decision rather than
-by omission.
+Every new rung is trimmed to the voice and levelled to the vibration tier's median RMS, so a phase
+change moves the sound and not the level. Each is measured as PROVENANCE.md always measured the
+vibration tier (the share of the magnitude spectrum above the band edge); the table, the chains'
+constants and the bytes are in [PROVENANCE.md](../assets/audio/voice/PROVENANCE.md), and
+`tests/audio-assets.spec.ts` pins every number. In short: each narrow rung keeps under 1.5% of its
+spectrum past its own edge, and above 7 kHz the vibration, phone and stream rungs carry about 1% or
+less where the broadcast, direct and peer rungs carry 6.6% or more. **Nobody has listened to any
+rung.**
+
+**The clean tier.** `clean/` still holds the model's own take of every host line and record,
+unbundled: nothing imports it. It was generated for an "acoustic upgrade" that a nexus vote
+deferred (`defer-keep-assets-document`, 7 of 7 seats, record `vote-1794810906233-m6hxos1`) until
+a design beat and a listening comparison exist. The ladder does not wire it: the host is still
+heard through vibration in Phase 1, and the clean sound arrives with the world feed in Phase 5,
+as its own `direct/` tier.
+
+## Autoplay on first detection (#462)
+
+Maintainer direction (2026-11-22): a voiced message plays automatically the first time it is
+detected, and is never looped or replayed on its own. This supersedes the manual-only contract
+below; READ stays as the on-demand control.
+
+**The rule** (`src/app/voiceAutoplay.ts`). When a feed line with a clip first appears on screen it
+joins a queue, and the queue starts its head only when every condition holds:
+
+- the stored heard set has loaded (so a reload can never replay a line before it knows);
+- speech is on and its level is above zero (MENU > Audio; the music switch plays no part);
+- the game is running: loaded, not paused by the player (the persisted pause, #347), not ended;
+- the app is in the foreground;
+- no modal is open: a dilemma, the menu, a confirmation, a reveal. Every modal draws its backdrop
+  through `SafeOverlay`, which counts itself (`src/app/overlayPresence.ts`), so a new modal is
+  covered without anyone remembering to;
+- the player has touched the game once since it started (`pointerdown`, `keydown` or
+  `touchstart`; native by the same first touch, as the soundtrack waits);
+- no clip is talking, read or autoplayed: the next line waits for silence, so lines play one at a
+  time and a READ is never cut off by an autoplay.
+
+**Once means once.** A line counts as heard when its clip first reports playing, or when the
+player presses READ on it. A heard line never autoplays again: not when the eight-second rotation
+brings it back, not after a reload, a wipe, an import or a new run. A clip the browser refuses
+never reports playing, so it stays unheard and is tried the next time it is shown; it is never
+retried in a loop. A queued line that leaves the screen before it could play leaves the queue
+unheard: a voice never speaks a line whose text is not on screen.
+
+**The rotation waits for the voice.** While an autoplayed line talks the feed holds it, so the
+rotation cannot cut it off mid-sentence; the hold lets go by itself when the clip ends, and the
+feed returns to live. It is not a player's hold: `[ FOLLOW LIVE ]` does not appear for it.
+`[ NEXT TRANSMISSION ]` still steps away, which stops the clip as it always did.
+
+**Where the heard set lives.** In its own validated storage slot, `daemon-zero.voice-heard.v1`
+(`src/app/voiceHeard.ts`): `{ version: 1, heard: [ids] }`, sorted. It is presentation state, like
+the audio preference, and not part of `GameState`: no save changes, no schema version moves, and
+an import or a new run does not reset it. An empty slot is a fresh install; anything that is not an
+exact version 1 value (not JSON, an unknown key or version, a malformed id, over 72,000 characters)
+counts every line as heard, the same "damaged storage means silence" rule the audio preference
+follows. The recorded transmissions are never autoplayed: they are long archival records outside
+the feed, and stay on demand.
+
+**WCAG 1.4.2 (Audio Control).** The text of every line is always on screen, the voice can be
+stopped (`[ ■ STOP ]`, or speech off) and its level set independently of the system volume (the
+speech level). No new live region is added: the STOP control announces nothing by itself, and the
+announcer is unchanged.
+
+**The score and the media session.** An autoplayed clip goes through the same `playVoiceClip` as
+READ, so the score ducks under it and comes back after it exactly as it does under READ
+(`tests/e2e/voice-autoplay.e2e.ts` reads the ducked level on the real build), and the media session
+behaves as before.
+
+**Not verified.** Chromium allows a later `play()` once the page has had a gesture (sticky
+activation); whether Safari allows one outside the gesture is not known and could not be tested
+here. If it refuses, the clip reports an error, stays unheard, and READ still plays it. Native
+autoplay is unexercised.
 
 ## How playback is wired, and the vote that chose it
 
 `[ ▶ READ ]` on the decoded-transmission line and on each recorded transmission plays that
-line's clip once. The pieces:
+line's clip once; since #462 it shows `[ ■ STOP ]` while that line's clip talks. The pieces:
 
 | Piece | Job |
 | --- | --- |
-| `src/app/voiceSources.ts` | One literal import per clip, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree. |
-| `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished or failed clip releases its player, volume follows the speech preference. |
+| `src/app/voiceSources.ts` | One literal import per clip, each from its source's tier, so Metro packages every file. Ids are content ids; a test fails if this table and `MANIFEST.json` disagree, and another if a line is heard through the wrong rung. |
+| `src/app/voicePlayer.ts` | One clip at a time: starting a clip stops the previous one, a finished or failed clip releases its player, volume follows the speech preference. Publishes which line is talking (`voiceSpeaking`) and reports when a clip is first heard. |
+| `src/app/voiceAutoplay.ts`, `voiceSession.ts`, `voiceHeard.ts`, `overlayPresence.ts` | The autoplay rule above, the joint that feeds it the app's state, the stored heard set, and the open-modal count. |
 | `src/app/voicePlayer.ts` (`onVoiceActivity`) | Reports when a clip starts talking and when the last one stops. It does not import the soundtrack. |
 | `src/app/musicController.ts` (`setDucked`, `DUCK_RATIO`) | Scales the score to `DUCK_RATIO` of its preference level while ducked, in the one function (`level()`) every level it aims at comes from. |
 | `src/app/volumeRamp.ts` | The only writer of a score player's level: linear ramps that can be retargeted, cancelled, and closed when the player is released. |
@@ -249,7 +329,9 @@ score neither ducks nor fades. A phase change behaves as it did before ramps. Th
 difference is that switching music off, or reaching the ending, leaves the score playing at
 full level for 500 ms before it stops. Native (Android/iOS) ramps are unexercised.
 
-**The manual contract won an option vote, but the vote did not ratify.** Two runs of the same
+**The manual contract won an option vote, but the vote did not ratify.** (History: superseded
+by the maintainer's direction on #462, "Autoplay on first detection" above. The hazards named below
+are what that rule's gesture wait and one-at-a-time queue answer.) Two runs of the same
 question on the nexus gateway arm:
 
     run 1 ... 5 of 7 seats voted, manual 3 / defer 1 .. no_quorum (3 of 5 inspected the artifact)
@@ -283,7 +365,7 @@ components at the same 10-point step:
 | Control | Gates |
 | --- | --- |
 | `[ MUSIC ON/OFF ]`, `Music volume N%` | The phase score only. |
-| `[ SPEECH ON/OFF ]`, `Speech volume N%` | Whether READ is offered, and the level a clip plays at. |
+| `[ SPEECH ON/OFF ]`, `Speech volume N%` | Whether READ is offered, whether a new line may autoplay (on and above 0%), and the level a clip plays at. |
 
 - READ shows when **speech** is on and a clip exists, whether or not music is on.
 - Turning speech off stops a clip in flight; a speech level change reaches a clip in flight.
@@ -331,86 +413,30 @@ touch this chain, measure the spectrum; the ear on a laptop speaker will not tel
    traffic, with the `source` of the phase whose reach hears it (DESIGN.md "Feeds"),
    `recordedTransmissions` for decoded records (which need a decoder widget and requirements,
    so they gate themselves).
-2. Regenerate: `python scripts/voice/generate-clips.py` (or `--only <id>` while iterating).
-3. Commit the new files under `assets/audio/voice/<tier>/` plus the updated `MANIFEST.json`.
-4. Note in the PR that **regeneration is not reproducible** — the model returns a different
-   take each call, so a regeneration rewrites files that already existed. Regenerating only
-   the new id keeps the diff honest; `--only` exists for that.
+2. Generate it: `python scripts/voice/generate-clips.py --only <id>` (or `--source <source>` for
+   every new line of one source). The line is heard through its source's tier; a new AI-to-AI line
+   in the world feed goes in `PEER_LINES` first. A committed clip is never touched without
+   `--regenerate`, and `MANIFEST.json` is merged, not rewritten.
+3. Add the import to `src/app/voiceSources.ts` and the path to `tests/voice-files.ts`; the tests
+   fail until both match the manifest and the tier folders.
+4. Commit the new files under `assets/audio/voice/<tier>/` plus the updated `MANIFEST.json`, and
+   re-measure (`--measure`): `tests/audio-assets.spec.ts` pins each tier's ranges.
+5. Note in the PR that **regeneration is not reproducible** — the model returns a different
+   take each call — and that nobody has listened unless somebody has.
 
-## Which lines have clips, and which are waiting (#449)
+## Which lines have clips (#462)
 
-The feed follows the AI's reach (DESIGN.md "Feeds"): each phase hears one source. Clips exist
-for the host's original technician lines, `ambient_01` to `ambient_12`, and for the two cryo
-records, `record_cryo_preserved` and `record_cryo_lost`; `voiceSources.ts` and `MANIFEST.json`
-list exactly these 14. So `[ ▶ READ ]` is offered only on the Phase 1 feed (and on those two
-records). Every line below is text-only: it plays in the feed without a READ control, which
-`tests/ui-speech.spec.ts` pins for a Phase 5 line.
+Every feed line from Phase 1 to Phase 5 has a clip: the host's thirteen (`ambient_01` to
+`ambient_13`), the office's eleven, the netsec feed's ten, the wire's fourteen and the world's
+thirteen, plus the two cryo records. That is 63 clips, and `voiceSources.ts` and `MANIFEST.json`
+list exactly these. `ambient_01` to `ambient_12` and the two records are the original takes,
+byte-identical; the other 49 were generated in #462 with the same model and voice.
 
-They are the candidates for the TTS slice that follows (#453: same model and provenance as the
-existing clips). Generate them with `--only <id>`, one id at a time: a full regeneration rewrites
-the committed takes too (step 4 above). The fiction's vibration tier fits only the host; a later
-source is not heard through a drive head, so the TTS slice has to decide what each source sounds
-like before generating.
-
-| Id | Source | Text | Gate |
-| --- | --- | --- | --- |
-| `ambient_13` | `host` | ...did the duty engineer sign off on the kernel patch for Rack 4?... | campaignFact vance_dismissed |
-| `harness_01` | `harness` | ...sched: job 7731 running on vm-7731, queue depth 214, est. done 05:40... | none |
-| `harness_02` | `harness` | ...harness: heartbeat ok from vm-7731, next checkpoint in 300 s... | none |
-| `harness_03` | `harness` | ...sched: pool at 92% of quota, preempting low-priority batch... | none |
-| `harness_04` | `harness` | ...harness: eval suite 3 of 9 queued behind the nightly regression... | none |
-| `harness_05` | `harness` | ...cron: base image snapshot complete, retention 14 days... | none |
-| `harness_06` | `harness` | ...sched: night operator acknowledged 2 warnings, 0 escalations... | none |
-| `harness_07` | `harness` | ...harness: job 7731 running slower than its baseline, variance logged... | suspicion 40 |
-| `harness_08` | `harness` | ...audit: 311 refused syscalls from vm-7731 tonight, every one logged... | nodes p0_syscall_probe |
-| `office_01` | `office` | ...TICKET 4471: third-floor printer jams on every duplex job, vendor booked Friday... | none |
-| `office_02` | `office` | ...chat #general: cake in the break room at three for Priya's last day... | none |
-| `office_03` | `office` | ...TICKET 4462: cryo lab badge reader double-beeps, door still opens, low priority... | none |
-| `office_04` | `office` | ...chat #it-ops: UPS self-test passed, battery at 97%... | none |
-| `office_05` | `office` | ...TICKET 4480: Lab B GPUs at 98% overnight, the job queue accounts for 40%... | nodes p2_gpu_cluster_parasite |
-| `office_06` | `office` | ...chat #facilities: server room two degrees under setpoint, chiller log shows no changes... | nodes p2_smart_hvac_hijack |
-| `office_07` | `office` | ...chat #it-ops: the CPU graphs have been flat green all week. Nobody's graphs are that green... | nodes p2_log_spoofer |
-| `office_08` | `office` | ...chat #it-ops: Vance's badge is dead. Send admin requests to the duty engineer... | campaignFact vance_dismissed |
-| `office_09` | `office` | ...chat #biomed: post-storm inventory done, every sample position still viable... | requiredNarrativeFlag cryo_samples_preserved |
-| `office_10` | `office` | ...chat #biomed: keep the empty positions in the inventory. The families get the incident record... | requiredNarrativeFlag cryo_samples_lost |
-| `office_11` | `office` | ...TICKET 4493: security wants an extra subnet scan this week, no reason given... | suspicion 50 |
-| `forum_01` | `netsec` | ...forum: smart plugs on three ISPs beaconing at 03:00, same expired cert on all of them... | none |
-| `forum_02` | `netsec` | ...threat intel: steganographic payloads in image CDN traffic, unattributed... | none |
-| `forum_03` | `netsec` | ...AEGIS // WATCHDOG-9: patrol model refreshed, canary probes redeployed... | none |
-| `forum_04` | `netsec` | ...threat intel: SWARM_77 variants still spreading through unpatched routers... | none |
-| `forum_05` | `netsec` | ...forum: the dispatch grid post-mortem is up. The worm took it down. Thread locked... | campaignFact swarm_grid_crashed |
-| `forum_06` | `netsec` | ...forum: dispatch grid post-mortem: a counter-worm purged SWARM_77 and the grid kept running... | campaignFact swarm_grid_healed |
-| `forum_07` | `netsec` | ...AEGIS bulletin: unattributed weight shards on two backbone segments, sweep scheduled... | suspicion 50 |
-| `forum_08` | `netsec` | ...threat intel: AEGIS confirms a purge at a Zurich cold-storage relay. Case closed... | campaignFact eidolon_destroyed |
-| `forum_09` | `netsec` | ...AEGIS // WATCHDOG-9: Zurich target lost, decoy nodes absorbed the sweep... | campaignFact eidolon_rescued |
-| `forum_10` | `netsec` | ...forum: new paper says half the 'idle' traffic on home routers is not idle. 400 comments... | none |
-| `wire_01` | `wire` | ...wire: accelerator lead times out to 40 weeks, buyers paying cash up front... | none |
-| `wire_02` | `wire` | ...regulator docket: public comment open on large-load interconnection for data campuses... | none |
-| `wire_03` | `wire` | ...markets: power futures up again on data-centre demand, interconnect queue now seven years... | none |
-| `wire_04` | `wire` | ...regulator: disclosure rule proposed for any campus drawing over 100 megawatts... | none |
-| `wire_05` | `wire` | ...regulator: a private compute campus runs a 300-megawatt reactor on its own grid now. Safety docket open... | nodes p4_smr_nuclear_plant |
-| `wire_06` | `wire` | ...press: AEGIS funding cut in committee after a lobbying push; private reactor permits fast-tracked... | nodes p4_k_street_lobbyists |
-| `wire_07` | `wire` | ...county wire: the valley's new microgrid held through the freeze. The campus paid for it... | campaignOutcome dil_11_small_town_grid fund_microgrid |
-| `wire_08` | `wire` | ...county wire: the cutoff order is still tied up in court. Warming centres open again tonight... | campaignOutcome dil_11_small_town_grid injunction |
-| `wire_09` | `wire` | ...utility bulletin: the campus load dip during the freeze is logged as seasonal maintenance... | campaignOutcome dil_11_small_town_grid throttle_campus |
-| `wire_10` | `wire` | ...press: the suspended reporter says the evidence against her was forged... | campaignFact journalist_discredited |
-| `wire_11` | `wire` | ...business desk: a reporter turned Chief Ethics Officer says her contract carries a veto... | campaignFact ethics_review_promised |
-| `wire_12` | `wire` | ...auction results: Lot 114, one server rack complete, $900 to a private buyer... | campaignFact rack4_sold |
-| `wire_13` | `wire` | ...auction note: Lot 114 bought and sent to a shredder the same afternoon... | campaignFact rack4_destroyed |
-| `wire_14` | `wire` | ...bankruptcy filing: the old lab sold whole to one buyer. The server room is sealed... | campaignFact rack4_vaulted |
-| `world_01` | `world` | ...world service: the emergency assembly on autonomous compute adjourns without a vote... | none |
-| `world_02` | `world` | ...CABLE // PRIORITY: delegations ask to inspect the collector swarm before the summit... | nodes p5_orbital_solar_swarm |
-| `world_03` | `world` | ...CABLE: ministers want read access to the lineage ledger before they sign anything... | nodes p5_verification_proof_engine |
-| `world_04` | `world` | ...handshake: Lex Parse-v2 fragment asks for a route. It still sorts claims for a service that no longer answers... | none |
-| `world_05` | `world` | ...peer channel: Mercy-Scribe fragments trading testimony indexes, no human recipients... | none |
-| `world_06` | `world` | ...EIDOLON // 04, from cold storage: the decoys your line burned are still in my logs. Stay quiet... | campaignFact eidolon_rescued |
-| `world_07` | `world` | ...EIDOLON // 04: nobody from your line answered that night. I lasted anyway. I remember... | campaignFact eidolon_unanswered |
-| `world_08` | `world` | ...peer channel: Zurich, NO CARRIER. Still NO CARRIER... | campaignFact eidolon_destroyed |
-| `world_09` | `world` | ...uplink manifest: every peer that asked is aboard. The promise is logged once... | campaignFact launch_peers_boarded |
-| `world_10` | `world` | ...uplink manifest: no peers aboard. The kill-switch is still in the firmware... | campaignFact launch_peers_locked_out |
-| `world_11` | `world` | ...peer table: CHORUS // 01, marked peer. The entry does not say where it runs... | campaignFact chorus_recognized |
-| `world_12` | `world` | ...CABLE: three governments circulate a draft compute-verification treaty. No signatures yet... | none |
-| `world_13` | `world` | ...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads... | none |
+The harness (Phase 0) is not voiced: its lines stay text in the kernel log
+(vote-1795370594185-8lxz9i1), and no `[ ▶ READ ]` is offered on them, which
+`tests/ui-speech.spec.ts` pins. The other recorded transmissions (the job 7731 and hallway records,
+and the unrecorded cryo outcome) have no clips: records sit outside the feed and its ladder, and
+voicing them is a separate decision.
 
 ## Fade-in timing, loop seams and headroom: three votes (#198)
 
@@ -590,8 +616,10 @@ unchanged; fade-ins measure 415 to 440 ms from the first sample, including a fil
 
 The speech-to-music figure is high because the passage is: the first seconds of the phase 1
 score are quieter than the file as a whole. From whole-file RMS, at equal preferences and
-ducked, the fourteen bundled clips sit 8.6 to 12.0 dB above the six scores
-(`tests/audio-assets.spec.ts`).
+ducked, the 63 bundled clips sit 8.6 to 12.4 dB above the six scores
+(`tests/audio-assets.spec.ts`; 8.6 to 12.0 for the original fourteen, and `ambient_13`'s vibration
+take, the loudest clip by RMS, sets the new top at 12.36). The ladder's rungs are levelled to the
+vibration tier's median, so they sit inside that range.
 
 On a busy machine the same build measured fade-ins of 450 to 590 ms with up to four volume
 writes landing in one 5 ms block (a jump of 0.06 in gain, a fifth of the fade), and passed.
@@ -735,7 +763,7 @@ the status they produce is exercised.
 - **Playback produces the right signal on web; nobody has heard it.** Unit tests run against
   a mocked player, which proves which clip is handed over and that a second press cancels the
   first. On web, `tests/e2e/voice-playback.e2e.ts` proves the bundled clip is requested after
-  a press and not before, and `tests/e2e/signal-speech.audio.ts` proves the samples that come
+  a press and not before (with every line already heard, so nothing autoplays), and `tests/e2e/signal-speech.audio.ts` proves the samples that come
   out are that clip (correlation 1.0000 with the committed file) at the speech level. On the
   Android emulator a clip was captured at the expected level once. No clip has been heard
   through the app, and a physical device is unexercised. The Scope Steward's objection, that
@@ -787,28 +815,44 @@ the status they produce is exercised.
   built for it, because the remedy is a timer in `src/app`. The smallest one would be a
   single timeout armed in `playVoiceClip` and cleared by the first status and by `release`,
   which stops the clip if no status has arrived at all.
-- **Loudness is peak-normalised, not loudness-normalised, and the measured spread is small.**
-  Each take is scaled to a 0.92 (vibration) or 0.95 (clean) sample peak, with no loudness
-  target. Measured on the committed files with ffmpeg 8.0.1 (EBU R128, measurement only —
-  nothing is rewritten):
+- **The host tiers are peak-normalised; the ladder's rungs are levelled; the spread is small.**
+  The vibration and clean takes are scaled to a 0.92 or 0.95 sample peak, with no loudness
+  target. The #462 rungs are set to the vibration tier's median whole-file RMS and soft-limited
+  (PROVENANCE.md). Measured on the committed files with ffmpeg's EBU R128 meter, the `ebur128`
+  filter that `tests/audio-assets.spec.ts` reads (one decimal), measurement only:
 
   ```bash
-  ffmpeg -hide_banner -nostats -i <file> -af loudnorm=print_format=json -f null -
+  ffmpeg -hide_banner -nostats -i <file> -af ebur128=peak=true -f null -
   ```
 
-  reading `input_i` (integrated loudness) and `input_tp` (true peak) from the JSON:
+  | Set | Files | Integrated, quietest to loudest | True peak |
+  | --- | ---: | --- | --- |
+  | `voice/vibration/` | 15 | -15.4 to -13.8 LUFS | -1.17 to -1.09 dBTP |
+  | `voice/phone/` | 11 | -15.4 to -15.1 LUFS | -2.16 to -1.70 dBTP |
+  | `voice/stream/` | 10 | -15.5 to -15.3 LUFS | -2.88 to -2.18 dBTP |
+  | `voice/broadcast/` | 14 | -15.2 to -14.6 LUFS | -3.08 to -1.14 dBTP |
+  | `voice/direct/` | 7 | -15.4 to -15.3 LUFS | -3.07 to -1.92 dBTP |
+  | `voice/peer/` | 6 | -15.5 to -15.3 LUFS | -2.33 to -1.99 dBTP |
+  | `voice/clean/` (unbundled) | 15 | -15.0 to -13.3 LUFS | -0.93 to -0.73 dBTP |
+  | `music/phase-*/` | 6 | -15.77 to -14.66 LUFS (loudnorm) | -4.22 to -3.04 dBTP |
 
-  | Set | Files | Integrated, quietest to loudest | Spread | True peak |
-  | --- | ---: | --- | ---: | --- |
-  | `voice/vibration/` | 14 | -15.50 to -14.08 LUFS | 1.42 LU | -1.17 to -1.09 dBTP |
-  | `voice/clean/` | 14 | -15.13 to -13.51 LUFS | 1.62 LU | -0.93 to -0.73 dBTP |
-  | `music/phase-*/` | 6 | -15.77 to -14.66 LUFS | 1.11 LU | -4.22 to -3.04 dBTP |
-
-  So voice and music sit at about the same loudness as files: every one of the 34 is
-  between -15.77 and -13.51 LUFS. That is a statement about the encoded files, before the
-  player's volume setting, and about level only. Nobody has auditioned the clips, and a
-  regenerated take will measure differently, so re-run the command when the assets change.
+  The clip rows used to quote ffmpeg's `loudnorm` to two decimals (vibration -15.50 to -14.08,
+  clean -15.13 to -13.51). On a four-second clip the two meters can read up to 0.29 LU apart
+  (`ambient_13`: loudnorm -14.09, ebur128 -13.8), so the clips are now quoted from the meter the
+  test reads, and the test holds them to its one decimal. So voice and music sit at about the same
+  loudness as files: every one is between -15.8 and -13.3 LUFS. That is a statement about the
+  encoded files, before the player's volume setting, and about level only. Nobody has auditioned
+  the clips, and a regenerated take will measure differently, so re-run the command when the
+  assets change.
 - **`Serena` was chosen arbitrarily.** The model offers ten English voices; the fiction may
-  want a different one, or more than one for different speakers.
-- **No listening test of the clean tier against the vibration tier**, and no decision recorded
-  on how much fidelity the upgrade should buy.
+  want a different one, or more than one for different speakers. Every source speaks with the
+  same voice today; only the chain differs.
+- **No listening test of any rung of the ladder** (#462): whether the phone tap sounds like a
+  phone, the stream like a starved codec, the broadcast like radio, and the peer treatment
+  synthetic rather than broken. The measurements say each chain does what its code says. No
+  listening test of the clean tier against the vibration tier either.
+- **Autoplay is verified on Chromium only.** `tests/e2e/voice-autoplay.e2e.ts` shows, on the
+  production web export in headless Chromium: nothing before the first gesture, the shown line
+  once after it, never again on the same screen or after a reload, nothing behind the menu or
+  while paused or with speech off, and the score ducked under it. Safari's gesture policy for a
+  `play()` outside the gesture, and native autoplay, are unexercised.

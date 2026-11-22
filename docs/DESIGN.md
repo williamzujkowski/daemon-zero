@@ -285,8 +285,20 @@ source, named on screen above the line:
 - **The Phase 0 source has no window yet.** The decoder that puts the feed on screen is a Phase 1 node and the
   guest has no feed window, so the harness lines are authored and eligible but not yet shown. A guest feed
   surface changes the Phase 0 layout, which is a reviewed rule and goes to a vote first.
-- **Voice where a clip exists.** Only the host's original lines have clips; every new line is text-only and
-  shows no `[ ▶ READ ]` until a clip is generated for it (VOICE-CLIPS.md).
+- **The voice gets cleaner as the AI grows (#462).** Every line from Phase 1 to Phase 5 has a clip, in one
+  voice, heard through what the AI has at that scale: the host through drive-head vibration (choppy on purpose,
+  speech recovered from hardware), the office through a conference-phone tap, the security forums through a
+  low-bitrate stream, the wire through broadcast, and the world through a clean take, with a faint synthetic
+  ring on the AI-to-AI channel so a peer never sounds human. The harness stays text in the kernel log. Each
+  rung is levelled to the same loudness, so a phase change moves the sound and not the level (VOICE-CLIPS.md,
+  "The fidelity ladder"; PROVENANCE.md has the chains and their measurements).
+- **A message plays once, when it is first heard.** A voiced line plays by itself the first time the feed shows
+  it, and never again on its own: not when the rotation brings it back, not after a reload. It waits until
+  speech is on, the game is running, no dilemma or other modal is open and the player has touched the game; new
+  lines queue one at a time, and the feed holds a line while its voice talks. `[ ▶ READ ]` replays any line on
+  demand and is `[ ■ STOP ]` while that line talks. The heard set is presentation state in its own storage slot,
+  not part of the save. The recorded transmissions stay on demand (VOICE-CLIPS.md, "Autoplay on first
+  detection").
 - **Humans are people.** The office, the county and the press are people with lives (a leaving party, warming
   centres, a reporter who says the evidence was forged), and every institution is fictional.
 
