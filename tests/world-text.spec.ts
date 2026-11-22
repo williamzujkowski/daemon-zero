@@ -33,6 +33,12 @@ describe('what easing off costs (#473 review)', () => {
     ['nothing to ease while not held', posture({ held: false }), null],
     ['a window between the eroded cap and the band', posture({ cap: 0.66, applied: 0.66 }),
       'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 66% (the eroded cap) leaves the scan where it is; less raises it at once.'],
+    ['adaptation 19: the target rounds up to the real eroded cap, never below it (#473 pass 2)', posture({ cap: 0.843, applied: 0.843 }),
+      'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 84.3% (the eroded cap) leaves the scan where it is; less raises it at once.'],
+    ['a cap a hair above a tenth still rounds up', posture({ cap: 0.84301, applied: 0.84301 }),
+      'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 84.4% (the eroded cap) leaves the scan where it is; less raises it at once.'],
+    ['a target that rounds up into the band promises no window', posture({ cap: 0.8496, applied: 0.8496 }),
+      'Easing off: AEGIS forgets once the reduction asked for is below 85%, which gives up the reduction between it and the 85% applied now.'],
     ['no window while the cap is above the band', posture({ cap: 0.87, applied: 0.87 }),
       'Easing off: AEGIS forgets once the reduction asked for is below 85%, which gives up the reduction between it and the 87% applied now.'],
   ])('%s', (_name, input, expected) => {
@@ -44,6 +50,7 @@ describe('the cap, the strike and the coalition', () => {
   it('states the applied reduction and, once eroded, the cap adaptation left', () => {
     expect(capText(posture({ applied: 0.9, cap: 0.9 }))).toBe('Scan reduction applied: 90% of a 90% cap.');
     expect(capText(posture({ applied: 0.6, cap: 0.6 }))).toBe('Scan reduction applied: 60%. Adaptation has lowered its cap from 90% to 60%.');
+    expect(capText(posture({ applied: 0.843, cap: 0.843 }))).toBe('Scan reduction applied: 84.3%. Adaptation has lowered its cap from 90% to 84.3%.');
   });
 
   it('floors the time left so it never reads longer than it is', () => {

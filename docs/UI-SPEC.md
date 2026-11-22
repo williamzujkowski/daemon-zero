@@ -447,7 +447,11 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
   backing); the strike time is the scan the next tick applies, floored. The ease line (`aegis-ease`, only while held;
   #473 review) states the true cost of easing off: AEGIS forgets below 85%, and the scan stays where it is only while
-  the reduction kept is at least the eroded cap (or, while the cap is still above the band, what easing gives up). It states rules and numbers and names no
+  the reduction kept is at least the eroded cap (or, while the cap is still above the band, what easing gives up).
+  The target is shown to a tenth of a percent and rounded **up** (#473 pass 2: at adaptation 19 the cap is 84.3%, and
+  a nearest-percent "84%" let a dismissal to 84% raise the scan), so any reduction that meets the text meets the cap;
+  `tests/aegis-adaptation.spec.ts` checks that for every adaptation level and every role mix. Cap figures are shown
+  to the nearest tenth. It states rules and numbers and names no
   control, so it cannot name a lever that does not act. Payroll's cap lines add "lowered from 90% by AEGIS adaptation"
   when the effective cap differs.
 - **Layout rules kept.** The view adds blocks inside an existing pane: no scroll container of its own (the phone's

@@ -9,6 +9,7 @@ import {
   aegisPosture, tick, TICK_PIPELINE, toggleNode, unreducedAegisScan, wipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { multiplierSources, requestedAegisReduction } from '../src/engine/rates';
+import { easeText } from '../src/ui/worldText';
 import { integrateAegisAdaptation } from '../src/engine/systems/aegisAdaptation';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { fresh, outOfTheWay, reg } from './helpers';
@@ -16,6 +17,7 @@ import { fresh, outOfTheWay, reg } from './helpers';
 const LOBBYISTS = 'p4_k_street_lobbyists';
 const ROLE = 'op_k_street_lobbyist';
 const LAWYER = 'op_retainer_lawyer';
+const GUARD = 'op_pmc_security';
 const b = reg.balance;
 const A = b.aegisAdaptation;
 
@@ -37,6 +39,12 @@ function play(s: GameState, seconds: number): GameState {
 function ok(result: ActionResult): GameState {
   if (!result.ok) throw new Error(result.reason);
   return result.state;
+}
+
+/** The reduction the world view promises keeps the scan where it is, read from the line a player sees; null if none. */
+function displayedTarget(s: GameState): number | null {
+  const match = /at least ([\d.]+)%/.exec(easeText(aegisPosture(s, reg)) ?? '');
+  return match?.[1] === undefined ? null : Number(match[1]) / 100;
 }
 
 const adaptingLogs = (s: GameState): string[] => s.logs.map((entry) => entry.text)
@@ -163,6 +171,46 @@ describe('easing off costs no resources, lets AEGIS forget, and raises the scan 
     expect(after.aegisAdaptation).toBeLessThan(100);
     expect(aegisPosture(eased, reg)).toMatchObject({ held: false, cap: b.aegisMaxReduction - A.maxErosion });
   });
+
+  it('adaptation 19: one lobbyist dismissed keeps 84%, just under the 84.3% cap, so the scan rises; the text says 84.3% (#473 pass 2)', () => {
+    // One tick adds 0.000471 to the lock held, 0.00048 after the dismissal: this lock sits between the two.
+    const held = heldAtCap({ aegisAdaptation: 19, aegisLock: 100 - 0.000475 });
+    const cap = effectiveAegisCap(held, reg);
+    expect(cap).toBeCloseTo(0.843, 9);
+    const eased = ok(dismissRepeatable(held, ROLE, reg));
+    expect(requestedAegisReduction(eased, reg)).toBeCloseTo(0.84, 9);
+    expect(computeRates(eased, reg).aegisScanPerSec).toBeGreaterThan(computeRates(held, reg).aegisScanPerSec + 1e-12);
+    expect(tick(held, 0.1, reg).iteration).toBe(held.iteration);
+    expect(tick(eased, 0.1, reg).iteration).toBe(held.iteration + 1);
+    // The world view's promise for this state is 84.3%, which 0.84 does not meet.
+    const target = displayedTarget(held);
+    expect(target).toBe(0.843);
+    expect(requestedAegisReduction(eased, reg)).toBeLessThan(target ?? 0);
+  });
+
+  it('any kept reduction at or above the displayed target never raises the scan, at every adaptation level (#473 pass 2)', () => {
+    const scan = (state: GameState): number => computeRates(state, reg).aegisScanPerSec;
+    // Every mix of the three AEGIS-slowing roles beside the lobbying node, one per distinct reduction asked for: with the
+    // same node, suspicion and adaptation, that reduction alone sets the scan, so a duplicate would check nothing new.
+    const mixes = new Map<number, Record<string, number>>();
+    for (let lobbyists = 0; lobbyists <= 8; lobbyists++) for (let lawyers = 0; lawyers <= 15; lawyers++) for (let guards = 0; guards <= 10; guards++) {
+      const levels = { [ROLE]: lobbyists, [LAWYER]: lawyers, [GUARD]: guards };
+      mixes.set(Math.round(requestedAegisReduction(heldAtCap({ levels }), reg) * 1e9), levels);
+    }
+    let checked = 0;
+    for (let adaptation = 0; adaptation <= 100; adaptation++) {
+      const held = heldAtCap({ aegisAdaptation: adaptation, levels: { [ROLE]: 8, [LAWYER]: 15, [GUARD]: 10 } });
+      const target = displayedTarget(held);
+      if (target === null) continue;
+      for (const levels of mixes.values()) {
+        const kept = heldAtCap({ aegisAdaptation: adaptation, levels });
+        if (requestedAegisReduction(kept, reg) < target) continue;
+        expect(scan(kept)).toBeLessThanOrEqual(scan(held) + 1e-12);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(1000);
+  }, 30_000); // Wall-clock allowance under coverage on a loaded machine only; every assertion stays.
 
   it('suspending a held-band node is still the only way out when it alone holds the band', () => {
     // The proof engine's 0.95 holds the band on its own: no role dismissal can leave it, so integrity requires it be

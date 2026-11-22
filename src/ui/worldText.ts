@@ -7,6 +7,14 @@ import type { AegisPosture, PublicTrustView } from '../engine';
 
 const pct = (ratio: number): string => String(Math.round(ratio * 100)) + '%';
 const points = (value: number): string => String(Number(value.toFixed(2)));
+/** A ratio as a percentage to the nearest tenth, for a figure the player reads, not a promise. */
+const tenths = (ratio: number): string => String(Math.round(ratio * 1000) / 10) + '%';
+/**
+ * A ratio rounded UP to the tenth of a percent shown (#473 pass 2), for a threshold the player is told to stay at or
+ * above: meeting the text then always meets the real figure. The 1e-9 absorbs float noise in the cap (0.9 - 0.24 is
+ * 0.6600000000000001), a difference of 1e-12 in the ratio that changes no scan a tick can apply.
+ */
+const atLeastTenths = (ratio: number): number => Math.ceil(ratio * 1000 - 1e-9) / 1000;
 
 /** Why the adaptation level is moving, or not, in the same terms the stage decides it. */
 export function adaptationWhyText(p: AegisPosture): string {
@@ -33,16 +41,17 @@ export function adaptationWhyText(p: AegisPosture): string {
 export function easeText(p: AegisPosture): string | null {
   if (!p.held) return null;
   const forgets = `Easing off: AEGIS forgets once the reduction asked for is below ${pct(p.heldFrom)}`;
-  return p.cap < p.heldFrom
-    ? `${forgets}. Keeping at least ${pct(p.cap)} (the eroded cap) leaves the scan where it is; less raises it at once.`
-    : `${forgets}, which gives up the reduction between it and the ${pct(p.applied)} applied now.`;
+  const target = atLeastTenths(p.cap);
+  return target < p.heldFrom
+    ? `${forgets}. Keeping at least ${tenths(target)} (the eroded cap) leaves the scan where it is; less raises it at once.`
+    : `${forgets}, which gives up the reduction between it and the ${tenths(p.applied)} applied now.`;
 }
 
 /** The cap AEGIS has left after adaptation, beside the reduction that applies. */
 export function capText(p: AegisPosture): string {
-  const applied = `Scan reduction applied: ${pct(p.applied)}`;
-  return pct(p.cap) === pct(p.nominalCap) ? `${applied} of a ${pct(p.cap)} cap.`
-    : `${applied}. Adaptation has lowered its cap from ${pct(p.nominalCap)} to ${pct(p.cap)}.`;
+  const applied = `Scan reduction applied: ${tenths(p.applied)}`;
+  return tenths(p.cap) === tenths(p.nominalCap) ? `${applied} of a ${tenths(p.cap)} cap.`
+    : `${applied}. Adaptation has lowered its cap from ${tenths(p.nominalCap)} to ${tenths(p.cap)}.`;
 }
 
 /** Floored, so the time a player reads is never longer than the time the scan leaves. */
