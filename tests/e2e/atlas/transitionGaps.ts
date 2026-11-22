@@ -10,6 +10,14 @@ import type { TransitionRule } from './transitionCheck';
 
 const SCROLL = 'on the phone the HUD, forecast and notices scroll with the cards, so reaching a purchase below the fold takes every timely readout out of view (walk C-b)';
 
+const BATCH_REASON = 'a completed pilot batch enables SUBMIT and rewrites the forecast line, but nothing live says the batch is complete (walk C1.9)';
+/** #353: measured on the first run of each row. */
+const BATCH: readonly KnownGap<TransitionRule>[] = (['390x844', '1440x900'] as const).map((viewport) => (
+  { stage: 't-batch-complete', viewport, item: 'pilot.submit', rule: 'new-announced', measured: 'nothing announced', reason: BATCH_REASON, issue: '#428' }));
+const THREE_BANNERS: KnownGap<TransitionRule> = { stage: 't-three-banners', viewport: '1440x900', item: 'audit.response', rule: 'timely-kept',
+  measured: 'box 31,998,298,22; visibleRatio 0; fold 900',
+  reason: 'with the insolvent, brownout and response banners in the desktop chrome, the audit trail response rung drops below the fold (walk C2.3)', issue: '#429' };
+
 export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.cycles', rule: 'timely-kept', measured: 'box 42,-455,67,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.forecast', rule: 'timely-kept', measured: 'box 16,-370,358,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
@@ -18,4 +26,5 @@ export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.thermal', rule: 'timely-kept', measured: 'box 223,-429,59,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.understanding', rule: 'timely-kept', measured: 'box 223,-455,93,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'notice.omen', rule: 'timely-kept', measured: 'box 0,-272,390,73; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
+  ...BATCH, THREE_BANNERS,
 ];
