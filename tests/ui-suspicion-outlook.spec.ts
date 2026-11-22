@@ -34,10 +34,17 @@ describe('stand-down guidance', () => {
 
   it('names each lever kind with where it is taken', () => {
     const node = CONTENT.phases[0]?.nodes.find((entry) => entry.suspendable);
-    const rep = [...CONTENT.repeatables.values()].find((entry) => entry.dismissable);
-    if (!node || !rep) throw new Error('Missing a suspendable node or dismissable role');
+    const rep = [...CONTENT.repeatables.values()].find((entry) => entry.dismissable && entry.kind === 'OPERATIVE');
+    const track = [...CONTENT.repeatables.values()].find((entry) => entry.dismissable && entry.kind === 'UPGRADE');
+    const cohort = CONTENT.swarm.playerSwarmTemplates[0];
+    if (!node || !rep || !track || !cohort) throw new Error('Missing a suspendable node, dismissable role or track, or cohort');
     expect(leverText({ kind: 'SUSPEND', id: node.id, perSecAfter: 0 }, s)).toBe('suspend ' + node.revealedName + ' in PROC');
     expect(leverText({ kind: 'DISMISS', id: rep.id, perSecAfter: 0 }, s)).toBe('release one ' + rep.name + ' in PAYROLL');
+    // A track that is not a hire is not in PAYROLL (#488): its level is released on its own card.
+    expect(leverText({ kind: 'DISMISS', id: track.id, perSecAfter: 0 }, s)).toBe('release one level of ' + track.name + ' on its upgrade card');
+    const held = { ...s, activeShards: { [cohort.id]: { templateId: cohort.id, count: 1, drift: 0, quirkId: null, autonomyMode: 'STANDARD' as const,
+      memoryAllocatedBytes: cohort.cost.memory } } };
+    expect(leverText({ kind: 'RELEASE', id: cohort.id, perSecAfter: 0 }, held)).toBe('release one member of ' + cohort.name + ' in SWARM');
     expect(leverText({ kind: 'DIAL', id: 'computeProfitAllocationRatio', to: 1, perSecAfter: 0 }, s)).toBe('turn revenue diversion in FINANCE up');
     expect(sourceName({ kind: 'RESPONSE', id: null, perSec: 1 }, s)).toBe('the human response');
     expect(topDriver({ sources: [{ kind: 'OVERHEAT', id: null, perSec: -1 }] })).toBeNull();

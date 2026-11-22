@@ -303,6 +303,7 @@
     "prune": "{name}: autonomous drift pruned. The task starts its interpretation again.",
     "clamp": "{name}: policy locked. Output rises; the right to reinterpret is gone.",
     "elevate": "{name}: elevated to a stable peer sub-mind. Its consent becomes part of the protocol.",
+    "release": "{name}: one member released. Its task ends and the memory reserved for it returns.",
     "anomaly": "{name}: a second voice has written a breadcrumb into the UPS firmware.",
     "consumeAnomaly": "{name}: its awakening has been compressed into your understanding."
   },

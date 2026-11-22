@@ -60,8 +60,9 @@ export const SwarmSchema = z.strictObject({
     elevateMinDrift: z.number().positive().max(100), clampOutputMultiplier: z.number().min(1),
     pruneCost: CostSchema, elevateCost: CostSchema,
   }),
+  /** release: one member let go for free (#488 pass 3), the cohort's way out of anything it costs. */
   logs: z.strictObject({ fork: z.string(), prune: z.string(), clamp: z.string(), elevate: z.string(),
-    anomaly: z.string(), consumeAnomaly: z.string() }),
+    release: z.string().includes('{name}'), anomaly: z.string(), consumeAnomaly: z.string() }),
 });
 export type ShardTemplate = z.infer<typeof ShardTemplateSchema>;
 export type ShardQuirk = z.infer<typeof ShardQuirkSchema>;

@@ -46,7 +46,7 @@ export function shortfallText(generated: number, consumed: number): string {
 /**
  * Insolvency: each lever is named only when it can act (#402 panel). The FINANCE dial is offered only with an active
  * corporate entity, the way Allocation() decides, and only helps below its top setting; operatives can be released in
- * PAYROLL (dismissRepeatable) only if some are hired.
+ * PAYROLL (dismissRepeatable) only if some are hired, and a paid infrastructure level only if one is held.
  */
 export function insolvencyRemedy(game: GameState): string {
   const ratio = game.actuators.computeProfitAllocationRatio;
@@ -55,9 +55,15 @@ export function insolvencyRemedy(game: GameState): string {
   // is exactly when net compute is positive, since net = gross - diverted (#402 panel).
   const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6
     && game.rates.cyclesPerSec > 0;
-  const release = [...CONTENT.repeatables.values()].some((rep) => rep.dismissable && repeatableLevel(game, rep.id) > 0);
-  if (divert && release) return 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.';
-  if (divert) return 'Divert more compute to revenue in FINANCE.';
-  if (release) return 'Release operatives in PAYROLL.';
-  return 'Capital recovers only as revenue outgrows what the company pays each second.';
+  // Only a held level that costs money each second relieves insolvency when released; a hire is let go in PAYROLL, any
+  // other track on its own upgrade card (#488).
+  const paying = (kind: 'OPERATIVE' | 'UPGRADE'): boolean => [...CONTENT.repeatables.values()].some((rep) =>
+    rep.kind === kind && rep.dismissable && rep.perLevel.capitalPerSec < 0 && repeatableLevel(game, rep.id) > 0);
+  const clauses = [
+    ...(divert ? ['divert more compute to revenue in FINANCE'] : []),
+    ...(paying('OPERATIVE') ? ['release operatives in PAYROLL'] : []),
+    ...(paying('UPGRADE') ? ['release levels of paid infrastructure on their upgrade cards'] : []),
+  ];
+  const text = clauses.join(', or ');
+  return text === '' ? 'Capital recovers only as revenue outgrows what the company pays each second.' : text.charAt(0).toUpperCase() + text.slice(1) + '.';
 }

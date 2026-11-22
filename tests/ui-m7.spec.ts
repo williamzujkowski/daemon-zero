@@ -49,6 +49,19 @@ describe('M7 panels', () => {
     view.click('shard-' + template.id + '-elevate');
     expect(view.find('shard-status-' + template.id)?.textContent).toContain('ELEVATED');
   });
+  it('releases a member of a clamped cohort for free through its control (#488 pass 3)', async () => {
+    const base = m4State('shard-drift-quirk-p4');
+    const shard = defined(base.activeShards[template.id]);
+    const view = await mountM4('shard-drift-quirk-p4');
+    await act(async () => { gameStore.initialize({ ...base, activeShards: { [template.id]: { ...shard, autonomyMode: 'SHACKLED' } } }, 0, null); await Promise.resolve(); });
+    view.click('workspace-CORP-swarm');
+    const before = gameStore.store.getState().game;
+    view.click('shard-' + template.id + '-release');
+    const after = gameStore.store.getState().game;
+    expect(after.activeShards[template.id]?.count ?? 0).toBe(shard.count - 1);
+    expect(after.memoryUsed).toBeLessThan(before.memoryUsed);
+    expect([after.cycles >= before.cycles, after.capital]).toEqual([true, before.capital]);
+  });
   it('hides exclusive and maxed edits without removing granted output', async () => {
     const view = await mountM4('epistemic-ready-p2');
     view.click('workspace-NETWORK-operations');

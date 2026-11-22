@@ -5,7 +5,7 @@ import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
 import { memoryExact } from './physicalUnits';
-import { shardCommandCost, shardCommandTerms, shardCommandUnmet, type ShardCommand } from './shardActions';
+import { shardCommandCost, shardCommandTerms, shardCommandUnmet, shardReleaseUnmet, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
 import { arrangementAdmits } from './accessQuery';
@@ -28,6 +28,11 @@ export function forkView(s: GameState, template: ShardTemplate, reg: ContentRegi
 export function shardCommandView(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry) {
   const cost = shardCommandCost(s, id, command, reg), unmet = shardCommandUnmet(s, id, command, reg);
   return { command, cost, costLabel: formatCost(cost), unmet, eligible: unmet.length === 0 };
+}
+/** RELEASE: free, so only its reasons (#488 pass 3), from the gate the action refuses by. */
+export function shardReleaseView(s: GameState, id: string, reg: ContentRegistry) {
+  const unmet = shardReleaseUnmet(s, id, reg);
+  return { unmet, eligible: unmet.length === 0 };
 }
 export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;
