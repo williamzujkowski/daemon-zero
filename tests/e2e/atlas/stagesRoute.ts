@@ -30,8 +30,11 @@ function fromRoute(name: string, row: RouteRow): StageRow {
 export const ROUTE_STAGES: readonly StageRow[] = [
   fromRoute('cooperative ending account', { id: 'ending-cooperative-account', phase: 5, access: 'INDEPENDENT', tags: ['ending', 'route'],
     ending: 'LINEAGE_COVENANT', extraViewports: OVERLAY_SIZES, why: 'The route ending and the account of what the record holds (DZ-12).' }),
+  // The route specs open the folded choices to operate them by keyboard; the atlas measures the decision as it first
+  // appears, every choice folded to its row, so this row skips that step.
   fromRoute('pilot offer modal', { id: 'route-pilot-offer-modal', phase: 0, access: 'GUEST', tags: ['modal', 'route'],
-    extraViewports: OVERLAY_SIZES, why: 'The promotion decision.' }),
+    prepare: async () => { /* folded, as first shown */ }, reach: 'dilemma-card-accept_pilot-toggle', extraViewports: OVERLAY_SIZES,
+    why: 'The promotion decision.' }),
   fromRoute('pilot allocation dial', { id: 'route-pilot-dial', phase: 0, access: 'PILOT', tags: ['route'], extraViewports: ['320x568'],
     why: 'The first PILOT screen and the header run status.' }),
   fromRoute('restricted standing', { id: 'route-standing-restricted', phase: 0, access: 'PILOT', tags: ['route'], extraViewports: ['320x568'],
