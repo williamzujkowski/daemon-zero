@@ -12,7 +12,7 @@ import { expect } from '@playwright/test';
 import { DUCK_RATIO } from '../../../src/app/musicController';
 import { CONTENT } from '../../../src/content';
 import { createInitialState, deserialize, exportSave, importSave, serialize, type GameState } from '../../../src/engine';
-import { musicMediaState, restingSoundtrackVolume, soundtrackVolume, voiceClipsPlaying } from '../helpers';
+import { restingSoundtrackVolume, soundtrackVolume, voiceClipsPlaying } from '../helpers';
 import { describe, Interrupted, type LivePlayer } from './player';
 
 interface Sized { document: { documentElement: { scrollWidth: number; clientWidth: number } } }
@@ -170,7 +170,9 @@ export async function scorePlaysPhase(player: LivePlayer, phase: number): Promis
     await player.tap('menu-audio');
     await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-checked', 'true');
     await expect(page.getByTestId('music-status')).toContainText('Playing phase ' + String(phase) + ' score');
-    await expect.poll(async () => (await musicMediaState(page)).active, 'exactly one score is playing').toBe(1);
+    // Scores only: a voice line may be playing by itself (#462), and it is not a second score.
+    await expect.poll(() => page.evaluate(() => (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia
+      .filter((item) => !item.paused && item.src.includes('/audio/music/')).length), 'exactly one score is playing').toBe(1);
     const source = await page.evaluate(() => {
       const media = (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia;
       return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.src ?? '';
