@@ -7,7 +7,8 @@
 import { expect, type Page } from '@playwright/test';
 
 const VARIANT: string = process.env.DAEMON_ATLAS_VARIANT ?? '';
-export const ENTRY = VARIANT === '' ? './' : './?variant=' + encodeURIComponent(VARIANT);
+const CAP: string = process.env.DAEMON_ATLAS_CAP ?? '';
+export const ENTRY = VARIANT === '' ? './' : './?variant=' + encodeURIComponent(VARIANT) + (CAP === '' ? '' : '&cap=' + encodeURIComponent(CAP));
 
 export async function gotoEntry(page: Page): Promise<void> {
   await page.goto(ENTRY);

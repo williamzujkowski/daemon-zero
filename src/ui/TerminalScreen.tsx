@@ -3,7 +3,7 @@ import { Pressable, Text, View } from './PhaseTheme';
  * Responsive terminal: mobile scroll flow and desktop panes beneath a compact HUD.
  * Navigation and frames derive from unlocked registry widgets, never future content.
  */
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, type ReactNode } from 'react';
 import { Platform, StatusBar, StyleSheet, useWindowDimensions } from 'react-native';
 import { useEdgePadding } from './safeArea';
 import { CONTENT } from '../content';
@@ -34,7 +34,7 @@ import PhaseThreshold from './PhaseThreshold';
 import Announcer from './Announcer';
 import ProcessManager from './ProcessManager';
 import Tabs from './TerminalTabs';
-import MobileTerminal, { PhoneScrolled } from './MobileTerminal';
+import MobileTerminal, { PhonePinned, PhoneScrolled } from './MobileTerminal';
 import { InStickyBlock, phoneVariant } from './phoneVariant';
 import { SuspicionNow } from './ResourceStrip';
 import TopForecast from './TopForecast';
@@ -120,7 +120,7 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal attention={attention} />}
-        header={<ChromeHeader landmark />} band={<StickyBlock />}
+        header={<ChromeHeader landmark />} band={<AlertBand landmark />} {...pinnedPart()}
         body={phoneVariant() === 'collapse' ? <View /> : <ChromeBody landmark hud={phoneVariant() !== 'sticky-hud'}
           forecast={phoneVariant() !== 'now'} {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
@@ -215,23 +215,24 @@ function ChromeBody({ landmark, openCore, omenSlot = false, hud = true, forecast
 }
 
 /**
- * PROTOTYPE #384: the phone tier's sticky block, a direct child of the primary scroll (MobileTerminal). With no variant it
- * is the alert band alone, as before; each variant adds what it pins beneath the band.
+ * PROTOTYPE #384: what each variant pins under the alert band (MobileTerminal pins it while it fits the cap, and
+ * otherwise renders it in the same place in the flow). No variant: nothing, exactly as before.
  */
-function StickyBlock() {
+function pinnedPart(): { pinned?: ReactNode } {
   const variant = phoneVariant();
-  if (variant === null) return <AlertBand landmark />;
-  return <InStickyBlock.Provider value><View testID="phone-sticky" style={styles.sticky}>
-    <AlertBand landmark />
+  if (variant === null) return {};
+  return { pinned: <InStickyBlock.Provider value><View style={styles.sticky}>
     {variant === 'sticky-hud' && <View testID="terminal-hud" role="region" aria-label="Pinned status" style={styles.hud}><ResourceStrip /><LogDock /></View>}
     {variant === 'collapse' && <CollapsingChrome />}
     {variant === 'now' && <NowStrip />}
-  </View></InStickyBlock.Provider>;
+  </View></InStickyBlock.Provider> };
 }
 
 /** PROTOTYPE #384 (collapse): the whole chrome, folded to the HUD and the forecast once the scroll leaves the top. */
 function CollapsingChrome() {
-  const scrolled = useContext(PhoneScrolled);
+  const away = useContext(PhoneScrolled);
+  const pinned = useContext(PhonePinned);
+  const scrolled = away && pinned;
   const [expanded, setExpanded] = useState(false);
   if (!scrolled && expanded) setExpanded(false);
   const folded = scrolled && !expanded;
