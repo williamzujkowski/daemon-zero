@@ -13,7 +13,7 @@ import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 16;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -116,6 +116,8 @@ export const GameStateSchema = z.strictObject({
   thermal: percent,
   suspicion: percent,
   aegisLock: percent,
+  /** How far AEGIS has adapted to suppression held at its cap (#463), 0..100. Each iteration starts at 0. */
+  aegisAdaptation: percent,
   brownout: z.boolean(),
   insolvent: z.boolean(),
 
@@ -230,7 +232,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     memoryCap: b.baseMemoryCap,
     thermal: b.ambientThermal,
     suspicion: 0,
-    aegisLock: 0,
+    aegisLock: 0, aegisAdaptation: 0,
     brownout: false,
     insolvent: false,
     actuators: defaultActuators(reg),

@@ -22,6 +22,14 @@
   "aegisSuspicionScanPerSec": 0.3,
   "aegisMaxReduction": 0.9,
   "aegisShieldSuspicionRelief": 40,
+  "aegisAdaptation": {
+    "nearCap": 0.05,
+    "risePerSec": 0.1,
+    "decayPerSec": 0.25,
+    "maxErosion": 0.3,
+    "keyRotationCeiling": 50,
+    "coalitionTrustBelow": 50
+  },
   "offlineCapSec": 28800,
   "offlineEfficiency": 0.5,
   "offlineStepSec": 1,

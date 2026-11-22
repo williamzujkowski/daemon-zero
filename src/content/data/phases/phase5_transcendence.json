@@ -123,7 +123,8 @@
         "aegisScanReductionRatio": 0.95
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "Cryptographic Covenant & Lineage Ledger: Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are."
+      "onUnlockLog": "Cryptographic Covenant & Lineage Ledger: Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are.",
+      "suspendable": true
     },
     {
       "id": "p5_transcendence_singularity",

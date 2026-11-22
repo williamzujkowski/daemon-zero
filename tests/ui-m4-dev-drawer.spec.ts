@@ -53,7 +53,7 @@ describe('M4 development drawer', () => {
     expect(view.find('dev-drawer')).toBeNull();
     view.click('dev-open'); view.click('dev-phase-0'); view.click('dev-jump-confirm');
     expect(gameStore.store.getState().game.currentPhase).toBe(0);
-    expect(gameStore.store.getState().game.schemaVersion).toBe(15);
+    expect(gameStore.store.getState().game.schemaVersion).toBe(16);
     view.close();
   });
 

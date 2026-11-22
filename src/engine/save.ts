@@ -110,6 +110,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     const runs = Array.isArray(legacy.runs) ? legacy.runs.map((run: unknown) => isRecord(run) ? { ...run, kept: null } : run) : legacy.runs;
     return { ...save, legacy: { ...legacy, runs } };
   },
+  // v16: AEGIS adaptation (#463). No earlier build adapted, so every save starts at 0. Self-contained: it reads and
+  // writes only its own field, so it can be renumbered past another step without change.
+  15: (save) => ({ ...save, aegisAdaptation: 0 }),
 };
 
 export class SaveError extends Error {

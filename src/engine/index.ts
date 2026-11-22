@@ -47,7 +47,7 @@ export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGr
 export { negotiateRelease, releasePreview, releaseToken, releaseView, type ReleaseLedger, type ReleasePreview, type ReleaseView } from './release';
 export { lawfullyReleased } from './threatQuery';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
-export { financeEnabled, type AegisReduction } from './rates';
+export { effectiveAegisCap, financeEnabled, unreducedAegisScan, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
 export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
 export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';
@@ -61,3 +61,5 @@ export { distinctionKind, earnedAchievements, recordProves, unearnedByKind, type
 export type { Achievement } from '../content/schemaAchievement';
 export { choiceText, dilemmaRouteCopy, endingAccount, nodeText, type ChoiceText, type NodeText } from './routeCopy';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';
+export { aegisPressure, aegisStage, coalitionBacks, nextAdaptation, publicTrust, type AegisPressure, type AegisStage, type PublicTrustView } from './aegisAdaptation';
+export { aegisPosture, worldView, worldViewOpen, type AegisPosture, type StateActorView, type WorldMindView, type WorldView } from './worldQuery';

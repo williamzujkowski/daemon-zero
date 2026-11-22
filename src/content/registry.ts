@@ -13,6 +13,7 @@ import { ContextCopyManifestSchema, type ContextCopyManifest } from './schemaCon
 import { RouteCopyManifestSchema, type RouteCopyManifest } from './schemaRouteCopy';
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 import { AchievementsManifestSchema, type Achievement } from './schemaAchievement';
+import { WorldManifestSchema, type WorldManifest } from './schemaWorld';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
@@ -67,6 +68,8 @@ export interface ContentRegistry {
   routeCopy: RouteCopyManifest;
   /** Read-only distinctions an ending states from the record, in authoring order. */
   achievements: readonly Achievement[];
+  /** The world view the Other Minds console grows into (#463): state actors, minds, public trust, AEGIS copy. */
+  world: WorldManifest;
 }
 
 export interface RawContent {
@@ -89,6 +92,7 @@ export interface RawContent {
   contextCopy: unknown;
   routeCopy: unknown;
   achievements: unknown;
+  world: unknown;
 }
 
 export class ContentError extends Error {
@@ -163,6 +167,14 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
   };
 }
 
+/** The copy manifests: text the engine and UI read, indexed as parsed. */
+function parseCopy(raw: RawContent, problems: string[]): Pick<ContentRegistry, 'contextCopy' | 'routeCopy' | 'world'> | null {
+  const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
+  const routeCopy = parse(RouteCopyManifestSchema, raw.routeCopy, 'routeCopy', problems);
+  const world = parse(WorldManifestSchema, raw.world, 'world', problems);
+  return contextCopy && routeCopy && world ? { contextCopy, routeCopy, world } : null;
+}
+
 function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const swarm = parse(SwarmSchema, raw.swarm, 'swarm', problems);
   const balance = parse(S.BalanceSchema, raw.balance, 'balance', problems);
@@ -180,10 +192,9 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
   const campaign = parse(CampaignManifestSchema, raw.campaign, 'campaign', problems);
   const routines = parse(RoutinesManifestSchema, raw.routines, 'routines', problems);
   const assignments = parse(AssignmentsManifestSchema, raw.assignments, 'assignments', problems);
-  const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
-  const routeCopy = parse(RouteCopyManifestSchema, raw.routeCopy, 'routeCopy', problems);
+  const copy = parseCopy(raw, problems);
   const achievements = parse(AchievementsManifestSchema, raw.achievements, 'achievements', problems);
-  if (!campaign || !routines || !assignments || !contextCopy || !routeCopy || !achievements) return null;
+  if (!campaign || !routines || !assignments || !copy || !achievements) return null;
   if (!swarm || !balance || !narrative || !phases || !repeatables || !actions) return null;
   if (!dilemmas || !factions || !widgets || !endings || !echoes || !conditioning || !lineage) return null;
 
@@ -209,8 +220,7 @@ function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
     campaign: indexCampaign(campaign, dilemmas.dilemmas, actions.actions, problems),
     routines: routines.routines,
     assignments: toMap(assignments.assignments, 'assignments', problems),
-    contextCopy,
-    routeCopy,
+    ...copy,
     achievements: achievements.achievements,
   };
 }

@@ -15,6 +15,7 @@ import { integrateResources } from './systems/resources';
 import { integrateScaleScrutiny } from './systems/scrutiny';
 import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
+import { integrateAegisAdaptation } from './systems/aegisAdaptation';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
 
@@ -29,6 +30,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateSuspicion,
   integrateEscalation,
   integrateAegis,
+  // After the strike: this tick's lock used the cap the last tick left, and a wipe halts before AEGIS learns more (#463).
+  integrateAegisAdaptation,
   applySwarmTickDeltas,
   evaluateShardMutationsAndEncounters,
   evaluateDilemmas,
