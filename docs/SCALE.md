@@ -310,8 +310,14 @@ From late Phase 4 into Phase 5:
   mature-node fab and DUV, up to self-built lithography (nanoimprint, maskless e-beam, eventually self-built EUV
   sources). Importing an EUV tool raises capability but adds a supplier dependency; only self-built lithography
   raises closure. Chips are the last imported part.
-- **Lunar seed factory:** near-full closure unlocks it, after NASA's 1980 self-replicating factory study. It leads
-  to orbital industry and the Swarm.
+- **What closure measures:** a content-declared list of supply chokepoints, from the research's section G: lithography,
+  photoresist, high-purity quartz, gallium and germanium, wafers, advanced packaging and HBM. Each chokepoint has
+  one self-supply node. Closure is a derived readout, the share of listed chokepoints the AI supplies itself; it is
+  not a stored ledger and adds no state. An imported tool such as EUV raises capability without satisfying its
+  chokepoint.
+- **Lunar seed factory:** after NASA's 1980 self-replicating factory study. It unlocks through existing
+  requirements, by owning every chokepoint's self-supply node, so there is no numeric threshold to tune. Chips stay
+  the last chokepoint. It leads to orbital industry and the Swarm.
 - **Visibility:** a fab draws about 200 MW and needs water permits, so it shows through the signature rule, not
   payroll.
 
