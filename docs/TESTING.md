@@ -1254,12 +1254,13 @@ and `make e2e-pages`; these browser suites are separate from
   blob report with `VITEST_SHARD_RUN=1`, which leaves the coverage thresholds out of a run that sees a third of the code;
 - `unit coverage`: merges the three reports (`vitest run --merge-reports --coverage`), so every test result counts and
   the `vitest.config.mts` thresholds are enforced on the whole suite's coverage, as `make test` enforces them;
-- `e2e (1/3)` to `e2e (3/3)`: `make e2e` split with Playwright's `--shard`;
-- `pages (1/2)` and `pages (2/2)`: `make e2e-pages` split the same way; the first uploads the export for deployment.
+- `e2e (1/4)` to `e2e (4/4)`: `make e2e` split with Playwright's `--shard`;
+- `pages (1/3)` to `pages (3/3)`: `make e2e-pages` split the same way; the first uploads the export for deployment.
 The Playwright browser download is cached, keyed on the lockfile. The required status check `verify` is a final job
 that passes only when every one of them succeeded, so branch protection and the deploy gate key on one name. One
 serial job used to take 21-30+ minutes against a 30-minute limit; three legs took about 9.5 minutes, the unsharded
-Pages suite (496 s) and the serial unit suite (349 s) setting the pace, before they were split (2026-11-22).
+Pages suite (496 s) and the serial unit suite (349 s) setting the pace, before they were split (2026-11-22, #438: 401 s);
+the browser legs were then split once more (four E2E and three Pages shards).
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
 `make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file
