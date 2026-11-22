@@ -427,8 +427,15 @@ export const LineageSchema = z.strictObject({
   })),
 });
 
-/** One feed source: the phase whose reach it belongs to and a short on-screen label that fits a 360 px line. */
-export const FeedSourceSchema = z.strictObject({ id: snakeId, phase: z.number().int().min(0), label: z.string().min(3).max(32) });
+/**
+ * One feed source: the phase whose reach it belongs to and a short on-screen label that fits a 360 px line.
+ * `kernelLog` routes the source to the kernel log, one line per routine interval with no decoder, instead of
+ * the Listening post (#460: the guest has no feed window).
+ */
+export const FeedSourceSchema = z.strictObject({
+  id: snakeId, phase: z.number().int().min(0), label: z.string().min(3).max(32),
+  kernelLog: z.strictObject({ category: LogCategorySchema }).optional(),
+});
 
 export const RecordedTransmissionSchema = z.strictObject({
   id: snakeId, title: z.string().min(3), text: z.string().min(10),
