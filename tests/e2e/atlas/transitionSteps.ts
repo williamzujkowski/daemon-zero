@@ -91,6 +91,16 @@ export async function play(page: Page, presses: number): Promise<void> {
   }
 }
 
+/** Presses EXECUTE once a tick until `done` holds (a card the presses bring into reach), at most `presses` times. */
+export async function pressUntil(page: Page, done: () => Promise<boolean>, presses: number): Promise<void> {
+  for (let press = 0; press < presses; press++) {
+    if (await done()) return;
+    await page.getByTestId('manual-cycle').click();
+    await page.clock.runFor(TICK_MS);
+  }
+  if (!await done()) throw new Error(`not reached within ${String(presses)} presses`);
+}
+
 /** The dilemma a node's purchase schedules, and the first words of its omen: what its log line must announce. */
 export function omenOf(nodeId: string): RegExp {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.trigger.nodes?.includes(nodeId) === true);

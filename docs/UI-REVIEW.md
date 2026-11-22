@@ -171,7 +171,7 @@ final check on shipped fixes.
 | F5 Decision and copy clarity | #372, #376, #377, #379, #380 | Irreversible actions marked and previewed, "Requires:" lines, trait and carry-over glosses, a spoiler-safe distinctions hint, number formatting | after F3 |
 | F6 Quick fixes | #366, #370, #381 | Label in name, /s on phone rates, one back control on the kernel log | in parallel |
 | F7 Pause | #347 | Persisted MENU pause that also suspends wall-clock catch-up; changes `GameState`, so a schema bump and migration, and a forged paused flag in an imported save must not suppress or inflate catch-up | in parallel |
-| F8 Coverage | #353 | Transition rows for the remaining C1 and C2 cases, including F1's new announcements | after F1 |
+| F8 Coverage | #353 | Transition rows for the remaining C1 and C2 cases, including F1's new announcements | after F1; 7 rows added (26 in all), new gaps filed as #428 and #429 |
 
 Re-cuts that a majority of seats named were applied before ratification: #362 moved into F1, since
 the omen band F1 rewrites causes it on desktop too; #370 moved into F6; #364 and #371 moved into

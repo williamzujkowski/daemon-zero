@@ -274,12 +274,16 @@ helper itself (geometry, axe on the paused clock through `captureRealTimers`, th
 bash scripts/e2e-lock.sh pnpm exec playwright test --config tests/e2e/config.ts ui-atlas-transitions --project phone --project desktop
 ```
 
-**Table.** `tests/e2e/atlas/transitions.ts` holds 19 rows (types in `atlas/transitionTypes.ts`). A row names its
+**Table.** `tests/e2e/atlas/transitions.ts` holds 26 rows (types in `atlas/transitionTypes.ts`). A row names its
 before-state by **reference**: an atlas stage id, opened exactly as that stage's cell opens it (save, tab, area,
-prepare step). Two rows need a
-state one engine step earlier than a saved stage (the AEGIS lock just under 90, the deficit save before brownout
-is computed); each carries a labelled `patch` recipe, shown as FIXTURE on its card, and a real trigger (accepted
-by nexus vote `vote-1795150222283-8vx17o6`). A kernel log line is not an announcement (`vote-1795150633083-3vv62d6`). The trigger is a real click,
+prepare step). Six rows need a
+state a saved stage does not hold: one engine step earlier (the AEGIS lock just under 90, the deficit save before
+brownout is computed, the insolvent save with 0.01 capital left), one purchase earlier (the thermal bus not yet
+mapped, its price refunded), the power draw levelled with generation, or the three C2.3 banners together (the
+insolvent save in a brownout, thermal 100, suspicion just under rung 3). Each carries a labelled `patch` recipe,
+shown as FIXTURE on its card, and a real trigger (accepted by nexus vote `vote-1795150222283-8vx17o6`). A recipe
+cannot remove a node that something owned descends from (the codec restores ancestors), so the later FACTIONS
+area is reached by real purchases instead: the phase 2 exit, then the beacon's prerequisites. A kernel log line is not an announcement (`vote-1795150633083-3vv62d6`). The trigger is a real click,
 a sequence of real UI actions (tabs, scrolls, menus, a dilemma's zero-cost choice, a play loop), or the paused
 clock one tick at a time until a condition holds; for a long wait the engine counts the ticks first so the clock
 can jump to just before the event. After expectations reference contract items (`contract.ts`) and a stage's
@@ -287,8 +291,8 @@ can jump to just before the event. After expectations reference contract items (
 
 | Check | Rule | Rows |
 |---|---|---|
-| C1: the new item is in view and announced | `new-in-view` (fully visible; when its pane is not shown, a badge on that pane's tab instead), `new-announced` (live text or a dialog matching the row's pattern, a tab badge, or focus inside the new dialog; a kernel log line is recorded but does not count), `new-truncated`, `focus-lost`, and for C1.10 `one-alert` (one live region per condition) and `politeness` (`role=alert` with `aria-live=polite`, or `role=status` with `assertive`) | the four phase crossings, a SENSORS widget, a wild signal, the skim unlock, AEGIS 90, pilot accepted, the omen log line, the omen giving way to its dilemma, brownout, live reboot, Continue boot, overheat on CORE (14 rows) |
-| C2: timely items stay in the main view | `timely-kept` (the referenced stage's timely set, composed for the panes now shown, plus named items such as a dilemma's first choice, plus the first work card's title), `primary-kept` (EXECUTE stays in view), `pointer-target` (no different enabled control under the click point) | the four phase crossings, skim, regrowth, the omen appearing, the omen giving way to its dilemma, the dilemma closing, brownout, scroll to a purchase, overheat, the ending after a menu round trip (13 rows) |
+| C1: the new item is in view and announced | `new-in-view` (fully visible; when its pane is not shown, a badge on that pane's tab instead), `new-announced` (live text or a dialog matching the row's pattern, a tab badge, or focus inside the new dialog; a kernel log line is recorded but does not count), `new-truncated`, `focus-lost`, and for C1.10 `one-alert` (one live region per condition) and `politeness` (`role=alert` with `aria-live=polite`, or `role=status` with `assertive`) | the four phase crossings, a SENSORS widget, a wild signal, the skim unlock, AEGIS 90, pilot accepted, the omen log line, the omen giving way to its dilemma, brownout, live reboot, Continue boot, overheat on CORE, and from #353 the SENSORS tab, the later FACTIONS area, a pilot batch completing, the first [REMEMBERED] card, insolvency, a power shortfall, the response escalating over the brownout and insolvency bands (21 rows) |
+| C2: timely items stay in the main view | `timely-kept` (the referenced stage's timely set, composed for the panes now shown, plus named items such as a dilemma's first choice, plus the first work card's title), `primary-kept` (EXECUTE stays in view), `pointer-target` (no different enabled control under the click point) | the four phase crossings, skim, regrowth, the omen appearing, the omen giving way to its dilemma, the dilemma closing, brownout, scroll to a purchase, overheat, the ending after a menu round trip, and from #353 the FACTIONS area's first card, the first [REMEMBERED] card with EXECUTE, insolvency, the three banners' first card (17 rows) |
 | B5: the primary action does not move | `primary-shift`: EXECUTE's displacement between the last frame before the event and one tick after it, at most `B5_TOLERANCE_PX` (4) | the omen appearing, the omen clearing, the dilemma closing |
 
 **Observer.** `atlas/announce.ts` installs a `MutationObserver` before the trigger, on `[aria-live]`,
