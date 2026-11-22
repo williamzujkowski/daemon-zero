@@ -5,7 +5,7 @@
 import { CONTENT } from '../../src/content';
 import { holdsNarrativeFlag, type GameState } from '../../src/engine';
 import { makeFixtures } from '../../scripts/make-fixtures';
-import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave, openChoices } from './helpers';
 
 const holds = (save: Record<string, unknown>, flag: string | undefined): boolean =>
   flag !== undefined && holdsNarrativeFlag(save as unknown as GameState, flag, CONTENT);
@@ -17,6 +17,7 @@ for (const outcome of ['preserved', 'lost']) {
     const choice = source?.choices.find((entry) => entry.effects.setsNarrativeFlag === record?.requirements.requiredNarrativeFlag);
     if (!record || !choice) throw new Error('Missing cryo content');
     await boot(page, 'cryo-decision-ready');
+    await openChoices(page);
     await page.getByTestId('dilemma-choice-' + choice.id).click(); await dismissBoot(page);
     expect(holds(await readSave(page), record.requirements.requiredNarrativeFlag)).toBe(true);
     await page.reload(); await dismissBoot(page);

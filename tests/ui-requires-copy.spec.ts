@@ -8,6 +8,7 @@ import { CONTENT } from '../src/content';
 import { canAfford, costShortfall, offeredChoices } from '../src/engine';
 import { costText } from '../src/ui/format';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { openChoices } from './dilemmaChoices';
 setupM4Tests();
 
 it('says exactly what an unaffordable dilemma choice is short of, never "resources or free memory"', async () => {
@@ -17,6 +18,7 @@ it('says exactly what an unaffordable dilemma choice is short of, never "resourc
   const unaffordable = offeredChoices(state, dilemma, CONTENT).filter((choice) => !canAfford(state, choice.cost));
   expect(unaffordable.length).toBeGreaterThan(0);
   const view = await mountM4('guest-dilemma', { width: 390, height: 844 });
+  openChoices();
   for (const choice of unaffordable) {
     const card = view.find('dilemma-card-' + choice.id)?.textContent ?? '';
     const missing = costShortfall(state, choice.cost);

@@ -25,6 +25,7 @@ import { RunTable } from '../src/ui/widgets/Lineage';
 import { pgrant, preview } from './campaign-helpers';
 import { caught, leaveIt, note, noteOmen, readShare, untilPresented } from './interruption-helpers';
 import { must, PHASE0, PHASE1, PHASE2 } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -133,6 +134,7 @@ describe('the dilemma modal on a resumed occurrence', () => {
     const shown = untilPresented(readShare(caught(noteOmen())));
     const view = await mount(shown, createElement(DilemmaModal));
     expect(view.find('dilemma-modal')?.textContent).toContain(note.context);
+    openChoices();
     view.click('dilemma-choice-' + leaveIt.id);
     expect(campaignRecord(game(), note.id)).toMatchObject({ status: 'resolved', outcome: leaveIt.id, sourceIteration: 3 });
     expect(view.find('dilemma-modal')).toBeNull();

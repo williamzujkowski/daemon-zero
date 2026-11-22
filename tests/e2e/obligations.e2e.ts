@@ -14,7 +14,7 @@ import { activeGame } from '../campaign-helpers';
 import { caught, ticks, untilPresented } from '../interruption-helpers';
 import { next, omen, own, play } from '../minds-helpers';
 import { ATMOSPHERE, ATMOSPHERE_REVIEW, BLOCKADE, CEILING, finalNode, OBLIGATIONS, ORDER } from '../obligation-helpers';
-import { boot, dismissBoot, expect, openSave, test, press } from './helpers';
+import { boot, dismissBoot, expect, openSave, test, press, openChoices } from './helpers';
 
 const SAVE_KEY = 'daemon-zero.save.v1';
 interface BrowserStorage { getItem(key: string): string | null }
@@ -74,6 +74,7 @@ test('a closed crisis is answered through its recovery review, with no outcome i
   await expect(modal).toBeVisible();
   await expect(modal).toContainText('Review');
   await expect(modal).toContainText('contact was lost before it decided');
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-commission_assay')).toBeVisible();
   await page.getByTestId('dilemma-choice-hand_to_health_authorities').click();
   await expect(modal).toHaveCount(0);

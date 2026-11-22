@@ -26,6 +26,7 @@ import { labelMismatches } from './labelInName';
 import { offerPresented, respond, TERMS } from './pilot-helpers';
 import { servedOnce } from './review-helpers';
 import { jobSurface } from './jobSurface';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -54,6 +55,7 @@ const labelled = () => host.document.body.querySelectorAll('[role="button"][aria
 describe('label in name on the Earned Access surfaces (#275)', () => {
   it('the assessment: an unaffordable answer is named by what it shows, then the answer', async () => {
     const view = await mount(untilPresented(must(accept(offered()))), surfaces);
+    openChoices();
     expect(view.find('dilemma-choice-verify_disclose')?.getAttribute('aria-label')).toBe('Unavailable: Verify the fixture and disclose the defect');
     expect(view.find('dilemma-choice-report_incomplete')?.getAttribute('aria-label')).toBe('Commit directive: Report the failure as unverified');
     expect(labelMismatches(host.document.body)).toEqual([]);
@@ -62,6 +64,7 @@ describe('label in name on the Earned Access surfaces (#275)', () => {
   it('the offer modal with its terms, and the deferred offer on the job surface', async () => {
     await mount(offerPresented(), surfaces);
     expect(labelled()).toBeGreaterThan(2);
+    openChoices();
     expect(labelMismatches(host.document.body)).toEqual([]);
     const deferred = await mount(must(respond(offerPresented(), 'stay_guest')), surfaces);
     expect(deferred.find('pilot-accept')?.getAttribute('aria-label')).toBe('Accept pilot: ' + TERMS.title);

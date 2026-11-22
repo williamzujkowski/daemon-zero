@@ -12,7 +12,7 @@ import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { exportSave } from '../../src/engine';
 import { contactPending, withMemory } from '../contact-helpers';
-import { boot, core, expect, openSave, test, press } from './helpers';
+import { boot, core, expect, openSave, test, press, openChoices } from './helpers';
 import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const service = need(terms.service);
@@ -31,6 +31,7 @@ const FREE_ANSWERS = PREVIEW.dilemmas.flatMap((dilemma) => dilemma.choices)
 async function playUntil(page: Page, done: () => Promise<boolean>, stepMs = 10_000, limitSteps = 120): Promise<void> {
   for (let i = 0; i < limitSteps && !(await done()); i++) {
     if (await page.getByTestId('dilemma-modal').count()) {
+      await openChoices(page);
       for (const id of FREE_ANSWERS) {
         const button = page.getByTestId('dilemma-choice-' + id);
         if (await button.count() && await button.isEnabled()) { await button.click(); break; }

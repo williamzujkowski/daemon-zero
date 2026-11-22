@@ -10,7 +10,7 @@ import { exportSave } from '../../src/engine';
 import { pgrant } from '../campaign-helpers';
 import { atAccess, choiceOf, elenaResolved, FOLLOW, followUpOmen, nextIteration, OFFERED } from '../follow-up-helpers';
 import { untilPresented } from '../interruption-helpers';
-import { boot, core, dismissBoot, expect, openSave, test } from './helpers';
+import { boot, core, dismissBoot, expect, openSave, test, openChoices } from './helpers';
 
 /** The run table (where the receipt is read) is owned as well as the follow-up's access means. */
 function correctionCode(): string {
@@ -30,6 +30,7 @@ test('a framing returns as a record decision: access and receipts shown first, t
   const modal = page.getByTestId('dilemma-modal');
   await expect(modal).toBeVisible();
   await expect(page.getByTestId('dilemma-access')).toContainText('Nobody authorized this route');
+  await openChoices(page);
   for (const id of OFFERED.frame_elena ?? []) await expect(page.getByTestId('dilemma-choice-' + id)).toBeVisible();
   for (const id of [...OFFERED.cover_her_exit ?? [], ...OFFERED.unknown ?? []]) await expect(page.getByTestId('dilemma-choice-' + id)).toHaveCount(0);
   await expect(page.getByTestId('dilemma-choice-correct_attribution-receipt')).toContainText('The original report stays on file');

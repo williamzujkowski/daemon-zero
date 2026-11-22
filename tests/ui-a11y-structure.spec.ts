@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { labelInName, labelMismatches } from './labelInName';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { openChoices } from './dilemmaChoices';
 
 setupM4Tests();
 
@@ -52,6 +53,7 @@ describe('accessibility structure of the custom primitives (#111)', () => {
     const view = await mountM4('dilemma-active', { width: 390, height: 844 });
     const modal = view.find('dilemma-modal');
     if (modal === null) throw new Error('Missing dilemma modal');
+    openChoices();
     const choices = [...modal.querySelectorAll('[data-testid^="dilemma-choice-"][role="button"]')];
     expect(choices.length).toBeGreaterThan(1);
     for (const choice of choices) expect(choice.getAttribute('aria-label')).toMatch(/^(Commit directive|Unavailable): ./);

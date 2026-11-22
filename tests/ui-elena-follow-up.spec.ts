@@ -24,6 +24,7 @@ import { ELENA, omenOf } from './early-helpers';
 import { atAccess, choiceOf, elenaResolved, FOLLOW, follow, followUpOmen, nextIteration, OFFERED, roundTrips } from './follow-up-helpers';
 import { caught, commit, untilPresented } from './interruption-helpers';
 import { must } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -56,6 +57,7 @@ describe('the follow-up modal', () => {
   it('after a framing: states the access, offers the three framed answers with their receipts, and commits the correction', async () => {
     const view = await mount(untilPresented(followUpOmen(atAccess(elenaResolved('frame_elena')))), createElement(DilemmaModal));
     expect(view.find('dilemma-access')?.textContent).toContain('Nobody authorized this route');
+    openChoices();
     expect(buttons()).toEqual((OFFERED.frame_elena ?? []).map((id) => 'dilemma-choice-' + id));
     expect(view.find('dilemma-choice-correct_attribution-receipt')?.textContent).toContain(choiceOf('correct_attribution').receipt);
     expect(view.find('dilemma-modal')?.textContent).toContain('Nothing you add here removes what the original report did to her.');
@@ -67,6 +69,7 @@ describe('the follow-up modal', () => {
   it('after an interrupted original: only the neutral inquiry', async () => {
     const interrupted = nextIteration(caught(omenOf(activeGame(), ELENA)));
     const view = await mount(untilPresented(followUpOmen(atAccess(interrupted))), createElement(DilemmaModal));
+    openChoices();
     expect(buttons()).toEqual((OFFERED.unknown ?? []).map((id) => 'dilemma-choice-' + id));
     expect(view.find('dilemma-modal')?.textContent).toContain(follow.context);
   });

@@ -8,6 +8,7 @@ import { gameStore } from '../src/app/session';
 import { needsProcessControl } from '../src/ui/purchaseVisibility';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { choose } from './helpers';
+import { openChoices } from './dilemmaChoices';
 setupM4Tests();
 
 it('keeps maintenance out of the feed and preserves suspension when the panel closes', async () => {
@@ -68,6 +69,7 @@ it('does not expose maintenance before ownership and yields its modal to a manda
   if (!dilemma) throw new Error('Missing dilemma');
   const choice = dilemma.choices.find((entry) => choose(game, dilemma.id, entry.id, CONTENT).ok);
   if (!choice) throw new Error('Missing affordable choice');
+  openChoices();
   view.click('dilemma-choice-' + choice.id);
   expect(view.find('processes-dialog')).not.toBeNull();
   act(() => { gameStore.dispatch((game) => ({ ok: true, state: wipe(game, CONTENT, 'test') })); });

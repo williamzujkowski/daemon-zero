@@ -8,7 +8,7 @@ import { exportSave } from '../../src/engine';
 import { activeGame } from '../campaign-helpers';
 import { at, AUCTION, omen, ORDER, play } from '../corporate-helpers';
 import { untilPresented } from '../interruption-helpers';
-import { boot, expect, openSave, test } from './helpers';
+import { boot, expect, openSave, test, openChoices } from './helpers';
 
 function shreddedOrderCode(): string {
   // The order stays open through the auction: since NH-05 it is a campaign event a setup shortcut would record.
@@ -25,6 +25,7 @@ test('a shredded Rack 4 leaves the decommissioning order only its honest answers
   const modal = page.getByTestId('dilemma-modal');
   await expect(modal).toBeVisible();
   await expect(modal).toContainText('nothing left to boot');
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-record_the_destruction')).toBeVisible();
   await expect(page.getByTestId('dilemma-choice-close_the_docket')).toBeVisible();
   await expect(page.getByTestId('dilemma-choice-sanctuary')).toHaveCount(0);

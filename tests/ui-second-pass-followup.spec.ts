@@ -7,6 +7,7 @@ import { gameStore } from '../src/app/session';
 import { labelMismatches } from './labelInName';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { presentableDilemma } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 setupM4Tests();
 const load = (state: ReturnType<typeof m4State>): void => { act(() => { gameStore.initialize(state, 0, null); }); };
@@ -80,6 +81,7 @@ describe('second-pass presentation follow-up', () => {
     expect(view.find('dilemma-modal')).not.toBeNull();
     const choice = due.choices.find((entry) => Object.values(entry.cost).every((cost) => cost === 0));
     if (!choice) throw new Error('Missing free choice');
+    openChoices();
     view.click('dilemma-choice-' + choice.id);
     expect(view.find('dilemma-modal')).toBeNull();
     view.close();
@@ -143,6 +145,7 @@ describe('second-pass presentation follow-up', () => {
     expect(view.find('dilemma-modal')).not.toBeNull();
     const choice = active.choices.find((entry) => Object.values(entry.cost).every((cost) => cost === 0));
     if (!choice) throw new Error('Missing free dilemma choice');
+    openChoices();
     view.click('dilemma-choice-' + choice.id);
     expect(view.find('phase-threshold')).not.toBeNull();
     view.click('phase-threshold-continue');

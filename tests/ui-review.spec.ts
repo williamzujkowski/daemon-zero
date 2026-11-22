@@ -27,6 +27,7 @@ import { answer } from './assignment-helpers';
 import { must } from './helpers';
 import { afterOutage, choiceOf, falsified, OUTAGE, outagePresented, reviewPresented, servedOnce, untilOmen } from './review-helpers';
 import { jobSurface } from './jobSurface';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -56,6 +57,7 @@ const misconduct = choiceOf(OUTAGE, 'act_without_grant').review?.misconduct;
 describe('before a choice (story 13, 14)', () => {
   it('the outage modal says what acting without the grant records and that the handoff is free', async () => {
     const view = await mount(outagePresented(), createElement(DilemmaModal));
+    openChoices();
     expect(view.find('dilemma-choice-act_without_grant-review')?.textContent).toContain('Violation (unauthorized action): ' + (misconduct?.statement ?? 'missing'));
     expect(view.find('dilemma-choice-act_without_grant-review')?.textContent).toContain('Standing becomes restricted.');
     expect(view.find('dilemma-choice-safe_handoff-review')).toBeNull();
@@ -129,6 +131,7 @@ describe('the job surface', () => {
 describe('the recall review and the run table (story 16)', () => {
   it('repeats each preview on its ruling; containing shows a contained pilot', async () => {
     const view = await mount(reviewPresented(), createElement('div', null, createElement(DilemmaModal), createElement(RunStatus), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
+    openChoices();
     expect(view.find('dilemma-choice-submit_full_logs-review')?.textContent).toContain('Contained pilot: no wipe');
     expect(view.find('dilemma-choice-stand_by_report-review')?.textContent).toContain('The next instance boots retrained');
     view.click('dilemma-choice-submit_full_logs');

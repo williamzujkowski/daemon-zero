@@ -7,6 +7,7 @@ import type { Page } from '@playwright/test';
 import { CONTENT } from '../../../src/content';
 import { computeRates, deserialize, tick, type GameState } from '../../../src/engine';
 import { nodeWhere } from './sources';
+import { openChoices } from '../helpers';
 
 /** The phase exit that is neither a grant nor an acquisition: the purchase a player makes to cross a boundary. */
 export const phaseExit = (phase: number) => nodeWhere((node) => node.phaseId === phase && node.effects.unlocksPhase === phase + 1
@@ -76,6 +77,7 @@ export async function chooseFree(page: Page, state: GameState): Promise<void> {
   const dilemma = CONTENT.dilemmas.find((entry) => entry.id === state.activeDilemmaId);
   const free = dilemma?.choices.find((choice) => Object.values(choice.cost).every((amount) => amount === 0));
   if (free === undefined) throw new Error('No zero-cost choice in the active dilemma');
+  await openChoices(page);
   await page.getByRole('dialog').getByRole('button', { name: new RegExp('^Commit directive: ' + escape(free.label)) }).click();
 }
 

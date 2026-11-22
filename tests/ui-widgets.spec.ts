@@ -12,6 +12,7 @@ import TerminalScreen from '../src/ui/TerminalScreen';
 import Effects from '../src/ui/Effects';
 import { panelFreeWidgets, widgetRegistry } from '../src/ui/registry/widgetRegistry';
 import { makePhase1Fixtures as makeFixtures } from '../scripts/make-fixtures';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -105,6 +106,7 @@ describe('M3 widgets', () => {
     if (!dilemma || !paid || !free) throw new Error('Missing choices');
     const view = await mount(game);
     expect(view.find('dilemma-modal')).not.toBeNull();
+    openChoices();
     expect(view.find('dilemma-choice-' + paid.id)?.getAttribute('aria-disabled')).toBe('true');
     act(() => { view.find('dilemma-choice-' + paid.id)?.click();
       host.document.dispatchEvent(new host.KeyboardEvent('keyup', { key: 'Escape', bubbles: true })); });
@@ -125,6 +127,7 @@ describe('M3 widgets', () => {
     const choice = dilemma?.choices.find((entry) => entry.cost.cycles > 0);
     if (!choice) throw new Error('Missing paid choice');
     const view = await mount({ ...game, cycles: 5000 });
+    openChoices();
     act(() => { view.find('dilemma-choice-' + choice.id)?.click(); });
     expect(gameStore.store.getState().game.cycles).toBe(5000 - choice.cost.cycles + choice.effects.cyclesDelta);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });

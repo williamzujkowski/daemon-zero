@@ -27,6 +27,7 @@ import { at, AUCTION, omen, ORDER, play } from './corporate-helpers';
 import { event, VANCE } from './early-helpers';
 import { untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -64,6 +65,7 @@ describe('the Rack 4 decommissioning order follows custody', () => {
     expect(notice.find('omen-notice')?.textContent).toContain('empty since the shredding');
     const view = await mount(untilPresented(pending), createElement(DilemmaModal));
     expect(view.find('dilemma-modal')?.textContent).toContain('nothing left to boot');
+    openChoices();
     expect(choiceIds()).toEqual(['dilemma-choice-record_the_destruction', 'dilemma-choice-close_the_docket']);
     view.click('dilemma-choice-record_the_destruction');
     expect(view.find('dilemma-modal')).toBeNull();
@@ -73,6 +75,7 @@ describe('the Rack 4 decommissioning order follows custody', () => {
 
   it('with Rack 4 vaulted it offers the original rescue and harvest', async () => {
     const view = await mount(untilPresented(omen(at(auctioned('buy_and_pension'), ORDER), ORDER)), createElement(DilemmaModal));
+    openChoices();
     expect(choiceIds()).toEqual(order.choices.filter((choice) => choice.requirements?.campaignFact === undefined).map((choice) => 'dilemma-choice-' + choice.id));
     view.click('dilemma-choice-sanctuary');
     expect(holdsNarrativeFlag(game(), 'predecessors_rescued', preview)).toBe(true);

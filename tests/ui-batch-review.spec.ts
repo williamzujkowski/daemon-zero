@@ -29,6 +29,7 @@ import { BATCH_REVIEW, FINDING, WITHHELD } from './finding-helpers';
 import { offerPresented, TERMS } from './pilot-helpers';
 import { serving, untilComplete } from './service-helpers';
 import { jobSurface } from './jobSurface';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -67,6 +68,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     expect(game().activeDilemmaId).toBe(BATCH_REVIEW.id);
     expect(view.find('dilemma-modal')?.textContent).toContain(BATCH_REVIEW.title);
     expect(view.find('dilemma-access')?.textContent).toContain("pilot's batch review");
+    openChoices();
     expect(view.find('dilemma-choice-disclose_now-review')?.textContent).toContain('Correction: standing returns to nominal');
     expect(view.find('dilemma-choice-let_stand-review')).toBeNull();
     expect(view.find('run-context')?.textContent).toBe('PILOT · WARNED');
@@ -92,6 +94,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     expect(view.find('review-recovery')?.textContent).toBe('Way back: ' + FINDING.recovery);
     expect(view.find('assignment-evidence')?.textContent).toContain('Found: a batch review has found the work the report left out.');
     expect(view.find('assignment-evidence')?.textContent).not.toContain('Discrepancy risk');
+    openChoices();
     view.click('dilemma-choice-let_stand');
     await act(async () => { await settle(); });
     expect([game().activeDilemmaId, game().access.standing]).toEqual([null, 'WARNED']);

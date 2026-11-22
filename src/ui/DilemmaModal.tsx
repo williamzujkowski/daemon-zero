@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from './PhaseTheme';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { feedback } from '../app/feedback';
 import { useReducedMotion } from '../app/useReducedMotion';
 import DisclosureText from './DisclosureText';
@@ -31,18 +31,15 @@ function ReviewLine({ choice }: { choice: DilemmaChoice }) {
   return text === '' ? null : <Text testID={'dilemma-choice-' + choice.id + '-review'} style={theme.muted}>Review: {text}</Text>;
 }
 
-/** `token` is the presentation this choice was rendered for; a press against any other is refused. */
-function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId: string; token: string }) {
-  const affordable = useGame((game) => canAfford(game, choice.cost));
+/** An open choice: what it means, what it records, and the control that commits it. */
+function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
+  choice: DilemmaChoice; dilemmaId: string; token: string; label: string; affordable: boolean;
+}) {
   // This arrangement's words for the choice (DZ-12); the arrangement cannot change while the clock is stopped here.
-  const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
   const description = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).description);
-  return <View testID={'dilemma-card-' + choice.id} style={theme.panel}>
-    <View testID={'dilemma-card-' + choice.id + '-heading'} accessibilityRole="header">
-      <Text style={theme.heading}>{label}</Text>
-    </View>
+  return <View testID={'dilemma-card-' + choice.id + '-details'} style={{ gap: 8 }}>
+    {/* The cost is in the row above, open or folded; it is not repeated here. */}
     <DisclosureText style={theme.text}>{description}</DisclosureText>
-    <Text style={theme.muted}>Cost: {costText(choice.cost)}</Text>
     {choice.qualification && <Text testID={'dilemma-choice-' + choice.id + '-evidence'} style={theme.muted}>
       Evidence: {evidenceText(choice.qualification)}</Text>}
     {choice.scope && <Text testID={'dilemma-choice-' + choice.id + '-scope'} style={theme.muted}>Scope: {scopeText(choice.scope)}</Text>}
@@ -60,6 +57,32 @@ function Choice({ choice, dilemmaId, token }: { choice: DilemmaChoice; dilemmaId
       onPress={() => { gameRuntime.dispatch((game) => resolveDilemma(game, dilemmaId, choice.id, CONTENT, token)); }}>
       <Text style={theme.text}>{affordable ? '[ COMMIT DIRECTIVE ]' : '[ UNAVAILABLE ]'}</Text>
     </Pressable>
+  </View>;
+}
+
+/**
+ * One choice, folded to a row: its title, cost and whether it can be paid. Every alternative and its price fits the
+ * first view on a phone (the concern behind #371, whose separate index repeated each choice and was removed at the
+ * maintainer's request), and the commit control sits inside the open card, so nothing is chosen unread. Opening one
+ * closes no other, so two can be compared. The toggle is a button inside the heading (the accordion pattern), named
+ * with exactly what it shows. `token` is the presentation this choice was rendered for; a press against any other is
+ * refused.
+ */
+function Choice({ choice, dilemmaId, token, initiallyOpen }: { choice: DilemmaChoice; dilemmaId: string; token: string; initiallyOpen: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
+  const affordable = useGame((game) => canAfford(game, choice.cost));
+  const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
+  const summary = 'Cost: ' + costText(choice.cost) + (affordable ? '' : ' // cannot pay yet');
+  return <View testID={'dilemma-card-' + choice.id} style={theme.panel}>
+    <View testID={'dilemma-card-' + choice.id + '-heading'} accessibilityRole="header">
+      <Pressable testID={'dilemma-card-' + choice.id + '-toggle'} accessibilityRole="button" accessibilityState={{ expanded: open }}
+        aria-expanded={open} accessibilityLabel={label + ' // ' + summary} style={styles.toggle} onPress={() => { setOpen(!open); }}>
+        {/* One text with a line break, so the row's words never run together ("defectCost") in its text. */}
+        <Text style={theme.heading}>{(open ? '[-] ' : '[+] ') + label + '\n'}
+          <Text style={affordable ? theme.muted : [theme.muted, theme.danger]}>{summary}</Text></Text>
+      </Pressable>
+    </View>
+    {open && <ChoiceDetails choice={choice} dilemmaId={dilemmaId} token={token} label={label} affordable={affordable} />}
   </View>;
 }
 
@@ -91,7 +114,9 @@ export default function DilemmaModal() {
           {access !== null && <Text testID="dilemma-access" style={theme.muted}>Access: {access}</Text>}
           {/* Each choice once, as its full card. The index above the cards (#371) repeated them; the maintainer
               removed it on 2026-11-21 as redundant (docs/UI-REVIEW.md). */}
-          {choices.map((choice) => <Choice key={choice.id} choice={choice} dilemmaId={dilemma.id} token={token} />)}
+          {/* Keyed by presentation, so a new decision starts folded; a lone choice starts open, with nothing to compare. */}
+          {choices.map((choice) => <Choice key={token + choice.id} choice={choice} dilemmaId={dilemma.id} token={token}
+            initiallyOpen={choices.length === 1} />)}
         </ScrollView>
       </View>
     </SafeOverlay>
@@ -101,4 +126,5 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000d' },
   dialog: { width: '100%', maxWidth: 680, maxHeight: '95%', borderWidth: 1, borderColor: palette.warning, backgroundColor: palette.background },
   content: { padding: 16, gap: 14 },
+  toggle: { minHeight: 44, justifyContent: 'center', gap: 4 },
 });

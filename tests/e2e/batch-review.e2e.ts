@@ -9,7 +9,7 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { core, expect, test, press } from './helpers';
+import { core, expect, test, press, openChoices } from './helpers';
 import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const SCENE = need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_nr_batch_review'));
@@ -38,6 +38,7 @@ async function toFinding(page: Page): Promise<void> {
   // The finding arrives with the submission itself: no omen to wait out.
   await expect(page.getByTestId('dilemma-modal')).toContainText(SCENE.title);
   await expect(page.getByTestId('dilemma-access')).toContainText("pilot's batch review");
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-disclose_now-review')).toContainText('Correction: standing returns to nominal');
   await expect(page.getByTestId('pilot-service-submitted')).toContainText('1');
 }

@@ -1,6 +1,6 @@
 /** Blocking decisions, destructive transfer confirmation and normal restoration. */
 import { CONTENT } from '../../src/content';
-import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave, openChoices } from './helpers';
 
 test('a dilemma pauses the clock and mandatory choice resumes it', async ({ page }) => {
   await boot(page, 'guest-dilemma');
@@ -13,6 +13,7 @@ test('a dilemma pauses the clock and mandatory choice resumes it', async ({ page
   const raw = await readSave(page), dilemma = CONTENT.dilemmas.find((entry) => entry.id === raw.activeDilemmaId);
   const choice = dilemma?.choices.find((entry) => Object.values(entry.cost).every((cost) => cost === 0));
   if (!choice) throw new Error('Missing free choice');
+  await openChoices(page);
   await page.getByTestId('dilemma-choice-' + choice.id).click();
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
   await page.clock.runFor(2000);

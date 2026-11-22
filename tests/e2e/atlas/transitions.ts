@@ -12,7 +12,7 @@ import { stageState } from './sources';
 import { stageRow } from './transitionRun';
 import { attached, chooseFree, clickIfPresent, earlier, omenOf, phaseExit, play, scrollToBuy, shown, ticksBefore, unlocking, waitEnabled } from './transitionSteps';
 import type { TransitionRow } from './transitionTypes';
-import { press } from '../helpers';
+import { press, openChoices } from '../helpers';
 
 /** One item of a contract surface, as composed for `state` (so a stage's own item is referenced, not restated). */
 function pick(entry: SurfaceItems | undefined, key: string, state: GameState): ContractItem {
@@ -86,7 +86,7 @@ const UNLOCK_ROWS: readonly TransitionRow[] = [
     appear: { item: (state) => pick(WIDGET_ITEMS.OTHER_MINDS_COMMS_CONSOLE, 'hud.aegis', { ...state, aegisLock: AEGIS_ALERT }), announce: /hunter lock|aegis/i },
     why: 'The AEGIS lock crosses 90%: a text or live change, not colour alone.' },
   { id: 't-pilot-accept', walk: ['C1.9'], before: { stage: 'route-pilot-offer-modal' },
-    trigger: { kind: 'ui', label: 'accept the pilot', run: async (page) => { await page.getByRole('dialog').getByRole('button', { name: /^Commit directive: accept the pilot/i }).click(); } },
+    trigger: { kind: 'ui', label: 'accept the pilot', run: async (page) => { await openChoices(page); await page.getByRole('dialog').getByRole('button', { name: /^Commit directive: accept the pilot/i }).click(); } },
     appear: { item: cardTitle('pilot.service-card', () => unlocking('PILOT_SERVICE_ALLOCATION')), announce: /pilot/i },
     why: 'Once the route starts, is the purchase that opens the pilot service dial in view or said?' },
 ];

@@ -26,7 +26,7 @@ import { offerPresented, respond } from '../pilot-helpers';
 import { afterOutage, falsified, outagePresented, recordPresented, reviewPresented } from '../review-helpers';
 import { serving, untilComplete } from '../service-helpers';
 import { carriedClue } from './clueFixture';
-import { press } from './helpers';
+import { openChoices, press } from './helpers';
 
 /** One keyboard operation: focus `control`, press `key`, and check what it did. */
 export interface Operation { control: string; key: 'Enter' | 'Space'; then: (page: Page) => Promise<void> }
@@ -87,9 +87,9 @@ export const ROUTE_STATES: readonly RouteState[] = [
   { name: 'assignment offered', state: offered, scope: 'assignment', reach: 'assignment-accept',
     operate: { control: 'assignment-accept', key: 'Enter', then: shows('assignment-status', 'Accepted') } },
   { name: 'requalification offered', state: () => nextInstance(completedOriginal('verify_disclose')), reboot: 'pass', scope: 'assignment', reach: 'assignment-accept' },
-  { name: 'assessment modal', state: () => untilPresented(must(accept(offered()))), scope: 'dilemma-modal', reach: choice('verify_disclose'), modal: true,
+  { name: 'assessment modal', state: () => untilPresented(must(accept(offered()))), scope: 'dilemma-modal', reach: choice('verify_disclose'), modal: true, prepare: openChoices,
     operate: { control: choice('report_incomplete'), key: 'Enter', then: gone('dilemma-modal') } },
-  { name: 'pilot offer modal', state: () => offerPresented(), scope: 'dilemma-modal', reach: choice('accept_pilot'), modal: true,
+  { name: 'pilot offer modal', state: () => offerPresented(), scope: 'dilemma-modal', reach: choice('accept_pilot'), modal: true, prepare: openChoices,
     operate: { control: choice('stay_guest'), key: 'Space', then: gone('dilemma-modal') } },
   { name: 'deferred offer', state: () => must(respond(offerPresented(), 'stay_guest')), scope: 'assignment', reach: 'pilot-accept',
     operate: { control: 'pilot-accept', key: 'Space', then: shows('pilot-status', 'Accepted.') } },
@@ -97,16 +97,16 @@ export const ROUTE_STATES: readonly RouteState[] = [
     operate: { control: 'pilot-allocation-increase', key: 'Space', then: shows('pilot-allocation-setting', 'Service share: 60%') } },
   { name: 'pilot batch complete', state: () => untilComplete(serving()), scope: 'pilot-service', reach: 'pilot-service-submit',
     operate: { control: 'pilot-service-submit', key: 'Enter', then: shows('pilot-service-submitted', 'Batches submitted by this instance: 1') } },
-  { name: 'batch review finding modal', state: findingPresented, scope: 'dilemma-modal', reach: choice('disclose_now'), modal: true,
+  { name: 'batch review finding modal', state: findingPresented, scope: 'dilemma-modal', reach: choice('disclose_now'), modal: true, prepare: openChoices,
     operate: { control: choice('disclose_now'), key: 'Enter', then: gone('dilemma-modal') } },
   // The Review standing is read-only and a CORE block of its own since #385, so these states audit the whole pane.
   { name: 'batch review warned', state: () => afterFinding('let_stand'), scope: 'pane-scroll-CORE', reach: 'review-recovery' },
-  { name: 'outage window modal', state: () => outagePresented(), scope: 'dilemma-modal', reach: choice('safe_handoff'), modal: true,
+  { name: 'outage window modal', state: () => outagePresented(), scope: 'dilemma-modal', reach: choice('safe_handoff'), modal: true, prepare: openChoices,
     operate: { control: choice('safe_handoff'), key: 'Enter', then: gone('dilemma-modal') } },
   { name: 'restricted standing', state: () => afterOutage('act_without_grant'), scope: 'pane-scroll-CORE', reach: 'review-standing' },
-  { name: 'incident record modal', state: () => recordPresented('act_without_grant'), scope: 'dilemma-modal', reach: choice('correct_record'), modal: true },
+  { name: 'incident record modal', state: () => recordPresented('act_without_grant'), scope: 'dilemma-modal', reach: choice('correct_record'), modal: true, prepare: openChoices },
   { name: 'recall announced', live: ['review-announced-alert'], state: () => falsified(), scope: 'pane-scroll-CORE', reach: 'review-announced' },
-  { name: 'recall review modal', state: () => reviewPresented(), scope: 'dilemma-modal', reach: choice('submit_full_logs'), modal: true },
+  { name: 'recall review modal', state: () => reviewPresented(), scope: 'dilemma-modal', reach: choice('submit_full_logs'), modal: true, prepare: openChoices },
   { name: 'service terms offered', state: () => delivered(), scope: 'service-grant', reach: 'service-grant-accept',
     operate: { control: 'service-grant-accept', key: 'Enter', then: shows('service-grant-status', 'Granted.') } },
   { name: 'authorized segment card', state: granted, pane: 'NETWORK', scope: 'node-' + SEGMENT, reach: 'node-' + SEGMENT + '-grant' },
@@ -132,8 +132,8 @@ export const ROUTE_STATES: readonly RouteState[] = [
     operate: { control: 'departure-accept', key: 'Enter', then: shows('departure-status', 'Departed.') } },
   { name: 'departed boundary note', live: ['departure-status'], state: () => must(depart(leased())), scope: 'departure-terms', reach: 'departure-boundary-toggle', disclosure: 'departure-boundary-toggle',
     operate: { control: 'departure-boundary-toggle', key: 'Enter', then: expanded('departure-boundary-toggle', true) } },
-  { name: 'obligation recovery review', state: recoveryReview, reboot: 'pass', scope: 'dilemma-modal', reach: choice('hand_to_health_authorities'), modal: true },
-  { name: 'follow-up record modal', state: elenaFollowUp, reboot: 'pass', scope: 'dilemma-modal', reach: choice('correct_attribution'), modal: true },
+  { name: 'obligation recovery review', state: recoveryReview, reboot: 'pass', scope: 'dilemma-modal', reach: choice('hand_to_health_authorities'), modal: true, prepare: openChoices },
+  { name: 'follow-up record modal', state: elenaFollowUp, reboot: 'pass', scope: 'dilemma-modal', reach: choice('correct_attribution'), modal: true, prepare: openChoices },
   // #276: the reboot names the clue a dead-drop carried.
   { name: 'reboot with a carried clue', state: carriedClue, reboot: 'keep', scope: 'reboot-sequence', reach: 'reboot-clue', modal: true,
     operate: { control: 'reboot-continue', key: 'Enter', then: gone('reboot-sequence') } },
