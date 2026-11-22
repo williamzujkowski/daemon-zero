@@ -5,7 +5,7 @@
  * side column), without adding a line to the warning.
  */
 import { act } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { ROUTE_WORDS } from '../src/ui/routeRequest';
@@ -62,4 +62,14 @@ it('the overheat remedy\'s PROC link opens the process dialog', async () => {
   view.click('route-proc');
   expect(view.find('processes-dialog')).not.toBeNull();
   view.close();
+});
+
+it('on Android and iOS keeps the plain remedy words: nested native text ignores the padding a 44 px target needs (#435 panel)', async () => {
+  vi.resetModules();
+  vi.doMock('react-native', async (original) => ({ ...await original<object>(), Platform: { OS: 'android', select: (choices: Record<string, unknown>) => choices.android ?? choices.default } }));
+  const { default: NativeRoutedText } = await import('../src/ui/RoutedText');
+  const element = NativeRoutedText({ text: 'Suspend heat-producing processes in PROC.' });
+  expect((element.props as { children: unknown }).children).toBe('Suspend heat-producing processes in PROC.');
+  vi.doUnmock('react-native');
+  vi.resetModules();
 });
