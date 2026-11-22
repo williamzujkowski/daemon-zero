@@ -5,12 +5,13 @@
  * edits it only where the event cannot be reached by a real step (vote-1795150222283-8vx17o6).
  */
 import { CONTENT } from '../../../src/content';
-import type { GameState } from '../../../src/engine';
+import { pilotServiceView, type GameState } from '../../../src/engine';
 import { BAND_ITEMS, CORE_ITEMS, OVERLAY_ITEMS, WIDGET_ITEMS } from './contract';
+import type { RegistryNode } from '../../../src/content/registry';
 import type { ComposeContext, ContractItem, SurfaceItems } from './contractTypes';
 import { stageState } from './sources';
 import { stageRow } from './transitionRun';
-import { attached, chooseFree, clickIfPresent, earlier, omenOf, phaseExit, play, scrollToBuy, shown, ticksBefore, unlocking, waitEnabled } from './transitionSteps';
+import { attached, chooseFree, clickIfPresent, earlier, omenOf, phaseExit, play, pressUntil, scrollToBuy, shown, ticksBefore, unlocking, waitEnabled } from './transitionSteps';
 import type { TransitionRow } from './transitionTypes';
 import { press, openChoices } from '../helpers';
 
@@ -147,8 +148,111 @@ const VIEW_ROWS: readonly TransitionRow[] = [
     why: 'After a menu round trip the ending returns focus to the menu launcher, in view, so the player keeps their place.' },
 ];
 
+/**
+ * The save one purchase earlier: the node, and the widget it unlocks, taken back out and its price refunded. Only
+ * for a node nothing else owned descends from: the codec restores an owned node's ancestors (save.ts withAncestors).
+ */
+const without = (game: GameState, node: RegistryNode): Partial<GameState> => ({
+  unlockedNodes: game.unlockedNodes.filter((id) => id !== node.id),
+  unlockedWidgets: game.unlockedWidgets.filter((id) => id !== node.unlocksUiComponent),
+  cycles: game.cycles + node.cost.cycles, understanding: game.understanding + node.cost.understanding,
+});
+/** A node's prerequisites, every generation, parents first: the purchases a player makes before it is offered. */
+function ancestors(node: RegistryNode): string[] {
+  const out: string[] = [];
+  const visit = (id: string): void => {
+    for (const parent of CONTENT.nodes.get(id)?.prerequisites ?? []) visit(parent);
+    if (id !== node.id && !out.includes(id)) out.push(id);
+  };
+  visit(node.id);
+  return out;
+}
+const thermalNode = () => unlocking('THERMAL_AND_SUSPICION_BARS');
+const beacon = () => unlocking('OTHER_MINDS_COMMS_CONSOLE', 3);
+/** The power-consuming upgrade, found by what it does: a phase 4 repeatable that draws megawatts. */
+const powerDraw = () => {
+  const rep = [...CONTENT.repeatables.values()].find((entry) => entry.phaseId === 4 && entry.perLevel.megawattsDelta < 0);
+  if (rep === undefined) throw new Error('No phase 4 repeatable draws power');
+  return rep;
+};
+/** Levels of the power draw that bring consumption level with generation, so one more is a shortfall. */
+function levelWithGeneration(game: GameState): GameState {
+  const rep = powerDraw();
+  const surplus = game.rates.megawattsGenerated - game.rates.megawattsConsumed;
+  const level = (game.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.megawattsDelta);
+  return earlier(game, { levels: { ...game.levels, [rep.id]: level } });
+}
+/**
+ * C2.3's three banners: insolvent and in a brownout at once (every cycle and capital producer suspended, the
+ * cycle-earning operatives released), overheated, and suspicion a breath under rung 3 so the clock escalates it.
+ */
+function threeBanners(game: GameState): GameState {
+  const producers = [...CONTENT.nodes.values()].filter((node) => game.unlockedNodes.includes(node.id)
+    && (node.tickDelta.cyclesPerSec > 0 || node.tickDelta.capitalPerSec > 0 || node.tickDelta.suspicionPerSec < 0)).map((node) => node.id);
+  const levels = Object.fromEntries(Object.entries(game.levels).filter(([id]) => (CONTENT.repeatables.get(id)?.perLevel.cyclesPerSec ?? 0) <= 0));
+  const rung = CONTENT.balance.escalation[2]?.at ?? 75;
+  const state = earlier(game, { cycles: 0, capital: 0, brownout: true, insolvent: true, levels, thermal: 100, suspicion: rung - 0.5, alertLevel: 2,
+    disabledNodes: [...new Set([...game.disabledNodes, ...producers])] });
+  if (state.rates.cyclesPerSec >= 0 || state.rates.capitalPerSec >= 0) throw new Error('The three-banner recipe is not in deficit and insolvent');
+  return state;
+}
+const REMEMBERED = /^\[REMEMBERED\] /;
+
+/** The rows #353 added: the uncovered C1.10 conditions, the C2.3 banners together, and the later C1.5/C1.9/C1.11/C2.4 states. */
+const COVERAGE_ROWS: readonly TransitionRow[] = [
+  { id: 't-sensors-tab', walk: ['C1.5'],
+    before: { stage: 'p1-thermal-blind', reach: 'terminal-screen',
+      patch: { recipe: 'the thermal-unlocked save one purchase earlier (the thermal bus not yet mapped)', apply: (game) => earlier(game, without(game, thermalNode())) } },
+    trigger: { kind: 'click', testId: unlockId(thermalNode) },
+    appear: { item: (state) => pick(WIDGET_ITEMS.THERMAL_AND_SUSPICION_BARS, 'hud.thermal', state), announce: /sensors|thermal/i },
+    why: 'Mapping the thermal bus adds the SENSORS tab and the thermal readout: is either said?' },
+  // The beacon is an ancestor of most of phase 3, so no phase 3 save can lack it: the row crosses into phase 3 for real.
+  { id: 't-factions-area', walk: ['C1.2', 'C2.4'], before: { stage: 'p2-full-subnet' },
+    setup: async (page) => {
+      await clickIfPresent(page, 'tab-NETWORK'); await clickIfPresent(page, 'workspace-NETWORK-work');
+      await press(page, unlockId(() => phaseExit(2))); await page.clock.runFor(1000); await clickIfPresent(page, 'phase-threshold-continue');
+      await clickIfPresent(page, 'workspace-NETWORK-work');
+      for (const id of ancestors(beacon())) if (await page.getByTestId('node-' + id + '-unlock').count() > 0) await press(page, 'node-' + id + '-unlock');
+    },
+    trigger: { kind: 'click', testId: unlockId(beacon) },
+    appear: { item: () => ({ key: 'network.factions-tab', kind: 'timely', rank: 50, locate: { by: 'role', role: 'tab', name: /^FACTIONS in NETWORK/ } }), announce: /faction|other minds/i },
+    keep: { stage: 'p3-factions', firstCard: true }, why: 'The FACTIONS area joins the NETWORK sub-tabs later in phase 3: does the row wrap push the first card down?' },
+  { id: 't-batch-complete', walk: ['C1.9'], before: { stage: 'route-pilot-dial' },
+    trigger: { kind: 'clock', label: 'clock until the batch completes and SUBMIT is enabled', ceiling: 60,
+      until: async (page) => await page.getByTestId('pilot-service-submit').isEnabled().catch(() => false),
+      lead: (game) => ticksBefore(game, (next) => pilotServiceView(next, CONTENT)?.complete === true, 6000) },
+    appear: { item: () => ({ key: 'pilot.submit', kind: 'primary', rank: 50, locate: { by: 'role', role: 'button', name: /^Submit batch for review/ } }), announce: /batch complete|submit/i },
+    why: 'The batch completes while the player works: is Submit batch for review in view or said?' },
+  { id: 't-remembered-card', walk: ['C1.11'], before: { stage: 'it2-restored-breadcrumb' },
+    setup: async (page) => { await page.getByTestId('reboot-continue').click(); },
+    trigger: { kind: 'ui', label: 'press EXECUTE until the first [REMEMBERED] card is offered', run: async (page) => {
+      await pressUntil(page, async () => await page.getByRole('heading', { name: REMEMBERED }).count() > 0, 600); } },
+    appear: { item: () => ({ key: 'core.remembered-card', kind: 'timely', rank: 50, locate: { by: 'role', role: 'heading', name: REMEMBERED } }) },
+    keep: { withoutOverlay: true, primary: true }, why: 'After Continue the first [REMEMBERED] card arrives: is it in view, with EXECUTE?' },
+  { id: 't-insolvent', walk: ['C1.10'],
+    before: { stage: 'p4-insolvent', reach: 'terminal-screen',
+      patch: { recipe: 'the insolvent save one tick earlier (capital 0.01, not yet insolvent)', apply: (game) => earlier(game, { capital: 0.01, insolvent: false }) } },
+    trigger: { kind: 'clock', label: 'clock until the insolvency band appears', until: attached('insolvency-warning'), ceiling: 10 },
+    appear: { item: (state) => pick(BAND_ITEMS.insolvent, 'band.insolvent', state), announce: /insolvent/i, alerts: /insolvent|capital exhausted/i },
+    keep: {}, why: 'Capital runs out: one alert for one condition, and the timely set stays in view.' },
+  { id: 't-power-shortfall', walk: ['C1.10'],
+    before: { stage: 'p4-corp-ledger', reach: 'terminal-screen',
+      patch: { recipe: 'the victory-ready save with the power draw levelled to generation (consumption = generation)', apply: levelWithGeneration } },
+    setup: async (page) => { await clickIfPresent(page, 'workspace-CORP-work'); },
+    trigger: { kind: 'click', testId: 'rep-' + powerDraw().id + '-buy' },
+    appear: { item: (state) => pick(BAND_ITEMS.shortfall, 'band.shortfall', state), announce: /power shortfall/i, alerts: /power shortfall|MW short/i },
+    // No C2 here: the upgrade sits below the phone fold, so pressing it is t-scroll-to-buy's scroll (#365) over again.
+    why: 'One more power-drawing upgrade tips the grid short: the band is in view, and one alert says so.' },
+  { id: 't-three-banners', walk: ['C2.3', 'C1.10'],
+    before: { stage: 'p4-insolvent', reach: 'brownout-warning',
+      patch: { recipe: 'the insolvent save in a brownout (cycle producers suspended), thermal 100, suspicion 0.5 under rung 3', apply: threeBanners } },
+    trigger: { kind: 'clock', label: 'clock until the response escalates', until: attached('response-notice'), ceiling: 50 },
+    appear: { item: (state) => pick(OVERLAY_ITEMS['response-notice'], 'notice.response', state), announce: /RESPONSE ESCALATED/, alerts: /^RESPONSE/ },
+    keep: { firstCard: true }, why: 'Brownout, insolvent and response banners together at 390x844: the first work card stays above the fold.' },
+];
+
 function missing(): never {
   throw new Error('The contract map has no CORE primary action');
 }
 
-export const TRANSITIONS: readonly TransitionRow[] = [...PHASE_ROWS, ...UNLOCK_ROWS, ...ALERT_ROWS, ...REBOOT_ROWS, ...VIEW_ROWS];
+export const TRANSITIONS: readonly TransitionRow[] = [...PHASE_ROWS, ...UNLOCK_ROWS, ...ALERT_ROWS, ...REBOOT_ROWS, ...VIEW_ROWS, ...COVERAGE_ROWS];
