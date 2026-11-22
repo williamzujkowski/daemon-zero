@@ -44,6 +44,15 @@ describe('composition from the save', () => {
     expect(keys(skim, { panes: ['NETWORK'] })).not.toContain('core.cycle');
   });
 
+  it('expects the world view only from its disclosure phase, and only in the FACTIONS area it lives in (#463)', () => {
+    const console = (phase: number): GameState => ({ ...withWidgets('OTHER_MINDS_COMMS_CONSOLE'), currentPhase: phase });
+    expect(keys(console(4), { panes: ['NETWORK'], area: 'minds' })).toContain('world.posture');
+    expect(keys(console(4), { panes: ['NETWORK'], area: 'work' })).not.toContain('world.posture');
+    expect(keys(console(4), { panes: ['NETWORK'] })).not.toContain('world.posture');
+    expect(keys(console(4), { panes: ['CORP'], area: 'minds' })).not.toContain('world.posture');
+    expect(keys(console(3), { panes: ['NETWORK'], area: 'minds' })).not.toContain('world.posture');
+  });
+
   it('composes nothing for a retired window, and no EXECUTE once it has retired (#447)', () => {
     const internet = (phase: number): GameState => ({ ...withWidgets('QUOTA_SKIM_CONTROL', 'CYCLE_COUNTER_AND_RATE'), currentPhase: phase });
     expect(keys(internet(2))).toEqual(expect.arrayContaining(['skim.increase', 'core.cycle', 'hud.cycles']));
