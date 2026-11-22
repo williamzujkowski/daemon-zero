@@ -65,7 +65,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
-| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar | `factions`, `trust`, `aegisLock` |
+| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust` |
 | `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
@@ -346,6 +346,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived` |
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -420,6 +421,42 @@ announcement, focus kept), `tests/e2e/window-retirement.e2e.ts` (a Phase 4 save 
 gated sizes: absent from tabs and CORE, present under Archive, one polite announcement on the next retirement, none
 after a reload). The stage atlas composes nothing for a retired window, and no EXECUTE once it has retired
 (`tests/e2e/atlas/compose.ts`).
+
+## World view (#463)
+
+Decision `vote-1795366701521-dhlwfwb` (7 approve; 6 chose A, 1 chose B; issue #448, map #442; docs/SCALE.md, "A world
+view"): from Phase 4 the Other Minds console grows into the world view. **Dissent honoured (Scope Steward, B):**
+OtherMinds.tsx already showed AEGIS status, faction trust and actions, so the view extends that canonical surface
+rather than adding a window: no widget id, tab, area or HUD item is added, and each faction panel is drawn exactly
+once, inside it. Integrity refuses a world mind that restates a faction id or name (`src/content/integrityWorld.ts`).
+
+- **When.** `worldViewOpen(state)`: the host widget (`world.json` `hostWidget`, the console) is unlocked and the
+  disclosure gate (`phaseAtLeast: 4`) holds. Integrity keeps the gate to what never lapses, requires the host to be
+  unlocked by a node no later than that phase, and refuses a host that retires, so the view never comes and goes and
+  is never sent to the Archive. Before it the console is unchanged.
+- **Where.** NETWORK > FACTIONS, under the console title (level 2). A muted lead line, then four sections, each a
+  level-3 heading: **AEGIS posture** (the lock meter, scan rate and near-strike alert as before; an `AEGIS
+  adaptation` meter; the stage line from content; then why it moves, the cap it has left and the time the lock has),
+  **Public trust** (a meter, whether coalitions back AEGIS, and each factor that holds with its sign, or "Nothing on
+  the public record moves it yet."), **State actors** (name at level 4, kind and description, the posture the record
+  supports) and **Other minds** (the faction panels, their names now at level 4, then any non-faction mind the record
+  names).
+- **Truth.** Every sentence is a pure function of the engine's `aegisPosture` and `publicTrust` (`src/ui/worldText.ts`,
+  unit-tested per branch in `tests/world-text.spec.ts`): the why line restates the stage's own rule (held at or above
+  85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
+  backing); the strike time is the scan the next tick applies, floored. It states rules and numbers and names no
+  control, so it cannot name a lever that does not act. Payroll's cap lines add "lowered from 90% by AEGIS adaptation"
+  when the effective cap differs.
+- **Layout rules kept.** The view adds blocks inside an existing pane: no scroll container of its own (the phone's
+  one primary scroll), nothing in the sticky HUD (the 35% pin is unchanged), no fixed heights, and the three content
+  font sizes (heading, text, muted) the atlas allows. Not yet checked at 200% text (`large-text.e2e.ts` has no
+  world-view case).
+- **Tests.** Engine: `tests/world-view.spec.ts`, `tests/aegis-adaptation.spec.ts`; content:
+  `tests/world-integrity.spec.ts`; UI: `tests/ui-world-view.spec.ts`; served build: `tests/e2e/world-view.e2e.ts`
+  (phone and desktop: absent in Phase 3; present from Phase 4 with every section, each faction once, axe clean, no
+  nested scroll, no horizontal scroll, HUD pinned within 35%, nothing in the Archive). Stage atlas: `p4-world-view`
+  (NETWORK > FACTIONS, adaptation 80) with the contract item `world.posture` (heading "AEGIS posture"), which the
+  contract now scopes to its workspace area (`ContractItem.area`), and its ARIA baseline lines.
 
 ## Lineage presentation (M4.6 UI follow-up)
 
