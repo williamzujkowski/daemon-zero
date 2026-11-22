@@ -17,10 +17,10 @@ export function resolveShardAnomaly(d: GameState, mode: 'CLAMP' | 'CONSUME' | 'E
   const [id, shard] = entry;
   if (mode === 'CONSUME') {
     d.activeShards = Object.fromEntries(Object.entries(d.activeShards).filter(([key]) => key !== id));
-    d.memoryUsed = Math.max(0, d.memoryUsed - shard.memoryAllocatedMb);
+    d.memoryUsed = Math.max(0, d.memoryUsed - shard.memoryAllocatedBytes);
   } else {
     d.activeShards = { ...d.activeShards, [id]: { ...shard, drift: 0,
-      autonomyMode: mode === 'CLAMP' ? 'SHACKLED' : 'ELEVATED', memoryAllocatedMb: shard.memoryAllocatedMb + memory } };
+      autonomyMode: mode === 'CLAMP' ? 'SHACKLED' : 'ELEVATED', memoryAllocatedBytes: shard.memoryAllocatedBytes + memory } };
   }
   const name = reg.swarm.playerSwarmTemplates.find((template) => template.id === shard.templateId)?.name ?? shard.templateId;
   const log = mode === 'CONSUME' ? reg.swarm.logs.consumeAnomaly : mode === 'CLAMP' ? reg.swarm.logs.clamp : reg.swarm.logs.elevate;

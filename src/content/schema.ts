@@ -77,7 +77,7 @@ export const TickDeltaSchema = z.strictObject({
   thermalPerSec: z.number().default(0),
   suspicionPerSec: z.number().default(0),
   capitalPerSec: z.number().default(0),
-  megawattsDelta: z.number().default(0),
+  wattsDelta: z.number().default(0),
 });
 
 /** Shared gate used by nodes, repeatables, actions and dilemma triggers. */

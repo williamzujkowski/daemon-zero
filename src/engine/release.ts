@@ -94,7 +94,7 @@ export function producingNodes(s: GameState, reg: ContentRegistry): string[] {
     const node = reg.nodes.get(id);
     if (!node || nodeOutputScale(s, node, reg) === null) return false;
     const delta = node.tickDelta;
-    return delta.cyclesPerSec !== 0 || delta.understandingPerSec !== 0 || delta.capitalPerSec !== 0 || delta.megawattsDelta !== 0;
+    return delta.cyclesPerSec !== 0 || delta.understandingPerSec !== 0 || delta.capitalPerSec !== 0 || delta.wattsDelta !== 0;
   });
 }
 

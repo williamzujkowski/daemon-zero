@@ -26,9 +26,9 @@ export function bindCohort(s: GameState, template: ShardTemplate, cost: Cost): A
   if (cohortBlocker(s, template) !== null) return refuse(s, 'cohort is capped or stabilized');
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const shard = { templateId: template.id, count: 0, drift: 0, quirkId: null,
-    autonomyMode: 'STANDARD' as const, memoryAllocatedMb: 0, ...old };
+    autonomyMode: 'STANDARD' as const, memoryAllocatedBytes: 0, ...old };
   const d = { ...s, activeShards: { ...s.activeShards, [template.id]: {
-    ...shard, count: shard.count + 1, memoryAllocatedMb: shard.memoryAllocatedMb + cost.memory,
+    ...shard, count: shard.count + 1, memoryAllocatedBytes: shard.memoryAllocatedBytes + cost.memory,
   } } };
   payCost(d, cost);
   return { ok: true, state: d };
@@ -116,7 +116,7 @@ export function executeShardCommand(s: GameState, id: string, command: ShardComm
   const cost = shardCommandCost(s, id, command, reg);
   const mode = command === 'PRUNE' ? 'STANDARD' : command === 'CLAMP' ? 'SHACKLED' : 'ELEVATED';
   const d: GameState = { ...s, activeShards: { ...s.activeShards, [id]: { ...shard,
-    drift: 0, autonomyMode: mode, memoryAllocatedMb: shard.memoryAllocatedMb + cost.memory } } };
+    drift: 0, autonomyMode: mode, memoryAllocatedBytes: shard.memoryAllocatedBytes + cost.memory } } };
   payCost(d, cost);
   const name = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId)?.name ?? id;
   const logText = fmt(reg.swarm.logs[command === 'PRUNE' ? 'prune' : command === 'CLAMP' ? 'clamp' : 'elevate'], { name });

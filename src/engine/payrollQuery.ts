@@ -48,7 +48,7 @@ export interface PayrollView {
   roles: PayrollRole[];
 }
 
-const ZERO_DELTA: TickDelta = { cyclesPerSec: 0, understandingPerSec: 0, thermalPerSec: 0, suspicionPerSec: 0, capitalPerSec: 0, megawattsDelta: 0 };
+const ZERO_DELTA: TickDelta = { cyclesPerSec: 0, understandingPerSec: 0, thermalPerSec: 0, suspicionPerSec: 0, capitalPerSec: 0, wattsDelta: 0 };
 
 function operatives(reg: ContentRegistry): Repeatable[] {
   return [...reg.repeatables.values()].filter((rep) => rep.kind === 'OPERATIVE');

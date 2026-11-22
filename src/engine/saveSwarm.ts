@@ -8,12 +8,12 @@ export function reconcileSwarm(s: GameState, reg: ContentRegistry): GameState {
   const activeShards: GameState['activeShards'] = {};
   for (const [id, shard] of Object.entries(s.activeShards)) {
     const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId);
-    if (!template || id !== template.id) { released += shard.memoryAllocatedMb; continue; }
+    if (!template || id !== template.id) { released += shard.memoryAllocatedBytes; continue; }
     const count = Math.min(shard.count, template.maxCount);
-    const memoryAllocatedMb = shard.memoryAllocatedMb * count / shard.count;
-    released += shard.memoryAllocatedMb - memoryAllocatedMb;
+    const memoryAllocatedBytes = shard.memoryAllocatedBytes * count / shard.count;
+    released += shard.memoryAllocatedBytes - memoryAllocatedBytes;
     const quirkId = reg.swarm.shardQuirks.some((entry) => entry.id === shard.quirkId) ? shard.quirkId : null;
-    activeShards[id] = { ...shard, count, memoryAllocatedMb, quirkId,
+    activeShards[id] = { ...shard, count, memoryAllocatedBytes, quirkId,
       drift: shard.autonomyMode === 'STANDARD' ? shard.drift : 0 };
   }
   const actionCounts = Object.fromEntries(Object.entries(s.actionCounts).filter(([id]) => reg.actions.has(id))

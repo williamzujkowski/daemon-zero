@@ -13,15 +13,15 @@ import type { GameState, Rates } from './state';
 
 interface Aggregate {
   cycles: number;
-  /** Positive cycle output from megawatt-consuming sources; throttled by grid efficiency. */
+  /** Positive compute output from power-consuming sources; throttled by grid efficiency. */
   poweredCycles: number;
   understanding: number;
   heat: number;
   suspicion: number;
   income: number;
   upkeep: number;
-  mwGenerated: number;
-  mwConsumed: number;
+  wGenerated: number;
+  wConsumed: number;
   revenueMultiplier: number;
   aegisReductionTech: number;
   aegisReductionStaff: number;
@@ -37,8 +37,8 @@ function emptyAggregate(): Aggregate {
     suspicion: 0,
     income: 0,
     upkeep: 0,
-    mwGenerated: 0,
-    mwConsumed: 0,
+    wGenerated: 0,
+    wConsumed: 0,
     revenueMultiplier: 1,
     aegisReductionTech: 0,
     aegisReductionStaff: 0,
@@ -48,7 +48,7 @@ function emptyAggregate(): Aggregate {
 
 function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number, understandingScale = 1): void {
   const cycles = delta.cyclesPerSec * count * scale;
-  if (cycles > 0 && delta.megawattsDelta < 0) a.poweredCycles += cycles;
+  if (cycles > 0 && delta.wattsDelta < 0) a.poweredCycles += cycles;
   else a.cycles += cycles;
   a.understanding += delta.understandingPerSec * count * understandingScale;
   a.heat += delta.thermalPerSec * count * scale;
@@ -56,9 +56,9 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
   const capital = delta.capitalPerSec * count;
   if (capital > 0) a.income += capital;
   else a.upkeep -= capital;
-  const megawatts = delta.megawattsDelta * count;
-  if (megawatts > 0) a.mwGenerated += megawatts;
-  else a.mwConsumed -= megawatts;
+  const watts = delta.wattsDelta * count;
+  if (watts > 0) a.wGenerated += watts;
+  else a.wConsumed -= watts;
 }
 
 function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
@@ -88,10 +88,15 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry): void 
   }
 }
 
+/** Dollars one diverted FLOP earns: the market price per FLOP times the declared time compression (BALANCE.md). */
+export function usdPerDivertedFlop(reg: ContentRegistry): number {
+  return reg.balance.marketUsdPerFlop * reg.balance.marketTimeCompression;
+}
+
 /** The suspicion overheating adds now: zero below the threshold, or where heat is not evidence. */
 export function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
   const b = reg.balance;
-  if (s.thermal < b.thermalThresholdForSuspicion || !heatIsEvidence(s)) return 0;
+  if (s.thermal < b.thermalThresholdForSuspicion || !heatIsEvidence(s) || s.currentPhase >= b.thermalRetiresAtPhase) return 0;
   const severity = (s.thermal - b.thermalThresholdForSuspicion) / (100 - b.thermalThresholdForSuspicion);
   return severity * b.overheatSuspicionPerSec;
 }
@@ -202,11 +207,11 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
   for (const output of actionOutputs(s, reg)) addDelta(a, output.delta, output.count, 1, 1);
 
-  const short = a.mwConsumed > a.mwGenerated;
-  const gridEfficiency = short ? Math.max(b.minGridEfficiency, a.mwGenerated / a.mwConsumed) : 1;
+  const short = a.wConsumed > a.wGenerated;
+  const gridEfficiency = short ? Math.max(b.minGridEfficiency, a.wGenerated / a.wConsumed) : 1;
   const gross = a.cycles + a.poweredCycles * gridEfficiency;
   const diverted = a.financeEnabled && gross > 0 ? gross * s.actuators.computeProfitAllocationRatio : 0;
-  const revenue = (a.income + diverted * b.usdPerDivertedCycle) * a.revenueMultiplier;
+  const revenue = (a.income + diverted * usdPerDivertedFlop(reg)) * a.revenueMultiplier;
 
   const rung = b.escalation[s.alertLevel - 1];
   const decay = b.suspicionDecayPerSec * (rung?.decayMultiplier ?? 1);
@@ -217,8 +222,8 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
     capitalPerSec: revenue - a.upkeep,
     heatLoad: a.heat,
     suspicionPerSec: a.suspicion - decay + (rung?.huntPerSec ?? 0) + overheatSuspicion(s, reg),
-    megawattsGenerated: a.mwGenerated,
-    megawattsConsumed: a.mwConsumed,
+    wattsGenerated: a.wGenerated,
+    wattsConsumed: a.wConsumed,
     gridEfficiency,
     aegisScanPerSec: aegisScanRate(s, reg, a),
   };
