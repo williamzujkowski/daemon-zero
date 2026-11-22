@@ -4,11 +4,22 @@
  */
 import { type StyleProp, type TextStyle } from 'react-native';
 import { Text } from './PhaseTheme';
-import { requestRoute, ROUTE_WORDS } from './routeRequest';
+import { requestRoute, ROUTE_WORDS, type RouteTarget } from './routeRequest';
 import { theme } from './theme';
 
 /** The keys of ROUTE_WORDS (tests/ui-warning-routes.spec.ts holds the two together). */
 export const WORDS = /\b(PAYROLL|FINANCE|PROC)\b/;
+
+/**
+ * react-native-web renders the link as a focusable span, which a click activates but Enter does not (#435 panel), so a
+ * keyboard user could reach a route and not take it. Enter activates it, as it does a native link. Text's types omit
+ * the keyboard props react-native-web forwards, hence the cast.
+ */
+function activateOnEnter(target: RouteTarget): object {
+  return { onKeyDown: (event: { key: string; preventDefault(): void }) => {
+    if (event.key === 'Enter') { event.preventDefault(); requestRoute(target); }
+  } };
+}
 
 export default function RoutedText({ text, style, testID }: { text: string; style?: StyleProp<TextStyle>; testID?: string }) {
   const parts = text.split(WORDS);
@@ -16,6 +27,6 @@ export default function RoutedText({ text, style, testID }: { text: string; styl
     const target = index % 2 === 1 ? ROUTE_WORDS[part] : undefined;
     return target === undefined ? part
       : <Text key={index} testID={'route-' + part.toLowerCase()} accessibilityRole="link" accessibilityLabel={part}
-        style={[style, theme.link]} onPress={() => { requestRoute(target); }}>{part}</Text>;
+        style={[style, theme.link]} onPress={() => { requestRoute(target); }} {...activateOnEnter(target)}>{part}</Text>;
   })}</Text>;
 }

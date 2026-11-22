@@ -42,6 +42,18 @@ describe.each([['phone', PHONE], ['desktop', DESKTOP]] as const)('on the %s', (_
   });
 });
 
+it('a focused route link is taken with Enter, as a native link is (#435 panel)', async () => {
+  const view = await mountM4('thermal-unlocked', DESKTOP);
+  act(() => { gameStore.initialize({ ...knowing(m4State('thermal-unlocked')), thermal: CONTENT.balance.thermalThresholdForSuspicion + 15 }, 0, null); });
+  const link = view.find('route-proc');
+  if (!link) throw new Error('Missing the PROC route');
+  expect(link.getAttribute('tabindex')).toBe('0');
+  act(() => { link.focus(); });
+  act(() => { link.dispatchEvent(new host.KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); });
+  expect(view.find('processes-dialog')).not.toBeNull();
+  view.close();
+});
+
 it('the overheat remedy\'s PROC link opens the process dialog', async () => {
   const view = await mountM4('thermal-unlocked', DESKTOP);
   act(() => { gameStore.initialize({ ...knowing(m4State('thermal-unlocked')), thermal: CONTENT.balance.thermalThresholdForSuspicion + 15 }, 0, null); });
