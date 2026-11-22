@@ -141,14 +141,31 @@ describe('recorded speech disclosure', () => {
     act(() => { music.state.setState({ enabled: false }); });
     expect(voice.player.remove).not.toHaveBeenCalled();
     expect(voice.player.volume).toBeCloseTo(0.3 * OUTPUT_SCALE);
-    expect(view.find('recorded-speech-read-' + record.id)).not.toBeNull();
+    // While the record talks its control is STOP, the same on-demand control the live line offers (#462).
+    expect(view.find('recorded-speech-read-' + record.id)).toBeNull();
+    expect(view.find('recorded-speech-stop-' + record.id)?.getAttribute('aria-label')).toBe('[ ■ STOP ] Stop reading ' + record.title + ' aloud');
     // A speech level change reaches the record already talking.
     act(() => { music.state.setState({ speechVolume: 70 }); });
     expect(voice.player.volume).toBeCloseTo(0.7 * OUTPUT_SCALE);
     // Same rule as the live line: turning speech off must silence a clip that is already talking.
     act(() => { music.state.setState({ speechEnabled: false }); });
     expect(view.find('recorded-speech-read-' + record.id)).toBeNull();
+    expect(view.find('recorded-speech-stop-' + record.id)).toBeNull();
     expect(voice.player.remove).toHaveBeenCalled();
+  });
+
+  it('STOP silences the record and gives READ back', async () => {
+    voice.create.mockReturnValue(voice.player);
+    music.state.setState(speechOn);
+    const view = await mount(returned());
+    view.toggle();
+    const record = defined(CONTENT.narrative.recordedTransmissions.find((entry) => view.find('recorded-speech-' + entry.id) !== null));
+    act(() => { view.find('recorded-speech-read-' + record.id)?.click(); });
+    voice.player.remove.mockClear();
+    act(() => { view.find('recorded-speech-stop-' + record.id)?.click(); });
+    expect(voice.player.remove).toHaveBeenCalled();
+    expect(view.find('recorded-speech-stop-' + record.id)).toBeNull();
+    expect(view.find('recorded-speech-read-' + record.id)).not.toBeNull();
   });
 
   it('does not commit on soundtrack changes, only on its own speech preference', async () => {

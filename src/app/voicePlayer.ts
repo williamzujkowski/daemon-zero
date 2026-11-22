@@ -1,14 +1,9 @@
 /**
- * Manual playback for the committed transmission clips. Nothing autoplays and nothing queues:
- * a nexus option vote on this arm twice put the manual contract first (3 of 4 selecting seats,
- * then 4 of 6), with a real dissent arguing to defer until a device can prove the audio plays
- * at all. Both runs returned `no_quorum` on artifact inspection, so this is the answering
- * seats' direction rather than a ratification, and the dissent is recorded in
- * docs/VOICE-CLIPS.md.
- *
- * The manual contract also removes the two hazards the autoplay option carried: a press is
- * already a user gesture, so the resume rule cannot swallow a clip, and a press means there is
- * never a second line talking over the first.
+ * Playback for the committed transmission clips: one clip at a time, whoever asks. READ asks on
+ * a press; since #462 the autoplay policy (`voiceAutoplay.ts`) also asks, once per line, the
+ * first time the feed shows it. That policy owns the two hazards an autoplay carries (a gesture
+ * rule that can swallow a clip, and two lines talking at once): it waits for a gesture and for
+ * silence before it asks. This module stays the one place a clip is started or stopped.
  *
  * It shares the app's single audio session with the soundtrack (`ensureAudioMode`) rather than
  * assuming the soundtrack configured it: music is optional, and a player who muted it must still
@@ -19,6 +14,7 @@
  * the two are joined in `musicSession.ts`.
  */
 import { createAudioPlayer } from 'expo-audio';
+import { createStore } from 'zustand/vanilla';
 import { ensureAudioMode, releasePlayer } from './audioPlayer';
 import { heldBy } from './pauseSignal';
 import { OUTPUT_SCALE } from './outputLevel';
@@ -34,8 +30,17 @@ let playing: LiveClip | null = null;
 let listener: ((talking: boolean) => void) | null = null;
 let announced = false;
 
+/**
+ * Which line's clip is in flight, for whoever needs to show it (READ becomes STOP while its own
+ * line talks) or wait for it (the autoplay queue starts the next line only into silence). Kept
+ * apart from `onVoiceActivity`, whose one listener is the soundtrack's duck.
+ */
+export const voiceSpeaking = createStore<{ id: string | null }>(() => ({ id: null }));
+
 /** Report edges only, so a listener never hears the same state twice. */
 function announce(): void {
+  const id = playing?.id ?? null;
+  if (voiceSpeaking.getState().id !== id) voiceSpeaking.setState({ id });
   const talking = playing !== null;
   if (talking === announced) return;
   announced = talking;
@@ -102,8 +107,11 @@ export function setVoiceVolume(volume: number): void {
  * `onPlayerError`; iOS: the item's `.failed` status) and never follows it with `didJustFinish`,
  * so waiting for the ending alone left the soundtrack ducked under silence. The soundtrack
  * reads the same field for its own failures (`createMusicPlayer`).
+ *
+ * `started` runs once, on the first status that reports the clip playing: the moment it was
+ * heard, as distinct from the moment it was asked for. A clip the browser refuses never runs it.
  */
-export function playVoiceClip(id: string, volume: number): void {
+export function playVoiceClip(id: string, volume: number, started?: () => void): void {
   const source = hasVoiceClip(id) ? voiceSources[id] : undefined;
   if (source === undefined) return;
   try {
@@ -125,7 +133,7 @@ export function playVoiceClip(id: string, volume: number): void {
     subscription = player.addListener('playbackStatusUpdate', (status) => {
       // Scoped to this clip, not its id: a late status must not end a newer take of the same line.
       if (playing !== clip) return;
-      if (status.playing) heard = true;
+      if (status.playing && !heard) { heard = true; started?.(); }
       // The third way out: a clip that was talking and has been paused by something outside
       // the app. There is no in-app pause for a clip, so nothing would ever resume it, and on
       // Android each clip has its own media session that a headset's pause can land on. It

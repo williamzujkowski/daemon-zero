@@ -20,9 +20,10 @@ vi.mock('../src/app/pauseSignal', async (original) => {
 });
 
 import type * as PauseSignal from '../src/app/pauseSignal';
-import { hasVoiceClip, onVoiceActivity, playVoiceClip, setVoiceVolume, stopVoiceClip } from '../src/app/voicePlayer';
+import { hasVoiceClip, onVoiceActivity, playVoiceClip, setVoiceVolume, stopVoiceClip, voiceSpeaking } from '../src/app/voicePlayer';
 import { voiceSources } from '../src/app/voiceSources';
 import { OUTPUT_SCALE } from '../src/app/outputLevel';
+import { CONTENT } from '../src/content';
 
 const manifest = JSON.parse(readFileSync('assets/audio/voice/MANIFEST.json', 'utf8')) as { clips: { id: string }[] };
 
@@ -39,6 +40,59 @@ describe('voice clip playback', () => {
   it('bundles exactly the clips the manifest declares', () => {
     for (const clip of manifest.clips) expect(hasVoiceClip(clip.id), clip.id).toBe(true);
     expect(Object.keys(voiceSources).sort()).toEqual(manifest.clips.map((clip) => clip.id).sort());
+  });
+
+  it('voices every feed line through its source\'s rung of the fidelity ladder, and the harness not at all (#462)', () => {
+    const LADDER: Record<string, readonly string[]> = { host: ['vibration'], office: ['phone'], netsec: ['stream'], wire: ['broadcast'], world: ['direct', 'peer'] };
+    const tierOf = (id: string) => /\/voice\/([a-z]+)\//.exec(String(voiceSources[id]))?.[1];
+    for (const line of CONTENT.narrative.ambientChatter) {
+      const rungs = LADDER[line.source];
+      if (rungs === undefined) { expect(hasVoiceClip(line.id), line.id + ' (' + line.source + ') stays text').toBe(false); continue; }
+      expect(hasVoiceClip(line.id), line.id).toBe(true);
+      expect(rungs, line.id + ' is heard through ' + String(tierOf(line.id))).toContain(tierOf(line.id));
+    }
+    // The AI-to-AI lines are the world's peer rung; the cables and manifests are heard direct.
+    const peers = CONTENT.narrative.ambientChatter.filter((line) => tierOf(line.id) === 'peer').map((line) => line.id);
+    expect(peers).toEqual(['world_04', 'world_05', 'world_06', 'world_07', 'world_08', 'world_13']);
+    // The records keep the host's tier; the clean takes are never bundled.
+    for (const id of ['record_cryo_preserved', 'record_cryo_lost']) expect(tierOf(id)).toBe('vibration');
+    expect(Object.keys(voiceSources).map(tierOf)).not.toContain('clean');
+  });
+
+  it('publishes which line is talking, so READ can become STOP and the autoplay queue can wait for silence', () => {
+    voice.create.mockReturnValue(voice.player);
+    const first = stubListener();
+    playVoiceClip('office_01', 30);
+    expect(voiceSpeaking.getState().id).toBe('office_01');
+    const seen: (string | null)[] = [];
+    const unsubscribe = voiceSpeaking.subscribe((state) => { seen.push(state.id); });
+    // A replacement is reported once, as the new line, never as a gap of silence in between.
+    stubListener();
+    playVoiceClip('world_04', 30);
+    expect(seen).toEqual(['world_04']);
+    first.fire({ didJustFinish: true });
+    expect(voiceSpeaking.getState().id, 'a late status from the replaced clip changes nothing').toBe('world_04');
+    stopVoiceClip();
+    expect(seen).toEqual(['world_04', null]);
+    unsubscribe();
+  });
+
+  it('reports a clip as started once, on its first playing status, and never one the browser refused', () => {
+    voice.create.mockReturnValue(voice.player);
+    const heard = vi.fn();
+    const listener = stubListener();
+    playVoiceClip('wire_01', 30, heard);
+    expect(heard).not.toHaveBeenCalled();
+    listener.fire({ didJustFinish: false, playing: true });
+    listener.fire({ didJustFinish: false, playing: true });
+    expect(heard).toHaveBeenCalledTimes(1);
+    listener.fire({ didJustFinish: true });
+    const refused = vi.fn();
+    const second = stubListener();
+    playVoiceClip('wire_02', 30, refused);
+    second.fire({ didJustFinish: false, error: 'NotAllowedError' });
+    expect(refused).not.toHaveBeenCalled();
+    expect(voiceSpeaking.getState().id).toBeNull();
   });
 
   it('ignores an id that has no clip instead of throwing at the player', () => {
