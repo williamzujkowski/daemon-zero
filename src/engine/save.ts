@@ -18,6 +18,8 @@ import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilem
 import { reconcileSwarm } from './saveSwarm';
 import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
+import { computeRates } from './rates';
+import { redenominate } from './saveRescale';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
 const CONTRADICTION = 'save contains contradictory narrative outcomes';
@@ -113,7 +115,13 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v16: AEGIS adaptation (#463). No earlier build adapted, so every save starts at 0. Self-contained: it reads and
   // writes only its own field, so it can be renumbered past another step without change.
   15: (save) => ({ ...save, aegisAdaptation: 0 }),
+  // v17: the physical-units re-denomination (#461, vote-1795367482923-6vdi2u1): balances move by frozen ratios
+  // per resource and phase, the derived rates are recomputed on load, and one log line says why (saveRescale.ts).
+  16: redenominate,
 };
+
+/** The first version whose balances are in physical units; a save older than this has its rates derived again. */
+const PHYSICAL_UNITS_VERSION = 17;
 
 export class SaveError extends Error {
   constructor(message: string) {
@@ -290,7 +298,10 @@ export function deserialize(text: string, reg: ContentRegistry): GameState {
     const first = result.error.issues[0];
     throw new SaveError(`save failed validation: ${first?.path.join('.') ?? ''} ${first?.message ?? ''}`.trim());
   }
-  return reconcile(result.data, reg);
+  const state = reconcile(result.data, reg);
+  // A re-denominated save's rates are derived again from the ownership just validated and reconciled.
+  const rescaled = typeof raw.schemaVersion === 'number' && raw.schemaVersion < PHYSICAL_UNITS_VERSION;
+  return rescaled ? { ...state, rates: computeRates(state, reg) } : state;
 }
 
 /** Copy/paste save string for moving a run between devices. */
