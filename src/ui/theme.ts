@@ -31,4 +31,6 @@ export const theme = StyleSheet.create({
   button: { minWidth: 44, minHeight: 44, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: palette.accent, justifyContent: 'center' },
   disabled: { borderColor: palette.border, backgroundColor: palette.background },
   danger: { color: palette.danger },
+  // An inline route (#369): underlined, so the link is not signalled by colour alone (WCAG 1.4.1).
+  link: { textDecorationLine: 'underline' },
 });

@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from '../PhaseTheme';
+import RoutedText from '../RoutedText';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
@@ -100,7 +101,7 @@ export function CorporateAlerts() {
   const consumed = useGame((game) => game.rates.megawattsConsumed);
   return <View>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
-      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} {remedy}</Text>}
+      INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} <RoutedText text={remedy} style={[theme.text, theme.danger]} /></Text>}
     {shortfall && <Text testID="power-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       {shortfallText(generated, consumed)}</Text>}
     {brownout && <Text testID="brownout-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
