@@ -7,6 +7,7 @@ import { exportSave, importSave, unlockNode, wipe } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { host, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { presentableDilemma } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 setupM4Tests();
 type View = Awaited<ReturnType<typeof mountM4>>;
@@ -175,6 +176,7 @@ describe('utility interruption and endings', () => {
     expect(view.find('menu-dialog')).toBeNull();
     expect(view.find('save-reset-dialog')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();
+    openChoices();
     view.click('dilemma-choice-' + free.id);
     expect(view.find('menu-dialog')).toBeNull();
     view.click('menu-open');

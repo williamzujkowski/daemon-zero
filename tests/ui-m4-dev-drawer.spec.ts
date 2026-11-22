@@ -9,6 +9,7 @@ import { gameStore } from '../src/app/session';
 import DevelopmentTools from '../src/app/DevelopmentTools';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { presentableDilemma } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 setupM4Tests();
 function typeInto(id: string, value: string) {
@@ -41,6 +42,7 @@ describe('M4 development drawer', () => {
     view.click('dev-dilemma-' + dilemma.id);
     expect(view.find('dev-drawer')).toBeNull();
     expect(view.find('dilemma-modal')).not.toBeNull();
+    openChoices();
     view.click('dilemma-choice-' + free.id);
     view.click('dev-open'); view.click('dev-phase-4');
     expect(view.find('dev-jump-dialog')?.textContent).toContain('Erase current');

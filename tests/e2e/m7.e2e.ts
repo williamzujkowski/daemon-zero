@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import { earnedAchievements, type GameState } from '../../src/engine';
-import { test, expect, boot, dismissBoot, readSave, press } from './helpers';
+import { test, expect, boot, dismissBoot, readSave, press, openChoices } from './helpers';
 const edit = [...CONTENT.actions.values()].find((a) => a.effects.epistemicDriftDelta && a.effects.suspicionDelta < 0);
 const capex = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
 const exclusive = [...CONTENT.actions.values()].find((a) => a.exclusiveWith?.length);
@@ -97,6 +97,7 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
     if (!node.effects.triggersVictory) for (let i = 0; i < 2; i++) {
       await page.clock.runFor(46100);
       if (await page.getByTestId('dilemma-modal').count()) {
+        await openChoices(page);
         // The first answer on screen: under campaign rules (#233) a scene may offer a choice only in some histories.
         for (const choice of CONTENT.dilemmas.filter((d) => d.phaseId === 5).flatMap((d) => d.choices)) {
           if (await page.getByTestId('dilemma-choice-' + choice.id).count()) { await page.getByTestId('dilemma-choice-' + choice.id).click(); break; }

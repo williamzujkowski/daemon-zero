@@ -238,3 +238,13 @@ export async function press(page: Page, testId: string): Promise<void> {
   if (oneWay) await page.getByTestId(testId + '-confirm').click();
 }
 
+/**
+ * Decisions fold each choice to a row (title, cost, affordability); details and COMMIT are inside the open card.
+ * Opens every folded choice in the open dialog, as a player taps each row; an open one is left open.
+ */
+export async function openChoices(page: Page): Promise<void> {
+  await page.getByTestId('dilemma-modal').waitFor();
+  const folded = page.locator('[data-testid^="dilemma-card-"][data-testid$="-toggle"][aria-expanded="false"]');
+  for (let left = await folded.count(); left > 0; left = await folded.count()) await folded.first().click();
+}
+

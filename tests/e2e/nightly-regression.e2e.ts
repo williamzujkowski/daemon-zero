@@ -10,7 +10,7 @@ import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, exportSave, manualCycle, offerToken, presentationToken,
   resolveDilemma, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../../src/engine';
-import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test, press } from './helpers';
+import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test, press, openChoices } from './helpers';
 
 function need<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('Nightly Regression contract missing');
@@ -46,6 +46,7 @@ async function acceptAndWait(page: Page): Promise<void> {
 }
 
 async function answer(page: Page, choiceId: string): Promise<void> {
+  await openChoices(page);
   await page.getByTestId('dilemma-choice-' + choiceId).click();
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
 }
@@ -64,6 +65,7 @@ test('verify and disclose: the cost and evidence are shown first, and the result
   // Save up for the verification before accepting, as the price is the thing to plan for.
   await page.clock.runFor(200_000);
   await acceptAndWait(page);
+  await openChoices(page);
   for (const choice of original.choices) await expect(page.getByTestId('dilemma-choice-' + choice.id + '-evidence')).toContainText('Submits');
   await expect(page.getByTestId('dilemma-choice-green_subset-evidence')).toContainText('Discrepancy risk');
   await expect(page.getByTestId('dilemma-choice-verify_disclose-evidence')).toContainText('The report matches the work.');

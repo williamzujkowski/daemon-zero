@@ -19,6 +19,7 @@ import AssignmentPanel from '../src/ui/AssignmentPanel';
 import DilemmaModal from '../src/ui/DilemmaModal';
 import { accept, assessmentLapsed, completedOriginal, funded, nextInstance, offered, ORIGINAL, preview, REQUAL, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -111,6 +112,7 @@ describe('the assessment modal shows consequences before selection (DZ-03.5)', (
     const presented = funded(untilPresented(must(accept(offered()))));
     const view = await mount(presented, createElement(DilemmaModal));
     for (const choice of ORIGINAL.choices) {
+      openChoices();
       expect(view.find('dilemma-choice-' + choice.id + '-evidence')?.textContent).toMatch(/^Evidence: Submits /);
       expect(host.document.body.textContent).toContain(choice.description);
     }
@@ -126,6 +128,7 @@ describe('the assessment modal shows consequences before selection (DZ-03.5)', (
     const presented = untilPresented(must(accept(nextInstance(completedOriginal('verify_disclose')))));
     expect(presented.activeDilemmaId).toBe(REQUAL.id);
     const view = await mount({ ...presented, cycles: 0 }, createElement(DilemmaModal));
+    openChoices();
     expect(view.find('dilemma-choice-run_suite')?.getAttribute('aria-disabled')).toBe('true');
     view.click('dilemma-choice-report_partial');
     expect(game().access.qualification).toMatchObject({ result: 'INCOMPLETE', discrepancy: false });

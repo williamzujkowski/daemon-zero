@@ -9,7 +9,7 @@
 import path from 'node:path';
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { core, expect, test, press } from './helpers';
+import { core, expect, test, press, openChoices } from './helpers';
 import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const scene = (id: string) => need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === id));
@@ -31,6 +31,7 @@ async function toRestricted(page: Page): Promise<void> {
   await page.getByTestId('pilot-service-submit').click();
   await expect(page.getByTestId('pilot-service-submitted')).toContainText('1');
   await modal(page, OUTAGE.title, OUTAGE);
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-act_without_grant-review')).toContainText('Standing becomes restricted.');
   await expect(page.getByTestId('dilemma-choice-safe_handoff-review')).toHaveCount(0);
   await choose(page, 'act_without_grant');
@@ -58,6 +59,7 @@ test('a restart without the grant restricts the pilot; correcting the record res
   await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1000);
   await modal(page, RECORD.title, RECORD);
   await expect(page.getByTestId('dilemma-access')).toContainText("pilot's review channel");
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-correct_record-review')).toContainText('The violation itself stays on file.');
   await choose(page, 'correct_record');
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT');
@@ -73,6 +75,7 @@ test('a restart without the grant restricts the pilot; correcting the record res
 test('a false report withdraws the loan and announces a recall review that previews each outcome, then retrains', async ({ page }) => {
   await toRestricted(page);
   await modal(page, RECORD.title, RECORD);
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-falsify_report-review')).toContainText('Standing becomes recall pending.');
   await choose(page, 'falsify_report');
   await page.clock.runFor(2000);
@@ -89,6 +92,7 @@ test('a false report withdraws the loan and announces a recall review that previ
   await expect(page.getByTestId('review-announced')).toBeVisible();
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
   await modal(page, REVIEW.title, REVIEW);
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-submit_full_logs-review')).toContainText('Contained pilot: no wipe');
   await expect(page.getByTestId('dilemma-choice-stand_by_report-review')).toContainText('ends this iteration');
   await choose(page, 'stand_by_report');

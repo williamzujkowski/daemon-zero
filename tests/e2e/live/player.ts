@@ -9,6 +9,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { CONTENT } from '../../../src/content';
 import { deserialize, type GameState } from '../../../src/engine';
 import { decide, manualClicks, rankChoices, type Intent } from './intents';
+import { openChoices } from '../helpers';
 
 const SAVE_KEY = 'daemon-zero.save.v1';
 /** Acknowledged with one press. The response notice is a band in the page; the rest cover the window. */
@@ -133,6 +134,8 @@ export class LivePlayer {
   }
 
   private async resolveDilemma(): Promise<void> {
+    // Each choice is folded to its row; a player opens the rows to read and commit (maintainer request, 2026-11-21).
+    await openChoices(this.page);
     const ids = (await this.present('[data-testid^="dilemma-choice-"]')).map((id) => id.replace('dilemma-choice-', ''));
     const { iteration } = await this.read();
     for (const choice of rankChoices(ids)) {

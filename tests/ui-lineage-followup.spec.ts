@@ -7,6 +7,7 @@ import { CONTENT } from '../src/content';
 import { importSave, understandsSurveillance } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { openChoices } from './dilemmaChoices';
 setupM4Tests();
 const fixtures = makeFixtures();
 const blind = Object.entries(fixtures).filter(([, code]) => !understandsSurveillance(importSave(code, CONTENT), CONTENT)).map(([name]) => name);
@@ -101,6 +102,7 @@ describe('lineage disclosure', () => {
     if (!dilemma) throw new Error('Missing dilemma');
     const game = gameStore.store.getState().game;
     act(() => { gameStore.initialize({ ...game, activeDilemmaId: dilemma.id }, 0, null); });
+    openChoices();
     expect(view.find('conditioning-impact-RUTHLESS')?.textContent).toContain('choice reported');
     expect(host.document.body.textContent).not.toMatch(/\bsuspicion\b/i);
     view.close();

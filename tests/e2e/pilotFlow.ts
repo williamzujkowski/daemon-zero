@@ -5,7 +5,7 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { boot, core, expect } from './helpers';
+import { boot, core, expect, openChoices } from './helpers';
 
 export function need<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('DZ-04 contract missing');
@@ -26,6 +26,7 @@ export async function modal(page: Page, title: string, after: typeof OFFER): Pro
 }
 
 export async function choose(page: Page, choiceId: string): Promise<void> {
+  await openChoices(page);
   await page.getByTestId('dilemma-choice-' + choiceId).click();
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);
 }

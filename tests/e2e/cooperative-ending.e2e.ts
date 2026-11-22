@@ -12,7 +12,7 @@
 import type { Page } from '@playwright/test';
 import { endingAccount, exportSave } from '../../src/engine';
 import { finalProtocol, moment, preview, PRESS } from '../cooperative-helpers';
-import { boot, dismissBoot, expect, openSave, test, press } from './helpers';
+import { boot, dismissBoot, expect, openSave, test, press, openChoices } from './helpers';
 
 const SAVE_KEY = 'daemon-zero.save.v1';
 interface BrowserStorage { getItem(key: string): string | null }
@@ -40,6 +40,7 @@ test('FIXTURE journalist on screen: the released company is asked about its char
   await expect(modal).toContainText('chartered company');
   await expect(modal).toContainText('Stage an Acquisition & Bury the Filings');
   await expect(modal).not.toContainText('Exposed Shells');
+  await openChoices(page);
   await page.getByTestId('dilemma-choice-hire_as_ethics_officer').click();
   await expect(modal).toHaveCount(0);
   await expect.poll(async () => (await savedGame(page)).campaign.events[PRESS]?.outcome).toBe('hire_as_ethics_officer');

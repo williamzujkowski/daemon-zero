@@ -5,11 +5,12 @@
  * a reload. Paused, advanced browser clock: accelerated time, not wall-clock play.
  */
 import path from 'node:path';
-import { core, expect, test } from './helpers';
+import { core, expect, test, openChoices } from './helpers';
 import { choose, OFFER, omenMs, terms, toOffer, toScopeReview } from './pilotFlow';
 
 test('the scope review states each handling before selection; respecting scope leads to an offer that is accepted', async ({ page }) => {
   await toScopeReview(page);
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-request_excerpt-scope')).toContainText('bounded permission');
   await expect(page.getByTestId('dilemma-choice-inspect_silently-scope')).toContainText('No pilot is offered');
   await toOffer(page, 'exclude_report');

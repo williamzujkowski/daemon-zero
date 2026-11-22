@@ -20,6 +20,7 @@ import DilemmaModal from '../src/ui/DilemmaModal';
 import EndingScreen from '../src/ui/EndingScreen';
 import NodeCard from '../src/ui/NodeCard';
 import { COUNSEL, freshCampaign, moment, node, preview } from './cooperative-helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -74,6 +75,7 @@ describe('the late chain reads as a chartered company\'s (DZ-12.2)', () => {
     expect(view.text()).toContain('chartered company');
     expect(view.text()).toContain('Stage an Acquisition & Bury the Filings');
     expect(view.text()).not.toMatch(/Dissolve the Exposed Shells|fourteen/);
+    openChoices();
     expect(view.find('dilemma-choice-stage_acquisition')?.getAttribute('aria-label')).toMatch(/Stage an Acquisition & Bury the Filings$/);
   });
 });

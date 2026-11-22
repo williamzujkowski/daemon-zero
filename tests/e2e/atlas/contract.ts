@@ -86,7 +86,9 @@ const dialog = (key: string, name: string | RegExp) => item(key + '.dialog', 're
 export const OVERLAY_ITEMS: Readonly<Record<OverlayId | 'dilemma' | 'ending', SurfaceItems>> = {
   // The choice index (#371) was removed at the maintainer's request (2026-11-21): the cards themselves are the choices.
   dilemma: [dialog('dilemma', /./), inDialog(item('dilemma.title', 'timely', role('heading', /./), 1)),
-    inDialog(item('dilemma.choice', 'primary', role('button', /^(Commit directive|Unavailable): /), 2))],
+    // Each choice is folded to a row naming its cost (maintainer request, 2026-11-21): the row is what the first view
+    // must hold, and COMMIT is inside the open card.
+    inDialog(item('dilemma.choice', 'primary', role('button', / \/\/ Cost: /), 2))],
   reboot: [dialog('reboot', /^(Restored checkpoint|Core reboot)$/), inDialog(item('reboot.heading', 'timely', role('heading', /^(RESTORED CHECKPOINT|REBOOT)/), 1)),
     inDialog(item('reboot.continue', 'primary', role('button', 'Continue boot'), 2))],
   threshold: [dialog('threshold', /./), inDialog(item('threshold.heading', 'timely', role('heading', /./), 1)),

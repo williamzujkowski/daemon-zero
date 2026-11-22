@@ -87,8 +87,15 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
   which ending it feeds, so a card does not spoil the ending table. Before surveillance is understood the suspicion
   badge stays "more/less audit log activity" with no magnitude (DESIGN.md, "Suspicion is disclosed").
 - Unaffordable choices are disabled and say why. At least one choice is always free.
-- Each offered choice appears once, as its full card, in authored order. The choice index above the cards (#371)
-  was removed at the maintainer's request on 2026-11-21 as redundant.
+- Each offered choice appears once, in authored order, folded to a row: its title, its cost and, when it cannot be
+  paid, "cannot pay yet" (maintainer request, 2026-11-21). Every alternative and its price is in the first view on a
+  phone and desktop, the concern behind #371, whose separate index repeated each choice and was removed; measured on
+  every decision fixture and route decision (`tests/e2e/dilemma-rows-first-view.e2e.ts`). One named exception: the
+  pilot offer shows every term before any answer (DZ-04.3), so its rows follow terms longer than a screen. The row is a button
+  inside the card's heading, named with exactly what it shows and exposing `aria-expanded`
+  (`dilemma-card-{id}-toggle`); opening it shows the choice's description, evidence, scope, receipt, review line,
+  effects and the commit control (`dilemma-card-{id}-details`), so nothing is committed unread. Opening one closes
+  no other, so two can be compared; a decision offering a single choice opens it.
 - M5 feel pass: fires a warning haptic on open, alongside the haptics dependency listed in MILESTONES.md. M3 establishes mandatory decisions and accessible controls.
 
 ## Destructive actions

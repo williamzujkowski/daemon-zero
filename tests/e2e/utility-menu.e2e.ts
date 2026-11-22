@@ -2,7 +2,7 @@
 import { CONTENT } from '../../src/content';
 import type { HTMLElement, Window } from 'happy-dom';
 import { makeFixtures } from '../../scripts/make-fixtures';
-import { boot, dismissBoot, expect, openSave, readSave, test } from './helpers';
+import { boot, dismissBoot, expect, openSave, readSave, test, openChoices } from './helpers';
 
 test('keyboard utility navigation cancels replacement and restores focus without stacking dialogs', async ({ page }) => {
   await boot(page);
@@ -44,6 +44,7 @@ test('an arriving dilemma clears a pending utility reset and does not resurrect 
   await page.clock.runFor(Math.ceil((pending.firesAtSimSec - Number(before.simTimeSec)) * 1000) + 200);
   await expect(page.getByTestId('dilemma-modal')).toBeVisible();
   await expect(page.getByTestId('save-reset-confirm')).toHaveCount(0);
+  await openChoices(page);
   await page.getByTestId('dilemma-choice-' + choice.id).click();
   await expect(page.getByTestId('save-reset-confirm')).toHaveCount(0);
   await expect(page.getByTestId('save-transfer')).toHaveCount(0);

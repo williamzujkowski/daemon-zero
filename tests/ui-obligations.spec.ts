@@ -24,6 +24,7 @@ import { event } from './early-helpers';
 import { caught, ticks, untilPresented } from './interruption-helpers';
 import { exactReload, omen, own } from './minds-helpers';
 import { ATMOSPHERE, ATMOSPHERE_REVIEW, CEILING, finalNode, OBLIGATIONS } from './obligation-helpers';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -63,6 +64,7 @@ describe('the final protocol names what completes each obligation now', () => {
     expect(view.container.textContent).toBe(['Requires: Resolve ' + event(ATMOSPHERE_REVIEW).title, 'Requires: Resolve ' + event(CEILING).title].join('\n'));
     view.close();
     const modal = await mount(untilPresented(omen(lost, ATMOSPHERE_REVIEW, [CEILING])), createElement(DilemmaModal));
+    openChoices();
     modal.click('dilemma-choice-hand_to_health_authorities');
     expect(obligationReceipt(game(), ATMOSPHERE, preview)?.via).toBe('review');
   });

@@ -1,6 +1,6 @@
 /** The decoded warning supports saving for a paid response before the clock freezes. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { test, expect, boot, dismissBoot, readSave, openChoices } from './helpers';
 
 test('reserve the advertised interrupt budget and spend it through the decision UI', async ({ page }) => {
   await boot(page, 'decoded-omen'); await dismissBoot(page);
@@ -17,6 +17,7 @@ test('reserve the advertised interrupt budget and spend it through the decision 
   await expect(page.getByTestId('dilemma-modal')).toBeVisible();
   await expect(page.getByTestId('interrupt-budget')).toHaveCount(0);
   const due = await readSave(page);
+  await openChoices(page);
   await expect(page.getByTestId('dilemma-choice-' + choice.id)).toBeEnabled();
   await page.getByTestId('dilemma-choice-' + choice.id).click();
   await expect(page.getByTestId('dilemma-modal')).toHaveCount(0);

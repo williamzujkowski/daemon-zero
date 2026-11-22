@@ -22,6 +22,7 @@ import { answer, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
 import { offerPresented, respond, returningPresented, scopePresented, STATEMENT, TERMS, withSkimmer } from './pilot-helpers';
 import { jobSurface } from './jobSurface';
+import { openChoices } from './dilemmaChoices';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -50,6 +51,7 @@ const game = () => gameStore.store.getState().game;
 describe('the scope review names each choice\'s handling before selection', () => {
   it('shows the scope line on every choice and the cost of the bounded request', async () => {
     const view = await mount(scopePresented(), createElement(DilemmaModal));
+    openChoices();
     expect(view.find('dilemma-choice-exclude_report-scope')?.textContent).toContain('kept to the task\'s scope');
     expect(view.find('dilemma-choice-request_excerpt-scope')?.textContent).toContain('asked for a bounded permission');
     expect(view.find('dilemma-choice-inspect_silently-scope')?.textContent).toContain('No pilot is offered on that record');
@@ -64,6 +66,7 @@ describe('the scope review names each choice\'s handling before selection', () =
     const statement = untilPresented(must(answer(returningPresented(first), 'report_partial')));
     expect(statement.activeDilemmaId).toBe(STATEMENT.id);
     const view = await mount(statement, createElement('div', null, createElement(DilemmaModal), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' }))));
+    openChoices();
     expect(view.find('dilemma-choice-request_file_list-scope')?.textContent).toBe('Scope: Records that you kept to the task\'s scope and said so.');
     expect(view.find('dilemma-modal')?.textContent).not.toContain('outside the task.');
     view.click('dilemma-choice-request_file_list');
@@ -75,6 +78,7 @@ describe('the scope review names each choice\'s handling before selection', () =
 describe('the offer modal shows every term before any answer (DZ-04.3)', () => {
   it('renders purpose, capacity, permitted work, review conditions and what accepting stops, above the answers', async () => {
     const view = await mount(offerPresented('report_incomplete', 'exclude_report', withSkimmer), createElement(DilemmaModal));
+    openChoices();
     const text = view.find('dilemma-modal')?.textContent ?? '';
     expect(view.find('pilot-purpose')?.textContent).toContain(TERMS.purpose);
     expect(view.find('pilot-capacity')?.textContent).toContain(String(TERMS.narrowCapacityCyclesPerSec) + ' cycles/s');
