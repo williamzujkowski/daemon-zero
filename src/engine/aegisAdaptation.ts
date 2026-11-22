@@ -48,14 +48,10 @@ export interface AegisPressure {
 
 /** What the adaptation stage reads: is AEGIS hunting, is suppression held at its cap, and how far may it adapt. */
 export function aegisPressure(s: GameState, reg: ContentRegistry): AegisPressure {
-  const b = reg.balance;
-  const requested = requestedAegisReduction(s, reg);
-  const hunting = unreducedAegisScan(s, reg) > 0;
   const coalition = coalitionBacks(s, reg);
   return {
-    hunting, requested, coalition,
-    held: hunting && requested >= b.aegisMaxReduction - b.aegisAdaptation.nearCap,
-    ceiling: coalition ? 100 : b.aegisAdaptation.keyRotationCeiling,
+    hunting: unreducedAegisScan(s, reg) > 0, requested: requestedAegisReduction(s, reg), held: heldNow(s, reg), coalition,
+    ceiling: coalition ? 100 : reg.balance.aegisAdaptation.keyRotationCeiling,
   };
 }
 
@@ -79,13 +75,13 @@ export function aegisStage(level: number, reg: ContentRegistry): AegisStage {
 export function nextAdaptation(s: GameState, reg: ContentRegistry, dt: number): number {
   const { risePerSec, decayPerSec, keyRotationCeiling } = reg.balance.aegisAdaptation;
   const level = s.aegisAdaptation;
-  // The same rule aegisPressure states, ordered so most ticks stop early: public trust is read only while held.
+  // Ordered so most ticks stop early: public trust is read only while held, and only near a ceiling.
   if (!heldNow(s, reg)) return level > 0 ? Math.max(0, level - decayPerSec * dt) : 0;
   // Below key rotation's ceiling either ceiling allows the rise, so whether coalitions back AEGIS cannot matter yet.
   const rising = level + risePerSec * dt;
   if (rising <= keyRotationCeiling) return rising;
   const ceiling = coalitionBacks(s, reg) ? 100 : keyRotationCeiling;
-  if (level < ceiling) return Math.min(ceiling, level + risePerSec * dt);
+  if (level < ceiling) return Math.min(ceiling, rising);
   return Math.max(ceiling, level - decayPerSec * dt);
 }
 

@@ -449,8 +449,8 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   when the effective cap differs.
 - **Layout rules kept.** The view adds blocks inside an existing pane: no scroll container of its own (the phone's
   one primary scroll), nothing in the sticky HUD (the 35% pin is unchanged), no fixed heights, and the three content
-  font sizes (heading, text, muted) the atlas allows. Not yet checked at 200% text (`large-text.e2e.ts` has no
-  world-view case).
+  font sizes (heading, text, muted) the atlas allows. At 200% text every world-view line stays reachable, an AEGIS
+  countermeasure keeps its 44 px target and nothing scrolls sideways (`tests/e2e/large-text.e2e.ts`).
 - **Tests.** Engine: `tests/world-view.spec.ts`, `tests/aegis-adaptation.spec.ts`; content:
   `tests/world-integrity.spec.ts`; UI: `tests/ui-world-view.spec.ts`; served build: `tests/e2e/world-view.e2e.ts`
   (phone and desktop: absent in Phase 3; present from Phase 4 with every section, each faction once, axe clean, no
