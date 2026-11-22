@@ -5,7 +5,7 @@
  * its card, and everything survives a reload. Paused, advanced browser clock: accelerated time, not
  * wall-clock play.
  */
-import { core, expect, test } from './helpers';
+import { core, expect, test, press } from './helpers';
 import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const service = need(terms.service);
@@ -23,7 +23,7 @@ test('accepted pilot -> attached loan -> allocation -> a submitted batch -> relo
 
   // The loan is attached through its own card, which says what it is.
   await expect(page.getByTestId('node-' + QUEUE + '-grant')).toContainText('Loaned capacity under the pilot grant');
-  await page.getByTestId('node-' + QUEUE + '-unlock').click();
+  await press(page, 'node-' + QUEUE + '-unlock');
   await expect(page.getByTestId('pilot-service-forecast')).toContainText('about 240 s');
 
   // V30 on screen: more service, same ceiling, a shorter forecast and a smaller study share.

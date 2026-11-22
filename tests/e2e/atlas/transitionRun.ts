@@ -160,8 +160,11 @@ async function fire(page: Page, row: TransitionRow, before: StageRow, frame: Fra
   const { trigger } = row;
   let primary = frame.primary;
   if (trigger.kind === 'click') {
+    // A one-way purchase asks first (UI-SPEC "Destructive actions"): read before the press, confirmed after it.
+    const oneWay = trigger.testId.endsWith('-unlock') && ((await page.getByTestId(trigger.testId).first().textContent()) ?? '').includes('ONE WAY');
     if (frame.pointer === null) await page.getByTestId(trigger.testId).first().click();
     else await page.mouse.click(frame.pointer.point.x, frame.pointer.point.y);
+    if (oneWay) await page.getByTestId(trigger.testId + '-confirm').click();
   } else if (trigger.kind === 'ui') await trigger.run(page);
   else {
     const last = await runClock(page, trigger, before, row.steady === true);

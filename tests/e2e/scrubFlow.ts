@@ -8,7 +8,7 @@ import type { Page } from '@playwright/test';
 import { makeFixtures } from '../../scripts/make-fixtures';
 import type { ContentRegistry } from '../../src/content';
 import { exportSave, importSave, nodeCost, unlockNode, type GameState } from '../../src/engine';
-import { boot, dismissBoot, expect, openSave } from './helpers';
+import { boot, dismissBoot, expect, openSave, press } from './helpers';
 
 export const SCRUB = 'act_p2_scrub_audit_logs';
 const DISCOVERY = 'p2_arp_discovery';
@@ -71,7 +71,7 @@ export async function scrubRightAfterDiscovery(page: Page, code: string): Promis
   await expect(page.getByTestId('phase-value').first()).toHaveText('2');
   if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
   await expect(page.getByTestId('action-' + SCRUB)).toHaveCount(0);
-  await page.getByTestId('node-' + DISCOVERY + '-unlock').click();
+  await press(page, 'node-' + DISCOVERY + '-unlock');
   await expect(page.getByTestId('node-' + DISCOVERY)).toHaveCount(0);
   // The spoofer, whose panel used to carry the card, is still unmapped.
   await expect(page.getByTestId('node-' + SPOOFER + '-unlock')).toBeVisible();

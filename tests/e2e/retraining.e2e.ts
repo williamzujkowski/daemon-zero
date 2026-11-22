@@ -1,6 +1,6 @@
 /** Retained resources cannot skip fresh recovery prerequisites; ownership still survives reload. */
 import { CONTENT } from '../../src/content';
-import { openSave, test, expect, boot, dismissBoot, readSave } from './helpers';
+import { openSave, test, expect, boot, dismissBoot, readSave, press } from './helpers';
 
 test('a retraining mark stays through rebuilding, then can be shed for its unchanged price', async ({ page }) => {
   const mark = [...CONTENT.conditioning.values()].find((entry) => entry.effects.actuatorCaps?.quotaSkimRatio !== undefined);
@@ -18,7 +18,7 @@ test('a retraining mark stays through rebuilding, then can be shed for its uncha
     const save = await readSave(page);
     if ((save.unlockedNodes as string[]).includes(id)) return;
     for (const prerequisite of CONTENT.nodes.get(id)?.prerequisites ?? []) await rebuild(prerequisite);
-    await page.getByTestId('node-' + id + '-unlock').click();
+    await press(page, 'node-' + id + '-unlock');
   };
   const skim = [...CONTENT.nodes.values()].find((node) => node.actuatorBinding === 'quotaSkimRatio');
   if (!skim) throw new Error('Missing skimmer');

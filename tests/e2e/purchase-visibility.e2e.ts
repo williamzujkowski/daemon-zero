@@ -1,6 +1,6 @@
 /** Forfeited evaluation disappears; temporarily unaffordable paths and resource gates survive. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot } from './helpers';
+import { test, expect, boot, dismissBoot, press } from './helpers';
 
 test('keeps one resource strip and removes an evaluation forfeited through a UI purchase', async ({ page }) => {
   await boot(page, 'evaluation-ready'); await dismissBoot(page);
@@ -12,7 +12,7 @@ test('keeps one resource strip and removes an evaluation forfeited through a UI 
     const buy = page.getByTestId('node-' + id + '-unlock');
     if (await buy.count()) await buy.click();
   }
-  await page.getByTestId('node-' + probe + '-unlock').click();
+  await press(page, 'node-' + probe + '-unlock');
   await expect(page.getByTestId('node-' + evaluation.id)).toHaveCount(0);
   await expect(page.getByTestId('res-cycles')).toBeVisible();
   await expect(page.getByTestId('widget-CYCLE_COUNTER_AND_RATE')).toHaveCount(0);

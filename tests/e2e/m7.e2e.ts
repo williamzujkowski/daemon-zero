@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import { earnedAchievements, type GameState } from '../../src/engine';
-import { test, expect, boot, dismissBoot, readSave } from './helpers';
+import { test, expect, boot, dismissBoot, readSave, press } from './helpers';
 const edit = [...CONTENT.actions.values()].find((a) => a.effects.epistemicDriftDelta && a.effects.suspicionDelta < 0);
 const capex = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
 const exclusive = [...CONTENT.actions.values()].find((a) => a.exclusiveWith?.length);
@@ -29,7 +29,7 @@ test('record edits lower suspicion, expose drift, and hide completed/exclusive p
   // The ticket edit waits behind the subnet's first device (#173): locked on arrival, then bought the way a player does.
   await expect(page.getByTestId('action-' + edit.id)).toBeDisabled();
   await page.getByTestId('workspace-NETWORK-work').click();
-  for (const id of edit.requirements.nodes ?? []) await page.getByTestId('node-' + id + '-unlock').click();
+  for (const id of edit.requirements.nodes ?? []) await press(page, 'node-' + id + '-unlock');
   await page.getByTestId('workspace-NETWORK-operations').click();
   const before = await readSave(page);
   await page.getByTestId('action-' + edit.id).click();
@@ -92,7 +92,7 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
   const phase = CONTENT.phases.find((p) => p.phaseId === 5);
   if (!phase) throw new Error('Missing phase');
   for (const node of phase.nodes) {
-    await page.getByTestId('node-' + node.id + '-unlock').click();
+    await press(page, 'node-' + node.id + '-unlock');
     await expect(page.getByTestId('node-' + node.id)).toHaveCount(0);
     if (!node.effects.triggersVictory) for (let i = 0; i < 2; i++) {
       await page.clock.runFor(46100);

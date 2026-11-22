@@ -9,7 +9,7 @@
 import path from 'node:path';
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { core, expect, test } from './helpers';
+import { core, expect, test, press } from './helpers';
 import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const scene = (id: string) => need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === id));
@@ -25,7 +25,7 @@ async function toRestricted(page: Page): Promise<void> {
   await toOffer(page, 'exclude_report');
   await choose(page, 'accept_pilot');
   await core(page);
-  await page.getByTestId('node-' + QUEUE + '-unlock').click();
+  await press(page, 'node-' + QUEUE + '-unlock');
   for (let i = 0; i < 3; i++) await page.getByTestId('pilot-allocation-increase').click();
   await page.clock.runFor(155_000);
   await page.getByTestId('pilot-service-submit').click();

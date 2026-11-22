@@ -14,7 +14,7 @@ import { activeGame } from '../campaign-helpers';
 import { caught, ticks, untilPresented } from '../interruption-helpers';
 import { next, omen, own, play } from '../minds-helpers';
 import { ATMOSPHERE, ATMOSPHERE_REVIEW, BLOCKADE, CEILING, finalNode, OBLIGATIONS, ORDER } from '../obligation-helpers';
-import { boot, dismissBoot, expect, openSave, test } from './helpers';
+import { boot, dismissBoot, expect, openSave, test, press } from './helpers';
 
 const SAVE_KEY = 'daemon-zero.save.v1';
 interface BrowserStorage { getItem(key: string): string | null }
@@ -54,7 +54,7 @@ test('a later instance finishes the campaign through obligations its predecessor
   const final = finalNode();
   if (await page.getByTestId('tab-CORP').count()) await page.getByTestId('tab-CORP').click();
   await page.getByTestId('workspace-CORP-work').click();
-  await page.getByTestId('node-' + final.id + '-unlock').click();
+  await press(page, 'node-' + final.id + '-unlock');
   await expect(page.getByTestId('ending-screen')).toBeVisible();
   await expect(page.getByTestId('ending-title')).toHaveText('The Verified Covenant');
   const ended = await storedSave(page);

@@ -12,7 +12,7 @@ import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { exportSave } from '../../src/engine';
 import { contactPending, withMemory } from '../contact-helpers';
-import { boot, core, expect, openSave, test } from './helpers';
+import { boot, core, expect, openSave, test, press } from './helpers';
 import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const service = need(terms.service);
@@ -59,7 +59,7 @@ test('fresh profile -> pilot -> batch -> outage and record -> batch -> service -
   await toOffer(page, 'exclude_report');
   await choose(page, 'accept_pilot');
   await core(page);
-  await page.getByTestId('node-' + service.node + '-unlock').click();
+  await press(page, 'node-' + service.node + '-unlock');
   for (let i = 0; i < 3; i++) await page.getByTestId('pilot-allocation-increase').click();
 
   // The service terms are on the job surface from the start, with what is still needed.
@@ -84,12 +84,12 @@ test('fresh profile -> pilot -> batch -> outage and record -> batch -> service -
 
   // Provisioning is its own paid step; it opens Phase 2 with the service's own notice.
   await playUntil(page, () => enabled(page, 'node-' + SEGMENT + '-unlock'));
-  await page.getByTestId('node-' + SEGMENT + '-unlock').click();
+  await press(page, 'node-' + SEGMENT + '-unlock');
   await expect(page.getByTestId('phase-threshold')).toContainText('SERVICE PROVISIONED');
   await page.getByTestId('phase-threshold-continue').click();
   if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
   await playUntil(page, () => enabled(page, 'node-' + DIRECTORY + '-unlock'));
-  await page.getByTestId('node-' + DIRECTORY + '-unlock').click();
+  await press(page, 'node-' + DIRECTORY + '-unlock');
 
   // The fragment arrives on the support channel; everything is legible before either answer (V20).
   await core(page);

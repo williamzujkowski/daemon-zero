@@ -5,11 +5,11 @@
 import { expect, type Page } from '@playwright/test';
 import { CONTENT } from '../../../src/content';
 import type { RegistryNode } from '../../../src/content/registry';
-import { openKernelHistory } from '../helpers';
+import { openKernelHistory, press } from '../helpers';
 
-export const click = (testId: string) => async (page: Page): Promise<void> => { await page.getByTestId(testId).click(); };
+export const click = (testId: string) => async (page: Page): Promise<void> => { await press(page, testId); };
 export const buy = (node: () => RegistryNode) => async (page: Page): Promise<void> => {
-  await page.getByTestId('node-' + node().id + '-unlock').click();
+  await press(page, 'node-' + node().id + '-unlock');
 };
 export const kernelHistory = async (page: Page): Promise<void> => { await openKernelHistory(page); };
 

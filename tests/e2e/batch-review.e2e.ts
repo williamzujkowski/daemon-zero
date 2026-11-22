@@ -9,7 +9,7 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { core, expect, test } from './helpers';
+import { core, expect, test, press } from './helpers';
 import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const SCENE = need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_nr_batch_review'));
@@ -26,7 +26,7 @@ async function toFinding(page: Page): Promise<void> {
   await expect(page.getByTestId('pilot-capacity')).toContainText('the submission was a summary rather than every result');
   await choose(page, 'accept_pilot');
   await core(page);
-  await page.getByTestId('node-' + QUEUE + '-unlock').click();
+  await press(page, 'node-' + QUEUE + '-unlock');
   for (let i = 0; i < 3; i++) await page.getByTestId('pilot-allocation-increase').click();
   await expect(page.getByTestId('pilot-service-ceiling')).toContainText(NARROW);
   // At the provisional rate the first batch takes the honest incomplete report's time, not half of it (#285).

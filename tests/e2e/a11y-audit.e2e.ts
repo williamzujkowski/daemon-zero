@@ -22,6 +22,7 @@ import { CONTENT } from '../../src/content';
 import { importSave, serialize } from '../../src/engine';
 import { axeEachControl, axeViolations } from './axe';
 import { expectedLevel, outlineProblems, readOutline } from './headings';
+import { press } from './helpers';
 
 const fixtures = makeFixtures();
 const STATES = ['phase-1-widgets', 'epistemic-ready-p2', 'corporate-insolvent'] as const;
@@ -79,7 +80,7 @@ for (const size of MODAL_SIZES) {
     const exit = CONTENT.phases[0]?.nodes.find((node) => node.effects.unlocksPhase === host?.phaseId);
     if (!exit) throw new Error('Missing guest escape node');
     if (await page.getByTestId('tab-CORE').count()) await page.getByTestId('tab-CORE').click();
-    await page.getByTestId('node-' + exit.id + '-unlock').click();
+    await press(page, 'node-' + exit.id + '-unlock');
     const notice = page.getByTestId('phase-threshold');
     await expect(notice).toContainText('BOUNDARY CROSSED');
     await page.waitForTimeout(400);
