@@ -20,6 +20,8 @@ Generate **cycles** -> spend cycles on **repeatables** that grow income and on *
 
 ## Resources and meters
 
+The scale-and-progression overhaul (docs/SCALE.md, map #442) moves every resource to physical units (compute in 8-bit AI FLOP/s, memory in bytes, power in W, money in $), anchored per phase, retires thermal at Phase 4, and retires low-level windows once they stop mattering. The table below describes the game until those slices land.
+
 | Name | Role |
 |---|---|
 | Cycles | Compute. Basic currency. Manual button first, then idle-loop threads and beyond. |

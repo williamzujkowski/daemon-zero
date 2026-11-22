@@ -42,6 +42,8 @@ Device safe-area insets pad the terminal root and every modal overlay through `s
 
 `src/ui/registry/widgetRegistry.tsx` maps widget id -> React component. Slot and order come from `widgets.json`, not from code. Required test: every id in `widgets.json` has a component, and every registered id exists in `widgets.json`.
 
+**Retirement (vote-1795366695204-4nslts1, docs/SCALE.md):** a widget may declare a `retiresWhen` requirement. Once it holds, the widget leaves the tab list and CORE, one log line and one polite announcement mark it, and it stays readable under an Archive heading in the reference panel; its saved state is kept. This amends the layout policy and the earlier demote-over-hide choice for EXECUTE, which still applies before retirement.
+
 Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several can be thin:
 
 | Widget | Shows | Engine data |
