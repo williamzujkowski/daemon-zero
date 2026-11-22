@@ -90,10 +90,16 @@ scanning this instance, the hunter adapts at 0.1 points a second: key rotation u
 coalition backing (public trust below 50). Each point takes 0.3/100 off the cap, so at full adaptation the cap is 60%
 and the scan four times the cap's floor (the untouched lock's time to a strike at suspicion 0 falls from 9.3 h to
 3.7 h at key rotation and 2.3 h fully adapted). The answer is a choice, not a chore: keep the cap and answer the lock
-(the decoy, route poisoning, the lobbying blitz, the Zurich shield), or ease off below the band, which is always free
-(dismiss a role, suspend the lobbying node or the proof engine; integrity requires every source of reduction that
-reaches the band on its own to be suspendable, and every role that reduces scanning to be dismissable), is never worse
-at once (the eroded cap only lifts as AEGIS forgets), and lets AEGIS forget at 0.25 points a second. Public trust is
+(the decoy, route poisoning, the lobbying blitz, the Zurich shield), or ease off below the band, which costs no
+resources (dismiss a role, suspend the lobbying node or the proof engine) and lets AEGIS forget at 0.25 points a second.
+Easing off is not free of risk, and the game says so: the scan does not rise at once only while the reduction kept is
+at least the eroded cap, because reduction above that cap does nothing; keep less and the player gives up reduction
+that was really applied (the #473 review's case: suspending the lobbying node with four lobbyists, fully adapted,
+leaves 32% against a 60% cap and raises the scan from 0.012 to 0.0204/s, while dismissing the four lobbyists keeps
+60% and leaves it at 0.012/s). The world view states that target while suppression is held: below 85% to let AEGIS
+forget, at least the eroded cap to keep the scan where it is. Integrity requires every source of reduction that
+reaches the band on its own to be suspendable and every role that reduces scanning to be dismissable, so leaving the
+band is always possible; whether a run can land between the cap and the band depends on what it owns. Public trust is
 the other lever: a record the public trusts keeps coalitions away and stops AEGIS at key rotation. Adaptation does not
 move while dormant and starts at 0 every iteration.
 

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   aegisPressure, aegisStage, advance, computeRates, deserialize, dismissRepeatable, effectiveAegisCap, importSave, payrollView, serialize,
-  TICK_PIPELINE, toggleNode, unreducedAegisScan, wipe, type GameState,
+  aegisPosture, tick, TICK_PIPELINE, toggleNode, unreducedAegisScan, wipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { multiplierSources, requestedAegisReduction } from '../src/engine/rates';
 import { integrateAegisAdaptation } from '../src/engine/systems/aegisAdaptation';
@@ -15,6 +15,7 @@ import { fresh, outOfTheWay, reg } from './helpers';
 
 const LOBBYISTS = 'p4_k_street_lobbyists';
 const ROLE = 'op_k_street_lobbyist';
+const LAWYER = 'op_retainer_lawyer';
 const b = reg.balance;
 const A = b.aegisAdaptation;
 
@@ -31,6 +32,11 @@ function play(s: GameState, seconds: number): GameState {
   let state = s;
   for (let i = 0; i < seconds; i++) state = advance(state, 1, reg);
   return state;
+}
+
+function ok(result: ActionResult): GameState {
+  if (!result.ok) throw new Error(result.reason);
+  return result.state;
 }
 
 const adaptingLogs = (s: GameState): string[] => s.logs.map((entry) => entry.text)
@@ -90,7 +96,7 @@ describe('held at its cap, AEGIS adapts', () => {
   });
 });
 
-describe('easing off is free and lets AEGIS forget', () => {
+describe('easing off costs no resources, lets AEGIS forget, and raises the scan only below the eroded cap', () => {
   it('decays at the balance rate once suppression is not held, down to zero and no further', () => {
     const adapted = play(heldAtCap(), 600);
     let eased = adapted;
@@ -114,11 +120,60 @@ describe('easing off is free and lets AEGIS forget', () => {
     expect(play(result.state, 10).aegisAdaptation).toBeLessThan(adapted.aegisAdaptation);
   });
 
-  it('is never worse at once than staying held: the eroded cap only lifts as AEGIS forgets', () => {
-    const adapted = play(heldAtCap(), 1000);
-    const dismissed = dismissRepeatable(adapted, ROLE, reg);
-    if (!dismissed.ok) throw new Error(dismissed.reason);
-    expect(computeRates(dismissed.state, reg).aegisScanPerSec).toBeLessThanOrEqual(computeRates(adapted, reg).aegisScanPerSec + 1e-12);
+  it('does not raise the scan at once exactly when the reduction kept is at least the eroded cap (#473 review)', () => {
+    // Partly and fully adapted, eased by dismissing roles one at a time or by suspending the node: the scan the next
+    // tick applies rises exactly when the reduction kept falls below the eroded cap. Both outcomes occur below.
+    const scan = (state: GameState): number => computeRates(state, reg).aegisScanPerSec;
+    let rose = 0, held = 0;
+    for (const adaptation of [10, 30, 50, 70, 90, 100]) {
+      const rich = heldAtCap({ aegisAdaptation: adaptation, levels: { [ROLE]: 4, [LAWYER]: 15 } });
+      const lean = heldAtCap({ aegisAdaptation: adaptation });
+      const pairs: [GameState, GameState][] = [[rich, ok(toggleNode(rich, LOBBYISTS, reg))], [lean, ok(toggleNode(lean, LOBBYISTS, reg))]];
+      for (const [start, roles] of [[rich, [LAWYER, ROLE]], [lean, [ROLE]]] as const) {
+        let s = start;
+        for (const role of roles) while ((s.levels[role] ?? 0) > 0) { s = ok(dismissRepeatable(s, role, reg)); pairs.push([start, s]); }
+      }
+      for (const [before, eased] of pairs) {
+        const below = requestedAegisReduction(eased, reg) < effectiveAegisCap(before, reg) - 1e-12;
+        expect(scan(eased) > scan(before) + 1e-12).toBe(below);
+        if (below) rose++; else held++;
+      }
+    }
+    expect(rose).toBeGreaterThan(0);
+    expect(held).toBeGreaterThan(0);
+  });
+
+  it('the reviewed near-strike case: suspending the node gives up real reduction and strikes; easing to the cap does not', () => {
+    // The configuration from the #473 panel: the lobbying node, four lobbyists, fully adapted, lock 99.9985.
+    const held = heldAtCap({ aegisAdaptation: 100, aegisLock: 99.9985 });
+    expect(computeRates(held, reg).aegisScanPerSec).toBeCloseTo(0.012, 9);
+    expect(tick(held, 0.1, reg).iteration).toBe(held.iteration);
+
+    // Suspending leaves 0.32 of staff against the 0.6 cap: the scan rises to 0.0204/s and the next tick strikes.
+    const suspended = ok(toggleNode(held, LOBBYISTS, reg));
+    expect(computeRates(suspended, reg).aegisScanPerSec).toBeCloseTo(0.0204, 9);
+    expect(tick(suspended, 0.1, reg).iteration).toBe(held.iteration + 1);
+
+    // Dismissing the four lobbyists keeps 0.6, the eroded cap: the scan is unchanged, no strike, and AEGIS forgets.
+    let eased = held;
+    for (let i = 0; i < 4; i++) eased = ok(dismissRepeatable(eased, ROLE, reg));
+    expect(computeRates(eased, reg).aegisScanPerSec).toBeCloseTo(computeRates(held, reg).aegisScanPerSec, 12);
+    const after = tick(eased, 0.1, reg);
+    expect(after.iteration).toBe(held.iteration);
+    expect(after.aegisAdaptation).toBeLessThan(100);
+    expect(aegisPosture(eased, reg)).toMatchObject({ held: false, cap: b.aegisMaxReduction - A.maxErosion });
+  });
+
+  it('suspending a held-band node is still the only way out when it alone holds the band', () => {
+    // The proof engine's 0.95 holds the band on its own: no role dismissal can leave it, so integrity requires it be
+    // suspendable, and suspending it leaves the band whatever else is owned.
+    const proof = 'p5_verification_proof_engine';
+    let pinned = heldAtCap({ currentPhase: 5, unlockedNodes: [LOBBYISTS, proof], aegisAdaptation: 60 });
+    for (let i = 0; i < 4; i++) pinned = ok(dismissRepeatable(pinned, ROLE, reg));
+    expect(aegisPressure(pinned, reg).held).toBe(true);
+    const out = ok(toggleNode(pinned, proof, reg));
+    expect(aegisPressure(out, reg).held).toBe(false);
+    expect(play(out, 10).aegisAdaptation).toBeLessThan(60);
   });
 });
 

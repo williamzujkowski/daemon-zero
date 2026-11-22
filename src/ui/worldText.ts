@@ -25,6 +25,19 @@ export function adaptationWhyText(p: AegisPosture): string {
     : 'Fully adapted for as long as the scan reduction asked for stays held at its cap.';
 }
 
+/**
+ * What easing off costs, while suppression is held (#473 review). The scan the next tick applies does not rise as long
+ * as the reduction kept is at least the eroded cap; below it the player gives up reduction that was really applied.
+ * Stated as the rule and its numbers, never as a control, because which sources a player can drop depends on the run.
+ */
+export function easeText(p: AegisPosture): string | null {
+  if (!p.held) return null;
+  const forgets = `Easing off: AEGIS forgets once the reduction asked for is below ${pct(p.heldFrom)}`;
+  return p.cap < p.heldFrom
+    ? `${forgets}. Keeping at least ${pct(p.cap)} (the eroded cap) leaves the scan where it is; less raises it at once.`
+    : `${forgets}, which gives up the reduction between it and the ${pct(p.applied)} applied now.`;
+}
+
 /** The cap AEGIS has left after adaptation, beside the reduction that applies. */
 export function capText(p: AegisPosture): string {
   const applied = `Scan reduction applied: ${pct(p.applied)}`;

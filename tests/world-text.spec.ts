@@ -1,7 +1,7 @@
 /** The world view's sentences (#463): every branch, from postures the engine would return. */
 import { describe, expect, it } from 'vitest';
 import type { AegisPosture, PublicTrustView } from '../src/engine';
-import { adaptationWhyText, capText, coalitionText, spanText, strikeText, trustFactorText } from '../src/ui/worldText';
+import { adaptationWhyText, capText, coalitionText, easeText, spanText, strikeText, trustFactorText } from '../src/ui/worldText';
 
 function posture(patch: Partial<AegisPosture> = {}): AegisPosture {
   return {
@@ -25,6 +25,18 @@ describe('why adaptation moves', () => {
     ['not hunting, forgetting', posture({ hunting: false, held: false }), 'AEGIS is not scanning this instance, so it loses 0.25 points of adaptation a second.'],
   ])('%s', (_name, input, expected) => {
     expect(adaptationWhyText(input)).toBe(expected);
+  });
+});
+
+describe('what easing off costs (#473 review)', () => {
+  it.each([
+    ['nothing to ease while not held', posture({ held: false }), null],
+    ['a window between the eroded cap and the band', posture({ cap: 0.66, applied: 0.66 }),
+      'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 66% (the eroded cap) leaves the scan where it is; less raises it at once.'],
+    ['no window while the cap is above the band', posture({ cap: 0.87, applied: 0.87 }),
+      'Easing off: AEGIS forgets once the reduction asked for is below 85%, which gives up the reduction between it and the 87% applied now.'],
+  ])('%s', (_name, input, expected) => {
+    expect(easeText(input)).toBe(expected);
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * The world-view and AEGIS-adaptation content rules (#463), proved by corrupting the real content: the console the
  * view grows out of exists by its disclosure and never retires, readings stay true to a record that does not lapse, a
- * mind never restates a faction, and adaptation always leaves a free way to ease off the cap.
+ * mind never restates a faction, and adaptation always leaves a way out of the held band.
  */
 import { describe, expect, it } from 'vitest';
 import { ORIGINAL_RAW_CONTENT as ORIGINAL_RAW, RAW_CONTENT } from '../src/content';
@@ -81,12 +81,12 @@ describe('no parallel faction display', () => {
   });
 });
 
-describe('adaptation keeps a free way to ease off the cap', () => {
+describe('adaptation keeps a way out of the held band', () => {
   it.each([
     ['the proof engine made hardware again', (raw: Json) => { node(raw, 'p5_verification_proof_engine').suspendable = false; },
-      'node "p5_verification_proof_engine": reduces AEGIS scanning into the held band on its own but cannot be suspended, so nobody could ease off'],
+      'node "p5_verification_proof_engine": reduces AEGIS scanning into the held band on its own but cannot be suspended, so the held band could never be left'],
     ['an AEGIS-slowing role that cannot be dismissed', (raw: Json) => { raw.repeatables.repeatables.find((rep: Json) => rep.id === 'op_k_street_lobbyist').dismissable = false; },
-      'repeatable "op_k_street_lobbyist": reduces AEGIS scanning but cannot be dismissed, so nobody could ease off'],
+      'repeatable "op_k_street_lobbyist": reduces AEGIS scanning but cannot be dismissed, so the held band could never be left'],
     ['an erosion deeper than the cap', (raw: Json) => { raw.balance.aegisAdaptation.maxErosion = 0.95; },
       'balance: aegisAdaptation.maxErosion exceeds aegisMaxReduction, so the effective cap could fall below zero'],
   ])('%s is refused', (_name, edit, expected) => {

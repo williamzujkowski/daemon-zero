@@ -28,7 +28,8 @@ New constants in `balance.json` under `aegisAdaptation`; no other number changed
 
 Public trust is `world.json`: base 50; lobbying node -10, foundry +15, proof engine +15, fabricator fog -15, the
 authorized aerosol -20, the spared launch crews +10. One content change: `p5_verification_proof_engine` is now
-`suspendable`, because its 0.95 reduction alone reaches the held band and integrity requires a free way to ease off.
+`suspendable`, because its 0.95 reduction alone reaches the held band and integrity requires that the band can always be left (a
+source that holds it on its own must be suspendable).
 The bot never suspends a node, so this moves nothing in the sim.
 
 What an untouched lock faces at suspicion 0 (base scan 0.03/s): the cap's floor 0.003/s, 9.3 h to a strike; key

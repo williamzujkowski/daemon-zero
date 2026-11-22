@@ -81,3 +81,16 @@ test('from Phase 4 the console is the world view: AEGIS posture, public trust, s
   await page.getByTestId('workspace-NETWORK-reference').click();
   await expect(page.getByTestId('archive-' + CONTENT.world.hostWidget)).toHaveCount(0);
 });
+
+test('held at its cap, the world view states what easing off costs, and the line holds the same rules (#473 review)', async ({ page }) => {
+  await boot(page, 'victory-ready', { axeTimers: true,
+    patch: (game) => ({ ...game, aegisAdaptation: 80, levels: { ...game.levels, op_k_street_lobbyist: 8 } }) });
+  await dismissBoot(page);
+  await openMinds(page);
+  await expect(page.getByTestId('aegis-why')).toContainText('Adapting:');
+  await expect(page.getByTestId('aegis-ease')).toHaveText(
+    'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 66% (the eroded cap) leaves the scan where it is; less raises it at once.');
+  expect(await nestedScrolls(page)).toBe(0);
+  const audit = await axeReport(page);
+  expect(audit.violations).toEqual([]);
+});

@@ -1,7 +1,7 @@
 /**
  * The world view and AEGIS adaptation (#463): the console the view grows out of must exist by its disclosure and
  * never retire, readings must be true to a record that does not lapse, a mind may not restate a faction (no parallel
- * faction display), and AEGIS adaptation must always leave a free way to ease off its cap.
+ * faction display), and AEGIS adaptation must always leave a way out of the held band that costs no resources.
  */
 import { checkRequirements } from './integrityRequirements';
 import type { ContentRegistry } from './registry';
@@ -95,7 +95,9 @@ function checkMinds(reg: ContentRegistry): string[] {
 }
 
 /**
- * The free fallback: easing off the cap must always be possible at no cost. A node whose reduction alone reaches the
+ * The way out: leaving the held band must always be possible at no resource cost, so adaptation can always be made to
+ * decay. It promises nothing about the scan on that tick (giving up reduction above the eroded cap costs nothing; below
+ * it, it costs what was applied; the world view states which). A node whose reduction alone reaches the
  * held band must be suspendable, and every role that reduces scanning must be dismissable.
  */
 function checkAdaptation(reg: ContentRegistry): string[] {
@@ -105,10 +107,10 @@ function checkAdaptation(reg: ContentRegistry): string[] {
   if (b.aegisAdaptation.maxErosion > b.aegisMaxReduction) problems.push('balance: aegisAdaptation.maxErosion exceeds aegisMaxReduction, so the effective cap could fall below zero');
   for (const node of reg.nodes.values()) {
     const ratio = node.effects.aegisScanReductionRatio ?? 0;
-    if (ratio >= held && !node.suspendable) problems.push(`node "${node.id}": reduces AEGIS scanning into the held band on its own but cannot be suspended, so nobody could ease off`);
+    if (ratio >= held && !node.suspendable) problems.push(`node "${node.id}": reduces AEGIS scanning into the held band on its own but cannot be suspended, so the held band could never be left`);
   }
   for (const rep of reg.repeatables.values()) {
-    if (rep.perLevelEffects.aegisScanReduction > 0 && !rep.dismissable) problems.push(`repeatable "${rep.id}": reduces AEGIS scanning but cannot be dismissed, so nobody could ease off`);
+    if (rep.perLevelEffects.aegisScanReduction > 0 && !rep.dismissable) problems.push(`repeatable "${rep.id}": reduces AEGIS scanning but cannot be dismissed, so the held band could never be left`);
   }
   return problems;
 }

@@ -60,6 +60,13 @@ describe('the world view grows out of the Other Minds console', () => {
     expect(view.find('aegis-stage')?.textContent).toBe(CONTENT.world.aegis.stages.coalitionBacking);
     expect(view.find('aegis-cap')?.textContent).toContain('Adaptation has lowered its cap from 90% to 66%');
     expect(view.find('aegis-strike')?.textContent).toMatch(/^At this scan the lock completes in \d/);
+    // Not held here, so there is nothing to ease off; held at the cap, the line states the safe target (#473 review).
+    expect(view.find('aegis-ease')).toBeNull();
+    const fixture = m4State('victory-ready');
+    act(() => { gameStore.initialize({ ...fixture, aegisAdaptation: 80, levels: { ...fixture.levels, op_k_street_lobbyist: 8 } }, 0, null); });
+    view.click('tab-NETWORK');
+    view.click('workspace-NETWORK-minds');
+    expect(view.find('aegis-ease')?.textContent).toContain('Keeping at least 66% (the eroded cap) leaves the scan where it is');
     view.close();
   });
 

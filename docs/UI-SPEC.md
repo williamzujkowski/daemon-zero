@@ -346,7 +346,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived` |
-| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}` |
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -436,7 +436,8 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   is never sent to the Archive. Before it the console is unchanged.
 - **Where.** NETWORK > FACTIONS, under the console title (level 2). A muted lead line, then four sections, each a
   level-3 heading: **AEGIS posture** (the lock meter, scan rate and near-strike alert as before; an `AEGIS
-  adaptation` meter; the stage line from content; then why it moves, the cap it has left and the time the lock has),
+  adaptation` meter; the stage line from content; then why it moves, while held what easing off costs, the cap it has
+  left and the time the lock has),
   **Public trust** (a meter, whether coalitions back AEGIS, and each factor that holds with its sign, or "Nothing on
   the public record moves it yet."), **State actors** (name at level 4, kind and description, the posture the record
   supports) and **Other minds** (the faction panels, their names now at level 4, then any non-faction mind the record
@@ -444,7 +445,9 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
 - **Truth.** Every sentence is a pure function of the engine's `aegisPosture` and `publicTrust` (`src/ui/worldText.ts`,
   unit-tested per branch in `tests/world-text.spec.ts`): the why line restates the stage's own rule (held at or above
   85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
-  backing); the strike time is the scan the next tick applies, floored. It states rules and numbers and names no
+  backing); the strike time is the scan the next tick applies, floored. The ease line (`aegis-ease`, only while held;
+  #473 review) states the true cost of easing off: AEGIS forgets below 85%, and the scan stays where it is only while
+  the reduction kept is at least the eroded cap (or, while the cap is still above the band, what easing gives up). It states rules and numbers and names no
   control, so it cannot name a lever that does not act. Payroll's cap lines add "lowered from 90% by AEGIS adaptation"
   when the effective cap differs.
 - **Layout rules kept.** The view adds blocks inside an existing pane: no scroll container of its own (the phone's

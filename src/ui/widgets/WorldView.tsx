@@ -13,7 +13,7 @@ import { CONTENT } from '../../content';
 import { aegisPosture, publicTrust, worldView } from '../../engine';
 import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from '../headingLevel';
 import { theme } from '../theme';
-import { adaptationWhyText, capText, coalitionText, strikeText, trustFactorText } from '../worldText';
+import { adaptationWhyText, capText, coalitionText, easeText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 
@@ -30,13 +30,15 @@ function Section({ id, title, children }: { id: string; title: string; children:
 function AegisPostureSection() {
   const lines = useStore(gameStore.store, useShallow(({ game }) => {
     const posture = aegisPosture(game, CONTENT);
-    return { adaptation: tenth(posture.adaptation), stage: posture.stageText, why: adaptationWhyText(posture), cap: capText(posture), strike: strikeText(posture) };
+    return { adaptation: tenth(posture.adaptation), stage: posture.stageText, why: adaptationWhyText(posture), ease: easeText(posture), cap: capText(posture),
+      strike: strikeText(posture) };
   }));
   return <Section id="world-aegis" title="AEGIS posture">
     <AegisStatus />
     <Meter id="aegis-adaptation" label="AEGIS adaptation" value={lines.adaptation} />
     <Text testID="aegis-stage" style={theme.text}>{lines.stage}</Text>
     <Text testID="aegis-why" style={theme.muted}>{lines.why}</Text>
+    {lines.ease !== null && <Text testID="aegis-ease" style={theme.muted}>{lines.ease}</Text>}
     <Text testID="aegis-cap" style={theme.muted}>{lines.cap}</Text>
     <Text testID="aegis-strike" style={theme.muted}>{lines.strike}</Text>
   </Section>;
