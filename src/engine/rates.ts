@@ -88,7 +88,8 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry): void 
   }
 }
 
-function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
+/** The suspicion overheating adds now: zero below the threshold, or where heat is not evidence. */
+export function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
   const b = reg.balance;
   if (s.thermal < b.thermalThresholdForSuspicion || !heatIsEvidence(s)) return 0;
   const severity = (s.thermal - b.thermalThresholdForSuspicion) / (100 - b.thermalThresholdForSuspicion);

@@ -49,6 +49,7 @@ export { departAuthorization, departedWithoutAgreement, departureEligibility, de
 export { financeEnabled, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
 export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
+export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
 export { submitPilotBatch } from './batchReview';

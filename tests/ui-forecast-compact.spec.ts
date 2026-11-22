@@ -9,6 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { forecastCompact, forecastSentence, type ForecastInputs } from '../src/ui/forecastText';
+import { suspicionSources } from '../src/engine';
+import { sourceName, topDriver } from '../src/ui/suspicionText';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -75,7 +77,10 @@ describe('mounted forecast', () => {
     act(() => { gameStore.initialize(stateFor(inputs), 0, null); });
     const forecast = view.find('inspection-forecast');
     expect(forecast?.textContent).toBe(compact);
-    expect(forecast?.getAttribute('aria-label')).toBe(full);
+    // #368: while suspicion rises the name ends with what raises it most, which the phone's one line has no room for.
+    const top = inputs.known && inputs.seconds !== null ? topDriver({ sources: suspicionSources(gameStore.store.getState().game, CONTENT) }) : null;
+    const driver = top === null ? '' : ' Rising most from: ' + sourceName(top, gameStore.store.getState().game) + '.';
+    expect(forecast?.getAttribute('aria-label')).toBe(full + driver);
     view.close();
   });
 
@@ -86,7 +91,11 @@ describe('mounted forecast', () => {
         act(() => { gameStore.initialize(stateFor(variant), 0, null); });
         const forecast = view.find('inspection-forecast');
         expect(forecast?.textContent).toBe(variant.full);
-        expect(forecast?.hasAttribute('aria-label')).toBe(false);
+        // #368: a landscape phone keeps the one-line forecast, so a rising driver ends the name there instead of a line.
+        const game = gameStore.store.getState().game;
+        const top = viewport === LANDSCAPE && variant.known && variant.seconds !== null ? topDriver({ sources: suspicionSources(game, CONTENT) }) : null;
+        if (top === null) expect(forecast?.hasAttribute('aria-label')).toBe(false);
+        else expect(forecast?.getAttribute('aria-label')).toBe(variant.full + ' Rising most from: ' + sourceName(top, game) + '.');
       }
       view.close();
     });
