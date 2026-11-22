@@ -336,6 +336,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Lineage | `run-table`, `run-row-{iteration}`, `run-row-current`, `predecessor-notes` |
 | Retraining | `conditioning`, `cond-{id}`, `cond-{id}-shed`, `reboot-retraining`, `{actuator id}-limit` |
 | Response ladder / interrupt forecast / preparation costs | `alert-level`, `inspection-forecast`, `interrupt-budget` |
+| Top suspicion driver (#368) / stand-down guidance (#403) | `inspection-driver` ("Rising most from: …", only while the applied rate is positive and the trail is decoded; the three-column desktop only, because the phone tier holds the forecast to one line and the tablet chrome has no line to spare above its first purchase (docs/UI-SIZES.md; 900x640 measured 16 px over), so there the driver ends the forecast's accessible name), `audit-driver` (the same in the Audit trail card on every tier), `response-guidance` in `response-notice` ("Stands down below N% suspicion." then falling, no action, or the one engine-confirmed lever and whether it alone makes suspicion fall); both read `suspicionOutlook` |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |

@@ -7,7 +7,8 @@ import { useState } from 'react';
 
 import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
-import type { LogEntry } from '../engine';
+import { suspicionOutlook, type LogEntry } from '../engine';
+import { standDownText } from './suspicionText';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 
@@ -32,6 +33,8 @@ export default function ResponseNotice() {
   const logs = useGame((game) => game.logs);
   const seq = useGame((game) => game.logSeq);
   const [seen, setSeen] = useState({ ready, iteration, level, seq, queue: [] as Change[] });
+  // #403: read live while a notice is up, so the guidance follows the state; nothing is computed while none is.
+  const guidance = useGame((game) => known && seen.queue.length > 0 ? standDownText(suspicionOutlook(game, CONTENT), game) : null);
   if (!ready || !seen.ready || seen.iteration !== iteration || seq < seen.seq) {
     if (seen.ready !== ready || seen.iteration !== iteration || seen.level !== level || seen.seq !== seq) {
       setSeen({ ready, iteration, level, seq, queue: [] });
@@ -54,6 +57,7 @@ export default function ResponseNotice() {
     style={{ borderWidth: 2, borderColor: palette.warning, padding: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <View style={{ flex: 1 }}><Text style={theme.heading}>{update.to > update.from ? 'RESPONSE ESCALATED' : 'RESPONSE STAND-DOWN'}</Text>
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
+      {guidance !== null && <Text testID="response-guidance" style={theme.text}>{guidance}</Text>}
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
     <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>

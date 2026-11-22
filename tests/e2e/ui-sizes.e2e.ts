@@ -351,7 +351,8 @@ test.describe('forecast notice', () => {
       try {
         const sentence = page.getByTestId('inspection-forecast');
         await expect(sentence).toHaveText(/^SUS 100 in ~\d+s \/\/ INT \d+s: set aside$/);
-        await expect(sentence).toHaveAttribute('aria-label', full);
+        // #368: while suspicion rises the name also ends with what raises it most.
+        expect((await sentence.getAttribute('aria-label'))?.split(' Rising most from: ')[0]).toMatch(full);
         expect((await sentence.boundingBox())?.height, 'forecast sentence is one 22px line').toBe(22);
         // Abbreviated, never clipped: one line because it fits, not because it may not wrap.
         await expect(sentence).not.toHaveCSS('white-space', 'nowrap');
