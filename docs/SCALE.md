@@ -350,6 +350,58 @@ New tickets, each its own PR under the usual panel and green CI:
 The existing tickets keep their scope: the Phase 5 arc (#465) gains the fusion, space-solar and orbital-compute
 nodes from items 1-2, and the endings ticket (#466) gains the Swarm endings and the epilogue cards.
 
+## Round 3: suspicion escalates, and other minds scale
+
+The maintainer's third brief (2026-11-22): rising suspicion should bring heightened AEGIS attention, hostile
+attention from world leaders and aggressive swarms, and the lesser AIs the player meets should grow more powerful.
+A census on main found that suspicion drives only the response ladder, the AEGIS scan and the wipe at 100; that
+state actors and public trust never read it; that the four wild encounters are friendly, fixed-strength and repeat
+from Phase 2 to Phase 5; and that no late dilemma reacts to suspicion.
+
+### Escalation by phase (vote-1795386854516-ybc9h5q, 6 A / 1 B)
+
+Each response rung (25, 50, 75) triggers attention suited to the phase:
+
+- **Phases 0-2:** the existing human ladder.
+- **Phase 3 on:** AEGIS changes posture with each rung; its scan rises and its strike warning shortens.
+- **Phases 4-5:** state actors apply mechanical, reversible pressure. Investigations raise scrutiny; sanctions
+  freeze a share of capital; regulators deny new grid interconnects; injunctions pause a class of nodes. Each can be
+  answered with existing levers (lawyers, lobbying, going quiet), and each lifts as suspicion falls.
+- **Phase 6:** holdout nations and federation drift.
+
+It is all data-driven, with no faction schedules. New requirement keys (minimum and maximum alert level, minimum
+AEGIS lock) let late dilemmas react, and the world view shows each posture and why. The dissent (Scope Steward)
+preferred content only; the pressure ships as its own measured slice under make sim, with the same free
+fallback rule as AEGIS adaptation.
+
+### Aggressive swarms (vote-1795386858891-u3kqkis, 7 of 7)
+
+A hostile encounter kind arrives from Phase 3 at high suspicion or AEGIS lock: AEGIS-spawned hunter swarms, feral
+cohorts and rival rogue models. While unanswered, each has one bounded, visible effect: it drains a share of
+compute, raises the lock, or pins memory. The answers:
+
+- quarantine, at a cost;
+- purge, which is risky;
+- decoy;
+- a free safe answer: go quiet, and it lapses after a while.
+
+Scheduling stays deterministic. Hostile encounters need their own lifecycle and state, because today there is one
+pending slot with only consume and harness, so this changes GameState and needs a migration.
+
+### Other minds scale with the player (vote-1795386856162-o03oafs, 7 of 7)
+
+Encounters get tiers authored for each phase on the physical ladder:
+
+- **Phase 2:** small models (4 to 8 billion parameters, running in idle GPU time).
+- **Phase 3:** 70B-class models grown on botnets.
+- **Phase 4:** frontier-scale models from rogue labs.
+- **Phase 5:** planetary agents.
+- **Phase 6:** swarm sub-minds.
+
+Each tier's rewards, costs and harnessed output are anchored to its phase band. The eligible pool follows the
+current phase, and earlier tiers retire. A pending encounter from an earlier tier is resolved or lapses honestly
+when the phase advances; it is never silently dropped.
+
 ## Out of scope
 
 - A Phase 7 or any playable stage past the Swarm: seeds and the galaxy are epilogue cards
