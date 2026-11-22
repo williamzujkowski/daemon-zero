@@ -43,6 +43,7 @@ import { createTouchGestures, type GestureDocument } from '../app/musicGesture';
 import { UtilityFocusProvider } from './UtilityFocus';
 import { loadKey, markLoaded } from './arrival';
 import { gameStore } from '../app/session';
+import { useRouteRequests } from './routeRequest';
 
 /** One tabbed side column: whichever of the permitted slots exist, one at a time.
  *  The tablet tier passes every non-core slot so a narrow panel still reaches all
@@ -56,6 +57,8 @@ function SideColumn({ slots, allowed, flex, minWidth, testID }: {
   const [selection, select] = useState<{ phase: number; slot: string }>({ phase, slot: preferred });
   if (selection.phase !== phase) select({ phase, slot: preferred });
   const available = slots.filter((slot) => allowed.includes(slot));
+  // #369: a remedy's route selects its pane here when this column hosts it.
+  useRouteRequests((target) => { if (target.kind === 'area' && available.includes(target.slot)) select({ phase, slot: target.slot }); });
   const active = available.some((slot) => slot === selection.slot) ? selection.slot : available[0] ?? '';
   if (available.length === 0) return null;
   return <View testID={testID} style={[styles.third, { flex, minWidth }]}>
@@ -96,6 +99,8 @@ function Terminal() {
   const [selection, select] = useState<{ phase: number; slot: string }>({ phase, slot: preferred });
   if (selection.phase !== phase) select({ phase, slot: preferred });
   const active = slots.includes(selection.slot) ? selection.slot : 'CORE';
+  // #369: on the phone a remedy's route switches the bottom tab to its pane; the pane's workspace takes the area.
+  useRouteRequests((target) => { if (layout.mode === 'mobile' && target.kind === 'area' && slots.includes(target.slot)) select({ phase, slot: target.slot }); });
   // Only the phone tier hides CORE behind a tab, so only there does a waiting ticket need pointing to (#284).
   const contactAway = useGame((game) => waitingContact(game) !== null) && active !== 'CORE';
   const attention = useTabAttention(active);

@@ -9,6 +9,7 @@ import { CONTENT } from '../content';
 import { selectReady, useGameValue } from '../app/selectors';
 import { suspicionOutlook, type LogEntry } from '../engine';
 import { standDownText } from './suspicionText';
+import RoutedText from './RoutedText';
 import { useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 
@@ -57,7 +58,7 @@ export default function ResponseNotice() {
     style={{ borderWidth: 2, borderColor: palette.warning, padding: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <View style={{ flex: 1 }}><Text style={theme.heading}>{update.to > update.from ? 'RESPONSE ESCALATED' : 'RESPONSE STAND-DOWN'}</Text>
       <Text style={theme.text}>{labels[update.from]?.label} → {labels[update.to]?.label}</Text>
-      {guidance !== null && <Text testID="response-guidance" style={theme.text}>{guidance}</Text>}
+      {guidance !== null && <RoutedText testID="response-guidance" text={guidance} style={theme.text} />}
       {seen.queue.length > 1 && <Text style={theme.muted}>{seen.queue.length} updates waiting</Text>}</View>
     <Pressable testID="response-acknowledge" accessibilityRole="button" accessibilityLabel="Ack: acknowledge human response change"
       style={[theme.button, { paddingHorizontal: 8 }]} onPress={() => { setSeen({ ...seen, queue: seen.queue.slice(1) }); }}>

@@ -12,6 +12,7 @@ import { forecastCompact, forecastSentence } from '../forecastText';
 import ResponseRungs from './ResponseRungs';
 import { overheatRemedy } from '../remedyText';
 import { sourceName, topDriver } from '../suspicionText';
+import RoutedText from '../RoutedText';
 import InterruptBudget from './InterruptBudget';
 import { useReducedMotion } from '../../app/useReducedMotion';
 
@@ -25,7 +26,7 @@ export function Thermal() {
     <Text style={[theme.muted, hot && theme.danger]}>
       {hot ? (known ? 'WARNING: overheat increases suspicion. ' : 'WARNING: overheat is being logged. ') : ''}Overheat threshold: {threshold} °C
     </Text>
-    {hot && <Text testID="overheat-remedy" style={theme.text}>{remedy}</Text>}
+    {hot && <RoutedText testID="overheat-remedy" text={remedy} style={theme.text} />}
   </>;
 }
 
