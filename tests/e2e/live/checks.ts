@@ -193,9 +193,13 @@ export async function readsTransmission(player: LivePlayer): Promise<boolean> {
   const started = await player.uninterrupted('starting a transmission', async () => {
     const read = await player.find('speech-read');
     if (!read) return null;
-    // At rest, not mid fade-in: a level read during a ramp would be the wrong baseline for the duck.
+    // At rest, not mid fade-in, and with no voice talking: a line may be playing by itself (#462), and a
+    // level read under it is the ducked level, which would make the duck below look like a second duck.
+    // A voice that starts between this read and the press is no problem: READ then waits for its own
+    // control to come back, and whichever clip talks ducks the score to the same level.
+    if (await voiceClipsPlaying(page) !== 0) return null;
     const level = await restingSoundtrackVolume(page);
-    if (level === null) return null;
+    if (level === null || await voiceClipsPlaying(page) !== 0) return null;
     const delivered = page.waitForResponse((response) => response.url().includes('/voice/'));
     // If the press is interrupted this wait is abandoned; it must not then fail the run by itself.
     delivered.catch(() => undefined);
