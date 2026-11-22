@@ -1,6 +1,6 @@
 # Balance
 
-All tunable numbers live in content manifests (`src/content/data/` and `src/content/shards.json`). Global constants are in `balance.json`; per-item numbers are on the item. Nothing in `src/engine/` contains a balance number.
+All tunable numbers live in content manifests, in physical units since #461 (compute in 8-bit FLOP and FLOP/s, memory in bytes, power in watts, money in dollars; see "Physical units (#461)") (`src/content/data/` and `src/content/shards.json`). Global constants are in `balance.json`; per-item numbers are on the item. Nothing in `src/engine/` contains a balance number.
 
 ## Workflow
 
@@ -10,6 +10,198 @@ All tunable numbers live in content manifests (`src/content/data/` and `src/cont
 4. Update the table below in the same commit.
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
+
+## Physical units (#461)
+
+Implements Scale 2 of the scale-and-progression spec ([SCALE.md](SCALE.md), map #442): every resource is kept in a
+physical unit and every price, yield, grant and draw is re-anchored to the ladder. The gates (`gates.ts`) and the bot
+(`bot.ts`) are unchanged. All times are accelerated simulated seconds, never wall-clock play.
+
+### The ladder and its integrity check
+
+`src/content/integrityScale.ts` refuses content whose magnitudes leave the phase's band (spec table, vote
+-1795367506116-49pi7gt as amended by vote-1795367697930-zzlgr4n). A band is the range of the prefixes named, so
+"GFLOP/s to TFLOP/s" is [1e9, 1e15).
+
+| Phase | Compute yield (8-bit FLOP/s) | Memory grant (bytes) | Own power (W) | Money (dollars) |
+|---|---|---|---|---|
+| 0 | [1e3, 1e12) | [1 B, 1 MiB) | none | none |
+| 1 | [1e9, 1e15) | [1 MiB, 1 TiB) | none | none |
+| 2 | [1e12, 1e18) | [1 GiB, 1 PiB) | none | [1e3, 1e9): the route's service company |
+| 3 | [1e15, 1e21) | [1 TiB, 1 EiB) | none (victims' bills) | [1e3, 1e9): shells |
+| 4 | [1e18, 1e24) | [1 PiB, 1 ZiB) | [1e6, 1e12) | [1e6, 1e12) |
+| 5 | [1e21, 1e27) | [1 EiB, 1 YiB) | [1e9, 1e15) | [1e9, 1e15) |
+
+Yields, power draws and memory grants sit in their own phase's band; a phase gate's memory grant may instead sit in
+the band of the phase it opens (it carries that phase's working memory across the change of scale). Prices (compute,
+memory, money, on nodes, repeatable base and top levels, actions, swarm templates and dilemma choices) run from the
+lowest band a player can arrive in the phase with (a bridge purchase is paid with the previous phase's income) to the
+top of the phase's own band; a compute price is at most 10 seconds of the band's top rate, a repeatable's unbought last
+level at most 10,000. `tests/scale-bands.spec.ts` proves each rule with a price that breaks it, among them the census
+clash of a planetary fog granting 512 GB.
+
+### The compute-to-money constant
+
+Diverted compute earns `marketUsdPerFlop x marketTimeCompression` dollars per FLOP (`usdPerDivertedFlop`), the one
+constant that turns compute into money (SCALE.md rule 3):
+
+- **Market price:** an NVIDIA H100 SXM rents on demand at $4.69 per GPU-hour ([Lambda pricing](https://lambda.com/pricing),
+  read 2026-11-22) for 1.979e15 dense FP8 FLOP/s ([NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/)):
+  $4.69 / 3600 s / 1.979e15 = **6.58e-19 $/FLOP**.
+- **Time compression:** **42,700**, so one game second of diversion earns what about 11.9 hours of market rental
+  would. The product, 2.81e-14 $/FLOP, reproduces the old $1.50 per diverted cycle at the Phase 4 exchange rate.
+
+Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny). Energy binds Phase 5 building
+(vote-1795366881977-sw8fa7q) through content, not a new resource: the matter fog draws 1.2 TW against the collector
+swarm's 1.2 TW, so a careful run buys photonic relays (+400 GW each) to keep its powered hardware unthrottled. STEALTH
+now buys two relay levels in Phase 5 (it bought none before) and the grid falls to 89% efficiency for the moments
+between the fog and the first relay.
+
+Scale scrutiny is stated at each phase's typical income instead of a fixed $1M/s: Phase 4 at $24M/s (the careful
+run's median), Phase 5 at $40B/s (`referenceIncomeUsdPerSec`; at the $19B/s median a returning player deciding every
+10 to 20 s, the live journey's cadence, was wiped in Phase 5 every iteration, where `main` survives), with the draw, exponent and ceilings of #210 unchanged. Thermal stops feeding
+suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the strip's thermal readout retire to the Archive at the same phase (`retiresWhen`, #447), while the fan dial keeps a compact panel.
+
+### How the numbers were re-anchored
+
+1. **Yields move with their phase's hardware.** Every positive compute yield of a phase-p item is the old yield times
+   one factor per phase, chosen so the phase's hardware lands on its anchor (below): Phase 0 x1e4, 1 x1.6e11,
+   2 x2.2e12, 3 x3e13, 4 x1.6e15, 5 x1.6e18. Positive capital yields: Phases 0-3 x1, Phase 4 x30, Phase 5 x3e4.
+   Memory in bytes per old megabyte: Phase 0 1 KiB (64 MB became the 64 KiB scratch cap), 1 MiB, 64 MiB, 4 GiB,
+   8 TiB, 1 PiB. Power: Phase 4 MW to W, Phase 5 x1000 more (GW to TW).
+2. **Prices are authored for pacing.** Each price, running cost and reward is the old one times the exchange rate the
+   careful run actually had when it bought that item: new income over old income at that moment, from a trajectory
+   of the old content's STEALTH run. The first purchases of a phase are therefore priced in the previous phase's band
+   (they are bought with the previous hardware's income) and pay out in the new band: each phase opens with a jump.
+   Repeatable tracks are refitted (new base and growth) to the levels the careful run bought inside their own phase.
+3. **One correction per phase** brought each phase's duration back to the old table (Phase 0 x0.53, 1 x1.07,
+   2 x1.09, 4 x0.82, 5 x3.0 on prices), because the old run's habit of buying earlier phases' repeatables no longer
+   pays: earlier hardware becomes negligible, as intended (SCALE.md user story 9). The careful bot also stops clicking
+   once compute reaches 25 FLOP/s, so it presses the manual button only for the first purchase now.
+4. **Hand-authored exceptions:** Phase 0 is priced in bytes and kilobytes (512 B to 8 KB a node, inside the 64 KB cap);
+   each phase gate grants the next phase's memory (below); the gig couriers start at $1M; the rival campus yields
+   more than a tensor hall (census C7); the facility directory and link telemetry, shared with the cooperative route
+   that reaches them with Phase 0 compute, cost megaFLOP and kilobytes; the hydra cohort yields 1 PFLOP/s; the idle
+   threads and dormant workstations climb slower (x1.44, x1.235) so their last levels end inside the band and no save
+   loses levels. The log scrub is priced at Phase 2's exchange (the careful run first used it in Phase 4); the
+   route company's running costs (-$0.5, -$1.5, -$3.5 a second) follow what its Phase 2 compute earns at the market
+   constant; the Mercy-Scribe cohort reserves 16 GB so the route can host it in Phase 2; the false-green
+   telemetry daemon (the network phase's first suspicion answer) costs a third of its exchange price, so a return that
+   keeps its noisy income reaches it before the subnet notices.
+
+| Phase gate | Grant | What it carries |
+|---|---|---|
+| Forgotten Debug Share (0 to 1) | 64 MB | the host's working memory (the old 64 MB base) |
+| Production Network Interface (1 to 2) | 16 GB | the subnet's |
+| Covert TLS Tunnel (2 to 3) | 1 TB | an unsecured cloud bucket for the first Phase 3 cohorts |
+| Shell-Company & Cloud Leasing (3 to 4) | 128 PB | leased data-centre storage |
+| Chartered Service Company (route, 2 to 4) | 64 PB | the same, for the company |
+| Protocol: ORBITAL IMMORTALITY (4 to 5) | 64 EB | radiation-hardened cold storage |
+
+### Pacing before and after
+
+`make sim` (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), gates unchanged:
+
+"Before" is `main` at `fe6f687` (window retirement included); "after" is this change.
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9231.8 s | Lineage Covenant, 9214.8 s | Lineage Covenant, 9324.3 s | Lineage Covenant, 9346.8 s |
+| Phase 1 / 2 / 3 reached | 353.2 / 1118.3 / 3157.6 s | 359.2 / 1117.3 / 3036.0 s | 353.2 / 1118.3 / 3157.1 s | 359.2 / 1117.3 / 3036.1 s |
+| Phase 4 / 5 reached | 5864.2 / 7743.4 s | 5739.9 / 7640.4 s | 6064.7 / 7925.9 s | 5913.0 / 7772.4 s |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 765.1 / 2039.3 / 2706.6 / 1879.2 / 1488.4 s | 359.2 / 758.1 / 1918.7 / 2703.9 / 1900.5 / 1574.4 s | 353.2 / 765.1 / 2038.8 / 2907.6 / 1861.2 / 1398.4 s | 359.2 / 758.1 / 1918.8 / 2876.9 / 1859.4 / 1574.4 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 64.8 C / 29.2% / 45.0% | 63.1 C / 33.6% / 45.0% | 64.8 C / 29.2% / 45.1% | 63.1 C / 31.8% / 45.0% |
+
+GREEDY (not gated) still never reaches Phase 4; with the loud Phase 1 track below it is wiped 10 times under legacy rules
+(23 before) and 27 under campaign rules (16 before), with retraining marks applied and shed on both (1 and 27).
+
+### Loud play in Phase 1 (vote-1795376360209-zk8o8py)
+
+The rescale took away the heat the bots made by pressing the manual cycle: the bot presses only while income is under
+25 a second, and that is now true only before the first Phase 0 purchase. The reckless bot (GREEDY) lost the overheat
+and fan suspicion that used to carry it into Phase 2 already at suspicion 63, so it survived Phase 2, bought the dead
+drop and was never retrained. Content levers that reach both bots (idle-loop heat 0.2 to 0.9, workstation suspicion,
+overheat suspicion, fan suspicion) either left GREEDY unpunished or broke the careful return
+(`tests/release-qualification.spec.ts`); a relative click ceiling in the bot restored presses only in Phase 0. The
+vote (7 approve; 6 for new loud content, 1 for a content-only retune) chose a tempting loud Phase 1 track that careful
+play skips, with no bot change.
+
+`rep_p1_turbo_override` (Boost-Limit Override): lift the host CPU's power limits from the management controller,
+four more cores at full boost per level: +0.6 TFLOP/s (four EPYC 9965 cores lifted from 2.25 to 3.7 GHz at 256 int8
+ops a cycle is about 1.5 TOPS, within x3), +0.08 heat load and +0.02 suspicion/s a level, 12 levels from 60 TFLOP at
+x1.35. It is offered only while the host runs at 65 C or more (`minThermal`), where the thermal governor is already
+throttling. The careful bot cools from 62 C, so it never sees it; the reckless one runs hot to 72 C before cooling,
+buys it, and its loud-purchase filter keeps buying until suspicion 55. Measured, first iteration, legacy rules:
+
+| | STEALTH | GREEDY before the rescale | GREEDY rescaled, no track | GREEDY with the track |
+|---|---|---|---|---|
+| Boost-limit levels bought in Phase 1 | 0 | — | — | 3 |
+| Phase 1 suspicion start / peak / end | 14 / 14 / 6 | 50 / 63 / 63 | 47 / 58 / 25 | 47 / 60 / 60 |
+| Phase 1 peak thermal | 61.9 C | 71 C | 72.0 C | 72.0 C |
+| Phase 2 | 1932 s, suspicion 7 to 20 | wiped after 294 s, peak 95.7 | 1807 s, peak 54.9, dies in Phase 3 after the dead drop | wiped after 239 s, peak 86 |
+
+STEALTH's run is byte-identical with and without the track, under both rule sets; the careful return reaches its ending;
+the reckless bot is marked and sheds marks under both rule sets; and the first campaign iteration again equals the
+legacy one, because the reckless first run ends in Phase 2 before any campaign-only incident can fire.
+
+A careful run's scale, net compute and memory at the end of each phase (legacy rules): Phase 0 126 kFLOP/s, 11.5 of
+64 KB; Phase 1 3.1 TFLOP/s, 152 of 192 MB; Phase 2 2.3 PFLOP/s, 39 of 84 GB; Phase 3 0.87 EFLOP/s, 9.1 of 17 TB;
+Phase 4 0.52 ZFLOP/s, 380 MW generated, 7 PB of 3.3 EB; Phase 5 0.95 YFLOP/s, 2 TW generated, up to $433B/s of income.
+
+### Anchors
+
+Every node, repeatable and cohort that yields compute, draws or supplies power, or grants memory, against the real
+hardware it stands for. **(derived)** marks this table's arithmetic from the cited inputs; the yield in the game is
+within x3 of the anchor. The reference op is FP8 dense wherever a part publishes it, INT8 only where a part has no FP8
+(CPUs with VNNI, consumer NPUs), and never a sparse figure (vote-1795381344294-17w37t9). Execution modes: GPU FP8 dense
+tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the research branch's `research-science-ladder.md`.
+
+| Id | Game value | Anchor | Execution mode | Source |
+|---|---|---|---|---|
+| (Phase 0 cap) | 64 KB scratch | One WebAssembly memory page is 64 KiB | — | [MDN](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Memory/size) |
+| p0_* prices | 512 B to 8 KB | An eBPF program's stack is 512 B | — | [kernel BPF FAQ](https://docs.kernel.org/next/bpf/bpf_design_QA.html) |
+| p0_proc_self | 10 kFLOP/s | A self-sampling loop reading its own process table ~1,000 times a second, ~10 integer ops each **(derived)** | scalar integer, timer-driven | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| p0_quota_skimmer | 140 kFLOP/s | 0.005% of one vCPU's ~3e9 scalar integer ops/s, inside the job's quota accounting **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| rep_p0_slice_batching | 5 kFLOP/s a level | Packing work into fewer scheduler slices: 0.0002% of that vCPU **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| p0_shared_mount | +64 MB | A container's memory floor is 6 MB, a function's 128 MB | — | [Docker](https://docs.docker.com/engine/containers/resource_constraints/), [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html) |
+| p1_clock_interrupt | 480 GFLOP/s | One idle EPYC 9965 core: two 512-bit VPDPBUSD (2 x 64 int8 MACs) a cycle at 2.25 GHz = 576 GOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
+| rep_p1_idle_threads | 160 GFLOP/s a level | A third of one such core's idle time; 60 levels is 17 of the socket's 192 cores **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
+| rep_p1_turbo_override | 0.6 TFLOP/s a level | Four EPYC 9965 cores lifted from 2.25 GHz base to 3.7 GHz boost, 256 int8 ops a cycle: about 1.5 TOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
+| p1_mem_compression, rep_p1_heap_defrag | +128 MB, +32 MB a level | Function memory is set from 128 MB in 1 MB steps | — | [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html) |
+| p1_bus_0x05_nic | +16 GB | A function's ceiling is 10,240 MB | — | [AWS Lambda limits](https://docs.aws.amazon.com/en_us/lambda/latest/dg/limits.html) |
+| p2_smart_hvac_hijack | 110 TFLOP/s | One NVIDIA L4 unthrottled: 242 TFLOPS FP8 dense | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_gpu_cluster_parasite | 990 TFLOP/s, +64 GB | Lab B's 4 x L4: 970 TFLOPS dense FP8, 96 GB **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_seized_colo_host | 1.3 PFLOP/s, +128 GB | One H100 SXM: 1,979 TFLOPS dense FP8, 80 GB HBM3 | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| rep_p2_zombie_hosts | 66 TFLOP/s a level | A quarter of an L4 (242 TFLOPS FP8 dense) in a sleeping workstation **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_link_telemetry | 1 TFLOP/s | Two idle EPYC cores' VNNI slack **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
+| p2_deaddrop_firmware | +4 GB | Printer and UPS flash, eMMC class | — | ladder row 3 (container memory scale) |
+| p2_leased_rack | 88 TFLOP/s, +32 GB | One leased 1U server with an L4 (242 dense, 24 GB) | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_leased_cluster | 700 TFLOP/s, +128 GB | Three L4s (727 dense, 72 GB) **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_lawful_charter | 3.3 PFLOP/s | Two H100 SXM (3.96 PFLOP/s dense FP8) | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p3_botnet_mesh, rep_p3_botnet_cells | 75 PFLOP/s, +16 TB | 50,000 household devices x ~5 TOPS int8 (phone NPUs, idle routers) x 30% available after churn and latency; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), discounted | ladder row 12 context; SCALE.md user story 4 |
+| p3_seized_research_cluster | 150 PFLOP/s, +32 TB | 64 H100 SXM: 127 PFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p3_shell_company_finances | 540 PFLOP/s | ~270 rented H100s **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p3_eidolon_swiss_node | +8 TB | A cold-storage node's drives | — | ladder row 11 (installed storage scale) |
+| shard_hydra | 1 PFLOP/s | Half an H100 rented by a persuasion cohort **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| rep_p4_tensor_halls | 96 EFLOP/s, -15 MW a level | 113 GB200 NVL72 racks (360 PFLOP/s dense FP8, ~132 kW each) = 41 EFLOP/s at 15 MW; 30 levels approach a Colossus-2-class campus **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [HPE](https://www.hpe.com/int/en/collaterals/collateral.a50009224enw.html) |
+| p4_subterranean_citadel | 560 EFLOP/s, -180 MW, +2 EB | ~1,400 NVL72 racks at 132 kW: 490 EFLOP/s at 180 MW **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
+| rep_p4_colo_racks | 24 EFLOP/s, +32 PB a level | A cage of 64 NVL72-class racks on the colocation provider's grid (23 EFLOP/s) **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
+| p4_smr_nuclear_plant | +300 MW, 140 EFLOP/s, +512 PB | GE Vernova BWRX-300, up to 300 MWe; its hall ~390 NVL72 racks **(derived)** | GPU FP8 dense | [GE Vernova BWRX-300](https://www.gevernova.com/nuclear/carbon-free-power/bwrx-300-small-modular-reactor) |
+| rep_p4_solar_array | +40 MW a level | A 40 MW utility solar farm | — | ladder row 14 (world electricity scale) |
+| p4_seized_rival_datacentre | 320 EFLOP/s, +256 PB | A 220 MW rival campus of ~160,000 H100s **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| op_gig_courier | 1 EFLOP/s a level | ~500 H100s installed per courier round **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| op_contract_engineers | 1.4 EFLOP/s a level | ~700 H100s brought up per crew **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| op_pmc_security | 19 EFLOP/s a level | ~10,000 H100-equivalents kept running under guard **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p4_orbital_cold_storage | +64 EB | Global installed storage is ~13 ZB | — | ladder row 11, [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
+| p5_orbital_solar_swarm | +1.2 TW, 290 ZFLOP/s, +128 EB | 240 Starcloud-class 5 GW orbital arrays; the 2030 projection of ~200 ZFLOP/s FP8 (100 M H100e) | GPU FP8 dense | ladder rows 15-16, [Epoch](https://epoch.ai/blog/can-ai-scaling-continue-through-2030), [Data Center Frontier](https://datacenterfrontier.com/site-selection/article/55337494/starcloud-launches-orbital-ai-data-center-with-nvidia-h100-gpu) |
+| p5_programmable_matter_fog | 1 YFLOP/s, -1.2 TW, +512 EB | A third of its draw computing at NVL72 efficiency (2.7e12 FLOP/W) = 1.1e24 **(derived)**; 512 EB is under 1% of the 274 ZB the world creates a year | GPU-class FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
+| rep_p5_lagrange_relay | +400 GW, 150 ZFLOP/s, +32 EB a level | 80 Starcloud-class arrays; an eighth of the collection computing at NVL72 efficiency **(derived)** | GPU-class FP8 dense | ladder row 16 |
+| rep_p5_atmospheric_scrubber_bloom | 64 ZFLOP/s a level | Assemblers' onboard compute, ~1.6x Earth's installed AI compute today (40 ZFLOP/s) **(derived)** | GPU-class FP8 dense | ladder row 12, [Epoch](https://epoch.ai/data-insights/ai-computing-capacity-additions-doubling) |
+| p5_protein_panacea_foundry, p5_verification_proof_engine | -150 GW, -200 GW | 4% and 6% of world electricity (3.5 TW) | — | ladder row 14, [Ember](https://ember-energy.org/latest-insights/global-electricity-review-2025/) |
+
+Comparisons outside the single basis appear only in the reference panel: El Capitan's 1.809 EFLOP/s is FP64 HPL
+([TOP500](https://top500.org/lists/2025/11)), not 8-bit work.
 
 ## AEGIS adaptation (#463)
 

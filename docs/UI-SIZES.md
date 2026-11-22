@@ -56,7 +56,7 @@ the viewport height where no tab bar is docked.
 | phone-390 390x844 | 799 | **427-471**, clears | **489-533**, clears | **561-605**, clears |
 | phone-large 414x896 | 851 | **408-452**, clears | **470-514**, clears | **561-605**, clears |
 | tablet-portrait 768x1024 | 1024 | **471-515**, clears | **597-641**, clears | **647-691**, clears |
-| phone-landscape 844x390 | 345 | 336-380, viewport only | 376-420, below | 448-492, below |
+| phone-landscape 844x390 | 345 | 364-408, below (#461) | 376-420, below | 448-492, below |
 | breakpoint-edge 900x640 | 640 | **422-466**, clears | **529-573**, clears | 620-664, below |
 | tablet-landscape 1024x768 | 768 | **422-466**, clears | **529-573**, clears | **620-664**, clears |
 | breakpoint-three 1080x800 | 800 | **422-466**, clears | **525-569**, clears | **639-683**, clears |
@@ -68,7 +68,10 @@ Bold means the control ends at or above the **usable fold** (`firstUnlockAboveUs
 which is the stricter of the two folds and so implies the viewport one. `viewport only`
 means the box is inside the viewport (`firstUnlockVisible`) but its bottom edge is behind
 the tab bar: at 320x568 the mid-game control ends at 561 inside a 568 viewport while the tab
-bar starts at 523, and at 844x390 the opening control ends at 380 against a bar at 345.
+bar starts at 523. At 844x390 the opening control ended at 380 against a bar at 345 until the physical-units rescale
+(#461): the full-width `COMPUTE 4.14 TFLOP (+2.97 TFLOP/s)` readout no longer packs the strip into one row there, and
+the opening control now reads 364-408, past the 390 viewport. The tier is tolerated and makes no fold promise, so the
+pinned verdict was corrected rather than the strip reshaped.
 `below` means it ends past the viewport. The matrix asserts this table cell by cell, on the
 paused clock: `PAUSED_FOLD` in `tests/e2e/ui-sizes.e2e.ts` holds one of the three verdicts
 for each of the 36 cells, read from the annotation's two fields and nothing else, and a cell
@@ -169,7 +172,7 @@ Above-the-fold cells the spec gates, all on the paused clock:
   1440x900, 1920x1080 and 2560x1440; clears in the opening and mid-game states at 900x640.
   Asserted as **not** clearing, so a fix cannot leave this list stale: insolvency at 360x640
   and at 900x640 (both end past the viewport). Pinned as facts without a promise: 320x568
-  (clears / viewport only / below) and 844x390 (viewport only / below / below).
+  (clears / viewport only / below) and 844x390 (below / below / below since #461).
 - 360x640, each sampled state again in its own case: forecast above the fold and at most
   64px tall; the opening and mid-game purchase clearing, the insolvency purchase below.
 - 360x640 mid-game (`mid-game at the floor`): the purchase ends at or above the docked tab
@@ -191,8 +194,8 @@ destination) and whether its box is fully on screen, per sampled state. `cols` i
 core column width early → later phases (the phase's own slot takes the larger share);
 `card` is the widest node card in that state. The yes/no is the **viewport** verdict
 (`firstUnlockVisible`), which is the basis the contract uses; the usable-fold verdict is in
-the first table under "Supported floor". Two cells differ between the two bases: 320x568
-mid-game and 844x390 opening are inside the viewport and behind the tab bar.
+the first table under "Supported floor". One cell differs between the two bases: 320x568
+mid-game is inside the viewport and behind the tab bar (844x390 opening was the second until #461 moved it below).
 
 | Size | cols | core | sensors | side | card (early / mid / warning) | phase-1-widgets | epistemic-ready-p2 | corporate-insolvent |
 |---|---|---|---|---|---|---|---|---|
@@ -201,7 +204,7 @@ mid-game and 844x390 opening are inside the viewport and behind the tab bar.
 | 390x844 | mobile | — | — | — | 358 / 328 / 328 | 427 (yes) | 489 (yes) | 561 (yes) |
 | 414x896 | mobile | — | — | — | 382 / 352 / 352 | 408 (yes) | 470 (yes) | 561 (yes) |
 | 768x1024 | two | 428 → 384 | — | 340 → 385 | 396 / 322 / 322 | 471 (yes) | 597 (yes) | 647 (yes) |
-| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 336 (yes) | 376 (**no**) | 448 (**no**) |
+| 844x390 | mobile | — | — | — | 728 / 698 / 698 | 364 (**no**, #461) | 376 (**no**) | 448 (**no**) |
 | 900x640 | two | 560 → 450 | — | 340 → 451 | 528 / 388 / 388 | 422 (yes) | 529 (yes) | 620 (**no**) |
 | 1024x768 | two | 682 → 512 | — | 342 → 513 | 650 / 450 / 450 | 422 (yes) | 529 (yes) | 620 (yes) |
 | 1080x800 | three | 720 → 340 | 360 → 340 | 0 → 400 | 688 / 337 / 337 | 422 (yes) | 525 (yes) | 639 (yes) |

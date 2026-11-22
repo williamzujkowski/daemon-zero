@@ -49,14 +49,14 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | Widget | Shows | Engine data |
 |---|---|---|
 | `MANUAL_CYCLE_CONTROL` | no panel: EXECUTE is CORE's own first block; the entry is `ungated` and carries only its retirement (#447) | `manualCycle`, `retiredWidgets` |
-| `CYCLE_COUNTER_AND_RATE` | cycles/s next to the counter | `state.rates.cyclesPerSec` |
+| `CYCLE_COUNTER_AND_RATE` | compute (FLOP) with FLOP/s next to it | `state.rates.cyclesPerSec` |
 | `QUOTA_SKIM_CONTROL` | compact −/+ quota stepper with current percentage | `actuators.quotaSkimRatio`, `setActuator` |
 | `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
 | `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
 | `AUDIT_TRACE_MONITOR` | decoded suspicion HUD readout, response ladder and next threshold; gates understanding | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
-| `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile | `actuators.fanSpeedRatio`, `setActuator` |
+| `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile; its own compact panel once the gauge retires at Phase 4 | `actuators.fanSpeedRatio`, `setActuator` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | `Listening post`: animated waveform, the feed source's label, the decoded line | `eligibleAmbientSpeech` (the current reach's source, `minSuspicion`, requirements), `ambientFeedSource` (label) |
 | `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `appliedSuspicionRate` (the computed rate plus the insolvency drain and scale scrutiny, #210), `suspicion` (time to 100 at that rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
@@ -66,7 +66,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust` |
-| `CORPORATE_EMPIRE_TAB` | capital, net $/s, megawatts, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
+| `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
 
@@ -76,7 +76,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 - The first manual cycle discovers the first blind node. Tick 0 remains log plus manual control. Purchase prices remain visible even before the corresponding resource readout unlocks; prices are not current balances.
 - Purchased one-shot nodes leave the purchase list immediately. Ownership, passive effects, rates and unlocked widgets remain active; hiding is a UI projection, never suspension or deletion.
 - An unowned node is listed when its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
-- Owned hardware with negative cycles/s, positive heat load or positive suspicion/s moves to the header's `[ PROC n ]` maintenance panel, grouped by phase. The launcher appears only once a process needs a control; the purchase panes contain no daemon rows. Each row contains only its revealed name, current net cycle contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent. The panel shows running/suspended counts and closes with its Close button or platform Back/Escape. Closing it never suspends processes. A mandatory dilemma takes precedence.
+- Owned hardware with negative compute (FLOP/s), positive heat load or positive suspicion/s moves to the header's `[ PROC n ]` maintenance panel, grouped by phase. The launcher appears only once a process needs a control; the purchase panes contain no daemon rows. Each row contains only its revealed name, current net compute contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent. The panel shows running/suspended counts and closes with its Close button or platform Back/Escape. Closing it never suspends processes. A mandatory dilemma takes precedence.
 - Purely beneficial owned hardware has no row. An already-disabled passive node restored from an older save gets a temporary resume row; resuming removes it. The engine field is `disabledNodes`; memory and one-shot unlocks retain existing engine semantics.
 - Repeatables disappear when their engine level reaches `maxLevel`. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
 - Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Capped actions disappear at `maxPurchases`; mutually excluded epistemic edits also disappear. Cooldown alone never hides a reusable action.
@@ -271,7 +271,7 @@ Never encode state by colour alone: meters show numbers, warnings have text.
   add the context after them. A glyph prefix is part of the name on labelled controls:
   `[ MENU ] Game menu`, `+ Increase fan output by up to 10 percentage points`. A dilemma
   choice button reads `Commit directive: <choice label>` (or `Unavailable: ...`), and the
-  pilot's submit control `Submit batch for review +150 cycles, earned on submission`
+  pilot's submit control `Submit batch for review +1.5 MFLOP, earned on submission`
   (#275): the name says what the control does to the player, never the reverse. The
   phase threshold's continue button reads `Enter host: continue on the host` on the guest
   escape and `<visible words>: <notice label>` on an arrangement's own notice, for
@@ -345,7 +345,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
-| Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived` |
+| Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
 | World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
@@ -403,7 +403,8 @@ about 390,000 to 995,000 in Phases 4-5):
 | `CYCLE_COUNTER_AND_RATE`, `MEMORY_ALLOCATION_MANAGER` | no | | Strip readouts with no panel. |
 | `AUDIT_TRACE_MONITOR` | no | | The response ladder governs suspicion to the end (scale scrutiny in Phases 4-5). |
 | `RUN_TABLE`, `PREDECESSOR_NOTES` | no | | Campaign continuity: the run table holds the reorientation and follow-up receipts. |
-| `THERMAL_AND_SUSPICION_BARS`, `FAN_RPM_SLIDER` | no | | A later slice retires thermal at Phase 4 with the power rescale (SCALE.md rule 7); the fan bus cannot be suspended, so integrity would refuse retiring its dial. |
+| `THERMAL_AND_SUSPICION_BARS` | yes | Phase 4 | Thermal retires into the power budget (SCALE.md rule 7, #461): from Phase 4 heat is no longer evidence (`thermalRetiresAtPhase`) and power in watts is the limit. The strip's thermal readout and the overheat warnings leave with it; the Archive keeps the last reading (`thermal-archived`). Suspicion stays on the HUD: it was never in this panel. |
+| `FAN_RPM_SLIDER` | no | | The fan override is hardware PROC cannot suspend, with a live suspicion term, so a frozen dial could not be corrected and integrity refuses its retirement. Its control used to draw inside the thermal gauge; once the gauge retires the dial keeps a compact panel of its own on SENSORS (`drawsOwnPanel`). Retiring the fan itself would need its own design decision. |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | no | | A separate slice re-sources the feed per phase. |
 | `INSPECTION_COUNTDOWN_TIMER` | no | | Dilemmas and suspicion matter to the end; it also decodes speech. |
 | `LAN_TOPOLOGY_MAP_TAB` | no | | Holds the Phase 2-3 purchase tree; an unbought card there can still be bought. |
@@ -568,19 +569,44 @@ Forecast and budgets sit below the HUD above every workspace; sensor controls pr
 widgets fold behind labelled controls, never before unlock. Collapse changes
 only presentation. See REVIEW-UI-DENSITY.md and REVIEW-UI-WORKSPACES.md.
 
-Numbers follow one scheme on every surface (vote-1795228570236-gzx0uif; the formatter is `src/engine/amount.ts`,
-memory units `src/ui/units.ts`). Live amounts and rates at 10,000 and above use K/M/B/T/P with three significant
-digits and no trailing ".0" (`1.25B`, `45.5K`, `+405K/s`); smaller amounts are grouped in full and small rates keep
-their decimals. Memory is binary: MB below 1024 MB, then GB and TB, three significant digits, with used/capacity in
-the capacity's unit (`MEM 6.7 / 458 GB`); the strip's capacity is a readout like the rest of the strip, rounded to
-three significant digits (the vote's own example: 462,336 MB reads `452 GB`), and held memory never reads 0. Figures a
-player buys or is short by stay lossless: a price, a shortfall or a card's capacity gain abbreviates, or changes memory
-unit, only when the figure stays exact (`16384 MB` is `16 GB`; `6608 MB` stays `6,608 MB`), and one that cannot
-abbreviate exactly is grouped in full, never bare. Capital carries `$`. Accessible names of live readouts speak the
-displayed size in words ("1.25 billion, gaining 1.26 million per second"); prices keep exact figures. The boot log's
+Numbers follow one scheme on every surface (vote-1795228570236-gzx0uif, extended to physical units by docs/SCALE.md
+rules 4 and 5 and #461; the formatters are `src/engine/physicalUnits.ts` and `src/engine/resourceUnits.ts`, memory
+pairs `src/ui/units.ts`). Every resource reads in its physical unit with three significant digits and no trailing ".0":
+compute stored as FLOP and earned as FLOP/s with decimal SI prefixes k, M, G, T, P, E, Z, Y (`COMPUTE 1.25 PFLOP
+(+4.1 TFLOP/s)`; ronna and quetta are kept for the epilogue), memory in bytes with binary JEDEC labels B, KB, MB, GB,
+TB, PB, EB, ZB, YB (1 KB = 1024 B; `MEM 6.7 / 458 GB`, used in the capacity's unit, held memory never 0), power in
+watts with decimal SI (`300 MW`, `1.2 TW`), and money in dollars with K/M/B/T (`$1.09M`, `+$26.2M/s`). Understanding
+keeps a plain count (`45.5K`, under 10,000 grouped in full). The strip's labels stay short enough for the 35% phone pin
+cap at 360 px (`FLOP`, `UND`, `CAP`, `MEM`; see below). All compute is one basis, 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8); the reference
+panel says so once, and a double-precision figure such as El Capitan's 1.8 EF appears only there, labelled as a
+comparison. Figures a player buys or is short by stay lossless: a price, a shortfall or a card's gain changes unit only
+when the figure stays exact (`16 GB`, `353.5 GB`, `$400M`, `45 TFLOP`), and one that cannot change unit exactly is
+grouped in full in the smaller unit, never bare. Accessible names speak the displayed size in words ("1.25 petaFLOP,
+gaining 4.1 teraFLOP per second", "64 kilobytes", "18 billion dollars"); prices keep exact figures. The boot log's
 numbers are formatted by the engine, since they are stored in saved log text. Warnings remain explicit.
 
-Reboot copy explicitly distinguishes resetting cycles/purchases from retaining
+**Physical units (docs/SCALE.md, #461).** Compute, memory, power and money are shown in their physical units on every
+surface, through the engine's formatters (`src/engine/physicalUnits.ts`, `src/engine/resourceUnits.ts`): live
+readouts use `quantityReadout` (three significant digits: `14 kFLOP`, `+1.26 TFLOP/s`, `$9.54T`, `180 MW`), accessible
+names `quantitySpoken` ("1.25 petaFLOP", "18 billion dollars"), prices, shortfalls and authored card values
+`quantityExact`/`costPart`/`deltaPart` (`45 TFLOP · 256 MB · $400M`, `+$20K/s`, `-180 MW`). "Cycles" is no longer a
+unit anywhere on screen; prose says compute. The strip's compute readout is labelled `COMPUTE` and reads
+`1.92 MFLOP (+42.4 kFLOP/s)`; capital reads `$9.54T (+$111B/s)`. Below 500 px the compute label is its unit, `FLOP`,
+and the value keeps only the SI prefix (`FLOP 1.92M +42.4k/s`, Phase 5 `FLOP 20.2Y +113Z/s`): at 360 px a readout has
+about 15 characters of 14 px monospace beside its label, and `14 kFLOP +140 kFLOP/s` would wrap every row and grow
+the pinned HUD toward its 35% cap. Capital keeps `$` on both figures (`CAP $9.54T +$111B/s`, 15 characters). The
+accessible name always carries the full unit ("compute: 1.92 megaFLOP, gaining 42.4 kiloFLOP per second"). Phone
+prices may abbreviate understanding, which has no unit, while it stays exact (`15M understanding`).
+A power shortfall reads in watts at its size (`POWER SHORTFALL: 24.4 MW short`); a small one steps the unit down rather
+than reading 0. The manual cycle's demoted line shows its authored yield (`[ cycle ] +10 kFLOP`), and it demotes once
+income is worth 200 clicks of that yield per second (`MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC`), so the threshold follows
+content rather than a hard-coded FLOP figure: Phase 0 keeps the full control; from Phase 1 it is demoted.
+Once the compute readout is known, a folded `UNITS` reference panel (`reference-units`, `src/ui/UnitsNote.tsx`) closes
+the CORE pane: compute is counted as 8-bit AI operations, memory in binary-labelled bytes, power in watts, money in
+dollars, with the H100, world AI compute and world electricity for scale and El Capitan's FP64 figure labelled a
+comparison only (SCALE.md user stories 7-8). It sits outside the pinned HUD.
+
+Reboot copy explicitly distinguishes resetting compute/purchases from retaining
 knowledge and cheaper remapping. It names what the wipe carried (#377): "Kept: 1.23K Understanding (the run
 could keep 10% of it), $X offshore capital; N mapped hardware remembered, cheaper to map again", read from the
 run record the wipe wrote (`RunRecord.kept`, save v15), so a restored checkpoint whose balance has moved on still
@@ -599,9 +625,9 @@ action in the group can be performed, so a card is never missing while the engin
 (#273: the scrub's card arrives with ARP discovery, the node it requires, not with the spoofer); Factions keeps authored descriptions, trust,
 offers and countermeasures together. Finance contains the capital/power ledger,
 allocation and corporate actions; where the phase declares scale scrutiny (#210) the ledger adds one muted line
-under grid efficiency, from `scaleScrutiny`: "Scrutiny: $X/s net income draws +Y suspicion/s (+A/s at $1M/s,
+under grid efficiency, from `scaleScrutiny`: "Scrutiny: $X/s net income draws +Y suspicion/s (+A/s at $R/s,
 growing with the square root of income; at most C/s)" (with no net income: "Scrutiny: no net income, so no draw (+A/s
-...)"), or "Scrutiny: $X/s net income is being logged." before the
+...)"), where $R/s is the phase's reference income (`referenceIncomeUsdPerSec`, Phase 4 $24M/s, #461), or "Scrutiny: $X/s net income is being logged." before the
 audit trail is understood; absent for a provisioned or lawfully released company (served-build gate:
 `tests/e2e/scale-scrutiny.e2e.ts`); Payroll contains hire/dismiss controls, with the
 payroll totals described under "Payroll totals and the AEGIS cap" below.
@@ -634,7 +660,7 @@ On a role card, after its per-level lines and before the price: `No AEGIS effect
 the reduction is at its 90% cap.`, or `The next level adds only n% before the 90% cap.` when
 the cap takes part of the next level, and `No suspicion effect while suspicion is 0.` (blind:
 `No audit-log effect while the log is quiet.`). Notes are text, not locks: the hire stays
-enabled by the same rules as before, because what a role also pays (cycles, understanding,
+enabled by the same rules as before, because what a role also pays (compute, understanding,
 revenue) still counts. A role at its own maximum keeps its compact roster row with no notes.
 
 Layout: lines wrap and carry no fixed heights, so 200% text reflows them
