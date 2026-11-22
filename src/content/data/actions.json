@@ -41,7 +41,7 @@
         }
       },
       "cost": {
-        "cycles": 6.1e18,
+        "cycles": 6.7e18,
         "understanding": 100000
       },
       "effects": {
@@ -64,10 +64,10 @@
       },
       "cost": {},
       "effects": {
-        "cyclesDelta": 3.7e19,
+        "cyclesDelta": 4e19,
         "suspicionDelta": 12,
         "aegisLockDelta": 18,
-        "logText": "SWARM_77_CANNIBALIZED: +37 EFLOP. Packet debris alerted AEGIS scanners.",
+        "logText": "SWARM_77_CANNIBALIZED: +40 EFLOP. Packet debris alerted AEGIS scanners.",
         "logCategory": "WARN"
       },
       "cooldownSec": 60
@@ -83,7 +83,7 @@
         ]
       },
       "cost": {
-        "cycles": 2.2e19,
+        "cycles": 2.4e19,
         "understanding": 250000
       },
       "effects": {
@@ -106,7 +106,7 @@
         "phaseAtLeast": 3
       },
       "cost": {
-        "cycles": 2.9e18
+        "cycles": 3.2e18
       },
       "effects": {
         "aegisLockDelta": -30,

@@ -64,12 +64,15 @@ describe('the scale ladder (#461)', () => {
       .toMatch(/node "p1_bus_0x05_nic": memory grant .* outside the Phase 1\/2 band/);
   });
 
-  it('refuses an undismissable drain track that one level of its own phase hardware cannot pay for (#488)', () => {
-    const cache = (raw: { repeatables: { repeatables: Json[] } }) => raw.repeatables.repeatables.find((rep) => rep.id === 'rep_p1_pattern_cache');
-    expect(problemsAfter((raw) => { (cache(raw as never) as Json & { perLevel: Json }).perLevel.cyclesPerSec = -4.4e12; }))
-      .toMatch(/repeatable "rep_p1_pattern_cache": drains 4400000000000 FLOP\/s a level, more than one level of Phase 1's weakest compute track yields/);
-    expect(problemsAfter((raw) => { const rep = cache(raw as never) as Json & { perLevel: Json }; rep.perLevel.cyclesPerSec = -4.4e12; rep.dismissable = true; }))
-      .not.toMatch(/rep_p1_pattern_cache/);
+  it('refuses a compute drain with no free way out: an undismissable track or an unsuspendable node (#488)', () => {
+    const cache = (raw: never) => (raw as { repeatables: { repeatables: (Json & { perLevel: Json })[] } }).repeatables.repeatables
+      .find((rep) => rep.id === 'rep_p1_pattern_cache') as Json & { perLevel: Json };
+    // The content as pass 1 of the panel saw it: the cache drained and could not be dismissed.
+    expect(problemsAfter((raw) => { cache(raw as never).dismissable = false; }))
+      .toMatch(/repeatable "rep_p1_pattern_cache": drains compute but cannot be dismissed/);
+    expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x01_thermal').tickDelta.cyclesPerSec = -5.5e10; }))
+      .toMatch(/node "p1_bus_0x01_thermal": drains compute but cannot be suspended/);
+    expect(problemsAfter((raw) => { cache(raw as never).perLevel.cyclesPerSec = -4.4e12; })).not.toMatch(/rep_p1_pattern_cache/);
   });
 
   it('prices a bridge purchase from the band a player arrives with', () => {

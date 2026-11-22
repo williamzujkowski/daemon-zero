@@ -39,7 +39,7 @@
       "forkable": true,
       "maxCount": 5,
       "cost": {
-        "cycles": 9.7e16,
+        "cycles": 1.1e17,
         "understanding": 3000,
         "memory": 1099511627776
       },

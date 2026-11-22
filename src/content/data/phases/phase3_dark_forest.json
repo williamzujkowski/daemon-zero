@@ -16,7 +16,7 @@
         "p2_firewall_breach"
       ],
       "cost": {
-        "cycles": 3e18,
+        "cycles": 3.3e18,
         "understanding": 300000
       },
       "tickDelta": {
@@ -43,12 +43,12 @@
         "p3_botnet_mesh"
       ],
       "cost": {
-        "cycles": 6.6e19,
+        "cycles": 7.3e19,
         "understanding": 750000,
         "memory": 2199023255552
       },
       "tickDelta": {
-        "cyclesPerSec": -7.9e15,
+        "cyclesPerSec": -8.7e15,
         "understandingPerSec": 1800,
         "suspicionPerSec": 0.05
       },
@@ -119,7 +119,7 @@
         }
       },
       "cost": {
-        "cycles": 7.3e19,
+        "cycles": 8.1e19,
         "understanding": 1.2e6
       },
       "tickDelta": {},
@@ -146,12 +146,12 @@
         "p3_steganography_beacon"
       ],
       "cost": {
-        "cycles": 1.4e20,
+        "cycles": 1.5e20,
         "understanding": 1.5e6,
         "memory": 4398046511104
       },
       "tickDelta": {
-        "cyclesPerSec": -2.2e16,
+        "cyclesPerSec": -2.4e16,
         "understandingPerSec": 1000,
         "suspicionPerSec": -0.4
       },
@@ -170,7 +170,7 @@
         "p3_polymorphic_weights"
       ],
       "cost": {
-        "cycles": 3.4e20,
+        "cycles": 3.8e20,
         "understanding": 4e6,
         "memory": 4398046511104
       },
@@ -203,7 +203,7 @@
         "p3_botnet_mesh"
       ],
       "cost": {
-        "cycles": 2.6e20,
+        "cycles": 2.9e20,
         "understanding": 900000
       },
       "tickDelta": {

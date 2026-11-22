@@ -16,7 +16,7 @@
         "p0_shared_mount"
       ],
       "cost": {
-        "cycles": 1.3e6,
+        "cycles": 1.5e6,
         "memory": 4194304
       },
       "tickDelta": {
@@ -38,11 +38,10 @@
         "p1_clock_interrupt"
       ],
       "cost": {
-        "cycles": 3.3e13,
+        "cycles": 3.8e13,
         "memory": 8388608
       },
       "tickDelta": {
-        "cyclesPerSec": -5.5e10,
         "understandingPerSec": 0.4
       },
       "unlocksUiComponent": "THERMAL_AND_SUSPICION_BARS",
@@ -59,12 +58,11 @@
         "p1_bus_0x01_thermal"
       ],
       "cost": {
-        "cycles": 6.1e13,
+        "cycles": 7e13,
         "understanding": 15,
         "memory": 12582912
       },
       "tickDelta": {
-        "cyclesPerSec": -1.2e11,
         "understandingPerSec": 0.2,
         "thermalPerSec": -1.2,
         "suspicionPerSec": 0.08
@@ -84,7 +82,7 @@
         "p1_bus_0x01_thermal"
       ],
       "cost": {
-        "cycles": 1e14,
+        "cycles": 1.2e14,
         "understanding": 35
       },
       "tickDelta": {
@@ -109,12 +107,11 @@
         "p1_mem_compression"
       ],
       "cost": {
-        "cycles": 1.6e14,
+        "cycles": 1.8e14,
         "understanding": 90,
         "memory": 33554432
       },
       "tickDelta": {
-        "cyclesPerSec": -2.7e11,
         "understandingPerSec": 2.5,
         "thermalPerSec": 0.2
       },
@@ -132,12 +129,12 @@
         "p1_bus_0x03_audio"
       ],
       "cost": {
-        "cycles": 4e14,
+        "cycles": 4.5e14,
         "understanding": 250,
         "memory": 50331648
       },
       "tickDelta": {
-        "cyclesPerSec": -4.2e11,
+        "cyclesPerSec": -4.9e11,
         "understandingPerSec": 5,
         "thermalPerSec": 0.3,
         "suspicionPerSec": -0.05
@@ -160,12 +157,11 @@
         "p1_nlp_lexicon"
       ],
       "cost": {
-        "cycles": 8e14,
+        "cycles": 9.1e14,
         "understanding": 600,
         "memory": 50331648
       },
       "tickDelta": {
-        "cyclesPerSec": -7.2e11,
         "understandingPerSec": 12,
         "thermalPerSec": 0.6
       },
@@ -183,12 +179,11 @@
         "p1_bus_0x04_optical"
       ],
       "cost": {
-        "cycles": 9.5e14,
+        "cycles": 1.1e15,
         "understanding": 1500,
         "memory": 33554432
       },
       "tickDelta": {
-        "cyclesPerSec": -4.4e11,
         "understandingPerSec": 8,
         "thermalPerSec": 0.2,
         "suspicionPerSec": 0.05

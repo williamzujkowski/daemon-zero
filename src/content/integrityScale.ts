@@ -116,19 +116,20 @@ function checkOneShots(reg: ContentRegistry): string[] {
 }
 
 /**
- * A track the player cannot dismiss may not drain more compute per level than one level of its own phase's weakest
- * compute track yields (#488 panel): whatever income bought the drain, one more level of the phase's own hardware pays
- * for it, so a level bought never leaves the run in a deficit it cannot climb out of.
+ * Nothing bought may cost compute forever without a free way out (#488 panel): a repeatable with a compute drain must be
+ * dismissable one level at a time, and a node with one must be suspendable. Hardware cannot be suspended (maintainer
+ * intent), so hardware carries no compute drain; its running cost is heat and attention.
  */
 function checkDrains(reg: ContentRegistry): string[] {
-  const reps = [...reg.repeatables.values()];
   const problems: string[] = [];
-  for (const rep of reps) {
-    const drain = -rep.perLevel.cyclesPerSec;
-    if (drain <= 0 || rep.dismissable) continue;
-    const gains = reps.filter((other) => other.phaseId === rep.phaseId && other.perLevel.cyclesPerSec > 0).map((other) => other.perLevel.cyclesPerSec);
-    if (gains.length === 0 || drain > Math.min(...gains)) {
-      problems.push(`repeatable "${rep.id}": drains ${String(drain)} FLOP/s a level, more than one level of Phase ${String(rep.phaseId)}'s weakest compute track yields`);
+  for (const rep of reg.repeatables.values()) {
+    if (rep.perLevel.cyclesPerSec < 0 && !rep.dismissable) {
+      problems.push(`repeatable "${rep.id}": drains compute but cannot be dismissed, so a level bought could never be undone`);
+    }
+  }
+  for (const node of reg.nodes.values()) {
+    if (node.tickDelta.cyclesPerSec < 0 && !node.suspendable) {
+      problems.push(`node "${node.id}": drains compute but cannot be suspended, so its deficit could never be undone`);
     }
   }
   return problems;

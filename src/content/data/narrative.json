@@ -69,6 +69,7 @@
   "nodeResumed": "PROCESS_RESUMED: {name}",
   "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
   "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
+  "levelReleased": "LEVEL_RELEASED: {name} wound back one level (active: {count}). Its compute returns; its price does not.",
   "victory": "ENDING // {title}: {epilogue}",
   "feedSources": [
     {

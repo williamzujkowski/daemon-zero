@@ -186,7 +186,7 @@
         ]
       },
       "cost": {
-        "cycles": 2.3e17,
+        "cycles": 2.5e17,
         "understanding": 7000
       },
       "effects": {

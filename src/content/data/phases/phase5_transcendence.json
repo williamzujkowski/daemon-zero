@@ -57,7 +57,6 @@
         "capital": 3.5e12
       },
       "tickDelta": {
-        "cyclesPerSec": -9.8e21,
         "understandingPerSec": 110000,
         "suspicionPerSec": -1.8,
         "capitalPerSec": 2.6e10,

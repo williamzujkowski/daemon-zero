@@ -166,7 +166,9 @@ export function dismissRepeatable(s: GameState, id: string, reg: ContentRegistry
   if (level <= 0) return refuse(s, 'nothing to dismiss');
   const d: GameState = { ...s, levels: { ...s.levels, [id]: level - 1 } };
   d.memoryCap -= rep.perLevelEffects.memoryCapIncrease;
-  pushLog(d, reg, fmt(reg.narrative.operativeDismissed, { name: rep.name, count: level - 1 }), 'CORP');
+  // A hire is let go; any other track (a compute drain, #488) is wound back a level.
+  const line = rep.kind === 'OPERATIVE' ? reg.narrative.operativeDismissed : reg.narrative.levelReleased;
+  pushLog(d, reg, fmt(line, { name: rep.name, count: level - 1 }), rep.kind === 'OPERATIVE' ? 'CORP' : 'SYS');
   return accept(d);
 }
 

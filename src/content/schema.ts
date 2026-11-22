@@ -497,6 +497,8 @@ export const NarrativeSchema = z.strictObject({
   nodeResumed: z.string(),
   operativeHired: z.string(),
   operativeDismissed: z.string(),
+  /** An undone level of a track that is not a hire (a drain the player releases, #488): no contract to terminate. */
+  levelReleased: z.string(),
   victory: z.string(),
   /** What the decoded feed listens to at each reach (#449): one source per phase, named on screen by `label`. */
   feedSources: z.array(FeedSourceSchema).min(1),

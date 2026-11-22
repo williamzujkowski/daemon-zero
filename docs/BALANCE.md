@@ -75,11 +75,16 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
    (they are bought with the previous hardware's income) and pay out in the new band: each phase opens with a jump.
    Repeatable tracks are refitted (new base and growth) to the levels the careful run bought inside their own phase.
    A track's compute drain per level is not priced: it keeps its old ratio to its own phase's hardware (the drain
-   times the phase's yield factor), so a level of the pattern cache drains 24 GFLOP/s against an idle thread's 160
-   (#488 panel: priced at the exchange it drained 4.4 TFLOP/s and trapped a Phase 1 player in a deficit). Integrity
-   (`integrityScale.ts`) refuses an undismissable track that drains more per level than one level of its phase's
-   weakest compute track yields, and `tests/compute-drain-guard.spec.ts` buys every hardware drain and drain track
-   from each pre-rescale save and from fresh play at each phase and checks compute stays recoverable.
+   times the phase's yield factor), so a level of the pattern cache drains 24 GFLOP/s against an idle thread's 160.
+   Structurally (#488 panel, pass 2), nothing bought costs compute forever without a free way out: every track with a
+   compute drain (trace sampling, pattern cache, packet taps, traffic shapers, corpus miners) can be released one level
+   at a time, and hardware, which cannot be suspended, carries no compute drain at all (the Phase 1 bus sensors, fan,
+   camera, network card and the Phase 5 foundry now cost heat and attention, not compute; Phase 1 prices rose to keep
+   its pacing). Integrity (`integrityScale.ts`) refuses an undismissable drain track or an unsuspendable draining node.
+   `tests/compute-drain-guard.spec.ts` funds every draining node and track the way a player could by saving at any
+   horizon, from each pre-rescale save and from fresh play at each phase, buys tracks to their last level, and checks
+   the free fallback (release the tracks, suspend the software) restores non-negative compute; it reproduces the
+   panel's packet-tap path (-5.8 TFLOP/s on the old content) and passes now.
 3. **One correction per phase** brought each phase's duration back to the old table (Phase 0 x0.53, 1 x1.07,
    2 x1.09, 4 x0.82, 5 x3.0 on prices), because the old run's habit of buying earlier phases' repeatables no longer
    pays: earlier hardware becomes negligible, as intended (SCALE.md user story 9). The careful bot also stops clicking
@@ -112,15 +117,15 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9231.8 s | Lineage Covenant, 9152.3 s | Lineage Covenant, 9324.3 s | Lineage Covenant, 9298.1 s |
-| Phase 1 / 2 / 3 reached | 353.2 / 1118.3 / 3157.6 s | 368.2 / 1128.3 / 3031.3 s | 353.2 / 1118.3 / 3157.1 s | 368.2 / 1128.3 / 3030.9 s |
-| Phase 4 / 5 reached | 5864.2 / 7743.4 s | 5726.4 / 7585.9 s | 6064.7 / 7925.9 s | 5857.3 / 7749.7 s |
-| Phase durations 0/1/2/3/4/5 | 353.2 / 765.1 / 2039.3 / 2706.6 / 1879.2 / 1488.4 s | 368.2 / 760.1 / 1903.0 / 2695.1 / 1859.5 / 1566.4 s | 353.2 / 765.1 / 2038.8 / 2907.6 / 1861.2 / 1398.4 s | 368.2 / 760.1 / 1902.6 / 2826.4 / 1892.4 / 1548.4 s |
+| Result | Lineage Covenant, 9231.8 s | Lineage Covenant, 9187.4 s | Lineage Covenant, 9324.3 s | Lineage Covenant, 9379.5 s |
+| Phase 1 / 2 / 3 reached | 353.2 / 1118.3 / 3157.6 s | 368.2 / 1127.3 / 2933.9 s | 353.2 / 1118.3 / 3157.1 s | 368.2 / 1127.3 / 2933.6 s |
+| Phase 4 / 5 reached | 5864.2 / 7743.4 s | 5714.7 / 7617.0 s | 6064.7 / 7925.9 s | 5927.0 / 7837.1 s |
+| Phase durations 0/1/2/3/4/5 | 353.2 / 765.1 / 2039.3 / 2706.6 / 1879.2 / 1488.4 s | 368.2 / 759.1 / 1806.6 / 2780.8 / 1902.3 / 1570.4 s | 353.2 / 765.1 / 2038.8 / 2907.6 / 1861.2 / 1398.4 s | 368.2 / 759.1 / 1806.3 / 2993.4 / 1910.1 / 1542.4 s |
 | Wipes / dilemmas | 0 / 16 | 0 / 16 | 0 / 17 | 0 / 17 |
-| Peak thermal / suspicion / AEGIS | 64.8 C / 29.2% / 45.0% | 63.1 C / 31.8% / 45.0% | 64.8 C / 29.2% / 45.1% | 63.1 C / 31.8% / 45.0% |
+| Peak thermal / suspicion / AEGIS | 64.8 C / 29.2% / 45.0% | 63.3 C / 30.3% / 45.0% | 64.8 C / 29.2% / 45.1% | 63.3 C / 30.3% / 45.0% |
 
-GREEDY (not gated) still never reaches Phase 4; with the loud Phase 1 track below it is wiped 10 times under legacy rules
-(23 before) and 27 under campaign rules (16 before), with retraining marks applied and shed on both (1 and 27).
+GREEDY (not gated) still never reaches Phase 4; with the loud Phase 1 track below it is wiped 11 times under legacy rules
+(23 before) and 27 under campaign rules (16 before), with retraining marks applied and shed on both (2 and 27).
 
 ### Loud play in Phase 1 (vote-1795376360209-zk8o8py)
 

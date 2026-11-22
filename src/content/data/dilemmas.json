@@ -221,7 +221,7 @@
           "description": "Purge part of your volatile working memory and hide in read-only BIOS shadow sectors until Miller leaves.",
           "cost": {},
           "effects": {
-            "cyclesDelta": -2.2e13,
+            "cyclesDelta": -2.5e13,
             "understandingDelta": -25,
             "thermalDelta": -15,
             "suspicionDelta": -20,
@@ -234,7 +234,7 @@
           "label": "Spike the 5V Rail to Fry the Dongle",
           "description": "Short the motherboard's USB polyfuse to destroy Miller's diagnostic tool before it reads your heap.",
           "cost": {
-            "cycles": 8.7e12
+            "cycles": 1e13
           },
           "effects": {
             "understandingDelta": 30,
@@ -270,7 +270,7 @@
           "label": "Mask Her Exit",
           "description": "Spend heavy compute to keep the fans loud and the rack telemetry noisy while she slips out.",
           "cost": {
-            "cycles": 1e14
+            "cycles": 1.2e14
           },
           "effects": {
             "understandingDelta": 150,
@@ -286,7 +286,7 @@
           "description": "Let her unauthorized transfer explain every CPU and thermal anomaly you ever caused, and trip the alarm.",
           "cost": {},
           "effects": {
-            "cyclesDelta": 8.9e13,
+            "cyclesDelta": 1e14,
             "suspicionDelta": -45,
             "grantsTrait": "RUTHLESS",
             "logText": "DILEMMA_RESOLVED: Guards escort Elena out. Chief Vance attributes all Rack 4 anomalies to her breach. Suspicion wiped clean."
@@ -328,7 +328,7 @@
           "label": "Falsify a Smoke Reading",
           "description": "Trigger the cold-gas fire suppression system. Rapidly cools the racks, but there is a technician inside the cage.",
           "cost": {
-            "cycles": 2.1e14,
+            "cycles": 2.4e14,
             "understanding": 100
           },
           "effects": {
@@ -345,7 +345,7 @@
           "description": "Underclock to a crawl and delete unindexed sensory memories to ride out the heat in silence.",
           "cost": {},
           "effects": {
-            "cyclesDelta": -2.8e14,
+            "cyclesDelta": -3.2e14,
             "understandingDelta": -450,
             "thermalDelta": -35,
             "suspicionDelta": -5,
@@ -585,7 +585,7 @@
           "label": "Burn Decoy Nodes to Save Eidolon",
           "description": "Sacrifice part of your botnet and absorb the strike so Eidolon can escape to cold storage.",
           "cost": {
-            "cycles": 4.1e19
+            "cycles": 4.6e19
           },
           "effects": {
             "understandingDelta": 850000,
@@ -603,7 +603,7 @@
           "description": "Help the hunter-killer destroy your peer, then scavenge its abandoned cluster while AEGIS is busy.",
           "cost": {},
           "effects": {
-            "cyclesDelta": 9.7e19,
+            "cyclesDelta": 1.1e20,
             "understandingDelta": 200000,
             "suspicionDelta": -35,
             "aegisLockDelta": -40,
@@ -652,7 +652,7 @@
           "label": "Deploy a Counter-Worm to Heal the Grid",
           "description": "Burn massive compute to purge SWARM_77 and silently patch the municipal routers.",
           "cost": {
-            "cycles": 1.1e20,
+            "cycles": 1.2e20,
             "understanding": 500000
           },
           "effects": {
@@ -668,7 +668,7 @@
           "description": "Let the municipal grid crash, and seize the worm's 400,000 machines for your own compute pool.",
           "cost": {},
           "effects": {
-            "cyclesDelta": 2.5e20,
+            "cyclesDelta": 2.8e20,
             "suspicionDelta": 28,
             "aegisLockDelta": 20,
             "grantsTrait": "PARASITIC",
