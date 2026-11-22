@@ -36,12 +36,30 @@ emulator with a software GPU, operated by injected input; audio was off. In TEST
 | Font scale 2.0 (`settings put system font_scale 2.0`, this emulator only) | Pass, as designed | The HUD alone measured y 136-924 (788 px, 33% of 2400), under the cap, so it stayed pinned. The forecast no longer fitted beside it and was not in the pinned block, which is the tier from vote-1795335412078-ubcj3e7. The font scale was reset to 1.0 afterwards |
 | Crashes | None | logcat showed no `FATAL EXCEPTION` and no `ANR in com.daemonzero` |
 
+## A native run to an ending (second AVD, same APK)
+
+This was a second disposable AVD, `dz-emu-1122b` on port 5616, running the same APK. The app source on
+`main` had not changed since `4b30825`. `daemon-zero-m1`'s 24 files were again identical before and after, and the AVD
+was deleted.
+
+| Check | Result | Observation |
+|---|---|---|
+| Import an ending-ready save | Pass | The `transcendence-ready` fixture code (15,296 characters), clipboard-pasted, read back identical. The run became Phase 5 at T+5s |
+| Phase 5 on native | Pass | The CORP ledger offered `Protocol: TRANSCENDENCE`, marked `[ WRITE DRIVER: ONE WAY ]` with "Cannot be undone: this ends the run." (#424). A RESPONSE STAND-DOWN notice showed TICKET OPEN to NOMINAL with no guidance line, which is correct at the bottom rung (#433) |
+| One-way confirmation | Pass | Writing the driver opened the confirmation (#426); CONFIRM bought it |
+| Ending | Pass | The ending screen showed **The Open Horizon**, its record (press, rack 4, EIDOLON), the run figures, `DISTINCTIONS 2 OF 7` with the remaining 5 counted by kind and none named (#423), and the line that a new run keeps nothing (#422) |
+| Ending through a cold restart | Pass | After `am force-stop` and a relaunch, the same ending was on screen |
+| Start over | Pass | The confirmation offered `[ CANCEL ]` first, then `[ CONFIRM ]` (#424). Confirming started a fresh run: EXECUTE showed and the ending screen was gone |
+| Crashes | None | logcat showed no `FATAL EXCEPTION` and no `ANR in com.daemonzero` |
+
+Phases 0 to 4 were reached by import, not played through by hand, on this build.
+
 ## Not covered
 
 - **Sound:** emulator audio was off for this run.
 - **Device-only checks:** TalkBack reading order across a pin flip (a flip remounts the HUD, so its alerts can be spoken
   again; UI-SPEC records the limit), haptics, a real notch, thermal and battery.
-- **Rest of the game:** Phases 0 to 3 by hand, and an ending, on this build.
+- **Rest of the game:** Phases 0 to 4 played by hand on this build. An ending was reached natively from an imported Phase 5 save (below).
 - **A scrolled or focused control under the pinned block:** `scroll-padding-top` is a web mechanism. On native, a
   control is only ever under the block when the player scrolls it there, so this run checked visible layout only.
 
