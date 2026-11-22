@@ -55,6 +55,8 @@ describe('access versus ownership on the node card', () => {
     expect(find('node-' + SEGMENT + '-grant')?.textContent).toBe(
       'Provisioned access under the service grant: the operators\u2019 network, not ownership. A restriction or recall withholds it; nothing you own goes with it.');
     await act(async () => { find('node-' + SEGMENT + '-unlock')?.click(); await settle(); });
+    // Provisioning Phase 2 is one way, so it asks first (maintainer request, 2026-11-21).
+    await act(async () => { find('node-' + SEGMENT + '-unlock-confirm')?.click(); await settle(); });
     expect(game().unlockedNodes).toContain(SEGMENT);
     expect(game().currentPhase).toBe(2);
   });

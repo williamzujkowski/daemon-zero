@@ -12,6 +12,7 @@ import { stageState } from './sources';
 import { stageRow } from './transitionRun';
 import { attached, chooseFree, clickIfPresent, earlier, omenOf, phaseExit, play, scrollToBuy, shown, ticksBefore, unlocking, waitEnabled } from './transitionSteps';
 import type { TransitionRow } from './transitionTypes';
+import { press } from '../helpers';
 
 /** One item of a contract surface, as composed for `state` (so a stage's own item is referenced, not restated). */
 function pick(entry: SurfaceItems | undefined, key: string, state: GameState): ContractItem {
@@ -92,7 +93,7 @@ const UNLOCK_ROWS: readonly TransitionRow[] = [
 
 const ALERT_ROWS: readonly TransitionRow[] = [
   { id: 't-omen-arrives', walk: ['C1.10', 'C2.1'], before: { stage: 'p0-first-widgets' },
-    setup: async (page) => { await waitEnabled(page, unlockId(guestOmenNode), 90); await page.getByTestId(unlockId(guestOmenNode)).click(); },
+    setup: async (page) => { await waitEnabled(page, unlockId(guestOmenNode), 90); await press(page, unlockId(guestOmenNode)); },
     trigger: { kind: 'clock', label: 'clock until the omen log line appears', until: attached('omen-notice'), ceiling: 20 },
     appear: { item: (state) => pick(BAND_ITEMS.omen, 'notice.omen', state), announce: omenOf(guestOmenNode().id), alerts: omenOf(guestOmenNode().id) },
     keep: {}, steady: true, why: 'A log line appears above EXECUTE: one consistent alert, and EXECUTE does not jump.' },

@@ -51,5 +51,8 @@ export async function mountM4(
   const close = () => { act(() => { root.unmount(); }); container.remove(); closes.delete(close); };
   closes.add(close);
   const find = (id: string) => host.document.querySelector<HTMLElement>('[data-testid="' + id + '"]');
-  return { container, close, find, click(id: string) { const control = find(id); if (!control) throw new Error('Missing ' + id); act(() => { control.click(); }); } };
+  const click = (id: string) => { const control = find(id); if (!control) throw new Error('Missing ' + id); act(() => { control.click(); }); };
+  // A one-way purchase asks first (UI-SPEC "Destructive actions"); an ordinary one buys on the tap and opens nothing.
+  const purchase = (id: string) => { click(id); if (find(id + '-dialog')) click(id + '-confirm'); };
+  return { container, close, find, click, purchase };
 }

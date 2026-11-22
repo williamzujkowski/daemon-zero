@@ -12,7 +12,7 @@
 import type { Page } from '@playwright/test';
 import { endingAccount, exportSave } from '../../src/engine';
 import { finalProtocol, moment, preview, PRESS } from '../cooperative-helpers';
-import { boot, dismissBoot, expect, openSave, test } from './helpers';
+import { boot, dismissBoot, expect, openSave, test, press } from './helpers';
 
 const SAVE_KEY = 'daemon-zero.save.v1';
 interface BrowserStorage { getItem(key: string): string | null }
@@ -52,7 +52,7 @@ test('FIXTURE final protocol affordable: the purchase ends the campaign with an 
   await dismissBoot(page);
   if (await page.getByTestId('tab-CORP').count()) await page.getByTestId('tab-CORP').click();
   await page.getByTestId('workspace-CORP-work').click();
-  await page.getByTestId('node-' + finalProtocol().id + '-unlock').click();
+  await press(page, 'node-' + finalProtocol().id + '-unlock');
   await expect(page.getByTestId('ending-screen')).toBeVisible();
   await expect(page.getByTestId('ending-title')).toHaveText('The Lineage Covenant');
   const account = page.getByTestId('ending-account');

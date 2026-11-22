@@ -309,7 +309,10 @@ export class LivePlayer {
         await this.yieldToGame();
         if ((await control.count()) === 0) break;
         if (!(await control.isEnabled())) { this.stats.disabled += 1; break; }
+        // A one-way purchase asks first (UI-SPEC "Destructive actions"); the player answers before anything else.
+        const oneWay = intent.kind === 'buy' && ((await control.textContent()) ?? '').includes('ONE WAY');
         if (!(await this.land(control, intent.id))) break;
+        if (oneWay && !(await this.land(this.page.getByTestId(intent.id + '-confirm'), intent.id + '-confirm'))) break;
       }
     } finally {
       this.stats.presses += done;

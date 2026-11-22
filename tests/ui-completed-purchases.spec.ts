@@ -16,7 +16,7 @@ describe('completed purchase feed', () => {
     if (!node?.unlocksUiComponent) throw new Error('Missing opening widget');
     act(() => { gameStore.initialize({ ...rich(), cycles: 1000 }, 0, null); });
     const before = computeRates(gameStore.store.getState().game, CONTENT);
-    view.click('node-' + node.id + '-unlock');
+    view.purchase('node-' + node.id + '-unlock');
     const bought = gameStore.store.getState().game;
     expect(view.find('node-' + node.id)).toBeNull();
     expect(view.find('daemon-row-' + node.id)).toBeNull();
@@ -131,7 +131,7 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
   const orbit = [...CONTENT.nodes.values()].find((n) => n.effects.unlocksPhase === 5);
   const solar = CONTENT.phases.find((p) => p.phaseId === 5)?.nodes[0];
   if (!orbit || !solar) throw new Error('Missing orbital transition');
-  view.click('node-' + orbit.id + '-unlock');
+  view.purchase('node-' + orbit.id + '-unlock');
   expect(view.find('node-' + orbit.id)).toBeNull();
   expect(view.find('node-' + solar.id)).not.toBeNull();
   const before = computeRates(gameStore.store.getState().game, CONTENT);

@@ -7,7 +7,7 @@ import { CONTENT } from '../../src/content';
 import tracks from '../../assets/audio/music/tracks.json';
 import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
 import { OUTPUT_SCALE } from '../../src/app/outputLevel';
-import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, scoreFlowing, soundtrackVolume, test } from './helpers';
+import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, sampleScore, scoreFlowing, soundtrackVolume, test, press } from './helpers';
 
 async function openAudio(page: Page) {
   await page.getByTestId('menu-open').click(); await page.getByTestId('menu-audio').click();
@@ -40,7 +40,7 @@ for (const [fixture, targetPhase] of [['guest-exit-ready', 1], ['victory-ready',
     await page.getByTestId('menu-close').click();
     const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === targetPhase);
     if (!node) throw new Error('Missing phase transition');
-    await page.getByTestId('node-' + node.id + '-unlock').click(); await dismissBoot(page);
+    await press(page, 'node-' + node.id + '-unlock'); await dismissBoot(page);
     await openAudio(page);
     await expect(page.getByTestId('music-status')).toContainText('Playing phase ' + String(targetPhase) + ' score');
     await expect.poll(async () => (await musicMediaState(page)).time).toBeGreaterThan(.05);
@@ -65,7 +65,7 @@ test('a live phase change swaps the score at once and fades the new one in, one 
   expect(await soundtrackVolume(page)).toBe(level);
   const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
   if (!node) throw new Error('Missing phase transition');
-  await page.getByTestId('node-' + node.id + '-unlock').click(); await dismissBoot(page);
+  await press(page, 'node-' + node.id + '-unlock'); await dismissBoot(page);
   // Before the clock has moved at all: the swap needed no timer, and there is one score.
   const swapped = await musicMediaState(page);
   expect(swapped.count).toBe(2);

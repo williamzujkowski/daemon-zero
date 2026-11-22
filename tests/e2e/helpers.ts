@@ -226,3 +226,15 @@ export async function restingSoundtrackVolume(page: Page): Promise<number | null
   }
   return last;
 }
+
+/**
+ * Presses a control as a player would. A one-way purchase asks first (UI-SPEC "Destructive actions"), so when
+ * the control reads ONE WAY its confirmation's CONFIRM is pressed too; an ordinary control opens nothing.
+ */
+export async function press(page: Page, testId: string): Promise<void> {
+  const control = page.getByTestId(testId);
+  const oneWay = testId.endsWith('-unlock') && ((await control.textContent()) ?? '').includes('ONE WAY');
+  await control.click();
+  if (oneWay) await page.getByTestId(testId + '-confirm').click();
+}
+

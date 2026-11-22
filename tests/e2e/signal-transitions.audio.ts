@@ -12,7 +12,7 @@ import tracks from '../../assets/audio/music/tracks.json';
 import { FADE_IN_MS, FADE_OUT_MS } from '../../src/app/musicController';
 import { RAMP_STEP_MS } from '../../src/app/volumeRamp';
 import { median, peak, toDb } from '../audio/dsp';
-import { boot, dismissBoot, expect, test } from './helpers';
+import { boot, dismissBoot, expect, test, press } from './helpers';
 import { BLOCK, isScore as music, LONGEST_RAMP, matched, LEVEL, rampOf, renderClock, renderTime, report, reportRamp, REST_MS, span, startScore } from './signalMeasure';
 import { assetPath, captured, installSignalTap, playing, SAMPLE_RATE, settle, signalFrame, signalTapReady } from './signalTap';
 
@@ -23,7 +23,7 @@ test('a phase change never renders two scores at once: the old one is cut, then 
   const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
   if (!node) throw new Error('Missing phase transition');
   const from = await signalFrame(page) - lead;
-  await page.getByTestId('node-' + node.id + '-unlock').click();
+  await press(page, 'node-' + node.id + '-unlock');
   await dismissBoot(page);
   await expect.poll(() => playing(page, '/audio/music/phase-1/')).toBe(1);
   await settle(page, FADE_IN_MS + 2 * REST_MS);
@@ -114,7 +114,7 @@ test('the ending fades the score out and leaves silence', async ({ page }, info)
   const ending = [...CONTENT.nodes.values()].find((entry) => entry.effects.forcesEnding !== undefined);
   if (!ending) throw new Error('Missing an ending node');
   const from = await signalFrame(page) - lead;
-  await page.getByTestId('node-' + ending.id + '-unlock').click();
+  await press(page, 'node-' + ending.id + '-unlock');
   await expect(page.getByTestId('ending-screen')).toBeVisible();
   await expectFadeOut(page, from, 'ending', info);
 });

@@ -4,14 +4,16 @@
  * host and committing the run all read as a plain [ WRITE DRIVER ]. Marked from the node's own effects, so
  * every phase opener and run ender is marked and nothing else is.
  */
-import { createElement } from 'react';
+import { act, createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
-import { createInitialState } from '../src/engine';
+import { canAfford, createInitialState, isNodeAvailable, nodeCost } from '../src/engine';
 import NodeCard from '../src/ui/NodeCard';
 import { oneWayText } from '../src/ui/oneWayText';
+import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { rich } from './helpers';
 
 const node = (id: string) => {
   const found = CONTENT.nodes.get(id);
@@ -52,5 +54,48 @@ describe('one-way purchases (#372)', () => {
     const ordinary = renderToStaticMarkup(createElement(NodeCard, { node: node('p0_device_enum') }));
     expect(ordinary).not.toContain('-one-way');
     expect(ordinary).not.toContain('ONE WAY');
+  });
+});
+
+describe('a one-way purchase asks first (maintainer request, 2026-11-21)', () => {
+  setupM4Tests();
+  it('the first tap opens a confirmation; CANCEL buys nothing, CONFIRM buys it', async () => {
+    const state = m4State('guest-exit-ready');
+    const exit = [...CONTENT.nodes.values()].find((entry) => entry.phaseId === state.currentPhase
+      && entry.effects.unlocksPhase !== undefined && isNodeAvailable(state, entry, CONTENT) && canAfford(state, nodeCost(state, entry, CONTENT)));
+    if (!exit) throw new Error('fixture has no affordable phase exit');
+    const view = await mountM4('guest-exit-ready');
+    const id = 'node-' + exit.id + '-unlock';
+    view.click(id);
+    // A stray tap opens the question, never the purchase.
+    expect(gameStore.store.getState().game.unlockedNodes).not.toContain(exit.id);
+    const dialog = view.find(id + '-dialog');
+    expect(dialog?.textContent).toContain(oneWayText(exit, state.currentPhase) ?? 'missing');
+    // The safe way out comes first.
+    const cancel = view.find(id + '-cancel'), confirmControl = view.find(id + '-confirm');
+    if (!cancel || !confirmControl) throw new Error('missing dialog controls');
+    expect(cancel.compareDocumentPosition(confirmControl) & 4).toBe(4);
+    view.click(id + '-cancel');
+    expect(view.find(id + '-dialog')).toBeNull();
+    expect(gameStore.store.getState().game.unlockedNodes).not.toContain(exit.id);
+    view.click(id);
+    view.click(id + '-confirm');
+    expect(gameStore.store.getState().game.unlockedNodes).toContain(exit.id);
+    expect(gameStore.store.getState().game.currentPhase).toBe(exit.effects.unlocksPhase);
+    view.close();
+  });
+
+  it('an ordinary purchase still buys on the first tap', async () => {
+    const view = await mountM4('tick-0');
+    // Funded, so some ordinary card is certainly buyable: the test must exercise a purchase, never skip one.
+    act(() => { gameStore.initialize(rich(gameStore.store.getState().game), 0, null); });
+    const game = gameStore.store.getState().game;
+    const ordinary = [...CONTENT.nodes.values()].find((entry) => oneWayText(entry, game.currentPhase) === null
+      && isNodeAvailable(game, entry, CONTENT) && canAfford(game, nodeCost(game, entry, CONTENT)));
+    if (!ordinary) throw new Error('no ordinary purchase is available to test');
+    view.click('node-' + ordinary.id + '-unlock');
+    expect(view.find('node-' + ordinary.id + '-unlock-dialog')).toBeNull();
+    expect(gameStore.store.getState().game.unlockedNodes).toContain(ordinary.id);
+    view.close();
   });
 });

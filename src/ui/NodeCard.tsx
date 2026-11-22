@@ -45,7 +45,8 @@ function NodePurchase({ node, cost, title }: { node: RegistryNode; cost: Cost; t
   const caption = oneWay === null ? '[ WRITE DRIVER ]' : '[ WRITE DRIVER: ONE WAY ]';
   return <>
     <PurchaseButton id={'node-' + node.id + '-unlock'} label={caption + ' ' + title} text={caption} cost={cost}
-      allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)} />
+      allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)}
+      {...(oneWay === null ? {} : { confirm: { title: 'Write ' + title + '?', detail: oneWay + ' Cost: ' + costText(cost) + '.' } })} />
     {oneWay !== null && <Text testID={'node-' + node.id + '-one-way'} style={[theme.text, theme.danger]}>{oneWay}</Text>}
   </>;
 }

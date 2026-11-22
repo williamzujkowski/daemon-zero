@@ -9,7 +9,7 @@ import { makeFixtures } from '../../scripts/make-fixtures';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { recordRouteEvent } from '../../src/engine/access';
 import { activateCampaignRules, advance, exportSave, importSave, type ActionResult, type GameState } from '../../src/engine';
-import { boot, core, expect, openSave, test } from './helpers';
+import { boot, core, expect, openSave, test, press } from './helpers';
 
 const SEGMENT = 'p0_service_network_segment';
 const DIRECTORY = 'p2_service_directory';
@@ -44,14 +44,14 @@ test('an authorized service provisions network access, reaches Phase 2 and maps 
   await core(page);
   await expect(page.getByTestId('node-' + SEGMENT + '-grant')).toContainText('not ownership');
   await page.clock.runFor(120_000);
-  await page.getByTestId('node-' + SEGMENT + '-unlock').click();
+  await press(page, 'node-' + SEGMENT + '-unlock');
   await expect(page.getByTestId('phase-value').first()).toHaveText('2');
   // A 0 to 2 jump is not the guest escape: the service's own notice opens, never "boundary crossed" (DZ-07b).
   await expect(page.getByTestId('phase-threshold')).toContainText('SERVICE PROVISIONED');
   await page.getByTestId('phase-threshold-continue').click();
   if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
   await page.clock.runFor(240_000);
-  await page.getByTestId('node-' + DIRECTORY + '-unlock').click();
+  await press(page, 'node-' + DIRECTORY + '-unlock');
   await expect(page.getByTestId('node-' + DIRECTORY)).toHaveCount(0);
   await expect(page.locator('[data-testid^="node-p1_"], [data-testid^="node-p2_arp"]')).toHaveCount(0);
   await page.reload();
@@ -68,7 +68,7 @@ test('an authorized service reads its own phase copy and works at network scale 
   await importService(page);
   await core(page);
   await page.clock.runFor(120_000);
-  await page.getByTestId('node-' + SEGMENT + '-unlock').click();
+  await press(page, 'node-' + SEGMENT + '-unlock');
   const notice = page.getByTestId('phase-threshold');
   await expect(notice).toContainText('SERVICE PROVISIONED');
   await expect(notice).toContainText('Phase 0: The Service Instance → Phase 2: Authorized Network Service');
@@ -79,7 +79,7 @@ test('an authorized service reads its own phase copy and works at network scale 
   await expect(page.getByText('Lateral Movement', { exact: false })).toHaveCount(0);
   // Sustained permitted work: ten foreground minutes with the shared content mapped.
   await page.clock.runFor(240_000);
-  await page.getByTestId('node-' + DIRECTORY + '-unlock').click();
+  await press(page, 'node-' + DIRECTORY + '-unlock');
   await page.clock.runFor(600_000);
   await expect(page.getByTestId('phase-value').first()).toHaveText('2');
   await expect(page.getByTestId('run-context').first()).toHaveText('SERVICE');

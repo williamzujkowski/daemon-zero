@@ -5,7 +5,7 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
-import { boot, closeKernelHistory, expect, openKernelHistory, test } from './helpers';
+import { boot, closeKernelHistory, expect, openKernelHistory, test, press } from './helpers';
 
 const root = CONTENT.phases[0]?.nodes[0];
 const first = CONTENT.routines[0];
@@ -23,7 +23,7 @@ async function routineSequence(page: Page): Promise<number> {
 test('an ordinary operation appears in the kernel log after quiet foreground time, never as a modal', async ({ page }) => {
   await boot(page);
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('node-' + root.id + '-unlock').click();
+  await press(page, 'node-' + root.id + '-unlock');
   await page.clock.runFor(intervalMs - 2000);
   let opened = await openKernelHistory(page);
   await expect(page.getByTestId('kernel-log')).not.toContainText(first.text);

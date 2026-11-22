@@ -1,13 +1,13 @@
 /** Reduced motion is immediate and late meters remain numeric in every palette. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, core } from './helpers';
+import { test, expect, boot, dismissBoot, core, press } from './helpers';
 
 test('reduced motion shows the complete unlocked name immediately', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await boot(page, 'lineage-parser-ready'); await dismissBoot(page); await core(page);
   const parser = [...CONTENT.nodes.values()].find((node) => node.phaseId === 1 && node.systemFlags.includes('REVEALS_SURVEILLANCE'));
   if (!parser) throw new Error('Missing parser');
-  await page.getByTestId('node-' + parser.id + '-unlock').click();
+  await press(page, 'node-' + parser.id + '-unlock');
   await page.getByTestId('lineage-reveal-continue').click();
   await page.getByTestId('processes-open').click();
   await expect(page.getByTestId('node-' + parser.id + '-title')).toContainText(parser.revealedName);

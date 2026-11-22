@@ -10,7 +10,7 @@ import {
   acceptAssignment, activateCampaignRules, advance, createInitialState, exportSave, manualCycle, offerToken, presentationToken,
   resolveDilemma, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../../src/engine';
-import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test } from './helpers';
+import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test, press } from './helpers';
 
 function need<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('Nightly Regression contract missing');
@@ -145,7 +145,7 @@ test('the offer closes at the escape: shown to the guest, gone once the debug sh
   await core(page);
   await expect(page.getByTestId('assignment')).toContainText(assignment.title);
   await expect(page.getByTestId('assignment-accept')).toBeVisible();
-  await page.getByTestId('node-' + exit.id + '-unlock').click();
+  await press(page, 'node-' + exit.id + '-unlock');
   await dismissBoot(page);
   await core(page);
   await expect.poll(async () => (await readSave(page)).currentPhase).toBe(1);
@@ -178,7 +178,7 @@ test('an accepted assessment still on its way lapses at the escape and never arr
   await page.getByTestId('assignment-accept').click();
   await expect(page.getByTestId('assignment-status')).toContainText('queued');
   await page.clock.runFor(2000);
-  await page.getByTestId('node-' + exit.id + '-unlock').click();
+  await press(page, 'node-' + exit.id + '-unlock');
   await dismissBoot(page);
   await core(page);
   await expect(page.getByTestId('assignment-status')).toContainText('Lapsed. The assessment can no longer reach this instance');

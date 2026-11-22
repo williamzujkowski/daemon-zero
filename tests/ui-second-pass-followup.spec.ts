@@ -133,7 +133,7 @@ describe('second-pass presentation follow-up', () => {
     const guest = CONTENT.phases[0], hostPhase = CONTENT.phases[1];
     const exit = guest?.nodes.find((node) => node.effects.unlocksPhase === hostPhase?.phaseId);
     if (!exit || !hostPhase) throw new Error('Missing escape');
-    view.click('node-' + exit.id + '-unlock');
+    view.purchase('node-' + exit.id + '-unlock');
     expect(gameStore.store.getState().game.currentPhase).toBe(hostPhase.phaseId);
     expect(view.find('phase-threshold')?.textContent).toContain(hostPhase.description);
     const game = gameStore.store.getState().game;

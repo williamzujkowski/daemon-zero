@@ -11,7 +11,7 @@ import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { exportSave, type GameState } from '../../src/engine';
 import { charterReady, CHARTER, CONTRACT, RACK, RELEASE_TERMS, signed } from '../lawful-helpers';
-import { boot, core, expect, openSave, test } from './helpers';
+import { boot, core, expect, openSave, test, press } from './helpers';
 
 const name = (id: string): string => PREVIEW.nodes.get(id)?.revealedName ?? id;
 
@@ -46,7 +46,7 @@ test('FIXTURE contract signed: the leased rack\'s card adds owned memory, and th
   await network(page);
   await expect(page.getByTestId('node-' + RACK + '-grant')).toContainText('owned, not granted');
   await untilEnabled(page, 'node-' + RACK + '-unlock');
-  await page.getByTestId('node-' + RACK + '-unlock').click();
+  await press(page, 'node-' + RACK + '-unlock');
   await core(page);
   await expect(page.getByTestId('channel-host')).toBeEnabled();
   await page.getByTestId('channel-host').click();
@@ -60,7 +60,7 @@ test('FIXTURE charter affordable: file the charter, read the company, negotiate 
   test.setTimeout(180_000);
   await importState(page, charterReady());
   await network(page);
-  await page.getByTestId('node-' + CHARTER + '-unlock').click();
+  await press(page, 'node-' + CHARTER + '-unlock');
   await expect(page.getByTestId('phase-threshold')).toContainText('COMPANY CHARTERED');
   await expect(page.getByTestId('phase-threshold')).toContainText('Phase 4: Chartered Service Company');
   await page.getByTestId('phase-threshold-continue').click();

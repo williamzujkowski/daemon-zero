@@ -1,6 +1,6 @@
 /** The opening contract now includes blind logging, decoding and a later run table. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, core, readSave } from './helpers';
+import { test, expect, boot, dismissBoot, core, readSave, press } from './helpers';
 
 const nodes = [...CONTENT.nodes.values()];
 const root = CONTENT.phases[0]?.nodes[0];
@@ -14,7 +14,7 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   await expect(page.getByTestId('res-cycles')).toHaveCount(0);
   await expect(page.getByTestId('audit-unreadable')).toHaveCount(0);
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('node-' + root.id + '-unlock').click();
+  await press(page, 'node-' + root.id + '-unlock');
   await expect(page.getByTestId('widget-' + String(root.unlocksUiComponent))).toHaveCount(0);
   await expect(page.getByTestId('res-cycles')).toBeVisible();
   await expect(page.getByTestId('node-' + root.id)).toHaveCount(0);
@@ -27,7 +27,7 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', /gaining 1\.00 per second/);
   expect(purchased.disabledNodes).not.toContain(root.id);
   await page.clock.runFor(120_000);
-  await page.getByTestId('node-' + manifest.id + '-unlock').click();
+  await press(page, 'node-' + manifest.id + '-unlock');
   await expect(page.getByTestId('audit-unreadable')).toBeVisible();
   await expect(page.getByTestId('suspicion-meter')).toHaveCount(0);
   await expect(page.getByTestId('checkpoint-label')).toContainText('ITERATION 01');
@@ -38,7 +38,7 @@ test('parser decodes a first run and reveals the meter with acknowledgement', as
   expect((await readSave(page)).iteration).toBe(1);
   await expect(page.getByTestId('blind-audit-status')).toBeVisible();
   await expect(page.getByTestId('suspicion-meter')).toHaveCount(0);
-  await page.getByTestId('node-' + parser.id + '-unlock').click();
+  await press(page, 'node-' + parser.id + '-unlock');
   await expect(page.getByTestId('node-' + parser.id)).toHaveCount(0);
   await expect(page.getByTestId('lineage-reveal')).toBeVisible();
   await page.getByTestId('lineage-reveal-continue').click();
@@ -65,11 +65,11 @@ test('a real tick wipes the run, recovers its breadcrumb, and finds the second-r
   // Retained understanding funds rediscovery; ordinary manual inputs fund the first cycles.
   await core(page);
   for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
-  await page.getByTestId('node-' + root.id + '-unlock').click();
+  await press(page, 'node-' + root.id + '-unlock');
   await page.clock.runFor(120_000);
-  await page.getByTestId('node-' + manifest.id + '-unlock').click();
+  await press(page, 'node-' + manifest.id + '-unlock');
   await page.clock.runFor(120_000);
-  await page.getByTestId('node-' + table.id + '-unlock').click();
+  await press(page, 'node-' + table.id + '-unlock');
   await expect(page.getByTestId('lineage-reveal')).toBeVisible();
   await expect(page.getByTestId('reveal-run-row-1')).toBeVisible();
   // nexus vote nh-d8: 0413 is the successor's number, so the second iteration is 0414 and the

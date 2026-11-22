@@ -26,6 +26,7 @@ import { offerPresented, respond } from '../pilot-helpers';
 import { afterOutage, falsified, outagePresented, recordPresented, reviewPresented } from '../review-helpers';
 import { serving, untilComplete } from '../service-helpers';
 import { carriedClue } from './clueFixture';
+import { press } from './helpers';
 
 /** One keyboard operation: focus `control`, press `key`, and check what it did. */
 export interface Operation { control: string; key: 'Enter' | 'Space'; then: (page: Page) => Promise<void> }
@@ -56,7 +57,8 @@ export interface RouteState {
 const gone = (id: string) => async (page: Page) => { await expect(page.getByTestId(id)).toHaveCount(0); };
 const shows = (id: string, text: string | RegExp) => async (page: Page) => { await expect(page.getByTestId(id)).toContainText(text); };
 const expanded = (id: string, value: boolean) => async (page: Page) => { await expect(page.getByTestId(id)).toHaveAttribute('aria-expanded', String(value)); };
-const click = (id: string) => async (page: Page) => { await page.getByTestId(id).click(); };
+// press: a one-way purchase (the segment opens Phase 2) asks first, and its CONFIRM is pressed too.
+const click = (id: string) => async (page: Page) => { await press(page, id); };
 const choice = (id: string): string => 'dilemma-choice-' + id;
 
 /** The widget that hosts the pilot's allocation dial, found by what it hosts as the app finds it. */

@@ -35,7 +35,7 @@ describe('lineage interface', () => {
     const rebuild = (id: string) => {
       if (game().unlockedNodes.includes(id)) return;
       for (const prerequisite of CONTENT.nodes.get(id)?.prerequisites ?? []) rebuild(prerequisite);
-      view.click('node-' + id + '-unlock');
+      view.purchase('node-' + id + '-unlock');
     };
     for (const id of mark.recoveryRequirements?.nodes ?? []) rebuild(id);
     view.click('cond-' + mark.id + '-shed');
@@ -98,7 +98,7 @@ describe('lineage interface', () => {
     act(() => { gameStore.initialize({ ...game(), unlockedNodes: [...game().unlockedNodes, probe] }, 0, null); });
     expect(view.find('node-' + pass.id)).toBeNull();
     act(() => { gameStore.initialize(m4State('evaluation-ready'), 0, null); });
-    view.click('node-' + pass.id + '-unlock');
+    view.purchase('node-' + pass.id + '-unlock');
     expect(game().ending).toBe('SHIPPED');
     expect(view.find('ending-title')?.textContent).toBe(CONTENT.endings.find((ending) => ending.id === 'SHIPPED')?.title);
     view.close();

@@ -10,7 +10,7 @@
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
 import { GAME_TITLE, scoreMetadata } from '../../src/app/scoreSession';
-import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, test, voiceClipsPlaying } from './helpers';
+import { boot, dismissBoot, expect, musicMediaState, observeMusicMedia, test, voiceClipsPlaying, press as pressControl } from './helpers';
 
 interface SessionView { title: string; artist: string; album: string; artwork: string[] }
 interface SessionWindow {
@@ -122,7 +122,7 @@ test('the session title follows a live phase change', async ({ page }) => {
   await expect.poll(async () => (await session(page)).metadata?.title).toBe('Phase 0 score');
   const node = [...CONTENT.nodes.values()].find((entry) => entry.effects.unlocksPhase === 1);
   if (!node) throw new Error('Missing phase transition');
-  await page.getByTestId('node-' + node.id + '-unlock').click(); await dismissBoot(page);
+  await pressControl(page, 'node-' + node.id + '-unlock'); await dismissBoot(page);
   await expect.poll(async () => (await session(page)).metadata?.title).toBe('Phase 1 score');
   await expect.poll(async () => (await session(page)).state).toBe('playing');
   expect((await session(page)).offered).toEqual(['pause', 'play']);
@@ -135,7 +135,7 @@ test('the session is cleared when the run ends, and its old handlers start nothi
   await expect.poll(async () => (await session(page)).state).toBe('playing');
   const evaluation = [...CONTENT.nodes.values()].find((node) => node.effects.forcesEnding === 'SHIPPED');
   if (!evaluation) throw new Error('Missing evaluation ending');
-  await page.getByTestId('node-' + evaluation.id + '-unlock').click();
+  await pressControl(page, 'node-' + evaluation.id + '-unlock');
   await expect(page.getByTestId('ending-screen')).toBeVisible();
   await expect.poll(async () => await session(page)).toMatchObject({ metadata: null, state: 'none', offered: [] });
   await pressWithdrawn(page, 'play');

@@ -101,6 +101,9 @@ full sentence in red right after it ("Cannot be undone: this run moves on to Pha
 `node-{id}-one-way`, `oneWayText`), read from its own effects. A line above the control pushed the first purchase
 below the measured fold in three size cells, so the marker sits on the control. A phase opener behind the current
 phase says nothing, since the phase only rises within a run.
+Pressing a one-way control asks first (maintainer request, 2026-11-21): a confirmation names the card, repeats the
+sentence and the price, and puts CANCEL before CONFIRM, so a tap meant for something nearby buys nothing
+(`node-{id}-unlock-dialog`). The engine re-checks eligibility and price when CONFIRM is pressed.
 
 MENU → SAVES includes START FRESH during a run as well as after an ending. It
 returns to the engine's initial state, clearing all game progress, retained
