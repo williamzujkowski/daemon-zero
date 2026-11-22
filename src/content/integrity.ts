@@ -6,8 +6,8 @@
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
 import { checkChannelIntegrity } from './integrityChannel';
-import type { ContentRegistry, RegistryNode } from './registry';
-import { ActuatorSchema, type Actuator, type Cost, type SystemFlag } from './schema';
+import type { ContentRegistry } from './registry';
+import { ActuatorSchema, type Actuator, type Cost } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { checkCampaignFactIntegrity } from './integrityCampaignFacts';
 import { checkChoiceGateIntegrity } from './integrityChoiceGates';
@@ -28,11 +28,10 @@ import { checkRouteCopyIntegrity } from './integrityRouteCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
+import { dialOf } from './integrityDials';
+import { checkRetirementIntegrity } from './integrityRetirement';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
-
-const FINANCE_FLAG: SystemFlag = 'ENABLES_CORPORATE_FINANCE';
-const FINANCE_ACTUATOR: Actuator = 'computeProfitAllocationRatio';
 
 function isFree(cost: Cost): boolean {
   return cost.cycles === 0 && cost.understanding === 0 && cost.memory === 0 && cost.capital === 0;
@@ -200,11 +199,6 @@ function checkSwarmReferences(reg: ContentRegistry): string[] {
   return problems;
 }
 
-/** The dial a node puts into effect. Finance has no bound node: the flag switches the allocation dial on. */
-function dialOf(node: RegistryNode): Actuator | undefined {
-  return node.actuatorBinding ?? (node.systemFlags.includes(FINANCE_FLAG) ? FINANCE_ACTUATOR : undefined);
-}
-
 /**
  * An actuator can only be set through a widget that hosts its control. So every actuator content
  * uses (a widget hosts it or a node puts it into effect) needs exactly one host that some node
@@ -268,5 +262,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEscalation(reg),
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
+    ...checkRetirementIntegrity(reg),
   ];
 }

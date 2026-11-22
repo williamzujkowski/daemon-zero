@@ -11,6 +11,29 @@ All tunable numbers live in content manifests (`src/content/data/` and `src/cont
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
+## Window retirement (#447)
+
+No content number changed. Window retirement (vote-1795366695204-4nslts1, [UI-SPEC](UI-SPEC.md#window-retirement-447))
+retires the guest's quota skim dial from Phase 3, and `setActuator` refuses a retired window's dial as it refuses a
+locked one (#172), so the unchanged careful bot's skim presses stop landing there and the skim stays where the bot
+last left it: 0, where before it climbed back to 100% once suspicion settled. One `ARCHIVED //` log line marks each
+retirement. The bot and the gates are unchanged.
+
+**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`):
+
+| STEALTH | Legacy rules before | Legacy rules after | Campaign rules before | Campaign rules after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9344.1 s | Lineage Covenant, 9231.8 s | Lineage Covenant, 9487.6 s | Lineage Covenant, 9324.3 s |
+| Phase 4 / 5 reached | 5896.8 / 7678.7 s | 5864.2 / 7743.4 s | 6097.7 / 7962.2 s | 6064.7 / 7925.9 s |
+| Phase 4 / 5 duration | 1781.9 / 1665.4 s | 1879.2 / 1488.4 s | 1864.5 / 1525.4 s | 1861.2 / 1398.4 s |
+| Wipes / dilemmas | 0 / 17 | 0 / 16 | 0 / 18 | 0 / 17 |
+| Peak suspicion | 29.2% | 29.2% | 29.2% | 29.2% |
+| Epistemic actions | 20 | 19 | 16 | 16 |
+
+Phases 0 to 3 are identical to the tenth of a second. GREEDY's mechanics are byte-identical (it already holds the skim
+at 0 from Phase 3); only its log gains the line. The original game alone: Phase 4 5877.8 -> 5852.4 s, Phase 5
+7551.3 -> 7736.6 s, victory 9112.7 -> 9146.0 s, dilemmas 16, wipes 0 (`tests/sim.spec.ts`, whose hashes move).
+
 ## Scale scrutiny (#210)
 
 Implements the Nexus decision `scale-driven-late-suspicion` (7/7, `vote-1795070014405-l286t3e`) on the measurements

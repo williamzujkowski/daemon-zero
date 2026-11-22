@@ -17,6 +17,7 @@ import { isChoiceOffered } from './speechQuery';
 import { choiceText, nodeText } from './routeCopy';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
+import { logRetirements } from './retirement';
 import {
   canAfford,
   chooseEnding,
@@ -90,6 +91,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
   payCost(d, cost);
   applyNodeEffects(d, node, reg);
+  // A purchase is the only way a window's retirement gate is crossed (integrity), so its one line is written here.
+  if (d.ending === null) logRetirements(s, d, reg);
   // A purchase is a transition (NARRATIVE-HISTORY N4): hardware can end the access a queued scene
   // declares (the escape ends the guest's assigned work, nexus vote scenes-lapse-at-escape), so the
   // scene takes its interruption policy now instead of counting down to an interrupt that cannot come.
