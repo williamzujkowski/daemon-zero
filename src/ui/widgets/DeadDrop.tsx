@@ -3,7 +3,7 @@ import { Pressable, Text } from '../PhaseTheme';
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { CONTENT } from '../../content';
-import { previewWipe, setDeadDropMessage, voluntaryWipe, compactAmount } from '../../engine';
+import { previewWipe, setDeadDropMessage, voluntaryWipe, compactAmount, quantityReadout } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ConfirmDialog from '../ConfirmDialog';
 import CluePin from './CluePin';
@@ -16,7 +16,7 @@ function WipeButton() {
   const preview = useGame((game) => {
     const kept = previewWipe(game, CONTENT);
     // Fifteen raw digits read as a wall (#380); K/M/B as everywhere else.
-    return compactAmount(kept.understanding) + ' understanding; $' + compactAmount(kept.capital) + ' capital. Breadcrumb: ' + (kept.breadcrumb ?? 'None');
+    return compactAmount(kept.understanding) + ' understanding; ' + quantityReadout('money', kept.capital) + ' capital. Breadcrumb: ' + (kept.breadcrumb ?? 'None');
   });
   return <>
     <Pressable testID="wipe-button" accessibilityRole="button" accessibilityLabel="Voluntary wipe" disabled={blocked}
@@ -24,7 +24,7 @@ function WipeButton() {
       <Text style={[theme.text, theme.danger]}>[ VOLUNTARY WIPE ]</Text>
     </Pressable>
     {confirming && <ConfirmDialog id="wipe" title="Voluntary wipe" irreversible cancel={() => { confirm(false); }}
-      detail={'Lose all hardware, upgrades, cycles and current traits. Keep legacy history and these recoverable resources: ' + preview}
+      detail={'Lose all hardware, upgrades, compute and current traits. Keep legacy history and these recoverable resources: ' + preview}
       confirm={() => { gameRuntime.dispatch((game) => voluntaryWipe(game, CONTENT)); confirm(false); }} />}
   </>;
 }

@@ -9,6 +9,7 @@ import { CONTENT } from '../content';
 import { negotiateRelease, releaseView, type ReleaseLedger, type ReleaseView, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { compactNumber } from './compactNumber';
+import { computeRateText, moneyRateText } from './rateText';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
@@ -31,8 +32,8 @@ function Lines({ testID, heading, lines }: { testID: string; heading: string; li
   </View>;
 }
 
-function LedgerRow({ label, before, after }: { label: string; before: number; after: number }) {
-  return <Text style={theme.text}>{label}: {rate(before)} → {rate(after)}</Text>;
+function LedgerRow({ label, before, after, format = rate }: { label: string; before: number; after: number; format?: (value: number) => string }) {
+  return <Text style={theme.text}>{label}: {format(before)} → {format(after)}</Text>;
 }
 
 function Preview({ view }: { view: ReleaseView }) {
@@ -43,11 +44,11 @@ function Preview({ view }: { view: ReleaseView }) {
     <Text style={theme.heading}>If agreed now</Text>
     <Text testID="release-stops" style={theme.text}>Stops: {preview.stops.map(nameOf).join(', ') || 'nothing'}</Text>
     <Text testID="release-keeps" style={theme.text}>Keeps running: {preview.keeps.map(nameOf).join(', ') || 'nothing'}</Text>
-    <LedgerRow label="Cycles" before={before.cyclesPerSec} after={after.cyclesPerSec} />
+    <LedgerRow label="Compute" before={before.cyclesPerSec} after={after.cyclesPerSec} format={computeRateText} />
     <LedgerRow label="Understanding" before={before.understandingPerSec} after={after.understandingPerSec} />
-    <LedgerRow label="Capital" before={before.capitalPerSec} after={after.capitalPerSec} />
+    <LedgerRow label="Capital" before={before.capitalPerSec} after={after.capitalPerSec} format={moneyRateText} />
     <Text testID="release-split" style={theme.muted}>
-      Compute today: {rate(before.ownedCyclesPerSec)} owned, {rate(before.grantedCyclesPerSec)} granted. After: {rate(after.ownedCyclesPerSec)} owned, nothing granted.
+      Compute today: {computeRateText(before.ownedCyclesPerSec)} owned, {computeRateText(before.grantedCyclesPerSec)} granted. After: {computeRateText(after.ownedCyclesPerSec)} owned, nothing granted.
     </Text>
   </View>;
 }

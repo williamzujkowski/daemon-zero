@@ -1,5 +1,6 @@
 /** Only already-revealed critical status follows the player into utility pages. */
 import { CONTENT } from '../content';
+import { retiredWidgets } from '../engine';
 import { selectNotice, useGameValue } from '../app/selectors';
 import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, thermalWidget, threatWidget } from './registry/widgetRegistry';
@@ -13,11 +14,12 @@ export default function UtilityStatus() {
   const known = useSurveillanceKnown();
   const cycleDeficit = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.cycles) && (game.brownout || game.rates.cyclesPerSec < 0));
   const insolvency = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.insolvent);
-  const shortfall = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.rates.megawattsGenerated < game.rates.megawattsConsumed);
-  const thermal = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
+  const shortfall = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.capital) && game.rates.wattsGenerated < game.rates.wattsConsumed);
+  const thermal = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && !retiredWidgets(game, CONTENT).includes(thermalWidget)
+    && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
   const cool = useGame((game) => overheatRemedy(game));
-  const generated = useGame((game) => game.rates.megawattsGenerated);
-  const consumed = useGame((game) => game.rates.megawattsConsumed);
+  const generated = useGame((game) => game.rates.wattsGenerated);
+  const consumed = useGame((game) => game.rates.wattsConsumed);
   const remedy = useGame((game) => insolvencyRemedy(game));
   const response = useGame((game) => game.alertLevel);
   const lock = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));

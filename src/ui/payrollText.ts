@@ -3,14 +3,13 @@
  * Pure, so the wording is tested without mounting the screen.
  */
 import type { TickDelta } from '../content/schema';
-import type { PayrollView } from '../engine';
+import { deltaPart, quantityReadout, type PayrollView } from '../engine';
 import { compactNumber } from './compactNumber';
 import { groupDigits } from './format';
 
-const UNITS: Record<keyof TickDelta, string> = {
-  cyclesPerSec: 'cycles/s', understandingPerSec: 'understanding/s', thermalPerSec: 'heat load',
-  suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW',
-};
+/** The order totals are listed in; compute, money and power carry their physical units (docs/SCALE.md). */
+const KEYS: readonly (keyof TickDelta)[] = ['cyclesPerSec', 'understandingPerSec', 'thermalPerSec', 'suspicionPerSec', 'capitalPerSec', 'wattsDelta'];
+const WORDS: Partial<Record<keyof TickDelta, string>> = { understandingPerSec: 'understanding/s', thermalPerSec: 'heat load', suspicionPerSec: 'suspicion/s' };
 
 export function percent(share: number): string {
   return String(Math.round(share * 100)) + '%';
@@ -21,10 +20,17 @@ function rounded(key: keyof TickDelta, value: number): number {
   return key === 'suspicionPerSec' ? Math.round(value * 100) / 100 : Math.round(value);
 }
 
+/** Exact as a card states it ("+26 kFLOP/s", "-$45,250/s"), or a three-digit readout when compact ("-$45.3K/s"). */
 function amount(key: keyof TickDelta, value: number, compact: boolean): string {
   const sign = value > 0 ? '+' : '';
-  if (key === 'suspicionPerSec') return sign + String(value);
-  return sign + (compact ? compactNumber(value) : groupDigits(value));
+  const word = WORDS[key];
+  if (word === undefined) {
+    if (!compact) return deltaPart(key, value);
+    if (key === 'capitalPerSec') return sign + quantityReadout('money', value) + '/s';
+    return sign + quantityReadout(key === 'cyclesPerSec' ? 'computeRate' : 'power', value);
+  }
+  if (key === 'suspicionPerSec') return sign + String(value) + ' ' + word;
+  return sign + (compact ? compactNumber(value) : groupDigits(value)) + ' ' + word;
 }
 
 /**
@@ -33,10 +39,10 @@ function amount(key: keyof TickDelta, value: number, compact: boolean): string {
  */
 export function staffTotalsText(view: PayrollView, blind: boolean, compact = false): string {
   if (view.staffLevels === 0) return 'Staff: no one hired.';
-  const parts = (Object.keys(UNITS) as (keyof TickDelta)[])
+  const parts = KEYS
     .map((key) => [key, rounded(key, view.totals[key])] as const).filter(([, value]) => value !== 0)
     .map(([key, value]) => blind && key === 'suspicionPerSec' ? (value > 0 ? 'more' : 'less') + ' audit log activity'
-      : amount(key, value, compact) + ' ' + UNITS[key]);
+      : amount(key, value, compact));
   const levels = String(view.staffLevels) + (view.staffLevels === 1 ? ' level' : ' levels');
   return `Staff (${levels}): ${parts.join(' · ') || 'no net output'}`;
 }

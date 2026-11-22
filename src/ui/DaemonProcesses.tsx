@@ -6,7 +6,7 @@ import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { cycleContributions, nodeUseBlocker, toggleNode } from '../engine';
 import { memoryExact } from './units';
-import { compactNumber } from './compactNumber';
+import { computeRateText } from './rateText';
 import { gameStore } from '../app/session';
 import { Text, View } from './PhaseTheme';
 import NodeTitle from './NodeTitle';
@@ -17,7 +17,7 @@ import { useGame, usePhaseTitle } from './state';
 import { theme } from './theme';
 
 function Impact({ node }: { node: RegistryNode }) {
-  // A loan adds no cycles of the player's own, so its row says what it is instead (story 12); any
+  // A loan adds no compute of the player's own, so its row says what it is instead (story 12); any
   // row the permitted-use rule refuses also says why (story 15).
   return <>{node.grant === undefined && <CycleImpact node={node} />}<GrantNote node={node} /></>;
 }
@@ -28,7 +28,7 @@ function CycleImpact({ node }: { node: RegistryNode }) {
   // Memory is what the player is hunting when they open this panel: a process that holds
   // 4096 MB has to say so next to the control that takes it back (maintainer playtest note).
   return <Text testID={'daemon-impact-' + node.id} style={theme.muted}>
-    {cycles >= 0 ? '+' : ''}{compactNumber(cycles, 2)} cycles/s net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}
+    {computeRateText(cycles)} net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}
   </Text>;
 }
 

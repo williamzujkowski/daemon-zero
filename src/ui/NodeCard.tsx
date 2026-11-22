@@ -30,8 +30,8 @@ function savingText(node: RegistryNode, campaign: boolean): string {
   const share = rediscoveryMultipliers(node, campaign, CONTENT);
   const cycles = Math.round((1 - share.cycles) * 100);
   const understanding = Math.round((1 - share.understanding) * 100);
-  return cycles === understanding ? `Rediscovery saves ${String(cycles)}% of cycles and understanding.`
-    : `Rediscovery saves ${String(cycles)}% of cycles and ${String(understanding)}% of understanding.`;
+  return cycles === understanding ? `Rediscovery saves ${String(cycles)}% of compute and understanding.`
+    : `Rediscovery saves ${String(cycles)}% of compute and ${String(understanding)}% of understanding.`;
 }
 
 /**

@@ -36,7 +36,8 @@ export function useTabAttention(active: string): Attention {
     const retired = retiredWidgets(game, CONTENT);
     return game.unlockedWidgets.filter((id) => !retired.includes(id)).join(' ');
   });
-  const overheat = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
+  const overheat = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && !retiredWidgets(game, CONTENT).includes(thermalWidget)
+    && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
   const omen = useGame((game) => game.pendingDilemma !== null && game.ending === null);
   const contact = useGame((game) => waitingContact(game) !== null);
   const [seen, setSeen] = useState<Fresh>({ ready, revision, iteration, widgets, marks: {} });

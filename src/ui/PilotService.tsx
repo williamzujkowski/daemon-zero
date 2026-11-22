@@ -5,14 +5,13 @@
  * engine refuses whatever the controls would not allow. Production runs no pilot, so both render nothing.
  */
 import { CONTENT } from '../content';
-import { pilotServiceView, submitPilotBatch, type GameState } from '../engine';
+import { pilotServiceView, quantityExact, quantityReadout, submitPilotBatch, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import ActuatorControl from './widgets/ActuatorControl';
 import { Pressable, Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { theme } from './theme';
 import { compactNumber } from './compactNumber';
-import { amountFigure } from './format';
 
 const view = (game: GameState) => pilotServiceView(game, CONTENT);
 
@@ -55,9 +54,9 @@ function Running() {
   const forecast = useGame((game) => { const seconds = view(game)?.forecastSec ?? null; return seconds === null ? null : Math.ceil(seconds); });
   return <>
     <Text testID="pilot-service-split" style={theme.text}>
-      Service {compactNumber(service, 1)} cycles/s to the batch · study +{compactNumber(study, 2)} understanding/s
+      Service {quantityReadout('computeRate', service)} to the batch · study +{compactNumber(study, 2)} understanding/s
     </Text>
-    <Text testID="pilot-service-progress" style={theme.text}>Batch {number}: {progress} / {batch} loaned cycles</Text>
+    <Text testID="pilot-service-progress" style={theme.text}>Batch {number}: {quantityReadout('compute', progress)} / {quantityExact('compute', batch)} of loaned compute</Text>
     <Text testID="pilot-service-forecast" style={theme.text}>{forecastText(complete, forecast)}</Text>
   </>;
 }
@@ -70,10 +69,10 @@ function Submit() {
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const enabled = complete && withheld === null && !blocked;
   return <Pressable testID="pilot-service-submit" accessibilityRole="button"
-    accessibilityLabel={'Submit batch for review +' + amountFigure(reward) + ' cycles, earned on submission'}
+    accessibilityLabel={'Submit batch for review +' + quantityExact('compute', reward) + ', earned on submission'}
     disabled={!enabled} style={[theme.button, !enabled && theme.disabled]}
     onPress={() => { gameRuntime.dispatch((game) => submitPilotBatch(game, CONTENT, token)); }}>
-    <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{amountFigure(reward)} cycles</Text>
+    <Text style={theme.text}>[ SUBMIT BATCH FOR REVIEW ] +{quantityExact('compute', reward)}</Text>
   </Pressable>;
 }
 
@@ -89,7 +88,7 @@ export function PilotServiceDetail() {
   return <View testID="pilot-service" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>Pilot service // {label}</Text>
     <Text testID="pilot-service-ceiling" style={theme.text}>
-      Capacity ceiling: {ceiling} cycles/s of loaned compute. It is not yours and never joins your own cycles; a recall stops it and keeps what you earned.
+      Capacity ceiling: {quantityReadout('computeRate', ceiling)} of loaned compute. It is not yours and never joins your own compute; a recall stops it and keeps what you earned.
     </Text>
     {started ? <Running /> : <Text testID="pilot-service-idle" style={theme.muted}>Attach the loaned allocation from its card to start the work.</Text>}
     {withheld !== null && <Text testID="pilot-service-withheld" style={[theme.text, theme.danger]}>Withheld: {withheld}. The work so far is kept.</Text>}

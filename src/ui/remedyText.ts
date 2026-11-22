@@ -3,7 +3,7 @@
  * is, not only the problem. Shared by the in-game warnings and the game menu's status lines so they say the same.
  */
 import { CONTENT } from '../content';
-import { actuatorLimit, financeEnabled, groupDigits, isActuatorAvailable, nodeUseBlocker, repeatableLevel, type GameState } from '../engine';
+import { actuatorLimit, financeEnabled, isActuatorAvailable, nodeUseBlocker, quantityReadout, repeatableLevel, type GameState } from '../engine';
 import { profitAllocationValues } from './actuatorSteps';
 
 /**
@@ -38,8 +38,9 @@ export function overheatRemedy(game: GameState): string {
  */
 export function shortfallText(generated: number, consumed: number): string {
   const short = Math.max(0, consumed - generated);
-  // One decimal under 10 MW, so a small shortfall never reads "0 MW short" (#402 panel).
-  return `POWER SHORTFALL: ${short < 10 ? short.toFixed(1) : groupDigits(Math.round(short))} MW short; powered hardware is throttled. Add generation to lift it.`;
+  // A live figure in watts at the size it reads best in ("180 MW", "1.2 GW"), three significant digits, so a small
+  // shortfall never reads "0 MW short" (#402 panel): the unit steps down instead.
+  return `POWER SHORTFALL: ${quantityReadout('power', short)} short; powered hardware is throttled. Add generation to lift it.`;
 }
 
 /**
@@ -50,8 +51,8 @@ export function shortfallText(generated: number, consumed: number): string {
 export function insolvencyRemedy(game: GameState): string {
   const ratio = game.actuators.computeProfitAllocationRatio;
   const top = Math.min(actuatorLimit(game, 'computeProfitAllocationRatio', CONTENT), Math.max(...profitAllocationValues(CONTENT)));
-  // The dial diverts a share of gross cycles, and nothing when gross is not positive (rates.ts); below its top that
-  // is exactly when net cycles are positive, since net = gross - diverted (#402 panel).
+  // The dial diverts a share of gross compute, and nothing when gross is not positive (rates.ts); below its top that
+  // is exactly when net compute is positive, since net = gross - diverted (#402 panel).
   const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6
     && game.rates.cyclesPerSec > 0;
   const release = [...CONTENT.repeatables.values()].some((rep) => rep.dismissable && repeatableLevel(game, rep.id) > 0);

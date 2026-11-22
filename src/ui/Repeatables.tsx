@@ -30,7 +30,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
     <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${memoryExact(rep.perLevelEffects.memoryCapIncrease)} capacity` : ''}</Text>
-    {rep.perLevel.megawattsDelta < 0 && <Text style={theme.muted}>
+    {rep.perLevel.wattsDelta < 0 && <Text style={theme.muted}>
       Compute output is throttled during a power shortfall.</Text>}
     {rep.perLevelEffects.revenueMultiplierBonus > 0 && <Text style={theme.muted}>
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}

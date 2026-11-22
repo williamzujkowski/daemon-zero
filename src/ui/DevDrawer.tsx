@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { CONTENT } from '../content';
 import type { ActionResult } from '../engine';
-import { previewWipe } from '../engine';
+import { previewWipe, quantityReadout } from '../engine';
 import { developmentActions as tools } from '../app/developmentActions';
 import { selectReady, useGameValue } from '../app/selectors';
 import ConfirmDialog from './ConfirmDialog';
@@ -31,7 +31,7 @@ function DrawerActions({ ask, apply }: Commands) {
   const ended = useGame((game) => game.ending !== null);
   const retained = useGame((game) => {
     const kept = previewWipe(game, CONTENT);
-    return String(kept.understanding) + ' understanding, ' + String(kept.capital) + ' capital; breadcrumb: ' + (kept.breadcrumb ?? 'None');
+    return String(kept.understanding) + ' understanding, ' + quantityReadout('money', kept.capital) + ' capital; breadcrumb: ' + (kept.breadcrumb ?? 'None');
   });
   return <>
     <Text style={theme.muted}>Development save edits bypass normal progression. Export a code to keep a copy.</Text>
@@ -45,7 +45,7 @@ function DrawerActions({ ask, apply }: Commands) {
         detail: 'Erase current resources, hardware, traits, legacy and breadcrumb. Replace them with a funded development state for phase ' + String(phase.phaseId) + '.',
         action: () => tools.jump(phase.phaseId), closeAfter: true }); }} />)}
     <Control id="dev-force-wipe" label="Force development wipe" disabled={ended} press={() => { ask({
-      id: 'dev-wipe', title: 'Force development wipe', detail: 'Lose current hardware, upgrades, cycles and traits. Keep legacy and ' + retained,
+      id: 'dev-wipe', title: 'Force development wipe', detail: 'Lose current hardware, upgrades, compute and traits. Keep legacy and ' + retained,
       action: () => tools.forceWipe(), closeAfter: true }); }} />
     <Text style={theme.heading}>Force a dilemma</Text>
     {CONTENT.dilemmas.map((dilemma) => <Control key={dilemma.id} id={'dev-dilemma-' + dilemma.id} label={dilemma.title}

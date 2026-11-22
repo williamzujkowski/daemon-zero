@@ -3,7 +3,7 @@ import { Text, View } from './PhaseTheme';
 import { ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import { palette } from './theme';
-import { compareWidgetPresentation, guestPinnedWidgets, operationsActionGroups, panelFreeWidgets, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
+import { compareWidgetPresentation, drawsOwnPanel, guestPinnedWidgets, operationsActionGroups, referenceWidgets, widgetRegistry, workspaceWidgetVisible } from './registry/widgetRegistry';
 import ReferencePanel from './ReferencePanel';
 import { HeadingLevel, SECTION_LEVEL } from './headingLevel';
 import { useGame, useWidgetIds } from './state';
@@ -16,6 +16,7 @@ import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
 import CorePane from './CorePane';
 import Archive from './Archive';
+import UnitsNote from './UnitsNote';
 
 /**
  * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
@@ -59,13 +60,15 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
   const workspace = useWorkspace(slots, ids);
   const pinned = slots.includes('CORE') && phase === CONTENT.phases[0]?.phaseId
     ? ids.filter((id) => guestPinnedWidgets.includes(id)) : [];
-  const shown = ids.filter((id) => !pinned.includes(id) && !panelFreeWidgets.includes(id) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
+  const shown = ids.filter((id) => !pinned.includes(id) && drawsOwnPanel(id, ids) && slots.includes(CONTENT.widgets.get(id)?.slot ?? '') &&
     (!workspace.slot || workspaceWidgetVisible(id, workspace.active))).sort(compareWidgetPresentation);
   // CORE's own widgets take their place in CorePane's order; other slots sharing the pane follow it. No layout shares
   // CORE's pane today (the phone shows one slot per tab, the columns give CORE its own), so the split changes no order.
   const isCore = (id: string) => CONTENT.widgets.get(id)?.slot === 'CORE';
   const content = <>
     {slots.includes('CORE') && <CoreTree widgetIds={shown.filter(isCore)} area={workspace.active} />}
+    {/* Reference material, after every CORE block: what the numbers count (docs/SCALE.md rule 4). */}
+    {slots.includes('CORE') && <UnitsNote />}
     {shown.filter((id) => !isCore(id)).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
     {workspace.active === 'reference' && workspace.archive && <Archive />}
@@ -78,7 +81,10 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
       {pinned.map((id) => <Widget key={id} id={id} compact />)}
     </View>}
     {flow ? <View testID={'pane-scroll-' + slots.join('-')} style={styles.content}>{content}</View>
-      : <ScrollView testID={'pane-scroll-' + slots.join('-')} style={styles.pane} contentContainerStyle={styles.content}>
+      // A column of unaffordable cards holds no Tab stop, so the column takes focus itself and a keyboard can still
+      // scroll it, as the reboot body does (axe scrollable-region-focusable; #461's re-priced NETWORK column).
+      : <ScrollView testID={'pane-scroll-' + slots.join('-')} focusable accessibilityLabel={slots.join(' and ') + ' pane'}
+        style={styles.pane} contentContainerStyle={styles.content}>
         {content}
       </ScrollView>}
   </View>;

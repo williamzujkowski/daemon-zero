@@ -10,7 +10,7 @@ import { hasPhasePurchases } from '../purchaseVisibility';
 import UpgradeFeed from '../UpgradeFeed';
 import { useGame, usePhaseTitle } from '../state';
 import { theme } from '../theme';
-import { compactNumber } from '../compactNumber';
+import { quantityReadout } from '../../engine';
 
 function NetworkPhase({ phase }: { phase: number }) {
   const title = usePhaseTitle(phase);
@@ -57,17 +57,17 @@ export function Lore() {
     .map((log) => <DisclosureText key={log.seq} style={theme.text}>{log.text}</DisclosureText>)}</View>;
 }
 
-/** One line per cycle source, its rate in the shared number scheme ("520K cycles/s", #406). */
+/** One line per compute source, its rate in FLOP/s in the shared number scheme ("520 TFLOP/s", #406). */
 export function clusterText(game: GameState): string {
   return cycleContributions(game, CONTENT).map((source) => {
     const name = CONTENT.nodes.get(source.id)?.revealedName ?? CONTENT.repeatables.get(source.id)?.name ??
       CONTENT.actions.get(source.id)?.label ?? CONTENT.swarm.playerSwarmTemplates.find((template) => template.id === source.id)?.name;
     // Granted output is marked (DZ-10.2); owned output reads as it always did.
-    return (name ?? 'Source') + ': ' + compactNumber(source.cyclesPerSec, 2) + ' cycles/s' + (source.basis === 'GRANTED' ? ' (granted)' : '');
+    return (name ?? 'Source') + ': ' + quantityReadout('computeRate', source.cyclesPerSec) + (source.basis === 'GRANTED' ? ' (granted)' : '');
   }).join('\n');
 }
 
 export function Cluster() {
   const text = useGame(clusterText);
-  return <Text testID="cycle-sources" style={theme.text}>{text || 'No active cycle sources'}</Text>;
+  return <Text testID="cycle-sources" style={theme.text}>{text || 'No active compute sources'}</Text>;
 }
