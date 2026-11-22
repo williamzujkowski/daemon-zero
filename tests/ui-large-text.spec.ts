@@ -38,9 +38,9 @@ describe('mobile scroll flow', () => {
     expect(alert).not.toBeNull();
     const order = primary?.textContent ?? '';
     expect(order.indexOf('INSOLVENT')).toBeGreaterThanOrEqual(0);
-    // #139: the phone chrome abbreviates its meter labels, so this reads the short form.
+    // #139: the phone chrome abbreviates its meter labels, so this reads the short form (compute's is its unit, FLOP).
     // The alert still has to precede the first meter in document order.
-    expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('CYC'));
+    expect(order.indexOf('INSOLVENT')).toBeLessThan(order.indexOf('FLOP'));
     expect(view.find('pane-scroll-CORP')?.style.flex).not.toBe('1');
     // The phone tier drops the kernel band: its 44px tap target set a 57px floor the
     // purchase could not afford (vote: menu-route-drops-the-band). History opens from the
@@ -89,5 +89,20 @@ describe('mobile scroll flow', () => {
     expect(view.find('terminal-columns')).not.toBeNull();
     expect(view.find('guest-console')).not.toBeNull();
     expect(gameStore.store.getState().game).toBe(state);
+  });
+});
+
+describe('desktop pane scrolls', () => {
+  it('lets a keyboard reach and scroll every column, even one holding no enabled control (axe scrollable-region-focusable)', async () => {
+    // A pane whose cards are all unaffordable has no Tab stop inside it; the column itself takes focus, named for its
+    // slots, as the reboot body does (#461: the owned rack card's NETWORK column, every purchase short).
+    await mountM4('phase5-midgame'); viewport(1440, 900);
+    const panes = [...host.document.querySelectorAll('[data-testid^="pane-scroll-"]')];
+    expect(panes.length).toBeGreaterThan(1);
+    for (const pane of panes) {
+      const slots = (pane.getAttribute('data-testid') ?? '').replace('pane-scroll-', '').split('-').join(' and ');
+      expect(pane.getAttribute('tabindex'), slots).toBe('0');
+      expect(pane.getAttribute('aria-label'), slots).toBe(slots + ' pane');
+    }
   });
 });

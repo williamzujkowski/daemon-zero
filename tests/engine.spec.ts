@@ -3,6 +3,7 @@ import {
   advance,
   buyRepeatable,
   computeRates,
+  usdPerDivertedFlop,
   manualCycle,
   setActuator,
   tick,
@@ -10,7 +11,7 @@ import {
   unlockNode,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reg, withoutDilemmas, onHost } from './helpers';
+import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reg, sumTolerance, withoutDilemmas, onHost } from './helpers';
 
 const STEP = 1 / reg.balance.tickHz;
 
@@ -31,18 +32,21 @@ describe('tick 0', () => {
 
   it('manual cycles add compute and heat', () => {
     const s = must(manualCycle(fresh(), reg));
-    expect(s.cycles).toBe(1);
+    expect(s.cycles).toBe(reg.balance.manualCycleYield);
     expect(s.thermal).toBeCloseTo(reg.balance.ambientThermal + reg.balance.manualCycleHeat);
   });
 
   it('refuses a node that cannot be afforded, then unlocks it and mounts its widget', () => {
     let s = fresh();
     expect(unlockNode(s, 'p0_proc_self', reg).ok).toBe(false);
-    for (let i = 0; i < 8; i++) s = must(manualCycle(s, reg));
+    const root = reg.nodes.get('p0_proc_self');
+    if (!root) throw new Error('missing fixture');
+    const presses = Math.ceil(root.cost.cycles / reg.balance.manualCycleYield);
+    for (let i = 0; i < presses; i++) s = must(manualCycle(s, reg));
     s = must(unlockNode(s, 'p0_proc_self', reg));
-    expect(s.cycles).toBe(0);
+    expect(s.cycles).toBe(presses * reg.balance.manualCycleYield - root.cost.cycles);
     expect(s.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE']);
-    expect(run(s, 10).cycles).toBeCloseTo(10, 5);
+    expect(run(s, 10).cycles).toBeCloseTo(s.cycles + 10 * root.tickDelta.cyclesPerSec, 5);
     expect(unlockNode(s, 'p1_clock_interrupt', reg).ok).toBe(false);
   });
 });
@@ -79,7 +83,7 @@ describe('suspended nodes and brownout', () => {
     const base = grant(onHost(), 'p1_clock_interrupt');
     const suspended = must(toggleNode(base, 'p1_clock_interrupt', reg));
     expect(computeRates(suspended, reg).cyclesPerSec).toBe(0);
-    expect(computeRates(must(toggleNode(suspended, 'p1_clock_interrupt', reg)), reg).cyclesPerSec).toBe(3);
+    expect(computeRates(must(toggleNode(suspended, 'p1_clock_interrupt', reg)), reg).cyclesPerSec).toBe(reg.nodes.get('p1_clock_interrupt')?.tickDelta.cyclesPerSec);
   });
 
   it('negative cycle income clamps at zero and halts understanding', () => {
@@ -118,7 +122,7 @@ describe('phase 4 economy', () => {
     const none = computeRates(must(setActuator(corp(), 'computeProfitAllocationRatio', 0, reg)), reg);
     const some = computeRates(must(setActuator(corp(), 'computeProfitAllocationRatio', 0.5, reg)), reg);
     expect(some.cyclesPerSec).toBeCloseTo(none.cyclesPerSec * 0.5);
-    expect(some.capitalPerSec).toBeCloseTo(none.cyclesPerSec * 0.5 * reg.balance.usdPerDivertedCycle);
+    expect(some.capitalPerSec).toBeCloseTo(none.cyclesPerSec * 0.5 * usdPerDivertedFlop(reg));
     // Before finance the dial cannot be moved (#172); a save could still carry a value, and it must earn nothing.
     const early = grant(onHost(), ...PHASE1);
     expect(setActuator(early, 'computeProfitAllocationRatio', 0.5, reg).ok).toBe(false);
@@ -136,7 +140,9 @@ describe('phase 4 economy', () => {
     const base = must(setActuator(corp(), 'computeProfitAllocationRatio', 0.5, reg));
     const withCeo = must(buyRepeatable(base, 'op_blind_ceo', reg));
     const gross = (r: { capitalPerSec: number }, upkeep: number): number => r.capitalPerSec + upkeep;
-    expect(gross(computeRates(withCeo, reg), 1200)).toBeCloseTo(gross(computeRates(base, reg), 0) * 1.15);
+    const ceoUpkeep = -(reg.repeatables.get('op_blind_ceo')?.perLevel.capitalPerSec ?? 0);
+    expect(ceoUpkeep).toBeGreaterThan(0);
+    expect(gross(computeRates(withCeo, reg), ceoUpkeep)).toBeCloseTo(gross(computeRates(base, reg), 0) * 1.15);
 
     let broke = must(setActuator(grant(corp(), 'p4_hft_arbitrage_desk'), 'computeProfitAllocationRatio', 0, reg));
     for (let i = 0; i < 10; i++) broke = must(buyRepeatable(broke, 'op_pmc_security', reg));
@@ -156,11 +162,14 @@ describe('phase 4 economy', () => {
     // depend on how the plant went dark, so the state is built directly.
     const darkState = { ...powered, disabledNodes: [...powered.disabledNodes, 'p4_smr_nuclear_plant'] };
     const dark = computeRates(darkState, reg);
-    expect(dark.megawattsGenerated).toBe(0);
+    expect(dark.wattsGenerated).toBe(0);
     expect(dark.gridEfficiency).toBe(reg.balance.minGridEfficiency);
     const allocation = 1 - powered.actuators.computeProfitAllocationRatio;
-    const lostCitadel = 350000 * (1 - reg.balance.minGridEfficiency);
-    expect(healthy.cyclesPerSec - dark.cyclesPerSec).toBeCloseTo((85000 + lostCitadel) * allocation, 0);
+    const output = (id: string): number => reg.nodes.get(id)?.tickDelta.cyclesPerSec ?? 0;
+    const lostCitadel = output('p4_subterranean_citadel') * (1 - reg.balance.minGridEfficiency);
+    const lost = (output('p4_smr_nuclear_plant') + lostCitadel) * allocation;
+    expect(lost).toBeGreaterThan(0);
+    expect(Math.abs(healthy.cyclesPerSec - dark.cyclesPerSec - lost)).toBeLessThanOrEqual(sumTolerance(lost));
   });
 });
 

@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
+import { costPart } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { labelMismatches } from './labelInName';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
@@ -40,7 +41,8 @@ describe('second-pass presentation follow-up', () => {
     expect(view.find('res-cycles')).toBeNull();
     const root = CONTENT.phases[0]?.nodes[0];
     if (!root) throw new Error('Missing opening node');
-    for (let i = 0; i < root.cost.cycles; i++) view.click('manual-cycle');
+    // Each click adds the authored yield; click until the opening node's price is held.
+    for (let i = 0; i < Math.ceil(root.cost.cycles / CONTENT.balance.manualCycleYield); i++) view.click('manual-cycle');
     view.click('node-' + root.id + '-unlock');
     expect(view.find('res-cycles')).not.toBeNull();
     expect(view.find('manual-feedback')).toBeNull();
@@ -166,7 +168,7 @@ describe('second-pass presentation follow-up', () => {
     expect(view.find('cycle-deficit')).toBeNull();
     const guest = m4State('guest-skimmer');
     load({ ...guest, rates: { ...guest.rates, cyclesPerSec: -2 }, brownout: false });
-    expect(view.find('cycle-deficit')?.textContent).toContain('CYCLE DEFICIT: net -2.00');
+    expect(view.find('cycle-deficit')?.textContent).toContain('CYCLE DEFICIT: net -2 FLOP/s.');
     load({ ...m4State('tick-0'), rates: { ...guest.rates, cyclesPerSec: -2 } });
     expect(view.find('cycle-deficit')).toBeNull();
     view.close();
@@ -177,14 +179,19 @@ describe('second-pass presentation follow-up', () => {
     const root = CONTENT.phases[0]?.nodes[0];
     if (!root) throw new Error('Missing root');
     expect(view.find('node-' + root.id)?.textContent).toContain('[REMEMBERED] ' + root.revealedName);
-    expect(view.find('node-' + root.id + '-rediscovery')?.textContent).toContain('First mapping: ' + String(root.cost.cycles));
+    expect(view.find('node-' + root.id + '-rediscovery')?.textContent).toContain('First mapping: ' + costPart('cycles', root.cost.cycles));
     const price = Math.ceil(root.cost.cycles * CONTENT.balance.rediscoveryCostMultiplier);
-    expect(view.find('node-' + root.id + '-cost')?.textContent).toContain(String(price) + ' cycles (remembered)');
+    const shown = view.find('node-' + root.id + '-cost')?.textContent ?? '';
+    expect(shown.startsWith('Cost: ' + costPart('cycles', price) + ' ')).toBe(true);
+    expect(shown.endsWith(' (remembered)')).toBe(true);
     view.click('reboot-continue');
-    for (let i = 1; i < price; i++) view.click('manual-cycle');
+    // Each click adds the authored yield, so click until the remembered price is held, then pay exactly it.
+    for (let i = 0; i < 1000 && gameStore.store.getState().game.cycles < price; i++) view.click('manual-cycle');
+    expect(gameStore.store.getState().game.cycles).toBeGreaterThanOrEqual(price);
+    const held = gameStore.store.getState().game.cycles;
     view.click('node-' + root.id + '-unlock');
     expect(gameStore.store.getState().game.unlockedNodes).toContain(root.id);
-    expect(gameStore.store.getState().game.cycles).toBe(0);
+    expect(gameStore.store.getState().game.cycles).toBe(held - price);
     expect(view.find('node-' + root.id + '-rediscovery')).toBeNull();
     view.close();
   });

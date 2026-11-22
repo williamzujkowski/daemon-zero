@@ -7,23 +7,25 @@
  */
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
-import { shouldDemoteManualCycle } from '../src/ui/ManualCycle';
+import { CONTENT } from '../src/content';
+import { MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC, manualYieldText, shouldDemoteManualCycle } from '../src/ui/ManualCycle';
 import { theme } from '../src/ui/theme';
 import { mountM4, setupM4Tests, m4State } from './ui-m4-helpers';
 
 setupM4Tests();
 
 describe('manual cycle demotion', () => {
-  it('switches exactly at the threshold', () => {
+  it('switches exactly at the threshold, counted in clicks of the authored yield', () => {
+    const threshold = MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC * CONTENT.balance.manualCycleYield;
+    expect(MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC).toBe(200);
     expect(shouldDemoteManualCycle(0)).toBe(false);
-    expect(shouldDemoteManualCycle(33)).toBe(false);
-    expect(shouldDemoteManualCycle(199.99)).toBe(false);
-    expect(shouldDemoteManualCycle(200)).toBe(true);
-    expect(shouldDemoteManualCycle(486174.92)).toBe(true);
+    expect(shouldDemoteManualCycle(threshold - 0.01)).toBe(false);
+    expect(shouldDemoteManualCycle(threshold)).toBe(true);
+    expect(shouldDemoteManualCycle(threshold * 2431)).toBe(true);
   });
 
   it('keeps the full control while the rate is below it', async () => {
-    const view = await mountM4('phase-1-widgets');
+    const view = await mountM4('guest-exit-ready');
     expect(view.find('manual-cycle')).not.toBeNull();
     expect(view.find('manual-cycle-inline')).toBeNull();
     expect(view.find('manual-cycle')?.getAttribute('aria-label')).toContain('[ EXECUTE_CLOCK_CYCLE ]');
@@ -36,10 +38,15 @@ describe('manual cycle demotion', () => {
     expect(button).not.toBeNull();
     expect(view.find('manual-cycle-inline')).not.toBeNull();
     // The accessible name must contain the visible text (WCAG 2.5.3).
-    expect(button?.getAttribute('aria-label')).toContain('[ cycle ] +1');
-    const before = gameStore.store.getState().game.cycles;
+    expect(view.find('manual-cycle-inline')?.textContent).toBe('[ cycle ] ' + manualYieldText());
+    expect(button?.getAttribute('aria-label')).toContain('[ cycle ] ' + manualYieldText());
+    // From an empty balance, so the click's yield is not lost below a large balance's float precision.
+    const { act } = await import('react');
+    // The same subnet run: from Phase 3 the control retires to the Archive (#447), so a later fixture has no button.
+    act(() => { gameStore.initialize({ ...m4State('deaddrop-breadcrumb'), cycles: 0 }, 0, null); });
+    expect(view.find('manual-cycle-inline')).not.toBeNull();
     view.click('manual-cycle');
-    expect(gameStore.store.getState().game.cycles).toBeGreaterThan(before);
+    expect(gameStore.store.getState().game.cycles).toBeGreaterThanOrEqual(CONTENT.balance.manualCycleYield);
     view.close();
   });
 
@@ -56,7 +63,7 @@ describe('manual cycle demotion', () => {
     const view = await mountM4('deaddrop-breadcrumb');
     expect(view.find('manual-cycle-inline')).not.toBeNull();
     const { act } = await import('react');
-    act(() => { gameStore.initialize(m4State('phase-1-widgets'), 0, null); });
+    act(() => { gameStore.initialize(m4State('guest-exit-ready'), 0, null); });
     expect(view.find('manual-cycle-inline')).toBeNull();
     expect(view.find('manual-cycle')?.getAttribute('aria-label')).toContain('[ EXECUTE_CLOCK_CYCLE ]');
     view.close();

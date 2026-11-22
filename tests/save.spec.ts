@@ -85,7 +85,8 @@ describe('save codec', () => {
     // Ancestors of an owned node are restored, with the readouts they unlock (#39).
     expect(fixed.unlockedNodes).toEqual([...PHASE0, 'p1_clock_interrupt']);
     expect(fixed.disabledNodes).toEqual([]);
-    expect(fixed.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE', 'AUDIT_TRACE_MONITOR', 'QUOTA_SKIM_CONTROL']);
+    // The syscall probe mounts the memory manager since the rescale (#461): guest memory is now bytes worth watching.
+    expect(fixed.unlockedWidgets).toEqual(['CYCLE_COUNTER_AND_RATE', 'AUDIT_TRACE_MONITOR', 'QUOTA_SKIM_CONTROL', 'MEMORY_ALLOCATION_MANAGER']);
     expect(fixed.levels).toEqual({ rep_p1_idle_threads: 60 });
     expect(fixed.trust).toEqual({ ai_eidolon: 70, ai_swarm_77: 0, ai_aegis_watchdog: 0 });
     expect(fixed.cooldowns).toEqual({ act_p3_bgp_spoof: 10 });

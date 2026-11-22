@@ -7,8 +7,8 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { setReviewStanding } from '../src/engine/access';
 import {
-  advance, buyRepeatable, channelContactView, computeRates, cycleContributions, financeEnabled, isActuatorAvailable, isNodeAvailable,
-  isNodeDiscoverable, meetsRequirements, nodeUseBlocker, outputBasis, phaseCopy, setActuator, thresholdCopy, toggleNode, unlockNode, type GameState,
+  advance, buyRepeatable, channelContactView, computeRates, usdPerDivertedFlop, cycleContributions, financeEnabled, isActuatorAvailable, isNodeAvailable,
+  isNodeDiscoverable, meetsRequirements, memoryExact, nodeUseBlocker, outputBasis, phaseCopy, setActuator, thresholdCopy, toggleNode, unlockNode, type GameState,
 } from '../src/engine';
 import { preview } from './assignment-helpers';
 import { answer, contactPending, lawfulService, MERCY_MB } from './contact-helpers';
@@ -68,7 +68,7 @@ describe('hosting becomes possible on the lawful route once capacity is earned (
   it('before the lease the contact can only be referred, and says exactly why', () => {
     const view = defined(channelContactView(contract, preview)?.pending);
     expect(view.hostEligible).toBe(false);
-    expect(view.hostUnmet).toEqual([`Hosting needs ${String(MERCY_MB)} MB of free stable memory; ${String(view.memoryFreeMb)} MB is free. Referral is still open.`]);
+    expect(view.hostUnmet).toEqual([`Hosting needs ${memoryExact(MERCY_MB)} of free stable memory; ${memoryExact(view.memoryFreeMb)} is free. Referral is still open.`]);
   });
 
   it('the leased rack adds owned memory, and the waiting contact can then be hosted in it', () => {
@@ -96,7 +96,7 @@ describe('V21: lawful Phase 4 infrastructure from a cooperative history', () => 
     const gross = computeRates({ ...company, actuators: { ...company.actuators, computeProfitAllocationRatio: 0 } }, preview);
     const rates = computeRates(diverted, preview);
     expect(rates.cyclesPerSec).toBeCloseTo(gross.cyclesPerSec * 0.5);
-    expect(rates.capitalPerSec - gross.capitalPerSec).toBeCloseTo(gross.cyclesPerSec * 0.5 * preview.balance.usdPerDivertedCycle);
+    expect(rates.capitalPerSec - gross.capitalPerSec).toBeCloseTo(gross.cyclesPerSec * 0.5 * usdPerDivertedFlop(preview));
   });
 
   it('the shared accounts and the company\'s own payroll use the existing capital and payroll accounting', () => {

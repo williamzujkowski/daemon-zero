@@ -18,7 +18,7 @@ function must(result: ActionResult): GameState {
 function remembered(state: GameState): Record<string, GameState> {
   const reborn = wipe(state, CONTENT, CONTENT.narrative.wipeVoluntary);
   const guest = must(manualCycle(reborn, CONTENT));
-  let host = input(reborn, { cycles: 1e12, understanding: 1e12, resolvedDilemmas: QUIET_DILEMMA_IDS });
+  let host = input(reborn, { cycles: 5e15, understanding: 1e12, resolvedDilemmas: QUIET_DILEMMA_IDS });
   // A breakout host: the original route's guest nodes, never Earned Access hardware (#233).
   for (const node of ORIGINAL_NODES) {
     const mainline = node.requirements?.minIteration === undefined && node.effects.triggersVictory !== true;

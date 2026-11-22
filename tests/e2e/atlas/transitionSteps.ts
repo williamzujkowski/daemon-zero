@@ -81,10 +81,16 @@ export async function chooseFree(page: Page, state: GameState): Promise<void> {
   await page.getByRole('dialog').getByRole('button', { name: new RegExp('^Commit directive: ' + escape(free.label)) }).click();
 }
 
-/** The disclosure walk's play loop: press EXECUTE every tick, and every tenth press buy the first enabled purchase. */
+/**
+ * The disclosure walk's play loop: press EXECUTE every tick, and every tenth press buy the first enabled purchase. A
+ * purchase that opens a reveal (the run table, since the rescale made it the first card a return can afford) is read
+ * and continued as a player would, so the next press lands on EXECUTE rather than on the reveal over it.
+ */
 export async function play(page: Page, presses: number): Promise<void> {
   const purchase = page.locator('[data-testid^="node-"][data-testid$="-unlock"]:not([aria-disabled="true"])');
+  const reveal = page.getByTestId('lineage-reveal-continue');
   for (let press = 1; press <= presses; press++) {
+    if (await reveal.count() > 0) await reveal.click();
     await page.getByTestId('manual-cycle').click();
     if (press % 10 === 0 && await purchase.count() > 0) await purchase.first().click();
     await page.clock.runFor(TICK_MS);

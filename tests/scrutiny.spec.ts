@@ -32,17 +32,18 @@ describe('the scrutiny rule', () => {
     for (const phase of [4, 5]) expect(rule(phase)?.incomeExponent).toBeLessThanOrEqual(1);
   });
 
-  it('reads net income at the phase rule: the draw at $1M/s, grown by the exponent, then capped', () => {
+  it('reads net income at the phase rule: the draw at its reference income, grown by the exponent, then capped', () => {
     const s = corporate();
     const r4 = rule(4);
     if (!r4) throw new Error('phase 4 declares scrutiny');
     expect(s.currentPhase).toBe(4);
     const at = (capitalPerSec: number) => scaleScrutiny(s, { capitalPerSec }, reg);
-    expect(at(1e6)?.perSec).toBeCloseTo(r4.suspicionPerSecAtMillionUsd);
-    expect(at(0.25e6)?.perSec).toBeCloseTo(r4.suspicionPerSecAtMillionUsd * Math.pow(0.25, r4.incomeExponent));
-    expect(at(1e12)?.perSec).toBe(r4.maxSuspicionPerSec);
+    const reference = r4.referenceIncomeUsdPerSec;
+    expect(at(reference)?.perSec).toBeCloseTo(r4.suspicionPerSecAtReference);
+    expect(at(0.25 * reference)?.perSec).toBeCloseTo(r4.suspicionPerSecAtReference * Math.pow(0.25, r4.incomeExponent));
+    expect(at(1e6 * reference)?.perSec).toBe(r4.maxSuspicionPerSec);
     // A loss is not income: the draw is zero, never negative.
-    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtMillionUsd: r4.suspicionPerSecAtMillionUsd, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec });
+    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtReference: r4.suspicionPerSecAtReference, referenceIncomeUsdPerSec: reference, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec });
     expect(scaleScrutinyPerSec(s, { capitalPerSec: -5e6 }, reg)).toBe(0);
   });
 

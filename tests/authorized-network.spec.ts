@@ -246,7 +246,9 @@ describe('the original game is unchanged (V31)', () => {
   });
 
   it('buys and pays for the shared content like any other node once the capability is held', () => {
-    const service = buy(provisioned(), DIRECTORY);
-    expect(service.memoryUsed).toBe(node(DIRECTORY).cost.memory);
+    // The guest's own nodes hold bytes too since the rescale, so the purchase is measured as what it adds.
+    const before = provisioned();
+    const service = buy(before, DIRECTORY);
+    expect(service.memoryUsed - before.memoryUsed).toBe(node(DIRECTORY).cost.memory);
   });
 });

@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
 import type { Action } from '../src/content/schema';
-import { actionCost, performAction, type GameState } from '../src/engine';
+import { actionCost, deltaPart, performAction, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { snapshotRenderCounts } from '../src/app/renderCounts';
 import ActionMechanics from '../src/ui/ActionMechanics';
@@ -72,7 +72,8 @@ describe('action decision summaries', () => {
   it('keeps persistent story prose and exclusivity visible beside its run-limited rate', async () => {
     const view = await mount(permanent, ready(), true);
     expect(view.text()).toContain(permanent.description);
-    expect(view.text()).toContain('+25 cycles/s per use, until retraining');
+    expect(view.text()).toContain(deltaPart('cyclesPerSec', defined(permanent.tickDelta).cyclesPerSec) + ' per use, until retraining');
+    expect(view.text()).toMatch(/\+[\d.,]+ [kMGTPEZY]?FLOP\/s per use, until retraining/);
     expect(view.text()).toContain('Story consequence survives retraining');
     const alternate = defined(CONTENT.actions.get(defined(permanent.exclusiveWith?.[0])));
     expect(view.text()).toContain('Excludes: ' + alternate.label);

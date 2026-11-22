@@ -10,6 +10,7 @@ import { CONTENT } from '../src/content';
 import { importSave, unlockNode } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
+import { rich } from './helpers';
 import { NO_UNDO_TEXT } from '../src/ui/oneWayText';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
@@ -48,7 +49,7 @@ describe('M4 network and reboot', () => {
     expect(view.find('action-cooldown-' + action.id)?.textContent).toContain(String(action.cooldownSec));
     view.click('workspace-NETWORK-reference');
     view.click('reference-CLUSTER_LOAD_BALANCER');
-    expect(view.find('cycle-sources')?.textContent).toContain('cycles/s');
+    expect(view.find('cycle-sources')?.textContent).toMatch(/ [kMGTPEZY]?FLOP\/s/);
     const allIds = [...view.container.querySelectorAll('[data-testid]')].map((element) => element.getAttribute('data-testid'));
     expect(new Set(allIds).size).toBe(allIds.length);
     act(() => { gameStore.initialize({ ...gameStore.store.getState().game, cycles: 0, disabledNodes: [],
@@ -105,7 +106,7 @@ describe('M4 network and reboot', () => {
     if (!echo) throw new Error('Missing echo');
     const target = CONTENT.nodes.get(echo.onNode);
     if (!target) throw new Error('Missing echo node');
-    act(() => { gameStore.initialize({ ...gameStore.store.getState().game, cycles: 1e9, understanding: 1e9, memoryCap: 1e9 }, 0, null); });
+    act(() => { gameStore.initialize(rich(gameStore.store.getState().game), 0, null); });
     const chain = (id: string): string[] => [...(CONTENT.nodes.get(id)?.prerequisites ?? []).flatMap(chain), id];
     for (const id of [...new Set(chain(target.id))]) act(() => { gameRuntime.dispatch((game) => unlockNode(game, id, CONTENT)); });
     expect(view.container.textContent).toContain(echo.text);

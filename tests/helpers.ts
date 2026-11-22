@@ -116,10 +116,18 @@ export function reasonOf(result: ActionResult): string {
   return result.ok ? '' : result.reason;
 }
 
-/** A state with effectively unlimited resources, for reaching late-game setups quickly. */
+/** A state with effectively unlimited resources (past the Phase 5 band of every unit), for reaching late-game setups quickly. */
 export function rich(s: GameState = fresh()): GameState {
   const trust = Object.fromEntries(Object.keys(s.trust).map((id) => [id, 100]));
-  return { ...s, cycles: 1e15, understanding: 1e15, capital: 1e15, memoryCap: 1e12, trust };
+  return { ...s, cycles: 1e30, understanding: 1e15, capital: 1e18, memoryCap: 2 ** 75, trust };
+}
+
+/**
+ * How far two orders of summing the same figures may differ: the old `toBeCloseTo(x, 5)` bound, or twelve significant
+ * digits once physical units put a figure past 1e7 (a 1e21 FLOP/s rate has a last place worth about 1e5).
+ */
+export function sumTolerance(expected: number): number {
+  return Math.max(5e-6, Math.abs(expected) * 1e-12);
 }
 
 /**
@@ -140,6 +148,11 @@ export const PHASE0 = [
   'p0_device_enum',
   'p0_shared_mount',
 ];
+
+/** The full compute price of mapping `ids`, from content: enough to map them again at any rediscovery discount. */
+export function computePrice(ids: readonly string[], registry: ContentRegistry = reg): number {
+  return ids.reduce((sum, id) => sum + (registry.nodes.get(id)?.cost.cycles ?? 0), 0);
+}
 
 /** Unlocks nodes in the given order using the real action, so effects and logs apply. */
 export function grant(s: GameState, ...ids: string[]): GameState {

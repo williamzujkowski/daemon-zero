@@ -261,3 +261,13 @@ export async function openChoices(page: Page): Promise<void> {
   for (let left = await folded.count(); left > 0; left = await folded.count()) await folded.first().click();
 }
 
+
+/** Manual EXECUTE presses that bank `cost` FLOP from zero, at the authored yield per press (docs/SCALE.md). */
+export function manualPresses(cost: number): number {
+  return Math.ceil(cost / CONTENT.balance.manualCycleYield);
+}
+
+/** Foreground milliseconds that bank `cost` FLOP at `perSec` FLOP/s, plus two seconds of margin for the tick. */
+export function affordMs(cost: number, perSec: number): number {
+  return Math.ceil(cost / perSec) * 1000 + 2000;
+}

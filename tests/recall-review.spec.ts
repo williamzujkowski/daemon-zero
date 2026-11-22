@@ -17,7 +17,7 @@ import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilot
 import { answer, live, preview, roundTrip } from './assignment-helpers';
 import { must, reasonOf } from './helpers';
 import { defined } from './m7-helpers';
-import { RENEWAL } from './pilot-helpers';
+import { RENEWAL, TERMS } from './pilot-helpers';
 import {
   afterOutage, announced, choiceOf, falsified, OUTAGE, RECORD, recordPresented, renewalOffer, renewedPilot, REVIEW, reviewPresented, until,
   untilOmen,
@@ -50,7 +50,7 @@ describe('the public sequence to an announced recall review (V09, DZ-06.5)', () 
     expect(announced(scheduled)).toBe(true);
     const outcomes = reviewView(scheduled, preview)?.recall?.outcomes ?? [];
     expect(outcomes.map((entry) => entry.outcome)).toEqual(['CONTAIN', 'RETRAIN', 'END']);
-    expect(outcomes[0]).toMatchObject({ endsIteration: false, containedCeiling: 10, kept: null });
+    expect(outcomes[0]).toMatchObject({ endsIteration: false, containedCeiling: TERMS.narrowCapacityCyclesPerSec, kept: null });
     expect(outcomes[1]).toMatchObject({ endsIteration: true, kept: previewWipe(scheduled, preview), spared: false });
     expect(outcomes[1]?.mark).not.toBeNull();
     expect(outcomes[2]).toMatchObject({ endsIteration: true, kept: previewWipe(scheduled, preview), mark: null });
@@ -167,7 +167,7 @@ describe('a later instance is recognized, not sanctioned (DZ-06.11, H26, H33)', 
   it('every incident scene consumed, the next instance still requalifies to a nominal, uncontained pilot', () => {
     expect(renewal.access).toMatchObject({ context: 'PILOT', standing: 'NOMINAL', exception: null });
     expect(permittedUses(renewal)).toEqual(['ASSIGNED_WORK', 'LOANED_CAPACITY']);
-    expect(loanCeiling(renewal, preview)).toBe(20);
+    expect(loanCeiling(renewal, preview)).toBe(TERMS.capacityCyclesPerSec);
     expect(reviewView(renewal, preview)).toBeNull();
   });
 
@@ -194,18 +194,18 @@ describe('a later instance is recognized, not sanctioned (DZ-06.11, H26, H33)', 
 describe('a withdrawn, then contained, loan with an existing cohort (V28)', () => {
   /** FIXTURE: a hosted cohort with its memory reservation (no Phase 0 path forks one; DZ-08 hosts minds). */
   const withCohort = (s: GameState): GameState => roundTrip({ ...s,
-    activeShards: { shard_mercy: { templateId: 'shard_mercy', count: 2, drift: 0, quirkId: null, autonomyMode: 'STANDARD', memoryAllocatedMb: 8 } },
+    activeShards: { shard_mercy: { templateId: 'shard_mercy', count: 2, drift: 0, quirkId: null, autonomyMode: 'STANDARD', memoryAllocatedBytes: 8 } },
     memoryUsed: s.memoryUsed + 8 });
   const record = withCohort(recordPresented('act_without_grant'));
   const recalled = roundTrip(must(answer(record, 'falsify_report')));
   const contained = roundTrip(must(answer(until(recalled, REVIEW), 'submit_full_logs')));
 
   it('changes tagged output once each way and keeps every reservation; reloads never duplicate it', () => {
-    const cohort = (s: GameState) => Object.entries(s.activeShards).map(([id, shard]) => [id, shard.count, shard.memoryAllocatedMb]);
+    const cohort = (s: GameState) => Object.entries(s.activeShards).map(([id, shard]) => [id, shard.count, shard.memoryAllocatedBytes]);
     expect([cohort(recalled), cohort(contained)]).toEqual([cohort(record), cohort(record)]);
     expect([recalled.memoryUsed, contained.memoryUsed]).toEqual([record.memoryUsed, record.memoryUsed]);
     expect(pilotServiceView(recalled, preview)?.serviceCyclesPerSec).toBe(0);
-    expect(pilotServiceView(contained, preview)?.ceilingCyclesPerSec).toBe(10);
+    expect(pilotServiceView(contained, preview)?.ceilingCyclesPerSec).toBe(TERMS.narrowCapacityCyclesPerSec);
     expect(computeRates(contained, preview).understandingPerSec).toBeGreaterThan(computeRates(recalled, preview).understandingPerSec);
     let s = contained;
     for (let i = 0; i < 3; i++) s = roundTrip(s);

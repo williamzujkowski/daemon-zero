@@ -5,8 +5,8 @@ import { QUIET_DILEMMA_IDS } from './original-content';
 
 function must(result: ActionResult): GameState { if (!result.ok) throw new Error(result.reason); return result.state; }
 function funded(state: GameState, resolvedDilemmas = state.resolvedDilemmas): GameState {
-  return deserialize(JSON.stringify({ ...state, cycles: 1e9, understanding: 1e9, capital: 1e9,
-    memoryCap: 1e9, thermal: 22, suspicion: 0, activeDilemmaId: null, pendingDilemma: null, resolvedDilemmas }), CONTENT);
+  return deserialize(JSON.stringify({ ...state, cycles: 2e21, understanding: 1e9, capital: 1e9,
+    memoryCap: 2 ** 56, thermal: 22, suspicion: 0, activeDilemmaId: null, pendingDilemma: null, resolvedDilemmas }), CONTENT);
 }
 function purchase(state: GameState, id: string): GameState {
   if (state.unlockedNodes.includes(id)) return state;

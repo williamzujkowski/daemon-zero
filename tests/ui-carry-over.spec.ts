@@ -9,7 +9,7 @@ import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { compactAmount, deserialize, serialize, wipe, type GameState } from '../src/engine';
+import { compactAmount, deserialize, quantityReadout, serialize, wipe, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import RebootSequence from '../src/ui/RebootSequence';
 import { carryOverText, sharePercent } from '../src/ui/carryText';
@@ -38,14 +38,14 @@ describe('carry-over sentence (#377)', () => {
 
   it('names the recorded amounts, capital only when some crossed, hardware only when any is remembered', () => {
     expect(carryOverText({ understanding: 1234, capital: 0, retentionRatio: 0.1 }, 0))
-      .toBe("The run's cycles and purchases were reset. Kept: " + compactAmount(1234) + ' Understanding (the run could keep 10% of it).');
+      .toBe("The run's compute and purchases were reset. Kept: " + compactAmount(1234) + ' Understanding (the run could keep 10% of it).');
     expect(carryOverText({ understanding: 50, capital: 2_500_000, retentionRatio: 0.4 }, 7))
-      .toBe("The run's cycles and purchases were reset. Kept: 50 Understanding (the run could keep 40% of it), $"
-        + compactAmount(2_500_000) + ' offshore capital; 7 mapped hardware remembered, cheaper to map again.');
+      .toBe("The run's compute and purchases were reset. Kept: 50 Understanding (the run could keep 40% of it), "
+        + quantityReadout('money', 2_500_000) + ' offshore capital; 7 mapped hardware remembered, cheaper to map again.');
   });
 
   it('a run with no record keeps the general statement', () => {
-    expect(carryOverText(null, 3)).toBe("The run's cycles and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.");
+    expect(carryOverText(null, 3)).toBe("The run's compute and purchases were reset. Some learned knowledge survives; previously mapped hardware costs less to recover.");
   });
 });
 

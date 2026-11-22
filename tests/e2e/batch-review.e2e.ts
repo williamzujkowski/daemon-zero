@@ -10,12 +10,12 @@
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { core, expect, test, press, openChoices } from './helpers';
-import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
+import { ceilingText, choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const SCENE = need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_nr_batch_review'));
 const FINDING = need(SCENE.finding);
 const QUEUE = need(terms.service).node;
-const NARROW = String(terms.narrowCapacityCyclesPerSec) + ' cycles/s';
+const NARROW = ceilingText(terms.narrowCapacityCyclesPerSec);
 /** One batch at the provisional ceiling and an 0.8 service share. */
 const BATCH_MS = (need(terms.service).batchCycles / (terms.narrowCapacityCyclesPerSec * 0.8)) * 1000;
 

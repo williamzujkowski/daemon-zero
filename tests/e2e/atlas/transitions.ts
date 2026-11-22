@@ -59,7 +59,8 @@ const PHASE_ROWS: readonly TransitionRow[] = [
     setup: async (page) => { await clickIfPresent(page, 'workspace-NETWORK-work'); },
     trigger: { kind: 'click', testId: unlockId(() => phaseExit(3)) },
     appear: { item: (state) => pick(WIDGET_ITEMS.CORPORATE_EMPIRE_TAB, 'hud.capital', state), announce: /phase|corp/i },
-    keep: {}, why: 'The CORP pane is added and auto-selected and CAP joins the HUD.' },
+    // The thermal gauge and its strip readout retire at Phase 4 (docs/SCALE.md rule 7, UI-SPEC "Window retirement").
+    keep: { retired: ['hud.thermal'] }, why: 'The CORP pane is added and auto-selected, CAP joins the HUD and thermal leaves it.' },
   { id: 't-phase-4-to-5', walk: ['C1.4'], before: { stage: 'p4-corp-ledger' },
     setup: async (page) => { await clickIfPresent(page, 'workspace-CORP-work'); },
     trigger: { kind: 'click', testId: unlockId(() => phaseExit(4)) },
@@ -171,15 +172,15 @@ const thermalNode = () => unlocking('THERMAL_AND_SUSPICION_BARS');
 const beacon = () => unlocking('OTHER_MINDS_COMMS_CONSOLE', 3);
 /** The power-consuming upgrade, found by what it does: a phase 4 repeatable that draws megawatts. */
 const powerDraw = () => {
-  const rep = [...CONTENT.repeatables.values()].find((entry) => entry.phaseId === 4 && entry.perLevel.megawattsDelta < 0);
+  const rep = [...CONTENT.repeatables.values()].find((entry) => entry.phaseId === 4 && entry.perLevel.wattsDelta < 0);
   if (rep === undefined) throw new Error('No phase 4 repeatable draws power');
   return rep;
 };
 /** Levels of the power draw that bring consumption level with generation, so one more is a shortfall. */
 function levelWithGeneration(game: GameState): GameState {
   const rep = powerDraw();
-  const surplus = game.rates.megawattsGenerated - game.rates.megawattsConsumed;
-  const level = (game.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.megawattsDelta);
+  const surplus = game.rates.wattsGenerated - game.rates.wattsConsumed;
+  const level = (game.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.wattsDelta);
   return earlier(game, { levels: { ...game.levels, [rep.id]: level } });
 }
 /**

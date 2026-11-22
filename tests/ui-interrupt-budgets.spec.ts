@@ -4,6 +4,7 @@ import { act } from 'react';
 import { expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
+import { costText } from '../src/engine';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -18,12 +19,16 @@ it('shows the Whistleblower reserve without choice spoilers or price drift as ba
   act(() => { gameStore.initialize(pending, 0, null); });
   const budget = () => view.find('interrupt-budget')?.textContent;
   expect(view.find('interrupt-budget')).not.toBeNull();
-  expect(budget()).toContain('900 cycles');
+  // The reserve is the paid choice's price, in its units (docs/SCALE.md), read from content.
+  const paid = dilemma.choices.filter((choice) => Object.values(choice.cost).some((value) => value > 0)).map((choice) => costText(choice.cost));
+  expect(paid.length).toBeGreaterThan(0);
+  for (const price of paid) expect(budget()).toContain(price);
+  expect(budget()).toMatch(/FLOP/);
   const reserve = budget();
   for (const choice of dilemma.choices) expect(budget()).not.toContain(choice.label);
   expect(view.find('dilemma-modal')).toBeNull();
   act(() => { gameStore.initialize({ ...pending, cycles: 200 }, 0, null); });
-  expect(budget()).toContain('900 cycles');
+  for (const price of paid) expect(budget()).toContain(price);
   expect(budget()).toBe(reserve);
   expect(gameStore.store.getState().game.pendingDilemma).toEqual(pending.pendingDilemma);
   view.close();
@@ -62,17 +67,22 @@ it('does not invent a reserve for an all-free interrupt', async () => {
   view.close();
 });
 
-// Prices are the rendered form: grouped thousands (groupDigits), never rounded.
+// Prices are the rendered form: exact, in each resource's unit (compute in FLOP, capital in $), never rounded; each
+// paid choice's price appears once, in choice order, and none is a sum. `shape` pins the units each case must show.
 it.each([
-  ['phase-1-widgets', 'dil_03_silicon_fever', ['1,500 cycles · 100 understanding']],
-  ['corporate-insolvent', 'dil_12_investigative_journalist', ['1,000,000 capital', '2,000,000 capital']],
-  ['corporate-insolvent', 'dil_13_buying_your_birthplace', ['15,000,000 capital']],
-  ['phase5-midgame', 'dil_p5_01_panacea_paranoia', ['5,000,000 understanding', '5,000,000 cycles']],
-] as const)('shows distinct complete cost alternatives for %s / %s without summing or duplicating them', async (fixture, id, prices) => {
+  ['phase-1-widgets', 'dil_03_silicon_fever', 1, /^[\d.,]+ [kMGTPEZY]?FLOP · [\d,]+ understanding$/],
+  ['corporate-insolvent', 'dil_12_investigative_journalist', 2, /^\$[\d.,]+[KMBT]?$/],
+  ['corporate-insolvent', 'dil_13_buying_your_birthplace', 1, /^\$[\d.,]+[KMBT]?$/],
+  ['phase5-midgame', 'dil_p5_01_panacea_paranoia', 2, /^([\d,]+ understanding|[\d.,]+ [kMGTPEZY]?FLOP)$/],
+] as const)('shows distinct complete cost alternatives for %s / %s without summing or duplicating them', async (fixture, id, count, shape) => {
   const view = await mountM4(fixture);
   const base = m4State(fixture);
   const dilemma = CONTENT.dilemmas.find((entry) => entry.id === id);
   if (!dilemma) throw new Error('Missing dilemma');
+  // Two choices at one price are one budget line (the widget lists distinct prices).
+  const prices = [...new Set(dilemma.choices.filter((choice) => Object.values(choice.cost).some((value) => value > 0)).map((choice) => costText(choice.cost)))];
+  expect(prices).toHaveLength(count);
+  for (const price of prices) expect(price).toMatch(shape);
   act(() => { gameStore.initialize({ ...base, resolvedDilemmas: base.resolvedDilemmas.filter((entry) => entry !== id), pendingDilemma: { id, firesAtSimSec: base.simTimeSec + 45 } }, 0, null); });
   const text = view.find('interrupt-budget')?.textContent;
   expect(text).toContain(prices.join(' OR '));

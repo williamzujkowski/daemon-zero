@@ -23,7 +23,7 @@ function nodeWhere(test: (node: RegistryNode) => boolean): RegistryNode {
 }
 /** Unlocks a node and everything it is built on, with funds supplied as an explicit fixture input. */
 function reach(state: GameState, target: RegistryNode): GameState {
-  let game = input(state, { cycles: 1e9, understanding: 1e9 });
+  let game = input(state, { cycles: 5e12, understanding: 1e9 });
   const visit = (node: RegistryNode): void => {
     for (const id of node.prerequisites) {
       const parent = CONTENT.nodes.get(id);

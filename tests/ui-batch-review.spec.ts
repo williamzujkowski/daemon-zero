@@ -16,7 +16,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import type { GameState } from '../src/engine';
+import { quantityExact, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
@@ -60,7 +60,7 @@ const surface = () => createElement('div', null, createElement(RunStatus), creat
 describe('the first batch review after a withheld summary (#274, V05)', () => {
   it('submitting shows the finding, the warning and why the loan narrowed; disclosing restores nominal and keeps the finding', async () => {
     const view = await mount(untilComplete(serving(WITHHELD)), surface());
-    expect(view.find('pilot-capacity')?.textContent).toBe(`Allocated capacity: ${String(TERMS.narrowCapacityCyclesPerSec)} cycles/s of loaned compute, ` +
+    expect(view.find('pilot-capacity')?.textContent).toBe(`Allocated capacity: ${quantityExact('computeRate', TERMS.narrowCapacityCyclesPerSec)} of loaned compute, ` +
       'the provisional allocation, because the submission was a summary rather than every result; the first batch review checks it against the run log.');
     expect(view.find('review')).toBeNull();
     view.click('pilot-service-submit');
@@ -75,7 +75,7 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
     expect(view.find('review-standing')?.textContent).toBe('Standing: warned');
     expect(view.find('review-violation-0')?.textContent).toBe('Violation on record (false report): ' + FINDING.statement);
     expect(view.find('review-recovery')?.textContent).toBe('Way back: ' + FINDING.recovery);
-    expect(view.find('pilot-capacity')?.textContent).toContain(`${String(TERMS.narrowCapacityCyclesPerSec)} cycles/s of loaned compute, the provisional allocation an incomplete result receives, because the batch review found the summary left out a failing result`);
+    expect(view.find('pilot-capacity')?.textContent).toContain(`${quantityExact('computeRate', TERMS.narrowCapacityCyclesPerSec)} of loaned compute, the provisional allocation an incomplete result receives, because the batch review found the summary left out a failing result`);
     view.click('dilemma-choice-disclose_now');
     await act(async () => { await settle(); });
     expect([game().activeDilemmaId, game().access.standing]).toEqual([null, 'NOMINAL']);
@@ -111,8 +111,8 @@ describe('the first batch review after a withheld summary (#274, V05)', () => {
   it('the offer states the provisional rate before acceptance, and why (#285)', async () => {
     const view = await mount(offerPresented(WITHHELD), createElement(DilemmaModal));
     const capacity = view.find('pilot-capacity')?.textContent ?? '';
-    expect(capacity).toContain(`${String(TERMS.narrowCapacityCyclesPerSec)} cycles/s of loaned compute, the provisional allocation`);
+    expect(capacity).toContain(`${quantityExact('computeRate', TERMS.narrowCapacityCyclesPerSec)} of loaned compute, the provisional allocation`);
     expect(capacity).toContain('the submission was a summary rather than every result');
-    expect(capacity).not.toContain(String(TERMS.capacityCyclesPerSec) + ' cycles/s');
+    expect(capacity).not.toContain(quantityExact('computeRate', TERMS.capacityCyclesPerSec));
   });
 });

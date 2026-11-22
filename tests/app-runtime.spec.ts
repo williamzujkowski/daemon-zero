@@ -81,7 +81,7 @@ describe('app runtime', () => {
     expect(h.storage.setItem).not.toHaveBeenCalled();
     expect(h.runtime.dispatch((game) => engine.manualCycle(game, CONTENT)).ok).toBe(true);
     expect(h.storage.setItem).toHaveBeenCalledOnce();
-    expect((await h.persistence.load()).game.cycles).toBe(1);
+    expect((await h.persistence.load()).game.cycles).toBe(CONTENT.balance.manualCycleYield);
     h.activity(false);
     expect(h.runtime.dispatch((game) => engine.manualCycle(game, CONTENT)).ok).toBe(false);
     release();
@@ -135,7 +135,7 @@ describe('app runtime', () => {
     const next = runtimeHarness(true, storage);
     const stop = next.runtime.start();
     await settle();
-    expect(next.game.store.getState().game.cycles).toBe(1);
+    expect(next.game.store.getState().game.cycles).toBe(CONTENT.balance.manualCycleYield);
     expect(next.game.store.getState().game.simTimeSec).toBeCloseTo(600);
     expect(next.game.store.getState().game.logs[0]?.text).toContain('DORMANT_RESUME');
     stop();
@@ -216,7 +216,7 @@ describe('app runtime', () => {
     await settle();
     expect(h.game.store.getState().notice).toContain('could not be written');
     await vi.advanceTimersByTimeAsync(5000);
-    expect((await h.persistence.load()).game.cycles).toBe(1);
+    expect((await h.persistence.load()).game.cycles).toBe(CONTENT.balance.manualCycleYield);
     expect(h.game.store.getState().notice).toBeNull();
     release();
   });

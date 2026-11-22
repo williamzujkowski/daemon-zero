@@ -14,7 +14,8 @@ describe('completed purchase feed', () => {
     const view = await mountM4('tick-0');
     const node = CONTENT.phases[0]?.nodes[0];
     if (!node?.unlocksUiComponent) throw new Error('Missing opening widget');
-    act(() => { gameStore.initialize({ ...rich(), cycles: 1000 }, 0, null); });
+    // Exactly the opening node's price in compute: enough to buy it and nothing else that costs FLOP.
+    act(() => { gameStore.initialize({ ...rich(), cycles: node.cost.cycles }, 0, null); });
     const before = computeRates(gameStore.store.getState().game, CONTENT);
     view.purchase('node-' + node.id + '-unlock');
     const bought = gameStore.store.getState().game;
@@ -45,7 +46,7 @@ describe('completed purchase feed', () => {
     const original = computeRates(game, CONTENT).cyclesPerSec;
     view.click('node-' + node.id + '-toggle');
     expect(gameStore.store.getState().game.disabledNodes).toContain(node.id);
-    expect(view.find('daemon-impact-' + node.id)?.textContent).toContain('+0.00');
+    expect(view.find('daemon-impact-' + node.id)?.textContent).toMatch(/^\+0 FLOP\/s net/);
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).toBeCloseTo(original - node.tickDelta.cyclesPerSec);
     view.click('node-' + node.id + '-toggle');
     expect(gameStore.store.getState().game.disabledNodes).not.toContain(node.id);

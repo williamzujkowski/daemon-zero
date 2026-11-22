@@ -1,5 +1,6 @@
 /** Completed cards disappear, but upkeep-bearing processes remain controllable. */
 import { CONTENT } from '../../src/content';
+import { quantityReadout } from '../../src/engine';
 import { test, expect, boot, core, dismissBoot, readSave } from './helpers';
 
 test('a compact daemon row suspends and resumes without restoring its purchase card', async ({ page }) => {
@@ -16,7 +17,7 @@ test('a compact daemon row suspends and resumes without restoring its purchase c
   await expect(toggle).toHaveAttribute('aria-label', new RegExp('^Suspend ' + node.revealedName + ' and free [0-9]+ MB$'));
   await toggle.click();
   expect((await readSave(page)).disabledNodes).toContain(node.id);
-  await expect(page.getByTestId('daemon-impact-' + node.id)).toContainText('+0.00 cycles/s');
+  await expect(page.getByTestId('daemon-impact-' + node.id)).toContainText('+' + quantityReadout('computeRate', 0) + ' net');
   await expect(toggle).toHaveAttribute('aria-label', 'Resume ' + node.revealedName);
   await toggle.click();
   expect((await readSave(page)).disabledNodes).not.toContain(node.id);

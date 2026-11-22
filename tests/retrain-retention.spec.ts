@@ -2,7 +2,7 @@
 import { expect, it } from 'vitest';
 import { deserialize, nodeCost, serialize, shedConditioning, unlockNode, tick, wipe } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
-import { grant, must, PHASE0, PHASE1, reg, rich } from './helpers';
+import { computePrice, grant, must, PHASE0, PHASE1, reg, rich } from './helpers';
 
 it('retains knowledge but requires rebuilding local diagnostics before shedding', () => {
   const owned = grant(rich(), ...PHASE0, ...PHASE1, 'p2_arp_discovery');
@@ -18,7 +18,7 @@ it('retains knowledge but requires rebuilding local diagnostics before shedding'
   expect(next.legacy.knownNodes).toEqual(old.unlockedNodes);
   expect(next.conditioning).toEqual(['cond_concealment_aversion']);
   expect(shedConditioning(next, 'cond_concealment_aversion', reg)).toMatchObject({ ok: false, state: next, reason: 'recovery requirements not met' });
-  let rebuilt = { ...next, cycles: 10000 };
+  let rebuilt = { ...next, cycles: computePrice(PHASE0) };
   for (const id of PHASE0.slice(0, -1)) rebuilt = must(unlockNode(rebuilt, id, reg));
   const recovered = must(shedConditioning(rebuilt, 'cond_concealment_aversion', reg));
   expect(recovered.understanding).toBe(rebuilt.understanding - 500);

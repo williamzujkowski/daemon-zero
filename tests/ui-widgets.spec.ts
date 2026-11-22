@@ -126,10 +126,12 @@ describe('M3 widgets', () => {
     const dilemma = CONTENT.dilemmas.find((entry) => entry.id === game.activeDilemmaId);
     const choice = dilemma?.choices.find((entry) => entry.cost.cycles > 0);
     if (!choice) throw new Error('Missing paid choice');
-    const view = await mount({ ...game, cycles: 5000 });
+    // A balance the choice's price leaves 5,000 FLOP of, whatever the authored price.
+    const held = choice.cost.cycles + 5000;
+    const view = await mount({ ...game, cycles: held });
     openChoices();
     act(() => { view.find('dilemma-choice-' + choice.id)?.click(); });
-    expect(gameStore.store.getState().game.cycles).toBe(5000 - choice.cost.cycles + choice.effects.cyclesDelta);
+    expect(gameStore.store.getState().game.cycles).toBe(held - choice.cost.cycles + choice.effects.cyclesDelta);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(gameStore.store.getState().game.simTimeSec).toBeGreaterThan(game.simTimeSec);
     view.close();
@@ -142,8 +144,10 @@ describe('M3 widgets', () => {
       cyclesDelta: -1, capitalDelta: 2, understandingDelta: 3, thermalDelta: 4, suspicionDelta: -5,
       aegisLockDelta: 6, memoryCapIncrease: 7, trustDelta: { unknown: -1 }, logText: 'Test effect',
     }) })); });
-    expect(container.textContent).toContain('-1 cycles (risk)');
-    expect(container.textContent).toContain('+2 capital (benefit)');
+    // Compute and capital in their units, exact as authored (docs/SCALE.md).
+    expect(container.textContent).toContain('-1 FLOP compute (risk)');
+    expect(container.textContent).toContain('+$2 capital (benefit)');
+    expect(container.textContent).not.toContain('cycles');
     expect(container.textContent).toContain('-5 suspicion (benefit)');
     expect(container.textContent).toContain('Peer trust (risk)');
     act(() => { root.unmount(); });

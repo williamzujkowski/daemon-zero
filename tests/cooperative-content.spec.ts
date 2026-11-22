@@ -125,6 +125,8 @@ describe('an action host follows a capability gate to every provider (#273 with 
     const hostedAtFive = (raw: Json): void => {
       const action = raw.actions.actions.find((entry: Json) => entry.id === 'act_p2_scrub_audit_logs');
       action.requirements = { phaseAtLeast: 5 };
+      // Priced inside the Phase 5 band (integrityScale.ts), so hosting is the only thing this edit changes.
+      action.cost = { cycles: 1e22 };
       raw.widgets.widgets.find((entry: Json) => entry.id === 'CORPORATE_EMPIRE_TAB').hostsActionGroups = [action.group];
       for (const widget of raw.widgets.widgets as Json[]) if (widget.id !== 'CORPORATE_EMPIRE_TAB' && widget.hostsActionGroups?.includes(action.group) === true) delete widget.hostsActionGroups;
     };

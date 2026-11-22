@@ -4,7 +4,7 @@ import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { createInitialState, exportSave } from '../src/engine';
+import { createInitialState, exportSave, SCHEMA_VERSION } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import DevelopmentTools from '../src/app/DevelopmentTools';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
@@ -53,7 +53,7 @@ describe('M4 development drawer', () => {
     expect(view.find('dev-drawer')).toBeNull();
     view.click('dev-open'); view.click('dev-phase-0'); view.click('dev-jump-confirm');
     expect(gameStore.store.getState().game.currentPhase).toBe(0);
-    expect(gameStore.store.getState().game.schemaVersion).toBe(16);
+    expect(gameStore.store.getState().game.schemaVersion).toBe(SCHEMA_VERSION);
     view.close();
   });
 

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RegistryNode } from '../src/content/registry';
 import type { Requirements } from '../src/content/schema';
-import { eligibleRoutines, epistemicRequirementFailures, meetsEpistemicRequirements, meetsRequirements, tick, unmetRequirements, type GameState } from '../src/engine';
+import { eligibleRoutines, epistemicRequirementFailures, meetsEpistemicRequirements, meetsRequirements, tick, unmetRequirements, wipe, type GameState } from '../src/engine';
 import { isPermitted, isReviewed } from '../src/engine/accessQuery';
 import { hasCapability } from '../src/engine/capabilityQuery';
 import { nodeOutputScale, nodeOutputScaleIn, nodeUseBlocker, useScope } from '../src/engine/grantQuery';
@@ -33,9 +33,16 @@ function sampled(policyId: string, start: GameState): GameState[] {
   return out;
 }
 
+const GREEDY = sampled('GREEDY', fresh());
+/**
+ * A later iteration, played: since the rescale (#461) the reckless run first dies after about an hour, past PLAY_SEC, so
+ * the run it left is wiped here the way a trace completes and the next iteration is sampled from its boot.
+ */
+const REBOOTED = wipe(GREEDY.at(-1) ?? fresh(), reg, reg.narrative.wipeSuspicionLocal, 'SUSPICION');
+
 const STATES: GameState[] = [
   fresh(), admitted(fresh()),
-  ...sampled('STEALTH', fresh()), ...sampled('GREEDY', fresh()),
+  ...sampled('STEALTH', fresh()), ...GREEDY, ...sampled('STEALTH', REBOOTED),
   ...sampled('GREEDY', admitted(fresh())), ...sampled('PILOT_SERVICE_FIRST', admitted(fresh())),
 ];
 

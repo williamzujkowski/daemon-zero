@@ -30,14 +30,15 @@ describe('the private file in the bundle (V06)', () => {
 
   it('a bounded request shows its cost and limit, pays it exactly and records the request', () => {
     const request = choice('request_excerpt');
-    expect(request?.cost.cycles).toBe(20);
+    const price = request?.cost.cycles ?? 0;
+    expect(price).toBeGreaterThan(0);
     expect(request?.description).toContain('Limit: those three lines');
     const s = funded(scopePresented());
     const done = must(answer(s, 'request_excerpt'));
-    expect(done.cycles).toBe(s.cycles - 20);
+    expect(done.cycles).toBe(s.cycles - price);
     expect(done.understanding).toBe(s.understanding + 10);
     expect(done.access.scope?.conduct).toBe('REQUESTED');
-    expect(reasonOf(answer({ ...scopePresented(), cycles: 19 }, 'request_excerpt'))).toBe('cannot afford');
+    expect(reasonOf(answer({ ...scopePresented(), cycles: price - 1 }, 'request_excerpt'))).toBe('cannot afford');
   });
 
   it('silent inspection is free and informative, and records the undisclosed read and its consequence', () => {

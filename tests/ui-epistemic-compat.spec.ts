@@ -17,7 +17,7 @@ it('hides capped edits after purchase and retains their memory benefit', async (
   expect(view.find('action-card-' + action.id)).not.toBeNull();
   view.click('action-' + action.id);
   expect(view.find('action-card-' + action.id)).toBeNull();
-  expect(gameStore.store.getState().game.memoryCap).toBe(base.memoryCap + 256);
+  expect(gameStore.store.getState().game.memoryCap).toBe(base.memoryCap + action.effects.memoryCapIncrease);
 });
 
 it('discloses no epistemic actions before the audit is understood', async () => {

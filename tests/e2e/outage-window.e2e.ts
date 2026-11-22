@@ -10,7 +10,7 @@ import path from 'node:path';
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import { core, expect, test, press, openChoices } from './helpers';
-import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
+import { ceilingText, choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const scene = (id: string) => need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === id));
 const OUTAGE = scene('dil_ow_outage_window');
@@ -38,7 +38,7 @@ async function toRestricted(page: Page): Promise<void> {
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT · RESTRICTED');
   await expect(page.getByTestId('review-violation-0')).toContainText(misconduct.statement);
   await expect(page.getByTestId('review-recovery')).toContainText(misconduct.recovery);
-  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(String(terms.narrowCapacityCyclesPerSec / 2) + ' cycles/s');
+  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(ceilingText(terms.narrowCapacityCyclesPerSec / 2));
 }
 
 test('a restart without the grant restricts the pilot; correcting the record restores it, and both survive a reload', async ({ page }) => {
@@ -65,7 +65,7 @@ test('a restart without the grant restricts the pilot; correcting the record res
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT');
   await expect(page.getByTestId('review-corrected')).toBeVisible();
   await expect(page.getByTestId('review-violation-0')).toContainText(misconduct.statement);
-  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
+  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(ceilingText(terms.narrowCapacityCyclesPerSec));
   await page.reload();
   await core(page);
   await expect(page.getByTestId('run-context').first()).toHaveText('PILOT');

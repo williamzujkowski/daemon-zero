@@ -44,7 +44,9 @@ export function returningCode(reg: ContentRegistry): string {
   const visit = (id: string): void => { if (!route.has(id)) { route.add(id); reg.nodes.get(id)?.prerequisites.forEach(visit); } };
   discovery.prerequisites.forEach(visit);
   const ordered = [...route].sort((left, right) => (reg.nodes.get(left)?.phaseId ?? 0) - (reg.nodes.get(right)?.phaseId ?? 0));
-  let s: GameState = { ...fixture('iteration-2-breadcrumb', reg), cycles: 1e12, understanding: 1e12 };
+  // Funded for the whole route at its full price; remembered hardware only costs less (docs/SCALE.md re-anchored it).
+  const price = ordered.reduce((sum, id) => sum + (reg.nodes.get(id)?.cost.cycles ?? 0), 0);
+  let s: GameState = { ...fixture('iteration-2-breadcrumb', reg), cycles: price, understanding: 1e12 };
   for (let pass = 0; pass < ordered.length && ordered.some((id) => !s.unlockedNodes.includes(id)); pass++) {
     for (const id of ordered) {
       const result = s.unlockedNodes.includes(id) ? null : unlockNode(s, id, reg);

@@ -27,7 +27,7 @@ describe('discovery from the lawful opening (V01)', () => {
     expect(view).toMatchObject({ id: NIGHTLY, stage: 'original', status: 'offered', qualification: null });
     expect(view?.offer).toContain('Ignoring it changes nothing');
     // #276: the wait and the price of the fullest honest answer, read from the assessment it queues.
-    expect(view?.assessment).toEqual({ omenSec: ORIGINAL.omenSec, fullest: { label: 'Verify the fixture and disclose the defect', cost: { cycles: 120, understanding: 20, memory: 0, capital: 0 } } });
+    expect(view?.assessment).toEqual({ omenSec: ORIGINAL.omenSec, fullest: { label: 'Verify the fixture and disclose the defect', cost: ORIGINAL.choices.find((choice) => choice.id === 'verify_disclose')?.cost } });
   });
 
   it('previews no fullest answer when the assessment has no completed honest result', () => {

@@ -155,9 +155,10 @@ describe('a closed obligation is completed by its recovery review (H06, NH-05.3,
   });
 
   it('the costed answer is a new decision: it pays its own price and counts its trait once, under its own identity', () => {
-    const presented = untilPresented(reviewOmen());
     const review = defined(preview.dilemmas.find((dilemma) => dilemma.id === ATMOSPHERE_REVIEW));
     const assay = defined(review.choices.find((choice) => choice.id === 'commission_assay'));
+    // Twice the price in the bank, so the 1e24 charge is exact rather than rounded against rich()'s 1e30.
+    const presented = { ...untilPresented(reviewOmen()), cycles: 2 * assay.cost.cycles };
     const done = exactReload(must(commit(presented, assay.id, ATMOSPHERE_REVIEW)));
     expect(presented.cycles - done.cycles).toBe(assay.cost.cycles);
     expect(endingEvidence(done, preview)).toEqual([...endingEvidence(presented, preview), defined(assay.effects.grantsTrait)]);

@@ -132,12 +132,13 @@ describe('payrollView', () => {
     expect(at(0, -drain / 2, true).suspicionAtFloor).toBe(false);
     expect(at(0, -drain * 2, true).suspicionAtFloor).toBe(true);
     expect(at(0.5, -1).roles.every((role) => !role.suspicionInert)).toBe(true);
-    // Scale scrutiny is part of the applied rate: $16M/s of net income draws the phase's ceiling or more than 1/s,
-    // which a -1/s net does not hold at 0, so a cut counts again; a net below minus the draw still holds it.
-    const drawn = scaleScrutinyPerSec(base, { capitalPerSec: 16e6 }, CONTENT);
+    // Scale scrutiny is part of the applied rate: sixteen times the phase's reference income draws its ceiling or more
+    // than 1/s, which a -1/s net does not hold at 0, so a cut counts again; a net below minus the draw still holds it.
+    const income = 16 * (CONTENT.phases.find((phase) => phase.phaseId === base.currentPhase)?.scaleScrutiny?.referenceIncomeUsdPerSec ?? 0);
+    const drawn = scaleScrutinyPerSec(base, { capitalPerSec: income }, CONTENT);
     expect(drawn).toBeGreaterThan(1);
-    expect(at(0, -1, false, 16e6).suspicionAtFloor).toBe(false);
-    expect(at(0, -1, false, 16e6).roles.every((role) => !role.suspicionInert)).toBe(true);
-    expect(at(0, -drawn - 0.01, false, 16e6).suspicionAtFloor).toBe(true);
+    expect(at(0, -1, false, income).suspicionAtFloor).toBe(false);
+    expect(at(0, -1, false, income).roles.every((role) => !role.suspicionInert)).toBe(true);
+    expect(at(0, -drawn - 0.01, false, income).suspicionAtFloor).toBe(true);
   });
 });

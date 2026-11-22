@@ -27,7 +27,7 @@ describe('M2 mounted app', () => {
     expect(container.querySelector('[data-testid="manual-cycle"]')?.getAttribute('aria-disabled')).not.toBe('true');
     const button = container.querySelector<HTMLElement>('[data-testid="manual-cycle"]');
     act(() => { button?.click(); });
-    expect(gameStore.store.getState().game.cycles).toBe(1);
+    expect(gameStore.store.getState().game.cycles).toBe(CONTENT.balance.manualCycleYield);
     expect(container.querySelector('[data-testid="res-cycles"]')).toBeNull();
     expect(host.localStorage.getItem(SAVE_KEY)).toContain('"savedAtMs"');
     act(() => { root.unmount(); });

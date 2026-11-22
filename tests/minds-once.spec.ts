@@ -27,7 +27,8 @@ const texts = (s: { logs: { text: string }[] }) => s.logs.map((entry) => entry.t
 describe('each named-mind event resolves at most once per campaign (H01)', () => {
   it.each(PLAYED)('%s (%s): one outcome, one reward, one trait, across three wipes', (id, choiceId) => {
     const choice = choiceOf(id, choiceId);
-    const presented = untilPresented(omen(campaignStart(), id));
+    // Exactly the price in the bank, so a 1e22 reward is not rounded against rich()'s 1e30.
+    const presented = { ...untilPresented(omen(campaignStart(), id)), cycles: choice.cost.cycles };
     const before = presented.cycles;
     const chosen = must(commit(presented, choiceId, id));
     expect(chosen.cycles - before + choice.cost.cycles).toBe(choice.effects.cyclesDelta);

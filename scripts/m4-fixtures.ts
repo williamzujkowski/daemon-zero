@@ -24,7 +24,7 @@ function input(game: GameState, patch: Partial<GameState>): GameState {
 }
 
 function funded(): GameState {
-  return input(createInitialState(CONTENT), { cycles: 1e15, understanding: 1e15, capital: 1e15,
+  return input(createInitialState(CONTENT), { cycles: 1e30, understanding: 1e15, capital: 1e18,
     resolvedDilemmas: QUIET_DILEMMA_IDS });
 }
 
@@ -99,7 +99,7 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     ORIGINAL_NODES.some((node) => node.uiGroup === faction.id));
   if (!eidolon) throw new Error('Missing peer fixtures');
   const shortfall = input(phase4, {});
-  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.megawattsDelta > 0);
+  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.wattsDelta > 0);
   if (!generator) throw new Error('Missing generator');
   // The generator is hardware and can no longer be suspended by action (nexus vote
   // software-types-only-free-their-memory). This fixture needs a state where generation

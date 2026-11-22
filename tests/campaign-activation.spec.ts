@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import {
   activateCampaignRules, advance, baseEndingScores, campaignRecord, chooseEnding, createInitialState, deserialize,
-  endingEvidence, exportSave, holdsNarrativeFlag, importSave, recordedTransmissions, serialize, wipe,
+  endingEvidence, exportSave, holdsNarrativeFlag, importSave, recordedTransmissions, SCHEMA_VERSION, serialize, wipe,
   type GameState,
 } from '../src/engine';
 import { createGameStore } from '../src/app/store';
@@ -139,7 +139,7 @@ describe('legacy ending compatibility (H11)', () => {
 describe('inactive migration, legacy play, then activation (H36)', () => {
   it('captures the then-current evidence, not the evidence at migration', () => {
     const migrated = deserialize(V4, preview);
-    expect(migrated).toMatchObject({ schemaVersion: 16, narrativeRules: 'legacy' });
+    expect(migrated).toMatchObject({ schemaVersion: SCHEMA_VERSION, narrativeRules: 'legacy' });
     // Keep playing under legacy rules: wipe, then resolve an ordinary incident in the new iteration.
     const wiped = wipe(migrated, preview, 'test', 'VOLUNTARY');
     // Legacy rules ignore campaign declarations, so any incident recurs and is resolved this run.

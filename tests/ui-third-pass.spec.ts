@@ -4,6 +4,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
+import { rich } from './helpers';
 import { labelMismatches } from './labelInName';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
@@ -30,7 +31,8 @@ describe('lineage interface', () => {
     expect(view.find('cond-' + mark.id)?.textContent).toContain(mark.description);
     act(() => { gameStore.initialize({ ...game(), understanding: 0 }, 0, null); });
     expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
-    act(() => { gameStore.initialize({ ...game(), cycles: 1e6, understanding: 1e6 }, 0, null); });
+    // Funded past every unit's band: the shed stays refused because its hardware is not rebuilt yet.
+    act(() => { gameStore.initialize(rich(game()), 0, null); });
     expect(view.find('cond-' + mark.id + '-shed')?.getAttribute('aria-disabled')).toBe('true');
     const rebuild = (id: string) => {
       if (game().unlockedNodes.includes(id)) return;

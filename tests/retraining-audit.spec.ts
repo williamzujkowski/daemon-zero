@@ -2,7 +2,7 @@
 import { expect, it } from 'vitest';
 import { auditRetraining, observeRetraining, type RetrainingObservation } from '../scripts/audit-retraining';
 import { createInitialState, shedConditioning, wipe } from '../src/engine';
-import { grant, must, PHASE0, PHASE1, reg, rich } from './helpers';
+import { computePrice, grant, must, PHASE0, PHASE1, reg, rich } from './helpers';
 
 it('observes a tick-time mark and its actual removal independently from guest exit', () => {
   const old = { ...grant(rich(), ...PHASE0, ...PHASE1), traits: ['GHOST' as const], understanding: 57640, simTimeSec: 100 };
@@ -11,7 +11,7 @@ it('observes a tick-time mark and its actual removal independently from guest ex
   observeRetraining(old, boot, reg, rows);
   expect(rows[0]).toMatchObject({ mark: 'cond_concealment_aversion', retainedUnderstanding: 5764,
     recoveryUnderstanding: 500, affordableAtBoot: true, removedAfterSec: null, guestExitAfterSec: null });
-  const recovered = must(shedConditioning({ ...grant({ ...boot, cycles: 10000 }, ...PHASE0), simTimeSec: 100.5 }, 'cond_concealment_aversion', reg));
+  const recovered = must(shedConditioning({ ...grant({ ...boot, cycles: computePrice(PHASE0) }, ...PHASE0), simTimeSec: 100.5 }, 'cond_concealment_aversion', reg));
   observeRetraining(boot, recovered, reg, rows);
   expect(rows[0]?.removedAfterSec).toBe(.5);
   expect(rows[0]?.guestExitAfterSec).toBe(.5);

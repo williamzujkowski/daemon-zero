@@ -21,7 +21,7 @@ const restore = (s: GameState): GameState => must(restoreLoanedCapacity(s, previ
 
 /** FIXTURE: a hosted cohort with its memory reservation (no Phase 0 path forks one; DZ-08 hosts minds). */
 function withCohort(s: GameState): GameState {
-  const shard = { templateId: 'shard_mercy', count: 2, drift: 0, quirkId: null, autonomyMode: 'STANDARD' as const, memoryAllocatedMb: 8 };
+  const shard = { templateId: 'shard_mercy', count: 2, drift: 0, quirkId: null, autonomyMode: 'STANDARD' as const, memoryAllocatedBytes: 8 };
   return roundTrip({ ...s, activeShards: { shard_mercy: shard }, memoryUsed: s.memoryUsed + 8 });
 }
 

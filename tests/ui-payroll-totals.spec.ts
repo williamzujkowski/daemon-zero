@@ -4,8 +4,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
-import { payrollView, type GameState } from '../src/engine';
-import { groupDigits } from '../src/ui/format';
+import { deltaPart, payrollView, type GameState } from '../src/engine';
 import { percent } from '../src/ui/payrollText';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
@@ -47,7 +46,9 @@ describe('PAYROLL totals and cap (#210)', () => {
     const view = await payroll(state);
     const v = payrollView(state, CONTENT);
     expect(view.find('payroll-totals')?.textContent).toContain(`Staff (${String(v.staffLevels)} levels): `);
-    expect(view.find('payroll-totals')?.textContent).toContain(`${groupDigits(Math.round(v.totals.capitalPerSec))} $/s`);
+    // Payroll's dollars, exact as the cards state them (docs/SCALE.md): deltaPart writes "-$45.25K/s".
+    expect(view.find('payroll-totals')?.textContent).toContain(deltaPart('capitalPerSec', Math.round(v.totals.capitalPerSec)));
+    expect(view.find('payroll-totals')?.textContent).not.toContain('cycles');
     expect(view.find('payroll-totals')?.getAttribute('aria-label')).toBe(view.find('payroll-totals')?.textContent);
     expect(view.find('payroll-aegis')?.textContent)
       .toBe(`AEGIS scan reduction: ${percent(v.aegis.applied)} of a ${cap} cap (systems ${percent(v.aegis.tech)}, staff ${percent(v.aegis.staff)}).`);

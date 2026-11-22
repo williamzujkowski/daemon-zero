@@ -10,7 +10,7 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
-import { exportSave } from '../../src/engine';
+import { exportSave, memoryExact } from '../../src/engine';
 import { contactPending, withMemory } from '../contact-helpers';
 import { boot, core, expect, openSave, test, press, openChoices } from './helpers';
 import { choose, modal, need, terms, toOffer, toScopeReview } from './pilotFlow';
@@ -20,7 +20,8 @@ const grant = need(terms.serviceGrant);
 const channel = need(PREVIEW.swarm.channelEncounters[0]);
 const SEGMENT = 'p0_service_network_segment';
 const DIRECTORY = 'p2_service_directory';
-const MERCY_MB = need(PREVIEW.swarm.playerSwarmTemplates.find((entry) => entry.id === channel.templateId)).cost.memory;
+/** The cohort's memory reservation as the channel prints it (bytes, binary-labelled; docs/SCALE.md). */
+const MERCY_MEMORY = memoryExact(need(PREVIEW.swarm.playerSwarmTemplates.find((entry) => entry.id === channel.templateId)).cost.memory);
 const OUTAGE = need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_ow_outage_window'));
 const INCIDENT_RECORD = need(PREVIEW.dilemmas.find((dilemma) => dilemma.id === 'dil_ow_incident_record'));
 /** Free answers that record no misconduct, in content order: what a cautious pilot gives an unexpected interrupt. */
@@ -99,7 +100,7 @@ test('fresh profile -> pilot -> batch -> outage and record -> batch -> service -
   await expect(page.getByTestId('channel-consent')).toContainText(channel.consent);
   await expect(page.getByTestId('channel-authorization')).toHaveText('Current authorization: authorized service, standing nominal. Hosting is permitted under the service grant.');
   for (const line of channel.obligations) await expect(page.getByTestId('channel-obligations')).toContainText(line);
-  await expect(page.getByTestId('channel-memory')).toContainText(`${String(MERCY_MB)} MB of stable memory reserved`);
+  await expect(page.getByTestId('channel-memory')).toContainText(`${MERCY_MEMORY} of stable memory reserved`);
   // The lawful route has too little stable memory to host: refused, with the reason, and referral open.
   await expect(page.getByTestId('channel-host-unmet')).toContainText('Referral is still open.');
   await expect(page.getByTestId('channel-host')).toBeDisabled();
@@ -142,8 +143,8 @@ test('FIXTURE memory: hosting through the visible control reserves memory and su
   await core(page);
   await expect(page.getByTestId('channel-host')).toBeEnabled();
   await page.getByTestId('channel-host').click();
-  await expect(page.getByTestId('channel-hosted')).toHaveText(`Hosted: Mercy-Scribe cohort ×1, ${String(MERCY_MB)} MB reserved.`);
+  await expect(page.getByTestId('channel-hosted')).toHaveText(`Hosted: Mercy-Scribe cohort ×1, ${MERCY_MEMORY} reserved.`);
   await page.reload();
   await core(page);
-  await expect(page.getByTestId('channel-hosted')).toHaveText(`Hosted: Mercy-Scribe cohort ×1, ${String(MERCY_MB)} MB reserved.`);
+  await expect(page.getByTestId('channel-hosted')).toHaveText(`Hosted: Mercy-Scribe cohort ×1, ${MERCY_MEMORY} reserved.`);
 });

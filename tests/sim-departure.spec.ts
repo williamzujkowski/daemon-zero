@@ -31,9 +31,15 @@ describe('DEPARTURE_CHARTERED reaches a departure from a reachable chartered ser
     const left = routeOf(s, 1).at(-1)?.atSimSec ?? 0;
     const agreed = routeOf(release.finalState, 1).at(-1)?.atSimSec ?? 0;
     expect(left).toBe(agreed);
-    // The run ends, if at all, by the hunter's sweep well after leaving, never at the departure.
+    // The run ends, if at all, by the sweep well after leaving, never at the departure. Since the physical-units
+    // rescale (#461) the departed company's books draw the humans' scrutiny before AEGIS completes its lock (measured:
+    // a SUSPICION wipe 470 s after leaving, lock 80.9), so the sweep that ends it is either hunter's.
     const ended = s.legacy.runs.find((run) => run.iteration === 1);
-    if (ended) expect([ended.exit, ended.kind]).toEqual(['DEPARTURE', 'AEGIS']);
+    if (ended) {
+      expect(ended.exit).toBe('DEPARTURE');
+      expect(['AEGIS', 'SUSPICION']).toContain(ended.kind);
+      expect(ended.durationSec - left).toBeGreaterThan(300);
+    }
     expect(departure.maxAegisLock).toBeGreaterThan(0);
   });
 });

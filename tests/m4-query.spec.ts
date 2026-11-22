@@ -4,12 +4,13 @@ import { CONTENT } from '../src/content';
 import { canAfford, computeRates, costShortfall, cycleContributions, meetsRequirements, previewWipe, unmetRequirements, wipe } from '../src/engine';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { importSave } from '../src/engine';
-import { fresh, grant, onHost } from './helpers';
+import { fresh, grant, onHost, sumTolerance } from './helpers';
 
 const fixtures = makeFixtures();
 describe('M4 read-only queries', () => {
   it('reports exact affordability deficits without changing the spending decision', () => {
-    const cost = { cycles: 12, understanding: 3, memory: 100, capital: 8 };
+    // 36 bytes more memory than a fresh guest's whole free cap.
+    const cost = { cycles: 12, understanding: 3, memory: fresh().memoryCap + 36, capital: 8 };
     const s = { ...fresh(), cycles: 1.2, understanding: 2, capital: 2 };
     expect(costShortfall(s, cost)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, capital: 6 });
     for (const code of Object.values(fixtures)) {
@@ -51,8 +52,9 @@ describe('M4 read-only queries', () => {
   it('adds cycle sources to net engine income under fan, suspension, finance and grid scaling', () => {
     for (const code of Object.values(fixtures)) {
       const game = importSave(code, CONTENT), before = JSON.stringify(game);
-      expect(cycleContributions(game, CONTENT).reduce((sum, source) => sum + source.cyclesPerSec, 0))
-        .toBeCloseTo(computeRates(game, CONTENT).cyclesPerSec, 5);
+      const rate = computeRates(game, CONTENT).cyclesPerSec;
+      const summed = cycleContributions(game, CONTENT).reduce((sum, source) => sum + source.cyclesPerSec, 0);
+      expect(Math.abs(summed - rate)).toBeLessThanOrEqual(sumTolerance(rate));
       expect(JSON.stringify(game)).toBe(before);
     }
     expect(cycleContributions(fresh(), CONTENT)).toEqual([]);

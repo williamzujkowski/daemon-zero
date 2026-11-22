@@ -89,6 +89,14 @@ describe('C2 and B5: what stays put', () => {
     expect(rules(input({ primary: { before: null, after: null, kept: true, steady: false } }))).toEqual(['primary-kept']);
   });
 
+  it('fails a retired item that is still on screen, and passes one that left with its window', () => {
+    const gauge = (found: boolean) => measure({ key: 'hud.thermal', kind: 'timely', found, inFirstViewport: found });
+    expect(transitionFailures(input({ retired: [gauge(true)] })).map((failure) => `${failure.item} ${failure.rule}`)).toEqual(['hud.thermal timely-retired']);
+    expect(rules(input({ retired: [gauge(false)] }))).toEqual([]);
+    // A retired item is not also held to timely-kept: it is gone on purpose.
+    expect(rules(input({ kept: [measure({ key: 'hud.cycles', kind: 'timely' })], retired: [gauge(false)] }))).toEqual([]);
+  });
+
   it('fails a different enabled control under the pointer, and nothing else', () => {
     const pointer = (after: { testId: string | null; interactive: boolean; enabled: boolean } | null) => input({ pointer: { clicked: 'node-x-unlock', after } });
     expect(rules(pointer({ testId: 'node-y-unlock', interactive: true, enabled: true }))).toEqual(['pointer-target']);

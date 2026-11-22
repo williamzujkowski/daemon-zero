@@ -11,7 +11,7 @@ function input(state: GameState, patch: Partial<GameState>): GameState {
   return deserialize(JSON.stringify({ ...state, ...patch }), CONTENT);
 }
 function reach(state: GameState, target: RegistryNode): GameState {
-  let game = input(state, { cycles: 1e6, understanding: 1e6, resolvedDilemmas: QUIET_DILEMMA_IDS });
+  let game = input(state, { cycles: 1e17, understanding: 1e6, resolvedDilemmas: QUIET_DILEMMA_IDS });
   for (const id of target.prerequisites) {
     const node = CONTENT.nodes.get(id);
     if (node && !game.unlockedNodes.includes(id)) game = must(unlockNode(reach(game, node), node.id, CONTENT));

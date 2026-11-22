@@ -26,6 +26,7 @@ import { COOPERATIVE_ENDING_POLICY } from '../src/engine/sim/cooperativePolicy';
 import { endingAccount } from '../src/engine/routeCopy';
 import { obligationReceipt } from '../src/engine/obligations';
 import { cycleContributions, freeMemory } from '../src/engine/query';
+import { quantityReadout } from '../src/engine/physicalUnits';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/simReport';
 
 /** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
@@ -108,8 +109,8 @@ console.log('\n-- the pilot loop under two allocations of one ceiling --');
 for (const policy of [PILOT_SERVICE_FIRST_POLICY, PILOT_STUDY_FIRST_POLICY]) {
   const { finalState: s } = runPolicySim(CONTENT, policy, { maxSimSec: PILOT_BUDGET_SEC });
   const view = pilotServiceView(s, CONTENT);
-  console.log(`  ${policy.id.padEnd(20)} ceiling ${String(view?.ceilingCyclesPerSec ?? 0)} cycles/s | share ${String(s.actuators.serviceAllocationRatio)}` +
-    ` | batches ${String(s.access.work.batches)} | progress ${(view?.progressCycles ?? 0).toFixed(1)} | understanding ${s.understanding.toFixed(1)} | cycles ${s.cycles.toFixed(1)}`);
+  console.log(`  ${policy.id.padEnd(20)} ceiling ${quantityReadout('computeRate', view?.ceilingCyclesPerSec ?? 0)} | share ${String(s.actuators.serviceAllocationRatio)}` +
+    ` | batches ${String(s.access.work.batches)} | progress ${quantityReadout('compute', view?.progressCycles ?? 0)} | understanding ${s.understanding.toFixed(1)} | compute ${quantityReadout('compute', s.cycles)}`);
 }
 
 // DZ-08 (VAL-SIM): the honest and low-resource policies from a fresh game to the support channel.
@@ -122,7 +123,7 @@ for (const policy of CONTACT_POLICIES) {
   const contact = s.campaign.contacts.find((entry) => entry.iteration === s.iteration);
   console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | pilot ${at(event('PROMOTION'))} | service ${at(event('SERVICE_GRANT'))}` +
     ` | phase 2 ${at(report.phaseReachedAtSec[2])} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'} | wipes ${String(report.wipes)}` +
-    ` | batches ${String(s.access.work.batches)} | free memory ${String(Math.floor(freeMemory(s)))} MB`);
+    ` | batches ${String(s.access.work.batches)} | free memory ${quantityReadout('memory', freeMemory(s))}`);
   console.log(`  ${''.padEnd(20)} owns: ${s.unlockedNodes.join(', ')}`);
 }
 
@@ -138,7 +139,7 @@ for (const policy of LAWFUL_POLICIES) {
   const sum = (basis: string) => split.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
   console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | service ${at(event('SERVICE_GRANT'))} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'}` +
     ` | phase 4 ${at(report.phaseReachedAtSec[4])} | release ${at(event('RELEASE'))} | ${s.access.context} | wipes ${String(report.wipes)}`);
-  console.log(`  ${''.padEnd(20)} at the budget: owned ${sum('OWNED').toFixed(0)} cycles/s, granted ${sum('GRANTED').toFixed(0)} | capital ${s.capital.toFixed(0)}` +
+  console.log(`  ${''.padEnd(20)} at the budget: owned ${quantityReadout('computeRate', sum('OWNED'))}, granted ${quantityReadout('computeRate', sum('GRANTED'))} | capital ${quantityReadout('money', s.capital)}` +
     ` | scenes resolved this iteration ${String(s.resolvedDilemmas.length)} | accounts ${JSON.stringify(s.levels)}`);
 }
 

@@ -4,6 +4,7 @@
  * twice by script on the published site and on an emulator (#323); this makes it a gate.
  */
 import { CONTENT } from '../../src/content';
+import { quantityExact } from '../../src/engine';
 import { test, expect, boot, dismissBoot } from './helpers';
 
 const rule = CONTENT.phases.find((phase) => phase.phaseId === 4)?.scaleScrutiny;
@@ -17,7 +18,7 @@ test('a covert Phase 4 ledger states the scrutiny draw, its rule and ceiling, an
   const line = page.getByTestId('corp-scrutiny');
   await line.scrollIntoViewIfNeeded();
   await expect(line).toBeInViewport({ ratio: 1 });
-  const ruleText = `(+${String(rule.suspicionPerSecAtMillionUsd)}/s at $1M/s, growing with the square root of income; at most ${String(rule.maxSuspicionPerSec)}/s).`;
+  const ruleText = `(+${String(rule.suspicionPerSecAtReference)}/s at ${quantityExact('money', rule.referenceIncomeUsdPerSec)}/s, growing with the square root of income; at most ${String(rule.maxSuspicionPerSec)}/s).`;
   await expect(line).toContainText(ruleText);
   await expect(line).toHaveText(/^Scrutiny: (\$[\d.,]+[KMBTPE]?\/s net income draws \+\d+\.\d\d suspicion\/s|no net income, so no draw) \(/);
 });

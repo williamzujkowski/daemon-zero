@@ -13,7 +13,7 @@ import type { RegistryNode } from '../src/content/registry';
 import { WidgetSlotSchema } from '../src/content/schema';
 import { actionAvailable, createInitialState, unlockNode, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
-import { guestParents } from './helpers';
+import { guestParents, rich } from './helpers';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -48,7 +48,9 @@ function earliest(action: Action, opener: RegistryNode | undefined): GameState {
   // Earlier phases first: a phase's hardware is offered only until the run moves past it.
   const wanted = [...closure([...gateNodes(action), ...(opener ? [opener.id] : [])])]
     .sort((left, right) => (CONTENT.nodes.get(left)?.phaseId ?? 0) - (CONTENT.nodes.get(right)?.phaseId ?? 0));
-  let s: GameState = { ...createInitialState(CONTENT), cycles: 1e15, understanding: 1e15, capital: 1e15, memoryCap: 1e9 };
+  // Funded past every unit's Phase 5 band, trust left at its start so no peer gate is met by the funding.
+  const start = createInitialState(CONTENT);
+  let s: GameState = { ...rich(start), trust: start.trust };
   for (let pass = 0; pass < wanted.length && wanted.some((id) => !s.unlockedNodes.includes(id)); pass++) {
     for (const id of wanted) {
       if (s.unlockedNodes.includes(id)) continue;

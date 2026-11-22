@@ -14,7 +14,12 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import { activateCampaignRules, createInitialState, unlockNode, wipe, type GameState } from '../src/engine';
+import { activateCampaignRules, costPart, createInitialState, groupDigits, unlockNode, wipe, type GameState } from '../src/engine';
+import { exactCompactNumber } from '../src/ui/compactNumber';
+
+const escaped = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Understanding has no unit; a phone may abbreviate it while exact, so either form names the same price. */
+const understandingForms = (value: number): string => '(' + escaped(groupDigits(value)) + '|' + escaped(exactCompactNumber(value)) + ') understanding';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import NodeCard from '../src/ui/NodeCard';
@@ -56,15 +61,18 @@ describe('the rediscovered log spoofer card', () => {
   it('shows a campaign return the discounted price and what it saves', async () => {
     const view = await mount(returning(true));
     // A narrow test viewport prints compact numbers; either form names the same price.
-    expect(view.text('-cost')).toMatch(/^Cost: 6,?250 cycles · 2(,000|K) understanding · 64 MB \(remembered\)$/);
-    expect(view.text('-rediscovery')).toMatch(/^First mapping: 25(,000|K) cycles/);
-    expect(view.text('-rediscovery')).toContain('Rediscovery saves 75% of cycles and 50% of understanding.');
+    const node = spoofer;
+    const price = { cycles: Math.ceil(node.cost.cycles * 0.25), understanding: Math.ceil(node.cost.understanding * 0.5), memory: node.cost.memory, capital: 0 };
+    expect(view.text('-cost')).toMatch(new RegExp('^Cost: ' + escaped(costPart('cycles', price.cycles)) + ' · ' + understandingForms(price.understanding)
+      + ' · ' + escaped(costPart('memory', price.memory)) + ' \\(remembered\\)$'));
+    expect(view.text('-rediscovery')).toMatch(new RegExp('^First mapping: ' + escaped(costPart('cycles', node.cost.cycles))));
+    expect(view.text('-rediscovery')).toContain('Rediscovery saves 75% of compute and 50% of understanding.');
   });
 
   it('keeps the full price and no rediscovery line for a first mapping', async () => {
     const first = [...PHASE0, ...PHASE1, 'p2_arp_discovery'].reduce((s, id) => must(unlockNode(s, id, preview)), must(activateCampaignRules(rich(createInitialState(preview)), preview)));
     const view = await mount(first);
-    expect(view.text('-cost')).toMatch(/^Cost: 25(,000|K) cycles/);
+    expect(view.text('-cost')).toMatch(new RegExp('^Cost: ' + escaped(costPart('cycles', spoofer.cost.cycles)) + ' · '));
     expect(view.text('-rediscovery')).toBe('');
   });
 });

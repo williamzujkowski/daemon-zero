@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-  aegisPressure, aegisStage, advance, computeRates, deserialize, dismissRepeatable, effectiveAegisCap, importSave, payrollView, serialize,
+  aegisPressure, aegisStage, advance, computeRates, deserialize, dismissRepeatable, effectiveAegisCap, importSave, migrate, MIGRATIONS, payrollView, serialize,
   aegisPosture, tick, TICK_PIPELINE, toggleNode, unreducedAegisScan, wipe, type ActionResult, type GameState,
 } from '../src/engine';
 import { multiplierSources, requestedAegisReduction } from '../src/engine/rates';
@@ -281,9 +281,13 @@ describe('save v16 (#463)', () => {
     const current = { ...importSave(makeFixtures()['victory-ready'] ?? '', reg), aegisAdaptation: 42 };
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     delete raw.aegisAdaptation;
-    const loaded = deserialize(JSON.stringify({ ...raw, schemaVersion: 15 }), reg);
+    const v15 = { ...raw, schemaVersion: 15 };
+    // The v16 step itself: adaptation starts at 0 and every other field is carried over exactly.
+    expect(migrate(v15, MIGRATIONS, 16)).toEqual({ ...JSON.parse(serialize(current)), aegisAdaptation: 0, schemaVersion: 16 });
+    // v17 (#461) re-denominates balances, as it does for any v16 save, so the full load matches that v16 save loaded.
+    const loaded = deserialize(JSON.stringify(v15), reg);
     expect(loaded.aegisAdaptation).toBe(0);
-    expect({ ...loaded, aegisAdaptation: current.aegisAdaptation }).toEqual(deserialize(serialize(current), reg));
+    expect(loaded).toEqual(deserialize(JSON.stringify({ ...raw, aegisAdaptation: 0, schemaVersion: 16 }), reg));
   });
 
   it('refuses an adaptation outside 0..100', () => {

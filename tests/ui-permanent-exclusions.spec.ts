@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
+import { quantityReadout } from '../src/engine';
 import { permanentlyBlocked } from '../src/ui/purchaseVisibility';
 import { resourceWidgets, stripOnlyWidgets } from '../src/ui/registry/widgetRegistry';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
@@ -32,7 +33,7 @@ it('keeps resource totals and live rates only in the strip while preserving unlo
     expect(view.find('widget-' + id)).toBeNull();
   }
   for (const name of ['cycles', 'memory', 'understanding']) expect(view.find('res-' + name)).not.toBeNull();
-  expect(view.find('res-cycles')?.textContent).toContain(game.rates.cyclesPerSec.toFixed(2));
+  expect(view.find('res-cycles')?.textContent).toContain(quantityReadout('computeRate', game.rates.cyclesPerSec));
   expect(view.find('widget-' + resourceWidgets.understanding)).not.toBeNull();
   expect(view.find('thermal-meter')).not.toBeNull();
   expect(gameStore.store.getState().game).toEqual(admitted(game));

@@ -38,11 +38,12 @@ async function mount(width: number, patch: Partial<GameState> = {}) {
 describe('UI quick fixes (F6)', () => {
   it('prints the rate unit on the phone strip as on desktop (#370)', async () => {
     const phone = await mount(390);
-    expect(phone.find('res-cycles')?.textContent).toMatch(/[+-][\d.,]+[KMBTP]?\/s/);
+    // The phone label names the unit (FLOP), so the value keeps the SI prefix and the rate's /s (docs/SCALE.md).
+    expect(phone.find('res-cycles')?.textContent).toMatch(/[+-][\d.,]+[kMGTPEZY]?\/s$/);
     expect(phone.find('res-understanding')?.textContent).toMatch(/\/s/);
     phone.close();
     const desktop = await mount(1440);
-    expect(desktop.find('res-cycles')?.textContent).toMatch(/\(\+?-?[\d.,]+[KMBTP]?\/s\)/);
+    expect(desktop.find('res-cycles')?.textContent).toMatch(/\([+-][\d.,]+ [kMGTPEZY]?FLOP\/s\)$/);
     desktop.close();
   });
 

@@ -72,7 +72,7 @@ describe('M7 panels', () => {
       });
     }
     expect(view.find('action-card-' + memo.id)).toBeNull();
-    expect(gameStore.store.getState().game.memoryCap).toBe(before + 768);
+    expect(gameStore.store.getState().game.memoryCap).toBe(before + 3 * memo.effects.memoryCapIncrease);
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).not.toBe(0);
   });
   it.each(['shard-drift-quirk-p4', 'phase5-midgame'])('keeps card parents flat across 30 live ticks in %s', async (fixture) => {

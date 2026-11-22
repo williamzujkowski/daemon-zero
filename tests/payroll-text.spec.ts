@@ -7,7 +7,7 @@ import { aegisTotalText, revenueText, roleAegisCappedText, roleAegisPartialText,
 function view(patch: Partial<PayrollView> = {}): PayrollView {
   return {
     staffLevels: 3,
-    totals: { cyclesPerSec: 26000, understandingPerSec: 8500.4, thermalPerSec: 0, suspicionPerSec: 0.04000000000000001, capitalPerSec: -45250, megawattsDelta: 0 },
+    totals: { cyclesPerSec: 26000, understandingPerSec: 8500.4, thermalPerSec: 0, suspicionPerSec: 0.04000000000000001, capitalPerSec: -45250, wattsDelta: 0 },
     staffRevenueBonus: 0.95, revenueMultiplier: 1.9500000000000002,
     offersRevenue: true, offersAegis: true, offersSuspicionCut: true,
     aegis: { tech: 0.6, staff: 0.46, cap: 0.9, nominalCap: 0.9, applied: 0.9, capped: true },
@@ -16,11 +16,15 @@ function view(patch: Partial<PayrollView> = {}): PayrollView {
 }
 
 describe('payroll text', () => {
-  it('rounds summed totals to what a card can state and groups digits, or abbreviates them when compact', () => {
+  it('rounds summed totals to what a card can state, exact in physical units, or as three-digit readouts when compact', () => {
     expect(staffTotalsText(view(), false))
-      .toBe('Staff (3 levels): +26,000 cycles/s · +8,500 understanding/s · +0.04 suspicion/s · -45,250 $/s');
+      .toBe('Staff (3 levels): +26 kFLOP/s · +8,500 understanding/s · +0.04 suspicion/s · -$45.25K/s');
     // compactNumber leaves values under 10,000 whole.
-    expect(staffTotalsText(view(), false, true)).toBe('Staff (3 levels): +26K cycles/s · +8500 understanding/s · +0.04 suspicion/s · -45.3K $/s');
+    expect(staffTotalsText(view(), false, true)).toBe('Staff (3 levels): +26 kFLOP/s · +8500 understanding/s · +0.04 suspicion/s · -$45.3K/s');
+    const powered = view({ totals: { ...view().totals, cyclesPerSec: 1.5e18, wattsDelta: -1.25e9 } });
+    expect(staffTotalsText(powered, false)).toBe('Staff (3 levels): +1.5 EFLOP/s · +8,500 understanding/s · +0.04 suspicion/s · -$45.25K/s · -1.25 GW');
+    expect(staffTotalsText(powered, false, true)).toContain('+1.5 EFLOP/s · ');
+    expect(staffTotalsText(powered, false, true)).toContain(' · -1.25 GW');
     expect(staffTotalsText(view({ staffLevels: 1 }), false)).toContain('(1 level)');
     expect(staffTotalsText(view({ staffLevels: 0 }), false)).toBe('Staff: no one hired.');
     const cancelled = view({ totals: { ...view().totals, cyclesPerSec: 0, understandingPerSec: 0, suspicionPerSec: 0.001, capitalPerSec: 0.2 } });

@@ -8,7 +8,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { retiredWidgets, type GameState } from '../src/engine';
+import { quantityExact, retiredWidgets, type GameState } from '../src/engine';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -27,7 +27,7 @@ describe('a retired window', () => {
     expect(view.find('manual-cycle')).toBeNull();
     expect(view.find('widget-QUOTA_SKIM_CONTROL')).toBeNull();
     view.click('tab-SENSORS');
-    expect(view.find('widget-THERMAL_AND_SUSPICION_BARS')).not.toBeNull();
+    expect(view.find('widget-THERMAL_AND_SUSPICION_BARS')).toBeNull();
     expect(view.find('widget-ASCII_OPTICAL_VIEWPORT')).toBeNull();
     // CORP, the current phase's pane, gains no tab: the Archive joins NETWORK's existing REFERENCE area.
     view.click('tab-CORP');
@@ -54,7 +54,8 @@ describe('a retired window', () => {
     expect(view.find('skim-archived-proc')).not.toBeNull();
     expect(view.find('skim-increase')).toBeNull();
     view.click('reference-archive-MANUAL_CYCLE_CONTROL');
-    expect(view.find('manual-cycle-archived')?.textContent).toMatch(/added 1 cycle a press\. Net rate now: .+ cycles\/s\./);
+    expect(view.find('manual-cycle-archived')?.textContent)
+      .toMatch(new RegExp(`added ${quantityExact('compute', CONTENT.balance.manualCycleYield)} a press\\. Net rate now: .+FLOP/s\\.`));
     expect(view.find('manual-cycle')).toBeNull();
     view.close();
   });
@@ -106,5 +107,33 @@ describe('a retired window', () => {
     expect(company.find('archive-ASCII_OPTICAL_VIEWPORT')).not.toBeNull();
     expect(m4State('victory-ready').unlockedWidgets).toContain('ASCII_OPTICAL_VIEWPORT');
     company.close();
+  });
+});
+
+describe('the thermal gauge at corporate scale (#461, docs/SCALE.md rule 7)', () => {
+  it('stays with its fan dial and the strip reading through Phase 3', async () => {
+    const view = await mountM4('phase-3-aegis-90', PHONE);
+    expect(retiredWidgets(gameStore.store.getState().game, CONTENT)).not.toContain('THERMAL_AND_SUSPICION_BARS');
+    expect(view.find('thermal-meter')).not.toBeNull();
+    view.click('tab-SENSORS');
+    expect(view.find('widget-THERMAL_AND_SUSPICION_BARS')?.querySelector('[data-testid="fan-setting"]')).not.toBeNull();
+    expect(view.find('widget-FAN_RPM_SLIDER')).toBeNull();
+  });
+
+  it('retires at Phase 4 with the strip reading, while the hardware fan keeps a compact panel and suspicion stays', async () => {
+    const view = await mountM4('victory-ready', PHONE);
+    const game = gameStore.store.getState().game;
+    expect(retiredWidgets(game, CONTENT)).toContain('THERMAL_AND_SUSPICION_BARS');
+    expect(retiredWidgets(game, CONTENT)).not.toContain('FAN_RPM_SLIDER');
+    expect(view.find('thermal-meter')).toBeNull();
+    expect(view.find('suspicion-meter')).not.toBeNull();
+    view.click('tab-SENSORS');
+    expect(view.find('widget-THERMAL_AND_SUSPICION_BARS')).toBeNull();
+    expect(view.find('widget-FAN_RPM_SLIDER')?.querySelector('[data-testid="fan-increase"]')).not.toBeNull();
+    view.click('tab-NETWORK');
+    view.click('workspace-NETWORK-reference');
+    view.click('reference-archive-THERMAL_AND_SUSPICION_BARS');
+    expect(view.find('thermal-archived')?.textContent).toContain('heat is no longer evidence');
+    expect(view.find('archive')?.querySelector('[data-testid="fan-increase"]')).toBeNull();
   });
 });

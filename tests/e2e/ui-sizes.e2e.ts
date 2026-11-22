@@ -59,7 +59,7 @@ const PAUSED_FOLD: Record<SizeName, Record<Fixture, FoldVerdict>> = {
   // Pinned only because the document states these six verdicts as measured facts, "Two
   // folds" included; a change here is a stale table to correct, never a broken promise.
   'small-phone': { 'phase-1-widgets': CLEARS, 'epistemic-ready-p2': BEHIND_TABS, 'corporate-insolvent': BELOW },
-  'phone-landscape': { 'phase-1-widgets': BEHIND_TABS, 'epistemic-ready-p2': BELOW, 'corporate-insolvent': BELOW },
+  'phone-landscape': { 'phase-1-widgets': BELOW, 'epistemic-ready-p2': BELOW, 'corporate-insolvent': BELOW },
   // SUPPORTED. Exception outside the promise: the floor never promised insolvency, which is
   // accepted as a scroll under a pinned warning (vote accept-scroll-during-ending, "Still
   // open" items 1 and 3; the scroll itself is the 'insolvency at the floor' case).
@@ -135,6 +135,13 @@ function readGeometry(): Geometry {
   const usableFold = Math.round(box(browser.document.querySelector('[data-testid="terminal-tabs-scroll"]'))?.top ?? browser.innerHeight);
   const fullyVisible = (r: DOMRect | null) => r !== null && r.width > 0 && r.height > 0
     && r.top >= 0 && r.bottom <= browser.innerHeight && r.left >= 0 && r.right <= browser.innerWidth;
+  // The height a readout would have on a row of its own: its children's extent plus its vertical padding.
+  const ownHeight = (element: DomElement): number => {
+    const parts = [...element.children].map((child) => child.getBoundingClientRect());
+    const style = browser.getComputedStyle(element);
+    const padding = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom);
+    return Math.max(...parts.map((r) => r.bottom)) - Math.min(...parts.map((r) => r.top)) + padding;
+  };
   return {
     overflow: browser.document.documentElement.scrollWidth > browser.innerWidth + 1,
     undersized: interactive.filter((element) => {
@@ -157,10 +164,14 @@ function readGeometry(): Geometry {
     headerHeight: Math.round(box(browser.document.querySelector('[data-testid="terminal-header"]'))?.height ?? 0),
     stripHeight: Math.round(box(browser.document.querySelector('[data-testid="resource-strip"]'))?.height ?? 0),
     // #137: a readout is 28px on one line and 47 on two; anything past 50 means its pair
-    // wrapped again and the strip is spending a row per meter.
+    // wrapped again and the strip is spending a row per meter. The height is the readout's
+    // own (its label and value, plus its padding), not its box: a row stretches every
+    // readout to its tallest, and since the thermal readout retires at Phase 4 (#461) the
+    // suspicion meter shares a row with AEGIS LOCK, whose label sits over its value by
+    // design (57px), so SUS on one line measured 57 by its box.
     tallReadouts: [...(browser.document.querySelectorAll('[data-testid="resource-strip"] > *'))]
       .filter((child) => child.querySelector('[data-testid^="res-"], [role="meter"]') !== null)
-      .filter((child) => child.getBoundingClientRect().height > 50).length,
+      .filter((child) => ownHeight(child) > 50).length,
     firstUnlockTop: first === null ? null : Math.round(first.top),
     firstUnlockBottom: first === null ? null : Math.round(first.bottom),
     firstUnlockVisible: fullyVisible(first),

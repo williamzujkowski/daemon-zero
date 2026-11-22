@@ -14,7 +14,11 @@ function mature(): GameState {
 describe('public-action swarm strategy', () => {
   it('reserves every remaining tree cost until the next capacity grant, skipping side paths', () => {
     const s = ready();
-    const nodes = reg.nodeOrder.map((id) => defined(reg.nodes.get(id))).filter((n) => !s.unlockedNodes.includes(n.id) && n.uiGroup === 'TREE' && n.effects.forcesEnding === undefined);
+    // A later-run discovery (minIteration above this run) is a side path too: it is not on this run's way out. Before the
+    // rescale those guest cards held no memory, so leaving them out of the sum never showed.
+    const thisRun = (n: { requirements?: { minIteration?: number | undefined } | undefined }) => (n.requirements?.minIteration ?? 1) <= s.iteration;
+    const nodes = reg.nodeOrder.map((id) => defined(reg.nodes.get(id))).filter((n) => !s.unlockedNodes.includes(n.id) && n.uiGroup === 'TREE' && n.effects.forcesEnding === undefined && thisRun(n));
+    expect(reg.nodeOrder.some((id) => !thisRun(defined(reg.nodes.get(id))) && (reg.nodes.get(id)?.cost.memory ?? 0) > 0)).toBe(true);
     let expected = 0;
     for (const node of nodes) { expected += node.cost.memory; if (node.effects.memoryCapIncrease) break; }
     expect(progressionMemoryReserve(s, reg)).toBe(expected);

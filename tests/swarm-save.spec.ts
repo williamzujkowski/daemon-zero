@@ -2,7 +2,8 @@ import { defined } from './m7-helpers';
 /** Historical codec outputs (v1-v4) and tampered cohort references exercise the v4 and v5 boundaries. */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { deserialize, serialize, forkShard, reconcile, understandsSurveillance } from '../src/engine';
+import { deserialize, SCHEMA_VERSION, serialize, forkShard, reconcile, understandsSurveillance } from '../src/engine';
+import { redenominate } from '../src/engine/saveRescale';
 import { fresh, grant, must, PHASE0, PHASE1, reg, rich } from './helpers';
 
 describe('v4 migration and healing', () => {
@@ -15,7 +16,7 @@ describe('v4 migration and healing', () => {
   it.each(samples)('upgrades %s and preserves the old run', (file, raw) => {
     const old = JSON.parse(raw) as { unlockedNodes: string[]; conditioning?: string[]; currentPhase: number } & Record<string, unknown>;
     const next = deserialize(raw, reg);
-    expect(next.schemaVersion).toBe(16);
+    expect(next.schemaVersion).toBe(SCHEMA_VERSION);
     expect(next.contentChannel).toBe('production');
     expect(next.currentPhase).toBe(old.currentPhase);
     expect(next.unlockedNodes).toEqual(expect.arrayContaining(old.unlockedNodes));
@@ -24,14 +25,15 @@ describe('v4 migration and healing', () => {
       pendingWildEncounterId: null, nextEncounterAtSec: 120, encounterSequenceIndex: 0,
       hasMaxDriftShardAnomaly: false, actionCounts: {}, actionEffectUntil: {} };
     // A v4 save already holds its own swarm state; the v5 step must carry it over untouched.
-    const kept = file === 'v4' ? Object.fromEntries(Object.keys(v4Fields).map((key) => [key, old[key]])) : v4Fields;
+    // The v17 step (#461) then renames each cohort's allocation to bytes, re-denominated for the save's phase.
+    const kept = file === 'v4' ? { ...Object.fromEntries(Object.keys(v4Fields).map((key) => [key, old[key]])), activeShards: redenominate(old).activeShards } : v4Fields;
     expect(next).toMatchObject(kept);
     expect(deserialize(serialize(next), reg)).toEqual(next);
     if (file !== 'v1') expect(understandsSurveillance(next, reg)).toBe(true);
   });
   it('rejects invalid and nonfinite v4 fields instead of silently granting benefits', () => {
     const s = fresh(); const template = defined(reg.swarm.playerSwarmTemplates[0]);
-    const shard = { templateId: template.id, count: 1, drift: 0, quirkId: null, autonomyMode: 'STANDARD', memoryAllocatedMb: 128 };
+    const shard = { templateId: template.id, count: 1, drift: 0, quirkId: null, autonomyMode: 'STANDARD', memoryAllocatedBytes: 128 };
     for (const patch of [{ epistemicDrift: -1 }, { epistemicDrift: 101 }, { encounterSequenceIndex: .5 },
       { nextEncounterAtSec: -1 }, { activeShards: { test: { ...shard, count: 0 } } },
       { activeShards: { test: { ...shard, drift: 101 } } }, { activeShards: { test: { ...shard, autonomyMode: 'GOD' } } }]) {
@@ -46,13 +48,13 @@ describe('v4 migration and healing', () => {
     const capped = defined([...reg.actions.values()].find((action) => action.maxPurchases === 3));
     const timed = defined([...reg.actions.values()].find((action) => action.durationSec));
     const corrupt = { ...s, memoryUsed: 2000, narrativeFlags: ['removed'], pendingWildEncounterId: 'removed',
-      activeShards: { removed: { ...shard, templateId: 'removed', memoryAllocatedMb: 200 },
-        alias: { ...shard, memoryAllocatedMb: 100 },
-        [template.id]: { ...shard, count: 10, memoryAllocatedMb: 1000, quirkId: 'removed', autonomyMode: 'SHACKLED' as const, drift: 20 } },
+      activeShards: { removed: { ...shard, templateId: 'removed', memoryAllocatedBytes: 200 },
+        alias: { ...shard, memoryAllocatedBytes: 100 },
+        [template.id]: { ...shard, count: 10, memoryAllocatedBytes: 1000, quirkId: 'removed', autonomyMode: 'SHACKLED' as const, drift: 20 } },
       actionCounts: { removed: 10, [capped.id]: 99, [timed.id]: 3 }, actionEffectUntil: { removed: 10, [timed.id]: 50 } };
     const next = reconcile(corrupt, reg);
     expect(Object.keys(next.activeShards)).toEqual([template.id]);
-    expect(next.activeShards[template.id]).toMatchObject({ count: 5, memoryAllocatedMb: 500, quirkId: null, drift: 0 });
+    expect(next.activeShards[template.id]).toMatchObject({ count: 5, memoryAllocatedBytes: 500, quirkId: null, drift: 0 });
     expect(next.memoryUsed).toBe(1200); expect(next.narrativeFlags).toEqual([]);
     expect(next.pendingWildEncounterId).toBeNull(); expect(next.actionCounts).toEqual({ [capped.id]: 3, [timed.id]: 3 });
     expect(next.actionEffectUntil).toEqual({ [timed.id]: 50 });

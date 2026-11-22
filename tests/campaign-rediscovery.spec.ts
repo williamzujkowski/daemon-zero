@@ -58,7 +58,10 @@ describe('a declared campaign rediscovery discount', () => {
     const bought = must(unlockNode(exact, NODE, declared));
     expect(bought.unlockedNodes).toContain(NODE);
     expect(bought.cycles).toBe(0);
-    expect(unlockNode({ ...exact, cycles: price.cycles - 1 }, NODE, declared).ok).toBe(false);
+    // The largest bank below the price: past 2^53 FLOP, "price - 1" is the price itself.
+    const short = price.cycles * (1 - Number.EPSILON);
+    expect(short).toBeLessThan(price.cycles);
+    expect(unlockNode({ ...exact, cycles: short }, NODE, declared).ok).toBe(false);
   });
 
   it('never applies to a first mapping, or to a remembered node under legacy rules', () => {

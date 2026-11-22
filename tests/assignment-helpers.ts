@@ -58,7 +58,10 @@ export function untilPresented(s: GameState, limitSec = 600): GameState {
 
 /** Funds a state so any choice is affordable, without touching anything the assessment records. */
 export function funded(s: GameState): GameState {
-  return { ...s, cycles: s.cycles + 1000, understanding: s.understanding + 1000 };
+  // The dearest choice of the scene on screen, read from content so a re-priced scene stays affordable.
+  const choices = PREVIEW.dilemmas.find((dilemma) => dilemma.id === s.activeDilemmaId)?.choices ?? [];
+  const dearest = (key: 'cycles' | 'understanding'): number => Math.max(0, ...choices.map((choice) => choice.cost[key]));
+  return { ...s, cycles: s.cycles + dearest('cycles'), understanding: s.understanding + dearest('understanding') };
 }
 
 /** Commits a choice of the presentation on screen under its current token. */

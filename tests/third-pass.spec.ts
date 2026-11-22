@@ -1,4 +1,5 @@
 /** The lineage pass: run-gated discoveries, the run record, retraining and the evaluation ending. */
+import { REDENOMINATION_LOG } from '../src/engine/saveRescale';
 import { describe, expect, it } from 'vitest';
 import {
   actuatorLimit,
@@ -269,7 +270,11 @@ describe('save migration from version 2', () => {
     delete old.legacy?.runs;
     Object.assign(old, { schemaVersion: 2 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded).toEqual(now);
+    // Every pre-v16 save also takes the physical-units step (#461), so the yardstick is the same save at v15.
+    const atV15 = deserialize(JSON.stringify({ ...JSON.parse(serialize(now)) as object, schemaVersion: 15 }), reg);
+    expect(loaded).toEqual(atV15);
+    expect(atV15.unlockedNodes).toEqual(now.unlockedNodes);
+    expect(atV15.logs[0]?.text).toBe(REDENOMINATION_LOG);
     expect(() => deserialize(JSON.stringify({ ...old, legacy: null }), reg)).toThrow(/validation/);
   });
 });
