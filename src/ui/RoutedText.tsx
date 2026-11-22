@@ -1,7 +1,6 @@
 /**
  * A remedy sentence whose area words (PAYROLL, FINANCE, PROC) are links to that control (#369). Inline links keep the
- * warning's height, which the size matrix holds (docs/UI-SIZES.md); WCAG 2.5.8 exempts inline targets from the size
- * minimum. The words only appear where the remedy already names a lever that acts (remedyText.ts, suspicionText.ts).
+ * warning's height, which the size matrix holds (docs/UI-SIZES.md), and theme.link pads each into a full 44 px target. The words only appear where the remedy already names a lever that acts (remedyText.ts, suspicionText.ts).
  */
 import { type StyleProp, type TextStyle } from 'react-native';
 import { Text } from './PhaseTheme';

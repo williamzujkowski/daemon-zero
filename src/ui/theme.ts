@@ -31,6 +31,8 @@ export const theme = StyleSheet.create({
   button: { minWidth: 44, minHeight: 44, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: palette.accent, justifyContent: 'center' },
   disabled: { borderColor: palette.border, backgroundColor: palette.background },
   danger: { color: palette.danger },
-  // An inline route (#369): underlined, so the link is not signalled by colour alone (WCAG 1.4.1).
-  link: { textDecorationLine: 'underline' },
+  // An inline route (#369): underlined, so the link is not signalled by colour alone (WCAG 1.4.1). Vertical padding on an
+  // inline run grows its box and touch area without growing the line, so the word is a full 44 px target (UI-SPEC
+  // "Touch targets at least 44 pt") while the warning keeps its height; the horizontal padding brings a short word to 44.
+  link: { textDecorationLine: 'underline', paddingVertical: 14, paddingHorizontal: 6 },
 });

@@ -14,7 +14,7 @@ import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
 const PHONE = { width: 390, height: 844 }, DESKTOP = { width: 1440, height: 900 };
-const focused = (): string | null => host.document.activeElement?.getAttribute('data-testid') ?? null;
+const focused = (): string | null => host.document.activeElement.getAttribute('data-testid');
 /** An insolvent company with operatives hired and the revenue dial below its top: both levers act. */
 const insolvent = () => {
   const s = m4State('corporate-insolvent');
