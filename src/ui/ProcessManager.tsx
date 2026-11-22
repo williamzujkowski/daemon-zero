@@ -10,12 +10,15 @@ import { needsProcessControl } from './purchaseVisibility';
 import { useGame } from './state';
 import { theme } from './theme';
 import { SafeOverlay } from './safeArea';
+import { useRouteRequests } from './routeRequest';
 
 export default function ProcessManager() {
   const count = useGame((game) => [...CONTENT.nodes.values()].filter((node) => needsProcessControl(game, node)).length);
   const suspended = useGame((game) => game.disabledNodes.length);
   const blocked = useGame((game) => game.activeDilemmaId !== null);
   const [open, setOpen] = useState(false);
+  // #369: a remedy that names PROC opens it.
+  useRouteRequests((target) => { if (target.kind === 'proc' && count > 0 && !blocked) setOpen(true); });
   if (count === 0) {
     if (open) setOpen(false);
     return null;
