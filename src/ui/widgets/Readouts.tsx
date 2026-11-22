@@ -90,9 +90,10 @@ export function Forecast() {
   const driver = useDriver(known && seconds !== null);
   const window = useWindowDimensions();
   const compact = isPhoneWidth(window.width);
-  // The driver's own line only beside the column layout: every phone-tier layout (a short landscape screen too) holds the
-  // forecast to one line (docs/UI-SIZES.md), so there the driver ends the accessible name instead.
-  const line = layoutFor(window.width, window.height).mode !== 'mobile';
+  // The driver's own line only on the three-column desktop: the phone tier holds the forecast to one line and the tablet's
+  // chrome has no line to spare above its first purchase (both docs/UI-SIZES.md, 900x640 measured 16 px over), so there
+  // the driver ends the accessible name instead.
+  const line = layoutFor(window.width, window.height).mode === 'desktop';
   const full = forecastSentence({ known, seconds, inbound }) + (driver === null ? '' : ' Rising most from: ' + driver + '.');
   // #89: the sentence wrapped to two or three lines on every phone width. The
   // phone tier abbreviates it and keeps the whole sentence as the accessible name, as the

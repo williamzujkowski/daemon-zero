@@ -91,9 +91,9 @@ describe('mounted forecast', () => {
         act(() => { gameStore.initialize(stateFor(variant), 0, null); });
         const forecast = view.find('inspection-forecast');
         expect(forecast?.textContent).toBe(variant.full);
-        // #368: a landscape phone keeps the one-line forecast, so a rising driver ends the name there instead of a line.
+        // #368: below the three-column desktop the chrome has no line to spare, so a rising driver ends the name instead.
         const game = gameStore.store.getState().game;
-        const top = viewport === LANDSCAPE && variant.known && variant.seconds !== null ? topDriver({ sources: suspicionSources(game, CONTENT) }) : null;
+        const top = viewport !== DESKTOP && variant.known && variant.seconds !== null ? topDriver({ sources: suspicionSources(game, CONTENT) }) : null;
         if (top === null) expect(forecast?.hasAttribute('aria-label')).toBe(false);
         else expect(forecast?.getAttribute('aria-label')).toBe(variant.full + ' Rising most from: ' + sourceName(top, game) + '.');
       }
