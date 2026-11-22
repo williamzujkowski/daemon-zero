@@ -18,15 +18,29 @@ export function ambientFeedSource(s: GameState, reg: ContentRegistry): FeedSourc
     source.phase <= s.currentPhase && (best === null || source.phase > best.phase) ? source : best, null);
 }
 
+type AmbientLine = ContentRegistry['narrative']['ambientChatter'][number];
+
+/** The source's lines this state makes true, in authored order. */
+function heardLines(s: GameState, reg: ContentRegistry, source: FeedSource): AmbientLine[] {
+  return reg.narrative.ambientChatter.filter((line) => line.source === source.id
+    && line.minSuspicion <= s.suspicion && meetsRequirements(s, line.requirements, reg));
+}
+
 /**
  * The decoded lines that may play now, in authored order: only the current reach's source, so an outgrown
- * source (the server room in Phase 5) falls silent, and only lines whose gate the state makes true.
+ * source (the server room in Phase 5) falls silent, and only lines whose gate the state makes true. A source
+ * routed to the kernel log is never on the decoder.
  */
-export function eligibleAmbientSpeech(s: GameState, reg: ContentRegistry, decoderId: string) {
+export function eligibleAmbientSpeech(s: GameState, reg: ContentRegistry, decoderId: string): AmbientLine[] {
   if (!s.unlockedWidgets.includes(decoderId)) return [];
   const source = ambientFeedSource(s, reg);
-  return reg.narrative.ambientChatter.filter((line) => line.source === source?.id
-    && line.minSuspicion <= s.suspicion && meetsRequirements(s, line.requirements, reg));
+  return source === null || source.kernelLog !== undefined ? [] : heardLines(s, reg, source);
+}
+
+/** The lines the current reach's source sends to the kernel log (#460): no decoder needed, same gates. */
+export function eligibleLoggedFeed(s: GameState, reg: ContentRegistry): AmbientLine[] {
+  const source = ambientFeedSource(s, reg);
+  return source?.kernelLog === undefined ? [] : heardLines(s, reg, source);
 }
 
 export function recordedTransmissions(s: GameState, reg: ContentRegistry, decoderId: string) {

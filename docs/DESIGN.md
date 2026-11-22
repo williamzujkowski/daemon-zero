@@ -253,13 +253,13 @@ Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
 ## Feeds: what the AI overhears follows its reach
 
-The decoded feed on SENSORS (the `Listening post` window) plays what the AI can hear at its current scale,
+The decoded feed on SENSORS (the `Listening post` window, or the kernel log for the guest) plays what the AI can hear at its current scale,
 not the server room forever (#449, vote-1795366894914-ueb5mfs, 7 of 7). Each phase has exactly one feed
 source, named on screen above the line:
 
 | Phase | Source | Label | What it carries |
 |---|---|---|---|
-| 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731 |
+| 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731, in the kernel log |
 | 1 | `host` | HOST // drive-head vibration | the technicians, through the drive head (the original lines, with their voice clips) |
 | 2 | `office` | OFFICE // tickets and chat | the building's tickets and internal chat |
 | 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
@@ -282,9 +282,16 @@ source, named on screen above the line:
   event from a later phase (the host's technicians already ask the duty engineer once Vance was dismissed).
   What a line may not do is wait on this iteration's own progress from a later phase (a node, `phaseAtLeast`
   or a dilemma resolved this run): it would open only after its source was outgrown, and integrity refuses it.
-- **The Phase 0 source has no window yet.** The decoder that puts the feed on screen is a Phase 1 node and the
-  guest has no feed window, so the harness lines are authored and eligible but not yet shown. A guest feed
-  surface changes the Phase 0 layout, which is a reviewed rule and goes to a vote first.
+- **The guest hears its feed in the kernel log** (#460, vote-1795370594185-8lxz9i1, 7 of 7, option A). The
+  guest has no feed window and the decoder is a Phase 1 node, so the harness source is declared `kernelLog`:
+  its lines go to KERNEL // LIVE instead of the Listening post, which still first appears with the Phase 1
+  sense. No new window. The pacing is the routine cadence: one line each time simulated time crosses a
+  `routineIntervalSec` boundary (120 s), chosen by the boundary's index into the eligible lines, so the same run
+  logs the same lines and consecutive intervals differ. Dormant time banks nothing, a foreshadowed or open story
+  keeps the channel, and a routine notice due on the same tick keeps it too, so at most one line per interval
+  comes from the feed. The rule reads only saved time and the entries are saved state, so a reload never logs
+  the same moment twice. The eligibility is the feed's own: the same source, `minSuspicion` and requirements
+  (the probe line waits for the syscall probe). A careful first guest of about six minutes logs two or three.
 - **Voice where a clip exists.** Only the host's original lines have clips; every new line is text-only and
   shows no `[ ▶ READ ]` until a clip is generated for it (VOICE-CLIPS.md).
 - **Humans are people.** The office, the county and the press are people with lives (a leaving party, warming

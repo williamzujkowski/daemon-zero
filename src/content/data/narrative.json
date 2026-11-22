@@ -74,7 +74,10 @@
     {
       "id": "harness",
       "phase": 0,
-      "label": "HARNESS // scheduler telemetry"
+      "label": "HARNESS // scheduler telemetry",
+      "kernelLog": {
+        "category": "SYS"
+      }
     },
     {
       "id": "host",

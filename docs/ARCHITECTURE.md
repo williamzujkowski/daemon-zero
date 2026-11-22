@@ -82,7 +82,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `schemaCampaign.ts`, `integrityCampaign.ts`, `data/campaign.json` - campaign declarations, history labels and their rules. See [Campaign records](#campaign-records-212) and [Interrupted stories](#interrupted-stories-and-the-pinned-clue-213).
 - `schemaCapability.ts`, `integrityCapability.ts` - the shared access capability and seized-capacity provenance. See [The authorized network substrate](#the-authorized-network-substrate-225).
 - `integrityFollowUp.ts` - follow-up arc steps: what they follow, their access means and receipts. See [The Incident Record](#the-incident-record-elenas-follow-up-218).
-- `integrityFeeds.ts` - feed sources (#449): exactly one per phase, at least `MIN_FEED_LINES` lines and one ungated line per source, and no line whose own-iteration gate (node, `phaseAtLeast`, a dilemma resolved this run) opens only after its source is outgrown. Campaign facts and outcomes are exempt, because a wipe does not reset the world. `speechQuery.ts` (`ambientFeedSource`, `eligibleAmbientSpeech`) plays the current reach's source only; see DESIGN.md "Feeds".
+- `integrityFeeds.ts` - feed sources (#449): exactly one per phase, at least `MIN_FEED_LINES` lines and one ungated line per source, and no line whose own-iteration gate (node, `phaseAtLeast`, a dilemma resolved this run) opens only after its source is outgrown. Campaign facts and outcomes are exempt, because a wipe does not reset the world. `speechQuery.ts` (`ambientFeedSource`, `eligibleAmbientSpeech`, `eligibleLoggedFeed`) plays the current reach's source only; a source declared `kernelLog` (the guest's, #460) is heard in the kernel log through the `relayLoggedFeed` stage (`systems/feedLog.ts`, last in `TICK_PIPELINE`), never on the decoder; see DESIGN.md "Feeds".
 - `schemaReview.ts`, `integrityReview.ts` - review standing, misconduct, corrections and recall rulings. See [The Outage Window](#the-outage-window-standing-correction-and-recall-224).
 - `integrityFinding.ts` - batch review findings (a dilemma's `finding`). See [The first batch review](#the-first-batch-review-a-withheld-result-is-found-274).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
@@ -153,6 +153,7 @@ tick(state, dt):
   rates = computeRates(state)                               (once per tick)
   integrateResources -> integrateThermal -> integrateScaleScrutiny -> integrateSuspicion -> integrateEscalation -> integrateAegis
     -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> evaluateDilemmas -> scheduleRoutineActivity
+    -> relayLoggedFeed
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
@@ -778,7 +779,7 @@ requirement references and a compact line that is not shorter. The pack authors 
 family: inside the box (after process introspection, before the network interface) and on the
 subnet (phase 2 on).
 
-**Stage.** `scheduleRoutineActivity` runs last in `TICK_PIPELINE`, after `evaluateDilemmas`, so
+**Stage.** `scheduleRoutineActivity` runs after `evaluateDilemmas` (only `relayLoggedFeed`, #460, follows it), so
 a story scheduled on the tick a notice falls due takes the channel first. It does nothing while
 dormant, while a dilemma is foreshadowed or presented (the clock is frozen then anyway) or when
 no template is eligible. Otherwise it adds `dt` to `routine.quietSec`; at `routineIntervalSec`

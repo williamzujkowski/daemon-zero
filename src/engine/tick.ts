@@ -10,6 +10,7 @@ import type { GameState } from './state';
 import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from './systems/evaluateSwarmAndEpistemic';
 import { evaluateDilemmas } from './systems/dilemmas';
 import { scheduleRoutineActivity } from './systems/routine';
+import { relayLoggedFeed } from './systems/feedLog';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
 import { integrateScaleScrutiny } from './systems/scrutiny';
@@ -34,6 +35,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   evaluateDilemmas,
   // After dilemmas, so a story scheduled this tick takes the narrative channel before routine.
   scheduleRoutineActivity,
+  // After routine, so a routine notice due the same tick keeps it and the feed waits for the next interval (#460).
+  relayLoggedFeed,
 ];
 
 function isPaused(s: GameState): boolean {
