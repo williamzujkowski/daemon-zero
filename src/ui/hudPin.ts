@@ -24,3 +24,15 @@ export function hudPinned({ band, hud }: HudHeights, windowHeight: number, pinne
   const limit = windowHeight * HUD_PIN_SHARE;
   return band + hud <= (pinnedNow ? limit : limit - HUD_PIN_HYSTERESIS_PX);
 }
+
+/**
+ * Whether the interrupt forecast joins the pinned HUD (vote-1795335412078-ubcj3e7, 7 of 7, #365): only while the HUD is
+ * pinned and the band, the HUD and the forecast together still fit the same cap, with the same hysteresis. The HUD's
+ * decision never looks at the forecast, so the forecast can never cost the HUD its pin (pinning both on one decision
+ * measured worse: 53% of timely items kept against 64% for the HUD alone and 74% for this tier). The forecast holds no
+ * live region, so moving it re-announces nothing.
+ */
+export function forecastPinned({ band, hud }: HudHeights, forecast: number, windowHeight: number, hudIsPinned: boolean, pinnedNow: boolean): boolean {
+  if (!hudIsPinned || !(forecast > 0)) return false;
+  return hudPinned({ band, hud: hud + forecast }, windowHeight, pinnedNow);
+}

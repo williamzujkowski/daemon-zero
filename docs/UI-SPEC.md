@@ -581,7 +581,10 @@ Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane
 resource strip and the kernel line) sticks under the run-ending alert band while the band and the HUD together fit 35% of
 the window (`src/ui/hudPin.ts`, with 8 px of hysteresis); over it (large text, a stack of alerts) the HUD scrolls in place
 as before, so a pinned block never hides the workspace. While it sticks, the scroll's `scroll-padding-top` is the pinned
-height, so a scrolled-to or focused control lands below it (WCAG 2.2 SC 2.4.11). The forecast and notices still scroll.
+height, so a scrolled-to or focused control lands below it (WCAG 2.2 SC 2.4.11). **Tier (vote-1795335412078-ubcj3e7, 7 of
+7):** the interrupt forecast joins the pinned block only while the band, the HUD and the forecast together fit the same cap
+(`forecastPinned` in `hudPin.ts`), else it scrolls in place under the HUD; the HUD's own decision never looks at it. The
+omen stays under EXECUTE in CORE (spoken by the announcer, marked on the CORE tab) and the notices scroll.
 The HUD starts pinned and leaves only when measured over the cap, because moving it remounts it and would re-announce the
 alerts inside it; that re-announcement can still happen once at load with large text, or when alerts push it over the cap.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.

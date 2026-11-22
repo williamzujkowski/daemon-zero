@@ -123,8 +123,8 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal attention={attention} />}
-        header={<ChromeHeader landmark />} band={<AlertBand landmark />} hud={<Hud landmark />}
-        body={<ChromeBody landmark hud={false} {...(contactAway ? { openCore } : {})} />} />
+        header={<ChromeHeader landmark />} band={<AlertBand landmark />} hud={<Hud landmark />} forecast={<PinnedForecast />}
+        body={<ChromeBody landmark hud={false} forecast={false} {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
@@ -206,14 +206,19 @@ function Hud({ landmark }: { landmark?: boolean }) {
   return <View testID="terminal-hud" {...landmarkAttrs('Resources', landmark)} style={styles.hud}><ResourceStrip /><LogDock /></View>;
 }
 
-function ChromeBody({ landmark, openCore, omenSlot = false, hud = true }: {
-  landmark?: boolean; openCore?: () => void; omenSlot?: boolean; hud?: boolean;
+/** The interrupt forecast in its own landmark on the phone tier, where it may pin under the HUD (#365). */
+function PinnedForecast() {
+  return <View {...landmarkAttrs('Interrupt forecast', true)}><TopForecast /></View>;
+}
+
+function ChromeBody({ landmark, openCore, omenSlot = false, hud = true, forecast = true }: {
+  landmark?: boolean; openCore?: () => void; omenSlot?: boolean; hud?: boolean; forecast?: boolean;
 }) {
   const notice = useGameValue(selectNotice);
   return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
     {hud && <Hud />}
-    <TopForecast />
+    {forecast && <TopForecast />}
     <BlindAuditStatus />
     <ResponseNotice />
     {omenSlot && <OmenSlot />}

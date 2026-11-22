@@ -8,9 +8,11 @@
 import type { KnownGap } from './knownGaps';
 import type { TransitionRule } from './transitionCheck';
 
-const SCROLL = 'on the phone the HUD, forecast and notices scroll with the cards, so reaching a purchase below the fold takes every timely readout out of view (walk C-b)';
+/** The HUD and the forecast now pin (vote-1795328874247-003j4kk, then the tier in vote-1795335412078-ubcj3e7); the omen stays
+ *  under EXECUTE in CORE by vote-1795219347137-c21nx42, spoken by the announcer and marked on the CORE tab, and this gap is
+ *  accepted by vote-1795335412078-ubcj3e7 (7 of 7), which closed #365. */
+const SCROLL = 'accepted (vote-1795335412078-ubcj3e7): on the phone the omen stays in CORE under EXECUTE and scrolls with the cards, spoken by the announcer and marked on the CORE tab (walk C-b)';
 
 export const TRANSITION_GAPS: readonly KnownGap<TransitionRule>[] = [
-  { stage: 't-scroll-to-buy', viewport: '390x844', item: 'hud.forecast', rule: 'timely-kept', measured: 'box 16,-370,358,22; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
   { stage: 't-scroll-to-buy', viewport: '390x844', item: 'notice.omen', rule: 'timely-kept', measured: 'box 0,-272,390,73; visibleRatio 0; fold 799', reason: SCROLL, issue: '#365' },
 ];
