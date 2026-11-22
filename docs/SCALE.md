@@ -105,8 +105,9 @@ real saves at every phase.
    binds what I can build, so that planetary scale feels physical.
 7. As a curious player, I want each unit's real-world anchor in the reference panel (El Capitan, an H100, world
    electricity), so that I can check that the numbers are grounded.
-8. As a player, I want FLOP precision explained once (CPU double precision early, AI precision from Phase 2),
-   so that numbers are honest without clutter on every card.
+8. As a player, I want the reference panel to say once that all compute is counted as 8-bit AI operations, with
+   double-precision figures (El Capitan's 1.8 EF) shown only as labelled comparisons, so that numbers are honest
+   without clutter on every card.
 9. As a player, I want earlier hardware to become negligible as I grow, so that progress feels like moving up,
    not adding another line.
 10. As a returning player with a save from before the overhaul, I want my campaign, ownership and history kept,
