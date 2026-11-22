@@ -11,6 +11,57 @@ All tunable numbers live in content manifests (`src/content/data/` and `src/cont
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
+## AEGIS adaptation (#463)
+
+Decision `vote-1795366701521-dhlwfwb` (#448, map #442): AEGIS reached its 90% reduction cap early in Phase 4 and stopped
+mattering. Held at the cap, it now adapts ([DESIGN](DESIGN.md#phase-4---the-sovereign-corporation), the world view).
+New constants in `balance.json` under `aegisAdaptation`; no other number changed.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `nearCap` | 0.05 | Suppression counts as held once the reduction asked for reaches 0.85 (the cap less this). |
+| `risePerSec` | 0.1 | Adaptation points per second while held: key rotation's 50 in 500 s, full in 1,000 s. |
+| `decayPerSec` | 0.25 | Points lost per second once not held, or above a ceiling that dropped: full to 0 in 400 s. |
+| `maxErosion` | 0.3 | Cap lost at full adaptation: the effective cap goes from 90% to 60%. Integrity keeps it at most the cap. |
+| `keyRotationCeiling` | 50 | Key rotation alone stops here (cap 75%). |
+| `coalitionTrustBelow` | 50 | Coalitions back AEGIS past key rotation while public trust is below this. |
+
+Public trust is `world.json`: base 50; lobbying node -10, foundry +15, proof engine +15, fabricator fog -15, the
+authorized aerosol -20, the spared launch crews +10. One content change: `p5_verification_proof_engine` is now
+`suspendable`, because its 0.95 reduction alone reaches the held band and integrity requires that the band can always be left (a
+source that holds it on its own must be suspendable).
+The bot never suspends a node, so this moves nothing in the sim.
+
+What an untouched lock faces at suspicion 0 (base scan 0.03/s): the cap's floor 0.003/s, 9.3 h to a strike; key
+rotation 0.0075/s, 3.7 h; full adaptation 0.012/s, 2.3 h.
+
+**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`). "Before" is the same content with
+`maxErosion` 0, which is the pre-#463 scan rule exactly; same bot, same budget. The sim report now prints these rows
+for Phases 3-5 (`aegisByPhase`: peak lock, mean scan, peak adaptation, seconds held, sampled each simulated second).
+
+| STEALTH, legacy rules | Before | After |
+|---|---|---|
+| Phase 4 / 5 reached, victory | 5864.2 / 7743.4 s, 9231.8 s | 5864.2 / 7743.4 s, 9231.8 s |
+| Phase 3 AEGIS: peak lock, mean scan | 45.0, 0.0496/s | 45.0, 0.0496/s |
+| Phase 4 AEGIS: peak lock, mean scan, peak adaptation, held | 33.6, 0.0175/s, -, 820 of 1882 s | 33.6, 0.0201/s, 81.8, 820 s |
+| Phase 5 AEGIS: peak lock, mean scan, peak adaptation, held | 1.3, 0.0039/s, -, 1494 of 1494 s | 5.2, 0.0134/s, 100, 1494 s |
+
+| STEALTH, campaign rules | Before | After |
+|---|---|---|
+| Phase 4 / 5 reached, victory | 6064.7 / 7925.9 s, 9324.3 s | 6064.7 / 7925.9 s, 9324.3 s |
+| Phase 4 AEGIS: peak lock, mean scan, peak adaptation, held | 27.1, 0.0139/s, -, 698 of 1864 s | 27.1, 0.0160/s, 69.6, 698 s |
+| Phase 5 AEGIS: peak lock, mean scan, peak adaptation, held | 2.0, 0.0040/s, -, 1404 of 1404 s | 5.4, 0.0135/s, 100, 1404 s |
+
+The Phase 5 scan is 3.4 times what it was and the Phase 4 scan 15% higher; the careful run's pacing is unchanged to the
+tenth of a second (phases, victory, wipes 0, dilemmas 16 and 17, activity, every peak). Its lock stays low because
+the unchanged bot answers suspicion with the lobbying blitz, which also cuts the lock by 25. In the bot's run public
+trust falls to 40 with the lobbying node (coalitions back AEGIS), rises to 55 with the foundry (adaptation falls back
+to 50), and drops again with the fog. Against the run with no erosion, only the final AEGIS lock and scan moved; the
+log gains the adaptation lines. GREEDY never holds AEGIS at its cap (adaptation 0) and is byte-identical apart from the
+new field and report rows (`tests/sim.spec.ts`). `make sim-report`'s route measurements are identical with and without
+the erosion: DEPARTURE_CHARTERED never holds the cap (adaptation 0; its first iteration still ends by AEGIS at 3062.5 s,
+690.7 s after leaving), and the cooperative ending is never swept at its scale.
+
 ## Window retirement (#447)
 
 No content number changed. Window retirement (vote-1795366695204-4nslts1, [UI-SPEC](UI-SPEC.md#window-retirement-447))
@@ -596,7 +647,7 @@ documentation.
 
 ## Known soft spots
 
-- ~~Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online.~~ Addressed by "Scale scrutiny (#210)" above: net income now draws suspicion in Phases 4 and 5, STEALTH answers threats 12 times there and its threat-free tail is 806 s instead of 3733 s. What remains: Phase 5 is pressured mainly at its entry and around the fog, and the stretch after the Cryptographic Covenant (-6 suspicion/s) is still quiet; a 30-minute idle anywhere in Phase 5 still meets nothing, and the middle of Phase 4 (about $0.5M/s of income) draws less than the net holds down, so a 30-minute idle there still meets nothing. AEGIS reduction still reaches its 90% cap in Phase 4; the hunter's suspicion term now has suspicion to read.
+- ~~Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online.~~ Addressed by "Scale scrutiny (#210)" above: net income now draws suspicion in Phases 4 and 5, STEALTH answers threats 12 times there and its threat-free tail is 806 s instead of 3733 s. What remains: Phase 5 is pressured mainly at its entry and around the fog, and the stretch after the Cryptographic Covenant (-6 suspicion/s) is still quiet; a 30-minute idle anywhere in Phase 5 still meets nothing, and the middle of Phase 4 (about $0.5M/s of income) draws less than the net holds down, so a 30-minute idle there still meets nothing. AEGIS reduction still reaches its 90% cap in Phase 4; the hunter's suspicion term now has suspicion to read, and since #463 a cap held there erodes as AEGIS adapts ("AEGIS adaptation (#463)" above).
 - `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
 - The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).

@@ -212,10 +212,10 @@ make e2e-atlas        # the full matrix: also 360x640 and each stage's extra siz
 make e2e-atlas-aria   # regenerate the committed partial ARIA baseline (Playwright bumps, deliberate renames)
 ```
 
-**Stages.** `tests/e2e/atlas/stages*.ts` hold 57 P1 rows: the 56 of the stage inventory
-(`research/ui-review-stage-inventory`, section 1) and `p1-exit-ready` (the host exit affordable, from the
+**Stages.** `tests/e2e/atlas/stages*.ts` hold 58 P1 rows: the 56 of the stage inventory
+(`research/ui-review-stage-inventory`, section 1), `p1-exit-ready` (the host exit affordable, from the
 `phase-2-ready` fixture), added by nexus vote `vote-1795150367732-oqyajz6` so the host-to-subnet transition
-references a stage id. Rows are typed by `atlas/types.ts`. A row names its save's source
+references a stage id, and `p4-world-view` (NETWORK > FACTIONS from Phase 4, #463). Rows are typed by `atlas/types.ts`. A row names its save's source
 (a `makeFixtures()` name, a `ROUTE_STATES` entry, a cooperative-campaign moment, a careful-campaign moment, or a
 gap recipe built in place and labelled FIXTURE), an optional patch, tags, the tab and workspace area, a page
 step for live-only overlays (thresholds, reveals, the live reboot, the response notice, menus, PROC, confirms),
@@ -232,7 +232,9 @@ the phase's own node count to half of what it held on leaving. It takes about 2 
 **Contract.** `atlas/contract.ts` maps every surface a save can unlock to its items: the chrome, every widget in
 content (an empty list is a recorded decision), the alert band and notices, the overlays, the ending and the
 route's surfaces. `atlas/compose.ts` composes a stage from the save; the row adds only what the save cannot tell
-(an overlay its page step opened, route surfaces) and the tier adds which panes are rendered. An ended run shows
+(an overlay its page step opened, route surfaces) and the tier adds which panes are rendered; an item that lives in one
+workspace area of its pane (`ContractItem.area`, the world view's `world.posture`, #463) is expected only on a row that
+opened that area. An ended run shows
 only its ending; a blocking overlay (row first, then an active dilemma) shows only itself; otherwise everything
 composes. A surface with no entry throws (`Unmapped surface: widget:...`). Items are timely readouts, primary
 actions, destructive actions or required regions, each with a rank; the lowest rank is the stage's single

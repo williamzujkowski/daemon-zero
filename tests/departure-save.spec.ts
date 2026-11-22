@@ -51,7 +51,7 @@ describe('V12: every departure transition reloads byte for byte', () => {
 
   it('changed no saved shape', () => {
     // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
-    expect(SCHEMA_VERSION).toBe(15);
+    expect(SCHEMA_VERSION).toBe(16);
   });
 });
 

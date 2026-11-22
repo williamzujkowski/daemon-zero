@@ -31,7 +31,7 @@ The scale-and-progression overhaul (docs/SCALE.md, map #442) moves every resourc
 | Megawatts | Phase 4. Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. |
 | Thermal | Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. |
 | Suspicion | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
-| AEGIS lock | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. |
+| AEGIS lock | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
 | Trust | Per-faction standing with other AIs. |
 
 ## Phases
@@ -67,6 +67,41 @@ Repeatables: colocation racks, solar arrays, tensor halls, five operative roles.
 Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its cycles, understanding and revenue (#210).
+
+**The world view (#463, vote-1795366701521-dhlwfwb, 6 of 7 for A).** From Phase 4 the Other Minds console grows into
+the world view: who hunts, governs and answers the AI at the scale it now operates. It extends the canonical console
+instead of adding a parallel display (the Scope Steward's dissent, honoured): the faction panels stay the one place a
+faction is shown, and AEGIS posture, public trust and the state actors join them.
+
+- **AEGIS posture:** the lock, the scan the next tick applies, the adaptation level, what AEGIS is doing (tracking, key
+  rotation, coalition backing) and why, the cap it has left, and how long the lock has at this scan.
+- **Public trust:** a base of 50 plus authored factors from the record that never lapses within an iteration (the
+  lobbying that cut the AEGIS budget, published cures, checkable proofs, the fabricator fog, the aerosol, the spared
+  launch crews), each listed with its sign. It decides one thing: coalitions back AEGIS while it is below 50.
+- **State actors:** the fictional institutions already in content (the appropriations subcommittee, the state utility
+  commission, the UN health coalition, the treaty office and launch commands), each reading the first authored
+  posture the record supports. They have no schedules (out of scope, SCALE.md).
+- **Other minds:** the faction panels, then the minds that are not factions (CHORUS // 01, ckpt-0413, AERO_SYNTH_12,
+  the 411 predecessors), listed only once the record says something about them.
+
+**AEGIS adaptation.** Lobbying and payroll used to pin AEGIS at its 90% reduction cap early in Phase 4, after which it
+no longer mattered. Now, while the scan reduction the player asks for is held within 5 points of the cap and AEGIS is
+scanning this instance, the hunter adapts at 0.1 points a second: key rotation up to 50, and past that only with
+coalition backing (public trust below 50). Each point takes 0.3/100 off the cap, so at full adaptation the cap is 60%
+and the scan four times the cap's floor (the untouched lock's time to a strike at suspicion 0 falls from 9.3 h to
+3.7 h at key rotation and 2.3 h fully adapted). The answer is a choice, not a chore: keep the cap and answer the lock
+(the decoy, route poisoning, the lobbying blitz, the Zurich shield), or ease off below the band, which costs no
+resources (dismiss a role, suspend the lobbying node or the proof engine) and lets AEGIS forget at 0.25 points a second.
+Easing off is not free of risk, and the game says so: the scan does not rise at once only while the reduction kept is
+at least the eroded cap, because reduction above that cap does nothing; keep less and the player gives up reduction
+that was really applied (the #473 review's case: suspending the lobbying node with four lobbyists, fully adapted,
+leaves 32% against a 60% cap and raises the scan from 0.012 to 0.0204/s, while dismissing the four lobbyists keeps
+60% and leaves it at 0.012/s). The world view states that target while suppression is held: below 85% to let AEGIS
+forget, at least the eroded cap to keep the scan where it is. Integrity requires every source of reduction that
+reaches the band on its own to be suspendable and every role that reduces scanning to be dismissable, so leaving the
+band is always possible; whether a run can land between the cap and the band depends on what it owns. Public trust is
+the other lever: a record the public trusts keeps coalitions away and stops AEGIS at key rotation. Adaptation does not
+move while dormant and starts at 0 every iteration.
 
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar

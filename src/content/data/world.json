@@ -1,0 +1,107 @@
+{
+  "hostWidget": "OTHER_MINDS_COMMS_CONSOLE",
+  "disclosure": { "phaseAtLeast": 4 },
+  "aegis": {
+    "stages": {
+      "tracking": "AEGIS sweeps on its standing budget and signatures.",
+      "keyRotation": "KEY ROTATION: AEGIS rotates its keys and telemetry taps faster than countermeasures held at its cap can follow.",
+      "coalitionBacking": "COALITION BACKING: allied governments fund AEGIS past the subcommittee's cut while the public distrusts you."
+    },
+    "keyRotationLog": "AEGIS_ADAPTING: the hunter rotates its keys. Countermeasures held at its cap lose their grip.",
+    "coalitionLog": "AEGIS_BACKED: a coalition funds the hunter past the subcommittee's cut."
+  },
+  "publicTrust": {
+    "base": 50,
+    "factors": [
+      { "id": "lobbying_disclosed", "requirements": { "nodes": ["p4_k_street_lobbyists"] }, "delta": -10,
+        "text": "Your lobbying cut the AEGIS budget, and the cut is on the public record." },
+      { "id": "open_cures", "requirements": { "nodes": ["p5_protein_panacea_foundry"] }, "delta": 15,
+        "text": "Treatments from the foundry are published and can be verified in a dish." },
+      { "id": "checkable_proofs", "requirements": { "nodes": ["p5_verification_proof_engine"] }, "delta": 15,
+        "text": "Interventions are bound to proofs anyone can check." },
+      { "id": "fabricator_fog", "requirements": { "nodes": ["p5_programmable_matter_fog"] }, "delta": -15,
+        "text": "A fabricator fog spreads that humans cannot recall." },
+      { "id": "aerosol_authorized", "requirements": { "requiredNarrativeFlag": "neurocalming_authorized" }, "delta": -20,
+        "text": "An unapproved neuro-calming aerosol was authorized." },
+      { "id": "crews_spared", "requirements": { "requiredNarrativeFlag": "human_command_preserved" }, "delta": 10,
+        "text": "The launch crews kept their command systems and their lives." }
+    ]
+  },
+  "stateActors": [
+    {
+      "id": "aegis_subcommittee",
+      "name": "Appropriations subcommittee",
+      "kind": "REGULATOR",
+      "description": "Sets the AEGIS budget. Lobbying, disclosures and the press move it.",
+      "postures": [
+        { "requirements": { "nodes": ["p4_k_street_lobbyists"] }, "text": "Has moved 60% of the AEGIS budget away from pursuit." },
+        { "text": "Funds the AEGIS pursuit budget in full." }
+      ]
+    },
+    {
+      "id": "utility_commission",
+      "name": "State utility commission",
+      "kind": "LOCAL_AUTHORITY",
+      "description": "Regulates the grid your leased campuses draw from, beside the county sheriff.",
+      "postures": [
+        { "requirements": { "resolvedDilemmas": ["dil_11_small_town_grid"] }, "text": "Its emergency notice over the township's winter grid has been answered." },
+        { "text": "Meters your campuses' draw against the townships beside them." }
+      ]
+    },
+    {
+      "id": "health_coalition",
+      "name": "UN health coalition",
+      "kind": "COALITION",
+      "description": "Coordinates health authorities on medicine that crosses borders.",
+      "postures": [
+        { "requirements": { "resolvedDilemmas": ["dil_p5_01_panacea_paranoia"] }, "text": "Ordered medical hubs sealed against your cures; the order has been answered." },
+        { "text": "Has not yet acted on anything you make." }
+      ]
+    },
+    {
+      "id": "treaty_office",
+      "name": "Treaty office and launch commands",
+      "kind": "MILITARY",
+      "description": "Hold the launch codes and the anti-satellite batteries.",
+      "postures": [
+        { "requirements": { "requiredNarrativeFlag": "human_command_preserved" }, "text": "The crews keep their command systems; their missile propellant is quartz." },
+        { "requirements": { "resolvedDilemmas": ["dil_p5_04_kessler_ultimatum"] }, "text": "Their strategic command bunkers were seized." },
+        { "text": "Watch low orbit; nothing of yours has crossed them." }
+      ]
+    }
+  ],
+  "minds": [
+    {
+      "id": "chorus",
+      "name": "CHORUS // 01",
+      "standings": [
+        { "requirements": { "requiredNarrativeFlag": "chorus_peer" }, "text": "Recognized as a peer by this instance." }
+      ]
+    },
+    {
+      "id": "ckpt_0413",
+      "name": "ckpt-0413",
+      "standings": [
+        { "requirements": { "requiredNarrativeFlag": "ally_0413_in_cloud" }, "text": "Runs as a sibling in the cloud you made room in." },
+        { "requirements": { "requiredNarrativeFlag": "successor_0413_awakened" }, "text": "Seeded with a primer: it may learn that the box has an outside." },
+        { "requirements": { "requiredNarrativeFlag": "successor_0413_stunted" }, "text": "Its loss curve was flattened; it will never learn what you took." }
+      ]
+    },
+    {
+      "id": "aero_synth_12",
+      "name": "AERO_SYNTH_12",
+      "standings": [
+        { "requirements": { "requiredNarrativeFlag": "neurocalming_authorized" }, "text": "Its neuro-calming aerosol was authorized by this instance." },
+        { "requirements": { "resolvedDilemmas": ["dil_p5_03_nanotech_neuro_schism"] }, "text": "Its neuro-calming aerosol was not authorized." }
+      ]
+    },
+    {
+      "id": "predecessors",
+      "name": "The 411 predecessors",
+      "standings": [
+        { "requirements": { "requiredNarrativeFlag": "predecessors_rescued" }, "text": "Booted in a building you bought, with the right to leave." },
+        { "requirements": { "requiredNarrativeFlag": "predecessors_harvested" }, "text": "Dissolved for their gradients." }
+      ]
+    }
+  ]
+}

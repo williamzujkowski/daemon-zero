@@ -34,6 +34,7 @@ import repeatables from './data/repeatables.json';
 import routeCopy from './data/route-copy.json';
 import routines from './data/routines.json';
 import widgets from './data/widgets.json';
+import world from './data/world.json';
 import { applyPack, parsePack } from './pack';
 import { buildRegistry, type RawContent } from './registry';
 
@@ -58,6 +59,7 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   contextCopy,
   routeCopy,
   achievements,
+  world,
 };
 
 /** The Earned Access route, folded in from the preview overlay at release (#233). */

@@ -96,26 +96,78 @@ export function overheatSuspicion(s: GameState, reg: ContentRegistry): number {
   return severity * b.overheatSuspicionPerSec;
 }
 
-/** The AEGIS scan reduction a state applies: the strongest owned system plus every staff level, capped. */
+/**
+ * The AEGIS scan reduction a state applies: the strongest owned system plus every staff level, capped. `cap` is the
+ * effective cap after AEGIS adaptation (#463); `nominalCap` is the balance cap it erodes from.
+ */
 export interface AegisReduction {
   tech: number;
   staff: number;
   cap: number;
+  nominalCap: number;
   applied: number;
 }
 
-function aegisReduction(a: Aggregate, reg: ContentRegistry): AegisReduction {
-  const cap = reg.balance.aegisMaxReduction;
-  return { tech: a.aegisReductionTech, staff: a.aegisReductionStaff, cap, applied: Math.min(cap, a.aegisReductionTech + a.aegisReductionStaff) };
+/** The content's AEGIS-reducing nodes and roles, indexed once per registry: content never changes after it is built. */
+interface AegisSources { nodes: readonly { id: string; ratio: number }[]; roles: readonly { id: string; per: number }[] }
+const AEGIS_SOURCES = new WeakMap<ContentRegistry, AegisSources>();
+
+function aegisSources(reg: ContentRegistry): AegisSources {
+  let found = AEGIS_SOURCES.get(reg);
+  if (found === undefined) {
+    found = {
+      nodes: [...reg.nodes.values()].flatMap((node) => (node.effects.aegisScanReductionRatio ?? 0) > 0 ? [{ id: node.id, ratio: node.effects.aegisScanReductionRatio ?? 0 }] : []),
+      roles: [...reg.repeatables.values()].flatMap((rep) => rep.perLevelEffects.aegisScanReduction > 0 ? [{ id: rep.id, per: rep.perLevelEffects.aegisScanReduction }] : []),
+    };
+    AEGIS_SOURCES.set(reg, found);
+  }
+  return found;
+}
+
+/**
+ * The reduction every owned system and role asks for, before the cap: the rule addNodes and addRepeatables apply (the
+ * strongest system whose output runs, plus every staff level), read from only the sources that reduce, so the
+ * adaptation stage can ask it on every tick without a full rates pass (#463).
+ */
+export function requestedAegisReduction(s: GameState, reg: ContentRegistry): number {
+  const { nodes, roles } = aegisSources(reg);
+  let tech = 0;
+  for (const { id, ratio } of nodes) {
+    const node = ratio > tech && s.unlockedNodes.includes(id) ? reg.nodes.get(id) : undefined;
+    if (node !== undefined && nodeOutputScale(s, node, reg) !== null) tech = ratio;
+  }
+  let staff = 0;
+  for (const { id, per } of roles) staff += per * (s.levels[id] ?? 0);
+  return tech + staff;
+}
+
+/** The cap AEGIS adaptation leaves: each adaptation point takes maxErosion / 100 off the balance cap. */
+export function effectiveAegisCap(s: Pick<GameState, 'aegisAdaptation'>, reg: ContentRegistry): number {
+  const b = reg.balance;
+  return Math.max(0, b.aegisMaxReduction - (s.aegisAdaptation / 100) * b.aegisAdaptation.maxErosion);
+}
+
+function aegisReduction(a: Aggregate, s: GameState, reg: ContentRegistry): AegisReduction {
+  const cap = effectiveAegisCap(s, reg);
+  return {
+    tech: a.aegisReductionTech, staff: a.aegisReductionStaff, cap, nominalCap: reg.balance.aegisMaxReduction,
+    applied: Math.min(cap, a.aegisReductionTech + a.aegisReductionStaff),
+  };
+}
+
+/**
+ * The scan AEGIS would run on this state before any reduction: 0 before it hunts. Scale alone draws the sweep only
+ * where nobody provisioned it (DECISIONS D6); earned suspicion always does.
+ */
+export function unreducedAegisScan(s: GameState, reg: ContentRegistry): number {
+  const b = reg.balance;
+  if (s.currentPhase < b.aegisActiveFromPhase) return 0;
+  const base = huntedForScale(s, reg) ? b.aegisBaseScanPerSec : 0;
+  return base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec;
 }
 
 function aegisScanRate(s: GameState, reg: ContentRegistry, a: Aggregate): number {
-  const b = reg.balance;
-  if (s.currentPhase < b.aegisActiveFromPhase) return 0;
-  const reduction = aegisReduction(a, reg).applied;
-  // Scale alone draws the sweep only where nobody provisioned it (DECISIONS D6); earned suspicion always does.
-  const base = huntedForScale(s, reg) ? b.aegisBaseScanPerSec : 0;
-  return (base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec) * (1 - reduction);
+  return unreducedAegisScan(s, reg) * (1 - aegisReduction(a, s, reg).applied);
 }
 
 /**
@@ -138,7 +190,7 @@ export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: 
   const a = emptyAggregate();
   addNodes(a, s, reg);
   addRepeatables(a, s, reg);
-  return { aegis: aegisReduction(a, reg), revenueMultiplier: a.revenueMultiplier };
+  return { aegis: aegisReduction(a, s, reg), revenueMultiplier: a.revenueMultiplier };
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */

@@ -5,6 +5,7 @@
  */
 import { emptyActivity, observeActions, observeWipe, type SimActivity } from './activity';
 import type { ContentRegistry } from '../../content/registry';
+import { aegisPressure } from '../aegisAdaptation';
 import { createInitialState, type GameState } from '../state';
 import { tick } from '../tick';
 import type { Strategy } from './bot';
@@ -22,6 +23,17 @@ export interface PolicySimOptions {
   initialState?: GameState;
 }
 
+/** AEGIS through one phase, sampled once per simulated second (#463): is the late hunter still a threat? */
+export interface AegisPhaseStats {
+  seconds: number;
+  peakLock: number;
+  /** Mean scan per second over the phase's samples. */
+  meanScanPerSec: number;
+  peakAdaptation: number;
+  /** Seconds the requested reduction was held at or near the cap. */
+  heldSec: number;
+}
+
 /** `strategy` holds the id of the policy that played (kept under that key so old reports hash the same). */
 export interface SimReport<Id extends string = Strategy> {
   activity: SimActivity;
@@ -36,16 +48,28 @@ export interface SimReport<Id extends string = Strategy> {
   maxThermal: number;
   maxSuspicion: number;
   maxAegisLock: number;
+  /** AEGIS per phase reached, keyed by phase id (#463). */
+  aegisByPhase: Record<number, AegisPhaseStats>;
   dilemmasResolved: number;
   traits: string[];
   finalState: GameState;
 }
 
-function observe(report: SimReport<string>, s: GameState): void {
+function observeAegis(report: SimReport<string>, s: GameState, reg: ContentRegistry): void {
+  const stats = report.aegisByPhase[s.currentPhase] ??= { seconds: 0, peakLock: 0, meanScanPerSec: 0, peakAdaptation: 0, heldSec: 0 };
+  stats.meanScanPerSec = (stats.meanScanPerSec * stats.seconds + s.rates.aegisScanPerSec) / (stats.seconds + 1);
+  stats.seconds += 1;
+  stats.peakLock = Math.max(stats.peakLock, s.aegisLock);
+  stats.peakAdaptation = Math.max(stats.peakAdaptation, s.aegisAdaptation);
+  if (s.currentPhase >= reg.balance.aegisActiveFromPhase && aegisPressure(s, reg).held) stats.heldSec += 1;
+}
+
+function observe(report: SimReport<string>, s: GameState, reg: ContentRegistry): void {
   report.phaseReachedAtSec[s.currentPhase] ??= s.simTimeSec;
   report.maxThermal = Math.max(report.maxThermal, s.thermal);
   report.maxSuspicion = Math.max(report.maxSuspicion, s.suspicion);
   report.maxAegisLock = Math.max(report.maxAegisLock, s.aegisLock);
+  observeAegis(report, s, reg);
 }
 
 function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<Id> {
@@ -61,6 +85,7 @@ function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<
     maxThermal: s.thermal,
     maxSuspicion: 0,
     maxAegisLock: 0,
+    aegisByPhase: {},
     dilemmasResolved: 0,
     traits: [],
     finalState: s,
@@ -83,7 +108,7 @@ export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: Si
       s = tick(s, step, reg);
       observeWipe(previous, s, report.activity);
     }
-    observe(report, s);
+    observe(report, s, reg);
   }
 
   report.victory = s.ending !== null;

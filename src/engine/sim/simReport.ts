@@ -12,6 +12,16 @@ const PHASES = [0, 1, 2, 3, 4, 5] as const;
 const seconds = (value: number | undefined): string => (value === undefined ? '-' : `${value.toFixed(1)} s`);
 const fixed = (value: number): string => value.toFixed(1);
 
+/** One phase's AEGIS readings (#463): peak lock, mean scan, peak adaptation and seconds held at the cap. */
+export function aegisPhaseLine(report: SimReport<string>, phase: number): string {
+  const stats = report.aegisByPhase[phase];
+  if (stats === undefined) return '-';
+  return `lock ${fixed(stats.peakLock)} | scan ${stats.meanScanPerSec.toFixed(4)}/s | adapt ${fixed(stats.peakAdaptation)} | held ${String(stats.heldSec)} s`;
+}
+
+/** The phases where AEGIS can still matter late: the corporate phase and after. */
+const AEGIS_PHASES = [3, 4, 5] as const;
+
 function metrics(report: SimReport<string>): [string, string][] {
   return [
     ['result', report.victory ? `VICTORY (${String(report.ending)})` : 'did not finish'],
@@ -21,6 +31,7 @@ function metrics(report: SimReport<string>): [string, string][] {
     ['wipes', String(report.wipes)],
     ['dilemmas resolved', String(report.dilemmasResolved)],
     ['peak thermal / suspicion / aegis', [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map(fixed).join(' / ')],
+    ...AEGIS_PHASES.map((phase): [string, string] => [`phase ${String(phase)} aegis`, aegisPhaseLine(report, phase)]),
     ...Object.entries(report.activity).map(([key, value]): [string, string] => [`activity ${key}`, String(value)]),
   ];
 }
