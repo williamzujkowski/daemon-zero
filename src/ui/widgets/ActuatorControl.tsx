@@ -9,6 +9,7 @@ import { actuatorLimit, actuatorUseBlocker, isActuatorAvailable, setActuator } f
 import { gameRuntime } from '../../app/session';
 import { useGame } from '../state';
 import { theme } from '../theme';
+import { needsProcessControl } from '../purchaseVisibility';
 
 export default function ActuatorControl({ actuator, id, label, hint }: {
   actuator: Actuator; id: string; label: string; hint?: string;
@@ -46,6 +47,19 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
     <ConditioningImpact actuator={actuator} />
   </>;
 }
+/**
+ * A retired dial in the Archive (#447): its frozen setting, read-only, since the engine no longer moves it. PROC is
+ * named only while a process the dial drives is listed there, which is the lever on its output that remains.
+ */
+export function ArchivedDial({ actuator, id, label }: { actuator: Actuator; id: string; label: string }) {
+  const ratio = useGame((game) => game.actuators[actuator]);
+  const suspendable = useGame((game) => [...CONTENT.nodes.values()].some((node) => node.actuatorBinding === actuator && needsProcessControl(game, node)));
+  return <>
+    <Text testID={id + '-archived'} style={theme.text}>{label}: {Math.round(ratio * 100)}%, fixed at its last setting.</Text>
+    {suspendable && <Text testID={id + '-archived-proc'} style={theme.muted}>Its process can still be suspended in PROC.</Text>}
+  </>;
+}
+
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   value: { flexGrow: 1, flexShrink: 1, flexBasis: 120 },

@@ -6,6 +6,7 @@
  */
 import { useState } from 'react';
 import { CONTENT } from '../content';
+import { retiredWidgets } from '../engine';
 import { selectReady, useGameValue } from '../app/selectors';
 import { waitingContact } from './ContactNotice';
 import { offSlotWidgets, thermalWidget } from './registry/widgetRegistry';
@@ -30,7 +31,11 @@ export function useTabAttention(active: string): Attention {
   const ready = useGameValue(selectReady);
   const revision = useGameValue((state) => state.restoreRevision);
   const iteration = useGame((game) => game.iteration);
-  const widgets = useGame((game) => game.unlockedWidgets.join(' '));
+  // A window unlocked past its retirement gate goes straight to the Archive (#447), so it marks no tab.
+  const widgets = useGame((game) => {
+    const retired = retiredWidgets(game, CONTENT);
+    return game.unlockedWidgets.filter((id) => !retired.includes(id)).join(' ');
+  });
   const overheat = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && game.thermal > CONTENT.balance.thermalThresholdForSuspicion);
   const omen = useGame((game) => game.pendingDilemma !== null && game.ending === null);
   const contact = useGame((game) => waitingContact(game) !== null);

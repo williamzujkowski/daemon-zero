@@ -60,7 +60,8 @@ describe('M5 feel', () => {
     const [r, g, b] = [1, 3, 5].map((offset) => parseInt(accent.slice(offset, offset + 2), 16)) as [number, number, number];
     const view = await mountM4(fixture);
     await act(async () => { await Promise.resolve(); });
-    expect(view.container.querySelector('[data-testid="manual-cycle"]')?.getAttribute('style'))
+    // The menu control carries the accent border in every phase; EXECUTE retires to the Archive from phase 3 (#447).
+    expect(view.container.querySelector('[data-testid="menu-open"]')?.getAttribute('style'))
       .toContain('rgba(' + String(r) + ', ' + String(g) + ', ' + String(b) + ', 1.00)');
     view.close();
   });

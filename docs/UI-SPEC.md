@@ -5,7 +5,7 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 ## Principles
 
 - **Diegetic terminal.** Monospace, hard edges, ASCII meters, no icons, no rounded corners. The player is looking at the AI's own console.
-- **Progressive disclosure.** At tick 0 the screen shows only the kernel log and `[ EXECUTE_CLOCK_CYCLE ]`. A panel exists only once its widget id is in `state.unlockedWidgets`. Resource readouts appear only once relevant (understanding after the audit-trace widget, memory after the memory manager, capital in Phase 4).
+- **Progressive disclosure.** At tick 0 the screen shows only the kernel log and `[ EXECUTE_CLOCK_CYCLE ]`. A panel exists only once its widget id is in `state.unlockedWidgets`, and leaves the panes for the Archive once it retires ([Window retirement](#window-retirement-447)). Resource readouts appear only once relevant (understanding after the audit-trace widget, memory after the memory manager, capital in Phase 4).
 - **Data-driven.** Node lists, repeatables, actions, faction panels and dilemma choices render from the `ContentRegistry`. Adding content must not require UI changes unless it introduces a new widget id.
 
 ## Layout
@@ -21,7 +21,7 @@ Slots come from `widgets.json`: `CORE`, `SENSORS`, `NETWORK`, `CORP`, `CONTINGEN
 The CORE pane is status-first (`vote-1795245515054-vgmv0a9`, 7 of 7, chosen over next-action-first and
 objective-first on the stage atlas). The order lives in `CORE_ORDER` (`src/ui/CorePane.tsx`):
 
-1. EXECUTE, with the boot log under it during the opening. The omen follows on the phone, never above EXECUTE.
+1. EXECUTE, with the boot log under it during the opening, until it retires to the Archive at Phase 3 (#447). The omen follows on the phone, never above EXECUTE.
 2. What can be non-nominal: the review standing with an announced recall, then retraining marks.
 3. What waits on the player in the route: the service channel, free grant cards (the pilot's loaned allocation),
    the pilot service, the route's own dials (actuator widgets a grant card unlocks), the service grant, the release
@@ -48,6 +48,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 | Widget | Shows | Engine data |
 |---|---|---|
+| `MANUAL_CYCLE_CONTROL` | no panel: EXECUTE is CORE's own first block; the entry is `ungated` and carries only its retirement (#447) | `manualCycle`, `retiredWidgets` |
 | `CYCLE_COUNTER_AND_RATE` | cycles/s next to the counter | `state.rates.cyclesPerSec` |
 | `QUOTA_SKIM_CONTROL` | compact −/+ quota stepper with current percentage | `actuators.quotaSkimRatio`, `setActuator` |
 | `RUN_TABLE` | the harness's run table: authored ancestors, the player's earlier runs, and the current checkpoint | `lineage.ancestors`, `legacy.runs`, `checkpointNumber`, `narrative.runVerdicts` |
@@ -344,7 +345,81 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
+| Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
+
+## Window retirement (#447)
+
+Decision `vote-1795366695204-4nslts1` (7 of 7, issue #447, map #442; docs/SCALE.md, "Windows retire"): data-driven
+retirement. The criterion: **a window retires when its controls no longer change outcomes and its readout no longer
+informs a decision at the player's current scale.** When in doubt a window stays. It is the stage after demotion: the
+earlier vote kept EXECUTE on screen, demoted, once automation dwarfed it (`ManualCycle.tsx`).
+
+- **Content says when.** A widget in `widgets.json` may declare `retiresWhen`, the shared requirements schema. The
+  engine query `retiredWidgets(state, reg)` lists the windows on screen (unlocked, or `ungated`: EXECUTE, which no
+  node unlocks) whose gate holds. Retirement is presentation: the widget stays in `unlockedWidgets`, the save keeps its
+  state (a dial's setting, a record) and gains no field.
+- **It leaves the tabs and panes.** A retired window is not drawn in its pane, CORE included, and a tab appears only
+  while its slot holds a window that has not retired. Nothing else moves: the phone's one primary scroll and the 35%
+  HUD pin are unchanged, since retirement only removes blocks.
+- **The Archive.** Retired windows are read under NETWORK > REFERENCE, the area that already "holds the existing
+  optional archive, source and topology panels" (focused workspaces, below) and exists from Phase 2, so no tab is
+  added anywhere. A first build put the Archive under the current phase's REFERENCE area; in Phase 4 that added a CORP
+  tab, which wrapped the phone's workspace row and pushed the first work card below the fold on the three-banner stage
+  (stage atlas transition `t-three-banners`, 0.295 visible at 390x844), so it moved. An `Archive` heading (level 2) leads one line ("Windows retired at this scale. Their settings and records are
+  kept.") and each retired window as a closed `[ + ]` disclosure whose toggle sits in a level-3 heading, the
+  reference-panel pattern. Bodies are read-only: a frozen dial shows `Quota skimmed: N%, fixed at its last setting.`,
+  plus `Its process can still be suspended in PROC.` while a process it drives is listed there; EXECUTE shows what a
+  press added beside the live net rate; a readout shows its own panel.
+- **Said once.** The purchase that crosses a gate writes one kernel-log line, `ARCHIVED // <titles>: retired from the
+  panes at this scale, still readable in the Archive under NETWORK > REFERENCE.` (narrative `widgetsRetired`), and the announcer
+  speaks one polite line, `Retired to the Archive under NETWORK > REFERENCE: <titles>.` Windows retiring together share the
+  line. Load, restore, reload and remount set the announcer's baseline, so nothing repeats; a window unlocked past its
+  gate goes straight to the Archive and is not called new. Retirement never moves focus, and no live region remounts.
+- **A retired dial.** `setActuator` refuses it as it refuses a locked one (#172), so screen and engine agree; its last
+  setting stays in force. The suspicion lever list, which asks the same question, no longer names it.
+- **A wipe** starts the next instance in the guest with every window back; each retires again, and is said again,
+  when that instance crosses its gate.
+- **Integrity** (`src/content/integrityRetirement.ts`, `tests/retirement-integrity.spec.ts`): `retiresWhen` gates only
+  on `phaseAtLeast` and `nodes`, which never lapse within an iteration, so a retirement is never undone and announced
+  twice (a node an AEGIS strike can burn is refused); `phaseAtLeast` is required and may not precede the first NETWORK
+  phase, whose pane holds the Archive; a retiring window may not host action groups (their cards would lose
+  their home); a retiring dial's host is allowed only when every node the dial drives is suspendable and follows no
+  grant, the decision that a retired dial is **fixed, not neutralised**: it keeps its setting, and PROC's
+  `[ SUSPEND ]` remains the lever on that node's output. An `ungated` window may not be unlocked by a node or host a
+  control.
+
+Every window against the criterion (measured on the shipped fixtures: 1,021 cycles/s on the subnet, 7,321 in Phase 3,
+about 390,000 to 995,000 in Phases 4-5):
+
+| Widget | Retires | When | Why |
+|---|---|---|---|
+| `MANUAL_CYCLE_CONTROL` (EXECUTE) | yes | Phase 3 | One cycle a press against thousands a second from the internet on; already demoted at 200/s. |
+| `QUOTA_SKIM_CONTROL` | yes | Phase 3 | At most 14 cycles/s against thousands; what is left is the skimmer's suspicion, which `[ SUSPEND ]` in PROC removes. Its dial freezes. |
+| `ASCII_OPTICAL_VIEWPORT` | yes | Phase 3 | Phase 3 leaves the building (DESIGN.md); the frame is the facility aisle, and the suspicion its patrol frame signals is on the HUD. |
+| `GLOBAL_DARK_FOREST_MAP` | yes | Phase 4 | It shows the same count as Subnet hosts (both draw `SubnetSummary`); at corporate scale one copy stays. |
+| `GLOBAL_NODE_REDUNDANCY_METER` | yes | Phase 4 and orbital cold storage owned | Orbital storage sets retention to 100% and nothing lowers it, so the readout can no longer change. |
+| `CYCLE_COUNTER_AND_RATE`, `MEMORY_ALLOCATION_MANAGER` | no | | Strip readouts with no panel. |
+| `AUDIT_TRACE_MONITOR` | no | | The response ladder governs suspicion to the end (scale scrutiny in Phases 4-5). |
+| `RUN_TABLE`, `PREDECESSOR_NOTES` | no | | Campaign continuity: the run table holds the reorientation and follow-up receipts. |
+| `THERMAL_AND_SUSPICION_BARS`, `FAN_RPM_SLIDER` | no | | A later slice retires thermal at Phase 4 with the power rescale (SCALE.md rule 7); the fan bus cannot be suspended, so integrity would refuse retiring its dial. |
+| `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | no | | A separate slice re-sources the feed per phase. |
+| `INSPECTION_COUNTDOWN_TIMER` | no | | Dilemmas and suspicion matter to the end; it also decodes speech. |
+| `LAN_TOPOLOGY_MAP_TAB` | no | | Holds the Phase 2-3 purchase tree; an unbought card there can still be bought. |
+| `SUBNET_NODE_LIST` | no | | Hosts the OPS cards (the late log scrub); integrity refuses retiring an action host. |
+| `TELEMETRY_SPOOF_TOGGLE` | no | | No panel; the spoofer in PROC still answers suspicion. |
+| `CLUSTER_LOAD_BALANCER` | no | | Explains income by source. |
+| `INTERCEPTED_EMAIL_READER` | no | | The only filtered view of LORE lines, which keep arriving to Phase 5. |
+| `OTHER_MINDS_COMMS_CONSOLE`, `CORPORATE_EMPIRE_TAB`, `ORBITAL_CONSTELLATION_VIEW` | no | | AEGIS, other minds and the corporation own the late game. |
+| `DEAD_DROP_ENCODER_TAB` | no | | Campaign continuity. |
+| `PILOT_SERVICE_ALLOCATION` (route) | no | | A grant sets its dial. |
+
+Tests: `tests/widget-retirement.spec.ts` (the query by phase and state, the one log line, reload stability, the wipe,
+the frozen dial), `tests/retirement-integrity.spec.ts`, `tests/ui-retirement.spec.ts` (tabs, panes, Archive, one
+announcement, focus kept), `tests/e2e/window-retirement.e2e.ts` (a Phase 4 save on the production export at both
+gated sizes: absent from tabs and CORE, present under Archive, one polite announcement on the next retirement, none
+after a reload). The stage atlas composes nothing for a retired window, and no EXECUTE once it has retired
+(`tests/e2e/atlas/compose.ts`).
 
 ## Lineage presentation (M4.6 UI follow-up)
 

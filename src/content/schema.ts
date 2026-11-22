@@ -350,6 +350,14 @@ export const WidgetSchema = z.strictObject({
    * action outside the mind tools to have one host, unlocked whenever the action itself is available.
    */
   hostsActionGroups: z.array(z.string().min(1)).min(1).optional(),
+  /**
+   * When this window stops mattering at the player's scale (vote-1795366695204-4nslts1): the UI drops it from the
+   * tabs and panes and keeps it readable in an Archive. Integrity limits it to gates that never lapse within an
+   * iteration (integrityRetirement.ts); its state stays in the save.
+   */
+  retiresWhen: RequirementsSchema.optional(),
+  /** On screen from the first frame: no node unlocks it (the manual clock cycle). Only its retirement is data. */
+  ungated: z.literal(true).optional(),
 });
 
 export const EndingSchema = z.strictObject({
@@ -453,6 +461,8 @@ export const NarrativeSchema = z.strictObject({
   dilemmaInterrupt: z.string(),
   /** Logged in place of an alert level's text while the audit trail cannot yet be read. */
   auditEntryBlind: z.string(),
+  /** Logged once when windows retire (vote-1795366695204-4nslts1); {titles} lists them. */
+  widgetsRetired: z.string().includes('{titles}'),
   /** Extra boot lines for later iterations: the world notices that you keep coming back. */
   iterationBootLines: z.array(z.strictObject({
     minIteration: z.number().int().min(2),
