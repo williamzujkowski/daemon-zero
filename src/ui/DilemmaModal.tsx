@@ -61,9 +61,10 @@ function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
 }
 
 /**
- * One choice, folded to a row: its title, cost and whether it can be paid. Every alternative and its price fits the
- * first view on a phone (the concern behind #371, whose separate index repeated each choice and was removed at the
- * maintainer's request), and the commit control sits inside the open card, so nothing is chosen unread. Opening one
+ * One choice, folded to a row: its title, cost and whether it can be paid. Every alternative and its price is in the
+ * first view (the concern behind #371, whose separate index repeated each choice and was removed at the maintainer's
+ * request), except where a rule puts terms first (the pilot offer, DZ-04.3); the commit control sits inside the open
+ * card, so nothing is chosen unread. Opening one
  * closes no other, so two can be compared. The toggle is a button inside the heading (the accordion pattern), named
  * with exactly what it shows. `token` is the presentation this choice was rendered for; a press against any other is
  * refused.
