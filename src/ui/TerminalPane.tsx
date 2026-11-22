@@ -15,6 +15,7 @@ import MindTools from './widgets/MindTools';
 import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
 import CorePane from './CorePane';
+import Archive from './Archive';
 
 /**
  * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
@@ -67,6 +68,7 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
     {slots.includes('CORE') && <CoreTree widgetIds={shown.filter(isCore)} area={workspace.active} />}
     {shown.filter((id) => !isCore(id)).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
+    {workspace.active === 'reference' && workspace.archive && <Archive />}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}
   </>;

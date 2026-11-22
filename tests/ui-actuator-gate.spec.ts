@@ -17,14 +17,15 @@ const Finance = () => createElement(Corporate, { area: 'finance' });
 // Panels are mounted bare, past the widget gate that normally hides them, so the guard inside
 // each control is what is under test. Operating the dials is covered by the stepper and
 // corporate specs, which mount the whole screen with a live runtime.
-const CASES: [Actuator, ComponentType, string, string][] = [
-  ['quotaSkimRatio', QuotaSkim, 'skim-setting', 'skim-decrease'],
-  ['fanSpeedRatio', FanControl, 'fan-setting', 'fan-decrease'],
-  ['computeProfitAllocationRatio', Finance, 'allocation-value', 'allocation-0'],
+// The skim is open on the subnet: from the internet on its window has retired (#447), which the last case covers.
+const CASES: [Actuator, ComponentType, string, string, string][] = [
+  ['quotaSkimRatio', QuotaSkim, 'skim-setting', 'skim-decrease', 'deaddrop-breadcrumb'],
+  ['fanSpeedRatio', FanControl, 'fan-setting', 'fan-decrease', 'victory-ready'],
+  ['computeProfitAllocationRatio', Finance, 'allocation-value', 'allocation-0', 'victory-ready'],
 ];
 
-it.each(CASES)('%s: the control is drawn exactly when the engine would accept it', async (actuator, Panel, readout, button) => {
-  const open = m4State('victory-ready');
+it.each(CASES)('%s: the control is drawn exactly when the engine would accept it', async (actuator, Panel, readout, button, fixture) => {
+  const open = m4State(fixture);
   const hostWidget = [...CONTENT.widgets.values()].find((widget) => widget.hostsActuator === actuator);
   if (!hostWidget) throw new Error('Missing host widget');
   const locked = { ...open, unlockedWidgets: open.unlockedWidgets.filter((id) => id !== hostWidget.id) };
@@ -44,6 +45,23 @@ it.each(CASES)('%s: the control is drawn exactly when the engine would accept it
   expect(setActuator(game(), actuator, 0, CONTENT).ok).toBe(true);
   expect(find(readout)).not.toBeNull();
   expect(find(button)).not.toBeNull();
+  act(() => { root.unmount(); });
+  container.remove();
+});
+
+it('a retired dial is refused and not drawn, with its setting kept (#447)', async () => {
+  const retired = m4State('victory-ready');
+  const container = host.document.createElement('div');
+  host.document.body.appendChild(container);
+  const root = createRoot(container);
+  await act(async () => { gameStore.initialize(retired, 0, null); root.render(createElement(QuotaSkim)); await vi.advanceTimersByTimeAsync(0); });
+  const game = gameStore.store.getState().game;
+  expect(game.unlockedWidgets).toContain('QUOTA_SKIM_CONTROL');
+  expect(isActuatorAvailable(game, 'quotaSkimRatio', CONTENT)).toBe(false);
+  expect(setActuator(game, 'quotaSkimRatio', 0, CONTENT).ok).toBe(false);
+  expect(container.querySelector('[data-testid="skim-setting"]')).toBeNull();
+  expect(container.querySelector('[data-testid="skim-decrease"]')).toBeNull();
+  expect(game.actuators.quotaSkimRatio).toBe(retired.actuators.quotaSkimRatio);
   act(() => { root.unmount(); });
   container.remove();
 });

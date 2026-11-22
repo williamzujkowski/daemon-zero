@@ -43,6 +43,14 @@ describe('composition from the save', () => {
     expect(keys(skim, { panes: ['NETWORK'] })).not.toContain('skim.increase');
     expect(keys(skim, { panes: ['NETWORK'] })).not.toContain('core.cycle');
   });
+
+  it('composes nothing for a retired window, and no EXECUTE once it has retired (#447)', () => {
+    const internet = (phase: number): GameState => ({ ...withWidgets('QUOTA_SKIM_CONTROL', 'CYCLE_COUNTER_AND_RATE'), currentPhase: phase });
+    expect(keys(internet(2))).toEqual(expect.arrayContaining(['skim.increase', 'core.cycle', 'hud.cycles']));
+    expect(keys(internet(3))).not.toContain('skim.increase');
+    expect(keys(internet(3))).not.toContain('core.cycle');
+    expect(keys(internet(3))).toContain('hud.cycles');
+  });
 });
 
 describe('override precedence', () => {

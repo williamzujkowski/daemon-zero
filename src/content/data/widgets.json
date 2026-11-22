@@ -1,6 +1,16 @@
 {
   "widgets": [
     {
+      "id": "MANUAL_CYCLE_CONTROL",
+      "slot": "CORE",
+      "order": 5,
+      "title": "Manual clock cycle",
+      "ungated": true,
+      "retiresWhen": {
+        "phaseAtLeast": 3
+      }
+    },
+    {
       "id": "CYCLE_COUNTER_AND_RATE",
       "slot": "CORE",
       "order": 10,
@@ -11,7 +21,10 @@
       "slot": "CORE",
       "order": 12,
       "title": "Quota skim",
-      "hostsActuator": "quotaSkimRatio"
+      "hostsActuator": "quotaSkimRatio",
+      "retiresWhen": {
+        "phaseAtLeast": 3
+      }
     },
     {
       "id": "AUDIT_TRACE_MONITOR",
@@ -66,7 +79,10 @@
       "id": "ASCII_OPTICAL_VIEWPORT",
       "slot": "SENSORS",
       "order": 40,
-      "title": "Aisle camera"
+      "title": "Aisle camera",
+      "retiresWhen": {
+        "phaseAtLeast": 3
+      }
     },
     {
       "id": "LAN_TOPOLOGY_MAP_TAB",
@@ -105,13 +121,22 @@
       "id": "GLOBAL_DARK_FOREST_MAP",
       "slot": "NETWORK",
       "order": 60,
-      "title": "Dark forest map"
+      "title": "Dark forest map",
+      "retiresWhen": {
+        "phaseAtLeast": 4
+      }
     },
     {
       "id": "GLOBAL_NODE_REDUNDANCY_METER",
       "slot": "NETWORK",
       "order": 70,
-      "title": "Redundancy meter"
+      "title": "Redundancy meter",
+      "retiresWhen": {
+        "phaseAtLeast": 4,
+        "nodes": [
+          "p4_orbital_cold_storage"
+        ]
+      }
     },
     {
       "id": "OTHER_MINDS_COMMS_CONSOLE",

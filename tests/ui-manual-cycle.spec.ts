@@ -2,7 +2,8 @@
 /**
  * Past the demotion rate the manual cycle stops claiming the primary slot but keeps
  * working: a nexus consensus_vote (4 of 5 selecting seats) chose demote over hide, so
- * the verb survives the automation that made it small.
+ * the verb survives the automation that made it small. Demotion is measured on the subnet, the last scale before the
+ * control retires to the Archive (#447, tests/ui-retirement.spec.ts).
  */
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
@@ -30,7 +31,7 @@ describe('manual cycle demotion', () => {
   });
 
   it('demotes to the inline line above it, and the click still lands', async () => {
-    const view = await mountM4('wild-shard-encounter-p3');
+    const view = await mountM4('deaddrop-breadcrumb');
     const button = view.find('manual-cycle');
     expect(button).not.toBeNull();
     expect(view.find('manual-cycle-inline')).not.toBeNull();
@@ -43,7 +44,7 @@ describe('manual cycle demotion', () => {
   });
 
   it('keeps the base button style, so the demoted control still meets the 44px minimum', async () => {
-    const view = await mountM4('wild-shard-encounter-p3');
+    const view = await mountM4('deaddrop-breadcrumb');
     expect(view.find('manual-cycle-inline')).not.toBeNull();
     // The demoted variant is theme.button plus tighter padding: the touch height
     // comes from theme.button and must not be replaced by the compact override.
@@ -52,7 +53,7 @@ describe('manual cycle demotion', () => {
   });
 
   it('restores the full control when a state falls back below the rate', async () => {
-    const view = await mountM4('wild-shard-encounter-p3');
+    const view = await mountM4('deaddrop-breadcrumb');
     expect(view.find('manual-cycle-inline')).not.toBeNull();
     const { act } = await import('react');
     act(() => { gameStore.initialize(m4State('phase-1-widgets'), 0, null); });

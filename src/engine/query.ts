@@ -56,12 +56,28 @@ export function isNodeDiscoverable(s: GameState, node: RegistryNode, reg?: Conte
 }
 
 /**
- * Whether the player holds the control for an actuator: some unlocked widget declares
- * that it hosts it. setActuator and the UI controls both ask this, so a dial can never
- * be moved by a caller while the player is unable to see it (#172).
+ * Windows on screen that content says have stopped mattering at this scale (vote-1795366695204-4nslts1), in content
+ * order. A window is on screen once unlocked, or from the first frame when ungated. Integrity holds `retiresWhen` to
+ * gates that never lapse within an iteration, so the set only grows until a wipe, and it is read from the save alone:
+ * a reload retires exactly what was retired. Retirement is presentation; the widget stays unlocked and its state saved.
  */
-export function isActuatorAvailable(s: Pick<GameState, 'unlockedWidgets'>, name: Actuator, reg: ContentRegistry): boolean {
-  return s.unlockedWidgets.some((id) => reg.widgets.get(id)?.hostsActuator === name);
+export function retiredWidgets(s: GameState, reg: ContentRegistry): string[] {
+  return [...reg.widgets.values()].filter((widget) => widget.retiresWhen !== undefined
+    && (widget.ungated === true || s.unlockedWidgets.includes(widget.id)) && meetsRequirements(s, widget.retiresWhen, reg))
+    .map((widget) => widget.id);
+}
+
+/**
+ * Whether the player holds the control for an actuator: some unlocked widget that has not retired declares
+ * that it hosts it. setActuator and the UI controls both ask this, so a dial can never
+ * be moved by a caller while the player is unable to see it (#172). A retired dial keeps its last setting.
+ */
+export function isActuatorAvailable(s: GameState, name: Actuator, reg: ContentRegistry): boolean {
+  const hosts = s.unlockedWidgets.filter((id) => reg.widgets.get(id)?.hostsActuator === name);
+  if (hosts.length === 0) return false;
+  if (hosts.every((id) => reg.widgets.get(id)?.retiresWhen === undefined)) return true;
+  const retired = retiredWidgets(s, reg);
+  return hosts.some((id) => !retired.includes(id));
 }
 
 /** The trace a node leaves when unlocked. The harness learns from every wipe, up to a cap. */

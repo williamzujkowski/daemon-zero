@@ -3,14 +3,14 @@ import { Text, View } from './PhaseTheme';
  * The one announcement path for events that change what the player can do (vote-1795210455666-e01ydjc, F1b): a
  * visually hidden polite live region in the chrome. It speaks a phase change the boundary dialog does not already
  * open for (#356), each newly unlocked widget by its content title and slot (#357), and the AEGIS lock crossing its
- * critical mark (#360), a newly available grant card, the route's free capacity (#361), and a pilot batch completing,
+ * critical mark (#360), windows retiring to the Archive (#447), a newly available grant card, the route's free capacity (#361), and a pilot batch completing,
  * which enables its submit control wherever the player is reading (#428). A restore, a wipe or the
  * first frame sets the baseline and says nothing, so nothing replays.
  */
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import { dilemmaOmen, isNodeKnown, phaseTitle, pilotServiceView, wildEncounterView, type GameState } from '../engine';
+import { dilemmaOmen, isNodeKnown, phaseTitle, pilotServiceView, retiredWidgets, wildEncounterView, type GameState } from '../engine';
 import { grantBasis, type GrantBasis } from './GrantNote';
 import { pendingNode } from './purchaseVisibility';
 import { opensBoundaryDialog } from './PhaseThreshold';
@@ -22,7 +22,7 @@ import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 interface Line { seq: number; text: string; at: number }
-interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; grants: string; aegis: boolean; signal: string; omen: string; batch: boolean; lines: Line[]; seq: number }
+interface Seen { ready: boolean; revision: number; iteration: number; phase: number; widgets: string; retired: string; grants: string; aegis: boolean; signal: string; omen: string; batch: boolean; lines: Line[]; seq: number }
 /** A burst (a phase change that also reveals a signal) keeps its sentences as separate lines, so a later one does
  *  not replace an earlier one before it is read; lines older than the burst window are dropped, so nothing from
  *  minutes ago is re-presented with a new event. */
@@ -69,11 +69,17 @@ function eventLines(seen: Seen, now: Omit<Seen, 'lines' | 'seq'>, access: GameSt
     lines.push(/^phase\b/i.test(title) ? `${title}.` : `Phase ${String(now.phase)}: ${title}.`);
   }
   const before = new Set(seen.widgets.split(' '));
+  const retired = new Set(now.retired.split(' '));
   for (const id of now.widgets.split(' ')) {
-    const widget = id !== '' && !before.has(id) ? CONTENT.widgets.get(id) : undefined;
+    // A window unlocked past its retirement gate goes straight to the Archive, so it is not new on its pane.
+    const widget = id !== '' && !before.has(id) && !retired.has(id) ? CONTENT.widgets.get(id) : undefined;
     // A widget whose control is not on its content slot's pane (a strip readout, the PROC spoofer) is not "on" it.
     if (widget) lines.push(offSlotWidgets.includes(widget.id) ? `New: ${widget.title}.` : `New on ${widget.slot}: ${widget.title}.`);
   }
+  // Windows that retired together are one sentence, said once: a reload or remount is a baseline (#447).
+  const archived = new Set(seen.retired.split(' '));
+  const titles = now.retired.split(' ').filter((id) => id !== '' && !archived.has(id)).map((id) => CONTENT.widgets.get(id)?.title ?? id);
+  if (titles.length > 0) lines.push(`Retired to the Archive under NETWORK > REFERENCE: ${titles.join(', ')}.`);
   lines.push(...grantLines(seen.grants, now.grants));
   if (now.aegis && !seen.aegis) lines.push(`AEGIS hunter lock past ${String(AEGIS_CRITICAL)}%: the hunters are close to locking on.`);
   // The omen: on the phone its notice lives in CORE and is absent off CORE, so its arrival is spoken here (#399, #393).
@@ -92,6 +98,7 @@ export default function Announcer() {
   const phase = useGame((game) => game.currentPhase);
   const access = useGame((game) => game.access);
   const widgets = useGame((game) => game.unlockedWidgets.join(' '));
+  const retired = useGame((game) => retiredWidgets(game, CONTENT).join(' '));
   const grants = useGame(availableGrants);
   const aegis = useGame((game) => game.unlockedWidgets.includes(threatWidget) && aegisCritical(game.aegisLock));
   const signal = useGame((game) => wildEncounterView(game, CONTENT)?.title ?? '');
@@ -101,12 +108,12 @@ export default function Announcer() {
     const pending = game.ending === null ? CONTENT.dilemmas.find((entry) => entry.id === game.pendingDilemma?.id) : undefined;
     return pending ? dilemmaOmen(game, pending, CONTENT) : '';
   });
-  const now = { ready, revision, iteration, phase, widgets, grants, aegis, signal, omen: omen === '' ? '' : disclosed(omen, known), batch };
+  const now = { ready, revision, iteration, phase, widgets, retired, grants, aegis, signal, omen: omen === '' ? '' : disclosed(omen, known), batch };
   const [seen, setSeen] = useState<Seen>({ ...now, lines: [], seq: 0 });
   if (!ready || seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) {
     // A baseline, never an event: loading, restoring or rebooting must not replay what the save already holds.
     if (seen.ready !== ready || seen.revision !== revision || seen.iteration !== iteration) setSeen({ ...now, lines: [], seq: seen.seq });
-  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.grants !== grants || seen.aegis !== aegis || seen.signal !== signal || seen.omen !== now.omen || seen.batch !== batch) {
+  } else if (seen.phase !== phase || seen.widgets !== widgets || seen.retired !== retired || seen.grants !== grants || seen.aegis !== aegis || seen.signal !== signal || seen.omen !== now.omen || seen.batch !== batch) {
     const at = gameStore.store.getState().game.simTimeSec;
     const said = eventLines(seen, now, access).map((text, index) => ({ seq: seen.seq + index + 1, text, at }));
     // A change with nothing to say (the lock falling back, say) clears the region, so a virtual cursor never

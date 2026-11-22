@@ -11,14 +11,15 @@ import { COLUMN_MIN_WIDTH } from './layout';
  * worth one cycle is competing with thousands per second and should not hold the
  * primary slot in the purchase feed. It is demoted rather than hidden (a nexus
  * consensus_vote chose demote-to-inline-line over hiding, 4 of 5 selecting seats):
- * the verb stays, the prominence does not.
+ * the verb stays, the prominence does not. Retirement is the later stage (#447): from the scale content names
+ * (Phase 3) CorePane draws it no more and the Archive shows ArchivedCycle instead.
  */
 import { recordManualInput } from '../app/renderCounts';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { registerPrimaryAction } from './primaryFocus';
 
 import { CONTENT } from '../content';
-import { manualCycle } from '../engine';
+import { compactAmount, manualCycle } from '../engine';
 import { gameRuntime } from '../app/session';
 import { selectReady, useGameValue } from '../app/selectors';
 import { useGame } from './state';
@@ -62,6 +63,15 @@ export default function ManualCycle() {
       : <Text style={theme.heading}>[ EXECUTE_CLOCK_CYCLE ]</Text>}
   </Pressable>{!counter && count > 0 && <Text testID="manual-feedback" accessibilityLiveRegion="polite"
     role="status" style={theme.muted}>Manual instructions committed: {count}</Text>}</View>;
+}
+
+/** EXECUTE in the Archive (#447): what a press was worth beside what the run now earns without it, both read live. */
+export function ArchivedCycle() {
+  const rate = useGame((game) => Math.round(game.rates.cyclesPerSec));
+  const press = CONTENT.balance.manualCycleYield;
+  return <Text testID="manual-cycle-archived" style={theme.text}>
+    [ EXECUTE_CLOCK_CYCLE ] added {press} {press === 1 ? 'cycle' : 'cycles'} a press. Net rate now: {compactAmount(rate)} cycles/s.
+  </Text>;
 }
 
 const styles = StyleSheet.create({

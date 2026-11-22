@@ -1,9 +1,9 @@
 /** Workspace navigation and pending signals precede content; mobile scrolls them in one flow. */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../content';
-import { wildEncounterView } from '../engine';
+import { retiredWidgets, wildEncounterView } from '../engine';
 import { Pressable, Text, View } from './PhaseTheme';
-import { workspaceAreas } from './registry/widgetRegistry';
+import { ARCHIVE_SLOT, workspaceAreas } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
 import { areaTitles, type WorkspaceArea } from './workspaceTypes';
 import { theme } from './theme';
@@ -14,7 +14,9 @@ export function useWorkspace(slots: string[], ids: readonly string[]) {
   const known = useSurveillanceKnown();
   const slot = slots.find((entry) => entry === 'NETWORK' || entry === 'CORP');
   const tools = known && slot !== undefined && CONTENT.phases.find((entry) => entry.phaseId === phase)?.uiSlot === slot;
-  const areas = workspaceAreas(ids, slot, tools);
+  // The Archive sits with the other reference panels (subnet, cluster, mail) under NETWORK's REFERENCE area (#447).
+  const archive = useGame((game) => slot === ARCHIVE_SLOT && retiredWidgets(game, CONTENT).length > 0);
+  const areas = workspaceAreas(ids, slot, tools, archive);
   // #369: a remedy's route that arrived before this pane mounted (a phone switching tabs to reach it) is taken once here.
   const [arrived] = useState(() => takeAreaRoute(slot));
   const [selection, select] = useState<{ slot: string | undefined; phase: number; area: WorkspaceArea }>({ slot, phase, area: arrived ?? 'work' });
@@ -31,7 +33,7 @@ export function useWorkspace(slots: string[], ids: readonly string[]) {
     const area = takeAreaRoute(slot);
     if (area !== null && areas.includes(area)) { select({ slot, phase, area }); setFocusArea(area); }
   });
-  return { slot, tools, areas, active, focusArea, focused: () => { setFocusArea(null); },
+  return { slot, tools, archive, areas, active, focusArea, focused: () => { setFocusArea(null); },
     select: (area: WorkspaceArea) => { select({ slot, phase, area }); } };
 }
 
