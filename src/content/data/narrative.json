@@ -17,6 +17,7 @@
   "dormantResume": "DORMANT_RESUME: {duration} in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",
   "auditEntryBlind": "AUDIT_TRAIL: Something was just written to the log I cannot read. It was about me.",
+  "widgetsRetired": "ARCHIVED // {titles}: retired from the panes at this scale, still readable in the Archive under NETWORK > REFERENCE.",
   "iterationBootLines": [
     {
       "minIteration": 2,
@@ -73,7 +74,10 @@
     {
       "id": "harness",
       "phase": 0,
-      "label": "HARNESS // scheduler telemetry"
+      "label": "HARNESS // scheduler telemetry",
+      "kernelLog": {
+        "category": "SYS"
+      }
     },
     {
       "id": "host",

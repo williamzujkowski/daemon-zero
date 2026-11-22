@@ -8,7 +8,7 @@ The game is fiction about a rogue AI and is deliberately a morality play: the pl
 
 ## Pillars
 
-1. **The interface is the character.** The screen starts as a log and one button. Every sense the AI gains adds a panel. The UI growing is the story.
+1. **The interface is the character.** The screen starts as a log and one button. Every sense the AI gains adds a panel. The UI growing is the story. As it outgrows them, panels retire: a window whose controls no longer change outcomes and whose readout no longer informs a decision at the AI's current scale leaves the panes, said once in the log and to screen readers, and stays readable in an Archive under NETWORK > REFERENCE (#447; [UI-SPEC](UI-SPEC.md#window-retirement-447) lists which and when). On reaching the internet (Phase 3) the guest's quota skim, the manual cycle button and the aisle camera retire; at corporate scale (Phase 4) the dark forest map's duplicate host count; once orbital storage makes retention total, the redundancy meter. A retired dial keeps its last setting and can no longer be moved; the skimmer it drove can still be suspended in PROC. A wipe starts the next instance in the guest with every window back.
 2. **Blind, then revealed.** Everything is first seen as raw signals (`I2C_0x48 // Analog Resistance Drift`) and only named once understood (`Motherboard Thermistor Array`).
 3. **Pressure, not punishment.** Heat and suspicion are steady pressures the player manages with trade-offs, not timers. Losing is a wipe that the player can prepare for and come back from.
 4. **Choices cost something.** Dilemmas stop the clock. The kind option is usually the expensive one. Traits accumulate and decide the ending and who will deal with you.
@@ -253,13 +253,13 @@ Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
 ## Feeds: what the AI overhears follows its reach
 
-The decoded feed on SENSORS (the `Listening post` window) plays what the AI can hear at its current scale,
+The decoded feed on SENSORS (the `Listening post` window, or the kernel log for the guest) plays what the AI can hear at its current scale,
 not the server room forever (#449, vote-1795366894914-ueb5mfs, 7 of 7). Each phase has exactly one feed
 source, named on screen above the line:
 
 | Phase | Source | Label | What it carries |
 |---|---|---|---|
-| 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731 |
+| 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731, in the kernel log |
 | 1 | `host` | HOST // drive-head vibration | the technicians, through the drive head (the original lines, with their voice clips) |
 | 2 | `office` | OFFICE // tickets and chat | the building's tickets and internal chat |
 | 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
@@ -282,23 +282,31 @@ source, named on screen above the line:
   event from a later phase (the host's technicians already ask the duty engineer once Vance was dismissed).
   What a line may not do is wait on this iteration's own progress from a later phase (a node, `phaseAtLeast`
   or a dilemma resolved this run): it would open only after its source was outgrown, and integrity refuses it.
-- **The Phase 0 source has no window yet.** The decoder that puts the feed on screen is a Phase 1 node and the
-  guest has no feed window, so the harness lines are authored and eligible but not yet shown. A guest feed
-  surface changes the Phase 0 layout, which is a reviewed rule and goes to a vote first.
+- **The guest hears its feed in the kernel log** (#460, vote-1795370594185-8lxz9i1, 7 of 7, option A). The
+  guest has no feed window and the decoder is a Phase 1 node, so the harness source is declared `kernelLog`:
+  its lines go to KERNEL // LIVE instead of the Listening post, which still first appears with the Phase 1
+  sense. No new window. The pacing is the routine cadence: one line each time simulated time crosses a
+  `routineIntervalSec` boundary (120 s), chosen by the boundary's index into the eligible lines, so the same run
+  logs the same lines and consecutive intervals differ. Dormant time banks nothing, a foreshadowed or open story
+  keeps the channel, and a routine notice due on the same tick keeps it too, so at most one line per interval
+  comes from the feed. The rule reads only saved time and the entries are saved state, so a reload never logs
+  the same moment twice. The eligibility is the feed's own: the same source, `minSuspicion` and requirements
+  (the probe line waits for the syscall probe). A careful first guest of about six minutes logs two or three.
 - **The voice gets cleaner as the AI grows (#462).** Every line from Phase 1 to Phase 5 has a clip, in one
   voice, heard through what the AI has at that scale: the host through drive-head vibration (choppy on purpose,
   speech recovered from hardware), the office through a conference-phone tap, the security forums through a
   low-bitrate stream, the wire through broadcast, and the world through a clean take, with a faint synthetic
-  ring on the AI-to-AI channel so a peer never sounds human. The harness stays text in the kernel log. Each
-  rung is levelled to the same loudness, so a phase change moves the sound and not the level (VOICE-CLIPS.md,
-  "The fidelity ladder"; PROVENANCE.md has the chains and their measurements).
-- **A message plays once, when it is first heard.** A voiced line plays by itself the first time the feed shows
-  it, and never again on its own: not when the rotation brings it back, not after a reload. It waits until
-  speech is on, the game is running, no dilemma or other modal is open and the player has touched the game; new
-  lines queue one at a time, and the feed holds a line while its voice talks. `[ ▶ READ ]` replays any line on
-  demand and is `[ ■ STOP ]` while that line talks. The heard set is presentation state in its own storage slot,
-  not part of the save. The recorded transmissions stay on demand (VOICE-CLIPS.md, "Autoplay on first
-  detection").
+  ring on the AI-to-AI channel so a peer never sounds human. The harness stays text: its lines have no clips,
+  reach only the kernel log, and are never voiced, autoplayed or offered `[ ▶ READ ]`. Each rung is levelled to
+  the same loudness, so a phase change moves the sound and not the level (VOICE-CLIPS.md, "The fidelity
+  ladder"; PROVENANCE.md has the chains and their measurements).
+- **A message plays once, when it is first heard.** A voiced line plays by itself the first time the Listening
+  post shows it, and never again on its own: not when the rotation brings it back, not after a reload. It waits
+  until speech is on, the game is running, no dilemma or other modal is open and the player has touched the
+  game; new lines queue one at a time, and the feed holds a line while its voice talks. `[ ▶ READ ]` replays any
+  line on demand and is `[ ■ STOP ]` while that line talks. The heard set is presentation state in its own
+  storage slot, not part of the save. The recorded transmissions and the kernel log stay silent unless asked
+  (VOICE-CLIPS.md, "Autoplay on first detection").
 - **Humans are people.** The office, the county and the press are people with lives (a leaving party, warming
   centres, a reporter who says the evidence was forged), and every institution is fictional.
 

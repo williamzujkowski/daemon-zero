@@ -3,7 +3,7 @@
  * source falls silent, and a line that implies an event speaks only once the state makes it true.
  */
 import { describe, expect, it } from 'vitest';
-import { ambientFeedSource, eligibleAmbientSpeech, type GameState } from '../src/engine';
+import { ambientFeedSource, eligibleAmbientSpeech, eligibleLoggedFeed, type GameState } from '../src/engine';
 import { activeGame, decoder, preview } from './campaign-helpers';
 import { resolveEvent } from './early-helpers';
 import { defined } from './m7-helpers';
@@ -17,8 +17,12 @@ const heard = (s: GameState, registry = reg) => eligibleAmbientSpeech(s, registr
 
 describe('the feed follows reach', () => {
   it.each(reg.phases.map((phase) => phase.phaseId))('Phase %i hears only its own source, and something on it', (phase) => {
+    // A source routed to the kernel log (the guest's, #460) is heard there instead of on the decoder.
+    const logged = ambientFeedSource(listening(phase), reg)?.kernelLog !== undefined;
     for (const suspicion of [0, 100]) {
-      const ids = heard(listening(phase, { suspicion }));
+      const state = listening(phase, { suspicion });
+      if (logged) expect(heard(state)).toEqual([]);
+      const ids = logged ? eligibleLoggedFeed(state, reg).map((line) => line.id) : heard(state);
       expect(ids.length).toBeGreaterThan(0);
       expect(new Set(ids.map((id) => phaseOf(sourceOf(id))))).toEqual(new Set([phase]));
     }
@@ -62,12 +66,6 @@ describe('a feed line speaks only when the state makes it true', () => {
   it('a cable about the collector swarm waits for the swarm', () => {
     expect(heard(listening(p5))).not.toContain(gatedOnNode.id);
     expect(heard(listening(p5, { unlockedNodes: [node] }))).toContain(gatedOnNode.id);
-  });
-
-  it('a technician line about a node waits for that node', () => {
-    const probe = defined(reg.narrative.ambientChatter.find((line) => line.id === 'harness_08'));
-    expect(heard(listening(0))).not.toContain(probe.id);
-    expect(heard(listening(0, { unlockedNodes: [...(probe.requirements?.nodes ?? [])] }))).toContain(probe.id);
   });
 
   it('EIDOLON speaks from cold storage only in a campaign that rescued it, and the dead relay only where it died', () => {

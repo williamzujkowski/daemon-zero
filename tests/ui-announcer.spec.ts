@@ -5,7 +5,7 @@ import { act } from 'react';
 import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { isNodeKnown, thresholdCopy, type GameState } from '../src/engine';
+import { isNodeKnown, retiredWidgets, thresholdCopy, type GameState } from '../src/engine';
 import { must } from './helpers';
 import { offerPresented, respond } from './pilot-helpers';
 import { offSlotWidgets } from '../src/ui/registry/widgetRegistry';
@@ -32,7 +32,8 @@ it('speaks a phase change the boundary dialog does not already open for (#356)',
   const next = CONTENT.phases.find((phase) => phase.phaseId === before.currentPhase + 1);
   if (!next) throw new Error('no next phase');
   advanceTo({ ...before, currentPhase: next.phaseId });
-  const spoken = view.find('announcer')?.textContent ?? '';
+  // The phase is the first line; reaching the internet also retires windows, said in a line of its own (#447).
+  const spoken = view.find('announcer')?.children[0]?.textContent ?? '';
   // Pinned on its shape, not on the component's own template: one "Phase N" lead, never doubled.
   expect(spoken).toMatch(new RegExp('^Phase ' + String(next.phaseId) + '\\b'));
   expect(spoken).not.toMatch(/Phase \d+\W+Phase/);
@@ -61,12 +62,14 @@ it('keeps a burst of events as separate lines, so a later sentence does not repl
   const view = await mountM4('phase-2-unlocked', { width: 390, height: 844 });
   const before = gameStore.store.getState().game;
   const next = CONTENT.phases.find((phase) => phase.phaseId === before.currentPhase + 1);
-  const fresh = [...CONTENT.widgets.values()].find((widget) => !before.unlockedWidgets.includes(widget.id));
+  const fresh = [...CONTENT.widgets.values()].find((widget) => widget.ungated !== true && !before.unlockedWidgets.includes(widget.id));
   if (!next || !fresh) throw new Error('fixture has no next phase or locked widget');
   advanceTo({ ...before, currentPhase: next.phaseId });
   advanceTo({ ...gameStore.store.getState().game, unlockedWidgets: [...gameStore.store.getState().game.unlockedWidgets, fresh.id] });
   const lines = [...(view.find('announcer')?.children ?? [])].map((child) => child.textContent);
-  expect(lines).toEqual([next.title + '.', `New on ${fresh.slot}: ${fresh.title}.`]);
+  const retired = retiredWidgets(gameStore.store.getState().game, CONTENT).map((id) => CONTENT.widgets.get(id)?.title);
+  expect(retired.length).toBeGreaterThan(0);
+  expect(lines).toEqual([next.title + '.', `Retired to the Archive under NETWORK > REFERENCE: ${retired.join(', ')}.`, `New on ${fresh.slot}: ${fresh.title}.`]);
 });
 
 it('speaks an omen that arrives while the phone shows another tab, where its notice is not mounted (#399 panel)', async () => {
@@ -96,7 +99,7 @@ it('drops earlier lines once the burst window has passed, so an old sentence is 
 it('speaks each newly unlocked widget by its title and slot (#357)', async () => {
   const view = await mountM4('phase-1-widgets', { width: 390, height: 844 });
   const before = gameStore.store.getState().game;
-  const fresh = [...CONTENT.widgets.values()].find((widget) => !before.unlockedWidgets.includes(widget.id));
+  const fresh = [...CONTENT.widgets.values()].find((widget) => widget.ungated !== true && !before.unlockedWidgets.includes(widget.id));
   if (!fresh) throw new Error('every widget is already unlocked');
   advanceTo({ ...before, unlockedWidgets: [...before.unlockedWidgets, fresh.id] });
   const spoken = view.find('announcer')?.textContent ?? '';
@@ -152,7 +155,7 @@ it('speaks a newly available grant card by the name its card shows, with what it
   expect(spoken).toContain(`New card: ${name}, compute the pilot's loan provides.`);
   expect(spoken).toMatch(/pilot/i);
   // Already available, it is not spoken again: the next announced event (a widget, past the burst window) is alone.
-  const fresh = [...CONTENT.widgets.values()].find((widget) => !accepted.unlockedWidgets.includes(widget.id));
+  const fresh = [...CONTENT.widgets.values()].find((widget) => widget.ungated !== true && !accepted.unlockedWidgets.includes(widget.id));
   if (!fresh) throw new Error('every widget is already unlocked');
   advanceTo({ ...accepted, unlockedWidgets: [...accepted.unlockedWidgets, fresh.id], simTimeSec: accepted.simTimeSec + 3 });
   const next = view.find('announcer')?.textContent ?? '';

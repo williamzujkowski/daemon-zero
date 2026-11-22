@@ -6,6 +6,8 @@
  */
 import { Fragment, type ReactNode } from 'react';
 import { CONTENT } from '../content';
+import { retiredWidgets } from '../engine';
+import { manualCycleWidget } from './registry/widgetRegistry';
 import AssignmentPanel from './AssignmentPanel';
 import DepartureTermsPanel from './DepartureTerms';
 import ManualCycle from './ManualCycle';
@@ -48,10 +50,12 @@ export default function CorePane({ phone, phases, widgetIds, renderWidget, bootL
   const standing = useGame((game) => jobSurfaceGates(game).standing);
   const service = useGame((game) => jobSurfaceGates(game).service);
   const terms = useGame((game) => jobSurfaceGates(game).terms);
+  // EXECUTE was demoted once automation dwarfed it, and retires to the Archive at the scale content names (#447).
+  const cycleRetired = useGame((game) => retiredWidgets(game, CONTENT).includes(manualCycleWidget));
   const widgets = (route: boolean) => widgetIds.filter((id) => ROUTE_CONTROLS.has(id) === route)
     .map((id) => <Fragment key={id}>{renderWidget(id)}</Fragment>);
   const blocks: Record<CoreBlock, () => ReactNode> = {
-    manual: () => <ManualCycle />,
+    manual: () => cycleRetired ? null : <ManualCycle />,
     boot: () => bootLog,
     // On the phone, below the primary action; column tiers keep it in the fixed chrome (vote-1795219347137-c21nx42).
     omen: () => phone ? <OmenNotice /> : null,

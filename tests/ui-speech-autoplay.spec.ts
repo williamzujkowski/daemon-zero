@@ -144,6 +144,19 @@ describe('voice autoplay in the feed', () => {
     expect(asked()).toEqual([]);
   });
 
+  it('never autoplays the harness: its lines go to the kernel log as text, and nothing reaches the feed', async () => {
+    act(() => { voiceAutoplay.update(OPEN); });
+    voice.create.mockClear();
+    const view = await mount({ ...game, currentPhase: 0, simTimeSec: 0 });
+    patch({ simTimeSec: 8 }); patch({ simTimeSec: 16 });
+    expect(view.text()).toBe('');
+    expect(asked()).toEqual([]);
+    expect(voiceAutoplay.pending()).toEqual([]);
+    for (const line of CONTENT.narrative.ambientChatter.filter((entry) => entry.source === 'harness')) {
+      expect(voiceSources[line.id], line.id).toBeUndefined();
+    }
+  });
+
   it('waits while a modal is open: every modal backdrop counts itself', () => {
     const container = host.document.createElement('div'), root = createRoot(container);
     act(() => { root.render(createElement(SafeOverlay, { padding: 0, children: null })); });

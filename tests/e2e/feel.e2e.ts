@@ -16,7 +16,9 @@ test('reduced motion shows the complete unlocked name immediately', async ({ pag
 
 test('late palettes preserve numeric accessible values', async ({ page }) => {
   await boot(page, 'phase-3-aegis-90'); await dismissBoot(page); await core(page);
-  await expect(page.getByTestId('manual-cycle')).toHaveCSS('border-top-color', 'rgb(0, 229, 255)');
+  // The menu control carries the phase accent in every phase; EXECUTE has retired to the Archive by Phase 3 (#447).
+  await expect(page.getByTestId('manual-cycle')).toHaveCount(0);
+  await expect(page.getByTestId('menu-open')).toHaveCSS('border-top-color', 'rgb(0, 229, 255)');
   if (await page.getByTestId('tab-NETWORK').count()) await page.getByTestId('tab-NETWORK').click();
   await page.getByTestId('workspace-NETWORK-minds').click();
   const meter = page.getByTestId('aegis-lock');

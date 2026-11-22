@@ -433,8 +433,10 @@ list exactly these. `ambient_01` to `ambient_12` and the two records are the ori
 byte-identical; the other 49 were generated in #462 with the same model and voice.
 
 The harness (Phase 0) is not voiced: its lines stay text in the kernel log
-(vote-1795370594185-8lxz9i1), and no `[ ▶ READ ]` is offered on them, which
-`tests/ui-speech.spec.ts` pins. The other recorded transmissions (the job 7731 and hallway records,
+(vote-1795370594185-8lxz9i1, routed there by #460), never reach the Listening post, and so are never
+autoplayed and never offered `[ ▶ READ ]`. `tests/ui-speech.spec.ts` and
+`tests/ui-speech-autoplay.spec.ts` pin both halves: no harness line has a clip, and with the autoplay gate
+open a Phase 0 feed asks for nothing. The other recorded transmissions (the job 7731 and hallway records,
 and the unrecorded cryo outcome) have no clips: records sit outside the feed and its ladder, and
 voicing them is a separate decision.
 

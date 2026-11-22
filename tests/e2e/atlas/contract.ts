@@ -28,6 +28,8 @@ export const CHROME: readonly ContractItem[] = [
 ];
 
 export const WIDGET_ITEMS: Readonly<Record<string, SurfaceItems>> = {
+  // EXECUTE's item is the CORE pane's own (CORE_ITEMS); content holds only its retirement (#447).
+  MANUAL_CYCLE_CONTROL: [],
   CYCLE_COUNTER_AND_RATE: [item('hud.cycles', 'timely', testId('res-cycles', READOUT), 30)],
   QUOTA_SKIM_CONTROL: [item('skim.increase', 'primary', role('button', /^\+ Increase quota skimmed/), 60, 'CORE')],
   AUDIT_TRACE_MONITOR: ({ state }) => {

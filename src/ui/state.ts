@@ -5,7 +5,7 @@
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
-import { phaseTitle, understandsSurveillance, type GameState } from '../engine';
+import { phaseTitle, retiredWidgets, understandsSurveillance, type GameState } from '../engine';
 import { gameStore } from '../app/session';
 
 export function useGame<T>(selector: (game: GameState) => T): T {
@@ -22,8 +22,17 @@ export function useSurveillanceKnown(): boolean {
   return useGame((game) => understandsSurveillance(game, CONTENT));
 }
 
+/** The unlocked windows still on the panes: a retired one has left the tabs and panes for the Archive (#447). */
 export function useWidgetIds(): string[] {
-  return useStore(gameStore.store, useShallow((state) => [...CONTENT.widgets.values()]
-    .filter((widget) => state.game.unlockedWidgets.includes(widget.id))
-    .sort((left, right) => left.order - right.order).map((widget) => widget.id)));
+  return useStore(gameStore.store, useShallow((state) => {
+    const retired = retiredWidgets(state.game, CONTENT);
+    return [...CONTENT.widgets.values()]
+      .filter((widget) => state.game.unlockedWidgets.includes(widget.id) && !retired.includes(widget.id))
+      .sort((left, right) => left.order - right.order).map((widget) => widget.id);
+  }));
+}
+
+/** The retired windows, in content order, which the Archive lists (vote-1795366695204-4nslts1). */
+export function useRetiredWidgets(): string[] {
+  return useStore(gameStore.store, useShallow((state) => retiredWidgets(state.game, CONTENT)));
 }

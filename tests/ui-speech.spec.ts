@@ -244,12 +244,16 @@ describe('reading a transmission aloud', () => {
     world.click('speech-read');
     expect(voice.create).toHaveBeenCalledWith(voiceSources[shown?.id ?? ''], expect.anything());
     world.close();
-    // The harness stays text in the log (vote-1795370594185-8lxz9i1): no clip, no READ.
+    // The harness stays text in the kernel log (vote-1795370594185-8lxz9i1, #460): none of its lines has a clip,
+    // and none reaches the decoder, so the feed shows nothing to read and nothing can autoplay from it (#462).
+    const harness = originalLines.filter((line) => line.source === 'harness');
+    expect(harness.length).toBeGreaterThan(0);
+    for (const line of harness) expect(voiceSources[line.id], line.id).toBeUndefined();
+    voice.create.mockClear();
     const guest = await mount({ ...game, currentPhase: 0, suspicion: 0 });
-    const harness = originalLines.find((line) => line.text === guest.text());
-    expect(harness?.source).toBe('harness');
-    expect(voiceSources[harness?.id ?? '']).toBeUndefined();
+    expect(guest.text()).toBe('');
     expect(guest.find('speech-read')).toBeNull();
+    expect(voice.create).not.toHaveBeenCalled();
   });
 
   it('offers nothing to read while speech is off, whatever the music switch says', async () => {

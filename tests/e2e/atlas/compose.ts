@@ -6,7 +6,7 @@
  * An unmapped surface throws.
  */
 import { CONTENT } from '../../../src/content';
-import { computeRates, understandsSurveillance, type GameState } from '../../../src/engine';
+import { computeRates, retiredWidgets, understandsSurveillance, type GameState } from '../../../src/engine';
 import { BAND_ITEMS, CHROME, CORE_ITEMS, NON_BLOCKING, OVERLAY_ITEMS, ROUTE_ITEMS, WIDGET_ITEMS } from './contract';
 import type { ComposeContext, ContractItem, SurfaceItems } from './contractTypes';
 
@@ -45,13 +45,17 @@ function surfaceEntries(context: ComposeContext): [string, SurfaceItems | undefi
   if (state.ending !== null) return [['ending', OVERLAY_ITEMS.ending]];
   if (overlay !== null && !NON_BLOCKING.has(overlay)) return [['overlay:' + overlay, OVERLAY_ITEMS[overlay]]];
   if (state.activeDilemmaId !== null) return [['modal:dilemma', OVERLAY_ITEMS.dilemma]];
+  // A retired window has left the panes for the Archive (#447): it composes nothing, and once EXECUTE retires the CORE
+  // pane's primary action goes with it.
+  const retired = retiredWidgets(state, CONTENT);
   return [
     ['chrome', CHROME],
-    ...state.unlockedWidgets.map((id): [string, SurfaceItems | undefined] => ['widget:' + id, WIDGET_ITEMS[id]]),
+    ...state.unlockedWidgets.filter((id) => !retired.includes(id))
+      .map((id): [string, SurfaceItems | undefined] => ['widget:' + id, WIDGET_ITEMS[id]]),
     ...bandSurfaces(state).map((band): [string, SurfaceItems] => ['band:' + band, BAND_ITEMS[band]]),
     ...(overlay === null ? [] : [['overlay:' + overlay, OVERLAY_ITEMS[overlay]] as [string, SurfaceItems]]),
     ...context.route.map((surface): [string, SurfaceItems] => ['route:' + surface, ROUTE_ITEMS[surface]]),
-    ['pane:CORE', CORE_ITEMS],
+    ['pane:CORE', retired.includes('MANUAL_CYCLE_CONTROL') ? [] : CORE_ITEMS],
   ];
 }
 
