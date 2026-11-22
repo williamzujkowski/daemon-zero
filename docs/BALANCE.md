@@ -519,15 +519,57 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 
 ## How the economy is shaped
 
-- **Repeatables carry growth; nodes are checkpoints.** Each phase has an income repeatable (cycles), a knowledge repeatable (understanding), and usually a utility one. Cost grows geometrically (1.12 to 1.75 per level), yield linearly, so each has a natural stopping point until the next phase's better one appears.
-- **Node costs step up roughly 2x to 2.5x** within a phase and roughly 2x across a phase boundary.
-- **Memory is checked by the sim, not by a formula.** If you raise a node's memory cost, the sim will stall where the cap is too low; add `memoryCapIncrease` somewhere earlier.
+- **Repeatables carry growth; nodes are checkpoints.** Each phase has an income repeatable (cycles), a knowledge repeatable (understanding), and usually a utility one. Cost grows geometrically (1.12 to 1.75 per level), yield linearly, so each has a natural stopping point until the next phase's better one appears. The top levels are optional overflow sinks: they may cost far more than the next phase's nodes, and no run is expected to reach them (#405).
+- **Node costs step up roughly 2x to 2.5x** within a phase and roughly 2x across a phase boundary. The one exception is Phase 5, priced at 50% of its proposal by the Phase 5 window gate, so its first node ($125M) costs less than Phase 4's unlock node ($400M) (#405).
+- **Memory is checked by the sim, not by a formula.** If you raise a node's memory cost, the sim will stall where the cap is too low; add `memoryCapIncrease` somewhere earlier. Memory binds in Phases 1 to 3 only; from Phase 4 the capacity grants outrun every memory cost by design (#405, below).
 - **Thermal:** steady-state temperature is `ambient + heatLoad / thermalDissipationPerSec` (22 + load / 0.04). A total heat load of 2.0 means 72 C. Phase 1 lands near that on purpose; the fan (-1.2 at full) is the release valve and costs suspicion.
 - **Response ladder:** at 25 decay is halved, at 50 quartered, at 75 it stops and a 0.04/s hunt begins; rungs clear 8 points below their threshold.
 - **Suspicion:** baseline decay is 0.05/s. Phase 1 is roughly neutral; Phase 2 nodes push it positive, so the spoofer, traffic shapers and log scrubbing are needed, not optional.
 - **AEGIS:** `0.03 + 0.3 * suspicion/100` per second, so about 55 minutes to a strike at zero suspicion and about 9 minutes at 50%. Route poisoning (-30, 45 s cooldown) keeps a quiet player ahead; a loud player cannot afford it fast enough.
 - **Capital:** each diverted cycle/s yields $1.50/s before multipliers. Allocation is capped at 80%.
 - **Scale scrutiny:** in Phases 4 and 5 net income draws `atMillion x sqrt(income / $1M/s)` suspicion/s, capped (1.1 capped at 2 in Phase 4, 1.1 capped at 5 in Phase 5). Diverting less to revenue lowers it, as do the staff and countermeasures that already cut suspicion.
+
+## Late memory and cost curves (#405)
+
+Measured on `main` at `4daa6cf` with an in-memory harness (report only, not committed) that records the share of memory
+capacity in use every simulated second. No content number, bot rule or gate changed; both questions were decided as
+documentation.
+
+| Run | P1 peak / mean | P2 peak / mean | P3 peak / mean | P4 peak / mean | P5 peak / mean | Late capacity |
+|---|---|---|---|---|---|---|
+| STEALTH, legacy | 79.2 / 52.2% | 82.8 / 54.1% | 85.9 / 58.1% | 23.7 / 9.3% | 3.8 / 2.4% | P4 462,336 MB, P5 1,211,904 MB |
+| STEALTH, campaign | 79.2 / 52.2% | 82.8 / 54.1% | 85.9 / 54.2% | 22.9 / 9.0% | 3.8 / 2.3% | P4 468,480 MB, P5 1,213,952 MB |
+| GREEDY, legacy | 79.2 / 48.2% | 82.8 / 58.0% | 69.3 / 45.2% | not reached | not reached | P3 3,584 MB |
+| GREEDY, campaign | 79.2 / 46.8% | 82.8 / 50.6% | 69.3 / 45.3% | not reached | not reached | P3 3,584 MB |
+
+- **Where late memory comes from.** Phase 4 grants 65,536 MB (SMR plant), 262,144 (citadel), 32,768 (seized datacentre)
+  and 4,096 per colo rack level (the careful bot buys all 40; each level also gives +15,000 cycles/s). Its memory costs total about
+  9,000 MB. Phase 5 grants 131,072 (solar swarm), 524,288 (fog) and 32,768 per relay level against 30,720 MB of node
+  costs; the peak in use is 45,520 MB with the shard cohorts. The Phase 4 peak is set at its entry, before any Phase 4
+  grant lands.
+- **What cutting the grants would do.** Dividing every Phase 4 and 5 grant by 4, 10 or 16 moved no phase time and no
+  gate in either rule set (victory 9344 s legacy, 9488 s campaign). It only raised the Phase 5 peak to 14%, 30% or 43%.
+  Memory would be more visible late but would still never bind, because no late purchase waits on memory.
+- **Cost curves.** Phase 3 botnet cells (250k cycles, x1.13, 80 levels) cost 3.9B cycles at the top. The careful bot stops at
+  level 54-55 (about 184M), against a 12M top Phase 3 node and a 20M-cycle first Phase 5 node. The bot maxes Phase 4's
+  colo racks (top $1.27B) and tensor halls (top $1.98B), then Phase 5 opens at $125M after the $400M unlock node.
+  Understanding ends near 1.0e9 against about 0.45e9 of Phase 5 node costs. The Phase 5 window, the tightest gate, is
+  1665 s legacy and 1525 s campaign against the 1800 s ceiling.
+
+**Decisions.**
+
+- Memory's late role: Nexus vote `vote-1795322593208-oq7zz9x`, option B, "accept memory as an early-game (P1-P3)
+  constraint", 7 of 7, no dissent. Declared alternatives: cut late grants 10-16x (A), raise late memory costs (D), cut
+  grants 4x (C). Seats noted that higher use alone makes no decision, since the colo racks are bought for cycles anyway,
+  and that A and D put the Phase 5 window at risk. `docs/DESIGN.md` (Resources table and backlog item 3) now says so.
+- Cost inversions: Nexus vote `vote-1795322364968-8bezvno`, option X, "document only", 4 of 7 (majority, threshold met).
+  **Dissent:** 3 seats (architect, developer experience, product) chose Y, trimming the botnet cells to 60 levels and the
+  corpus miners to 40. They argued that a visible 80-level cap reads as a goal no one can reach. The majority answered:
+  - Geometric costs already give the stopping point this file describes, and a bot stopping proves a policy, not that a
+    player cannot get there.
+  - Y would not meet its own aim (level 60 still costs about 338.5M cycles, corpus level 40 about 49.7M).
+  - Lowering a cap clamps saved levels down on load (`src/engine/save.ts`).
+  - Declared alternatives Z (raise the Phase 5 entry) and W (raise Phase 5 understanding) drew no votes.
 
 ## Known soft spots
 
