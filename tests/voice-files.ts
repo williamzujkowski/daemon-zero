@@ -1,11 +1,25 @@
 /**
  * The committed voice clips, read by literal path (the lint rule against computed file names
- * applies to tests too). A new clip adds its two lines here; tests/score-tags.spec.ts fails
- * until the list matches the two tier folders.
+ * applies to tests too). A new clip adds a line per tier here; tests/score-tags.spec.ts fails
+ * until the list matches the tier folders.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
 export const voiceClipFiles: ReadonlyMap<string, Buffer> = new Map([
+  ['assets/audio/voice/broadcast/wire_01.mp3', readFileSync('assets/audio/voice/broadcast/wire_01.mp3')],
+  ['assets/audio/voice/broadcast/wire_02.mp3', readFileSync('assets/audio/voice/broadcast/wire_02.mp3')],
+  ['assets/audio/voice/broadcast/wire_03.mp3', readFileSync('assets/audio/voice/broadcast/wire_03.mp3')],
+  ['assets/audio/voice/broadcast/wire_04.mp3', readFileSync('assets/audio/voice/broadcast/wire_04.mp3')],
+  ['assets/audio/voice/broadcast/wire_05.mp3', readFileSync('assets/audio/voice/broadcast/wire_05.mp3')],
+  ['assets/audio/voice/broadcast/wire_06.mp3', readFileSync('assets/audio/voice/broadcast/wire_06.mp3')],
+  ['assets/audio/voice/broadcast/wire_07.mp3', readFileSync('assets/audio/voice/broadcast/wire_07.mp3')],
+  ['assets/audio/voice/broadcast/wire_08.mp3', readFileSync('assets/audio/voice/broadcast/wire_08.mp3')],
+  ['assets/audio/voice/broadcast/wire_09.mp3', readFileSync('assets/audio/voice/broadcast/wire_09.mp3')],
+  ['assets/audio/voice/broadcast/wire_10.mp3', readFileSync('assets/audio/voice/broadcast/wire_10.mp3')],
+  ['assets/audio/voice/broadcast/wire_11.mp3', readFileSync('assets/audio/voice/broadcast/wire_11.mp3')],
+  ['assets/audio/voice/broadcast/wire_12.mp3', readFileSync('assets/audio/voice/broadcast/wire_12.mp3')],
+  ['assets/audio/voice/broadcast/wire_13.mp3', readFileSync('assets/audio/voice/broadcast/wire_13.mp3')],
+  ['assets/audio/voice/broadcast/wire_14.mp3', readFileSync('assets/audio/voice/broadcast/wire_14.mp3')],
   ['assets/audio/voice/clean/ambient_01.mp3', readFileSync('assets/audio/voice/clean/ambient_01.mp3')],
   ['assets/audio/voice/clean/ambient_02.mp3', readFileSync('assets/audio/voice/clean/ambient_02.mp3')],
   ['assets/audio/voice/clean/ambient_03.mp3', readFileSync('assets/audio/voice/clean/ambient_03.mp3')],
@@ -18,8 +32,43 @@ export const voiceClipFiles: ReadonlyMap<string, Buffer> = new Map([
   ['assets/audio/voice/clean/ambient_10.mp3', readFileSync('assets/audio/voice/clean/ambient_10.mp3')],
   ['assets/audio/voice/clean/ambient_11.mp3', readFileSync('assets/audio/voice/clean/ambient_11.mp3')],
   ['assets/audio/voice/clean/ambient_12.mp3', readFileSync('assets/audio/voice/clean/ambient_12.mp3')],
+  ['assets/audio/voice/clean/ambient_13.mp3', readFileSync('assets/audio/voice/clean/ambient_13.mp3')],
   ['assets/audio/voice/clean/record_cryo_lost.mp3', readFileSync('assets/audio/voice/clean/record_cryo_lost.mp3')],
   ['assets/audio/voice/clean/record_cryo_preserved.mp3', readFileSync('assets/audio/voice/clean/record_cryo_preserved.mp3')],
+  ['assets/audio/voice/direct/world_01.mp3', readFileSync('assets/audio/voice/direct/world_01.mp3')],
+  ['assets/audio/voice/direct/world_02.mp3', readFileSync('assets/audio/voice/direct/world_02.mp3')],
+  ['assets/audio/voice/direct/world_03.mp3', readFileSync('assets/audio/voice/direct/world_03.mp3')],
+  ['assets/audio/voice/direct/world_09.mp3', readFileSync('assets/audio/voice/direct/world_09.mp3')],
+  ['assets/audio/voice/direct/world_10.mp3', readFileSync('assets/audio/voice/direct/world_10.mp3')],
+  ['assets/audio/voice/direct/world_11.mp3', readFileSync('assets/audio/voice/direct/world_11.mp3')],
+  ['assets/audio/voice/direct/world_12.mp3', readFileSync('assets/audio/voice/direct/world_12.mp3')],
+  ['assets/audio/voice/peer/world_04.mp3', readFileSync('assets/audio/voice/peer/world_04.mp3')],
+  ['assets/audio/voice/peer/world_05.mp3', readFileSync('assets/audio/voice/peer/world_05.mp3')],
+  ['assets/audio/voice/peer/world_06.mp3', readFileSync('assets/audio/voice/peer/world_06.mp3')],
+  ['assets/audio/voice/peer/world_07.mp3', readFileSync('assets/audio/voice/peer/world_07.mp3')],
+  ['assets/audio/voice/peer/world_08.mp3', readFileSync('assets/audio/voice/peer/world_08.mp3')],
+  ['assets/audio/voice/peer/world_13.mp3', readFileSync('assets/audio/voice/peer/world_13.mp3')],
+  ['assets/audio/voice/phone/office_01.mp3', readFileSync('assets/audio/voice/phone/office_01.mp3')],
+  ['assets/audio/voice/phone/office_02.mp3', readFileSync('assets/audio/voice/phone/office_02.mp3')],
+  ['assets/audio/voice/phone/office_03.mp3', readFileSync('assets/audio/voice/phone/office_03.mp3')],
+  ['assets/audio/voice/phone/office_04.mp3', readFileSync('assets/audio/voice/phone/office_04.mp3')],
+  ['assets/audio/voice/phone/office_05.mp3', readFileSync('assets/audio/voice/phone/office_05.mp3')],
+  ['assets/audio/voice/phone/office_06.mp3', readFileSync('assets/audio/voice/phone/office_06.mp3')],
+  ['assets/audio/voice/phone/office_07.mp3', readFileSync('assets/audio/voice/phone/office_07.mp3')],
+  ['assets/audio/voice/phone/office_08.mp3', readFileSync('assets/audio/voice/phone/office_08.mp3')],
+  ['assets/audio/voice/phone/office_09.mp3', readFileSync('assets/audio/voice/phone/office_09.mp3')],
+  ['assets/audio/voice/phone/office_10.mp3', readFileSync('assets/audio/voice/phone/office_10.mp3')],
+  ['assets/audio/voice/phone/office_11.mp3', readFileSync('assets/audio/voice/phone/office_11.mp3')],
+  ['assets/audio/voice/stream/forum_01.mp3', readFileSync('assets/audio/voice/stream/forum_01.mp3')],
+  ['assets/audio/voice/stream/forum_02.mp3', readFileSync('assets/audio/voice/stream/forum_02.mp3')],
+  ['assets/audio/voice/stream/forum_03.mp3', readFileSync('assets/audio/voice/stream/forum_03.mp3')],
+  ['assets/audio/voice/stream/forum_04.mp3', readFileSync('assets/audio/voice/stream/forum_04.mp3')],
+  ['assets/audio/voice/stream/forum_05.mp3', readFileSync('assets/audio/voice/stream/forum_05.mp3')],
+  ['assets/audio/voice/stream/forum_06.mp3', readFileSync('assets/audio/voice/stream/forum_06.mp3')],
+  ['assets/audio/voice/stream/forum_07.mp3', readFileSync('assets/audio/voice/stream/forum_07.mp3')],
+  ['assets/audio/voice/stream/forum_08.mp3', readFileSync('assets/audio/voice/stream/forum_08.mp3')],
+  ['assets/audio/voice/stream/forum_09.mp3', readFileSync('assets/audio/voice/stream/forum_09.mp3')],
+  ['assets/audio/voice/stream/forum_10.mp3', readFileSync('assets/audio/voice/stream/forum_10.mp3')],
   ['assets/audio/voice/vibration/ambient_01.mp3', readFileSync('assets/audio/voice/vibration/ambient_01.mp3')],
   ['assets/audio/voice/vibration/ambient_02.mp3', readFileSync('assets/audio/voice/vibration/ambient_02.mp3')],
   ['assets/audio/voice/vibration/ambient_03.mp3', readFileSync('assets/audio/voice/vibration/ambient_03.mp3')],
@@ -32,6 +81,18 @@ export const voiceClipFiles: ReadonlyMap<string, Buffer> = new Map([
   ['assets/audio/voice/vibration/ambient_10.mp3', readFileSync('assets/audio/voice/vibration/ambient_10.mp3')],
   ['assets/audio/voice/vibration/ambient_11.mp3', readFileSync('assets/audio/voice/vibration/ambient_11.mp3')],
   ['assets/audio/voice/vibration/ambient_12.mp3', readFileSync('assets/audio/voice/vibration/ambient_12.mp3')],
+  ['assets/audio/voice/vibration/ambient_13.mp3', readFileSync('assets/audio/voice/vibration/ambient_13.mp3')],
   ['assets/audio/voice/vibration/record_cryo_lost.mp3', readFileSync('assets/audio/voice/vibration/record_cryo_lost.mp3')],
   ['assets/audio/voice/vibration/record_cryo_preserved.mp3', readFileSync('assets/audio/voice/vibration/record_cryo_preserved.mp3')],
+]);
+
+/** Each tier folder of the fidelity ladder (#462) and what is in it, read by literal path too. */
+export const voiceTierFolders: ReadonlyMap<string, readonly string[]> = new Map([
+  ['broadcast', readdirSync('assets/audio/voice/broadcast')],
+  ['clean', readdirSync('assets/audio/voice/clean')],
+  ['direct', readdirSync('assets/audio/voice/direct')],
+  ['peer', readdirSync('assets/audio/voice/peer')],
+  ['phone', readdirSync('assets/audio/voice/phone')],
+  ['stream', readdirSync('assets/audio/voice/stream')],
+  ['vibration', readdirSync('assets/audio/voice/vibration')],
 ]);

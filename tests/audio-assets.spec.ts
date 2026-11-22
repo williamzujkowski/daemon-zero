@@ -8,7 +8,7 @@
  * installs ffmpeg (pinned in mise.toml), so a skip there would be a gate that quietly stopped
  * running. See docs/TESTING.md, "Audio signal measurement".
  */
-import { readdirSync } from 'node:fs';
+import { voiceTierFolders } from './voice-files';
 import { describe, expect, it } from 'vitest';
 import tracks from '../assets/audio/music/tracks.json';
 import manifest from '../assets/audio/voice/MANIFEST.json';
@@ -17,6 +17,7 @@ import { OUTPUT_SCALE, SCORE_PEAK_CEILING, SPEECH_PEAK_CEILING } from '../src/ap
 import { decode, hasFfmpeg, probe } from './audio/decode';
 import { mono, peak, rms, sine, toDb, truePeak } from './audio/dsp';
 import { quietEdges, seam, spectralDistance, bandLevels } from './audio/seam';
+import { sharesAbove } from './audio/spectrum';
 
 const available = hasFfmpeg();
 const onCi = Boolean(process.env.CI);
@@ -42,8 +43,17 @@ function measure(file: string): Measured {
 }
 
 const scores = tracks.map((track) => track.path);
-const vibration = manifest.clips.map((clip) => 'assets/audio/voice/vibration/' + clip.id + '.mp3');
-const clean = manifest.clips.map((clip) => 'assets/audio/voice/clean/' + clip.id + '.mp3');
+/** The tiers a clip has, from its manifest digests: the host's lines have two, every other line one (#462). */
+const tiersOf = (clip: (typeof manifest.clips)[number]) => Object.keys(clip.sha256);
+const tier = (name: string) => manifest.clips.filter((clip) => tiersOf(clip).includes(name)).map((clip) => 'assets/audio/voice/' + name + '/' + clip.id + '.mp3');
+const vibration = tier('vibration');
+const clean = tier('clean');
+/** The fidelity ladder's new rungs, all bundled (docs/VOICE-CLIPS.md, "The fidelity ladder"). */
+const LADDER = ['phone', 'stream', 'broadcast', 'direct', 'peer'] as const;
+const ladder = LADDER.flatMap((name) => tier(name));
+/** Every clip the app bundles: each line's one non-clean tier. */
+const bundled = [...vibration, ...ladder];
+const voices = [...bundled, ...clean];
 const range = (values: number[]) => [Math.min(...values), Math.max(...values)] as const;
 
 describe.skipIf(!available && !onCi)('committed audio files', () => {
@@ -56,10 +66,10 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
       expect(file.frames / file.rate, track.path + ' decodes to that length').toBeCloseTo(track.duration, 2);
     }
     // Every committed clip is in the manifest, so none goes unmeasured.
-    expect(readdirSync('assets/audio/voice/vibration').filter((name) => name.endsWith('.mp3'))).toHaveLength(manifest.clips.length);
-    expect(readdirSync('assets/audio/voice/clean').filter((name) => name.endsWith('.mp3'))).toHaveLength(manifest.clips.length);
-    for (const clip of manifest.clips) for (const tier of ['vibration', 'clean']) {
-      const file = measure('assets/audio/voice/' + tier + '/' + clip.id + '.mp3');
+    expect([...voiceTierFolders.keys()].sort()).toEqual(['vibration', 'clean', ...LADDER].sort());
+    for (const [name, files] of voiceTierFolders) expect(files.filter((file) => file.endsWith('.mp3')), name).toHaveLength(tier(name).length);
+    for (const clip of manifest.clips) for (const name of tiersOf(clip)) {
+      const file = measure('assets/audio/voice/' + name + '/' + clip.id + '.mp3');
       expect(file.warnings, file.file).toBe('');
       expect([file.rate, file.channels], file.file + ' is mono at the manifest rate').toEqual([clip.sampleRate, 1]);
       expect(file.frames / file.rate, file.file + ' decodes to its container length').toBeCloseTo(file.seconds, 2);
@@ -70,17 +80,20 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
   });
 
   it('nothing clips: every sample and inter-sample peak is under full scale, at the documented levels', { timeout: 60_000 }, () => {
-    for (const file of [...scores, ...vibration, ...clean].map(measure)) {
+    for (const file of [...scores, ...voices].map(measure)) {
       expect(file.samplePeak, file.file).toBeLessThan(1);
       expect(file.truePeak, file.file + ' true peak').toBeLessThan(1);
     }
     // The ceilings the output scale is computed from (src/app/outputLevel.ts). A louder file
     // fails here rather than silently taking the 100%/100% mix over full scale.
     for (const file of scores.map(measure)) expect(file.truePeak, file.file + ' under SCORE_PEAK_CEILING').toBeLessThanOrEqual(SCORE_PEAK_CEILING);
-    for (const file of [...vibration, ...clean].map(measure)) expect(file.truePeak, file.file + ' under SPEECH_PEAK_CEILING').toBeLessThanOrEqual(SPEECH_PEAK_CEILING);
-    // docs/VOICE-CLIPS.md quotes these ranges from ffmpeg's meter; this estimator agrees to 0.15 dB.
+    for (const file of voices.map(measure)) expect(file.truePeak, file.file + ' under SPEECH_PEAK_CEILING').toBeLessThanOrEqual(SPEECH_PEAK_CEILING);
+    // docs/VOICE-CLIPS.md quotes these ranges; scores, vibration and clean from ffmpeg's meter, the
+    // ladder's from this estimator, which agrees with ffmpeg's to 0.15 dB.
     const peaks = (files: string[]) => range(files.map((file) => toDb(measure(file).truePeak)));
-    for (const [files, low, high] of [[scores, -4.22, -3.04], [vibration, -1.17, -1.09], [clean, -0.93, -0.73]] as const) {
+    for (const [files, low, high] of [[scores, -4.22, -3.04], [vibration, -1.17, -1.09], [clean, -0.93, -0.73],
+      [tier('phone'), -2.16, -1.70], [tier('stream'), -2.88, -2.18], [tier('broadcast'), -3.08, -1.14],
+      [tier('direct'), -3.07, -1.92], [tier('peer'), -2.33, -1.99]] as const) {
       const [min, max] = peaks([...files]);
       expect(Math.abs(min - low), 'lowest true peak ' + min.toFixed(2)).toBeLessThan(0.15);
       expect(Math.abs(max - high), 'highest true peak ' + max.toFixed(2)).toBeLessThan(0.15);
@@ -91,16 +104,27 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     // The docs' two-decimal figures come from ffmpeg's loudnorm; this is the same meter read
     // through the ebur128 filter, which prints one decimal and reads a four-second clip up to
     // 0.2 LU apart from loudnorm.
-    for (const [files, low, high] of [[scores, -15.77, -14.66], [vibration, -15.50, -14.08], [clean, -15.13, -13.51]] as const) {
+    const [quietest, loudest] = range(scores.map((file) => measure(file).lufs));
+    expect(Math.abs(quietest - -15.77), 'quietest score ' + quietest.toFixed(1)).toBeLessThanOrEqual(0.25);
+    expect(Math.abs(loudest - -14.66), 'loudest score ' + loudest.toFixed(1)).toBeLessThanOrEqual(0.25);
+    // The clips' ranges are quoted from this same meter, so they must match to its one decimal. The
+    // loudnorm figures the docs used to quote drifted up to 0.29 LU from it on a four-second clip
+    // (ambient_13: loudnorm -14.09, ebur128 -13.8), which a 0.25 tolerance could not hold.
+    for (const [files, low, high] of [[vibration, -15.4, -13.8], [clean, -15.0, -13.3], [tier('phone'), -15.4, -15.1],
+      [tier('stream'), -15.5, -15.3], [tier('broadcast'), -15.2, -14.6], [tier('direct'), -15.4, -15.3], [tier('peer'), -15.5, -15.3]] as const) {
       const [min, max] = range(files.map((file) => measure(file).lufs));
-      expect(Math.abs(min - low), 'quietest ' + min.toFixed(1)).toBeLessThanOrEqual(0.25);
-      expect(Math.abs(max - high), 'loudest ' + max.toFixed(1)).toBeLessThanOrEqual(0.25);
+      expect(Math.abs(min - low), String(files[0]) + ' quietest ' + min.toFixed(1)).toBeLessThan(0.051);
+      expect(Math.abs(max - high), String(files[0]) + ' loudest ' + max.toFixed(1)).toBeLessThan(0.051);
     }
+    // Every bundled rung of the ladder is levelled to the vibration tier (scripts/voice/chains.py,
+    // TARGET_RMS_DB) and lands within 0.15 LU of its range: a phase change moves the sound, not the level.
+    for (const file of ladder.map(measure)) expect(file.lufs, file.file).toBeGreaterThanOrEqual(-15.55);
+    for (const file of ladder.map(measure)) expect(file.lufs, file.file).toBeLessThanOrEqual(-13.8);
   });
 
   it('no file starts or ends with digital silence, and near-silence at the ends is bounded', { timeout: 60_000 }, () => {
     const milliseconds = (file: Measured, threshold: number) => { const edges = quietEdges(file.mono, threshold); return [edges.lead / file.rate * 1000, edges.trail / file.rate * 1000] as const; };
-    for (const file of [...scores, ...vibration, ...clean].map(measure)) {
+    for (const file of [...scores, ...voices].map(measure)) {
       const [lead, trail] = milliseconds(file, 0);
       expect(Math.max(lead, trail), file.file + ' exact zeros at an end').toBeLessThan(5);
     }
@@ -109,10 +133,13 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     // to the last sample). The scores fade to their ends, the longest tail being phase 4's.
     for (const file of vibration.map(measure)) expect(Math.max(...milliseconds(file, 1e-3)), file.file).toBeLessThan(10);
     for (const file of scores.map(measure)) expect(Math.max(...milliseconds(file, 1e-3)), file.file).toBeLessThan(100);
-    // The clean tier is not bundled. It does carry dead air: up to a quarter second before
-    // the voice and half a second after, which matters if it is ever wired to the duck.
+    // The ladder's rungs are trimmed to the voice with a 40 ms lead and 80 ms tail pad (chains.py,
+    // `trim`), so their near-silence is that pad and nothing more: measured up to 45 ms and 76 ms.
+    for (const file of ladder.map(measure)) expect(Math.max(...milliseconds(file, 1e-3)), file.file).toBeLessThan(90);
+    // The clean tier is not bundled. It does carry dead air: up to 0.27 s before the voice
+    // (ambient_13) and half a second after, which matters if it is ever wired to the duck.
     const cleanEdges = clean.map(measure).map((file) => milliseconds(file, 1e-3));
-    expect(Math.max(...cleanEdges.map(([lead]) => lead))).toBeLessThan(260);
+    expect(Math.max(...cleanEdges.map(([lead]) => lead))).toBeLessThan(280);
     expect(Math.max(...cleanEdges.map(([, trail]) => trail))).toBeGreaterThan(350);
     expect(Math.max(...cleanEdges.map(([, trail]) => trail))).toBeLessThan(500);
   });
@@ -145,12 +172,14 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
   });
 
   it('speech sits above the ducked score, and the mix has the headroom the docs state', { timeout: 60_000 }, () => {
-    const speech = vibration.map(measure); const music = scores.map(measure);
+    // Every bundled clip, every rung of the ladder included (#462).
+    const speech = bundled.map(measure); const music = scores.map(measure);
     // Whole-file RMS, at equal music and speech preferences, with the duck applied.
     const ratios = speech.flatMap((clip) => music.map((score) => clip.rmsDb - score.rmsDb - toDb(DUCK_RATIO)));
     const [least, most] = range(ratios);
     expect(least, 'lowest speech-to-music ratio ' + least.toFixed(2)).toBeGreaterThan(8.5);
-    expect(most, 'highest speech-to-music ratio ' + most.toFixed(2)).toBeLessThan(12.1);
+    // 12.0 until #462: ambient_13's vibration take (the host chain, unchanged) is the loudest clip by RMS, at 12.36.
+    expect(most, 'highest speech-to-music ratio ' + most.toFixed(2)).toBeLessThan(12.4);
     const loudestClip = Math.max(...speech.map((clip) => clip.truePeak)); const loudestScore = Math.max(...music.map((score) => score.truePeak));
     // Unscaled, coincident peaks at 100% / 100% would exceed full scale by about 1 dB once
     // ducked and about 4 dB in the 200 ms before the duck lands; that is why OUTPUT_SCALE exists.
@@ -163,6 +192,41 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     expect(worst).toBeCloseTo(-0.44, 1);
     expect(toDb(OUTPUT_SCALE * (loudestClip + DUCK_RATIO * loudestScore))).toBeCloseTo(-3.41, 1);
     expect(toDb(0.3 * OUTPUT_SCALE * (loudestClip + loudestScore))).toBeLessThan(-10);
+  });
+
+  // The fidelity ladder (#462), as PROVENANCE.md records it: the share of each file's magnitude
+  // spectrum above a band edge, computed as scripts/voice/generate-clips.py --measure does. Per
+  // tier, the [min, max] percentages above 3 kHz, 3.4 kHz and 7 kHz.
+  const LADDER_SHARES: Record<string, [number, number][]> = {
+    vibration: [[1.16, 2.82], [1.04, 2.56], [0.45, 1.11]],
+    phone: [[2.13, 3.72], [0.45, 1.31], [0.10, 0.23]],
+    stream: [[10.03, 12.88], [8.09, 10.95], [0.02, 0.08]],
+    broadcast: [[35.80, 48.38], [33.43, 46.48], [20.78, 30.53]],
+    direct: [[18.62, 22.90], [16.96, 21.73], [9.55, 13.03]],
+    peer: [[15.40, 22.68], [13.85, 21.29], [6.61, 12.59]],
+  };
+  it('each rung of the ladder is band-limited where its chain says, and fidelity rises with the phase', { timeout: 300_000 }, () => {
+    const shares = new Map(Object.keys(LADDER_SHARES).map((name) => [name, tier(name).map((file) => {
+      const found = measure(file);
+      return sharesAbove(found.mono, found.rate, [3000, 3400, 7000]).map((share) => 100 * share);
+    })]));
+    for (const [name, expected] of Object.entries(LADDER_SHARES)) {
+      expected.forEach(([low, high], edge) => {
+        const [min, max] = range((shares.get(name) ?? []).map((row) => row[edge] ?? Number.NaN));
+        expect(Math.abs(min - low), name + ' edge ' + String(edge) + ' min ' + min.toFixed(2)).toBeLessThan(0.05);
+        expect(Math.abs(max - high), name + ' edge ' + String(edge) + ' max ' + max.toFixed(2)).toBeLessThan(0.05);
+      });
+    }
+    // Each chain keeps under 1.5% of its spectrum past its own band edge (vibration 3 kHz, phone
+    // 3.4 kHz, stream 7 kHz; broadcast's 15 kHz is past the model's 12 kHz Nyquist), and the narrow
+    // rungs carry almost nothing above 7 kHz where the broadcast and clean rungs carry a tenth or more.
+    const worst = (name: string, edge: number) => Math.max(...(shares.get(name) ?? []).map((row) => row[edge] ?? 1));
+    const least = (name: string, edge: number) => Math.min(...(shares.get(name) ?? []).map((row) => row[edge] ?? 0));
+    expect(worst('phone', 1)).toBeLessThan(1.5);
+    expect(worst('stream', 2)).toBeLessThan(0.1);
+    for (const narrow of ['vibration', 'phone', 'stream']) for (const wide of ['broadcast', 'direct', 'peer']) {
+      expect(worst(narrow, 2), narrow + ' below ' + wide + ' above 7 kHz').toBeLessThan(least(wide, 2));
+    }
   });
 });
 

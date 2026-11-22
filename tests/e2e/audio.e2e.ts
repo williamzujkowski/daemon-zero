@@ -68,7 +68,7 @@ test('Start Fresh clears held decoded speech and restoring the save starts a fre
   await expect(page.getByTestId('decoded-speech')).toHaveText(first ?? '');
 });
 
-test('the late feed hears its own reach, names it, and offers READ only where a clip exists', async ({ page }) => {
+test('the late feed hears its own reach, names it, and reads each line through the clean rung', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await boot(page, 'phase5-midgame', { audio: true }); await dismissBoot(page);
   if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
@@ -80,9 +80,13 @@ test('the late feed hears its own reach, names it, and offers READ only where a 
   // Every line the feed steps through is this reach's (#449): the server room is not on the air in Phase 5.
   for (let index = 0; index < own.size; index += 1) {
     expect(own.has(await speech.textContent() ?? '')).toBe(true);
-    // The later sources are text-only until their clips exist, so no READ is offered on them.
-    await expect(page.getByTestId('speech-read')).toHaveCount(0);
+    // Every world line has a clip since #462, so READ is offered on each.
+    await expect(page.getByTestId('speech-read')).toBeVisible();
     if (await page.getByTestId('speech-next').count() === 0) break;
     await page.getByTestId('speech-next').click();
   }
+  // And it plays the world's own rung of the fidelity ladder: the clean take, or the peer treatment.
+  const delivered = page.waitForResponse((response) => /\/voice\/(direct|peer)\//.test(response.url()));
+  await page.getByTestId('speech-read').click();
+  expect((await delivered).ok()).toBe(true);
 });

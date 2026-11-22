@@ -212,7 +212,11 @@ export async function readsTransmission(player: LivePlayer): Promise<boolean> {
     const next = page.getByTestId('speech-next');
     if (await next.count()) await player.tap(next);
   });
-  await expect.poll(() => voiceClipsPlaying(page), { message: 'the clip stops', timeout: 40_000 }).toBe(0);
+  // The read clip stops; the line stepped to may then play by itself if it was never heard (#462),
+  // so the score's return is checked once every voice has fallen silent.
+  await expect.poll(() => page.evaluate((url) => (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia
+    .some((item) => !item.paused && item.src === url), response.url()), { message: 'the clip stops', timeout: 40_000 }).toBe(false);
+  await expect.poll(() => voiceClipsPlaying(page), { message: 'every voice falls silent', timeout: 120_000 }).toBe(0);
   await expect.poll(() => soundtrackVolume(page), 'the score comes back').toBeCloseTo(level, 5);
   player.log('VOICE read ' + (response.url().split('/voice/')[1] ?? '') + ', score ducked to ' + String(level * DUCK_RATIO) + ' and returned to ' + String(level));
   return true;
