@@ -577,6 +577,13 @@ Optional prose uses inline Details; decision information and blind node prose st
 ## Mobile large text
 
 Mobile header/HUD/notices/workspace use one primary scroll. Only horizontal pane navigation remains outside; text and warnings stay intact.
+**Amended by vote-1795328874247-003j4kk (7 of 7, #384/#365):** inside that scroll, the resource HUD (`terminal-hud`: the
+resource strip and the kernel line) sticks under the run-ending alert band while the band and the HUD together fit 35% of
+the window (`src/ui/hudPin.ts`, with 8 px of hysteresis); over it (large text, a stack of alerts) the HUD scrolls in place
+as before, so a pinned block never hides the workspace. While it sticks, the scroll's `scroll-padding-top` is the pinned
+height, so a scrolled-to or focused control lands below it (WCAG 2.2 SC 2.4.11). The forecast and notices still scroll.
+The HUD starts pinned and leaves only when measured over the cap, because moving it remounts it and would re-announce the
+alerts inside it; that re-announcement can still happen once at load with large text, or when alerts push it over the cap.
 Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT.md.
 
 ## Earned Access copy and layout (#276)

@@ -123,8 +123,8 @@ function Terminal() {
     {layout.mode === 'mobile'
       ? <MobileTerminal active={active} navigation={<Tabs slots={slots} active={active}
         select={(slot) => { select({ phase, slot }); }} horizontal attention={attention} />}
-        header={<ChromeHeader landmark />} band={<AlertBand landmark />}
-        body={<ChromeBody landmark {...(contactAway ? { openCore } : {})} />} />
+        header={<ChromeHeader landmark />} band={<AlertBand landmark />} hud={<Hud landmark />}
+        body={<ChromeBody landmark hud={false} {...(contactAway ? { openCore } : {})} />} />
       : <><TerminalChrome /><View testID="terminal-columns" role="main" aria-label="Terminal panes" style={styles.columns}>
         <View testID="panel-core" style={{ flex: preferred === 'CORE' ? 2 : 1, minWidth: CORE_COLUMN_MIN_WIDTH }}><Pane slots={['CORE']} /></View>
         {layout.threeColumns && slots.some((slot) => slot === 'SENSORS' || slot === 'CONTINGENCY') &&
@@ -201,11 +201,18 @@ function AlertBand({ landmark }: { landmark?: boolean }) {
   return <View testID="alert-band" {...landmarkAttrs('Run ending alerts', landmark)}><CorporateAlerts /></View>;
 }
 
-function ChromeBody({ landmark, openCore, omenSlot = false }: { landmark?: boolean; openCore?: () => void; omenSlot?: boolean }) {
+/** The resource readouts and the kernel line. On the phone tier it is its own block (MobileTerminal pins it while it fits). */
+function Hud({ landmark }: { landmark?: boolean }) {
+  return <View testID="terminal-hud" {...landmarkAttrs('Resources', landmark)} style={styles.hud}><ResourceStrip /><LogDock /></View>;
+}
+
+function ChromeBody({ landmark, openCore, omenSlot = false, hud = true }: {
+  landmark?: boolean; openCore?: () => void; omenSlot?: boolean; hud?: boolean;
+}) {
   const notice = useGameValue(selectNotice);
   return <View {...landmarkAttrs('Terminal status detail', landmark)}>
     {notice !== null && <Text testID="save-notice" accessibilityRole="alert" style={[theme.text, styles.notice]}>{notice}</Text>}
-    <View testID="terminal-hud" style={styles.hud}><ResourceStrip /><LogDock /></View>
+    {hud && <Hud />}
     <TopForecast />
     <BlindAuditStatus />
     <ResponseNotice />
