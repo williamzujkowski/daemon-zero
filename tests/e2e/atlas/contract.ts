@@ -34,7 +34,13 @@ export const WIDGET_ITEMS: Readonly<Record<string, SurfaceItems>> = {
     const known = understandsSurveillance(state, CONTENT);
     const items = [item('hud.understanding', 'timely', testId('res-understanding', READOUT), 35)];
     if (known) items.push(item('hud.suspicion', 'timely', role('meter', /^Suspicion: /), 20));
-    if (known && state.alertLevel > 0) items.push(item('audit.response', 'timely', testId('alert-level', 'the response rung is plain text'), 18, 'CORE'));
+    // vote-1795327538045-79mg3cc (#429, 7 of 7): once escalated, the timely response readout is the HUD rung beside suspicion
+    // (#401: "75.3% INCIDENT", named "Suspicion: 75.3%, response INCIDENT DECLARED"); the Audit trail line is its detail and
+    // must be present in CORE, but is no longer held to the fold.
+    if (known && state.alertLevel > 0) {
+      items.push(item('hud.response', 'timely', role('meter', /^Suspicion: .*, response /), 18));
+      items.push(item('audit.response', 'region', testId('alert-level', 'the response rung is plain text'), 18, 'CORE'));
+    }
     if (!known && state.currentPhase > (CONTENT.phases[0]?.phaseId ?? 0)) {
       items.push(item('hud.blind-audit', 'timely', testId('blind-audit-status', 'the blind audit band has no role'), 22));
     }
