@@ -5,18 +5,13 @@
  * widget holds nothing a player must watch or act on to understand the game now.
  */
 import { CONTENT } from '../../../src/content';
-import { actuatorUseBlocker, offeredChoices, understandsSurveillance, type GameState } from '../../../src/engine';
+import { actuatorUseBlocker, understandsSurveillance, type GameState } from '../../../src/engine';
 import { SEGMENT } from '../../network-helpers';
 import type { ContractItem, ItemKind, Locate, SurfaceItems } from './contractTypes';
 import type { OverlayId, Pane, RouteSurface } from './types';
 
 const role = (r: Extract<Locate, { by: 'role' }>['role'], name: string | RegExp): Locate => ({ by: 'role', role: r, name });
 const testId = (id: string, why: string): Locate => ({ by: 'test-id', testId: id, why });
-/** How many choices the active dilemma offers this world (the modal renders its index only for more than one). */
-const offeredCount = (state: GameState): number => {
-  const dilemma = CONTENT.dilemmas.find((entry) => entry.id === state.activeDilemmaId);
-  return dilemma ? offeredChoices(state, dilemma, CONTENT).length : 0;
-};
 const alert = (text: RegExp): Locate => ({ by: 'role-text', role: 'alert', text, why: 'an alert takes no name from its content' });
 function item(key: string, kind: ItemKind, locate: Locate, rank: number, pane?: Pane): ContractItem {
   return pane === undefined ? { key, kind, locate, rank } : { key, kind, locate, rank, pane };
@@ -89,11 +84,9 @@ const dialog = (key: string, name: string | RegExp) => item(key + '.dialog', 're
 
 /** Overlays that hold the screen: the stage's contract is the overlay alone, and what is under it is occluded. */
 export const OVERLAY_ITEMS: Readonly<Record<OverlayId | 'dilemma' | 'ending', SurfaceItems>> = {
-  // The choice index (vote-1795206922704-4ljmpd2, #371) is timely whenever more than one choice is offered, so
-  // the fold gate holds every alternative and its cost in the first view.
-  dilemma: ({ state }) => [dialog('dilemma', /./), inDialog(item('dilemma.title', 'timely', role('heading', /./), 1)),
-    inDialog(item('dilemma.choice', 'primary', role('button', /^(Commit directive|Unavailable): /), 2)),
-    ...(offeredCount(state) > 1 ? [inDialog(item('dilemma.index', 'timely', testId('dilemma-index', 'a group of jump rows has no role of its own'), 3))] : [])],
+  // The choice index (#371) was removed at the maintainer's request (2026-11-21): the cards themselves are the choices.
+  dilemma: [dialog('dilemma', /./), inDialog(item('dilemma.title', 'timely', role('heading', /./), 1)),
+    inDialog(item('dilemma.choice', 'primary', role('button', /^(Commit directive|Unavailable): /), 2))],
   reboot: [dialog('reboot', /^(Restored checkpoint|Core reboot)$/), inDialog(item('reboot.heading', 'timely', role('heading', /^(RESTORED CHECKPOINT|REBOOT)/), 1)),
     inDialog(item('reboot.continue', 'primary', role('button', 'Continue boot'), 2))],
   threshold: [dialog('threshold', /./), inDialog(item('threshold.heading', 'timely', role('heading', /./), 1)),
