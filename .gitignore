@@ -61,3 +61,4 @@ release-artifacts/
 
 # Former preview-channel web export (removed at release, #233); an old local copy stays ignored
 dist-preview/
+.vitest/

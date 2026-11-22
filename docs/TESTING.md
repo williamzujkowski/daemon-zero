@@ -1248,11 +1248,18 @@ CI runs the gates from `make verify-full`: typecheck, lint, content validation,
 tests with coverage, balance sim, production web export, dependency audit,
 secret scan, vulnerability scan and SBOM. It also runs `make e2e`
 and `make e2e-pages`; these browser suites are separate from
-`make verify-full`. They run as parallel jobs: `checks` (`make verify`, security scans, SBOM), `e2e (1/2)` and
-`e2e (2/2)` (`make e2e` split with Playwright's `--shard`), and `pages` (`make e2e-pages`), each with a 20-minute
-limit. The required status check `verify` is a final job that passes only when every one of them succeeded, so
-branch protection and the deploy gate key on one name. One serial job used to take 21-30+ minutes against a
-30-minute limit and was cancelled at that limit on busy days.
+`make verify-full`. They run as parallel jobs:
+- `checks`: `make verify` without its unit suite (`make typecheck lint validate sim build-web`), security scans, SBOM;
+- `unit (1/3)` to `unit (3/3)`: the unit suite split with Vitest's `--shard`, each writing its results and coverage to a
+  blob report with `VITEST_SHARD_RUN=1`, which leaves the coverage thresholds out of a run that sees a third of the code;
+- `unit coverage`: merges the three reports (`vitest run --merge-reports --coverage`), so every test result counts and
+  the `vitest.config.mts` thresholds are enforced on the whole suite's coverage, as `make test` enforces them;
+- `e2e (1/3)` to `e2e (3/3)`: `make e2e` split with Playwright's `--shard`;
+- `pages (1/2)` and `pages (2/2)`: `make e2e-pages` split the same way; the first uploads the export for deployment.
+The Playwright browser download is cached, keyed on the lockfile. The required status check `verify` is a final job
+that passes only when every one of them succeeded, so branch protection and the deploy gate key on one name. One
+serial job used to take 21-30+ minutes against a 30-minute limit; three legs took about 9.5 minutes, the unsharded
+Pages suite (496 s) and the serial unit suite (349 s) setting the pace, before they were split (2026-11-22).
 Both include the `audio` project's default signal measurements (the control, the duck and the
 transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neither is
 `make e2e-remote` (see "Published build smoke check" for why). The ffmpeg-based file
