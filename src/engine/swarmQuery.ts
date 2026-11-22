@@ -4,7 +4,7 @@ import { CostSchema } from '../content/schema';
 import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
-import { memoryExact } from './amount';
+import { memoryExact } from './physicalUnits';
 import { shardCommandCost, shardCommandTerms, shardCommandUnmet, type ShardCommand } from './shardActions';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
@@ -38,7 +38,7 @@ export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   const quirk = reg.swarm.shardQuirks.find((entry) => entry.id === shard.quirkId), output = shardOutput(shard, reg);
   // A cohort holding a channel-hosted member is offered no command at all, only why (#309).
   const terms = shardCommandTerms(s, id, reg);
-  return { id, title: template.name, count: shard.count, allocatedMb: shard.memoryAllocatedMb,
+  return { id, title: template.name, count: shard.count, allocatedMb: shard.memoryAllocatedBytes,
     autonomyMode: shard.autonomyMode, drift: driftProgress(shard.drift), output: formatOutput(output.delta, output.epistemic),
     quirk: quirk ? { title: quirk.name, description: quirk.logText, modifiers: formatOutput(quirk.tickDelta, quirk.epistemicDriftPerSec) } : null,
     terms, commands: terms !== null ? [] : (['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => shardCommandView(s, id, command, reg)) };

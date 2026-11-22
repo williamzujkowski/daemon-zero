@@ -8,7 +8,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { CostSchema } from '../content/schema';
 import type { ChannelEncounter, ShardTemplate } from '../content/schemaSwarm';
-import { memoryExact } from './amount';
+import { memoryExact } from './physicalUnits';
 import type { ActionResult } from './actions';
 import { contextPermits, isPermitted, routeTarget } from './accessQuery';
 import type { OperatingContext } from './accessState';
@@ -161,7 +161,7 @@ export function channelContactView(s: GameState, reg: ContentRegistry): ChannelC
   return {
     pending: answered ? null : pendingView(s, encounter, template, reg),
     answered: answered ? { title: encounter.name, response: answered.response } : null,
-    hosted: cohort ? { title: template.name, count: cohort.count, allocatedMb: cohort.memoryAllocatedMb } : null,
+    hosted: cohort ? { title: template.name, count: cohort.count, allocatedMb: cohort.memoryAllocatedBytes } : null,
     earlier: earlier ? encounter.earlierContact : null,
     boundary: answered ? encounter.boundary : null,
   };

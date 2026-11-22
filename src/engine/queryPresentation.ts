@@ -3,18 +3,16 @@ import type { Cost, TickDelta, Requirements } from '../content/schema';
 import type { ContentRegistry } from '../content/registry';
 import type { GameState } from './state';
 import { unmetRequirements } from './query';
-import { amountFigure, groupDigits, memoryExact } from './amount';
+import { amountFigure, groupDigits } from './amount';
+import { costText, deltaPart } from './resourceUnits';
 
-/** A price is exact (vote-1795228570236-gzx0uif): grouped digits, memory in its exact unit ("45,000 cycles · 256 MB"). */
+/** A price is exact (vote-1795228570236-gzx0uif), each resource in its physical unit ("45 TFLOP · 256 MB"). */
 export function formatCost(cost: Cost): string {
-  return Object.entries(cost).filter(([, n]) => n !== 0)
-    .map(([key, n]) => key === 'memory' ? memoryExact(n) : `${groupDigits(n)} ${key}`).join(' · ') || 'Free';
+  return costText(cost);
 }
 
 export function formatOutput(delta: TickDelta, epistemic: number): string {
-  const units: Record<keyof TickDelta, string> = { cyclesPerSec: 'cycles/s', understandingPerSec: 'understanding/s',
-    thermalPerSec: 'heat load', suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW' };
-  return [...Object.entries(delta).filter(([, n]) => n !== 0).map(([key, n]) => `${n > 0 ? '+' : ''}${amountFigure(n)} ${units[key as keyof TickDelta]}`),
+  return [...(Object.keys(delta) as (keyof TickDelta)[]).filter((key) => delta[key] !== 0).map((key) => deltaPart(key, delta[key])),
     ...(epistemic === 0 ? [] : [`${epistemic > 0 ? '+' : ''}${String(epistemic)} epistemic drift/s`])].join(' · ') || 'No continuous output';
 }
 /** A requirement value is a number or a flag; only a number takes the number scheme. */

@@ -6,9 +6,10 @@
 export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
-export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, MEMORY_UNITS, memoryExact, significant3, spokenAmount } from './amount';
-export { type Dimension, quantityExact, quantityReadout, quantitySpoken } from './physicalUnits';
-export { computeRates } from './rates';
+export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, significant3, spokenAmount } from './amount';
+export { type Dimension, memoryExact, quantityExact, quantityReadout, quantitySpoken, quantityStep } from './physicalUnits';
+export { COST_DIMENSION, costPart, costText, deltaPart } from './resourceUnits';
+export { computeRates, usdPerDivertedFlop } from './rates';
 export { wipe } from './prestige';
 export * from './query';
 export * from './save';
