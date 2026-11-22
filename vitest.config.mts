@@ -29,11 +29,14 @@ export default defineConfig({
       // Type-only modules have nothing to execute.
       exclude: ['src/engine/systems/types.ts'],
       reporter: ['text', 'json-summary'],
-      thresholds: {
+      // A CI shard (VITEST_SHARD_RUN=1) covers only part of the suite, so it records coverage in its blob report and the
+      // thresholds are enforced once, on the merged report (`vitest run --merge-reports --coverage`, the ci.yml
+      // unit-coverage job). Every other run, `make test` included, enforces them as before.
+      ...(process.env.VITEST_SHARD_RUN === '1' ? {} : { thresholds: {
         lines: 90, functions: 90, statements: 90, branches: 80,
         'src/app/**': { lines: 80, functions: 80, statements: 80, branches: 80 },
         'src/ui/**': { lines: 80, functions: 80, statements: 80, branches: 80 },
-      },
+      } }),
     },
   },
 });
