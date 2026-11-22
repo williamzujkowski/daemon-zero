@@ -10,6 +10,7 @@ import { must } from './helpers';
 import { offerPresented, respond } from './pilot-helpers';
 import { offSlotWidgets } from '../src/ui/registry/widgetRegistry';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
+import { serving, split, untilComplete } from './service-helpers';
 setupM4Tests();
 
 const advanceTo = (state: GameState) => { act(() => { gameStore.dispatch(() => ({ ok: true, state })); }); };
@@ -168,4 +169,16 @@ it('speaks an authorized-network card with what its grant note says it gives (#4
   if (!segment) throw new Error('no authorized-network access card in content');
   const name = isNodeKnown(gameStore.store.getState().game, segment.id) ? segment.revealedName : segment.blindName;
   expect(spoken).toContain(`New card: ${name}, access to the operators' network under the service grant.`);
+});
+
+it('says once that a pilot batch is complete, so a player reading elsewhere knows SUBMIT is ready (#428)', async () => {
+  const view = await mountM4('phase-2-unlocked', { width: 390, height: 844 });
+  const working = split(serving(), 1);
+  act(() => { gameStore.initialize(working, 0, null); });
+  expect(view.find('announcer')?.textContent).toBe('');
+  advanceTo(untilComplete(gameStore.store.getState().game));
+  expect(view.find('announcer')?.textContent).toContain('Pilot batch complete: submit it for review.');
+  // A restore of a save whose batch is already complete is a baseline, never an event.
+  act(() => { gameStore.initialize(untilComplete(working), 0, null); });
+  expect(view.find('announcer')?.textContent).toBe('');
 });
