@@ -7,13 +7,15 @@
  * tool is needed; where ffprobe is installed it is asked for a second opinion.
  */
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readdirSync } from 'node:fs';
+import manifest from '../assets/audio/voice/MANIFEST.json';
 import { describe, expect, it } from 'vitest';
 import { AI_DISCLOSURE, neutralTag, readTags, tagProblems, withNeutralTags } from '../scripts/score-tags';
 import { scoreTracks } from '../src/app/musicTracks';
 import { GAME_TITLE, scoreMetadata } from '../src/app/scoreSession';
 import { shipped } from './score-files';
-import { voiceClipFiles } from './voice-files';
+import { voiceClipFiles, voiceTierFolders } from './voice-files';
 
 /** Four bytes that start like an MPEG-1 layer 3 frame, then a recognisable body. */
 const AUDIO = Buffer.concat([Buffer.from([0xff, 0xfb, 0x54, 0x00]), Buffer.from('the audio, which nothing here may alter')]);
@@ -203,8 +205,10 @@ describe('the bundled scores', () => {
 
 describe('the voice clips', () => {
   it('carry an encoder frame and no text that could name a speaker or quote a transmission', () => {
-    const folders = [...readdirSync('assets/audio/voice/clean').map((name) => 'assets/audio/voice/clean/' + name),
-      ...readdirSync('assets/audio/voice/vibration').map((name) => 'assets/audio/voice/vibration/' + name)];
+    // One folder per tier of the fidelity ladder (#462), each listed in tests/voice-files.ts.
+    const tiers = readdirSync('assets/audio/voice', { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    expect(tiers.sort()).toEqual([...voiceTierFolders.keys()].sort());
+    const folders = [...voiceTierFolders].flatMap(([tier, names]) => names.map((name) => 'assets/audio/voice/' + tier + '/' + name));
     expect([...voiceClipFiles.keys()].sort(), 'tests/voice-files.ts lists every committed clip').toEqual(folders.sort());
     for (const [path, data] of voiceClipFiles) {
       const report = readTags(data);
@@ -213,5 +217,13 @@ describe('the voice clips', () => {
       expect(report.frames.map((frame) => frame.id), path).toEqual(['TSSE']);
       expect(report.frames[0]?.text, path).toMatch(/^Lavf[0-9.]+$/);
     }
+  });
+
+  it('are byte for byte what MANIFEST.json records: generate-clips.py --check, without the Python stack', () => {
+    // The model cannot reproduce a take, so the committed bytes are the recording; a digest is how
+    // an accidental re-encode or overwrite is caught, the original fourteen clips included.
+    const listed = manifest.clips.flatMap((clip) => Object.entries(clip.sha256).map(([tier, digest]) => ['assets/audio/voice/' + tier + '/' + clip.id + '.mp3', digest] as const));
+    expect(listed.map(([path]) => path).sort()).toEqual([...voiceClipFiles.keys()].sort());
+    for (const [path, digest] of listed) expect(createHash('sha256').update(voiceClipFiles.get(path) ?? Buffer.alloc(0)).digest('hex'), path).toBe(digest);
   });
 });
