@@ -18,7 +18,7 @@ import PurchaseButton from './PurchaseButton';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
-import { pendingRepeatable } from './purchaseVisibility';
+import { pendingRepeatable, shownTracks } from './purchaseVisibility';
 import { RoleEffectNotes } from './PayrollSummary';
 
 const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
@@ -66,14 +66,13 @@ function CappedOperative({ rep }: { rep: Repeatable }) {
 
 /** `summary` renders under the heading, and only when the section itself renders (the payroll totals, #210). */
 export default function Repeatables({ phase, kind, title, summary }: { phase: number; kind?: Repeatable['kind']; title?: string; summary?: ReactNode }) {
-  const ids = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
-    .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && pendingRepeatable(game, rep))
-    .map((rep) => rep.id)));
-  // A hired role that cannot be bought now (capped, or its requirements no longer hold) keeps its dismissal: the engine
-  // allows it (dismissRepeatable), and a role the player pays for must never become unreleasable (#402 panel).
-  const capped = useStore(gameStore.store, useShallow(({ game }) => [...CONTENT.repeatables.values()]
-    .filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) && rep.dismissable &&
-      repeatableLevel(game, rep.id) > 0 && !pendingRepeatable(game, rep)).map((rep) => rep.id)));
+  // The section's tracks by the shared rule (phaseHasLevers): buyable ones as cards, and a held level that cannot be
+  // bought now (capped, or its requirements no longer hold) as a release row only. The engine allows that release
+  // (dismissRepeatable), and nothing the player pays for may become unreleasable (#402 panel, #488 pass 4).
+  const ids = useStore(gameStore.store, useShallow(({ game }) => shownTracks(game, phase, kind)
+    .filter((rep) => pendingRepeatable(game, rep)).map((rep) => rep.id)));
+  const capped = useStore(gameStore.store, useShallow(({ game }) => shownTracks(game, phase, kind)
+    .filter((rep) => !pendingRepeatable(game, rep)).map((rep) => rep.id)));
   if (ids.length === 0 && capped.length === 0) return null;
   return <>
     {title && <Text testID={'repeatables-heading-' + String(phase) + (kind ?? '')} accessibilityRole="header" style={theme.heading}>{title}</Text>}

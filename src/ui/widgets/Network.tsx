@@ -6,7 +6,7 @@ import { CONTENT } from '../../content';
 import { cycleContributions, type GameState } from '../../engine';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
-import { hasPhasePurchases } from '../purchaseVisibility';
+import { phaseHasLevers } from '../purchaseVisibility';
 import UpgradeFeed from '../UpgradeFeed';
 import { useGame, usePhaseTitle } from '../state';
 import { theme } from '../theme';
@@ -14,8 +14,9 @@ import { quantityReadout } from '../../engine';
 
 function NetworkPhase({ phase }: { phase: number }) {
   const title = usePhaseTitle(phase);
-  const pending = useGame((game) => hasPhasePurchases(game, phase, 'TREE'));
-  if (!pending) return null;
+  // Also while the phase holds a level to release (#488 pass 5): a bought-out, capped phase keeps its release rows.
+  const shown = useGame((game) => phaseHasLevers(game, phase, { group: 'TREE', kind: 'UPGRADE' }));
+  if (!shown) return null;
   return <View style={{ gap: 14 }}>
     <Text testID={'purchase-phase-' + String(phase)} style={theme.heading}>{title}</Text>
     <NodeList phase={phase} group="TREE" />

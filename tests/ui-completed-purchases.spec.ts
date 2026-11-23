@@ -118,14 +118,20 @@ describe('completed purchase feed', () => {
     view.close();
   });
 
-  it('omits completed network phase headings, keeping only useful process controls', async () => {
+  it('keeps a bought-out network phase heading only for the levels it can release, with process controls in PROC', async () => {
     const view = await mountM4('victory-ready');
     const game = m4State('victory-ready');
     const reps = [...CONTENT.repeatables.values()].filter((r) => CONTENT.phases.find((p) => p.phaseId === r.phaseId)?.uiSlot === 'NETWORK');
     const nodes = [...CONTENT.nodes.values()].filter((n) => n.uiGroup === 'TREE' && CONTENT.phases.find((p) => p.phaseId === n.phaseId)?.uiSlot === 'NETWORK');
     act(() => { gameStore.initialize({ ...game, unlockedNodes: [...new Set([...game.unlockedNodes, ...nodes.map((n) => n.id)])], levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel])) } }, 0, null); });
     view.click('tab-NETWORK');
-    for (const phase of CONTENT.phases.filter((p) => p.uiSlot === 'NETWORK')) expect(view.find('purchase-phase-' + String(phase.phaseId))).toBeNull();
+    // Nothing is left to buy. A phase heading stays exactly where a capped level can still be released for free, for
+    // those release rows (#488 pass 5); with nothing to release it would be empty, and is omitted.
+    for (const phase of CONTENT.phases.filter((p) => p.uiSlot === 'NETWORK')) {
+      const holds = reps.some((r) => r.phaseId === phase.phaseId && r.dismissable);
+      expect(view.find('purchase-phase-' + String(phase.phaseId)) !== null, 'phase ' + String(phase.phaseId)).toBe(holds);
+    }
+    for (const r of reps) expect(view.find('rep-' + r.id + '-buy'), r.id).toBeNull();
     view.click('processes-open');
     expect(view.find('processes-dialog')?.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
     view.close();
