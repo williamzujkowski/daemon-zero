@@ -592,7 +592,9 @@ A hostile mind pressing the instance (#491) is shown in three places, all from `
   after the area's content, so it never pushes the first work card below the fold: in the t-three-banners state
   (brownout, insolvent and response bands, with suspicion on rung 2, so a hostile arrives) a notice under the tabs put
   the first card's box at 782 px against a 799 px fold (`firstCard`, 0.386 visible), and at the end of the flow the
-  transition keeps it.
+  transition keeps it. ANSWER is a route (`requestRoute`, #369), not a bare selection: the workspace selects SWARM and focuses
+  its tab, so from the bottom of a deep scroll the phone lands on the tab with the hostile card fully in view under the
+  pinned chrome, and focus never goes down with the unmounted notice (`hostile-encounters.e2e.ts`, phone).
 - **Other Minds console** (`hostile-status`): before the world view opens, under the AEGIS status; in the world view, first
   under "Other minds". One header ("Hostile minds") and one read-only line naming it, its kind and its effect, ending
   "Answer it in SWARM, or go quiet." The console never duplicates the controls.

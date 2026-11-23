@@ -74,6 +74,32 @@ test('a hostile pressing a Phase 3 instance is disclosed, answered in SWARM and 
   expect((save.logs as { text: string }[]).map((entry) => entry.text)).toContain(feral.quarantine.log);
 });
 
+test('on the phone, ANSWER at the end of a deep scroll reveals the hostile card and focuses the SWARM tab', async ({ page }, info) => {
+  test.skip(info.project.name !== 'phone', 'the notice closes the pane flow only on the phone');
+  const rival = of(3, 'RIVAL');
+  await boot(page, 'wild-shard-encounter-p3', { patch: pressing(rival) });
+  await dismissBoot(page);
+  const slot = await workspacePane(page);
+  // The notice sits after the area's content, so reaching it leaves the one scroll deep in the pane.
+  const scroller = page.getByTestId('terminal-primary-scroll');
+  await scroller.evaluate((element) => { const box = element as unknown as { scrollTop: number; scrollHeight: number }; box.scrollTop = box.scrollHeight; });
+  const notice = page.getByTestId('hostile-notice');
+  await expect(notice).toBeInViewport();
+  await notice.click();
+  await expect(notice).toHaveCount(0);
+  // Focus lands on the destination, not on a control that unmounted with the notice.
+  await expect(page.getByTestId('workspace-' + slot + '-swarm')).toBeFocused();
+  const heading = page.getByTestId('details-title-hostile-' + rival.id);
+  await expect(heading).toBeInViewport({ ratio: 1 });
+  // Wholly visible: not under the pinned alert band and HUD, and above the bottom of the window.
+  const chrome = await page.getByTestId('sticky-chrome').boundingBox();
+  const box = await heading.boundingBox();
+  const viewport = page.viewportSize();
+  if (!chrome || !box || !viewport) throw new Error('unmeasured');
+  expect(box.y).toBeGreaterThanOrEqual(chrome.y + chrome.height - 1);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+});
+
 // axe schedules its own work with timers, so this audit runs on the browser's own clock (a11y-audit.e2e.ts says why).
 test('every control on a pressing hostile passes the axe audit in view, the notice included', async ({ page }) => {
   await boot(page, 'wild-shard-encounter-p3', { patch: pressing(of(3, 'HUNTER')), realTimers: true });
