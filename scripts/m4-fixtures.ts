@@ -23,9 +23,6 @@ function input(game: GameState, patch: Partial<GameState>): GameState {
   return { ...parsed, rates: computeRates(parsed, CONTENT) };
 }
 
-/** Suspicion a trusted peer fixture holds: under every peer offer's ceiling (maxSuspicion 30). */
-const TRUSTED_SUSPICION = 20;
-
 function funded(): GameState {
   return input(createInitialState(CONTENT), { cycles: 1e30, understanding: 1e15, capital: 1e18,
     resolvedDilemmas: QUIET_DILEMMA_IDS });
@@ -38,7 +35,11 @@ function throughPhase(phase: number): GameState {
     if (node.phaseId > phase || CONTENT.factions.has(node.uiGroup) || node.effects.triggersVictory === true ||
       node.requirements?.minIteration !== undefined ||
       (node.effects.unlocksPhase ?? phase) > phase) continue;
+    const before = game.suspicion;
     game = must(unlockNode(game, node.id, CONTENT));
+    // Hardware taken after the guest leaves a one-off trace (#488) that play spreads over hours and lets decay before the
+    // next seizure; the instant build would carry every one at once, so it keeps the suspicion it had.
+    if (node.phaseId > 0 && !node.suspendable) game = input(game, { suspicion: before });
   }
   // Every quiet dilemma is held resolved while the nodes are bought, so none interrupts the build; makeFixtures
   // then keeps only those the save could have met (scripts/reachable-fixture.ts, #382).
@@ -114,9 +115,7 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     'one-tick-wipe': exportSave(oneTick),
     'iteration-2-breadcrumb': exportSave(must(voluntaryWipe(breadcrumb, CONTENT))),
     'phase-3-aegis-90': exportSave(input(phase3, { aegisLock: 90 })),
-    // Trusted, and under the offer's suspicion ceiling: the instant build leaves every one-off trace undecayed, and
-    // since #488 the seized hardware's suspicion is such a trace, which carries the build past it.
-    'eidolon-trust-85': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 85 }, suspicion: TRUSTED_SUSPICION })),
+    'eidolon-trust-85': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 85 } })),
     'eidolon-moloch-0': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 0 }, traits: ['MOLOCH'] })),
     'corporate-insolvent': exportSave(corporate(phase4)),
     'megawatt-shortfall': exportSave(input(unpowered, {})),
