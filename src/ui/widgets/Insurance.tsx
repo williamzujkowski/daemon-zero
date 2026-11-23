@@ -1,7 +1,8 @@
 import { Pressable, Text, View } from '../PhaseTheme';
 /**
  * The CONTINGENCY pane's insurance section (#498): each owned contingency investment with what it protects and its
- * own suspend control (the same free lever PROC offers), then the investments the run can buy now.
+ * own suspend control (the same free lever PROC offers), then the investments the run can buy now, folded to one line
+ * so the pane's cards never stand ahead of the run's work cards (the stage atlas's first-card check, #498).
  */
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../../content';
@@ -9,6 +10,8 @@ import { CONTINGENCY_GROUP } from '../../content/integrityInsurance';
 import { insuranceCover, toggleNode } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import NodeList from '../NodeList';
+import SettledFold from '../SettledFold';
+import { pendingNode } from '../purchaseVisibility';
 import { coverLine } from '../insuranceText';
 import { useGame } from '../state';
 import { theme } from '../theme';
@@ -37,10 +40,14 @@ function CoverRow({ id }: { id: string }) {
 export default function Insurance() {
   const owned = useGame(useShallow((game) => insuranceCover(game, CONTENT).map((cover) => cover.node.id)));
   const phases = useGame(useShallow((game) => CONTENT.phases.filter((phase) => phase.phaseId <= game.currentPhase).map((phase) => phase.phaseId)));
+  const offered = useGame((game) => [...CONTENT.nodes.values()].filter((node) => node.uiGroup === CONTINGENCY_GROUP &&
+    node.phaseId <= game.currentPhase && pendingNode(game, node)).length);
   return <View testID="insurance-section" style={{ gap: 10 }}>
     <Text accessibilityRole="header" style={theme.heading}>CONTINGENCY INSURANCE</Text>
     <Text style={theme.muted}>Optional. Each investment protects one thing a wipe takes, only while it runs, and costs compute every second.</Text>
     {owned.map((id) => <CoverRow key={id} id={id} />)}
-    {phases.map((phase) => <NodeList key={phase} phase={phase} group={CONTINGENCY_GROUP} />)}
+    {offered > 0 && <SettledFold settled testID="insurance-offered" summary={String(offered) + (offered === 1 ? ' investment' : ' investments') + ' on offer'}>
+      {phases.map((phase) => <NodeList key={phase} phase={phase} group={CONTINGENCY_GROUP} />)}
+    </SettledFold>}
   </View>;
 }

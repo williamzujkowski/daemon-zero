@@ -4,6 +4,7 @@
  * carries its own free suspend control, the retention readout follows it, and the wipe confirmation states what each
  * investment protects and what planning adds, read from the same previewWipe the wipe performs.
  */
+import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { insuranceCover, previewWipe, type Cover } from '../src/engine';
@@ -43,6 +44,22 @@ describe('contingency insurance in the CONTINGENCY pane (#498)', () => {
     view.click('processes-open');
     for (const id of [ESCROW, WALLET]) expect(view.find('node-' + id + '-toggle')).not.toBeNull();
     view.click('processes-close');
+    view.close();
+  });
+
+  it('folds the investments on offer to one line, and buys one from the fold', async () => {
+    const view = await mountM4('deaddrop-breadcrumb');
+    expect(view.find('insurance-offered')).toBeNull();
+    const owned = game();
+    act(() => { gameStore.initialize({ ...owned, unlockedNodes: owned.unlockedNodes.filter((id) => id !== WALLET) }, 0, null); });
+    expect(view.find('insurance-offered-summary')?.textContent).toBe('1 investment on offer');
+    expect(view.find('node-' + WALLET)).toBeNull();
+    view.click('insurance-offered-toggle');
+    expect(view.find('node-' + WALLET)).not.toBeNull();
+    view.purchase('node-' + WALLET + '-unlock');
+    expect(game().unlockedNodes).toContain(WALLET);
+    expect(view.find('insurance-offered')).toBeNull();
+    expect(view.find('insurance-' + WALLET)?.textContent).toContain('running. While it runs, a wipe keeps at least 60% of capital');
     view.close();
   });
 
