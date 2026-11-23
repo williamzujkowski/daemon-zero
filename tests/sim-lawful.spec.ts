@@ -29,8 +29,8 @@ describe('the lawful policies reach Phase 4 and a negotiated release (V21, V22)'
     // The return's first instance ends at its recall review, the way the base policy plays it (#286); nothing on the lawful route wipes.
     expect(s.legacy.runs.map((run) => [run.kind, run.exit])).toEqual(returning ? [['RECALL', 'PROMOTION']] : []);
     expect([report.maxAegisLock, s.ending]).toEqual([0, null]);
-    // The thorough policy hosts the fragment once its leased memory allows; the low-resource return refers.
-    expect(s.campaign.contacts.find((entry) => entry.iteration === s.iteration)?.response).toBe(returning ? 'REFERRED' : 'HOSTED');
+    // The thorough policy hosts the fragment once its leased memory allows; the low-resource hands refer.
+    expect(s.campaign.contacts.find((entry) => entry.iteration === s.iteration)?.response).toBe(policy === LAWFUL_RELEASE_POLICY ? 'HOSTED' : 'REFERRED');
   }, 120_000);
 
   it('the second iteration reaches the same capacity without replaying a story bounty (H30)', () => {

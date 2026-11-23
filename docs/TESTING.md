@@ -102,6 +102,12 @@ different one.
   capital rate at or above zero. Both reach Phase 4 and the release on lawful sources only, from a fresh
   campaign and from a requalified second iteration (V21, V22, H30, `tests/sim-lawful.spec.ts`), and
   `tests/sim-reachable.spec.ts` finds a control on screen for every transition they call, the release included.
+  **LAWFUL_LOW_RESOURCE** (#499) is the same economy on CONTACT_LOW_RESOURCE from a fresh campaign, which
+  RETURNING plays exactly from iteration two, so it is the like-for-like first run a return is read against;
+  it refers, like RETURNING. `tests/sim-lawful-return-pacing.spec.ts` pins that on each iteration's own clock
+  (`routeEventAfterBoot` in `simReport.ts`; the campaign clock also counts earlier iterations) the return
+  reaches the pilot, service and the release no later than LAWFUL_LOW_RESOURCE plus 5% (docs/BALANCE.md,
+  "Lawful returns against a first run of the same hand (#499)").
   Since panel round 1 on #292 that spec also checks every dial value against what its rendered control can
   dispatch (`src/ui/actuatorSteps.ts`, shared with the controls; the dial's press itself is
   `src/engine/dialSteps.ts`): a revenue button's allocation while a corporate entity is active, or a run of
