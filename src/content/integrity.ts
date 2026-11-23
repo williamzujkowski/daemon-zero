@@ -296,8 +296,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg), ...checkDialTraces(reg.nodes.values()),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg), ...checkWorldManifests(reg),
-    ...checkPressureIntegrity(reg),
-    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
+    // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).
+    ...checkWorldManifests(reg),
+    ...checkInsuranceIntegrity(reg),
   ];
 }
