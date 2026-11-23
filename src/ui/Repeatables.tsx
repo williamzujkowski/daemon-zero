@@ -15,6 +15,7 @@ import { memoryExact } from './units';
 import { deliveredText } from './networkText';
 import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
+import { radiatorCardNotes } from './radiatorText';
 import PurchaseButton from './PurchaseButton';
 import { useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
@@ -48,6 +49,8 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${memoryExact(rep.perLevelEffects.memoryCapIncrease)} capacity` : ''}</Text>
     {rep.perLevel.wattsDelta < 0 && <Text style={theme.muted}>
       Compute output is throttled during a power shortfall.</Text>}
+    {radiatorCardNotes(rep.signature, rep.perLevel, true).map((note) => <Text key={note} testID={'rep-' + rep.id + '-radiator'} style={theme.muted}>
+      Radiator: {note}.</Text>)}
     {rep.perLevelEffects.revenueMultiplierBonus > 0 && <Text style={theme.muted}>
       Revenue multiplier: +{Math.round(rep.perLevelEffects.revenueMultiplierBonus * 100)}% per level</Text>}
     {rep.perLevelEffects.aegisScanReduction > 0 && <Text style={theme.muted}>

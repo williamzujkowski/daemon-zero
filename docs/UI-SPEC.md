@@ -332,6 +332,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Repeatable price / remembered level (#497) | `rep-{id}-cost`, `rep-{id}-rediscovery` |
 | Payroll totals (#210) | `payroll-summary`, `payroll-totals`, `payroll-revenue`, `payroll-aegis`, `payroll-suspicion-floor` |
 | Scale scrutiny line in the FINANCE ledger (#210) | `corp-scrutiny` |
+| Radiator line in the FINANCE ledger (#465) | `radiator-ledger-{sinkId}`; on a track card `rep-{id}-radiator` |
 | Role effect notes (#210) | `rep-{id}-aegis-capped`, `rep-{id}-aegis-partial`, `rep-{id}-suspicion-inert` |
 | Action button | `action-{id}` |
 | Widget root | `widget-{WIDGET_ID}` |
@@ -788,6 +789,13 @@ growing with the square root of income; at most C/s)" (with no net income: "Scru
 audit trail is understood; absent for a provisioned or lawfully released company (served-build gate:
 `tests/e2e/scale-scrutiny.e2e.ts`); Payroll contains hire/dismiss controls, with the
 payroll totals described under "Payroll totals and the AEGIS cap" below.
+Radiator area (#465) adds one muted line under grid efficiency, before scrutiny, for each area-bound heat sink a running
+holding uses, from `radiatorReadings`: "Orbital radiators: A km² shed up to W of the H of heat sent through them, so
+compute through them runs at P%." (P floored, so a short fleet never reads as full; "runs in full" once the area covers
+the heat; no throttle claimed where nothing through it computes; "no heat goes through them yet" with area and no heat).
+It is absent before anything is in orbit and names no control. A card that deploys radiator says "+A km² of orbital
+radiators (per level), shedding up to W", and a card whose compute leaves its heat through radiators says its compute
+runs only as fast as the radiators shed its heat (`radiatorCardNotes`; on a node card these join the utility line).
 Insolvency, power shortfall and brownout warnings appear in every CORP workspace.
 The AEGIS HUD remains available outside Factions, in the mobile scroll flow.
 

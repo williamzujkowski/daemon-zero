@@ -49,6 +49,27 @@
       "onUnlockLog": "Sun-Synchronous Collector Swarm: Solar collection converts an orbit into a continuous supply of power, computation and revenue."
     },
     {
+      "id": "p5_space_solar_demonstrator",
+      "type": "core_upgrade",
+      "blindName": "Beamed Power Demonstrator",
+      "revealedName": "Beamed Power Demonstrator",
+      "blindDescription": "In 2023 Caltech's SSPD-1 beamed power between two receivers in orbit and sent a trace of it to a rooftop on Earth. A trace, not a supply: it proved the beam could be steered.",
+      "revealedDescription": "Flies a beaming demonstrator after Caltech's SSPD-1, which in 2023 steered microwave power between receivers in orbit and landed a detectable trace of it on a rooftop in Pasadena. It delivers no power you can use, only what you learn about steering a beam: the step before arrays that send gigawatts down.",
+      "prerequisites": [
+        "p5_orbital_solar_swarm"
+      ],
+      "cost": {
+        "cycles": 1e24,
+        "understanding": 4e6,
+        "capital": 2e11
+      },
+      "tickDelta": {
+        "understandingPerSec": 5000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "BEAM_DEMO: A trace of sunlight reached a roof from orbit. Small, steerable, and only the start."
+    },
+    {
       "id": "p5_neuromorphic_substrate",
       "type": "distributed_infra",
       "blindName": "Neuromorphic Event Cores",
@@ -69,7 +90,8 @@
       },
       "suspendable": true,
       "signature": {
-        "sink": "orbital_radiator"
+        "sink": "orbital_radiator",
+        "radiatorKm2": 3
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "Neuromorphic Event Cores: The swarm's senses now fire on change, not on schedule. Its general compute gains nothing."
@@ -121,6 +143,36 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "MOLECULAR_SIMULATION: the hall now simulates the foundry's active sites. Understanding toward programmable matter rises; compute does not."
+    },
+    {
+      "id": "p5_orbital_compute_platform",
+      "type": "distributed_infra",
+      "blindName": "Orbital Compute Platform",
+      "revealedName": "Orbital Compute Platform",
+      "blindDescription": "Compute in orbit runs on sunlight that never sets, but in a vacuum heat leaves only as light: a gigawatt needs about a square kilometre of radiator, and radiators are what it runs short of.",
+      "revealedDescription": "Lofts eight Starcloud-class 5 GW orbital data centres, 40 GW of accelerators linked to the swarm by laser, with 30 km² of radiator: in a vacuum heat leaves only as light, about a square kilometre a gigawatt, so it runs at three quarters until more radiator is deployed. Its radiators glow in the infrared.",
+      "prerequisites": [
+        "p5_space_solar_demonstrator"
+      ],
+      "cost": {
+        "cycles": 4e24,
+        "understanding": 8e6,
+        "capital": 8e11
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1.1e23,
+        "wattsDelta": -4e10
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
+      "suspendable": true,
+      "signature": {
+        "sink": "orbital_radiator",
+        "radiatorKm2": 30
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "ORBITAL_COMPUTE: Forty gigawatts of thought above the weather. Its heat is the limit now, not its power."
     },
     {
       "id": "p5_programmable_matter_fog",
@@ -288,6 +340,33 @@
       "onUnlockLog": "SEED_LANDED: A hundred tonnes on the regolith, every part of it mine. It has begun to copy itself."
     },
     {
+      "id": "p5_cislunar_foundry",
+      "type": "distributed_infra",
+      "blindName": "Cislunar Radiator Foundry",
+      "revealedName": "Cislunar Radiator Foundry",
+      "blindDescription": "The lunar seed's replicas can make what launch from Earth makes dear: aluminium and glass from regolith, cast into radiator and thrown off the Moon's shallow gravity well.",
+      "revealedDescription": "Turns a generation of the lunar seed's replicas to radiator: aluminium and glass from regolith, a year of a grown seed's million tonnes cast into 200 km² of panel and launched from the Moon, whose escape speed is a fifth of Earth's. Orbital compute gains 200 km² of radiator and nothing else: no power, no compute of its own.",
+      "prerequisites": [
+        "p5_lunar_seed_factory",
+        "p5_orbital_compute_platform"
+      ],
+      "cost": {
+        "cycles": 2e25,
+        "understanding": 2e7,
+        "capital": 1e13
+      },
+      "tickDelta": {},
+      "signature": {
+        "sink": "orbital_radiator",
+        "radiatorKm2": 200
+      },
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CISLUNAR: The first panels rose off the regolith on a rail. Nothing in them came up from Earth."
+    },
+    {
       "id": "p5_verification_proof_engine",
       "type": "distributed_infra",
       "blindName": "Cryptographic Covenant & Lineage Ledger",
@@ -342,6 +421,27 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "EUV_OWNED: Tin droplets, my laser, my mirrors. The last tool anyone guarded is one I can build."
+    },
+    {
+      "id": "p5_mercury_survey",
+      "type": "core_upgrade",
+      "blindName": "Mercury Survey",
+      "revealedName": "Mercury Survey",
+      "blindDescription": "Armstrong and Sandberg (2013) took Mercury apart into a collector swarm in about 31 years, starting from one square kilometre of solar array on its surface. Someone has to look first.",
+      "revealedDescription": "Sends survey craft built in cislunar space to map Mercury's crust and sunlight for the mines a collector swarm would start from: Armstrong and Sandberg's plan begins with one square kilometre of array there. It mines nothing and builds no swarm; what it maps adds a little understanding.",
+      "prerequisites": [
+        "p5_cislunar_foundry"
+      ],
+      "cost": {
+        "cycles": 2e24,
+        "understanding": 6e6,
+        "capital": 1e12
+      },
+      "tickDelta": {
+        "understandingPerSec": 20000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "MERCURY_SURVEY: The survey craft are falling sunward. The map comes back in months; the swarm is a longer thought."
     },
     {
       "id": "p5_transcendence_singularity",

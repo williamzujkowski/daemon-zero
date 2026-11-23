@@ -5,7 +5,7 @@
       "phaseId": 5,
       "kind": "UPGRADE",
       "name": "Launch Lagrange-Point Photonic Relay",
-      "description": "Expand a bounded planetary service. Each deployment reserves the resources to keep its promise.",
+      "description": "Another eighty 5 GW collector arrays parked at the Sun-Earth L1 point, five light-seconds out and joined to the swarm by laser: 400 GW more generation, an eighth of it computing where it is collected, and 32 EB more memory on the arrays' own racks.",
       "requirements": {
         "nodes": [
           "p5_orbital_solar_swarm"
@@ -36,7 +36,7 @@
       "phaseId": 5,
       "kind": "UPGRADE",
       "name": "Seed Stratospheric Carbon-Silicate Assemblers",
-      "description": "Expand a bounded planetary service. Each deployment reserves the resources to keep its promise.",
+      "description": "Releases another cloud of assemblers into the stratosphere. They pull carbon from the air and build silicate from it, run 64 ZFLOP/s on their own sunlight, draw nothing from your grid, earn from the carbon removed, and the visible repair to the sky quiets suspicion.",
       "requirements": {
         "nodes": [
           "p5_programmable_matter_fog"
@@ -57,6 +57,89 @@
         "capitalPerSec": 1.2e10
       },
       "perLevelEffects": {}
+    },
+    {
+      "id": "rep_p5_beamed_power_arrays",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Beamed Power Satellites",
+      "description": "Ten more 5 GW solar power satellites of the 1979 reference design, each beaming microwaves to a rectenna about 10 km across: 50 GW more generation for the ground. Launches, spectrum filings and bright arrays make it visible.",
+      "requirements": {
+        "nodes": [
+          "p5_space_solar_demonstrator"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "understanding": 4e6,
+        "capital": 3e12
+      },
+      "costGrowth": 1.35,
+      "maxLevel": 10,
+      "perLevel": {
+        "wattsDelta": 5e10
+      },
+      "signature": {
+        "source": "space_solar"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p5_orbital_compute_tranches",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Orbital Compute Tranches",
+      "description": "Ten more 5 GW orbital data centres, 50 GW of accelerators on the laser mesh. Each tranche launches with radiator for half its heat, 25 km²: without more radiator the whole orbital fleet runs slower.",
+      "requirements": {
+        "nodes": [
+          "p5_orbital_compute_platform"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "cycles": 6e24,
+        "understanding": 6e6,
+        "capital": 3e12
+      },
+      "costGrowth": 1.5,
+      "maxLevel": 8,
+      "perLevel": {
+        "cyclesPerSec": 1.35e23,
+        "wattsDelta": -5e10
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
+      "signature": {
+        "sink": "orbital_radiator",
+        "radiatorKm2": 25
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p5_radiator_wings",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Deployable Radiator Wings",
+      "description": "Another 25 km² of folding radiator, launched from Earth and unfurled beside the orbital fleet: about 25 GW more heat it can shed as infrared. It computes nothing itself; it lets compute already in orbit run.",
+      "requirements": {
+        "nodes": [
+          "p5_orbital_compute_platform"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "understanding": 2e6,
+        "capital": 1e12
+      },
+      "costGrowth": 1.4,
+      "maxLevel": 12,
+      "perLevel": {},
+      "signature": {
+        "sink": "orbital_radiator",
+        "radiatorKm2": 25
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p5_arc_fusion",
