@@ -309,6 +309,20 @@ rates are safe); heat relaxes to a steady state at or under the threshold with t
 action is judged once it has expired. It includes the panel pass 3 reproduction: a clamped draining cohort forked from
 the migrated Phase 2 save was a permanent brownout with the levers of 97d639f and is undone by RELEASE now.
 
+**Reachability in the UI** (#488 panel passes 4 and 5). A lever the engine accepts is only free if the player can find
+its control, so every gate on the path to one asks one predicate in `src/ui/purchaseVisibility.ts`:
+`phaseHasLevers(game, phase, scope)` is true while the phase has a card or track to buy in that scope, or holds a level
+the player can release (`shownTracks`: buyable, or `releasable`, a dismissable track with a level). The NETWORK phase
+section, the upgrade feed and its "Earlier upgrades" fold, and the track list (`Repeatables`) all use it; CORE and CORP
+have no emptiness gate above the feed. Suspension levers live in PROC, gated by `needsProcessControl` (any node that
+worsens a free-fallback row, read from `worsensAny`); cohort RELEASE lives in the swarm area. Pane tabs and workspace
+areas follow unlocked host widgets, which each phase's entry node unlocks. `tests/ui-lever-reachability.spec.ts` is the
+property: on the guard's states plus constructed bought-out states (every track capped in each phase; the boost
+override held below its gate; Phase 3 with Phase 2 bought out and capped; Phase 4 with Phase 3's tracks capped), at
+390x844 and 1440x900, every free lever the engine accepts (a releasable level, a running suspendable node that worsens
+a row, a cohort RELEASE accepts) must have its control rendered on some path the screen offers: a pane tab, a
+workspace area, a fold whose control is rendered, or PROC. It searches for the path and assumes no tab exists.
+
 ## Decisions
 
 | Decision | Reason |
