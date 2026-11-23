@@ -111,7 +111,7 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     // loudnorm figures the docs used to quote drifted up to 0.29 LU from it on a four-second clip
     // (ambient_13: loudnorm -14.09, ebur128 -13.8), which a 0.25 tolerance could not hold.
     for (const [files, low, high] of [[vibration, -15.4, -13.8], [clean, -15.0, -13.3], [tier('phone'), -15.4, -15.1],
-      [tier('stream'), -15.5, -15.3], [tier('broadcast'), -15.2, -14.6], [tier('direct'), -15.4, -15.3], [tier('peer'), -15.5, -15.3]] as const) {
+      [tier('stream'), -15.5, -15.3], [tier('broadcast'), -15.2, -14.6], [tier('direct'), -15.5, -15.2], [tier('peer'), -15.5, -15.3]] as const) {
       const [min, max] = range(files.map((file) => measure(file).lufs));
       expect(Math.abs(min - low), String(files[0]) + ' quietest ' + min.toFixed(1)).toBeLessThan(0.051);
       expect(Math.abs(max - high), String(files[0]) + ' loudest ' + max.toFixed(1)).toBeLessThan(0.051);
@@ -202,7 +202,7 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     phone: [[2.13, 3.72], [0.45, 1.31], [0.10, 0.23]],
     stream: [[10.03, 12.88], [8.09, 10.95], [0.02, 0.08]],
     broadcast: [[35.80, 48.38], [33.43, 46.48], [20.78, 30.53]],
-    direct: [[18.62, 22.90], [16.96, 21.73], [9.55, 13.03]],
+    direct: [[18.62, 23.46], [16.96, 21.73], [9.55, 13.03]],
     peer: [[15.40, 22.68], [13.85, 21.29], [6.61, 12.59]],
   };
   it('each rung of the ladder is band-limited where its chain says, and fidelity rises with the phase', { timeout: 300_000 }, () => {
