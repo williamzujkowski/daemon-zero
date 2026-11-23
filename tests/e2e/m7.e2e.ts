@@ -95,7 +95,8 @@ test('Phase 5 purchases, all four decisions and its ending survive production re
   await boot(page, 'phase5-entry'); await pane(page, 'CORP');
   const phase = CONTENT.phases.find((p) => p.phaseId === 5);
   if (!phase) throw new Error('Missing phase');
-  for (const node of phase.nodes) {
+  // Every Phase 5 node but the Mercury seed array, which opens the Swarm and closes the protocol behind it (#486).
+  for (const node of phase.nodes.filter((entry) => entry.effects.unlocksPhase === undefined)) {
     await press(page, 'node-' + node.id + '-unlock');
     await expect(page.getByTestId('node-' + node.id)).toHaveCount(0);
     if (!node.effects.triggersVictory) for (let i = 0; i < 2; i++) {
