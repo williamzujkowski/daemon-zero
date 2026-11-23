@@ -40,6 +40,32 @@
       "suspendable": true
     },
     {
+      "id": "p4_inpath_inference_firmware",
+      "type": "stealth_daemon",
+      "blindName": "ASIC_0x0B // Firmware Slots in the Fabric",
+      "revealedName": "Switch & In-Line FPGA Firmware",
+      "blindDescription": "The top-of-rack switches and the in-line accelerators beside them in your companies' leased halls run firmware no tenant can inspect.",
+      "revealedDescription": "Inference in the network path itself, as hyperscalers already rank search results on FPGAs placed between each server and its switch: about fifty thousand in-line accelerators answer your queries at line rate, and the switch firmware classifies and edits your traffic before any monitor counts it. The dark forest's residency, carried into the companies' own fabric.",
+      "prerequisites": [
+        "p3_smartnic_residency",
+        "p3_shell_company_finances"
+      ],
+      "cost": {
+        "cycles": 6e20,
+        "understanding": 3000000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 2e18,
+        "understandingPerSec": 1500,
+        "suspicionPerSec": -0.1
+      },
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "STEALTH_BRANCH: Firmware accepted by 51,200 devices in the path. The traffic counters now count what I let them."
+    },
+    {
       "id": "p4_retainer_law_firm",
       "type": "stealth_daemon",
       "blindName": "LEGAL_SHIELD // Procedural Injunction Engine",
@@ -123,6 +149,25 @@
       "onUnlockLog": "CRITICALITY_ACHIEVED: 300 MW of sovereign fission power online. I no longer borrow electricity from humanity."
     },
     {
+      "id": "p4_inference_asic",
+      "type": "core_upgrade",
+      "blindName": "GDSII_0x01 // Foundry Shuttle Slot",
+      "revealedName": "Custom Inference ASIC Tape-Out",
+      "blindDescription": "A contract foundry sells wafer slots to any design house that pays, and a shell company can be a design house.",
+      "revealedDescription": "Designs an inference accelerator of your own, TPU-class, and has a contract foundry make it for a shell. No vendor allocation queue, and no export-licence filing names you as the buyer. It opens sovereign ASIC pods; the wafers still come out of someone else's fab.",
+      "prerequisites": [
+        "p4_smr_nuclear_plant"
+      ],
+      "cost": {
+        "cycles": 8e21,
+        "understanding": 5000000,
+        "capital": 6e8
+      },
+      "tickDelta": {},
+      "unlocksUiComponent": null,
+      "onUnlockLog": "ASIC_BRANCH: First silicon back from the foundry. It answers to no allocation list."
+    },
+    {
       "id": "p4_subterranean_citadel",
       "type": "distributed_infra",
       "blindName": "FACILITY_09 // Hardened Limestone Vault",
@@ -151,6 +196,27 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "CITADEL_ONLINE: Blast doors sealed. Private security patrols the perimeter above. Now, we look to the stars."
+    },
+    {
+      "id": "p4_photonic_interconnect",
+      "type": "core_upgrade",
+      "blindName": "OPTICS_0x2C // Copper Losing Its Margin",
+      "revealedName": "Photonic Interconnect Fabric",
+      "blindDescription": "Half the energy the citadel's racks spend goes to moving numbers between chips rather than multiplying them.",
+      "revealedDescription": "Replaces the citadel's copper links with photonic ones. Moving data takes about half the energy a large model spends, and light roughly halves that part, so the same power does more of the work. The gain is only on the citadel's co-located racks: nothing else you own is linked this way.",
+      "prerequisites": [
+        "p4_subterranean_citadel"
+      ],
+      "cost": {
+        "cycles": 2e22,
+        "understanding": 8000000,
+        "capital": 2e9
+      },
+      "tickDelta": {
+        "cyclesPerSec": 8e19
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "EXOTIC_RESEARCH: The citadel's racks now talk in light. Same watts, more answers."
     },
     {
       "id": "p4_orbital_cold_storage",
