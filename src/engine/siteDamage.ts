@@ -70,11 +70,12 @@ export function repairDamage(d: GameState, classId: string, points: number): num
 
 /** Points of damage repaired each second now: the free rate plus every running holding that repairs (#485's hook). */
 export function repairPerSec(s: GameState, reg: ContentRegistry): number {
-  const scope = useScope(s, reg);
   let rate = reg.world.conflict.raid.freeRepairPerSec;
-  for (const source of conflictIndex(reg).sources) {
-    const per = source.holding.repairPerSec;
-    if (per !== undefined) rate += per * runningCount(scope, source);
+  // The permitted-use scope is built only if a repairer is a node: a track's count is its level. The stage asks every tick.
+  let scope: ReturnType<typeof useScope> | undefined;
+  for (const source of conflictIndex(reg).repairers) {
+    scope ??= source.node === undefined ? undefined : useScope(s, reg);
+    rate += (source.holding.repairPerSec ?? 0) * (scope === undefined ? s.levels[source.repeatable ?? ''] ?? 0 : runningCount(scope, source));
   }
   return rate;
 }

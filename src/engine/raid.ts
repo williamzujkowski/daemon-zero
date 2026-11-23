@@ -53,6 +53,22 @@ export function raidTriggered(s: GameState, rates: Rates, reg: ContentRegistry):
   return footprint !== null && footprint.share >= reg.world.conflict.raid.trigger.visibleShareAtLeast;
 }
 
+/** The phases that author a raid, indexed once per registry: the stage asks on every tick. */
+const RAIDED_PHASES = new WeakMap<ContentRegistry, ReadonlySet<number>>();
+
+/**
+ * Whether a raid could arrive in this phase at all: some raid's tier is the phase (integrity binds each tier to its
+ * phaseAtLeast, and a later phase retires it), so the stage reads no footprint where nothing could come of it.
+ */
+export function raidPhase(s: Pick<GameState, 'currentPhase'>, reg: ContentRegistry): boolean {
+  let phases = RAIDED_PHASES.get(reg);
+  if (phases === undefined) {
+    phases = new Set(reg.world.conflict.raids.map((kind) => kind.tier));
+    RAIDED_PHASES.set(reg, phases);
+  }
+  return phases.has(s.currentPhase);
+}
+
 /** What the footprint multiplies a raid's force by: its share of the reference, held within the balance's bounds. */
 export function footprintScale(share: number, reg: ContentRegistry): number {
   const { floor, ceiling } = reg.world.conflict.raid.footprint;

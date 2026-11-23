@@ -19,6 +19,8 @@ interface Index {
   memberOf: ReadonlyMap<string, SiteClass>;
   /** Each class's member holdings. */
   members: ReadonlyMap<string, readonly Source[]>;
+  /** The holdings that repair (#485's hook). */
+  repairers: readonly Source[];
 }
 
 /** Content never changes after it is built, so the holdings are indexed once per registry. */
@@ -38,7 +40,7 @@ export function conflictIndex(reg: ContentRegistry): Index {
       memberOf.set(id, cls);
       members.set(cls.id, [...(members.get(cls.id) ?? []), source]);
     }
-    found = { sources, types: defenseTypes, classes, memberOf, members };
+    found = { sources, types: defenseTypes, classes, memberOf, members, repairers: sources.filter((source) => source.holding.repairPerSec !== undefined) };
     INDEX.set(reg, found);
   }
   return found;
