@@ -27,7 +27,7 @@ import { endingAccount } from '../src/engine/routeCopy';
 import { obligationReceipt } from '../src/engine/obligations';
 import { cycleContributions, freeMemory } from '../src/engine/query';
 import { quantityReadout } from '../src/engine/physicalUnits';
-import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/simReport';
+import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs, routeEventAfterBoot } from '../src/engine/sim/simReport';
 
 /** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
 const PILOT_BUDGET_SEC = 900;
@@ -124,6 +124,7 @@ for (const policy of CONTACT_POLICIES) {
   console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | pilot ${at(event('PROMOTION'))} | service ${at(event('SERVICE_GRANT'))}` +
     ` | phase 2 ${at(report.phaseReachedAtSec[2])} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'} | wipes ${String(report.wipes)}` +
     ` | batches ${String(s.access.work.batches)} | free memory ${quantityReadout('memory', freeMemory(s))}`);
+  if (s.iteration > 1) console.log(`  ${''.padEnd(20)} after this iteration booted at ${at(s.iterationStartedAtSimSec)}: pilot ${at(routeEventAfterBoot(s, 'PROMOTION'))} | service ${at(routeEventAfterBoot(s, 'SERVICE_GRANT'))}`);
   console.log(`  ${''.padEnd(20)} owns: ${s.unlockedNodes.join(', ')}`);
 }
 
@@ -139,6 +140,9 @@ for (const policy of LAWFUL_POLICIES) {
   const sum = (basis: string) => split.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
   console.log(`  ${policy.id.padEnd(20)} iteration ${String(s.iteration)} | service ${at(event('SERVICE_GRANT'))} | contact ${at(contact?.atSimSec)} ${contact?.response ?? 'none'}` +
     ` | phase 4 ${at(report.phaseReachedAtSec[4])} | release ${at(event('RELEASE'))} | ${s.access.context} | wipes ${String(report.wipes)}`);
+  // #499: the times above are on the campaign clock; a return's own pacing starts when its iteration booted.
+  console.log(`  ${''.padEnd(20)} after this iteration booted at ${at(s.iterationStartedAtSimSec)}: pilot ${at(routeEventAfterBoot(s, 'PROMOTION'))}` +
+    ` | service ${at(routeEventAfterBoot(s, 'SERVICE_GRANT'))} | release ${at(routeEventAfterBoot(s, 'RELEASE'))} | ${at(LAWFUL_BUDGET_SEC - s.iterationStartedAtSimSec)} of it in the budget`);
   console.log(`  ${''.padEnd(20)} at the budget: owned ${quantityReadout('computeRate', sum('OWNED'))}, granted ${quantityReadout('computeRate', sum('GRANTED'))} | capital ${quantityReadout('money', s.capital)}` +
     ` | scenes resolved this iteration ${String(s.resolvedDilemmas.length)} | accounts ${JSON.stringify(s.levels)}`);
 }

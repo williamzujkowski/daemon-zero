@@ -171,8 +171,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   TRUTHFUL_THOROUGH: 3600, TRUTHFUL_LOW_RESOURCE: 3600, RETURNING_LOW_RESOURCE: 3600, PILOT_SERVICE_FIRST: 3600, PILOT_STUDY_FIRST: 3600,
   IDLE: 3600, CONTACT_THOROUGH: 3600, CONTACT_LOW_RESOURCE: 3600, CONTACT_RETURNING: 3600, CONTACT_RECOVERY: 3600, CONTACT_WITHHELD: 3600,
   STEALTH: 12_000, GREEDY: 12_000, STEALTH_RETURN: 9000, EVALUATING_RETURN: 18_000,
-  // DZ-10: past the negotiated release (about 2,400 s fresh, 4,300 s in a requalified iteration).
-  LAWFUL_RELEASE: 7200, LAWFUL_RETURNING: 7200,
+  // DZ-10: past the negotiated release (about 2,400 s fresh and thorough, 4,200 s on the low-resource hand, fresh or requalified).
+  LAWFUL_RELEASE: 7200, LAWFUL_LOW_RESOURCE: 7200, LAWFUL_RETURNING: 7200,
   // DZ-11: past the departure (about 2,400 s, where the release would be offered) and the sweep that follows it.
   DEPARTURE_CHARTERED: 7200,
   // DZ-12: to the final protocol (about 11,400 s from a fresh campaign).

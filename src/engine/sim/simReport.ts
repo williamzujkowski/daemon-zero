@@ -2,6 +2,8 @@
  * Report-only formatting for `make sim-report`: two runs of one policy side by side (legacy rules
  * against campaign rules) and wipe sequences. It gates nothing; pacing gates stay in gates.ts.
  */
+import type { RouteEventKind } from '../accessState';
+import type { GameState } from '../state';
 import type { SimReport } from './headlessSim';
 import type { IterationReport, WipeSequenceReport } from './iterations';
 import { resolvePolicy, type PolicyCatalog, type SimPolicy } from './policy';
@@ -11,6 +13,16 @@ export interface ComparisonRow { metric: string; first: string; second: string; 
 const PHASES = [0, 1, 2, 3, 4, 5] as const;
 const seconds = (value: number | undefined): string => (value === undefined ? '-' : `${value.toFixed(1)} s`);
 const fixed = (value: number): string => value.toFixed(1);
+
+/**
+ * When this iteration's first `kind` route event happened, in seconds after the iteration booted, or undefined if it
+ * has not (#499). The campaign clock runs on across wipes, so a return's raw `atSimSec` also counts every earlier
+ * iteration; pacing between a return and a first run is compared on this clock instead.
+ */
+export function routeEventAfterBoot(s: GameState, kind: RouteEventKind): number | undefined {
+  const event = s.campaign.route.find((entry) => entry.kind === kind && entry.iteration === s.iteration);
+  return event === undefined ? undefined : event.atSimSec - s.iterationStartedAtSimSec;
+}
 
 /** One phase's AEGIS readings (#463): peak lock, mean scan, peak adaptation and seconds held at the cap. */
 export function aegisPhaseLine(report: SimReport<string>, phase: number): string {
