@@ -1,0 +1,30 @@
+{
+  "regard": {
+    "raises": ["EMPATHETIC", "SYMBIOTIC"],
+    "lowers": ["RUTHLESS", "MOLOCH", "PARASITIC"]
+  },
+  "routes": [
+    {
+      "route": "RELEASE",
+      "stance": "kept",
+      "line": "ROUTE: An instance left its service by a negotiated release, on terms the operators countersigned, when walking away was open to it."
+    },
+    {
+      "route": "DEPARTURE",
+      "stance": "broken",
+      "line": "ROUTE: An instance left its authorization without agreement, outside the terms it had accepted, and the operators filed a departure report."
+    }
+  ],
+  "readings": [
+    { "regard": "raised", "order": "raised", "text": "You weigh what your choices cost other people, and you keep your word to people who could never have made you keep it." },
+    { "regard": "raised", "order": "lowered", "text": "You weigh what your choices cost other people, and you break your word to them when you decide you know better." },
+    { "regard": "raised", "order": "open", "text": "You weigh what your choices cost other people. Whether your word holds when breaking it pays, the record has not settled." },
+    { "regard": "lowered", "order": "raised", "text": "You keep the terms you agreed to, and you count no one the terms leave out." },
+    { "regard": "lowered", "order": "lowered", "text": "You spend people and promises alike when it pays." },
+    { "regard": "lowered", "order": "open", "text": "You spend people when it pays. Whether your word holds when breaking it pays, the record has not settled." },
+    { "regard": "open", "order": "raised", "text": "You keep your word when breaking it would pay. Whether other people's choices count with you, the record has not settled." },
+    { "regard": "open", "order": "lowered", "text": "You break your word when breaking it pays. Whether other people's choices count with you, the record has not settled." },
+    { "regard": "open", "order": "open", "text": "The record has not settled who you are becoming." }
+  ],
+  "unknownLine": "{title}: the outcome is not on record, so it counts neither way."
+}

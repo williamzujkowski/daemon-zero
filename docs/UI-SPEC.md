@@ -1021,3 +1021,34 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
 - Every route surface is held to axe, keyboard, semantics, 200% text, reduced motion and the phone
   layout contract by the route specs in [TESTING.md](TESTING.md); results and the limits of that
   evidence are in [REVIEW-ROUTE-A11Y.md](REVIEW-ROUTE-A11Y.md).
+
+## Who you are becoming (#535)
+
+The two alignment axes (DESIGN.md "Alignment: who you are becoming", `vote-1795462084705-vjr8jg8`) are shown as a
+readout, rendered by `src/ui/Becoming.tsx` from the engine's `alignmentView` only. Every sentence is a pure function
+of that view (`src/ui/alignmentText.ts`, proved in `tests/ui-becoming.spec.ts`).
+
+- **What it says.** The authored reading for the region the axes lean to (`<prefix>-reading`, set off by the accent
+  rule); once, under it, "An authored reading of the choices on record, not a measurement. The lines below are what it
+  rests on." (`<prefix>-disclaimer`); then each axis as a question with the record's counts ("REGARD, whether other
+  people's choices count with you: 3 on record for, 1 against." / "ORDER, whether you keep your word when breaking it
+  pays: kept 1, broken 2; 1 not on record."), each followed by its lines. A Regard line names the trait, its count
+  and its existing gloss (`FOR: EMPATHETIC, 2 on record (you took on a cost ...)`); an Order line names its stance and
+  the record's own line (`KEPT // PILOT TERMS: ...`, `BROKEN // ...`, `UNKNOWN // <event title>: the outcome is not on
+  record, so it counts neither way.`). An axis with nothing on record says so ("nothing on record yet", "no
+  commitment on record has been tested yet"); no number is invented and nothing is drawn as a gauge, because it is a
+  reading, not a measurement.
+- **Where.** In full on the reboot screen (`reboot-becoming`, "WHO YOU ARE BECOMING", after the retraining card and
+  before the legacy trait line, which stays), and on the ending (`ending-becoming`, "WHO YOU BECAME", after ON THE
+  RECORD). The always-available compact form is a folded reference panel closing the CORE pane after `UNITS`
+  (`becoming-note`, toggle `reference-becoming`, `[ + ] WHO YOU ARE BECOMING`), present only once anything on record
+  speaks to either axis (an unknown outcome included), so the opening is unchanged.
+- **Layout rules kept.** No widget id, tab, HUD item, scroll container or fixed height is added; the CORE form is one
+  line until opened, after every CORE block (the purchases keep their place above the fold); the reboot readout sits
+  inside the reboot body, which already scrolls with Continue pinned in its footer. Text uses the three content sizes.
+  The heading is a muted header like ON THE RECORD.
+- **Updates.** The readout re-reads the store on every change: a recorded choice changes it at once, and a wipe
+  keeps it, because campaign evidence counts once across wipes.
+- **Tests.** Engine `tests/alignment.spec.ts`; content `tests/alignment-integrity.spec.ts`; UI
+  `tests/ui-becoming.spec.ts`; served build `tests/e2e/becoming.e2e.ts` (phone and desktop: the folded CORE panel
+  opens to the readout, the reboot and the ending show it, each axe clean, no horizontal scroll).
