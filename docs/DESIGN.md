@@ -162,9 +162,10 @@ they show to the humans, not only in how much they yield:
 - **ASIC branch (Phase 4):** a tape-out at a contract foundry, then pods of the AI's own chips, cheaper to run per
   operation and bought from no allocation list. Fabs of its own are Scale 14 (#485).
 - **SRAM and wafer-scale (late Phase 4):** fast thought (understanding) and modest compute, no memory.
-- **Exotic research (Phases 4-5):** photonic interconnect on the citadel, neuromorphic cores in the collector swarm,
-  compute-in-memory in the fog. Each needs the hardware it improves and adds a modest share of that hardware's compute
-  at the same power, never a jump.
+- **Exotic research (Phases 4-5):** photonic interconnect on the citadel and compute-in-memory in the fog, each a
+  modest share of the hardware it improves added at the same power, never a jump; and neuromorphic cores in the
+  collector swarm, which add no compute (no dense 8-bit figure exists for them) but give the swarm faster senses
+  (understanding) for 2.6 GW.
 
 Hardware that cannot be suspended carries noise only as a one-off trace (the free-fallback invariant). Computronium is
 Phase 6 (#486) and quantum stays a side branch (#464). Anchors and pacing: BALANCE.md, "Accelerator tree (#483)".

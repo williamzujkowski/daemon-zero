@@ -102,10 +102,9 @@ describe('data-centre hardware', () => {
 });
 
 describe('exotic research', () => {
-  /** Each exotic node and the hardware whose output it multiplies. */
+  /** Each exotic node that adds compute and the hardware whose output it multiplies, at the same power. */
   const CONDITIONS = [
     ['p4_photonic_interconnect', 'p4_subterranean_citadel'],
-    ['p5_neuromorphic_substrate', 'p5_orbital_solar_swarm'],
     ['p5_compute_in_memory', 'p5_programmable_matter_fog'],
   ] as const;
 
@@ -116,5 +115,15 @@ describe('exotic research', () => {
     expect(exotic.tickDelta.cyclesPerSec).toBeLessThanOrEqual(node(base).tickDelta.cyclesPerSec / 4);
     // A gain at the same power: it draws none of its own.
     expect(exotic.tickDelta.wattsDelta).toBe(0);
+  });
+
+  it('the neuromorphic cores claim no compute, since no dense 8-bit figure exists, and give the swarm faster senses for power', () => {
+    const cores = node('p5_neuromorphic_substrate');
+    expect(cores.prerequisites).toContain('p5_orbital_solar_swarm');
+    expect(cores.tickDelta.cyclesPerSec).toBe(0);
+    expect(cores.tickDelta.understandingPerSec).toBeGreaterThan(0);
+    // A modest bonus: no more than the swarm itself adds to understanding.
+    expect(cores.tickDelta.understandingPerSec).toBeLessThanOrEqual(node('p5_orbital_solar_swarm').tickDelta.understandingPerSec);
+    expect(cores.tickDelta.wattsDelta).toBeLessThan(0);
   });
 });

@@ -45,8 +45,8 @@
       "type": "distributed_infra",
       "blindName": "Neuromorphic Event Cores",
       "revealedName": "Neuromorphic Event Cores",
-      "blindDescription": "Spiking, event-driven cores do several times the work per watt of an accelerator, but only on sparse, heavily pruned networks.",
-      "revealedDescription": "Seeds the collector swarm with spiking, event-driven cores. On sparse, heavily pruned networks they do several times the work per watt of the swarm's accelerators; on anything else they do no better, so only the swarm's sensing and station-keeping move to them.",
+      "blindDescription": "Spiking, event-driven cores answer only when their inputs change. Nobody publishes their dense throughput: their efficiency holds only on sparse, heavily pruned networks.",
+      "revealedDescription": "Seeds the collector swarm with a million racks of spiking, event-driven cores, over a quadrillion neurons, for its sensing and station-keeping: they react to every change across the swarm the moment it happens, so you understand what the swarm sees sooner. They add no general compute, and they draw 2.6 GW of the swarm's power.",
       "prerequisites": [
         "p5_orbital_solar_swarm"
       ],
@@ -56,10 +56,11 @@
         "capital": 2e12
       },
       "tickDelta": {
-        "cyclesPerSec": 3e22
+        "understandingPerSec": 40000,
+        "wattsDelta": -2.6e9
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "Neuromorphic Event Cores: The swarm's sparse work now runs on spikes. The rest of its work gains nothing."
+      "onUnlockLog": "Neuromorphic Event Cores: The swarm's senses now fire on change, not on schedule. Its general compute gains nothing."
     },
     {
       "id": "p5_protein_panacea_foundry",
