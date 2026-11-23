@@ -1878,12 +1878,15 @@ and afterwards set the revenue dial to the ledger's 40% button and buy shared ac
 The controls' values live in `src/ui/actuatorSteps.ts` (the revenue buttons, and the 0.1 dial step, whose press
 `steppedValue` lives in `src/engine/dialSteps.ts` so the sim bot presses the same one without importing UI, #293),
 which `tests/sim-reachable.spec.ts` reads to refuse any dial value no rendered control produces. `make sim-report` prints their route times.
+`LAWFUL_LOW_RESOURCE` (#499) is the same economy on the low-resource hand from a fresh campaign: RETURNING plays it
+exactly from iteration two, so a return's pacing is read against it, on the iteration's own clock
+(`routeEventAfterBoot` in `sim/simReport.ts`), since route events record the campaign clock, which runs on across wipes.
 
 Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
 inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
 by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-content.spec.ts` (integrity corruption and
 the inventory), the DZ-10 states in `channel-contact-load.spec.ts`, `ui-release.spec.ts`, `sim-lawful.spec.ts` (V21,
-V22, H30) and `tests/e2e/lawful-release.e2e.ts`.
+V22, H30), `sim-lawful-return-pacing.spec.ts` (#499) and `tests/e2e/lawful-release.e2e.ts`.
 
 ## Deliberate departure from authorization (#231)
 
