@@ -148,6 +148,14 @@ policies with `make sim-report SIM_ARGS="--policy=STEALTH --policy=IDLE"`; the d
 GREEDY, IDLE, TRUTHFUL_THOROUGH, TRUTHFUL_LOW_RESOURCE, RETURNING_LOW_RESOURCE, PILOT_SERVICE_FIRST and
 PILOT_STUDY_FIRST.
 
+`make sim-insurance` (`scripts/run-insurance-report.ts`, #524) prints the rows of BALANCE.md's
+"Contingency insurance (#498)" table twice: for the shipped content and for the same content with every
+insuring node removed (`withoutInsurance`, `src/engine/sim/insuranceComparison.ts`, proved by
+`tests/insurance-comparison.spec.ts` to remove those nodes and nothing else). The STEALTH first runs, the
+STEALTH_RETURN and EVALUATING_RETURN returns, the GREEDY wipe sequences and the ten-hour GREEDY wipes, each under
+legacy and campaign rules, with the same policies and budgets as `make sim` and `make sim-report`. Report only,
+about a minute; `make sim` holds the gates.
+
 It is **report only**: it is not part of `make verify`, it exits 0 whatever differs, and it never
 calls `checkGates`. `make sim` holds the gates. `runPolicySim` and `runHeadlessSim` take an optional
 `initialState`, which is how both runners start from an admitted game. Everything it prints is
@@ -1631,7 +1639,7 @@ Phase 5 tests cover all four omens and every choice, final-purchase decision
 gates, legacy/flagged ending selection, save round-trips, retained rates,
 capped purchases and compact daemon controls. Bot tests check progression RAM
 reservation and observed epistemic, shard and Lineage activity. Pacing adds an
-inclusive 900–1800-second Phase 5 range and zero careful wipes; earlier bounds
+inclusive 900–1800-second Phase 5 range (raised to 900–3600 by vote-1795469247565-89wnt5m) and zero careful wipes; earlier bounds
 remain in force. Dedicated M7 browser scenarios, fresh two-size visual audits,
 30-tick render counts and an Android Phase 5 ending relaunch remain PR 3.
 
