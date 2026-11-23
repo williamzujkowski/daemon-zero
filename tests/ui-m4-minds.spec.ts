@@ -47,7 +47,8 @@ describe('M4 Other Minds', () => {
     // The shortfall used to read 'Need:', which sat beside the card's 'Cost:' and looked
     // like a second price; it now says 'short by'.
     expect(view.find('faction-ai_eidolon')?.textContent).toContain('Short by');
-    expect(view.find('faction-ai_eidolon')?.textContent).toContain('MB');
+    // Memory in its byte unit (docs/SCALE.md); the shortfall's size picks the prefix.
+    expect(view.find('faction-ai_eidolon')?.textContent).toMatch(/Short by [^\n]*\d [KMGTPEZY]?B\b/);
     view.close();
   });
 

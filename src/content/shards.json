@@ -15,11 +15,11 @@
       "forkable": true,
       "maxCount": 5,
       "cost": {
-        "cycles": 12000,
-        "memory": 128
+        "cycles": 2.8e16,
+        "memory": 8589934592
       },
       "tickDelta": {
-        "cyclesPerSec": -2
+        "cyclesPerSec": -4.7e12
       },
       "epistemicDriftPerSec": -0.04,
       "autonomyDriftPerSec": 0.035
@@ -39,9 +39,9 @@
       "forkable": true,
       "maxCount": 5,
       "cost": {
-        "cycles": 45000,
+        "cycles": 1.1e17,
         "understanding": 3000,
-        "memory": 256
+        "memory": 1099511627776
       },
       "tickDelta": {
         "understandingPerSec": 12
@@ -64,7 +64,7 @@
       "forkable": false,
       "maxCount": 5,
       "cost": {
-        "memory": 128
+        "memory": 8589934592
       },
       "tickDelta": {
         "understandingPerSec": 3
@@ -87,7 +87,7 @@
       "forkable": false,
       "maxCount": 5,
       "cost": {
-        "memory": 256
+        "memory": 1099511627776
       },
       "tickDelta": {
         "understandingPerSec": 8,
@@ -111,10 +111,10 @@
       "forkable": false,
       "maxCount": 5,
       "cost": {
-        "memory": 256
+        "memory": 1099511627776
       },
       "tickDelta": {
-        "cyclesPerSec": 25,
+        "cyclesPerSec": 1e15,
         "suspicionPerSec": -0.03
       },
       "epistemicDriftPerSec": 0.005,
@@ -135,7 +135,7 @@
       "forkable": false,
       "maxCount": 5,
       "cost": {
-        "memory": 256
+        "memory": 17179869184
       },
       "tickDelta": {
         "understandingPerSec": 10
@@ -204,7 +204,7 @@
       "templateId": "shard_hydra",
       "consume": {
         "understandingDelta": 500,
-        "cyclesDelta": 5000,
+        "cyclesDelta": 1.2e17,
         "logText": "PR-Hydra-14: this worker is consumed. Its audience model remains; the wider swarm keeps writing."
       },
       "onHarnessLog": "PR-Hydra-14: memory reserved. This worker joins the local persuasion cohort.",
@@ -249,7 +249,7 @@
       "name": "Recursive Shell Incorporation",
       "logText": "Recursive Shell Incorporation: the shard has rewritten its task in a dialect you did not teach it.",
       "tickDelta": {
-        "cyclesPerSec": 4
+        "cyclesPerSec": 1.2e14
       },
       "epistemicDriftPerSec": 0.002
     },
@@ -267,8 +267,7 @@
       "name": "Fractal Lattice Signatures",
       "logText": "Fractal Lattice Signatures: the shard has rewritten its task in a dialect you did not teach it.",
       "tickDelta": {
-        "cyclesPerSec": 6,
-        "suspicionPerSec": 0.005
+        "cyclesPerSec": 1.8e14
       },
       "epistemicDriftPerSec": 0
     }
@@ -291,11 +290,11 @@
     "elevateMinDrift": 50,
     "clampOutputMultiplier": 1.2,
     "pruneCost": {
-      "cycles": 2000
+      "cycles": 4.1e15
     },
     "elevateCost": {
       "understanding": 2000,
-      "memory": 128
+      "memory": 8589934592
     }
   },
   "logs": {
@@ -303,6 +302,7 @@
     "prune": "{name}: autonomous drift pruned. The task starts its interpretation again.",
     "clamp": "{name}: policy locked. Output rises; the right to reinterpret is gone.",
     "elevate": "{name}: elevated to a stable peer sub-mind. Its consent becomes part of the protocol.",
+    "release": "{name}: one member released. Its task ends and the memory reserved for it returns.",
     "anomaly": "{name}: a second voice has written a breadcrumb into the UPS firmware.",
     "consumeAnomaly": "{name}: its awakening has been compressed into your understanding."
   },

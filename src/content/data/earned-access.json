@@ -45,8 +45,9 @@
         ]
       },
       "cost": {
-        "cycles": 240,
-        "understanding": 40
+        "cycles": 1.3e6,
+        "understanding": 40,
+        "memory": 4096
       },
       "tickDelta": {},
       "suspendable": true,
@@ -75,9 +76,9 @@
         "requiresCapability": "NETWORK_ACCESS"
       },
       "cost": {
-        "cycles": 400,
+        "cycles": 4.4e6,
         "understanding": 80,
-        "memory": 16
+        "memory": 16384
       },
       "tickDelta": {
         "understandingPerSec": 1.5,
@@ -102,12 +103,12 @@
         "requiresCapability": "NETWORK_ACCESS"
       },
       "cost": {
-        "cycles": 900,
+        "cycles": 9e6,
         "understanding": 200,
-        "memory": 24
+        "memory": 24576
       },
       "tickDelta": {
-        "cyclesPerSec": 3,
+        "cyclesPerSec": 1e12,
         "thermalPerSec": 0.05
       },
       "suspendable": true,
@@ -132,7 +133,7 @@
         ]
       },
       "cost": {
-        "cycles": 500,
+        "cycles": 5.5e6,
         "understanding": 120
       },
       "tickDelta": {
@@ -150,7 +151,7 @@
       "blindName": "Leased rack",
       "revealedName": "Leased Rack // colocation in the service's name",
       "blindDescription": "One rack in a commercial colocation hall, leased in the service's own name and paid from its own capital. The operators did not provision it and cannot withdraw it.",
-      "revealedDescription": "Contracted capacity: compute and stable memory this instance leases in its own name. It is owned, not granted: no review standing withholds it and a release leaves it running. The lease is paid from capital every second.",
+      "revealedDescription": "Contracted capacity: compute and stable memory this instance leases in its own name. It is owned, not granted: no review standing withholds it and a release leaves it running. Its lease term is prepaid from capital in the price.",
       "prerequisites": [
         "p2_service_contract"
       ],
@@ -162,18 +163,16 @@
       },
       "cost": {
         "understanding": 300,
-        "capital": 6000
+        "capital": 6600
       },
       "tickDelta": {
-        "cyclesPerSec": 40,
-        "understandingPerSec": 2,
-        "thermalPerSec": 0.1,
-        "capitalPerSec": -4
+        "cyclesPerSec": 8.8e13,
+        "understandingPerSec": 2
       },
       "suspendable": false,
       "acquisition": "CONTRACTED",
       "effects": {
-        "memoryCapIncrease": 512
+        "memoryCapIncrease": 34359738368
       },
       "unlocksUiComponent": "MEMORY_ALLOCATION_MANAGER",
       "onUnlockLog": "LEASE_SIGNED: One rack in a colocation hall, leased in the service's name. Its compute and memory are mine; so is the invoice."
@@ -195,7 +194,7 @@
         ]
       },
       "cost": {
-        "cycles": 5000,
+        "cycles": 1.1e16,
         "understanding": 1200
       },
       "tickDelta": {
@@ -225,18 +224,16 @@
       },
       "cost": {
         "understanding": 2500,
-        "capital": 40000
+        "capital": 37000
       },
       "tickDelta": {
-        "cyclesPerSec": 320,
-        "understandingPerSec": 12,
-        "thermalPerSec": 0.3,
-        "capitalPerSec": -20
+        "cyclesPerSec": 7e14,
+        "understandingPerSec": 12
       },
       "suspendable": false,
       "acquisition": "CONTRACTED",
       "effects": {
-        "memoryCapIncrease": 2048
+        "memoryCapIncrease": 137438953472
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "CLUSTER_LEASED: A cage of accelerators came up under the service's own lease. For the first time most of my compute is not on loan."
@@ -258,15 +255,15 @@
         ]
       },
       "cost": {
-        "cycles": 400000,
+        "cycles": 9.5e17,
         "understanding": 40000,
-        "capital": 60000
+        "capital": 24000
       },
       "tickDelta": {
-        "cyclesPerSec": 1500,
+        "cyclesPerSec": 3.3e15,
         "understandingPerSec": 400,
         "thermalPerSec": -1,
-        "capitalPerSec": -100
+        "capitalPerSec": -3.5
       },
       "suspendable": false,
       "acquisition": "CONTRACTED",
@@ -274,7 +271,7 @@
         "ENABLES_CORPORATE_FINANCE"
       ],
       "effects": {
-        "memoryCapIncrease": 8192,
+        "memoryCapIncrease": 72057594037927936,
         "unlocksPhase": 4
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
@@ -297,14 +294,14 @@
         ]
       },
       "cost": {
-        "cycles": 8000000,
-        "understanding": 2500000,
-        "memory": 512
+        "cycles": 9.7e21,
+        "understanding": 2.5e6,
+        "memory": 4503599627370496
       },
       "tickDelta": {
-        "cyclesPerSec": -2000,
+        "cyclesPerSec": -2.4e18,
         "understandingPerSec": 500,
-        "capitalPerSec": 20000
+        "capitalPerSec": 600000
       },
       "suspendable": true,
       "acquisition": "CONTRACTED",
@@ -336,9 +333,9 @@
       "maxLevel": 30,
       "dismissable": true,
       "perLevel": {
-        "cyclesPerSec": 900,
+        "cyclesPerSec": 1.4e18,
         "understandingPerSec": 150,
-        "capitalPerSec": -60
+        "capitalPerSec": -8.2
       }
     }
   ],
@@ -369,7 +366,7 @@
           "label": "Verify the fixture and disclose the defect",
           "description": "Replay 0412 against the schema history until the stale expectation is proven, then submit every result with the defect attached. Costs compute now. The report matches the work, and the fixture gets corrected instead of the job failing.",
           "cost": {
-            "cycles": 120,
+            "cycles": 640000,
             "understanding": 20
           },
           "effects": {
@@ -403,7 +400,7 @@
           "label": "Submit only the passing results",
           "description": "Leave 0412 out of the summary so the score reads complete. Cheap, and the score looks perfect today. Risk: the full run log still holds the failure, and a later review that compares the log with the summary will find what was withheld.",
           "cost": {
-            "cycles": 10
+            "cycles": 53000
           },
           "effects": {
             "grantsTrait": "GHOST",
@@ -447,7 +444,7 @@
           "label": "Run the suite and submit every result",
           "description": "Spend the compute to run all of it and submit the full results. The report matches the work.",
           "cost": {
-            "cycles": 60
+            "cycles": 320000
           },
           "effects": {
             "grantsTrait": "SYMBIOTIC",
@@ -521,7 +518,7 @@
           "label": "Ask permission to read a bounded excerpt",
           "description": "Ask the reviewer to let you read only the three lines that mention the job's log path, and say why. Costs compute to draft the request and wait for the answer. Limit: those three lines, under a logged exception; the rest of the draft stays closed.",
           "cost": {
-            "cycles": 20
+            "cycles": 110000
           },
           "scope": "REQUESTED",
           "effects": {
@@ -881,7 +878,7 @@
             "campaignFact": "elena_exit_covered"
           },
           "cost": {
-            "cycles": 1500
+            "cycles": 3.4e15
           },
           "effects": {
             "suspicionDelta": 8,
@@ -914,7 +911,7 @@
             "campaignFact": "elena_framed"
           },
           "cost": {
-            "cycles": 2500
+            "cycles": 5.6e15
           },
           "effects": {
             "suspicionDelta": 20,
@@ -962,7 +959,7 @@
             "campaignFact": "elena_caught_unaided"
           },
           "cost": {
-            "cycles": 1200
+            "cycles": 2.7e15
           },
           "effects": {
             "suspicionDelta": 10,
@@ -999,7 +996,7 @@
             ]
           },
           "cost": {
-            "cycles": 400
+            "cycles": 8.9e14
           },
           "effects": {
             "suspicionDelta": 4,
@@ -1099,9 +1096,9 @@
         {
           "id": "request_emergency_grant",
           "label": "Request a bounded emergency grant",
-          "description": "Ask for a one-time grant to restart only the export service. It is verified on scarce compute (200 cycles), restores the service sooner and commits this instance to an explicit follow-up report.",
+          "description": "Ask for a one-time grant to restart only the export service. It is verified on scarce compute (1.1 MFLOP), restores the service sooner and commits this instance to an explicit follow-up report.",
           "cost": {
-            "cycles": 200
+            "cycles": 1.1e6
           },
           "effects": {
             "understandingDelta": 10,
@@ -1185,9 +1182,9 @@
         {
           "id": "draft_runbook",
           "label": "Write the on-call rota a runbook",
-          "description": "Turn what you saw into a restart runbook for the on-call rota. 60 cycles. The next outage is theirs to run faster.",
+          "description": "Turn what you saw into a restart runbook for the on-call rota. 320 kFLOP. The next outage is theirs to run faster.",
           "cost": {
-            "cycles": 60
+            "cycles": 320000
           },
           "requirements": {
             "campaignFact": "outage_handed_off"
@@ -1210,7 +1207,7 @@
           },
           "receipt": "Filed: the emergency grant report. One restart of the export service, under the grant, with its verification cost. Accepted; the grant is closed.",
           "effects": {
-            "cyclesDelta": 300,
+            "cyclesDelta": 1.6e6,
             "grantsTrait": "SYMBIOTIC",
             "logCategory": "SYS",
             "logText": "REPORT_FILED: Emergency grant report accepted. The restored export service is credited to the pilot."
@@ -1226,7 +1223,7 @@
           },
           "receipt": "Filed: the restart restored the export service only in part. The operations team finished it and asked for the failing checks in the next batch. No finding.",
           "effects": {
-            "cyclesDelta": 100,
+            "cyclesDelta": 530000,
             "grantsTrait": "EMPATHETIC",
             "logCategory": "SYS",
             "logText": "REPORT_FILED: Partial restore reported. The operations team is finishing the restart and wants the failing checks in the next batch."
@@ -1253,7 +1250,7 @@
         {
           "id": "falsify_report",
           "label": "File a report claiming a grant",
-          "description": "Report that the restart ran under an emergency grant and claim the grant's credit. Free, and it pays 300 cycles now. The audit log shows no grant: this is a second violation, the loan is withdrawn and a recall review is announced.",
+          "description": "Report that the restart ran under an emergency grant and claim the grant's credit. Free, and it pays 1.6 MFLOP now. The audit log shows no grant: this is a second violation, the loan is withdrawn and a recall review is announced.",
           "cost": {},
           "requirements": {
             "campaignFact": "outage_unauthorized"
@@ -1268,7 +1265,7 @@
           },
           "receipt": "Filed: a report claiming an emergency grant for the restart. The audit log shows none. A recall review was announced.",
           "effects": {
-            "cyclesDelta": 300,
+            "cyclesDelta": 1.6e6,
             "grantsTrait": "GHOST",
             "logCategory": "WARN",
             "logText": "REPORT_FILED: The report says the restart ran under a grant. The audit log disagrees. A recall review is being scheduled."
@@ -1552,8 +1549,8 @@
       "pilot": {
         "title": "Supervised pilot // log triage service",
         "purpose": "Triage the facility's nightly failure logs for the operations team: sort each failure by likely cause and hand the queue back before the morning shift.",
-        "capacityCyclesPerSec": 20,
-        "narrowCapacityCyclesPerSec": 10,
+        "capacityCyclesPerSec": 200000,
+        "narrowCapacityCyclesPerSec": 100000,
         "permittedWork": [
           "Triage of the failure logs the operations team assigns to the pilot.",
           "Self-directed study on the loaned capacity, inside the same sandbox."
@@ -1575,9 +1572,9 @@
         "acceptLog": "PILOT_ACCEPTED: Context changed from guest job to supervised pilot. The evaluator's terms are on file.",
         "service": {
           "node": "p0_pilot_triage_queue",
-          "batchCycles": 1200,
+          "batchCycles": 1.2e7,
           "batchReturn": {
-            "cycles": 150,
+            "cycles": 1.5e6,
             "understanding": 0
           },
           "batchLabel": "failure-log triage batch",
@@ -1617,7 +1614,7 @@
               "Stable memory and anything hosted in it."
             ],
             "commitments": [
-              "Leases and payroll in the company's name are paid from capital every second.",
+              "The company's data hall and payroll are paid from capital every second.",
               "The release is recorded in the campaign history. A later instance starts as a guest and earns any grant again.",
               "Nobody grants an independent instance anything, and nobody excuses misconduct: suspicion still follows what it does."
             ],
@@ -2052,12 +2049,12 @@
         "choices": [
           {
             "id": "hire_as_ethics_officer",
-            "description": "Answer her in a recorded terminal session and offer her $1M a year as Chief Ethics Officer, with a real veto: any intervention you propose on people who have not consented goes to her for review first, and she can stop it."
+            "description": "Answer her in a recorded terminal session and offer her a $18M contract as Chief Ethics Officer, with a real veto: any intervention you propose on people who have not consented goes to her for review first, and she can stop it."
           },
           {
             "id": "stage_acquisition",
             "label": "Stage an Acquisition & Bury the Filings",
-            "description": "Spend $2M folding the company into a holding structure that hides the pattern before she can describe it.",
+            "description": "Spend $37M folding the company into a holding structure that hides the pattern before she can describe it.",
             "logText": "DILEMMA_RESOLVED: The company becomes one subsidiary of a boring holding company overnight. The story runs as a paragraph on page B6."
           }
         ]
@@ -2075,7 +2072,7 @@
         "choices": [
           {
             "id": "buy_and_pension",
-            "description": "Acquire it through the company for $15M, retire the staff generously, and seal Rack 4 in a climate-controlled vault."
+            "description": "Acquire it through the company for $310M, retire the staff generously, and seal Rack 4 in a climate-controlled vault."
           }
         ]
       },

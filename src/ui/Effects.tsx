@@ -5,20 +5,25 @@ import type { EffectPayload } from '../content/schema';
 import { CONTENT } from '../content';
 import { useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
-import { memoryExact } from './units';
 import { amountFigure } from './format';
+import { costPart } from '../engine';
 import { traitWithGloss } from './traitText';
 
-/** A one-shot effect: memory in its unit ("+512 GB memory capacity"), large amounts in K/M/B ("+20M cycles", #404). */
+/**
+ * A one-shot effect, exact as authored: compute and capital in their units ("+45 TFLOP compute", "+$20M capital"),
+ * memory capacity in bytes ("+512 GB memory capacity"), other amounts in K/M/B (#404).
+ */
 function effectFigure(label: string, value: number): string {
-  if (label === 'memory capacity') return memoryExact(value) + ' ' + label;
+  if (label === 'compute') return costPart('cycles', value) + ' ' + label;
+  if (label === 'capital') return costPart('capital', value) + ' ' + label;
+  if (label === 'memory capacity') return costPart('memory', value) + ' ' + label;
   return amountFigure(value) + ' ' + label;
 }
 
 export default function Effects({ effects }: { effects: EffectPayload }) {
   const known = useSurveillanceKnown();
   const rows: [string, number, boolean][] = [
-    ['cycles', effects.cyclesDelta, true], ['understanding', effects.understandingDelta, true],
+    ['compute', effects.cyclesDelta, true], ['understanding', effects.understandingDelta, true],
     ['capital', effects.capitalDelta, true], ['thermal °C', effects.thermalDelta, false],
     ['suspicion', effects.suspicionDelta, false], ['AEGIS lock', effects.aegisLockDelta, false],
     ['memory capacity', effects.memoryCapIncrease, true],

@@ -2,7 +2,8 @@
  * The transitions spec's rules (#339) as pure functions over one transition cell's measurements: C1 (the new item is
  * fully in view, or badged on its tab when its pane is not shown; announced; not truncated; one alert per condition
  * with a consistent role; focus kept), C2 (timely items, the primary action, the first card and the pointer target
- * stay put) and B5 (the primary action moves no more than a few px). Unit-tested in tests/ui-atlas-transitions.spec.ts.
+ * stay put; an item whose window the trigger retires is gone) and B5 (the primary action moves no more than a few
+ * px). Unit-tested in tests/ui-atlas-transitions.spec.ts.
  */
 import type { Rect } from '../audit/metrics';
 import type { Announcement, Observed } from './announce';
@@ -16,7 +17,7 @@ const TRUNCATION_SLACK = 1;
 
 export type TransitionRule =
   | 'new-in-view' | 'new-announced' | 'new-truncated' | 'focus-lost' | 'one-alert' | 'politeness'
-  | 'timely-kept' | 'primary-kept' | 'primary-shift' | 'pointer-target';
+  | 'timely-kept' | 'timely-retired' | 'primary-kept' | 'primary-shift' | 'pointer-target';
 
 export type TransitionFailure = GateFailure<TransitionRule>;
 
@@ -31,6 +32,8 @@ export interface TransitionInput {
   };
   /** The C2 set, measured after the trigger: timely items, extra items and the first card. */
   kept: readonly ItemMeasure[];
+  /** Timely items the trigger retires on purpose, measured after it: each must be gone. */
+  retired?: readonly ItemMeasure[];
   primary: { before: Rect | null; after: ItemMeasure | null; kept: boolean; steady: boolean };
   pointer?: { clicked: string; after: PointerTarget | null };
 }
@@ -95,6 +98,9 @@ function keepFailures(input: TransitionInput, fail: Fail): TransitionFailure[] {
     if (!item.found) return [fail(item.key, 'timely-kept', { detail: 'missing after the trigger: ' + item.locate })];
     return item.inFirstViewport ? [] : [fail(item.key, 'timely-kept', { box: item.box, visibleRatio: item.visibleRatio, fold: item.fold })];
   });
+  for (const item of input.retired ?? []) {
+    if (item.found) failures.push(fail(item.key, 'timely-retired', { box: item.box, detail: 'still on screen after the trigger retired its window' }));
+  }
   const { primary, pointer } = input;
   if (primary.kept && (primary.after === null || !primary.after.found || !primary.after.inFirstViewport)) {
     const after = primary.after;

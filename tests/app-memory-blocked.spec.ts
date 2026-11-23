@@ -18,11 +18,13 @@ it('is false when a pending purchase fits and true when none does', () => {
     .map((node) => node.cost.memory);
   expect(pending.length, 'the fixture has memory-costing pending nodes').toBeGreaterThan(0);
   const cheapest = Math.min(...pending);
+  // A pool in bytes a single byte still moves: rich()'s 2^75-byte cap rounds a byte away.
+  const sized = { ...s, memoryCap: s.memoryUsed + 2 * cheapest };
 
   // Room to spare, and exactly the boundary: free === cheapest still fits.
-  const roomy = { ...s, memoryUsed: s.memoryCap - cheapest };
+  const roomy = { ...sized, memoryUsed: sized.memoryCap - cheapest };
   expect(memoryBlocked(roomy)).toBe(false);
-  const oneByteShort = { ...s, memoryUsed: s.memoryCap - cheapest + 1 };
+  const oneByteShort = { ...sized, memoryUsed: sized.memoryCap - cheapest + 1 };
   expect(memoryBlocked(oneByteShort)).toBe(true);
 });
 

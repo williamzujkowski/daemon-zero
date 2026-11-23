@@ -7,7 +7,8 @@
 import { describe, expect, it } from 'vitest';
 import { CONTENT as PRODUCTION } from '../src/content';
 import { recordRouteEvent } from '../src/engine/access';
-import { advance, buyRepeatable, deserialize, exportSave, importSave, SCHEMA_VERSION, serialize, type GameState } from '../src/engine';
+import { advance, buyRepeatable, deserialize, exportSave, importSave, repeatableCost, SCHEMA_VERSION, serialize, type GameState } from '../src/engine';
+import { defined } from './m7-helpers';
 import { preview, roundTrip, answer as answerScene } from './assignment-helpers';
 import { acceptService, answer, contactPending, delivered, directoryMapped, GRANT_TERMS } from './contact-helpers';
 import { afterFinding } from './finding-helpers';
@@ -15,6 +16,8 @@ import { must, markedPreview } from './helpers';
 import { chartered, leased, release, released, signed } from './lawful-helpers';
 import { OUTAGE, until } from './review-helpers';
 
+/** The first leased-rack account's price, read from content. */
+const RACK_ACCOUNT = repeatableCost(defined(preview.repeatables.get('rep_p4_colo_racks')), 0).capital;
 const contract = signed();
 const rack = leased(contract);
 const hosted = must(answer(rack, 'HOST'));
@@ -28,7 +31,7 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     ['contact hosted in leased memory', hosted],
     ['chartered at Phase 4', company],
     ['released', freed],
-    ['released, then a leased rack account', must(buyRepeatable({ ...freed, capital: freed.capital + 2_000_000 }, 'rep_p4_colo_racks', preview))],
+    ['released, then a leased rack account', must(buyRepeatable({ ...freed, capital: freed.capital + RACK_ACCOUNT }, 'rep_p4_colo_racks', preview))],
     ['released, then eight hours away', advance(advance(freed, 8 * 3600, preview), 1, preview)],
   ];
   it.each(states)('%s', (_name, state) => {
@@ -38,7 +41,8 @@ describe('V12: every lawful transition reloads byte for byte', () => {
 
   it('changed no saved shape', () => {
     // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
-    expect(SCHEMA_VERSION).toBe(16);
+    // v17 (#461) re-denominated stored balances into physical units; it added no field either.
+    expect(SCHEMA_VERSION).toBe(17);
   });
 });
 

@@ -191,7 +191,13 @@ describe('DZ-11.8: release and departure at the same scale differ in history, pe
     expect(computeRates(calm(freed), preview).aegisScanPerSec).toBe(0);
     expect(computeRates(calm(gone), preview).aegisScanPerSec).toBeGreaterThan(0);
     const heat = (s: GameState): number => computeRates({ ...calm(s), thermal: 95 }, preview).suspicionPerSec - computeRates(calm(s), preview).suspicionPerSec;
-    expect([heat(freed), heat(gone) > 0]).toEqual([0, true]);
+    // A departure on the leased rack (Phase 2) has its heat read as evidence; the rack under its grant does not.
+    expect(rack.currentPhase).toBeLessThan(preview.balance.thermalRetiresAtPhase);
+    expect([heat(rack), heat(must(depart(rack))) > 0]).toEqual([0, true]);
+    // From Phase 4 the thermal model is retired into the power budget (docs/SCALE.md rule 7, #461): heat is evidence for
+    // nobody at the company's scale, so a released and a departed company draw the same nothing from it.
+    expect(gone.currentPhase).toBeGreaterThanOrEqual(preview.balance.thermalRetiresAtPhase);
+    expect([heat(freed), heat(gone)]).toEqual([0, 0]);
   });
 
   it('copy differs truthfully, and neither is called hostile', () => {

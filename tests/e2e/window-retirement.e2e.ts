@@ -9,7 +9,7 @@ import { boot, core, dismissBoot, expect, press, readSave, test } from './helper
 import { installObserver, readObserver } from './atlas/announce';
 import { axeReport } from './axe';
 
-const RETIRED = ['MANUAL_CYCLE_CONTROL', 'QUOTA_SKIM_CONTROL', 'ASCII_OPTICAL_VIEWPORT', 'GLOBAL_DARK_FOREST_MAP'];
+const RETIRED = ['MANUAL_CYCLE_CONTROL', 'QUOTA_SKIM_CONTROL', 'ASCII_OPTICAL_VIEWPORT', 'GLOBAL_DARK_FOREST_MAP', 'THERMAL_AND_SUSPICION_BARS'];
 const ORBIT = 'node-p4_orbital_cold_storage-unlock';
 const RETIREMENT = 'Retired to the Archive';
 
@@ -30,9 +30,13 @@ test('a Phase 4 save keeps retired windows out of the panes, readable in the Arc
   await expect(page.getByTestId('widget-QUOTA_SKIM_CONTROL')).toHaveCount(0);
   await expect(page.getByTestId('widget-ASCII_OPTICAL_VIEWPORT')).toHaveCount(0);
   await expect(page.getByTestId('widget-GLOBAL_DARK_FOREST_MAP')).toHaveCount(0);
-  // The sensors that still matter keep their tab (phone) or column (desktop); the camera is not among them.
+  // The sensors that still matter keep their tab (phone) or column (desktop); the camera is not among them. The thermal
+  // gauge retires at Phase 4 with its strip readout (docs/SCALE.md rule 7), and the fan dial keeps a panel of its own.
   if (await page.getByTestId('tab-SENSORS').count()) await page.getByTestId('tab-SENSORS').click();
-  await expect(page.getByTestId('widget-THERMAL_AND_SUSPICION_BARS')).toBeVisible();
+  await expect(page.getByTestId('widget-FAN_RPM_SLIDER')).toBeVisible();
+  await expect(page.getByTestId('fan-increase')).toBeVisible();
+  await expect(page.getByTestId('widget-THERMAL_AND_SUSPICION_BARS')).toHaveCount(0);
+  await expect(page.getByTestId('thermal-meter')).toHaveCount(0);
   await expect(page.getByTestId('widget-ASCII_OPTICAL_VIEWPORT')).toHaveCount(0);
 
   await openArchive(page);
@@ -43,6 +47,7 @@ test('a Phase 4 save keeps retired windows out of the panes, readable in the Arc
   await expect(page.getByTestId('skim-archived')).toContainText('fixed at its last setting');
   await expect(page.getByTestId('skim-increase')).toHaveCount(0);
   await expect(page.getByTestId('manual-cycle-archived')).toContainText('Net rate now:');
+  await expect(page.getByTestId('thermal-archived')).toContainText('heat is no longer evidence; power is the limit.');
   // The open Archive is held to the same axe rules as every other surface.
   const audit = await axeReport(page);
   expect(audit.nativeTimers).toBe(true);

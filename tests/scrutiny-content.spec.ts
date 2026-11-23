@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { ORIGINAL_RAW_CONTENT, RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError } from '../src/content/registry';
 
-const GOOD = { suspicionPerSecAtMillionUsd: 1, incomeExponent: 0.5, maxSuspicionPerSec: 2 };
+const GOOD = { suspicionPerSecAtReference: 1, referenceIncomeUsdPerSec: 1e6, incomeExponent: 0.5, maxSuspicionPerSec: 2 };
 
 type RawPhase = { phaseId: number; nodes: { tickDelta?: Record<string, number> }[] } & Record<string, unknown>;
 
@@ -36,8 +36,11 @@ describe('scale scrutiny content (#210)', () => {
 
   it('keeps the rule positive, at most linear in income, and free of unknown keys', () => {
     expect(problemsWith(4, { ...GOOD, incomeExponent: 1.5 })).toMatch(/scaleScrutiny\.incomeExponent/);
-    expect(problemsWith(4, { ...GOOD, suspicionPerSecAtMillionUsd: 0 })).toMatch(/scaleScrutiny\.suspicionPerSecAtMillionUsd/);
+    expect(problemsWith(4, { ...GOOD, suspicionPerSecAtReference: 0 })).toMatch(/scaleScrutiny\.suspicionPerSecAtReference/);
     expect(problemsWith(4, { ...GOOD, maxSuspicionPerSec: -1 })).toMatch(/scaleScrutiny\.maxSuspicionPerSec/);
+    expect(problemsWith(4, { ...GOOD, referenceIncomeUsdPerSec: 0 })).toMatch(/scaleScrutiny\.referenceIncomeUsdPerSec/);
+    const unanchored = Object.fromEntries(Object.entries(GOOD).filter(([key]) => key !== 'referenceIncomeUsdPerSec'));
+    expect(problemsWith(4, unanchored)).toMatch(/scaleScrutiny\.referenceIncomeUsdPerSec/);
     expect(problemsWith(4, { ...GOOD, perRevenue: 1 })).toMatch(/Unrecognized key/);
   });
 

@@ -212,3 +212,23 @@ the then-current baseline and history captured, nothing recaptured on reload), a
 three times with a stable codec. The ended save stays ended and legacy. Production refuses both preview
 saves atomically (X.3, `keep-refusing-preview-saves`). The preview recipes need a tree with
 `src/content/preview/`, so they can only be rerun on a commit before the release folded it.
+
+Pre-rescale inputs (#461, the physical-units re-denomination):
+Made by `scripts/release-fixtures.ts --source . --recipe production-phase-<n>` on `921c0a5` (the
+formatter branch, whose content and schema equal `main` at `9a3f157`), before any content number moved:
+the production registry, `activateCampaignRules`, STEALTH with fixed engine ticks until phase `n` is
+reached, 240 more seconds, then `serialize`. One version 15 save per phase, every balance still in the
+old units (cycles, megabytes, megawatts, unscaled dollars).
+
+| File | Phase | Simulated s | SHA256 |
+|---|---|---|---|
+| `pre-scale-v15-p0.json` | 0 | 239.2 | `1515cee671a7ac8a5e73e0a3c7d2adf7b0f0a7d7a06053691b01e23ff2deab46` |
+| `pre-scale-v15-p1.json` | 1 | 593.2 | `e45af31f5ff45d89cc09552e862a9e1a809b21e8c4af65219cc95d34128725a8` |
+| `pre-scale-v15-p2.json` | 2 | 1358.3 | `3f47e7cd6d0a9bb9a487c0dd2457d01208001759aacf90bc98bc19d40a107e02` |
+| `pre-scale-v15-p3.json` | 3 | 3397.1 | `5b6f9cc086e37389e2eb7d92c1e817f29050b4210a8f13f691c19f6346254ae4` |
+| `pre-scale-v15-p4.json` | 4 | 6337.7 | `15f22ded8dfc53413820747deba768d7de478aab13c19e7743bd01f2dbc4f9eb` |
+| `pre-scale-v15-p5.json` | 5 | 8201.3 | `2edfdad198fd2d9a7271e8986ed48822ffd1e52518266fd2011adaea3a62695e` |
+
+`tests/scale-migration.spec.ts` migrates each through the v16 (AEGIS adaptation) and v17 (re-denomination) steps: ownership, levels and history are
+kept, balances are re-denominated by the step's frozen ratios, one log line says so, the result passes
+strict validation and play continues.

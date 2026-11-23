@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT as PREVIEW, RAW_CONTENT as PREVIEW_RAW } from '../src/content';
 import { buildRegistry, type ContentRegistry } from '../src/content/registry';
 import {
-  advance, createInitialState, deserialize, MIGRATIONS, routineContext, serialize, unlockNode, wipe,
+  advance, createInitialState, deserialize, MIGRATIONS, routineContext, SCHEMA_VERSION, serialize, unlockNode, wipe,
   type GameState, type LogEntry,
 } from '../src/engine';
 import { runHeadlessSim } from '../src/engine/sim/headlessSim';
@@ -209,7 +209,7 @@ describe('lifetime and saves', () => {
     const v7 = JSON.parse(serialize(s)) as Record<string, unknown>;
     delete v7.routine;
     const loaded = deserialize(JSON.stringify({ ...v7, schemaVersion: 7 }), PREVIEW);
-    expect(loaded.schemaVersion).toBe(16);
+    expect(loaded.schemaVersion).toBe(SCHEMA_VERSION);
     expect(loaded.routine).toEqual(INITIAL_ROUTINE);
   });
 

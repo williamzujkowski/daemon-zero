@@ -32,12 +32,13 @@ describe('a wipe records what it carried (#377)', () => {
 
 describe('save v15 (#377)', () => {
   it('migrates a genuine v14 save: every recorded run is unknown, nothing else changes', () => {
-    expect(SCHEMA_VERSION).toBe(16);
+    // v17 (#461) re-denominates balances on the way; it never touches a recorded run.
+    expect(SCHEMA_VERSION).toBe(17);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);
     const loaded = deserialize(raw, CONTENT);
-    expect(loaded.schemaVersion).toBe(16);
+    expect(loaded.schemaVersion).toBe(SCHEMA_VERSION);
     expect(loaded.legacy.runs.map((run) => run.kept)).toEqual(before.legacy.runs.map(() => null));
     expect(loaded.legacy.runs.map(({ kept: _kept, ...run }) => run)).toEqual(before.legacy.runs);
     expect(serialize(deserialize(serialize(loaded), CONTENT))).toBe(serialize(loaded));

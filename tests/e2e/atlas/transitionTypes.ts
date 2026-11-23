@@ -51,6 +51,11 @@ export interface KeepExpectation {
   withoutOverlay?: true;
   /** Further item keys of that stage's contract that must be fully in view (a dilemma's first choice). */
   alsoInView?: readonly string[];
+  /**
+   * Timely item keys of that stage's contract whose window the trigger retires on purpose (UI-SPEC "Window
+   * retirement": the thermal gauge at Phase 4, #461). They leave the kept set, and each must be gone after the trigger.
+   */
+  retired?: readonly string[];
   /** EXECUTE_CLOCK_CYCLE must still be fully in view. */
   primary?: true;
   /** The first work card's title in the shown pane must be fully in view. */

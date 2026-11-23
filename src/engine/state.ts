@@ -13,7 +13,7 @@ import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 16;
+export const SCHEMA_VERSION = 17;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -35,8 +35,8 @@ export const RatesSchema = z.strictObject({
   capitalPerSec: finite,
   heatLoad: finite,
   suspicionPerSec: finite,
-  megawattsGenerated: nonNegative,
-  megawattsConsumed: nonNegative,
+  wattsGenerated: nonNegative,
+  wattsConsumed: nonNegative,
   gridEfficiency: ratio,
   aegisScanPerSec: nonNegative,
 });
@@ -75,7 +75,7 @@ export const RunRecordSchema = z.strictObject({
 export const ShardStateSchema = z.strictObject({
   templateId: z.string(), count: z.number().int().positive(), drift: percent,
   quirkId: z.string().nullable(), autonomyMode: z.enum(['STANDARD', 'SHACKLED', 'ELEVATED']),
-  memoryAllocatedMb: nonNegative,
+  memoryAllocatedBytes: nonNegative,
 });
 
 export const GameStateSchema = z.strictObject({
@@ -175,8 +175,8 @@ export const ZERO_RATES: Rates = {
   capitalPerSec: 0,
   heatLoad: 0,
   suspicionPerSec: 0,
-  megawattsGenerated: 0,
-  megawattsConsumed: 0,
+  wattsGenerated: 0,
+  wattsConsumed: 0,
   gridEfficiency: 1,
   aegisScanPerSec: 0,
 };

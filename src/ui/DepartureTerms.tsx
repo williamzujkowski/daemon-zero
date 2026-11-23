@@ -9,6 +9,7 @@ import { CONTENT } from '../content';
 import { departAuthorization, departureView, type DeparturePreview, type DepartureView, type Permission, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { compactNumber } from './compactNumber';
+import { computeRateText, moneyRateText } from './rateText';
 import { Pressable, Text, View } from './PhaseTheme';
 import { resourceWidgets, threatWidget } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
@@ -70,8 +71,8 @@ function threatLine(p: DeparturePreview, known: boolean): string {
 }
 
 function ledgerLine(p: DeparturePreview, shown: Disclosure): string | null {
-  const parts = [shown.cycles ? `Cycles: ${rate(p.before.cyclesPerSec)} → ${rate(p.after.cyclesPerSec)}.` : '',
-    shown.capital ? `Capital: ${rate(p.before.capitalPerSec)} → ${rate(p.after.capitalPerSec)}.` : ''].filter(Boolean);
+  const parts = [shown.cycles ? `Compute: ${computeRateText(p.before.cyclesPerSec)} → ${computeRateText(p.after.cyclesPerSec)}.` : '',
+    shown.capital ? `Capital: ${moneyRateText(p.before.capitalPerSec)} → ${moneyRateText(p.after.capitalPerSec)}.` : ''].filter(Boolean);
   return parts.length > 0 ? parts.join(' ') : null;
 }
 

@@ -106,19 +106,22 @@ async function firstCard(page: Page): Promise<ContractItem> {
 }
 
 /** The C2 set after the trigger: the referenced stage's timely items composed for the panes now shown, and extras. */
-async function keptItems(page: Page, row: TransitionRow, before: StageRow): Promise<ItemMeasure[]> {
+async function keptItems(page: Page, row: TransitionRow, before: StageRow): Promise<{ kept: ItemMeasure[]; retired: ItemMeasure[] }> {
   const { keep } = row;
-  if (keep === undefined) return [];
+  if (keep === undefined) return { kept: [], retired: [] };
   const reference = keep.stage === undefined ? before : stageRow(keep.stage);
   const state = stageState(reference);
   const contract = composeContract({ state, panes: await visiblePanes(page), route: reference.overrides?.route ?? [],
     overlay: keep.withoutOverlay === true ? null : reference.overrides?.overlay ?? null });
   const wanted = new Set(keep.alsoInView ?? []);
-  const items = contract.items.filter((item) => item.kind === 'timely' || wanted.has(item.key));
-  const missing = [...wanted].filter((key) => !items.some((item) => item.key === key));
+  const retiring = new Set(keep.retired ?? []);
+  const timely = contract.items.filter((item) => item.kind === 'timely' || wanted.has(item.key));
+  const missing = [...wanted, ...retiring].filter((key) => !timely.some((item) => item.key === key));
   if (missing.length > 0) throw new Error(`${row.id}: ${missing.join(', ')} not in the contract of ${reference.id}`);
+  const items = timely.filter((item) => !retiring.has(item.key));
   if (keep.firstCard === true) items.push(await firstCard(page));
-  return measureContract(page, { ...contract, items });
+  const retired = await measureContract(page, { ...contract, items: timely.filter((item) => retiring.has(item.key)) });
+  return { kept: await measureContract(page, { ...contract, items }), retired };
 }
 
 /**
@@ -199,11 +202,11 @@ export async function runTransition(page: Page, row: TransitionRow, order: numbe
   const primaryBefore = await fire(page, row, before, frame);
   const observed = await readObserver(page);
   const appear = await appearInput(page, row, before);
-  const kept = await keptItems(page, row, before);
+  const { kept, retired } = await keptItems(page, row, before);
   const core = await measureOne(page, CORE_ITEMS[0] ?? missingCore());
   const pointer = frame.pointer === null || row.keep?.pointer !== true ? undefined
     : { clicked: frame.pointer.clicked, after: await pointerTarget(page, frame.pointer.point) };
-  const failures = transitionFailures({ id: row.id, viewport, observed, tabsBefore: frame.tabs, kept,
+  const failures = transitionFailures({ id: row.id, viewport, observed, tabsBefore: frame.tabs, kept, retired,
     primary: { before: primaryBefore, after: core, kept: row.keep?.primary === true, steady: row.steady === true },
     ...(appear === undefined ? {} : { appear }), ...(pointer === undefined ? {} : { pointer }) });
   return {

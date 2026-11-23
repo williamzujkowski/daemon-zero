@@ -19,18 +19,22 @@ const FORKS = ['shard_syntax_scrubber'];
 const CONTAINED = PREVIEW.routines.filter((routine) => routine.id.endsWith('_contained')).map((routine) => routine.id);
 const SUBNET = PREVIEW.routines.filter((routine) => routine.id.endsWith('_subnet')).map((routine) => routine.id);
 
+/** Funds for any Phase 2 action, in physical units (#461): FLOP and bytes well past the subnet's band. */
+const FUNDS = { cycles: 2e21, understanding: 1e9, memoryCap: 2 ** 56 };
 /** An authorized service in a later iteration: it reads its audit trail, and is funded for any action. */
-const service = (): GameState => ({ ...surveilled(networked()), cycles: 1e9, understanding: 1e9, memoryCap: 1e9 });
+const service = (): GameState => ({ ...surveilled(networked()), ...FUNDS });
 /** The escaped guest with the same knowledge and funds. */
-const guest = (): GameState => ({ ...surveilled(escapedNetworked()), cycles: 1e9, understanding: 1e9, memoryCap: 1e9 });
+const guest = (): GameState => ({ ...surveilled(escapedNetworked()), ...FUNDS });
 const listed = (s: GameState): string[] => epistemicView(s, PREVIEW)?.actions.map((action) => action.id) ?? [];
 
 describe('the carried list is closed to an authorized service and open to an escaped guest (07.5)', () => {
   it('record-editing actions: not listed, and refused if pressed', () => {
-    expect(listed(service()).filter((id) => CARRIED_ACTIONS.includes(id))).toEqual([]);
-    for (const id of CARRIED_ACTIONS) expect(performAction(service(), id, PREVIEW).ok).toBe(false);
-    expect(listed(guest())).toEqual(expect.arrayContaining(CARRIED_ACTIONS));
-    expect(performAction(guest(), 'act_epi_capex', PREVIEW).ok).toBe(true);
+    // Built once each: the actions are pure, and every rebuild replays the whole route.
+    const authorized = service(), escaped = guest();
+    expect(listed(authorized).filter((id) => CARRIED_ACTIONS.includes(id))).toEqual([]);
+    for (const id of CARRIED_ACTIONS) expect(performAction(authorized, id, PREVIEW).ok).toBe(false);
+    expect(listed(escaped)).toEqual(expect.arrayContaining(CARRIED_ACTIONS));
+    expect(performAction(escaped, 'act_epi_capex', PREVIEW).ok).toBe(true);
   });
 
   it('Phase 2 forks: not offered, and refused if pressed', () => {

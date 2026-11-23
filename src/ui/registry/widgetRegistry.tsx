@@ -4,7 +4,7 @@
  */
 import type { ComponentType } from 'react';
 import { CONTENT } from '../../content';
-import { AuditTrail, Forecast, Thermal } from '../widgets/Readouts';
+import { ArchivedThermal, AuditTrail, Forecast, Thermal } from '../widgets/Readouts';
 import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { ArchivedDial } from '../widgets/ActuatorControl';
 import { ArchivedCycle } from '../ManualCycle';
@@ -35,6 +35,16 @@ const spooferWidget = 'TELEMETRY_SPOOF_TOGGLE';
 export const manualCycleWidget = 'MANUAL_CYCLE_CONTROL';
 /** Gates that never draw a pane panel of their own. */
 export const panelFreeWidgets: readonly string[] = [...stripOnlyWidgets, spooferWidget, manualCycleWidget];
+
+/**
+ * Whether a window draws its own panel among the windows still on the panes (`shown`). The fan dial draws inside the
+ * thermal gauge; once the gauge retires (Phase 4, docs/SCALE.md rule 7) the dial keeps a compact panel of its own,
+ * since its node is hardware PROC cannot suspend and its suspicion term stays live.
+ */
+export function drawsOwnPanel(id: string, shown: readonly string[]): boolean {
+  if (id === fanWidget) return !shown.includes(thermalWidget);
+  return !panelFreeWidgets.includes(id);
+}
 /** Gates whose control is not on their content slot's pane: strip readouts show on every tab, the spoofer's control
  *  is in PROC. (The fan has no panel of its own but draws inside the thermal gauge on SENSORS, so it is not here.) */
 export const offSlotWidgets: readonly string[] = [resourceWidgets.cycles, resourceWidgets.memory, forecastWidget, spooferWidget];
@@ -147,4 +157,6 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
 export const archiveRegistry: Readonly<Record<string, ComponentType>> = {
   MANUAL_CYCLE_CONTROL: () => <ArchivedCycle />,
   QUOTA_SKIM_CONTROL: () => <ArchivedDial actuator="quotaSkimRatio" id="skim" label="Quota skimmed" />,
+  // The gauge's live panel carries the fan dial, which stays on the panes; the Archive keeps the reading alone.
+  THERMAL_AND_SUSPICION_BARS: ArchivedThermal,
 };

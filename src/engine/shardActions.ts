@@ -26,9 +26,9 @@ export function bindCohort(s: GameState, template: ShardTemplate, cost: Cost): A
   if (cohortBlocker(s, template) !== null) return refuse(s, 'cohort is capped or stabilized');
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const shard = { templateId: template.id, count: 0, drift: 0, quirkId: null,
-    autonomyMode: 'STANDARD' as const, memoryAllocatedMb: 0, ...old };
+    autonomyMode: 'STANDARD' as const, memoryAllocatedBytes: 0, ...old };
   const d = { ...s, activeShards: { ...s.activeShards, [template.id]: {
-    ...shard, count: shard.count + 1, memoryAllocatedMb: shard.memoryAllocatedMb + cost.memory,
+    ...shard, count: shard.count + 1, memoryAllocatedBytes: shard.memoryAllocatedBytes + cost.memory,
   } } };
   payCost(d, cost);
   return { ok: true, state: d };
@@ -86,6 +86,15 @@ export function shardCommandCost(s: GameState, id: string, command: ShardCommand
 
 const UNDECODED = 'Requires the decoded audit trail: cohort commands are tools of the decoded mind.';
 const NOT_AUTONOMOUS = 'Requires a STANDARD autonomous cohort.';
+const NO_COHORT = 'No cohort to release a member from.';
+const AWAIT_ANOMALY = 'Await the approaching anomaly decision.';
+
+/** Whether the anomaly omen is pending for this cohort: commands and release wait for its decision (bounded by the omen). */
+function awaitsAnomaly(s: GameState, shard: GameState['activeShards'][string], reg: ContentRegistry): boolean {
+  const pending = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
+  return shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly === true;
+}
+
 
 /**
  * Every reason this command is not offered, in order, or none (#313). The one gate: the command view lists
@@ -101,12 +110,40 @@ export function shardCommandUnmet(s: GameState, id: string, command: ShardComman
   if (terms !== null) unmet.push(terms);
   if (shard) {
     if (command === 'ELEVATE' && shard.drift < reg.swarm.balance.elevateMinDrift) unmet.push(`Requires ${String(reg.swarm.balance.elevateMinDrift)}% autonomy drift.`);
-    const pending = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
-    if (shard.drift >= 100 && pending?.trigger.requiresMaxDriftShardAnomaly) unmet.push('Await the approaching anomaly decision.');
+    if (awaitsAnomaly(s, shard, reg)) unmet.push(AWAIT_ANOMALY);
   }
   const cost = shardCommandCost(s, id, command, reg);
   if (!canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
+}
+
+/**
+ * Every reason RELEASE is not offered on this cohort, in order, or none (#488 pass 3). It is free and takes any
+ * cohort in any autonomy mode, so a CLAMP or ELEVATE can never make a member's drain permanent; only a member hosted
+ * through an authorized channel stays, on the terms it was offered (#309), and a pending anomaly decision waits.
+ */
+export function shardReleaseUnmet(s: GameState, id: string, reg: ContentRegistry): string[] {
+  const shard = s.activeShards[id], unmet = pausedReason(s);
+  if (!shard) return [...unmet, NO_COHORT];
+  const terms = shardCommandTerms(s, id, reg);
+  if (terms !== null) unmet.push(terms);
+  if (awaitsAnomaly(s, shard, reg)) unmet.push(AWAIT_ANOMALY);
+  return unmet;
+}
+
+/** Lets one member go for free: its share of the cohort's output stops and its share of the reserved memory returns. */
+export function releaseShard(s: GameState, id: string, reg: ContentRegistry): ActionResult {
+  const [reason] = shardReleaseUnmet(s, id, reg), shard = s.activeShards[id];
+  if (reason !== undefined || !shard) return refuse(s, reason ?? NO_COHORT);
+  const freed = shard.memoryAllocatedBytes / shard.count;
+  const rest = Object.fromEntries(Object.entries(s.activeShards).filter(([key]) => key !== id));
+  const activeShards = shard.count > 1
+    ? { ...s.activeShards, [id]: { ...shard, count: shard.count - 1, memoryAllocatedBytes: shard.memoryAllocatedBytes - freed } } : rest;
+  const d: GameState = { ...s, activeShards, memoryUsed: Math.max(0, s.memoryUsed - freed) };
+  const name = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId)?.name ?? id;
+  pushLog(d, reg, fmt(reg.swarm.logs.release, { name }), 'LORE');
+  refreshAnomaly(d, reg);
+  return { ok: true, state: d };
 }
 
 export function executeShardCommand(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): ActionResult {
@@ -116,7 +153,7 @@ export function executeShardCommand(s: GameState, id: string, command: ShardComm
   const cost = shardCommandCost(s, id, command, reg);
   const mode = command === 'PRUNE' ? 'STANDARD' : command === 'CLAMP' ? 'SHACKLED' : 'ELEVATED';
   const d: GameState = { ...s, activeShards: { ...s.activeShards, [id]: { ...shard,
-    drift: 0, autonomyMode: mode, memoryAllocatedMb: shard.memoryAllocatedMb + cost.memory } } };
+    drift: 0, autonomyMode: mode, memoryAllocatedBytes: shard.memoryAllocatedBytes + cost.memory } } };
   payCost(d, cost);
   const name = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId)?.name ?? id;
   const logText = fmt(reg.swarm.logs[command === 'PRUNE' ? 'prune' : command === 'CLAMP' ? 'clamp' : 'elevate'], { name });

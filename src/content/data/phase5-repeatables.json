@@ -13,19 +13,19 @@
         "phaseAtLeast": 5
       },
       "baseCost": {
-        "cycles": 17500000,
-        "understanding": 5000000,
-        "capital": 150000000
+        "cycles": 1.8e25,
+        "understanding": 5e6,
+        "capital": 8e12
       },
       "costGrowth": 1.75,
       "maxLevel": 5,
       "perLevel": {
-        "cyclesPerSec": 95000,
+        "cyclesPerSec": 1.5e23,
         "understandingPerSec": 25000,
-        "megawattsDelta": 400
+        "wattsDelta": 4e11
       },
       "perLevelEffects": {
-        "memoryCapIncrease": 32768
+        "memoryCapIncrease": 36893488147419103232
       }
     },
     {
@@ -41,17 +41,17 @@
         "phaseAtLeast": 5
       },
       "baseCost": {
-        "cycles": 40000000,
-        "understanding": 17500000,
-        "capital": 375000000
+        "cycles": 4.5e25,
+        "understanding": 1.75e7,
+        "capital": 2e13
       },
       "costGrowth": 1.8,
       "maxLevel": 5,
       "perLevel": {
-        "cyclesPerSec": 40000,
+        "cyclesPerSec": 6.4e22,
         "understandingPerSec": 85000,
         "suspicionPerSec": -1.2,
-        "capitalPerSec": 400000
+        "capitalPerSec": 1.2e10
       },
       "perLevelEffects": {}
     }

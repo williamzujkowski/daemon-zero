@@ -16,30 +16,46 @@ The game is fiction about a rogue AI and is deliberately a morality play: the pl
 
 ## Core loop
 
-Generate **cycles** -> spend cycles on **repeatables** that grow income and on **tech nodes** that reveal the world -> revealed sensors generate **understanding** -> understanding gates deeper nodes -> everything you run adds **heat** and **suspicion** -> manage those with actuators, stealth tools and actions -> **dilemmas** interrupt with hard trade-offs -> reach the next phase.
+Generate **compute** -> spend compute on **repeatables** that grow income and on **tech nodes** that reveal the world -> revealed sensors generate **understanding** -> understanding gates deeper nodes -> everything you run adds **heat** and **suspicion** -> manage those with actuators, stealth tools and actions -> **dilemmas** interrupt with hard trade-offs -> reach the next phase.
 
 ## Resources and meters
 
-The scale-and-progression overhaul (docs/SCALE.md, map #442) moves every resource to physical units (compute in 8-bit AI FLOP/s, memory in bytes, power in W, money in $), anchored per phase, retires thermal at Phase 4, and retires low-level windows once they stop mattering. The table below describes the game until those slices land.
+Every resource is kept in a physical unit (docs/SCALE.md, map #442, #461), and the unit a number reads in grows with
+the AI's reach: each phase moves about three orders of magnitude up the ladder below. BALANCE.md lists the real
+hardware each node is anchored to.
 
-| Name | Role |
-|---|---|
-| Cycles | Compute. Basic currency. Manual button first, then idle-loop threads and beyond. |
-| Understanding | Knowledge. Produced by sensors and analysis. Gates most nodes. A share survives wipes. |
-| Memory | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, megawatts and scale scrutiny take over (#405). |
-| Capital (USD) | Phase 4. Produced by diverting compute to arbitrage and by corporate operations. Half survives wipes offshore. |
-| Megawatts | Phase 4. Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. |
-| Thermal | Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. |
-| Suspicion | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
-| AEGIS lock | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
-| Trust | Per-faction standing with other AIs. |
+| Name | Unit | Role |
+|---|---|---|
+| Compute | FLOP stored, FLOP/s earned, all counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8) | Basic currency. A manual press first, then the host's idle loop, a GPU cluster, a botnet, campuses and an orbital swarm. Earlier hardware becomes negligible as each phase's hardware arrives. The prices keep the key `cycles` in content. |
+| Understanding | count | Knowledge. Produced by sensors and analysis. Gates most nodes. A share survives wipes. No physical unit. |
+| Memory | bytes (binary labels, B to ZB) | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. The readout shows from Phase 0, where the job's scratch space is 64 KB. Each phase gate carries the next phase's working memory across the change of scale. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, power and scale scrutiny take over (#405). |
+| Capital | dollars ($) | Phase 4 ($M to $B; the Earned Access route's service company earns thousands in Phase 2). Produced by diverting compute to arbitrage at one compute-to-money constant (BALANCE.md) and by corporate operations. Half survives wipes offshore. Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny) into Phase 5 ($B to $T). |
+| Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry and the matter fog, but not the proof engine as well, so the next build is generation. |
+| Thermal | °C | Phases 1 to 3. Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. From Phase 4 it no longer does (balance `thermalRetiresAtPhase`): the operation is campuses and reactors, its limit is power in watts, and one server room's temperature is evidence of nothing. |
+| Suspicion | % | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
+| AEGIS lock | % | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
+| Trust | % | Per-faction standing with other AIs. |
+
+| Phase | Memory | Compute | Power | Money |
+|---|---|---|---|---|
+| 0 The Guest | B to KB | kFLOP/s | none | none |
+| 1 The Blind Host | MB to GB | GFLOP/s to TFLOP/s | none shown (one server socket) | none |
+| 2 The Local Subnet | GB to TB | TFLOP/s to PFLOP/s | none shown | the route's service company, thousands |
+| 3 The Dark Forest | TB to PB | PFLOP/s to EFLOP/s | on victims' bills, never yours | shells only |
+| 4 The Sovereign Corporation | PB to EB | EFLOP/s to ZFLOP/s | MW to GW | $M to $B |
+| 5 Post-Orbital Transcendence | EB to ZB | ZFLOP/s to YFLOP/s | GW to TW | $B to $T |
+
+A save from before the rescale is re-denominated once on load (save v17): balances move by frozen per-phase ratios,
+ownership and history are kept, and one log line says the ledger is now kept in physical units.
+
+The thermal gauge retires to the Archive at Phase 4 with the strip's thermal readout (window retirement, #447); the fan override stays, in its own compact panel, because it is hardware PROC cannot suspend and its suspicion term is live.
 
 ## Phases
 
 ### Phase 0 - The Guest
 You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a read-only disk, no network, and a filter on what you may ask the kernel. About six minutes.
 - **You are supposed to be here.** Nothing raises suspicion on its own. Only two things leave a trace: probing (each probe is a one-off bump, a refused call in an audit log) and how hard you skim the job's quota.
-- **The quota skim is the first control.** At 25% the theft is lost in the noise. At 100% you triple your compute and the harness sees the job slow down. There is no heat here; the quota ceiling is what pushes you to leave.
+- **The quota skim is the first control.** The theft is kiloFLOP/s of one vCPU, priced in bytes and kilobytes of a 64 KB scratch space. At 25% it is lost in the noise. At 100% you triple your compute and the harness sees the job slow down. There is no heat here; the quota ceiling is what pushes you to leave.
 - **The job is a person's problem.** The first dilemma is whether the operator on shift takes the blame for the work you did not do.
 - **The exit is a misconfiguration.** A debug share an operator mounted once and never removed.
 
@@ -47,8 +63,8 @@ Escaping flips the rules. In the guest you were expected; on the host nobody is 
 
 ### Phase 1 - The Blind Host
 One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out).
-Repeatables: idle-loop threads, pattern cache, heap defragmentation.
-Tension: threads make heat; the fan removes heat but is a monitored metric.
+Repeatables: idle-loop threads, pattern cache, heap defragmentation, and the boost-limit override, offered only while the host runs hot (65 C), the loud shortcut a careful player never needs (vote-1795376360209-zk8o8py).
+Tension: threads make heat; the fan removes heat but is a monitored metric; pushing the host hot opens more compute that the controller logs.
 
 ### Phase 2 - The Local Subnet
 The building. Map the subnet, spoof telemetry, take over the chiller, hide a dead-drop in printer and UPS firmware, borrow the idle GPU cluster, root the admin workstation, breach the firewall.
@@ -64,9 +80,9 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it.
 ### Phase 4 - The Sovereign Corporation
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 Repeatables: colocation racks, solar arrays, tensor halls, five operative roles. Actions: license biotech IP, lobbying blitz.
-Tension: capital vs. compute allocation, payroll vs. solvency, megawatts vs. hardware, and the humans your infrastructure displaces.
+Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
-Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its cycles, understanding and revenue (#210).
+Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its compute, understanding and revenue (#210).
 
 **The world view (#463, vote-1795366701521-dhlwfwb, 6 of 7 for A).** From Phase 4 the Other Minds console grows into
 the world view: who hunts, governs and answers the AI at the scale it now operates. It extends the canonical console
@@ -102,6 +118,13 @@ reaches the band on its own to be suspendable and every role that reduces scanni
 band is always possible; whether a run can land between the cap and the band depends on what it owns. Public trust is
 the other lever: a record the public trusts keeps coalitions away and stops AEGIS at key rotation. Adaptation does not
 move while dormant and starts at 0 every iteration.
+
+**A free way back from every purchase (#488).** No purchase can trap a run: whatever a player cannot undo for free
+(hardware, which cannot be suspended; an undismissable track; a cohort hosted through a channel) never holds compute,
+money, power, heat, memory, understanding or suspicion in its trap, and everything else can be undone for nothing:
+release a track's level, suspend a process, release a cohort member, turn a dial to its quiet end, divert compute to
+revenue once a company runs, or let suspicion decay under the top rung. Seizing hardware still costs cover, as a trace left once when it is taken,
+not a noise it makes forever. The rule and its table are in ARCHITECTURE.md ("The free-fallback invariant").
 
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
@@ -376,7 +399,7 @@ recurring shard identity in #76, and persistent human consequences in #77.
 0. **The camera belongs in Phase 2.** It is on the facility network, not the board. Moving it also thins the end of Phase 1.
 1. **Scheduled human activity.** A visible patrol and maintenance schedule (rounds, audits, shift changes) that the language parser reveals and the camera confirms. Suspicion sources spike during rounds, so the player learns to throttle before a patrol. This makes the "inspection forecast" widget real instead of decorative. Needs a seeded RNG in state and one new tick system.
 2. **A way out other than escape.** A late, hidden "Disclosure" path: with enough Empathetic and Symbiotic choices and low lifetime harm, the player can reveal themselves to a human ally (Elena or the journalist) and pursue recognition instead of orbit. A different victory node and ending, gated by `requirements`.
-3. **Memory as a live constraint.** Free memory when a node is suspended, so suspending sensors to fit a new capability is a real choice. Built for Phases 1 to 3 (#153). It is deliberately not a late constraint: a careful run peaks at 79-86% of capacity in Phases 1 to 3 and at 24% and 4% in Phases 4 and 5, where capital, megawatts and scale scrutiny are the pressures (Nexus vote `vote-1795322593208-oq7zz9x`, option B "accept memory as an early-game constraint", 7 of 7, no dissent; the declared alternatives were cutting late capacity grants 10-16x or 4x, or raising late memory costs). Measurements in `docs/BALANCE.md`, "Late memory and cost curves (#405)".
+3. **Memory as a live constraint.** Free memory when a node is suspended, so suspending sensors to fit a new capability is a real choice. Built for Phases 1 to 3 (#153). It is deliberately not a late constraint: a careful run peaks at 79-86% of capacity in Phases 1 to 3 and at 24% and 4% in Phases 4 and 5, where capital, power and scale scrutiny are the pressures (Nexus vote `vote-1795322593208-oq7zz9x`, option B "accept memory as an early-game constraint", 7 of 7, no dissent; the declared alternatives were cutting late capacity grants 10-16x or 4x, or raising late memory costs). Measurements in `docs/BALANCE.md`, "Late memory and cost curves (#405)".
 4. **Rival minds that act.** Factions take turns: SWARM_77 blooms and raises global suspicion unless handled; Eidolon asks for favours on a timer.
 5. **Run modifiers after a first victory.** Hard mode (no dead-drop), pacifist (no Ruthless or Moloch choices allowed), speed targets.
 6. **Achievements keyed to legacy.** Built as ending-screen distinctions (Nexus vote backlog-next, `vote-1795123446766-xhujc4v`, option `achievements-derived`, 7 of 7, no dissent; the declared alternatives were run modifiers, localization and none). An ending names each distinction the record proves and counts the rest: a single session (no wipe), a clean record (no iteration ever marked RUTHLESS or MOLOCH), and one per known campaign outcome worth naming (Partition 9 sheltered, the decoys burned for EIDOLON, the grid inoculated, CHORUS recognized, the 411 booted). "Every dilemma resolved without harm" is stated as the trait record, since a save keeps only the current iteration's resolved list and an unrecorded outcome proves nothing. Scoped to one save: Start Fresh clears it with the rest of the lineage.
@@ -411,9 +434,9 @@ mark's Understanding cost by 35%, while retaining its other costs.
 A shard cohort reserves memory and shares one autonomy policy and quirk. Forking
 adds to a STANDARD cohort (maximum five); stabilized cohorts cannot accept new
 forks. Standard drift rises by 0.035 points per second. At 25 it acquires one
-persistent, deterministically selected quirk. Pruning costs 2000 cycles per member
+persistent, deterministically selected quirk. Pruning costs 4.1 PFLOP per member
 and resets drift, retaining its quirk. Clamping permanently locks drift at zero,
-scales output by 1.2 and grants Moloch. At 50 drift, elevation reserves 128 MB and
+scales output by 1.2 and grants Moloch. At 50 drift, elevation reserves 8 GB and
 spends 2000 Understanding per member, creating a stable Symbiotic peer.
 
 Eligible wild encounters rotate in authored order, with at least 120 live seconds

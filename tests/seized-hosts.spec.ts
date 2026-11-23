@@ -22,8 +22,10 @@ it('seized hosts are hardware, unsuspendable, and expand the cluster', () => {
     const capacity = node?.effects.memoryCapIncrease ?? 0;
     expect(capacity, `${id} grants memory`).toBeGreaterThan(previousCapacity);
     expect(node?.tickDelta.cyclesPerSec ?? 0, `${id} contributes compute`).toBeGreaterThan(0);
-    // Taking someone else's machine is an intrusion: it has to cost cover, not just cycles.
-    expect(node?.tickDelta.suspicionPerSec ?? 0, `${id} raises suspicion`).toBeGreaterThan(0);
+    // Taking someone else's machine is an intrusion: it has to cost cover, not just cycles. Hardware cannot be suspended,
+    // so the trace is left once, when it is taken, never forever (#488, the free-fallback invariant).
+    expect(node?.effects.suspicionOnUnlock ?? 0, `${id} raises suspicion when taken`).toBeGreaterThan(0);
+    expect(node?.tickDelta.suspicionPerSec ?? 0, `${id} draws no permanent suspicion`).toBe(0);
     previousCapacity = capacity;
   }
 });

@@ -1,9 +1,10 @@
 /**
  * Labels derived from validated prices and effects, without content-specific IDs.
- * Heat load is labelled separately from temperature change to match the engine.
+ * Heat load is labelled separately from temperature change to match the engine; compute, memory, power and money are
+ * in physical units through the engine's resourceUnits (docs/SCALE.md).
  */
 import { exactCompactNumber } from './compactNumber';
-import { amountFigure, groupDigits } from '../engine';
+import { costPart, deltaPart } from '../engine';
 import { memoryExact } from './units';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
@@ -12,24 +13,25 @@ import type { Cost, TickDelta } from '../content/schema';
 // Thousands separators, lossless (#108); one definition, shared with the engine's log text (src/engine/amount.ts).
 export { groupDigits } from '../engine';
 
+/**
+ * A price in physical units, exact (the engine's costPart: "45 TFLOP · 256 MB · $400M"). Compute, memory and money
+ * already change unit only while the figure stays exact; `compact` lets understanding, which has no unit, do the same
+ * on a phone ("15M understanding"), so a late price fits one line without rounding (#404).
+ */
 export function costText(cost: Cost, compact = false): string {
-  return Object.entries(cost).filter(([, value]) => value !== 0)
-    .map(([key, value]) => key === 'memory' ? memoryExact(value) : `${compact ? exactCompactNumber(value) : groupDigits(value)} ${key}`).join(' · ') || 'Free';
+  return (Object.keys(cost) as (keyof Cost)[]).filter((key) => cost[key] !== 0)
+    .map((key) => compact && key === 'understanding' ? exactCompactNumber(cost[key]) + ' understanding' : costPart(key, cost[key]))
+    .join(' · ') || 'Free';
 }
-
-const deltaUnits: Record<keyof TickDelta, string> = {
-  cyclesPerSec: 'cycles/s', understandingPerSec: 'understanding/s', thermalPerSec: 'heat load',
-  suspicionPerSec: 'suspicion/s', capitalPerSec: '$/s', megawattsDelta: 'MW',
-};
 
 // Large authored amounts in K/M/B, small ones as authored: one definition, in the engine (#406 panel note).
 export { amountFigure } from '../engine';
 
 /** With `blind`, suspicion has no number yet: only whether the unreadable log gets busier or quieter. */
 export function deltaText(delta: TickDelta, blind = false): string {
-  return Object.entries(delta).filter(([, value]) => value !== 0)
-    .map(([key, value]) => blind && key === 'suspicionPerSec' ? (value > 0 ? 'more' : 'less') + ' audit log activity'
-      : `${value > 0 ? '+' : ''}${amountFigure(value)} ${deltaUnits[key as keyof TickDelta]}`).join(' · ');
+  return (Object.keys(delta) as (keyof TickDelta)[]).filter((key) => delta[key] !== 0)
+    .map((key) => blind && key === 'suspicionPerSec' ? (delta[key] > 0 ? 'more' : 'less') + ' audit log activity'
+      : deltaPart(key, delta[key])).join(' · ');
 }
 
 /**

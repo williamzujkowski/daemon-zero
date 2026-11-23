@@ -112,7 +112,7 @@ describe('impossible contact records are refused, never healed (V15)', () => {
     ['two contacts through one channel in one iteration', () => referred, (s) => withContacts(s, [entry(s, { atSimSec: s.simTimeSec - 1 }), entry(s)]), 'two contacts through one channel'],
     ['contacts out of order', () => must(voluntaryWipe(referred, preview)), (s) => withContacts(s, [entry(s, { iteration: 2 }), entry(s, { iteration: 1, atSimSec: 1 })]), 'out of order'],
     ['a contact a guest never reached', () => freshCampaign(), (s) => withContacts(live(s, 3), [entry(live(s, 3))]), 'its route never reached'],
-    ['hosting the cohort no longer holds', () => hosted, (s) => ({ ...s, activeShards: {}, memoryUsed: s.memoryUsed - (s.activeShards[MERCY]?.memoryAllocatedMb ?? 0) }), 'hosting this instance does not hold'],
+    ['hosting the cohort no longer holds', () => hosted, (s) => ({ ...s, activeShards: {}, memoryUsed: s.memoryUsed - (s.activeShards[MERCY]?.memoryAllocatedBytes ?? 0) }), 'hosting this instance does not hold'],
     ['an answered channel pending again', () => referred, (s) => ({ ...s, pendingWildEncounterId: CHANNEL }), 'already answered'],
   ];
   it.each(refusals)('refuses %s', (_name, build, edit, message) => {

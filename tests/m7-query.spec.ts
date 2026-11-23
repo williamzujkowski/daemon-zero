@@ -41,7 +41,8 @@ describe('M7 pure view models', () => {
   });
   it('formats zero, signed outputs, memory costs and targeted/global requirements', () => {
     expect(formatCost(CostSchema.parse({}))).toBe('Free');
-    expect(formatCost(CostSchema.parse({ memory: 128, cycles: 1 }))).toContain('128 MB');
+    expect(formatCost(CostSchema.parse({ memory: 128 * 2 ** 20, cycles: 1 }))).toContain('128 MB');
+    expect(formatCost(CostSchema.parse({ memory: 128, cycles: 1 }))).toContain('128 B');
     expect(formatOutput(TickDeltaSchema.parse({}), 0)).toBe('No continuous output');
     expect(formatOutput(TickDeltaSchema.parse({ cyclesPerSec: 2, thermalPerSec: -1 }), -0.1)).toContain('-0.1 epistemic');
     expect(formatOutput(TickDeltaSchema.parse({}), 1)).toContain('+1 epistemic');

@@ -28,6 +28,8 @@ const UNITS: Readonly<Record<Exclude<Dimension, 'money'>, Unit>> = {
 
 /** Decimals an exact price may carry before the next smaller unit reads better (the memory vote's rule). */
 const EXACT_DECIMALS = 2;
+/** Units in the last place a large decimal figure may miss its stored value by and still read as exact. */
+const EXACT_ULPS = 4;
 
 /** The largest step whose three-digit mantissa stays under 1000 once rounded (999,999 reads 1 M, not 1000 k). */
 function stepFor(scale: Scale, value: number): readonly [number, string, string] {
@@ -46,6 +48,13 @@ function suffix(unit: Unit, prefix: string): string {
 
 function money(value: number, figure: string): string {
   return (value < 0 ? '-$' : '$') + figure.replace(/^-/, '');
+}
+
+/** The step a readout of this size uses: its size, its unit symbol ("KB", "TFLOP/s", "MW") and its spoken unit word. */
+export function quantityStep(dimension: Exclude<Dimension, 'money'>, value: number): { size: number; symbol: string; word: string } {
+  const unit = UNITS[dimension];
+  const [size, prefix, word] = stepFor(unit.scale, value);
+  return { size, symbol: suffix(unit, prefix), word: word + unit.word(true) + (unit.perSecond ? ' per second' : '') };
 }
 
 /** A live readout, three significant digits: "14 kFLOP/s", "64 KB", "1.2 GW", "$18B". */
@@ -71,7 +80,9 @@ export function quantitySpoken(dimension: Dimension, value: number): string {
 /** The figure in `size` steps if it needs at most two decimals, else null. */
 function exactFigure(value: number, size: number): string | null {
   const figure = Number((value / size).toFixed(EXACT_DECIMALS));
-  if (figure * size !== value) return null;
+  // Decimal prefixes past 2^53 are not exact in binary: 40 x 1e24 is not the double nearest 4e25. A figure counts as
+  // exact when it lands within a few units in the last place, which no two-decimal figure can do by accident.
+  if (Math.abs(figure * size - value) > Math.abs(value) * EXACT_ULPS * Number.EPSILON) return null;
   const [whole = '', fraction] = String(Math.abs(figure)).split('.');
   return (figure < 0 ? '-' : '') + groupDigits(Number(whole)) + (fraction === undefined ? '' : '.' + fraction);
 }
@@ -100,4 +111,9 @@ export function quantityExact(dimension: Dimension, value: number): string {
     if (figure !== null) return figure + ' ' + suffix(unit, prefix);
   }
   return groupDigits(value) + ' ' + suffix(unit, '');
+}
+
+/** Memory a player buys, holds or is short by, in bytes, exactly ("64 KB", "353.5 GB"). */
+export function memoryExact(bytes: number): string {
+  return quantityExact('memory', bytes);
 }

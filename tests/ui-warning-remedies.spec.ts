@@ -27,9 +27,9 @@ describe('remedy text', () => {
 
 
   it('says how far short the power is', () => {
-    expect(shortfallText(40, 64.4)).toBe('POWER SHORTFALL: 24 MW short; powered hardware is throttled. Add generation to lift it.');
-    // A small shortfall never reads "0 MW short" (#402 panel).
-    expect(shortfallText(40, 40.3)).toMatch(/^POWER SHORTFALL: 0\.3 MW short;/);
+    expect(shortfallText(40e6, 64e6)).toBe('POWER SHORTFALL: 24 MW short; powered hardware is throttled. Add generation to lift it.');
+    // A small shortfall never reads "0 MW short" (#402 panel): the unit steps down to what it is.
+    expect(shortfallText(40e6, 40.3e6)).toMatch(/^POWER SHORTFALL: 300 kW short;/);
   });
 
   it('names each insolvency lever only when it can act (#402 panel)', () => {
@@ -46,6 +46,16 @@ describe('remedy text', () => {
     // With no positive gross cycles the dial diverts nothing, so it is not named (#402 panel).
     const noCycles = { ...insolvent, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 0 }, rates: { ...insolvent.rates, cyclesPerSec: -5 } };
     expect(insolvencyRemedy(noCycles)).toBe('Release operatives in PAYROLL.');
+  });
+
+  it('names a paid infrastructure level on its own card, never as an operative in PAYROLL (#488)', () => {
+    const insolvent = m4State('corporate-insolvent');
+    const paid = [...CONTENT.repeatables.values()].find((rep) => rep.kind === 'UPGRADE' && rep.dismissable && rep.perLevel.capitalPerSec < 0);
+    if (!paid) throw new Error('no dismissable paid infrastructure track');
+    const levels = Object.fromEntries(Object.entries(insolvent.levels).filter(([id]) => !CONTENT.repeatables.get(id)?.dismissable));
+    const held = { ...insolvent, levels: { ...levels, [paid.id]: 1 }, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 1 } };
+    expect(insolvencyRemedy(held)).toBe('Release levels of paid infrastructure on their upgrade cards.');
+    expect(insolvencyRemedy({ ...held, levels })).toBe('Capital recovers only as revenue outgrows what the company pays each second.');
   });
 
 });

@@ -7,10 +7,13 @@
 import { makeFixtures } from '../../scripts/make-fixtures';
 import { boot, expect, openSave, test } from './helpers';
 import { assertBoundary, exportThenImport, scorePlaysPhase } from './live/checks';
+import { decide } from './live/intents';
 import { unlessCutOff } from './live/journey';
 import { Interrupted, LivePlayer, MAX_INTERRUPTIONS, PRESS_TIMEOUT_MS } from './live/player';
 
 const STEP_MS = 5000;
+/** The app's autosave interval (src/app/runtime.ts): the live player decides on what was last saved. */
+const SAVE_EVERY_MS = 5000;
 const modal = 'dilemma-modal';
 
 /** A run with an interrupt counting down and nothing on screen yet; returns the clock time until it fires. */
@@ -24,9 +27,26 @@ async function bootBeforeInterrupt(player: LivePlayer): Promise<{ id: string; fi
   return { id: pending.id, firesInMs: Math.ceil((pending.firesAtSimSec - state.simTimeSec) * 1000) + 200 };
 }
 
+/**
+ * Runs the paused clock one autosave at a time until the careful bot has a move to make, so a step has a press for the
+ * interrupt to land in front of. Since the rescale (#461) the fixture's moment is saving up, and the bot waits a few
+ * seconds before it buys; the interrupt must still be counting down when it does. Returns the clock time until it fires.
+ */
+async function untilTheBotMoves(player: LivePlayer, id: string): Promise<number> {
+  for (let waited = 0; waited <= 60_000; waited += SAVE_EVERY_MS) {
+    const state = await player.read();
+    const pending = state.pendingDilemma;
+    if (pending?.id !== id) throw new Error('the interrupt fired before the bot had a move');
+    if (decide(state).intents.length > 0) return Math.ceil((pending.firesAtSimSec - state.simTimeSec) * 1000) + 200;
+    await player.page.clock.runFor(SAVE_EVERY_MS);
+  }
+  throw new Error('the careful bot never had a move before the interrupt');
+}
+
 test('a decision that arrives between deciding and pressing is answered, and the move is decided again', async ({ page }) => {
   const probe = new LivePlayer(page, { stepMs: STEP_MS });
-  const { id, firesInMs } = await bootBeforeInterrupt(probe);
+  const { id } = await bootBeforeInterrupt(probe);
+  const firesInMs = await untilTheBotMoves(probe, id);
   // The lag is the race: the step reads the run and decides with nothing on screen, then this
   // much of the app's clock passes before its first press, and the interrupt fires inside it.
   const player = new LivePlayer(page, { stepMs: STEP_MS, lagMs: firesInMs });

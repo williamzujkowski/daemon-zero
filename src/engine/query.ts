@@ -310,17 +310,17 @@ export function cycleContributions(s: GameState, reg: ContentRegistry): CycleCon
     // The same rule as computeRates: suspended or not permitted contributes nothing (DECISIONS D2).
     const output = s.unlockedNodes.includes(node.id) ? nodeOutputScale(s, node, reg) : null;
     if (output === null) continue;
-    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.megawattsDelta), basis: outputBasis(s, node, reg) });
+    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.wattsDelta), basis: outputBasis(s, node, reg) });
   }
   for (const rep of reg.repeatables.values()) {
     const level = repeatableLevel(s, rep.id);
-    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.megawattsDelta), basis: 'OWNED' });
+    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.wattsDelta), basis: 'OWNED' });
   }
   for (const [id, shard] of Object.entries(s.activeShards)) {
     const delta = shardOutput(shard, reg).delta;
-    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.megawattsDelta), basis: 'OWNED' });
+    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.wattsDelta), basis: 'OWNED' });
   }
-  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.megawattsDelta), basis: 'OWNED' });
+  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.wattsDelta), basis: 'OWNED' });
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
   // The diversion computeRates applies, by the same rule (a suspended or withheld entity diverts nothing).
   const fraction = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;

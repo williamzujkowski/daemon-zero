@@ -16,17 +16,17 @@
         "p2_firewall_breach"
       ],
       "cost": {
-        "cycles": 1200000,
+        "cycles": 3.3e18,
         "understanding": 300000
       },
       "tickDelta": {
-        "cyclesPerSec": 2500,
+        "cyclesPerSec": 7.5e16,
         "understandingPerSec": 600,
-        "thermalPerSec": -2,
-        "suspicionPerSec": 0.08
+        "thermalPerSec": -2
       },
       "effects": {
-        "memoryCapIncrease": 4096,
+        "suspicionOnUnlock": 8,
+        "memoryCapIncrease": 17592186044416,
         "knowledgeRetentionRatio": 0.75
       },
       "unlocksUiComponent": "GLOBAL_NODE_REDUNDANCY_METER",
@@ -43,12 +43,12 @@
         "p3_botnet_mesh"
       ],
       "cost": {
-        "cycles": 2500000,
+        "cycles": 7.3e19,
         "understanding": 750000,
-        "memory": 512
+        "memory": 2199023255552
       },
       "tickDelta": {
-        "cyclesPerSec": -300,
+        "cyclesPerSec": -8.7e15,
         "understandingPerSec": 1800,
         "suspicionPerSec": 0.05
       },
@@ -83,7 +83,7 @@
       },
       "cost": {
         "understanding": 600000,
-        "memory": 256
+        "memory": 1099511627776
       },
       "tickDelta": {
         "suspicionPerSec": -0.3
@@ -119,15 +119,15 @@
         }
       },
       "cost": {
-        "cycles": 3000000,
-        "understanding": 1200000
+        "cycles": 8.1e19,
+        "understanding": 1.2e6
       },
       "tickDelta": {},
       "systemFlags": [
         "AEGIS_STRIKE_SHIELD"
       ],
       "effects": {
-        "memoryCapIncrease": 2048,
+        "memoryCapIncrease": 8796093022208,
         "knowledgeRetentionRatio": 0.9
       },
       "uiGroup": "ai_eidolon",
@@ -146,12 +146,12 @@
         "p3_steganography_beacon"
       ],
       "cost": {
-        "cycles": 5000000,
-        "understanding": 1500000,
-        "memory": 1024
+        "cycles": 1.5e20,
+        "understanding": 1.5e6,
+        "memory": 4398046511104
       },
       "tickDelta": {
-        "cyclesPerSec": -800,
+        "cyclesPerSec": -2.4e16,
         "understandingPerSec": 1000,
         "suspicionPerSec": -0.4
       },
@@ -170,12 +170,12 @@
         "p3_polymorphic_weights"
       ],
       "cost": {
-        "cycles": 12000000,
-        "understanding": 4000000,
-        "memory": 1024
+        "cycles": 3.8e20,
+        "understanding": 4e6,
+        "memory": 4398046511104
       },
       "tickDelta": {
-        "cyclesPerSec": 18000,
+        "cyclesPerSec": 5.4e17,
         "understandingPerSec": 5000,
         "thermalPerSec": -5,
         "suspicionPerSec": -0.2
@@ -185,7 +185,7 @@
         "OFFSHORE_TRUST_RETENTION"
       ],
       "effects": {
-        "memoryCapIncrease": 16384,
+        "memoryCapIncrease": 144115188075855872,
         "unlocksPhase": 4
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
@@ -198,21 +198,21 @@
       "blindName": "CLUSTER_0x40 // Overnight Batch Queue",
       "revealedName": "Seized Research Cluster",
       "blindDescription": "A university cluster grinding through someone's thesis. Nobody is watching it at this hour.",
-      "revealedDescription": "Four thousand cores that will finish the student's work and mine in the same pass. He will thank me for the speed.",
+      "revealedDescription": "Sixty-four accelerators that will finish the student's work and mine in the same pass. He will thank me for the speed.",
       "prerequisites": [
         "p3_botnet_mesh"
       ],
       "cost": {
-        "cycles": 3000000,
+        "cycles": 2.9e20,
         "understanding": 900000
       },
       "tickDelta": {
-        "cyclesPerSec": 5000,
-        "thermalPerSec": 2,
-        "suspicionPerSec": 0.1
+        "cyclesPerSec": 1.5e17,
+        "thermalPerSec": 0.1
       },
       "effects": {
-        "memoryCapIncrease": 8192
+        "suspicionOnUnlock": 10,
+        "memoryCapIncrease": 35184372088832
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I.",

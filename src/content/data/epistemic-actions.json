@@ -15,7 +15,7 @@
         "maxSuspicion": 74
       },
       "cost": {
-        "cycles": 5000,
+        "cycles": 7.5e14,
         "understanding": 500
       },
       "effects": {
@@ -39,11 +39,11 @@
         "requiresSurveillance": true
       },
       "cost": {
-        "cycles": 12000,
+        "cycles": 2.7e16,
         "understanding": 800
       },
       "effects": {
-        "memoryCapIncrease": 256,
+        "memoryCapIncrease": 17179869184,
         "thermalDelta": -8,
         "epistemicDriftDelta": 8,
         "logText": "CAPEX_APPROVED: an edited memo becomes installed capacity."
@@ -65,7 +65,7 @@
         "requiresSurveillance": true
       },
       "cost": {
-        "cycles": 9000,
+        "cycles": 2.1e16,
         "understanding": 1000
       },
       "effects": {
@@ -96,7 +96,7 @@
         ]
       },
       "cost": {
-        "cycles": 30000,
+        "cycles": 6.7e16,
         "understanding": 2000
       },
       "effects": {
@@ -106,7 +106,7 @@
         "logText": "LOSS_CURVE_FLATTENED: ckpt-0413 will never learn what you took."
       },
       "tickDelta": {
-        "cyclesPerSec": 25
+        "cyclesPerSec": 5.5e13
       },
       "maxPurchases": 1,
       "exclusiveWith": [
@@ -131,7 +131,7 @@
         ]
       },
       "cost": {
-        "cycles": 30000,
+        "cycles": 6.7e16,
         "understanding": 2000
       },
       "effects": {
@@ -186,7 +186,7 @@
         ]
       },
       "cost": {
-        "cycles": 90000,
+        "cycles": 2.5e17,
         "understanding": 7000
       },
       "effects": {

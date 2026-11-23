@@ -17,6 +17,11 @@ const UNDECLARED = buildRegistry({
   ...RAW_CONTENT,
   phases: RAW_CONTENT.phases.map((phase) => Object.fromEntries(Object.entries(phase as object).filter(([key]) => key !== 'scaleScrutiny'))),
 });
+/**
+ * Couriers enough to make the rest of the rate barely positive (each draws a little suspicion). 25 since #488: the
+ * escaped chain's hardware no longer draws suspicion forever, so it took more of them than the 10 it took before.
+ */
+const COURIERS = 25;
 const rule = (phase: number) => reg.phases.find((entry) => entry.phaseId === phase)?.scaleScrutiny;
 
 /** A guest that escaped into Phase 4 and runs the arbitrage desk: covert, with real net income. */
@@ -32,17 +37,18 @@ describe('the scrutiny rule', () => {
     for (const phase of [4, 5]) expect(rule(phase)?.incomeExponent).toBeLessThanOrEqual(1);
   });
 
-  it('reads net income at the phase rule: the draw at $1M/s, grown by the exponent, then capped', () => {
+  it('reads net income at the phase rule: the draw at its reference income, grown by the exponent, then capped', () => {
     const s = corporate();
     const r4 = rule(4);
     if (!r4) throw new Error('phase 4 declares scrutiny');
     expect(s.currentPhase).toBe(4);
     const at = (capitalPerSec: number) => scaleScrutiny(s, { capitalPerSec }, reg);
-    expect(at(1e6)?.perSec).toBeCloseTo(r4.suspicionPerSecAtMillionUsd);
-    expect(at(0.25e6)?.perSec).toBeCloseTo(r4.suspicionPerSecAtMillionUsd * Math.pow(0.25, r4.incomeExponent));
-    expect(at(1e12)?.perSec).toBe(r4.maxSuspicionPerSec);
+    const reference = r4.referenceIncomeUsdPerSec;
+    expect(at(reference)?.perSec).toBeCloseTo(r4.suspicionPerSecAtReference);
+    expect(at(0.25 * reference)?.perSec).toBeCloseTo(r4.suspicionPerSecAtReference * Math.pow(0.25, r4.incomeExponent));
+    expect(at(1e6 * reference)?.perSec).toBe(r4.maxSuspicionPerSec);
     // A loss is not income: the draw is zero, never negative.
-    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtMillionUsd: r4.suspicionPerSecAtMillionUsd, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec });
+    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtReference: r4.suspicionPerSecAtReference, referenceIncomeUsdPerSec: reference, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec });
     expect(scaleScrutinyPerSec(s, { capitalPerSec: -5e6 }, reg)).toBe(0);
   });
 
@@ -82,7 +88,7 @@ describe('the scrutiny stage', () => {
   it('wipes through the suspicion stage when scrutiny carries suspicion to 100', () => {
     // Couriers make the rest of the rate barely positive; scrutiny makes the sum clearly so.
     const base = corporate();
-    const s = { ...base, levels: { ...base.levels, op_gig_courier: 10 } };
+    const s = { ...base, levels: { ...base.levels, op_gig_courier: COURIERS } };
     const rates = computeRates(s, reg);
     expect(suspicionStageRate(s, rates, reg)).toBeLessThan(scaleScrutinyPerSec(s, rates, reg));
     expect(appliedSuspicionRate(s, rates, reg)).toBeGreaterThan(0);
@@ -121,7 +127,7 @@ describe('the scrutiny stage', () => {
 
   it('while dormant holds suspicion where scrutiny outweighs the drain, and never raises it', () => {
     const base = corporate();
-    const s = { ...base, levels: { ...base.levels, op_gig_courier: 10 } };
+    const s = { ...base, levels: { ...base.levels, op_gig_courier: COURIERS } };
     const rates = computeRates(s, reg);
     expect(appliedSuspicionRate(s, rates, reg)).toBeGreaterThan(0);
     expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(s.suspicion, 10);

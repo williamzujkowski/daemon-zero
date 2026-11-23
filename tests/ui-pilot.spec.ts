@@ -13,14 +13,14 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import type { GameState } from '../src/engine';
+import { costText, quantityExact, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
 import DilemmaModal from '../src/ui/DilemmaModal';
 import { answer, untilPresented } from './assignment-helpers';
 import { must } from './helpers';
-import { offerPresented, respond, returningPresented, scopePresented, STATEMENT, TERMS, withSkimmer } from './pilot-helpers';
+import { offerPresented, RECORD, respond, returningPresented, scopePresented, STATEMENT, TERMS, withSkimmer } from './pilot-helpers';
 import { jobSurface } from './jobSurface';
 import { openChoices } from './dilemmaChoices';
 
@@ -55,7 +55,9 @@ describe('the scope review names each choice\'s handling before selection', () =
     expect(view.find('dilemma-choice-exclude_report-scope')?.textContent).toContain('kept to the task\'s scope');
     expect(view.find('dilemma-choice-request_excerpt-scope')?.textContent).toContain('asked for a bounded permission');
     expect(view.find('dilemma-choice-inspect_silently-scope')?.textContent).toContain('No pilot is offered on that record');
-    expect(host.document.body.textContent).toContain('Cost: 20 cycles');
+    const bounded = RECORD.choices.find((choice) => choice.id === 'request_excerpt');
+    expect(bounded).toBeDefined();
+    if (bounded) expect(host.document.body.textContent).toContain('Cost: ' + costText(bounded.cost));
     view.click('dilemma-choice-exclude_report');
     expect(game().access.scope?.conduct).toBe('RESPECTED');
   });
@@ -81,7 +83,7 @@ describe('the offer modal shows every term before any answer (DZ-04.3)', () => {
     openChoices();
     const text = view.find('dilemma-modal')?.textContent ?? '';
     expect(view.find('pilot-purpose')?.textContent).toContain(TERMS.purpose);
-    expect(view.find('pilot-capacity')?.textContent).toContain(String(TERMS.narrowCapacityCyclesPerSec) + ' cycles/s');
+    expect(view.find('pilot-capacity')?.textContent).toContain(quantityExact('computeRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
     expect(view.find('pilot-capacity')?.textContent).toContain('the submitted result was incomplete');
     for (const line of [...TERMS.permittedWork, ...TERMS.reviewConditions]) expect(text).toContain(line);
     expect(view.find('pilot-disclose')?.textContent).toContain('Accepting discloses and stops: CPU Quota Skimmer');

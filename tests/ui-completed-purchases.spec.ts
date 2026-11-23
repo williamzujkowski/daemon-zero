@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
+import { needsProcessControl } from '../src/ui/purchaseVisibility';
 import { computeRates, toggleNode } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { rich } from './helpers';
@@ -14,7 +15,8 @@ describe('completed purchase feed', () => {
     const view = await mountM4('tick-0');
     const node = CONTENT.phases[0]?.nodes[0];
     if (!node?.unlocksUiComponent) throw new Error('Missing opening widget');
-    act(() => { gameStore.initialize({ ...rich(), cycles: 1000 }, 0, null); });
+    // Exactly the opening node's price in compute: enough to buy it and nothing else that costs FLOP.
+    act(() => { gameStore.initialize({ ...rich(), cycles: node.cost.cycles }, 0, null); });
     const before = computeRates(gameStore.store.getState().game, CONTENT);
     view.purchase('node-' + node.id + '-unlock');
     const bought = gameStore.store.getState().game;
@@ -45,7 +47,7 @@ describe('completed purchase feed', () => {
     const original = computeRates(game, CONTENT).cyclesPerSec;
     view.click('node-' + node.id + '-toggle');
     expect(gameStore.store.getState().game.disabledNodes).toContain(node.id);
-    expect(view.find('daemon-impact-' + node.id)?.textContent).toContain('+0.00');
+    expect(view.find('daemon-impact-' + node.id)?.textContent).toMatch(/^\+0 FLOP\/s net/);
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).toBeCloseTo(original - node.tickDelta.cyclesPerSec);
     view.click('node-' + node.id + '-toggle');
     expect(gameStore.store.getState().game.disabledNodes).not.toContain(node.id);
@@ -66,7 +68,7 @@ describe('completed purchase feed', () => {
     view.close();
   });
 
-  it('hides the last upgrade purchase and empty infrastructure heading without losing its output', async () => {
+  it('hides the last upgrade purchase, keeping the infrastructure heading only for the capped levels it can still release', async () => {
     const view = await mountM4('victory-ready');
     const game = m4State('victory-ready');
     const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 4 && r.kind === 'UPGRADE');
@@ -77,7 +79,12 @@ describe('completed purchase feed', () => {
     view.click('rep-' + last.id + '-buy');
     expect(gameStore.store.getState().game.levels[last.id]).toBe(last.maxLevel);
     expect(view.find('rep-' + last.id)).toBeNull();
-    expect(view.find('repeatables-heading-4UPGRADE')).toBeNull();
+    // Every track is capped now. The heading is empty, and hidden, unless some capped level can still be released for
+    // free (#488 pass 4): then the section stays for exactly those release rows.
+    const releasable = reps.filter((r) => r.dismissable);
+    expect(view.find('repeatables-heading-4UPGRADE') === null).toBe(releasable.length === 0);
+    for (const r of releasable) expect(view.find('rep-' + r.id + '-dismiss'), r.id).not.toBeNull();
+    for (const r of reps) expect(view.find('rep-' + r.id + '-buy'), r.id).toBeNull();
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).toBeGreaterThan(0);
     view.close();
   });
@@ -111,14 +118,20 @@ describe('completed purchase feed', () => {
     view.close();
   });
 
-  it('omits completed network phase headings, keeping only useful process controls', async () => {
+  it('keeps a bought-out network phase heading only for the levels it can release, with process controls in PROC', async () => {
     const view = await mountM4('victory-ready');
     const game = m4State('victory-ready');
     const reps = [...CONTENT.repeatables.values()].filter((r) => CONTENT.phases.find((p) => p.phaseId === r.phaseId)?.uiSlot === 'NETWORK');
     const nodes = [...CONTENT.nodes.values()].filter((n) => n.uiGroup === 'TREE' && CONTENT.phases.find((p) => p.phaseId === n.phaseId)?.uiSlot === 'NETWORK');
     act(() => { gameStore.initialize({ ...game, unlockedNodes: [...new Set([...game.unlockedNodes, ...nodes.map((n) => n.id)])], levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel])) } }, 0, null); });
     view.click('tab-NETWORK');
-    for (const phase of CONTENT.phases.filter((p) => p.uiSlot === 'NETWORK')) expect(view.find('purchase-phase-' + String(phase.phaseId))).toBeNull();
+    // Nothing is left to buy. A phase heading stays exactly where a capped level can still be released for free, for
+    // those release rows (#488 pass 5); with nothing to release it would be empty, and is omitted.
+    for (const phase of CONTENT.phases.filter((p) => p.uiSlot === 'NETWORK')) {
+      const holds = reps.some((r) => r.phaseId === phase.phaseId && r.dismissable);
+      expect(view.find('purchase-phase-' + String(phase.phaseId)) !== null, 'phase ' + String(phase.phaseId)).toBe(holds);
+    }
+    for (const r of reps) expect(view.find('rep-' + r.id + '-buy'), r.id).toBeNull();
     view.click('processes-open');
     expect(view.find('processes-dialog')?.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
     view.close();
@@ -129,7 +142,8 @@ describe('completed purchase feed', () => {
 it('Phase 5 purchases hide at completion while the corporate panel retains effects and daemon controls', async () => {
   const view = await mountM4('victory-ready');
   const orbit = [...CONTENT.nodes.values()].find((n) => n.effects.unlocksPhase === 5);
-  const solar = CONTENT.phases.find((p) => p.phaseId === 5)?.nodes[0];
+  const firstId = CONTENT.phases.find((p) => p.phaseId === 5)?.nodes[0]?.id;
+  const solar = firstId === undefined ? undefined : CONTENT.nodes.get(firstId);
   if (!orbit || !solar) throw new Error('Missing orbital transition');
   view.purchase('node-' + orbit.id + '-unlock');
   expect(view.find('node-' + orbit.id)).toBeNull();
@@ -138,7 +152,9 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
   view.click('node-' + solar.id + '-unlock');
   expect(view.find('node-' + solar.id)).toBeNull();
   view.click('processes-open');
-  expect(view.find('daemon-row-' + solar.id)).not.toBeNull();
+  // Listed while it has something to stop (#488 left the swarm no permanent suspicion), and the panel keeps its rows.
+  expect(view.find('daemon-row-' + solar.id) !== null).toBe(needsProcessControl(gameStore.store.getState().game, solar));
+  expect(view.find('processes-dialog')?.querySelector('[data-testid^="daemon-row-"]')).not.toBeNull();
   view.click('processes-close');
   expect(computeRates(gameStore.store.getState().game, CONTENT).understandingPerSec - before.understandingPerSec).toBeCloseTo(solar.tickDelta.understandingPerSec);
   const game = m4State('transcendence-ready');

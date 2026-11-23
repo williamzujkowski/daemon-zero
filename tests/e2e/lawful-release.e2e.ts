@@ -13,6 +13,8 @@ import { exportSave, type GameState } from '../../src/engine';
 import { charterReady, CHARTER, CONTRACT, RACK, RELEASE_TERMS, signed } from '../lawful-helpers';
 import { boot, core, expect, openSave, test, press } from './helpers';
 
+/** The hosted line names its reservation in bytes as memoryExact prints them ("16 GB", "353.5 MB"). */
+const HOSTED_IN_BYTES = /, [\d.,]+ [KMGTPEZY]?B reserved\.$/;
 const name = (id: string): string => PREVIEW.nodes.get(id)?.revealedName ?? id;
 
 async function importState(page: Page, state: GameState): Promise<void> {
@@ -50,10 +52,10 @@ test('FIXTURE contract signed: the leased rack\'s card adds owned memory, and th
   await core(page);
   await expect(page.getByTestId('channel-host')).toBeEnabled();
   await page.getByTestId('channel-host').click();
-  await expect(page.getByTestId('channel-hosted')).toContainText('MB reserved');
+  await expect(page.getByTestId('channel-hosted')).toHaveText(HOSTED_IN_BYTES);
   await page.reload();
   await core(page);
-  await expect(page.getByTestId('channel-hosted')).toContainText('MB reserved');
+  await expect(page.getByTestId('channel-hosted')).toHaveText(HOSTED_IN_BYTES);
 });
 
 test('FIXTURE charter affordable: file the charter, read the company, negotiate the release on the job surface, reload', async ({ page }) => {

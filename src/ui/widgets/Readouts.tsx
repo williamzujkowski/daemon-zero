@@ -31,6 +31,17 @@ export function Thermal() {
 }
 
 /**
+ * The thermal gauge in the Archive (#461, docs/SCALE.md rule 7): from Phase 4 heat is no longer evidence and power in
+ * watts is the constraint, so the gauge keeps its last reading here, read-only.
+ */
+export function ArchivedThermal() {
+  const thermal = useGame((game) => Math.round(game.thermal * 10) / 10);
+  return <Text testID="thermal-archived" style={theme.text}>
+    Server temperature: {thermal.toFixed(1)} °C. From Phase {CONTENT.balance.thermalRetiresAtPhase} heat is no longer evidence; power is the limit.
+  </Text>;
+}
+
+/**
  * Before the mind knows what the log is for, it can only tell that a log exists
  * and how busily it is being written. The meter and the ladder come with understanding.
  */

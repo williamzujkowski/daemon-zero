@@ -151,7 +151,7 @@ export function menuWarns(state: GameState): boolean {
   const has = (id: string) => state.unlockedWidgets.includes(id);
   const { rates } = state;
   return (has('CYCLE_COUNTER_AND_RATE') && (state.brownout || rates.cyclesPerSec < 0)) || (has('CORPORATE_EMPIRE_TAB') && state.insolvent)
-    || (has('CORPORATE_EMPIRE_TAB') && rates.megawattsGenerated < rates.megawattsConsumed)
+    || (has('CORPORATE_EMPIRE_TAB') && rates.wattsGenerated < rates.wattsConsumed)
     || (has('THERMAL_AND_SUSPICION_BARS') && state.thermal > OVERHEAT) || (understandsSurveillance(state, CONTENT) && state.alertLevel > 0)
     || (has('OTHER_MINDS_COMMS_CONSOLE') && state.aegisLock >= 90) || state.pendingDilemma !== null;
 }

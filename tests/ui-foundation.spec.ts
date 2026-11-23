@@ -12,6 +12,7 @@ import { importSave } from '../src/engine';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
+import { resourceWidgets } from '../src/ui/registry/widgetRegistry';
 
 const host = globalThis as unknown as { document: Window['document']; IS_REACT_ACT_ENVIRONMENT: boolean; localStorage: Window['localStorage'] };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -51,8 +52,13 @@ describe('terminal foundation', () => {
     const view = await mount('thermal-unlocked', 390);
     expect(view.container.querySelector('[data-testid="res-cycles"]')).not.toBeNull();
     expect(view.container.querySelector('[data-testid="res-understanding"]')).not.toBeNull();
-    expect(view.container.querySelector('[data-testid="res-memory"]')).toBeNull();
+    // The memory readout shows from Phase 0 (DESIGN.md, physical units), so it is already up when heat is found.
+    expect(view.container.querySelector('[data-testid="res-memory"]')).not.toBeNull();
     expect(view.container.querySelector('[data-testid="res-capital"]')).toBeNull();
+    const unlocked = importSave(fixtures['thermal-unlocked'] ?? '', CONTENT).unlockedWidgets;
+    for (const [resource, widget] of Object.entries(resourceWidgets)) {
+      expect(view.container.querySelector('[data-testid="res-' + resource + '"]') !== null, resource).toBe(unlocked.includes(widget));
+    }
     const sensors = view.container.querySelector<HTMLElement>('[data-testid="tab-SENSORS"]');
     act(() => { sensors?.click(); });
     expect(sensors?.getAttribute('aria-selected')).toBe('true');

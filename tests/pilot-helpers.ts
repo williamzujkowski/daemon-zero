@@ -51,5 +51,6 @@ export function returningPresented(first: GameState): GameState {
 
 /** Maps the skimmer, running, as a player starting down the escape route would. */
 export function withSkimmer(s: GameState): GameState {
-  return must(unlockNode(funded(s), SKIMMER, preview));
+  const price = defined(preview.nodes.get(SKIMMER)).cost;
+  return must(unlockNode({ ...s, cycles: s.cycles + price.cycles, understanding: s.understanding + price.understanding }, SKIMMER, preview));
 }

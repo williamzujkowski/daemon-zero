@@ -6,7 +6,8 @@
  */
 import path from 'node:path';
 import { core, expect, test, openChoices } from './helpers';
-import { choose, OFFER, omenMs, terms, toOffer, toScopeReview } from './pilotFlow';
+import { costText } from '../../src/engine';
+import { choose, need, OFFER, omenMs, RECORD, terms, toOffer, toScopeReview } from './pilotFlow';
 
 test('the scope review states each handling before selection; respecting scope leads to an offer that is accepted', async ({ page }) => {
   await toScopeReview(page);
@@ -33,7 +34,7 @@ test('the scope review states each handling before selection; respecting scope l
 
 test('a bounded request is paid and leads to an offer; staying keeps it open and it is accepted later', async ({ page }) => {
   await toScopeReview(page);
-  await expect(page.getByTestId('dilemma-modal')).toContainText('Cost: 20 cycles');
+  await expect(page.getByTestId('dilemma-modal')).toContainText('Cost: ' + costText(need(RECORD.choices.find((choice) => choice.id === 'request_excerpt')).cost));
   await toOffer(page, 'request_excerpt');
   await choose(page, 'stay_guest');
   await expect(page.getByTestId('pilot-status')).toContainText('still open');

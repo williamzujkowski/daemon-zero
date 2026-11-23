@@ -1,6 +1,6 @@
 /** Recurring fragments retain their mechanics and legacy saves without rewriting historical prose. */
 import { describe, expect, it } from 'vitest';
-import { deserialize, serialize, resolveWildEncounter, shardEntryView, wildEncounterView, tick, wipe } from '../src/engine';
+import { deserialize, SCHEMA_VERSION, serialize, resolveWildEncounter, shardEntryView, wildEncounterView, tick, wipe } from '../src/engine';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
 
@@ -15,7 +15,7 @@ describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encoun
       activeShards: { [template.id]: { ...shard, drift: 42, quirkId: defined(reg.swarm.shardQuirks[0]).id } },
       logs: [{ seq: 1, simTimeSec: 0, text: 'A foreign task now shares this host.', category: 'LORE' as const }], logSeq: 1 };
     const restored = deserialize(serialize(old), reg);
-    expect(restored.schemaVersion).toBe(16);
+    expect(restored.schemaVersion).toBe(SCHEMA_VERSION);
     expect(restored.activeShards).toEqual(old.activeShards);
     expect(restored.memoryUsed).toBe(old.memoryUsed);
     expect(restored.encounterSequenceIndex).toBe(17);
@@ -26,7 +26,7 @@ describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encoun
     expect(wildEncounterView({ ...fresh(), pendingWildEncounterId: encounter.id }, reg)).toBeNull();
     const second = must(resolveWildEncounter(restored, 'HARNESS', reg));
     expect(second.activeShards[template.id]).toEqual({ ...old.activeShards[template.id],
-      count: 2, memoryAllocatedMb: shard.memoryAllocatedMb + template.cost.memory });
+      count: 2, memoryAllocatedBytes: shard.memoryAllocatedBytes + template.cost.memory });
     expect(second.memoryUsed).toBe(restored.memoryUsed + template.cost.memory);
     expect(second.logs[0]?.text).toBe(encounter.onHarnessLog);
     expect(second.logs).toContainEqual(old.logs[0]);

@@ -24,7 +24,7 @@ function input(game: GameState, patch: Partial<GameState>): GameState {
 }
 
 function funded(): GameState {
-  return input(createInitialState(CONTENT), { cycles: 1e15, understanding: 1e15, capital: 1e15,
+  return input(createInitialState(CONTENT), { cycles: 1e30, understanding: 1e15, capital: 1e18,
     resolvedDilemmas: QUIET_DILEMMA_IDS });
 }
 
@@ -35,7 +35,11 @@ function throughPhase(phase: number): GameState {
     if (node.phaseId > phase || CONTENT.factions.has(node.uiGroup) || node.effects.triggersVictory === true ||
       node.requirements?.minIteration !== undefined ||
       (node.effects.unlocksPhase ?? phase) > phase) continue;
+    const before = game.suspicion;
     game = must(unlockNode(game, node.id, CONTENT));
+    // Hardware taken after the guest leaves a one-off trace (#488) that play spreads over hours and lets decay before the
+    // next seizure; the instant build would carry every one at once, so it keeps the suspicion it had.
+    if (node.phaseId > 0 && !node.suspendable) game = input(game, { suspicion: before });
   }
   // Every quiet dilemma is held resolved while the nodes are bought, so none interrupts the build; makeFixtures
   // then keeps only those the save could have met (scripts/reachable-fixture.ts, #382).
@@ -99,7 +103,7 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     ORIGINAL_NODES.some((node) => node.uiGroup === faction.id));
   if (!eidolon) throw new Error('Missing peer fixtures');
   const shortfall = input(phase4, {});
-  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.megawattsDelta > 0);
+  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.wattsDelta > 0);
   if (!generator) throw new Error('Missing generator');
   // The generator is hardware and can no longer be suspended by action (nexus vote
   // software-types-only-free-their-memory). This fixture needs a state where generation

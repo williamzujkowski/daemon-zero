@@ -3,7 +3,7 @@ import { defined } from './m7-helpers';
 import { describe, expect, it } from 'vitest';
 import { actionAvailable, actionCost, actionExhausted, computeRates, cycleContributions, isNodeAvailable, meetsRequirements, performAction, tick, unlockNode, unmetRequirements, type GameState } from '../src/engine';
 import { actionOutputs } from '../src/engine/swarmRates';
-import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich, withoutDilemmas, choose } from './helpers';
+import { fresh, grant, must, PHASE0, PHASE1, PHASE2, reg, rich, sumTolerance, withoutDilemmas, choose } from './helpers';
 const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1));
 /** The first device of the subnet, which every phase 2 purchase waits behind. */
 const SUBNET = defined(PHASE2[0]);
@@ -51,7 +51,7 @@ describe('epistemic actions', () => {
     const a = defined(actions.find((action) => action.maxPurchases === 3));
     let s = { ...ready(), thermal: 60 }; const before = s;
     for (let i = 0; i < 3; i++) { s = must(performAction(s, a.id, reg)); s = { ...s, simTimeSec: s.simTimeSec + a.cooldownSec }; }
-    expect(s.memoryCap).toBe(before.memoryCap + 768); expect(s.thermal).toBe(36);
+    expect(s.memoryCap).toBe(before.memoryCap + 3 * a.effects.memoryCapIncrease); expect(a.effects.memoryCapIncrease).toBeGreaterThan(0); expect(s.thermal).toBe(36);
     expect(actionExhausted(s, a)).toBe(true); expect(actionAvailable(s, a, reg)).toBe(false);
     expect(performAction(s, a.id, reg)).toMatchObject({ ok: false, state: s });
   });
@@ -103,7 +103,9 @@ it('shares decoded gates and rate-source arithmetic with generic node and ledger
   expect(isNodeAvailable(fresh(), gated, reg)).toBe(false);
   const known = { ...fresh(), legacy: { ...fresh().legacy, knownNodes: ready().unlockedNodes } };
   expect(isNodeAvailable(known, gated, reg)).toBe(true);
-  const action = defined(actions.find((entry) => entry.tickDelta?.cyclesPerSec === 25));
+  const action = defined(actions.find((entry) => (entry.tickDelta?.cyclesPerSec ?? 0) > 0));
   const state = must(performAction(ready(), action.id, reg));
-  expect(cycleContributions(state, reg).reduce((sum, source) => sum + source.cyclesPerSec, 0)).toBeCloseTo(computeRates(state, reg).cyclesPerSec);
+  const rate = computeRates(state, reg).cyclesPerSec;
+  const summed = cycleContributions(state, reg).reduce((sum, source) => sum + source.cyclesPerSec, 0);
+  expect(Math.abs(summed - rate)).toBeLessThanOrEqual(sumTolerance(rate));
 });

@@ -23,7 +23,10 @@ const hosted = must(answer(withMemory(contactPending()), 'HOST'));
  */
 function matured(s: GameState): GameState {
   const cohort = defined(s.activeShards[MERCY]);
-  return decoded({ ...s, cycles: 1e9, understanding: 1e9, memoryCap: s.memoryCap + 1024,
+  // The dearer of the two priced commands, per member, read from the swarm balance (#461 re-priced them).
+  const { pruneCost, elevateCost } = preview.swarm.balance;
+  const most = (key: 'cycles' | 'understanding' | 'memory'): number => Math.max(pruneCost[key], elevateCost[key]) * cohort.count;
+  return decoded({ ...s, cycles: s.cycles + most('cycles'), understanding: s.understanding + most('understanding'), memoryCap: s.memoryCap + most('memory'),
     activeShards: { ...s.activeShards, [MERCY]: { ...cohort, drift: preview.swarm.balance.elevateMinDrift + 10 } } });
 }
 /** FIXTURE: the surveillance node added by hand, not unlocked, so it is added after a reload, never saved. */

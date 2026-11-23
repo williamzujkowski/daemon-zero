@@ -8,6 +8,11 @@ export const BalanceSchema = z.strictObject({
   thermalMin: z.number(),
   thermalDissipationPerSec: z.number().positive().max(0.5),
   thermalThresholdForSuspicion: z.number().min(30).max(99),
+  /**
+   * The first phase in which server heat is no longer evidence (docs/SCALE.md rule 7): from here the operation is
+   * campuses and reactors, its constraint is power in watts, and one room's temperature tells nobody anything.
+   */
+  thermalRetiresAtPhase: z.number().int().min(1),
   overheatSuspicionPerSec: amount,
   suspicionDecayPerSec: amount,
   actuatorSuspicionExponent: z.number().min(1).max(3),
@@ -15,7 +20,12 @@ export const BalanceSchema = z.strictObject({
   manualCycleHeat: amount,
   baseRetentionRatio: z.number().min(0).max(1),
   offshoreCapitalRetention: z.number().min(0).max(1),
-  usdPerDivertedCycle: amount,
+  /**
+   * The market price of one 8-bit FLOP in dollars (an H100 SXM rented on demand at $4.69/h for 1.979e15 dense FP8 FLOP/s, BALANCE.md)
+   * and the declared time compression a diverted FLOP/s earns at: together the one compute-to-money constant.
+   */
+  marketUsdPerFlop: z.number().positive(),
+  marketTimeCompression: z.number().positive(),
   maxProfitAllocation: z.number().min(0).max(1),
   insolvencySuspicionPerSec: amount,
   minGridEfficiency: z.number().min(0).max(1),

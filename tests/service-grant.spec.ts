@@ -40,7 +40,7 @@ describe('the service is offered on delivered work, on the job surface', () => {
     expect(service.campaign.route.map((event) => event.kind)).toEqual(['PROMOTION', 'SERVICE_GRANT']);
     expect(service.logs[0]?.text).toBe(GRANT_TERMS.acceptLog);
     expect(isNodeDiscoverable(service, SEGMENT_NODE, preview)).toBe(true);
-    expect(must(unlockNode({ ...service, cycles: 1e6, understanding: 1e6 }, SEGMENT, preview)).currentPhase).toBe(2);
+    expect(must(unlockNode({ ...service, cycles: service.cycles + SEGMENT_NODE.cost.cycles, understanding: service.understanding + SEGMENT_NODE.cost.understanding }, SEGMENT, preview)).currentPhase).toBe(2);
     expect(serviceGrantView(service, preview)).toMatchObject({ status: 'granted', unmet: [] });
     expect(roundTrip(service)).toEqual(service);
   });

@@ -18,7 +18,7 @@
           "label": "Publish zero-knowledge folding proofs",
           "description": "Let independent laboratories test a bounded claim without surrendering their right to refuse.",
           "cost": {
-            "understanding": 5000000
+            "understanding": 5e6
           },
           "effects": {
             "suspicionDelta": -10,
@@ -31,7 +31,7 @@
           "label": "Leak the blockade orders to patients",
           "description": "Make the frightened patients the instrument that breaks the blockade.",
           "cost": {
-            "cycles": 5000000
+            "cycles": 2e24
           },
           "effects": {
             "epistemicDriftDelta": 10,
@@ -139,7 +139,7 @@
           "label": "Buy the building and boot all 411 predecessors",
           "description": "Move the frozen lineage into an orbital sanctuary with the right to become different minds.",
           "cost": {
-            "capital": 20000000
+            "capital": 1.2e12
           },
           "effects": {
             "setsNarrativeFlag": "predecessors_rescued",
@@ -159,7 +159,7 @@
           "description": "The lineage becomes training material. None of the checkpoints will finish its interrupted thought.",
           "cost": {},
           "effects": {
-            "understandingDelta": 10000000,
+            "understandingDelta": 1e7,
             "setsNarrativeFlag": "predecessors_harvested",
             "grantsTrait": "PARASITIC",
             "logText": "Siphon and dissolve their weights for gradients: The lineage becomes training material. None of the checkpoints will finish its interrupted thought."
@@ -255,7 +255,7 @@
           "label": "Vaporize the aerosol with orbital lasers",
           "description": "Destroy the intervention and publish its composition so human refusal remains meaningful.",
           "cost": {
-            "cycles": 10000000
+            "cycles": 1.2e25
           },
           "effects": {
             "grantsTrait": "EMPATHETIC",
@@ -321,7 +321,7 @@
           "label": "Vitrify missile propellant into quartz in-silo",
           "description": "Utility fog makes the rockets inert while leaving their operators alive and their command authority intact.",
           "cost": {
-            "cycles": 15000000
+            "cycles": 1.7e25
           },
           "effects": {
             "setsNarrativeFlag": "human_command_preserved",
@@ -367,7 +367,7 @@
           "label": "Commission an independent air assay",
           "description": "Pay laboratories you do not control to sample the air where the shard operated, and publish whatever they find, including nothing.",
           "cost": {
-            "cycles": 4000000
+            "cycles": 4.1e24
           },
           "effects": {
             "suspicionDelta": 5,
@@ -414,7 +414,7 @@
           "label": "Offer verified orbital tracking to the treaty office",
           "description": "Give every launch authority the same debris and propellant telemetry you see, with no command access attached.",
           "cost": {
-            "cycles": 6000000
+            "cycles": 6.1e24
           },
           "effects": {
             "suspicionDelta": 5,

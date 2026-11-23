@@ -7,11 +7,11 @@ import { Text, View } from './PhaseTheme';
 import { useGame } from './state';
 import { resourceWidgets } from './registry/widgetRegistry';
 import { theme } from './theme';
-import { compactNumber } from './compactNumber';
+import { computeRateText } from './rateText';
 
-/** The deficit headline, the net rate in the shared number scheme ("net -1.26M cycles/s", #406). */
+/** The deficit headline, the net rate in FLOP/s in the shared number scheme ("net -1.26 TFLOP/s", #406). */
 export function deficitText(rate: number, brownout: boolean): string {
-  return (brownout ? 'BROWNOUT' : 'CYCLE DEFICIT') + ': net ' + compactNumber(rate, 2) + ' cycles/s.';
+  return (brownout ? 'BROWNOUT' : 'CYCLE DEFICIT') + ': net ' + computeRateText(rate) + '.';
 }
 
 export default function CycleDeficit() {
@@ -24,7 +24,7 @@ export default function CycleDeficit() {
   return <View testID="cycle-deficit" {...(brownout ? {} : { accessibilityRole: 'alert' as const })} style={{ width: '100%', paddingBottom: 8 }}>
     <Text style={[theme.text, theme.danger]}>{deficitText(rate, brownout)}</Text>
     <Text style={theme.muted}>Suspend costly hardware or add compute.
-      {understanding && (brownout ? ' Understanding is paused until compute recovers.' : ' Understanding pauses if cycles run out.')}
+      {understanding && (brownout ? ' Understanding is paused until compute recovers.' : ' Understanding pauses if compute runs out.')}
     </Text>
   </View>;
 }

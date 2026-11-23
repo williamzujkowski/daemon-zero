@@ -5,7 +5,7 @@ import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { createInitialState, manualCycle, repeatableCost, type GameState } from '../src/engine';
+import { costPart, createInitialState, manualCycle, repeatableCost, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { installDevTools } from '../src/app/devTools';
 import type { DevHost } from '../src/app/devTools';
@@ -63,7 +63,7 @@ describe('M3 purchases', () => {
     expect(view.container.textContent).toContain(rep.name);
     view.click('rep-' + rep.id + '-buy');
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(1);
-    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(String(repeatableCost(rep, 1).cycles) + ' cycles');
+    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(costPart('cycles', repeatableCost(rep, 1).cycles));
     act(() => { gameStore.initialize({ ...grant(rich(), node.id), levels: { [rep.id]: rep.maxLevel } }, 0, null); });
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-buy"]')).toBeNull();
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '"]')).toBeNull();
@@ -89,7 +89,7 @@ describe('M3 purchases', () => {
 
   it('labels free prices and negative deltas without pretending heat load is degrees per second', () => {
     expect(costText(CostSchema.parse({}))).toBe('Free');
-    expect(costText(CostSchema.parse({ memory: 4, capital: 3 }))).toContain('4 MB');
+    expect(costText(CostSchema.parse({ memory: 4 * 1024 ** 2, capital: 3 }))).toBe('4 MB · $3');
     expect(deltaText(TickDeltaSchema.parse({ thermalPerSec: -2 }))).toBe('-2 heat load');
   });
 });

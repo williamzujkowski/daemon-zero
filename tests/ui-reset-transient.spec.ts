@@ -87,9 +87,10 @@ it('keeps live time progressing exactly once across imports and resets', async (
   expect(gameStore.store.getState().game.simTimeSec).toBeCloseTo(time + 1);
   view.click('menu-open'); view.click('save-open'); view.click('save-reset'); view.click('save-reset-confirm');
   view.click('manual-cycle');
-  expect(gameStore.store.getState().game.cycles).toBe(1);
+  // One click is the authored yield (FLOP since docs/SCALE.md), and a fresh run earns nothing else.
+  expect(gameStore.store.getState().game.cycles).toBe(CONTENT.balance.manualCycleYield);
   await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
   expect(gameStore.store.getState().game.simTimeSec).toBeCloseTo(1);
-  expect(gameStore.store.getState().game.cycles).toBe(1);
+  expect(gameStore.store.getState().game.cycles).toBe(CONTENT.balance.manualCycleYield);
   view.close();
 });

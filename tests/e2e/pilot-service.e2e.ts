@@ -6,7 +6,7 @@
  * wall-clock play.
  */
 import { core, expect, test, press } from './helpers';
-import { choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
+import { ceilingText, choose, need, terms, toOffer, toScopeReview } from './pilotFlow';
 
 const service = need(terms.service);
 const QUEUE = service.node;
@@ -18,7 +18,7 @@ test('accepted pilot -> attached loan -> allocation -> a submitted batch -> relo
   await toOffer(page, 'exclude_report');
   await choose(page, 'accept_pilot');
   await core(page);
-  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s of loaned compute');
+  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(ceilingText(terms.narrowCapacityCyclesPerSec));
   await expect(page.getByTestId('pilot-service-idle')).toBeVisible();
 
   // The loan is attached through its own card, which says what it is.
@@ -31,7 +31,7 @@ test('accepted pilot -> attached loan -> allocation -> a submitted batch -> relo
   await expect(page.getByTestId('pilot-allocation-setting')).toHaveText('Service share: 80%');
   await expect(page.getByTestId('pilot-allocation-study')).toHaveText('Study share: 20%');
   await expect(page.getByTestId('pilot-service-forecast')).toContainText('about 150 s');
-  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(String(terms.narrowCapacityCyclesPerSec) + ' cycles/s');
+  await expect(page.getByTestId('pilot-service-ceiling')).toContainText(ceilingText(terms.narrowCapacityCyclesPerSec));
   // #276: the press's effect is visible next to the dial, not only in the task detail far below it on a phone.
   await expect(page.getByTestId('pilot-allocation-forecast')).toContainText('about 150 s');
   const dial = await page.getByTestId('pilot-allocation-increase').boundingBox();

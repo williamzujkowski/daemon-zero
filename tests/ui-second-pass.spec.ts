@@ -3,7 +3,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { wipe } from '../src/engine';
+import { costPart, wipe } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 import { presentableDilemma } from './helpers';
@@ -85,7 +85,7 @@ describe('second-pass interface', () => {
     const card = view.find('node-' + root.id);
     expect(card?.textContent).toContain('[REMEMBERED] ' + root.revealedName);
     expect(card?.textContent).not.toContain(root.blindName);
-    expect(view.find('node-' + root.id + '-cost')?.textContent).toContain(String(Math.ceil(root.cost.cycles / 2)) + ' cycles (remembered)');
+    expect(view.find('node-' + root.id + '-cost')?.textContent).toMatch(new RegExp('^Cost: ' + costPart('cycles', Math.ceil(root.cost.cycles / 2)).replace('.', '\\.') + ' .*\\(remembered\\)$'));
     view.close();
   });
 });

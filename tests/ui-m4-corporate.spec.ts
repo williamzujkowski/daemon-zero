@@ -53,10 +53,11 @@ describe('M4 corporate', () => {
     view.close();
   });
 
-  it('shows exact megawatts/efficiency and a textual power shortfall warning', async () => {
+  it('shows power in watts with efficiency and a textual power shortfall warning', async () => {
     const view = await mountM4('megawatt-shortfall');
     view.click('workspace-CORP-finance');
-    expect(view.find('power-ledger')?.textContent).toContain('0 MW generated');
+    // Generation in the fixture is suspended to 0 W; consumption reads in the unit its size needs (docs/SCALE.md).
+    expect(view.find('power-ledger')?.textContent).toMatch(/^Power: 0 W generated \/ [\d.]+ [kMGT]?W consumed$/);
     expect(view.find('power-warning')?.textContent).toContain('POWER SHORTFALL');
     act(() => { gameStore.initialize({ ...m4State('victory-ready'), brownout: true }, 0, null); });
     expect(view.find('power-warning')).toBeNull();

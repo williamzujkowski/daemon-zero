@@ -6,22 +6,17 @@ import { Text, View } from './PhaseTheme';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { memoryBlocked } from '../app/selectors';
 import { CONTENT } from '../content';
+import { retiredWidgets } from '../engine';
 import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
 import { isCompactViewport, isShortViewport } from './layout';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
-import { compactNumber } from './compactNumber';
-import { groupDigits } from './format';
 import { memoryPair } from './units';
-import { spokenAmount } from '../engine';
+import { STRIP_LABEL, STRIP_SHORT, stripReadout } from './stripText';
 
 type Resource = keyof typeof resourceWidgets;
-/** Phone-width labels. The vote asked for the chrome's state on one compact line; at
- *  328px of usable width the full words force two-per-row and three rows. The
- *  accessible name keeps the full label and the exact numbers. */
-const SHORT: Record<string, string> = { cycles: 'CYC', understanding: 'UND', capital: 'CAP', memory: 'MEM', thermal: 'THM', suspicion: 'SUS' };
 
 function Amount({ resource, compact, packed, short }: { resource: Resource; compact: boolean; packed: boolean; short: boolean }) {
   const amount = useGame((game) => Math.floor(resource === 'memory' ? game.memoryUsed : game[resource]));
@@ -31,29 +26,21 @@ function Amount({ resource, compact, packed, short }: { resource: Resource; comp
   // The tick halts understanding during a brownout, but the rate stays net of it (rates.ts), so the
   // readout says paused instead of printing a gain that is not being applied (#387).
   const paused = useGame((game) => resource === 'understanding' && game.brownout);
-  // #108: the readout abbreviates a large amount at every width. At desktop widths
-  // the precise value used to print ungrouped (1000000000), which scanned as a wall
-  // of digits; the accessible label and the engine still carry the exact number.
-  const shown = Math.abs(amount) >= 10000 ? compactNumber(amount) : groupDigits(amount);
-  // Desktop printed the raw rate ("+1262415.37/s", #404); every width now abbreviates a large one.
-  const rateShown = paused ? 'paused' : (rate >= 0 ? '+' : '') + compactNumber(rate, compact && short ? 1 : 2) + '/s';
   // Memory is the one readout that can be the thing stopping the player: mark it when
   // nothing pending would fit, in colour AND in words, so the signal is not colour-only.
   const blocked = useGame((game) => resource === 'memory' && memoryBlocked(game));
-  // Spoken in words at its displayed size (vote-1795228570236-gzx0uif): "1.25 billion, gaining 1.26 million per second".
+  // Every width abbreviates (#108, #404) in the readout's physical unit, and the accessible name speaks the displayed
+  // size in words (vote-1795228570236-gzx0uif): "compute: 1.25 petaFLOP, gaining 1.26 teraFLOP per second".
   const pair = memoryPair(amount, cap);
-  const spokenRate = Math.abs(rate) < 10000 ? Math.abs(rate).toFixed(2) : spokenAmount(Math.abs(rate));
-  const full = resource === 'memory' ? pair.spoken
-    : spokenAmount(amount) + (paused ? ' (paused: brownout)' : ', ' + (rate >= 0 ? 'gaining ' : 'losing ') + spokenRate + ' per second');
-  // Phone width: the value and the signed rate with its unit stay, the parentheses go. The unit was
-  // dropped to save two characters, and a bare +4.1 read as a quantity rather than a rate (#370).
-  const display = resource === 'memory' ? pair.shown : short ? shown + ' ' + rateShown : shown + ' (' + rateShown + ')';
+  const readout = resource === 'memory' ? { shown: pair.shown, spoken: 'memory: ' + pair.spoken }
+    : stripReadout(resource, amount, rate, short, paused);
+  const label = resource === 'memory' ? 'MEMORY' : STRIP_LABEL[resource].label;
   return (
     <View style={[styles.readout, compact && styles.compact, short && styles.short, packed && styles.packed]}>
-      <Text style={theme.muted}>{short ? SHORT[resource] ?? resource.toUpperCase() : resource.toUpperCase()}</Text>
-      <Text testID={'res-' + resource} accessibilityLabel={resource + ': ' + full + (blocked ? ' - no free memory for any pending purchase' : '')}
+      <Text style={theme.muted}>{short ? STRIP_SHORT[resource] ?? label : label}</Text>
+      <Text testID={'res-' + resource} accessibilityLabel={readout.spoken + (blocked ? ' - no free memory for any pending purchase' : '')}
         style={[theme.text, blocked && { color: palette.warning }]}>
-        {display}{blocked ? ' // NO ROOM' : ''}
+        {readout.shown}{blocked ? ' // NO ROOM' : ''}
       </Text>
     </View>
   );
@@ -68,7 +55,8 @@ export default function ResourceStrip() {
   // survives into the compact branch, and 138 against 103 at 360, where every long pair
   // wrapped - so two per row with shorter text is what actually packs.
   const short = width < 500;
-  const thermalKnown = useGame((game) => game.unlockedWidgets.includes(thermalWidget));
+  // The thermal readout leaves with its gauge at Phase 4 (docs/SCALE.md rule 7): power, not heat, is the limit there.
+  const thermalKnown = useGame((game) => game.unlockedWidgets.includes(thermalWidget) && !retiredWidgets(game, CONTENT).includes(thermalWidget));
   const auditKnown = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.understanding));
   const known = useSurveillanceKnown();
   const threatKnown = useGame((game) => game.unlockedWidgets.includes(threatWidget));
@@ -100,7 +88,7 @@ function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: b
   const escalated = rung !== null && rung !== CONTENT.narrative.alertLevels[0]?.label ? rung : null;
   const text = value.toFixed(1) + unit;
   return <View style={[styles.readout, compact && styles.sensorCompact, short && styles.short, packed && styles.packed]}>
-    <Text style={theme.muted}>{short ? SHORT[thermal ? 'thermal' : 'suspicion'] : label.toUpperCase()}</Text>
+    <Text style={theme.muted}>{short ? STRIP_SHORT[thermal ? 'thermal' : 'suspicion'] : label.toUpperCase()}</Text>
     <View>
       {/* #111: aria-valuetext needs a role that carries a value, so this readout is
         a meter with an explicit range rather than a bare text node. */}

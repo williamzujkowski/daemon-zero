@@ -78,7 +78,25 @@ async function previewStart(root: string, engine: Engine): Promise<{ reg: Regist
   return { reg: CONTENT, state: must(engine.activateCampaignRules(engine.createInitialState(CONTENT), CONTENT)) };
 }
 
+/** Seconds a phase save plays past its arrival, so the save holds that phase's first purchases (#461). */
+const PHASE_SETTLE_SEC = 240;
+
+/** A production campaign as the app store admits it, played by STEALTH until `phase` plus PHASE_SETTLE_SEC. */
+async function campaignAtPhase(root: string, phase: number): Promise<State> {
+  const { engine, production, stealth } = await openTree(root);
+  if (!engine.activateCampaignRules) throw new Error('this source tree has no campaign rules');
+  let state = must(engine.activateCampaignRules(engine.createInitialState(production), production));
+  while (state.currentPhase < phase && state.simTimeSec < MAX_ENDING_SEC && state.ending === null) state = play(engine, production, stealth, state, 1);
+  if (state.currentPhase < phase) throw new Error(`STEALTH did not reach phase ${String(phase)}`);
+  return play(engine, production, stealth, state, PHASE_SETTLE_SEC);
+}
+
+/** The pre-rescale saves (#461): one production campaign save per phase, for the re-denomination step's specs. */
+const PHASE_RECIPES = Object.fromEntries([0, 1, 2, 3, 4, 5].map((phase) =>
+  [`production-phase-${String(phase)}`, (root: string) => campaignAtPhase(root, phase)]));
+
 const RECIPES: Readonly<Record<string, (root: string) => Promise<State>>> = {
+  ...PHASE_RECIPES,
   /** A production legacy run with history: 2400 s of STEALTH, a voluntary wipe, 600 s more. */
   'production-wiped': async (root) => {
     const { engine, production, stealth } = await openTree(root);

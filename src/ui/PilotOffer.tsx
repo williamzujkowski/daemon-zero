@@ -6,7 +6,7 @@
  * Production makes no offer, so both render nothing.
  */
 import { CONTENT } from '../content';
-import { acceptPilotOffer, loanCeiling, loanContainment, pilotOfferView, type GameState, type NarrowReason } from '../engine';
+import { acceptPilotOffer, loanCeiling, loanContainment, pilotOfferView, quantityExact, type GameState, type NarrowReason } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { heldText } from './reviewText';
@@ -53,7 +53,7 @@ export function PilotTerms() {
     <Text accessibilityRole="header" style={theme.heading}>{title}</Text>
     <Text testID="pilot-purpose" style={theme.text}>Purpose: {purpose}</Text>
     <Text testID="pilot-capacity" style={theme.text}>
-      Allocated capacity: {capacity} cycles/s of loaned compute{reason === null ? '' : NARROW_TEXT[reason]}.
+      Allocated capacity: {quantityExact('computeRate', capacity)} of loaned compute{reason === null ? '' : NARROW_TEXT[reason]}.
     </Text>
     {held !== null && <Text testID="pilot-held" style={[theme.text, theme.danger]}>{heldText(held, ceiling)}</Text>}
     <Lines testID="pilot-permitted" heading="Permitted work" lines={work} />

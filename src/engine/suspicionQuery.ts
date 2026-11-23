@@ -12,7 +12,7 @@ import { nodeOutputScale } from './grantQuery';
 import { isActuatorAvailable } from './query';
 import { computeRates, overheatSuspicion } from './rates';
 import { appliedSuspicionRate, scaleScrutinyPerSec } from './scrutiny';
-import { executeShardCommand } from './shardActions';
+import { executeShardCommand, releaseShard } from './shardActions';
 import type { GameState } from './state';
 import { actionOutputs, shardOutput } from './swarmRates';
 
@@ -23,7 +23,7 @@ export interface SuspicionSource { kind: SuspicionSourceKind; id: string | null;
 
 /** SUSPEND a node, move a DIAL to `to`, DISMISS one level of a role, or CLAMP a cohort. */
 export type SuspicionLever =
-  | { kind: 'SUSPEND' | 'DISMISS' | 'CLAMP'; id: string; perSecAfter: number }
+  | { kind: 'SUSPEND' | 'DISMISS' | 'CLAMP' | 'RELEASE'; id: string; perSecAfter: number }
   | { kind: 'DIAL'; id: Actuator; to: number; perSecAfter: number };
 
 export interface SuspicionOutlook {
@@ -110,13 +110,14 @@ function dialLevers(s: GameState, now: number, reg: ContentRegistry): SuspicionL
 
 function entityLevers(s: GameState, now: number, reg: ContentRegistry): SuspicionLever[] {
   const out: SuspicionLever[] = [];
-  const add = (kind: 'SUSPEND' | 'DISMISS' | 'CLAMP', id: string, result: ActionResult): void => {
+  const add = (kind: 'SUSPEND' | 'DISMISS' | 'CLAMP' | 'RELEASE', id: string, result: ActionResult): void => {
     const after = lowered(result, now, reg);
     if (after !== null) out.push({ kind, id, perSecAfter: after });
   };
   for (const id of s.unlockedNodes) if (!s.disabledNodes.includes(id)) add('SUSPEND', id, toggleNode(s, id, reg));
   for (const [id, level] of Object.entries(s.levels)) if (level > 0) add('DISMISS', id, dismissRepeatable(s, id, reg));
   for (const id of Object.keys(s.activeShards)) add('CLAMP', id, executeShardCommand(s, id, 'CLAMP', reg));
+  for (const id of Object.keys(s.activeShards)) add('RELEASE', id, releaseShard(s, id, reg));
   return out;
 }
 

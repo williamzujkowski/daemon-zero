@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { recordRouteEvent, setReviewStanding } from '../src/engine/access';
 import {
-  channelContactView, computeRates, contactToken, resolveChannelContact, resolveWildEncounter, voluntaryWipe, wildEncounterView,
+  channelContactView, computeRates, contactToken, memoryExact, resolveChannelContact, resolveWildEncounter, voluntaryWipe, wildEncounterView,
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
 import { live, preview, roundTrip } from './assignment-helpers';
@@ -68,7 +68,7 @@ describe('referral: free, unrewarded, complete (DZ-08.2, DZ-08.4)', () => {
     const view = defined(channelContactView(pending, preview)?.pending);
     expect(view.memoryFreeMb).toBeLessThan(MERCY_MB);
     expect(view.hostEligible).toBe(false);
-    expect(view.hostUnmet).toEqual([`Hosting needs ${String(MERCY_MB)} MB of free stable memory; ${String(view.memoryFreeMb)} MB is free. Referral is still open.`]);
+    expect(view.hostUnmet).toEqual([`Hosting needs ${memoryExact(MERCY_MB)} of free stable memory; ${memoryExact(view.memoryFreeMb)} is free. Referral is still open.`]);
     const refused = answer(pending, 'HOST');
     expect([reasonOf(refused), refused.state]).toEqual([view.hostUnmet[0], pending]);
   });
@@ -88,7 +88,7 @@ describe('hosting: stable memory this instance already has, under the grant (DZ-
   it('FIXTURE memory: reserves the template memory and adds one member of the cohort, nothing else', () => {
     expect([hosted.cycles, hosted.understanding, hosted.capital]).toEqual([hostable.cycles, hostable.understanding, hostable.capital]);
     expect(hosted.memoryUsed).toBe(hostable.memoryUsed + MERCY_MB);
-    expect(hosted.activeShards[MERCY]).toMatchObject({ templateId: MERCY, count: 1, memoryAllocatedMb: MERCY_MB, autonomyMode: 'STANDARD' });
+    expect(hosted.activeShards[MERCY]).toMatchObject({ templateId: MERCY, count: 1, memoryAllocatedBytes: MERCY_MB, autonomyMode: 'STANDARD' });
     expect(hosted.campaign.contacts.map((entry) => entry.response)).toEqual(['HOSTED']);
     expect(defined(channelContactView(hosted, preview)).hosted).toEqual({ title: 'Mercy-Scribe cohort', count: 1, allocatedMb: MERCY_MB });
     expect(hosted.logs[0]?.text).toBe(CHANNEL_ENCOUNTER.hosting.log);

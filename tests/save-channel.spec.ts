@@ -9,7 +9,7 @@ import { CONTENT as PRODUCTION } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 import {
   createInitialState, deserialize, exportSave, importSave, MIGRATIONS, SaveChannelError, SaveError,
-  serialize, tick, wipe, type GameState,
+  SCHEMA_VERSION, serialize, tick, wipe, type GameState,
 } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
 
@@ -76,7 +76,7 @@ describe('production refuses preview saves atomically (T2, X.3)', () => {
 describe('ordinary saves are unaffected (T3)', () => {
   it.each(FIXTURES)('loads the %s fixture as a production save', (_version, raw) => {
     const loaded = deserialize(raw, PRODUCTION);
-    expect(loaded).toMatchObject({ schemaVersion: 16, contentChannel: 'production', narrativeRules: 'legacy' });
+    expect(loaded).toMatchObject({ schemaVersion: SCHEMA_VERSION, contentChannel: 'production', narrativeRules: 'legacy' });
     expect(serialize(deserialize(serialize(loaded), PRODUCTION))).toBe(serialize(loaded));
   });
 

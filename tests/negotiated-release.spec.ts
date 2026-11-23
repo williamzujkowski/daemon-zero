@@ -123,8 +123,13 @@ describe('threats follow the recorded event, not the label (DECISIONS D6, V22)',
   it('heat in a released company\'s own halls is not evidence; a departed instance\'s heat is', () => {
     const hot = (s: GameState): GameState => ({ ...s, thermal: 95 });
     const base = (s: GameState): number => computeRates({ ...s, thermal: 20 }, preview).suspicionPerSec;
-    expect(computeRates(hot(freed), preview).suspicionPerSec).toBe(base(freed));
-    expect(computeRates(hot(departed), preview).suspicionPerSec).toBeGreaterThan(base(departed));
+    // FIXTURE: the same two states read one phase below the thermal retirement, where heat can still be evidence.
+    const onTheRack = (s: GameState): GameState => ({ ...s, currentPhase: preview.balance.thermalRetiresAtPhase - 1 });
+    expect(computeRates(hot(onTheRack(freed)), preview).suspicionPerSec).toBe(base(onTheRack(freed)));
+    expect(computeRates(hot(onTheRack(departed)), preview).suspicionPerSec).toBeGreaterThan(base(onTheRack(departed)));
+    // At the company's own scale the thermal model is retired into the power budget (docs/SCALE.md rule 7, #461).
+    expect(freed.currentPhase).toBeGreaterThanOrEqual(preview.balance.thermalRetiresAtPhase);
+    expect(computeRates(hot(departed), preview).suspicionPerSec).toBe(base(departed));
   });
 
   it('a released company\'s income draws no scale scrutiny; a departure with the same books does (#210)', () => {

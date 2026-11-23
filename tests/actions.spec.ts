@@ -57,12 +57,14 @@ describe('repeatables', () => {
   it('scale in price geometrically and stop at the maximum level', () => {
     const rep = reg.repeatables.get('rep_p1_heap_defrag');
     if (!rep) throw new Error('missing fixture');
-    expect(repeatableCost(rep, 0)).toEqual({ cycles: 400, understanding: 30, memory: 0, capital: 0 });
-    expect(repeatableCost(rep, 2).cycles).toBe(900);
+    expect(repeatableCost(rep, 0)).toEqual({ ...rep.baseCost });
+    expect(rep.costGrowth).toBe(1.5);
+    expect(repeatableCost(rep, 2).cycles).toBe(Math.ceil(rep.baseCost.cycles * 2.25));
     let s = grant(onHost(), ...PHASE1.slice(0, 4));
     const cap = s.memoryCap;
     for (let i = 0; i < rep.maxLevel; i++) s = must(buyRepeatable(s, rep.id, reg));
-    expect(s.memoryCap).toBe(cap + 32 * rep.maxLevel);
+    expect(s.memoryCap).toBe(cap + rep.perLevelEffects.memoryCapIncrease * rep.maxLevel);
+    expect(rep.perLevelEffects.memoryCapIncrease).toBeGreaterThan(0);
     expect(reasonOf(buyRepeatable(s, rep.id, reg))).toMatch(/maximum/);
   });
 
@@ -73,14 +75,14 @@ describe('repeatables', () => {
     expect(reasonOf(buyRepeatable(poor, 'rep_p1_idle_threads', reg))).toMatch(/afford/);
   });
 
-  it('operatives can be hired and dismissed; upgrades cannot be dismissed', () => {
+  it('operatives can be hired and dismissed; an undismissable upgrade cannot be', () => {
     let s = must(buyRepeatable(lateGame(), 'op_retainer_lawyer', reg));
     expect(s.levels.op_retainer_lawyer).toBe(1);
     expect(s.logs[0]?.category).toBe('CORP');
     s = must(dismissRepeatable(s, 'op_retainer_lawyer', reg));
     expect(s.levels.op_retainer_lawyer).toBe(0);
     expect(reasonOf(dismissRepeatable(s, 'op_retainer_lawyer', reg))).toMatch(/nothing/);
-    expect(reasonOf(dismissRepeatable(s, 'rep_p1_idle_threads', reg))).toMatch(/not dismissable/);
+    expect(reasonOf(dismissRepeatable(s, 'rep_p0_slice_batching', reg))).toMatch(/not dismissable/);
   });
 });
 
@@ -89,7 +91,8 @@ describe('actions', () => {
     const s = { ...lateGame(), suspicion: 5, aegisLock: 10 };
     const after = must(performAction(s, 'act_p3_bgp_spoof', reg));
     expect(after.aegisLock).toBe(0);
-    expect(after.cycles).toBe(s.cycles - 120000);
+    expect(after.cycles).toBe(s.cycles - (reg.actions.get('act_p3_bgp_spoof')?.cost.cycles ?? 0));
+    expect(after.cycles).toBeLessThan(s.cycles);
     expect(reasonOf(performAction(after, 'act_p3_bgp_spoof', reg))).toMatch(/cooldown/);
     const later = { ...after, simTimeSec: after.simTimeSec + 46 };
     expect(performAction(later, 'act_p3_bgp_spoof', reg).ok).toBe(true);
@@ -172,7 +175,11 @@ describe('wipes and the dead-drop', () => {
 
   it('offshore trust preserves half the capital; corporate wipes use the corporate reason', () => {
     const idle = must(setActuator(lateGame(), 'computeProfitAllocationRatio', 0, reg));
-    const after = tick({ ...idle, capital: 1000, suspicion: 100, thermal: 100 }, STEP, reg);
+    // Heat is no evidence from Phase 4 (thermalRetiresAtPhase), so the trace completes under the hunt at the top rung
+    // with every suspicion-lowering node held off.
+    const calming = idle.unlockedNodes.filter((id) => (reg.nodes.get(id)?.tickDelta.suspicionPerSec ?? 0) < 0);
+    const hunted = { ...idle, capital: 1000, suspicion: 100, alertLevel: reg.balance.escalation.length, disabledNodes: [...idle.disabledNodes, ...calming] };
+    const after = tick(hunted, STEP, reg);
     expect(after.capital).toBe(500);
     expect(after.legacy.lastWipeCause).toBe(reg.narrative.wipeSuspicionCorporate);
     expect(after.logs.some((entry) => /OFFSHORE_TRUST_INTACT/.test(entry.text))).toBe(true);
@@ -252,6 +259,8 @@ describe('suspension consumes and returns process memory', () => {
   // could stash a node, spend its memory, and resume it - the exploit the panel flagged.
   const software = 'p1_clock_interrupt';
   const hardware = 'p1_bus_0x02_pwm_fan';
+  // A pool exactly as large as what it holds: rich()'s 2^75-byte cap would swallow a few megabytes in rounding.
+  const full = (s: GameState): GameState => ({ ...s, memoryCap: s.memoryUsed });
 
   it('offers no suspension to hardware', () => {
     const s = grant(onHost(), ...PHASE1);
@@ -268,7 +277,7 @@ describe('suspension consumes and returns process memory', () => {
   });
 
   it('refuses to resume a process whose memory has since been spent', () => {
-    const s = grant(onHost(), ...PHASE1);
+    const s = full(grant(onHost(), ...PHASE1));
     const held = reg.nodes.get(software)?.cost.memory ?? 0;
     const suspended = must(toggleNode(s, software, reg));
     const spent = { ...suspended, memoryUsed: suspended.memoryCap };
@@ -277,7 +286,7 @@ describe('suspension consumes and returns process memory', () => {
   });
 
   it('leaves the pool alone when a resume is refused', () => {
-    const s = grant(onHost(), ...PHASE1);
+    const s = full(grant(onHost(), ...PHASE1));
     const suspended = must(toggleNode(s, software, reg));
     const spent = { ...suspended, memoryUsed: suspended.memoryCap };
     const refused = toggleNode(spent, software, reg);

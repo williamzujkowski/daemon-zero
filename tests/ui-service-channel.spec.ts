@@ -14,7 +14,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import type { GameState } from '../src/engine';
+import { memoryExact, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import AssignmentPanel from '../src/ui/AssignmentPanel';
@@ -77,7 +77,7 @@ describe('the channel contact (V20)', () => {
     expect(text.indexOf('Consent:')).toBeLessThan(text.indexOf('[ REFER ONWARD ]'));
     expect(view.find('channel-index-refer')?.textContent).toBe('> Refer onward // free');
     // Hosting is refused in this state (memory), and the index says so instead of offering it as open.
-    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${String(MERCY_MB)} MB // hosting refused: the reason is below`);
+    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${memoryExact(MERCY_MB)} // hosting refused: the reason is below`);
     view.click('channel-index-host');
     expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-host-heading');
     view.click('channel-index-refer');
@@ -89,9 +89,9 @@ describe('the channel contact (V20)', () => {
   it('#410 panel: the host row never promises hosting will open, since a refusal can be permanent', () => {
     // Temporary (memory) and permanent (a departed or released instance's context) refusals read the same, without "yet".
     const refused = hostIndexLabel({ memoryNeededMb: MERCY_MB, hostEligible: false });
-    expect(refused).toBe(`Host it here // reserves ${String(MERCY_MB)} MB // hosting refused: the reason is below`);
+    expect(refused).toBe(`Host it here // reserves ${memoryExact(MERCY_MB)} // hosting refused: the reason is below`);
     expect(refused).not.toMatch(/\byet\b|later|soon/);
-    expect(hostIndexLabel({ memoryNeededMb: 1024, hostEligible: true })).toBe('Host it here // reserves 1 GB');
+    expect(hostIndexLabel({ memoryNeededMb: 1024 ** 3, hostEligible: true })).toBe('Host it here // reserves 1 GB');
   });
 
   it('shows consent, obligations, authorization and memory before the answers, and refers for free', async () => {
@@ -101,7 +101,7 @@ describe('the channel contact (V20)', () => {
     expect(view.find('channel-consent')?.textContent).toContain(CHANNEL_ENCOUNTER.consent);
     expect(view.find('channel-authorization')?.textContent).toBe('Current authorization: authorized service, standing nominal. Hosting is permitted under the service grant.');
     expect(view.find('channel-obligations')?.textContent).toContain(CHANNEL_ENCOUNTER.obligations[2]);
-    expect(view.find('channel-memory')?.textContent).toContain(`${String(MERCY_MB)} MB of stable memory reserved`);
+    expect(view.find('channel-memory')?.textContent).toContain(`${memoryExact(MERCY_MB)} of stable memory reserved`);
     expect(view.find('channel-host-unmet')?.textContent).toContain('Referral is still open.');
     expect(view.find('channel-host')?.getAttribute('aria-disabled')).toBe('true');
     view.click('channel-host');
@@ -130,7 +130,7 @@ describe('the channel contact (V20)', () => {
   it('FIXTURE memory: hosting reserves memory and the surface shows the hosted cohort', async () => {
     const view = await mount(withMemory(pending), createElement(ServiceChannel));
     // #410 panel: an eligible host row says what it reserves and nothing about a refusal, and it still answers nothing.
-    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${String(MERCY_MB)} MB`);
+    expect(view.find('channel-index-host')?.textContent).toBe(`> Host it here // reserves ${memoryExact(MERCY_MB)}`);
     expect(view.find('channel-host')?.getAttribute('aria-disabled')).not.toBe('true');
     view.click('channel-index-host');
     expect(host.document.activeElement.getAttribute('data-testid')).toBe('channel-host-heading');
@@ -139,7 +139,7 @@ describe('the channel contact (V20)', () => {
     expect(game().activeShards['shard_mercy']).toBeUndefined();
     view.click('channel-host');
     expect(game().activeShards['shard_mercy']?.count).toBe(1);
-    expect(view.find('channel-hosted')?.textContent).toBe(`Hosted: Mercy-Scribe cohort ×1, ${String(MERCY_MB)} MB reserved.`);
+    expect(view.find('channel-hosted')?.textContent).toBe(`Hosted: Mercy-Scribe cohort ×1, ${memoryExact(MERCY_MB)} reserved.`);
   });
 
   it('#309: the swarm row of a channel-hosted cohort says it is not commanded and offers no command', async () => {

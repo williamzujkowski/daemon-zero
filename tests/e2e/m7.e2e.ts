@@ -50,10 +50,13 @@ test('maxed CapEx edits disappear and memory grants survive reload', async ({ pa
     if (i < 2) await page.clock.runFor(capex.cooldownSec * 1000 + 100);
   }
   await expect(page.getByTestId('action-card-' + capex.id)).toHaveCount(0);
-  expect((await readSave(page)).memoryCap).toBe(Number(before.memoryCap) + 768);
+  // Three grants of the authored size in bytes, added one press at a time as the engine adds them (a Phase 4 cap is
+  // past 2^53, so one sum of all three could round differently).
+  const granted = [1, 2, 3].reduce((cap) => cap + capex.effects.memoryCapIncrease, Number(before.memoryCap));
+  expect((await readSave(page)).memoryCap).toBe(granted);
   await page.reload(); await pane(page, 'CORP', 'operations');
   await expect(page.getByTestId('action-card-' + capex.id)).toHaveCount(0);
-  expect((await readSave(page)).memoryCap).toBe(Number(before.memoryCap) + 768);
+  expect((await readSave(page)).memoryCap).toBe(granted);
 });
 test('consuming a wild shard grants its immediate understanding burst', async ({ page }) => {
   if (!encounter) throw new Error('Missing signal');

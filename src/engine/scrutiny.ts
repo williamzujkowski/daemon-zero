@@ -7,16 +7,14 @@ import type { ContentRegistry } from '../content/registry';
 import type { GameState, Rates } from './state';
 import { huntedForScale } from './threatQuery';
 
-/** The content states the draw at $1M/s of net income, the unit a corporate ledger reads in. */
-const USD_PER_MILLION = 1_000_000;
-
 export interface ScaleScrutinyReading {
   /** Suspicion per second the tick adds now. */
   perSec: number;
   /** The net income it is read from, never below zero. */
   incomePerSec: number;
-  /** The phase's rule: the draw at $1M/s, how it grows with income, and its ceiling. */
-  perSecAtMillionUsd: number;
+  /** The phase's rule: the draw at its reference income, that income, how the draw grows with income, and its ceiling. */
+  perSecAtReference: number;
+  referenceIncomeUsdPerSec: number;
   incomeExponent: number;
   maxPerSec: number;
 }
@@ -33,10 +31,10 @@ export function scaleScrutiny(s: Scrutinized, rates: Pick<Rates, 'capitalPerSec'
   const rule = reg.phases.find((phase) => phase.phaseId === s.currentPhase)?.scaleScrutiny;
   if (rule === undefined || !huntedForScale(s, reg)) return null;
   const incomePerSec = Math.max(0, rates.capitalPerSec);
-  const drawn = rule.suspicionPerSecAtMillionUsd * Math.pow(incomePerSec / USD_PER_MILLION, rule.incomeExponent);
+  const drawn = rule.suspicionPerSecAtReference * Math.pow(incomePerSec / rule.referenceIncomeUsdPerSec, rule.incomeExponent);
   return {
     perSec: Math.min(rule.maxSuspicionPerSec, drawn), incomePerSec,
-    perSecAtMillionUsd: rule.suspicionPerSecAtMillionUsd, incomeExponent: rule.incomeExponent, maxPerSec: rule.maxSuspicionPerSec,
+    perSecAtReference: rule.suspicionPerSecAtReference, referenceIncomeUsdPerSec: rule.referenceIncomeUsdPerSec, incomeExponent: rule.incomeExponent, maxPerSec: rule.maxSuspicionPerSec,
   };
 }
 

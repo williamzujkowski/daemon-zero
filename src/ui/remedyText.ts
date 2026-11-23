@@ -3,7 +3,7 @@
  * is, not only the problem. Shared by the in-game warnings and the game menu's status lines so they say the same.
  */
 import { CONTENT } from '../content';
-import { actuatorLimit, financeEnabled, groupDigits, isActuatorAvailable, nodeUseBlocker, repeatableLevel, type GameState } from '../engine';
+import { actuatorLimit, financeEnabled, isActuatorAvailable, nodeUseBlocker, quantityReadout, repeatableLevel, type GameState } from '../engine';
 import { profitAllocationValues } from './actuatorSteps';
 
 /**
@@ -38,25 +38,32 @@ export function overheatRemedy(game: GameState): string {
  */
 export function shortfallText(generated: number, consumed: number): string {
   const short = Math.max(0, consumed - generated);
-  // One decimal under 10 MW, so a small shortfall never reads "0 MW short" (#402 panel).
-  return `POWER SHORTFALL: ${short < 10 ? short.toFixed(1) : groupDigits(Math.round(short))} MW short; powered hardware is throttled. Add generation to lift it.`;
+  // A live figure in watts at the size it reads best in ("180 MW", "1.2 GW"), three significant digits, so a small
+  // shortfall never reads "0 MW short" (#402 panel): the unit steps down instead.
+  return `POWER SHORTFALL: ${quantityReadout('power', short)} short; powered hardware is throttled. Add generation to lift it.`;
 }
 
 /**
  * Insolvency: each lever is named only when it can act (#402 panel). The FINANCE dial is offered only with an active
  * corporate entity, the way Allocation() decides, and only helps below its top setting; operatives can be released in
- * PAYROLL (dismissRepeatable) only if some are hired.
+ * PAYROLL (dismissRepeatable) only if some are hired, and a paid infrastructure level only if one is held.
  */
 export function insolvencyRemedy(game: GameState): string {
   const ratio = game.actuators.computeProfitAllocationRatio;
   const top = Math.min(actuatorLimit(game, 'computeProfitAllocationRatio', CONTENT), Math.max(...profitAllocationValues(CONTENT)));
-  // The dial diverts a share of gross cycles, and nothing when gross is not positive (rates.ts); below its top that
-  // is exactly when net cycles are positive, since net = gross - diverted (#402 panel).
+  // The dial diverts a share of gross compute, and nothing when gross is not positive (rates.ts); below its top that
+  // is exactly when net compute is positive, since net = gross - diverted (#402 panel).
   const divert = isActuatorAvailable(game, 'computeProfitAllocationRatio', CONTENT) && financeEnabled(game, CONTENT) && ratio < top - 1e-6
     && game.rates.cyclesPerSec > 0;
-  const release = [...CONTENT.repeatables.values()].some((rep) => rep.dismissable && repeatableLevel(game, rep.id) > 0);
-  if (divert && release) return 'Divert more compute to revenue in FINANCE, or release operatives in PAYROLL.';
-  if (divert) return 'Divert more compute to revenue in FINANCE.';
-  if (release) return 'Release operatives in PAYROLL.';
-  return 'Capital recovers only as revenue outgrows what the company pays each second.';
+  // Only a held level that costs money each second relieves insolvency when released; a hire is let go in PAYROLL, any
+  // other track on its own upgrade card (#488).
+  const paying = (kind: 'OPERATIVE' | 'UPGRADE'): boolean => [...CONTENT.repeatables.values()].some((rep) =>
+    rep.kind === kind && rep.dismissable && rep.perLevel.capitalPerSec < 0 && repeatableLevel(game, rep.id) > 0);
+  const clauses = [
+    ...(divert ? ['divert more compute to revenue in FINANCE'] : []),
+    ...(paying('OPERATIVE') ? ['release operatives in PAYROLL'] : []),
+    ...(paying('UPGRADE') ? ['release levels of paid infrastructure on their upgrade cards'] : []),
+  ];
+  const text = clauses.join(', or ');
+  return text === '' ? 'Capital recovers only as revenue outgrows what the company pays each second.' : text.charAt(0).toUpperCase() + text.slice(1) + '.';
 }

@@ -3,10 +3,9 @@ import RoutedText from '../RoutedText';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { compactAmount, cycleContributions, financeEnabled, groupDigits, isActuatorAvailable, scaleScrutiny, setActuator } from '../../engine';
+import { cycleContributions, financeEnabled, isActuatorAvailable, quantityExact, quantityReadout, scaleScrutiny, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
-import { compactNumber } from '../compactNumber';
 import { profitAllocationValues } from '../actuatorSteps';
 import NodeList from '../NodeList';
 import PayrollSummary from '../PayrollSummary';
@@ -20,13 +19,14 @@ import type { WorkspaceArea } from '../workspaceTypes';
 function Ledger() {
   const capital = useGame((game) => Math.floor(game.capital));
   const income = useGame((game) => game.rates.capitalPerSec);
-  const generated = useGame((game) => game.rates.megawattsGenerated);
-  const consumed = useGame((game) => game.rates.megawattsConsumed);
+  const generated = useGame((game) => game.rates.wattsGenerated);
+  const consumed = useGame((game) => game.rates.wattsConsumed);
   const efficiency = useGame((game) => Math.round(game.rates.gridEfficiency * 100));
   return <View style={{ gap: 8 }}>
-    {/* "$5010896882 (+26203469.12/s net)" was a wall of digits (#404): capital and rates in K/M/B, like the strip. */}
-    <Text testID="corp-capital" style={theme.text}>Capital: ${compactAmount(capital)} ({income >= 0 ? '+' : ''}{compactNumber(income, 2)}/s net)</Text>
-    <Text testID="power-ledger" style={theme.text}>Power: {groupDigits(Math.round(generated))} MW generated / {groupDigits(Math.round(consumed))} MW consumed</Text>
+    {/* "$5010896882 (+26203469.12/s net)" was a wall of digits (#404): capital and rates in K/M/B, like the strip,
+      and power in watts at the size it reads best in (docs/SCALE.md). */}
+    <Text testID="corp-capital" style={theme.text}>Capital: {quantityReadout('money', capital)} ({income >= 0 ? '+' : ''}{quantityReadout('money', income)}/s net)</Text>
+    <Text testID="power-ledger" style={theme.text}>Power: {quantityReadout('power', generated)} generated / {quantityReadout('power', consumed)} consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
     <Scrutiny />
     <ComputeSplit />
@@ -42,15 +42,15 @@ function Scrutiny() {
   const reading = useGame((game) => {
     const found = scaleScrutiny(game, game.rates, CONTENT);
     return found === null ? null
-      : [compactNumber(found.incomePerSec, 0), found.perSec.toFixed(2), String(found.perSecAtMillionUsd), growth(found.incomeExponent), String(found.maxPerSec), found.incomePerSec > 0 ? 'y' : ''].join('|');
+      : [quantityReadout('money', found.incomePerSec), found.perSec.toFixed(2), String(found.perSecAtReference), growth(found.incomeExponent), String(found.maxPerSec), found.incomePerSec > 0 ? 'y' : '', quantityExact('money', found.referenceIncomeUsdPerSec)].join('|');
   });
   if (reading === null) return null;
-  const [income = '', perSec = '', atMillion = '', grows = '', ceiling = '', earning = ''] = reading.split('|');
-  const rule = `(+${atMillion}/s at $1M/s, growing ${grows}; at most ${ceiling}/s)`;
+  const [income = '', perSec = '', atReference = '', grows = '', ceiling = '', earning = '', reference = ''] = reading.split('|');
+  const rule = `(+${atReference}/s at ${reference}/s, growing ${grows}; at most ${ceiling}/s)`;
   // A loss is not income: say so rather than "$0/s net income draws +0.00" (emulator re-check, #323).
-  const draw = earning ? `Scrutiny: $${income}/s net income draws +${perSec} suspicion/s ${rule}.` : `Scrutiny: no net income, so no draw ${rule}.`;
+  const draw = earning ? `Scrutiny: ${income}/s net income draws +${perSec} suspicion/s ${rule}.` : `Scrutiny: no net income, so no draw ${rule}.`;
   return <Text testID="corp-scrutiny" style={theme.muted}>
-    {known ? draw : `Scrutiny: $${income}/s net income is being logged.`}
+    {known ? draw : `Scrutiny: ${income}/s net income is being logged.`}
   </Text>;
 }
 
@@ -69,12 +69,12 @@ function ComputeSplit() {
   const split = useGame((game) => {
     const sources = cycleContributions(game, CONTENT);
     const sum = (basis: string) => sources.filter((source) => source.basis === basis).reduce((total, source) => total + source.cyclesPerSec, 0);
-    return `${compactNumber(sum('OWNED'), 1)}|${compactNumber(sum('GRANTED'), 1)}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
+    return `${quantityReadout('computeRate', sum('OWNED'))}|${quantityReadout('computeRate', sum('GRANTED'))}|${String(game.unlockedNodes.some((id) => CONTENT.nodes.get(id)?.grant !== undefined))}`;
   });
   const [owned, granted, grants] = split.split('|');
   if (grants !== 'true') return null;
   return <Text testID="corp-compute-split" style={theme.muted}>
-    Compute: {owned} cycles/s owned, {granted} cycles/s granted. Granted output and income stop with the grant; what is owned keeps running.
+    Compute: {owned} owned, {granted} granted. Granted output and income stop with the grant; what is owned keeps running.
   </Text>;
 }
 
@@ -95,10 +95,10 @@ export function CorporateAlerts() {
   const known = useSurveillanceKnown();
   const insolvent = useGame((game) => game.insolvent);
   const brownout = useGame((game) => game.brownout);
-  const shortfall = useGame((game) => game.rates.megawattsGenerated < game.rates.megawattsConsumed);
+  const shortfall = useGame((game) => game.rates.wattsGenerated < game.rates.wattsConsumed);
   const remedy = useGame((game) => insolvencyRemedy(game));
-  const generated = useGame((game) => game.rates.megawattsGenerated);
-  const consumed = useGame((game) => game.rates.megawattsConsumed);
+  const generated = useGame((game) => game.rates.wattsGenerated);
+  const consumed = useGame((game) => game.rates.wattsConsumed);
   return <View>
     {insolvent && <Text testID="insolvency-warning" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       INSOLVENT: capital exhausted; {known ? 'unpaid drains increase suspicion.' : 'unpaid drains are being logged.'} <RoutedText text={remedy} style={[theme.text, theme.danger]} /></Text>}

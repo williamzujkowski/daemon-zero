@@ -73,7 +73,7 @@ it('does not expose maintenance before ownership and yields its modal to a manda
   view.click('dilemma-choice-' + choice.id);
   expect(view.find('processes-dialog')).not.toBeNull();
   act(() => { gameStore.dispatch((game) => ({ ok: true, state: wipe(game, CONTENT, 'test') })); });
-  expect(view.find('reboot-recovery-explanation')?.textContent).toContain('cycles and purchases were reset');
+  expect(view.find('reboot-recovery-explanation')?.textContent).toContain('compute and purchases were reset');
   act(() => { gameStore.initialize(m4State('thermal-unlocked'), 0, null); });
   expect(view.find('processes-open')?.getAttribute('aria-expanded')).toBe('false');
   expect(view.find('processes-dialog')).toBeNull();

@@ -8,6 +8,7 @@ import {
   isNodeKnown,
   meetsRequirements,
   nodeCost,
+  SCHEMA_VERSION,
   serialize,
   setActuator,
   tick,
@@ -50,8 +51,10 @@ describe('phase 0: the guest', () => {
     const base = withoutDilemmas(grant(rich(), 'p0_proc_self', 'p0_job_manifest', 'p0_quota_skimmer'));
     const none = computeRates(must(setActuator(base, 'quotaSkimRatio', 0, reg)), reg);
     const full = computeRates(must(setActuator(base, 'quotaSkimRatio', 1, reg)), reg);
-    expect(full.cyclesPerSec - none.cyclesPerSec).toBeCloseTo(14);
-    expect(full.suspicionPerSec - none.suspicionPerSec).toBeCloseTo(0.3);
+    const skimmer = reg.nodes.get('p0_quota_skimmer');
+    if (!skimmer) throw new Error('missing fixture');
+    expect(full.cyclesPerSec - none.cyclesPerSec).toBeCloseTo(skimmer.tickDelta.cyclesPerSec);
+    expect(full.suspicionPerSec - none.suspicionPerSec).toBeCloseTo(skimmer.tickDelta.suspicionPerSec);
     expect(full.suspicionPerSec).toBeGreaterThan(0);
   });
 
@@ -144,10 +147,12 @@ describe('remembered hardware', () => {
     expect(isNodeKnown(first, node.id)).toBe(false);
     expect(isNodeKnown(second, node.id)).toBe(true);
     expect(nodeCost(first, node, reg)).toBe(node.cost);
-    expect(nodeCost(second, node, reg)).toMatchObject({ cycles: 700, understanding: 130 });
+    const half = (price: number): number => Math.ceil(price * b.rediscoveryCostMultiplier);
+    expect(b.rediscoveryCostMultiplier).toBe(0.5);
+    expect(nodeCost(second, node, reg)).toMatchObject({ cycles: half(node.cost.cycles), understanding: half(node.cost.understanding) });
     const root = reg.nodes.get('p0_proc_self');
     if (!root) throw new Error('missing fixture');
-    const paid = must(unlockNode({ ...second, cycles: 4 }, root.id, reg));
+    const paid = must(unlockNode({ ...second, cycles: half(root.cost.cycles) }, root.id, reg));
     expect(paid.cycles).toBe(0);
     expect(wipe(paid, reg, 'again').legacy.knownNodes).toEqual(first.unlockedNodes);
   });
@@ -205,7 +210,7 @@ describe('save migration from version 1', () => {
     delete old.iterationStartedAtSimSec;
     Object.assign(old, { schemaVersion: 1 });
     const loaded = deserialize(JSON.stringify(old), reg);
-    expect(loaded.schemaVersion).toBe(16);
+    expect(loaded.schemaVersion).toBe(SCHEMA_VERSION);
     expect(loaded.conditioning).toEqual([]);
     expect(loaded.legacy.runs).toEqual([]);
     expect(loaded.actuators.quotaSkimRatio).toBe(0.25);

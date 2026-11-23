@@ -43,7 +43,8 @@ export class DevelopmentActions {
     return this.run(() => {
       if (!CONTENT.phases.some((entry) => entry.phaseId === phase)) throw new Error('Unknown phase.');
       let state = edited(createInitialState(CONTENT), (raw) => {
-        raw.cycles = 1e15; raw.understanding = 1e15; raw.capital = 1e15;
+        // Past the Phase 5 band of each unit (docs/SCALE.md): FLOP, understanding, dollars.
+        raw.cycles = 1e30; raw.understanding = 1e15; raw.capital = 1e18;
         raw.resolvedDilemmas = CONTENT.dilemmas.map((dilemma) => dilemma.id);
       });
       for (const node of CONTENT.nodes.values()) {

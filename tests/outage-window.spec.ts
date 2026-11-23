@@ -14,7 +14,7 @@ import {
 import { campaignRecord } from '../src/engine/campaignQuery';
 import { answer, funded, live, preview, roundTrip } from './assignment-helpers';
 import { must, reasonOf } from './helpers';
-import { offerPresented, respond, SKIMMER, withSkimmer } from './pilot-helpers';
+import { offerPresented, respond, SKIMMER, TERMS, withSkimmer } from './pilot-helpers';
 import {
   afterOutage, choiceOf, falsified, OUTAGE, outagePresented, RECORD, recordPresented, renewedPilot, servedOnce, until, untilOmen,
 } from './review-helpers';
@@ -25,6 +25,8 @@ const MISCONDUCT = UNAUTHORIZED.review?.misconduct;
 const WITHHELD = 'the loaned capacity is withheld under the current review standing';
 const ceiling = (s: GameState): number => pilotServiceView(s, preview)?.ceilingCyclesPerSec ?? -1;
 const queueStudy = (s: GameState): number => computeRates(s, preview).understandingPerSec;
+const FULL = TERMS.capacityCyclesPerSec;
+const NARROW = TERMS.narrowCapacityCyclesPerSec;
 
 describe('the request arrives only to a working pilot', () => {
   it('waits for the first batch to be handed back, then freezes the clock as a decision', () => {
@@ -116,26 +118,27 @@ describe('the restriction is enforced, not just drawn (V08)', () => {
   const restricted = afterOutage('act_without_grant');
 
   it('narrows passive output: the loan, its study share and its service share', () => {
-    expect([ceiling(nominal), ceiling(restricted)]).toEqual([20, 10]);
+    expect([ceiling(nominal), ceiling(restricted)]).toEqual([FULL, NARROW]);
+    expect(NARROW).toBe(FULL / 2);
     const study = QUEUE_NODE.tickDelta.understandingPerSec * (1 - restricted.actuators.serviceAllocationRatio);
     const own = queueStudy({ ...restricted, disabledNodes: [...restricted.disabledNodes, QUEUE] });
     expect(queueStudy(restricted) - own).toBeCloseTo(study * 0.5, 9);
-    expect(pilotServiceView(restricted, preview)?.serviceCyclesPerSec).toBe(10 * restricted.actuators.serviceAllocationRatio);
+    expect(pilotServiceView(restricted, preview)?.serviceCyclesPerSec).toBe(NARROW * restricted.actuators.serviceAllocationRatio);
     const later = live(restricted, 20);
-    expect(later.access.work.progressCycles - restricted.access.work.progressCycles).toBeCloseTo(20 * 5, 6);
+    expect(later.access.work.progressCycles - restricted.access.work.progressCycles).toBeCloseTo(20 * NARROW * restricted.actuators.serviceAllocationRatio, 6);
   });
 
   it('a resume or a moved dial stays inside the narrowed loan', () => {
     const resumed = must(toggleNode(must(toggleNode(restricted, QUEUE, preview)), QUEUE, preview));
-    expect(ceiling(resumed)).toBe(10);
+    expect(ceiling(resumed)).toBe(NARROW);
     const dialled = must(setActuator(restricted, 'serviceAllocationRatio', 1, preview));
-    expect(pilotServiceView(dialled, preview)?.serviceCyclesPerSec).toBe(10);
+    expect(pilotServiceView(dialled, preview)?.serviceCyclesPerSec).toBe(NARROW);
   });
 
   it('the correction lifts it exactly: the loan returns, the violation stays on file', () => {
     const corrected = must(answer(until(restricted, RECORD), 'correct_record'));
     expect(corrected.access.standing).toBe('NOMINAL');
-    expect(ceiling(corrected)).toBe(20);
+    expect(ceiling(corrected)).toBe(FULL);
     expect(reviewView(corrected, preview)).toMatchObject({ standing: 'NOMINAL', recovery: null, containment: null, corrected: true,
       violations: [{ conduct: 'UNAUTHORIZED_ACTION' }] });
     expect(campaignRecord(corrected, OUTAGE.id)).toMatchObject({ outcome: 'act_without_grant' });

@@ -1,6 +1,7 @@
 /** The opening contract now includes blind logging, decoding and a later run table. */
 import { CONTENT } from '../../src/content';
-import { test, expect, boot, dismissBoot, core, readSave, press } from './helpers';
+import { quantitySpoken } from '../../src/engine';
+import { test, expect, boot, dismissBoot, core, readSave, press, manualPresses } from './helpers';
 
 const nodes = [...CONTENT.nodes.values()];
 const root = CONTENT.phases[0]?.nodes[0];
@@ -13,7 +14,7 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   await boot(page);
   await expect(page.getByTestId('res-cycles')).toHaveCount(0);
   await expect(page.getByTestId('audit-unreadable')).toHaveCount(0);
-  for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
+  for (let i = 0; i < manualPresses(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
   await press(page, 'node-' + root.id + '-unlock');
   await expect(page.getByTestId('widget-' + String(root.unlocksUiComponent))).toHaveCount(0);
   await expect(page.getByTestId('res-cycles')).toBeVisible();
@@ -22,9 +23,9 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   const purchased = await readSave(page);
   await page.clock.runFor(1000);
   expect((await readSave(page)).unlockedNodes).toContain(root.id);
-  // #139: the visible rate is abbreviated on phone widths (one decimal, with its unit since #370); the accessible
-  // name speaks the rate in words to two places (vote-1795228570236-gzx0uif), so that is what is pinned.
-  await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', /gaining 1\.00 per second/);
+  // #139: the visible rate is abbreviated on phone widths (the SI prefix only since #461); the accessible name speaks
+  // the rate with its full unit (docs/SCALE.md), so that is what is pinned: the root's own authored output.
+  await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', new RegExp(', gaining ' + quantitySpoken('computeRate', root.tickDelta.cyclesPerSec).replace(/\./g, '\\.') + '$'));
   expect(purchased.disabledNodes).not.toContain(root.id);
   await page.clock.runFor(120_000);
   await press(page, 'node-' + manifest.id + '-unlock');
@@ -64,7 +65,7 @@ test('a real tick wipes the run, recovers its breadcrumb, and finds the second-r
   await page.getByTestId('reboot-continue').click();
   // Retained understanding funds rediscovery; ordinary manual inputs fund the first cycles.
   await core(page);
-  for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
+  for (let i = 0; i < manualPresses(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
   await press(page, 'node-' + root.id + '-unlock');
   await page.clock.runFor(120_000);
   await press(page, 'node-' + manifest.id + '-unlock');

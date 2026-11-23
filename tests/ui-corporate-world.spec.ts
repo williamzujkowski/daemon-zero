@@ -14,7 +14,7 @@ vi.mock('../src/app/platform', () => ({ getPlatform: () => ({
   storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); } },
   lifecycle: { current: () => true, subscribe: () => () => undefined },
 }) }));
-import { campaignRecord, holdsNarrativeFlag, type GameState } from '../src/engine';
+import { campaignRecord, costText, holdsNarrativeFlag, type GameState } from '../src/engine';
 import { gameRuntime, gameStore } from '../src/app/session';
 import { settle } from './app-helpers';
 import DilemmaModal from '../src/ui/DilemmaModal';
@@ -89,7 +89,9 @@ describe('the forecast budget names only prices this history can charge', () => 
     expect(gone.find('interrupt-budget')).toBeNull();
     gone.close();
     const kept = await mount(omen(at(auctioned('buy_and_pension'), ORDER), ORDER), createElement(InterruptBudget));
-    expect(kept.find('interrupt-budget')?.textContent).toContain('20,000,000');
+    const sanctuary = defined(order.choices.find((choice) => choice.id === 'sanctuary')).cost;
+    expect(kept.find('interrupt-budget')?.textContent).toContain('Paid response budgets: ' + costText(sanctuary) + '.');
+    expect(costText(sanctuary)).toMatch(/^\$/);
   });
 });
 

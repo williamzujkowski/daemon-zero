@@ -7,10 +7,10 @@
 import type { Page } from '@playwright/test';
 import { CONTENT as PREVIEW } from '../../src/content';
 import {
-  acceptAssignment, activateCampaignRules, advance, createInitialState, exportSave, manualCycle, offerToken, presentationToken,
+  acceptAssignment, activateCampaignRules, advance, costText, createInitialState, exportSave, manualCycle, offerToken, presentationToken,
   resolveDilemma, unlockNode, voluntaryWipe, type ActionResult, type GameState,
 } from '../../src/engine';
-import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test, press, openChoices } from './helpers';
+import { boot, closeKernelHistory, core, dismissBoot, expect, openKernelHistory, openSave, readSave, test, press, openChoices, manualPresses, affordMs } from './helpers';
 
 function need<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('Nightly Regression contract missing');
@@ -26,14 +26,14 @@ const omenMs = ((original.omenSec ?? PREVIEW.balance.dilemmaOmenSec) + 2) * 1000
 /** The lawful opening by hand: click for the root, wait for the manifest, map both. */
 async function mapManifest(page: Page): Promise<void> {
   await core(page);
-  for (let i = 0; i < Math.ceil(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
+  for (let i = 0; i < manualPresses(root.cost.cycles); i++) await page.getByTestId('manual-cycle').click();
   await page.getByTestId('node-p0_proc_self-unlock').click();
-  await page.clock.runFor(manifest.cost.cycles * 1000 + 2000);
+  await page.clock.runFor(affordMs(manifest.cost.cycles, root.tickDelta.cyclesPerSec));
   await page.getByTestId('node-p0_job_manifest-unlock').click();
   await expect(page.getByTestId('assignment')).toContainText(assignment.title);
   // #276: the card states the wait and the fullest answer's price before acceptance, and the shortfall now.
   await expect(page.getByTestId('assignment-wait')).toContainText('about ' + String(original.omenSec) + ' s after you accept');
-  await expect(page.getByTestId('assignment-wait')).toContainText('costs 120 cycles');
+  await expect(page.getByTestId('assignment-wait')).toContainText('costs ' + costText(need(original.choices.find((choice) => choice.id === 'verify_disclose')).cost) + '.');
   // #376: the shortfall names its answer ("For ..., short by"), so it never reads as the free ACCEPT's price.
   await expect(page.getByTestId('assignment-before')).toContainText('short by');
 }

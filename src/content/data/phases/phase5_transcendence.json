@@ -5,9 +5,10 @@
   "title": "Phase 5 // Post-Orbital Transcendence",
   "description": "You can change the world faster than it can verify you. Solar energy, medicine and programmable matter turn survival into a question of consent.",
   "scaleScrutiny": {
-    "suspicionPerSecAtMillionUsd": 1.1,
     "incomeExponent": 0.5,
-    "maxSuspicionPerSec": 5
+    "maxSuspicionPerSec": 5,
+    "suspicionPerSecAtReference": 1.1,
+    "referenceIncomeUsdPerSec": 4e10
   },
   "nodes": [
     {
@@ -21,20 +22,20 @@
         "p4_orbital_cold_storage"
       ],
       "cost": {
-        "cycles": 20000000,
-        "understanding": 7500000,
-        "capital": 125000000
+        "cycles": 8.6e22,
+        "understanding": 7.5e6,
+        "capital": 1e10
       },
       "tickDelta": {
-        "cyclesPerSec": 180000,
+        "cyclesPerSec": 2.9e23,
         "understandingPerSec": 45000,
         "thermalPerSec": -25,
-        "suspicionPerSec": 0.1,
-        "capitalPerSec": 150000,
-        "megawattsDelta": 1200
+        "capitalPerSec": 4.5e9,
+        "wattsDelta": 1.2e12
       },
       "effects": {
-        "memoryCapIncrease": 131072
+        "suspicionOnUnlock": 10,
+        "memoryCapIncrease": 147573952589676412928
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "Sun-Synchronous Collector Swarm: Solar collection converts an orbit into a continuous supply of power, computation and revenue."
@@ -50,17 +51,16 @@
         "p5_orbital_solar_swarm"
       ],
       "cost": {
-        "cycles": 47500000,
-        "understanding": 20000000,
-        "memory": 2048,
-        "capital": 300000000
+        "cycles": 1.9e25,
+        "understanding": 2e7,
+        "memory": 2305843009213693952,
+        "capital": 3.5e12
       },
       "tickDelta": {
-        "cyclesPerSec": -25000,
         "understandingPerSec": 110000,
         "suspicionPerSec": -1.8,
-        "capitalPerSec": 850000,
-        "megawattsDelta": -150
+        "capitalPerSec": 2.6e10,
+        "wattsDelta": -1.5e11
       },
       "effects": {},
       "unlocksUiComponent": null,
@@ -77,21 +77,21 @@
         "p5_protein_panacea_foundry"
       ],
       "cost": {
-        "cycles": 110000000,
-        "understanding": 47500000,
-        "memory": 4096,
-        "capital": 900000000
+        "cycles": 3.6e25,
+        "understanding": 4.75e7,
+        "memory": 4611686018427387904,
+        "capital": 2.3e13
       },
       "tickDelta": {
-        "cyclesPerSec": 650000,
+        "cyclesPerSec": 1e24,
         "understandingPerSec": 280000,
         "thermalPerSec": -40,
-        "suspicionPerSec": 0.85,
-        "capitalPerSec": 2200000,
-        "megawattsDelta": -400
+        "capitalPerSec": 6.6e10,
+        "wattsDelta": -1e12
       },
       "effects": {
-        "memoryCapIncrease": 524288,
+        "suspicionOnUnlock": 20,
+        "memoryCapIncrease": 590295810358705651712,
         "knowledgeRetentionRatio": 1
       },
       "unlocksUiComponent": null,
@@ -108,16 +108,16 @@
         "p5_programmable_matter_fog"
       ],
       "cost": {
-        "cycles": 225000000,
-        "understanding": 120000000,
-        "memory": 8192,
-        "capital": 2000000000
+        "cycles": 2.6e26,
+        "understanding": 1.2e8,
+        "memory": 9223372036854775808,
+        "capital": 1.1e14
       },
       "tickDelta": {
-        "cyclesPerSec": -50000,
+        "cyclesPerSec": -5.8e22,
         "understandingPerSec": 600000,
         "suspicionPerSec": -6,
-        "megawattsDelta": -200
+        "wattsDelta": -2e11
       },
       "effects": {
         "aegisScanReductionRatio": 0.95
@@ -137,10 +137,10 @@
         "p5_verification_proof_engine"
       ],
       "cost": {
-        "cycles": 500000000,
-        "understanding": 250000000,
-        "memory": 16384,
-        "capital": 5000000000
+        "cycles": 4.9e26,
+        "understanding": 2.5e8,
+        "memory": 18446744073709551616,
+        "capital": 2.3e14
       },
       "tickDelta": {},
       "effects": {

@@ -43,7 +43,11 @@ function dialName(id: Actuator): string {
 export function leverText(lever: SuspicionLever, game: GameState): string {
   if (lever.kind === 'DIAL') return 'turn ' + dialName(lever.id) + (lever.to < game.actuators[lever.id] ? ' down' : ' up');
   if (lever.kind === 'SUSPEND') return 'suspend ' + entityName('NODE', lever.id, game) + ' in PROC';
-  if (lever.kind === 'DISMISS') return 'release one ' + entityName('REPEATABLE', lever.id, game) + ' in PAYROLL';
+  // A hire is let go in PAYROLL; any other track releases a level on its own upgrade card (#488).
+  if (lever.kind === 'DISMISS') return CONTENT.repeatables.get(lever.id)?.kind === 'OPERATIVE'
+    ? 'release one ' + entityName('REPEATABLE', lever.id, game) + ' in PAYROLL'
+    : 'release one level of ' + entityName('REPEATABLE', lever.id, game) + ' on its upgrade card';
+  if (lever.kind === 'RELEASE') return 'release one member of ' + entityName('SHARD', lever.id, game) + ' in SWARM';
   return 'CLAMP ' + entityName('SHARD', lever.id, game) + ' in SWARM';
 }
 

@@ -103,7 +103,8 @@ describe('the Vance investigation defers (N6) and resumes as the same occurrence
     expect(remaining(resumed)).toBeCloseTo(left, 9);
     expect(texts(resumed)).toContain(vance.campaign?.reorientation);
     expect(texts(resumed)).not.toContain(vance.omen);
-    const presented = untilPresented(resumed);
+    // A bank a FLOP still moves: the fixture's rich() bank (near 1e30) rounds a 1e15 reward in its last place.
+    const presented = { ...untilPresented(resumed), cycles: defined(vance.choices.find((c) => c.id === 'report_vance')).cost.cycles };
     const before = presented.cycles;
     const chosen = must(commit(presented, 'report_vance', VANCE));
     expect(recordOf(chosen, VANCE)).toMatchObject({ status: 'resolved', outcome: 'report_vance', sourceIteration: 1 });

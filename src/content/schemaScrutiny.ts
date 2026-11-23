@@ -6,10 +6,12 @@
 import { z } from 'zod';
 
 export const ScaleScrutinySchema = z.strictObject({
-  /** Suspicion per second drawn at a net income of exactly $1M/s. */
-  suspicionPerSecAtMillionUsd: z.number().positive(),
+  /** Suspicion per second drawn at a net income of exactly the reference income. */
+  suspicionPerSecAtReference: z.number().positive(),
+  /** The net income, $/s, at which the draw is stated: a size typical of the phase's books (BALANCE.md). */
+  referenceIncomeUsdPerSec: z.number().positive(),
   /**
-   * How the draw grows with income: (income / $1M/s) to this power. At most 1, so doubling income never more
+   * How the draw grows with income: (income / reference) to this power. At most 1, so doubling income never more
    * than doubles the draw, and a revenue jump from one purchase cannot outrun the answers a player has.
    */
   incomeExponent: z.number().positive().max(1),

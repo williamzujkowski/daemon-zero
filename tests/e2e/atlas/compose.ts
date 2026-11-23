@@ -31,7 +31,7 @@ function phaseSlot(state: GameState): string | undefined {
 function bandSurfaces(state: GameState): (keyof typeof BAND_ITEMS)[] {
   const found: (keyof typeof BAND_ITEMS)[] = [];
   if (state.insolvent) found.push('insolvent');
-  if (state.rates.megawattsGenerated < state.rates.megawattsConsumed) found.push('shortfall');
+  if (state.rates.wattsGenerated < state.rates.wattsConsumed) found.push('shortfall');
   if (state.brownout) found.push('brownout');
   if (state.pendingDilemma !== null && state.activeDilemmaId === null) found.push('omen');
   const slot = phaseSlot(state);

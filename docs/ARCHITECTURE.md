@@ -85,6 +85,7 @@ Expo's SDK-compatible AsyncStorage package; Zustand uses its vanilla API.
 - `integrityFeeds.ts` - feed sources (#449): exactly one per phase, at least `MIN_FEED_LINES` lines and one ungated line per source, and no line whose own-iteration gate (node, `phaseAtLeast`, a dilemma resolved this run) opens only after its source is outgrown. Campaign facts and outcomes are exempt, because a wipe does not reset the world. `speechQuery.ts` (`ambientFeedSource`, `eligibleAmbientSpeech`, `eligibleLoggedFeed`) plays the current reach's source only; a source declared `kernelLog` (the guest's, #460) is heard in the kernel log through the `relayLoggedFeed` stage (`systems/feedLog.ts`, last in `TICK_PIPELINE`), never on the decoder; see DESIGN.md "Feeds".
 - `schemaReview.ts`, `integrityReview.ts` - review standing, misconduct, corrections and recall rulings. See [The Outage Window](#the-outage-window-standing-correction-and-recall-224).
 - `integrityFinding.ts` - batch review findings (a dilemma's `finding`). See [The first batch review](#the-first-batch-review-a-withheld-result-is-found-274).
+- `constrainedResources.ts`, `fallbackHoldings.ts`, `integrityFallback.ts` - the free-fallback invariant (#488): the table of constrained resources, the permanent holdings it judges, and one generic check per row. See [The free-fallback invariant](#the-free-fallback-invariant-461-488).
 - `requirementScopes.ts` - classifies every requirement field as `context`, `access`, `window` or `transient`, so an occurrence is revalidated on structure without rechecking transient triggers.
 - `production.ts` - imports the shipped JSON and exports `ORIGINAL_RAW_CONTENT` (the original game), `EARNED_ACCESS_PACK` and `RAW_CONTENT = applyPack(ORIGINAL_RAW_CONTENT, EARNED_ACCESS_PACK)`, and `CONTENT = buildRegistry(RAW_CONTENT)`.
 - `pack.ts` - `ContentPackSchema`, `parsePack`, `applyPack` and `packIds`: composes an add-only pack onto the base content and refuses any item whose id the base already defines. `data/earned-access.json` is the one pack. See [Content composition and preview saves](#content-composition-and-preview-saves-204-233).
@@ -181,8 +182,9 @@ tick(state, dt):
 - **Actuator availability (#172).** `setActuator` is refused, with the state returned untouched, until the player holds the control: `isActuatorAvailable(state, name, reg)` is true when an unlocked widget declares `hostsActuator: name`. The UI controls ask the same query before drawing, so a dial is never shown that the engine would refuse, and no caller (the sim bot included) can move one the player cannot see. Integrity requires exactly one host widget per actuator content uses (a widget hosts it or a node puts it into effect; an actuator no content uses is not checked), a node that unlocks it, and that any node putting a dial into effect (`actuatorBinding`, or `ENABLES_CORPORATE_FINANCE` for the allocation ratio, which has no bound node) unlocks that host itself. Loading does not reset a dial: a save may carry a moved value behind a locked control, where it has no effect until the node that also hands over the control is owned. The opposite case, a hand-edited save that owns a dial's node but omits its widget, is healed on load (see Save healing), so a dial in effect always comes with its control.
 - **Window retirement (#447).** `retiredWidgets(state, reg)` lists the windows on screen (unlocked, or declared `ungated`) whose `retiresWhen` holds; it reads the save alone, so a reload retires the same set. Retirement is presentation: `unlockedWidgets` is untouched and no save field exists. `isActuatorAvailable` is false for a dial whose only host has retired, so `setActuator` refuses it and its last setting stays. `unlockNode` is the only transition that can cross a gate (`integrityRetirement.ts` limits gates to `phaseAtLeast` and `nodes`, refuses a node an AEGIS strike can burn, and refuses a retiring host of action groups or of a dial driving a node that cannot be suspended), and it writes the one `widgetsRetired` log line (`retirement.ts`). See UI-SPEC, "Window retirement".
 - **Action hosts (#273).** An action is performed through its card, so the engine must not accept one the player cannot see. A widget declares `hostsActionGroups` for the action groups its unlock hands over: `SUBNET_NODE_LIST` hosts `OPS` (its cards render in the Operations area), the other-minds console hosts the three faction groups, the corporate ledger hosts `CORP`. `integrityActionHosts.ts` requires every action outside the mind tools (those requiring the decoded audit trail) to have exactly one host, and that host to be unlocked whenever the action's requirements can be met: some node unlocking it lies in the prerequisite closure of the action's `nodes`, or, for a phase gate, of every node that opens that phase or a later one. Save healing grants an owned node's widget, so this holds for loaded saves too. `tests/ui-action-hosts.spec.ts` checks the same promise end to end: for every action it makes the fewest purchases its gates need through the engine, mounts the screen and finds the action's button, enabled and working. The two violations this rule found when introduced were the scrub (fixed in the UI: its group moved from the spoofer's panel to the ARP discovery widget) and route poisoning (fixed in content: it now also requires the beacon whose console carries its card; docs/BALANCE.md).
-- **Power grid.** Megawatt shortfall throttles only the cycle output of megawatt-consuming sources, never the whole economy.
-- **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive cycle income is diverted to capital at `usdPerDivertedCycle`, times the revenue multiplier from operatives.
+- **Power grid.** Power is in watts (`wattsDelta`, `rates.wattsGenerated/wattsConsumed`). A shortfall throttles only the compute output of power-consuming sources, never the whole economy.
+- **Corporate finance.** With `ENABLES_CORPORATE_FINANCE`, `computeProfitAllocationRatio` of positive compute income (FLOP/s) is diverted to capital at `usdPerDivertedFlop` (balance `marketUsdPerFlop` x `marketTimeCompression`, BALANCE.md), times the revenue multiplier from operatives.
+- **Units.** Stored compute is FLOP of 8-bit AI operations and rates FLOP/s; memory is bytes; power is watts; capital is dollars. Content keeps the cost keys `cycles`, `memory` and `capital` (law 4). `resourceUnits.ts` maps each key to its dimension for price and output text; `integrityScale.ts` keeps every magnitude inside its phase's band (docs/SCALE.md, BALANCE.md "Physical units"). Thermal stops feeding suspicion from `thermalRetiresAtPhase`.
 - **The per-tick hot path (#270).** Every tick asks every unresolved dilemma's trigger, every routine template's requirements and every owned node's permitted use, and the headless sims run hundreds of thousands of ticks under V8 coverage. So those readers stop at the first failure and build nothing they then discard: `meetsEpistemicRequirements` is the first-failure form of the same scan that lists `epistemicRequirementFailures` (one list of gates, two outputs), the scheduler tries a dilemma's trigger before its campaign and follow-up checks (and asks for a deferred occurrence only under campaign rules, the only rules that keep one), and the routine stage asks `hasEligibleRoutine` until a notice is due. `computeRates` reads the permitted-use rule through one `useScope` per pass (`nodeOutputScaleIn`), and `nodeUseBlockerIn` answers a node with no grant and no capability gate in an unreviewed run at once, since each refusal needs one of those three. Every reordered check is pure, so no answer changes: `tests/requirement-verdict.spec.ts` compares each fast verdict with its full explanation over every content requirement set and states sampled from play, and the scoped rule with the rule as it read before, node by node; the sim hashes and `make sim` output pin the play itself.
 
 ### Time
@@ -228,7 +230,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v15; `tests/fixtures/` holds a genuine production codec output for every version v1-v14 (`tests/fixtures/README.md`).
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v17; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -241,6 +243,85 @@ engine's public actions or `advance`, not the store or UI.
 **Unfinished content.** There is no preview channel since #233: everything under `data/` ships. Content that is not ready stays on its branch until it is, or until a reviewed decision provides another way to merge it unreleased (see [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md), "Preview machinery after release").
 
 **Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-report` reports a policy's legacy-versus-campaign-rules numbers without gating; see `docs/TESTING.md`, "Sim policies".
+
+## The free-fallback invariant (#461, #488)
+
+Nothing a player owns and cannot undo for free may trap a constrained resource. It is AGENTS.md law 7's no-soft-lock
+rule carried from dilemmas to rates: a dilemma always offers a zero-cost choice, and a purchase always leaves a
+zero-cost way back out of every trap. One table (`src/content/constrainedResources.ts`) names each resource, the
+state that traps it, and its free relief levers; `integrityFallback.ts` checks every row generically, with no content
+ids, and `tests/free-fallback-guard.spec.ts` pulls the same levers on real states.
+
+| Resource | Trap | Free relief levers | Rule |
+|---|---|---|---|
+| compute | brownout: net compute below zero halts understanding | dismiss a level, suspend a node, release a cohort member, a dial at its quiet end | never |
+| capital | insolvency: upkeep the balance cannot pay, drawing `insolvencySuspicionPerSec` | dismiss, suspend, release, the allocation dial (up to `maxProfitAllocation`) | divertible |
+| power | a shortfall that throttles powered output (W, Phase 4 on) | dismiss, suspend, release | budget, net zero |
+| thermal | sustained overheat above `thermalThresholdForSuspicion` feeding suspicion (Phases 1-3) | dismiss, suspend, release, a dial at its quiet end, `thermalRetiresAtPhase` | budget, cooling headroom |
+| memory | used over capacity, blocking purchases and hosting | dismiss, suspend, release | reservation |
+| understanding | a negative net rate where it gates progress | dismiss, suspend, release | never |
+| suspicion | a permanent positive rate below the top rung | dismiss, suspend, release, a dial at its quiet end, natural decay (`suspicionDecayPerSec`, slowed by rungs) | budget, zero, with scale scrutiny |
+
+A lever is free when it costs nothing and is always offered: dismissing a level (`dismissRepeatable`), suspending a
+node (`toggleNode`), releasing a cohort member (`releaseShard`, offered in every autonomy mode, so CLAMP cannot make a
+drain permanent), a linear dial at 0 (it zeroes the bound node's compute, heat and suspicion), the allocation dial,
+natural decay and thermal retirement. A purchase or an action that spends something is never relief.
+
+**Permanent holdings** (`fallbackHoldings.ts`) are what no free lever undoes: an unsuspendable node (hardware) at its
+dial's quiet end when its dial host never retires and every route to the node opens it; an undismissable track at its
+last level; a cohort an authorized channel hosts (hosted, not commanded, so never released) at its cap with the worst
+quirk on each term; an action output with no `durationSec` (times `maxPurchases`; with no limit it may worsen nothing).
+A timed action output is bounded by its `durationSec`. Each holding carries what owning it guarantees: the nodes every
+route to it passes through (prerequisites and required nodes; a capability gate guarantees only what every
+establisher of the capability does) and the earliest phase it can be held in (the latest phase gate on every route).
+A grant-tagged node's relief is never counted, because a withheld grant stops it.
+
+**Rules, in content terms:**
+
+- *never* (compute, understanding): no permanent holding has a negative `cyclesPerSec` or `understandingPerSec`.
+- *divertible* (capital): a permanent holding with negative `capitalPerSec` must have, on every route to it, a node
+  carrying `ENABLES_CORPORATE_FINANCE` that the fallback keeps (no grant; unsuspendable or worsening nothing) and a node
+  that opens the never-retiring widget hosting `computeProfitAllocationRatio`; and its own compute (powered compute at
+  `minGridEfficiency`), diverted at the dial's ceiling (`maxProfitAllocation`, lowered by any conditioning mark's cap),
+  times `marketUsdPerFlop x marketTimeCompression`, must pay its upkeep. Diverting a share of positive gross compute
+  never makes net compute negative, so the capital lever cannot undo the compute row.
+- *budget* (power, thermal, suspicion): for each permanent holding X that worsens the row, what X and the permanent
+  holdings it guarantees add (both signs), plus the worst every unrelated permanent holding adds (one that is neither
+  guaranteed by X nor depends on X), stays within the limit. Any owned set is bounded by the check of its deepest
+  worsening holding, so the rule is sound for every combination, not only for each item alone. Power: generation
+  covers consumption (limit 0). Thermal: holdings that can be held before `thermalRetiresAtPhase` only, within the
+  heat the room sheds at the threshold, `(thermalThresholdForSuspicion - ambientThermal) x thermalDissipationPerSec`.
+  Suspicion: the sum is at most 0, with net income's scale scrutiny added (the closure's jointly, each unrelated
+  holding's on its own, under the worst rule a phase at or after X declares; the draw is concave, so this bounds it).
+- *reservation* (memory): no dismissable track grants memory, because dismissing a level takes its grant back and
+  could leave memory used over capacity. Suspending a node keeps its grant and frees its memory; releasing a cohort
+  member frees its share.
+
+**The guard** (`tests/free-fallback-guard.spec.ts`) starts from every pre-rescale save once re-denominated and from
+fresh careful play two minutes into each phase. Every purchase with a rate (a node, a track to its last level, a cohort
+forked to its cap and then pruned, clamped or elevated, a lasting or timed action, a pending harness) is funded by saving at any horizon
+and bought. The free fallback then releases every worsening level, member and node, turns every worsening dial-bound
+node's dial to 0 and sets the allocation dial at break-even (solvent with no income to scrutinise), and every row must
+be out of its trap. The bound it states: compute, capital, power, memory and understanding are out at once (their net
+rates are safe); heat relaxes to a steady state at or under the threshold with time constant 1 / `thermalDissipationPerSec`
+(25 s); suspicion's own sources are at most zero, so decay alone takes it from under the top rung to zero within
+`suspicionRecoverySec()` (4,300 s on the shipped ladder; the top rung hunts, so nothing above it is free); a timed
+action is judged once it has expired. It includes the panel pass 3 reproduction: a clamped draining cohort forked from
+the migrated Phase 2 save was a permanent brownout with the levers of 97d639f and is undone by RELEASE now.
+
+**Reachability in the UI** (#488 panel passes 4 and 5). A lever the engine accepts is only free if the player can find
+its control, so every gate on the path to one asks one predicate in `src/ui/purchaseVisibility.ts`:
+`phaseHasLevers(game, phase, scope)` is true while the phase has a card or track to buy in that scope, or holds a level
+the player can release (`shownTracks`: buyable, or `releasable`, a dismissable track with a level). The NETWORK phase
+section, the upgrade feed and its "Earlier upgrades" fold, and the track list (`Repeatables`) all use it; CORE and CORP
+have no emptiness gate above the feed. Suspension levers live in PROC, gated by `needsProcessControl` (any node that
+worsens a free-fallback row, read from `worsensAny`); cohort RELEASE lives in the swarm area. Pane tabs and workspace
+areas follow unlocked host widgets, which each phase's entry node unlocks. `tests/ui-lever-reachability.spec.ts` is the
+property: on the guard's states plus constructed bought-out states (every track capped in each phase; the boost
+override held below its gate; Phase 3 with Phase 2 bought out and capped; Phase 4 with Phase 3's tracks capped), at
+390x844 and 1440x900, every free lever the engine accepts (a releasable level, a running suspendable node that worsens
+a row, a cohort RELEASE accepts) must have its control rendered on some path the screen offers: a pane tab, a
+workspace area, a fold whose control is rendered, or PROC. It searches for the path and assumes no tab exists.
 
 ## Decisions
 

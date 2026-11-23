@@ -16,7 +16,7 @@ export function makeM7Fixtures(prior: Record<string, string>): Record<string, st
   const phase = CONTENT.phases.find((p) => p.phaseId === 5);
   const edit = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
   if (!template || !encounter || !orbital || !mirror || !phase || !edit) throw new Error('Missing M7 content');
-  const p2 = patch(load('phase-2-unlocked'), { suspicion: 50, epistemicDrift: 0, cycles: 1e9, understanding: 1e9, resolvedDilemmas: QUIET_DILEMMA_IDS });
+  const p2 = patch(load('phase-2-unlocked'), { suspicion: 50, epistemicDrift: 0, cycles: 2e21, understanding: 1e9, resolvedDilemmas: QUIET_DILEMMA_IDS });
   const wild = patch(load('phase-3-aegis-90'), { aegisLock: 20, suspicion: 30, pendingWildEncounterId: encounter.id });
   let shard = must(forkShard(load('victory-ready'), template.id, CONTENT));
   const cohort = shard.activeShards[template.id];

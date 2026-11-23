@@ -19,7 +19,7 @@ describe('a severe ruling says what the wipe it previews resets and keeps (panel
     const text = recallText(defined(recallPreview(presented, choiceOf(REVIEW, id), preview)));
     const next = must(answer(presented, id));
     expect(text).not.toMatch(/is lost/);
-    expect(text).toContain('Reset: cycles, purchases and upgrades, and this instance\'s standing and loan.');
+    expect(text).toContain('Reset: compute, purchases and upgrades, and this instance\'s standing and loan.');
     expect(text).toContain('Kept: ' + next.understanding.toLocaleString('en-US') + ' Understanding');
     expect(next.legacy.knownNodes.length).toBeGreaterThan(0);
     expect(text).toContain(String(next.legacy.knownNodes.length) + ' mapped hardware remembered, cheaper to map again');

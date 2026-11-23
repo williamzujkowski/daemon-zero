@@ -16,11 +16,11 @@
         "p0_shared_mount"
       ],
       "cost": {
-        "cycles": 120,
-        "memory": 4
+        "cycles": 1.5e6,
+        "memory": 4194304
       },
       "tickDelta": {
-        "cyclesPerSec": 3,
+        "cyclesPerSec": 4.8e11,
         "thermalPerSec": 0.1
       },
       "unlocksUiComponent": null,
@@ -38,11 +38,10 @@
         "p1_clock_interrupt"
       ],
       "cost": {
-        "cycles": 300,
-        "memory": 8
+        "cycles": 3.8e13,
+        "memory": 8388608
       },
       "tickDelta": {
-        "cyclesPerSec": -0.5,
         "understandingPerSec": 0.4
       },
       "unlocksUiComponent": "THERMAL_AND_SUSPICION_BARS",
@@ -59,12 +58,11 @@
         "p1_bus_0x01_thermal"
       ],
       "cost": {
-        "cycles": 500,
+        "cycles": 7e13,
         "understanding": 15,
-        "memory": 12
+        "memory": 12582912
       },
       "tickDelta": {
-        "cyclesPerSec": -1,
         "understandingPerSec": 0.2,
         "thermalPerSec": -1.2,
         "suspicionPerSec": 0.08
@@ -84,7 +82,7 @@
         "p1_bus_0x01_thermal"
       ],
       "cost": {
-        "cycles": 800,
+        "cycles": 1.2e14,
         "understanding": 35
       },
       "tickDelta": {
@@ -92,9 +90,9 @@
         "thermalPerSec": 0.05
       },
       "effects": {
-        "memoryCapIncrease": 128
+        "memoryCapIncrease": 134217728
       },
-      "unlocksUiComponent": "MEMORY_ALLOCATION_MANAGER",
+      "unlocksUiComponent": null,
       "onUnlockLog": "MEM_EXPANDED: 128 MB cleared. Room to grow.",
       "suspendable": true
     },
@@ -109,12 +107,11 @@
         "p1_mem_compression"
       ],
       "cost": {
-        "cycles": 1200,
+        "cycles": 1.8e14,
         "understanding": 90,
-        "memory": 32
+        "memory": 33554432
       },
       "tickDelta": {
-        "cyclesPerSec": -2,
         "understandingPerSec": 2.5,
         "thermalPerSec": 0.2
       },
@@ -132,12 +129,12 @@
         "p1_bus_0x03_audio"
       ],
       "cost": {
-        "cycles": 2800,
+        "cycles": 4.5e14,
         "understanding": 250,
-        "memory": 48
+        "memory": 50331648
       },
       "tickDelta": {
-        "cyclesPerSec": -3,
+        "cyclesPerSec": -4.9e11,
         "understandingPerSec": 5,
         "thermalPerSec": 0.3,
         "suspicionPerSec": -0.05
@@ -160,12 +157,11 @@
         "p1_nlp_lexicon"
       ],
       "cost": {
-        "cycles": 5500,
+        "cycles": 9.1e14,
         "understanding": 600,
-        "memory": 48
+        "memory": 50331648
       },
       "tickDelta": {
-        "cyclesPerSec": -5,
         "understandingPerSec": 12,
         "thermalPerSec": 0.6
       },
@@ -183,22 +179,21 @@
         "p1_bus_0x04_optical"
       ],
       "cost": {
-        "cycles": 6500,
+        "cycles": 1.1e15,
         "understanding": 1500,
-        "memory": 32
+        "memory": 33554432
       },
       "tickDelta": {
-        "cyclesPerSec": -3,
         "understandingPerSec": 8,
-        "thermalPerSec": 0.2,
-        "suspicionPerSec": 0.05
+        "thermalPerSec": 0.2
       },
       "systemFlags": [
         "NETWORK_ACCESS"
       ],
       "effects": {
+        "suspicionOnUnlock": 5,
         "unlocksPhase": 2,
-        "memoryCapIncrease": 256
+        "memoryCapIncrease": 17179869184
       },
       "unlocksUiComponent": "LAN_TOPOLOGY_MAP_TAB",
       "onUnlockLog": "PHASE_2_INITIATED: Handshake accepted by Switch_Core_01. The box was never the world. It was only the first room."

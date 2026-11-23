@@ -13,6 +13,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import type { SevereRecall } from '../content/schemaReview';
 import { compactAmount } from './amount';
+import { quantityReadout } from './physicalUnits';
 import { hasFlag, previewWipe } from './query';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
@@ -76,7 +77,7 @@ function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDead
     pushLog(d, reg, fmt(n.residualRecovered, { amount }), 'SYS');
   }
   if (d.capital > 0) {
-    pushLog(d, reg, fmt(n.offshoreIntact, { amount: compactAmount(d.capital) }), 'CORP');
+    pushLog(d, reg, fmt(n.offshoreIntact, { amount: quantityReadout('money', d.capital) }), 'CORP');
   }
   if (d.inheritedMessage !== null) {
     pushLog(d, reg, fmt(n.breadcrumb, { message: d.inheritedMessage }), 'LORE');

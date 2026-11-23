@@ -31,7 +31,7 @@ describe('entering the pilot (DZ-05.1)', () => {
     const attached = must(unlockNode(pilot, QUEUE, preview));
     expect([attached.cycles, attached.understanding, attached.memoryUsed, attached.memoryCap]).toEqual([pilot.cycles, pilot.understanding, pilot.memoryUsed, pilot.memoryCap]);
     expect(attached.unlockedWidgets).toContain(QUEUE_NODE.unlocksUiComponent);
-    expect(view(attached)).toMatchObject({ started: true, allocation: 0.5, serviceCyclesPerSec: 5, batchCycles: SERVICE.batchCycles, withheld: null });
+    expect(view(attached)).toMatchObject({ started: true, allocation: 0.5, serviceCyclesPerSec: TERMS.narrowCapacityCyclesPerSec * 0.5, batchCycles: SERVICE.batchCycles, withheld: null });
   });
 
   it('a completed result gets the full ceiling, and the split never exceeds it', () => {
@@ -69,12 +69,14 @@ describe('two allocations under one ceiling (V30)', () => {
 
   it('forecast and Understanding differ while the ceiling is the same', () => {
     expect(view(service).ceilingCyclesPerSec).toBe(view(study).ceilingCyclesPerSec);
-    expect(view(service).forecastSec).toBeCloseTo(SERVICE.batchCycles / 8, 9);
-    expect(view(study).forecastSec).toBeCloseTo(SERVICE.batchCycles / 2, 9);
+    const ceiling = TERMS.narrowCapacityCyclesPerSec;
+    expect(view(service).ceilingCyclesPerSec).toBe(ceiling);
+    expect(view(service).forecastSec).toBeCloseTo(SERVICE.batchCycles / (ceiling * 0.8), 9);
+    expect(view(study).forecastSec).toBeCloseTo(SERVICE.batchCycles / (ceiling * 0.2), 9);
     const a = live(service, 60);
     const b = live(study, 60);
-    expect(a.access.work.progressCycles).toBeCloseTo(480, 6);
-    expect(b.access.work.progressCycles).toBeCloseTo(120, 6);
+    expect(a.access.work.progressCycles).toBeCloseTo(60 * ceiling * 0.8, 6);
+    expect(b.access.work.progressCycles).toBeCloseTo(60 * ceiling * 0.2, 6);
     expect(b.understanding - study.understanding).toBeGreaterThan(a.understanding - service.understanding);
   });
 

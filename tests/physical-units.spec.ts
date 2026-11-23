@@ -91,3 +91,15 @@ describe('exact figures for prices', () => {
     expect(quantityExact('money', 0)).toBe('$0');
   });
 });
+
+describe('exact figures past 2^53', () => {
+  it('keeps a decimal prefix exact where binary floating point cannot represent the product', () => {
+    expect(quantityExact('compute', 4e25)).toBe('40 YFLOP');
+    expect(quantityExact('compute', 2.2e18)).toBe('2.2 EFLOP');
+    expect(quantityExact('computeRate', 8.3e18)).toBe('8.3 EFLOP/s');
+  });
+
+  it('still steps down when the figure needs more than two decimals', () => {
+    expect(quantityExact('compute', 1.2345e18)).toBe('1,234.5 PFLOP');
+  });
+});
