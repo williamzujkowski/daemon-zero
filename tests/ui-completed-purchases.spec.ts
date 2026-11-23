@@ -68,7 +68,7 @@ describe('completed purchase feed', () => {
     view.close();
   });
 
-  it('hides the last upgrade purchase and empty infrastructure heading without losing its output', async () => {
+  it('hides the last upgrade purchase, keeping the infrastructure heading only for the capped levels it can still release', async () => {
     const view = await mountM4('victory-ready');
     const game = m4State('victory-ready');
     const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 4 && r.kind === 'UPGRADE');
@@ -79,7 +79,12 @@ describe('completed purchase feed', () => {
     view.click('rep-' + last.id + '-buy');
     expect(gameStore.store.getState().game.levels[last.id]).toBe(last.maxLevel);
     expect(view.find('rep-' + last.id)).toBeNull();
-    expect(view.find('repeatables-heading-4UPGRADE')).toBeNull();
+    // Every track is capped now. The heading is empty, and hidden, unless some capped level can still be released for
+    // free (#488 pass 4): then the section stays for exactly those release rows.
+    const releasable = reps.filter((r) => r.dismissable);
+    expect(view.find('repeatables-heading-4UPGRADE') === null).toBe(releasable.length === 0);
+    for (const r of releasable) expect(view.find('rep-' + r.id + '-dismiss'), r.id).not.toBeNull();
+    for (const r of reps) expect(view.find('rep-' + r.id + '-buy'), r.id).toBeNull();
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).toBeGreaterThan(0);
     view.close();
   });
