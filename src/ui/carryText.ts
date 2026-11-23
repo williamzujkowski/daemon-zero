@@ -22,6 +22,9 @@ export function carryOverText(kept: RunKept | null, remembered: number): string 
   if (kept === null) return reset + 'Some learned knowledge survives; previously mapped hardware costs less to recover.';
   // Same compact figures as the boot log's recovery line, which the same wipe wrote.
   const parts = [compactAmount(kept.understanding) + ' Understanding (the run could keep ' + sharePercent(kept.retentionRatio) + ' of it)'];
-  if (kept.capital > 0) parts.push(quantityReadout('money', kept.capital) + ' offshore capital');
+  if (kept.capital > 0) parts.push(quantityReadout('money', kept.capital) + ' capital');
+  // What contingency insurance carried (#498), recorded by the same wipe.
+  if (kept.levels > 0) parts.push(String(kept.levels) + (kept.levels === 1 ? ' track level' : ' track levels') + ' in the hardware cache, reinstalled free as each track can run again');
+  if (kept.trust) parts.push('standing with other minds, through the trust ledger');
   return reset + 'Kept: ' + parts.join(', ') + rememberedText(remembered) + '.';
 }

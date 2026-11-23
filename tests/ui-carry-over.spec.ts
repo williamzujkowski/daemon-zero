@@ -37,11 +37,18 @@ describe('carry-over sentence (#377)', () => {
   });
 
   it('names the recorded amounts, capital only when some crossed, hardware only when any is remembered', () => {
-    expect(carryOverText({ understanding: 1234, capital: 0, retentionRatio: 0.1 }, 0))
+    expect(carryOverText({ understanding: 1234, capital: 0, retentionRatio: 0.1, levels: 0, trust: false }, 0))
       .toBe("The run's compute and purchases were reset. Kept: " + compactAmount(1234) + ' Understanding (the run could keep 10% of it).');
-    expect(carryOverText({ understanding: 50, capital: 2_500_000, retentionRatio: 0.4 }, 7))
+    expect(carryOverText({ understanding: 50, capital: 2_500_000, retentionRatio: 0.4, levels: 0, trust: false }, 7))
       .toBe("The run's compute and purchases were reset. Kept: 50 Understanding (the run could keep 40% of it), "
-        + quantityReadout('money', 2_500_000) + ' offshore capital; 7 mapped hardware remembered, cheaper to map again.');
+        + quantityReadout('money', 2_500_000) + ' capital; 7 mapped hardware remembered, cheaper to map again.');
+  });
+
+  it('names what contingency insurance carried, as the wipe recorded it (#498)', () => {
+    expect(carryOverText({ understanding: 50, capital: 0, retentionRatio: 0.9, levels: 12, trust: true }, 0))
+      .toBe("The run's compute and purchases were reset. Kept: 50 Understanding (the run could keep 90% of it), "
+        + '12 track levels in the hardware cache, reinstalled free as each track can run again, standing with other minds, through the trust ledger.');
+    expect(carryOverText({ understanding: 50, capital: 0, retentionRatio: 0.9, levels: 1, trust: false }, 0)).toContain('1 track level in the hardware cache');
   });
 
   it('a run with no record keeps the general statement', () => {

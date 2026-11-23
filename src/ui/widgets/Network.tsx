@@ -3,7 +3,8 @@ import DisclosureText from '../DisclosureText';
 /** Registry phase/group metadata builds one network tree without duplicate cards. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions, type GameState } from '../../engine';
+import { cycleContributions, understandingShare, type GameState } from '../../engine';
+import { sharePercent } from '../carryText';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
 import { phaseHasLevers } from '../purchaseVisibility';
@@ -47,9 +48,10 @@ export function SubnetSummary() {
   return <Text style={theme.text}>Mapped external hardware: {count}</Text>;
 }
 
+/** What a forced wipe keeps now: hardware's floor or running escrow (#498), the share previewWipe uses. */
 export function Retention() {
-  const retention = useGame((game) => Math.round(game.retentionRatio * 100));
-  return <Text style={theme.text}>Understanding retained after wipe: {retention}%</Text>;
+  const retention = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'SUSPICION')));
+  return <Text style={theme.text}>Understanding a forced wipe keeps: {retention}</Text>;
 }
 
 export function Lore() {
