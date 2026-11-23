@@ -14,7 +14,7 @@ import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './c
 import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 18;
+export const SCHEMA_VERSION = 19;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -158,6 +158,10 @@ export const GameStateSchema = z.strictObject({
     knownNodes: z.array(z.string()),
     /** Every earlier iteration of this player, oldest first, capped. */
     runs: z.array(RunRecordSchema),
+    /** The deepest phase any earlier iteration reached (#497): sizes rebuild grants and the rediscovery discount. */
+    deepestPhase: count,
+    /** The highest level any earlier iteration held of each track at its end (#497): levels below it are rediscovered. */
+    knownLevels: z.record(z.string(), count),
     lastWipeCause: z.string().nullable(),
   }),
 
@@ -254,7 +258,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     retentionRatio: b.baseRetentionRatio,
     deadDropMessage: '',
     inheritedMessage: null,
-    legacy: { wipes: 0, traitsEver: [], knownNodes: [], runs: [], lastWipeCause: null },
+    legacy: { wipes: 0, traitsEver: [], knownNodes: [], runs: [], deepestPhase: reg.phases[0]?.phaseId ?? 0, knownLevels: {}, lastWipeCause: null },
     rates: ZERO_RATES,
     logs,
     logSeq: logs.length,

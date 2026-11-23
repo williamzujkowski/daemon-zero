@@ -20,6 +20,12 @@ export function payCost(d: GameState, cost: Cost): void {
   d.memoryUsed += cost.memory;
 }
 
+/** Credits a one-off grant to a draft (a rebuild grant, #497). Grants only add, so no meter can go negative. */
+export function creditGrant(d: GameState, grant: { cycles: number; understanding: number }): void {
+  d.cycles += Math.max(0, grant.cycles);
+  d.understanding += Math.max(0, grant.understanding);
+}
+
 /**
  * A lost peer cannot be thanked or courted: trust towards it never rises again (H33). A fall still
  * applies, so the act that destroys it leaves its trust at the bottom, recorded in the same state.

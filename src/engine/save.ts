@@ -118,9 +118,19 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v17: the physical-units re-denomination (#461, vote-1795367482923-6vdi2u1): balances move by frozen ratios
   // per resource and phase, the derived rates are recomputed on load, and one log line says why (saveRescale.ts).
   16: redenominate,
-  // v18: the hostile-mind slot (#491). No earlier build had hostiles, so every save starts with none pressing, the
+  // v18: rewards for depth (#497). The deepest phase is read from the recorded runs, each of which kept the phase it
+  // reached; a history longer than the record's cap may have reached deeper, so this is a floor, never a guess upward.
+  // No earlier build recorded track levels across a wipe, so none is remembered. Self-contained: it reads only the run
+  // record and writes only its own two fields, so it can be renumbered past another step without change.
+  17: (save) => {
+    const legacy = isRecord(save.legacy) ? save.legacy : {};
+    const runs = Array.isArray(legacy.runs) ? legacy.runs : [];
+    const phases = runs.map((run: unknown) => isRecord(run) && typeof run.phase === 'number' ? run.phase : 0);
+    return { ...save, legacy: { ...legacy, deepestPhase: Math.max(0, ...phases), knownLevels: {} } };
+  },
+  // v19: the hostile-mind slot (#491). No earlier build had hostiles, so every save starts with none pressing, the
   // rotation and purge count at 0 and the lock armed. Self-contained: it writes only its own field, so it can be renumbered.
-  17: (save) => ({ ...save, hostile: { active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true } }),
+  18: (save) => ({ ...save, hostile: { active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
@@ -228,6 +238,13 @@ function withGrantedWidgets(held: readonly string[], owned: readonly string[], r
   return [...new Set([...held, ...granted])].filter((id) => reg.widgets.has(id));
 }
 
+/** Remembered hardware and levels name content that still exists, and a remembered level fits its track. */
+function reconcileLegacy(legacy: GameState['legacy'], reg: ContentRegistry): GameState['legacy'] {
+  const knownLevels = known(legacy.knownLevels, reg.repeatables.keys(), () => undefined);
+  for (const [id, level] of Object.entries(knownLevels)) knownLevels[id] = Math.min(level, reg.repeatables.get(id)?.maxLevel ?? 0);
+  return { ...legacy, knownNodes: legacy.knownNodes.filter((id) => reg.nodes.has(id)), deepestPhase: clampPhase(legacy.deepestPhase, reg), knownLevels };
+}
+
 /**
  * Drops references to content that no longer exists so an old save loads against new content,
  * and restores what ownership implies so a hand-edited save loads as a state play could reach.
@@ -247,7 +264,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
     pendingDilemma: s.pendingDilemma !== null && dilemmaIds.has(s.pendingDilemma.id) ? s.pendingDilemma : null,
     conditioning: s.conditioning.filter((id) => reg.conditioning.has(id)),
-    legacy: { ...s.legacy, knownNodes: s.legacy.knownNodes.filter((id) => reg.nodes.has(id)) },
+    legacy: reconcileLegacy(s.legacy, reg),
     ending: endingKnown ? s.ending : null,
     unlockedNodes,
     disabledNodes: s.disabledNodes.filter((id) => reg.nodes.has(id)),

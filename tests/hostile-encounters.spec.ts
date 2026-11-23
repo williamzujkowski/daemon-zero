@@ -406,11 +406,12 @@ describe('dormancy, phase advance and wipes', () => {
     expect(hostileView({ ...s, currentPhase: 4 }, reg)).toBeNull();
   });
 
-  it('a wipe ends it and keeps the rotation and purge count', () => {
+  it('a wipe ends it, starts the rotation over and keeps the purge count', () => {
     const s = { ...pressing(ready(3), ofType(3, 'RIVAL')), hostile: { ...pressing(ready(3), ofType(3, 'RIVAL')).hostile, purges: 4 } };
     const next = wipe(s, reg, 'test', 'SUSPICION');
     expect(next.hostile.active).toBeNull();
-    expect(next.hostile.sequence).toBe(s.hostile.sequence);
+    expect(s.hostile.sequence).toBeGreaterThan(0);
+    expect(next.hostile.sequence).toBe(0);
     expect(next.hostile.purges).toBe(4);
   });
 });

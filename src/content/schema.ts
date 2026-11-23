@@ -475,6 +475,8 @@ export const NarrativeSchema = z.strictObject({
   residualRecovered: z.string(),
   breadcrumb: z.string(),
   offshoreIntact: z.string(),
+  /** Logged once when a later iteration reaches a phase again and receives its rebuild grant (#497). */
+  rebuildGrant: z.string().includes('{phase}'),
   aegisShieldAbsorbed: z.string(),
   dormantResume: z.string(),
   dilemmaInterrupt: z.string(),

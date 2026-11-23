@@ -20,6 +20,7 @@ import {
   unlockNode,
   wipe,
   type GameState,
+  rediscoveryShare,
 } from '../src/engine';
 import { grant, guestParents, must, reasonOf, reg, rich, withoutDilemmas } from './helpers';
 
@@ -124,7 +125,7 @@ describe('a run caught before any dead-drop', () => {
       const node = reg.nodes.get(id);
       if (!node) throw new Error('unknown node');
       expect(boot.legacy.knownNodes).toContain(id);
-      expect(nodeCost(boot, node, reg).cycles).toBe(Math.ceil(node.cost.cycles * reg.balance.rediscoveryCostMultiplier));
+      expect(nodeCost(boot, node, reg).cycles).toBe(Math.ceil(node.cost.cycles * rediscoveryShare(boot.legacy.deepestPhase, reg)));
       return sum + nodeCost(boot, node, reg).cycles;
     }, 0);
     expect(price).toBeGreaterThan(0);

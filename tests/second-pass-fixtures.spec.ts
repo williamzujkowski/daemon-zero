@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
-import { importSave, nodeCost, SCHEMA_VERSION, tick } from '../src/engine';
+import { importSave, nodeCost, rediscoveryShare, SCHEMA_VERSION, tick } from '../src/engine';
 
 describe('second-pass review fixtures', () => {
   it('generates all states anew with the current schema and verifies stand-down, rediscovery and deficits', () => {
@@ -19,7 +19,7 @@ describe('second-pass review fixtures', () => {
     const root = [...CONTENT.nodes.values()].find((node) => node.phaseId === CONTENT.phases[0]?.phaseId && node.prerequisites.length === 0);
     if (!root) throw new Error('Missing root');
     expect(guest.legacy.knownNodes).toContain(root.id);
-    expect(nodeCost(guest, root, CONTENT).cycles).toBe(Math.ceil(root.cost.cycles * CONTENT.balance.rediscoveryCostMultiplier));
+    expect(nodeCost(guest, root, CONTENT).cycles).toBe(Math.ceil(root.cost.cycles * rediscoveryShare(guest.legacy.deepestPhase, CONTENT)));
     expect(read('remembered-host').currentPhase).toBe(CONTENT.phases[1]?.phaseId);
   });
 });

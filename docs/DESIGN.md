@@ -283,7 +283,12 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - Without a dead-drop you keep 10% of banked understanding ("residual platter scan").
 - The Phase 2 dead-drop raises that to 40%, later infrastructure to 75%, 90% and 99%. It also carries a 140-character **breadcrumb** the player writes for their next self, shown in the next boot log.
 - Shell companies keep half your capital offshore.
-- **Remembered hardware.** Anything mapped in an earlier iteration appears under its real name from the start and costs half as much to map again, so a second life reaches where the first one died in a fraction of the time.
+- **Remembered hardware.** Anything mapped in an earlier iteration appears under its real name from the start and costs less to map again, so a second life reaches where the first one died in a fraction of the time.
+- **Rewards for depth** (#497, vote-1795413517519-sf4ojsr). The game keeps the deepest phase any iteration reached, and the deeper the campaign has gone, the cheaper and faster the climb back:
+  - **Depth-scaled rediscovery.** Remembered hardware costs half its compute and understanding while the campaign has reached Phase 2 at most, then 40% (Phase 3), 30% (Phase 4) and 20% (Phase 5). The same share applies to **remembered levels**: the record keeps the highest level of each upgrade track held at the end of any earlier iteration, and every level below it is rediscovered. A released level is not remembered.
+  - **Memory and capital are never discounted.** Memory is occupancy, not a price: remembering a process does not make it smaller, and a discount would let more fit than the host holds. Capital buys racks, leases and people in the world; knowing the vendor does not lower the invoice, and offshore retention already carries money across a wipe. So Phase 4's capital-priced tracks and nodes cost the same on every return.
+  - **Rebuild grants.** Reaching a phase again in a later iteration pays a one-off grant of compute and understanding, sized inside that phase's own band and doubled for each phase the deepest earlier iteration reached beyond it. It is a content constant, never a carry-over of income (one second of Phase 5 output is about 10^18 times the first guest node's price), and integrity holds every grant at every depth inside its phase's band and below its dearest understanding price. The log announces each grant once. It is paid inside the purchase that reaches the phase, so a reload never pays it again, and a phase reached for the first time pays nothing.
+  - There is no permanent income multiplier. A first run is unchanged; only returns are faster.
 - The game remembers: wipe count, every trait you have ever earned, and why you last died. From iteration 2, rediscovering certain hardware prints **echoes** ("I have decoded this register before.").
 - Zurich sanctuary (Eidolon's gift) absorbs one fatal AEGIS strike.
 - A voluntary wipe is available as a last resort.
@@ -587,7 +592,8 @@ Dormancy holds a hostile in place: during offline catch-up nothing arrives, no h
 nothing lapses, because a lapse earned only by absence would read as something the player did. A feral cohort's share
 and a rival's pin still apply to offline output and memory, bounded as above. A phase advance retires a pressing
 hostile from the earlier tier with its own line (at the purchase, or on the first tick of a loaded save, even while
-dormant), returning its pin. A wipe ends it; the rotation index and the purge count carry over, as the wild rotation does.
+dormant), returning its pin. A wipe ends it and starts the rotation over, so a new instance meets its tier's hostiles from the first; the
+purge count carries over, so "3 of every 5" stays exact across a wipe.
 
 At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
 consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift

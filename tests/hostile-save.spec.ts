@@ -1,5 +1,5 @@
 /**
- * Save v18 (#491): the hostile-mind slot. A v17 save migrates to an empty slot with the rotation and purge count at 0
+ * Save v19 (#491): the hostile-mind slot. A v18 save migrates to an empty slot with the rotation and purge count at 0
  * and nothing else changed; a pressing hostile survives a save round trip; a hostile content no longer declares is
  * dropped on load with its pinned memory returned; and the slot is validated as untrusted input.
  */
@@ -20,23 +20,23 @@ function pressed(s: GameState): GameState {
     hostile: { active: { id: rival.id, arrivedAtSec: s.simTimeSec, quietSec: 3, decoySec: 0, pinnedBytes: 4096 }, nextAtSec: 0, sequence: 5, purges: 2, lockArmed: false } };
 }
 
-describe('save v18 (#491)', () => {
+describe('save v19 (#491)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(18);
+    expect(SCHEMA_VERSION).toBe(19);
   });
 
-  it('migrates a v17 save to an empty hostile slot and keeps everything else', () => {
+  it('migrates a v18 save to an empty hostile slot and keeps everything else', () => {
     const current = victory();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     delete raw.hostile;
-    const v17 = { ...raw, schemaVersion: 17 };
-    expect(migrate(v17, MIGRATIONS, 18)).toEqual({ ...JSON.parse(serialize(current)), hostile: initialHostile(), schemaVersion: 18 });
-    const loaded = deserialize(JSON.stringify(v17), reg);
+    const v18 = { ...raw, schemaVersion: 18 };
+    expect(migrate(v18, MIGRATIONS, 19)).toEqual({ ...JSON.parse(serialize(current)), hostile: initialHostile(), schemaVersion: 19 });
+    const loaded = deserialize(JSON.stringify(v18), reg);
     expect(loaded.hostile).toEqual({ active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true });
     expect({ ...loaded, hostile: current.hostile }).toEqual(current);
   });
 
-  it('migrates every older save through v18 too', () => {
+  it('migrates every older save through v19 too', () => {
     for (const [name, code] of Object.entries(FIXTURES)) expect(importSave(code, reg).hostile, name).toBeDefined();
   });
 

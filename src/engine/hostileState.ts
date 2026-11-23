@@ -24,7 +24,7 @@ export const HostileStateSchema = z.strictObject({
   active: ActiveHostileSchema.nullable(),
   /** Simulated second from which the next hostile may arrive. */
   nextAtSec: nonNegative,
-  /** Arrivals so far: the deterministic rotation's position. A wipe keeps it, as it keeps the wild rotation. */
+  /** Arrivals this iteration: the deterministic rotation's position. A wipe starts it over (prestige.ts). */
   sequence: count,
   /** Purge attempts so far: the purge's deterministic outcome reads it. A wipe keeps it. */
   purges: count,

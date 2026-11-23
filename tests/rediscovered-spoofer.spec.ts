@@ -10,6 +10,7 @@ import { CONTENT as PREVIEW } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, deserialize, exportSave, importSave, nodeCost, serialize, unlockNode, wipe, type GameState,
+  rediscoveryShare,
 } from '../src/engine';
 import { must, PHASE0, PHASE1, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
@@ -25,9 +26,11 @@ function returning(reg: ContentRegistry, campaign: boolean): GameState {
 }
 const spoofer = (reg: ContentRegistry) => defined(reg.nodes.get(SPOOFER));
 const FULL = spoofer(PREVIEW).cost;
-const ordinary = (price: number): number => Math.ceil(price * PREVIEW.balance.rediscoveryCostMultiplier);
+/** The ordinary share for how deep the returning instance's campaign went (#497). */
+const SHARE = rediscoveryShare(returning(PREVIEW, false).legacy.deepestPhase, PREVIEW);
+const ordinary = (price: number): number => Math.ceil(price * SHARE);
 /** The decided discount halves the ordinary rediscovery factor, as nodeCost applies it. */
-const DISCOUNTED = Math.ceil(FULL.cycles * PREVIEW.balance.rediscoveryCostMultiplier * 0.5);
+const DISCOUNTED = Math.ceil(FULL.cycles * SHARE * 0.5);
 
 describe('the rediscovered log spoofer under campaign rules', () => {
   it('costs a returning instance half the ordinary rediscovery price; understanding and memory are unchanged', () => {
