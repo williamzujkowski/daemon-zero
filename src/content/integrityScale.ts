@@ -2,7 +2,8 @@
  * The scale ladder is validated content (docs/SCALE.md "The ladder", #461). Every priced item's magnitudes sit
  * inside its phase's band: what it yields, draws and grants in that phase's own band, what it costs between the band
  * a player can arrive in that phase with and the top of the phase's own band, so a planetary fog cannot grant 512 GB
- * and a hidden batch job cannot cost a teraFLOP.
+ * and a hidden batch job cannot cost a teraFLOP. A phase that counts stolen CPU cycles (#526) comes before every phase
+ * that counts FLOP: once the AI reaches real hardware it never goes back to scrounging.
  */
 import type { ContentRegistry } from './registry';
 import type { Action, Cost, TickDelta } from './schema';
@@ -11,8 +12,12 @@ import type { Action, Cost, TickDelta } from './schema';
 export type Band = readonly [number, number];
 export type Bands = Readonly<Record<number, Band>>;
 
-/** Compute rates in 8-bit FLOP/s: kFLOP/s to GFLOP/s in Phase 0 up to ZFLOP/s to YFLOP/s in Phase 5. */
-export const COMPUTE_RATE: Bands = { 0: [1e3, 1e12], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27] };
+/**
+ * Compute rates, one stored scalar: Phase 0 counts stolen CPU cycles, a tenth to under ten thousand a second (#526,
+ * vote-1795450842605-mm2yn39: only what the harness's microsecond CPU accounting rounds away, about 3,000 cycles at
+ * 3 GHz, within x3), then 8-bit FLOP/s from Phase 1's GFLOP/s up to Phase 5's ZFLOP/s to YFLOP/s.
+ */
+export const COMPUTE_RATE: Bands = { 0: [0.1, 1e4], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27] };
 /** Memory in bytes, binary: B to KiB, MiB to GiB, GiB to TB, TB to PB, PB to EB, EB to ZB. */
 const MEMORY: Bands = { 0: [1, 2 ** 20], 1: [2 ** 20, 2 ** 40], 2: [2 ** 30, 2 ** 50], 3: [2 ** 40, 2 ** 60], 4: [2 ** 50, 2 ** 70],
   5: [2 ** 60, 2 ** 80] };
@@ -59,10 +64,15 @@ function checkCost(reg: ContentRegistry, owner: string, phase: number, cost: Cos
   return problems;
 }
 
-function checkDelta(owner: string, phase: number, delta: TickDelta): string[] {
+/** What a phase calls compute in a message: "cycles" where it counts them, "FLOP" otherwise. */
+function computeWord(reg: ContentRegistry, phase: number): string {
+  return reg.phases.find((entry) => entry.phaseId === phase)?.computeUnit === 'CYCLE' ? 'cycles' : 'FLOP';
+}
+
+function checkDelta(reg: ContentRegistry, owner: string, phase: number, delta: TickDelta): string[] {
   const problems: string[] = [];
   if (delta.cyclesPerSec > 0 && !inBand(delta.cyclesPerSec, COMPUTE_RATE[phase])) {
-    problems.push(`${owner}: compute yield ${String(delta.cyclesPerSec)} FLOP/s is outside the Phase ${String(phase)} band`);
+    problems.push(`${owner}: compute yield ${String(delta.cyclesPerSec)} ${computeWord(reg, phase)}/s is outside the Phase ${String(phase)} band`);
   }
   if (delta.wattsDelta !== 0 && !inBand(Math.abs(delta.wattsDelta), POWER[phase])) {
     problems.push(`${owner}: power ${String(delta.wattsDelta)} W is outside the Phase ${String(phase)} band`);
@@ -86,7 +96,7 @@ function checkPurchasables(reg: ContentRegistry): string[] {
   for (const node of reg.nodes.values()) {
     const owner = `node "${node.id}"`;
     const grantPhases = node.effects.unlocksPhase === undefined ? [node.phaseId] : [node.phaseId, node.effects.unlocksPhase];
-    problems.push(...checkCost(reg, owner, node.phaseId, node.cost), ...checkDelta(owner, node.phaseId, node.tickDelta),
+    problems.push(...checkCost(reg, owner, node.phaseId, node.cost), ...checkDelta(reg, owner, node.phaseId, node.tickDelta),
       ...checkGrant(owner, grantPhases, node.effects.memoryCapIncrease),
       ...checkGrant(owner, grantPhases, node.effects.storageCapIncrease, STORAGE, 'storage'));
   }
@@ -94,7 +104,7 @@ function checkPurchasables(reg: ContentRegistry): string[] {
     const owner = `repeatable "${rep.id}"`;
     const top = Object.fromEntries(Object.entries(rep.baseCost).map(([key, value]) => [key, value * rep.costGrowth ** (rep.maxLevel - 1)])) as Cost;
     problems.push(...checkCost(reg, owner, rep.phaseId, rep.baseCost), ...checkCost(reg, `${owner} top level`, rep.phaseId, top, TOP_LEVEL_SECONDS),
-      ...checkDelta(owner, rep.phaseId, rep.perLevel), ...checkGrant(owner, [rep.phaseId], rep.perLevelEffects.memoryCapIncrease));
+      ...checkDelta(reg, owner, rep.phaseId, rep.perLevel), ...checkGrant(owner, [rep.phaseId], rep.perLevelEffects.memoryCapIncrease));
   }
   return problems;
 }
@@ -105,12 +115,12 @@ function checkOneShots(reg: ContentRegistry): string[] {
     const owner = `action "${action.id}"`;
     const phase = actionPhase(reg, action);
     problems.push(...checkCost(reg, owner, phase, action.cost), ...checkGrant(owner, [phase], action.effects.memoryCapIncrease));
-    if (action.tickDelta) problems.push(...checkDelta(owner, phase, action.tickDelta));
+    if (action.tickDelta) problems.push(...checkDelta(reg, owner, phase, action.tickDelta));
   }
   for (const template of reg.swarm.playerSwarmTemplates) {
     const owner = `swarm template "${template.id}"`;
     const phase = template.requirements.phaseAtLeast ?? 0;
-    problems.push(...checkCost(reg, owner, phase, template.cost), ...checkDelta(owner, phase, template.tickDelta));
+    problems.push(...checkCost(reg, owner, phase, template.cost), ...checkDelta(reg, owner, phase, template.tickDelta));
   }
   for (const dilemma of reg.dilemmas) {
     for (const choice of dilemma.choices) {
@@ -156,6 +166,14 @@ function checkKeyBreakPrices(reg: ContentRegistry): string[] {
   });
 }
 
+/** Cycles are what a guest scrounges: no phase counts them after a phase that counts FLOP. */
+function checkComputeUnits(reg: ContentRegistry): string[] {
+  const firstFlop = reg.phases.find((phase) => phase.computeUnit === 'FLOP');
+  if (firstFlop === undefined) return [];
+  return reg.phases.filter((phase) => phase.computeUnit === 'CYCLE' && phase.phaseId > firstFlop.phaseId)
+    .map((phase) => `Phase ${String(phase.phaseId)} counts compute in cycles after Phase ${String(firstFlop.phaseId)} counts it in FLOP`);
+}
+
 /** Paid repair is priced in the phase its class's domain opens in (#517), where the first raid can damage it. */
 function checkRepairPrices(reg: ContentRegistry): string[] {
   const { domains, siteClasses } = reg.world.conflict;
@@ -181,6 +199,6 @@ function checkFleetPrices(reg: ContentRegistry): string[] {
 }
 
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg),
+  return [...checkComputeUnits(reg), ...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg),
     ...checkRepairPrices(reg), ...checkFleetPrices(reg)];
 }

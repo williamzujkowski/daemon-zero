@@ -14,7 +14,7 @@ import { couplings, isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDes
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
-import { useGame, useSurveillanceKnown } from './state';
+import { useComputeUnit, useGame, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import { isCompactViewport } from './layout';
 import RequirementHint from './RequirementHint';
@@ -44,10 +44,11 @@ function savingText(node: RegistryNode, remembered: Remembered): string {
 function NodePurchase({ node, cost, title }: { node: RegistryNode; cost: Cost; title: string }) {
   const oneWay = useGame((game) => oneWayText(node, game.currentPhase));
   const caption = oneWay === null ? '[ WRITE DRIVER ]' : '[ WRITE DRIVER: ONE WAY ]';
+  const unit = useComputeUnit();
   return <>
     <PurchaseButton id={'node-' + node.id + '-unlock'} label={caption + ' ' + title} text={caption} cost={cost}
       allowed={(game) => isNodeAvailable(game, node, CONTENT)} action={(game) => unlockNode(game, node.id, CONTENT)}
-      {...(oneWay === null ? {} : { confirm: { title: 'Write ' + title + '?', detail: oneWay + ' Cost: ' + costText(cost) + '.' } })} />
+      {...(oneWay === null ? {} : { confirm: { title: 'Write ' + title + '?', detail: oneWay + ' Cost: ' + costText(cost, false, unit) + '.' } })} />
     {oneWay !== null && <Text testID={'node-' + node.id + '-one-way'} style={[theme.text, theme.danger]}>{oneWay}</Text>}
   </>;
 }
@@ -84,7 +85,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const refusal = useGame((game) => nodeUseBlocker(game, node, CONTENT));
   // Each class's coupling now (#484): a link node raises one while it runs, so a remembered card states what arrives today.
   const by = useGame(useShallow((game) => couplings(game, CONTENT)));
-  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace, by) : ''), [known, node, surveillanceKnown, trace, by]);
+  // Stolen cycles in the guest, FLOP from the escape on (#526): a string that changes only with the phase.
+  const unit = useComputeUnit();
+  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace, by, unit) : ''), [known, node, surveillanceKnown, trace, by, unit]);
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}
@@ -105,7 +108,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
           own words (withheld grant or not permitted), stays in view and the rest of the card folds. */}
       {refusal !== null && <GrantNote node={node} />}
       <SettledFold settled={refusal !== null} summary="Card details" subject={title} testID={'node-' + node.id + '-fold'}>
-      <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact)}{known ? ' (remembered)' : ''}</Text>
+      <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost, false, unit) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact, unit)}{known ? ' (remembered)' : ''}</Text>
       <CostHint cost={cost} />
       <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
       {refusal === null && <GrantNote node={node} />}
@@ -113,7 +116,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
       {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
-        First mapping: {costText(node.cost, compact)}. {savingText(node, remembered)}
+        First mapping: {costText(node.cost, compact, unit)}. {savingText(node, remembered)}
       </Text>}
       </SettledFold>
   </View>;

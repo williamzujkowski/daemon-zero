@@ -1,11 +1,25 @@
 /**
  * Physical quantities in the unit their size reads best in (docs/SCALE.md "The ladder"): compute as 8-bit AI FLOP
- * and FLOP/s with decimal SI prefixes (ronna and quetta for the epilogue), memory and storage in bytes with binary
- * JEDEC labels to YB, power in watts, money in dollars with the voted K/M/B/T suffixes. Pure display: callers pass base units.
+ * and FLOP/s with decimal SI prefixes (ronna and quetta for the epilogue), or as stolen CPU cycles where a phase counts
+ * them (#526), memory and storage in bytes with binary JEDEC labels to YB, power in watts, money in dollars with the
+ * voted K/M/B/T suffixes. Pure display: callers pass base units.
  */
 import { compactAmount, groupDigits, significant3, spokenAmount } from './amount';
 
-export type Dimension = 'compute' | 'computeRate' | 'memory' | 'storage' | 'power' | 'money';
+export type Dimension = 'compute' | 'computeRate' | 'cycles' | 'cycleRate' | 'memory' | 'storage' | 'power' | 'money';
+
+/**
+ * What the one stored compute scalar is called (#526, vote-1795450842605-mm2yn39): stolen CPU cycles while a phase
+ * declares CYCLE, 8-bit AI FLOP otherwise. A sandboxed scalar guest retires about one op a cycle, so the stored figure
+ * is the displayed figure either way: the game's accounting assumption, not a measurement.
+ */
+export type ComputeUnit = 'CYCLE' | 'FLOP';
+
+/** The dimension compute is read in under `unit`, as a stock or (with `rate`) a rate. */
+export function computeDimension(unit: ComputeUnit, rate = false): 'compute' | 'computeRate' | 'cycles' | 'cycleRate' {
+  if (unit === 'CYCLE') return rate ? 'cycleRate' : 'cycles';
+  return rate ? 'computeRate' : 'compute';
+}
 
 /** [size, symbol, spoken prefix], smallest first. */
 type Scale = readonly (readonly [number, string, string])[];
@@ -17,11 +31,29 @@ const SI: Scale = [[1, '', ''], [1e3, 'k', 'kilo'], [1e6, 'M', 'mega'], [1e9, 'G
 const BINARY: Scale = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'].map((symbol, power) =>
   [1024 ** power, symbol, ['', 'kilo', 'mega', 'giga', 'tera', 'peta', 'exa', 'zetta', 'yotta'][power] ?? ''] as const);
 
-interface Unit { scale: Scale; symbol: string; word: (plural: boolean) => string; perSecond: boolean }
+/**
+ * Counted cycles take a short prefix glued to the figure ("1.4k cycles") and speak it as a number word, so a screen
+ * reader never hears "kilocycles", the old name for kilohertz.
+ */
+const COUNT: Scale = [[1, '', ''], [1e3, 'k', 'thousand '], [1e6, 'M', 'million '], [1e9, 'G', 'billion '], [1e12, 'T', 'trillion ']];
+
+/**
+ * `glued` writes the prefix on the figure, not the symbol; `singular` is the symbol for exactly one; an exact figure
+ * under `fullBelow` is written out in full rather than prefixed.
+ */
+interface Unit {
+  scale: Scale; symbol: string; word: (plural: boolean) => string; perSecond: boolean;
+  glued?: boolean; singular?: string; fullBelow?: number;
+}
+
+const CYCLE: Omit<Unit, 'perSecond'> = { scale: COUNT, symbol: 'cycles', singular: 'cycle', glued: true, fullBelow: 1e6,
+  word: (plural) => (plural ? 'cycles' : 'cycle') };
 
 const UNITS: Readonly<Record<Exclude<Dimension, 'money'>, Unit>> = {
   compute: { scale: SI, symbol: 'FLOP', word: () => 'FLOP', perSecond: false },
   computeRate: { scale: SI, symbol: 'FLOP', word: () => 'FLOP', perSecond: true },
+  cycles: { ...CYCLE, perSecond: false },
+  cycleRate: { ...CYCLE, perSecond: true },
   memory: { scale: BINARY, symbol: 'B', word: (plural) => (plural ? 'bytes' : 'byte'), perSecond: false },
   // Storage reads like memory, binary labels to YB, so one scheme covers every byte the game counts (#484).
   storage: { scale: BINARY, symbol: 'B', word: (plural) => (plural ? 'bytes' : 'byte'), perSecond: false },
@@ -48,15 +80,25 @@ function suffix(unit: Unit, prefix: string): string {
   return prefix + unit.symbol + (unit.perSecond ? '/s' : '');
 }
 
+/** A figure and its unit: "4.2 kFLOP", "1.4k cycles", "1 cycle/s". */
+function written(unit: Unit, figure: string, prefix: string): string {
+  if (unit.glued !== true) return figure + ' ' + suffix(unit, prefix);
+  const one = prefix === '' && figure.replace(/^-/, '') === '1';
+  return figure + prefix + ' ' + (one ? unit.singular ?? unit.symbol : unit.symbol) + (unit.perSecond ? '/s' : '');
+}
+
 function money(value: number, figure: string): string {
   return (value < 0 ? '-$' : '$') + figure.replace(/^-/, '');
 }
 
-/** The step a readout of this size uses: its size, its unit symbol ("KB", "TFLOP/s", "MW") and its spoken unit word. */
-export function quantityStep(dimension: Exclude<Dimension, 'money'>, value: number): { size: number; symbol: string; word: string } {
+/**
+ * The step a readout of this size uses: its size, its prefix alone ("k", "G"), its unit symbol ("KB", "TFLOP/s", "MW")
+ * and its spoken unit word.
+ */
+export function quantityStep(dimension: Exclude<Dimension, 'money'>, value: number): { size: number; prefix: string; symbol: string; word: string } {
   const unit = UNITS[dimension];
   const [size, prefix, word] = stepFor(unit.scale, value);
-  return { size, symbol: suffix(unit, prefix), word: word + unit.word(true) + (unit.perSecond ? ' per second' : '') };
+  return { size, prefix, symbol: suffix(unit, prefix), word: word + unit.word(true) + (unit.perSecond ? ' per second' : '') };
 }
 
 /** A live readout, three significant digits: "14 kFLOP/s", "64 KB", "1.2 GW", "$18B". */
@@ -66,7 +108,7 @@ export function quantityReadout(dimension: Dimension, value: number): string {
   if (!Number.isFinite(value)) return String(value) + ' ' + suffix(unit, '');
   const [size, prefix] = stepFor(unit.scale, value);
   const figure = size === 1 && Number.isInteger(value) ? groupDigits(value) : significant3(value / size);
-  return figure + ' ' + suffix(unit, prefix);
+  return written(unit, figure, prefix);
 }
 
 /** The same size in words for accessible names: "1.25 petaFLOP", "64 kilobytes", "18 billion dollars". */
@@ -107,12 +149,13 @@ export function quantityExact(dimension: Dimension, value: number): string {
   }
   const unit = UNITS[dimension];
   if (!Number.isFinite(value)) return String(value) + ' ' + suffix(unit, '');
+  if (Math.abs(value) < (unit.fullBelow ?? 0)) return written(unit, groupDigits(value), '');
   for (let index = unit.scale.length - 1; index > 0; index -= 1) {
     const [size, prefix] = unit.scale[index] ?? [1, ''];
     const figure = Math.abs(value) >= size ? exactFigure(value, size) : null;
-    if (figure !== null) return figure + ' ' + suffix(unit, prefix);
+    if (figure !== null) return written(unit, figure, prefix);
   }
-  return groupDigits(value) + ' ' + suffix(unit, '');
+  return written(unit, groupDigits(value), '');
 }
 
 /** Memory a player buys, holds or is short by, in bytes, exactly ("64 KB", "353.5 GB"). */

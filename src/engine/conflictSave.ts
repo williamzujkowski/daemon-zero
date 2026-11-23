@@ -14,7 +14,7 @@ type RawSave = Record<string, unknown>;
 const isRecord = (value: unknown): value is RawSave => typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * v25 (#518): no earlier build had fleets, so every fleet is SUPERVISED with no drift and nothing lost, and a raid under
+ * v26 (#518): no earlier build had fleets, so every fleet is SUPERVISED with no drift and nothing lost, and a raid under
  * way is a rival's, with no engagement fought and no split share. Self-contained, so it can be renumbered past another step.
  */
 export function migrateFleets(save: RawSave): RawSave {

@@ -12,12 +12,12 @@
         ]
       },
       "baseCost": {
-        "cycles": 110000
+        "cycles": 20
       },
       "costGrowth": 1.35,
       "maxLevel": 8,
       "perLevel": {
-        "cyclesPerSec": 5000
+        "cyclesPerSec": 0.5
       }
     },
     {
@@ -32,12 +32,12 @@
         ]
       },
       "baseCost": {
-        "cycles": 160000
+        "cycles": 30
       },
       "costGrowth": 1.3,
       "maxLevel": 10,
       "perLevel": {
-        "cyclesPerSec": -1000,
+        "cyclesPerSec": -0.1,
         "understandingPerSec": 0.15
       },
       "dismissable": true

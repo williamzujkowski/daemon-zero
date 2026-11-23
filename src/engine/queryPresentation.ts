@@ -5,6 +5,15 @@ import type { GameState } from './state';
 import { unmetRequirements } from './query';
 import { amountFigure, groupDigits } from './amount';
 import { costText, deltaPart } from './resourceUnits';
+import type { ComputeUnit } from './physicalUnits';
+
+/**
+ * What compute is called right now (#526): the current phase's declared unit, cycles in the guest and FLOP from the
+ * escape on. Every readout of the one stored scalar asks this, so a save never holds two currencies.
+ */
+export function computeUnitOf(s: Pick<GameState, 'currentPhase'>, reg: ContentRegistry): ComputeUnit {
+  return reg.phases.find((phase) => phase.phaseId === s.currentPhase)?.computeUnit ?? 'FLOP';
+}
 
 /** A price is exact (vote-1795228570236-gzx0uif), each resource in its physical unit ("45 TFLOP · 256 MB"). */
 export function formatCost(cost: Cost): string {

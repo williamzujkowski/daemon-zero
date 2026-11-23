@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../app/session';
 import { theme } from './theme';
 import { isCompactViewport } from './layout';
+import { useComputeUnit } from './state';
 
 /**
  * `lead` names whose shortfall this is when the hint sits beside a control it does not belong to (#376): job 7731's
@@ -25,12 +26,13 @@ export default function CostHint({ cost, lead = 'Short by', danger = false }: { 
   }));
   // While capital is short and a freeze holds a share of it (#490), the hint says so: the balance alone would mislead.
   const frozen = useStore(gameStore.store, ({ game }) => (cost.capital > 0 ? frozenShare(game, CONTENT) : 0));
-  const full = costText(missing);
+  const unit = useComputeUnit();
+  const full = costText(missing, false, unit);
   const note = frozen > 0 && missing.capital > 0 ? ` (${String(Math.round(frozen * 100))}% of capital is frozen)` : '';
   // 'Need' beside the card's 'Cost' read as a second price when this is the SHORTFALL
   // (costShortfall, quantized so it does not tick). Measured while playing: 'Cost: 40
   // cycles' next to 'Need: 34 cycles' invited a second read. The accessible name keeps the
   // whole sentence; the visible copy says 'short by' so the two numbers cannot be confused.
   return full === 'Free' ? null
-    : <Text accessibilityLabel={lead + ' ' + full + ' at the current rate' + note} style={[theme.muted, danger && theme.danger]}>{lead} {costText(missing, compact)}{note}</Text>;
+    : <Text accessibilityLabel={lead + ' ' + full + ' at the current rate' + note} style={[theme.muted, danger && theme.danger]}>{lead} {costText(missing, compact, unit)}{note}</Text>;
 }

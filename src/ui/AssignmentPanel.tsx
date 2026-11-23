@@ -13,7 +13,7 @@ import { evidenceText, scopeText } from './evidenceText';
 import { costText } from './format';
 import PilotOfferPanel from './PilotOffer';
 import { Pressable, Text, View } from './PhaseTheme';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { theme } from './theme';
 
 const view = (game: GameState) => assignmentView(game, CONTENT);
@@ -38,13 +38,14 @@ function Submitted() {
 function BeforeAccepting() {
   // A primitive selector: the preview is rebuilt per call, so compare it as text.
   const text = useGame((game) => JSON.stringify(view(game)?.assessment ?? null));
+  const unit = useComputeUnit();
   const preview = JSON.parse(text) as AssessmentPreview | null;
   if (preview === null) return null;
   const { omenSec, fullest } = preview;
   return <View testID="assignment-before" style={{ gap: 4 }}>
     <Text testID="assignment-wait" style={theme.muted}>
       The assessment arrives about {omenSec} s after you accept and pauses the clock: the answers open then are the ones you can afford then.
-      {fullest !== null && ' Its fullest answer, "' + fullest.label + '", costs ' + costText(fullest.cost) + '. Nothing is due, so you can bank compute before accepting.'}
+      {fullest !== null && ' Its fullest answer, "' + fullest.label + '", costs ' + costText(fullest.cost, false, unit) + '. Nothing is due, so you can bank compute before accepting.'}
     </Text>
     {fullest !== null && <CostHint cost={fullest.cost} lead={'For "' + fullest.label + '", short by'} />}
   </View>;

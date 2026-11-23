@@ -10,7 +10,7 @@ import { aegisPosture, answerHostile, computeRates, cycleContributions, hostileA
 import { wipe } from '../src/engine/prestige';
 import { integrateHostiles } from '../src/engine/systems/hostiles';
 import { defined } from './m7-helpers';
-import { grant, must, PHASE0, PHASE1, reasonOf, reg, rich, withoutDilemmas } from './helpers';
+import { grant, must, PHASE0, PHASE1, reasonOf, reg, rich, sumTolerance, withoutDilemmas } from './helpers';
 
 const H = reg.swarm.hostile;
 const hostiles = reg.swarm.hostileEncounters;
@@ -127,7 +127,9 @@ describe('each effect is bounded', () => {
   it('the compute ledger a player reads still sums to the net rate the tick applies, with a feral cohort feeding', () => {
     const s = pressing(yielding(ready(3)), ofType(3, 'FERAL'));
     const sum = cycleContributions(s, reg).reduce((total, source) => total + source.cyclesPerSec, 0);
-    expect(sum).toBeCloseTo(computeRates(s, reg).cyclesPerSec, 0);
+    const rate = computeRates(s, reg).cyclesPerSec;
+    // Two summing orders of a 4e15 FLOP/s rate may differ by its last place (0.5), which toBeCloseTo(_, 0) excludes.
+    expect(Math.abs(sum - rate)).toBeLessThanOrEqual(sumTolerance(rate));
   });
 
   it('a feral cohort never touches negative net compute, so it can never cause a brownout', () => {

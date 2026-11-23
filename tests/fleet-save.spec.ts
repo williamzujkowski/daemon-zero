@@ -1,5 +1,5 @@
 /**
- * Save v25 (#518): fleets and drift deviants. A v24 save migrates to every fleet SUPERVISED with nothing lost and a raid
+ * Save v26 (#518): fleets and drift deviants. A v25 save migrates to every fleet SUPERVISED with nothing lost and a raid
  * under way kept as a rival's, with no engagement and no split share, and nothing else changes; fleet records and a
  * deviant battle survive a round trip; a record content does not declare, losses past the cap, an engagement on an
  * attrition raid and a split share on a rival are put right or dropped; and the record is validated as untrusted input.
@@ -25,34 +25,34 @@ const fought = (): GameState => {
         engagement, splitShare: F.splitShare } } }), reg);
 };
 
-describe('save v25 (#518)', () => {
+describe('save v26 (#518)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
   });
 
-  it('migrates a v24 save to no fleet records and keeps everything else', () => {
+  it('migrates a v25 save to no fleet records and keeps everything else', () => {
     const current = p4();
     const raw = JSON.parse(serialize(current)) as Record<string, any>;
-    const v24 = { ...raw, schemaVersion: 24, conflict: { ...raw.conflict } };
-    delete v24.conflict.fleets;
-    expect(migrate(v24, MIGRATIONS, 25)).toEqual({ ...raw, schemaVersion: 25 });
-    expect(deserialize(JSON.stringify(v24), reg)).toEqual(current);
+    const v25 = { ...raw, schemaVersion: 25, conflict: { ...raw.conflict } };
+    delete v25.conflict.fleets;
+    expect(migrate(v25, MIGRATIONS, 26)).toEqual({ ...raw, schemaVersion: 26 });
+    expect(deserialize(JSON.stringify(v25), reg)).toEqual(current);
   });
 
-  it('keeps a v24 raid under way as a rival\'s, with no engagement fought and no split share', () => {
+  it('keeps a v25 raid under way as a rival\'s, with no engagement fought and no split share', () => {
     const s = arrived(withBotnet(ready(3)), raid('raid_p3_ddos'));
     const raw = JSON.parse(serialize(s)) as Record<string, any>;
-    const v24 = structuredClone(raw);
-    v24.schemaVersion = 24;
-    delete v24.conflict.fleets;
-    delete v24.conflict.raid.engagement;
-    delete v24.conflict.raid.splitShare;
-    const loaded = deserialize(JSON.stringify(v24), reg);
+    const v25 = structuredClone(raw);
+    v25.schemaVersion = 25;
+    delete v25.conflict.fleets;
+    delete v25.conflict.raid.engagement;
+    delete v25.conflict.raid.splitShare;
+    const loaded = deserialize(JSON.stringify(v25), reg);
     expect(loaded.conflict.raid).toEqual({ ...s.conflict.raid, engagement: null, splitShare: 0 });
     expect(loaded.conflict.fleets).toEqual({});
   });
 
-  it('migrates every older fixture through v25 too', () => {
+  it('migrates every older fixture through v26 too', () => {
     const fixtures = { v14: readFileSync('tests/fixtures/pre-release-v14.json', 'utf8'), p0: readFileSync('tests/fixtures/pre-scale-v15-p0.json', 'utf8'),
       p5: readFileSync('tests/fixtures/pre-scale-v15-p5.json', 'utf8') };
     for (const [name, text] of Object.entries(fixtures)) expect(deserialize(text, reg).conflict, name).toEqual(initialConflict());
