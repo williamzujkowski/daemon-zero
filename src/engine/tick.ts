@@ -20,6 +20,8 @@ import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import { integrateAegisAdaptation } from './systems/aegisAdaptation';
 import { integrateHostiles } from './systems/hostiles';
+import { integrateRaids } from './systems/raids';
+import { integrateRepair } from './systems/repair';
 import { integrateQuantumMigration } from './systems/quantumMigration';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
@@ -47,6 +49,9 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   evaluateShardMutationsAndEncounters,
   // Its own slot beside the wild one (#491); after AEGIS, so a hunter's rise is read by the next tick's strike check.
   integrateHostiles,
+  // Beside the hostile stage, whose slot raids share (#517): a hostile mind due on the same tick arrives first.
+  integrateRaids,
+  integrateRepair,
   evaluateDilemmas,
   // After dilemmas, so a story scheduled this tick takes the narrative channel before routine.
   scheduleRoutineActivity,

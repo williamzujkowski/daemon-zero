@@ -23,8 +23,8 @@ function broken(): GameState {
 }
 
 describe('save v21 (#464)', () => {
-  it('is followed only by the escalation announcements (#490, v22)', () => {
-    expect(SCHEMA_VERSION).toBe(22);
+  it('is followed only by the escalation announcements (#490, v22) and the conflict record (#517, v23)', () => {
+    expect(SCHEMA_VERSION).toBe(23);
   });
 
   it('migrates a v20 save to nothing broken and AEGIS unmigrated, and keeps everything else', () => {

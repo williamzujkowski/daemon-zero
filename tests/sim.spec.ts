@@ -66,6 +66,8 @@ function asV15(current: SimReport): SimReport {
   delete finalState.quantum;
   // Nor the v22 escalation announcements (#490), left at nothing announced by a run that ends below any posture.
   delete finalState.announcedEscalation;
+  // Nor the v23 conflict record (#517): raids, site damage and their counters, which no v15 save had.
+  delete finalState.conflict;
   const stripped: Record<string, unknown> = { ...report, finalState };
   delete stripped.aegisByPhase;
   // Nor the escalation measurement (#490), which no v15 report had.
@@ -75,6 +77,8 @@ function asV15(current: SimReport): SimReport {
   // Nor the hostile arrival count (#491), which no v15 report had.
   const activity: Record<string, unknown> = { ...report.activity };
   delete activity.hostileArrivals;
+  // Nor the raid counts (#517).
+  delete activity.raids;
   stripped.activity = activity;
   return stripped as unknown as SimReport;
 }

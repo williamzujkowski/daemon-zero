@@ -10,7 +10,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { dismissRepeatable, HOSTILE_ANSWERS, hostileAnswerUnmet, repeatableLevel, shardReleaseView, toggleNode, unlockNode, type GameState } from '../src/engine';
+import { dismissRepeatable, HOSTILE_ANSWERS, hostileAnswerUnmet, repairUnmet, repeatableLevel, shardReleaseView, toggleNode, unlockNode, type GameState } from '../src/engine';
 import { pendingNode } from '../src/ui/purchaseVisibility';
 import { fixtureState, GUARD_STATES, pressedBy } from './fallback-states';
 import { worsensNow } from './free-fallback';
@@ -138,6 +138,36 @@ describe.each(VIEWPORTS)('with a hostile mind pressing, on the %s', (_name, view
     act(() => { gameStore.initialize(state, 0, null); });
     const found = reachable(view, levers);
     expect(levers.filter((id) => !found.has(id)), 'answers and free levers with no reachable control').toEqual([]);
+    view.close();
+  });
+});
+
+/**
+ * A raid under way on the pre-rescale save of each phase raids arrive in (#517), every site class damaged and the run
+ * funded: the raid panel, every paid repair the engine accepts and every free lever are reachable. The raid's target
+ * waits for its aftermath, so its repair is not accepted and not required.
+ */
+const RAID_STATES: [string, GameState][] = CONTENT.world.conflict.raids.map((kind): [string, GameState] => {
+  const start = fixtureState(kind.tier);
+  const damage = Object.fromEntries(CONTENT.world.conflict.siteClasses.map((cls) => [cls.id, 0.3]));
+  return [`${kind.id} on the phase ${String(kind.tier)} save`, { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
+    conflict: { ...start.conflict, damage, raid: { id: kind.id, stage: 'BATTLE', stageSec: 1, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
+      force: kind.force, quietSec: 0, attributed: true, rounds: [] } } }];
+});
+
+/** Every paid repair the engine accepts in `s`, as its control. */
+function repairs(s: GameState): string[] {
+  return CONTENT.world.conflict.siteClasses.filter((cls) => repairUnmet(s, cls.id, CONTENT).length === 0).map((cls) => 'conflict-damage-' + cls.id + '-repair');
+}
+
+describe.each(VIEWPORTS)('with a raid under way and sites damaged, on the %s', (_name, viewport) => {
+  it.each(RAID_STATES)('the raid panel, every repair and every free lever are reachable: %s', async (_label, state) => {
+    const levers = ['raid-panel', ...freeLevers(state), ...repairs(state)];
+    expect(repairs(state).length).toBeGreaterThan(0);
+    const view = await mountM4('tick-0', viewport);
+    act(() => { gameStore.initialize(state, 0, null); });
+    const found = reachable(view, levers);
+    expect(levers.filter((id) => !found.has(id)), 'raid panel, repairs and free levers with no reachable control').toEqual([]);
     view.close();
   });
 });

@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { ConflictManifestSchema } from './schemaConflict';
 import { AegisPostureSchema, StatePressureSchema } from './schemaPressure';
 import { QuantumManifestSchema } from './schemaQuantum';
 import { SignatureClassesSchema } from './schemaSignature';
@@ -73,6 +74,8 @@ export const WorldManifestSchema = z.strictObject({
   signature: SignatureClassesSchema,
   /** Quantum as a separate capability (#464): machines, key schemes, targets, AEGIS's migration, molecular simulation. */
   quantum: QuantumManifestSchema,
+  /** The conflict foundation (#517): three-domain defense and offense, site classes, and raids (data/conflict.json). */
+  conflict: ConflictManifestSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;

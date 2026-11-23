@@ -47,7 +47,8 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     // v20 (#484) added storage used and capacity, which only node ownership moves; this transition moves none.
     // v21 (#464) added the quantum record, written only by key-breaking and AEGIS's migration; not by this.
     // v22 (#490) added the escalation announcements, which this transition never writes either.
-    expect(SCHEMA_VERSION).toBe(22);
+    // v23 (#517) added the conflict record, written only by the raid and repair stages and paid repair.
+    expect(SCHEMA_VERSION).toBe(23);
   });
 });
 

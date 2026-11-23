@@ -20,6 +20,7 @@ import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import { HostileStatus } from './HostileEncounter';
 import QuantumSection from './QuantumSection';
+import ConflictSection from './ConflictSection';
 import Section from './WorldSection';
 
 const tenth = (value: number): number => Math.round(value * 10) / 10;
@@ -151,6 +152,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <PublicTrustSection />
     <StateActorsSection />
     <SignatureSection />
+    <ConflictSection />
     <QuantumSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;
