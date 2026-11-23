@@ -327,7 +327,9 @@ describe('headless balance simulation', () => {
     // emptied: phases 1-3 identical, phase 4 6051.8 -> 6130.4, 5 8445.3 -> 8475.2 s, victory 10174.7 -> 10234.6 s (Phase 5
     // 1729.4 -> 1759.4 s), epistemic actions 8 -> 6, dilemmas 15. On the merge with #531 (fleets) and #539, against main
     // 41c0a16: phases 1-3 identical, phase 4 6051.8 -> 6130.4, 5 8406.3 -> 8419.2 s, victory 10142.7 -> 10149.6 s; Phase 5
-    // lasts 1736.4 -> 1730.4 s (campaign 1723.4 -> 1724.4 s).
+    // lasts 1736.4 -> 1730.4 s (campaign 1723.4 -> 1724.4 s). On the merge with #533 (1970e4f, the fan's trace), against
+    // main: phases 1-3 identical, phase 4 6065.8 -> 6079.3, 5 8657.9 -> 8481.5 s, victory 10397.3 -> 10211.9 s; Phase 5
+    // lasts 1739.4 -> 1730.4 s (campaign 1721.4 either way).
     // A raid's paid repair and a hostile mind's answers carry the same way; the careful run pays neither after its phase.
     expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('59a89caa33f7ef5195f352203537014b00010cb23062aa1fd6d73aba69553b18');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('2d929402398a875186eb4b74f4c9d331a6d88e625d8d6553760bdb625647814f');

@@ -1038,9 +1038,11 @@ rules 2.81 -> 2.85 h. The reckless run: ten hours 25 -> 28 wipes (campaign 21 ->
 Re-measured on the merge with #531 (fleets) and #539 (the Phase 5 cap at 3600 s), against main 41c0a16: the careful
 run's phases 1-3 are identical, Phase 4 at 6130.4 s (was 6051.8), Phase 5 at 8419.2 s (was 8406.3), victory 10149.6 s
 (was 10142.7). **Phase 5 lasts 1730.4 s under legacy rules (was 1736.4) and 1724.4 s under campaign rules (was 1723.4).**
-Stacked with #525 (the fan's trace) as well, measured on a local merge of both: 1730.4 s legacy, 1721.4 s campaign. The
-reckless run: ten hours 25 -> 28 wipes (campaign 21 -> 26); its Phase 3 loop now alternates 1,182 s and 1,154 s
-iterations (tests/retraining-audit.spec.ts, period 2).
+On the merge with #533 (1970e4f, the fan's trace), against main: Phases 1-3 identical, Phase 4 at 6079.3 s (was
+6065.8), Phase 5 at 8481.5 s (was 8657.9), victory 10211.9 s (was 10397.3). **Phase 5 lasts 1730.4 s under legacy rules
+(was 1739.4) and 1721.4 s under campaign rules (unchanged)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; its Phase 3 loop is three iterations (1,171 / 1,168 / 1,143 s), as
+tests/retraining-audit.spec.ts already expects.
 
 **Fleet prices carry** (#518). A fleet's paid rebuild and the reclaim of the deviant it splits into are priced in the
 fleet track's phase (`fleetHomePhase`) and carried when paid later (`fleetRebuildCost`, `reclaimCost`, shown in the fleet
