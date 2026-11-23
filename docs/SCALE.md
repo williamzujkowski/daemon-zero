@@ -532,6 +532,8 @@ built as content on the existing dilemma and trait path, not a new subsystem.
    with repair, and raids as a hostile kind in Phases 3-4.
 2. **Fleets and drift.** Drone and robot fleets with fab rebuild and Lanchester battles, plus drift deviants built
    on the autonomy dial. Comes after item 1 and robotics (#485).
+   **Built in #518:** fleets, the square law, the autonomy dial shared with cohorts (`autonomy.ts`) and deviants in the
+   hostile slot live in `conflict.json` `fleets`; rules in DESIGN.md, numbers in BALANCE.md, "Fleets and drift (#518)".
 3. **Retaliation and staff.** The retaliation responses and collateral dilemmas, plus the authored staff-harm story.
    Comes after item 1.
 4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with

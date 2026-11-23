@@ -248,7 +248,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v24; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v25; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -453,6 +453,31 @@ defendable vector, coverage of every open domain in a raided phase, exact attrib
 signature reference in every raided phase, paid repair that costs), `integrityScale.ts` (repair priced in its domain's
 opening phase) and `integrityFallback.ts` (the divertible rule counts the damage cap against a permanent class member).
 The sim counts raids per tick (`SimActivity.raids`).
+
+**Fleets and drift deviants (#518).** Content: `conflict.json`'s `fleets` block (`schemaFleets.ts`): the units (a
+dismissable track, its SITE or ORBIT domain, strength and drift per level, paid rebuild), the loss cap, the split, the
+free rebuild rate and the fabs that add to it, the autonomy dial (per position: name, output factor, drift factor), and
+the logs; deviants are raid kinds with `source: DEVIANT` (a discriminated union with the rival kind, which gained
+`resolution: ATTRITION | LANCHESTER` and `lethality`). State: `conflict.fleets` (per track: `autonomy`, `drift`, `lost`)
+and, on the raid, `engagement` and `splitShare` (v25). The autonomy machinery is shared with cohorts, not parallel to it:
+`autonomy.ts` holds one table per population (mode -> output and drift factors), `driftPerSec` (base x size x factor)
+and `driftAfter`; `swarmRates.ts` and the cohort drift stage read `cohortAutonomy` (derived from the swarm balance, so
+cohorts behave as before) and fleets read `fleetAutonomy`. The rules: `fleets.ts` (each fleet's full strength, losses,
+floor and yield factor, the domain's fleets, `applyFleetLosses` in proportion to headroom so none passes the cap, the
+rebuild rate and its hold), `lanchester.ts` (`engage`, the square law with a breaking floor, pure), `raidBattle.ts`
+(`fightNext`: a fleet battle's first round is the engagement, then strikes by attrition against what is not a fleet;
+`raidCombat` takes `conflictStats(..., withoutFleets)` for those), `deviants.ts` (drift per fleet, `splitWaits`,
+`splitDeviant` through the hostile slot), `fleetActions.ts` (`setFleetAutonomy` free, `rebuildFleet` and
+`reclaimDeviant` paid through `payCost`, each with one gate shared with the view), `fleetQuery.ts` (`fleetReadout`) and
+`raidQuery.ts` (`raidView`, moved out of `conflictQuery.ts`, with the engagement, the forecast and RECLAIM). `conflictStats`
+counts a fleet's levels at its yield factor, and `computeRates`/`cycleContributions` scale a fleet's positive compute and
+understanding by `fleetYield`. Two stages: `integrateFleetDrift` after `integrateRaids` (live only, so a rival due on the
+same tick takes the slot first) and `integrateFleetRebuild` after `integrateRepair` (dormant too). Integrity:
+`integrityFleets.ts` (real dismissable tracks that feed their domain's defense and offense and open no earlier than it,
+one deviant each in its own domain, a dial whose lowest position does not drift and whose positions rise in output and
+drift, a split no larger than the cap, real fabs, costs that are not free), `integrityConflict.ts` (deviants skip the
+rotation's gates and coverage; a lethality exactly on LANCHESTER) and `integrityScale.ts` (rebuild and reclaim priced in
+the fleet's phase). The sim counts battles, deviants and peak losses (`SimActivity.fleets`).
 
 ## Content composition and preview saves (#204, #233)
 
