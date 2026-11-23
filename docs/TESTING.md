@@ -1297,7 +1297,7 @@ than skip under `CI`. Only a successful `main` run deploys the tested Pages expo
 
 The sim-heavy specs carry wall-clock allowances (30 s, 60 s, 120 s) because a full campaign under V8 coverage takes
 several seconds alone and three to nine times that when every worker is busy: on a 16-thread laptop at default
-parallelism the retraining audit takes about 10 s alone and 24-30 s inside `make test`. Those allowances are not
+parallelism the retraining audit takes about 9 s alone and 18-30 s inside `make test`, depending on what else runs. Those allowances are not
 raised to make room. When a spec runs close to its limit, the run gets cheaper instead:
 
 - **New sim-heavy specs reuse the shared runs.** Within a file, a run that several tests read is computed once
@@ -1317,11 +1317,12 @@ raised to make room. When a spec runs close to its limit, the run gets cheaper i
   joins the list. A stale figure only moves a file to another shard; `tests/shard-balance.spec.ts` fails on a name
   that no longer exists and proves every spec runs in exactly one shard.
 
-Measured on #505 (16 threads, coverage, default parallelism, the same machine before and after, the after run on
-`main` with #506's rebuild grants, which slowed the reckless runs by about a fifth): `make test` 244 s -> 154 s;
-sim-cooperative 224 -> 92 s, sim-reachable 180 -> 147 s, the retraining audit 34 -> 24 s, sim.spec's determinism
-test 30 -> 17 s, the cooperative campaign alone (no coverage) 7.6 -> 1.9 s. On the after timings, Vitest's hash split
-gives the three shards 495 / 348 / 424 summed file-seconds and the balanced split 413 / 448 / 405.
+Measured on #505 against `main` at 8912b95 (#504's hostiles merged), back to back on one 16-thread machine, coverage,
+default parallelism: `main` took 268 s with three tests timed out (sim.spec's determinism and reckless tests, one
+ui-scrutiny test), this change 148 s with none. sim-cooperative 264 -> 94 s, sim-reachable 213 -> 143 s, sim.spec's
+determinism test 31 -> 13 s and reckless test 30 -> 16 s, the retraining audit 24 -> 18 s; the cooperative campaign
+alone (no coverage) 8.0 -> 1.8 s. On those timings Vitest's hash split gives the three shards 528 / 305 / 408 summed
+file-seconds and the balanced split 408 / 408 / 426.
 
 Four other workflows run beside it. `ui-atlas.yml` runs `make e2e-atlas` (the stage atlas's full matrix,
 see "Stage atlas") nightly and on demand and uploads its gallery as `ui-atlas-matrix`; the matrix sizes report,
