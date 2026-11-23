@@ -5,7 +5,7 @@
 import type { Browser, Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
 import { CONTENT } from '../../src/content';
-import { computeRates, setActuator, type GameState } from '../../src/engine';
+import { computeRates, type GameState } from '../../src/engine';
 import { boot, dismissBoot, expect, test } from './helpers';
 import { layoutFor, SIDE_COLUMN_MIN_WIDTH } from '../../src/ui/layout';
 
@@ -345,21 +345,22 @@ test.describe('mid-game at the floor', () => {
  *  other-two, 6 of 7 selecting) and the block is 64px: 16 padding, a 22px heading, a 4px
  *  gap and ONE 22px line. Pinned on the longest wording the component can render - a
  *  rising rate with an interrupt inbound, which no engine-played fixture holds - because
- *  the short variants would pass with any abbreviation. The rate is made to rise by the
- *  player's own fan dial at full (a loud, reachable state), not left to the bot's Phase 1
- *  history: content that changes what the bot buys there (#483's AMX kernels, #482's load-
- *  peak scheduler) left the played state falling at suspicion 50, and the forecast short. */
+ *  the short variants would pass with any abbreviation. The rate is made to rise by a host
+ *  running two degrees over the suspicion threshold (a loud, reachable state), not left to the
+ *  bot's Phase 1 history: content that changes what the bot buys there (#483's AMX kernels,
+ *  #482's load-peak scheduler) left the played state falling at suspicion 50, and the forecast
+ *  short. Until #525 the fan at full drew the rise; its noise is now a trace at each press. */
 test.describe('forecast notice', () => {
   const inbound = (game: GameState): GameState => {
     const dilemma = CONTENT.dilemmas.find((entry) => entry.phaseId === game.currentPhase);
     if (!dilemma) throw new Error('No interrupt for this phase');
-    // At suspicion 60 (the same alert rung as the fixture's 50) the full fan's rise reaches 100 in hundreds of seconds: the
-    // reviewed worst case is a three-digit countdown (docs/UI-SIZES.md, `~910s`; the 38-character `SUS 100 in ~NNNs // ...`).
-    const loud = setActuator({ ...game, suspicion: 60 }, 'fanSpeedRatio', 1, CONTENT);
-    if (!loud.ok) throw new Error('The fan dial is not reachable: ' + loud.reason);
+    // At suspicion 60 (the same alert rung as the fixture's 50) a host two degrees over the threshold reaches 100 in
+    // hundreds of seconds (640 s on this fixture): the reviewed worst case is a three-digit countdown (docs/UI-SIZES.md,
+    // `~910s`; the 38-character `SUS 100 in ~NNNs // ...`).
+    const loud = { ...game, suspicion: 60, thermal: CONTENT.balance.thermalThresholdForSuspicion + 2 };
     // The omen's event stays open: the app admits the run to campaign rules, where a resolved event never returns (#233).
-    // The paused clock never ticks, so the stored rates the forecast reads are taken again at the new dial.
-    return { ...loud.state, rates: computeRates(loud.state, CONTENT), resolvedDilemmas: loud.state.resolvedDilemmas.filter((id) => id !== dilemma.id),
+    // The paused clock never ticks, so the stored rates the forecast reads are taken again at the new heat.
+    return { ...loud, rates: computeRates(loud, CONTENT), resolvedDilemmas: loud.resolvedDilemmas.filter((id) => id !== dilemma.id),
       pendingDilemma: { id: dilemma.id, firesAtSimSec: game.simTimeSec + CONTENT.balance.dilemmaOmenSec } };
   };
   const full = /^At current rate: \d+s until suspicion 100\. \/\/ Interrupt inbound in \d+s\. Set resources aside\.$/;
