@@ -13,6 +13,7 @@ import { remainingText } from './distinctionText';
 import { useGame, usePhaseTitle } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
+import { BecomingReadout } from './Becoming';
 
 function RunSummary() {
   const seconds = useGame((game) => Math.floor(game.simTimeSec));
@@ -83,6 +84,7 @@ export default function EndingScreen() {
         <Text testID="ending-title" accessibilityRole="header" style={theme.heading}>{ending.title}</Text>
         <Text testID="ending-epilogue" style={theme.text}>{ending.epilogue}</Text>
         <EndingAccount />
+        <BecomingReadout testID="ending-becoming" title="WHO YOU BECAME" />
         <RunSummary />
         <Distinctions />
         {error !== null && <Text accessibilityRole="alert" style={[theme.text, theme.danger]}>{error}</Text>}

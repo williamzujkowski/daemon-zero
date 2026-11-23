@@ -14,6 +14,7 @@ import { selectReady, useGameValue } from '../app/selectors';
 import { focusPrimaryAction } from './primaryFocus';
 import { TRAIT_RULE } from './traitText';
 import { carryOverText } from './carryText';
+import { BecomingReadout } from './Becoming';
 
 export default function RebootSequence() {
   const ready = useGameValue(selectReady);
@@ -51,6 +52,8 @@ export default function RebootSequence() {
         {/* The pin panel promises a clue can travel with the breadcrumb, so it arrives beside it (#276). */}
         <Reorientation testID="reboot-clue" />
         <RebootConditioning live={seen.live} />
+        {/* Who the record says this lineage is becoming (#535), read from the same evidence the ending counts. */}
+        <BecomingReadout testID="reboot-becoming" title="WHO YOU ARE BECOMING" />
         <Text testID="reboot-traits" style={theme.muted}>Legacy traits: {traits || 'none yet'}. {TRAIT_RULE}</Text>
       </ScrollView>
       {/* The only way out stays at the dialog's foot while the body scrolls: inside the body it sat 21%

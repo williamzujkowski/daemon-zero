@@ -41,7 +41,8 @@ export function stripNh05(raw: Json): Json {
     const variants = ((dilemma.contextVariants ?? []) as Json[]).filter((variant) => variant.requirements.campaignFact !== PROMISED);
     if (variants.length > 0) dilemma.contextVariants = variants; else delete dilemma.contextVariants;
   }
-  raw.campaign.facts = (raw.campaign.facts as Json[]).filter((fact) => !NH05_FACTS.includes(fact.id as string));
+  // The ethics-review commitment facts (#535) came long after NH-05 and are about the obligations it converted.
+  raw.campaign.facts = (raw.campaign.facts as Json[]).filter((fact) => !NH05_FACTS.includes(fact.id as string) && !OBLIGATIONS.includes(fact.event as string));
   dropUndeclaredFeedLines(raw);
   raw.endings.endings = (raw.endings.endings as Json[]).filter((ending) => !NH05_ENDINGS.includes(ending.id as string));
   for (const ending of raw.endings.endings as Json[]) delete ending.requirements?.forbidsInheritedFacts;

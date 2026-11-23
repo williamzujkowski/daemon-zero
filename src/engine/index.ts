@@ -65,6 +65,7 @@ export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycl
 export * from './campaignClue';
 export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
+export { alignmentView, type AlignmentAxis, type AlignmentView, type OrderEvidence, type RegardEvidence } from './alignment';
 export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, ChannelContact, NarrativeRules } from './campaignState';
 

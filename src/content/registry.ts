@@ -14,6 +14,7 @@ import { RouteCopyManifestSchema, type RouteCopyManifest } from './schemaRouteCo
 import { SwarmSchema, type Swarm } from './schemaSwarm';
 import { AchievementsManifestSchema, type Achievement } from './schemaAchievement';
 import { WorldManifestSchema, type WorldManifest } from './schemaWorld';
+import { AlignmentManifestSchema, type AlignmentManifest } from './schemaAlignment';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
@@ -70,6 +71,8 @@ export interface ContentRegistry {
   achievements: readonly Achievement[];
   /** The world view the Other Minds console grows into (#463): state actors, minds, public trust, AEGIS copy. */
   world: WorldManifest;
+  /** The two alignment axes' evidence rules and their authored readings (#535). */
+  alignment: AlignmentManifest;
 }
 
 export interface RawContent {
@@ -93,6 +96,7 @@ export interface RawContent {
   routeCopy: unknown;
   achievements: unknown;
   world: unknown;
+  alignment: unknown;
 }
 
 export class ContentError extends Error {
@@ -168,11 +172,12 @@ function indexCampaign(manifest: CampaignManifest, dilemmas: readonly S.Dilemma[
 }
 
 /** The copy manifests: text the engine and UI read, indexed as parsed. */
-function parseCopy(raw: RawContent, problems: string[]): Pick<ContentRegistry, 'contextCopy' | 'routeCopy' | 'world'> | null {
+function parseCopy(raw: RawContent, problems: string[]): Pick<ContentRegistry, 'contextCopy' | 'routeCopy' | 'world' | 'alignment'> | null {
   const contextCopy = parse(ContextCopyManifestSchema, raw.contextCopy, 'contextCopy', problems);
   const routeCopy = parse(RouteCopyManifestSchema, raw.routeCopy, 'routeCopy', problems);
   const world = parse(WorldManifestSchema, raw.world, 'world', problems);
-  return contextCopy && routeCopy && world ? { contextCopy, routeCopy, world } : null;
+  const alignment = parse(AlignmentManifestSchema, raw.alignment, 'alignment', problems);
+  return contextCopy && routeCopy && world && alignment ? { contextCopy, routeCopy, world, alignment } : null;
 }
 
 function assemble(raw: RawContent, problems: string[]): ContentRegistry | null {
