@@ -38,9 +38,10 @@ import { checkRouteCopyIntegrity } from './integrityRouteCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
-import { dialOf } from './integrityDials';
+import { checkDialTraces, dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
+import { checkAlignmentIntegrity } from './integrityAlignment';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
@@ -258,7 +259,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkFeedIntegrity(reg),
     ...checkCampaignIntegrity(reg),
-    ...checkCampaignFactIntegrity(reg),
+    ...checkCampaignFactIntegrity(reg), ...checkAlignmentIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
     ...checkObligationIntegrity(reg),
     ...checkFollowUpIntegrity(reg),
@@ -293,7 +294,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPoweredOutputIntegrity(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
-    ...checkActuatorHosts(reg),
+    ...checkActuatorHosts(reg), ...checkDialTraces(reg.nodes.values()),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
     // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).

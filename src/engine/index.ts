@@ -6,6 +6,7 @@
 export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
+export { dialRaiseTrace, dialStepTrace } from './dialTrace';
 export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, significant3, spokenAmount } from './amount';
 export {
   type ComputeUnit, computeDimension, type Dimension, memoryExact, storageExact, quantityExact, quantityReadout, quantitySpoken, quantityStep,
@@ -66,6 +67,7 @@ export { accessHolds, contextHolds, structuralFailure } from './campaignLifecycl
 export * from './campaignClue';
 export { followUpAccess, followUpPrerequisiteHolds, followUpReceipts, type FollowUpReceipt } from './followUp';
 export * from './campaignQuery';
+export { alignmentView, type AlignmentAxis, type AlignmentView, type OrderEvidence, type RegardEvidence } from './alignment';
 export { obligationDecision, obligationReceipt, type ObligationReceipt } from './obligations';
 export type { CampaignClue, CampaignRecord, CampaignState, ChannelContact, NarrativeRules } from './campaignState';
 

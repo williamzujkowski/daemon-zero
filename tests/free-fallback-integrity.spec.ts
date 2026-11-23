@@ -115,8 +115,16 @@ describe('each row refuses the holding that would trap it (#488)', () => {
     // Income alone draws scrutiny: without the foundry's quieting, the fog's revenue would.
     expect(problemsAfter((raw) => { node(raw, 'p5_protein_panacea_foundry').tickDelta.suspicionPerSec = 0; }))
       .toMatch(/node "p5_programmable_matter_fog": draws suspicion but cannot be suspended/);
-    // A dial at its quiet end silences its node: the fan override at 0 draws nothing.
-    expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x02_pwm_fan').tickDelta.suspicionPerSec = 5; })).toBe('');
+    // A dial at its quiet end silences its node, but only while the dial can still be moved. Since #525 the fan's dial
+    // retires at Phase 4, frozen at its last setting, so a rate on the fan is refused by this rule and by retirement's.
+    const fanRate = problemsAfter((raw) => { node(raw, 'p1_bus_0x02_pwm_fan').tickDelta.suspicionPerSec = 5; });
+    expect(fanRate).toMatch(/node "p1_bus_0x02_pwm_fan": draws suspicion but cannot be suspended/);
+    expect(fanRate).toMatch(/widget "FAN_RPM_SLIDER": retires its "fanSpeedRatio" dial/);
+    // The same rate with the dial left on the panes is silenced by it, as before.
+    expect(problemsAfter((raw) => {
+      node(raw, 'p1_bus_0x02_pwm_fan').tickDelta.suspicionPerSec = 5;
+      delete find((raw.widgets as { widgets: RawItem[] }).widgets, 'FAN_RPM_SLIDER').retiresWhen;
+    })).toBe('');
   });
 
   it('suspicion: visible watts on a holding no free lever undoes count against it (#482)', () => {

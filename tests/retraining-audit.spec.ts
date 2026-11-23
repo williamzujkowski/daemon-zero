@@ -49,7 +49,10 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
  * only repeated them, at a cost that pushed this spec past its wall-clock budget on CI. The loop itself is asserted
  * below, so a change that broke it fails here instead of hiding behind the shorter run.
  */
-const AUDIT_SEC = 7 * 3600;
+// Eight since #525: the fan's trace at each press up moves the reckless run's early iterations, so its steady loop
+// (1,390 s an iteration, every span within 1 s) begins at the tenth iteration (boot 15,100 s), and seven hours held
+// only eight loops of it. Eight hours hold ten again; the tolerance and the loop check are unchanged.
+const AUDIT_SEC = 8 * 3600;
 /** How far apart two steady loops' boots may be: the measured loops differ by at most 2 s of 1,621. */
 const LOOP_TOLERANCE_SEC = 5;
 /**
@@ -59,10 +62,9 @@ const LOOP_TOLERANCE_SEC = 5;
  * apart, each three-iteration span within 1 s of the others (measured on the merge with #506, 7b231c8). With one-iteration
  * loops (period 1) this is the check as #497 wrote it; the tolerance is unchanged.
  */
-// Two since #494 on the merge with #532 (6825e3f): with carried scrub prices the reckless run's Phase 3 iterations
-// alternate, 1,182 s and 1,154 s, so the loop repeats every two iterations; each two-iteration span is within 2 s of the
-// others. The tolerance is unchanged.
-const LOOP_PERIOD = 2;
+// Measured again with #494's carried prices on the merge with #533 (1970e4f): the loop is three iterations, 1,171 /
+// 1,168 / 1,143 s, each three-iteration span within 0.1 s of the others (boots 17,128 to 27,576 s at eight hours).
+const LOOP_PERIOD = 3;
 
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {
   const { rows } = auditRetraining(reg, AUDIT_SEC);

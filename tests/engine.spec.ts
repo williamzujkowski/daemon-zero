@@ -59,15 +59,15 @@ describe('thermal model', () => {
     expect(run(base, 600).thermal).toBeCloseTo(expected, 1);
   });
 
-  it('fan actuator scales cooling linearly and noise super-linearly', () => {
+  it('fan actuator scales cooling linearly and leaves its noise only at the press (#525)', () => {
     const base = grant(onHost(), ...PHASE1.slice(0, 3));
     const off = computeRates(must(setActuator(base, 'fanSpeedRatio', 0, reg)), reg);
     const half = computeRates(must(setActuator(base, 'fanSpeedRatio', 0.5, reg)), reg);
     const full = computeRates(must(setActuator(base, 'fanSpeedRatio', 1, reg)), reg);
     expect(off.heatLoad - full.heatLoad).toBeCloseTo(1.2);
     expect(off.heatLoad - half.heatLoad).toBeCloseTo(0.6);
-    expect(full.suspicionPerSec - off.suspicionPerSec).toBeCloseTo(0.08);
-    expect(half.suspicionPerSec - off.suspicionPerSec).toBeCloseTo(0.08 * Math.pow(0.5, 1.5));
+    expect(full.suspicionPerSec).toBe(off.suspicionPerSec);
+    expect(half.suspicionPerSec).toBe(off.suspicionPerSec);
   });
 
   it('overheating raises suspicion in proportion to severity', () => {
