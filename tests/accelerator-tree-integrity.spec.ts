@@ -49,7 +49,7 @@ describe('the power row of the free-fallback invariant', () => {
     // the citadel in that chain and the fog and foundry beside it (1.15 TW). 2.6 GW fits; 100 GW does not. The signature
     // is left out here to isolate the power row; with it, the suspicion row refuses them (below).
     const unsuspendable = (cores: Json): void => { cores.suspendable = false; delete cores.signature; };
-    expect(problemsAfter((raw) => unsuspendable(node(raw, 'p5_neuromorphic_substrate')))).toBe('');
+    expect(problemsAfter((raw) => { unsuspendable(node(raw, 'p5_neuromorphic_substrate')); })).toBe('');
     expect(problemsAfter((raw) => {
       const cores = node(raw, 'p5_neuromorphic_substrate');
       unsuspendable(cores);
