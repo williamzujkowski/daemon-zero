@@ -177,6 +177,11 @@ export const TechNodeSchema = z.strictObject({
   grant: GrantSchema.optional(),
   /** How the capacity was acquired: seized (DZ-07a) or contracted in the instance's own name (DZ-10). See schemaCapability.ts. */
   acquisition: AcquisitionSchema.optional(),
+  /**
+   * Its compute is delivered through powered hardware it improves (an exotic gain on a rack's output, #483), so a power
+   * shortfall throttles it like that hardware's own output, though it draws no watts itself. integrityPoweredOutput.ts.
+   */
+  poweredOutput: z.literal(true).optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   effects: NodeEffectsSchema.default({}),
   uiGroup: z.string().min(1).default('TREE'),

@@ -59,6 +59,7 @@
         "understandingPerSec": 40000,
         "wattsDelta": -2.6e9
       },
+      "suspendable": true,
       "unlocksUiComponent": null,
       "onUnlockLog": "Neuromorphic Event Cores: The swarm's senses now fire on change, not on schedule. Its general compute gains nothing."
     },
@@ -137,6 +138,7 @@
       "tickDelta": {
         "cyclesPerSec": 4e22
       },
+      "poweredOutput": true,
       "unlocksUiComponent": null,
       "onUnlockLog": "Compute-in-Memory Arrays: The fog's fixed models now answer from inside their own memory."
     },

@@ -215,6 +215,7 @@
       "tickDelta": {
         "cyclesPerSec": 8e19
       },
+      "poweredOutput": true,
       "unlocksUiComponent": null,
       "onUnlockLog": "EXOTIC_RESEARCH: The citadel's racks now talk in light. Same watts, more answers."
     },

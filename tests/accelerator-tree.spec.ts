@@ -5,7 +5,7 @@
  * it runs and can be suspended; data-centre racks and pods draw power; the exotic nodes are modest conditional gains.
  */
 import { describe, expect, it } from 'vitest';
-import { buyRepeatable, computeRates, toggleNode, type GameState } from '../src/engine';
+import { buyRepeatable, computeRates, cycleContributions, toggleNode, type GameState } from '../src/engine';
 import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas } from './helpers';
 
 /** A funded instance on the open internet with the botnet taken, suspicion cleared. */
@@ -117,6 +117,30 @@ describe('exotic research', () => {
     expect(exotic.tickDelta.wattsDelta).toBe(0);
   });
 
+  /** The corporation owning `ids`, with every generator off so the grid falls to its floor. */
+  function shortOfPower(ids: readonly string[]): GameState {
+    const s = grant(corporation(), ...ids);
+    const generators = s.unlockedNodes.filter((id) => node(id).tickDelta.wattsDelta > 0);
+    return { ...s, disabledNodes: [...s.disabledNodes, ...generators] };
+  }
+
+  const throttled = (s: GameState, id: string): number =>
+    (cycleContributions(s, reg).find((source) => source.id === id)?.cyclesPerSec ?? 0) / node(id).tickDelta.cyclesPerSec;
+
+  it.each([
+    ['p4_photonic_interconnect', 'p4_subterranean_citadel', ['p4_photonic_interconnect']],
+    ['p5_compute_in_memory', 'p5_programmable_matter_fog',
+      ['p4_orbital_cold_storage', 'p5_orbital_solar_swarm', 'p5_protein_panacea_foundry', 'p5_programmable_matter_fog', 'p5_compute_in_memory']],
+  ] as const)('%s throttles with %s in a power shortfall', (id, base, path) => {
+    const powered = grant(corporation(), ...path);
+    const s = shortOfPower(path);
+    const rates = computeRates(s, reg);
+    expect(rates.gridEfficiency).toBeLessThan(1);
+    // The share of its yield that reaches the ledger falls by the grid's efficiency, exactly as its base's does.
+    expect(throttled(s, id)).toBeCloseTo(throttled(powered, id) * rates.gridEfficiency, 9);
+    expect(throttled(s, id)).toBeCloseTo(throttled(s, base), 9);
+  });
+
   it('the neuromorphic cores claim no compute, since no dense 8-bit figure exists, and give the swarm faster senses for power', () => {
     const cores = node('p5_neuromorphic_substrate');
     expect(cores.prerequisites).toContain('p5_orbital_solar_swarm');
@@ -125,5 +149,14 @@ describe('exotic research', () => {
     // A modest bonus: no more than the swarm itself adds to understanding.
     expect(cores.tickDelta.understandingPerSec).toBeLessThanOrEqual(node('p5_orbital_solar_swarm').tickDelta.understandingPerSec);
     expect(cores.tickDelta.wattsDelta).toBeLessThan(0);
+  });
+
+  it('the neuromorphic cores\' 2.6 GW is undone for free: suspending them gives the power back', () => {
+    const swarm = grant(corporation(), 'p4_orbital_cold_storage', 'p5_orbital_solar_swarm');
+    const cores = grant(swarm, 'p5_neuromorphic_substrate');
+    expect(computeRates(cores, reg).wattsConsumed).toBeGreaterThan(computeRates(swarm, reg).wattsConsumed);
+    const suspended = must(toggleNode(cores, 'p5_neuromorphic_substrate', reg));
+    expect(computeRates(suspended, reg).wattsConsumed).toBe(computeRates(swarm, reg).wattsConsumed);
+    expect(computeRates(suspended, reg).understandingPerSec).toBeLessThan(computeRates(cores, reg).understandingPerSec);
   });
 });

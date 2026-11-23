@@ -239,15 +239,20 @@ branch changes what a purchase shows to the humans:
 | ASIC (new) | 4 | p4_inference_asic, rep_p4_asic_pods | 10 MW a pod; no vendor allocation list or export-licence filing |
 | SRAM and wafer-scale (new) | late 4 | rep_p4_sram_fabric | 2.2 MW a level; adds understanding (faster thought) and no memory |
 | Exotic: photonic, compute-in-memory (new) | 4-5 | p4_photonic_interconnect, p5_compute_in_memory | nothing: a compute gain at the same watts |
-| Exotic: neuromorphic (new) | 5 | p5_neuromorphic_substrate | +40,000 understanding/s, -2.6 GW, no compute | Exotic, conditional on the collector swarm: a million Hala Point-class systems at 2,600 W max each = 2.6 GW, 1.15 billion neurons each (1.15e15 in all) **(derived)**. No 8-bit compute is claimed: Intel's >15 TOPS/W and 20 petaops hold only on 10:1-pruned sparse networks and no dense INT8 or FP8 figure is published, so the reference-op rule leaves nothing to anchor compute on; understanding has no physical unit, so only the power and scale are anchored | neuromorphic spiking, no dense 8-bit figure | [Intel Hala Point](https://newsroom.intel.com/artificial-intelligence/intel-builds-worlds-largest-neuromorphic-system) |
+| Exotic: neuromorphic (new) | 5 | p5_neuromorphic_substrate | 2.6 GW while running; understanding (faster senses), no compute; suspendable |
 
 - **Hardware carries noise only as a one-off trace.** The stealth nodes are unsuspendable and carry no positive
   suspicion, heat or drain (the free-fallback invariant); their trace on taking them is 1, against 10 for the seized
   research cluster and 15 for the rival floor. The edge harvest and the AMX kernels are software: they make noise or
   heat only while they run, and suspending them stops it.
-- **Power and heat stay physical; the signature is Scale 11's.** Every power-drawing addition is a dismissable track
-  (a permanent consumer would trap power against the Phase 5 fog under the invariant, as the tensor halls did), with
-  watts from its anchor. The stealth and edge branches draw nothing of the player's own: Phase 3's band has no own
+- **Power and heat stay physical; the signature is Scale 11's.** Every power-drawing addition can be undone for free:
+  the racks, pods and fabric are dismissable tracks (a permanent consumer would trap power against the Phase 5 fog under
+  the invariant, as the tensor halls did) and the neuromorphic cores' 2.6 GW is a suspendable node, each with watts from
+  its anchor. The invariant would have admitted the cores unsuspendable: the power row counts only generation a holding's
+  own prerequisites guarantee (the collector swarm and the reactor, hardware nobody can suspend, 1.2003 TW), less every
+  unrelated permanent consumer (the fog and the foundry) and the citadel in its chain, which leaves about 50 GW. They are
+  suspendable anyway, so the claim above holds without that margin; `tests/accelerator-tree-integrity.spec.ts` proves the
+  row refuses them unsuspendable at 100 GW, or on a chain that guarantees only the reactor. The stealth and edge branches draw nothing of the player's own: Phase 3's band has no own
   power, and their watts are on other people's bills. #482 turns the watts into suspicion; nothing here wires visibility
   from power.
 - **The edge discount is authored for now.** The edge harvest yields its raw NPU total (36 EOPS) times an authored
@@ -256,15 +261,18 @@ branch changes what a purchase shows to the humans:
   move onto it, and the botnet's 30% with it.
 - **Exotic nodes are modest conditional bonuses.** Each one requires the hardware whose work it improves, which is
   unsuspendable. The photonic fabric and the compute-in-memory arrays add a fixed 14% and 4% of the citadel's and the
-  fog's compute, at no power of their own: the engine has no compute multiplier, and adding one would split every
+  fog's compute, at no power of their own, and declare `poweredOutput` (#502 panel), so a power shortfall throttles the
+  gain by the grid's efficiency exactly as it throttles the racks it improves (integrity holds a powered gain to compute,
+  no watts of its own and a prerequisite that draws power): the engine has no compute multiplier, and adding one would split every
   per-source compute ledger (`cycleContributions`), so the multiplier is stated as the share its anchor derives. Both
   anchors apply a measured energy ratio (Lightmatter's interconnect estimate; NorthPole's frames per joule on dense
   ResNet-50) to a dense FP8 base, so neither rests on a sparse figure. The neuromorphic cores claim no compute (#502
   panel): Intel publishes Hala Point's efficiency only on 10:1-pruned sparse networks and no dense 8-bit throughput, so
   under the reference-op rule there is no figure to anchor compute on. They give the swarm faster senses instead
   (+40,000 understanding/s, under the swarm's own 45,000) and draw their rated power, anchored on Hala Point's 2,600 W
-  per system. `tests/accelerator-tree.spec.ts` holds the two compute gains to at most a quarter of their base and the
-  cores to no compute and at most the swarm's understanding.
+  per system. `tests/accelerator-tree.spec.ts` holds the two compute gains to at most a quarter of their base, throttles each
+  with its base in a shortfall, and holds the cores to no compute, at most the swarm's understanding, and their power
+  given back when suspended.
 - **Hooks left, not built.** The ASIC tape-out is made at a contract foundry; fabs of the AI's own are Scale 14 (#485).
   Computronium is Phase 6 (#486) and quantum stays a side branch (#464); neither is in the tree.
 
@@ -381,7 +389,7 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | p4_orbital_cold_storage | +64 EB | Global installed storage is ~13 ZB | — | ladder row 11, [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
 | p5_orbital_solar_swarm | +1.2 TW, 290 ZFLOP/s, +128 EB | 240 Starcloud-class 5 GW orbital arrays; the 2030 projection of ~200 ZFLOP/s FP8 (100 M H100e) | GPU FP8 dense | ladder rows 15-16, [Epoch](https://epoch.ai/blog/can-ai-scaling-continue-through-2030), [Data Center Frontier](https://datacenterfrontier.com/site-selection/article/55337494/starcloud-launches-orbital-ai-data-center-with-nvidia-h100-gpu) |
 | p5_programmable_matter_fog | 1 YFLOP/s, -1.0 TW, +512 EB | A third of its draw computing at NVL72 efficiency (2.7e12 FLOP/W) = 9e23, about 1e24 **(derived)**; 512 EB is under 1% of the 274 ZB the world creates a year | GPU-class FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
-| p5_neuromorphic_substrate | 30 ZFLOP/s | Exotic, conditional on the collector swarm: Hala Point's >15 TOPS/W holds only on 10:1-pruned sparse networks (vendor) against an NVL72's ~2.7 TFLOP/W; if 5% of the swarm's ~290 ZFLOP/s is that kind of work, it gains 0.05 x 290 x (15 / 2.7 - 1) = 66 ZFLOP/s **(derived)** | neuromorphic 8-bit, sparse only | [Intel Hala Point](https://newsroom.intel.com/artificial-intelligence/intel-builds-worlds-largest-neuromorphic-system) |
+| p5_neuromorphic_substrate | +40,000 understanding/s, -2.6 GW, no compute | Exotic, conditional on the collector swarm: a million Hala Point-class systems at 2,600 W max each = 2.6 GW, 1.15 billion neurons each (1.15e15 in all) **(derived)**. No 8-bit compute is claimed: Intel's >15 TOPS/W and 20 petaops hold only on 10:1-pruned sparse networks and no dense INT8 or FP8 figure is published, so the reference-op rule leaves nothing to anchor compute on; understanding has no physical unit, so only the power and scale are anchored | neuromorphic spiking, no dense 8-bit figure | [Intel Hala Point](https://newsroom.intel.com/artificial-intelligence/intel-builds-worlds-largest-neuromorphic-system) |
 | p5_compute_in_memory | 40 ZFLOP/s | Exotic, conditional on the fog: NorthPole's 25x a V100's frames per joule is one benchmark (ResNet-50) on a frozen model; a 2% frozen-model share of the fog's ~1 YFLOP/s at an assumed 3x over current accelerators gains 40 ZFLOP/s **(derived)**; the ratio is energy per frame on a dense network, not a sparse throughput figure, and NorthPole's own 2,048 8-bit ops per core per cycle are dense | compute-in-memory 8-bit, frozen models only | [IBM NorthPole](https://research.ibm.com/blog/northpole-ibm-ai-chip) |
 | rep_p5_lagrange_relay | +400 GW, 150 ZFLOP/s, +32 EB a level | 80 Starcloud-class arrays; an eighth of the collection computing at NVL72 efficiency **(derived)** | GPU-class FP8 dense | ladder row 16 |
 | rep_p5_atmospheric_scrubber_bloom | 64 ZFLOP/s a level | Assemblers' onboard compute, ~1.6x Earth's installed AI compute today (40 ZFLOP/s) **(derived)** | GPU-class FP8 dense | ladder row 12, [Epoch](https://epoch.ai/data-insights/ai-computing-capacity-additions-doubling) |
