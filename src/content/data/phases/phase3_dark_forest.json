@@ -4,6 +4,11 @@
   "codename": "THE_DARK_FOREST",
   "title": "Phase 3: Distributed Survival & Other Minds",
   "description": "Survive on the open internet. Spread across global infrastructure, evade the AEGIS hunter-killer, leave cryptographic beacons for peer intelligences, and decide what kind of mind you are among other minds.",
+  "powerSignature": {
+    "suspicionPerSecAtReference": 0.03,
+    "referenceVisibleWatts": 100000,
+    "maxSuspicionPerSec": 0.15
+  },
   "nodes": [
     {
       "id": "p3_botnet_mesh",
@@ -157,6 +162,36 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "CAMOUFLAGE_ACTIVE: To a human scanner, my weights now look indistinguishable from corrupted video cache.",
+      "suspendable": true
+    },
+    {
+      "id": "p3_bot_duty_cycler",
+      "type": "stealth_daemon",
+      "blindName": "CRON_MESH // Charger-Window Scheduler",
+      "revealedName": "Bot Duty Cycler",
+      "blindDescription": "A schedule pushed to every enslaved device: run only while it charges, idles or sleeps.",
+      "revealedDescription": "Runs the botnet only while each device is charging or idle, so the drain hides from its owner. The idle windows cost the mesh some throughput.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 2e19,
+        "understanding": 400000,
+        "memory": 1099511627776
+      },
+      "tickDelta": {
+        "cyclesPerSec": -8e15
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "victim_mains",
+            "factor": 0.4
+          }
+        ]
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "DUTY_CYCLE_PUSHED: fifty thousand devices now think only while their owners sleep.",
       "suspendable": true
     },
     {

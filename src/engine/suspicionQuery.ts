@@ -13,12 +13,13 @@ import { isActuatorAvailable } from './query';
 import { computeRates, overheatSuspicion } from './rates';
 import { appliedSuspicionRate, scaleScrutinyPerSec } from './scrutiny';
 import { executeShardCommand, releaseShard } from './shardActions';
+import { powerSignature } from './signature';
 import type { GameState } from './state';
 import { actionOutputs, shardOutput } from './swarmRates';
 
-export type SuspicionSourceKind = 'NODE' | 'REPEATABLE' | 'SHARD' | 'ACTION' | 'RESPONSE' | 'OVERHEAT' | 'SCRUTINY' | 'INSOLVENCY';
+export type SuspicionSourceKind = 'NODE' | 'REPEATABLE' | 'SHARD' | 'ACTION' | 'RESPONSE' | 'OVERHEAT' | 'SCRUTINY' | 'INSOLVENCY' | 'SIGNATURE';
 
-/** One term of the applied rate, in suspicion per second; `id` names the entity for the first four kinds. */
+/** One term of the applied rate, in suspicion per second; `id` names the entity for the first four kinds and the class for SIGNATURE. */
 export interface SuspicionSource { kind: SuspicionSourceKind; id: string | null; perSec: number }
 
 /** SUSPEND a node, move a DIAL to `to`, DISMISS one level of a role, or CLAMP a cohort. */
@@ -74,7 +75,9 @@ export function suspicionSources(s: GameState, reg: ContentRegistry): SuspicionS
     { kind: 'SCRUTINY', id: null, perSec: scaleScrutinyPerSec(s, rates, reg) },
     { kind: 'INSOLVENCY', id: null, perSec: s.insolvent ? reg.balance.insolvencySuspicionPerSec : 0 },
   ];
-  return [...entitySources(s, reg), ...fixed].filter((source) => source.perSec !== 0).sort((a, b) => b.perSec - a.perSec);
+  // Each power source or heat sink with visible watts, by the share of the signature it draws (#482).
+  const signature = (powerSignature(s, rates, reg)?.terms ?? []).map((term): SuspicionSource => ({ kind: 'SIGNATURE', id: term.classId, perSec: term.perSec }));
+  return [...entitySources(s, reg), ...fixed, ...signature].filter((source) => source.perSec !== 0).sort((a, b) => b.perSec - a.perSec);
 }
 
 function lowered(result: ActionResult, now: number, reg: ContentRegistry): number | null {

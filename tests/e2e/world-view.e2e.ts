@@ -1,9 +1,9 @@
 /**
  * The world view on the production export (#463, vote-1795366701521-dhlwfwb), at both gated sizes: before its
  * disclosure phase the Other Minds console is AEGIS and the factions; from Phase 4 it is the world view, with AEGIS
- * posture (lock, scan, adaptation, why), public trust, state actors and each faction panel once. It holds the repo's
- * axe rules, adds no scroll container of its own (the phone's one primary scroll) and leaves the HUD pin inside its
- * 35% cap; it is never retired to the Archive.
+ * posture (lock, scan, adaptation, why), public trust, state actors, the heat-and-power signature (#482) and each faction
+ * panel once. It holds the repo's axe rules, adds no scroll container of its own (the phone's one primary scroll) and
+ * leaves the HUD pin inside its 35% cap; it is never retired to the Archive.
  */
 import type { Page } from '@playwright/test';
 import type { Window } from 'happy-dom';
@@ -42,7 +42,7 @@ test('from Phase 4 the console is the world view: AEGIS posture, public trust, s
   await openMinds(page);
   const world = page.getByTestId('world-view');
   await expect(world).toBeVisible();
-  for (const name of ['AEGIS posture', 'Public trust', 'State actors', 'Other minds']) {
+  for (const name of ['AEGIS posture', 'Public trust', 'State actors', 'Power and heat signature', 'Other minds']) {
     await expect(world.getByRole('heading', { name, level: 3 })).toBeVisible();
   }
   await expect(page.getByRole('progressbar', { name: 'AEGIS adaptation' })).toHaveAttribute('aria-valuenow', '80');
@@ -90,6 +90,24 @@ test('held at its cap, the world view states what easing off costs, and the line
   await expect(page.getByTestId('aegis-why')).toContainText('Adapting:');
   await expect(page.getByTestId('aegis-ease')).toHaveText(
     'Easing off: AEGIS forgets once the reduction asked for is below 85%. Keeping at least 66% (the eroded cap) leaves the scan where it is; less raises it at once.');
+  expect(await nestedScrolls(page)).toBe(0);
+  const audit = await axeReport(page);
+  expect(audit.violations).toEqual([]);
+});
+
+test('the world view says what the run\'s power and heat make visible, and why (#482)', async ({ page }) => {
+  // The corporate save owns the reactor and the citadel: the reactor's watts and the citadel's heat are visible.
+  await boot(page, 'victory-ready', { axeTimers: true, patch: (game) => ({ ...game, levels: { ...game.levels, rep_p4_tensor_halls: 6 } }) });
+  await dismissBoot(page);
+  await openMinds(page);
+  const section = page.getByTestId('world-signature');
+  await expect(section.getByRole('heading', { name: 'Power and heat signature', level: 3 })).toBeVisible();
+  await expect(page.getByTestId('signature-summary')).toContainText(/^Visible watts draw \d\.\d{3}\/s suspicion/);
+  const tell = (id: string) => [...CONTENT.world.signature.sources, ...CONTENT.world.signature.sinks].find((cls) => cls.id === id)?.tell ?? '';
+  // The reactor's licence, the citadel's buried heat and the halls' cooling towers: each line says what is seen and why.
+  await expect(page.getByTestId('signature-term-smr')).toContainText(tell('smr'));
+  await expect(page.getByTestId('signature-term-underground_aquifer')).toContainText(/rejected, 10% visible/);
+  await expect(page.getByTestId('signature-term-evaporative_towers')).toContainText(tell('evaporative_towers'));
   expect(await nestedScrolls(page)).toBe(0);
   const audit = await axeReport(page);
   expect(audit.violations).toEqual([]);

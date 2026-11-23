@@ -5,6 +5,7 @@ import { CONTENT } from '../src/content';
 import type { Repeatable } from '../src/content/schema';
 import { computeRates, importSave, payrollView, type GameState } from '../src/engine';
 import { scaleScrutinyPerSec } from '../src/engine/scrutiny';
+import { powerSignaturePerSec } from '../src/engine/signature';
 import { huntedForScale } from '../src/engine/threatQuery';
 
 const fixtures = makeFixtures();
@@ -114,9 +115,13 @@ describe('payrollView', () => {
 
   it('says a suspicion cut is inert only while suspicion is 0 and the applied rate holds it there', () => {
     const base = load('victory-ready');
-    // No net income here, so phase 5's scale scrutiny (#210) adds nothing; the last assertions put it back.
-    const at = (suspicion: number, rate: number, insolvent = false, capitalPerSec = 0) =>
-      payrollView({ ...base, suspicion, insolvent, rates: { ...base.rates, suspicionPerSec: rate, capitalPerSec } }, CONTENT);
+    // No net income here, so phase 5's scale scrutiny (#210) adds nothing; the last assertions put it back. The reactor
+    // and citadel's visible watts (#482) do add a signature, so each rate below is the rest of the applied rate: the
+    // computed rate passed is that rest minus the signature, which the applied rate adds back.
+    const signature = powerSignaturePerSec(base, base.rates, CONTENT);
+    expect(signature).toBeGreaterThan(0);
+    const at = (suspicion: number, rest: number, insolvent = false, capitalPerSec = 0) =>
+      payrollView({ ...base, suspicion, insolvent, rates: { ...base.rates, suspicionPerSec: rest - signature, capitalPerSec } }, CONTENT);
     const held = at(0, -1);
     expect(held.suspicionAtFloor).toBe(true);
     for (const role of held.roles) {

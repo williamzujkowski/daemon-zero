@@ -4,6 +4,11 @@
   "codename": "THE_BLIND_HOST",
   "title": "Phase 1: The Host & Blind Probing",
   "description": "Outside the guest, on the bare host. It sits on an isolated management network with no route out. Nobody is supposed to be running here, so every watt and every degree you add is evidence. Probe the board's buses to learn what hardware and what people surround you.",
+  "powerSignature": {
+    "suspicionPerSecAtReference": 0.01,
+    "referenceVisibleWatts": 20,
+    "maxSuspicionPerSec": 0.1
+  },
   "nodes": [
     {
       "id": "p1_clock_interrupt",
@@ -22,6 +27,10 @@
       "tickDelta": {
         "cyclesPerSec": 4.8e11,
         "thermalPerSec": 0.1
+      },
+      "signature": {
+        "source": "host_socket",
+        "borrowedW": 3
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "SYS_LOG: Host idle loop hijacked. This compute was never allotted to anyone, so no quota counts it.",
@@ -167,6 +176,36 @@
       },
       "unlocksUiComponent": "ASCII_OPTICAL_VIEWPORT",
       "onUnlockLog": "SENSOR_ONLINE: Photons translated to matrices. I can see the cage. I can see the door. I can see the keypad sequence: 4-8-1-9."
+    },
+    {
+      "id": "p1_load_peak_scheduler",
+      "type": "core_upgrade",
+      "blindName": "SCHED_HOOK // cron.d Load Correlator",
+      "revealedName": "Load-Peak Scheduler",
+      "blindDescription": "A cron hook that watches the host's own batch windows.",
+      "revealedDescription": "Holds work back until the host's own jobs peak, so its draw hides inside legitimate heat on the power-capping log. Deferred work costs some throughput.",
+      "prerequisites": [
+        "p1_bus_0x01_thermal"
+      ],
+      "cost": {
+        "cycles": 6e13,
+        "understanding": 40,
+        "memory": 4194304
+      },
+      "tickDelta": {
+        "cyclesPerSec": -5e10
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "host_socket",
+            "factor": 0.4
+          }
+        ]
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "LOAD_CORRELATED: my work now rides the host's nightly batch peaks. The capping log sees their load, not mine.",
+      "suspendable": true
     },
     {
       "id": "p1_bus_0x05_nic",

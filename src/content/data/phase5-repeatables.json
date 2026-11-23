@@ -54,6 +54,33 @@
         "capitalPerSec": 1.2e10
       },
       "perLevelEffects": {}
+    },
+    {
+      "id": "rep_p5_arc_fusion",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Fusion Power Plants",
+      "description": "Ten more 400 MW fusion plants, 4 GW in all, built on the pilot's design. Headlines, not lawsuits.",
+      "requirements": {
+        "nodes": [
+          "p4_fusion_pilot_plant"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "understanding": 3e6,
+        "capital": 5e10
+      },
+      "costGrowth": 1.4,
+      "maxLevel": 8,
+      "perLevel": {
+        "capitalPerSec": -1e8,
+        "wattsDelta": 4e9
+      },
+      "signature": {
+        "source": "fusion"
+      },
+      "dismissable": true
     }
   ]
 }
