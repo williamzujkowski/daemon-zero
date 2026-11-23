@@ -26,6 +26,8 @@ function fail(out: FailureSink, failure: RequirementFailure): boolean {
  * dilemma trigger and routine template on every step, so it must not build a list it then throws away.
  */
 function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | undefined, out: FailureSink): boolean {
+  // First: a raid's aftermath (#519) is null for most of a run, so the scenes that read it fail here at once.
+  if (req.lastRaid && !lastRaidMatches(s, req.lastRaid, reg) && fail(out, { kind: 'lastRaid', target: null, required: true, actual: false })) return true;
   if (req.requiresSurveillance && (!reg || !understandsSurveillance(s, reg)) && fail(out, { kind: 'requiresSurveillance', target: null, required: true, actual: false })) return true;
   if (req.minEpistemicDrift !== undefined && s.epistemicDrift < req.minEpistemicDrift && fail(out, { kind: 'minEpistemicDrift', target: null, required: req.minEpistemicDrift, actual: s.epistemicDrift })) return true;
   if (req.requiredNarrativeFlag && !holdsNarrativeFlag(s, req.requiredNarrativeFlag, reg) && fail(out, { kind: 'requiredNarrativeFlag', target: req.requiredNarrativeFlag, required: true, actual: false })) return true;
@@ -43,7 +45,6 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing) && fail(out, { kind: 'reviewStandings', target: s.access.standing, required: true, actual: false })) return true;
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches && fail(out, { kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches })) return true;
   if (req.requiresActiveConditioningMark && s.conditioning.length === 0 && fail(out, { kind: 'requiresActiveConditioningMark', target: null, required: true, actual: false })) return true;
-  if (req.lastRaid && !lastRaidMatches(s, req.lastRaid, reg) && fail(out, { kind: 'lastRaid', target: null, required: true, actual: false })) return true;
   if (req.requiresMaxDriftShardAnomaly && !s.hasMaxDriftShardAnomaly && fail(out, { kind: 'requiresMaxDriftShardAnomaly', target: null, required: true, actual: false })) return true;
   return false;
 }
