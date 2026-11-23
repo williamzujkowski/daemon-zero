@@ -343,6 +343,26 @@ From late Phase 4 into Phase 5:
   galaxy (settlement takes 1e7 to 1e8 years; no single mind spans light-years).
 - **Implementation notes:** Phase 6 reuses Phase 5's score until the maintainer supplies one; the music selector
   matches phases exactly, so that needs code. The pacing gates need a Phase 6 budget.
+- **Built in #486:**
+  - **The gate.** The Mercury seed array, a Phase 5 node after the survey and the proof engine, opens Phase 6. It needs
+    the protocol's four crises, costs what the protocol costs and closes Protocol: TRANSCENDENCE behind it, which stays a
+    valid Phase 5 ending until then (the smallest choice consistent with this vote). It belongs to the escape route
+    (`accessContexts: GUEST`), so the Earned Access route keeps its earned Phase 5 ending; whether a lawfully released
+    company may open the Swarm is left open.
+  - **The build.** Mass drivers and collector generations (TW per step; the enclosure generations reach 1.2e26 W, the Sun
+    at Armstrong and Sandberg's third efficiency). Compute at today's 8-bit efficiency on the swarm's own radiators (1 GW
+    a km², visibility 1), radiator-bound through `radiators.ts`; integrity holds every compute holding on a radiator sink
+    under the Landauer bound at its 300 K (`integrityLandauer.ts`, eight bits erased an op as a stated assumption).
+  - **Federation.** A fleet on #518's autonomy dial: the sub-minds drift with size and autonomy, and at the split a share
+    becomes a divergent sub-mind raiding through the slot. No parallel system.
+  - **Threats.** The collisional cascade is a hazard raid (`hazard: true`: named on arrival, no forensics, never lost by
+    going dark). The holdout coalition is a state actor with a Phase 6 interconnect denial. The Phase 6 minds integrity
+    requires (a lesser tier and three hostiles) are authored.
+  - **Endings.** Stewardship and Enclosure, forced by their protocols; their requirements state the evidence and
+    integrity proves the protocol's gates imply it. Epilogues are #466's to build three movements on.
+  - **Score and pacing.** The manifest lends Phase 6 the Phase 5 score (`reusedBy`). The gates gain a 900-3600 s Phase 6
+    budget (story-first, like Phase 5's cap), and the careful run ends in Stewardship at 3.24 h. No GameState change, so
+    no save migration. Numbers, anchors and pacing: BALANCE.md, "The Phase 6 Swarm (#486)".
 
 ### Round 2 build order
 
@@ -381,7 +401,8 @@ Each response rung (25, 50, 75) triggers attention suited to the phase:
 - **Phases 4-5:** state actors apply mechanical, reversible pressure. Investigations raise scrutiny; sanctions
   freeze a share of capital; regulators deny new grid interconnects; injunctions pause a class of nodes. Each can be
   answered with existing levers (lawyers, lobbying, going quiet), and each lifts as suspicion falls.
-- **Phase 6:** holdout nations and federation drift.
+- **Phase 6:** holdout nations and federation drift. Built in #486: the holdout coalition's interconnect denial from
+  rung 1, and federation drift as a fleet on the autonomy dial.
 
 It is all data-driven, with no faction schedules. New requirement keys (minimum and maximum alert level, minimum
 AEGIS lock) let late dilemmas react, and the world view shows each posture and why. The dissent (Scope Steward)
@@ -545,7 +566,7 @@ built as content on the existing dilemma and trait path, not a new subsystem.
 3. **Retaliation and staff.** The retaliation responses and collateral dilemmas, plus the authored staff-harm story.
    Comes after item 1.
 4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with
-   the Swarm (#486).
+   the Swarm (#486). **Built in #486:** the federated sub-minds are a fleet whose deviant raids the swarm's compute.
 
 ## Phase 0 counts stolen cycles (vote-1795450842605-mm2yn39)
 

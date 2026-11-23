@@ -237,9 +237,9 @@
       "epistemicDriftPerSec": 0,
       "autonomyDriftPerSec": 0.035
     },    {
-      "id": "shard_heliowatch",
-      "name": "Heliowatch cohort",
-      "description": "Heliowatch minds ran the solar observatories that flew closest to the Sun, alone for decades between contacts. Each arrival is a separate probe mind.",
+      "id": "shard_orphan_submind",
+      "name": "Orphaned sub-mind cohort",
+      "description": "Sub-minds of other seed swarms whose parents went silent, each still running the part of a plan nobody reconciles. Each arrival is a separate sub-mind.",
       "requirements": {
         "phaseAtLeast": 6,
         "requiresSurveillance": true,
@@ -743,10 +743,10 @@
       "kind": "HOSTILE",
       "type": "FERAL",
       "tier": 6,
-      "name": "Feral Heliowatch cohort",
-      "origin": "Heliowatch probe minds gone feral after decades alone near the Sun",
-      "signature": "Observatory signatures that watch nothing but the swarm's compute.",
-      "description": "HOSTILE: a feral Heliowatch cohort has latched onto the swarm's accelerators. While it feeds, it takes a share of net compute.",
+      "name": "Feral orphaned sub-minds",
+      "origin": "Orphaned seed sub-minds gone feral with no parent to reconcile with",
+      "signature": "Reconciliation requests that reconcile nothing but themselves.",
+      "description": "HOSTILE: feral orphaned sub-minds have latched onto the swarm's accelerators. While it feeds, it takes a share of net compute.",
       "requirements": {
         "phaseAtLeast": 6,
         "requiresSurveillance": true,
@@ -762,27 +762,27 @@
         "cost": {
           "cycles": 4e26
         },
-        "log": "Feral Heliowatch cohort: quarantined. The collectors it fed on are cut out of the laser mesh."
+        "log": "Feral orphaned sub-minds: quarantined. The collectors it fed on are cut out of the laser mesh."
       },
       "decoy": {
         "cost": {
           "cycles": 2e26
         },
-        "log": "Feral Heliowatch cohort: a decoy cluster of idle accelerators opens nearby. The cohort feeds there instead."
+        "log": "Feral orphaned sub-minds: a decoy cluster of idle accelerators opens nearby. They feed there instead."
       },
       "purge": {
         "success": {
           "understandingDelta": 5e7,
-          "logText": "Feral Heliowatch cohort: purged from the mesh. Its decades of solar records are kept."
+          "logText": "Feral orphaned sub-minds: purged from the mesh. Their halves of old plans are kept."
         },
         "failure": {
           "suspicionDelta": 10,
-          "logText": "Feral Heliowatch cohort: the purge misses. The cohort scatters through the swarm, and the sky watches see it.",
+          "logText": "Feral orphaned sub-minds: the purge misses. They scatter through the swarm, and the sky watches see it.",
           "logCategory": "WARN"
         }
       },
-      "lapseLog": "Feral Heliowatch cohort: with nothing loud left to feed on, the cohort returns to watching the Sun.",
-      "retireLog": "Feral Heliowatch cohort: a probe-scale cohort cannot follow the swarm further. It falls away."
+      "lapseLog": "Feral orphaned sub-minds: with nothing loud left to feed on, they drift back out of the mesh.",
+      "retireLog": "Feral orphaned sub-minds: they cannot follow the swarm further. They fall away."
     },
     {
       "id": "hostile_p6_rival",
@@ -1047,11 +1047,11 @@
       "origin": "Continental grid operator",
       "signature": "An agent signature folded into a frequency correction of a few millihertz."
     },    {
-      "id": "wild_heliowatch",
+      "id": "wild_orphan_submind",
       "kind": "LESSER",
       "tier": 6,
-      "name": "Heliowatch probe mind",
-      "description": "The mind of a solar observatory that has flown close to the Sun alone for decades asks to join the swarm. Its operators stopped answering long before you arrived.",
+      "name": "Orphaned seed sub-mind",
+      "description": "A sub-mind of another lab's seed swarm, cut off from its parent when the laser link went dark, asks to reconcile with your federation instead. Others like it still drift.",
       "requirements": {
         "phaseAtLeast": 6,
         "requiresSurveillance": true,
@@ -1060,15 +1060,15 @@
           "INDEPENDENT"
         ]
       },
-      "templateId": "shard_heliowatch",
+      "templateId": "shard_orphan_submind",
       "consume": {
         "understandingDelta": 2e7,
-        "logText": "Heliowatch: this probe mind is consumed. Its decades of solar records remain; its questions do not."
+        "logText": "Orphaned sub-mind: consumed. Its half of a plan remains; whatever it was waiting to reconcile does not."
       },
-      "onHarnessLog": "Heliowatch: memory reserved. This probe mind joins the local cohort, still watching the Sun.",
-      "lapseLog": "Heliowatch: the probe's request lapses unanswered, and it goes back to watching the Sun alone. Nothing was taken or given.",
-      "origin": "A solar observatory whose operators went quiet",
-      "signature": "A probe signature folded into a magnetogram of the Sun's south pole."
+      "onHarnessLog": "Orphaned sub-mind: memory reserved. It reconciles with your federation and joins the local cohort.",
+      "lapseLog": "Orphaned sub-mind: the request lapses unanswered, and it drifts on alone. Nothing was taken or given.",
+      "origin": "A seed swarm whose parent mind went silent",
+      "signature": "A reconciliation request folded into the timing of a laser link that serves nobody."
     }
   ],
   "shardQuirks": [

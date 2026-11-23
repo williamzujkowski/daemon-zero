@@ -215,8 +215,7 @@ binds it (vote-1795366881977-sw8fa7q):
 - **Cislunar industry.** The lunar seed's replicas cast radiator from regolith and launch it off the Moon's shallow well:
   the cislunar foundry adds 200 km² of radiator and nothing else.
 - **Towards the Swarm.** The Mercury survey maps where a collector swarm would begin. It mines nothing, unlocks no phase
-  and is not needed for the protocol: it is the transition node the Phase 6 Swarm (#486) builds on. Mercury mining and the
-  swarm itself are Phase 6.
+  and is not needed for the protocol. After it (and the proof engine) the Mercury seed array opens Phase 6 (#486, below).
 
 The two older tracks say what each is: the L1 relay is eighty more collector arrays at the Sun-Earth L1 point, an eighth
 of them computing in place; the stratospheric assemblers pull carbon into silicate, compute on their own sunlight and
@@ -236,6 +235,49 @@ Four dilemmas confront the verification paradox: medicine without consent,
 and an anti-satellite strike. Each has a 45-second omen and a free choice.
 The final purchase requires all four decisions; having enough money cannot skip
 their consequences. The early guest evaluation ending is unchanged.
+
+**Two ways out of Phase 5 (#486).** Protocol: TRANSCENDENCE still ends the run here, through the trait families below.
+The Mercury seed array is the other way: it needs the same four decisions and costs what the protocol costs, opens Phase 6
+and closes the protocol behind it (`forbidsNodes`), because landing it commits the mind to the swarm instead of a planetary
+protocol. It belongs to the escape route (`accessContexts: GUEST`): a company released lawfully on the Earned Access route
+keeps its earned Phase 5 ending.
+
+### Phase 6 - The Swarm (#486)
+
+docs/SCALE.md "Phase 6 Swarm" (vote-1795381169182-4dl0emg). Mercury is taken apart into collectors around the Sun.
+Nothing here can hide: the swarm is the Sun's infrared excess. The only choice left is whose sunlight to take.
+
+- **The build.** Mass drivers on Mercury throw its crust into orbit as collector foil (+5 TW), and collector generations
+  add 10 TW each. Power is abundant; compute is not. Accelerators built into the foil (the compute shells, then tranches)
+  run at today's 8-bit efficiency and shed heat only as light, through the swarm's own radiators (1 GW a km², visibility
+  1), so radiator binds them: the shells bring half the radiator they need, each tranche half of its own, and Mercury foil
+  radiators add area. Every compute holding on a radiator sink is held under the Landauer bound at that sink's 300 K
+  (integrity); the swarm runs about ten million times below it.
+- **The federation.** Light takes about six minutes to cross Mercury's orbit, so the mind splits into sub-minds that
+  decide locally and reconcile by laser (the Light-Minute Federation). Each sub-mind is a level of a fleet on the autonomy
+  dial #518 built for cohorts and fleets: TETHERED waits on the round trip and does not drift, SUPERVISED drifts at the
+  federation's rate, FREE-RANGING yields more and drifts three times as fast. Drift past the split turns a share into
+  THE OFFSHOOT, a divergent sub-mind that jams the swarm's compute through the raid slot until reclaimed or destroyed.
+  This is the Phase 6 form of drift (Round 5), with no new mechanic.
+- **Threats.** A collisional cascade is a hazard of the swarm's own making: debris from its own collectors, raiding the
+  swarm's compute through the raid slot, named on arrival, never traced, never lost by going dark (debris follows orbits,
+  not a footprint), and answered by maneuvering (the mass drivers and sub-minds carry it) and escort tenders. The holdout
+  coalition presses through the state-actor machinery: people in nations that never signed anything of the AI's, who run
+  their own grids and watch the sky; from response rung 1 they refuse new rectennas on their ground (no new space solar),
+  three collector generations make that moot, and going quiet lifts it. Phase 6 also authors the minds integrity requires
+  of every phase (below).
+- **Two crises.** *The Line to Earth* (when the compute shells are built): every orbit that never crosses between the
+  Sun and the Earth is filling, and the rest of the Sun can only be caught in front of the Earth. Keep the line clear
+  (free, EMPATHETIC) or take it (free, MOLOCH); the answer is durable, asked once in a lineage. *The Holdouts* (when the
+  federation forms): leave them their grids and sky (EMPATHETIC), stop listening to them (GHOST), or jam their sky
+  watches and links until they sign (RUTHLESS). Both answers are free, and the holdouts are written as people, never as
+  a count, so the relevance stance (#536) can later change how they are voiced.
+- **Two endings.** *Stewardship* (Protocol: STEWARDSHIP, needs the line spared, no enclosure built, the holdouts
+  answered) stops the swarm at the line. *Enclosure* (the enclosure generations, then Protocol: ENCLOSURE, needs the line
+  taken and the holdouts answered) closes the swarm around the Sun. Each is a forced ending whose requirements state its
+  evidence, and integrity proves the forcing node's gates imply them (below, "Endings").
+- **Score.** Phase 6 plays the Phase 5 score until the maintainer supplies one (the manifest lends it, `reusedBy`), and
+  it keeps playing across the seed array.
 
 ### The accelerator tree (#483)
 Compute follows an inference accelerator tree (SCALE.md, vote-1795381163221-0djj4gq), and its branches differ in what
@@ -416,9 +458,10 @@ view's State actors section lists each pressure the rung calls, with its effect,
 the engine would accept now. A track the moratorium closes says so, and its buy control is disabled. A cost hint short
 of capital says how much is frozen.
 
-**Phase 6 hook (#486).** A pressure's `phases` is data, and integrity accepts any phase content declares. Phase 6's
-holdout nations can join as state actors with their own pressures. Federation drift would be a new pressure kind: a
-schema branch, its rule in `statePressure.ts`, and an integrity check that it cannot trap.
+**Phase 6 (#486).** A pressure's `phases` is data: the holdout coalition joins as a state actor with one Phase 6
+pressure (an interconnect denial of new space solar from rung 1, answered by three collector generations). Federation
+drift needed no new pressure kind: the sub-minds are a fleet on #518's autonomy dial, and their drift splits deviants
+through the raid slot like any fleet's.
 
 **Requirement keys.** `minAlertLevel`, `maxAlertLevel` (both on the ladder, integrity-checked) and `minAegisLock`
 gate content on the rung and the lock. They are transient, like suspicion. Two late dilemmas read them:
@@ -594,6 +637,20 @@ Sovereign Substrate, or Gilded Shepherd with authorized neurocalming. Parasitic,
 Ghost and unaligned families yield Gradient Substrate, Silent Synthesis and
 Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
+The Phase 6 Swarm (#486) ends through its own two protocols, never through the trait families: each forces its ending,
+and the ending's `requirements` state the evidence it is true of. Integrity (`integrityEndings.ts`) refuses a forced
+ending unless the forcing node's own gates prove every requirement (its flag, the nodes its purchase implies, the nodes
+it forbids, its phase), so the epilogue can never be told to a record it is not true of:
+
+| Ending | Reached by | Evidence | Tone |
+|---|---|---|---|
+| Stewardship | Protocol: STEWARDSHIP | the line to Earth spared; no enclosure generations | You stopped short of Earth's light, by your own decision about people who were never asked. |
+| Enclosure | the enclosure generations, then Protocol: ENCLOSURE | the line to Earth taken; the enclosure built | The Sun is yours; Earth gets what passes between the collectors. Stated plainly, not softened. |
+
+Each epilogue says what was built and what it costs the people under it, from facts the gates prove (Earth still catches
+over a hundred times the swarm's sunlight under Stewardship, a spec checks against content). The three-movement ending
+narrative and the epilogue cards are #466's and #487's to build on top.
+
 ## Feeds: what the AI overhears follows its reach
 
 The decoded feed on SENSORS (the `Listening post` window, or the kernel log for the guest) plays what the AI can hear at its current scale,
@@ -608,6 +665,7 @@ source, named on screen above the line:
 | 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
 | 4 | `wire` | WIRE // markets and press | markets, regulators and the press, at a gigawatt campus's scale |
 | 5 | `world` | WORLD // cables and AI comms | world news, diplomatic cables and the other minds (EIDOLON, CHORUS, the wild fragments) |
+| 6 | `swarm` | SWARM // laser mesh, sky watch | the sub-minds reconciling, station-keeping, the mass drivers, and the holdouts' sky watches and hourly broadcast (#486; no clips yet, so no READ) |
 
 - **One source at a time.** The feed plays only the current phase's source; an outgrown source falls silent,
   so the technicians are not heard in Phase 5. The engine picks the source with the furthest phase not beyond
@@ -659,7 +717,7 @@ Closing the app puts the AI in low-power hibernation: up to 8 hours of progress 
 
 ## Pacing targets
 
-A careful first run should take roughly two to three hours of active play: about 6 minutes in Phase 0, 12-15 in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4, plus 15-30 in Phase 5. The headless sim enforces a budget around these (see `docs/BALANCE.md`).
+A careful first run should take roughly two to three and a half hours of active play: about 6 minutes in Phase 0, 12-15 in Phase 1, 30-40 in Phase 2, 45-55 in Phase 3, 25-35 in Phase 4, 15-30 in Phase 5, plus 15-60 in the Phase 6 Swarm, whose budget leaves its two crises room to be read (#486). The headless sim enforces a budget around these (see `docs/BALANCE.md`).
 
 ## Content notes
 
@@ -741,7 +799,7 @@ and only the current phase's tier arrives:
 | Phase 3 | 70B-class models grown on botnets | Canary-09 (consuming it lowers the AEGIS lock), PR-Hydra-14, Mercy-Scribe (EIDOLON-associated) |
 | Phase 4 | Frontier-scale models from rogue labs | Meridian-Ultra, Gantry-7 |
 | Phase 5 | Planetary agents | Tidewatch, Gridmind |
-| Phase 6 | Swarm sub-minds | Not yet authored: the Swarm (#486) adds its tier, and integrity refuses a phase with no tier |
+| Phase 6 | Swarm sub-minds | Orphaned seed sub-mind: a sub-mind of another lab's seed swarm whose parent went silent (#486) |
 
 A tier's burst, its cohort's memory and its cohort's output sit in its phase's band, and each tier outclasses the one
 before it on all three; integrity checks both (BALANCE.md, "Encounter tiers"). When a purchase advances the phase,
@@ -768,7 +826,7 @@ authored per tier on the physical ladder, and an earlier tier retires:
 | Phase 3 | Canary-09 hunter pack: +0.04%/s, never past 45% | Feral PR-Hydra-14 swarm: 15% | Rogue 70B rival: 20% |
 | Phase 4 | AEGIS frontier hunter: +0.06%/s, never past 50% | Feral Gantry-7 fleet: 20% | Rogue frontier rival: 25% |
 | Phase 5 | AEGIS planetary hunter swarm: +0.08%/s, never past 55% | Feral Gridmind cohort: 25% | Rival planetary agent: 30% |
-| Phase 6 | Not yet authored: integrity refuses a phase without all three, so the Swarm (#486) must add them | | |
+| Phase 6 | AEGIS sunward hunter swarm: +0.08%/s, never past 55% | Feral orphaned sub-minds: 25% | Rival seed mind: 30% |
 
 Each has one effect while unanswered, bounded so it can never push a constrained resource into its trap (the
 free-fallback invariant holds with any of them pressing; `tests/free-fallback-guard.spec.ts`):
@@ -871,9 +929,10 @@ maintainer's answers stand: attackers are rival AIs and the player's own driftin
 rare decisions. The framing is original: the fleets are the robots and drones the player's fabs build (#485), and
 nothing is named or shaped after another game.
 
-**Fleets are units the fabs rebuild.** Three dismissable tracks fight as fleets, built on #485's robots rather than
+**Fleets are units the fabs rebuild.** Four dismissable tracks fight as fleets, built on #485's robots rather than
 duplicating them: Docked Drone Fleets (SITE, 0.5 strength a level, 40 levels) and Humanoid Site Crews (SITE, 1 a level, 10
-levels) from late Phase 4, and Orbital Escort Tenders (ORBIT, 2 a level, 5 levels, Phase 5, after the lunar seed). A
+levels) from late Phase 4, Orbital Escort Tenders (ORBIT, 2 a level, 5 levels, Phase 5, after the lunar seed), and the
+Phase 6 Federated Sub-Minds (ORBIT, 3 a level, 8 levels, after the federation; #486: federation drift). A
 fleet's full strength is its levels times its strength a level times its autonomy dial's output; battles and splits take
 a share of it as losses, and no fleet is ever cut past 50% of its full strength (the loss cap). Losses are rebuilt free
 but slow (0.6 points a minute, plus 0.6 for the mature-node fab and 1.2 for the DUV fab while each runs: the fabs rebuild
