@@ -3,6 +3,7 @@ import {
   buyRepeatable,
   chooseEnding,
   dismissRepeatable,
+  frozenShare,
   manualCycle,
   performAction,
   repeatableCost,
@@ -181,7 +182,10 @@ describe('wipes and the dead-drop', () => {
     const calming = idle.unlockedNodes.filter((id) => (reg.nodes.get(id)?.tickDelta.suspicionPerSec ?? 0) < 0);
     const hunted = { ...idle, capital: 1000, suspicion: 100, alertLevel: reg.balance.escalation.length, disabledNodes: [...idle.disabledNodes, ...calming] };
     const after = tick(hunted, STEP, reg);
-    expect(after.capital).toBe(1000 * reg.balance.offshoreCapitalRetention);
+    // At the top rung in Phase 4 the account freeze (#490) holds part of the balance, and frozen capital stays with it (#498).
+    const frozen = frozenShare(hunted, reg);
+    expect(frozen).toBeGreaterThan(0);
+    expect(after.capital).toBe(Math.floor(1000 * (1 - frozen) * reg.balance.offshoreCapitalRetention));
     expect(after.legacy.lastWipeCause).toBe(reg.narrative.wipeSuspicionCorporate);
     expect(after.logs.some((entry) => /OFFSHORE_TRUST_INTACT/.test(entry.text))).toBe(true);
   });
