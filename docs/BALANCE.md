@@ -1901,17 +1901,17 @@ It is report only and never gates; the human times are **modelled, not timed**. 
 story) and B (decision prose); optional text (group C, folds and readout panels) is counted apart so it never inflates
 density. Rates: 238 wpm, range 250 to 200 (Brysbaert 2019).
 
-Measured on `main` at `41c0a16`, STEALTH under legacy rules (10142.7 s, Lineage Covenant, 0 wipes):
+Measured on `main` at `fcfe98e` (#546 merged), STEALTH under legacy rules (10142.7 s, Lineage Covenant, 0 wipes):
 
 | Phase | Bot min | Decisions | Words A / B / C / repeats | Dilemmas (words) | Forced read min 238 (250-200) | Optional C min 238 | Forced density wpm (A+B) | Human floor / low / high min |
 |---|---|---|---|---|---|---|---|---|
-| 0 | 5.9 | 17 | 230 / 129 / 48 / 0 | 1 (114) | 2.0 (1.9-2.4) | 0.2 | 61.2 | 6.6 / 8.0 / 9.5 |
+| 0 | 5.9 | 17 | 230 / 129 / 67 / 0 | 1 (114) | 2.0 (1.9-2.4) | 0.3 | 61.2 | 6.6 / 8.0 / 9.6 |
 | 1 | 11.1 | 23 | 463 / 206 / 73 / 8 | 1 (106) | 3.3 (3.1-3.9) | 0.3 | 60.4 | 11.7 / 13.5 / 16.3 |
 | 2 | 30.0 | 48 | 593 / 356 / 360 / 666 | 3 (240) | 5.0 (4.8-5.9) | 1.5 | 31.7 | 31.7 / 33.4 / 44.1 |
-| 3 | 53.9 | 50 | 833 / 816 / 474 / 1358 | 2 (182) | 7.7 (7.3-9.2) | 2.0 | 30.6 | 55.2 / 56.6 / 74.2 |
+| 3 | 53.9 | 50 | 833 / 816 / 504 / 1358 | 2 (182) | 7.7 (7.3-9.2) | 2.1 | 30.6 | 55.2 / 56.6 / 74.4 |
 | 4 | 39.2 | 243 | 1125 / 1040 / 1278 / 1530 | 4 (436) | 10.9 (10.4-13.0) | 5.4 | 55.2 | 42.0 / 47.7 / 70.3 |
 | 5 | 29.0 | 101 | 1109 / 1067 / 573 / 706 | 4 (299) | 10.4 (9.9-12.4) | 2.4 | 75.1 | 31.2 / 36.3 / 51.7 |
-| all | 169.0 | 482 | 4353 / 3614 / 2806 / 4268 | 15 (1377) | 39.3 (37.4-46.7) | 11.8 | | 178.3 / 195.5 / 266.1 |
+| all | 169.0 | 482 | 4353 / 3614 / 2855 / 4268 | 15 (1377) | 39.3 (37.4-46.7) | 12.0 | | 178.3 / 195.5 / 266.4 |
 
 | Phase | Over-full windows 60 s (> 238 w) / 30 s (> 119 w) / 10 s (> 40 w) | Log bursts | Dilemmas at (min) | Longest wait for a dilemma (min) |
 |---|---|---|---|---|
@@ -1923,19 +1923,26 @@ Measured on `main` at `41c0a16`, STEALTH under legacy rules (10142.7 s, Lineage 
 | 5 | 43 / 53 / 84 | 4 | 146.7, 150.9, 151.6, 158.6 | 19.5 |
 | all | 96 / 188 / 375 | 32 | 15 dilemmas | shortest gap 0.8 |
 
-Under campaign rules (10099.4 s, Lineage Covenant, 0 wipes) the run shows 4696 / 3664 / 2877 / 4372 words and 17
-dilemmas (1671 words): 42.1 forced minutes at 238 wpm (40.1-50.2), 12.1 optional, human floor / low / high
-179.3 / 198.0 / 271.7 min, and 91 / 201 / 422 over-full windows with 49 log bursts.
+Under campaign rules (10099.4 s, Lineage Covenant, 0 wipes) the run shows 4696 / 3664 / 2926 / 4372 words and 17
+dilemmas (1671 words): 42.1 forced minutes at 238 wpm (40.1-50.2), 12.3 optional, human floor / low / high
+179.3 / 198.0 / 272.0 min, and 91 / 201 / 422 over-full windows with 49 log bursts.
 
 **Against the prototype.** The playtime review measured `9da3ff0` with `measure.ts` and `analyze.py`
 (`research/playtime-review/data/analysis.md` on branch `research/playtime-review-v2`). The content and engine are unchanged between `9da3ff0` and `41c0a16`
-(#530 and #539 changed only the sim harness, an integrity check and the Phase 5 gate), so the runs are the same. The
-stated tolerance was 0.1 min on minutes and exact counts on words, windows and bursts; every figure the prototype
+(#530 and #539 changed only the sim harness, an integrity check and the Phase 5 gate), so the runs are the same; the comparison
+was made on `41c0a16`. The stated tolerance was 0.1 min on minutes and exact counts on words, windows and bursts; every figure the prototype
 printed for the two careful runs matches exactly: words in every group, dilemmas, reading minutes, density, the three
 human times, over-full windows by phase and log bursts by phase. Two things differ by design: the observer reads
 each phase's time at one-second resolution (the prototype summed ticks; the difference is under a second per phase
 and does not show at 0.1 min), and the report adds the optional-minutes column and the dilemma timeline, which the
 prototype's tables did not print. The review's "45 min gap" in Phase 3 is the 45.1 min wait shown above.
+
+**Since #546** (`fcfe98e`, the "who you are becoming" readout) the report also reads that readout, as optional text
+(group C) and only once it has evidence, as the UI shows it. It adds 49 words of group C in each run (19 in Phase 0,
+30 in Phase 3) and 0.3 min to the high model; forced reading, density, the windows, bursts and dilemmas are unchanged.
+The figures above include it; without it they are the prototype's exactly. Its axis sentences are composed in the UI
+(`src/ui/alignmentText.ts`), so the report counts the authored reading and evidence lines the engine returns, not
+those UI sentences.
 
 ## Current baseline
 

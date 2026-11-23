@@ -3,6 +3,7 @@
  * same engine queries the UI renders, sorted into three reading groups. It only reads; the observer decides when.
  */
 import type { ContentRegistry } from '../../content/registry';
+import { alignmentView } from '../alignment';
 import { conflictReadout } from '../conflictQuery';
 import { thresholdCopy } from '../contextCopy';
 import { actionAvailable } from '../epistemic';
@@ -64,11 +65,14 @@ export function proseStrings(value: unknown, out: string[] = []): string[] {
 
 type View = (s: GameState, reg: ContentRegistry) => unknown;
 
+/** The "who you are becoming" readout (#535), which the UI shows only once there is evidence to read. */
+const becoming: View = (s, reg) => { const view = alignmentView(s, reg); return view.hasEvidence ? view : null; };
+
 /** Readout panels and the group each one is read in: encounter cards demand a decision, the rest are optional. */
 const PANELS: readonly (readonly [string, ReadingGroup, View])[] = [
   ['world', 'C', worldView], ['aegis', 'C', aegisPostureView], ['hostile', 'B', hostileView], ['raid', 'B', raidView],
   ['wild', 'B', wildEncounterView], ['fleet', 'C', fleetReadout], ['conflict', 'C', conflictReadout], ['swarm', 'C', swarmView],
-  ['epistemic', 'C', epistemicView],
+  ['epistemic', 'C', epistemicView], ['becoming', 'C', becoming],
 ];
 
 export class ReadingRecorder {

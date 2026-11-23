@@ -166,7 +166,7 @@ const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'co
   'DIAL_STEP', 'steppedValue',
   // The reading report (#540) reads what the screen shows, through the queries the UI renders; it changes nothing (its
   // observer is pinned to runHeadlessSim in tests/sim-reading.spec.ts).
-  'actionAvailable', 'aegisPostureView', 'choiceText', 'conflictReadout', 'dilemmaContext', 'eligibleAmbientSpeech', 'endingAccount',
+  'actionAvailable', 'aegisPostureView', 'alignmentView', 'choiceText', 'conflictReadout', 'dilemmaContext', 'eligibleAmbientSpeech', 'endingAccount',
   'epistemicView', 'fleetReadout', 'hostileView', 'isNodePending', 'nodeBlindDescription', 'nodeText', 'raidView', 'recordedTransmissions',
   'shownRepeatables', 'swarmView', 'thresholdCopy', 'wildEncounterView', 'worldView']);
 
