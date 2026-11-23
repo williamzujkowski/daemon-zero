@@ -360,6 +360,10 @@ New tickets, each its own PR under the usual panel and green CI:
 The existing tickets keep their scope: the Phase 5 arc (#465) gains the fusion, space-solar and orbital-compute
 nodes from items 1-2, and the endings ticket (#466) gains the Swarm endings and the epilogue cards.
 
+Built in #465: the beaming demonstrator, beamed power satellites, orbital compute bound by radiator area (`wattsPerKm2`
+on the orbital-radiator sink, `engine/radiators.ts`), radiator wings, the cislunar foundry and the Mercury survey as the
+Phase 6 transition node; numbers, anchors and pacing are in BALANCE.md, "The Phase 5 arc (#465)".
+
 ## Round 3: suspicion escalates, and other minds scale
 
 The maintainer's third brief (2026-11-22): rising suspicion should bring heightened AEGIS attention, hostile

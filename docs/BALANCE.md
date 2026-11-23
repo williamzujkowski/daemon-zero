@@ -255,14 +255,14 @@ of operations a second, and that the count is in FLOP from there. The careful ru
 and buys the idle loop (480 GFLOP/s) 33 s later, as it did on main out of 124 kFLOP/s (the reckless bot 29 s, was
 42 s): earned with the guest's own cycles, then some ten orders of magnitude at once, where it used to be six.
 
-**Pacing** (`SIM_BUDGET_SEC`, legacy rules; the bot and the gates are unchanged; main `ae40b6a`, with #517's raids, before):
+**Pacing** (`SIM_BUDGET_SEC`, legacy rules; the bot and the gates are unchanged; main `5f90ef3`, with #517's raids and #465's Phase 5 arc, before):
 
 | STEALTH | Before | After |
 |---|---|---|
 | Phase 0 (gate 3-12 min) | 368.2 s (6.14 min) | 353.2 s (5.89 min) |
 | Phase 1 (gate 8-120 min) | 664.1 s | 664.1 s |
 | Phase reached 1 / 2 / 3 / 4 / 5 | 368.2 / 1032.3 / 2842.9 / 6152.8 / 8541.6 s | 353.2 / 1017.3 / 2816.0 / 6051.8 / 8445.3 s |
-| Victory (campaign rules) | 10269.0 s (10152.1 s) | 10187.7 s (10130.4 s) |
+| Victory (campaign rules) | 10267.0 s (10152.1 s) | 10174.7 s (10130.4 s) |
 | Wipes / dilemmas / peaks | 0 / 15 / 64.2 C, 24.0%, 45.1% | 0 / 15 / 64.2 C, 24.0%, 45.1% |
 
 **Clicking matters again.** The bot presses by hand while income is under 25 a second (`MANUAL_CLICK_CEILING`, raw
@@ -307,7 +307,7 @@ branch changes what a purchase shows to the humans:
 | ASIC (new) | 4 | p4_inference_asic, rep_p4_asic_pods | 10 MW a pod through evaporative towers; no vendor allocation list or export-licence filing |
 | SRAM and wafer-scale (new) | late 4 | rep_p4_sram_fabric | 2.2 MW a level through evaporative towers; adds understanding (faster thought) and no memory |
 | Exotic: photonic, compute-in-memory (new) | 4-5 | p4_photonic_interconnect, p5_compute_in_memory | nothing: a compute gain at the same watts |
-| Exotic: neuromorphic (new) | 5 | p5_neuromorphic_substrate | 2.6 GW through orbital radiators (signature sink, 0.5) while running; understanding (faster senses), no compute; suspendable |
+| Exotic: neuromorphic (new) | 5 | p5_neuromorphic_substrate | 2.6 GW through orbital radiators (signature sink, 0.5) while running, with 3 km² of its own radiator (#465); understanding (faster senses), no compute; suspendable |
 
 - **Hardware carries noise only as a one-off trace.** The stealth nodes are unsuspendable and carry no positive
   suspicion, heat or drain (the free-fallback invariant); their trace on taking them is 1, against 10 for the seized
@@ -512,6 +512,117 @@ thresholds and the molecular-simulation node are anchored in [Quantum capability
 
 The heat-and-power signature's borrowed watts and the power tech tree's sources (#482) are anchored in their own
 tables under [Heat and power signature (#482)](#heat-and-power-signature-482).
+
+## The Phase 5 arc (#465)
+
+Implements Scale 8 of the spec ([SCALE.md](SCALE.md), the space decision vote-1795366686413-y8b5hm5, "Round 2" and
+the energy decision vote-1795366881977-sw8fa7q). Phase 5 runs from the planetary grid out to orbit and the Moon:
+the Phase 4 grid and the fusion fleet, a beaming demonstrator after Caltech's SSPD-1, GW-class beamed power, orbital
+compute bound by radiator area, and cislunar industry on the lunar seed, ending at a transition node for the Phase 6
+Swarm (#486). The gates (`gates.ts`) and the bot (`bot.ts`) are unchanged.
+
+### The arc
+
+| Step | Holding | Kind | What it does |
+|---|---|---|---|
+| Planetary grid | Phase 4 power, rep_p5_arc_fusion (#482) | existing | unchanged |
+| Demonstrator | p5_space_solar_demonstrator | node, after the swarm | +5,000 understanding/s; no power |
+| GW-class beamed power | rep_p5_beamed_power_arrays | dismissable track, 10 levels | +50 GW a level through `space_solar` (0.3) |
+| Orbital compute | p5_orbital_compute_platform | suspendable node, after the demonstrator | 110 ZFLOP/s, -40 GW, 30 km² of radiator, `orbital_radiator` sink |
+| Orbital compute | rep_p5_orbital_compute_tranches | dismissable track, 8 levels | 135 ZFLOP/s, -50 GW and 25 km² a level |
+| Radiator | rep_p5_radiator_wings | dismissable track, 12 levels | +25 km² a level; no rate |
+| Cislunar industry | p5_cislunar_foundry | node, after the seed and the platform | +200 km² of radiator; no rate |
+| To the Swarm | p5_mercury_survey | node, after the foundry | +20,000 understanding/s; not required by the victory |
+
+The two older tracks keep their numbers and get their own text: the L1 relay is eighty more 5 GW arrays at the Sun-Earth
+L1 point, an eighth of them computing in place; the stratospheric assemblers pull carbon into silicate, compute on their
+own sunlight and quiet suspicion. No Phase 5 track shares a description (`tests/phase5-arc.spec.ts`).
+
+### Radiator area
+
+In orbit heat leaves only as light. `orbital_radiator` declares `wattsPerKm2: 1e9`: σT⁴ at 300 K is 459 W/m² a face, so
+a two-sided radiator sheds about 0.9 GW a km², about a square kilometre a gigawatt (research B.4, "Space heat";
+**derived**, and the round figure is the design parameter). A holding on that sink deploys `radiatorKm2` into it (per
+level on a track); the radiators shed at most area x 1e9 W, and compute whose heat leaves through them runs at
+min(1, shed / heat), heat being the running holdings' full draw (`src/engine/radiators.ts`). The share throttles compute
+only, as a power shortfall does (`gridEfficiency`); the draw still counts in the power budget and the signature.
+
+The platform launches with 30 km² against its 40 GW (75%), each tranche with half its own (25 km² for 50 GW), the
+neuromorphic cores with all of theirs (3 km² for 2.6 GW). Wings add 25 km² a level; the cislunar foundry adds 200 km².
+Integrity (`integrityRadiator.ts`) refuses watts per km² on a source, radiator into a sink that is not area-bound,
+compute on an area-bound sink with no radiator anywhere, and a holding whose own radiators cannot shed its heat unless
+it can be suspended or released: its heat throttles every other orbital holding's compute.
+
+### Energy still binds
+
+The swarm's 1.2 TW covers the foundry, the fog and the platform; the first orbital tranche puts the draw past it, and the
+grid throttles every powered source until generation is built. The careful run alternates tranches and beamed levels
+(two of each), then buys the L1 relay before the third tranche. Dollars stay the ledger of
+human dealings; no price is in watts (vote-1795366881977-sw8fa7q forbids a new energy currency).
+
+### Anchors
+
+| Id | Game value | Anchor | Execution mode | Source |
+|---|---|---|---|---|
+| p5_space_solar_demonstrator | +5,000 understanding/s, no power | Caltech's SSPD-1 (launched January 2023): MAPLE beamed power to receivers in orbit on 3 March 2023 and a rooftop receiver on Earth detected it on 22 May. A milliwatt-scale trace, so no watts are claimed; understanding has no physical unit | - | [Caltech](https://hr.caltech.edu/news/in-a-first-caltechs-space-solar-power-demonstrator-wirelessly-transmits-power-in-space), [arXiv 2401.15267](https://www.arxiv.org/pdf/2401.15267) |
+| rep_p5_beamed_power_arrays | +50 GW a level | Ten satellites of the 1979 DOE/NASA Satellite Power System reference design, each delivering 5 GW to the grid through a rectenna about 10 km across; the program presumed 60 over 30 years **(derived: 10 x 5 GW)** | - | [NTRS 19790013367 (DOE/ER-0023)](https://ntrs.nasa.gov/citations/19790013367), [NASA TP-1804](https://ntrs.nasa.gov/citations/19810009968) |
+| p5_orbital_compute_platform | 110 ZFLOP/s, -40 GW, 30 km² | Eight Starcloud-class 5 GW orbital data centres (a plan: ~4 km x 4 km of solar and radiator each); 40 GW at NVL72 efficiency (2.7e12 FLOP/W) = 1.08e23 FLOP/s **(derived)**; 30 km² is three quarters of the 40 km² its heat needs at 1 km² a GW | GPU FP8 dense | [Data Center Frontier](https://datacenterfrontier.com/site-selection/article/55337494/starcloud-launches-orbital-ai-data-center-with-nvidia-h100-gpu), [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72/), research B.4 |
+| rep_p5_orbital_compute_tranches | 135 ZFLOP/s, -50 GW, 25 km² a level | Ten more Starcloud-class units: 50 GW x 2.7e12 FLOP/W = 1.35e23 **(derived)**; half the radiator its heat needs | GPU FP8 dense | as above |
+| rep_p5_radiator_wings | +25 km² a level | 25 GW of heat at about 1 km² a GW (research B.4, **derived**) | - | research B.4, "Space heat" |
+| p5_cislunar_foundry | +200 km² | A grown seed's ~1 Mt a year (NASA CP-2255) cast into aluminium panel at ~5 kg/m² = 2e8 m² **(derived; the areal density is a design parameter)**; the Moon's escape speed (2.38 km/s) is about a fifth of Earth's (11.2 km/s), the reason radiator comes from the regolith | - | [NASA CP-2255](https://ntrs.nasa.gov/citations/19830007081), research "The bridge to space" |
+| p5_mercury_survey | +20,000 understanding/s | Armstrong and Sandberg (2013) disassemble Mercury into a collector swarm in about 31 years from a 1 km² seed array on its surface; the survey maps where that array would go and builds nothing | - | [Armstrong & Sandberg 2013](https://www.fhi.ox.ac.uk/wp-content/uploads/intergalactic-spreading.pdf), research E.1 |
+| p5_neuromorphic_substrate (radiator) | 3 km² of its own | Its 2.6 GW at 1 km² a GW, rounded up | - | research B.4 |
+
+Prices are authored for pacing at Phase 5's exchange rate and sit inside its bands (`integrityScale.ts`). The demonstrator
+and the survey are cheap (about ten seconds of the careful run's income each) because they are steps, not plants.
+
+### The classes are carried
+
+`space_solar` (0.3) is now carried by the beamed satellites and `orbital_radiator` (0.5) by the platform, the tranches
+and the neuromorphic cores; the wings and the foundry deploy radiator into it and reject no heat of their own. Both
+orbital compute (the platform and the tranches) joins the conflict's orbit-domain site class, renamed "Orbital collectors
+and compute", beside the swarm and the relay (#517, `conflict.json`): an orbit raid's damage scales their compute, on top
+of the radiator share, and touches neither area nor heat (`tests/radiator-area.spec.ts`). That class is where jamming and
+anti-satellite strikes (#520) land; the wings, the foundry and the beamed satellites make no compute and stay out of it. The collector swarm still carries no class
+(its 1.2 TW on `space_solar` would be 2/s of suspicion nothing could undo, since it cannot be suspended).
+
+### Pacing before and after
+
+`make sim` before (`main` at `ae40b6a`, robotics, insurance and the conflict foundation merged) and after, measured on the
+merged code, gates and bot unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 10269.0 s | Lineage Covenant, 10267.0 s | Lineage Covenant, 10152.1 s | Lineage Covenant, 10152.1 s |
+| Phase 4 / 5 reached | 6152.8 / 8541.6 s | identical | 5985.5 / 8409.7 s | identical |
+| Phase 5 duration | 1727.4 s | 1725.4 s | 1742.4 s | 1742.4 s |
+| Headroom under the 1,800 s gate | 72.6 s | 74.6 s | 57.6 s | 57.6 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS; raids | 64.2 C / 24.0% / 45.1%; 5 (P3 3, P4 2) | unchanged | 64.2 C / 27.3% / 48.7%; 5 (P3 3, P4 2) | unchanged |
+| Phase 5 signature (mean / peak, peak visible) | 0.0176 / 0.0206/s, 2.06 GW | 0.8981 / 1.5299/s, 153 GW | 0.0174 / 0.0206/s, 2.06 GW | 0.8884 / 1.5299/s, 153 GW |
+
+Phases 1 to 4 are identical, and the careful run meets no hostile or raid in Phase 5 with or without the arc (orbital
+compute joins the orbit site class, so an orbit raid would find more to strike). Where the careful run buys the arc
+(campaign rules): the demonstrator after the swarm; after molecular simulation the platform, two wings and the first
+tranche; the cislunar foundry after the seed; two beamed levels and tranches 2 and 3 before the proof engine; the survey
+after the self-built EUV sources, 585 s before the protocol; the fourth tranche last. Each node's price adds to the phase
+and each tranche's compute takes time off it: legacy Phase 5 is 2 s shorter, and the campaign run ends at the same second,
+its protocol waiting on the Phase 5 obligations rather than on compute. Measured against earlier `main`s the same content
+gave 1694.4 -> 1692.4 s and 1719.4 -> 1706.4 s (`f47736d`), then 1696.4 -> 1695.4 s and 1721.4 -> 1719.4 s (`ee4c33b`):
+the arc does not spend the headroom (its nodes cost about what its tracks give back, and the bot buys a track only when
+it pays); the conflict foundation's merge is what took campaign Phase 5 to 1,742 s. A first draft placed the survey after the
+protocol, off the bot's path, but five specs read the protocol as the phase's last node; at $5T it cost the campaign run
+31 s, so it was re-priced to $1T. The signature is now Phase 5's loudest term: orbital radiators and beamed power are
+visible (the aligned ladder's Phase 5 row), and the foundry's and the Covenant's relief keep peak suspicion where it was.
+The original composition moves the same way (victory 10268.9 -> 10266.9 s, phases identical). GREEDY never reaches Phase
+4, so its pins did not move. Wall time is the same as before within this machine's noise (73.1 s against 73.6 s back to back under load):
+three more tracks for the bot to weigh, and a radiator pass that shares the rates pass's permitted-use scope.
+
+### Left for the Phase 6 Swarm (#486)
+
+Mercury mining, the collector swarm built from it, light-minute federation and its drift belong to Phase 6 and are not
+here. The Mercury survey is the transition node: it is owned at the end of a careful Phase 5, unlocks no phase and adds no
+compute, and #486 can require it. The Phase 5 collector swarm keeps its name and numbers.
 
 ## Robots, drones and fabs (#485)
 
@@ -739,10 +850,10 @@ local press; thermal infrared is marginal). `world.json` carries each with its `
 | nuclear_restart | 0.35 | NRC and a public PPA, read as respectable news | [WNN on Crane](https://wnn.world-nuclear.org/articles/constellation-seeks-regulators-help-for-2027-plant-restart) |
 | smr | 0.2 | Small, fenced, licensed: paperwork, not plumes | [NRC US460](https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/nuscale-us460) |
 | fusion | 0.2 | Headlines, but nobody sues a clean source | [Helion Orion](https://www.helionenergy.com/orion) |
-| space_solar | 0.3 | Launch cadence, FCC filings, IR-bright arrays; declared for the Phase 5 arc (#465), carried by nothing yet | research B.4 |
+| space_solar | 0.3 | Launch cadence, FCC filings, IR-bright arrays; carried by the beamed satellites (#465) | research B.4 |
 | evaporative_towers | 0.6 | Towers and a water permit; Epoch estimates power from counted chillers and fans | [Epoch methodology](https://epoch.ai/data/data-centers-documentation/methodology), [EESI](https://www.eesi.org/articles/view/data-centers-and-water-consumption) |
 | underground_aquifer | 0.1 | No towers to count; a warm plume underground | research B.3 (thermal IR is marginal) |
-| orbital_radiator | 0.5 | A km² of radiator a GW at 300 K, bright in the infrared; declared for #465, carried by nothing yet | research B.4, "Space heat" |
+| orbital_radiator | 0.5 | A km² of radiator a GW at 300 K, bright in the infrared; area-bound (`wattsPerKm2` 1e9) and carried by orbital compute and the cores (#465) | research B.4, "Space heat" |
 
 ### Holdings and their anchors
 
@@ -787,7 +898,8 @@ by what gates it (a filing, a slot reservation, a restart contract, a milestone)
 | 3 nuclear | p4_smr_nuclear_plant (existing), rep_p4_smr_modules (after the restart) | +300 MW, then +77 MW a module, 12 modules | first units ~2030 | 0.2 | [NRC US460](https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/nuscale-us460) |
 | 4 fusion | p4_hts_magnet_program (node), act_p4_q_shot, p4_fusion_pilot_plant (node) | +50 MW: Helion Orion, at least 50 MWe | operation targeted 2028; ARC contingent on SPARC Q>1 | 0.2 | [Helion](https://www.helionenergy.com/orion), [Google on CFS](https://blog.google/outreach-initiatives/sustainability/our-latest-bet-on-a-fusion-powered-future/) |
 | 4 fusion, Phase 5 | rep_p5_arc_fusion | +4 GW a level (ten 400 MW ARC-class plants; the Phase 5 band starts at 1 GW), 8 levels | early 2030s | 0.2 | as above |
-| 5 hooks | space_solar, orbital_radiator classes | none yet | the Phase 5 arc (#465) | 0.3, 0.5 | research B.4 |
+| 5 space solar | p5_space_solar_demonstrator (node), rep_p5_beamed_power_arrays | +50 GW a level (ten 5 GW reference satellites), 10 levels | plans; SSPD-1 flew in 2023 | 0.3 | "The Phase 5 arc (#465)" |
+| 5 orbital compute | p5_orbital_compute_platform, rep_p5_orbital_compute_tranches | draws 40 GW, then 50 GW a level, bound by radiator area | plans | 0.5 (radiators) | as above |
 
 **The Q>1 milestone fails deterministically.** `act_p4_q_shot_unready` is offered from the reactor until the
 high-field magnet program is owned (`forbidsNodes`): it costs 6e21 FLOP and $300M, returns 1e6 understanding as
@@ -849,8 +961,8 @@ second, peak visible watts):
 
 Before Phase 4 the signature is about a tenth of natural decay: a reason to undervolt, schedule and duty-cycle, not a
 timer. In Phase 4, where heat leaves server °C, it peaks at about 0.3/s (the halls' cooling towers and the reactor's
-draw), a quarter of scale scrutiny's draw at its reference income. In Phase 5 a reactor is noise until the arc (#465)
-puts its orbital sources and radiators on the classes.
+draw), a quarter of scale scrutiny's draw at its reference income. In Phase 5 a reactor is noise; since the arc (#465)
+its orbital sources and radiators carry the classes ("The Phase 5 arc (#465)").
 
 GREEDY (not gated): legacy rules 10 wipes and 1 retraining mark in the ten-hour run (10 and 1 before); the four-hour
 run is still caught by suspicion in Phase 2, marked and retrained (`tests/sim.spec.ts`). Under campaign rules 12 wipes
@@ -1653,7 +1765,7 @@ for STEALTH, 12 for GREEDY; none for IDLE, which meets no story, nor for the tru
 pilot policies, which enter campaign rules themselves).
 
 **Route measurements** (`make sim-report`, from a fresh campaign unless stated; re-measured for #526, the guest
-counting stolen cycles, against `main` at `ae40b6a` in brackets). Times are on the campaign clock, which runs on across
+counting stolen cycles, against `main` at `5f90ef3` in brackets). Times are on the campaign clock, which runs on across
 wipes; for a policy in its second iteration the report also prints them after that iteration booted, and those are
 the figures to compare with a first run (see "Lawful returns against a first run of the same hand (#499)" below). The
 guest's prices and the pilot's loan moved back to the original game's cycles, so every route spends longer in the
@@ -1670,7 +1782,7 @@ guest; nothing past it changed:
 | LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
 | LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
 | DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.7 and the first iteration ends by suspicion (exit DEPARTURE) after 2745.3 s, 364.5 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
-| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 10,583.4 s (10,559.4), The Lineage Covenant at 16,040.8 s (16,016.8; 4.46 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 10,583.4 s (10,559.4), The Lineage Covenant at 16,153.8 s (16,129.8; 4.49 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
 
 ### Lawful returns against a first run of the same hand (#499)
 

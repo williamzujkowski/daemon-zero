@@ -7,6 +7,7 @@ import { exactCompactNumber } from './compactNumber';
 import { costPart, deltaPart } from '../engine';
 import { memoryExact, storageExact } from './units';
 import { deliveredText, SOURCE_CLASS_LABEL } from './networkText';
+import { radiatorCardNotes } from './radiatorText';
 import type { ComputeUnit, Couplings } from '../engine';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
@@ -52,6 +53,7 @@ export function nodeUtilityText(node: RegistryNode, surveillanceKnown: boolean, 
   if (memoryCapIncrease !== undefined && memoryCapIncrease > 0) parts.push(`+${memoryExact(memoryCapIncrease)} capacity`);
   if (storageCapIncrease !== undefined && storageCapIncrease > 0) parts.push(`+${storageExact(storageCapIncrease)} storage`);
   if (node.cost.storage > 0) parts.push(`holds ${storageExact(node.cost.storage)} of storage while it runs`);
+  parts.push(...radiatorCardNotes(node.signature, node.tickDelta, false).map((note) => note.charAt(0).toUpperCase() + note.slice(1)));
   if (raisesCoupling !== undefined) {
     parts.push(`${SOURCE_CLASS_LABEL[raisesCoupling.sourceClass]} couple at ${String(Math.round(raisesCoupling.coupling * 100))}% while it runs`);
   }

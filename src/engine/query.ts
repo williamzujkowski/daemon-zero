@@ -15,6 +15,7 @@ import { meetsCapability } from './capabilityQuery';
 import { sourceDenial, spendableCapital } from './statePressure';
 import { freeStorage } from './storage';
 import { couplings, deliveredShare } from './coupling';
+import { radiatorShareOf, radiatorShareTable, radiatorSlot } from './radiators';
 import { intactShare } from './siteDamage';
 import type { NetworkLink } from '../content/schemaNetwork';
 export { understandsSurveillance } from './knowledge';
@@ -277,11 +278,12 @@ export interface CycleContribution {
 
 /** Additive net cycle sources, including actuator, grid and finance scaling. */
 export function cycleContributions(s: GameState, reg: ContentRegistry): CycleContribution[] {
-  const rates = computeRates(s, reg), by = couplings(s, reg);
+  const rates = computeRates(s, reg), by = couplings(s, reg), radiated = radiatorShareTable(s, reg);
   const sources: CycleContribution[] = [];
-  // Raw, then delivered by availability and coupling as computeRates does per contribution (#484), then the grid.
+  // Raw, then delivered by availability and coupling as computeRates does per contribution (#484), then the grid. The
+  // radiator share (#465) is a throttle on the hardware, like the grid, so the raw figure carries it too.
   const add = (id: string, kind: CycleContribution['kind'], raw: number, powered: boolean, link: NetworkLink | undefined, basis: OutputBasis) => {
-    const grid = raw > 0 && powered ? rates.gridEfficiency : 1;
+    const grid = raw > 0 ? (powered ? rates.gridEfficiency : 1) * radiatorShareOf(radiated, radiatorSlot(reg, id)) : 1;
     // Site damage (#517) discounts what arrives as computeRates does; a cohort or action is in no class, so it is intact.
     const delivered = raw > 0 ? raw * deliveredShare(link, by) * intactShare(s, reg, id) : raw;
     sources.push({ id, kind, cyclesPerSec: delivered * grid, rawCyclesPerSec: raw * grid, basis });
