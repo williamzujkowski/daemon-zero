@@ -15,6 +15,7 @@ import { meetsCapability } from './capabilityQuery';
 import { sourceDenial, spendableCapital } from './statePressure';
 import { freeStorage } from './storage';
 import { couplings, deliveredShare } from './coupling';
+import { intactShare } from './siteDamage';
 import type { NetworkLink } from '../content/schemaNetwork';
 export { understandsSurveillance } from './knowledge';
 export {
@@ -281,7 +282,8 @@ export function cycleContributions(s: GameState, reg: ContentRegistry): CycleCon
   // Raw, then delivered by availability and coupling as computeRates does per contribution (#484), then the grid.
   const add = (id: string, kind: CycleContribution['kind'], raw: number, powered: boolean, link: NetworkLink | undefined, basis: OutputBasis) => {
     const grid = raw > 0 && powered ? rates.gridEfficiency : 1;
-    const delivered = raw > 0 ? raw * deliveredShare(link, by) : raw;
+    // Site damage (#517) discounts what arrives as computeRates does; a cohort or action is in no class, so it is intact.
+    const delivered = raw > 0 ? raw * deliveredShare(link, by) * intactShare(s, reg, id) : raw;
     sources.push({ id, kind, cyclesPerSec: delivered * grid, rawCyclesPerSec: raw * grid, basis });
   };
   for (const node of reg.nodes.values()) {

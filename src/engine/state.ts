@@ -11,11 +11,12 @@ import { ContentChannelSchema } from '../content/schemaChannel';
 import { SevereRecallSchema } from '../content/schemaReview';
 import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
+import { ConflictStateSchema, initialConflict } from './conflictState';
 import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 23;
+export const SCHEMA_VERSION = 24;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -106,6 +107,8 @@ export const GameStateSchema = z.strictObject({
   hasMaxDriftShardAnomaly: z.boolean(),
   /** The hostile-mind slot (#491, hostileState.ts): its own lifecycle, apart from the wild slot above. */
   hostile: HostileStateSchema,
+  /** The conflict record (#517, conflictState.ts): a raid in the hostile slot, site damage, and the exact counters. */
+  conflict: ConflictStateSchema,
   actionCounts: z.record(z.string(), count),
   actionEffectUntil: z.record(z.string(), nonNegative),
   iteration: z.number().int().min(1),
@@ -212,12 +215,12 @@ export const ZERO_RATES: Rates = {
 };
 
 function initialSwarmState(): Pick<GameState, 'epistemicDrift' | 'narrativeFlags' | 'activeShards' |
-  'pendingWildEncounterId' | 'nextEncounterAtSec' | 'encounterSequenceIndex' | 'hasMaxDriftShardAnomaly' | 'hostile' |
+  'pendingWildEncounterId' | 'nextEncounterAtSec' | 'encounterSequenceIndex' | 'hasMaxDriftShardAnomaly' | 'hostile' | 'conflict' |
   'actionCounts' | 'actionEffectUntil'> {
   return {
     epistemicDrift: 0, narrativeFlags: [], activeShards: {}, pendingWildEncounterId: null,
     nextEncounterAtSec: 120, encounterSequenceIndex: 0, hasMaxDriftShardAnomaly: false, hostile: initialHostile(),
-    actionCounts: {}, actionEffectUntil: {},
+    conflict: initialConflict(), actionCounts: {}, actionEffectUntil: {},
   };
 }
 

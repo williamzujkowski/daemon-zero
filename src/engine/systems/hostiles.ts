@@ -14,6 +14,7 @@ export const integrateHostiles: TickSystem = (d, { dt, reg, dormant }) => {
   rearmLock(d, reg);
   const encounter = activeHostile(d, reg);
   if (encounter) { stepActiveHostile(d, reg, encounter, dt); return undefined; }
-  if (d.hostile.active === null && d.simTimeSec >= d.hostile.nextAtSec && hostileArrivalTriggered(d, reg)) arriveHostile(d, reg);
+  // The slot is shared with raids (#517): a raid under way holds it as a hostile mind would.
+  if (d.hostile.active === null && d.conflict.raid === null && d.simTimeSec >= d.hostile.nextAtSec && hostileArrivalTriggered(d, reg)) arriveHostile(d, reg);
   return undefined;
 };

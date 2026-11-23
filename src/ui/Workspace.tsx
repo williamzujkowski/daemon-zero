@@ -1,7 +1,7 @@
 /** Workspace navigation and pending signals precede content; mobile scrolls them in one flow. */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../content';
-import { hostileView, retiredWidgets, wildEncounterView } from '../engine';
+import { hostileView, raidView, retiredWidgets, wildEncounterView } from '../engine';
 import { Pressable, Text, View } from './PhaseTheme';
 import { ARCHIVE_SLOT, workspaceAreas } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
@@ -57,11 +57,28 @@ function HostileNotice({ slot }: { slot: string }) {
   </Pressable>;
 }
 
+/**
+ * A raid under way (#517) shares the hostile slot, so it takes the hostile notice's place, with its rules: a route to
+ * SWARM, not a live region, closing the phone's flow rather than pushing the first work card down. Battles fight
+ * themselves, so the control says VIEW, not ANSWER.
+ */
+function RaidNotice({ slot }: { slot: string }) {
+  const name = useGame((game) => raidView(game, CONTENT)?.name ?? null);
+  if (name === null) return null;
+  return <Pressable testID="raid-notice" accessibilityRole="button" accessibilityLabel={'RAID // ' + name + ' [ VIEW ] - follow this raid in SWARM'}
+    style={theme.button} onPress={() => { requestRoute({ kind: 'area', slot, area: 'swarm' }); }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <Text testID="raid-notice-name" numberOfLines={2} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>RAID // {name}</Text>
+      <Text style={[theme.text, { flexShrink: 0 }]}>[ VIEW ]</Text>
+    </View>
+  </Pressable>;
+}
+
 /** The notices a phone shows at the end of the pane's flow rather than under the area tabs. */
 export function WorkspaceNotices({ workspace }: { workspace: ReturnType<typeof useWorkspace> }) {
   const { slot, areas, active, tools } = workspace;
   if (!slot || areas.length === 0 || !tools || active === 'swarm') return null;
-  return <View style={{ paddingTop: 4 }}><HostileNotice slot={slot} /></View>;
+  return <View style={{ paddingTop: 4 }}><HostileNotice slot={slot} /><RaidNotice slot={slot} /></View>;
 }
 
 /** `flow`: the phone's one scroll, where the hostile notice moves to WorkspaceNotices at the end of the pane. */
@@ -79,6 +96,7 @@ export function WorkspaceHeader({ workspace, flow = false }: { workspace: Return
         onPress={() => { select(area); }}><Text style={theme.muted}>{areaTitles[area]}</Text></Pressable>)}
     </View>
     {!flow && tools && active !== 'swarm' && <HostileNotice slot={slot} />}
+    {!flow && tools && active !== 'swarm' && <RaidNotice slot={slot} />}
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
       {/* The name may take two lines (vote-1795208946788-lpjbyc5, #359): held to one, it lost about 91px at 390
