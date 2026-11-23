@@ -300,6 +300,10 @@ coupling, applied per contribution before aggregation, with coupling authored pe
 The coefficients are documented balance parameters, not measurements, and no figure aggregates bandwidths of
 different kinds. Both dimensions need a GameState change and a migration.
 
+Built in #484 (save v20): the class couplings are 1, 0.8 and 0.3, the edge harvest's availability is 0.02, and a
+dark-fibre ring raises inter-site coupling to 0.95; storage is held only by suspendable data nodes and every phase
+gate grants the next phase's room. Numbers, anchors and pacing: BALANCE.md, "Storage and network (#484)".
+
 ### Robotics and fabrication (vote-1795381358337-jw73j7a)
 
 From late Phase 4 into Phase 5:
