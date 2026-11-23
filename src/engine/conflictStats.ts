@@ -2,10 +2,12 @@
  * Defense and offense in three domains (#517, vote-1795442100055-6zz6hug): each is summed from what the player owns and
  * runs, as content declares per node and per track level. Each defense type returns less as it stacks
  * (softCap x raw / (raw + softCap)), so a mix beats a pile, and meets each attack vector by its own counter multiplier.
- * There is no stored ledger: every reader (the raid rounds, the forecast, the readout) sums the same holdings.
+ * There is no stored ledger: every reader (the raid rounds, the forecast, the readout) sums the same holdings. A fleet
+ * (#518) counts its levels at what it has not lost, times its autonomy dial's output.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { ConflictDomain, ConflictDomainEntry, ConflictHolding, DefenseType, SiteClass } from '../content/schemaConflict';
+import { fleetUnit, fleetYield } from './fleets';
 import { nodeOutputScaleIn, useScope, type UseScope } from './grantQuery';
 import type { GameState } from './state';
 
@@ -62,12 +64,17 @@ export function diminished(raw: number, softCap: number): number {
 export interface DefenseReading { type: DefenseType; raw: number; effective: number }
 export interface DomainStats { domain: ConflictDomainEntry; defense: DefenseReading[]; offenseRaw: number; offense: number }
 
-/** Every domain's defense by type and offense now, in content order, summed from what runs. */
-export function conflictStats(s: GameState, reg: ContentRegistry): DomainStats[] {
+/**
+ * Every domain's defense by type and offense now, in content order, summed from what runs. `withoutFleets` leaves the
+ * fleets out: once a fleet battle's engagement has broken them, they no longer screen or strike that raid (#518).
+ */
+export function conflictStats(s: GameState, reg: ContentRegistry, withoutFleets = false): DomainStats[] {
   const idx = conflictIndex(reg), scope = useScope(s, reg);
   const typeRaw = new Map<string, number>(), offenseRaw = new Map<ConflictDomain, number>();
   for (const source of idx.sources) {
-    const count = runningCount(scope, source);
+    const fleet = source.repeatable !== undefined && fleetUnit(reg, source.repeatable) !== undefined;
+    if (fleet && withoutFleets) continue;
+    const count = runningCount(scope, source) * (fleet ? fleetYield(s, reg, source.repeatable ?? '') : 1);
     if (count === 0) continue;
     for (const entry of source.holding.defense ?? []) typeRaw.set(entry.type, (typeRaw.get(entry.type) ?? 0) + entry.rating * count);
     for (const entry of source.holding.offense ?? []) offenseRaw.set(entry.domain, (offenseRaw.get(entry.domain) ?? 0) + entry.rating * count);

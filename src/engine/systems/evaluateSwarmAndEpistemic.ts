@@ -1,6 +1,7 @@
 /** Live-only epistemic drift, deterministic shard mutations and encounter scheduling.
  * Resource output is aggregated in computeRates so brownout/offline semantics stay shared.
  */
+import { cohortAutonomy, driftAfter, driftPerSec } from '../autonomy';
 import { channelEncounterEligible } from '../channelContact';
 import { eligibleWildEncounters, lapseRetiredEncounter } from '../encounterTiers';
 import { shardOutput } from '../swarmRates';
@@ -19,10 +20,12 @@ export const evaluateShardMutationsAndEncounters: TickSystem = (d, { dt, reg, do
   lapseRetiredEncounter(d, reg);
   if (dormant) return;
   const wasAnomaly = d.hasMaxDriftShardAnomaly;
+  const table = cohortAutonomy(reg);
   const entries = Object.entries(d.activeShards).map(([id, shard]) => {
     const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId);
-    if (!template || shard.autonomyMode !== 'STANDARD') return [id, shard] as const;
-    const drift = clamp(shard.drift + template.autonomyDriftPerSec * dt, 0, 100);
+    if (!template || table[shard.autonomyMode].drift === 0) return [id, shard] as const;
+    // A cohort shares one policy, so its drift does not grow with its count: its size is one (#518 generalised this).
+    const drift = driftAfter(shard.drift, driftPerSec(table, shard.autonomyMode, template.autonomyDriftPerSec, 1), dt);
     let quirkId = shard.quirkId;
     if (quirkId === null && drift >= reg.swarm.balance.mutationDrift) {
       const index = (Math.floor(d.simTimeSec) + d.encounterSequenceIndex) % reg.swarm.shardQuirks.length;
