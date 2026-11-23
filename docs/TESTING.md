@@ -8,6 +8,7 @@
 | Engine unit tests | Vitest | `tests/*.spec.ts` | `make test` (with coverage thresholds) |
 | Balance simulation | headless bot | `src/engine/sim/`, `scripts/run-sim.ts`, `tests/sim.spec.ts` | `make sim`, `make test` |
 | Route simulation report (report only) | sim policies | `scripts/run-sim-report.ts`, `tests/sim-policy.spec.ts`, `tests/sim-report.spec.ts` | `make sim-report`, `make test` |
+| Reading report (report only) | reading observer on the careful bot | `scripts/run-reading.ts`, `src/engine/sim/reading*.ts`, `tests/sim-reading*.spec.ts` | `make sim-reading`, `make test` |
 | Shell and runtime | Vitest, fake timers, React DOM / React Native Web | `tests/app*.spec.ts` | `make test` |
 | Component tests (M3) | Vitest + React DOM + happy-dom, React Native Web alias | `tests/ui-*.spec.ts` | `make test` |
 | End-to-end | Playwright against the production web export | `tests/e2e/` | `make e2e`, `make e2e-pages` |
@@ -160,6 +161,57 @@ It is **report only**: it is not part of `make verify`, it exits 0 whatever diff
 calls `checkGates`. `make sim` holds the gates. `runPolicySim` and `runHeadlessSim` take an optional
 `initialState`, which is how both runners start from an admitted game. Everything it prints is
 accelerated simulated time, never wall-clock play.
+
+### Reading report
+
+`make sim-reading` (`scripts/run-reading.ts`, #540, vote-1795470658719-k1h556n package A) plays the careful STEALTH
+bot through a full run under legacy rules and again under campaign rules, and prints per phase what a player is
+shown and how long it takes to read. It is a port of the playtime review's prototype (`measure.ts` and `analyze.py` on
+branch `research/playtime-review-v2`), in TypeScript, so it needs no Python.
+
+How it watches. `observeReading` (`src/engine/sim/readingObserver.ts`) wraps the policy the way `observeReturns` does:
+every decision is the policy's own, and the run is `runPolicySim`'s. At each decision it reads the state through the
+engine queries the UI renders (the log, the decoded feed and records, the dilemma modal, the phase notice, the ending,
+the pending cards and tracks by `isNodePending` and `shownRepeatables` from `src/engine/purchaseQuery.ts`, the actions
+by `actionAvailable`, and the readout panels, the "who you are becoming" readout among them once it has evidence), and keeps each new text once, apart from log lines, which repeat. The
+standing surfaces are re-read only when `surfaceKey` changes (purchases, unlocks, actions, flags, dilemmas, encounters,
+the phase, whole points of suspicion and each fleet's drift); `make sim-reading READING_ARGS=--every-second` re-reads
+them every second instead. On `1970e4f` both give the same record, text for text and second for second, under both
+rule sets; the change-only snapshot reads about 2,260 of about 10,150 seconds.
+
+What it prints, per phase:
+
+- words in three groups: **A**, pushed story (log, feed, records, dilemmas, phase notice, ending); **B**, decision
+  prose (card names and blind descriptions, track and action labels, encounter cards); **C**, optional text behind a
+  fold or in a readout panel; and log repeats. A and B are the **forced** reading; C is reported apart, in its own
+  minutes column, so optional panel text never inflates density;
+- forced reading minutes (A, B and dilemma modals) at 238 wpm, with 250 and 200 as the range (Brysbaert 2019, mean
+  silent reading rate for English non-fiction), and optional minutes at 238;
+- forced density: words of A and B per minute of the bot's time in the phase;
+- over-full windows: arrivals whose 60, 30 or 10 s window holds more pushed words (A and B, repeats included) than a
+  238 wpm reader reads in it;
+- log bursts: three or more log lines within 5 s (the desktop dock previews only the newest line);
+- the dilemma timeline: when each opened, the longest wait for a dilemma that ends in the phase (counted from the
+  previous dilemma, so a quiet stretch that crosses a phase boundary counts whole), and the shortest gap in the run;
+- three modelled human times. **Floor**: reading overlaps all game time, so a phase pays only for forced reading it
+  cannot fit, plus each dilemma's words at 250 wpm and 15 s of deliberation. **Low**: forced text queues for a 250
+  wpm reader, each progress decision waits until the queue is read, and each dilemma adds its words and 15 s.
+  **High**: every text, optional and repeated included, at 200 wpm with nothing overlapping, and 60 s per dilemma.
+
+Its limits. The human times are **modelled, not timed**: no player was clocked, and the rates and deliberation
+allowances are assumptions. It measures only the careful bot's path, so text on branches the bot never takes is not
+counted. Its inventory approximates the screen: it counts what the engine queries return, not what fits in a viewport
+or what a player scrolls to. Purchase speed is not modelled.
+
+Proof that observing changes nothing: `tests/sim-reading.spec.ts` plays one 1800 s observed run (shared by its tests)
+and pins it to `runHeadlessSim` on the same horizon (sim seconds, phase-reached times, the final state's hash and the
+whole report's hash), and pins the change-only record to the every-second one. `tests/sim-reading-analysis.spec.ts`
+checks the arithmetic on hand-made runs: window counting, bursts, the dilemma gaps and the three human models.
+
+Wall time, measured on a shared 16-thread machine at load average 12 to 27: 6 to 16 s per run and 12 to 30 s for the
+report; re-reading every second takes 13 to 22 s per run. A plain `runHeadlessSim` STEALTH run took 5 to 10 s at the
+same load. It is **report only**: not part of `make verify` or CI, it exits 0, and it never calls `checkGates`.
+BALANCE.md, "Reading load (#540)", holds the table on current `main`.
 
 ### Return-iteration sequences
 

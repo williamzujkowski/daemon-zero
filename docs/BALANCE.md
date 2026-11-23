@@ -8,6 +8,7 @@ All tunable numbers live in content manifests, in physical units since #461 (com
 2. `make sim`. Read the report.
 3. If a gate fails, fix the content. Do not edit the bot or the gates to pass.
 4. Update the table below in the same commit.
+5. If the change moves text or pacing, `make sim-reading` shows its reading load per phase (report only; "Reading load (#540)").
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; Phase 5 lasts 900 to 3600 seconds with zero wipes (raised from 1800 by vote-1795469247565-89wnt5m, 2026-11-23: the cap was set in #52 for a short finale, and gates guard against stalls, not story length); at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
@@ -1938,6 +1939,61 @@ against the requalification, and stays below the first instance's life (9.5% of 
 campaign-clock reading that produced #499 fails the spec as plainly as a return that is really slower. The large
 gap between the thorough and low-resource hands (release 2356.8 s against 4188.7 s) is a difference between
 players, not between a first run and a return, and is not changed here.
+
+## Reading load (#540)
+
+`make sim-reading` (docs/TESTING.md, "Reading report") prints, per phase, the words the careful bot's run shows a
+player, the reading time, density, over-full windows, log bursts, the dilemma timeline and three modelled human times.
+It is report only and never gates; the human times are **modelled, not timed**. Forced reading is groups A (pushed
+story) and B (decision prose); optional text (group C, folds and readout panels) is counted apart so it never inflates
+density. Rates: 238 wpm, range 250 to 200 (Brysbaert 2019).
+
+Measured on `main` at `1970e4f` (#533 merged), STEALTH under legacy rules (10397.3 s, Lineage Covenant, 0 wipes):
+
+| Phase | Bot min | Decisions | Words A / B / C / repeats | Dilemmas (words) | Forced read min 238 (250-200) | Optional C min 238 | Forced density wpm (A+B) | Human floor / low / high min |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 5.9 | 17 | 230 / 129 / 67 / 0 | 1 (114) | 2.0 (1.9-2.4) | 0.3 | 61.2 | 6.6 / 8.0 / 9.6 |
+| 1 | 11.1 | 23 | 464 / 206 / 73 / 8 | 1 (106) | 3.3 (3.1-3.9) | 0.3 | 60.5 | 11.7 / 13.5 / 16.4 |
+| 2 | 30.0 | 48 | 656 / 356 / 360 / 658 | 4 (324) | 5.6 (5.3-6.7) | 1.5 | 33.7 | 32.3 / 34.3 / 45.8 |
+| 3 | 54.2 | 50 | 832 / 816 / 495 / 1377 | 2 (182) | 7.7 (7.3-9.2) | 2.1 | 30.4 | 55.4 / 56.8 / 74.7 |
+| 4 | 43.2 | 248 | 1282 / 1173 / 1439 / 1711 | 4 (436) | 12.1 (11.6-14.5) | 6.0 | 56.8 | 45.9 / 52.2 / 77.4 |
+| 5 | 29.0 | 99 | 1121 / 1058 / 511 / 675 | 4 (299) | 10.4 (9.9-12.4) | 2.1 | 75.1 | 31.2 / 35.3 / 51.3 |
+| all | 173.3 | 485 | 4585 / 3738 / 2945 / 4429 | 16 (1461) | 41.1 (39.1-48.9) | 12.4 | | 183.1 / 200.1 / 275.1 |
+
+| Phase | Over-full windows 60 s (> 238 w) / 30 s (> 119 w) / 10 s (> 40 w) | Log bursts | Dilemmas at (min) | Longest wait for a dilemma (min) |
+|---|---|---|---|---|
+| 0 | 0 / 1 / 11 | 0 | 1.8 | 4.1 |
+| 1 | 5 / 8 / 18 | 1 | 11.9 | 10.1 |
+| 2 | 3 / 16 / 63 | 8 | 20.4, 21.2, 24.4, 32.3 | 14.6 |
+| 3 | 3 / 26 / 65 | 5 | 76.6, 91.8 | 44.3 |
+| 4 | 49 / 81 / 156 | 19 | 111.7, 114.7, 123.2, 128.7 | 19.9 |
+| 5 | 26 / 34 / 82 | 6 | 151.2, 155.0, 155.7, 162.9 | 22.5 |
+| all | 86 / 166 / 395 | 39 | 16 dilemmas | shortest gap 0.8 |
+
+Under campaign rules (9913.5 s, Lineage Covenant, 0 wipes) the run shows 4690 / 3664 / 2927 / 4350 words and 17
+dilemmas (1671 words): 42.1 forced minutes at 238 wpm (40.1-50.1), 12.3 optional, human floor / low / high
+176.2 / 194.6 / 268.7 min, and 92 / 188 / 410 over-full windows with 44 log bursts.
+
+**Against the prototype.** The playtime review measured `9da3ff0` with `measure.ts` and `analyze.py`
+(`research/playtime-review/data/analysis.md` on branch `research/playtime-review-v2`). The content and engine are unchanged between `9da3ff0` and `41c0a16`
+(#530 and #539 changed only the sim harness, an integrity check and the Phase 5 gate), so the runs are the same; the comparison
+was made on `41c0a16`. The stated tolerance was 0.1 min on minutes and exact counts on words, windows and bursts; every figure the prototype
+printed for the two careful runs matches exactly: words in every group, dilemmas, reading minutes, density, the three
+human times, over-full windows by phase and log bursts by phase. Two things differ by design: the observer reads
+each phase's time at one-second resolution (the prototype summed ticks; the difference is under a second per phase
+and does not show at 0.1 min), and the report adds the optional-minutes column and the dilemma timeline, which the
+prototype's tables did not print. The review's "45 min gap" in Phase 3 was the report's 45.1 min wait on `41c0a16`.
+
+**Since #546** (`fcfe98e`, the "who you are becoming" readout) the report also reads that readout, as optional text
+(group C) and only once it has evidence, as the UI shows it. It adds 49 words of group C in each run (19 in Phase 0,
+30 in Phase 3) and 0.3 min to the high model; forced reading, density, the windows, bursts and dilemmas are unchanged.
+Without it, the figures on `fcfe98e` were the prototype's exactly. Its axis sentences are composed in the UI
+(`src/ui/alignmentText.ts`), so the report counts the authored reading and evidence lines the engine returns, not
+those UI sentences.
+
+**Since #533** (`1970e4f`, raising the fan leaves a trace) the careful run itself changed: under legacy rules it ends
+at 10397.3 s (was 10142.7), Phase 4 takes 43.2 min (was 39.2), and Phase 2 meets a fourth dilemma (16 in all, was 15); under
+campaign rules it ends at 9913.5 s (was 10099.4), with one dilemma moving from Phase 3 to Phase 2 (17 in all). The tables above are that run. The report's own arithmetic did not change.
 
 ## Current baseline
 
