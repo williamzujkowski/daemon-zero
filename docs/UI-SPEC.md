@@ -586,9 +586,13 @@ A hostile mind pressing the instance (#491) is shown in three places, all from `
   and every reason it is refused, and its button (`hostile-quarantine`, `hostile-decoy`, `hostile-purge`). The purge's
   success and failure effects are listed with the same badges as a wild signal's consume effects. Going quiet has no
   control: it is something the player does with the levers they already have, and the copy names no lever.
-- **Workspace notice** (`hostile-notice`, under the area tabs, never in the pinned HUD, hidden while SWARM is open):
-  "HOSTILE // <name> [ ANSWER ]", which opens SWARM, laid out like the wild-signal notice (two-line name, unshrinking
-  affordance, accessible name containing the visible text).
+- **Workspace notice** (`hostile-notice`, never in the pinned HUD, hidden while SWARM is open): "HOSTILE // <name>
+  [ ANSWER ]", which opens SWARM, laid out like the wild-signal notice (two-line name, unshrinking affordance, accessible
+  name containing the visible text). In the columns it sits under the area tabs. On the phone it closes the pane's flow,
+  after the area's content, so it never pushes the first work card below the fold: in the t-three-banners state
+  (brownout, insolvent and response bands, with suspicion on rung 2, so a hostile arrives) a notice under the tabs put
+  the first card's box at 782 px against a 799 px fold (`firstCard`, 0.386 visible), and at the end of the flow the
+  transition keeps it.
 - **Other Minds console** (`hostile-status`): before the world view opens, under the AEGIS status; in the world view, first
   under "Other minds". One header ("Hostile minds") and one read-only line naming it, its kind and its effect, ending
   "Answer it in SWARM, or go quiet." The console never duplicates the controls.
@@ -598,7 +602,7 @@ A hostile mind pressing the instance (#491) is shown in three places, all from `
 
 No new live region: the arrival is a kernel-log warning (the hostile's own line), and nothing in the panel or the notice
 speaks on a tick. The panel and notice render only while a hostile presses, so no atlas stage or ARIA baseline line
-changed; the phone stays one scroll, with the notice in the flow. `tests/e2e/hostile-encounters.e2e.ts` checks the
+changed; the phone stays one scroll, with the notice at the end of the flow. `tests/e2e/hostile-encounters.e2e.ts` checks the
 disclosure on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts` proves
 each answer the engine accepts (and the free purge as a lever) has a reachable control.
 

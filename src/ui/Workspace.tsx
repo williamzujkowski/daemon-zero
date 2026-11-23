@@ -38,8 +38,10 @@ export function useWorkspace(slots: string[], ids: readonly string[]) {
 }
 
 /**
- * A hostile mind pressing this instance (#491) waits in SWARM, which the player may not have open: one button, in the
- * scroll flow under the area tabs (never in the pinned HUD), takes them there. Not a live region; the arrival is logged.
+ * A hostile mind pressing this instance (#491) waits in SWARM, which the player may not have open: one button takes them
+ * there. Not a live region; the arrival is logged. In the columns it sits under the area tabs; on the phone it closes
+ * the pane's flow (WorkspaceNotices), so it never pushes the first work card below the fold under the alert band
+ * (the t-three-banners transition, #353) and never joins the pinned HUD.
  */
 function HostileNotice({ onReview }: { onReview: () => void }) {
   const title = useGame((game) => hostileView(game, CONTENT)?.title ?? null);
@@ -53,7 +55,15 @@ function HostileNotice({ onReview }: { onReview: () => void }) {
   </Pressable>;
 }
 
-export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof useWorkspace> }) {
+/** The notices a phone shows at the end of the pane's flow rather than under the area tabs. */
+export function WorkspaceNotices({ workspace }: { workspace: ReturnType<typeof useWorkspace> }) {
+  const { slot, areas, active, select, tools } = workspace;
+  if (!slot || areas.length === 0 || !tools || active === 'swarm') return null;
+  return <View style={{ paddingTop: 4 }}><HostileNotice onReview={() => { select('swarm'); }} /></View>;
+}
+
+/** `flow`: the phone's one scroll, where the hostile notice moves to WorkspaceNotices at the end of the pane. */
+export function WorkspaceHeader({ workspace, flow = false }: { workspace: ReturnType<typeof useWorkspace>; flow?: boolean }) {
   const { slot, areas, active, select, tools, focusArea, focused } = workspace;
   const tabs = useRef<Partial<Record<WorkspaceArea, ComponentRef<typeof Pressable> | null>>>({});
   useEffect(() => { if (focusArea !== null) { tabs.current[focusArea]?.focus(); focused(); } }, [focusArea, focused]);
@@ -66,7 +76,7 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
         accessibilityState={{ selected: area === active }} style={[theme.button, { paddingHorizontal: 8 }, area !== active && theme.disabled]}
         onPress={() => { select(area); }}><Text style={theme.muted}>{areaTitles[area]}</Text></Pressable>)}
     </View>
-    {tools && active !== 'swarm' && <HostileNotice onReview={() => { select('swarm'); }} />}
+    {!flow && tools && active !== 'swarm' && <HostileNotice onReview={() => { select('swarm'); }} />}
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
       {/* The name may take two lines (vote-1795208946788-lpjbyc5, #359): held to one, it lost about 91px at 390
