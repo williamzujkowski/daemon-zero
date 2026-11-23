@@ -1104,8 +1104,13 @@ log spoofer 40, the keylogger 70, the firewall breach 230), not a measured part.
 **What the bot does with them.** It buys every node it reaches in content order, so it buys all four: the escrow and
 the wallet early in Phase 3 (after the last Phase 2 node), the cache and the ledger early in Phase 4 (after the last
 Phase 3 node), and it never suspends them. The reckless bot buys the Phase 2 pair and is caught in Phase 3 before it
-reaches the cache. The measurements below therefore show the run that buys everything; the columns without insurance
-remove the nodes from content in a scratch registry (not committed), with the same bot and policies.
+reaches the cache. The measurements below therefore show the run that buys everything; the no-insurance column removes
+the four nodes from content with the same bot and policies. `make sim-insurance` (#524) builds that registry from the
+tree (`withoutInsurance`) and prints the shipped and no-insurance columns; re-run on ee4c33b, every figure in both
+columns below matched to the tenth of a second. On ae40b6a (#527, the conflict foundation) the careful rows move with
+that change, the reckless rows do not; the comparison still holds (no insurance: first run 10201.2 s against 10269.0 s
+shipped under legacy rules, STEALTH_RETURN returns 2214.7 / 2357.5 / 2426.5 s against 1389.2 / 1343.2 / 1316.3 s). The
+escrow + wallet + ledger column (the cache alone removed) is not part of that report.
 
 **Measured** with `make sim` and the report's wipe sequences on this branch merged with f47736d (#522, robots, drones
 and fabs; it follows #521's escalation by phase), against f47736d itself (accelerated sim time; per-iteration times on
