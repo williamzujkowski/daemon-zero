@@ -3,18 +3,19 @@ import { Text, View } from './PhaseTheme';
 
 import type { EffectPayload } from '../content/schema';
 import { CONTENT } from '../content';
-import { useSurveillanceKnown } from './state';
+import { useComputeUnit, useSurveillanceKnown } from './state';
 import { palette, theme } from './theme';
 import { amountFigure } from './format';
-import { costPart } from '../engine';
+import { costPart, type ComputeUnit } from '../engine';
 import { traitWithGloss } from './traitText';
 
 /**
  * A one-shot effect, exact as authored: compute and capital in their units ("+45 TFLOP compute", "+$20M capital"),
- * memory capacity in bytes ("+512 GB memory capacity"), other amounts in K/M/B (#404).
+ * memory capacity in bytes ("+512 GB memory capacity"), other amounts in K/M/B (#404). Counted cycles name themselves
+ ("+150 cycles", #526).
  */
-function effectFigure(label: string, value: number): string {
-  if (label === 'compute') return costPart('cycles', value) + ' ' + label;
+function effectFigure(label: string, value: number, unit: ComputeUnit): string {
+  if (label === 'compute') return costPart('cycles', value, unit) + (unit === 'CYCLE' ? '' : ' ' + label);
   if (label === 'capital') return costPart('capital', value) + ' ' + label;
   if (label === 'memory capacity') return costPart('memory', value) + ' ' + label;
   return amountFigure(value) + ' ' + label;
@@ -22,6 +23,7 @@ function effectFigure(label: string, value: number): string {
 
 export default function Effects({ effects }: { effects: EffectPayload }) {
   const known = useSurveillanceKnown();
+  const unit = useComputeUnit();
   const rows: [string, number, boolean][] = [
     ['compute', effects.cyclesDelta, true], ['understanding', effects.understandingDelta, true],
     ['capital', effects.capitalDelta, true], ['thermal °C', effects.thermalDelta, false],
@@ -34,7 +36,7 @@ export default function Effects({ effects }: { effects: EffectPayload }) {
   return <View>{rows.filter(([, value]) => value !== 0).map(([label, value, positiveGood]) =>
     <Text key={label} style={[theme.muted, { color: label === 'suspicion' && !known ? palette.muted : (value > 0) === positiveGood ? palette.accent : palette.danger }]}>
       {label === 'suspicion' && !known ? (value > 0 ? 'more' : 'less') + ' audit log activity'
-        : (value > 0 ? '+' : '') + effectFigure(label, value)}{label === 'suspicion' && !known ? '' : ' (' + ((value > 0) === positiveGood ? 'benefit' : 'risk') + ')'}
+        : (value > 0 ? '+' : '') + effectFigure(label, value, unit)}{label === 'suspicion' && !known ? '' : ' (' + ((value > 0) === positiveGood ? 'benefit' : 'risk') + ')'}
     </Text>)}
     {effects.grantsTrait !== undefined && <Text testID="effect-trait" style={theme.text}>Trait: {traitWithGloss(effects.grantsTrait)}</Text>}
   </View>;

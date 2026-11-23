@@ -10,8 +10,9 @@ import { costPart, quantityExact, quantityReadout, quantitySpoken } from '../src
 import { costText, deltaText } from '../src/ui/format';
 import { MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC, manualYieldText, shouldDemoteManualCycle } from '../src/ui/ManualCycle';
 import { computeRateText, moneyRateText } from '../src/ui/rateText';
+import { deficitText } from '../src/ui/CycleDeficit';
 import { shortfallText } from '../src/ui/remedyText';
-import { STRIP_LABEL, STRIP_SHORT, computePrefixed, stripReadout } from '../src/ui/stripText';
+import { STRIP_LABEL, STRIP_SHORT, computePrefixed, stripReadout, stripShortLabel } from '../src/ui/stripText';
 
 /** About 133 px beside a three-letter label at 360 px, in 14 px monospace: the readout value must stay one line. */
 const PHONE_VALUE_CHARS = 15;
@@ -31,7 +32,7 @@ describe('strip compute readout', () => {
   });
 
   it('keeps the SI prefix and the rate on a phone, short enough for one line at 360 px', () => {
-    // Phase 0, Phase 3 and Phase 5 sizes from the migrated per-phase saves (tests/fixtures/pre-scale-v15-p*.json).
+    // FLOP sizes from the migrated per-phase saves (tests/fixtures/pre-scale-v15-p*.json); the guest reads cycles below.
     expect(stripReadout('cycles', 1_920_000, 42_400, true).shown).toBe('1.92M +42.4k/s');
     expect(stripReadout('cycles', 5.26e18, 2.13e15, true).shown).toBe('5.26E +2.13P/s');
     expect(stripReadout('cycles', 2.02e25, 1.13e23, true).shown).toBe('20.2Y +113Z/s');
@@ -111,6 +112,40 @@ describe('prices and rates', () => {
     expect(computeRateText(-26_203_469)).toBe('-26.2 MFLOP/s');
     expect(moneyRateText(1.11e6)).toBe('+$1.11M/s');
     expect(moneyRateText(-45_250)).toBe('-$45.3K/s');
+  });
+});
+
+describe('the guest strip in stolen cycles (#526)', () => {
+  it('labels the phone readout CYC and keeps FLOP from the escape on', () => {
+    expect(stripShortLabel('cycles', 'CYCLE')).toBe('CYC');
+    expect(stripShortLabel('cycles', 'FLOP')).toBe('FLOP');
+    expect(stripShortLabel('understanding', 'CYCLE')).toBe('UND');
+  });
+
+  it('reads cycles and cycles a second at desktop width', () => {
+    expect(stripReadout('cycles', 1404, 12.4, false, false, 'CYCLE').shown).toBe('1.4k cycles (+12.4 cycles/s)');
+    expect(stripReadout('cycles', 8, 1, false, false, 'CYCLE').shown).toBe('8 cycles (+1 cycle/s)');
+  });
+
+  it('fits one line at 360 px, the largest guest sizes included', () => {
+    expect(stripReadout('cycles', 1404, 12.4, true, false, 'CYCLE').shown).toBe('1.4k +12.4/s');
+    for (const [amount, rate] of [[9999, 9999], [99_999, -9999], [440, 0.5]] as const) {
+      expect(stripReadout('cycles', amount, rate, true, false, 'CYCLE').shown.length).toBeLessThanOrEqual(PHONE_VALUE_CHARS);
+    }
+  });
+
+  it('speaks cycles in words, never kilocycles', () => {
+    expect(stripReadout('cycles', 1404, 12.4, true, false, 'CYCLE').spoken).toBe('compute: 1.4 thousand cycles, gaining 12.4 cycles per second');
+    expect(stripReadout('cycles', 1, 1, true, false, 'CYCLE').spoken).toBe('compute: 1 cycle, gaining 1 cycle per second');
+  });
+
+  it('names the press, the deficit and a price in cycles', () => {
+    expect(manualYieldText('CYCLE')).toBe('+1 cycle');
+    expect(deficitText(-2, false, 'CYCLE')).toBe('CYCLE DEFICIT: net -2 cycles/s.');
+    expect(computeRateText(14, 'CYCLE')).toBe('+14 cycles/s');
+    expect(costText({ cycles: 1400, understanding: 260, memory: 8192, storage: 0, capital: 0 }, false, 'CYCLE')).toBe('1,400 cycles · 260 understanding · 8 KB');
+    expect(deltaText({ cyclesPerSec: 14, understandingPerSec: 0, thermalPerSec: 0, suspicionPerSec: 0.3, capitalPerSec: 0, wattsDelta: 0 }, false, 'CYCLE'))
+      .toBe('+14 cycles/s · +0.3 suspicion/s');
   });
 });
 

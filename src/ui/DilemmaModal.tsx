@@ -7,7 +7,7 @@ import DisclosureText from './DisclosureText';
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
 import type { Cost, Dilemma, DilemmaChoice } from '../content/schema';
-import { canAfford, choiceCost, choiceText, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
+import { canAfford, choiceCost, choiceText, computeUnitOf, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -16,7 +16,7 @@ import CostHint from './CostHint';
 import { evidenceText, scopeText } from './evidenceText';
 import { PilotTerms } from './PilotOffer';
 import { recallText, reviewEffectText } from './reviewText';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { palette, theme } from './theme';
 import { SafeOverlay } from './safeArea';
 
@@ -26,7 +26,7 @@ function ReviewLine({ choice }: { choice: DilemmaChoice }) {
     const review = choice.review;
     if (review === undefined) return '';
     const ruling = recallPreview(game, choice, CONTENT);
-    return ruling === null ? reviewEffectText(review) : recallText(ruling);
+    return ruling === null ? reviewEffectText(review) : recallText(ruling, computeUnitOf(game, CONTENT));
   });
   return text === '' ? null : <Text testID={'dilemma-choice-' + choice.id + '-review'} style={theme.muted}>Review: {text}</Text>;
 }
@@ -76,7 +76,8 @@ function Choice({ choice, dilemma, token, initiallyOpen }: { choice: DilemmaChoi
   const cost = choiceCost({ currentPhase: phase }, dilemma, choice, CONTENT);
   const affordable = useGame((game) => canAfford(game, cost, CONTENT));
   const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
-  const summary = 'Cost: ' + costText(cost) + (affordable ? '' : ' // cannot pay yet');
+  const unit = useComputeUnit();
+  const summary = 'Cost: ' + costText(cost, false, unit) + (affordable ? '' : ' // cannot pay yet');
   return <View testID={'dilemma-card-' + choice.id} style={theme.panel}>
     <View testID={'dilemma-card-' + choice.id + '-heading'} accessibilityRole="header">
       <Pressable testID={'dilemma-card-' + choice.id + '-toggle'} accessibilityRole="button" accessibilityState={{ expanded: open }}

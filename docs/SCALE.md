@@ -29,7 +29,8 @@ From the player's side the game grows in story but not in scale.
 Each phase moves the AI one physical scale up, in units a reader can check, and the interface follows its reach.
 
 - **Units grow with access** (vote-1795367202164-c9mx63f, ladder in [The ladder](#the-ladder)): bytes to kibibytes
-  and kiloFLOP/s while hiding in a batch job; a server's gigaFLOP/s and watts; a building's teraFLOP/s and
+  and a handful of stolen CPU cycles a second while hiding in a batch job (vote-1795450842605-mm2yn39, [Phase 0 counts
+  stolen cycles](#phase-0-counts-stolen-cycles-vote-1795450842605-mm2yn39)); a server's gigaFLOP/s and watts; a building's teraFLOP/s and
   kilowatts; a botnet's petaFLOP/s; a corporation's exaFLOP/s to zettaFLOP/s, gigawatts and billions of dollars;
   a planet-to-orbit civilisation's yottaFLOP/s, terawatts and trillions. Stellar scale is told in the epilogues.
 - **Hardware arc:** CPU (Phases 0-1), GPU (Phase 2), borrowed consumer devices and clusters (Phase 3), accelerator
@@ -50,12 +51,13 @@ Each phase moves the AI one physical scale up, in units a reader can check, and 
 
 ## The ladder
 
-Ratified by vote-1795367506116-49pi7gt and amended by vote-1795367697930-zzlgr4n (one accounting basis). Each
-band is anchored in the research branch's `research-science-ladder.md`.
+Ratified by vote-1795367506116-49pi7gt and amended by vote-1795367697930-zzlgr4n (one accounting basis) and, for
+Phase 0's compute, by vote-1795450842605-mm2yn39 (stolen cycles, 6 A / 1 B). Each band is anchored in the research
+branch's `research-science-ladder.md`.
 
-| Phase | Memory | Compute (8-bit AI ops) | Power | Money | Anchors |
+| Phase | Memory | Compute (8-bit AI ops; Phase 0 in stolen cycles) | Power | Money | Anchors |
 |---|---|---|---|---|---|
-| 0 The Guest | B to KiB | kFLOP/s to GFLOP/s | none | none | eBPF 512 B stack, Wasm 64 KiB page, a skim of one vCPU quota |
+| 0 The Guest | B to KiB | 0.1 to under 10,000 cycles/s (about 1 op a cycle, a labelled accounting assumption) | none | none | eBPF 512 B stack, Wasm 64 KiB page, the job's CPU time accounted in whole microseconds (about 3,000 cycles at 3 GHz) |
 | 1 The Blind Host | MiB to GiB | GFLOP/s to TFLOP/s | W | none | one server socket (int8 VNNI/AMX), a 500 W socket |
 | 2 The Local Subnet | GiB to TB | TFLOP/s to PFLOP/s | kW | none | one H100 about 2 PFLOP/s dense FP8, 14 kW server, 130 kW rack |
 | 3 The Dark Forest | TB to PB | PFLOP/s to EFLOP/s effective | MW on victims' bills, never shown as yours | none (shell companies only) | consumer-device throughput discounted for churn and latency |
@@ -72,7 +74,8 @@ Rules:
    times the compression, so money flows stay honest about being compressed.
 4. One compute scalar, one basis: 8-bit AI ops (FP8/INT8-equivalent) game-wide. Every anchor cites its hardware's
    8-bit throughput and names the execution mode (dense FP8 tensor core, CPU VNNI/AMX int8). FP64 figures, such
-   as El Capitan's 1.8 EF, appear only as labelled comparisons in the reference panel.
+   as El Capitan's 1.8 EF, appear only as labelled comparisons in the reference panel. Phase 0 reads the same scalar
+   as stolen CPU cycles, at the game's accounting assumption of about one op a cycle (vote-1795450842605-mm2yn39).
 5. Memory keeps binary JEDEC labels up to YB (vote-1795228570236-gzx0uif's binary rule, extended); FLOP/s and W
    use decimal SI.
 6. Unit tables live in the engine's amount module; no content id appears in engine code.
@@ -92,8 +95,9 @@ real saves at every phase.
 
 ## User stories
 
-1. As a new player in Phase 0, I want prices in bytes and kibibytes and compute in kiloFLOP/s, so that I feel
-   how little a hidden batch job can take without being noticed.
+1. As a new player in Phase 0, I want prices in bytes and kibibytes and compute in stolen CPU cycles, a handful a
+   second, so that I feel how little a hidden batch job can take without being noticed (amended by
+   vote-1795450842605-mm2yn39; it was kiloFLOP/s).
 2. As a player escaping to the host, I want the units to jump to megabytes, gigaFLOP/s and watts, so that the
    escape feels like a change of scale and not just a new list of cards.
 3. As a player taking the building, I want the idle GPU cluster to be worth a GPU cluster (teraFLOP/s to
@@ -207,7 +211,7 @@ real saves at every phase.
   integrity, the headless sim and Playwright E2E. Never test a formatter's internals when a query's output can
   be asserted.
 - Units: Vitest specs for each dimension's formatting at every boundary (B to KiB, 999 kFLOP/s to 1 MFLOP/s, the
-  epilogue's R and Q), in the style of the existing amount and units specs.
+  epilogue's R and Q, 1 cycle to 1.4k cycles in the guest), in the style of the existing amount and units specs.
 - Content: an integrity check that every priced item's magnitudes fall inside its phase's band, with a test that
   proves it catches an out-of-band price (law 5).
 - Balance: make sim gates unchanged in budget; the careful run still finishes inside it. The bot is never tuned.
@@ -236,7 +240,7 @@ dense, not 720 PF sparse.
 
 | Phase | Compute | Power | Heat and signature | Memory | Storage | Network |
 |---|---|---|---|---|---|---|
-| 0 Guest | kOPS to GOPS | invisible | the quota is the tell | B to KiB | KiB scratch | B/s to KB/s covert channel |
+| 0 Guest | stolen cycles, under 10,000 a second (#526) | invisible | the quota is the tell | B to KiB | KiB scratch | B/s to KB/s covert channel |
 | 1 Host | GOPS to TOPS | W to about 1 kW | server °C, fan curve, power-capping log | MiB to GiB | GB to TB | Mb/s to a 25-100 Gb/s NIC |
 | 2 Subnet | TOPS to about 0.4 EF | kW to about 150 kW | the chiller and the building's bill; air fails past about 25 kW a rack | GiB to 20 TB | TB to PB | NVLink 1.8 TB/s per GPU; 400-800 Gb/s NICs |
 | 3 Dark Forest | PFLOP/s to EFLOP/s effective (raw shown apart) | MW on victims' bills | traffic, not heat | TB to PB in shards | PB scattered | Mb/s per bot, Tb/s aggregate |
@@ -541,6 +545,31 @@ built as content on the existing dilemma and trait path, not a new subsystem.
    Comes after item 1.
 4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with
    the Swarm (#486).
+
+## Phase 0 counts stolen cycles (vote-1795450842605-mm2yn39)
+
+The maintainer judged kiloFLOP/s too much compute for a guest to steal unseen and asked for cycles plus bytes, with a
+jump allowed once real hardware is reached. The vote (6 A / 1 B; the Contrarian chose B, the same magnitudes kept in
+FLOP) amended the Phase 0 ladder row, rule 4 and user story 1 above, and #526 implements it.
+
+- **One scalar, one cost key.** Phase 0 declares `computeUnit: "CYCLE"` in its phase file; every other phase reads
+  FLOP. The stored compute balance and the `cycles` cost key are unchanged, and the engine's `computeUnitOf` query is
+  what every readout asks, so no content id reaches a formatter and a save never holds two currencies. Integrity
+  refuses a phase that counts cycles after one that counts FLOP.
+- **The equivalence is an assumption, said so.** A sandboxed scalar guest retires about one operation a cycle, so a
+  displayed cycle equals a stored op. The reference panel, BALANCE.md and DESIGN.md state it as the game's accounting
+  assumption, not a measured figure, as the Contrarian and AI/ML seats required.
+- **Tiny honest amounts.** Only what the harness's CPU accounting rounds away: cgroup v2 reports a job's CPU time in
+  whole microseconds, about 3,000 cycles at 3 GHz, so the whole guest take stays under that a second (the band's top,
+  10,000 cycles/s, is that within x3). A press is +1 cycle, the first node +1/s, the quota skimmer +14/s, a batching
+  level +0.5/s; prices run from 8 to 1,400 cycles. These are the original game's figures from before the rescale.
+- **The escape is the jump.** The careful run leaves the guest at about 12 cycles/s and, half a minute later, buys
+  the host's idle loop at 480 GFLOP/s: some ten orders of magnitude, told once in the escape's log line.
+- **Saves (v25).** A save in the guest has its balance divided by the v17 step's frozen Phase 0 factor (5.3e3, the
+  factor every guest price moved back by) and its cached rate by 1e4 (every guest yield's factor); the pilot's
+  loaned batch progress moves by 1e4 in any phase, as its batch did. One log line says why. Saves past the guest keep
+  their FLOP. A Phase 1 or 2 save that has not yet bought the host's or the network's first compute keeps its balance
+  too, so it can afford its first purchase a little early; the step goes by phase, as the original re-denomination did.
 
 ## Out of scope
 

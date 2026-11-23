@@ -82,6 +82,17 @@ describe('prices carried into a later phase (#494)', () => {
     expect(must(repairSite(late, 'halls', reg)).capital).toBe(late.capital - halls.repair.cost.capital * 1e3);
   });
 
+  it('carries a guest price, counted in cycles, across the escape\'s ten-order jump to FLOP (#526)', () => {
+    const dilemma = reg.dilemmas.find((entry) => entry.id === 'dil_00_night_shift');
+    const choice = dilemma?.choices.find((entry) => entry.id === 'finish_the_batch');
+    if (!dilemma || !choice) throw new Error('missing fixture');
+    expect(choiceCost({ currentPhase: 0 }, dilemma, choice, reg)).toEqual(choice.cost);
+    // Hundreds of cycles in the guest; answered on the host, the host's own band (from 1 GFLOP), not a few hundred FLOP.
+    const host = choiceCost({ currentPhase: 1 }, dilemma, choice, reg).cycles;
+    expect(host).toBe(choice.cost.cycles * 1e10);
+    expect(host).toBeGreaterThanOrEqual(1e9);
+  });
+
   it('leaves every dilemma a free answer in every phase it can be answered in (law 7)', () => {
     const last = Math.max(...reg.phases.map((phase) => phase.phaseId));
     for (const dilemma of reg.dilemmas) {

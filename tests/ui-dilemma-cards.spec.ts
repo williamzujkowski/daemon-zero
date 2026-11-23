@@ -33,7 +33,7 @@ it('shows each offered choice once, folded to its title and cost, in authored or
   for (const choice of offered) {
     const toggle = view.find('dilemma-card-' + choice.id + '-toggle');
     expect(toggle?.getAttribute('aria-expanded')).toBe('false');
-    expect(toggle?.textContent).toContain('Cost: ' + costText(choice.cost));
+    expect(toggle?.textContent).toContain('Cost: ' + costText(choice.cost, false, 'CYCLE'));
     expect(toggle?.textContent.includes('cannot pay yet')).toBe(!canAfford(state, choice.cost, CONTENT));
     // Folded: nothing can be committed unread.
     expect(view.find('dilemma-choice-' + choice.id)).toBeNull();

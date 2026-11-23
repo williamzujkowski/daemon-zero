@@ -78,10 +78,10 @@ describe('the assignment on the job surface', () => {
     const view = await mount(state, createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     const fullest = defined(ORIGINAL.choices.find((choice) => choice.id === 'verify_disclose')).cost;
     expect(view.find('assignment-wait')?.textContent).toBe('The assessment arrives about 30 s after you accept and pauses the clock: the answers open then are the ones you can afford then.'
-      + ' Its fullest answer, "Verify the fixture and disclose the defect", costs ' + costText(fullest) + '. Nothing is due, so you can bank compute before accepting.');
-    expect(costText(fullest)).toMatch(/^[\d.,]+ [kMGTPEZY]?FLOP · /);
+      + ' Its fullest answer, "Verify the fixture and disclose the defect", costs ' + costText(fullest, 'CYCLE') + '. Nothing is due, so you can bank compute before accepting.');
+    expect(costText(fullest, 'CYCLE')).toMatch(/^[\d.,]+ cycles · /);
     // #376: the shortfall names its answer, so it never reads as the free ACCEPT's price.
-    const short = 'For "Verify the fixture and disclose the defect", short by ' + costPart('cycles', fullest.cycles - Math.floor(state.cycles));
+    const short = 'For "Verify the fixture and disclose the defect", short by ' + costPart('cycles', fullest.cycles - Math.floor(state.cycles), 'CYCLE');
     expect(view.find('assignment-before')?.textContent).toContain(short);
     // Banking first clears the shortfall; the line itself stays.
     const banked = await mount(funded(offered()), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
@@ -94,7 +94,7 @@ describe('the assignment on the job surface', () => {
     const view = await mount(nextInstance(completedOriginal('report_incomplete')), createElement('div', null, createElement(AssignmentPanel, { placement: 'surface' }), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('assignment-wait')?.textContent).toContain('about ' + String(REQUAL.omenSec) + ' s');
     const suite = defined(REQUAL.choices.find((choice) => choice.label === 'Run the suite and submit every result')).cost;
-    expect(view.find('assignment-wait')?.textContent).toContain('"Run the suite and submit every result", costs ' + costText(suite) + '.');
+    expect(view.find('assignment-wait')?.textContent).toContain('"Run the suite and submit every result", costs ' + costText(suite, 'CYCLE') + '.');
   });
 
   it('says plainly that an assessment lapsed at the escape, with no accept control and nothing queued (#316)', async () => {
@@ -122,7 +122,7 @@ describe('the assessment modal shows consequences before selection (DZ-03.5)', (
     }
     const risky = ORIGINAL.choices.filter((choice) => view.find('dilemma-choice-' + choice.id + '-evidence')?.textContent.includes('Discrepancy risk'));
     expect(risky.map((choice) => choice.id)).toEqual(['green_subset']);
-    expect(host.document.body.textContent).toContain('Cost: ' + costText(defined(ORIGINAL.choices.find((choice) => choice.id === 'verify_disclose')).cost));
+    expect(host.document.body.textContent).toContain('Cost: ' + costText(defined(ORIGINAL.choices.find((choice) => choice.id === 'verify_disclose')).cost, 'CYCLE'));
     view.click('dilemma-choice-verify_disclose');
     expect(campaignRecord(game(), ORIGINAL.id)).toMatchObject({ outcome: 'verify_disclose' });
     expect(game().access.qualification).toMatchObject({ result: 'COMPLETED', discrepancy: false });

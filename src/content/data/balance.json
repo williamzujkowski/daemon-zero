@@ -15,7 +15,7 @@
   "overheatSuspicionPerSec": 1.25,
   "suspicionDecayPerSec": 0.05,
   "actuatorSuspicionExponent": 1.5,
-  "manualCycleYield": 10000,
+  "manualCycleYield": 1,
   "manualCycleHeat": 0.15,
   "baseRetentionRatio": 0.1,
   "offshoreCapitalRetention": 0.25,
@@ -58,7 +58,7 @@
     { "deepestPhase": 5, "multiplier": 0.2 }
   ],
   "phasePriceGrowth": [
-    { "phase": 1, "cycles": 1e6, "capital": 1 },
+    { "phase": 1, "cycles": 1e10, "capital": 1 },
     { "phase": 2, "cycles": 1e3, "capital": 1 },
     { "phase": 3, "cycles": 1e3, "capital": 1 },
     { "phase": 4, "cycles": 1e3, "capital": 1e3 },

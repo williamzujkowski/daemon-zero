@@ -15,7 +15,7 @@ import { costText } from './format';
 import Effects from './Effects';
 import PurchaseButton from './PurchaseButton';
 import RequirementHint from './RequirementHint';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
 import { permanentlyBlocked } from './purchaseVisibility';
@@ -30,12 +30,13 @@ function Cooldown({ id }: { id: string }) {
 export const ActionCard = memo(function ActionCard({ action }: { action: Action }) {
   useEffect(() => { if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') recordNodeRender('action:' + action.id); });
   const cost = useStore(gameStore.store, useShallow(({ game }) => actionCost(game, action, CONTENT)));
+  const unit = useComputeUnit();
   return <View testID={'action-card-' + action.id} style={theme.panel}>
     {action.effects.setsNarrativeFlag !== undefined ? <>
       <Text style={theme.heading}>{action.label}</Text>
       <DisclosureText style={theme.text}>{action.description}</DisclosureText>
     </> : <CardDetails id={'action-' + action.id} title={action.label} description={action.description} />}
-    <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(cost)}</Text>
+    <Text testID={'action-cost-' + action.id} style={theme.muted}>Cost: {costText(cost, false, unit)}</Text>
     <CostHint cost={cost} />
     <Effects effects={action.effects} />
     <ActionMechanics action={action} />

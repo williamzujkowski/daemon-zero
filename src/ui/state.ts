@@ -5,7 +5,7 @@
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
-import { phaseTitle, retiredWidgets, understandsSurveillance, type GameState } from '../engine';
+import { computeUnitOf, phaseTitle, retiredWidgets, understandsSurveillance, type ComputeUnit, type GameState } from '../engine';
 import { gameStore } from '../app/session';
 
 export function useGame<T>(selector: (game: GameState) => T): T {
@@ -15,6 +15,11 @@ export function useGame<T>(selector: (game: GameState) => T): T {
 /** A phase's title as this run's arrangement sees it (nexus vote dz-d11); the guest reads the authored title. */
 export function usePhaseTitle(phase: number): string {
   return useGame((game) => phaseTitle(game, phase, CONTENT));
+}
+
+/** What compute is called now (#526): stolen cycles in the guest, FLOP from the escape on. */
+export function useComputeUnit(): ComputeUnit {
+  return useGame((game) => computeUnitOf(game, CONTENT));
 }
 
 /** False until this mind has learned what its audit trail is for; suspicion has no number before then. */

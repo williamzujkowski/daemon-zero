@@ -44,7 +44,7 @@ describe('rediscovered prices at depth (#497)', () => {
     const node = CONTENT.nodes.get('p0_job_manifest');
     if (!node) throw new Error('missing node');
     const view = await mount(deep(grant(rich(), 'p0_proc_self'), [node.id], {}));
-    expect(view.text('node-' + node.id + '-cost')).toContain(costPart('cycles', Math.ceil(node.cost.cycles * 0.2)));
+    expect(view.text('node-' + node.id + '-cost')).toContain(costPart('cycles', Math.ceil(node.cost.cycles * 0.2), 'CYCLE'));
     expect(view.text('node-' + node.id + '-cost')).toContain('(remembered)');
     expect(view.text('node-' + node.id + '-rediscovery')).toContain('Rediscovery saves 80% of compute and understanding.');
     view.close();
@@ -56,12 +56,12 @@ describe('rediscovered prices at depth (#497)', () => {
     const price = Math.ceil(rep.baseCost.cycles * 0.2);
     // Holding exactly the rediscovered price: the purchase goes through only at that price, and spends all of it.
     const view = await mount(deep({ ...grant(rich(), 'p0_proc_self'), cycles: price }, [], { [rep.id]: 1 }));
-    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', price) + ' (remembered)');
+    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', price, 'CYCLE') + ' (remembered)');
     expect(view.text('rep-' + rep.id + '-rediscovery')).toBe('Held in an earlier iteration: saves 80% of compute and understanding.');
     view.click('rep-' + rep.id + '-buy');
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(1);
     expect(gameStore.store.getState().game.cycles).toBe(0);
-    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', repeatableCost(rep, 1).cycles));
+    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', repeatableCost(rep, 1).cycles, 'CYCLE'));
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-rediscovery"]')).toBeNull();
     view.close();
   });
@@ -70,7 +70,7 @@ describe('rediscovered prices at depth (#497)', () => {
     const rep = CONTENT.repeatables.get('rep_p0_slice_batching');
     if (!rep) throw new Error('missing track');
     const view = await mount(grant(rich(), 'p0_proc_self'));
-    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', repeatableCost(rep, 0).cycles));
+    expect(view.text('rep-' + rep.id + '-cost')).toBe('Cost: ' + costPart('cycles', repeatableCost(rep, 0).cycles, 'CYCLE'));
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-rediscovery"]')).toBeNull();
     view.close();
   });

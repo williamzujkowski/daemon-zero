@@ -262,12 +262,12 @@ export async function openChoices(page: Page): Promise<void> {
 }
 
 
-/** Manual EXECUTE presses that bank `cost` FLOP from zero, at the authored yield per press (docs/SCALE.md). */
+/** Manual EXECUTE presses that bank `cost` cycles from zero, at the authored yield per press (docs/SCALE.md, #526). */
 export function manualPresses(cost: number): number {
   return Math.ceil(cost / CONTENT.balance.manualCycleYield);
 }
 
-/** Foreground milliseconds that bank `cost` FLOP at `perSec` FLOP/s, plus two seconds of margin for the tick. */
+/** Foreground milliseconds that bank `cost` of compute at `perSec` a second, plus two seconds of margin for the tick. */
 export function affordMs(cost: number, perSec: number): number {
   return Math.ceil(cost / perSec) * 1000 + 2000;
 }

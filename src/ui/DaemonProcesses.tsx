@@ -13,7 +13,7 @@ import NodeTitle from './NodeTitle';
 import GrantNote from './GrantNote';
 import PurchaseButton from './PurchaseButton';
 import { needsProcessControl } from './purchaseVisibility';
-import { useGame, usePhaseTitle } from './state';
+import { useComputeUnit, useGame, usePhaseTitle } from './state';
 import { theme } from './theme';
 
 function Impact({ node }: { node: RegistryNode }) {
@@ -25,10 +25,11 @@ function Impact({ node }: { node: RegistryNode }) {
 function CycleImpact({ node }: { node: RegistryNode }) {
   const cycles = useGame((game) => cycleContributions(game, CONTENT).find((source) => source.id === node.id)?.cyclesPerSec ?? 0);
   const held = node.cost.memory, stored = node.cost.storage;
+  const unit = useComputeUnit();
   // Memory is what the player is hunting when they open this panel: a process that holds
   // 4096 MB has to say so next to the control that takes it back (maintainer playtest note). Storage too (#484).
   return <Text testID={'daemon-impact-' + node.id} style={theme.muted}>
-    {computeRateText(cycles)} net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}{stored > 0 ? ' · ' + storageExact(stored) + ' stored' : ''}
+    {computeRateText(cycles, unit)} net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}{stored > 0 ? ' · ' + storageExact(stored) + ' stored' : ''}
   </Text>;
 }
 

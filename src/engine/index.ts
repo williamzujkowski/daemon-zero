@@ -7,7 +7,10 @@ export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
 export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, significant3, spokenAmount } from './amount';
-export { type Dimension, memoryExact, storageExact, quantityExact, quantityReadout, quantitySpoken, quantityStep } from './physicalUnits';
+export {
+  type ComputeUnit, computeDimension, type Dimension, memoryExact, storageExact, quantityExact, quantityReadout, quantitySpoken, quantityStep,
+} from './physicalUnits';
+export { computeUnitOf } from './queryPresentation';
 export { COST_DIMENSION, costPart, costText, deltaPart } from './resourceUnits';
 export { computeRates, usdPerDivertedFlop } from './rates';
 export { couplings, couplingView, deliveredShare, type ClassCoupling, type Couplings } from './coupling';

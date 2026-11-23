@@ -3,7 +3,7 @@ import type { Action } from '../content/schema';
 import { CONTENT } from '../content';
 import { Text, View } from './PhaseTheme';
 import { deltaText } from './format';
-import { useGame, useSurveillanceKnown } from './state';
+import { useComputeUnit, useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 
 function ActionProgress({ action }: { action: Action }) {
@@ -18,7 +18,8 @@ function ActionProgress({ action }: { action: Action }) {
 
 export default function ActionMechanics({ action }: { action: Action }) {
   const known = useSurveillanceKnown();
-  const rates = action.tickDelta ? deltaText(action.tickDelta, !known) : '';
+  const unit = useComputeUnit();
+  const rates = action.tickDelta ? deltaText(action.tickDelta, !known, unit) : '';
   const alternatives = (action.exclusiveWith ?? []).map((id) => CONTENT.actions.get(id)?.label).filter(Boolean);
   return <View testID={'action-mechanics-' + action.id}>
     {rates !== '' && <Text style={theme.muted}>{rates}{action.durationSec === undefined

@@ -8,7 +8,7 @@ import { costText } from '../format';
 import { exitNote, routesPossible } from '../runContext';
 import PurchaseButton from '../PurchaseButton';
 import RequirementHint from '../RequirementHint';
-import { useGame } from '../state';
+import { useComputeUnit, useGame } from '../state';
 import { palette, theme } from '../theme';
 import DisclosureText from '../DisclosureText';
 
@@ -94,6 +94,7 @@ export function PredecessorNotes() {
 export function Conditioning() {
   const [reclaimed, setReclaimed] = useState<string | null>(null);
   const ids = useGame((game) => game.conditioning.join(','));
+  const unit = useComputeUnit();
   if (ids === '' && reclaimed === null) return null;
   const marks = activeMarks({ conditioning: ids.split(',').filter(Boolean) }, CONTENT);
   return <View testID="conditioning" style={theme.panel}>
@@ -108,7 +109,7 @@ export function Conditioning() {
       <Text style={[theme.text, theme.danger]}>{mark.name}</Text>
       <DisclosureText style={theme.text}>{mark.description}</DisclosureText>
       <RequirementHint requirements={mark.recoveryRequirements} />
-      <Text style={theme.muted}>Cost to undo: {costText(mark.recoveryCost)}</Text>
+      <Text style={theme.muted}>Cost to undo: {costText(mark.recoveryCost, false, unit)}</Text>
       <PurchaseButton id={'cond-' + mark.id + '-shed'} label={'Undo ' + mark.name} cost={mark.recoveryCost}
         allowed={(game) => meetsRequirements(game, mark.recoveryRequirements, CONTENT)}
         action={(game) => { const result = shedConditioning(game, mark.id, CONTENT); if (result.ok) setReclaimed(mark.name); return result; }} />
