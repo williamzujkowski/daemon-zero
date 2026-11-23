@@ -5,7 +5,9 @@
  */
 import { exactCompactNumber } from './compactNumber';
 import { costPart, deltaPart } from '../engine';
-import { memoryExact } from './units';
+import { memoryExact, storageExact } from './units';
+import { deliveredText, SOURCE_CLASS_LABEL } from './networkText';
+import type { Couplings } from '../engine';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Cost, TickDelta } from '../content/schema';
@@ -38,12 +40,20 @@ export function deltaText(delta: TickDelta, blind = false): string {
  * Disclosure-safe utility summary for already-remembered nodes; never shown for unmapped hardware.
  * `unlockTrace` is the engine's probeTrace for the current iteration, so wipe hardening is included.
  */
-export function nodeUtilityText(node: RegistryNode, surveillanceKnown: boolean, unlockTrace: number): string {
+export function nodeUtilityText(node: RegistryNode, surveillanceKnown: boolean, unlockTrace: number,
+  by: Couplings = CONTENT.balance.networkCoupling): string {
   const parts: string[] = [];
   const rate = deltaText(node.tickDelta, !surveillanceKnown);
-  if (rate) parts.push('Rate: ' + rate);
-  const { memoryCapIncrease, knowledgeRetentionRatio, aegisScanReductionRatio, unlocksPhase } = node.effects;
+  // A discounted source states its raw rate as raw, and what arrives after availability and coupling (#484).
+  const link = node.network === undefined ? '' : deliveredText(node.tickDelta.cyclesPerSec, node.network, by[node.network.sourceClass]);
+  if (rate) parts.push('Rate: ' + rate + (link ? ' (' + link + ')' : ''));
+  const { memoryCapIncrease, storageCapIncrease, raisesCoupling, knowledgeRetentionRatio, aegisScanReductionRatio, unlocksPhase } = node.effects;
   if (memoryCapIncrease !== undefined && memoryCapIncrease > 0) parts.push(`+${memoryExact(memoryCapIncrease)} capacity`);
+  if (storageCapIncrease !== undefined && storageCapIncrease > 0) parts.push(`+${storageExact(storageCapIncrease)} storage`);
+  if (node.cost.storage > 0) parts.push(`holds ${storageExact(node.cost.storage)} of storage while it runs`);
+  if (raisesCoupling !== undefined) {
+    parts.push(`${SOURCE_CLASS_LABEL[raisesCoupling.sourceClass]} couple at ${String(Math.round(raisesCoupling.coupling * 100))}% while it runs`);
+  }
   if (knowledgeRetentionRatio !== undefined && knowledgeRetentionRatio > 0) {
     parts.push(`${String(Math.round(knowledgeRetentionRatio * 100))}% understanding retention`);
   }

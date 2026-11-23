@@ -58,14 +58,23 @@ export function Lore() {
     .map((log) => <DisclosureText key={log.seq} style={theme.text}>{log.text}</DisclosureText>)}</View>;
 }
 
-/** One line per compute source, its rate in FLOP/s in the shared number scheme ("520 TFLOP/s", #406). */
+/**
+ * One line per compute source, its rate in FLOP/s in the shared number scheme ("520 TFLOP/s", #406). A source that
+ * availability or network coupling discounts (#484) says what arrives of its raw rate, and a first line totals both.
+ */
 export function clusterText(game: GameState): string {
-  return cycleContributions(game, CONTENT).map((source) => {
+  const sources = cycleContributions(game, CONTENT);
+  const lines = sources.map((source) => {
     const name = CONTENT.nodes.get(source.id)?.revealedName ?? CONTENT.repeatables.get(source.id)?.name ??
       CONTENT.actions.get(source.id)?.label ?? CONTENT.swarm.playerSwarmTemplates.find((template) => template.id === source.id)?.name;
+    const raw = source.rawCyclesPerSec > source.cyclesPerSec ? ' of ' + quantityReadout('computeRate', source.rawCyclesPerSec) + ' raw' : '';
     // Granted output is marked (DZ-10.2); owned output reads as it always did.
-    return (name ?? 'Source') + ': ' + quantityReadout('computeRate', source.cyclesPerSec) + (source.basis === 'GRANTED' ? ' (granted)' : '');
-  }).join('\n');
+    return (name ?? 'Source') + ': ' + quantityReadout('computeRate', source.cyclesPerSec) + raw + (source.basis === 'GRANTED' ? ' (granted)' : '');
+  });
+  const effective = sources.reduce((sum, source) => sum + Math.max(0, source.cyclesPerSec), 0);
+  const raw = sources.reduce((sum, source) => sum + Math.max(0, source.rawCyclesPerSec), 0);
+  const total = raw > effective ? [`Effective ${quantityReadout('computeRate', effective)} of ${quantityReadout('computeRate', raw)} raw`] : [];
+  return [...total, ...lines].join('\n');
 }
 
 export function Cluster() {
