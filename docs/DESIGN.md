@@ -800,7 +800,8 @@ and a raid does not arrive while a mind presses; when either ends, the slot's 30
 raid waits its own 420 s too. A raid is a rival AI drawn by the footprint the signature shows (#482): from Phase 3, once
 visible watts reach 20% of the phase's signature reference, whether or not anyone hunts the run. Its force is its
 authored force times the footprint's share of that reference, held between 0.5 and 2. Phase 3 raids are cyber
-(intrusion, ransomware, flood); Phase 4 adds break-ins and drone strikes on the data halls. Each kind rotates
+(intrusion, ransomware, flood); Phase 4 adds break-ins and drone strikes on the data halls and the player's own fab
+(#485): a drone strike goes for an owned DUV fab first, a break-in for the halls first. Each kind rotates
 deterministically among the raids that have something to strike (a member of a target class that runs; for
 ransomware, positive net income). Drift deviants (#518) are a second source the schema reserves.
 
@@ -819,7 +820,8 @@ rule counts the cap against any permanent holding a raid can damage).
 
 **Repair is free but slow** (0.6 points a minute on every class a raid is not inbound on or fighting, offline too),
 **faster if paid** (each class's price restores 15 points at once, refused while a raid is on it), and a holding that
-declares `repairPerSec` adds to the rate while it runs, the hook robots take (#485). Insurance (#498) can restore
+declares `repairPerSec` adds to the rate while it runs: humanoid site crews (#485) each add 0.3 points a minute, the
+robots that repair (real ground robots are mostly logistics and repair work). Insurance (#498) can restore
 through the same `repairDamage`.
 
 **Interactions.** The footprint that draws raiders is the signature's own visible watts. AEGIS's kinds keep the slot
