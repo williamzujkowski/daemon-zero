@@ -9,8 +9,8 @@ import { COLUMN_MIN_WIDTH } from './layout';
  * click is competing with hundreds of clicks' worth of compute every second and should
  * not hold the primary slot in the purchase feed. The threshold is relative to the
  * click's own yield (content's manualCycleYield), so it follows the content's units:
- * with the physical-units ladder (docs/SCALE.md) Phase 0's kFLOP/s sits under it and a
- * Phase 1 host's GFLOP/s is far past it. It is demoted rather than hidden (a nexus
+ * one stolen cycle a press against the guest's handful of cycles a second sits far under
+ * it (#526), and a Phase 1 host's GFLOP/s is far past it. It is demoted rather than hidden (a nexus
  * consensus_vote chose demote-to-inline-line over hiding, 4 of 5 selecting seats):
  * the verb stays, the prominence does not. Retirement is the later stage (#447): from the scale content names
  * (Phase 3) CorePane draws it no more and the Archive shows ArchivedCycle instead.
@@ -20,10 +20,10 @@ import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { registerPrimaryAction } from './primaryFocus';
 
 import { CONTENT } from '../content';
-import { manualCycle, quantityExact, quantityReadout } from '../engine';
+import { computeDimension, manualCycle, quantityExact, quantityReadout, type ComputeUnit } from '../engine';
 import { gameRuntime } from '../app/session';
 import { selectReady, useGameValue } from '../app/selectors';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { StyleSheet } from 'react-native';
 import { theme } from './theme';
 import { resourceWidgets } from './registry/widgetRegistry';
@@ -36,8 +36,8 @@ export function shouldDemoteManualCycle(cyclesPerSec: number, manualYield = CONT
   return cyclesPerSec >= MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC * manualYield;
 }
 
-/** What one click adds, exactly as content authors it: "+10 kFLOP". */
-export const manualYieldText = (): string => '+' + quantityExact('compute', CONTENT.balance.manualCycleYield);
+/** What one click adds, exactly as content authors it, in the phase's compute unit: "+1 cycle" in the guest, "+1 FLOP" after. */
+export const manualYieldText = (unit: ComputeUnit = 'FLOP'): string => '+' + quantityExact(computeDimension(unit), CONTENT.balance.manualCycleYield);
 
 export default function ManualCycle() {
   const ready = useGameValue(selectReady);
@@ -45,6 +45,7 @@ export default function ManualCycle() {
   const iteration = useGame((game) => game.iteration);
   const counter = useGame((game) => game.unlockedWidgets.includes(resourceWidgets.cycles));
   const demoted = useGame((game) => shouldDemoteManualCycle(game.rates.cyclesPerSec));
+  const unit = useComputeUnit();
   const [feedback, setFeedback] = useState({ iteration, count: 0 });
   // A closing dialog returns focus here rather than to the page body (#364).
   const self = useRef<ComponentRef<typeof Pressable>>(null);
@@ -55,7 +56,7 @@ export default function ManualCycle() {
   // 730px at 1440) and reads as a green bar rather than a button; the phone keeps the full
   // width because there the width is the touch target.
   const wide = useWindowDimensions().width >= COLUMN_MIN_WIDTH;
-  const label = demoted ? '[ cycle ] ' + manualYieldText() + ' — execute clock cycle' : '[ EXECUTE_CLOCK_CYCLE ] Execute clock cycle';
+  const label = demoted ? '[ cycle ] ' + manualYieldText(unit) + ' — execute clock cycle' : '[ EXECUTE_CLOCK_CYCLE ] Execute clock cycle';
   return <View style={{ gap: 6 }}><Pressable ref={self} testID="manual-cycle" accessibilityRole="button" accessibilityLabel={label}
     disabled={!ready || blocked} style={[theme.button, demoted && styles.demoted, wide && !demoted && styles.wide, (!ready || blocked) && theme.disabled]}
     onPress={() => {
@@ -64,7 +65,7 @@ export default function ManualCycle() {
       if (result.ok) setFeedback({ iteration, count: count + 1 });
     }}>
     {demoted
-      ? <Text testID="manual-cycle-inline" style={theme.muted}>[ cycle ] {manualYieldText()}</Text>
+      ? <Text testID="manual-cycle-inline" style={theme.muted}>[ cycle ] {manualYieldText(unit)}</Text>
       : <Text style={theme.heading}>[ EXECUTE_CLOCK_CYCLE ]</Text>}
   </Pressable>{!counter && count > 0 && <Text testID="manual-feedback" accessibilityLiveRegion="polite"
     role="status" style={theme.muted}>Manual instructions committed: {count}</Text>}</View>;
@@ -72,9 +73,10 @@ export default function ManualCycle() {
 
 /** EXECUTE in the Archive (#447): what a press was worth beside what the run now earns without it, both read live. */
 export function ArchivedCycle() {
-  const rate = useGame((game) => quantityReadout('computeRate', game.rates.cyclesPerSec));
+  const unit = useComputeUnit();
+  const rate = useGame((game) => quantityReadout(computeDimension(unit, true), game.rates.cyclesPerSec));
   return <Text testID="manual-cycle-archived" style={theme.text}>
-    [ EXECUTE_CLOCK_CYCLE ] added {quantityExact('compute', CONTENT.balance.manualCycleYield)} a press. Net rate now: {rate}.
+    [ EXECUTE_CLOCK_CYCLE ] added {quantityExact(computeDimension(unit), CONTENT.balance.manualCycleYield)} a press. Net rate now: {rate}.
   </Text>;
 }
 

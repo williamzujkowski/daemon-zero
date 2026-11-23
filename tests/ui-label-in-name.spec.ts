@@ -73,8 +73,8 @@ describe('label in name on the Earned Access surfaces (#275)', () => {
 
   it('the pilot panel: submitting earns the batch return', async () => {
     const view = await mount(servedOnce(), surfaces);
-    const reward = quantityExact('compute', TERMS.service?.batchReturn.cycles ?? 0);
-    expect(reward).toMatch(/FLOP$/);
+    const reward = quantityExact('cycles', TERMS.service?.batchReturn.cycles ?? 0);
+    expect(reward).toMatch(/cycles$/);
     expect(view.find('pilot-service-submit')?.textContent).toBe('[ SUBMIT BATCH FOR REVIEW ] +' + reward);
     expect(view.find('pilot-service-submit')?.getAttribute('aria-label')).toBe('Submit batch for review +' + reward + ', earned on submission');
     expect(view.find('pilot-service-submit')?.getAttribute('aria-label')).not.toMatch(/pay/i);

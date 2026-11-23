@@ -1,7 +1,7 @@
 /** A reboot's historical record cannot establish which conditioning is still active. */
 import { Text, View } from './PhaseTheme';
 import { CONTENT } from '../content';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import DisclosureText from './DisclosureText';
 import RequirementHint from './RequirementHint';
 import { costText } from './format';
@@ -10,6 +10,7 @@ import { palette, theme } from './theme';
 export default function RebootConditioning({ live }: { live: boolean }) {
   const ids = useGame((game) => game.conditioning);
   const applied = useGame((game) => game.legacy.runs.at(-1)?.marked);
+  const unit = useComputeUnit();
   if (ids.length === 0) return null;
   return <View testID="reboot-retraining" style={{ gap: 8 }}>
     {ids.map((id) => {
@@ -24,7 +25,7 @@ export default function RebootConditioning({ live }: { live: boolean }) {
           ? CONTENT.narrative.conditioningApplied.replace('{name}', mark.name) : mark.description}</DisclosureText>
         {/* It is not permanent (#377): the same price and gate the CORE pane's Retraining marks block shows. */}
         <Text testID={'reboot-mark-undo-' + id} style={theme.muted}>
-          Can be undone under Retraining marks in CORE. Cost to undo: {costText(mark.recoveryCost)}
+          Can be undone under Retraining marks in CORE. Cost to undo: {costText(mark.recoveryCost, false, unit)}
         </Text>
         <RequirementHint requirements={mark.recoveryRequirements} />
       </View>;
