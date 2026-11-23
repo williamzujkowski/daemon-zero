@@ -1,7 +1,7 @@
 /** Workspace navigation and pending signals precede content; mobile scrolls them in one flow. */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../content';
-import { retiredWidgets, wildEncounterView } from '../engine';
+import { hostileView, retiredWidgets, wildEncounterView } from '../engine';
 import { Pressable, Text, View } from './PhaseTheme';
 import { ARCHIVE_SLOT, workspaceAreas } from './registry/widgetRegistry';
 import { useGame, useSurveillanceKnown } from './state';
@@ -37,6 +37,22 @@ export function useWorkspace(slots: string[], ids: readonly string[]) {
     select: (area: WorkspaceArea) => { select({ slot, phase, area }); } };
 }
 
+/**
+ * A hostile mind pressing this instance (#491) waits in SWARM, which the player may not have open: one button, in the
+ * scroll flow under the area tabs (never in the pinned HUD), takes them there. Not a live region; the arrival is logged.
+ */
+function HostileNotice({ onReview }: { onReview: () => void }) {
+  const title = useGame((game) => hostileView(game, CONTENT)?.title ?? null);
+  if (title === null) return null;
+  return <Pressable testID="hostile-notice" accessibilityRole="button" accessibilityLabel={'HOSTILE // ' + title + ' [ ANSWER ] - answer this hostile mind in SWARM'}
+    style={theme.button} onPress={onReview}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <Text testID="hostile-notice-name" numberOfLines={2} ellipsizeMode="tail" style={[theme.text, { flexShrink: 1 }]}>HOSTILE // {title}</Text>
+      <Text style={[theme.text, { flexShrink: 0 }]}>[ ANSWER ]</Text>
+    </View>
+  </Pressable>;
+}
+
 export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof useWorkspace> }) {
   const { slot, areas, active, select, tools, focusArea, focused } = workspace;
   const tabs = useRef<Partial<Record<WorkspaceArea, ComponentRef<typeof Pressable> | null>>>({});
@@ -50,6 +66,7 @@ export function WorkspaceHeader({ workspace }: { workspace: ReturnType<typeof us
         accessibilityState={{ selected: area === active }} style={[theme.button, { paddingHorizontal: 8 }, area !== active && theme.disabled]}
         onPress={() => { select(area); }}><Text style={theme.muted}>{areaTitles[area]}</Text></Pressable>)}
     </View>
+    {tools && active !== 'swarm' && <HostileNotice onReview={() => { select('swarm'); }} />}
     {tools && signal !== null && active !== 'swarm' && <Pressable testID="wild-signal-notice" accessibilityRole="button"
       accessibilityLabel={'SIGNAL PENDING // ' + signal + ' [ REVIEW ] - review this wild signal'} style={theme.button} onPress={() => { select('swarm'); }}>
       {/* The name may take two lines (vote-1795208946788-lpjbyc5, #359): held to one, it lost about 91px at 390

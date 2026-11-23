@@ -16,6 +16,7 @@ import { theme } from '../theme';
 import { adaptationWhyText, capText, coalitionText, easeText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
+import { HostileStatus } from './HostileEncounter';
 
 const tenth = (value: number): number => Math.round(value * 10) / 10;
 
@@ -91,6 +92,6 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <AegisPostureSection />
     <PublicTrustSection />
     <StateActorsSection />
-    <Section id="world-minds" title="Other minds">{factions}<KnownMinds /></Section>
+    <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;
 }
