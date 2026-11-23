@@ -6,6 +6,7 @@
 export * from './actions';
 export * from './conditioning';
 export { DIAL_STEP, steppedValue } from './dialSteps';
+export { dialRaiseTrace, dialStepTrace } from './dialTrace';
 export { AMOUNT_SCALES, amountFigure, compactAmount, groupDigits, significant3, spokenAmount } from './amount';
 export { type Dimension, memoryExact, storageExact, quantityExact, quantityReadout, quantitySpoken, quantityStep } from './physicalUnits';
 export { COST_DIMENSION, costPart, costText, deltaPart } from './resourceUnits';

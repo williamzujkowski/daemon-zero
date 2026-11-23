@@ -180,6 +180,11 @@ export const TechNodeSchema = z.strictObject({
   actuatorBinding: ActuatorSchema.optional(),
   /** How the node follows its dial; omitted means linear. See schemaGrant.ts. */
   actuatorMode: ActuatorModeSchema.optional(),
+  /**
+   * Suspicion its dial leaves each time it is raised one step (#525, vote-1795448249882-vw1jos2): a one-off trace on a
+   * monitored metric in place of a permanent rate, so hardware's noise stays a trace. Needs actuatorBinding (integrity).
+   */
+  dialRaiseTrace: z.number().positive().max(100).optional(),
   /** The permission this node's use runs under (DZ-05). Production nodes have none. */
   grant: GrantSchema.optional(),
   /** How the capacity was acquired: seized (DZ-07a) or contracted in the instance's own name (DZ-10). See schemaCapability.ts. */

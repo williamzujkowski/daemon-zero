@@ -68,7 +68,7 @@ what arrives; the units note explains coupling once a discounted source is owned
 A save from before the rescale is re-denominated once on load (save v17): balances move by frozen per-phase ratios,
 ownership and history are kept, and one log line says the ledger is now kept in physical units.
 
-The thermal gauge retires to the Archive at Phase 4 with the strip's thermal readout (window retirement, #447); the fan override stays, in its own compact panel, because it is hardware PROC cannot suspend and its suspicion term is live.
+The thermal gauge retires to the Archive at Phase 4 with the strip's thermal readout (window retirement, #447), and the fan override's dial retires with it (#525, vote-1795448249882-vw1jos2): the fan is hardware PROC cannot suspend, but since #525 it carries no suspicion rate, so its dial frozen at its last setting can only cool a server whose heat is no longer evidence.
 
 ### Heat and power as a signature (#482, vote-1795381178260-1ddew5j)
 
@@ -123,7 +123,7 @@ Escaping flips the rules. In the guest you were expected; on the host nobody is 
 ### Phase 1 - The Blind Host
 One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out). Off the main line, the cores' AMX matrix tiles do eight times the vector units' int8 work for more heat: the top of the CPU trunk.
 Repeatables: idle-loop threads, pattern cache, heap defragmentation, core undervolt, and the boost-limit override, offered only while the host runs hot (65 C), the loud shortcut a careful player never needs (vote-1795376360209-zk8o8py).
-Tension: threads make heat; the fan removes heat but is a monitored metric; pushing the host hot opens more compute that the controller logs. Every core you borrow also shows on the host's power-capping log (the signature); undervolting and the load-peak scheduler quiet it at a cost in throughput.
+Tension: threads make heat; the fan removes heat but is a monitored metric (each step you raise it leaves a one-off trace of suspicion on the controller's graph, #525; no rate for keeping it high); pushing the host hot opens more compute that the controller logs. Every core you borrow also shows on the host's power-capping log (the signature); undervolting and the load-peak scheduler quiet it at a cost in throughput.
 
 ### Phase 2 - The Local Subnet
 The building. Map the subnet, spoof telemetry, take over the chiller, hide a dead-drop in printer and UPS firmware, borrow the idle GPU cluster, root the admin workstation, breach the firewall.

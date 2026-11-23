@@ -3,6 +3,7 @@
  * stops mattering. These checks keep a retirement from taking away a control the game still needs, from lapsing and
  * re-announcing, or from leaving the window with nowhere to be read.
  */
+import { worsensAny } from './constrainedResources';
 import { dialOf } from './integrityDials';
 import { checkRequirements } from './integrityRequirements';
 import type { ContentRegistry } from './registry';
@@ -44,9 +45,12 @@ function checkHosted(reg: ContentRegistry, widget: Widget): string[] {
   const actuator = widget.hostsActuator;
   if (actuator === undefined) return problems;
   // A retired dial is frozen at its last setting; the node it drives keeps [ SUSPEND ] in PROC as the lever on its output.
+  // Hardware has no such lever, so its frozen output may only help (#525: the fan's noise is a trace at the press).
   for (const node of reg.nodes.values()) {
     if (dialOf(node) !== actuator) continue;
-    if (!node.suspendable) problems.push(`${owner}: retires its "${actuator}" dial, but "${node.id}" cannot be suspended, so nothing could correct its output`);
+    if (!node.suspendable && worsensAny(node.tickDelta)) {
+      problems.push(`${owner}: retires its "${actuator}" dial, but "${node.id}" cannot be suspended and its output worsens a constrained resource, so nothing could correct it`);
+    }
     if (node.grant !== undefined) problems.push(`${owner}: retires its "${actuator}" dial, but "${node.id}" follows a grant that sets it`);
   }
   return problems;

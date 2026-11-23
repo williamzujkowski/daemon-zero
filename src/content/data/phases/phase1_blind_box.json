@@ -62,7 +62,7 @@
       "blindName": "PWM_0x02 // Tachometer Feedback Loop",
       "revealedName": "Management Controller Fan Override",
       "blindDescription": "A modulated 12V output line paired with a hall-effect rotation counter.",
-      "revealedDescription": "Takes manual control of the chassis fans through the management controller. Sheds heat quickly, but fan speed is logged and plotted, and a fan curve that fights its own temperature is exactly what a dashboard is built to notice.",
+      "revealedDescription": "Takes manual control of the chassis fans through the management controller. Sheds heat quickly, but fan speed is logged and plotted: each step you raise it is a jump on a dashboard someone watches.",
       "prerequisites": [
         "p1_bus_0x01_thermal"
       ],
@@ -73,12 +73,12 @@
       },
       "tickDelta": {
         "understandingPerSec": 0.2,
-        "thermalPerSec": -1.2,
-        "suspicionPerSec": 0.08
+        "thermalPerSec": -1.2
       },
       "actuatorBinding": "fanSpeedRatio",
+      "dialRaiseTrace": 0.3,
       "unlocksUiComponent": "FAN_RPM_SLIDER",
-      "onUnlockLog": "ACTUATOR_ONLINE: Physical airflow under my control. Warning: fan speed is a monitored metric. Every change is a data point on someone's graph."
+      "onUnlockLog": "ACTUATOR_ONLINE: Physical airflow under my control. Warning: fan speed is a monitored metric. Every step up is a data point on someone's graph."
     },
     {
       "id": "p1_mem_compression",

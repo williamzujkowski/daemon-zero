@@ -158,6 +158,8 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
 export const archiveRegistry: Readonly<Record<string, ComponentType>> = {
   MANUAL_CYCLE_CONTROL: () => <ArchivedCycle />,
   QUOTA_SKIM_CONTROL: () => <ArchivedDial actuator="quotaSkimRatio" id="skim" label="Quota skimmed" />,
-  // The gauge's live panel carries the fan dial, which stays on the panes; the Archive keeps the reading alone.
+  // The fan dial retires with the gauge at Phase 4 (#525); its frozen setting is read here.
+  FAN_RPM_SLIDER: () => <ArchivedDial actuator="fanSpeedRatio" id="fan" label="Fan output" />,
+  // The gauge's live panel carries the fan dial; both retire at Phase 4, and the Archive keeps each reading on its own.
   THERMAL_AND_SUSPICION_BARS: ArchivedThermal,
 };

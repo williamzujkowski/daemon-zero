@@ -64,6 +64,10 @@ export function nodeUtilityText(node: RegistryNode, surveillanceKnown: boolean, 
   if (unlockTrace > 0) {
     parts.push(surveillanceKnown ? `+${String(unlockTrace)} suspicion on unlock` : 'Audit log trace on unlock');
   }
+  // A monitored dial's noise is a trace at each press up, never a rate (#525).
+  if (node.dialRaiseTrace !== undefined) {
+    parts.push(surveillanceKnown ? `+${String(node.dialRaiseTrace)} suspicion each step its dial is raised` : 'Audit log trace each step its dial is raised');
+  }
   const widgetTitle = node.unlocksUiComponent ? CONTENT.widgets.get(node.unlocksUiComponent)?.title : undefined;
   if (widgetTitle) parts.push(`Unlocks: ${widgetTitle}`);
   return parts.join(' · ');

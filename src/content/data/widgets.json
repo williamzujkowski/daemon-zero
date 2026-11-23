@@ -64,7 +64,10 @@
       "slot": "SENSORS",
       "order": 20,
       "title": "Fan override",
-      "hostsActuator": "fanSpeedRatio"
+      "hostsActuator": "fanSpeedRatio",
+      "retiresWhen": {
+        "phaseAtLeast": 4
+      }
     },
     {
       "id": "AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG",

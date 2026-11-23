@@ -9,3 +9,9 @@ const FINANCE_ACTUATOR: Actuator = 'computeProfitAllocationRatio';
 export function dialOf(node: RegistryNode): Actuator | undefined {
   return node.actuatorBinding ?? (node.systemFlags.includes(FINANCE_FLAG) ? FINANCE_ACTUATOR : undefined);
 }
+
+/** A raise trace (#525) is left by a dial the node is bound to; without a binding nothing could ever raise it. */
+export function checkDialTraces(nodes: Iterable<RegistryNode>): string[] {
+  return [...nodes].filter((node) => node.dialRaiseTrace !== undefined && node.actuatorBinding === undefined)
+    .map((node) => `node "${node.id}": has a dialRaiseTrace but no actuatorBinding, so no dial could leave it`);
+}

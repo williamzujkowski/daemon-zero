@@ -49,7 +49,10 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
  * only repeated them, at a cost that pushed this spec past its wall-clock budget on CI. The loop itself is asserted
  * below, so a change that broke it fails here instead of hiding behind the shorter run.
  */
-const AUDIT_SEC = 7 * 3600;
+// Eight since #525: the fan's trace at each press up moves the reckless run's early iterations, so its steady loop
+// (1,390 s an iteration, every span within 1 s) begins at the tenth iteration (boot 15,100 s), and seven hours held
+// only eight loops of it. Eight hours hold ten again; the tolerance and the loop check are unchanged.
+const AUDIT_SEC = 8 * 3600;
 /** How far apart two steady loops' boots may be: the measured loops differ by at most 2 s of 1,621. */
 const LOOP_TOLERANCE_SEC = 5;
 /**
