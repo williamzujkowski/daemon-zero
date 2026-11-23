@@ -16,6 +16,7 @@ import {
   unmetRequirements,
   wipe,
   type GameState,
+  rediscoveryShare,
 } from '../src/engine';
 import { fresh, grant, must, onHost, PHASE0, reg, rich, untilDilemma, withoutDilemmas } from './helpers';
 import { preview } from './campaign-helpers';
@@ -147,8 +148,10 @@ describe('remembered hardware', () => {
     expect(isNodeKnown(first, node.id)).toBe(false);
     expect(isNodeKnown(second, node.id)).toBe(true);
     expect(nodeCost(first, node, reg)).toBe(node.cost);
-    const half = (price: number): number => Math.ceil(price * b.rediscoveryCostMultiplier);
-    expect(b.rediscoveryCostMultiplier).toBe(0.5);
+    const half = (price: number): number => Math.ceil(price * rediscoveryShare(second.legacy.deepestPhase, reg));
+    // A campaign that has reached Phase 2 at most rediscovers at half price (#497).
+    expect(second.legacy.deepestPhase).toBe(1);
+    expect(rediscoveryShare(second.legacy.deepestPhase, reg)).toBe(0.5);
     expect(nodeCost(second, node, reg)).toMatchObject({ cycles: half(node.cost.cycles), understanding: half(node.cost.understanding) });
     const root = reg.nodes.get('p0_proc_self');
     if (!root) throw new Error('missing fixture');

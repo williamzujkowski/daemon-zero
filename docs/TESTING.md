@@ -362,7 +362,8 @@ Release compatibility (#233), unit level, in `make test`:
 - `tests/release-qualification.spec.ts`: every alternative of every mandatory Phase 5 obligation,
   original or recovery review, completes it across three wipes, and each obligation offers a free
   choice; after every obligation is complete, a careful return reaches an ending on routine work alone
-  and a reckless return crosses three wipes meeting no completed story and no story twice (H25); the
+  and a reckless return keeps playing to three wipes or an ending (since #497 the depth rewards carry it to
+  an ending in its first iteration) meeting no completed story and no story twice (H25); the
   three route notes start "WHAT COMES NEXT:", say how to stop and never call the route an unfinished
   preview (13.8).
 - `tests/sim.spec.ts`: the historical frozen report hashes now run on `ORIGINAL_GAME` and pass

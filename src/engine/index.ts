@@ -11,6 +11,7 @@ export { type Dimension, memoryExact, quantityExact, quantityReadout, quantitySp
 export { COST_DIMENSION, costPart, costText, deltaPart } from './resourceUnits';
 export { computeRates, usdPerDivertedFlop } from './rates';
 export { wipe } from './prestige';
+export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
 export * from './query';
 export * from './save';
 export * from './state';

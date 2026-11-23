@@ -12,7 +12,7 @@ import type { Cost, Dilemma, DilemmaChoice } from '../../content/schema';
 import { buyRepeatable, resolveDilemma, setActuator, unlockNode, type ActionResult } from '../actions';
 import { isCampaignConsumed } from '../campaignQuery';
 import { actuatorLimit } from '../conditioning';
-import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, presentationToken, repeatableCost, repeatableLevel } from '../query';
+import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, presentationToken, repeatablePrice, repeatableLevel } from '../query';
 import { computeRates, financeEnabled } from '../rates';
 import { isChoiceOffered } from '../speechQuery';
 import type { GameState } from '../state';
@@ -85,7 +85,7 @@ function grow(s: GameState, goal: Cost, kept: Cost, reg: ContentRegistry): GameS
   let best: GameState | null = null;
   let bestWait: number | undefined;
   for (const rep of reg.repeatables.values()) {
-    const cost = repeatableCost(rep, repeatableLevel(s, rep.id));
+    const cost = repeatablePrice(s, rep, reg);
     if (repeatableLevel(s, rep.id) >= rep.maxLevel || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, cost)) continue;
     const bought = taken(buyRepeatable(s, rep.id, reg));
     if (!bought || !canAfford(bought, kept)) continue;

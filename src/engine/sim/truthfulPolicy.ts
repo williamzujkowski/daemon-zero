@@ -13,7 +13,7 @@ import { acceptAssignment, assignmentView } from '../assignment';
 import { assessmentOf } from '../assignmentQuery';
 import { activateCampaignRules } from '../campaign';
 import { isCampaignActive } from '../campaignQuery';
-import { canAfford, meetsRequirements, presentationToken, repeatableCost, repeatableLevel } from '../query';
+import { canAfford, meetsRequirements, presentationToken, repeatablePrice } from '../query';
 import type { GameState } from '../state';
 import type { SimPolicy } from './policy';
 
@@ -77,7 +77,7 @@ function buyLawful(s: GameState, reg: ContentRegistry, thorough: boolean): GameS
   const lawful = lawfulNodes(reg);
   for (const rep of reg.repeatables.values()) {
     const inside = (rep.requirements.nodes ?? []).every((id) => lawful.has(id)) && rep.perLevel.suspicionPerSec <= 0;
-    if (!inside || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, repeatableCost(rep, repeatableLevel(s, rep.id)))) continue;
+    if (!inside || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, repeatablePrice(s, rep, reg))) continue;
     const result = buyRepeatable(s, rep.id, reg);
     if (result.ok) return result.state;
   }

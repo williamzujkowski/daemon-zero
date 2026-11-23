@@ -3,7 +3,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { costPart } from '../src/engine';
+import { costPart, rediscoveryShare } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import { labelMismatches } from './labelInName';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
@@ -180,7 +180,7 @@ describe('second-pass presentation follow-up', () => {
     if (!root) throw new Error('Missing root');
     expect(view.find('node-' + root.id)?.textContent).toContain('[REMEMBERED] ' + root.revealedName);
     expect(view.find('node-' + root.id + '-rediscovery')?.textContent).toContain('First mapping: ' + costPart('cycles', root.cost.cycles));
-    const price = Math.ceil(root.cost.cycles * CONTENT.balance.rediscoveryCostMultiplier);
+    const price = Math.ceil(root.cost.cycles * rediscoveryShare(gameStore.store.getState().game.legacy.deepestPhase, CONTENT));
     const shown = view.find('node-' + root.id + '-cost')?.textContent ?? '';
     expect(shown.startsWith('Cost: ' + costPart('cycles', price) + ' ')).toBe(true);
     expect(shown.endsWith(' (remembered)')).toBe(true);

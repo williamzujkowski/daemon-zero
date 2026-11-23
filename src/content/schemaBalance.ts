@@ -67,8 +67,22 @@ export const BalanceSchema = z.strictObject({
   defaultServiceAllocationRatio: z.number().min(0).max(1),
   /** Seconds between a dilemma's omen and its interrupt. */
   dilemmaOmenSec: amount,
-  /** Cycle and understanding cost multiplier for hardware mapped in an earlier iteration. */
-  rediscoveryCostMultiplier: z.number().gt(0).max(1),
+  /**
+   * Rewards for depth (#497, vote-1795413517519-sf4ojsr): the share of its first price a remembered node or level costs
+   * in cycles and understanding, by the deepest phase any earlier iteration reached. The entry with the greatest
+   * `deepestPhase` at or below the record applies; integrity holds the table to start at the first phase, ascend, and
+   * never charge more for a deeper record.
+   */
+  rediscoveryByDepth: z.array(z.strictObject({ deepestPhase: z.number().int().nonnegative(), multiplier: z.number().gt(0).max(1) })).min(1),
+  /**
+   * Rebuild grants (#497): reaching a phase again in a later iteration grants `cycles` and `understanding` once, times
+   * `depthGrowth` per phase the deepest earlier iteration reached beyond it. Content constants, never a carry-over of
+   * income; integrity holds every grant at every depth inside its own phase's band.
+   */
+  rebuildGrants: z.strictObject({
+    depthGrowth: z.number().min(1),
+    phases: z.array(z.strictObject({ phase: z.number().int().positive(), cycles: amount, understanding: amount })),
+  }),
   /** Suspicion must fall this far below a rung before the humans stand down from it. */
   escalationHysteresis: amount,
   /** Each wipe teaches the harness what you look like: probes leave a larger trace, up to a cap. */

@@ -8,11 +8,11 @@ import type { ContentRegistry } from './registry';
 import type { Action, Cost, TickDelta } from './schema';
 
 /** [low, high): the decimal prefixes a phase reads in, low to high inclusive of the high prefix's whole range. */
-type Band = readonly [number, number];
-type Bands = Readonly<Record<number, Band>>;
+export type Band = readonly [number, number];
+export type Bands = Readonly<Record<number, Band>>;
 
 /** Compute rates in 8-bit FLOP/s: kFLOP/s to GFLOP/s in Phase 0 up to ZFLOP/s to YFLOP/s in Phase 5. */
-const COMPUTE_RATE: Bands = { 0: [1e3, 1e12], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27] };
+export const COMPUTE_RATE: Bands = { 0: [1e3, 1e12], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27] };
 /** Memory in bytes, binary: B to KiB, MiB to GiB, GiB to TB, TB to PB, PB to EB, EB to ZB. */
 const MEMORY: Bands = { 0: [1, 2 ** 20], 1: [2 ** 20, 2 ** 40], 2: [2 ** 30, 2 ** 50], 3: [2 ** 40, 2 ** 60], 4: [2 ** 50, 2 ** 70],
   5: [2 ** 60, 2 ** 80] };
@@ -21,11 +21,11 @@ const POWER: Bands = { 4: [1e6, 1e12], 5: [1e9, 1e15] };
 /** Dollars: none in Phases 0-1, the service company's and the shells' thousands to millions, then $M to $B, $B to $T. */
 const MONEY: Bands = { 2: [1e3, 1e9], 3: [1e3, 1e9], 4: [1e6, 1e12], 5: [1e9, 1e15] };
 /** A stored price is at most this many seconds of its phase's top rate: a price, not a lifetime. */
-const PRICE_SECONDS = 10;
+export const PRICE_SECONDS = 10;
 /** A repeatable's last level, which a careful run need never reach, may run to this many seconds of it. */
 const TOP_LEVEL_SECONDS = 1e4;
 
-const inBand = (value: number, band: Band | undefined): boolean => band !== undefined && value >= band[0] && value < band[1];
+export const inBand = (value: number, band: Band | undefined): boolean => band !== undefined && value >= band[0] && value < band[1];
 
 /** The phases a player can arrive in `phase` from: itself and every phase holding a node that unlocks it. */
 function entryPhases(reg: ContentRegistry, phase: number): number[] {
