@@ -16,7 +16,7 @@ import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
-import { LastRaidRequirementSchema } from './schemaRaidOutcome';
+import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -268,13 +268,8 @@ export const EffectPayloadSchema = z.strictObject({
   memoryCapIncrease: amount.default(0),
   trustDelta: z.record(snakeId, z.number()).default({}),
   grantsTrait: TraitSchema.optional(),
-  /**
-   * Retaliation (#519): seconds added to when the next raid may arrive; a loud answer draws it closer (negative). Only a
-   * dilemma whose trigger names a raider may carry it (integrityRetaliation.ts).
-   */
-  nextRaidDeltaSec: z.number().min(-3600).max(3600).optional(),
-  /** Retaliation (#519): the raider the last raid's attribution named arrives no more, across wipes. Same rule. */
-  silencesNamedRaider: z.literal(true).optional(),
+  /** Retaliation (#519): when the next raid may come, and silencing the named raider (schemaRaidOutcome.ts). */
+  ...RaidEffectFields,
   logText: z.string().min(5),
   logCategory: LogCategorySchema.default('LORE'),
 });

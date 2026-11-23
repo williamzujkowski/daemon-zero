@@ -21,5 +21,13 @@ export const LastRaidRequirementSchema = z.strictObject({
 });
 export type LastRaidRequirement = z.infer<typeof LastRaidRequirementSchema>;
 
-/** Placeholders a raid-consequence dilemma's text may use, filled from the attacker its trigger names. */
-export const RAIDER_PLACEHOLDERS = ['{attacker}', '{collateral}'] as const;
+/**
+ * A retaliation's two effect fields, spread into the effect payload (#519). nextRaidDeltaSec: seconds added to when the
+ * next raid may arrive; a loud answer draws it closer (negative). silencesNamedRaider: the raider the last battle's
+ * attribution named arrives no more, across wipes. Only a dilemma whose trigger names a raider may carry either
+ * (integrityRetaliation.ts).
+ */
+export const RaidEffectFields = {
+  nextRaidDeltaSec: z.number().min(-3600).max(3600).optional(),
+  silencesNamedRaider: z.literal(true).optional(),
+};
