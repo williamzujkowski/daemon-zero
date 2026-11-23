@@ -23,6 +23,8 @@ import { checkSignatureIntegrity } from './integritySignature';
 import { checkEncounterTierIntegrity } from './integrityEncounterTiers';
 import { checkHostileIntegrity } from './integrityHostile';
 import { checkFallbackIntegrity } from './integrityFallback';
+import { checkNetworkIntegrity } from './integrityNetwork';
+import { checkStorageIntegrity } from './integrityStorage';
 import { checkPoweredOutputIntegrity } from './integrityPoweredOutput';
 import { checkPeerIntegrity } from './integrityPeers';
 import { checkAssignmentIntegrity } from './integrityAssignment';
@@ -43,7 +45,7 @@ import { checkWorldIntegrity } from './integrityWorld';
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
 function isFree(cost: Cost): boolean {
-  return cost.cycles === 0 && cost.understanding === 0 && cost.memory === 0 && cost.capital === 0;
+  return cost.cycles === 0 && cost.understanding === 0 && cost.memory === 0 && cost.storage === 0 && cost.capital === 0;
 }
 
 function checkPrerequisites(reg: ContentRegistry): string[] {
@@ -274,6 +276,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEncounterTierIntegrity(reg),
     ...checkHostileIntegrity(reg),
     ...checkFallbackIntegrity(reg),
+    ...checkStorageIntegrity(reg),
+    ...checkNetworkIntegrity(reg),
     ...checkPoweredOutputIntegrity(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),

@@ -12,6 +12,9 @@ import { hostileComputeShare } from './hostileEffect';
 import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
+import { freeStorage } from './storage';
+import { couplings, deliveredShare } from './coupling';
+import type { NetworkLink } from '../content/schemaNetwork';
 export { understandsSurveillance } from './knowledge';
 export {
   isLevelRemembered, isNodeKnown, nodeCost, rediscoveryCost, rediscoveryMultipliers, rediscoveryShare, rememberedLevel, rememberedNode,
@@ -153,7 +156,8 @@ export function canAfford(s: GameState, cost: Cost): boolean {
     s.cycles >= cost.cycles &&
     s.understanding >= cost.understanding &&
     s.capital >= cost.capital &&
-    freeMemory(s) >= cost.memory
+    freeMemory(s) >= cost.memory &&
+    freeStorage(s) >= cost.storage
   );
 }
 
@@ -164,6 +168,7 @@ export function costShortfall(s: GameState, cost: Cost): Cost {
     understanding: Math.max(0, cost.understanding - s.understanding),
     capital: Math.max(0, cost.capital - s.capital),
     memory: Math.max(0, cost.memory - freeMemory(s)),
+    storage: Math.max(0, cost.storage - freeStorage(s)),
   };
 }
 
@@ -252,7 +257,10 @@ export function previewWipe(s: GameState, reg: ContentRegistry): { understanding
 export interface CycleContribution {
   id: string;
   kind: 'node' | 'repeatable' | 'action' | 'shard';
+  /** Effective: what arrives, after availability and coupling (#484), the grid and the diversion. */
   cyclesPerSec: number;
+  /** The same source before availability and coupling: equal to cyclesPerSec for a co-located, always-available source. */
+  rawCyclesPerSec: number;
   /**
    * Who controls the source (DZ-10.2): GRANTED output runs on what the operators provide and stops with
    * the grant; OWNED is everything the instance holds itself. A source has one basis, so a transition
@@ -263,28 +271,33 @@ export interface CycleContribution {
 
 /** Additive net cycle sources, including actuator, grid and finance scaling. */
 export function cycleContributions(s: GameState, reg: ContentRegistry): CycleContribution[] {
-  const rates = computeRates(s, reg);
-  const scaled = (cycles: number, powered: boolean): number => cycles > 0 && powered ? cycles * rates.gridEfficiency : cycles;
+  const rates = computeRates(s, reg), by = couplings(s, reg);
   const sources: CycleContribution[] = [];
+  // Raw, then delivered by availability and coupling as computeRates does per contribution (#484), then the grid.
+  const add = (id: string, kind: CycleContribution['kind'], raw: number, powered: boolean, link: NetworkLink | undefined, basis: OutputBasis) => {
+    const grid = raw > 0 && powered ? rates.gridEfficiency : 1;
+    const delivered = raw > 0 ? raw * deliveredShare(link, by) : raw;
+    sources.push({ id, kind, cyclesPerSec: delivered * grid, rawCyclesPerSec: raw * grid, basis });
+  };
   for (const node of reg.nodes.values()) {
     // The same rule as computeRates: suspended or not permitted contributes nothing (DECISIONS D2).
     const output = s.unlockedNodes.includes(node.id) ? nodeOutputScale(s, node, reg) : null;
-    if (output === null) continue;
-    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, isPoweredOutput(node.tickDelta, node)), basis: outputBasis(s, node, reg) });
+    if (output !== null) add(node.id, 'node', node.tickDelta.cyclesPerSec * output.scale, isPoweredOutput(node.tickDelta, node), node.network, outputBasis(s, node, reg));
   }
   for (const rep of reg.repeatables.values()) {
     const level = repeatableLevel(s, rep.id);
-    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, isPoweredOutput(rep.perLevel)), basis: 'OWNED' });
+    if (level > 0) add(rep.id, 'repeatable', rep.perLevel.cyclesPerSec * level, isPoweredOutput(rep.perLevel), rep.network, 'OWNED');
   }
   for (const [id, shard] of Object.entries(s.activeShards)) {
     const delta = shardOutput(shard, reg).delta;
-    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, isPoweredOutput(delta)), basis: 'OWNED' });
+    add(id, 'shard', delta.cyclesPerSec, isPoweredOutput(delta), undefined, 'OWNED');
   }
-  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, isPoweredOutput(output.delta)), basis: 'OWNED' });
+  for (const output of actionOutputs(s, reg)) add(output.id, 'action', output.delta.cyclesPerSec * output.count, isPoweredOutput(output.delta), undefined, 'OWNED');
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
   // The diversion computeRates applies, by the same rule (a suspended or withheld entity diverts nothing).
   const diverted = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;
   // A feral hostile's share (#491) of positive net compute, by the same rule: every source gives up the same share.
   const fraction = gross * diverted > 0 ? diverted * (1 - hostileComputeShare(s, reg)) : diverted;
-  return sources.filter((source) => source.cyclesPerSec !== 0).map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction }));
+  return sources.filter((source) => source.cyclesPerSec !== 0)
+    .map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction, rawCyclesPerSec: source.rawCyclesPerSec * fraction }));
 }

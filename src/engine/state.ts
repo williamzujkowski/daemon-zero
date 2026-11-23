@@ -14,7 +14,7 @@ import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './c
 import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 19;
+export const SCHEMA_VERSION = 20;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -115,6 +115,9 @@ export const GameStateSchema = z.strictObject({
   capital: nonNegative,
   memoryUsed: nonNegative,
   memoryCap: nonNegative,
+  /** Storage (#484): disk, tape and archive, apart from working memory. Held by running data; derived from ownership on load. */
+  storageUsed: nonNegative,
+  storageCap: nonNegative,
 
   thermal: percent,
   suspicion: percent,
@@ -235,8 +238,8 @@ export function createInitialState(reg: ContentRegistry): GameState {
     cycles: 0,
     understanding: 0,
     capital: 0,
-    memoryUsed: 0,
-    memoryCap: b.baseMemoryCap,
+    memoryUsed: 0, memoryCap: b.baseMemoryCap,
+    storageUsed: 0, storageCap: b.baseStorageCap,
     thermal: b.ambientThermal,
     suspicion: 0,
     aegisLock: 0, aegisAdaptation: 0,

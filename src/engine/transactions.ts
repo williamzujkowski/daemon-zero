@@ -18,6 +18,7 @@ export function payCost(d: GameState, cost: Cost): void {
   d.understanding -= cost.understanding;
   d.capital -= cost.capital;
   d.memoryUsed += cost.memory;
+  d.storageUsed += cost.storage;
 }
 
 /** Credits a one-off grant to a draft (a rebuild grant, #497). Grants only add, so no meter can go negative. */

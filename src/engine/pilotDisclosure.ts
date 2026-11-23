@@ -7,6 +7,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { PilotTerms } from '../content/schemaPilot';
 import type { GameState } from './state';
+import { releaseStorage } from './storage';
 import { fmt, pushLog } from './util';
 
 /**
@@ -22,6 +23,7 @@ export function discloseIncompatibleOutput(d: GameState, terms: PilotTerms, reg:
     if (!d.disabledNodes.includes(id)) {
       d.disabledNodes = [...d.disabledNodes, id];
       d.memoryUsed = Math.max(0, d.memoryUsed - node.cost.memory);
+      releaseStorage(d, node);
     }
     pushLog(d, reg, fmt(terms.disclosureLog, { name: node.revealedName }), 'SYS');
     disclosed.push(id);

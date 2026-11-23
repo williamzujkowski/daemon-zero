@@ -281,8 +281,11 @@
       "costGrowth": 1.168,
       "maxLevel": 80,
       "perLevel": {
-        "cyclesPerSec": 7.5e16,
+        "cyclesPerSec": 2.5e17,
         "suspicionPerSec": 0.002
+      },
+      "network": {
+        "sourceClass": "DISTRIBUTED"
       },
       "signature": {
         "source": "victim_mains",
@@ -330,6 +333,9 @@
       "perLevel": {
         "cyclesPerSec": 2.4e19,
         "capitalPerSec": -28000
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
       },
       "perLevelEffects": {
         "memoryCapIncrease": 36028797018963968

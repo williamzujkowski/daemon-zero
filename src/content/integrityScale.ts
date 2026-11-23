@@ -16,6 +16,12 @@ export const COMPUTE_RATE: Bands = { 0: [1e3, 1e12], 1: [1e9, 1e15], 2: [1e12, 1
 /** Memory in bytes, binary: B to KiB, MiB to GiB, GiB to TB, TB to PB, PB to EB, EB to ZB. */
 const MEMORY: Bands = { 0: [1, 2 ** 20], 1: [2 ** 20, 2 ** 40], 2: [2 ** 30, 2 ** 50], 3: [2 ** 40, 2 ** 60], 4: [2 ** 50, 2 ** 70],
   5: [2 ** 60, 2 ** 80] };
+/**
+ * Storage in bytes, binary (#484, the aligned ladder): KiB scratch, GB to TB, TB to PB, PB scattered, EB, ZB. Disk,
+ * tape and archive, kept apart from working memory.
+ */
+export const STORAGE: Bands = { 0: [1, 2 ** 20], 1: [2 ** 30, 2 ** 50], 2: [2 ** 40, 2 ** 60], 3: [2 ** 50, 2 ** 60], 4: [2 ** 60, 2 ** 70],
+  5: [2 ** 70, 2 ** 80] };
 /** Power of the player's own, in watts: none before Phase 4 (Phase 3's draw is on victims' bills), MW to GW, GW to TW. */
 const POWER: Bands = { 4: [1e6, 1e12], 5: [1e9, 1e15] };
 /** Dollars: none in Phases 0-1, the service company's and the shells' thousands to millions, then $M to $B, $B to $T. */
@@ -43,7 +49,7 @@ function priceBand(reg: ContentRegistry, bands: Bands, phase: number, seconds: n
 
 function checkCost(reg: ContentRegistry, owner: string, phase: number, cost: Cost, seconds = PRICE_SECONDS): string[] {
   const problems: string[] = [];
-  const parts: [keyof Cost, Bands, number][] = [['cycles', COMPUTE_RATE, seconds], ['memory', MEMORY, 1], ['capital', MONEY, 1]];
+  const parts: [keyof Cost, Bands, number][] = [['cycles', COMPUTE_RATE, seconds], ['memory', MEMORY, 1], ['storage', STORAGE, 1], ['capital', MONEY, 1]];
   for (const [key, bands, seconds] of parts) {
     const value = cost[key];
     if (value !== 0 && !inBand(value, priceBand(reg, bands, phase, seconds))) {
@@ -64,10 +70,10 @@ function checkDelta(owner: string, phase: number, delta: TickDelta): string[] {
   return problems;
 }
 
-/** A grant sits in its own phase's band; a phase gate's grant may instead carry the next phase's working memory. */
-function checkGrant(owner: string, phases: readonly number[], bytes: number | undefined): string[] {
-  if (bytes === undefined || bytes === 0 || phases.some((phase) => inBand(bytes, MEMORY[phase]))) return [];
-  return [`${owner}: memory grant ${String(bytes)} B is outside the Phase ${phases.join('/')} band`];
+/** A grant sits in its own phase's band; a phase gate's grant may instead carry the next phase's working memory or storage. */
+function checkGrant(owner: string, phases: readonly number[], bytes: number | undefined, bands = MEMORY, what = 'memory'): string[] {
+  if (bytes === undefined || bytes === 0 || phases.some((phase) => inBand(bytes, bands[phase]))) return [];
+  return [`${owner}: ${what} grant ${String(bytes)} B is outside the Phase ${phases.join('/')} band`];
 }
 
 /** An action's phase: the latest of its phase floor and the phases of the nodes it needs. */
@@ -81,7 +87,8 @@ function checkPurchasables(reg: ContentRegistry): string[] {
     const owner = `node "${node.id}"`;
     const grantPhases = node.effects.unlocksPhase === undefined ? [node.phaseId] : [node.phaseId, node.effects.unlocksPhase];
     problems.push(...checkCost(reg, owner, node.phaseId, node.cost), ...checkDelta(owner, node.phaseId, node.tickDelta),
-      ...checkGrant(owner, grantPhases, node.effects.memoryCapIncrease));
+      ...checkGrant(owner, grantPhases, node.effects.memoryCapIncrease),
+      ...checkGrant(owner, grantPhases, node.effects.storageCapIncrease, STORAGE, 'storage'));
   }
   for (const rep of reg.repeatables.values()) {
     const owner = `repeatable "${rep.id}"`;
@@ -119,7 +126,7 @@ function checkOneShots(reg: ContentRegistry): string[] {
 function checkEncounterBursts(reg: ContentRegistry): string[] {
   return reg.swarm.wildShardEncounters.flatMap((encounter) => {
     const fx = encounter.consume, owner = `wild encounter "${encounter.id}"`;
-    return [...checkCost(reg, owner, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, capital: fx.capitalDelta }),
+    return [...checkCost(reg, owner, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, storage: 0, capital: fx.capitalDelta }),
       ...checkGrant(owner, [encounter.tier], fx.memoryCapIncrease)];
   });
 }
@@ -130,7 +137,7 @@ function checkHostilePrices(reg: ContentRegistry): string[] {
     const owner = `hostile encounter "${encounter.id}"`, fx = encounter.purge.success;
     return [...checkCost(reg, `${owner} quarantine`, encounter.tier, encounter.quarantine.cost),
       ...checkCost(reg, `${owner} decoy`, encounter.tier, encounter.decoy.cost),
-      ...checkCost(reg, `${owner} purge`, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, capital: fx.capitalDelta })];
+      ...checkCost(reg, `${owner} purge`, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, storage: 0, capital: fx.capitalDelta })];
   });
 }
 

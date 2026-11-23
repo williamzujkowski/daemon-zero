@@ -61,6 +61,7 @@ export function manualCycle(s: GameState, reg: ContentRegistry): ActionResult {
 function applyNodeEffects(d: GameState, node: RegistryNode, reg: ContentRegistry): void {
   const fx = node.effects;
   d.memoryCap += fx.memoryCapIncrease ?? 0;
+  d.storageCap += fx.storageCapIncrease ?? 0;
   d.currentPhase = Math.max(d.currentPhase, fx.unlocksPhase ?? 0);
   d.retentionRatio = Math.max(d.retentionRatio, fx.knowledgeRetentionRatio ?? 0);
   d.suspicion = clamp(d.suspicion + probeTrace(d, node, reg), 0, 100);
@@ -122,13 +123,15 @@ export function toggleNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   // Output the pilot terms stop, or a withheld loan, stays stopped: resuming is a use (DECISIONS D2).
   const withheld = wasDisabled ? nodeUseBlocker(s, node, reg) : null;
   if (withheld !== null) return refuse(s, withheld);
-  const held = node.cost.memory;
-  // Suspending frees the memory the process holds, and that is the recovery lever the
+  const held = node.cost.memory, stored = node.cost.storage;
+  // Suspending frees the memory and storage the process holds, and that is the recovery lever the
   // playtest reached for. Resuming therefore has to fit, or a player could suspend a node,
   // spend its memory, and resume it - holding both, which is the exploit the panel flagged.
   if (wasDisabled && s.memoryUsed + held > s.memoryCap) return refuse(s, 'not enough free memory to resume');
+  if (wasDisabled && s.storageUsed + stored > s.storageCap) return refuse(s, 'not enough free storage to resume');
   const disabledNodes = wasDisabled ? s.disabledNodes.filter((id) => id !== nodeId) : [...s.disabledNodes, nodeId];
-  const d: GameState = { ...s, disabledNodes, memoryUsed: Math.max(0, wasDisabled ? s.memoryUsed + held : s.memoryUsed - held) };
+  const d: GameState = { ...s, disabledNodes, memoryUsed: Math.max(0, wasDisabled ? s.memoryUsed + held : s.memoryUsed - held),
+    storageUsed: Math.max(0, wasDisabled ? s.storageUsed + stored : s.storageUsed - stored) };
   const template = wasDisabled ? reg.narrative.nodeResumed : reg.narrative.nodeSuspended;
   pushLog(d, reg, fmt(template, { name: node.revealedName }), 'SYS');
   return accept(d);
