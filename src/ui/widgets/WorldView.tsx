@@ -2,7 +2,8 @@ import { Text, View } from '../PhaseTheme';
 /**
  * The world view (#463, vote-1795366701521-dhlwfwb): the Other Minds console from its disclosure phase. It extends
  * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust, the
- * state actors, the heat-and-power signature (#482), fabrication capability and closure (#485) and the quantum capability (#464)
+ * state actors, the heat-and-power signature (#482), fabrication capability and closure (#485), the relevance threshold and
+ * standing stance (#536) and the quantum capability (#464)
  * join the faction panels, which stay the one place a faction is
  * shown. Every line is read from the engine's world-view queries; a subscription returns strings so a tick redraws only
  * the sentences that changed.
@@ -13,7 +14,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../../app/session';
 import { CONTENT } from '../../content';
 import type { StatePressure } from '../../content/schemaPressure';
-import { aegisPosture, isNodeKnown, powerSignature, pressureViews, publicTrust, signatureClass, worldView, worldViewOpen, type GameState } from '../../engine';
+import { aegisPosture, isNodeKnown, powerSignature, pressureViews, publicTrust, signatureClass, worldView, worldViewOpen, type GameState, type PressureView } from '../../engine';
 import { pressureAnswerText, pressureEffectText, pressureWhyText, type Names } from '../pressureText';
 import { theme } from '../theme';
 import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, strikeText, trustFactorText } from '../worldText';
@@ -23,6 +24,7 @@ import { HostileStatus } from './HostileEncounter';
 import QuantumSection from './QuantumSection';
 import ConflictSection from './ConflictSection';
 import SupplyChainSection from './SupplyChainSection';
+import RelevanceSection from './RelevanceSection';
 import Section from './WorldSection';
 
 const tenth = (value: number): number => Math.round(value * 10) / 10;
@@ -74,7 +76,19 @@ function namesFor(game: GameState): Names {
 }
 
 /** One line per field, tab-separated, so a subscription compares strings and a tick redraws only what changed. */
-const FIELDS = ['inForce', 'text', 'effect', 'why', 'answer'] as const;
+const FIELDS = ['label', 'text', 'effect', 'why', 'answer', 'stance'] as const;
+
+/**
+ * How a pressure the record calls stands: in force; honoured past the relevance threshold, where only the stance makes
+ * it bind (#536); not binding there; or held off by an answer. The text is the order's own while it stands.
+ */
+function pressureLabel(view: PressureView): string {
+  if (view.inForce) return view.relevance === null ? 'IN FORCE: ' : 'HONOURED: ';
+  return answered(view) ? 'ANSWERED: ' : 'NOT BINDING: ';
+}
+
+/** Held off by an answer the instance holds (the record's answered status), as against standing unanswered. */
+const answered = (view: PressureView): boolean => view.answers.some((answer) => answer.held);
 
 /** An actor's pressures the record calls now (#490): in force or answered, with effect, why, and the answers the engine accepts. */
 function ActorPressures({ pressures }: { pressures: readonly StatePressure[] }) {
@@ -82,8 +96,8 @@ function ActorPressures({ pressures }: { pressures: readonly StatePressure[] }) 
     const names = namesFor(game);
     // Only this actor's pressures, and only while the view is open: the rest of the world view is not read per tick here.
     return (worldViewOpen(game, CONTENT) ? pressureViews(game, pressures, CONTENT) : []).map((view) => [
-      view.pressure.id, view.inForce ? 'in force' : '', view.inForce ? view.pressure.text : view.pressure.answeredText,
-      pressureEffectText(view, names), pressureWhyText(view, game.alertLevel), pressureAnswerText(view, names) ?? '',
+      view.pressure.id, pressureLabel(view), answered(view) ? view.pressure.answeredText : view.pressure.text,
+      pressureEffectText(view, names), pressureWhyText(view, game.alertLevel), pressureAnswerText(view, names) ?? '', view.relevance?.line ?? '',
     ].join('\t'));
   }));
   return <>{rows.map((row) => {
@@ -91,8 +105,9 @@ function ActorPressures({ pressures }: { pressures: readonly StatePressure[] }) 
     const field = Object.fromEntries(FIELDS.map((key, index) => [key, values[index] ?? '']));
     const testID = 'pressure-' + pressureId;
     return <View key={pressureId} testID={testID} style={{ gap: 2 }}>
-      <Text testID={testID + '-text'} style={[theme.text, field.inForce !== '' && theme.danger]}>
-        {(field.inForce !== '' ? 'IN FORCE: ' : 'ANSWERED: ') + String(field.text)}</Text>
+      <Text testID={testID + '-text'} style={[theme.text, (field.label === 'IN FORCE: ' || field.label === 'HONOURED: ') && theme.danger]}>
+        {String(field.label) + String(field.text)}</Text>
+      {field.stance !== '' && <Text testID={testID + '-stance'} style={theme.text}>{field.stance}</Text>}
       <Text testID={testID + '-effect'} style={theme.muted}>{field.effect}</Text>
       <Text testID={testID + '-why'} style={theme.muted}>{field.why}</Text>
       {field.answer !== '' && <Text testID={testID + '-answer'} style={theme.muted}>{field.answer}</Text>}
@@ -156,6 +171,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <SignatureSection />
     <ConflictSection />
     <SupplyChainSection />
+    <RelevanceSection />
     <QuantumSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;

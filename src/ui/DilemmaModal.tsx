@@ -31,6 +31,12 @@ function ReviewLine({ choice }: { choice: DilemmaChoice }) {
   return text === '' ? null : <Text testID={'dilemma-choice-' + choice.id + '-review'} style={theme.muted}>Review: {text}</Text>;
 }
 
+/** A stance's name and what it does, as the world view states it. */
+function stanceSummary(stance: NonNullable<DilemmaChoice['stance']>): string {
+  const copy = CONTENT.world.relevance.stances.find((entry) => entry.stance === stance);
+  return copy === undefined ? '' : copy.name + '. ' + copy.summary;
+}
+
 /** An open choice: what it means, what it records, and the control that commits it. */
 function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
   choice: DilemmaChoice; dilemmaId: string; token: string; label: string; affordable: boolean;
@@ -46,6 +52,9 @@ function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
     {choice.receipt !== undefined && <Text testID={'dilemma-choice-' + choice.id + '-receipt'} style={theme.muted}>
       On file afterwards: {choice.receipt}</Text>}
     <ReviewLine choice={choice} />
+    {/* The standing stance this choice takes (#536), in the engine's terms: what binds you under it afterwards. */}
+    {choice.stance !== undefined && <Text testID={'dilemma-choice-' + choice.id + '-stance'} style={theme.muted}>
+      Stance: {stanceSummary(choice.stance)}</Text>}
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {/* The exact shortfall, as a card says it (#376): there is no memory resource in phase 0 to be short of. */}
