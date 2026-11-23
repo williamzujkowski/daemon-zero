@@ -1,6 +1,6 @@
 # Playtime review: every phase, at bot pace and at human pace
 
-Research only: no game code, content, gate or bot was changed. Measured on `main` at `9da3ff0` (2026-11-23). The full tables are in [`data/analysis.md`](data/analysis.md) and the raw runs in `data/`. To reproduce, see the end of this file.
+Research only: no game code, content, gate or bot was changed. Measured on `main` at `9da3ff0` (2026-11-23). The full tables are in [`data/analysis.md`](data/analysis.md); raw runs regenerate with `measure.ts` and are not committed. To reproduce, see the end of this file.
 
 The maintainer asked (2026-11-23): "Why are we keeping them at 1800s? How much total playtime does the game have? I'd like players to have time to think through the narrative."
 
