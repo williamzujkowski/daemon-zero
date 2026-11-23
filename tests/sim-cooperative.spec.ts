@@ -97,7 +97,7 @@ describe('a fresh cooperative campaign reaches the ending purchase (V21 full, st
 
 describe('a later instance ends honouring what an earlier one completed (DZ-12.10, story 34)', () => {
   it('after two mandatory scenes were completed before a wipe', () => {
-    const { before, after } = twoIterations((s) => s.campaign.events[ORDER]?.status === 'resolved');
+    const { before, after } = twoIterations('orderResolved');
     const s = after.state;
     expect(before.campaign.events[BLOCKADE]?.status).toBe('resolved');
     expect([s.ending !== null, s.iteration]).toEqual([true, 2]);
@@ -119,7 +119,7 @@ describe('a later instance ends honouring what an earlier one completed (DZ-12.1
   }, SLOW_MS);
 
   it('after an interrupted crisis took its truthful recovery review', () => {
-    const { before, after } = twoIterations((s) => s.pendingDilemma?.id === ATMOSPHERE);
+    const { before, after } = twoIterations('atmosphereForeshadowed');
     const s = after.state;
     expect(before.campaign.events[ATMOSPHERE]?.status).toBe('foreshadowed');
     expect(s.campaign.events[ATMOSPHERE]).toMatchObject({ status: 'interrupted', sourceIteration: 1 });

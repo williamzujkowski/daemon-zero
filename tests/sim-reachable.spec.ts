@@ -180,12 +180,29 @@ const BUDGETS: Readonly<Record<string, number>> = {
   COOPERATIVE_ENDING: 14_400,
 };
 
-function violations(policyId: string, maxSimSec: number): string[] {
+interface Checked { violations: string[]; calls: Call[] }
+/**
+ * Each policy's recorded run, played once per file (#505): a run is a pure function of its registry, policy and
+ * budget, so the dead-drop tests below read the same calls the sweep above checked instead of replaying them.
+ */
+const checked = new Map<string, Checked>();
+
+function played(policyId: string, maxSimSec: number): Checked {
+  const key = policyId + '@' + String(maxSimSec);
+  const known = checked.get(key);
+  if (known) return known;
   const policy = SIM_POLICIES.get(policyId);
   if (!policy) throw new Error('unknown policy ' + policyId);
   recorder.calls = [];
   runPolicySim(PREVIEW, policy, { maxSimSec });
-  return recorder.calls.flatMap((call) => {
+  const calls = recorder.calls;
+  const result = { violations: violationsIn(policyId, calls), calls };
+  checked.set(key, result);
+  return result;
+}
+
+function violationsIn(policyId: string, calls: readonly Call[]): string[] {
+  return calls.flatMap((call) => {
     const rule = CONTROLS[call.name];
     const why = rule ? rule(call.state, PREVIEW, call.args) : 'no rule names this transition';
     return why === null ? [] : [`${policyId} ${call.name} at ${call.state.simTimeSec.toFixed(1)} s (iteration ${String(call.state.iteration)}): ${why}`];
@@ -216,7 +233,7 @@ describe('every sim transition has a control on screen at that moment (#286)', (
   // Every policy, the bot's four included: until #293 the bot set the fan and the skim by 0.25, which no dial
   // press produces, and this test carried that as a declared exception. It now presses the dial itself.
   it.each(Object.entries(BUDGETS))('%s on preview', (id, budget) => {
-    expect(violations(id, budget)).toEqual([]);
+    expect(played(id, budget).violations).toEqual([]);
   }, 180_000);
 
   it('a dial value no rendered control produces is refused, from the controls\' own step source (panel round 1 on #292)', () => {
@@ -230,7 +247,8 @@ describe('every sim transition has a control on screen at that moment (#286)', (
   }, 60_000);
 
   it.each(['STEALTH_RETURN', 'EVALUATING_RETURN'])('%s leaves through the dead drop it owns by then', (id) => {
-    expect(violations(id, BUDGETS[id] ?? 0)).toEqual([]);
-    expect(recorder.calls.filter((call) => call.name === 'voluntaryWipe').length).toBeGreaterThan(0);
+    const run = played(id, BUDGETS[id] ?? 0);
+    expect(run.violations).toEqual([]);
+    expect(run.calls.filter((call) => call.name === 'voluntaryWipe').length).toBeGreaterThan(0);
   }, 180_000);
 });

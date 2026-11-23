@@ -11,6 +11,7 @@ import { canAfford, createInitialState, deserialize, isNodeAvailable, nodeCost, 
 import { COOPERATIVE_ENDING_POLICY } from '../src/engine/sim/cooperativePolicy';
 import { must } from './helpers';
 import { defined } from './m7-helpers';
+import { ATMOSPHERE, ORDER } from './obligation-helpers';
 
 export const preview = PREVIEW;
 export const DESK = 'p4_commercial_contracts', COUNSEL = 'p4_retainer_law_firm', LOBBY = 'p4_k_street_lobbyists';
@@ -78,7 +79,11 @@ export const FRESH_MOMENTS: Moments = {
   phase5: (s) => s.currentPhase === 5,
   // The final protocol open and affordable: every obligation complete, the ending one purchase away.
   final: (s) => s.activeDilemmaId === null && isNodeAvailable(s, finalProtocol(), PREVIEW) && canAfford(s, nodeCost(s, finalProtocol(), PREVIEW)),
+  // Where the two-iteration campaigns wipe (twoIterations): nothing on screen, and the moment each one names.
+  orderResolved: (s) => s.activeDilemmaId === null && s.campaign.events[ORDER]?.status === 'resolved',
+  atmosphereForeshadowed: (s) => s.activeDilemmaId === null && s.pendingDilemma?.id === ATMOSPHERE,
 };
+export type WipeMoment = 'orderResolved' | 'atmosphereForeshadowed';
 
 let freshRun: Played | undefined;
 
@@ -94,13 +99,16 @@ export function moment(name: string): GameState {
 }
 
 /**
- * A two-iteration campaign: the fresh run until `wipeWhen` holds, then a wipe (FIXTURE: on the lawful route the
+ * A two-iteration campaign: the fresh run until `wipeAt` holds, then a wipe (FIXTURE: on the lawful route the
  * voluntary wipe's only control, the dead drop, is never on screen; it stands in for any wipe the world can
  * deal), then the same policy in iteration two until the ending.
+ *
+ * The first iteration is the fresh campaign itself, read at the moment (#505): play is deterministic and its stop
+ * condition never steers it, so playing again until the moment would reach the very same state. Its reload record
+ * is the fresh run's whole one, which holds the first iteration's.
  */
-export function twoIterations(wipeWhen: (s: GameState) => boolean): { before: GameState; after: Played } {
-  const first = play(createInitialState(PREVIEW), (s) => s.activeDilemmaId === null && wipeWhen(s));
-  const before = first.state;
+export function twoIterations(wipeAt: WipeMoment): { before: GameState; after: Played } {
+  const before = moment(wipeAt);
   const after = play(must(voluntaryWipe(before, PREVIEW)), ended);
-  return { before, after: { ...after, unstable: [...first.unstable, ...after.unstable] } };
+  return { before, after: { ...after, unstable: [...freshCampaign().unstable, ...after.unstable] } };
 }

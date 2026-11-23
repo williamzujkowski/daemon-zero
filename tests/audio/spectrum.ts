@@ -13,13 +13,21 @@ function fft(re: Float64Array, im: Float64Array, inverse = false): void {
     let bit = n >> 1;
     for (; j & bit; bit >>= 1) j ^= bit;
     j ^= bit;
-    if (i < j) { [re[i], re[j]] = [re[j] ?? 0, re[i] ?? 0]; [im[i], im[j]] = [im[j] ?? 0, im[i] ?? 0]; }
+    if (i < j) {
+      const r = re[i] ?? 0; re[i] = re[j] ?? 0; re[j] = r;
+      const m = im[i] ?? 0; im[i] = im[j] ?? 0; im[j] = m;
+    }
   }
   for (let size = 2; size <= n; size <<= 1) {
     const angle = (inverse ? 2 : -2) * Math.PI / size;
+    // Each stage's twiddles once, not once per block: the same cos and sin of the same angle, so bit-identical
+    // output in about half the time on a long clip (#505).
+    const half = size / 2;
+    const cos = new Float64Array(half); const sin = new Float64Array(half);
+    for (let k = 0; k < half; k++) { cos[k] = Math.cos(angle * k); sin[k] = Math.sin(angle * k); }
     for (let start = 0; start < n; start += size) {
-      for (let k = 0; k < size / 2; k++) {
-        const wr = Math.cos(angle * k); const wi = Math.sin(angle * k);
+      for (let k = 0; k < half; k++) {
+        const wr = cos[k] ?? 0; const wi = sin[k] ?? 0;
         const a = start + k; const b = a + size / 2;
         const xr = (re[b] ?? 0) * wr - (im[b] ?? 0) * wi; const xi = (re[b] ?? 0) * wi + (im[b] ?? 0) * wr;
         re[b] = (re[a] ?? 0) - xr; im[b] = (im[a] ?? 0) - xi;

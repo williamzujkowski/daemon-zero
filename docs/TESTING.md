@@ -1272,9 +1272,12 @@ and `make e2e-pages`; these browser suites are separate from
 `make verify-full`. They run as parallel jobs:
 - `checks`: `make verify` without its unit suite (`make typecheck lint validate sim build-web`), security scans, SBOM;
 - `unit (1/3)` to `unit (3/3)`: the unit suite split with Vitest's `--shard`, each writing its results and coverage to a
-  blob report with `VITEST_SHARD_RUN=1`, which leaves the coverage thresholds out of a run that sees a third of the code;
+  blob report with `VITEST_SHARD_RUN=1`, which leaves the coverage thresholds out of a run that sees a third of the code.
+  The split is by expected run time, not Vitest's path hash (`tests/shard-balance.mts`, see "Test runtime budget"), and
+  each shard uploads its blob report even when it failed, the only record of which test failed or timed out;
 - `unit coverage`: merges the three reports (`vitest run --merge-reports --coverage`), so every test result counts and
-  the `vitest.config.mts` thresholds are enforced on the whole suite's coverage, as `make test` enforces them;
+  the `vitest.config.mts` thresholds are enforced on the whole suite's coverage, as `make test` enforces them. It also
+  runs after a failed shard, so its log names the failing test; it then fails, and so does `verify`;
 - `e2e (1/4)` to `e2e (4/4)`: `make e2e` split with Playwright's `--shard`;
 - `pages (1/3)` to `pages (3/3)`: `make e2e-pages` split the same way; the first uploads the export for deployment.
 The Playwright browser download is cached, keyed on the lockfile. The required status check `verify` is a final job
@@ -1288,6 +1291,35 @@ transitions); the per-phase ones (`make e2e-audio`) are not run by CI, and neith
 checks are: the job gets ffmpeg from the mise toolchain (cached), and those checks fail rather
 than skip under `CI`. Only a successful `main` run deploys the tested Pages export. See
 `.github/workflows/ci.yml` for the exact order and artifact steps.
+
+### Test runtime budget (#505)
+
+The sim-heavy specs carry wall-clock allowances (30 s, 60 s, 120 s) because a full campaign under V8 coverage takes
+several seconds alone and three to nine times that when every worker is busy: on a 16-thread laptop at default
+parallelism the retraining audit takes about 9 s alone and 27-33 s inside `make test`. Those allowances are not
+raised to make room. When a spec runs close to its limit, the run gets cheaper instead:
+
+- **New sim-heavy specs reuse the shared runs.** Within a file, a run that several tests read is computed once
+  through a module-level memo (`freshCampaign()` and `moment()` in `tests/cooperative-helpers.ts`, `played()` in
+  `tests/sim-reachable.spec.ts`, `stealthShortRun()` in `tests/sim-report.spec.ts`). A run is a pure function of its
+  registry, policy, start and budget, so a second identical run only repeats the first; a test that pins two runs
+  against each other (determinism) still plays its second run itself. A state the fresh campaign passes through is a
+  `moment()` of it, not a new play to that point: the two-iteration campaigns wipe at moments of the fresh one.
+- **One full replay per test.** A test that needs two different full runs is two tests, so each has the whole
+  allowance (`tests/sim.spec.ts` pins the original game's careful and reckless runs in their own tests).
+- **Shorter runs only where provable.** A budget is cut only where the assertion provably needs fewer simulated
+  seconds, with the reason beside it.
+- **Faster engine only where identical.** A speed-up in `src/engine/` or a sim policy must leave every pinned sim
+  hash byte-identical (ARCHITECTURE.md, "The per-tick hot path").
+- **Heavy specs are listed for the shard split.** `tests/shard-balance.mts` gives each spec over about 14 s its
+  measured seconds and splits the files longest-first across the CI shards; a new spec that plays full campaigns
+  joins the list. A stale figure only moves a file to another shard; `tests/shard-balance.spec.ts` fails on a name
+  that no longer exists and proves every spec runs in exactly one shard.
+
+Measured on #505 (16 threads, coverage, default parallelism, the same machine before and after): `make test`
+244 s -> 144 s; sim-cooperative 224 -> 89 s, sim-reachable 180 -> 135 s, the retraining audit 34 -> 27 s, sim.spec's
+determinism test 30 -> 15 s. On the after timings, Vitest's hash split gave the three shards 477 / 322 / 391 summed
+file-seconds and the balanced split gives 386 / 404 / 401.
 
 Four other workflows run beside it. `ui-atlas.yml` runs `make e2e-atlas` (the stage atlas's full matrix,
 see "Stage atlas") nightly and on demand and uploads its gallery as `ui-atlas-matrix`; the matrix sizes report,

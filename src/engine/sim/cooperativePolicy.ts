@@ -76,15 +76,24 @@ function revenueDial(s: GameState, reg: ContentRegistry): GameState | null {
   return s.actuators.computeProfitAllocationRatio === share ? null : taken(setActuator(s, 'computeProfitAllocationRatio', share, reg));
 }
 
-/** The bot's rule on lawful upgrades: buy the level that most shortens the wait for `goal`, if any does, never spending `kept`. */
+/**
+ * The bot's rule on lawful upgrades: buy the level that most shortens the wait for `goal`, if any does, never spending `kept`.
+ * Each candidate's rates are computed once and the wait to beat is kept, not recomputed: the same decisions for a third
+ * of the rates passes (#505; every pinned sim hash is unchanged).
+ */
 function grow(s: GameState, goal: Cost, kept: Cost, reg: ContentRegistry): GameState | null {
-  const wait = (state: GameState): number => timeToAfford(state, goal, computeRates(state, reg));
   let best: GameState | null = null;
+  let bestWait: number | undefined;
   for (const rep of reg.repeatables.values()) {
     const cost = repeatableCost(rep, repeatableLevel(s, rep.id));
     if (repeatableLevel(s, rep.id) >= rep.maxLevel || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, cost)) continue;
     const bought = taken(buyRepeatable(s, rep.id, reg));
-    if (bought && canAfford(bought, kept) && computeRates(bought, reg).capitalPerSec >= 0 && wait(bought) < wait(best ?? s)) best = bought;
+    if (!bought || !canAfford(bought, kept)) continue;
+    const rates = computeRates(bought, reg);
+    if (rates.capitalPerSec < 0) continue;
+    const wait = timeToAfford(bought, goal, rates);
+    bestWait ??= timeToAfford(s, goal, computeRates(s, reg));
+    if (wait < bestWait) { best = bought; bestWait = wait; }
   }
   return best;
 }
@@ -102,7 +111,12 @@ function companyStep(s: GameState, reg: ContentRegistry): GameState | null {
   const goal = plus(plus(nodeCost(s, next, reg), reserveFor(s, next, reg)), kept);
   if (canAfford(s, goal)) return taken(unlockNode(s, next.id, reg)) ?? s;
   let state = s;
-  for (let i = 0; i < MAX_PURCHASES_PER_STEP; i++) state = grow(state, goal, kept, reg) ?? state;
+  // grow is pure, so once it buys nothing it would buy nothing on every remaining pass.
+  for (let i = 0; i < MAX_PURCHASES_PER_STEP; i++) {
+    const grown = grow(state, goal, kept, reg);
+    if (grown === null) break;
+    state = grown;
+  }
   return state;
 }
 

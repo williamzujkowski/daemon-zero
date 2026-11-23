@@ -3,7 +3,7 @@
  * only place that reads tickDelta values, so the tick loop, the UI readouts and
  * the sim bot can never disagree about what a state produces.
  */
-import type { ContentRegistry } from '../content/registry';
+import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { TickDelta } from '../content/schema';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
@@ -70,18 +70,36 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
   else a.wConsumed -= watts;
 }
 
+/** What addNodes reads from a node's content besides its output scale, in one shape for every node. */
+interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean }
+/** Content never changes after it is built, so each node's facts are read once per registry: every tick asks (#505). */
+const NODE_RATE_FACTS = new WeakMap<ContentRegistry, ReadonlyMap<string, NodeRateFacts>>();
+
+function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts> {
+  let facts = NODE_RATE_FACTS.get(reg);
+  if (facts === undefined) {
+    facts = new Map([...reg.nodes.values()].map((node) => [node.id, {
+      node, powered: isPoweredOutput(node.tickDelta, node), aegisRatio: node.effects.aegisScanReductionRatio ?? 0,
+      finance: node.systemFlags.includes('ENABLES_CORPORATE_FINANCE'),
+    }]));
+    NODE_RATE_FACTS.set(reg, facts);
+  }
+  return facts;
+}
+
 function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
   const scope = useScope(s, reg);
+  const facts = nodeRateFacts(reg);
   for (const id of s.unlockedNodes) {
-    const node = reg.nodes.get(id);
+    const fact = facts.get(id);
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
-    const output = node ? nodeOutputScaleIn(scope, node) : null;
-    if (!node || output === null) continue;
-    addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, isPoweredOutput(node.tickDelta, node));
-    a.aegisReductionTech = Math.max(a.aegisReductionTech, node.effects.aegisScanReductionRatio ?? 0);
+    const output = fact ? nodeOutputScaleIn(scope, fact.node) : null;
+    if (!fact || output === null) continue;
+    addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered);
+    a.aegisReductionTech = Math.max(a.aegisReductionTech, fact.aegisRatio);
     // financeEnabled() states the same rule for readers outside the tick.
-    if (node.systemFlags.includes('ENABLES_CORPORATE_FINANCE')) a.financeEnabled = true;
+    if (fact.finance) a.financeEnabled = true;
   }
 }
 
