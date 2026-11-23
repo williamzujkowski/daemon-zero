@@ -32,8 +32,8 @@ describe('a wipe records what it carried (#377)', () => {
 
 describe('save v15 (#377)', () => {
   it('migrates a genuine v14 save: every recorded run is unknown, nothing else changes', () => {
-    // v17 (#461) re-denominates balances on the way; it never touches a recorded run.
-    expect(SCHEMA_VERSION).toBe(17);
+    // v17 (#461) re-denominates balances on the way; it never touches a recorded run. Nor does v18 (#491, the hostile slot).
+    expect(SCHEMA_VERSION).toBe(18);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);

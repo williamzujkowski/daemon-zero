@@ -55,7 +55,8 @@ describe('every #274 transition reloads unchanged (V12)', () => {
   it('needs no migration: the save version is unchanged', () => {
     // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
     // v17 (#461) re-denominated stored balances into physical units; it added no field either.
-    expect(SCHEMA_VERSION).toBe(17);
+    // v18 (#491) added the hostile slot, which this transition never writes.
+    expect(SCHEMA_VERSION).toBe(18);
   });
 });
 

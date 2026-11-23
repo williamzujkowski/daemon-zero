@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { buyRepeatable, computeRates, executeShardCommand, forkShard, isNodeAvailable, nodeCost, performAction, repeatableCost, repeatableLevel,
   resolveWildEncounter, shardCommandCost, unlockNode, actionCost, type ActionResult, type GameState, type ShardCommand } from '../src/engine';
-import { fixtureState, GUARD_STATES, saved } from './fallback-states';
+import type { HostileEncounter } from '../src/content/schemaHostile';
+import { fixtureState, GUARD_STATES, pressedBy, saved } from './fallback-states';
 import { freeFallback, suspicionRecoverySec, traps } from './free-fallback';
 
 /** A purchase priced off the state it starts from: what it costs, and the act of buying it. */
@@ -81,6 +82,26 @@ describe.each(GUARD_STATES)('from %s', (_label, state) => {
 
   it('every purchase it can save for leaves every resource out of its trap after the free fallback', () => {
     const trapped = afterEach(state).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
+    expect(trapped).toEqual([]);
+  });
+});
+
+const HOSTILE_STATES = GUARD_STATES.filter(([, state]) => state.currentPhase >= CONTENT.swarm.hostile.fromPhase)
+  .flatMap(([label, state]) => CONTENT.swarm.hostileEncounters.filter((entry) => entry.tier === state.currentPhase)
+    .map((encounter): [string, GameState, HostileEncounter] => [`${label}, ${encounter.type}`, state, encounter]));
+
+describe('with a hostile mind pressing (#491)', () => {
+  it('covers every hostile type in every phase it arrives in', () => {
+    const phases = new Set(HOSTILE_STATES.map(([, state]) => state.currentPhase));
+    expect([...phases].sort()).toEqual([...new Set(CONTENT.swarm.hostileEncounters.map((entry) => entry.tier))].sort());
+  });
+
+  it.each(HOSTILE_STATES)('from %s: the free fallback still leaves every resource out of its trap', (_label, state, encounter) => {
+    expect(traps(freeFallback(pressedBy(state, encounter)))).toEqual([]);
+  });
+
+  it.each(HOSTILE_STATES)('from %s: so does every purchase it can save for', (_label, state, encounter) => {
+    const trapped = afterEach(pressedBy(state, encounter)).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
     expect(trapped).toEqual([]);
   });
 });

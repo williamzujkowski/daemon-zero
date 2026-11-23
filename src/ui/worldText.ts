@@ -63,8 +63,11 @@ export function spanText(seconds: number): string {
 
 /** How long the lock has at the scan the next tick applies, and whether a strike would be absorbed. */
 export function strikeText(p: AegisPosture): string {
-  const when = p.secondsToStrike === null ? 'The lock is not rising.' : `At this scan the lock completes in ${spanText(p.secondsToStrike)}.`;
-  return p.shieldHeld ? when + ' An owned node will absorb one strike.' : when;
+  const hunter = p.hunter === null ? '' : `${String(p.hunter.perSec)}%/s until the lock reaches ${points(p.hunter.ceiling)}%`;
+  // A hunter swarm (#491) raises the lock on its own, so "not rising" would be false while it presses under its ceiling.
+  const scan = p.secondsToStrike === null ? (hunter === '' ? 'The lock is not rising.' : `Only a hunter swarm raises the lock: ${hunter}.`)
+    : `At this scan the lock completes in ${spanText(p.secondsToStrike)}.` + (hunter === '' ? '' : ` A hunter swarm adds ${hunter}.`);
+  return p.shieldHeld ? scan + ' An owned node will absorb one strike.' : scan;
 }
 
 /** What public trust means for AEGIS now: whether coalitions back it past key rotation. */

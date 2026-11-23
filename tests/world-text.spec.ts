@@ -8,7 +8,7 @@ function posture(patch: Partial<AegisPosture> = {}): AegisPosture {
     lock: 40, scanPerSec: 0.012, secondsToStrike: 5000, adaptation: 30, stage: 'KEY_ROTATION', stageText: 'KEY ROTATION: ...',
     hunting: true, held: true, ceiling: 100, keyRotationCeiling: 50, coalition: true,
     applied: 0.81, cap: 0.81, nominalCap: 0.9, heldFrom: 0.85, risePerSec: 0.1, decayPerSec: 0.25, coalitionTrustBelow: 50,
-    shieldHeld: false, ...patch,
+    shieldHeld: false, hunter: null, ...patch,
   };
 }
 const trust = (value: number): PublicTrustView => ({ value, base: 50, factors: [] });
@@ -58,6 +58,12 @@ describe('the cap, the strike and the coalition', () => {
     expect(strikeText(posture({ secondsToStrike: 8333.4 }))).toBe('At this scan the lock completes in 2.3h.');
     expect(strikeText(posture({ secondsToStrike: null }))).toBe('The lock is not rising.');
     expect(strikeText(posture({ secondsToStrike: 30, shieldHeld: true }))).toBe('At this scan the lock completes in 30s. An owned node will absorb one strike.');
+  });
+
+  it('names a hunter swarm\'s rise, so the lock never reads as still while one presses (#491)', () => {
+    const hunter = { perSec: 0.04, ceiling: 45 };
+    expect(strikeText(posture({ secondsToStrike: null, hunter }))).toBe('Only a hunter swarm raises the lock: 0.04%/s until the lock reaches 45%.');
+    expect(strikeText(posture({ secondsToStrike: 30, hunter }))).toBe('At this scan the lock completes in 30s. A hunter swarm adds 0.04%/s until the lock reaches 45%.');
   });
 
   it('says whether coalitions back AEGIS, from the same threshold the stage uses', () => {

@@ -1,0 +1,66 @@
+/**
+ * Save v18 (#491): the hostile-mind slot. A v17 save migrates to an empty slot with the rotation and purge count at 0
+ * and nothing else changed; a pressing hostile survives a save round trip; a hostile content no longer declares is
+ * dropped on load with its pinned memory returned; and the slot is validated as untrusted input.
+ */
+import { describe, expect, it } from 'vitest';
+import { deserialize, importSave, initialHostile, migrate, MIGRATIONS, SCHEMA_VERSION, serialize, type GameState } from '../src/engine';
+import { makeFixtures } from '../scripts/make-fixtures';
+import { defined } from './m7-helpers';
+import { reg } from './helpers';
+
+const victory = (): GameState => importSave(makeFixtures()['victory-ready'] ?? '', reg);
+
+/** `s` with a rival pressing it, its pin counted in memory used, as the stage leaves it. */
+function pressed(s: GameState): GameState {
+  const rival = defined(reg.swarm.hostileEncounters.find((entry) => entry.type === 'RIVAL' && entry.tier === s.currentPhase));
+  return { ...s, memoryUsed: s.memoryUsed + 4096,
+    hostile: { active: { id: rival.id, arrivedAtSec: s.simTimeSec, quietSec: 3, decoySec: 0, pinnedBytes: 4096 }, nextAtSec: 0, sequence: 5, purges: 2 } };
+}
+
+describe('save v18 (#491)', () => {
+  it('is the current version', () => {
+    expect(SCHEMA_VERSION).toBe(18);
+  });
+
+  it('migrates a v17 save to an empty hostile slot and keeps everything else', () => {
+    const current = victory();
+    const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
+    delete raw.hostile;
+    const v17 = { ...raw, schemaVersion: 17 };
+    expect(migrate(v17, MIGRATIONS, 18)).toEqual({ ...JSON.parse(serialize(current)), hostile: initialHostile(), schemaVersion: 18 });
+    const loaded = deserialize(JSON.stringify(v17), reg);
+    expect(loaded.hostile).toEqual({ active: null, nextAtSec: 0, sequence: 0, purges: 0 });
+    expect({ ...loaded, hostile: current.hostile }).toEqual(current);
+  });
+
+  it('migrates every older save through v18 too', () => {
+    for (const [name, code] of Object.entries(makeFixtures())) expect(importSave(code, reg).hostile, name).toBeDefined();
+  });
+
+  it('keeps a pressing hostile, its clocks and its pin across a round trip', () => {
+    const s = pressed({ ...victory(), currentPhase: 5 });
+    const loaded = deserialize(serialize(s), reg);
+    expect(loaded.hostile).toEqual(s.hostile);
+    expect(loaded.memoryUsed).toBe(s.memoryUsed);
+  });
+
+  it('drops a hostile content no longer declares and returns the memory it pinned', () => {
+    const s = pressed({ ...victory(), currentPhase: 5 });
+    const forged = JSON.parse(serialize(s)) as { hostile: { active: { id: string } } };
+    forged.hostile.active.id = 'hostile_retired_from_content';
+    const loaded = deserialize(JSON.stringify(forged), reg);
+    expect(loaded.hostile.active).toBeNull();
+    expect(loaded.hostile.sequence).toBe(5);
+    expect(loaded.memoryUsed).toBe(s.memoryUsed - 4096);
+  });
+
+  it('refuses a slot the schema cannot hold', () => {
+    const raw = JSON.parse(serialize(pressed({ ...victory(), currentPhase: 5 }))) as Record<string, any>;
+    const forge = (edit: (save: Record<string, any>) => void) => { const copy = structuredClone(raw); edit(copy); return JSON.stringify(copy); };
+    expect(() => deserialize(forge((save) => { save.hostile.active.pinnedBytes = -1; }), reg)).toThrow(/validation/);
+    expect(() => deserialize(forge((save) => { save.hostile.purges = 1.5; }), reg)).toThrow(/validation/);
+    expect(() => deserialize(forge((save) => { save.hostile.extra = true; }), reg)).toThrow(/validation/);
+    expect(() => deserialize(forge((save) => { delete save.hostile; }), reg)).toThrow(/validation/);
+  });
+});

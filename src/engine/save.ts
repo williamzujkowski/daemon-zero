@@ -118,6 +118,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v17: the physical-units re-denomination (#461, vote-1795367482923-6vdi2u1): balances move by frozen ratios
   // per resource and phase, the derived rates are recomputed on load, and one log line says why (saveRescale.ts).
   16: redenominate,
+  // v18: the hostile-mind slot (#491). No earlier build had hostiles, so every save starts with none pressing and the
+  // rotation and purge count at 0. Self-contained: it writes only its own field, so it can be renumbered past another step.
+  17: (save) => ({ ...save, hostile: { active: null, nextAtSec: 0, sequence: 0, purges: 0 } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

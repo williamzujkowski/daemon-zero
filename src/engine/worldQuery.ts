@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { StateActorKind } from '../content/schemaWorld';
 import { aegisPressure, aegisStage, publicTrust, type AegisStage, type PublicTrustView } from './aegisAdaptation';
+import { hunterRise } from './hostileEffect';
 import { meetsRequirements } from './query';
 import { computeRates, multiplierSources } from './rates';
 import type { GameState } from './state';
@@ -37,6 +38,8 @@ export interface AegisPosture {
   coalitionTrustBelow: number;
   /** An owned node would absorb a strike. */
   shieldHeld: boolean;
+  /** A hunter swarm's rise on top of the scan (#491), while it presses under its ceiling, or null. */
+  hunter: { perSec: number; ceiling: number } | null;
 }
 
 export interface StateActorView { id: string; name: string; kind: StateActorKind; description: string; posture: string }
@@ -72,6 +75,7 @@ export function aegisPosture(s: GameState, reg: ContentRegistry): AegisPosture {
     risePerSec: b.aegisAdaptation.risePerSec, decayPerSec: b.aegisAdaptation.decayPerSec,
     coalitionTrustBelow: b.aegisAdaptation.coalitionTrustBelow,
     shieldHeld: s.unlockedNodes.some((id) => reg.nodes.get(id)?.systemFlags.includes('AEGIS_STRIKE_SHIELD') === true),
+    hunter: hunterRise(s, reg),
   };
 }
 

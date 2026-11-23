@@ -136,6 +136,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     narrativeFlags: [...old.narrativeFlags],
     nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
     encounterSequenceIndex: old.encounterSequenceIndex,
+    // A wipe ends any hostile pressing the run (its pin went with the run's memory); the rotation and purge count carry.
+    hostile: { ...fresh.hostile, sequence: old.hostile.sequence, purges: old.hostile.purges },
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,

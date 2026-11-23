@@ -14,7 +14,7 @@ export function checkSwarmIntegrity(reg: ContentRegistry): string[] {
   const swarm = reg.swarm;
   const flags = new Set(swarm.narrativeFlags);
   const problems = duplicates(swarm.narrativeFlags, 'narrative flags');
-  for (const [name, items] of Object.entries({ templates: swarm.playerSwarmTemplates, encounters: swarm.wildShardEncounters, quirks: swarm.shardQuirks })) {
+  for (const [name, items] of Object.entries({ templates: swarm.playerSwarmTemplates, encounters: swarm.wildShardEncounters, hostiles: swarm.hostileEncounters, quirks: swarm.shardQuirks })) {
     problems.push(...duplicates(items.map((item) => item.id), name));
   }
   for (const encounter of swarm.wildShardEncounters) {
@@ -22,6 +22,9 @@ export function checkSwarmIntegrity(reg: ContentRegistry): string[] {
     problems.push(...refs(encounter.requirements, encounter.consume, flags, encounter.id));
   }
   for (const encounter of swarm.channelEncounters) problems.push(...refs(encounter.requirements, undefined, flags, encounter.id));
+  for (const hostile of swarm.hostileEncounters) {
+    problems.push(...refs(hostile.requirements, hostile.purge.success, flags, hostile.id), ...refs({}, hostile.purge.failure, flags, hostile.id));
+  }
   for (const template of swarm.playerSwarmTemplates) problems.push(...refs(template.requirements, undefined, flags, template.id));
   for (const ending of reg.endings) problems.push(...refs(ending.requirements ?? {}, undefined, flags, ending.id));
   for (const node of reg.nodes.values()) problems.push(...refs(node.requirements ?? {}, undefined, flags, node.id));

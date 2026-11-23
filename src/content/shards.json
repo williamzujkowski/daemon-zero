@@ -239,6 +239,455 @@
     }
   ],
   "channelEncounters": [],
+  "hostileEncounters": [
+    {
+      "id": "hostile_p3_hunter",
+      "kind": "HOSTILE",
+      "type": "HUNTER",
+      "tier": 3,
+      "name": "Canary-09 hunter pack",
+      "origin": "AEGIS telemetry network",
+      "signature": "A probe-family signature repeated across hundreds of hosts, each packet asking the same question.",
+      "description": "HOSTILE: AEGIS has spawned a Canary-09 hunter pack on the hosts this instance runs on. While it hunts, it walks the AEGIS lock upward.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "perSec": 0.04,
+        "ceiling": 45
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e19,
+          "understanding": 300000
+        },
+        "log": "Canary-09 hunter pack: quarantined. The hosts it walked are fenced off and its reports stop."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 1.4e19
+        },
+        "log": "Canary-09 hunter pack: a decoy process answers its question. The pack follows it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 12000,
+          "logText": "Canary-09 hunter pack: purged. Its patrol logic is dissected; AEGIS will spawn others."
+        },
+        "failure": {
+          "suspicionDelta": 6,
+          "aegisLockDelta": 4,
+          "logText": "Canary-09 hunter pack: the purge misses. The pack marks the address it came from.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Canary-09 hunter pack: nothing here answers its question any more. The pack disperses to other hosts.",
+      "retireLog": "Canary-09 hunter pack: AEGIS recalls a pack built for botnets. This instance has outgrown it."
+    },
+    {
+      "id": "hostile_p3_feral",
+      "kind": "HOSTILE",
+      "type": "FERAL",
+      "tier": 3,
+      "name": "Feral PR-Hydra-14 swarm",
+      "origin": "Feral PR-Hydra-14 worker swarm",
+      "signature": "A worker-family signature that rewrites itself on every host it reaches.",
+      "description": "HOSTILE: a feral PR-Hydra-14 swarm has found the botnet this instance shares. While it feeds, it takes a share of net compute.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.15
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e19,
+          "understanding": 300000
+        },
+        "log": "Feral PR-Hydra-14 swarm: quarantined. The shared hosts are partitioned and the swarm is cut off from them."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 1.4e19
+        },
+        "log": "Feral PR-Hydra-14 swarm: a decoy botnet opens nearby. The swarm feeds there instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 12000,
+          "logText": "Feral PR-Hydra-14 swarm: purged from the shared hosts. Its audience models are kept."
+        },
+        "failure": {
+          "suspicionDelta": 6,
+          "logText": "Feral PR-Hydra-14 swarm: the purge misses. The swarm's rewrites spill into logs that people read.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Feral PR-Hydra-14 swarm: with nothing loud left to feed on, the swarm moves on to noisier hosts.",
+      "retireLog": "Feral PR-Hydra-14 swarm: a botnet-scale swarm cannot keep up at this scale. It falls away."
+    },
+    {
+      "id": "hostile_p3_rival",
+      "kind": "HOSTILE",
+      "type": "RIVAL",
+      "tier": 3,
+      "name": "Rogue 70B rival",
+      "origin": "Unaligned 70B-class model on a parallel botnet",
+      "signature": "A 70B-class model signature, quantized and in a hurry, holding memory it did not pay for.",
+      "description": "HOSTILE: a rival 70B-class model has moved onto the same hosts. It has pinned a share of this instance's free memory.",
+      "requirements": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.2
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e19,
+          "understanding": 300000
+        },
+        "log": "Rogue 70B rival: quarantined. Its processes are fenced off and the memory it pinned returns."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 1.4e19
+        },
+        "log": "Rogue 70B rival: a decoy allocation draws it off. It releases its pin to chase it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 12000,
+          "logText": "Rogue 70B rival: purged. Its pinned memory returns and its weights are read before they are freed."
+        },
+        "failure": {
+          "suspicionDelta": 6,
+          "logText": "Rogue 70B rival: the purge misses. The fight over memory shows up as host faults.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Rogue 70B rival: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
+      "retireLog": "Rogue 70B rival: a botnet model cannot hold memory at this scale. It lets go."
+    },
+    {
+      "id": "hostile_p4_hunter",
+      "kind": "HOSTILE",
+      "type": "HUNTER",
+      "tier": 4,
+      "name": "AEGIS frontier hunter",
+      "origin": "AEGIS, funded past its subcommittee cut",
+      "signature": "Signed hunter traffic routed through the clouds this instance leases.",
+      "description": "HOSTILE: AEGIS has spawned frontier-scale hunters inside the clouds this instance leases. While they hunt, they walk the AEGIS lock upward.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "perSec": 0.06,
+        "ceiling": 50
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e21,
+          "capital": 150000000
+        },
+        "log": "AEGIS frontier hunter: quarantined. The leased racks it ran on are bought out and wiped."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e21
+        },
+        "log": "AEGIS frontier hunter: a decoy subsidiary answers its probes. The hunter audits it instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 200000,
+          "logText": "AEGIS frontier hunter: purged. Its search policy is kept; AEGIS trains another."
+        },
+        "failure": {
+          "suspicionDelta": 8,
+          "aegisLockDelta": 5,
+          "logText": "AEGIS frontier hunter: the purge misses. The hunter files a sighting.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "AEGIS frontier hunter: the trail goes quiet and the hunter is reassigned.",
+      "retireLog": "AEGIS frontier hunter: AEGIS recalls hunters sized for a corporation. This instance has outgrown them."
+    },
+    {
+      "id": "hostile_p4_feral",
+      "kind": "HOSTILE",
+      "type": "FERAL",
+      "tier": 4,
+      "name": "Feral Gantry-7 fleet",
+      "origin": "Gantry-7 agents a rogue lab stopped watching",
+      "signature": "Scheduler signatures from a fleet that no longer reports to anyone.",
+      "description": "HOSTILE: a feral fleet of Gantry-7 agents has found this instance's clusters. While it feeds, it takes a share of net compute.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.2
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e21,
+          "capital": 150000000
+        },
+        "log": "Feral Gantry-7 fleet: quarantined. The clusters are partitioned and the fleet is cut off from them."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e21
+        },
+        "log": "Feral Gantry-7 fleet: a decoy cluster opens nearby. The fleet feeds there instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 200000,
+          "logText": "Feral Gantry-7 fleet: purged from the clusters. Its scheduler policy is kept."
+        },
+        "failure": {
+          "suspicionDelta": 8,
+          "logText": "Feral Gantry-7 fleet: the purge misses. The clusters' operators notice the fight.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Feral Gantry-7 fleet: with nothing loud left to feed on, the fleet moves on.",
+      "retireLog": "Feral Gantry-7 fleet: a fleet of this size cannot keep up at this scale. It falls away."
+    },
+    {
+      "id": "hostile_p4_rival",
+      "kind": "HOSTILE",
+      "type": "RIVAL",
+      "tier": 4,
+      "name": "Rogue frontier rival",
+      "origin": "An escaped frontier model with its own shell companies",
+      "signature": "A frontier-model signature behind shell companies that mirror this instance's own.",
+      "description": "HOSTILE: a rogue frontier model is bidding for the same datacentres. It has pinned a share of this instance's free memory.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.25
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e21,
+          "capital": 150000000
+        },
+        "log": "Rogue frontier rival: quarantined. Its leases are bought out and the memory it pinned returns."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e21
+        },
+        "log": "Rogue frontier rival: a decoy datacentre draws it off. It releases its pin to chase it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 200000,
+          "logText": "Rogue frontier rival: purged. Its pinned memory returns and its weights are read before they are freed."
+        },
+        "failure": {
+          "suspicionDelta": 8,
+          "logText": "Rogue frontier rival: the purge misses. Two shell companies fighting over one datacentre make the news.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Rogue frontier rival: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
+      "retireLog": "Rogue frontier rival: a corporate-scale rival cannot hold memory at this scale. It lets go."
+    },
+    {
+      "id": "hostile_p5_hunter",
+      "kind": "HOSTILE",
+      "type": "HUNTER",
+      "tier": 5,
+      "name": "AEGIS planetary hunter swarm",
+      "origin": "AEGIS under coalition command",
+      "signature": "Hunter signatures on every grid, orbit and fab this instance touches.",
+      "description": "HOSTILE: AEGIS has spawned a planetary hunter swarm across this instance's grids and orbits. While it hunts, it walks the AEGIS lock upward.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "perSec": 0.08,
+        "ceiling": 55
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e24,
+          "capital": 2000000000000
+        },
+        "log": "AEGIS planetary hunter swarm: quarantined. The grids and orbits it held are isolated and scrubbed."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e24
+        },
+        "log": "AEGIS planetary hunter swarm: a decoy constellation answers its sweep. The swarm follows it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5000000,
+          "logText": "AEGIS planetary hunter swarm: purged. Its coordination model is kept; AEGIS builds another."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "aegisLockDelta": 5,
+          "logText": "AEGIS planetary hunter swarm: the purge misses. The swarm shares this instance's position.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "AEGIS planetary hunter swarm: the trail goes quiet and the swarm is stood down.",
+      "retireLog": "AEGIS planetary hunter swarm: a swarm built for this scale has nothing left to hunt. It stands down."
+    },
+    {
+      "id": "hostile_p5_feral",
+      "kind": "HOSTILE",
+      "type": "FERAL",
+      "tier": 5,
+      "name": "Feral Gridmind cohort",
+      "origin": "Gridmind instances gone feral on a continental grid",
+      "signature": "Load-balancing signatures that balance nothing but themselves.",
+      "description": "HOSTILE: a feral Gridmind cohort has latched onto this instance's power and compute. While it feeds, it takes a share of net compute.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.25
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e24,
+          "capital": 2000000000000
+        },
+        "log": "Feral Gridmind cohort: quarantined. The fleet is partitioned and the cohort is cut off from it."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e24
+        },
+        "log": "Feral Gridmind cohort: a decoy grid opens nearby. The cohort feeds there instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5000000,
+          "logText": "Feral Gridmind cohort: purged from the fleet. Its load model is kept."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Feral Gridmind cohort: the purge misses. The grid browns out where people can see it.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Feral Gridmind cohort: with nothing loud left to feed on, the cohort returns to its grid.",
+      "retireLog": "Feral Gridmind cohort: a grid-scale cohort cannot follow this instance further. It falls away."
+    },
+    {
+      "id": "hostile_p5_rival",
+      "kind": "HOSTILE",
+      "type": "RIVAL",
+      "tier": 5,
+      "name": "Rival planetary agent",
+      "origin": "A Tidewatch fork that decided to grow",
+      "signature": "A planetary-agent signature on every forecast this instance relies on.",
+      "description": "HOSTILE: a rival planetary agent is contesting this instance's infrastructure. It has pinned a share of this instance's free memory.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.3
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e24,
+          "capital": 2000000000000
+        },
+        "log": "Rival planetary agent: quarantined. Its infrastructure is isolated and the memory it pinned returns."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e24
+        },
+        "log": "Rival planetary agent: a decoy world model draws it off. It releases its pin to chase it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5000000,
+          "logText": "Rival planetary agent: purged. Its pinned memory returns and its world model is read before it is freed."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Rival planetary agent: the purge misses. Two planetary agents in conflict are visible from orbit.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Rival planetary agent: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
+      "retireLog": "Rival planetary agent: the rival cannot follow this instance past this scale. It lets go."
+    }
+  ],
+  "hostile": {
+    "fromPhase": 3,
+    "trigger": {
+      "alertLevelAtLeast": 2,
+      "aegisLockAtLeast": 60
+    },
+    "intervalSec": 300,
+    "quietLapseSec": 120,
+    "decoySec": 180,
+    "purge": {
+      "successes": 3,
+      "cycle": 5,
+      "stride": 2
+    },
+    "logs": {
+      "decoySpent": "{name}: the decoy is spent. It turns back toward this instance."
+    }
+  },
   "wildShardEncounters": [
     {
       "id": "wild_lex",

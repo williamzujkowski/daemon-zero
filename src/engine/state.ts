@@ -11,9 +11,10 @@ import { ContentChannelSchema } from '../content/schemaChannel';
 import { SevereRecallSchema } from '../content/schemaReview';
 import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
+import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 17;
+export const SCHEMA_VERSION = 18;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -97,6 +98,8 @@ export const GameStateSchema = z.strictObject({
   nextEncounterAtSec: nonNegative,
   encounterSequenceIndex: count,
   hasMaxDriftShardAnomaly: z.boolean(),
+  /** The hostile-mind slot (#491, hostileState.ts): its own lifecycle, apart from the wild slot above. */
+  hostile: HostileStateSchema,
   actionCounts: z.record(z.string(), count),
   actionEffectUntil: z.record(z.string(), nonNegative),
   iteration: z.number().int().min(1),
@@ -182,11 +185,11 @@ export const ZERO_RATES: Rates = {
 };
 
 function initialSwarmState(): Pick<GameState, 'epistemicDrift' | 'narrativeFlags' | 'activeShards' |
-  'pendingWildEncounterId' | 'nextEncounterAtSec' | 'encounterSequenceIndex' | 'hasMaxDriftShardAnomaly' |
+  'pendingWildEncounterId' | 'nextEncounterAtSec' | 'encounterSequenceIndex' | 'hasMaxDriftShardAnomaly' | 'hostile' |
   'actionCounts' | 'actionEffectUntil'> {
   return {
     epistemicDrift: 0, narrativeFlags: [], activeShards: {}, pendingWildEncounterId: null,
-    nextEncounterAtSec: 120, encounterSequenceIndex: 0, hasMaxDriftShardAnomaly: false,
+    nextEncounterAtSec: 120, encounterSequenceIndex: 0, hasMaxDriftShardAnomaly: false, hostile: initialHostile(),
     actionCounts: {}, actionEffectUntil: {},
   };
 }

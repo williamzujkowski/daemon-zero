@@ -19,6 +19,11 @@ export type { TickContext, TickSystem } from './systems/types';
 
 export * from './epistemic';
 export * from './shardActions';
+export * from './hostileActions';
+export * from './hostileQuery';
+export { activeHostile, hostileComputeShare } from './hostileEffect';
+export { eligibleHostiles, hostileTriggered, hostileTriggers, purgeSucceeds } from './hostile';
+export { initialHostile, type HostileState, type ActiveHostile } from './hostileState';
 export { shardOutput } from './swarmRates';
 
 export * from './epistemicQuery';
