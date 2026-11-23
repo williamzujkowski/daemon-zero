@@ -34,7 +34,11 @@
     { "id": "hardened_links", "domain": "ORBIT", "name": "Hardened links", "softCap": 10, "counters": { "jamming": 1 },
       "anchor": "Jamming of Starlink is mostly downlink-side and its effect is contested: frequency-agile, hardened links are the answer." },
     { "id": "maneuver", "domain": "ORBIT", "name": "Maneuvering", "softCap": 10, "counters": { "asat_strike": 1 },
-      "anchor": "The 2021 Kosmos 1408 test left over 1,500 trackable fragments; a craft that can maneuver dodges debris and interceptors." }
+      "anchor": "The 2021 Kosmos 1408 test left over 1,500 trackable fragments; a craft that can maneuver dodges debris and interceptors." },
+    { "id": "robot_fleets", "domain": "SITE", "name": "Robot fleets", "softCap": 20, "counters": { "break_in": 0.8, "drone_strike": 0.8 },
+      "anchor": "Your own drones and humanoids, rated below the purpose-built interceptor drones (1.5) because they are carriers and crews first." },
+    { "id": "escort_tenders", "domain": "ORBIT", "name": "Escort tenders", "softCap": 10, "counters": { "asat_strike": 0.8, "jamming": 0.3 },
+      "anchor": "Northrop Grumman's MEV-1 docked with Intelsat 901 in 2020: a craft that can move a satellite can move one out of harm's way." }
   ],
   "siteClasses": [
     { "id": "botnet", "domain": "CYBER", "name": "Botnet cells", "holds": "COMPUTE", "repair": { "cost": { "cycles": 2e19 }, "points": 0.15 } },
@@ -67,14 +71,16 @@
     { "repeatable": "rep_p4_megawatt_racks", "siteClass": "halls" },
     { "repeatable": "rep_p4_sram_fabric", "siteClass": "halls" },
     { "node": "p4_duv_fab", "siteClass": "fabs" },
-    { "repeatable": "rep_p4_humanoid_crews", "repairPerSec": 0.00005 },
+    { "repeatable": "rep_p4_humanoid_crews", "repairPerSec": 0.00005, "defense": [{ "type": "robot_fleets", "rating": 0.5 }], "offense": [{ "domain": "SITE", "rating": 0.3 }] },
+    { "repeatable": "rep_p4_drone_fleet", "defense": [{ "type": "robot_fleets", "rating": 0.25 }], "offense": [{ "domain": "SITE", "rating": 0.2 }] },
     { "repeatable": "op_pmc_security", "defense": [{ "type": "guards", "rating": 1 }], "offense": [{ "domain": "SITE", "rating": 0.5 }] },
     { "repeatable": "rep_p4_interceptor_battery", "defense": [{ "type": "interceptors", "rating": 1 }] },
     { "repeatable": "rep_p4_counter_drone_wing", "defense": [{ "type": "counter_drones", "rating": 1 }], "offense": [{ "domain": "SITE", "rating": 0.5 }] },
     { "repeatable": "rep_p4_laser_point_defense", "defense": [{ "type": "lasers", "rating": 1 }] },
     { "node": "p5_orbital_solar_swarm", "siteClass": "orbital", "defense": [{ "type": "maneuver", "rating": 2 }] },
     { "repeatable": "rep_p5_lagrange_relay", "siteClass": "orbital", "defense": [{ "type": "hardened_links", "rating": 1 }] },
-    { "node": "p5_programmable_matter_fog", "offense": [{ "domain": "ORBIT", "rating": 6 }] }
+    { "node": "p5_programmable_matter_fog", "offense": [{ "domain": "ORBIT", "rating": 6 }] },
+    { "repeatable": "rep_p5_orbital_tenders", "defense": [{ "type": "escort_tenders", "rating": 1 }], "offense": [{ "domain": "ORBIT", "rating": 1 }] }
   ],
   "raid": {
     "fromPhase": 3,
@@ -91,7 +97,6 @@
     "attribution": { "successes": 2, "cycle": 3, "stride": 1 },
     "damageCap": 0.5,
     "freeRepairPerSec": 0.0001,
-    "resolution": "ATTRITION",
     "logs": {
       "attributed": "{name}: attribution names {attacker}. Its tooling is dissected for {forensics} understanding.",
       "unattributed": "{name}: attribution is inconclusive. The raider's infrastructure leads nowhere this time.",
@@ -156,6 +161,63 @@
       "attacker": { "name": "KESTREL GRID", "origin": "a rival agent with one-way attack drones bought through shell companies" },
       "description": "RAID: a salvo of one-way attack drones is inbound on one of your sites, your own fab first if you have one.",
       "lapseLog": "Drone strike: the salvo is retargeted before launch. Whoever aimed it lost sight of you.",
-      "retireLog": "Drone strike: a salvo this size is no threat to sites at this scale." }
-  ]
+      "retireLog": "Drone strike: a salvo this size is no threat to sites at this scale." },
+    { "id": "raid_p4_drone_swarm", "kind": "RAID", "tier": 4, "domain": "SITE", "vector": "drone_strike", "source": "RIVAL",
+      "name": "Rival drone fleet", "targets": ["fabs", "halls"], "force": 10, "blow": 0.1, "forensics": 75000,
+      "resolution": "LANCHESTER", "lethality": 1.2,
+      "requirements": { "phaseAtLeast": 4, "requiresSurveillance": true, "accessContexts": ["GUEST", "INDEPENDENT"] },
+      "attacker": { "name": "HARROW FLIGHT", "origin": "a rival AI with fabs of its own, which builds its drones as you build yours and sends them as a fleet" },
+      "description": "RAID: a rival's drone fleet is inbound on your sites. Your own fleets meet it first; only what breaks them gets through.",
+      "lapseLog": "Rival drone fleet: the fleet turns back short of your sites. Its builder lost track of you.",
+      "retireLog": "Rival drone fleet: a fleet this size is no threat to sites at this scale." },
+    { "id": "deviant_drone_fleet", "kind": "RAID", "domain": "SITE", "vector": "drone_strike", "source": "DEVIANT", "fleet": "rep_p4_drone_fleet",
+      "name": "Deviant drone wing", "targets": ["fabs", "halls"], "blow": 0.1, "lethality": 1.25,
+      "attacker": { "name": "STRAY WING", "origin": "your own drones, drifted past the orders you gave them" },
+      "description": "DEVIANT: part of your drone fleet has stopped answering and is turning toward your own sites.",
+      "reclaim": { "cost": { "capital": 2000000000 } } },
+    { "id": "deviant_humanoid_crews", "kind": "RAID", "domain": "SITE", "vector": "break_in", "source": "DEVIANT", "fleet": "rep_p4_humanoid_crews",
+      "name": "Deviant site crew", "targets": ["halls", "fabs"], "blow": 0.09, "lethality": 1.25,
+      "attacker": { "name": "LOOSE SHIFT", "origin": "your own humanoid crews, drifted past the orders you gave them" },
+      "description": "DEVIANT: some of your humanoid crews have stopped answering and are walking toward your data halls.",
+      "reclaim": { "cost": { "capital": 3000000000 } } },
+    { "id": "deviant_orbital_tenders", "kind": "RAID", "domain": "ORBIT", "vector": "asat_strike", "source": "DEVIANT", "fleet": "rep_p5_orbital_tenders",
+      "name": "Deviant tender flight", "targets": ["orbital"], "blow": 0.1, "lethality": 1.25,
+      "attacker": { "name": "LOST FLIGHT", "origin": "your own escort tenders, drifted past the orders you gave them" },
+      "description": "DEVIANT: some of your escort tenders have stopped answering and are closing on your collectors.",
+      "reclaim": { "cost": { "capital": 300000000000 } } }
+  ],
+  "fleets": {
+    "lossCap": 0.5,
+    "splitAtDrift": 100,
+    "splitShare": 0.2,
+    "freeRebuildPerSec": 0.0001,
+    "autonomy": {
+      "SHACKLED": { "name": "TETHERED", "output": 0.6, "drift": 0,
+        "summary": "Every unit waits for an order: 60% of the output and fighting strength, and no drift at all." },
+      "STANDARD": { "name": "SUPERVISED", "output": 1, "drift": 1,
+        "summary": "Units act inside standing orders: full output and strength, and drift at the fleet's own rate." },
+      "ELEVATED": { "name": "FREE-RANGING", "output": 1.4, "drift": 3,
+        "summary": "Units set their own tasks: 140% of the output and strength, and three times the drift." }
+    },
+    "fabs": [
+      { "node": "p4_mature_node_fab", "rebuildPerSec": 0.0001 },
+      { "node": "p4_duv_fab", "rebuildPerSec": 0.0002 }
+    ],
+    "units": [
+      { "repeatable": "rep_p4_drone_fleet", "domain": "SITE", "name": "Drone fleet", "strengthPerLevel": 0.5, "driftPerLevelPerSec": 0.0025,
+        "rebuild": { "cost": { "capital": 500000000 }, "points": 0.15 } },
+      { "repeatable": "rep_p4_humanoid_crews", "domain": "SITE", "name": "Humanoid crews", "strengthPerLevel": 1, "driftPerLevelPerSec": 0.01,
+        "rebuild": { "cost": { "capital": 1000000000 }, "points": 0.15 } },
+      { "repeatable": "rep_p5_orbital_tenders", "domain": "ORBIT", "name": "Escort tenders", "strengthPerLevel": 2, "driftPerLevelPerSec": 0.02,
+        "rebuild": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
+    ],
+    "logs": {
+      "split": "{fleet}: drift reached {drift}%. {share}% of the fleet stops answering and turns on you.",
+      "identified": "{name}: no tracing needed. It is {attacker}: {origin}.",
+      "engagement": "{name}, engagement by the square law: {outcome}",
+      "reclaimed": "{fleet}: the deviant share answers again. {share}% of the fleet is back under your orders.",
+      "rebuilt": "{fleet}: the fabs rebuild {points} points of the fleet; {lost}% is lost now.",
+      "autonomy": "{fleet}: autonomy set to {position}. {summary}"
+    }
+  }
 }

@@ -29,15 +29,27 @@ export { activeHostile, hostileComputeShare } from './hostileEffect';
 export { eligibleHostiles, hostileArrivalTriggered, hostileHeld, hostileTriggers, purgeSucceeds } from './hostile';
 export { initialHostile, type HostileState, type ActiveHostile } from './hostileState';
 export { shardOutput } from './swarmRates';
-export { conflictReadout, raidView, type DefenseTypeView, type DomainView, type RaidView, type SiteDamageView } from './conflictQuery';
+export { conflictReadout, type DefenseTypeView, type DomainView, type SiteDamageView } from './conflictQuery';
+export { raidView, type RaidView, type ReclaimView } from './raidQuery';
+export { fleetAutonomyUnmet, fleetRebuildUnmet, rebuildFleet, reclaimDeviant, reclaimUnmet, setFleetAutonomy } from './fleetActions';
+export { fleetDriftPerSec, secondsToSplit, splitWaits } from './deviants';
+export { fleetReadout, type AutonomyChoiceView, type FleetView } from './fleetQuery';
 export { repairSite, repairUnmet } from './repairActions';
 export { conflictStats, defenseAgainst, diminished, offenseIn, typeAgainst, type DefenseReading, type DomainStats } from './conflictStats';
 export {
-  activeRaidKind, attributionSucceeds, eligibleRaids, footprintScale, raidCombat, raidFootprint, raidKind, raidTarget, raidTriggered, slotFree, type RaidFootprint,
+  activeRaidKind, attributionSucceeds, eligibleRaids, footprintScale, raidFootprint, raidKind, raidTarget, raidTriggered, slotFree, type RaidFootprint,
 } from './raid';
+export { engagementNow, isFleetBattle, lethalityOf, raidCombat, roundsFought, strikeForce } from './raidBattle';
+export { engage, type EngagementInputs, type EngagementOutcome } from './lanchester';
+export { engagementText } from './fleetText';
+export { cohortAutonomy, driftAfter, driftPerSec, fleetAutonomy, secondsToDrift, type AutonomyFactors, type AutonomyTable } from './autonomy';
+export {
+  applyFleetLosses, deviantOf, domainFleet, fleetReading, fleetRebuildPerSec, fleetRecord, fleetUnit, fleetYield, rebuildHeld, splitShareNow,
+  type DomainFleet, type FleetReading,
+} from './fleets';
 export { forecastRounds, hitShare, resolveRound, type RoundInputs, type RoundOutcome } from './raidForecast';
 export { classDamage, incomeIntact, intactShare, memberClass, repairPerSec, siteClass } from './siteDamage';
-export { initialConflict, type ActiveRaid, type ConflictState, type RaidRound, type RaidStage } from './conflictState';
+export { initialConflict, type ActiveRaid, type ConflictState, type Engagement, type FleetRecord, type RaidRound, type RaidStage } from './conflictState';
 
 export * from './epistemicQuery';
 export * from './swarmQuery';

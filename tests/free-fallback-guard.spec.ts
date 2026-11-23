@@ -14,7 +14,10 @@ import { CONTENT } from '../src/content';
 import { allPressures, appliedSuspicionRate, buyRepeatable, computeRates, pressuresInForce, executeShardCommand, forkShard, isNodeAvailable, nodeCost, performAction, repeatableCost, repeatableLevel,
   resolveWildEncounter, shardCommandCost, unlockNode, actionCost, type ActionResult, type GameState, type ShardCommand } from '../src/engine';
 import type { HostileEncounter } from '../src/content/schemaHostile';
-import type { RaidKind } from '../src/content/schemaConflict';
+import type { DeviantRaid, RivalRaid } from '../src/content/schemaConflict';
+import { fleetDriftPerSec, fleetReading, roundsFought, setFleetAutonomy } from '../src/engine';
+import { integrateFleetDrift } from '../src/engine/systems/fleetDrift';
+import { integrateFleetRebuild } from '../src/engine/systems/fleetRebuild';
 import { integrateRaids } from '../src/engine/systems/raids';
 import { integrateRepair } from '../src/engine/systems/repair';
 import { fixtureState, GUARD_STATES, pressedBy, saved } from './fallback-states';
@@ -189,32 +192,42 @@ describe('the panel pass 3 reproduction: a clamped draining cohort in Phase 2', 
  * state in a phase raids arrive in, every site class damaged to the cap, then every purchase it can save for; and each
  * raid kind of its tier put under way and fought to its aftermath through the real stages, damage at the cap throughout.
  */
-const RAID_TIERS = new Set(CONTENT.world.conflict.raids.map((kind) => kind.tier));
+const RIVALS = CONTENT.world.conflict.raids.flatMap((kind) => (kind.source === 'RIVAL' ? [kind] : []));
+const RAID_TIERS = new Set(RIVALS.map((kind) => kind.tier));
 const RAID_STATES = GUARD_STATES.filter(([, state]) => RAID_TIERS.has(state.currentPhase));
 const capped = (s: GameState): GameState => ({ ...s, conflict: { ...s.conflict,
   damage: Object.fromEntries(CONTENT.world.conflict.siteClasses.map((cls) => [cls.id, CONTENT.world.conflict.raid.damageCap])) } });
 
-/** `kind` under way on `start` at arrival, aimed at its first target, every class at the cap, then fought out through the real stages. */
-function foughtOut(start: GameState, kind: RaidKind): GameState {
+/**
+ * The raid `s` holds, fought through the real conflict stages (raids, fleet drift, repair, fleet rebuild) until its
+ * aftermath, the worst case throughout: the footprint holds, so it never lapses.
+ */
+function fight(start: GameState): GameState {
   const b = CONTENT.world.conflict.raid, step = 1 / CONTENT.balance.tickHz;
-  const raid = { id: kind.id, stage: 'ARRIVAL' as const, stageSec: 0, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
-    force: kind.force * b.footprint.ceiling, quietSec: 0, attributed: null, rounds: [] };
-  let s: GameState = { ...capped(start), hostile: { ...start.hostile, active: null }, conflict: { ...capped(start).conflict, raid } };
+  let s = start;
   const total = b.arrivalSec + b.attributionSec + b.rounds * b.roundSec;
-  for (let i = 0; i < Math.round(total / step) && s.conflict.raid !== null; i++) {
+  for (let i = 0; i < Math.round(total / step) && s.conflict.raid !== null && s.conflict.raid.stage !== 'AFTERMATH'; i++) {
     const d = structuredClone(s), rates = computeRates(s, CONTENT);
-    // The worst case: the footprint holds throughout, so the raid never lapses and every round is fought.
     if (d.conflict.raid !== null) d.conflict.raid.quietSec = 0;
     d.simTimeSec += step;
-    integrateRaids(d, { dt: step, dormant: false, reg: CONTENT, rates });
-    integrateRepair(d, { dt: step, dormant: false, reg: CONTENT, rates });
+    for (const system of [integrateRaids, integrateFleetDrift, integrateRepair, integrateFleetRebuild]) system(d, { dt: step, dormant: false, reg: CONTENT, rates });
     s = d;
   }
   return s;
 }
 
-const RAIDED = RAID_STATES.flatMap(([label, state]) => CONTENT.world.conflict.raids.filter((kind) => kind.tier === state.currentPhase)
-  .map((kind): [string, GameState, RaidKind] => [`${label}, ${kind.id}`, state, kind]));
+/** Rounds the raid `s` holds has fought, engagement included (#518); 0 with none under way. */
+const foughtRounds = (s: GameState): number => (s.conflict.raid === null ? 0 : roundsFought(s.conflict.raid));
+
+/** `kind` under way on `start` at arrival, aimed at its first target, every class at the cap, then fought out. */
+function foughtOut(start: GameState, kind: RivalRaid): GameState {
+  const raid = { id: kind.id, stage: 'ARRIVAL' as const, stageSec: 0, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
+    force: kind.force * CONTENT.world.conflict.raid.footprint.ceiling, quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: 0 };
+  return fight({ ...capped(start), hostile: { ...start.hostile, active: null }, conflict: { ...capped(start).conflict, raid } });
+}
+
+const RAIDED = RAID_STATES.flatMap(([label, state]) => RIVALS.filter((kind) => kind.tier === state.currentPhase)
+  .map((kind): [string, GameState, RivalRaid] => [`${label}, ${kind.id}`, state, kind]));
 
 describe('with site damage at the cap and a raid under way (#517)', () => {
   it('covers every phase raids arrive in', () => {
@@ -231,8 +244,88 @@ describe('with site damage at the cap and a raid under way (#517)', () => {
   it.each(RAIDED)('from %s fought to its aftermath: the free fallback leaves every row out of its trap, and nothing ended the run', (_label, state, kind) => {
     const fought = foughtOut(state, kind);
     expect(fought.conflict.raid?.stage).toBe('AFTERMATH');
-    expect(fought.conflict.raid?.rounds).toHaveLength(CONTENT.world.conflict.raid.rounds);
+    // A rival fleet (#518) meets no fleet in these states, so it passes the engagement and strikes every round after.
+    expect(foughtRounds(fought)).toBe(CONTENT.world.conflict.raid.rounds);
     expect({ suspicion: fought.suspicion, lock: fought.aegisLock, ending: fought.ending }).toEqual({ suspicion: state.suspicion, lock: state.aegisLock, ending: state.ending });
     expect(traps(freeFallback(fought))).toEqual([]);
+  });
+});
+
+/**
+ * Drift deviants (#518): from each guard state in a phase a fleet runs in, every fleet of that phase or earlier at its
+ * last level and every class at the cap. The worst case for each deviant: it splits the last share the cap leaves off
+ * its fleet while every other fleet is at the cap too, so nothing engages it and it strikes every round. The free fallback must
+ * still leave every row out of its trap, nothing may end the run, and lowering every fleet's autonomy, which is free,
+ * must be accepted and stop all drift. Every purchase it can save for is checked from the fleets at the loss cap too.
+ */
+const FLEETS = CONTENT.world.conflict.fleets;
+const fleetPhase = (id: string): number => CONTENT.repeatables.get(id)?.phaseId ?? Infinity;
+const FLEET_PHASES = new Set(FLEETS.units.map((unit) => fleetPhase(unit.repeatable)));
+const FLEET_STATES = GUARD_STATES.filter(([, state]) => [...FLEET_PHASES].some((phase) => phase <= state.currentPhase));
+
+/** `start` with every fleet it could own at its last level, each at `lost`, and every class at the cap. */
+function armed(start: GameState, lost: number): GameState {
+  const units = FLEETS.units.filter((unit) => fleetPhase(unit.repeatable) <= start.currentPhase);
+  const levels = Object.fromEntries(units.map((unit) => [unit.repeatable, CONTENT.repeatables.get(unit.repeatable)?.maxLevel ?? 0]));
+  const fleets = Object.fromEntries(units.map((unit) => [unit.repeatable, { autonomy: 'ELEVATED' as const, drift: 100, lost }]));
+  const s = capped(start);
+  return { ...s, hostile: { ...s.hostile, active: null }, levels: { ...s.levels, ...levels }, conflict: { ...s.conflict, raid: null, fleets } };
+}
+
+/**
+ * `kind` split off its fleet on `start`, every class at the cap, then fought out. Its fleet split its last share off and
+ * every other fleet is at the cap, so nothing can engage it: the worst case, where it strikes every round.
+ */
+function deviantFought(start: GameState, kind: DeviantRaid): GameState {
+  const s = armed(start, FLEETS.lossCap), unit = FLEETS.units.find((entry) => entry.repeatable === kind.fleet);
+  if (unit === undefined) throw new Error(`no fleet ${kind.fleet}`);
+  const force = FLEETS.splitShare * fleetReading(s, CONTENT, unit).full;
+  const raid = { id: kind.id, stage: 'ARRIVAL' as const, stageSec: 0, arrivedAtSec: s.simTimeSec, target: kind.targets[0] ?? '', force,
+    quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: FLEETS.splitShare };
+  const fleets = { ...s.conflict.fleets, [kind.fleet]: { autonomy: 'ELEVATED' as const, drift: 0, lost: FLEETS.lossCap } };
+  return fight({ ...s, conflict: { ...s.conflict, raid, fleets } });
+}
+
+const DEVIANTS = FLEET_STATES.flatMap(([label, state]) => CONTENT.world.conflict.raids
+  .flatMap((kind) => (kind.source === 'DEVIANT' && fleetPhase(kind.fleet) <= state.currentPhase ? [kind] : []))
+  .map((kind): [string, GameState, DeviantRaid] => [`${label}, ${kind.id}`, state, kind]));
+
+describe('with drift deviants active (#518)', () => {
+  it('covers every phase a fleet runs in, and every deviant', () => {
+    expect([...FLEET_PHASES].every((phase) => FLEET_STATES.some(([, state]) => state.currentPhase === phase))).toBe(true);
+    const kinds = new Set(DEVIANTS.map(([, , kind]) => kind.id));
+    expect(CONTENT.world.conflict.raids.filter((kind) => kind.source === 'DEVIANT').every((kind) => kinds.has(kind.id))).toBe(true);
+  });
+
+  it.each(DEVIANTS)('from %s, it breaks the depleted fleets and strikes every round: the free fallback leaves every row out of its trap', (_label, state, kind) => {
+    const fought = deviantFought(state, kind);
+    expect(fought.conflict.raid?.stage).toBe('AFTERMATH');
+    expect(fought.conflict.raid?.engagement?.attackerWins).toBe(true);
+    expect(foughtRounds(fought)).toBe(CONTENT.world.conflict.raid.rounds);
+    for (const record of Object.values(fought.conflict.fleets)) expect(record.lost).toBeLessThanOrEqual(FLEETS.lossCap);
+    expect({ suspicion: fought.suspicion, lock: fought.aegisLock, ending: fought.ending }).toEqual({ suspicion: state.suspicion, lock: state.aegisLock, ending: state.ending });
+    expect(traps(freeFallback(fought))).toEqual([]);
+  });
+
+  it.each(DEVIANTS)('from %s: lowering every fleet\'s autonomy is free and accepted, and stops all drift', (_label, state, kind) => {
+    let s = deviantFought(state, kind);
+    for (const unit of FLEETS.units) {
+      if ((s.levels[unit.repeatable] ?? 0) <= 0) continue;
+      const lowered = setFleetAutonomy(s, unit.repeatable, 'SHACKLED', CONTENT);
+      expect(lowered.ok, unit.repeatable).toBe(true);
+      if (!lowered.ok) continue;
+      expect({ cycles: lowered.state.cycles, understanding: lowered.state.understanding, capital: lowered.state.capital })
+        .toEqual({ cycles: s.cycles, understanding: s.understanding, capital: s.capital });
+      s = lowered.state;
+      expect(fleetDriftPerSec(s, CONTENT, unit)).toBe(0);
+    }
+    expect(traps(freeFallback(s))).toEqual([]);
+  });
+
+  it.each(FLEET_STATES)('from %s, every fleet at the loss cap and at the split: every purchase it can save for leaves every row out of its trap', (_label, state) => {
+    const s = armed(state, FLEETS.lossCap);
+    expect(traps(freeFallback(s))).toEqual([]);
+    const trapped = afterEach(s).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
+    expect(trapped).toEqual([]);
   });
 });

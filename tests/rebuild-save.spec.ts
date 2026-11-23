@@ -24,8 +24,8 @@ function asV17(s: GameState): Raw {
 }
 
 describe('save v18 (#497)', () => {
-  it('is followed only by the hostile slot (#491, v19), storage (#484, v20), the quantum record (#464, v21), escalation (#490, v22), insurance (#498, v23) and the conflict record (#517, v24)', () => {
-    expect(SCHEMA_VERSION).toBe(24);
+  it('is followed only by the hostile slot (#491, v19), storage (#484, v20), the quantum record (#464, v21), escalation (#490, v22), insurance (#498, v23), the conflict record (#517, v24) and fleets (#518, v25)', () => {
+    expect(SCHEMA_VERSION).toBe(25);
   });
 
   it('migrates a v17 save: the deepest phase from its recorded runs, no remembered level, nothing else changes', () => {

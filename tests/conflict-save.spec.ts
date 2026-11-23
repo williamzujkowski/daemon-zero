@@ -19,8 +19,8 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(3)), raid('raid_p3_ddos')), PRE_BATTLE + 2 * R.roundSec)), reg);
 
 describe('save v24 (#517)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(24);
+  it('is followed only by fleets (#518, v25)', () => {
+    expect(SCHEMA_VERSION).toBe(25);
   });
 
   it('migrates a v23 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {
@@ -28,9 +28,10 @@ describe('save v24 (#517)', () => {
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     delete raw.conflict;
     const v23 = { ...raw, schemaVersion: 23 };
-    expect(migrate(v23, MIGRATIONS, 24)).toEqual({ ...raw, conflict: initialConflict(), schemaVersion: 24 });
+    // The v24 step writes the record as v24 had it; v25 (#518) adds the fleets after it.
+    expect(migrate(v23, MIGRATIONS, 24)).toEqual({ ...raw, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} }, schemaVersion: 24 });
     const loaded = deserialize(JSON.stringify(v23), reg);
-    expect(loaded.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} });
+    expect(loaded.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, fleets: {} });
     expect(loaded).toEqual(current);
   });
 

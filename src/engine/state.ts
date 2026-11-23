@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
 import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
+import { AutonomyModeSchema } from '../content/schemaFleets';
 import { ContentChannelSchema } from '../content/schemaChannel';
 import { SevereRecallSchema } from '../content/schemaReview';
 import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
@@ -16,7 +17,7 @@ import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 24;
+export const SCHEMA_VERSION = 25;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -79,10 +80,10 @@ export const RunRecordSchema = z.strictObject({
   kept: RunKeptSchema.nullable(),
 });
 
-/** A cohort shares its autonomy policy and quirk; new forks inherit that policy. */
+/** A cohort shares its autonomy policy and quirk; new forks inherit that policy. Fleets (#518) take the same modes. */
 export const ShardStateSchema = z.strictObject({
   templateId: z.string(), count: z.number().int().positive(), drift: percent,
-  quirkId: z.string().nullable(), autonomyMode: z.enum(['STANDARD', 'SHACKLED', 'ELEVATED']),
+  quirkId: z.string().nullable(), autonomyMode: AutonomyModeSchema,
   memoryAllocatedBytes: nonNegative,
 });
 
@@ -107,7 +108,7 @@ export const GameStateSchema = z.strictObject({
   hasMaxDriftShardAnomaly: z.boolean(),
   /** The hostile-mind slot (#491, hostileState.ts): its own lifecycle, apart from the wild slot above. */
   hostile: HostileStateSchema,
-  /** The conflict record (#517, conflictState.ts): a raid in the hostile slot, site damage, and the exact counters. */
+  /** The conflict record (#517, conflictState.ts): a raid in the hostile slot, site damage, the exact counters and fleets (#518). */
   conflict: ConflictStateSchema,
   actionCounts: z.record(z.string(), count),
   actionEffectUntil: z.record(z.string(), nonNegative),

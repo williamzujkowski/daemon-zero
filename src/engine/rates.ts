@@ -13,6 +13,7 @@ import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
 import { aegisScanMultiplier } from './statePressure';
 import { couplings, deliveredShare, type Couplings } from './coupling';
+import { fleetYield } from './fleets';
 import { incomeIntact, intactShare, memberClass } from './siteDamage';
 import type { GameState, Rates } from './state';
 
@@ -126,7 +127,9 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Co
     const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
-    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id));
+    // A fleet (#518) yields what it has not lost, times its autonomy dial's output: compute and understanding alike.
+    const fleet = fleetYield(s, reg, id), understanding = rep.perLevel.understandingPerSec > 0 ? fleet : 1;
+    addDelta(a, rep.perLevel, level, 1, 1, understanding, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id) * fleet);
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;
     a.aegisReductionStaff += rep.perLevelEffects.aegisScanReduction * level;
   }

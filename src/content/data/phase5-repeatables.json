@@ -110,6 +110,26 @@
         "source": "space_solar"
       },
       "dismissable": true
+    },
+    {
+      "id": "rep_p5_orbital_tenders",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Orbital Escort Tenders",
+      "description": "Another ten servicing craft built from lunar stock, each able to dock with a collector and push it out of a debris track or an interceptor's path, as Northrop Grumman's MEV-1 docked with Intelsat 901 in 2020. They fight as a fleet in orbit and draw nothing from the grid.",
+      "requirements": {
+        "nodes": [
+          "p5_lunar_seed_factory"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "capital": 5e12
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 5,
+      "perLevel": {},
+      "dismissable": true
     }
   ]
 }

@@ -17,7 +17,7 @@ import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { allPressures } from './statePressure';
-import { reconcileConflict } from './conflictSave';
+import { migrateFleets, reconcileConflict } from './conflictSave';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
 import { reconcileRoutine } from './routine';
@@ -152,6 +152,8 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // damaged and both counters start at 0, as literals a later balance change cannot alter. Self-contained: it writes only
   // its own field, so it can be renumbered past another step (robotics #485, insurance #498) without change.
   23: (save) => ({ ...save, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} } }),
+  // v25: fleets and drift deviants (#518, conflictSave.ts). Self-contained, so it can be renumbered past another step.
+  24: migrateFleets,
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

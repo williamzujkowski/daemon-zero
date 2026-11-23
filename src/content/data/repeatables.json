@@ -692,7 +692,7 @@
       "phaseId": 4,
       "kind": "UPGRADE",
       "name": "Humanoid Site Crews",
-      "description": "Twenty-five hundred humanoid robots, with brains from your own fab, rack, cable and swap boards around the clock: as much compute kept running a level as a team of perimeter contractors, with nobody to brief or bribe. They keep no one away, so unlike the contractors they cut no suspicion and do not slow AEGIS. Draws 1.15 MW at the chargers; output is throttled if generation falls short.",
+      "description": "Twenty-five hundred humanoid robots, with brains from your own fab, rack, cable and swap boards around the clock: as much compute kept running a level as a team of perimeter contractors, with nobody to brief or bribe. They keep no one away, so unlike the contractors they cut no suspicion and do not slow AEGIS; in a raid they fight beside the drone fleet. Draws 1.15 MW at the chargers; output is throttled if generation falls short.",
       "requirements": {
         "nodes": [
           "p4_mature_node_fab"
