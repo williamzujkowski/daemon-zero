@@ -535,7 +535,9 @@ then after molecular simulation the platform, two wings and the first tranche; t
 beamed levels, the L1 relay and tranches 2 and 3 before the proof engine; the survey after the self-built EUV sources,
 585 s before the protocol; the fourth tranche last. Each node's price adds to the phase and each tranche's compute takes
 time off it; on balance Phase 5 is 1 s (legacy) and 2 s (campaign) shorter. Measured before the merge with #498, against
-`f47736d`, the same content gave 1694.4 -> 1692.4 s and 1719.4 -> 1706.4 s. A first draft placed the survey after the
+`f47736d`, the same content gave 1694.4 -> 1692.4 s and 1719.4 -> 1706.4 s. On a trial merge with the open conflict foundation (#527 at `c33a0ca`, not landed) the arc leaves campaign Phase 5
+unchanged (1742.4 s with and without it, 57.6 s inside the gate) and takes legacy from 1727.4 to 1725.4 s: the arc does
+not spend the headroom; #527's raids do, and the arc's rungs are already depth the bot buys only when they pay. A first draft placed the survey after the
 protocol, off the bot's path, but five specs read the protocol as the phase's last node; at $5T it cost the campaign run
 31 s, so it was re-priced to $1T. The signature is now Phase 5's loudest term: orbital radiators and beamed power are
 visible (the aligned ladder's Phase 5 row), and the foundry's and the Covenant's relief keep peak suspicion where it was.
