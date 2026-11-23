@@ -51,9 +51,12 @@ describe('when a raid arrives', () => {
     expect(() => arrived(s, raid('raid_p3_ransomware'))).toThrow();
   });
 
-  it('in Phase 4 a site raid strikes the data halls', () => {
+  it('in Phase 4 a site raid strikes the data halls, and a drone strike goes for an owned fab first', () => {
     const s = withHalls(withBotnet(ready(4), 80));
     expect(arrived(s, raid('raid_p4_drone_strike')).conflict.raid?.target).toBe('halls');
+    const fab = { ...s, unlockedNodes: [...s.unlockedNodes, 'p4_duv_fab'] };
+    expect(arrived(fab, raid('raid_p4_drone_strike')).conflict.raid?.target).toBe('fabs');
+    expect(arrived(fab, raid('raid_p4_break_in')).conflict.raid?.target).toBe('halls');
   });
 
   it('rotates through the eligible raids in content order, deterministically', () => {

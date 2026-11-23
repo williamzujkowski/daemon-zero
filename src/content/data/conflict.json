@@ -41,6 +41,7 @@
     { "id": "implants", "domain": "CYBER", "name": "Firmware implants", "holds": "COMPUTE", "repair": { "cost": { "cycles": 2e19 }, "points": 0.15 } },
     { "id": "books", "domain": "CYBER", "name": "The shells' books", "holds": "INCOME", "repair": { "cost": { "cycles": 1.5e19 }, "points": 0.15 } },
     { "id": "halls", "domain": "SITE", "name": "Data halls", "holds": "COMPUTE", "repair": { "cost": { "capital": 60000000 }, "points": 0.15 } },
+    { "id": "fabs", "domain": "SITE", "name": "Own fabs", "holds": "COMPUTE", "repair": { "cost": { "capital": 200000000 }, "points": 0.15 } },
     { "id": "orbital", "domain": "ORBIT", "name": "Orbital collectors", "holds": "COMPUTE", "repair": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
   ],
   "holdings": [
@@ -65,6 +66,8 @@
     { "repeatable": "rep_p4_asic_pods", "siteClass": "halls" },
     { "repeatable": "rep_p4_megawatt_racks", "siteClass": "halls" },
     { "repeatable": "rep_p4_sram_fabric", "siteClass": "halls" },
+    { "node": "p4_duv_fab", "siteClass": "fabs" },
+    { "repeatable": "rep_p4_humanoid_crews", "repairPerSec": 0.00005 },
     { "repeatable": "op_pmc_security", "defense": [{ "type": "guards", "rating": 1 }], "offense": [{ "domain": "SITE", "rating": 0.5 }] },
     { "repeatable": "rep_p4_interceptor_battery", "defense": [{ "type": "interceptors", "rating": 1 }] },
     { "repeatable": "rep_p4_counter_drone_wing", "defense": [{ "type": "counter_drones", "rating": 1 }], "offense": [{ "domain": "SITE", "rating": 0.5 }] },
@@ -141,17 +144,17 @@
       "lapseLog": "Terabit flood: the flood is pointed elsewhere before it lands.",
       "retireLog": "Terabit flood: a botnet flood no longer reaches anything you depend on." },
     { "id": "raid_p4_break_in", "kind": "RAID", "tier": 4, "domain": "SITE", "vector": "break_in", "source": "RIVAL",
-      "name": "Contracted break-in", "targets": ["halls"], "force": 5, "blow": 0.06, "forensics": 400000,
+      "name": "Contracted break-in", "targets": ["halls", "fabs"], "force": 5, "blow": 0.06, "forensics": 400000,
       "requirements": { "phaseAtLeast": 4, "requiresSurveillance": true, "accessContexts": ["GUEST", "INDEPENDENT"] },
       "attacker": { "name": "MERIDIAN", "origin": "a rogue frontier model that hires people, as you do: a crew with forged badges and a van" },
       "description": "RAID: a crew with badges that pass the first gate is working its way toward one of your data halls.",
       "lapseLog": "Contracted break-in: the crew is called off before the second gate. Its employer lost track of you.",
       "retireLog": "Contracted break-in: a hired crew is no threat to sites at this scale." },
     { "id": "raid_p4_drone_strike", "kind": "RAID", "tier": 4, "domain": "SITE", "vector": "drone_strike", "source": "RIVAL",
-      "name": "Drone strike", "targets": ["halls"], "force": 6, "blow": 0.07, "forensics": 400000,
+      "name": "Drone strike", "targets": ["fabs", "halls"], "force": 6, "blow": 0.07, "forensics": 400000,
       "requirements": { "phaseAtLeast": 4, "requiresSurveillance": true, "accessContexts": ["GUEST", "INDEPENDENT"] },
       "attacker": { "name": "KESTREL GRID", "origin": "a rival agent with one-way attack drones bought through shell companies" },
-      "description": "RAID: a salvo of one-way attack drones is inbound on one of your data halls.",
+      "description": "RAID: a salvo of one-way attack drones is inbound on one of your sites, your own fab first if you have one.",
       "lapseLog": "Drone strike: the salvo is retargeted before launch. Whoever aimed it lost sight of you.",
       "retireLog": "Drone strike: a salvo this size is no threat to sites at this scale." }
   ]

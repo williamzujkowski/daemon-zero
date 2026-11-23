@@ -55,9 +55,9 @@ describe('conflict content (#517)', () => {
   });
 
   it.each([
-    ['a counter for an undeclared vector', (raw: Json) => { byId(conflict(raw).defenseTypes, 'guards').counters.siege = 1; },
+    ['a counter for an undeclared vector', (raw: Json) => { byId(conflict(raw).defenseTypes as Json[], 'guards').counters.siege = 1; },
       'defense type "guards": counters vector "siege", which is not declared'],
-    ['a counter across domains', (raw: Json) => { byId(conflict(raw).defenseTypes, 'guards').counters.ddos = 1; },
+    ['a counter across domains', (raw: Json) => { byId(conflict(raw).defenseTypes as Json[], 'guards').counters.ddos = 1; },
       'defense type "guards": a SITE defense cannot counter CYBER vector "ddos"'],
   ])('refuses %s', (_label, edit, problem) => {
     expect(problemsAfter(edit)).toContain(problem);
@@ -103,9 +103,9 @@ describe('conflict content (#517)', () => {
       'raid footprint: floor must not exceed ceiling'],
     ['a stage clock between tick steps', (raw: Json) => { conflict(raw).raid.roundSec = 15.05; },
       'raid roundSec: must be a whole number of tick steps (1 / 10 s)'],
-    ['free paid repair', (raw: Json) => { byId(conflict(raw).siteClasses, 'halls').repair.cost = {}; },
+    ['free paid repair', (raw: Json) => { byId(conflict(raw).siteClasses as Json[], 'halls').repair.cost = {}; },
       'site class "halls": paid repair must cost something'],
-    ['a repair priced outside its phase band', (raw: Json) => { byId(conflict(raw).siteClasses, 'halls').repair.cost = { capital: 1e14 }; },
+    ['a repair priced outside its phase band', (raw: Json) => { byId(conflict(raw).siteClasses as Json[], 'halls').repair.cost = { capital: 1e14 }; },
       'site class "halls" repair: capital price 100000000000000 is outside the Phase 4 band'],
   ])('refuses %s', (_label, edit, problem) => {
     expect(problemsAfter(edit)).toContain(problem);

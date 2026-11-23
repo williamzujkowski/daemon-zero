@@ -5,8 +5,6 @@
  * paid repair restores a declared chunk at once; a holding that declares repairPerSec adds to the rate (#485's hook).
  */
 import { describe, expect, it } from 'vitest';
-import { RAW_CONTENT } from '../src/content';
-import { buildRegistry, type RawContent } from '../src/content/registry';
 import { computeRates, conflictReadout, cycleContributions, incomeIntact, repairPerSec, repairSite, repairUnmet, type GameState } from '../src/engine';
 import { defined } from './m7-helpers';
 import { must, reasonOf, reg } from './helpers';
@@ -68,13 +66,13 @@ describe('free repair', () => {
     expect(stage(damaged(withBotnet(ready(3), 0), { botnet: 0.1 }), 60, true).conflict.damage.botnet).toBeCloseTo(0.1 - 60 * R.freeRepairPerSec, 9);
   });
 
-  it('is faster for every running holding that declares repairPerSec: the hook robots take (#485)', () => {
-    const raw = structuredClone(RAW_CONTENT) as RawContent & { world: { conflict: { holdings: { repeatable?: string; repairPerSec?: number }[] } } };
-    defined(raw.world.conflict.holdings.find((entry) => entry.repeatable === 'op_pmc_security')).repairPerSec = 0.0002;
-    const withRobots = buildRegistry(raw);
-    const s = { ...ready(4), levels: { ...ready(4).levels, op_pmc_security: 3 } };
-    expect(repairPerSec(s, reg)).toBe(R.freeRepairPerSec);
-    expect(repairPerSec(s, withRobots)).toBeCloseTo(R.freeRepairPerSec + 3 * 0.0002, 12);
+  it('is faster for every running holding that declares repairPerSec: humanoid site crews (#485) are the robots that repair', () => {
+    const crews = defined(reg.world.conflict.holdings.find((entry) => entry.repeatable === 'rep_p4_humanoid_crews')).repairPerSec ?? 0;
+    expect(crews).toBeGreaterThan(0);
+    const s = { ...ready(4), levels: { ...ready(4).levels, rep_p4_humanoid_crews: 4 } };
+    expect(repairPerSec(ready(4), reg)).toBe(R.freeRepairPerSec);
+    expect(repairPerSec(s, reg)).toBeCloseTo(R.freeRepairPerSec + 4 * crews, 12);
+    expect(run(damaged(s, { halls: 0.1 }), 10).conflict.damage.halls).toBeCloseTo(0.1 - 10 * (R.freeRepairPerSec + 4 * crews), 9);
   });
 });
 
