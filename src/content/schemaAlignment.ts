@@ -23,6 +23,18 @@ export const RouteCommitmentSchema = z.strictObject({
   line: prose,
 });
 
+/**
+ * A paid change of the standing stance (#536) that keeps or breaks a commitment: leaving the loop (KEEP_IN_THE_LOOP to
+ * another stance) or returning to it. `promise` names the fact that made the commitment: the change counts only while
+ * it holds. The first stance, taken at the threshold, is evidence through its campaign record's commitment facts.
+ */
+export const StanceChangeCommitmentSchema = z.strictObject({
+  move: z.enum(['LEAVE_LOOP', 'RETURN_TO_LOOP']),
+  stance: CommitmentStanceSchema,
+  promise: z.string().regex(/^[a-z0-9_]+$/).optional(),
+  line: prose,
+});
+
 /** The authored reading for one region: where Regard leans and where Order leans. */
 export const AlignmentReadingSchema = z.strictObject({
   regard: AxisLeanSchema,
@@ -34,6 +46,7 @@ export const AlignmentManifestSchema = z.strictObject({
   /** Regard: whether others' agency counts. Traits in neither list (GHOST) move it neither way. */
   regard: z.strictObject({ raises: z.array(TraitSchema).min(1), lowers: z.array(TraitSchema).min(1) }),
   routes: z.array(RouteCommitmentSchema),
+  stanceChanges: z.array(StanceChangeCommitmentSchema),
   /** Every region exactly once (integrity). */
   readings: z.array(AlignmentReadingSchema),
   /**
@@ -45,5 +58,6 @@ export const AlignmentManifestSchema = z.strictObject({
 
 export type AxisLean = z.infer<typeof AxisLeanSchema>;
 export type RouteCommitment = z.infer<typeof RouteCommitmentSchema>;
+export type StanceChangeCommitment = z.infer<typeof StanceChangeCommitmentSchema>;
 export type AlignmentReading = z.infer<typeof AlignmentReadingSchema>;
 export type AlignmentManifest = z.infer<typeof AlignmentManifestSchema>;

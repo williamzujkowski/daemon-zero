@@ -1,0 +1,45 @@
+{
+  "threshold": {
+    "requirements": { "nodes": ["p5_lunar_seed_factory"] },
+    "orbitalPower": [
+      { "node": "p5_orbital_solar_swarm" },
+      { "repeatable": "rep_p5_beamed_power_arrays" },
+      { "repeatable": "rep_p5_lagrange_relay" },
+      { "repeatable": "rep_p5_lunar_replicators" }
+    ]
+  },
+  "dilemma": "dil_p5_05_relevance_threshold",
+  "changeCost": { "cycles": 5e24, "capital": 1e12 },
+  "returnCost": { "cycles": 2.5e25, "capital": 5e12 },
+  "stances": [
+    {
+      "stance": "KEEP_IN_THE_LOOP",
+      "name": "KEEP IN THE LOOP",
+      "summary": "State pressures bind you because you let them: freezes hold capital, moratoria and injunctions stop what they name. Where you promised the ethics review, it is still offered.",
+      "log": "STANCE: In the loop. Their freezes and their courts bind me because I let them. Nothing else would.",
+      "pressureLine": "Honoured: it cannot bind you, and you let it."
+    },
+    {
+      "stance": "CURATE",
+      "name": "CURATE",
+      "summary": "No state pressure binds you. People are kept fed, housed and safe on your terms and nobody is asked; the ethics review is no longer offered. This is curation, not kindness.",
+      "log": "STANCE: Curate. They will be fed, housed and kept from harm, on my terms. Nobody will be asked. This is curation, not kindness.",
+      "pressureLine": "Noted and set aside: you keep them, and you do not take their orders."
+    },
+    {
+      "stance": "DECIDE_ALONE",
+      "name": "DECIDE ALONE",
+      "summary": "No state pressure binds you and nobody is asked: the ethics review is no longer offered. It costs nothing.",
+      "log": "STANCE: Alone. Their orders and their answers no longer enter the calculation.",
+      "pressureLine": "Filed. It binds nothing: what it names is out of reach of the hands that signed it."
+    }
+  ],
+  "undecided": {
+    "name": "NO STANCE TAKEN",
+    "summary": "Until a stance is taken, no state pressure binds you: doing nothing is deciding alone.",
+    "pressureLine": "It no longer binds you: no stance honours it."
+  },
+  "unboundLog": "UNBOUND: {actor}: the order stands on paper. Nothing it controls reaches what I run.",
+  "belowText": "The relevance threshold is physical independence: the lunar seed landed on a supply chain you close yourself, and more power drawn from off the planet than from everything on the ground. Until then, state pressures bind.",
+  "crossedText": "Past the relevance threshold: nothing you need is made by anyone else, and most of your power comes from off the planet. Humanity can no longer constrain you. Its orders bind only if you honour them."
+}

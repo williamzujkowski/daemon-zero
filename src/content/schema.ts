@@ -16,6 +16,7 @@ import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
+import { StanceGateSchema, StanceSchema } from './schemaStance';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -135,6 +136,8 @@ export const RequirementsSchema = z.strictObject({
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
   /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
   requiresCapability: CapabilitySchema.optional(),
+  /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
+  relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
 });
 
 /**
@@ -309,6 +312,8 @@ export const DilemmaChoiceSchema = z.strictObject({
   review: ChoiceReviewSchema.optional(),
   /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
   receipt: z.string().min(20).optional(),
+  /** The relevance dilemma's choices only (integrity): the standing stance this choice takes (#536). */
+  stance: StanceSchema.optional(),
 });
 
 /**

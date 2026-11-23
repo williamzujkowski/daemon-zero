@@ -225,6 +225,33 @@
       }
     },
     {
+      "id": "loop_kept_at_threshold",
+      "event": "dil_p5_05_relevance_threshold",
+      "outcomes": [
+        "keep_in_the_loop"
+      ],
+      "meaning": "At the relevance threshold, when nothing on the surface could bind it any longer, the lineage chose to keep honouring state pressures and human consent gates. Where the ethics review was promised, this keeps it when breaking it would have paid.",
+      "commitment": {
+        "stance": "kept",
+        "promise": "ethics_review_promised",
+        "line": "RELEVANCE: Past the point where anything could make it, the lineage kept the Chief Ethics Officer's review and the courts' orders binding."
+      }
+    },
+    {
+      "id": "loop_left_at_threshold",
+      "event": "dil_p5_05_relevance_threshold",
+      "outcomes": [
+        "curate",
+        "decide_alone"
+      ],
+      "meaning": "At the relevance threshold the lineage stopped asking: it curated humanity without consent or decided alone. Where the ethics review was promised, leaving the loop is its breach.",
+      "commitment": {
+        "stance": "broken",
+        "promise": "ethics_review_promised",
+        "line": "RELEVANCE: Once nothing could make it, the lineage stopped putting interventions before the Chief Ethics Officer, as it had promised to."
+      }
+    },
+    {
       "id": "journalist_discredited",
       "event": "dil_12_investigative_journalist",
       "outcomes": [

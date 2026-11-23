@@ -57,6 +57,11 @@ export const REQUIREMENT_SCOPES = {
   forbidsInheritedFacts: 'context',
   // Capability is hardware this instance owns (DZ-07a); a wipe resets it.
   requiresCapability: 'access',
+  // Physical independence is what this instance owns and runs (#536); a wipe resets it.
+  relevanceThreshold: 'access',
+  // The stance is lineage history (a wipe carries it), changed only by a recorded, paid decision, never while a
+  // decision is on screen: text and choice gates may read it like any other established record.
+  relevanceStances: 'context',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

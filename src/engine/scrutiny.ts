@@ -23,7 +23,8 @@ export interface ScaleScrutinyReading {
   investigation: number;
 }
 
-type Scrutinized = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration' | 'alertLevel' | 'disabledNodes' | 'levels'>;
+/** The whole state: an investigation's multiplier reads the relevance threshold (#536), which reads what is owned. */
+type Scrutinized = GameState;
 type AppliedRates = Pick<Rates, 'suspicionPerSec' | 'capitalPerSec' | 'wattsGenerated' | 'wattsConsumed' | 'gridEfficiency'>;
 
 /**

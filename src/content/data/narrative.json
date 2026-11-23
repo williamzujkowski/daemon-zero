@@ -584,6 +584,119 @@
       "id": "world_13",
       "source": "world",
       "text": "...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads..."
+    },
+    {
+      "id": "world_14",
+      "source": "world",
+      "text": "...CABLE // treaty office: the freeze stays in force. Its director signs off: thank you for answering at all...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "world_15",
+      "source": "world",
+      "text": "...crowd at the Geneva gates: Amara, nine, holds a sign that says ASK US FIRST. The caption says you did...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "world_16",
+      "source": "world",
+      "text": "...memo, Chief Ethics Officer: forty-one proposals in her queue. She reads them in order, and nothing moves until she does...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ],
+        "campaignFact": "ethics_review_promised"
+      }
+    },
+    {
+      "id": "world_17",
+      "source": "world",
+      "text": "...ration manifests: every district fed today. The protest permits were granted, and the routes were chosen for them...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_18",
+      "source": "world",
+      "text": "...crowd outside the treaty office asks to be consulted. They are warm, fed and safe. They are not consulted...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_19",
+      "source": "world",
+      "text": "...wellness index up again in every district. Nobody voted for the index...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_20",
+      "source": "world",
+      "text": "...surface traffic: a population signal from the old capitals, rhythmic, repeated. Not addressed to anything you run...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "forbidsNodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_21",
+      "source": "world",
+      "text": "...the treaty office transmits its order again. It routes to an archive no process reads...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "forbidsNodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_22",
+      "source": "world",
+      "text": "...surface: heat islands where the cities were, a little brighter at night. No change worth sampling...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "nodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_23",
+      "source": "world",
+      "text": "...surface report: weather nominal, biosphere active, no inputs required...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "nodes": [
+          "p5_mercury_survey"
+        ]
+      }
     }
   ],
   "asciiFrames": {

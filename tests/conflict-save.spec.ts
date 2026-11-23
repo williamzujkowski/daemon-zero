@@ -19,8 +19,8 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(3)), raid('raid_p3_ddos')), PRE_BATTLE + 2 * R.roundSec)), reg);
 
 describe('save v24 (#517)', () => {
-  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26)', () => {
-    expect(SCHEMA_VERSION).toBe(26);
+  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and the standing stance (#536, v27)', () => {
+    expect(SCHEMA_VERSION).toBe(27);
   });
 
   it('migrates a v23 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {

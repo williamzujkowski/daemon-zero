@@ -32,6 +32,7 @@ import phase5 from './data/phases/phase5_transcendence.json';
 import phase5Repeatables from './data/phase5-repeatables.json';
 import phase5Dilemmas from './narrative/phase5.json';
 import phase5Endings from './data/phase5-endings.json';
+import relevance from './data/relevance.json';
 import repeatables from './data/repeatables.json';
 import routeCopy from './data/route-copy.json';
 import routines from './data/routines.json';
@@ -61,8 +62,8 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   contextCopy,
   routeCopy,
   achievements,
-  // The conflict foundation (#517) is its own file, read as part of the world it contends with.
-  world: { ...world, conflict },
+  // The conflict foundation (#517) and the relevance threshold (#536) are their own files, read as part of the world.
+  world: { ...world, conflict, relevance },
   alignment,
 };
 

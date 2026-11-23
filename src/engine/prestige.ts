@@ -167,6 +167,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     // A wipe ends any raid and clears site damage with the hardware it damaged; both counters carry, so rotation and
     // attribution stay exact across iterations (#517).
     conflict: { ...fresh.conflict, raids: old.conflict.raids, attributions: old.conflict.attributions },
+    // The standing stance and its record are the lineage's (#536): the next instance stands where the last one stood.
+    relevance: old.relevance,
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,

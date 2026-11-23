@@ -17,6 +17,7 @@ import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { allPressures } from './statePressure';
+import { migrateRelevance } from './relevanceSave';
 import { migrateFleets, reconcileConflict } from './conflictSave';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
@@ -158,6 +159,8 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   24: recountGuestCycles,
   // v26: fleets and drift deviants (#518, conflictSave.ts). Self-contained, so it can be renumbered past another step.
   25: migrateFleets,
+  // v27: the standing stance toward humanity (#536, relevanceSave.ts). Self-contained, so it can be renumbered past another step.
+  26: migrateRelevance,
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

@@ -46,6 +46,26 @@ function duplicateOutcomes(facts: readonly CommitmentFact[]): string[] {
   }));
 }
 
+/**
+ * A stance change states the commitment it really is (#536): leaving the loop breaks, returning keeps, each move has
+ * one rule, and its promise is a declared fact that is not itself evidence.
+ */
+function stanceChangeProblems(reg: ContentRegistry): string[] {
+  const changes = reg.alignment.stanceChanges;
+  const problems = changes.filter((change, index) => changes.findIndex((entry) => entry.move === change.move) !== index)
+    .map((change) => `alignment: stance move ${change.move} has more than one commitment`);
+  for (const change of changes) {
+    const owner = `alignment stance move ${change.move}`;
+    const honest = change.move === 'LEAVE_LOOP' ? 'broken' : 'kept';
+    if (change.stance !== honest) problems.push(`${owner}: is a commitment ${honest}, not ${change.stance}`);
+    if (change.promise === undefined) continue;
+    const promise = reg.campaign.facts.get(change.promise);
+    if (promise === undefined) problems.push(`${owner}: unknown promise fact "${change.promise}"`);
+    else if (promise.commitment !== undefined) problems.push(`${owner}: promise "${change.promise}" is itself commitment evidence`);
+  }
+  return problems;
+}
+
 function manifestProblems(reg: ContentRegistry): string[] {
   const { regard, routes, readings } = reg.alignment;
   const problems: string[] = [];
@@ -68,5 +88,6 @@ export function checkAlignmentIntegrity(reg: ContentRegistry): string[] {
     ...facts.flatMap((fact) => [...outcomeProblems(reg, fact), ...promiseProblems(reg, fact)]),
     ...duplicateOutcomes(facts),
     ...manifestProblems(reg),
+    ...stanceChangeProblems(reg),
   ];
 }

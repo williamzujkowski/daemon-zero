@@ -108,3 +108,8 @@ export {
   pressureTriggered, scrutinyMultiplier, sourceDenial, spendableCapital, type ActorPressure, type PressureStatus,
 } from './statePressure';
 export { aegisPostureView, pressureViews, standDownBelow, type AegisPostureView, type AnswerAction, type AnswerView, type PressureView } from './pressureQuery';
+export { pastRelevanceThreshold, pressuresBind, relevanceReading, stanceGate, type RelevanceReading } from './relevance';
+export {
+  changeStance, changeStanceUnmet, stanceChangeCost, stanceCopy, stanceView, type StanceOptionView, type StanceView,
+} from './relevanceActions';
+export { initialRelevance, MAX_STANCE_RECORD, type RelevanceState, type StanceEntry } from './relevanceState';

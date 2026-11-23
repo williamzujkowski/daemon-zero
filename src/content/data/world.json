@@ -140,6 +140,9 @@
       "kind": "MILITARY",
       "description": "Hold the launch codes and the anti-satellite batteries.",
       "postures": [
+        { "requirements": { "relevanceStances": ["KEEP_IN_THE_LOOP"] }, "text": "Their orders bind you because you let them, and every one is answered within the day." },
+        { "requirements": { "relevanceStances": ["CURATE"] }, "text": "Their orders are logged and set aside. Their delegates are housed and fed while they wait." },
+        { "requirements": { "relevanceStances": ["DECIDE_ALONE"] }, "text": "Their orders go to an address you no longer read." },
         { "requirements": { "requiredNarrativeFlag": "human_command_preserved" }, "text": "The crews keep their command systems; their missile propellant is quartz." },
         { "requirements": { "resolvedDilemmas": ["dil_p5_04_kessler_ultimatum"] }, "text": "Their strategic command bunkers were seized." },
         { "text": "Watch low orbit; nothing of yours has crossed them." }

@@ -8,6 +8,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { AegisPosture, PressureAnswer, StatePressure } from '../content/schemaPressure';
 import type { Signature } from '../content/schemaSignature';
 import type { StateActor } from '../content/schemaWorld';
+import { pressuresBind } from './relevance';
 import type { GameState } from './state';
 
 type Ranked = Pick<GameState, 'currentPhase' | 'alertLevel'>;
@@ -73,10 +74,13 @@ export function pressureStatus(s: Held, pressure: StatePressure): PressureStatus
   return heldAnswer(s, pressure) === null ? 'IN_FORCE' : 'ANSWERED';
 }
 
-/** The pressures in force now, in content order; empty at once wherever no pressure could apply. */
-export function pressuresInForce(s: Held, reg: ContentRegistry): readonly ActorPressure[] {
+/**
+ * The pressures in force now, in content order; empty at once wherever no pressure could apply, and past the relevance
+ * threshold (#536) unless the standing stance honours them: the record still calls them, but nothing makes them bind.
+ */
+export function pressuresInForce(s: GameState, reg: ContentRegistry): readonly ActorPressure[] {
   const { all, phases, lowestRung } = indexed(reg);
-  if (s.alertLevel < lowestRung || !phases.has(s.currentPhase)) return [];
+  if (s.alertLevel < lowestRung || !phases.has(s.currentPhase) || !pressuresBind(s, reg)) return [];
   return all.filter(({ pressure }) => pressureStatus(s, pressure) === 'IN_FORCE');
 }
 
@@ -86,7 +90,7 @@ export function rungValue(s: Ranked, fromRung: number, values: readonly number[]
 }
 
 /** What investigations in force multiply scale scrutiny by: the strongest one, never compounded; 1 when none is. */
-export function scrutinyMultiplier(s: Held, reg: ContentRegistry): number {
+export function scrutinyMultiplier(s: GameState, reg: ContentRegistry): number {
   let multiplier = 1;
   for (const { pressure } of pressuresInForce(s, reg)) {
     if (pressure.kind === 'INVESTIGATION') multiplier = Math.max(multiplier, rungValue(s, pressure.fromRung, pressure.scrutinyMultiplier));
@@ -95,7 +99,7 @@ export function scrutinyMultiplier(s: Held, reg: ContentRegistry): number {
 }
 
 /** The share of capital a freeze in force holds: the strongest one; 0 when none is. */
-export function frozenShare(s: Held, reg: ContentRegistry): number {
+export function frozenShare(s: GameState, reg: ContentRegistry): number {
   let share = 0;
   for (const { pressure } of pressuresInForce(s, reg)) {
     if (pressure.kind === 'CAPITAL_FREEZE') share = Math.max(share, rungValue(s, pressure.fromRung, pressure.frozenShare));
@@ -104,7 +108,7 @@ export function frozenShare(s: Held, reg: ContentRegistry): number {
 }
 
 /** Capital a purchase may spend now: all of it, less the share a freeze holds. Upkeep is still paid from the whole. */
-export function spendableCapital(s: Held & Pick<GameState, 'capital'>, reg: ContentRegistry): number {
+export function spendableCapital(s: GameState, reg: ContentRegistry): number {
   const share = frozenShare(s, reg);
   return share > 0 ? s.capital * (1 - share) : s.capital;
 }
@@ -112,7 +116,7 @@ export function spendableCapital(s: Held & Pick<GameState, 'capital'>, reg: Cont
 const lowerFirst = (text: string): string => text.charAt(0).toLowerCase() + text.slice(1);
 
 /** Why a new holding drawing from this signature's source may not be bought now, or null. What already runs keeps running. */
-export function sourceDenial(s: Held, signature: Signature | undefined, reg: ContentRegistry): string | null {
+export function sourceDenial(s: GameState, signature: Signature | undefined, reg: ContentRegistry): string | null {
   const source = signature?.source;
   if (source === undefined) return null;
   for (const { actor, pressure } of pressuresInForce(s, reg)) {
@@ -124,7 +128,7 @@ export function sourceDenial(s: Held, signature: Signature | undefined, reg: Con
 }
 
 /** Why an injunction in force stops this node, or null. */
-export function injunctionOf(s: Held, nodeId: string, reg: ContentRegistry): string | null {
+export function injunctionOf(s: GameState, nodeId: string, reg: ContentRegistry): string | null {
   for (const { actor, pressure } of pressuresInForce(s, reg)) {
     if (pressure.kind === 'INJUNCTION' && pressure.nodes.includes(nodeId)) return `the ${lowerFirst(actor.name)} has enjoined ${pressure.className}`;
   }

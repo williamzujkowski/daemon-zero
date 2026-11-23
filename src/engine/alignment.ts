@@ -10,7 +10,7 @@ import { LEGACY_UNKNOWN_OUTCOME, type CampaignFact, type CommitmentStance } from
 import { campaignRecord, endingEvidence, holdsCampaignFact, isCampaignActive } from './campaignQuery';
 import type { GameState } from './state';
 
-type AlignmentSource = Pick<GameState, 'narrativeRules' | 'campaign' | 'traits'>;
+type AlignmentSource = Pick<GameState, 'narrativeRules' | 'campaign' | 'traits' | 'relevance'>;
 
 /** One Regard line: how many times the ending evidence holds this trait, and which way it moves the axis. */
 export interface RegardEvidence { trait: Trait; direction: 'raises' | 'lowers'; count: number }
@@ -75,6 +75,20 @@ function unknownLines(s: AlignmentSource, facts: readonly CampaignFact[], reg: C
   }));
 }
 
+/**
+ * Paid stance changes (#536) that leave the loop or return to it, each counted where its promise was made. The first
+ * stance is the threshold dilemma's record, read through its commitment facts above, so only changes are read here.
+ */
+function stanceChangeLines(s: AlignmentSource, reg: ContentRegistry): OrderEvidence[] {
+  return s.relevance.record.flatMap((entry): OrderEvidence[] => {
+    if (entry.via !== 'CHANGE') return [];
+    const move = entry.stance === 'KEEP_IN_THE_LOOP' ? 'RETURN_TO_LOOP' : entry.from === 'KEEP_IN_THE_LOOP' ? 'LEAVE_LOOP' : null;
+    const rule = reg.alignment.stanceChanges.find((change) => change.move === move);
+    if (rule === undefined || (rule.promise !== undefined && !holdsCampaignFact(s, rule.promise, reg))) return [];
+    return [{ stance: rule.stance, text: rule.line }];
+  });
+}
+
 function orderAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentView['order'] {
   const facts = [...reg.campaign.facts.values()].filter((fact) => fact.commitment !== undefined);
   const recorded = facts.flatMap((fact): OrderEvidence[] => fact.commitment !== undefined && holdsCampaignFact(s, fact.id, reg) && promiseHolds(s, fact, reg)
@@ -84,7 +98,7 @@ function orderAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentView['ord
     const entry = reg.alignment.routes.find((route) => route.route === event.kind);
     return entry === undefined ? [] : [{ stance: entry.stance, text: entry.line }];
   }) : [];
-  const counted = [...recorded, ...routes];
+  const counted = [...recorded, ...routes, ...stanceChangeLines(s, reg)];
   const unknown = unknownLines(s, facts, reg);
   const count = (stance: CommitmentStance) => counted.filter((line) => line.stance === stance).length;
   return { ...axis(count('kept'), count('broken'), [...counted, ...unknown]), unknown: unknown.length };
