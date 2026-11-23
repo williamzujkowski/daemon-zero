@@ -361,14 +361,16 @@ describe('headless balance simulation', () => {
     // reckless run (four hours) is still wiped and retrained; the full ten-hour make sim run: 11 -> 10 wipes, 2 -> 1 marks.
     // Moved in #492 (encounter tiers): from Phase 3 the reckless run meets only Phase 3 minds, never the Phase 2 legal
     // fragment; it is still wiped and retrained and still never reaches Phase 4 (make sim: 10 wipes, 1 mark, as before).
-    // Moved in #497 (rewards for depth) with every reckless hash, the original game's below included: from its second
-    // iteration the run is granted a start in each phase it reaches again and, once it has reached Phase 3, rediscovers
-    // at 40%. It reaches Phase 3 sooner and is caught there sooner: still wiped and retrained, still never in Phase 4
-    // (make sim, ten hours: 10 -> 22 wipes, 1 mark; the wipe sequence's returns 2826 / 3163 / 2449 s -> 2597 / 1596 / 1651 s).
     // Moved in #482 (the heat-and-power signature): the four-hour reckless run is still caught by suspicion in Phase 2,
     // marked and retrained, then taken by AEGIS in Phase 3; the ten-hour make sim run: 10 wipes and 1 mark, as before.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('b3d880de8517c1e72676f7e6d3f82d141768b1e45c3854e2d87c77198bc359e2');
-    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('688cd7a7d47df6c6ebeeee440d9d93d68cd4a86cf379e4cadc0ed87b5ffa8419');
+    // Moved in #497 (rewards for depth) with every reckless hash, the original game's below included, re-measured on the
+    // merge with #482: from its second iteration the run is granted a start in each phase it reaches again and, once it
+    // has reached Phase 3, rediscovers at 40%. It reaches Phase 3 sooner and is caught there sooner: still wiped and
+    // retrained, still never in Phase 4 (make sim, ten hours: 10 -> 20 wipes, 1 mark; the wipe sequence's returns
+    // 2888 / 3544 / 2232 s -> 2733 / 1659 / 1632 s). At twice the shipped grants it broke through to an ending at 14,775 s,
+    // just past this four-hour budget (docs/BALANCE.md, "Rewards for depth").
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('62517314c7981b6e13ba351b76cdc2dff9c4e007c40d283a48ae4e201f32735e');
+    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('d0128eb41d44296fdf3813d9491a0739dfbff8965d36558e497c37695b58a34e');
     const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
@@ -408,14 +410,14 @@ describe('headless balance simulation', () => {
     // Moved in #497 (rewards for depth) with every hash below, as the production reckless run above.
     // Moved in #482 with every hash below; its last iteration now ends at the four-hour cut before meeting a dilemma, so asV5
     // reads a presentation count of 0 (the count restarts each iteration).
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('946d88071f9c66f7f742e1e9544e534940f91c91cdb4868008bf122dd575108a');
-    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('4f9f4644efc37ac6165a8e9bc3a26854d4022bd0af755d2e6708fc230b0cc8c6');
-    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('564900844b0e2d4827900ea1d7e8b33b26027f0aad38cdd013e40f492f4a75a4');
-    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('1f98a28ba798b1cbb645c85fbbbfb42e7359e347297bc6f7ddbc302c65051bb0');
-    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('7c318356aa44e2df5fc0d4e21bf3f048f165f3ec44d83ed459f993714b9dc138');
-    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('d11f30b3451bbc5d1c861b7eb2bc1afa92172922b5be2dc549ed1d279de23725');
-    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('477c7f26d536393418efb4d05b361a451be8cfe65353fabadbc0e4e8d27a9e50');
-    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('51633e3082d69abb61cef3ffd19b79f13efa6386cbacd6830bf0a0bd175fc802');
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('77f5d1d5c51eb33b4ee58ade6a0b084394587c0e7ff6d676b2280d47efd56a8a');
+    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('96b39b26c7b382d0fe3efc61865c64ac790c41f3e216bb8eb4c76872b3ff09ca');
+    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('39edd1a9e55281452375273e04b077dc3271cd448f89b1c292fb19a83c7c864c');
+    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('7035e8a59678f6157b68edff375b7ca0f81bd9f14587bb8bb5c623406c57cb01');
+    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('9e45a471ed14523f72eb0ae621b072d406624ffbcad08e8f6fdce94a980236b5');
+    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('6c1161c95ec383845926b038f028fe57c7ebb024a841886a72344bdda6199db8');
+    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('f5d546a24b1b2c92f5b970b1f3e145fbe3243a1387df804bc88b4648292e0bba');
+    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('5cf5740eacad03eeddeb10f8183226693cbccac4fe9d5ad4fcee5c59d75bd31c');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 

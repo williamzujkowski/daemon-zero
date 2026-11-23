@@ -96,7 +96,7 @@ describe('an exhausted authored frontier (H25)', () => {
     const run = runWipeSequence(preview, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SIM_SEC, initialState: left });
     // Before #497 this return was wiped three times in Phase 3. A campaign that completed Phase 5 now rediscovers at a
     // fifth of the price and is granted a start in each phase it reaches again, so even a reckless return reaches an
-    // ending (1760 s in its first iteration at the time of writing). Either way it never stalls.
+    // ending (1882 s in its first iteration at the time of writing). Either way it never stalls.
     expect(run.completed || run.finalState.ending !== null).toBe(true);
     expect(run.iterations.length).toBeGreaterThan(0);
     const met = run.iterations.flatMap((entry) => entry.dilemmasMet);

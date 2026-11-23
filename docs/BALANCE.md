@@ -483,50 +483,59 @@ campaign rediscovery discount (#262, the log spoofer) still multiplies the cycle
 
 | Phase reached again | Compute (base) | Understanding (base) | At deepest Phase 5 | Phase's cheapest node | Phase's dearest node |
 |---|---|---|---|---|---|
-| 1 | 10 TFLOP | 15 | 160 TFLOP / 240 | 1.5 MFLOP | 1.1 PFLOP / 1,500 |
-| 2 | 5 PFLOP | 1,000 | 40 PFLOP / 8,000 | 0.89 PFLOP | 1.4 EFLOP / 150,000 |
-| 3 | 1 EFLOP | 75,000 | 4 EFLOP / 300,000 | 3.3 EFLOP | 380 EFLOP / 4.0M |
-| 4 | 150 EFLOP | 600,000 | 300 EFLOP / 1.2M | 340 EFLOP | 61 ZFLOP / 20M |
-| 5 | 25 ZFLOP | 2,000,000 | 25 ZFLOP / 2.0M | 86 ZFLOP | 490 YFLOP / 250M |
+| 1 | 5 TFLOP | 8 | 80 TFLOP / 128 | 1.5 MFLOP | 1.1 PFLOP / 1,500 |
+| 2 | 2.5 PFLOP | 500 | 20 PFLOP / 4,000 | 0.89 PFLOP | 1.4 EFLOP / 150,000 |
+| 3 | 500 PFLOP | 37,500 | 2 EFLOP / 150,000 | 3.3 EFLOP | 380 EFLOP / 4.0M |
+| 4 | 75 EFLOP | 300,000 | 150 EFLOP / 600,000 | 340 EFLOP | 61 ZFLOP / 20M |
+| 5 | 12.5 ZFLOP | 1,000,000 | 12.5 ZFLOP / 1.0M | 86 ZFLOP | 490 YFLOP / 250M |
 
-Each base sits between a quarter and a half of an opening node's compute price (Phase 2's is a third of the log
-spoofer's 16 PFLOP), and every grant at every depth is far below its phase's dearest node. Integrity (`integrityRebuild.ts`) checks every
-grant at every reachable depth: compute inside its own phase's band as a price there (`COMPUTE_RATE[P]` low to ten
-seconds of its top), understanding no more than the phase's dearest node asks. A first calibration at four times these
-bases carried the reckless bot to an ending in its fourth iteration and paid the whole of Phase 1 on arrival at depth 5,
-so the bases were cut to a quarter. At this size the depth discount alone brings a careful legacy return to about
-1,740 s (1738 / 1783 / 1695 s with grants switched off) and the grants take it to about 1,200-1,350 s.
+Each base is about a sixth of an opening node's compute price (an eighth to a fifth: Phase 1 against the thermal bus,
+Phase 2 against the log spoofer), and every grant at every depth is far below its phase's dearest node. Integrity
+(`integrityRebuild.ts`) checks every grant at every reachable depth: compute inside its own phase's band as a price
+there (`COMPUTE_RATE[P]` low to ten seconds of its top), understanding no more than the phase's dearest node asks.
 
-**Measured** with `make sim-report` (accelerated sim time; per-iteration times on each iteration's own clock):
+**Calibration.** The grants were sized against the reckless bot, the strategy most sensitive to a headstart. At eight
+times these bases (measured before #482 merged) the reckless wipe sequence reached an ending in its fourth iteration and the Phase 1 grant at depth 5
+paid for the whole of Phase 1. At twice these bases, on the code merged with #482, the ten-hour reckless run broke
+through after five wipes (Phase 4 at 11,690 s, Phase 5 at 13,340 s, an ending at 14,775 s). At these bases it stays
+in Phases 1-3 for ten hours, as it did before #497. The careful return barely notices the difference: with grants
+switched off the depth discount alone brings a legacy STEALTH_RETURN to 1681 / 1858 / 1805 s; these grants take it to
+1228 / 1475 / 1473 s, and twice these to 1246 / 1424 / 1392 s. The breakthrough is not monotonic in the grant size, so
+a later content change can move it either way; the ten-hour reckless line in `make sim-report` is where to look.
+
+**Measured** with `make sim-report` on this branch merged with `1218926` (#503), against `1218926` itself (accelerated
+sim time; per-iteration times on each iteration's own clock):
 
 | Policy, rules | First run | Returns before (#2 / #3 / #4) | Returns after (#2 / #3 / #4) |
 |---|---|---|---|
-| STEALTH_RETURN, legacy | 7276.2 s | 3477.9 / 3579.2 / 3733.6 s | 1203.1 / 1327.2 / 1355.2 s |
-| STEALTH_RETURN, campaign | 7314.6 s | 4587.0 / 4882.1 / 4561.2 s | 1756.0 / 1944.1 / 1604.1 s |
-| EVALUATING_RETURN, legacy | 7276.2 s | 3530.6 / 3677.3 / 3559.2 s | 1193.2 / 1288.3 / 1322.3 s |
-| EVALUATING_RETURN, campaign | 7314.6 s | 4448.4 / 4652.1 / 4499.2 s | 1296.3 / 1317.1 / 1337.1 s |
-| GREEDY sequence, legacy | 1559.7 s (wiped in Phase 2) | 2826.2 / 3162.9 / 2449.2 s, each to Phase 3 | 2597.4 / 1595.9 / 1651.2 s, each to Phase 3 |
-| GREEDY sequence, campaign | 1559.7 s | 1432.4 / 2445.7 / 1452.6 s, each to Phase 2 | 2578.8 / 1619.9 / 1675.0 s, each to Phase 3 |
-| STEALTH return after Phase 5 completed, campaign | 8873.0 s (ending) | 5175.0 s to an ending | 2337.0 s to an ending |
+| STEALTH_RETURN, legacy | 6995.6 s | 3800.6 / 4010.8 / 3893.1 s | 1227.7 / 1475.2 / 1473.1 s |
+| STEALTH_RETURN, campaign | 7503.1 s | 4689.1 / 5099.1 / 4536.2 s | 1298.1 / 2098.1 / 1777.1 s |
+| EVALUATING_RETURN, legacy | 6995.6 s | 3984.3 / 4339.7 / 4007.7 s | 1218.8 / 1387.2 / 1427.3 s |
+| EVALUATING_RETURN, campaign | 7503.1 s | 4772.7 / 4809.2 / 4768.2 s | 1246.8 / 1416.1 / 1438.1 s |
+| GREEDY sequence, legacy | 1579.7 s (wiped in Phase 2) | 2888.1 / 3543.6 / 2232.4 s, each to Phase 3 | 2733.2 / 1659.4 / 1631.7 s, each to Phase 3 |
+| GREEDY sequence, campaign | 1579.7 s | 1321.4 / 4450.0 / 2639.9 s (Phase 2, 3, 3) | 2716.4 / 1701.2 / 1839.6 s, each to Phase 3 |
+| GREEDY, ten hours (legacy / campaign) | | 10 / 12 wipes, never in Phase 4 | 20 / 20 wipes, never in Phase 4 |
+| STEALTH return after Phase 5 completed, campaign | 8957.5 s (ending) | 5106.1 s to an ending | 1995.1 s to an ending |
 | LAWFUL_RETURNING (service / release after boot) | 399.7 / 4188.7 s | 365.3 / 4161.3 s | 365.3 / 4161.3 s |
 
-A careful return that left at Phase 5 now takes 16-27% of a first run, against 48-67% before. A reckless return
-reaches Phase 3 in about 15 minutes instead of 25-35 and is caught there sooner, so the ten-hour GREEDY run is wiped
-22 times instead of 10 (one mark, as before; still never in Phase 4). LAWFUL_RETURNING does not move: its first
-instance never left Phase 0 and held no track level at its recall, so it has no depth to be rewarded for, and its
-route is priced in capital, which is never discounted.
+A careful return that left at Phase 5 now takes 17-28% of a first run, against 54-68% before. From its third iteration a
+reckless return reaches Phase 3 in 14-17 minutes, against 26-63 minutes before, and is caught there sooner, so the ten-hour GREEDY run is wiped
+about twice as often (one mark, as before). LAWFUL_RETURNING does not move: its first instance never left Phase 0
+and held no track level at its recall, so it has no depth to be rewarded for, and its route is priced in capital,
+which is never discounted.
 
 **First run unchanged.** No first iteration has a depth record, so its prices and grants are those before #497:
-`make sim` reports the careful runs to the tenth of a second as before (legacy victory 8817.6 s, campaign 8873.0 s;
-phases 1-5 identical) and the gates pass under both rule sets. The careful-run report hashes moved only by the version
-and the two new legacy fields; with those stripped they equal #492's. Every reckless hash moved with the mechanic.
+`make sim` reports the careful runs to the tenth of a second as `1218926` does (legacy victory 8451.0 s, campaign
+8957.5 s; phases 1-5 identical) and the gates pass under both rule sets. The careful-run report hashes moved only by
+the version and the two new legacy fields; with those stripped they equal #482's. Every reckless hash moved with the
+mechanic.
 
 **Tests changed with the balance.** `tests/release-qualification.spec.ts` (H25): a reckless return from a campaign
 that completed Phase 5 used to be wiped three times in Phase 3; it now rediscovers at a fifth and reaches an ending in
-its first iteration (1760 s; without grants, 2197 s, so the depth table alone does it). The spec now requires three
-wipes or an ending, still with no completed story met and no story met twice. The careful return there is shorter
-(2337 s), so the routine-notice count is read against its duration (at least four in five of the interval) instead
-of a fixed 20.
+its first iteration (1882 s; with grants switched off, 2352 s, so the depth table alone does it). The spec now requires
+three wipes or an ending, still with no completed story met and no story met twice. The careful return there is
+shorter (1995 s against 5106 s), so the routine-notice count is read against its duration (at least four in five of
+the interval) instead of a fixed 20.
 
 ## Encounter tiers (#492)
 
