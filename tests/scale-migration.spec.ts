@@ -13,7 +13,7 @@ import { botStep } from '../src/engine/sim/bot';
 
 type Raw = Record<string, unknown> & {
   currentPhase: number; cycles: number; capital: number; memoryUsed: number; memoryCap: number; logs: unknown[];
-  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: unknown; campaign: unknown;
+  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: { runs: { phase: number }[] }; campaign: unknown;
   iteration: number;
 };
 
@@ -50,7 +50,9 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
     expect(loaded.unlockedNodes).toEqual(raw.unlockedNodes);
     expect(loaded.levels).toEqual(raw.levels);
     expect(loaded.resolvedDilemmas).toEqual(raw.resolvedDilemmas);
-    expect(loaded.legacy).toEqual(raw.legacy);
+    // v18 (#497) adds the deepest phase, read from the recorded runs, and remembers no level from before it.
+    const deepestPhase = Math.max(0, ...raw.legacy.runs.map((run) => run.phase));
+    expect(loaded.legacy).toEqual({ ...raw.legacy, deepestPhase, knownLevels: {} });
     expect(loaded.campaign).toEqual(raw.campaign);
   });
 

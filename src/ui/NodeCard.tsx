@@ -9,7 +9,7 @@ import { Platform, useWindowDimensions } from 'react-native';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Cost } from '../content/schema';
-import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker } from '../engine';
+import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker, type Remembered } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -26,8 +26,8 @@ import SettledFold from './SettledFold';
 import { oneWayText } from './oneWayText';
 
 /** What rediscovery saves, from the same multipliers the price uses, so the line cannot drift (#262). */
-function savingText(node: RegistryNode, campaign: boolean): string {
-  const share = rediscoveryMultipliers(node, campaign, CONTENT);
+function savingText(node: RegistryNode, remembered: Remembered): string {
+  const share = rediscoveryMultipliers(node, remembered, CONTENT);
   const cycles = Math.round((1 - share.cycles) * 100);
   const understanding = Math.round((1 - share.understanding) * 100);
   return cycles === understanding ? `Rediscovery saves ${String(cycles)}% of compute and understanding.`
@@ -68,7 +68,10 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const known = useGame((game) => isNodeKnown(game, node.id));
   const surveillanceKnown = useSurveillanceKnown();
   const campaign = useGame(isCampaignActive);
-  const cost = useMemo(() => rediscoveryCost(node, { known, campaign }, CONTENT), [campaign, known, node]);
+  // The deepest phase an earlier iteration reached sets the discount (#497); it changes only at a wipe.
+  const deepestPhase = useGame((game) => game.legacy.deepestPhase);
+  const remembered = useMemo(() => ({ known, campaign, deepestPhase }), [campaign, deepestPhase, known]);
+  const cost = useMemo(() => rediscoveryCost(node, remembered, CONTENT), [node, remembered]);
   const isEnding = node.effects.forcesEnding !== undefined || node.effects.triggersVictory === true;
   const title = known ? node.revealedName : node.blindName;
   // World history (a dismissed engineer no longer uses the terminal this card describes), then this
@@ -107,7 +110,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}
       {utility !== '' && <Text testID={'node-' + node.id + '-utility'} style={theme.muted}>{utility}</Text>}
       {known && <Text testID={'node-' + node.id + '-rediscovery'} style={theme.muted}>
-        First mapping: {costText(node.cost, compact)}. {savingText(node, campaign)}
+        First mapping: {costText(node.cost, compact)}. {savingText(node, remembered)}
       </Text>}
       </SettledFold>
   </View>;

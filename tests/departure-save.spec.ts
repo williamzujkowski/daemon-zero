@@ -52,7 +52,8 @@ describe('V12: every departure transition reloads byte for byte', () => {
   it('changed no saved shape', () => {
     // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
     // v17 (#461) re-denominated stored balances into physical units; it added no field either.
-    expect(SCHEMA_VERSION).toBe(17);
+    // v18 (#497) added the deepest phase and remembered levels to the legacy record, written by a wipe; not by this.
+    expect(SCHEMA_VERSION).toBe(18);
   });
 });
 

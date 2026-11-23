@@ -19,6 +19,7 @@ import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import { logRetirements } from './retirement';
 import { lapseRetiredEncounter } from './encounterTiers';
+import { payRebuildGrants } from './rebuildGrant';
 import {
   canAfford,
   chooseEnding,
@@ -29,8 +30,8 @@ import {
   nodeCost,
   presentationToken,
   probeTrace,
-  repeatableCost,
   repeatableLevel,
+  repeatablePrice,
 } from './query';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
@@ -92,6 +93,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
   payCost(d, cost);
   applyNodeEffects(d, node, reg);
+  // A purchase is the only way a phase advances, so a phase reached again is rewarded here, once (#497).
+  payRebuildGrants(d, s.currentPhase, reg);
   // A purchase is the only way a window's retirement gate is crossed (integrity), so its one line is written here.
   if (d.ending === null) logRetirements(s, d, reg);
   // A purchase is also the only way a phase advances, so a retired tier's pending arrival lapses here, in its order (#492).
@@ -148,7 +151,7 @@ export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): A
   if (!meetsRequirements(s, rep.requirements, reg)) return refuse(s, 'requirements not met');
   const level = repeatableLevel(s, id);
   if (level >= rep.maxLevel) return refuse(s, 'already at maximum level');
-  const cost = repeatableCost(rep, level);
+  const cost = repeatablePrice(s, rep, reg);
   if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, levels: { ...s.levels, [id]: level + 1 } };
   payCost(d, cost);

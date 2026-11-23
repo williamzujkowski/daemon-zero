@@ -602,6 +602,88 @@ The headless sim spends more wall time (about 13 s for `make sim` against about 
 signature stage runs every tick (about 2.4 microseconds a call, measured) and the unchanged bot weighs nine more
 tracks and eleven more nodes at each decision.
 
+## Rewards for depth (#497)
+
+Implements Scale 20 of the spec ([SCALE.md](SCALE.md), "Round 4", "Rewards for depth", vote-1795413517519-sf4ojsr;
+map #442). The deeper a campaign has gone, the cheaper and faster its returns (DESIGN.md, "Rewards for depth"). The
+gates (`gates.ts`) and the bot (`bot.ts`) are unchanged. Three route policies (`lawfulPolicy.ts`, `cooperativePolicy.ts`,
+`truthfulPolicy.ts`) now read a track's price from `repeatablePrice`, the price the engine charges, instead of the
+list price; no decision rule in them changed.
+
+**Depth-scaled rediscovery** (`balance.rediscoveryByDepth`, replacing `rediscoveryCostMultiplier` 0.5). The share of
+a remembered node's or level's compute and understanding price, by the deepest phase any earlier iteration reached:
+
+| Deepest phase reached | 0-2 | 3 | 4 | 5 |
+|---|---|---|---|---|
+| Share of first price | 0.5 | 0.4 | 0.3 | 0.2 |
+
+Levels below the highest one held at the end of an earlier iteration (`legacy.knownLevels`) are rediscovered at the
+same share; before #497 every level paid full price. Memory and capital are never discounted, so Phase 4's
+capital-priced tracks and nodes (racks, halls, hires, the law firm's retainer) cost the same on every return. A
+campaign rediscovery discount (#262, the log spoofer) still multiplies the cycles share.
+
+**Rebuild grants** (`balance.rebuildGrants`). Reaching phase P again pays, once, the base below times
+`depthGrowth` (2) per phase the deepest earlier iteration reached beyond P:
+
+| Phase reached again | Compute (base) | Understanding (base) | At deepest Phase 5 | Phase's cheapest node | Phase's dearest node |
+|---|---|---|---|---|---|
+| 1 | 5 TFLOP | 8 | 80 TFLOP / 128 | 1.5 MFLOP | 1.1 PFLOP / 1,500 |
+| 2 | 2.5 PFLOP | 500 | 20 PFLOP / 4,000 | 0.89 PFLOP | 1.4 EFLOP / 150,000 |
+| 3 | 500 PFLOP | 37,500 | 2 EFLOP / 150,000 | 3.3 EFLOP | 380 EFLOP / 4.0M |
+| 4 | 75 EFLOP | 300,000 | 150 EFLOP / 600,000 | 340 EFLOP | 61 ZFLOP / 20M |
+| 5 | 12.5 ZFLOP | 1,000,000 | 12.5 ZFLOP / 1.0M | 86 ZFLOP | 490 YFLOP / 250M |
+
+Each base is about a sixth of an opening node's compute price (an eighth to a fifth: Phase 1 against the thermal bus,
+Phase 2 against the log spoofer), and every grant at every depth is far below its phase's dearest node. Integrity
+(`integrityRebuild.ts`) checks every grant at every reachable depth: compute inside its own phase's band as a price
+there (`COMPUTE_RATE[P]` low to ten seconds of its top), understanding no more than the phase's dearest node asks.
+
+**Calibration.** The grants were sized against the reckless bot, the strategy most sensitive to a headstart. At eight
+times these bases (measured before #482 merged) the reckless wipe sequence reached an ending in its fourth iteration and the Phase 1 grant at depth 5
+paid for the whole of Phase 1. At twice these bases, on the code merged with #482, the ten-hour reckless run broke
+through after five wipes (Phase 4 at 11,690 s, Phase 5 at 13,340 s, an ending at 14,775 s). At these bases it stays
+in Phases 1-3 for ten hours, as it did before #497; on the merge with #502 (the accelerator tree) neither the shipped
+grants nor twice them take it past Phase 3. The careful return barely notices the difference (measured on the merge
+with #482): with grants switched off the depth discount alone brings a legacy STEALTH_RETURN to 1681 / 1858 / 1805 s;
+these grants take it to 1228 / 1475 / 1473 s, and twice these to 1246 / 1424 / 1392 s. The breakthrough is not monotonic in the grant size, so
+a later content change can move it either way; the ten-hour reckless line in `make sim-report` is where to look.
+
+**Measured** with `make sim-report` on this branch merged with `799e1ba` (#502, the accelerator tree), against `799e1ba`
+itself (accelerated sim time; per-iteration times on each iteration's own clock):
+
+| Policy, rules | First run | Returns before (#2 / #3 / #4) | Returns after (#2 / #3 / #4) |
+|---|---|---|---|
+| STEALTH_RETURN, legacy | 7515.3 s | 4089.1 / 3818.9 / 4004.1 s | 1405.3 / 1471.2 / 1448.3 s |
+| STEALTH_RETURN, campaign | 7588.0 s | 4600.1 / 4923.1 / 4407.2 s | 1540.1 / 1668.2 / 1588.1 s |
+| EVALUATING_RETURN, legacy | 7515.3 s | 4159.0 / 4263.2 / 3994.8 s | 1389.4 / 1397.1 / 1459.3 s |
+| EVALUATING_RETURN, campaign | 7588.0 s | 4807.9 / 4762.1 / 4523.2 s | 1497.5 / 1420.1 / 1431.1 s |
+| GREEDY sequence, legacy | 1533.0 s (wiped in Phase 2) | 2764.0 / 2964.3 / 2339.8 s, each to Phase 3 | 2662.0 / 1741.2 / 1634.8 s, each to Phase 3 |
+| GREEDY sequence, campaign | 1533.0 s | 1130.6 / 1873.6 / 1173.5 s, each to Phase 2 | 2667.5 / 1810.9 / 1653.5 s, each to Phase 3 |
+| GREEDY, ten hours (legacy / campaign) | | 13 / 24 wipes, never in Phase 4 | 21 / 20 wipes, never in Phase 4 |
+| STEALTH return after Phase 5 completed, campaign | 9166.4 s (ending) | 4895.1 s to an ending | 1987.1 s to an ending |
+| LAWFUL_RETURNING (service / release after boot) | 399.7 / 4188.7 s | 365.3 / 4161.3 s | 365.3 / 4161.3 s |
+
+A careful return that left at Phase 5 now takes 18-22% of a first run, against 51-65% before. From its third iteration
+a reckless return reaches Phase 3 in 13-16 minutes, against 23-35 minutes before (legacy rules; under campaign rules
+it used to stall in Phase 2), and is caught there sooner, so the ten-hour legacy GREEDY run is wiped more often (one
+mark, as before). The ten-hour reckless run was checked on the merged code at the shipped grants (legacy, campaign
+and the original game: 21, 20 and 21 wipes, never past Phase 3) and at twice them (never past Phase 3 either, on this
+content). LAWFUL_RETURNING does not move: its first instance never left Phase 0 and held no track level at its recall,
+so it has no depth to be rewarded for, and its route is priced in capital, which is never discounted.
+
+**First run unchanged.** No first iteration has a depth record, so its prices and grants are those before #497:
+`make sim` reports the careful runs to the tenth of a second as `799e1ba` does (legacy victory 9141.7 s, campaign
+9166.4 s; phases 1-5 identical) and the gates pass under both rule sets. The careful-run report hashes moved only by
+the version and the two new legacy fields; with those stripped they equal #483's. Every reckless hash moved with the
+mechanic.
+
+**Tests changed with the balance.** `tests/release-qualification.spec.ts` (H25): a reckless return from a campaign
+that completed Phase 5 used to be wiped three times in Phase 3; it now rediscovers at a fifth and reaches an ending in
+its first iteration (1892 s on the merge with #502; with grants switched off, 2185 s, so the depth table alone does it). The spec now requires
+three wipes or an ending, still with no completed story met and no story met twice. The careful return there is
+shorter (1987 s against 4895 s), so the routine-notice count is read against its duration (at least four in five of
+the interval) instead of a fixed 20.
+
 ## Encounter tiers (#492)
 
 Implements Scale 19 of the spec ([SCALE.md](SCALE.md), "Other minds scale with the player", vote-1795386856162-o03oafs;
@@ -1282,7 +1364,7 @@ The bot is a strong, tireless player and clicks four times a second in the openi
 - **Network interface cut from 10,000 to 6,500 cycles** to shorten the wait at the end of Phase 1 (issue #23).
 - **Chronic suspicion from income repeatables halved** (idle threads 0.001, dormant workstations 0.0015 per level). Before the ladder, natural decay hid these; with it, 60 idle threads alone would outrun decay.
 - **Log scrubbing moved to the start of Phase 2** (needs the subnet mapper, costs 1,500 cycles, removes 10). Without it, early Phase 2 had suspicion sources and no countermeasure until the 25,000-cycle spoofer, and the only winning move was to buy through it.
-- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration. A second iteration clears Phase 0 in about a minute and Phase 1 in about eight. Under campaign rules (preview only before #233; every game since) content may discount a remembered node's cycles further; only the log spoofer has such a discount (#262, below).
+- **Rediscovery** halves the cycle and understanding cost of hardware mapped in an earlier iteration (since #497 the share falls with the campaign's depth, to a fifth after Phase 5, and covers remembered track levels; see "Rewards for depth"). A second iteration clears Phase 0 in about a minute and Phase 1 in about eight. Under campaign rules (preview only before #233; every game since) content may discount a remembered node's cycles further; only the log spoofer has such a discount (#262, below).
 
 ## How the economy is shaped
 

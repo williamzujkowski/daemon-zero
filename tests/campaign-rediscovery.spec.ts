@@ -11,6 +11,7 @@ import { buildRegistry, CONTENT as PREVIEW, EARNED_ACCESS_PACK, RAW_CONTENT as P
 import type { ContentRegistry } from '../src/content/registry';
 import {
   activateCampaignRules, createInitialState, exportSave, importSave, nodeCost, rediscoveryCost, rediscoveryMultipliers, unlockNode, wipe, type GameState,
+  rediscoveryShare,
 } from '../src/engine';
 import { must, PHASE0, PHASE1, rich, ORIGINAL_GAME } from './helpers';
 import { defined } from './m7-helpers';
@@ -36,7 +37,8 @@ function returning(reg: ContentRegistry, campaign: boolean): GameState {
 }
 
 describe('a declared campaign rediscovery discount', () => {
-  const ordinary = declared.balance.rediscoveryCostMultiplier;
+  const deepestPhase = returning(declared, true).legacy.deepestPhase;
+  const ordinary = rediscoveryShare(deepestPhase, declared);
 
   it('discounts the remembered cycles of a returning instance under campaign rules, and only the cycles', () => {
     const s = returning(declared, true);
@@ -47,7 +49,7 @@ describe('a declared campaign rediscovery discount', () => {
       cycles: Math.ceil(node.cost.cycles * ordinary * 0.5),
       understanding: Math.ceil(node.cost.understanding * ordinary),
     });
-    expect(rediscoveryMultipliers(node, true, declared)).toEqual({ cycles: ordinary * 0.5, understanding: ordinary });
+    expect(rediscoveryMultipliers(node, { campaign: true, deepestPhase }, declared)).toEqual({ cycles: ordinary * 0.5, understanding: ordinary });
   });
 
   it('charges the discounted price through the real purchase', () => {
@@ -70,7 +72,7 @@ describe('a declared campaign rediscovery discount', () => {
     const legacy = returning(declared, false);
     expect(legacy.legacy.knownNodes).toContain(NODE);
     expect(nodeCost(legacy, node, declared).cycles).toBe(Math.ceil(node.cost.cycles * ordinary));
-    expect(rediscoveryCost(node, { known: true, campaign: false }, declared)).toEqual(rediscoveryCost(node, { known: true, campaign: false }, PREVIEW));
+    expect(rediscoveryCost(node, { known: true, campaign: false, deepestPhase }, declared)).toEqual(rediscoveryCost(node, { known: true, campaign: false, deepestPhase }, PREVIEW));
   });
 
   it('is derived, never saved: a round trip keeps the state and the price', () => {
@@ -84,8 +86,9 @@ describe('a declared campaign rediscovery discount', () => {
 describe('shipped declarations', () => {
   it('the original game declares none and its prices are the ordinary rediscovery prices', () => {
     expect(ORIGINAL_GAME.campaign.rediscovery.size).toBe(0);
-    for (const entry of ORIGINAL_GAME.nodes.values()) {
-      expect(rediscoveryMultipliers(entry, true, ORIGINAL_GAME)).toEqual({ cycles: ORIGINAL_GAME.balance.rediscoveryCostMultiplier, understanding: ORIGINAL_GAME.balance.rediscoveryCostMultiplier });
+    for (const entry of ORIGINAL_GAME.nodes.values()) for (const { phaseId: deepestPhase } of ORIGINAL_GAME.phases) {
+      const share = rediscoveryShare(deepestPhase, ORIGINAL_GAME);
+      expect(rediscoveryMultipliers(entry, { campaign: true, deepestPhase }, ORIGINAL_GAME)).toEqual({ cycles: share, understanding: share });
     }
   });
 

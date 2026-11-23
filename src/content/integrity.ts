@@ -18,6 +18,7 @@ import { checkCampaignIntegrity } from './integrityCampaign';
 import { checkRoutineIntegrity } from './integrityRoutine';
 import { checkScrutinyIntegrity } from './integrityScrutiny';
 import { checkScaleIntegrity } from './integrityScale';
+import { checkRebuildIntegrity } from './integrityRebuild';
 import { checkSignatureIntegrity } from './integritySignature';
 import { checkEncounterTierIntegrity } from './integrityEncounterTiers';
 import { checkFallbackIntegrity } from './integrityFallback';
@@ -267,6 +268,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPhases(reg),
     ...checkScrutinyIntegrity(reg),
     ...checkScaleIntegrity(reg),
+    ...checkRebuildIntegrity(reg),
     ...checkSignatureIntegrity(reg),
     ...checkEncounterTierIntegrity(reg),
     ...checkFallbackIntegrity(reg),
