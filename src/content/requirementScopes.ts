@@ -57,6 +57,9 @@ export const REQUIREMENT_SCOPES = {
   forbidsInheritedFacts: 'context',
   // Capability is hardware this instance owns (DZ-07a); a wipe resets it.
   requiresCapability: 'access',
+  // The last raid's aftermath (#519) changes with the next battle and a wipe clears it, like a resource: spending a
+  // moment never cancels a valid omen, and the raid it read has already happened.
+  lastRaid: 'transient',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

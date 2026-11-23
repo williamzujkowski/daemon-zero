@@ -16,6 +16,7 @@ import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
+import { LastRaidRequirementSchema } from './schemaRaidOutcome';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -135,6 +136,8 @@ export const RequirementsSchema = z.strictObject({
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
   /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
   requiresCapability: CapabilitySchema.optional(),
+  /** Met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts). */
+  lastRaid: LastRaidRequirementSchema.optional(),
 });
 
 /**
@@ -260,6 +263,13 @@ export const EffectPayloadSchema = z.strictObject({
   memoryCapIncrease: amount.default(0),
   trustDelta: z.record(snakeId, z.number()).default({}),
   grantsTrait: TraitSchema.optional(),
+  /**
+   * Retaliation (#519): seconds added to when the next raid may arrive; a loud answer draws it closer (negative). Only a
+   * dilemma whose trigger names a raider may carry it (integrityRetaliation.ts).
+   */
+  nextRaidDeltaSec: z.number().min(-3600).max(3600).optional(),
+  /** Retaliation (#519): the raider the last raid's attribution named arrives no more, across wipes. Same rule. */
+  silencesNamedRaider: z.literal(true).optional(),
   logText: z.string().min(5),
   logCategory: LogCategorySchema.default('LORE'),
 });

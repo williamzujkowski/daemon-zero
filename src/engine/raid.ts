@@ -11,6 +11,7 @@ import type { RaidKind, SiteClass } from '../content/schemaConflict';
 import { conflictStats, defenseAgainst, offenseIn } from './conflictStats';
 import { meetsRequirements } from './query';
 import { resolveRound } from './raidForecast';
+import { lastRaidOf } from './raidOutcome';
 import { visibleWatts } from './signature';
 import { addDamage, classDamage, classExposed, siteClass } from './siteDamage';
 import type { GameState, Rates } from './state';
@@ -89,10 +90,13 @@ export function raidTarget(s: GameState, rates: Rates, reg: ContentRegistry, kin
   return undefined;
 }
 
-/** The raids that may arrive next, in content order: from fromPhase, not retired, gated open, with something to strike. */
+/**
+ * The raids that may arrive next, in content order: from fromPhase, not retired, not silenced by a retaliation (#519),
+ * gated open, with something to strike.
+ */
 export function eligibleRaids(s: GameState, rates: Rates, reg: ContentRegistry): RaidKind[] {
   if (s.currentPhase < reg.world.conflict.raid.fromPhase) return [];
-  return reg.world.conflict.raids.filter((kind) => !raidRetired(s, kind) && meetsRequirements(s, kind.requirements, reg)
+  return reg.world.conflict.raids.filter((kind) => !raidRetired(s, kind) && !s.conflict.silenced.includes(kind.id) && meetsRequirements(s, kind.requirements, reg)
     && raidTarget(s, rates, reg, kind) !== undefined);
 }
 
@@ -154,7 +158,9 @@ function fightRound(d: GameState, reg: ContentRegistry, kind: RaidKind): void {
   addDamage(d, reg, raid.target, outcome.damage);
   const rounds = [...raid.rounds, outcome];
   const done = rounds.length >= balance.rounds;
-  d.conflict = { ...d.conflict, raid: { ...raid, rounds, ...(done ? { stage: 'AFTERMATH' as const, stageSec: 0 } : {}) } };
+  d.conflict = { ...d.conflict, raid: { ...raid, rounds, ...(done ? { stage: 'AFTERMATH' as const, stageSec: 0 } : {}) },
+    // The battle's record, for the dilemmas that answer it (#519): written once, when its last round lands.
+    ...(done ? { lastRaid: lastRaidOf(kind.id, raid.attributed, rounds) } : {}) };
   const target = siteClass(reg, raid.target)?.name ?? raid.target;
   pushLog(d, reg, fmt(balance.logs.round, { name: kind.name, round: rounds.length, hit: percentOf(outcome.hitShare), target,
     points: percentOf(outcome.damage), damage: percentOf(outcome.damageAfter) }), 'WARN');

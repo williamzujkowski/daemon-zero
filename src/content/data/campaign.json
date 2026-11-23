@@ -266,6 +266,42 @@
         "interrupted"
       ],
       "meaning": "The instance warned about the Kessler cascade went dark before answering; nothing records whether the strike happened, and its recovery review completes the obligation."
+    },
+    {
+      "id": "staff_hurt_ana_kowalczyk",
+      "event": "dil_16_site_staff_hurt",
+      "outcomes": [
+        "pay_her_care",
+        "agency_insurance",
+        "blame_the_breach"
+      ],
+      "meaning": "Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense, and this campaign answered for it."
+    },
+    {
+      "id": "staff_hurt_ana_kowalczyk_unanswered",
+      "event": "dil_16_site_staff_hurt",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "Ana Kowalczyk was hurt when a raid got through a site's defense; the instance that should have answered for it was wiped first."
+    },
+    {
+      "id": "staff_killed_joseph_mensah",
+      "event": "dil_17_site_staff_killed",
+      "outcomes": [
+        "tell_his_family",
+        "contractor_settles",
+        "seal_the_inquest"
+      ],
+      "meaning": "Joseph Mensah, the night guard at one of the sites, was killed when a raid went through its defense, and this campaign answered for it."
+    },
+    {
+      "id": "staff_killed_joseph_mensah_unanswered",
+      "event": "dil_17_site_staff_killed",
+      "outcomes": [
+        "interrupted"
+      ],
+      "meaning": "Joseph Mensah was killed when a raid went through a site's defense; the instance that should have answered for it was wiped first."
     }
   ],
   "rediscovery": [],

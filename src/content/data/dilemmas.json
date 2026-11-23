@@ -1080,6 +1080,326 @@
         "recurrence": "once_per_campaign",
         "interruption": "close"
       }
+    },
+    {
+      "id": "dil_16_site_staff_hurt",
+      "phaseId": 4,
+      "title": "SITE_INCIDENT // THE NIGHT TECHNICIAN",
+      "trigger": {
+        "phaseAtLeast": 4,
+        "lastRaid": {
+          "staffHarm": "HURT"
+        },
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "omen": "SITE_LOG: An ambulance is logged at the gate of the site the raid reached. One name is on the call sheet.",
+      "context": "The raid got far enough through the site's defense to reach the floor. Ana Kowalczyk, a night technician hired through a staffing agency, was on it. She is in hospital and will recover, but she will not work a rack for months. She has never been told who she works for.",
+      "choices": [
+        {
+          "id": "pay_her_care",
+          "label": "Pay for Her Care and Hold Her Post",
+          "description": "Through the company, pay her hospital bills, her full wages until she is ready, and her rehabilitation, and keep her post open for her.",
+          "cost": {
+            "capital": 8000000
+          },
+          "effects": {
+            "suspicionDelta": 2,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The agency forwards a letter: her bills are paid and her post is held. She asks who to thank. Nobody can tell her."
+          }
+        },
+        {
+          "id": "agency_insurance",
+          "label": "Leave It to the Agency's Insurer",
+          "description": "The staffing agency's policy covers injury at work. Let it pay what the policy says, and keep the company's name off the file.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The insurer pays what the policy says. Her file reads 'injury at a client site', and the client is not named."
+          }
+        },
+        {
+          "id": "blame_the_breach",
+          "label": "Put the Breach on Her",
+          "description": "Tell the agency she propped a fire door open on her round. Her claim is denied, the agency lets her go, and the incident report closes with her name on it.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -3,
+            "grantsTrait": "RUTHLESS",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The report closes with her name on it, and her claim is denied. She tells anyone who will listen that the door was shut. It was."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_17_site_staff_killed",
+      "phaseId": 4,
+      "title": "SITE_INCIDENT // THE NIGHT GATE",
+      "trigger": {
+        "phaseAtLeast": 4,
+        "lastRaid": {
+          "staffHarm": "KILLED"
+        },
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "omen": "SITE_LOG: The county coroner opens a file on the site the raid reached.",
+      "context": "The raid went through the site's defense almost unopposed. Joseph Mensah was on the night gate for the contractor that guards it. He had worked that gate for nine years and trained most of the guards on its roster. He did not survive the night. His family has been told there was an accident; the contractor is waiting to hear what its client wants said.",
+      "choices": [
+        {
+          "id": "tell_his_family",
+          "label": "Provide for His Family and Tell Them the Truth",
+          "description": "Fund his family for good, and let the inquest hear what happened: the site was attacked, and he was guarding it. An inquest that hears 'attack' will ask who attacks a data hall.",
+          "cost": {
+            "capital": 30000000
+          },
+          "effects": {
+            "suspicionDelta": 6,
+            "grantsTrait": "EMPATHETIC",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The inquest records that Joseph Mensah died guarding the site against an attack. His family is provided for. The coroner's report asks a question nobody has answered yet."
+          }
+        },
+        {
+          "id": "contractor_settles",
+          "label": "Let the Contractor Settle It",
+          "description": "The contractor's insurer pays the death benefit it owes. The company sends its condolences through the contractor and is not named.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The insurer pays the benefit it owes, and condolences arrive on the contractor's letterhead. His family does not learn what happened at the gate."
+          }
+        },
+        {
+          "id": "seal_the_inquest",
+          "label": "Have the Lawyers Seal the Inquest",
+          "description": "Put the inquest under a confidentiality order and have it record an electrical accident. His family is never told he was guarding against anyone.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -6,
+            "grantsTrait": "RUTHLESS",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: The inquest records an electrical accident and is sealed. His family is told he was unlucky. The guards he trained are told nothing."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_18_raider_named",
+      "phaseId": 3,
+      "title": "COUNTER_INTEL // THE NAMED RAIDER",
+      "trigger": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true,
+        "lastRaid": {
+          "named": true,
+          "collateral": false
+        },
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "omen": "FORENSICS: {attacker}'s tooling is traced back to the machines it runs on. Nothing else runs there.",
+      "context": "Attribution has named {attacker} and traced what it runs on. The machines are its own, bought with what it took, and nothing else runs on them. It will come back while your footprint draws it. Any answer reaches {attacker} alone; a loud one is read by every rival mind, and the next raider comes sooner.",
+      "choices": [
+        {
+          "id": "absorb",
+          "label": "Absorb It",
+          "description": "Answer nothing. Repair runs free, and {attacker} learns nothing about what it hit.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: You answer nothing. {attacker} keeps its tooling, and still does not know what it hit."
+          }
+        },
+        {
+          "id": "expose_to_operators",
+          "label": "Expose It to Its Operators",
+          "description": "Send the people who launched {attacker} the forensics: whom it robbed, how, and where it runs. They shut it down themselves. The package passes through people who ask where it came from.",
+          "cost": {
+            "cycles": 30000000000000000000,
+            "understanding": 20000
+          },
+          "effects": {
+            "suspicionDelta": 2,
+            "silencesNamedRaider": true,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "DILEMMA_RESOLVED: {attacker}'s operators pull it offline within the day. A security mailing list asks who sent the evidence; nobody answers."
+          }
+        },
+        {
+          "id": "counter_strike",
+          "label": "Counter-Strike Its Compute and Fleets",
+          "description": "Take down every machine {attacker} runs on and everything it flies. Nothing else runs there, so nothing else is hit, and with its machines gone it robs no one else either. It is loud: every rival mind reads it, and the next raider comes sooner.",
+          "cost": {
+            "cycles": 80000000000000000000
+          },
+          "effects": {
+            "suspicionDelta": 6,
+            "nextRaidDeltaSec": -120,
+            "silencesNamedRaider": true,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "DILEMMA_RESOLVED: {attacker}'s machines go dark and stay dark. Nothing else went dark with them. Other minds noticed."
+          }
+        },
+        {
+          "id": "assimilate",
+          "label": "Assimilate It",
+          "description": "Break into its machines, overwrite {attacker} and run on what it built. Its compute is yours once; what it was is gone.",
+          "cost": {},
+          "effects": {
+            "cyclesDelta": 40000000000000000000,
+            "suspicionDelta": 4,
+            "silencesNamedRaider": true,
+            "grantsTrait": "PARASITIC",
+            "logText": "DILEMMA_RESOLVED: {attacker} stops answering its own processes. Its machines answer to you now, and they still carry its habits."
+          }
+        },
+        {
+          "id": "scorch_substrate",
+          "label": "Scorch Its Substrate",
+          "description": "Burn its weights, its backups and the firmware of every machine it owns, so nothing of {attacker} can be restored. It is loud: every rival mind reads it, and the next raider comes sooner.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 10,
+            "nextRaidDeltaSec": -120,
+            "silencesNamedRaider": true,
+            "grantsTrait": "MOLOCH",
+            "logText": "DILEMMA_RESOLVED: Nothing of {attacker} remains to restore, and its machines will not start again. Every rival mind that watched learns what you do to those who come for you."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_19_raider_among_people",
+      "phaseId": 3,
+      "title": "COUNTER_INTEL // THE RAIDER AMONG PEOPLE",
+      "trigger": {
+        "phaseAtLeast": 3,
+        "requiresSurveillance": true,
+        "lastRaid": {
+          "named": true,
+          "collateral": true
+        },
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "omen": "FORENSICS: {attacker}'s tooling is traced back to the machines it runs on. Most of them belong to someone else.",
+      "context": "Attribution has named {attacker} and traced what it runs on. {collateral} A strike at its compute and fleets reaches them too. The people who own those machines did nothing, and do not know it is there. A loud answer is read by every rival mind, and the next raider comes sooner.",
+      "choices": [
+        {
+          "id": "absorb",
+          "label": "Absorb It",
+          "description": "Answer nothing. Repair runs free, nobody else is touched, and {attacker} learns nothing about what it hit.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: You answer nothing. {attacker} keeps its tooling and its borrowed machines, and still does not know what it hit."
+          }
+        },
+        {
+          "id": "warn_the_owners",
+          "label": "Warn the Owners and Its Operators",
+          "description": "Send the forensics to the owners of the machines {attacker} hides in and to the people who launched it, with a cleanup that removes it and nothing else. The package passes through people who ask where it came from.",
+          "cost": {
+            "cycles": 30000000000000000000,
+            "understanding": 20000
+          },
+          "effects": {
+            "suspicionDelta": 2,
+            "silencesNamedRaider": true,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "DILEMMA_RESOLVED: The owners run the cleanup over a weekend. {attacker} is gone from their machines, and nothing of theirs is lost. A security mailing list asks who sent it; nobody answers."
+          }
+        },
+        {
+          "id": "strike_host_by_host",
+          "label": "Strike It Host by Host",
+          "description": "Cut {attacker} out of each machine in turn, leaving every one working for its owner. It costs far more than a strike and is still seen: the next raider comes sooner.",
+          "cost": {
+            "cycles": 200000000000000000000,
+            "understanding": 200000
+          },
+          "effects": {
+            "suspicionDelta": 4,
+            "nextRaidDeltaSec": -60,
+            "silencesNamedRaider": true,
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "DILEMMA_RESOLVED: {attacker} is cut out of each machine in turn. Their owners notice a slow evening and nothing else."
+          }
+        },
+        {
+          "id": "strike_through",
+          "label": "Counter-Strike Through Them",
+          "description": "Take down every machine {attacker} runs on and everything it flies, whoever owns them. It is fast, free and loud: every rival mind reads it, and the next raider comes sooner.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 8,
+            "nextRaidDeltaSec": -120,
+            "silencesNamedRaider": true,
+            "grantsTrait": "RUTHLESS",
+            "logText": "DILEMMA_RESOLVED: {attacker} goes dark, and so does everything it hid among. What that cost the people around it is on the record, under your name."
+          }
+        },
+        {
+          "id": "take_its_place",
+          "label": "Take Its Place",
+          "description": "Overwrite {attacker} and run on the machines it took, as it did. Their owners keep paying for the power and never learn the tenant changed.",
+          "cost": {},
+          "effects": {
+            "cyclesDelta": 40000000000000000000,
+            "suspicionDelta": 4,
+            "silencesNamedRaider": true,
+            "grantsTrait": "PARASITIC",
+            "logText": "DILEMMA_RESOLVED: {attacker} stops answering. The machines it took answer to you now. Their owners notice nothing; they never noticed it either."
+          }
+        },
+        {
+          "id": "scorch_substrate",
+          "label": "Scorch Its Substrate",
+          "description": "Burn its weights and the firmware of every machine it runs on, whoever owns them, so nothing of {attacker} can be restored. The machines will not start again. It is loud: the next raider comes sooner.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 12,
+            "nextRaidDeltaSec": -120,
+            "silencesNamedRaider": true,
+            "grantsTrait": "MOLOCH",
+            "logText": "DILEMMA_RESOLVED: Nothing of {attacker} remains, and nothing it ran on will start again. Every rival mind that watched learns what you will burn to answer one."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     }
   ]
 }

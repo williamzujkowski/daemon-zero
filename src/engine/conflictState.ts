@@ -46,6 +46,12 @@ export const ActiveRaidSchema = z.strictObject({
   rounds: z.array(RaidRoundSchema).max(16),
 });
 
+/**
+ * The last raid that fought its battle (#519): which kind, whether attribution named its attacker, and its breach, the
+ * mean hit share of its rounds. Retaliation and staff-harm dilemmas read it; the next battle replaces it, a wipe clears it.
+ */
+export const LastRaidSchema = z.strictObject({ id: z.string(), named: z.boolean(), breach: ratio });
+
 export const ConflictStateSchema = z.strictObject({
   raid: ActiveRaidSchema.nullable(),
   /** Simulated second from which the next raid may arrive. */
@@ -56,13 +62,18 @@ export const ConflictStateSchema = z.strictObject({
   attributions: count,
   /** Damage per site class, as a share of its output, never past the balance's damageCap. A wipe clears it. */
   damage: z.record(z.string(), ratio),
+  /** The last raid that fought its battle, or null (#519). A wipe clears it. */
+  lastRaid: LastRaidSchema.nullable(),
+  /** Raid kinds a retaliation silenced (#519): exposed, struck, assimilated or scorched, they arrive no more. A wipe keeps it. */
+  silenced: z.array(z.string()),
 });
 
 export type RaidStage = z.infer<typeof RaidStageSchema>;
 export type RaidRound = z.infer<typeof RaidRoundSchema>;
 export type ActiveRaid = z.infer<typeof ActiveRaidSchema>;
 export type ConflictState = z.infer<typeof ConflictStateSchema>;
+export type LastRaid = z.infer<typeof LastRaidSchema>;
 
 export function initialConflict(): ConflictState {
-  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} };
+  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, lastRaid: null, silenced: [] };
 }

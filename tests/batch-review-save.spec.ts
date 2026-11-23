@@ -62,7 +62,7 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     // v22 (#490) added the escalation announcements, which this transition never writes either.
     // v23 (#498) added the hardware cache's stash, the planned-wipe count and what insurance kept, written only by a wipe.
     // v24 (#517) added the conflict record, written only by the raid and repair stages and paid repair.
-    expect(SCHEMA_VERSION).toBe(24);
+    expect(SCHEMA_VERSION).toBe(25);
   });
 });
 

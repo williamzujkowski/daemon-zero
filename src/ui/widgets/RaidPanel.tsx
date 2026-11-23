@@ -30,6 +30,7 @@ export default function RaidPanel() {
     <Text testID="raid-stage" style={theme.text}>{view.stageText}</Text>
     <Text testID="raid-matchup" style={theme.muted}>{view.matchup}</Text>
     {view.goDark !== null && <Text testID="raid-go-dark" style={theme.muted}>{view.goDark}</Text>}
+    {view.staff !== null && <Text testID="raid-staff" style={theme.text}>{view.staff}</Text>}
     <Text testID="raid-attribution" style={theme.muted}>{view.attribution}</Text>
     <Lines id="raid-forecast" title="Forecast" lines={view.forecast} />
     <Lines id="raid-log" title="Battle log" lines={view.log} />

@@ -13,6 +13,7 @@ import { formatCost } from './queryPresentation';
 import { activeRaidKind, percentOf, raidCombat, raidFootprint, raidRetired } from './raid';
 import { forecastRounds, type RoundOutcome } from './raidForecast';
 import { repairUnmet } from './repairActions';
+import { breachOf, openStaffBands } from './raidOutcome';
 import { classDamage, repairHeld, repairPerSec, siteClass } from './siteDamage';
 import type { ActiveRaid, RaidStage } from './conflictState';
 import type { GameState } from './state';
@@ -74,6 +75,11 @@ export interface RaidView {
   attribution: string;
   /** The free way out before the battle; null once it has begun. */
   goDark: string | null;
+  /**
+   * People on site (#519): the breach this battle comes to at what the player holds now, and the staff-harm lines still
+   * to come in the campaign. Null for a domain no one works in, once the battle is over, or when no harm scene is left.
+   */
+  staff: string | null;
   aftermath: string | null;
 }
 
@@ -102,6 +108,21 @@ function forecastLines(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kin
   return [...rounds.map((outcome, index) => roundText(raid.rounds.length + index + 1, outcome, kind, target)),
     `Forecast while what you hold does not change: ${target} goes from ${percentOf(start.damage)}% to ${percentOf(end)}% damaged ` +
     `(never past ${percentOf(b.damageCap)}%). Nothing is taken outright, and repair runs free after.`];
+}
+
+/** The battle's breach if nothing held changes: the rounds fought, then the forecast's, averaged. */
+function forecastBreach(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind): number {
+  const b = reg.world.conflict.raid, start = { force: raid.rounds.at(-1)?.forceAfter ?? raid.force, damage: classDamage(s, raid.target) };
+  const ahead = forecastRounds(start, Math.max(0, b.rounds - raid.rounds.length), { ...raidCombat(s, reg, kind), blow: kind.blow }, b);
+  return breachOf([...raid.rounds, ...ahead]);
+}
+
+function staffText(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind, target: string): string | null {
+  const bands = openStaffBands(s, reg);
+  if (raid.stage === 'AFTERMATH' || bands.length === 0 || !reg.world.conflict.raid.staffHarm.domains.includes(kind.domain)) return null;
+  const lines = bands.map((band) => `at ${percentOf(band.breachAtLeast)}% or more someone there is ${band.harm === 'KILLED' ? 'killed' : 'hurt'}`);
+  return `PEOPLE ON SITE: people work at the ${target.toLowerCase()}. At what you hold now the battle lets through ${percentOf(forecastBreach(s, reg, raid, kind))}% ` +
+    `of its blows; ${lines.join(', and ')}. More ${reg.world.conflict.domains.find((d) => d.id === kind.domain)?.name.toLowerCase() ?? ''} defense lowers it.`;
 }
 
 function attributionText(raid: ActiveRaid, kind: RaidKind, reg: ContentRegistry): string {
@@ -142,5 +163,6 @@ export function raidView(s: GameState, reg: ContentRegistry): RaidView | null {
       `offense ${rating(combat.offense)} striking back. Each round lands force / (force + defense) of its blow.`,
     forecast: forecastLines(s, reg, raid, kind, target),
     log: raid.rounds.map((outcome, index) => roundText(index + 1, outcome, kind, target)),
-    attribution: attributionText(raid, kind, reg), goDark: goDarkText(s, reg, raid), aftermath: aftermathText(s, raid, target) };
+    attribution: attributionText(raid, kind, reg), goDark: goDarkText(s, reg, raid), staff: staffText(s, reg, raid, kind, target),
+    aftermath: aftermathText(s, raid, target) };
 }

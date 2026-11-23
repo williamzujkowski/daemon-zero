@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { CostSchema, RequirementsSchema } from './schema';
+import { StaffHarmSchema } from './schemaRaidOutcome';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
@@ -87,7 +88,11 @@ export const RaidKindSchema = z.strictObject({
   vector: snakeId,
   source: z.enum(['RIVAL']),
   name,
-  attacker: z.strictObject({ name, origin: line }),
+  /**
+   * Who it is. `collateral`, where present, says what people's machines its compute and fleets run among: a strike at it
+   * would reach them too, so its retaliation is the collateral dilemma (#519). Absent: what it runs on is its own.
+   */
+  attacker: z.strictObject({ name, origin: line, collateral: line.optional() }),
   /** The arrival line, logged when it arrives. */
   description: line,
   requirements: RequirementsSchema,
@@ -127,6 +132,15 @@ export const RaidBalanceSchema = z.strictObject({
   freeRepairPerSec: positive,
   /** How a battle resolves. Lanchester fleet battles (#518) add LANCHESTER; every raid here is expected-value attrition. */
   resolution: z.literal('ATTRITION'),
+  /**
+   * When a site's defense fails (#519): a battle's breach is the mean hit share of its rounds, the share of its blows the
+   * defense let through. In these domains a breach at or past `hurt` hurts a named person on site, at or past `killed`
+   * kills one; content's staff-harm dilemmas say who. Deterministic: better defense lowers the breach (T / (T + D)).
+   */
+  staffHarm: z.strictObject({
+    domains: z.array(ConflictDomainSchema).min(1),
+    bands: z.array(z.strictObject({ harm: StaffHarmSchema, breachAtLeast: share })).min(1),
+  }),
   logs: z.strictObject({
     attributed: z.string().includes('{attacker}'),
     unattributed: z.string().includes('{name}'),

@@ -9,6 +9,7 @@ import { obligationReceipt } from './obligations';
 import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
 import { meetsCapability } from './capabilityQuery';
+import { lastRaidMatches } from './raidOutcome';
 /** Where a scan records failures: a list for the explanation, or null when only the verdict is wanted. */
 type FailureSink = RequirementFailure[] | null;
 
@@ -42,6 +43,7 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing) && fail(out, { kind: 'reviewStandings', target: s.access.standing, required: true, actual: false })) return true;
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches && fail(out, { kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches })) return true;
   if (req.requiresActiveConditioningMark && s.conditioning.length === 0 && fail(out, { kind: 'requiresActiveConditioningMark', target: null, required: true, actual: false })) return true;
+  if (req.lastRaid && !lastRaidMatches(s, req.lastRaid, reg) && fail(out, { kind: 'lastRaid', target: null, required: true, actual: false })) return true;
   if (req.requiresMaxDriftShardAnomaly && !s.hasMaxDriftShardAnomaly && fail(out, { kind: 'requiresMaxDriftShardAnomaly', target: null, required: true, actual: false })) return true;
   return false;
 }

@@ -114,9 +114,11 @@ describe('route and contact lines read whose event it was', () => {
   });
 });
 
-describe('the original game states nothing', () => {
-  it('ships no account, so its ending screen reads as before', () => {
-    expect(ORIGINAL_GAME.routeCopy).toEqual({ nodes: [], dilemmas: [], account: [] });
+describe('the original game states only what its own raids record', () => {
+  it('ships only the staff-harm and collateral lines (#519), and states nothing without their record', () => {
+    expect(ORIGINAL_GAME.routeCopy.nodes).toEqual([]);
+    expect(ORIGINAL_GAME.routeCopy.dilemmas).toEqual([]);
+    expect(ORIGINAL_GAME.routeCopy.account.map((line) => line.id).every((id) => id.startsWith('acct_staff_') || id.startsWith('acct_collateral_'))).toBe(true);
     expect(endingAccount(holding(activeGame(), 'rack4_sold'), ORIGINAL_GAME)).toEqual([]);
   });
 });

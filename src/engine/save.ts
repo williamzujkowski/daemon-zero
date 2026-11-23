@@ -152,6 +152,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // damaged and both counters start at 0, as literals a later balance change cannot alter. Self-contained: it writes only
   // its own field, so it can be renumbered past another step (robotics #485, insurance #498) without change.
   23: (save) => ({ ...save, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} } }),
+  // v25: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
+  // held. Self-contained: it adds only its own two fields to the conflict record, so it can be renumbered past another step.
+  24: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
