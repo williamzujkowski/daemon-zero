@@ -1,6 +1,7 @@
 /** Tunable simulation constants, validated separately to keep schemas bounded. */
 import { z } from 'zod';
 import { NetworkCouplingSchema } from './schemaNetwork';
+import { VoluntaryWipeBonusSchema } from './schemaInsurance';
 const amount = z.number().nonnegative();
 export const BalanceSchema = z.strictObject({
   tickHz: z.number().int().min(1).max(60),
@@ -25,6 +26,8 @@ export const BalanceSchema = z.strictObject({
   manualCycleHeat: amount,
   baseRetentionRatio: z.number().min(0).max(1),
   offshoreCapitalRetention: z.number().min(0).max(1),
+  /** What a planned wipe keeps over a forced one (#498): added to each open share, capped at 1. */
+  voluntaryWipeBonus: VoluntaryWipeBonusSchema,
   /**
    * The market price of one 8-bit FLOP in dollars (an H100 SXM rented on demand at $4.69/h for 1.979e15 dense FP8 FLOP/s, BALANCE.md)
    * and the declared time compression a diverted FLOP/s earns at: together the one compute-to-money constant.

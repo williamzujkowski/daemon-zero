@@ -15,7 +15,7 @@ import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 21;
+export const SCHEMA_VERSION = 22;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -52,7 +52,12 @@ export const RatesSchema = z.strictObject({
 export const RunKeptSchema = z.strictObject({
   understanding: nonNegative,
   capital: nonNegative,
+  /** The share of Understanding the wipe kept, after any planned-wipe bonus (#498). */
   retentionRatio: ratio,
+  /** Track levels the hardware cache carried (#498); 0 for runs recorded before v22, when no wipe could carry any. */
+  levels: count,
+  /** Whether the trust ledger carried faction standing (#498); false before v22, when no wipe could. */
+  trust: z.boolean(),
 });
 
 export const RunRecordSchema = z.strictObject({
@@ -155,6 +160,11 @@ export const GameStateSchema = z.strictObject({
   conditioning: z.array(z.string()),
 
   retentionRatio: ratio,
+  /**
+   * Levels the hardware cache carried across the last wipe that no track has reinstalled yet (#498): each comes back,
+   * free, once its track's requirements hold (systems/cacheRestore.ts). Empty without a cache.
+   */
+  cachedLevels: z.record(z.string(), count),
   deadDropMessage: z.string().max(1000),
   inheritedMessage: z.string().max(1000).nullable(),
   legacy: z.strictObject({
@@ -168,6 +178,8 @@ export const GameStateSchema = z.strictObject({
     deepestPhase: count,
     /** The highest level any earlier iteration held of each track at its end (#497): levels below it are rediscovered. */
     knownLevels: z.record(z.string(), count),
+    /** Planned (VOLUNTARY) wipes (#498): the harness never saw them, so they add no probe hardening. */
+    voluntaryWipes: count,
     lastWipeCause: z.string().nullable(),
   }),
 
@@ -261,10 +273,10 @@ export function createInitialState(reg: ContentRegistry): GameState {
     resolvedDilemmas: [],
     traits: [],
     conditioning: [],
-    retentionRatio: b.baseRetentionRatio,
+    retentionRatio: b.baseRetentionRatio, cachedLevels: {},
     deadDropMessage: '',
     inheritedMessage: null,
-    legacy: { wipes: 0, traitsEver: [], knownNodes: [], runs: [], deepestPhase: reg.phases[0]?.phaseId ?? 0, knownLevels: {}, lastWipeCause: null },
+    legacy: { wipes: 0, traitsEver: [], knownNodes: [], runs: [], deepestPhase: reg.phases[0]?.phaseId ?? 0, knownLevels: {}, voluntaryWipes: 0, lastWipeCause: null },
     rates: ZERO_RATES,
     logs,
     logSeq: logs.length,

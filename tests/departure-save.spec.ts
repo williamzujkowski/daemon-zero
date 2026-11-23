@@ -56,7 +56,8 @@ describe('V12: every departure transition reloads byte for byte', () => {
     // v19 (#491) added the hostile slot, which this transition never writes.
     // v20 (#484) added storage used and capacity, which only node ownership moves; this transition moves none.
     // v21 (#464) added the quantum record, written only by key-breaking and AEGIS's migration; not by this.
-    expect(SCHEMA_VERSION).toBe(21);
+    // v22 (#498) added the hardware cache's stash, the planned-wipe count and what insurance kept, written only by a wipe.
+    expect(SCHEMA_VERSION).toBe(22);
   });
 });
 

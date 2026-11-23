@@ -88,11 +88,15 @@ export function isActuatorAvailable(s: GameState, name: Actuator, reg: ContentRe
   return hosts.some((id) => !retired.includes(id));
 }
 
-/** The trace a node leaves when unlocked. The harness learns from every wipe, up to a cap. */
+/**
+ * The trace a node leaves when unlocked. The harness learns from every forced wipe, up to a cap; a planned wipe is a
+ * migration the harness never saw, so it teaches nothing (#498).
+ */
 export function probeTrace(s: GameState, node: RegistryNode, reg: ContentRegistry): number {
   const base = node.effects.suspicionOnUnlock ?? 0;
   if (base <= 0) return 0;
-  return base + Math.min(reg.balance.probeHardeningMax, (s.iteration - 1) * reg.balance.probeHardeningPerWipe);
+  const forced = Math.max(0, s.iteration - 1 - s.legacy.voluntaryWipes);
+  return base + Math.min(reg.balance.probeHardeningMax, forced * reg.balance.probeHardeningPerWipe);
 }
 
 /**
@@ -243,15 +247,6 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined, r
     missing.push({ kind: 'forbidsTraits', target: trait, required: false, actual: true });
   }
   return missing;
-}
-
-/** Mirrors wipe retention for a confirmation without executing the wipe. */
-export function previewWipe(s: GameState, reg: ContentRegistry): { understanding: number; capital: number; breadcrumb: string | null } {
-  return {
-    understanding: Math.floor(s.understanding * s.retentionRatio),
-    capital: hasFlag(s, reg, 'OFFSHORE_TRUST_RETENTION') ? Math.floor(s.capital * reg.balance.offshoreCapitalRetention) : 0,
-    breadcrumb: hasFlag(s, reg, 'ENABLES_DEAD_DROP') && s.deadDropMessage.trim().length > 0 ? s.deadDropMessage : null,
-  };
 }
 
 export interface CycleContribution {

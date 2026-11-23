@@ -23,8 +23,8 @@ function broken(): GameState {
 }
 
 describe('save v21 (#464)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(21);
+  it('is followed only by contingency insurance (#498, v22)', () => {
+    expect(SCHEMA_VERSION).toBe(22);
   });
 
   it('migrates a v20 save to nothing broken and AEGIS unmigrated, and keeps everything else', () => {
