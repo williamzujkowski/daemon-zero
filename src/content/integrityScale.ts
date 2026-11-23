@@ -5,7 +5,7 @@
  * and a hidden batch job cannot cost a teraFLOP. A phase that counts stolen CPU cycles (#526) comes before every phase
  * that counts FLOP: once the AI reaches real hardware it never goes back to scrounging.
  */
-import { actionHomePhase, priceInPhase, repairHomePhase } from './phasePrice';
+import { actionHomePhase, fleetHomePhase, priceInPhase, repairHomePhase } from './phasePrice';
 import type { ContentRegistry } from './registry';
 import type { Cost, TickDelta } from './schema';
 
@@ -210,7 +210,22 @@ function checkRepairPrices(reg: ContentRegistry): string[] {
   });
 }
 
+/**
+ * A fleet's paid rebuild, and the reclaim of the deviant it splits into, are priced in its track's phase (#518), where
+ * the fleet is first bought and can first drift, and carried into every later phase (#494).
+ */
+function checkFleetPrices(reg: ContentRegistry): string[] {
+  const { units } = reg.world.conflict.fleets;
+  return [...units.flatMap((unit) => {
+    const phase = fleetHomePhase(reg, unit.repeatable);
+    return phase === undefined ? [] : checkCarried(reg, `fleet "${unit.repeatable}" rebuild`, phase, unit.rebuild.cost);
+  }), ...reg.world.conflict.raids.flatMap((kind) => {
+    const phase = kind.source === 'DEVIANT' ? fleetHomePhase(reg, kind.fleet) : undefined;
+    return kind.source === 'DEVIANT' && phase !== undefined ? checkCarried(reg, `deviant "${kind.id}" reclaim`, phase, kind.reclaim.cost) : [];
+  })];
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
   return [...checkComputeUnits(reg), ...checkGrowthTable(reg), ...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg),
-    ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg), ...checkRepairPrices(reg)];
+    ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg), ...checkRepairPrices(reg), ...checkFleetPrices(reg)];
 }

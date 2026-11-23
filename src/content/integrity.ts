@@ -46,6 +46,7 @@ import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 import { checkInsuranceIntegrity, CONTINGENCY_GROUP } from './integrityInsurance';
 import { checkConflictIntegrity } from './integrityConflict';
+import { checkFleetIntegrity } from './integrityFleets';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP', CONTINGENCY_GROUP]);
 
@@ -244,10 +245,10 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
   return problems;
 }
 
-/** The world manifest's blocks: the view, the supply chain (#485), state pressure (#490), quantum (#464) and conflict (#517). */
+/** The world manifest's blocks: the view, the supply chain (#485), state pressure (#490), quantum (#464), conflict (#517) and fleets (#518). */
 function checkWorldManifests(reg: ContentRegistry): string[] {
   return [...checkWorldIntegrity(reg), ...checkSupplyChainIntegrity(reg), ...checkPressureIntegrity(reg), ...checkQuantumIntegrity(reg),
-    ...checkConflictIntegrity(reg)];
+    ...checkConflictIntegrity(reg), ...checkFleetIntegrity(reg)];
 }
 
 export function checkIntegrity(reg: ContentRegistry): string[] {
@@ -295,8 +296,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg), ...checkWorldManifests(reg),
-    ...checkPressureIntegrity(reg),
-    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
+    // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).
+    ...checkWorldManifests(reg),
+    ...checkInsuranceIntegrity(reg),
   ];
 }

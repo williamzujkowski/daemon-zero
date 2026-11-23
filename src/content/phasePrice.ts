@@ -18,6 +18,11 @@ export function repairHomePhase(reg: Pick<ContentRegistry, 'world'>, cls: SiteCl
   return reg.world.conflict.domains.find((domain) => domain.id === cls.domain)?.fromPhase;
 }
 
+/** A fleet's rebuild, and the reclaim of the deviant it splits into, are priced in its track's phase (#518). */
+export function fleetHomePhase(reg: Pick<ContentRegistry, 'repeatables'>, trackId: string): number | undefined {
+  return reg.repeatables.get(trackId)?.phaseId;
+}
+
 /**
  * What a price listed for phase `home` costs when paid in `phase`: cycles and capital times every growth row after
  * `home` up to `phase`. Understanding, memory and storage are not scaled: the ladder bands only compute and money. A

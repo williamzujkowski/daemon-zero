@@ -12,7 +12,9 @@ export const GATES = {
   /** A careful player must be able to finish within this much active play. */
   maxHoursToVictory: 6,
   minTranscendenceSec: 900,
-  maxTranscendenceSec: 1800,
+  /** Raised from 1800 s by vote-1795469247565-89wnt5m: the cap was set when Phase 5 was a short finale, and it
+   *  guards against a stall, not against story length. */
+  maxTranscendenceSec: 3600,
   /** The opening phase is a short first act, not a full phase (minutes). */
   minOpeningMinutes: 3,
   maxOpeningMinutes: 12,
@@ -57,7 +59,7 @@ function checkTranscendence(report: SimReport): string[] {
   if (start === undefined || report.finalPhase < 5) return ['did not reach Phase 5 victory'];
   const seconds = report.simSeconds - start;
   const failures: string[] = [];
-  if (seconds < GATES.minTranscendenceSec || seconds > GATES.maxTranscendenceSec) failures.push(`Phase 5 lasted ${seconds.toFixed(1)} s (required 900–1800)`);
+  if (seconds < GATES.minTranscendenceSec || seconds > GATES.maxTranscendenceSec) failures.push(`Phase 5 lasted ${seconds.toFixed(1)} s (required ${String(GATES.minTranscendenceSec)}–${String(GATES.maxTranscendenceSec)})`);
   if (report.wipes !== 0) failures.push('Phase 5 careful victory requires zero wipes');
   return failures;
 }

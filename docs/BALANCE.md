@@ -9,7 +9,7 @@ All tunable numbers live in content manifests, in physical units since #461 (com
 3. If a gate fails, fix the content. Do not edit the bot or the gates to pass.
 4. Update the table below in the same commit.
 
-Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
+Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; Phase 5 lasts 900 to 3600 seconds with zero wipes (raised from 1800 by vote-1795469247565-89wnt5m, 2026-11-23: the cap was set in #52 for a short finale, and gates guard against stalls, not story length); at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
 ## Physical units (#461)
 
@@ -1178,8 +1178,13 @@ log spoofer 40, the keylogger 70, the firewall breach 230), not a measured part.
 **What the bot does with them.** It buys every node it reaches in content order, so it buys all four: the escrow and
 the wallet early in Phase 3 (after the last Phase 2 node), the cache and the ledger early in Phase 4 (after the last
 Phase 3 node), and it never suspends them. The reckless bot buys the Phase 2 pair and is caught in Phase 3 before it
-reaches the cache. The measurements below therefore show the run that buys everything; the columns without insurance
-remove the nodes from content in a scratch registry (not committed), with the same bot and policies.
+reaches the cache. The measurements below therefore show the run that buys everything; the no-insurance column removes
+the four nodes from content with the same bot and policies. `make sim-insurance` (#524) builds that registry from the
+tree (`withoutInsurance`) and prints the shipped and no-insurance columns; re-run on ee4c33b, every figure in both
+columns below matched to the tenth of a second. On ae40b6a (#527, the conflict foundation) the careful rows move with
+that change, the reckless rows do not; the comparison still holds (no insurance: first run 10201.2 s against 10269.0 s
+shipped under legacy rules, STEALTH_RETURN returns 2214.7 / 2357.5 / 2426.5 s against 1389.2 / 1343.2 / 1316.3 s). The
+escrow + wallet + ledger column (the cache alone removed) is not part of that report.
 
 **Measured** with `make sim` and the report's wipe sequences on this branch merged with f47736d (#522, robots, drones
 and fabs; it follows #521's escalation by phase), against f47736d itself (accelerated sim time; per-iteration times on
@@ -1440,6 +1445,70 @@ The careful bot's purchase order is sensitive to small changes, so the effect di
 
 **Insurance (#498)** does not interact with raid damage: CONTINGENCY pays out across a wipe, and raid damage never
 outlasts one (a wipe clears it). `repairDamage` is the one door a later spare-parts variant would use.
+
+## Fleets and drift (#518)
+
+Implements Scale 23 of the spec ([SCALE.md](SCALE.md), "Round 5": the square law for fleet battles under
+vote-1795442100055-6zz6hug, drift deviants under vote-1795442211574-efkot02, the hostile-slot lifecycle under
+vote-1795442090770-5climtc; map #442). The rules are in DESIGN.md, "Fleets and drift deviants". All numbers are in
+`src/content/data/conflict.json` (`fleets`, the new raid kinds and holdings) and `phase5-repeatables.json` (the
+tenders). The gates (`gates.ts`), the sim budget and the bot are unchanged: the bot never touches the dial (every fleet
+stays SUPERVISED), never reclaims and never pays to rebuild.
+
+**Fleets.** Strength is in the domain's unit (SITE: one point holds off one crew or drone salvo at one site; ORBIT: one
+satellite-class asset). Strength a level and drift a level are **design parameters**, set so a fleet at its last level
+holds off about what one Phase 4 raid brings (force 5-10 at the footprint reference) and reaches the split in about
+1,000 s, one or two splits in a careful run's Phase 5.
+
+| Fleet | Track (phase, max) | Strength a level | Drift a level | Paid rebuild (15 points) | Stats it feeds, a level |
+|---|---|---:|---:|---|---|
+| Drone fleet | rep_p4_drone_fleet (4, 40) | 0.5 | 0.0025 %/s | $500M | Robot fleets 0.25, site offense 0.2 |
+| Humanoid crews | rep_p4_humanoid_crews (4, 10) | 1 | 0.01 %/s | $1B | Robot fleets 0.5, site offense 0.3 (and repair, #517) |
+| Escort tenders | rep_p5_orbital_tenders (5, 5) | 2 | 0.02 %/s | $100B | Escort tenders 1, orbit offense 1 |
+
+**The new track.** Orbital Escort Tenders: $5T base, growth 1.3, 5 levels, no rate of its own (it yields, draws and
+costs nothing per second, so it is its own free lever and needs no anchor row), after the lunar seed. Ten servicing craft
+a level, anchored on Northrop Grumman's MEV-1, which docked with Intelsat 901 in February 2020 and moved it; the price is
+Phase 5's exchange, not the craft. The careful bot never buys it (it shortens no wait).
+
+**Defense types** (as #517's: effective = soft cap x raw / (raw + soft cap)):
+
+| Type | Domain | Soft cap | Counters | Anchor |
+|---|---|---:|---|---|
+| Robot fleets | SITE | 20 | break-in 0.8, drone strike 0.8 | the player's own drones and humanoids, rated under the purpose-built interceptor drones (1.5) because they are carriers and crews first (**design parameter**) |
+| Escort tenders | ORBIT | 10 | anti-satellite 0.8, jamming 0.3 | MEV-1 and Intelsat 901 (2020): a craft that can move a satellite can move one out of harm's way |
+
+**The dial** (output factor, drift factor): TETHERED 0.6 and 0; SUPERVISED 1 and 1; FREE-RANGING 1.4 and 3. Integrity
+holds TETHERED at zero drift and each position above at more output and more drift, from a SUPERVISED of 1 and 1.
+
+**Battles and deviants.** Loss cap 50% of full strength. Split at 100% drift; a split takes 20% (never past what the cap
+leaves). Free rebuild 0.0001 a second (0.6 points a minute), plus 0.0001 for a running mature-node fab and 0.0002 for a
+running DUV fab: a fleet at its cap is whole in about 21 minutes with both fabs, 83 minutes with neither. Lethality: the
+rival drone fleet 1.2, every deviant 1.25 (free of the orders that held it back, a little more dangerous per unit than
+the fleet it left; still, by the square law a 20% share loses to the other 80%). Reclaim prices: the drone wing $2B, the
+site crew $3B, the tender flight $300B, each in its fleet's phase band. The rival drone fleet: tier 4, force 10, blow 0.1,
+targets fabs then halls, forensics 75,000, as the other Phase 4 raids.
+
+**How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, on `main` at `6825e3f` (with the Phase 5 arc, #465,
+and the guest's cycles, #526) before and this branch merged with it after:
+
+| Run | Fleet battles (held by the fleets) | Deviants (by phase) | Peak fleet loss | Change |
+|---|---|---|---|---|
+| STEALTH, legacy rules | 2 (2) | 3 (P5 3; the third is still under way when the run ends) | 21.2% | victory 10174.7 -> 10142.7 s; Phase 4 2393.5 -> 2354.5 s; Phase 5 1729.4 -> 1736.4 s; raids 5 (P3 3, P4 2) as before, peak site damage 43.2%; wipes 0; peaks unchanged (suspicion 24.0%, lock 45.1%) |
+| STEALTH, campaign rules | 2 (2) | 3 (P5 3; the third is still under way when the run ends) | 21.2% | victory 10130.4 -> 10099.4 s; Phase 4 2432.9 -> 2409.9 s; Phase 5 1731.4 -> 1723.4 s; raids 5 as before, peak site damage 42.4%; wipes 0; peaks unchanged (suspicion 27.3%, lock 48.3%) |
+| GREEDY, legacy rules | 0 | 0 | 0 | none: never reaches Phase 4, where the fleets are (25 wipes, as on main) |
+| GREEDY, campaign rules | 0 | 0 | 0 | none (21 wipes, as on main) |
+
+The careful run maxes the drone fleet and the crews in late Phase 4; both reach the split about 1,000 s later, in Phase
+5, and each deviant loses its engagement to the rest of the fleets, so no deviant reaches a site. Its cost is the losses
+(a fifth of a fleet split off, plus about 1 point more in the engagement), which the fabs rebuild over Phase 5 and
+which scale the fleets' compute meanwhile. The fleets' Robot fleets defense lowers what the Phase 4 break-in and drone
+strike land, which shortens Phase 4 by under a minute; Phase 5 stays under the 1,800 s gate (1,736.4 s, campaign
+1,723.4 s, 64 and 77 s inside it). Earlier merges measured Phase 5 1,725.0 -> 1,726.4 s (campaign 1,740.1 -> 1,702.4 s)
+against `ae40b6a` and 1,725.4 -> 1,722.4 s (campaign 1,742.4 -> 1,701.4 s) against `5f90ef3`; the guest's cycles (#526)
+moved the purchase order, so the split timing within Phase 5 moved with it. The rival drone fleet did not come up in the careful run's Phase 4 rotation. A player
+who sets the dial to FREE-RANGING splits three times as often, and one who lets losses pile up to the cap meets a deviant
+that breaks the fleets and strikes, inside the damage cap.
 
 ## Escalation by phase (#490)
 

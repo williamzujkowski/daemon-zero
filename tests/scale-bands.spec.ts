@@ -74,6 +74,8 @@ describe('the scale ladder (#461)', () => {
     // A raid's answers carry too: a paid repair and a hostile mind's quarantine, met after the phase they are priced in.
     expect(flat).toMatch(/site class "halls" repair in Phase 5: capital price 60000000 is outside the Phase 5 band/);
     expect(flat).toMatch(/hostile encounter "hostile_p3_hunter" quarantine in Phase 5: cycles price .* outside the Phase 5 band/);
+    // A fleet's paid rebuild carries as well (#518): a Phase 4 drone fleet rebuilt in Phase 5.
+    expect(flat).toMatch(/fleet "rep_p4_drone_fleet" rebuild in Phase 5: capital price 500000000 is outside the Phase 5 band/);
     // At home the same prices stand: only the carried ones are refused.
     expect(flat).not.toMatch(/action "act_p2_scrub_audit_logs": /);
   });

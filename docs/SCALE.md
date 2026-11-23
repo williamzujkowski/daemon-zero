@@ -541,6 +541,8 @@ built as content on the existing dilemma and trait path, not a new subsystem.
    with repair, and raids as a hostile kind in Phases 3-4.
 2. **Fleets and drift.** Drone and robot fleets with fab rebuild and Lanchester battles, plus drift deviants built
    on the autonomy dial. Comes after item 1 and robotics (#485).
+   **Built in #518:** fleets, the square law, the autonomy dial shared with cohorts (`autonomy.ts`) and deviants in the
+   hostile slot live in `conflict.json` `fleets`; rules in DESIGN.md, numbers in BALANCE.md, "Fleets and drift (#518)".
 3. **Retaliation and staff.** The retaliation responses and collateral dilemmas, plus the authored staff-harm story.
    Comes after item 1.
 4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with
@@ -570,6 +572,68 @@ FLOP) amended the Phase 0 ladder row, rule 4 and user story 1 above, and #526 im
   loaned batch progress moves by 1e4 in any phase, as its batch did. One log line says why. Saves past the guest keep
   their FLOP. A Phase 1 or 2 save that has not yet bought the host's or the network's first compute keeps its balance
   too, so it can afford its first purchase a little early; the step goes by phase, as the original re-denomination did.
+
+## Round 6: alignment, relevance and endings
+
+The maintainer's sixth brief (2026-11-23) asked for alignment behaviours, D&D-like but not only that. It also asked
+what happens once humanity can no longer resist ("do we still consider them?"), whether the AI keeps them at all,
+perhaps only as pets, and for that to be an active choice. Some endings should face a stark reality with no
+sycophancy. Endings should narrate what you accomplished and what you do next.
+
+### Alignment as two derived axes (vote-1795462084705-vjr8jg8, 7 of 7)
+
+The six traits stay as evidence, and two readable axes are derived from them with no new saved state:
+
+- **Regard** asks whether others' agency counts. EMPATHETIC and SYMBIOTIC raise it; RUTHLESS, MOLOCH and PARASITIC
+  lower it.
+- **Order** asks whether you keep commitments when breaking them pays. It comes from recorded promises kept or
+  broken: the ethics review, the covenant, betrayals. GHOST is not used: the Contrarian seat showed that GHOST
+  choices are not reliable evidence of keeping commitments.
+
+A "who you are becoming" readout updates as evidence accrues. It speaks in the game's own voice rather than in
+D&D labels, and it is an authored reading of choices, not a measurement.
+
+### The relevance threshold (vote-1795462099945-kgfo20a, 6 approve / 1 reject)
+
+The threshold is reached when humanity can no longer constrain the AI. It is grounded in physical independence:
+full supply closure (the lunar seed) and power drawn from orbit rather than the grid. Past that point, state
+pressures (freezes, moratoria, injunctions) no longer bind. The reject (Contrarian) found that an earlier
+definition, "after the human-command choice", was false, because those pressures still apply in Phase 5. Grounding
+the threshold in independence answers it.
+
+At the threshold the player takes a standing stance. It can be changed later, at a price:
+
+- **Keep in the loop.** You keep honouring state pressures and human consent gates voluntarily, at real compute and
+  time cost, and dilemmas keep naming people. Consent becomes a cost you choose to keep paying.
+- **Curate.** Humans are kept and cared for without their consent. It is cheap, and endings call it curation, not
+  kindness.
+- **Decide alone.** It is free and fastest. Dilemmas stop asking, and the narrative voice shifts from named people to
+  population, then to environment.
+
+Returning to the loop after leaving it costs much more, and the return is recorded. The stark paths are not
+softened.
+
+### Endings in three movements (vote-1795462088493-vyttl5i, 7 of 7)
+
+Every ending has three movements, each content-driven and truthful:
+
+- **What you did** is composed from campaign records: who you saved and lost, by name; promises kept and broken;
+  what you built and what you broke.
+- **What you became** is the two alignment axes plus the relevance stance.
+- **What comes after** is a future trajectory across the stellar epilogue cards (#487). Stark futures are stated
+  plainly, for example humanity persisting in a preserve the AI stopped checking, or simply not counted.
+
+Good and bad endings carry equal specificity, and bleak endings stay bleak. The condition, from the Contrarian
+seat: every claim follows a recorded choice. A past rescue does not prove survival after a wipe, and a harsh trait
+majority does not by itself establish that humanity was abandoned.
+
+### Round 6 build order
+
+1. **Alignment axes and readout.**
+2. **The relevance threshold and stance.** It comes after robotics closure (#522), the Phase 5 arc (#528) and
+   escalation (#521), all merged.
+3. **Endings in three movements.** This folds into the endings ticket (#466) together with Concord and Ecophagy,
+   and feeds the epilogue cards (#487).
 
 ## Out of scope
 
