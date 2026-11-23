@@ -2,13 +2,15 @@
  * The physical-units re-denomination (#461, docs/SCALE.md "Saves", vote-1795367482923-6vdi2u1) over genuine
  * pre-rescale saves from every phase (tests/fixtures/README.md, "Pre-rescale inputs"). Ownership, levels and history
  * are kept, the balances move into physical units in proportion, one log line says so, the result passes strict
- * validation with its rates derived again, malformed input is refused, and play continues.
+ * validation with its rates derived again, malformed input is refused, and play continues. A guest save then passes the
+ * v24 step (#526): the guest counts stolen cycles, so its compute comes back to the figure it held, with that step's line.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { computeRates, deserialize, GameStateSchema, SaveError, serialize, tick, type GameState } from '../src/engine';
 import { REDENOMINATION_LOG } from '../src/engine/saveRescale';
+import { CYCLES_LOG } from '../src/engine/saveCycles';
 import { botStep } from '../src/engine/sim/bot';
 
 type Raw = Record<string, unknown> & {
@@ -58,16 +60,19 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
   });
 
   it('re-denominates its balances in proportion, never shrinking one', () => {
-    expect(loaded.cycles).toBeGreaterThanOrEqual(raw.cycles);
+    // The guest's compute goes to FLOP at v17 and back to counted cycles at v24, by the same frozen factor.
+    if (phase === 0) expect(loaded.cycles).toBeCloseTo(raw.cycles, 9);
+    else expect(loaded.cycles).toBeGreaterThanOrEqual(raw.cycles);
     expect(loaded.capital).toBeGreaterThanOrEqual(raw.capital);
     expect(loaded.memoryCap).toBeGreaterThan(raw.memoryCap);
     expect(loaded.memoryUsed / loaded.memoryCap).toBeCloseTo(raw.memoryUsed / raw.memoryCap, 12);
-    if (raw.cycles > 0) expect(loaded.cycles).toBeGreaterThan(raw.cycles * 1000);
+    if (raw.cycles > 0 && phase > 0) expect(loaded.cycles).toBeGreaterThan(raw.cycles * 1000);
   });
 
-  it('tells the player once, at the top of the log', () => {
-    expect(loaded.logs[0]?.text).toBe(REDENOMINATION_LOG);
-    expect(loaded.logs).toHaveLength(Math.min(CONTENT.balance.maxLogEntries, raw.logs.length + 1));
+  it('tells the player once, at the top of the log (under the guest\'s recount line, #526)', () => {
+    const lines = phase === 0 ? [CYCLES_LOG, REDENOMINATION_LOG] : [REDENOMINATION_LOG];
+    expect(loaded.logs.slice(0, lines.length).map((entry) => entry.text)).toEqual(lines);
+    expect(loaded.logs).toHaveLength(Math.min(CONTENT.balance.maxLogEntries, raw.logs.length + lines.length));
     expect(redenominationLines(loaded)).toBe(1);
   });
 

@@ -30,6 +30,8 @@ describe('units note', () => {
     view.click('reference-units');
     const text = view.find('units-note')?.textContent ?? '';
     expect(text).toContain('8-bit AI operations (FP8 dense, or INT8 where a part has no FP8)');
+    // The guest's cycles are the game's accounting assumption, and the panel says so in those words (#526).
+    expect(text).toContain('Game accounting assumption, not a measurement: a sandboxed scalar job retires about one operation a cycle');
     expect(text).toContain('1 KB = 1024 B');
     expect(text).toContain('Comparison only, not 8-bit work: El Capitan');
     expect(text).toContain('double precision (FP64)');

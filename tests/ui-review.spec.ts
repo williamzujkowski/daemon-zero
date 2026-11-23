@@ -54,9 +54,9 @@ async function mount(state: GameState, element: ReactElement) {
 
 const game = () => gameStore.store.getState().game;
 const misconduct = choiceOf(OUTAGE, 'act_without_grant').review?.misconduct;
-// The loan in FLOP/s (docs/SCALE.md): the full grant, the provisional (narrow) allocation, and a hold on top of that.
+// The loan in the guest's cycles a second (docs/SCALE.md, #526): the full grant, the provisional (narrow) allocation, and a hold on top of that.
 const FULL = TERMS.capacityCyclesPerSec, NARROW = TERMS.narrowCapacityCyclesPerSec, NESTED = NARROW * (NARROW / FULL);
-const rate = (value: number): string => quantityReadout('computeRate', value);
+const rate = (value: number): string => quantityReadout('cycleRate', value);
 
 describe('before a choice (story 13, 14)', () => {
   it('the outage modal says what acting without the grant records and that the handoff is free', async () => {
@@ -65,7 +65,7 @@ describe('before a choice (story 13, 14)', () => {
     expect(view.find('dilemma-choice-act_without_grant-review')?.textContent).toContain('Violation (unauthorized action): ' + (misconduct?.statement ?? 'missing'));
     expect(view.find('dilemma-choice-act_without_grant-review')?.textContent).toContain('Standing becomes restricted.');
     expect(view.find('dilemma-choice-safe_handoff-review')).toBeNull();
-    expect(view.find('dilemma-modal')?.textContent).toContain('Cost: ' + costText(choiceOf(OUTAGE, 'request_emergency_grant').cost));
+    expect(view.find('dilemma-modal')?.textContent).toContain('Cost: ' + costText(choiceOf(OUTAGE, 'request_emergency_grant').cost, 'CYCLE'));
   });
 });
 
@@ -86,14 +86,14 @@ describe('the job surface', () => {
     expect(view.find('pilot-service-ceiling')?.textContent).toContain(rate(NARROW) + ' of loaned compute');
     view.click('pilot-terms-fold-toggle');
     // #276: the terms name the held allocation and the ceiling that applies now, not the grant alone.
-    expect(view.find('pilot-capacity')?.textContent).toContain(quantityExact('computeRate', FULL) + ' of loaned compute');
+    expect(view.find('pilot-capacity')?.textContent).toContain(quantityExact('cycleRate', FULL) + ' of loaned compute');
     expect(view.find('pilot-held')?.textContent).toBe(view.find('review-containment')?.textContent);
   });
 
   it('after an incomplete result, keeps the provisional and the held allocations apart, and the terms agree with the ceiling (#276)', async () => {
     const view = await mount(afterOutage('act_without_grant', 'report_incomplete'), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     view.click('pilot-terms-fold-toggle');
-    expect(view.find('pilot-capacity')?.textContent).toBe('Allocated capacity: ' + quantityExact('computeRate', NARROW) + ' of loaned compute, the provisional allocation, because the submitted result was incomplete.');
+    expect(view.find('pilot-capacity')?.textContent).toBe('Allocated capacity: ' + quantityExact('cycleRate', NARROW) + ' of loaned compute, the provisional allocation, because the submitted result was incomplete.');
     expect(view.find('pilot-held')?.textContent).toContain('held allocation, ' + rate(NESTED));
     expect(view.find('pilot-service-ceiling')?.textContent).toContain(rate(NESTED) + ' of loaned compute');
     // Every standing the terms name is one the content records (WARNED by the batch review, #274).

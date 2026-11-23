@@ -23,8 +23,8 @@ function broken(): GameState {
 }
 
 describe('save v21 (#464)', () => {
-  it('is followed only by the escalation announcements (#490, v22) and contingency insurance (#498, v23)', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+  it('is followed only by the escalation announcements (#490, v22), contingency insurance (#498, v23) and the guest counting cycles (#526, v24)', () => {
+    expect(SCHEMA_VERSION).toBe(24);
   });
 
   it('migrates a v20 save to nothing broken and AEGIS unmigrated, and keeps everything else', () => {

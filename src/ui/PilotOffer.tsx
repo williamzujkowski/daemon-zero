@@ -6,11 +6,11 @@
  * Production makes no offer, so both render nothing.
  */
 import { CONTENT } from '../content';
-import { acceptPilotOffer, loanCeiling, loanContainment, pilotOfferView, quantityExact, type GameState, type NarrowReason } from '../engine';
+import { acceptPilotOffer, computeDimension, loanCeiling, loanContainment, pilotOfferView, quantityExact, type GameState, type NarrowReason } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { heldText } from './reviewText';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { theme } from './theme';
 import SettledFold from './SettledFold';
 
@@ -48,14 +48,15 @@ export function PilotTerms() {
   // Review can hold an accepted loan below these terms; the terms then say so, with the ceiling now.
   const held = useGame((game) => view(game)?.status === 'accepted' ? loanContainment(game) : null);
   const ceiling = useGame((game) => loanCeiling(game, CONTENT));
+  const unit = useComputeUnit();
   if (title === null) return null;
   return <View testID="pilot-terms" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>{title}</Text>
     <Text testID="pilot-purpose" style={theme.text}>Purpose: {purpose}</Text>
     <Text testID="pilot-capacity" style={theme.text}>
-      Allocated capacity: {quantityExact('computeRate', capacity)} of loaned compute{reason === null ? '' : NARROW_TEXT[reason]}.
+      Allocated capacity: {quantityExact(computeDimension(unit, true), capacity)} of loaned compute{reason === null ? '' : NARROW_TEXT[reason]}.
     </Text>
-    {held !== null && <Text testID="pilot-held" style={[theme.text, theme.danger]}>{heldText(held, ceiling)}</Text>}
+    {held !== null && <Text testID="pilot-held" style={[theme.text, theme.danger]}>{heldText(held, ceiling, unit)}</Text>}
     <Lines testID="pilot-permitted" heading="Permitted work" lines={work} />
     <Lines testID="pilot-review" heading="Review and revocation" lines={review} />
     {disclose !== '' && <Text testID="pilot-disclose" style={[theme.text, theme.danger]}>

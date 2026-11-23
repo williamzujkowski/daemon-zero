@@ -11,6 +11,25 @@ import { toBase64 } from '../src/engine/base64';
 export const reg = CONTENT;
 
 /**
+ * A guest state as a pre-v24 codec wrote it (#526): until the guest counted stolen cycles its balance, its compute rate
+ * and the pilot's batch progress sat at the v17 scale, so a test that relabels a current guest state as an older save
+ * moves them back there first (the frozen ratios of src/engine/saveCycles.ts).
+ */
+export function atPreCyclesScale<T extends Record<string, unknown>>(raw: T): T {
+  const access = raw.access as { work?: { progressCycles: number } } | undefined;
+  const work = access?.work === undefined ? {} : { access: { ...access, work: { ...access.work, progressCycles: access.work.progressCycles * 1e4 } } };
+  if (raw.currentPhase !== 0) return { ...raw, ...work };
+  const rates = raw.rates as { cyclesPerSec: number };
+  return { ...raw, ...work, cycles: (raw.cycles as number) * 5.3e3, rates: { ...rates, cyclesPerSec: rates.cyclesPerSec * 1e4 } };
+}
+
+/** A loaded guest save without the v24 step's one log line, so a test of an older step compares only what that step did. */
+export function withoutRecountLine(s: GameState): GameState {
+  const logs = s.logs.filter((entry) => !entry.text.startsWith('LEDGER_RECOUNTED:'));
+  return { ...s, logs, logSeq: s.logSeq - (s.logs.length - logs.length) };
+}
+
+/**
  * The original game without the Earned Access pack (#233). Release-boundary tests that once read
  * production now read this, so they still prove the pack leaves the original route as it was.
  */

@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { deserialize, migrate, MIGRATIONS, SCHEMA_VERSION, serialize, wipe, type GameState } from '../src/engine';
-import { fresh, grant, onHost, PHASE1, PHASE2, reg } from './helpers';
+import { atPreCyclesScale, fresh, grant, onHost, PHASE1, PHASE2, reg, withoutRecountLine } from './helpers';
 
 type Raw = Record<string, any>;
 
@@ -21,12 +21,12 @@ function asV22(s: GameState): Raw {
   delete raw.cachedLevels;
   delete raw.legacy.voluntaryWipes;
   for (const run of raw.legacy.runs) if (run.kept !== null) { delete run.kept.levels; delete run.kept.trust; }
-  return { ...raw, schemaVersion: 22 };
+  return atPreCyclesScale({ ...raw, schemaVersion: 22 });
 }
 
 describe('save v23 (#498)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+    expect(SCHEMA_VERSION).toBe(24);
   });
 
   it('migrates a v22 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {
@@ -37,7 +37,8 @@ describe('save v23 (#498)', () => {
     expect(migrated.cachedLevels).toEqual({});
     expect((migrated.legacy as Raw).voluntaryWipes).toBe(1);
     expect((migrated.legacy as Raw).runs.map((run: Raw) => run.kept)).toEqual(s.legacy.runs.map((run) => run.kept));
-    expect(deserialize(JSON.stringify(v22), reg)).toEqual(s);
+    // The guest's balance comes back from the v17 scale through v24 (#526), with that step's own log line.
+    expect(withoutRecountLine(deserialize(JSON.stringify(v22), reg))).toEqual(s);
   });
 
   it('counts only the planned wipes the record still holds: a floor, so the probes are never softer than earned', () => {

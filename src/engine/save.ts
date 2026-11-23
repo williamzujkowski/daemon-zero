@@ -23,6 +23,7 @@ import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
 import { computeRates } from './rates';
 import { redenominate } from './saveRescale';
+import { recountGuestCycles } from './saveCycles';
 import { migrateInsurance, reconcileCachedLevels } from './saveInsurance';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
@@ -147,6 +148,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   21: (save) => ({ ...save, announcedEscalation: { aegisPosture: 0, pressures: [] } }),
   // v23: contingency insurance and the planned-wipe count (#498, saveInsurance.ts). Self-contained, so it can be renumbered.
   22: migrateInsurance,
+  // v24: the guest counts stolen CPU cycles (#526, saveCycles.ts): a guest balance and rate, and the pilot's batch
+  // progress in any phase, move by frozen ratios. Self-contained, so it can be renumbered past another step.
+  23: recountGuestCycles,
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
