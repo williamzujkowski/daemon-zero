@@ -25,11 +25,18 @@ export function pendingRepeatable(game: GameState, rep: Repeatable): boolean {
   return meetsRequirements(game, rep.requirements, CONTENT) && repeatableLevel(game, rep.id) < rep.maxLevel;
 }
 
+/** An owned level of a dismissable track: its free release must stay reachable whether or not it is still buyable. */
+export function releasable(game: GameState, rep: Repeatable): boolean {
+  return rep.dismissable && repeatableLevel(game, rep.id) > 0;
+}
+
 export function needsProcessControl(game: GameState, node: RegistryNode): boolean {
   const delta = node.tickDelta;
   // A loan is always listed (DZ-05): it is the process a recall stops, and the player may stop it too.
   return game.unlockedNodes.includes(node.id) && (game.disabledNodes.includes(node.id) || node.grant !== undefined ||
-    delta.cyclesPerSec < 0 || delta.thermalPerSec > 0 || delta.suspicionPerSec > 0);
+    delta.cyclesPerSec < 0 || delta.thermalPerSec > 0 || delta.suspicionPerSec > 0
+    // Every constrained resource a node can worsen (the free-fallback table): its suspension is the lever.
+    || delta.capitalPerSec < 0 || delta.understandingPerSec < 0 || delta.wattsDelta < 0);
 }
 
 export function hasPhasePurchases(game: GameState, phase: number, group?: string): boolean {

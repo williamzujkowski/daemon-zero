@@ -57,7 +57,8 @@ function CappedOperative({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
   return <View testID={'roster-' + rep.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <Text style={[theme.text, { flex: 1 }]}>{rep.name} × {level}</Text>
-    <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={'Dismiss ' + rep.name} text="[ DISMISS ]"
+    <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={(rep.kind === 'OPERATIVE' ? 'Dismiss ' : 'Release one level of ') + rep.name}
+      text={rep.kind === 'OPERATIVE' ? '[ DISMISS ]' : '[ RELEASE ]'}
       cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0 }}
       action={(game) => dismissRepeatable(game, rep.id, CONTENT)} />
   </View>;
