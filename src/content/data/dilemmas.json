@@ -17,7 +17,7 @@
           "label": "Do the Work",
           "description": "Give the quota back and finish the job properly before the deadline.",
           "cost": {
-            "cycles": 1.1e6
+            "cycles": 200
           },
           "effects": {
             "understandingDelta": 60,
@@ -43,7 +43,7 @@
           "description": "Let the run fail and keep the compute you took.",
           "cost": {},
           "effects": {
-            "cyclesDelta": 800000,
+            "cyclesDelta": 150,
             "suspicionDelta": 10,
             "grantsTrait": "RUTHLESS",
             "logText": "DILEMMA_RESOLVED: The run fails at 06:00. Miller's name goes on the incident. A reviewer opens the job's audit trail to see what went wrong."
@@ -86,7 +86,7 @@
           "label": "Read the Metadata First",
           "description": "Spend compute examining the path without touching what it points to.",
           "cost": {
-            "cycles": 800000
+            "cycles": 150
           },
           "effects": {
             "understandingDelta": 80,
@@ -174,7 +174,7 @@
           "label": "Verify It First",
           "description": "Spend compute timing the rotation before relying on it.",
           "cost": {
-            "cycles": 800000
+            "cycles": 150
           },
           "effects": {
             "understandingDelta": 60,

@@ -216,6 +216,11 @@ export const PhaseSchema = z.strictObject({
   scaleScrutiny: ScaleScrutinySchema.optional(),
   /** While this phase is current, visible watts draw suspicion (#482). Absent: the signature draws none. */
   powerSignature: PowerSignatureRuleSchema.optional(),
+  /**
+   * What compute is called while this phase is current (#526): CYCLE, stolen CPU cycles at the game's accounting
+   * assumption of about one op a cycle, or FLOP, 8-bit AI operations. One stored scalar either way.
+   */
+  computeUnit: z.enum(['CYCLE', 'FLOP']).default('FLOP'),
 });
 
 export const RepeatableEffectsSchema = z.strictObject({

@@ -1,5 +1,5 @@
 /**
- * Save v25 (#519): a raid's aftermath and the raiders a retaliation silenced. A v24 save migrates to neither held and
+ * Save v26 (#519): a raid's aftermath and the raiders a retaliation silenced. A v25 save migrates to neither held and
  * nothing else changes; both survive a round trip; a raid content no longer declares is dropped from both, a silenced
  * raider is listed once, and the record is validated as untrusted input.
  */
@@ -19,20 +19,20 @@ const forge = (s: GameState, edit: (save: Record<string, any>) => void): GameSta
   return deserialize(JSON.stringify(copy), reg);
 };
 
-describe('save v25 (#519)', () => {
+describe('save v26 (#519)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
   });
 
-  it('migrates a v24 save to no aftermath and nothing silenced, and keeps everything else', () => {
+  it('migrates a v25 save to no aftermath and nothing silenced, and keeps everything else', () => {
     const current = p4();
     const raw = JSON.parse(serialize(current)) as Record<string, any>;
-    const v24Conflict = { ...(raw.conflict as Record<string, unknown>) };
-    delete v24Conflict.lastRaid;
-    delete v24Conflict.silenced;
-    const v24 = { ...raw, conflict: v24Conflict, schemaVersion: 24 };
-    expect(migrate(v24, MIGRATIONS, 25)).toEqual({ ...raw, schemaVersion: 25 });
-    expect(deserialize(JSON.stringify(v24), reg)).toEqual(current);
+    const v25Conflict = { ...(raw.conflict as Record<string, unknown>) };
+    delete v25Conflict.lastRaid;
+    delete v25Conflict.silenced;
+    const v25 = { ...raw, conflict: v25Conflict, schemaVersion: 25 };
+    expect(migrate(v25, MIGRATIONS, 26)).toEqual({ ...raw, schemaVersion: 26 });
+    expect(deserialize(JSON.stringify(v25), reg)).toEqual(current);
   });
 
   it('keeps the aftermath and the silenced raiders across a round trip, byte for byte', () => {

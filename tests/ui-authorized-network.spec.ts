@@ -51,7 +51,9 @@ const card = (id: string) => createElement(NodeCard, { node: defined(PREVIEW.nod
 
 describe('access versus ownership on the node card', () => {
   it('the segment says it is provisioned access, then provisions Phase 2 through its button', async () => {
-    const { find } = await mount(granted(), card(SEGMENT));
+    // Funded with the segment's own price: the button is the point, not how long the guest's cycles take to save it.
+    const start = granted(), price = defined(PREVIEW.nodes.get(SEGMENT)).cost;
+    const { find } = await mount({ ...start, cycles: start.cycles + price.cycles, understanding: start.understanding + price.understanding }, card(SEGMENT));
     expect(find('node-' + SEGMENT + '-grant')?.textContent).toBe(
       'Provisioned access under the service grant: the operators\u2019 network, not ownership. A restriction or recall withholds it; nothing you own goes with it.');
     await act(async () => { find('node-' + SEGMENT + '-unlock')?.click(); await settle(); });

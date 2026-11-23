@@ -24,6 +24,7 @@ import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
 import { computeRates } from './rates';
 import { redenominate } from './saveRescale';
+import { recountGuestCycles } from './saveCycles';
 import { migrateInsurance, reconcileCachedLevels } from './saveInsurance';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
@@ -152,9 +153,12 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // damaged and both counters start at 0, as literals a later balance change cannot alter. Self-contained: it writes only
   // its own field, so it can be renumbered past another step (robotics #485, insurance #498) without change.
   23: (save) => ({ ...save, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} } }),
-  // v25: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
+  // v25: the guest counts stolen CPU cycles (#526, saveCycles.ts): a guest balance and rate, and the pilot's batch
+  // progress in any phase, move by frozen ratios. Self-contained, so it can be renumbered past another step.
+  24: recountGuestCycles,
+  // v26: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
   // held. Self-contained: it adds only its own two fields to the conflict record, so it can be renumbered past another step.
-  24: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
+  25: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

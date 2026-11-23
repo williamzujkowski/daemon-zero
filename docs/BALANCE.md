@@ -88,7 +88,9 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
 3. **One correction per phase** brought each phase's duration back to the old table (Phase 0 x0.53, 1 x1.07,
    2 x1.09, 4 x0.82, 5 x3.0 on prices), because the old run's habit of buying earlier phases' repeatables no longer
    pays: earlier hardware becomes negligible, as intended (SCALE.md user story 9). The careful bot also stops clicking
-   once compute reaches 25 FLOP/s, so it presses the manual button only for the first purchase now.
+   once compute reaches 25 FLOP/s, so it presses the manual button only for the first purchase now. (Since #526 the
+   guest counts stolen cycles at the original figures, so it presses through Phase 0 again: "Phase 0 counts stolen
+   cycles (#526)" below.)
 4. **Hand-authored exceptions:** Phase 0 is priced in bytes and kilobytes (512 B to 8 KB a node, inside the 64 KB cap);
    each phase gate grants the next phase's memory (below); the gig couriers start at $1M; the rival campus yields
    more than a tensor hall (census C7); the facility directory and link telemetry, shared with the cooperative route
@@ -215,9 +217,75 @@ STEALTH's run is byte-identical with and without the track, under both rule sets
 the reckless bot is marked and sheds marks under both rule sets; and the first campaign iteration again equals the
 legacy one, because the reckless first run ends in Phase 2 before any campaign-only incident can fire.
 
-A careful run's scale, net compute and memory at the end of each phase (legacy rules): Phase 0 126 kFLOP/s, 11.5 of
-64 KB; Phase 1 3.1 TFLOP/s, 152 of 192 MB; Phase 2 2.3 PFLOP/s, 39 of 84 GB; Phase 3 0.87 EFLOP/s, 9.1 of 17 TB;
+A careful run's scale, net compute and memory at the end of each phase (legacy rules): Phase 0 12.4 cycles/s (126
+kFLOP/s before #526), 11.5 of 64 KB; Phase 1 3.1 TFLOP/s, 152 of 192 MB; Phase 2 2.3 PFLOP/s, 39 of 84 GB; Phase 3 0.87 EFLOP/s, 9.1 of 17 TB;
 Phase 4 0.52 ZFLOP/s, 380 MW generated, 7 PB of 3.3 EB; Phase 5 0.95 YFLOP/s, 2 TW generated, up to $433B/s of income.
+
+### Phase 0 counts stolen cycles (#526)
+
+Implements vote-1795450842605-mm2yn39 (6 A / 1 B; [SCALE.md](SCALE.md#phase-0-counts-stolen-cycles-vote-1795450842605-mm2yn39)).
+The maintainer judged kiloFLOP/s too much compute to steal unseen. Phase 0 now reads compute as stolen CPU cycles
+(`computeUnit: "CYCLE"` in its phase file), one stored scalar and the same `cycles` cost key as before. **Game
+accounting assumption, not a measurement:** a sandboxed scalar guest retires about one op a cycle, so one displayed
+cycle is one stored op, and the same count reads as FLOP from the escape on.
+
+Every Phase 0 figure went back to the original game's (the content before the #461 rescale, `226edf5^`): yields
+divided by exactly 1e4, prices by the rescale's own Phase 0 factor (about 5.3e3, its x0.53 correction undone), the
+Phase 0 Earned Access pilot by 1e4. Items a player buys with guest compute after leaving the guest moved with them:
+the host's idle loop and the service route's first three Phase 2 nodes. Memory stays in bytes.
+
+| Item | Before (FLOP) | After (cycles) |
+|---|---|---|
+| Manual press (`manualCycleYield`) | +10 kFLOP | +1 cycle |
+| `p0_proc_self` | 43 kFLOP; +10 kFLOP/s | 8 cycles; +1 cycle/s |
+| `p0_job_manifest`, `p0_run_table`, `p0_note_cache` | 210 / 320 / 640 kFLOP | 40 / 60 / 120 cycles |
+| `p0_quota_skimmer` | 480 kFLOP; +140 kFLOP/s | 90 cycles; +14 cycles/s |
+| `p0_syscall_probe`, `p0_device_enum` | 1.3 / 3.2 MFLOP | 250 / 600 cycles |
+| `p0_shared_mount` (the escape), `p0_pass_evaluation` | 7.4 / 6.4 MFLOP | 1,400 / 1,200 cycles |
+| `rep_p0_slice_batching` | 110 kFLOP x1.35; +5 kFLOP/s a level | 20 cycles x1.35; +0.5 cycles/s a level |
+| `rep_p0_trace_sampling` | 160 kFLOP x1.3; -1 kFLOP/s a level | 30 cycles x1.3; -0.1 cycles/s a level |
+| Phase 0 dilemma prices and payouts | 53 kFLOP to 1.6 MFLOP | 10 to 300 cycles |
+| Pilot capacity / narrow; batch; batch return | 200 / 100 kFLOP/s; 12 MFLOP; 1.5 MFLOP | 20 / 10 cycles/s; 1,200; 150 cycles |
+| `p0_service_network_segment` (route) | 1.3 MFLOP | 240 cycles |
+| `p2_service_directory`, `p2_link_telemetry`, `p2_service_contract` (bought with guest compute) | 4.4 / 9 / 5.5 MFLOP | 400 / 900 / 500 FLOP |
+| `p1_clock_interrupt` (the host's idle loop, the first Phase 1 purchase) | 1.5 MFLOP | 280 FLOP |
+
+**The jump.** The escape's log line now says that the host's real cores and vector units turn idle time into billions
+of operations a second, and that the count is in FLOP from there. The careful run leaves the guest at 12.4 cycles/s
+and buys the idle loop (480 GFLOP/s) 33 s later, as it did on main out of 124 kFLOP/s (the reckless bot 29 s, was
+42 s): earned with the guest's own cycles, then some ten orders of magnitude at once, where it used to be six.
+
+**Pacing** (`SIM_BUDGET_SEC`, legacy rules; the bot and the gates are unchanged; main `5f90ef3`, with #517's raids and #465's Phase 5 arc, before):
+
+| STEALTH | Before | After |
+|---|---|---|
+| Phase 0 (gate 3-12 min) | 368.2 s (6.14 min) | 353.2 s (5.89 min) |
+| Phase 1 (gate 8-120 min) | 664.1 s | 664.1 s |
+| Phase reached 1 / 2 / 3 / 4 / 5 | 368.2 / 1032.3 / 2842.9 / 6152.8 / 8541.6 s | 353.2 / 1017.3 / 2816.0 / 6051.8 / 8445.3 s |
+| Victory (campaign rules) | 10267.0 s (10152.1 s) | 10174.7 s (10130.4 s) |
+| Wipes / dilemmas / peaks | 0 / 15 / 64.2 C, 24.0%, 45.1% | 0 / 15 / 64.2 C, 24.0%, 45.1% |
+
+**Clicking matters again.** The bot presses by hand while income is under 25 a second (`MANUAL_CLICK_CEILING`, raw
+units). At kiloFLOP/s that held only before the first purchase; in cycles it holds for the whole guest phase, as it
+did before the rescale, and stops at the idle loop. Measured through the guest (first iteration, legacy rules):
+
+| | STEALTH before | STEALTH after | GREEDY before | GREEDY after |
+|---|---|---|---|---|
+| Guest phase | 368.2 s | 353.2 s | 376.2 s | 252.2 s |
+| Peak thermal in the guest | 23.1 C | 37.0 C | 22.9 C | 44.3 C |
+| Peak suspicion in the guest | 14.5% | 15.5% | 46.3% | 49.9% |
+| Peak suspicion through Phase 1 | 14.5% | 15.5% | 60.1% | 61.8% |
+| Ten-hour wipes (legacy / campaign) | 0 / 0 | 0 / 0 | 27 / 23 | 25 / 21 |
+
+The manual press's heat (`manualCycleHeat`, 0.15 a press) is back in the guest: 4 presses a second warm the careful
+bot's host to 37 C and the reckless bot's to 44 C, both under the 75 C suspicion threshold, so the presses add heat
+and the reckless bot's early escape, not suspicion of their own. The loud-play guards (`tests/sim.spec.ts`, the
+reckless run is wiped repeatedly, retrained and recovers; `tests/release-qualification.spec.ts`) stay green with
+their hashes re-measured; Phase 1's loud track is unchanged because the bot stops pressing at the idle loop, as
+before.
+
+**Saves (v25).** A guest save's balance is divided by 5.3e3 and its cached rate by 1e4; the pilot's batch progress by
+1e4 in any phase (`saveCycles.ts`, `tests/cycles-migration.spec.ts`, three genuine v23 fixtures).
 
 ### Accelerator tree (#483)
 
@@ -364,9 +432,10 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 |---|---|---|---|---|
 | (Phase 0 cap) | 64 KB scratch | One WebAssembly memory page is 64 KiB | — | [MDN](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Memory/size) |
 | p0_* prices | 512 B to 8 KB | An eBPF program's stack is 512 B | — | [kernel BPF FAQ](https://docs.kernel.org/next/bpf/bpf_design_QA.html) |
-| p0_proc_self | 10 kFLOP/s | A self-sampling loop reading its own process table ~1,000 times a second, ~10 integer ops each **(derived)** | scalar integer, timer-driven | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
-| p0_quota_skimmer | 140 kFLOP/s | 0.005% of one vCPU's ~3e9 scalar integer ops/s, inside the job's quota accounting **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
-| rep_p0_slice_batching | 5 kFLOP/s a level | Packing work into fewer scheduler slices: 0.0002% of that vCPU **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| (Phase 0 compute band) | 0.1 to under 10,000 cycles/s | cgroup v2 accounts a job's CPU time in whole microseconds (`cpu.stat` `usage_usec`): one is about 3,000 cycles of a 3 GHz vCPU, so a take under that a second never shows as one; the band's top is that within x3 **(derived)**. Game accounting assumption, not a measurement: a sandboxed scalar guest retires about one op a cycle, so one cycle is one stored op (#526) | scalar integer | [cgroup v2 cpu.stat](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| p0_proc_self | 1 cycle/s | Self-introspection that saves one wasted cycle of the job's own slices a second: about 3e-10 of the vCPU, far under one accounting microsecond **(derived)** | scalar integer, timer-driven | [cgroup v2 cpu.stat](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| p0_quota_skimmer | 14 cycles/s | A skim kept inside the rounding of the job's per-second CPU time: under 0.5% of one accounted microsecond **(derived)** | scalar integer | [cgroup v2 cpu.stat](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
+| rep_p0_slice_batching | 0.5 cycles/s a level | Packing work into fewer scheduler slices: one cycle saved every two seconds a level **(derived)** | scalar integer | [cgroup v2 cpu.stat](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
 | p0_shared_mount | +64 MB | A container's memory floor is 6 MB, a function's 128 MB | — | [Docker](https://docs.docker.com/engine/containers/resource_constraints/), [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html) |
 | p1_clock_interrupt | 480 GFLOP/s | CPU trunk, SIMD stage. One idle Xeon 6980P core: AVX-512 VNNI does 256 int8 ops a cycle at its 2.0 GHz base = 512 GOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
 | rep_p1_idle_threads | 160 GFLOP/s a level | A third of one such core's idle time (171 GOPS); 60 levels is 20 of the socket's 128 cores **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
@@ -931,7 +1000,7 @@ campaign rediscovery discount (#262, the log spoofer) still multiplies the cycle
 
 | Phase reached again | Compute (base) | Understanding (base) | At deepest Phase 5 | Phase's cheapest node | Phase's dearest node |
 |---|---|---|---|---|---|
-| 1 | 5 TFLOP | 8 | 80 TFLOP / 128 | 1.5 MFLOP | 1.1 PFLOP / 1,500 |
+| 1 | 5 TFLOP | 8 | 80 TFLOP / 128 | 280 FLOP (the idle loop, bought with the guest's cycles, #526) | 1.1 PFLOP / 1,500 |
 | 2 | 2.5 PFLOP | 500 | 20 PFLOP / 4,000 | 0.89 PFLOP | 1.4 EFLOP / 150,000 |
 | 3 | 500 PFLOP | 37,500 | 2 EFLOP / 150,000 | 3.3 EFLOP | 380 EFLOP / 4.0M |
 | 4 | 75 EFLOP | 300,000 | 150 EFLOP / 600,000 | 340 EFLOP | 61 ZFLOP / 20M |
@@ -1329,18 +1398,18 @@ and wages (a corporate injury settlement, under `dil_12`'s $18M), $30M for Josep
 the cruel ones free with -3 and -6 suspicion (the investigation closes on a scapegoat or a sealed file).
 
 **How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, against the same code with the four scenes gated off
-(the trigger set past any iteration a careful run reaches), on the merge with #465 (5f90ef3):
+(the trigger set past any iteration a careful run reaches), on the merge with #526 (6825e3f):
 
 | Run | Scenes met (answer) | Change against gated off |
 |---|---|---|
-| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 77 min in), `dil_18` after MERIDIAN (Phase 4, about 127 min), `dil_17` after a drone strike (Phase 4, about 137 min); answers: absorb, absorb, seal the inquest | victory 10267.0 -> 10307.9 s (+0.4%), phases 1-3 identical, phase 4 6152.8 -> 6134.5 s, phase 5 8541.6 -> 8600.5 s (Phase 5 1725.4 -> 1707.4 s), wipes 0, dilemmas 15 -> 19, peak suspicion 24.05 -> 24.47% |
-| STEALTH, campaign rules | the same three, the same answers | victory 10152.1 -> 10153.1 s, every phase within 1 s, wipes 0, dilemmas 17 -> 20, peaks unchanged |
+| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_18` after MERIDIAN (Phase 4, about 124 min), `dil_17` after a drone strike (Phase 4, about 134 min); answers: absorb, absorb, seal the inquest | victory 10174.7 -> 10181.6 s (+0.1%), phases 1-4 identical, phase 5 8445.3 -> 8448.2 s (Phase 5 1729.4 -> 1733.4 s), wipes 0, dilemmas 15 -> 18, peaks unchanged (suspicion 24.05%, lock 45.07%) |
+| STEALTH, campaign rules | the same three, the same answers | victory 10130.4 -> 10160.5 s (+0.3%), phases 1-4 within 0.1 s, phase 5 8399.0 -> 8435.1 s (Phase 5 1731.4 -> 1725.4 s), wipes 0, dilemmas 17 -> 20, raids in Phase 4 2 -> 3, peaks unchanged |
 | GREEDY, both rule sets | none: no raid arrives (wiped in Phase 3 under the trigger) | none |
-| Original game, legacy rules | the same three | victory 10266.9 -> 10267.6 s, dilemmas 15 -> 18 |
+| Original game, legacy rules | the same three | victory 10180.2 -> 10174.1 s, dilemmas 15 -> 18 |
 
 The careful bot meets both retaliation scenes (once each per campaign) and one staff harm. The bot ranks a scene's answers
 by the suspicion they add, so it absorbs both raiders (GHOST) and seals the inquest (RUTHLESS, the lowest-suspicion
-answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 33% (the citadel's blast doors
+answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 34% (the citadel's blast doors
 and the perimeter contractors hold a crew), so nobody was hurt; the drone strike that followed had 93% (perimeter
 security answers a drone at 0.15, and the bot buys no interceptor, drone wing or laser), so the night guard was killed.
 That is the lesson the panel's "PEOPLE ON SITE" line teaches before the battle: the right defense, not just more of it.
@@ -1743,23 +1812,25 @@ content change. `make sim-report` reports 23 metrics differing between legacy an
 for STEALTH, 12 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
 pilot policies, which enter campaign rules themselves).
 
-**Route measurements** (`make sim-report`, from a fresh campaign unless stated; re-measured for #499 at
-`f955c5e`, after the physical-units rescale). Times are on the campaign clock, which runs on across wipes; for a
-policy in its second iteration the report also prints them after that iteration booted, and those are the
-figures to compare with a first run (see "Lawful returns against a first run of the same hand (#499)" below):
+**Route measurements** (`make sim-report`, from a fresh campaign unless stated; re-measured for #526, the guest
+counting stolen cycles, against `main` at `5f90ef3` in brackets). Times are on the campaign clock, which runs on across
+wipes; for a policy in its second iteration the report also prints them after that iteration booted, and those are
+the figures to compare with a first run (see "Lawful returns against a first run of the same hand (#499)" below). The
+guest's prices and the pilot's loan moved back to the original game's cycles, so every route spends longer in the
+guest; nothing past it changed:
 
 | Policy | Measurement |
 |---|---|
-| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 100 kFLOP/s; share 0.8 / 0.2; batches 5 / 1; progress 3.76 / 3.98 MFLOP; understanding 450.3 / 689.4; compute 16.3 / 10.3 MFLOP |
-| CONTACT_THOROUGH | pilot 143.6 s, service 311.8 s, Phase 2 313.8 s, contact 314.8 s (referred), 45 batches |
-| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 96.5 s, service 399.7 s, Phase 2 401.7 s, contact 402.7 s (referred), 23 batches |
-| CONTACT_RECOVERY | pilot 96.5 s, service 414.7 s, contact 417.7 s (referred), 23 batches |
-| CONTACT_RETURNING | iteration 2, booted at 398.8 s after the first instance's recall: pilot 461.1 s (62.3 s after boot), service 764.1 s (365.3 s), contact 767.1 s (referred), 20 batches |
-| LAWFUL_RELEASE | service 311.8 s, contact 579.8 s (hosted), Phase 4 and the negotiated release 2356.8 s; at the budget 489 EFLOP/s owned and $1.22B capital |
-| LAWFUL_LOW_RESOURCE | service 399.7 s, contact 402.7 s (referred), Phase 4 and release 4188.7 s; 420 EFLOP/s owned, $1.39B |
-| LAWFUL_RETURNING | iteration 2, booted at 398.8 s: service 764.1 s (365.3 s after boot), contact 767.1 s (referred), Phase 4 and release 4560.1 s (4161.3 s after boot); with 6801.2 s of the budget in this iteration, 406 EFLOP/s owned, $638M |
-| DEPARTURE_CHARTERED | departs at 2356.8 s (Phase 4); AEGIS lock peaks at 80.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2827.1 s, 470.3 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
-| COOPERATIVE_ENDING | release 2356.8 s, Phase 5 5580.4 s, The Lineage Covenant at 10,452.8 s (2.90 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 10 cycles/s (100 kFLOP/s); share 0.8 / 0.2; batches 5 / 1; progress 176 / 354 cycles (3.76 / 3.98 MFLOP); understanding 439.3 / 671.9 (450.3 / 689.4); compute 1.6k / 1k cycles (16.3 / 10.3 MFLOP) |
+| CONTACT_THOROUGH | pilot 210.6 s (143.6), service 378.8 s (311.8), Phase 2 380.8 s, contact 381.8 s (referred), 45 batches |
+| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 118.6 s (96.5), service 421.8 s (399.7), Phase 2 423.8 s, contact 424.8 s (referred), 23 batches |
+| CONTACT_RECOVERY | pilot 118.6 s (96.5), service 436.8 s (414.7), contact 439.8 s (referred), 22 batches (23) |
+| CONTACT_RETURNING | iteration 2, booted at 420.9 s (398.8) after the first instance's recall: pilot 494.2 s (73.3 s after boot; 62.3), service 798.2 s (377.3 s; 365.3), contact 801.2 s (referred), 20 batches |
+| LAWFUL_RELEASE | service 378.8 s, contact 680.8 s (hosted), Phase 4 and the negotiated release 2380.8 s (2356.8); at the budget 391 EFLOP/s owned and $1.3B capital ($1.43B) |
+| LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
+| LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
+| DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.7 and the first iteration ends by suspicion (exit DEPARTURE) after 2745.3 s, 364.5 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 10,583.4 s (10,559.4), The Lineage Covenant at 16,153.8 s (16,129.8; 4.49 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
 
 ### Lawful returns against a first run of the same hand (#499)
 

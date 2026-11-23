@@ -63,7 +63,7 @@ describe('M3 purchases', () => {
     expect(view.container.textContent).toContain(rep.name);
     view.click('rep-' + rep.id + '-buy');
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(1);
-    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(costPart('cycles', repeatableCost(rep, 1).cycles));
+    expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-cost"]')?.textContent).toContain(costPart('cycles', repeatableCost(rep, 1).cycles, 'CYCLE'));
     act(() => { gameStore.initialize({ ...grant(rich(), node.id), levels: { [rep.id]: rep.maxLevel } }, 0, null); });
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '-buy"]')).toBeNull();
     expect(view.container.querySelector('[data-testid="rep-' + rep.id + '"]')).toBeNull();

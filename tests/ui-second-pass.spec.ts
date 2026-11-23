@@ -85,7 +85,7 @@ describe('second-pass interface', () => {
     const card = view.find('node-' + root.id);
     expect(card?.textContent).toContain('[REMEMBERED] ' + root.revealedName);
     expect(card?.textContent).not.toContain(root.blindName);
-    expect(view.find('node-' + root.id + '-cost')?.textContent).toMatch(new RegExp('^Cost: ' + costPart('cycles', Math.ceil(root.cost.cycles / 2)).replace('.', '\\.') + ' .*\\(remembered\\)$'));
+    expect(view.find('node-' + root.id + '-cost')?.textContent).toMatch(new RegExp('^Cost: ' + costPart('cycles', Math.ceil(root.cost.cycles / 2), 'CYCLE').replace('.', '\\.') + ' .*\\(remembered\\)$'));
     view.close();
   });
 });
