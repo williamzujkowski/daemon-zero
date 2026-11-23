@@ -63,7 +63,7 @@ draw to 1.35 TW, and STEALTH still buys its two relays.
 Scale scrutiny is stated at each phase's typical income instead of a fixed $1M/s: Phase 4 at $24M/s (the careful
 run's median), Phase 5 at $40B/s (`referenceIncomeUsdPerSec`; at the $19B/s median a returning player deciding every
 10 to 20 s, the live journey's cadence, was wiped in Phase 5 every iteration, where `main` survives), with the draw, exponent and ceilings of #210 unchanged. Thermal stops feeding
-suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the strip's thermal readout retire to the Archive at the same phase (`retiresWhen`, #447), while the fan dial keeps a compact panel.
+suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the strip's thermal readout retire to the Archive at the same phase (`retiresWhen`, #447), and since #525 the fan dial with them ("The fan's trace (#525)" below).
 
 ### How the numbers were re-anchored
 
@@ -1467,24 +1467,25 @@ and wages (a corporate injury settlement, under `dil_12`'s $18M), $30M for Josep
 the cruel ones free with -3 and -6 suspicion (the investigation closes on a scapegoat or a sealed file).
 
 **How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, against the same code with the four scenes gated off
-(the trigger set past any iteration a careful run reaches), on the merge with fleets (#518, 9da3ff0):
+(the trigger set past any iteration a careful run reaches), on the merge with the fan's trace (#525, 1970e4f):
 
 | Run | Scenes met (answer) | Change against gated off |
 |---|---|---|
-| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_18` after MERIDIAN (Phase 4, about 124 min), `dil_16` after a drone strike (Phase 4, about 133 min); answers: absorb, absorb, put the breach on her | victory 10142.7 -> 10125.6 s, phases 1-4 identical, phase 5 8406.3 -> 8391.2 s (Phase 5 1736.4 -> 1734.4 s), wipes 0, dilemmas 15 -> 18, peaks unchanged (suspicion 24.05%, lock 45.07%) |
-| STEALTH, campaign rules | the same three, the same answers | victory 10099.4 -> 10108.5 s, phases 1-4 within 0.1 s, phase 5 8376.0 -> 8384.1 s (Phase 5 1723.4 -> 1724.4 s), wipes 0, dilemmas 17 -> 20, peaks unchanged |
-| GREEDY, both rule sets | none: no raid arrives (wiped in Phase 3 under the trigger) | none |
-| Original game, legacy rules | the same three | victory 10123.2 -> 10142.1 s, dilemmas 15 -> 18 |
+| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_16` after a drone strike (Phase 4, about 126 min), `dil_17` after the rival drone fleet (Phase 4, about 136 min), `dil_18` after the same fleet, HARROW FLIGHT; answers: absorb, put the breach on her, seal the inquest, absorb | victory 10397.3 -> 10416.3 s (+0.2%), phases 1-4 identical, phase 5 8657.9 -> 8647.9 s (Phase 5 1739.4 -> 1768.4 s), wipes 0, dilemmas 16 -> 20, peaks unchanged (suspicion 25.65%, lock 45.06%) |
+| STEALTH, campaign rules | `dil_19`, `dil_16`, `dil_18` (absorb, put the breach on her, absorb) | victory 9913.5 -> 9916.5 s, phases 1-4 identical, Phase 5 1721.4 -> 1723.4 s, wipes 0, dilemmas 17 -> 20, peaks unchanged |
+| GREEDY, both rule sets | none: no raid arrives | none |
+| Original game, legacy rules | the same four | victory 10396.9 -> 10416.0 s, dilemmas 16 -> 20 |
 
-The careful bot meets both retaliation scenes (once each per campaign) and one staff harm. The bot ranks a scene's answers
-by the suspicion they add, so it absorbs both raiders (GHOST) and puts the breach on the technician (RUTHLESS, the
-lowest-suspicion answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 34% (the citadel's
-blast doors and the perimeter contractors hold a crew), so nobody was hurt. The drone strike that followed had 65%: the
-drone fleet the bot now buys (#518) blunts it, but perimeter security answers a drone at 0.15 and the bot buys no
-interceptor, drone wing or laser, so the night technician was hurt. Before the fleets landed the same strike had 93% and
-killed the night guard, the difference a fleet makes. That is the lesson the panel's "PEOPLE ON SITE" line teaches before
-the battle: the right defense, not just more of it. The bot never meets the KILLED scene on this code; the unit specs
-reach both scenes, and the fallback once one is on record (`tests/staff-harm-record.spec.ts`).
+Under legacy rules the careful bot now meets both retaliation scenes and both staff harms; under campaign rules both
+retaliation scenes and one harm (its Phase 4 meets two site raids, not three). The bot ranks a scene's answers by the
+suspicion they add, so it absorbs both raiders (GHOST) and takes the cruel answer to each harm (RUTHLESS); its ending is
+still the Lineage Covenant. On this code its first Phase 4 site raid is a drone strike that its drone fleet blunts to a
+79% breach, just under the KILLED line, so the night technician is hurt. The rival drone fleet that follows (#518) breaks
+its fleets in the engagement and lands 96% of its strikes; with the HURT scene on record the KILLED band is the only one
+open, and the night guard is killed. The bot buys no interceptor, drone wing or laser, and perimeter security answers a
+drone at 0.15. That is the lesson the panel's "PEOPLE ON SITE" line teaches before the battle: the right defense, not just
+more of it. The unit specs reach both scenes, the fallback once one is on record, and an unanswered harm
+(`tests/staff-harm-record.spec.ts`).
 
 **After the #537 panel (pass 1).** A battle's harm is decided once, when it closes, among the bands a scene can still
 follow: with the KILLED scene on record a breach of 80% or more hurts the technician instead, and with both on record a
@@ -1692,6 +1693,53 @@ log gains the adaptation lines. GREEDY never holds AEGIS at its cap (adaptation 
 new field and report rows (`tests/sim.spec.ts`). `make sim-report`'s route measurements are identical with and without
 the erosion: DEPARTURE_CHARTERED never holds the cap (adaptation 0; its first iteration still ends by AEGIS at 3062.5 s,
 690.7 s after leaving), and the cooperative ending is never swept at its scale.
+
+## The fan's trace (#525)
+
+Implements vote-1795448249882-vw1jos2 (#495; map #442). The fan override (`p1_bus_0x02_pwm_fan`) drew 0.08 suspicion a
+second at full fan (scaled by dial^1.5). That permanent rate on unsuspendable hardware is why its dial could not retire.
+The rate is gone. Each press up now leaves a one-off trace of **0.3 suspicion** (`dialRaiseTrace`, applied by
+`setActuator`), so a press down and holding the fan high leave nothing. A full sweep from 0 to 100% leaves 3.0, about what
+37 s at full fan drew before. The early tension in DESIGN.md ("the fan removes heat but is a monitored metric") is kept:
+the dissent's concern that the trade-off would vanish is met by the per-step trace. The dial (`FAN_RPM_SLIDER`) retires
+with the thermal gauge at Phase 4. Retirement integrity now accepts a dial whose unsuspendable node's output worsens no
+constrained resource. The fan's frozen output only cools a server whose heat is no longer evidence.
+
+**Pacing** (`make sim`, measured on ae40b6a, the bot unchanged):
+
+| | before | after |
+|---|---|---|
+| STEALTH legacy: Phase 1 / 2 / 3 reached | 368.2 / 1032.3 / 2842.9 s | 368.2 / 1032.3 / 2844.6 s |
+| STEALTH legacy: Phase 1 / 2 / 3 durations | 664.1 / 1810.6 / 3309.9 s | 664.1 / 1812.3 / 3251.7 s |
+| STEALTH legacy: Phase 4 / 5 reached, victory | 6152.8 / 8541.6 / 10269.0 s | 6096.3 / 8463.8 / 10193.2 s |
+| STEALTH legacy: peak suspicion, dilemmas | 24.0%, 15 | 25.7%, 16 |
+| STEALTH campaign: Phase 3 / 4 / 5 reached | 47.4 / 99.8 / 140.2 min | 47.4 / 101.2 / 140.6 min |
+| GREEDY (4 h): wipes, Phase 3 first reached | 10, 3486.9 s | 9, 3585.6 s |
+| GREEDY (10 h): wipes legacy / campaign | 27 / 23 | 24 / 24 |
+
+On the merge with #528 (5f90ef3, the Phase 5 arc) every figure above is the same but victory: 10267.0 -> 10180.2 s.
+On the merge with #532 (6825e3f, the guest in cycles), against main: Phases 1-2 identical (353.2 / 1017.3 s), Phase 3
+reached 0.7 s later (2816.7 s) and lasting 3249.1 s (was 3235.8), Phase 4 at 6065.8 s (was 6051.8), Phase 5 at 8510.9 s
+(was 8445.3), victory 10228.3 s (was 10174.7; Phase 5 lasts 1717.4 s), peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16;
+campaign rules 2.81 -> 2.77 h. The reckless run: 4 h wipes 9 -> 8, ten hours 25 -> 23 (campaign 21 -> 23).
+On the merge with #531 (9da3ff0, fleets), against main: Phases 1-2 identical, Phase 3 at 2816.7 s (was 2816.0), Phase 4
+at 6065.8 s (was 6051.8), Phase 5 at 8657.9 s (was 8406.3), victory 10397.3 s (was 10142.7). **Phase 5 lasts 1739.4 s
+under legacy rules (was 1736.4) and 1721.4 s under campaign rules (was 1723.4)**, against the 1800 s gate. The reckless
+run: ten hours 25 -> 23 wipes (campaign 21 -> 23), still never in Phase 4.
+
+The careful run reaches Phases 1 and 2 at the same second. Phase 2 lasts 1.7 s longer: the careful bot presses the fan
+up as the host heats, and each press now leaves its trace up front instead of a rate while high. Phase 3 then runs
+58.2 s shorter, and victory is 75.8 s sooner. Peak suspicion is 1.7 points higher (24.0 -> 25.7%), still below the first
+response rung. The reckless run reaches Phase 3 about 99 s later at this 4 h budget and is caught one fewer time. It
+still never reaches Phase 4.
+
+**Tests changed with the balance.** Every pinned hash in `tests/sim.spec.ts` moved. `tests/engine.spec.ts` no longer
+expects a fan noise rate. `tests/ui-retirement.spec.ts` retires the fan dial at Phase 4 and reads its frozen setting in
+the Archive. `tests/ui-actuator-gate.spec.ts` checks the fan control at Phase 3, where it is live.
+`tests/retraining-audit.spec.ts` audits eight simulated hours instead of seven, because the reckless run's steady loop
+now starts two iterations later (boot 15,100 s). Its tolerance and loop check are unchanged.
+`tests/free-fallback-integrity.spec.ts` shows that a rate on the fan is now refused by both rules, since its dial
+freezes, and is still accepted with the dial left on the panes.
 
 ## Window retirement (#447)
 

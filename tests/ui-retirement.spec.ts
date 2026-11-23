@@ -120,20 +120,25 @@ describe('the thermal gauge at corporate scale (#461, docs/SCALE.md rule 7)', ()
     expect(view.find('widget-FAN_RPM_SLIDER')).toBeNull();
   });
 
-  it('retires at Phase 4 with the strip reading, while the hardware fan keeps a compact panel and suspicion stays', async () => {
+  it('retires at Phase 4 with the strip reading and the fan dial (#525), while suspicion stays', async () => {
     const view = await mountM4('victory-ready', PHONE);
     const game = gameStore.store.getState().game;
     expect(retiredWidgets(game, CONTENT)).toContain('THERMAL_AND_SUSPICION_BARS');
-    expect(retiredWidgets(game, CONTENT)).not.toContain('FAN_RPM_SLIDER');
+    expect(retiredWidgets(game, CONTENT)).toContain('FAN_RPM_SLIDER');
     expect(view.find('thermal-meter')).toBeNull();
     expect(view.find('suspicion-meter')).not.toBeNull();
     view.click('tab-SENSORS');
     expect(view.find('widget-THERMAL_AND_SUSPICION_BARS')).toBeNull();
-    expect(view.find('widget-FAN_RPM_SLIDER')?.querySelector('[data-testid="fan-increase"]')).not.toBeNull();
+    expect(view.find('widget-FAN_RPM_SLIDER')).toBeNull();
+    expect(view.find('fan-increase')).toBeNull();
     view.click('tab-NETWORK');
     view.click('workspace-NETWORK-reference');
     view.click('reference-archive-THERMAL_AND_SUSPICION_BARS');
     expect(view.find('thermal-archived')?.textContent).toContain('heat is no longer evidence');
+    // The dial reads its frozen setting in the Archive, with no buttons; hardware has no PROC lever to name.
+    view.click('reference-archive-FAN_RPM_SLIDER');
+    expect(view.find('fan-archived')?.textContent).toBe(`Fan output: ${String(Math.round(game.actuators.fanSpeedRatio * 100))}%, fixed at its last setting.`);
+    expect(view.find('fan-archived-proc')).toBeNull();
     expect(view.find('archive')?.querySelector('[data-testid="fan-increase"]')).toBeNull();
   });
 });

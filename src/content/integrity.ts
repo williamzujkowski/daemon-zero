@@ -38,7 +38,7 @@ import { checkRouteCopyIntegrity } from './integrityRouteCopy';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
-import { dialOf } from './integrityDials';
+import { checkDialTraces, dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
 import { checkAlignmentIntegrity } from './integrityAlignment';
@@ -298,7 +298,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkPoweredOutputIntegrity(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
-    ...checkActuatorHosts(reg),
+    ...checkActuatorHosts(reg), ...checkDialTraces(reg.nodes.values()),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
     // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).

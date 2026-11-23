@@ -20,7 +20,8 @@ const Finance = () => createElement(Corporate, { area: 'finance' });
 // The skim is open on the subnet: from the internet on its window has retired (#447), which the last case covers.
 const CASES: [Actuator, ComponentType, string, string, string][] = [
   ['quotaSkimRatio', QuotaSkim, 'skim-setting', 'skim-decrease', 'deaddrop-breadcrumb'],
-  ['fanSpeedRatio', FanControl, 'fan-setting', 'fan-decrease', 'victory-ready'],
+  // The fan dial retires with the thermal gauge at Phase 4 (#525), so it is checked where it is live.
+  ['fanSpeedRatio', FanControl, 'fan-setting', 'fan-decrease', 'phase-3-aegis-90'],
   ['computeProfitAllocationRatio', Finance, 'allocation-value', 'allocation-0', 'victory-ready'],
 ];
 
