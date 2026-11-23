@@ -47,6 +47,8 @@ interface Indexed {
   classes: readonly { kind: SignatureTermKind; cls: SignatureClass }[];
   nodes: ReadonlyMap<string, { node: RegistryNode; sig: Compiled }>;
   tracks: readonly { id: string; sig: Compiled }[];
+  /** One pair of slot buffers, rewritten in full by every flows() call: the stage asks on every tick. */
+  scratch: Flows;
 }
 
 /**
@@ -66,6 +68,7 @@ function indexed(reg: ContentRegistry): Indexed {
     });
     found = {
       classes,
+      scratch: { watts: new Float64Array(classes.length), masks: new Float64Array(classes.length) },
       nodes: new Map([...reg.nodes.values()].flatMap((node) => node.signature ? [[node.id, { node, sig: compile(node.signature, node.tickDelta.wattsDelta) }] as const] : [])),
       tracks: [...reg.repeatables.values()].flatMap((rep) => rep.signature ? [{ id: rep.id, sig: compile(rep.signature, rep.perLevel.wattsDelta) }] : []),
     };
@@ -88,8 +91,9 @@ function carry(f: Flows, sig: Compiled, count: number, used: number, heat: numbe
 
 /** Watts through each class and each class's mask, from every owned holding whose output runs (a suspended node's stop). */
 function flows(s: GameState, rates: SignatureRates, reg: ContentRegistry, heatCounts: boolean): Flows {
-  const { classes, nodes, tracks } = indexed(reg);
-  const f: Flows = { watts: new Float64Array(classes.length), masks: new Float64Array(classes.length).fill(1) };
+  const { nodes, tracks, scratch: f } = indexed(reg);
+  f.watts.fill(0);
+  f.masks.fill(1);
   const used = rates.wattsGenerated > 0 ? Math.min(1, rates.wattsConsumed / rates.wattsGenerated) : 0;
   const heat = heatCounts ? rates.gridEfficiency : 0;
   // Walk what is owned and look each up, rather than searching the owned list once per signature node: this runs every tick.
