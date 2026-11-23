@@ -64,17 +64,6 @@ describe('the scale ladder (#461)', () => {
       .toMatch(/node "p1_bus_0x05_nic": memory grant .* outside the Phase 1\/2 band/);
   });
 
-  it('refuses a compute drain with no free way out: an undismissable track or an unsuspendable node (#488)', () => {
-    const cache = (raw: never) => (raw as { repeatables: { repeatables: (Json & { perLevel: Json })[] } }).repeatables.repeatables
-      .find((rep) => rep.id === 'rep_p1_pattern_cache') as Json & { perLevel: Json };
-    // The content as pass 1 of the panel saw it: the cache drained and could not be dismissed.
-    expect(problemsAfter((raw) => { cache(raw as never).dismissable = false; }))
-      .toMatch(/repeatable "rep_p1_pattern_cache": drains compute but cannot be dismissed/);
-    expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x01_thermal').tickDelta.cyclesPerSec = -5.5e10; }))
-      .toMatch(/node "p1_bus_0x01_thermal": drains compute but cannot be suspended/);
-    expect(problemsAfter((raw) => { cache(raw as never).perLevel.cyclesPerSec = -4.4e12; })).not.toMatch(/rep_p1_pattern_cache/);
-  });
-
   it('prices a bridge purchase from the band a player arrives with', () => {
     // Phase 1 is entered from Phase 0, so its first purchase may be priced in kiloFLOP; never below the ladder.
     expect(problemsAfter((raw) => { node(raw, 'p1_clock_interrupt').cost.cycles = 2e3; })).toBe('');

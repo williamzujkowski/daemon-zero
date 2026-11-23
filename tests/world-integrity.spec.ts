@@ -94,6 +94,7 @@ describe('adaptation keeps a way out of the held band', () => {
   });
 
   it('allows a node below the held band that cannot be suspended', () => {
-    expect(problems((raw: Json) => { node(raw, 'p4_k_street_lobbyists').suspendable = false; })).toBe('');
+    // The held-band rule allows it; the free-fallback rule (#488) may still object to what else the node costs.
+    expect(problems((raw: Json) => { node(raw, 'p4_k_street_lobbyists').suspendable = false; })).not.toMatch(/held band/);
   });
 });

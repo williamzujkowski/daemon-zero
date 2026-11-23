@@ -115,26 +115,6 @@ function checkOneShots(reg: ContentRegistry): string[] {
   return problems;
 }
 
-/**
- * Nothing bought may cost compute forever without a free way out (#488 panel): a repeatable with a compute drain must be
- * dismissable one level at a time, and a node with one must be suspendable. Hardware cannot be suspended (maintainer
- * intent), so hardware carries no compute drain; its running cost is heat and attention.
- */
-function checkDrains(reg: ContentRegistry): string[] {
-  const problems: string[] = [];
-  for (const rep of reg.repeatables.values()) {
-    if (rep.perLevel.cyclesPerSec < 0 && !rep.dismissable) {
-      problems.push(`repeatable "${rep.id}": drains compute but cannot be dismissed, so a level bought could never be undone`);
-    }
-  }
-  for (const node of reg.nodes.values()) {
-    if (node.tickDelta.cyclesPerSec < 0 && !node.suspendable) {
-      problems.push(`node "${node.id}": drains compute but cannot be suspended, so its deficit could never be undone`);
-    }
-  }
-  return problems;
-}
-
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkDrains(reg)];
+  return [...checkPurchasables(reg), ...checkOneShots(reg)];
 }
