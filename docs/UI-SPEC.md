@@ -78,7 +78,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 - An unowned node is listed when its structural prerequisites are met in the current phase. `isNodeAvailable` controls purchase permission. This resolves the old contradiction: that query excludes unmet requirements, while the interface needs to explain those requirements.
 - Owned hardware with negative compute (FLOP/s), positive heat load or positive suspicion/s moves to the header's `[ PROC n ]` maintenance panel, grouped by phase. The launcher appears only once a process needs a control; the purchase panes contain no daemon rows. Each row contains only its revealed name, current net compute contribution and a 44px `[ SUSPEND / RESUME ]` control. Rows wrap at narrow widths to preserve complete names without horizontal scrolling; lore, prices and requirement blocks are absent. The panel shows running/suspended counts and closes with its Close button or platform Back/Escape. Closing it never suspends processes. A mandatory dilemma takes precedence.
 - Purely beneficial owned hardware has no row. An already-disabled passive node restored from an older save gets a temporary resume row; resuming removes it. The engine field is `disabledNodes`; memory and one-shot unlocks retain existing engine semantics.
-- Repeatables disappear when their engine level reaches `maxLevel`. A track with a compute drain is dismissable too (#488): its card offers `Release one level of <name>` (`rep-{id}-dismiss`), "Release one level and its compute drain; no refund.", so no purchase can trap a run in a deficit. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
+- Repeatables disappear when their engine level reaches `maxLevel`. A track that is not a hire but could otherwise trap a resource (a compute drain, a loud track, a paid generator or a powered hall) is dismissable too (#488, the free-fallback invariant, ARCHITECTURE.md): its card offers `Release one level of <name>` (`rep-{id}-dismiss`), "Release one level: its output and running costs stop. No refund.", so no purchase can trap a run. The suspicion guidance names such a track as "release one level of <name> on its upgrade card", never PAYROLL, which holds hires only, and the insolvency remedy names "release levels of paid infrastructure on their upgrade cards" only while a held level costs money each second. Capped dismissable operatives retain only a compact payroll dismissal row; dismissal brings the purchase tile back below cap. Empty infrastructure/phase purchase headings disappear. Trust meters, usable actions and other non-purchase controls remain.
 - Faction/corporate one-shot offers are ordinary nodes and follow the same ownership rule. Capped actions disappear at `maxPurchases`; mutually excluded epistemic edits also disappear. Cooldown alone never hides a reusable action.
 - Live purchases retain authored log feedback. Names in newly mounted daemon rows decrypt briefly (skip under reduced motion); passive purchases do not keep a full card just to animate it.
 
@@ -552,7 +552,11 @@ receipts refer to that arrival. Historical save logs remain unchanged.
 Wild signals show origin, signature, instant CONSUME effects and HARNESS RAM/output
 previews. Forks show costs; cohorts show count, allocated MB, numeric/ASCII drift,
 autonomy mode and quirk details. PRUNE, CLAMP and ELEVATE explain their effects,
-prices and missing requirements. Buttons remain at least 44 px in both dimensions.
+prices and missing requirements. `[ RELEASE ]` (`shard-{id}-release`, #488 pass 3) follows them in every autonomy
+mode: "RELEASE: free. One member's task ends; its output stops and its memory returns." plus any reason it waits
+(a pending anomaly decision); it lets one member go, so a clamped or elevated cohort's cost is never permanent, and
+the suspicion guidance names it as "release one member of <cohort> in SWARM" where that lowers the applied rate.
+Buttons remain at least 44 px in both dimensions.
 
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
@@ -786,7 +790,7 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
 - **A hosted fragment is not commanded (#309).** The swarm row of a cohort holding a fragment hosted
   through the support channel shows `shard-terms-<id>` with `Hosted through an authorized channel on
   the terms it was offered: it is not commanded.` in place of the PRUNE / CLAMP / ELEVATE help line
-  and controls.
+  and controls, `[ RELEASE ]` included: hosting ends only with the instance, as its obligations say.
 - **A waiting ticket off screen (#284).** The phone tier shows one pane, so while a support
   channel ticket waits on CORE and another pane is open, the chrome shows a non-modal notice
   (`contact-notice`, polite live region, `[ OPEN CORE ]`) beside the omen and response notices,

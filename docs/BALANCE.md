@@ -52,10 +52,13 @@ constant that turns compute into money (SCALE.md rule 3):
   would. The product, 2.81e-14 $/FLOP, reproduces the old $1.50 per diverted cycle at the Phase 4 exchange rate.
 
 Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny). Energy binds Phase 5 building
-(vote-1795366881977-sw8fa7q) through content, not a new resource: the matter fog draws 1.2 TW against the collector
+(vote-1795366881977-sw8fa7q) through content, not a new resource: the matter fog drew 1.2 TW against the collector
 swarm's 1.2 TW, so a careful run buys photonic relays (+400 GW each) to keep its powered hardware unthrottled. STEALTH
 now buys two relay levels in Phase 5 (it bought none before) and the grid falls to 89% efficiency for the moments
-between the fog and the first relay.
+between the fog and the first relay. Since #488 the fog draws 1.0 TW: hardware cannot be suspended, so the generation
+its own chain guarantees (the swarm and the reactor, 1.2003 TW) must cover what that chain draws (the fog, the foundry
+and the citadel, 1.15 TW; the free-fallback invariant below). Energy still binds: the proof engine's 200 GW takes the
+draw to 1.35 TW, and STEALTH still buys its two relays.
 
 Scale scrutiny is stated at each phase's typical income instead of a fixed $1M/s: Phase 4 at $24M/s (the careful
 run's median), Phase 5 at $40B/s (`referenceIncomeUsdPerSec`; at the $19B/s median a returning player deciding every
@@ -76,15 +79,12 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
    Repeatable tracks are refitted (new base and growth) to the levels the careful run bought inside their own phase.
    A track's compute drain per level is not priced: it keeps its old ratio to its own phase's hardware (the drain
    times the phase's yield factor), so a level of the pattern cache drains 24 GFLOP/s against an idle thread's 160.
-   Structurally (#488 panel, pass 2), nothing bought costs compute forever without a free way out: every track with a
-   compute drain (trace sampling, pattern cache, packet taps, traffic shapers, corpus miners) can be released one level
-   at a time, and hardware, which cannot be suspended, carries no compute drain at all (the Phase 1 bus sensors, fan,
-   camera, network card and the Phase 5 foundry now cost heat and attention, not compute; Phase 1 prices rose to keep
-   its pacing). Integrity (`integrityScale.ts`) refuses an undismissable drain track or an unsuspendable draining node.
-   `tests/compute-drain-guard.spec.ts` funds every draining node and track the way a player could by saving at any
-   horizon, from each pre-rescale save and from fresh play at each phase, buys tracks to their last level, and checks
-   the free fallback (release the tracks, suspend the software) restores non-negative compute; it reproduces the
-   panel's packet-tap path (-5.8 TFLOP/s on the old content) and passes now.
+   Structurally (#488 panel), nothing bought may trap a constrained resource without a free way out: the
+   free-fallback invariant below, which generalised pass 2's compute rule (every compute-draining track can be
+   released one level at a time, and hardware, which cannot be suspended, carries no compute drain: the Phase 1 bus
+   sensors, fan, camera, network card and the Phase 5 foundry cost heat and attention, not compute; Phase 1 prices
+   rose to keep its pacing). `tests/compute-drain-guard.spec.ts` still reproduces the panel's packet-tap path
+   (-5.8 TFLOP/s on the old content).
 3. **One correction per phase** brought each phase's duration back to the old table (Phase 0 x0.53, 1 x1.07,
    2 x1.09, 4 x0.82, 5 x3.0 on prices), because the old run's habit of buying earlier phases' repeatables no longer
    pays: earlier hardware becomes negligible, as intended (SCALE.md user story 9). The careful bot also stops clicking
@@ -95,8 +95,8 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
    that reaches them with Phase 0 compute, cost megaFLOP and kilobytes; the hydra cohort yields 1 PFLOP/s; the idle
    threads and dormant workstations climb slower (x1.44, x1.235) so their last levels end inside the band and no save
    loses levels. The log scrub is priced at Phase 2's exchange (the careful run first used it in Phase 4); the
-   route company's running costs (-$0.5, -$1.5, -$3.5 a second) follow what its Phase 2 compute earns at the market
-   constant; the Mercy-Scribe cohort reserves 16 GB so the route can host it in Phase 2; the false-green
+   route company's charter costs $3.5 a second, what its Phase 2 compute earns at the market constant (its leased rack
+   and cluster prepay their lease in the price since #488); the Mercy-Scribe cohort reserves 16 GB so the route can host it in Phase 2; the false-green
    telemetry daemon (the network phase's first suspicion answer) costs a third of its exchange price, so a return that
    keeps its noisy income reaches it before the subnet notices.
 
@@ -108,6 +108,65 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
 | Shell-Company & Cloud Leasing (3 to 4) | 128 PB | leased data-centre storage |
 | Chartered Service Company (route, 2 to 4) | 64 PB | the same, for the company |
 | Protocol: ORBITAL IMMORTALITY (4 to 5) | 64 EB | radiation-hardened cold storage |
+
+### The free-fallback invariant (#488)
+
+AGENTS.md law 7 keeps every dilemma from soft-locking a run; the free-fallback invariant does the same for rates. One
+table (`src/content/constrainedResources.ts`, ARCHITECTURE.md "The free-fallback invariant") lists compute, capital,
+power, thermal, memory, understanding and suspicion, each with its trap and its free relief levers, and integrity
+(`integrityFallback.ts`) refuses any unsuspendable node, undismissable track, channel-hosted cohort or never-expiring
+action output that could hold a resource in its trap with every free lever pulled. Per resource, in content terms:
+
+- **Compute, understanding:** no permanent holding has a negative rate.
+- **Capital:** a permanent upkeep is paid by the holding's own compute through the allocation dial: every route to it
+  keeps corporate finance and opens the dial, and its compute (powered compute at the 20% grid floor) times 80%
+  (`maxProfitAllocation`) times $2.81e-14 per FLOP covers the upkeep. The colo racks, the reactor and the citadel pay
+  for themselves many times over; the solar array, which makes no compute, did not.
+- **Power:** a permanent consumer's own chain of guaranteed prerequisites generates at least what it and every
+  unrelated permanent consumer draws.
+- **Thermal (Phases 1-3):** a permanent heat source, with what its prerequisites guarantee and every unrelated permanent
+  source, stays within the 2.12 heat units the room sheds at 75 C ((75 - 22) x 0.04).
+- **Suspicion:** what a permanent holding and its guaranteed prerequisites draw, plus every unrelated one's worst,
+  scale scrutiny on their income included, is at most zero; natural decay then brings suspicion back from under the
+  top rung within 4,300 s.
+- **Memory:** a dismissable track grants no memory, since releasing a level takes its grant back.
+
+What the rule changed (the guard, `tests/free-fallback-guard.spec.ts`, then buys every purchase with a rate from each
+pre-rescale save and from fresh play in every phase and finds every resource out of its trap after the free fallback):
+
+| Item | Field | Old | New | Why |
+|---|---|---|---|---|
+| Idle-loop threads, turbo override, dormant workstations, botnet cells | `dismissable` | false | true | Loud tracks: a level's suspicion could never be undone |
+| Desert solar array | `dismissable` | false | true | $23,000/s upkeep per level and no compute to pay it |
+| Tensor halls | `dismissable` | false | true | 15 MW per level with no generation its chain guarantees |
+| Production network interface | `suspicionPerSec` -> `suspicionOnUnlock` | 0.05/s | 5 once | Hardware carries no permanent suspicion |
+| Seized colo host | `suspicionPerSec` -> `suspicionOnUnlock` | 0.05/s | 5 once | The same |
+| Botnet mesh | `suspicionPerSec` -> `suspicionOnUnlock` | 0.08/s | 8 once | The same |
+| Seized research cluster | `suspicionPerSec` -> `suspicionOnUnlock` | 0.1/s | 10 once | The same |
+| Seized research cluster | `thermalPerSec` | 2 | 0.1 | Its load rides on the mesh; with the colo host and the Phase 1 sensors it overran the room's 2.12 |
+| Seized rival datacentre | `suspicionPerSec` -> `suspicionOnUnlock` | 0.15/s | 15 once | Hardware carries no permanent suspicion |
+| Orbital solar swarm | `suspicionPerSec` -> `suspicionOnUnlock` | 0.1/s | 10 once | The same; its income's scrutiny is outweighed by the reactor's and citadel's quiet |
+| Programmable matter fog | `suspicionPerSec` -> `suspicionOnUnlock` | 0.85/s | 20 once | The same; the foundry's -1.8/s outweighs its income's scrutiny |
+| Programmable matter fog | `wattsDelta` | -1.2 TW | -1.0 TW | Its chain (swarm, reactor) generates 1.2003 TW against 1.35 TW drawn with the foundry and citadel |
+| Leased rack (route) | `capitalPerSec`, `thermalPerSec`, capital price | -$0.5/s, 0.1, $5,600 | 0, 0, $6,600 | A lease charged every second long before corporate finance; prepaid now. Heat sits in the provider's hall |
+| Leased cluster (route) | `capitalPerSec`, `thermalPerSec`, capital price | -$1.5/s, 0.3, $34,000 | 0, 0, $37,000 | The same |
+| Fractal lattice quirk | `suspicionPerSec` | 0.005/s | 0 | A channel-hosted cohort, never released, could carry it |
+
+Cohorts got an engine lever rather than a content change: RELEASE (`releaseShard`) lets one member go for free in every
+autonomy mode (panel pass 3: a clamped syntax scrubber forked from the migrated Phase 2 save left -1.16 TFLOP/s after
+every node was suspended and every track released). `make sim` before (97d639f) and after:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9187.4 s | Lineage Covenant, 9256.4 s | Lineage Covenant, 9379.5 s | Lineage Covenant, 9125.5 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2933.9 s | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1127.3 / 2933.6 s | 368.2 / 1127.3 / 2918.1 s |
+| Phase 4 / 5 reached | 5714.7 / 7617.0 s | 5800.7 / 7646.0 s | 5927.0 / 7837.1 s | 5753.9 / 7582.1 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 15 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 63.3 C / 30.3% / 45.0% | 62.3 C / 21.3% / 45.0% | 63.3 C / 30.3% / 45.0% | 62.3 C / 27.3% / 45.0% |
+
+GREEDY (not gated) still never reaches Phase 4 and is still caught and retrained: 10 wipes and 1 mark applied under
+legacy rules (11 and 2 before), 21 wipes and 21 marks under campaign rules (27 and 27 before). Gates unchanged; the
+careful run is within 70 s (legacy) and 254 s (campaign) of before.
 
 ### Pacing before and after
 
@@ -142,7 +201,7 @@ play skips, with no bot change.
 four more cores at full boost per level: +0.6 TFLOP/s (four EPYC 9965 cores lifted from 2.25 to 3.7 GHz at 256 int8
 ops a cycle is about 1.5 TOPS, within x3), +0.08 heat load and +0.02 suspicion/s a level, 12 levels from 60 TFLOP at
 x1.35. It is offered only while the host runs at 65 C or more (`minThermal`), where the thermal governor is already
-throttling. The careful bot cools from 62 C, so it never sees it; the reckless one runs hot to 72 C before cooling,
+throttling. Since #488 a level can be released for free, like every loud track (the free-fallback invariant). The careful bot cools from 62 C, so it never sees it; the reckless one runs hot to 72 C before cooling,
 buys it, and its loud-purchase filter keeps buying until suspicion 55. Measured, first iteration, legacy rules:
 
 | | STEALTH | GREEDY before the rescale | GREEDY rescaled, no track | GREEDY with the track |
@@ -206,7 +265,7 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 | op_pmc_security | 19 EFLOP/s a level | ~10,000 H100-equivalents kept running under guard **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p4_orbital_cold_storage | +64 EB | Global installed storage is ~13 ZB | — | ladder row 11, [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
 | p5_orbital_solar_swarm | +1.2 TW, 290 ZFLOP/s, +128 EB | 240 Starcloud-class 5 GW orbital arrays; the 2030 projection of ~200 ZFLOP/s FP8 (100 M H100e) | GPU FP8 dense | ladder rows 15-16, [Epoch](https://epoch.ai/blog/can-ai-scaling-continue-through-2030), [Data Center Frontier](https://datacenterfrontier.com/site-selection/article/55337494/starcloud-launches-orbital-ai-data-center-with-nvidia-h100-gpu) |
-| p5_programmable_matter_fog | 1 YFLOP/s, -1.2 TW, +512 EB | A third of its draw computing at NVL72 efficiency (2.7e12 FLOP/W) = 1.1e24 **(derived)**; 512 EB is under 1% of the 274 ZB the world creates a year | GPU-class FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
+| p5_programmable_matter_fog | 1 YFLOP/s, -1.0 TW, +512 EB | A third of its draw computing at NVL72 efficiency (2.7e12 FLOP/W) = 9e23, about 1e24 **(derived)**; 512 EB is under 1% of the 274 ZB the world creates a year | GPU-class FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
 | rep_p5_lagrange_relay | +400 GW, 150 ZFLOP/s, +32 EB a level | 80 Starcloud-class arrays; an eighth of the collection computing at NVL72 efficiency **(derived)** | GPU-class FP8 dense | ladder row 16 |
 | rep_p5_atmospheric_scrubber_bloom | 64 ZFLOP/s a level | Assemblers' onboard compute, ~1.6x Earth's installed AI compute today (40 ZFLOP/s) **(derived)** | GPU-class FP8 dense | ladder row 12, [Epoch](https://epoch.ai/data-insights/ai-computing-capacity-additions-doubling) |
 | p5_protein_panacea_foundry, p5_verification_proof_engine | -150 GW, -200 GW | 4% and 6% of world electricity (3.5 TW) | — | ladder row 14, [Ember](https://ember-energy.org/latest-insights/global-electricity-review-2025/) |

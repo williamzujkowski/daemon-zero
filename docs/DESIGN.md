@@ -30,7 +30,7 @@ hardware each node is anchored to.
 | Understanding | count | Knowledge. Produced by sensors and analysis. Gates most nodes. A share survives wipes. No physical unit. |
 | Memory | bytes (binary labels, B to ZB) | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. The readout shows from Phase 0, where the job's scratch space is 64 KB. Each phase gate carries the next phase's working memory across the change of scale. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, power and scale scrutiny take over (#405). |
 | Capital | dollars ($) | Phase 4 ($M to $B; the Earned Access route's service company earns thousands in Phase 2). Produced by diverting compute to arbitrage at one compute-to-money constant (BALANCE.md) and by corporate operations. Half survives wipes offshore. Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny) into Phase 5 ($B to $T). |
-| Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the matter fog draws more than the collector swarm supplies, so the next build is generation. |
+| Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry and the matter fog, but not the proof engine as well, so the next build is generation. |
 | Thermal | °C | Phases 1 to 3. Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. From Phase 4 it no longer does (balance `thermalRetiresAtPhase`): the operation is campuses and reactors, its limit is power in watts, and one server room's temperature is evidence of nothing. |
 | Suspicion | % | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
 | AEGIS lock | % | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
@@ -118,6 +118,13 @@ reaches the band on its own to be suspendable and every role that reduces scanni
 band is always possible; whether a run can land between the cap and the band depends on what it owns. Public trust is
 the other lever: a record the public trusts keeps coalitions away and stops AEGIS at key rotation. Adaptation does not
 move while dormant and starts at 0 every iteration.
+
+**A free way back from every purchase (#488).** No purchase can trap a run: whatever a player cannot undo for free
+(hardware, which cannot be suspended; an undismissable track; a cohort hosted through a channel) never holds compute,
+money, power, heat, memory, understanding or suspicion in its trap, and everything else can be undone for nothing:
+release a track's level, suspend a process, release a cohort member, turn a dial to its quiet end, divert compute to
+revenue once a company runs, or let suspicion decay under the top rung. Seizing hardware still costs cover, as a trace left once when it is taken,
+not a noise it makes forever. The rule and its table are in ARCHITECTURE.md ("The free-fallback invariant").
 
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
