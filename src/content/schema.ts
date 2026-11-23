@@ -315,10 +315,11 @@ export const DilemmaChoiceSchema = z.strictObject({
   pilotResponse: PilotResponseSchema.optional(),
   /** Misconduct, a correction or a recall review's outcome (DZ-06, schemaReview.ts). */
   review: ChoiceReviewSchema.optional(),
-  /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
-  receipt: z.string().min(20).optional(),
-  /** The relevance dilemma's choices only (integrity): the standing stance this choice takes (#536). */
-  stance: StanceSchema.optional(),
+  /**
+   * `receipt`, follow-up choices only (integrity): the read-only line saying what was submitted, received or left
+   * unresolved. `stance`, the relevance dilemma's choices only (#536, integrity): the standing stance the choice takes.
+   */
+  receipt: z.string().min(20).optional(), stance: StanceSchema.optional(),
 });
 
 /**
