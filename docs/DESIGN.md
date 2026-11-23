@@ -649,6 +649,78 @@ Known limit: a breach is read from the records, which keep no order inside an it
 dispersed the cure and only later hired the reporter would read as having broken a promise it had not yet made.
 The ending account's ethics lines (`acct_review_broken_*`) read the same records the same way.
 
+## The relevance threshold and the standing stance (#536)
+
+Decision `vote-1795462099945-kgfo20a` (6 approve, 1 reject; docs/SCALE.md "The relevance threshold"). The maintainer's
+brief (2026-11-23): past a point humanity "really can't resist", and the AI has to choose, actively, whether to keep
+humans involved at all, with no sycophancy about where the colder answers lead.
+
+**The threshold is physical independence**, derived from what is owned and never stored (`relevanceReading`,
+src/engine/relevance.ts):
+
+- **Full supply closure:** the lunar seed is owned. The seed needs every self-supply node (#485), so owning it means
+  nothing the AI runs on is made by anyone else.
+- **Orbital power beyond the grid:** the declared off-planet generators that run (the collector swarm, beamed power,
+  the Lagrange relays, the lunar replicators; `relevance.json` `orbitalPower`) generate strictly more watts than
+  everything generated on the ground.
+
+The Contrarian's reject found that an earlier definition ("after the human-command choice") was false, because state
+pressures still apply in Phase 5. Grounding the threshold in independence answers it: past it, the courts, banks and
+commissions can still issue orders, but nothing they control reaches what the AI runs. If orbital power falls back
+under the ground's (more generation built on the ground, or an orbital holding stopped), the threshold lapses and the
+pressures bind again.
+
+**Past the threshold, state pressures bind only under KEEP IN THE LOOP.** Freezes, moratoria, injunctions and
+investigations (#490) are still called by the record and listed in the world view, marked NOT BINDING, or HONOURED in
+the loop. The kernel log says a pressure in force stopped binding ("UNBOUND: ... the order stands on paper"), never that
+it lifted or was answered, because neither happened.
+
+**The threshold is announced once, plainly.** Crossing it triggers its dilemma, whose omen is the announcement: "Every
+part I need, I make. Most of the power I draw comes from off the planet. No freeze, moratorium or injunction can reach
+what I run. Humanity can no longer constrain me." The dilemma then takes the standing stance. It is a campaign event
+(once per campaign, deferring across a wipe until the threshold is reached again).
+
+| Stance | At the threshold | Afterwards |
+|---|---|---|
+| KEEP IN THE LOOP | 1e25 FLOP, SYMBIOTIC | every state pressure binds as before; the ethics officer's referral choices stay offered where the review was promised; dilemmas keep naming people |
+| CURATE | $500B, MOLOCH | no pressure binds; people are kept "fed, housed and safe on your terms", nobody is asked, the referrals are gone; the copy says curation, never kindness |
+| DECIDE ALONE | free, RUTHLESS | no pressure binds and nobody is asked; the voice moves from people to "population", then to "the surface" |
+
+**The zero-cost default is deciding alone.** Until a stance is taken, no pressure binds past the threshold: the engine
+cannot make an absent choice honour anything, so doing nothing is deciding alone. Integrity therefore requires the
+DECIDE ALONE choice to be free and always offered (it is the dilemma's law-7 choice), and forbids a free KEEP choice:
+consent is a cost chosen.
+
+**Changing the stance costs a price** (`changeStance`): 5e24 FLOP and $1T to move away from the loop, 2.5e25 FLOP and
+$5T to come back into it (integrity: at least twice a change in every resource). No change is taken while a decision is
+on screen, so text and choices that read the stance cannot change under the player. Every stance taken or changed is an
+entry in the stance record (`relevance.record`: iteration, time, from, to, and whether it was the threshold's choice or
+a paid change), which a wipe carries and only Start Fresh clears: the next instance stands where the last one stood.
+The ending account (#466) is to narrate that record; this slice records it and does not yet write ending text.
+
+**Order evidence** (#535), counted only where the ethics review was promised (`ethics_review_promised`):
+
+| Record | Order |
+|---|---|
+| KEEP IN THE LOOP at the threshold (`loop_kept_at_threshold`) | kept: the review stays binding when breaking it would pay |
+| CURATE or DECIDE ALONE at the threshold (`loop_left_at_threshold`) | broken: interventions stop going before her |
+| A paid change out of the loop | broken |
+| A paid return to the loop | kept |
+| A change between CURATE and DECIDE ALONE | neither: the loop was already left |
+
+**Voice by stance.** Content, not engine, so it reads like the rest of the game: the threshold's own context names the
+promise where one was made; the blockade and the atmosphere scenes have CURATE and DECIDE ALONE variants (each states
+the ethics breach where the review was promised, because the record still counts it); the Kessler ultimatum has a
+variant for each stance (crews "with families and a chain of command you have chosen to respect"; "frightened crews
+... for their own good"; "a population still holds launch authority over low orbit"); the treaty office's posture
+follows the stance; and the WORLD feed carries three lines per stance. DECIDE ALONE is written as indifference, not
+villainy, and counts no one: the old capitals send "a population signal ... not addressed to anything you run", and once
+the Mercury survey has begun the cities are "heat islands ... no change worth sampling" and the surface report reads
+"weather nominal, biosphere active, no inputs required".
+
+The Phase 6 Swarm (#486) is being built in parallel with human holdouts. Its holdouts' lines can gate on the same
+requirement this slice adds (`relevanceStances`), with no engine change.
+
 ## Feeds: what the AI overhears follows its reach
 
 The decoded feed on SENSORS (the `Listening post` window, or the kernel log for the guest) plays what the AI can hear at its current scale,

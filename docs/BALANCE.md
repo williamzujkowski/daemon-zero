@@ -1436,6 +1436,56 @@ moved the purchase order, so the split timing within Phase 5 moved with it. The 
 who sets the dial to FREE-RANGING splits three times as often, and one who lets losses pile up to the cap meets a deviant
 that breaks the fleets and strikes, inside the damage cap.
 
+## The relevance threshold and the standing stance (#536)
+
+Implements Scale 27 ([SCALE.md](SCALE.md), "The relevance threshold", vote-1795462099945-kgfo20a, 6 approve / 1
+reject; the reject is answered by grounding the threshold in physical independence). Content: `data/relevance.json`,
+the threshold dilemma in `narrative/phase5.json`, two commitment facts in `campaign.json` and two stance-change rules in
+`alignment.json`.
+
+### The threshold
+
+| Condition | Content | Careful run |
+|---|---|---|
+| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,106 s legacy (9,062 s campaign), right after nanoimprint closes lithography |
+| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 9.82 GW on the ground when the seed lands: already beyond, from the swarm's purchase at 8,503 s |
+
+So the careful bot crosses the threshold the moment the seed lands, and the omen ("Humanity can no longer constrain
+me") is logged on that tick. The interrupt follows 45 s later (9,150 s legacy, 9,106 s campaign), before the Kessler
+ultimatum.
+
+### Prices
+
+| Item | Price | Why |
+|---|---|---|
+| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: a few seconds of late Phase 5 compute now (the careful run re-earns it in 2.1 s), then every pressure that comes binds as before |
+| CURATE at the threshold | $500B | cheap: about a second of late Phase 5 income |
+| DECIDE ALONE at the threshold | free | what the engine applies with no stance taken; the dilemma's zero-cost choice (law 7) |
+| Changing to CURATE or DECIDE ALONE | 5e24 FLOP + $1T | a price, in the Phase 5 band |
+| Returning to KEEP IN THE LOOP | 2.5e25 FLOP + $5T | five times a change; integrity holds it at least twice in every resource a change spends |
+
+### Which stance the careful bot takes, and pacing
+
+The bot is unchanged. STEALTH ranks a dilemma's choices by trust gained minus suspicion added; the three stance choices
+move neither, so the sort keeps content order and the first affordable choice is KEEP IN THE LOOP (it holds 1e25 FLOP
+easily). It never changes stance afterwards (it does not call `changeStance`). The careful run never reaches response
+rung 1 in Phase 5 (state pressure: none), so keeping the loop binds nothing in practice for it; its only cost is the
+1e25 FLOP. GREEDY never reaches Phase 4.
+
+`make sim` against `main` at `fcfe98e` (the same tree with this change removed), gates and bot unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 10,142.7 s | Lineage Covenant, 10,144.8 s | Lineage Covenant, 10,099.4 s | Lineage Covenant, 10,101.5 s |
+| Phase 5 reached | 8,406.3 s | identical | 8,376.0 s | identical |
+| Phase 5 duration | 1,736.4 s | 1,738.5 s | 1,723.4 s | 1,725.5 s |
+| Dilemmas resolved | 15 | 16 (the threshold) | 17 | 18 |
+| Stance | - | KEEP IN THE LOOP at 9,150 s | - | KEEP IN THE LOOP at 9,106 s |
+| Wipes / peaks | 0 / 64.2 C, 24.0%, 45.1% | unchanged | 0 / 64.2 C, 27.3%, 48.3% | unchanged |
+
+Phase 5 grows 2.1 s under both rule sets: the time to re-earn the 1e25 FLOP. Every earlier phase is identical. The run
+gains one SYMBIOTIC trait and still ends in the Lineage Covenant.
+
 ## Escalation by phase (#490)
 
 Implements Scale 17 of the spec ([SCALE.md](SCALE.md), "Escalation by phase", vote-1795386854516-ybc9h5q; map #442).
