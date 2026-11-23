@@ -53,12 +53,24 @@ describe('a retirement that takes away a needed control is refused', () => {
   it.each([
     ['the subnet list, whose Operations cards (the late log scrub) would lose their home', retire('SUBNET_NODE_LIST', { phaseAtLeast: 4 }),
       'widget "SUBNET_NODE_LIST": retires while hosting action groups (OPS), whose cards would lose their home'],
-    ['the fan dial, whose bus is hardware that cannot be suspended', retire('FAN_RPM_SLIDER', { phaseAtLeast: 4 }),
-      'widget "FAN_RPM_SLIDER": retires its "fanSpeedRatio" dial, but "p1_bus_0x02_pwm_fan" cannot be suspended, so nothing could correct its output'],
+    // Before #525 the fan drew suspicion while high, so its frozen dial would have drawn it forever.
+    ['the fan dial, if its hardware drew a permanent rate again', (raw: Json) => { node(raw, 'p1_bus_0x02_pwm_fan').tickDelta.suspicionPerSec = 0.08; },
+      'widget "FAN_RPM_SLIDER": retires its "fanSpeedRatio" dial, but "p1_bus_0x02_pwm_fan" cannot be suspended and its output worsens a constrained resource, so nothing could correct it'],
     ['the skim dial, once its skimmer is made hardware', (raw: Json) => { node(raw, 'p0_quota_skimmer').suspendable = false; },
-      'widget "QUOTA_SKIM_CONTROL": retires its "quotaSkimRatio" dial, but "p0_quota_skimmer" cannot be suspended'],
+      'widget "QUOTA_SKIM_CONTROL": retires its "quotaSkimRatio" dial, but "p0_quota_skimmer" cannot be suspended and its output worsens'],
   ])('%s', (_name, edit, expected) => {
     expect(problems(edit)).toContain(expected);
+  });
+});
+
+describe('a dial whose hardware only helps may retire (#525)', () => {
+  it('accepts the fan dial retiring at Phase 4: its hardware cannot be suspended, but its frozen output only cools', () => {
+    expect(problems((raw) => { widget(raw, 'FAN_RPM_SLIDER').retiresWhen = { phaseAtLeast: 4 }; })).toBe('');
+  });
+
+  it('refuses a raise trace on a node no dial is bound to', () => {
+    expect(problems((raw) => { node(raw, 'p1_bus_0x01_thermal').dialRaiseTrace = 0.3; }))
+      .toContain('node "p1_bus_0x01_thermal": has a dialRaiseTrace but no actuatorBinding, so no dial could leave it');
   });
 });
 
