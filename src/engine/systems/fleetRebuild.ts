@@ -1,6 +1,6 @@
 /**
  * The fleet rebuild stage (#518, architecture law 8): every fleet's losses fall at the free rate plus what each running
- * fab adds, except a fleet whose domain a fleet battle is inbound on or fighting. It runs while the player is away too,
+ * fab adds, except a fleet whose domain a raid of any kind is inbound on or fighting. It runs while the player is away too,
  * because rebuilding only ever helps.
  */
 import { fleetRebuildPerSec, fleetRecord, fleetUnit, rebuildHeld, setFleet } from '../fleets';

@@ -63,7 +63,7 @@ function forecastText(s: GameState, reg: ContentRegistry, unit: FleetUnit): stri
 
 function rebuildView(s: GameState, reg: ContentRegistry, unit: FleetUnit): FleetView['rebuild'] {
   const lost = fleetRecord(s, unit.repeatable).lost, rate = fleetRebuildPerSec(s, reg), unmet = fleetRebuildUnmet(s, unit.repeatable, reg);
-  const free = lost <= 0 ? 'Nothing to rebuild.' : rebuildHeld(s, reg, unit) ? 'Rebuild waits while a fleet battle is under way in its domain.'
+  const free = lost <= 0 ? 'Nothing to rebuild.' : rebuildHeld(s, reg, unit) ? 'Rebuild waits while a raid is under way in its domain.'
     : `Your fabs rebuild ${percentOf(rate * 60)} points a minute for free: whole in ${String(Math.ceil(lost / rate))} s.`;
   return { text: free, costLabel: formatCost(unit.rebuild.cost), points: unit.rebuild.points, unmet, eligible: unmet.length === 0 };
 }

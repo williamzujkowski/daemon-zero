@@ -46,7 +46,7 @@ export function fleetRebuildUnmet(s: GameState, trackId: string, reg: ContentReg
   const unmet = pausedReason(s), unit = fleetUnit(reg, trackId);
   if (unit === undefined) return [...unmet, NO_FLEET];
   if (fleetRecord(s, trackId).lost <= 0) unmet.push(`Nothing of the ${unit.name.toLowerCase()} is lost.`);
-  else if (rebuildHeld(s, reg, unit)) unmet.push(`A fleet battle is under way in its domain: rebuild waits for its aftermath.`);
+  else if (rebuildHeld(s, reg, unit)) unmet.push(`A raid is under way in its domain: rebuild waits for its aftermath.`);
   if (!canAfford(s, unit.rebuild.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(unit.rebuild.cost));
   return unmet;
 }

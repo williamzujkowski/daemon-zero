@@ -134,19 +134,14 @@ export function fleetRebuildPerSec(s: GameState, reg: ContentRegistry): number {
   return rate;
 }
 
-/** Whether the raid under way is a fleet battle: a rival fleet or a deviant. */
-export function fleetBattleKind(s: Pick<GameState, 'conflict'>, reg: ContentRegistry): { domain: string } | undefined {
-  const id = s.conflict.raid?.id;
-  const kind = id === undefined ? undefined : reg.world.conflict.raids.find((entry) => entry.id === id);
-  if (kind === undefined) return undefined;
-  return kind.source === 'DEVIANT' || kind.resolution === 'LANCHESTER' ? kind : undefined;
-}
-
 /**
- * Whether a fleet battle holds this fleet's rebuild: one is inbound on or fighting in its domain. Holding it keeps the
- * battle's forecast exact, as a raid holds its target's repair.
+ * Whether a raid holds this fleet's rebuild: any raid inbound on or fighting in its domain, whatever it resolves by. A
+ * fleet battle's engagement reads the fleets' strength, and an attrition raid's rounds read their defense and offense
+ * (conflictStats), so rebuilding mid-raid would move every round after the forecast was made. Holding it keeps the
+ * forecast exact, as a raid holds its target's repair.
  */
 export function rebuildHeld(s: Pick<GameState, 'conflict'>, reg: ContentRegistry, unit: FleetUnit): boolean {
-  const battle = fleetBattleKind(s, reg);
-  return battle !== undefined && battle.domain === unit.domain && s.conflict.raid?.stage !== 'AFTERMATH';
+  const raid = s.conflict.raid;
+  if (raid === null || raid.stage === 'AFTERMATH') return false;
+  return reg.world.conflict.raids.find((entry) => entry.id === raid.id)?.domain === unit.domain;
 }

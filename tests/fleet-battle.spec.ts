@@ -111,6 +111,32 @@ describe('a rival fleet through the real stages', () => {
   });
 });
 
+describe('an attrition raid with fleets present (#531 panel)', () => {
+  /** A Phase 4 drone strike at arrival on worn fleets, whose defense and offense its rounds read. */
+  const strike = (): GameState => withRecord(withRecord(arrived(rivalRaidsDue(fleets({ [DRONES]: 40, [CREWS]: 10 })), raid('raid_p4_drone_strike')),
+    DRONES, { lost: 0.3 }), CREWS, { lost: 0.3 });
+
+  it('lands exactly what its forecast said at arrival: the fleets\' rebuild waits for the aftermath', () => {
+    const s = strike();
+    const forecast = defined(raidView(settled(s), reg)).forecast;
+    const fought = fleetRun(s, R.arrivalSec + R.attributionSec + R.rounds * R.roundSec);
+    expect(fought.conflict.raid?.stage).toBe('AFTERMATH');
+    const log = defined(raidView(settled(fought), reg)).log;
+    expect(log).toHaveLength(R.rounds);
+    for (const line of log) expect(forecast).toContain(line);
+  });
+
+  it('holds the rebuild of fleets in its domain only, and only until its aftermath', () => {
+    const s = strike();
+    expect(defined(fleetRun(s, 5).conflict.fleets[DRONES]).lost).toBe(0.3);
+    const after = fleetRun(s, R.arrivalSec + R.attributionSec + R.rounds * R.roundSec + 5);
+    expect(defined(after.conflict.fleets[DRONES]).lost).toBeLessThan(0.3);
+    // A cyber raid reads no fleet (fleets fight at sites and in orbit), so the site fleets go on rebuilding under it.
+    const cyber = { ...s, conflict: { ...s.conflict, raid: { ...defined(s.conflict.raid), id: 'raid_p4_ddos', target: 'botnet' } } };
+    expect(defined(fleetRun(cyber, 5).conflict.fleets[DRONES]).lost).toBeLessThan(0.3);
+  });
+});
+
 describe('fleet strength in the stats', () => {
   it('feeds its domain\'s defense and offense, scaled by what it has not lost and by its dial', () => {
     const s = fleets({ [DRONES]: 40 }), worn = withRecord(s, DRONES, { lost: 0.5 }), free = withRecord(s, DRONES, { autonomy: 'ELEVATED' });

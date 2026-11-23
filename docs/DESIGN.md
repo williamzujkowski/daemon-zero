@@ -876,8 +876,9 @@ levels) from late Phase 4, and Orbital Escort Tenders (ORBIT, 2 a level, 5 level
 fleet's full strength is its levels times its strength a level times its autonomy dial's output; battles and splits take
 a share of it as losses, and no fleet is ever cut past 50% of its full strength (the loss cap). Losses are rebuilt free
 but slow (0.6 points a minute, plus 0.6 for the mature-node fab and 1.2 for the DUV fab while each runs: the fabs rebuild
-what battle costs), and faster if paid (each fleet's price restores 15 points at once). Rebuild waits while a fleet battle
-is inbound on or fighting in the fleet's domain, so the battle's forecast stays exact. Losses scale only what a fleet
+what battle costs), and faster if paid (each fleet's price restores 15 points at once). Rebuild waits while any raid is
+inbound on or fighting in the fleet's domain, a fleet battle or an attrition raid alike (the attrition rounds read the
+fleets' defense and offense), so the raid's forecast stays exact. Losses scale only what a fleet
 yields (its compute and understanding), never its upkeep or draw. A fleet's strength also feeds its domain's stats: the
 drones and crews add Robot fleets defense (break-in 0.8, drone strike 0.8) and site offense, the tenders Escort tenders
 defense (anti-satellite 0.8, jamming 0.3) and orbit offense, scaled by what is not lost and by the dial.

@@ -206,7 +206,7 @@ describe('the readout and a wipe', () => {
     expect(read(withRecord(spaced, DRONES, { lost: F.lossCap })).drift).toContain('rebuild some');
     expect(read(withRecord(spaced, DRONES, { lost: F.lossCap })).forecast).toBeNull();
     const split = fleetStage(spaced);
-    expect(read(split).rebuild.text).toContain('waits while a fleet battle');
+    expect(read(split).rebuild.text).toContain('waits while a raid');
     expect(read(split).rebuild.unmet.join(' ')).toContain('waits for its aftermath');
   });
 

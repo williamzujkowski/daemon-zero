@@ -467,7 +467,7 @@ and, on the raid, `engagement` and `splitShare` (v25). The autonomy machinery is
 and `driftAfter`; `swarmRates.ts` and the cohort drift stage read `cohortAutonomy` (derived from the swarm balance, so
 cohorts behave as before) and fleets read `fleetAutonomy`. The rules: `fleets.ts` (each fleet's full strength, losses,
 floor and yield factor, the domain's fleets, `applyFleetLosses` in proportion to headroom so none passes the cap, the
-rebuild rate and its hold), `lanchester.ts` (`engage`, the square law with a breaking floor, pure), `raidBattle.ts`
+rebuild rate and its hold while any raid is under way in the domain), `lanchester.ts` (`engage`, the square law with a breaking floor, pure), `raidBattle.ts`
 (`fightNext`: a fleet battle's first round is the engagement, then strikes by attrition against what is not a fleet;
 `raidCombat` takes `conflictStats(..., withoutFleets)` for those), `deviants.ts` (drift per fleet, `splitWaits`,
 `splitDeviant` through the hostile slot), `fleetActions.ts` (`setFleetAutonomy` free, `rebuildFleet` and

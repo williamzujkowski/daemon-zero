@@ -719,7 +719,7 @@ All from `fleetReadout`, `raidView` and `conflictReadout`; every sentence is the
   drift (`-drift`: the percentage, its rate at this position and seconds to the split, or "At TETHERED it does not grow.",
   or at the split why it waits); the split forecast (`-forecast`: what a split now would turn on you, written out by the
   square law with its numbers, and what it strikes if it would win); and its rebuild (`-rebuild-text`: the free rate and
-  seconds to whole, or that rebuild waits for a battle in its domain; the paid points, price and every refusal) with
+  seconds to whole, or that rebuild waits for a raid in its domain; the paid points, price and every refusal) with
   `[ REBUILD ]` (`fleet-<track>-rebuild`).
 - **The raid panel** for a fleet battle adds the engagement: the matchup says round 1 is an engagement with the domain's
   fleets by the square law, the forecast's first line is "Round 1, the engagement: ..." with the arithmetic, and the log
