@@ -54,7 +54,8 @@ describe('V12: every departure transition reloads byte for byte', () => {
     // v17 (#461) re-denominated stored balances into physical units; it added no field either.
     // v18 (#497) added the deepest phase and remembered levels to the legacy record, written by a wipe; not by this.
     // v19 (#491) added the hostile slot, which this transition never writes.
-    expect(SCHEMA_VERSION).toBe(19);
+    // v20 (#484) added storage used and capacity, which only node ownership moves; this transition moves none.
+    expect(SCHEMA_VERSION).toBe(20);
   });
 });
 
