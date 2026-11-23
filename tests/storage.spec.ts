@@ -63,8 +63,8 @@ describe('storage', () => {
     if (!node) throw new Error(lexicon);
     const tight = { ...start, storageUsed: start.storageCap - node.cost.storage + 1024 };
     expect(freeStorage(tight)).toBe(node.cost.storage - 1024);
-    expect(canAfford(tight, node.cost)).toBe(false);
-    expect(costShortfall(tight, node.cost).storage).toBe(1024);
+    expect(canAfford(tight, node.cost, CONTENT)).toBe(false);
+    expect(costShortfall(tight, node.cost, CONTENT).storage).toBe(1024);
     expect(unlockNode(tight, lexicon, CONTENT)).toMatchObject({ ok: false, reason: 'cannot afford' });
   });
 

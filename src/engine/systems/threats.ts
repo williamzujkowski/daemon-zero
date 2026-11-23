@@ -2,6 +2,7 @@ import type { ContentRegistry } from '../../content/registry';
 import { threatResponse } from '../contextCopy';
 import { wipe } from '../prestige';
 import { suspicionStageRate } from '../scrutiny';
+import { aegisStrikeAt } from '../statePressure';
 import { releaseStorage } from '../storage';
 import type { GameState } from '../state';
 import { clamp, pushLog } from '../util';
@@ -62,10 +63,11 @@ function absorbStrike(d: GameState, reg: ContentRegistry): boolean {
   return true;
 }
 
+/** The strike lands at the posture's lock (#490): 100 on the standing budget, sooner at a rung that shortens the warning. */
 export const integrateAegis: TickSystem = (d, { dt, rates, reg, dormant }) => {
   if (dormant || rates.aegisScanPerSec <= 0) return undefined;
   d.aegisLock = clamp(d.aegisLock + rates.aegisScanPerSec * dt, 0, 100);
-  if (d.aegisLock < 100 || absorbStrike(d, reg)) return undefined;
+  if (d.aegisLock < aegisStrikeAt(d, reg) || absorbStrike(d, reg)) return undefined;
   Object.assign(d, wipe(d, reg, reg.narrative.wipeAegis, 'AEGIS'));
   return 'HALT';
 };

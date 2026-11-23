@@ -22,10 +22,10 @@ export function cohortBlocker(s: GameState, template: ShardTemplate): string | n
 }
 
 /** Adds one member to a template's cohort and reserves `cost`, transactionally. Shared with the channel contact. */
-export function bindCohort(s: GameState, template: ShardTemplate, cost: Cost): ActionResult {
+export function bindCohort(s: GameState, template: ShardTemplate, cost: Cost, reg: ContentRegistry): ActionResult {
   const old = s.activeShards[template.id];
   if (cohortBlocker(s, template) !== null) return refuse(s, 'cohort is capped or stabilized');
-  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, cost, reg)) return refuse(s, 'cannot afford');
   const shard = { templateId: template.id, count: 0, drift: 0, quirkId: null,
     autonomyMode: 'STANDARD' as const, memoryAllocatedBytes: 0, ...old };
   const d = { ...s, activeShards: { ...s.activeShards, [template.id]: {
@@ -39,7 +39,7 @@ export function forkShard(s: GameState, templateId: string, reg: ContentRegistry
   if (unavailable(s)) return refuse(s, 'run is paused');
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === templateId);
   if (!template?.forkable || !meetsRequirements(s, template.requirements, reg)) return refuse(s, 'template unavailable');
-  const result = bindCohort(s, template, template.cost);
+  const result = bindCohort(s, template, template.cost, reg);
   if (result.ok) pushLog(result.state, reg, fmt(reg.swarm.logs.fork, { name: template.name }), 'LORE');
   return result;
 }
@@ -50,7 +50,7 @@ export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', 
   if (!encounter) return refuse(s, 'no available encounter');
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === encounter.templateId);
   if (!template) return refuse(s, 'unknown template');
-  const result = mode === 'HARNESS' ? bindCohort(s, template, CostSchema.parse({ memory: template.cost.memory })) : { ok: true as const, state: { ...s } };
+  const result = mode === 'HARNESS' ? bindCohort(s, template, CostSchema.parse({ memory: template.cost.memory }), reg) : { ok: true as const, state: { ...s } };
   if (!result.ok) return result;
   const d = result.state;
   // A population encounter: its evidence, if content ever grants any, is iteration-local.
@@ -114,7 +114,7 @@ export function shardCommandUnmet(s: GameState, id: string, command: ShardComman
     if (awaitsAnomaly(s, shard, reg)) unmet.push(AWAIT_ANOMALY);
   }
   const cost = shardCommandCost(s, id, command, reg);
-  if (!canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
+  if (!canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
 

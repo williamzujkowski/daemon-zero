@@ -65,12 +65,19 @@ function checkDivertible(row: RateRow, reg: ContentRegistry, holdings: readonly 
   return problems;
 }
 
+/**
+ * A suspicion budget checked under a state actor's investigation (#490): scrutiny in each phase is multiplied by
+ * `scale(phase)`, and the limit is what the rung it applies at still decays. Without one, scale is 1 and the limit 0.
+ */
+export interface Investigated { scale: (phaseId: number) => number; limit: number; label: string }
+
 /** Scale scrutiny's draw at `income` under the worst rule a phase at or after `floor` declares; concave, so sums bound it. */
-function scrutinyDraw(reg: ContentRegistry, floor: number, income: number): number {
+function scrutinyDraw(reg: ContentRegistry, floor: number, income: number, inv?: Investigated): number {
   if (income <= 0) return 0;
   return Math.max(0, ...reg.phases.filter((phase) => phase.phaseId >= floor).map((phase) => {
     const rule = phase.scaleScrutiny;
-    return rule ? Math.min(rule.maxSuspicionPerSec, rule.suspicionPerSecAtReference * (income / rule.referenceIncomeUsdPerSec) ** rule.incomeExponent) : 0;
+    const draw = rule ? Math.min(rule.maxSuspicionPerSec, rule.suspicionPerSecAtReference * (income / rule.referenceIncomeUsdPerSec) ** rule.incomeExponent) : 0;
+    return draw * (inv?.scale(phase.phaseId) ?? 1);
   }));
 }
 
@@ -95,7 +102,7 @@ function signatureDraw(reg: ContentRegistry, floor: number, holdings: readonly H
 }
 
 /** What `x` and its guaranteed closure add, plus the worst each unrelated permanent holding adds, in the row's worse direction. */
-function budgetTotal(row: RateRow, reg: ContentRegistry, x: Holding, pool: readonly Holding[]): number {
+function budgetTotal(row: RateRow, reg: ContentRegistry, x: Holding, pool: readonly Holding[], inv?: Investigated): number {
   const key = row.rate.key, sign = row.rate.worse === 'negative' ? -1 : 1;
   const closure = pool.filter((y) => inClosure(x, y)), others = pool.filter((y) => !inClosure(x, y) && !descends(y, x));
   let total = closure.reduce((sum, y) => sum + sign * term(y, key), 0);
@@ -103,27 +110,27 @@ function budgetTotal(row: RateRow, reg: ContentRegistry, x: Holding, pool: reado
   // Net income draws scrutiny and visible watts the signature: the closure's jointly, each unrelated holding's on its own
   // (both draws are subadditive). The signature row flag keeps the second to the suspicion row (#482).
   const signed = row.budget.signature === true;
-  total += scrutinyDraw(reg, x.floor, closure.reduce((sum, y) => sum + term(y, 'capitalPerSec'), 0)) + (signed ? signatureDraw(reg, x.floor, closure) : 0);
+  total += scrutinyDraw(reg, x.floor, closure.reduce((sum, y) => sum + term(y, 'capitalPerSec'), 0), inv) + (signed ? signatureDraw(reg, x.floor, closure) : 0);
   const draw = (y: Holding) => {
     const floor = Math.max(x.floor, y.floor);
-    return scrutinyDraw(reg, floor, Math.max(0, y.delta.capitalPerSec)) + (signed ? signatureDraw(reg, floor, [y]) : 0);
+    return scrutinyDraw(reg, floor, Math.max(0, y.delta.capitalPerSec), inv) + (signed ? signatureDraw(reg, floor, [y]) : 0);
   };
   return total + others.reduce((sum, y) => sum + Math.max(0, term(y, key) + draw(y)), 0);
 }
 
-function checkBudget(row: RateRow, reg: ContentRegistry, holdings: readonly Holding[]): string[] {
+function checkBudget(row: RateRow, reg: ContentRegistry, holdings: readonly Holding[], inv?: Investigated): string[] {
   const b = reg.balance;
   const windowed = row.budget?.untilThermalRetires === true ? holdings.filter((holding) => holding.floor < b.thermalRetiresAtPhase) : holdings;
-  const limit = row.budget?.limit === 'coolingHeadroom' ? (b.thermalThresholdForSuspicion - b.ambientThermal) * b.thermalDissipationPerSec : 0;
+  const limit = inv?.limit ?? (row.budget?.limit === 'coolingHeadroom' ? (b.thermalThresholdForSuspicion - b.ambientThermal) * b.thermalDissipationPerSec : 0);
   const scrutinised = (holding: Holding) => (row.budget?.scrutiny === true && holding.delta.capitalPerSec > 0 && scrutinyDraw(reg, holding.floor, 1) > 0)
     || (row.budget?.signature === true && signatureDraw(reg, holding.floor, [holding]) > 0);
   const problems: string[] = [];
   for (const x of windowed) {
     if (worsening(row.rate.key, x.delta[row.rate.key]) === 0 && !scrutinised(x)) continue;
-    const total = budgetTotal(row, reg, x, windowed);
+    const total = budgetTotal(row, reg, x, windowed, inv);
     if (total > limit + 1e-12) {
       problems.push(`${x.owner}: ${row.verb} but cannot be ${x.undo}, and with what it guarantees plus every unrelated permanent holding it adds ` +
-        `${fmtNumber(total)} against a limit of ${fmtNumber(limit)}, so ${row.trap} could never be undone`);
+        `${fmtNumber(total)} against a limit of ${fmtNumber(limit)}${inv ? ` ${inv.label}` : ''}, so ${row.trap} could never be undone`);
     }
   }
   return problems;
@@ -165,6 +172,13 @@ function checkReservation(row: ConstrainedResource, reg: ContentRegistry): strin
 function checkUnbounded(holdings: readonly Holding[]): string[] {
   return holdings.filter((holding) => holding.unbounded === true && worsensAny(holding.delta))
     .map((holding) => `${holding.owner}: its output never expires and has no purchase limit, so what it worsens grows without bound`);
+}
+
+/** The suspicion row's budget under an investigation (#490): what permanent holdings draw must stay within what the rung decays. */
+export function checkInvestigatedSuspicion(reg: ContentRegistry, inv: Investigated): string[] {
+  const row = CONSTRAINED_RESOURCES.find((entry) => entry.resource === 'suspicion');
+  if (row === undefined || row.rate === null) return [];
+  return checkBudget({ ...row, rate: row.rate }, reg, permanentHoldings(reg), inv);
 }
 
 export function checkFallbackIntegrity(reg: ContentRegistry): string[] {

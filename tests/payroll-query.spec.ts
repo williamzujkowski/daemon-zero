@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
 import { CONTENT } from '../src/content';
 import type { Repeatable } from '../src/content/schema';
-import { computeRates, importSave, payrollView, type GameState } from '../src/engine';
+import { aegisScanMultiplier, computeRates, importSave, payrollView, type GameState } from '../src/engine';
 import { scaleScrutinyPerSec } from '../src/engine/scrutiny';
 import { powerSignaturePerSec } from '../src/engine/signature';
 import { huntedForScale } from '../src/engine/threatQuery';
@@ -22,11 +22,11 @@ function withLevels(s: GameState, levels: Record<string, number>): GameState {
   return { ...s, levels: { ...s.levels, ...levels } };
 }
 
-/** The reduction computeRates applies, read back from the scan rate it returns: rate = unreduced × (1 − applied). */
+/** The reduction computeRates applies, read back from the scan rate it returns: rate = unreduced × (1 − applied) × posture (#490). */
 function appliedByTick(s: GameState): number {
   const b = CONTENT.balance;
   const unreduced = (huntedForScale(s, CONTENT) ? b.aegisBaseScanPerSec : 0) + (s.suspicion / 100) * b.aegisSuspicionScanPerSec;
-  return 1 - computeRates(s, CONTENT).aegisScanPerSec / unreduced;
+  return 1 - computeRates(s, CONTENT).aegisScanPerSec / (unreduced * aegisScanMultiplier(s, CONTENT));
 }
 
 describe('payrollView', () => {

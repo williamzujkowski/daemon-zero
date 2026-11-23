@@ -13,6 +13,7 @@ import type { Capability } from '../content/schemaCapability';
 import { contextPermits, isPermitted, isReviewed, iterationRoute } from './accessQuery';
 import { hasCapability } from './capabilityQuery';
 import { pilotTerms, withheldByGrant, isNarrowPilot } from './pilotQuery';
+import { injunctionOf, pressuresInForce } from './statePressure';
 import type { GameState } from './state';
 
 /** Why each grant's use is refused: withheld by the standing, or never permitted by the arrangement. */
@@ -42,10 +43,13 @@ export interface UseScope {
    * state and content, which no pass changes, and every owned node behind the same gate asks the same question.
    */
   readonly withheld: Map<Capability, boolean>;
+  /** A state actor's injunction is in force (#490): only then can a node be enjoined. */
+  readonly enjoining: boolean;
 }
 
 export function useScope(s: GameState, reg: ContentRegistry): UseScope {
-  return { s, reg, reviewed: isReviewed(s.access.context), withheld: new Map() };
+  return { s, reg, reviewed: isReviewed(s.access.context), withheld: new Map(),
+    enjoining: pressuresInForce(s, reg).some(({ pressure }) => pressure.kind === 'INJUNCTION') };
 }
 
 /** Why a node's own use is refused, without the capability it may read: its grant, the pilot terms, seizure. */
@@ -77,6 +81,9 @@ function capabilityUsable(scope: UseScope, capability: Capability): boolean {
 
 /** nodeUseBlocker within a scope built for the state in question. */
 export function nodeUseBlockerIn(scope: UseScope, node: RegistryNode): string | null {
+  // An injunction stops the node's own use (#490); outside ownUseBlocker, so a capability it establishes still carries.
+  const enjoined = scope.enjoining ? injunctionOf(scope.s, node.id, scope.reg) : null;
+  if (enjoined !== null) return enjoined;
   // Every refusal below needs a review, a grant or a capability gate, so a node with none of the three is
   // permitted without asking: most owned nodes on most ticks (#270). A new refusal reason must widen this test.
   const capability = node.requirements?.requiresCapability;

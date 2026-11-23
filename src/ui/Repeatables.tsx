@@ -10,7 +10,7 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { Repeatable } from '../content/schema';
-import { buyRepeatable, couplings, dismissRepeatable, isLevelRemembered, meetsRequirements, repeatableLevel, repeatablePrice, rediscoveryShare } from '../engine';
+import { buyRepeatable, couplings, dismissRepeatable, isLevelRemembered, meetsRequirements, repeatableLevel, repeatablePrice, rediscoveryShare, sourceDenial } from '../engine';
 import { memoryExact } from './units';
 import { deliveredText } from './networkText';
 import { gameStore } from '../app/session';
@@ -35,6 +35,8 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const deepestPhase = useGame((game) => game.legacy.deepestPhase);
   const cost = useGame(useShallow((game) => repeatablePrice(game, rep, CONTENT)));
   const surveillanceKnown = useSurveillanceKnown();
+  // A state actor's interconnect denial refuses new levels on its power source (#490); the reason is the engine's own.
+  const denied = useGame((game) => sourceDenial(game, rep.signature, CONTENT));
   // A discounted track states its raw rate as raw and what arrives (#484), at its class's coupling now.
   const coupling = useGame((game) => rep.network === undefined ? 1 : couplings(game, CONTENT)[rep.network.sourceClass]);
   const linked = deliveredText(rep.perLevel.cyclesPerSec, rep.network, coupling);
@@ -56,8 +58,10 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       {remembered && <Text testID={'rep-' + rep.id + '-rediscovery'} style={theme.muted}>
         {rememberedText(deepestPhase)}</Text>}
       <CostHint cost={cost} />
+      {denied !== null && <Text testID={'rep-' + rep.id + '-denied'} style={[theme.muted, theme.danger]}>Refused: {denied}; levels held keep running.</Text>}
       <PurchaseButton id={'rep-' + rep.id + '-buy'} label={(rep.kind === 'OPERATIVE' ? 'Hire ' : 'Buy ') + rep.name} cost={cost}
-        allowed={(game) => meetsRequirements(game, rep.requirements, CONTENT)} action={(game) => buyRepeatable(game, rep.id, CONTENT)} />
+        allowed={(game) => meetsRequirements(game, rep.requirements, CONTENT) && sourceDenial(game, rep.signature, CONTENT) === null}
+        action={(game) => buyRepeatable(game, rep.id, CONTENT)} />
     </>
     {rep.dismissable && level > 0 && <>
       <Text style={theme.muted}>{rep.kind === 'OPERATIVE' ? 'Dismiss one; no purchase refund.' : 'Release one level: its output and running costs stop. No refund.'}</Text>

@@ -46,7 +46,7 @@ function answers(s: GameState, dilemma: Dilemma, reg: ContentRegistry): DilemmaC
 function answer(s: GameState, reg: ContentRegistry): GameState | null {
   const dilemma = reg.dilemmas.find((entry) => entry.id === s.activeDilemmaId);
   const token = presentationToken(s);
-  const choice = dilemma && answers(s, dilemma, reg).find((entry) => canAfford(s, entry.cost));
+  const choice = dilemma && answers(s, dilemma, reg).find((entry) => canAfford(s, entry.cost, reg));
   return dilemma && choice && token !== null ? taken(resolveDilemma(s, dilemma.id, choice.id, reg, token)) : null;
 }
 
@@ -86,9 +86,9 @@ function grow(s: GameState, goal: Cost, kept: Cost, reg: ContentRegistry): GameS
   let bestWait: number | undefined;
   for (const rep of reg.repeatables.values()) {
     const cost = repeatablePrice(s, rep, reg);
-    if (repeatableLevel(s, rep.id) >= rep.maxLevel || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, cost)) continue;
+    if (repeatableLevel(s, rep.id) >= rep.maxLevel || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, cost, reg)) continue;
     const bought = taken(buyRepeatable(s, rep.id, reg));
-    if (!bought || !canAfford(bought, kept)) continue;
+    if (!bought || !canAfford(bought, kept, reg)) continue;
     const rates = computeRates(bought, reg);
     if (rates.capitalPerSec < 0) continue;
     const wait = timeToAfford(bought, goal, rates);
@@ -109,7 +109,7 @@ function companyStep(s: GameState, reg: ContentRegistry): GameState | null {
   if (!next) return null;
   const kept = pendingReserve(s, reg);
   const goal = plus(plus(nodeCost(s, next, reg), reserveFor(s, next, reg)), kept);
-  if (canAfford(s, goal)) return taken(unlockNode(s, next.id, reg)) ?? s;
+  if (canAfford(s, goal, reg)) return taken(unlockNode(s, next.id, reg)) ?? s;
   let state = s;
   // grow is pure, so once it buys nothing it would buy nothing on every remaining pass.
   for (let i = 0; i < MAX_PURCHASES_PER_STEP; i++) {

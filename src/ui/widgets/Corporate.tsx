@@ -42,11 +42,13 @@ function Scrutiny() {
   const reading = useGame((game) => {
     const found = scaleScrutiny(game, game.rates, CONTENT);
     return found === null ? null
-      : [quantityReadout('money', found.incomePerSec), found.perSec.toFixed(2), String(found.perSecAtReference), growth(found.incomeExponent), String(found.maxPerSec), found.incomePerSec > 0 ? 'y' : '', quantityExact('money', found.referenceIncomeUsdPerSec)].join('|');
+      : [quantityReadout('money', found.incomePerSec), found.perSec.toFixed(2), String(found.perSecAtReference), growth(found.incomeExponent), String(found.maxPerSec), found.incomePerSec > 0 ? 'y' : '', quantityExact('money', found.referenceIncomeUsdPerSec),
+        found.investigation > 1 ? String(Number(found.investigation.toFixed(2))) : ''].join('|');
   });
   if (reading === null) return null;
-  const [income = '', perSec = '', atReference = '', grows = '', ceiling = '', earning = '', reference = ''] = reading.split('|');
-  const rule = `(+${atReference}/s at ${reference}/s, growing ${grows}; at most ${ceiling}/s)`;
+  const [income = '', perSec = '', atReference = '', grows = '', ceiling = '', earning = '', reference = '', inquiry = ''] = reading.split('|');
+  // An investigation in force multiplies the draw, its ceiling included (#490); the world view says who and why.
+  const rule = `(+${atReference}/s at ${reference}/s, growing ${grows}; at most ${ceiling}/s${inquiry ? `; ×${inquiry} under an inquiry` : ''})`;
   // A loss is not income: say so rather than "$0/s net income draws +0.00" (emulator re-check, #323).
   const draw = earning ? `Scrutiny: ${income}/s net income draws +${perSec} suspicion/s ${rule}.` : `Scrutiny: no net income, so no draw ${rule}.`;
   return <Text testID="corp-scrutiny" style={theme.muted}>

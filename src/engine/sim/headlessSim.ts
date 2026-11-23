@@ -7,6 +7,7 @@ import { emptyActivity, observeActions, observeWipe, type SimActivity } from './
 import type { ContentRegistry } from '../../content/registry';
 import { aegisPressure } from '../aegisAdaptation';
 import { powerSignature } from '../signature';
+import { aegisPostureNow, pressuresInForce } from '../statePressure';
 import { createInitialState, type GameState } from '../state';
 import { tick } from '../tick';
 import type { Strategy } from './bot';
@@ -45,6 +46,16 @@ export interface SignaturePhaseStats {
   peakVisibleWatts: number;
 }
 
+/** Escalation by phase (#490), sampled once per simulated second: how often a run meets each posture and pressure. */
+export interface EscalationStats {
+  /** Seconds AEGIS spent in the posture of each rung, keyed by rung. */
+  postureSec: Record<number, number>;
+  /** Seconds each state-actor pressure was in force, keyed by pressure id. */
+  pressureSec: Record<string, number>;
+  /** Times each came into force (a sample in force after one that was not). */
+  pressureArrivals: Record<string, number>;
+}
+
 /** `strategy` holds the id of the policy that played (kept under that key so old reports hash the same). */
 export interface SimReport<Id extends string = Strategy> {
   activity: SimActivity;
@@ -63,6 +74,7 @@ export interface SimReport<Id extends string = Strategy> {
   aegisByPhase: Record<number, AegisPhaseStats>;
   /** The signature per phase reached, keyed by phase id, for phases that declare one (#482). */
   signatureByPhase: Record<number, SignaturePhaseStats>;
+  escalation: EscalationStats;
   dilemmasResolved: number;
   traits: string[];
   finalState: GameState;
@@ -85,6 +97,18 @@ function observeSignature(report: SimReport<string>, s: GameState, reg: ContentR
   stats.seconds += 1;
   stats.peakPerSec = Math.max(stats.peakPerSec, reading.perSec);
   stats.peakVisibleWatts = Math.max(stats.peakVisibleWatts, reading.visibleWatts);
+}
+
+function observeEscalation(report: SimReport<string>, s: GameState, before: readonly string[], reg: ContentRegistry): string[] {
+  const { postureSec, pressureSec, pressureArrivals } = report.escalation;
+  const rung = aegisPostureNow(s, reg)?.rung;
+  if (rung !== undefined) postureSec[rung] = (postureSec[rung] ?? 0) + 1;
+  const now = pressuresInForce(s, reg).map(({ pressure }) => pressure.id);
+  for (const id of now) {
+    pressureSec[id] = (pressureSec[id] ?? 0) + 1;
+    if (!before.includes(id)) pressureArrivals[id] = (pressureArrivals[id] ?? 0) + 1;
+  }
+  return now;
 }
 
 function observe(report: SimReport<string>, s: GameState, reg: ContentRegistry): void {
@@ -111,6 +135,7 @@ function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<
     maxAegisLock: 0,
     aegisByPhase: {},
     signatureByPhase: {},
+    escalation: { postureSec: {}, pressureSec: {}, pressureArrivals: {} },
     dilemmasResolved: 0,
     traits: [],
     finalState: s,
@@ -123,6 +148,7 @@ export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: Si
   let s = options.initialState ?? createInitialState(reg);
   const report = createReport(policy.id, s);
 
+  let pressing: string[] = [];
   // Bounded by iteration count, not sim time, so a frozen clock can never hang the run.
   for (let second = 0; second < options.maxSimSec && s.ending === null; second++) {
     const before = s;
@@ -134,6 +160,7 @@ export function runPolicySim<Id extends string>(reg: ContentRegistry, policy: Si
       observeWipe(previous, s, report.activity);
     }
     observe(report, s, reg);
+    pressing = observeEscalation(report, s, pressing, reg);
   }
 
   report.victory = s.ending !== null;

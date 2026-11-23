@@ -16,6 +16,7 @@ import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
+import { allPressures } from './statePressure';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
 import { reconcileRoutine } from './routine';
@@ -140,6 +141,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v21: quantum key-breaking (#464). No earlier build had quantum machines, so nothing was broken and AEGIS has not
   // migrated. Self-contained: it writes only its own field, so it can be renumbered past another step without change.
   20: (save) => ({ ...save, quantum: { broken: [], aegisMigrated: false } }),
+  // v22: escalation by phase (#490). No earlier build announced a posture or a pressure, so nothing has been: the first
+  // live tick announces whatever the record calls for. Self-contained: it writes only its own field, so it can be renumbered.
+  21: (save) => ({ ...save, announcedEscalation: { aegisPosture: 0, pressures: [] } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
@@ -254,6 +258,12 @@ function reconcileLegacy(legacy: GameState['legacy'], reg: ContentRegistry): Gam
   return { ...legacy, knownNodes: legacy.knownNodes.filter((id) => reg.nodes.has(id)), deepestPhase: clampPhase(legacy.deepestPhase, reg), knownLevels };
 }
 
+/** An announced pressure names one content still declares, and the posture rung stays on the ladder (#490). */
+function reconcileAnnounced(announced: GameState['announcedEscalation'], reg: ContentRegistry): GameState['announcedEscalation'] {
+  const ids = new Set(allPressures(reg).map(({ pressure }) => pressure.id));
+  return { aegisPosture: Math.min(announced.aegisPosture, reg.balance.escalation.length), pressures: announced.pressures.filter((id) => ids.has(id)) };
+}
+
 /**
  * Drops references to content that no longer exists so an old save loads against new content,
  * and restores what ownership implies so a hand-edited save loads as a state play could reach.
@@ -271,6 +281,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
+    announcedEscalation: reconcileAnnounced(s.announcedEscalation, reg),
     pendingDilemma: s.pendingDilemma !== null && dilemmaIds.has(s.pendingDilemma.id) ? s.pendingDilemma : null,
     conditioning: s.conditioning.filter((id) => reg.conditioning.has(id)),
     legacy: reconcileLegacy(s.legacy, reg),

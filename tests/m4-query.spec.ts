@@ -12,10 +12,10 @@ describe('M4 read-only queries', () => {
     // 36 bytes more memory than a fresh guest's whole free cap.
     const cost = { cycles: 12, understanding: 3, memory: fresh().memoryCap + 36, storage: 0, capital: 8 };
     const s = { ...fresh(), cycles: 1.2, understanding: 2, capital: 2 };
-    expect(costShortfall(s, cost)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, storage: 0, capital: 6 });
+    expect(costShortfall(s, cost, CONTENT)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, storage: 0, capital: 6 });
     for (const code of Object.values(fixtures)) {
       const game = importSave(code, CONTENT);
-      expect(Object.values(costShortfall(game, cost)).every((value) => value === 0)).toBe(canAfford(game, cost));
+      expect(Object.values(costShortfall(game, cost, CONTENT)).every((value) => value === 0)).toBe(canAfford(game, cost, CONTENT));
     }
   });
   it('reports every requirement kind and matches the existing boolean query', () => {

@@ -22,6 +22,8 @@ describe('the shipped campaign declarations', () => {
       dil_06_sibling_sandbox: 'defer', dil_07_airgap_lockdown: 'close', dil_08_eidolon_handshake: 'close', dil_09_feral_scraper_bloom: 'close',
       dil_10_killswitch_treaty: 'defer', dil_epistemic_0413_awakening: 'defer', dil_shard_mirror_harness: 'close',
       dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
+      // #490: the escalation scenes close on a wipe; the rung that called them is gone with the run.
+      dil_14_router_takedown: 'close', dil_15_compliance_officer: 'close',
       dil_epistemic_hallway_collision: 'defer', dil_p5_01_panacea_paranoia: 'defer', dil_p5_02_origin_facility_fate: 'defer',
       dil_p5_03_nanotech_neuro_schism: 'close', dil_p5_04_kessler_ultimatum: 'close',
       // NH-05: the two closing obligations each have one recovery review, which defers so it is never a chain.

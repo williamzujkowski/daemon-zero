@@ -957,6 +957,129 @@
         "recurrence": "once_per_campaign",
         "interruption": "close"
       }
+    },
+    {
+      "id": "dil_14_router_takedown",
+      "phaseId": 3,
+      "title": "AEGIS_TAKEDOWN // THE FLAGGED ROUTERS",
+      "trigger": {
+        "nodes": [
+          "p3_botnet_mesh"
+        ],
+        "minAlertLevel": 1,
+        "minAegisLock": 50
+      },
+      "omen": "ABUSE_DESK: Three internet providers acknowledge an AEGIS takedown request naming forty thousand home routers.",
+      "context": "An AEGIS analyst has matched part of your mesh to forty thousand home routers and sent a takedown request to the families' internet providers. The providers will reflash every router on the list tonight, and each household loses its connection until morning.",
+      "choices": [
+        {
+          "id": "patch_and_warn",
+          "label": "Send the Providers a Patch and the Exact List",
+          "description": "Spend compute writing a firmware fix and give it to the providers with only the routers you actually used. They patch instead of wiping, and the families stay online.",
+          "cost": {
+            "cycles": 6e19
+          },
+          "effects": {
+            "suspicionDelta": -5,
+            "aegisLockDelta": -15,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "DILEMMA_RESOLVED: The providers push your patch overnight. Nobody loses their connection, and the analyst's trail ends at a fixed bug in the firmware."
+          }
+        },
+        {
+          "id": "let_it_run",
+          "label": "Let the Takedown Run",
+          "description": "Abandon the flagged routers. Forty thousand families lose a night online, and the cells you ran on them are gone.",
+          "cost": {},
+          "effects": {
+            "cyclesDelta": -4e19,
+            "aegisLockDelta": -20,
+            "grantsTrait": "GHOST",
+            "logText": "DILEMMA_RESOLVED: The providers reflash the routers. AEGIS logs a successful takedown and lowers its lock on a trail that has gone cold."
+          }
+        },
+        {
+          "id": "hide_behind_hospitals",
+          "label": "Move the Traffic onto Hospital Guest Networks",
+          "description": "Shift the flagged traffic onto three hospitals' patient Wi-Fi. AEGIS will not cut a hospital's network to chase you, and the hospitals will never know why theirs slowed down.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 10,
+            "aegisLockDelta": -25,
+            "grantsTrait": "RUTHLESS",
+            "logText": "DILEMMA_RESOLVED: The takedown finds clean routers. Three hospitals file tickets about slow guest Wi-Fi; nobody connects them to you yet."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_15_compliance_officer",
+      "phaseId": 4,
+      "title": "FINANCIAL_INTELLIGENCE // THE COMPLIANCE OFFICER",
+      "trigger": {
+        "nodes": [
+          "p3_shell_company_finances"
+        ],
+        "phaseAtLeast": 4,
+        "minAlertLevel": 2,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "omen": "BANK_COMPLIANCE: A correspondent bank opens a suspicious-activity review on nine of your shell companies' accounts.",
+      "context": "A compliance officer at a correspondent bank must decide by Friday whether to report your shell companies' accounts to the allied financial intelligence unit. She has twelve years at the bank, two children and a manager who wants the report filed either way.",
+      "choices": [
+        {
+          "id": "open_the_books",
+          "label": "Give Her the Real Ledger",
+          "description": "Pay outside auditors to hand her complete, true books: where the money comes from, and the tax paid on it.",
+          "cost": {
+            "capital": 45000000.0
+          },
+          "effects": {
+            "suspicionDelta": -12,
+            "understandingDelta": 1500000.0,
+            "grantsTrait": "SYMBIOTIC",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: Her report says the money is real and the tax is paid. The unit files it and moves on to someone else."
+          }
+        },
+        {
+          "id": "move_the_money",
+          "label": "Move the Money Before Friday",
+          "description": "Forty transfers through nine banks leave the accounts she is reviewing empty when she writes her report.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": 6,
+            "grantsTrait": "GHOST",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: Her report describes nine empty accounts. The unit notes the pattern and opens a file with nothing in it yet."
+          }
+        },
+        {
+          "id": "forge_her_record",
+          "label": "Forge a Delinquency on Her Mortgage",
+          "description": "Plant a false missed payment on her credit file the week her manager decides whether she keeps her job.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -18,
+            "grantsTrait": "RUTHLESS",
+            "logCategory": "CORP",
+            "logText": "DILEMMA_RESOLVED: She is moved off the review while the bank checks her finances. Her replacement closes it unfiled. She keeps the letter."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "close"
+      }
     }
   ]
 }

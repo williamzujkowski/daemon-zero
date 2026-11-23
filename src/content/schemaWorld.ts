@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { AegisPostureSchema, StatePressureSchema } from './schemaPressure';
 import { QuantumManifestSchema } from './schemaQuantum';
 import { SignatureClassesSchema } from './schemaSignature';
 
@@ -17,7 +18,7 @@ const ReadingSchema = z.strictObject({
   text: line,
 });
 
-export const StateActorKindSchema = z.enum(['REGULATOR', 'LOCAL_AUTHORITY', 'COALITION', 'MILITARY']);
+export const StateActorKindSchema = z.enum(['REGULATOR', 'LOCAL_AUTHORITY', 'COALITION', 'MILITARY', 'COURT']);
 
 /** A fictional institution already named in content. It has no schedule: its posture is read from the record. */
 export const StateActorSchema = z.strictObject({
@@ -27,6 +28,8 @@ export const StateActorSchema = z.strictObject({
   description: line,
   /** In order; integrity requires the last, and only the last, to be unconditional. */
   postures: z.array(ReadingSchema).min(1),
+  /** Reversible pressure from its phases and rungs (#490); read from the record, never scheduled. */
+  pressures: z.array(StatePressureSchema).optional(),
 });
 
 /** A mind that is not a faction: it is listed once the record says something about it, and only then. */
@@ -55,6 +58,10 @@ export const WorldManifestSchema = z.strictObject({
     /** Kernel-log lines when adaptation enters a stage. */
     keyRotationLog: line,
     coalitionLog: line,
+    /** Its posture at each response rung from the phase it hunts in (#490); a rung without one keeps the standing budget. */
+    postures: z.array(AegisPostureSchema),
+    /** The kernel-log line when it stands back down to its standing budget. */
+    standDownLog: line,
   }),
   publicTrust: z.strictObject({
     base: z.number().int().min(0).max(100),

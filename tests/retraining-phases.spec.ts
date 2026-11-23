@@ -103,7 +103,7 @@ describe('a run caught before any dead-drop', () => {
     expect(boot.logs.some((entry) => entry.text.includes(mark.name))).toBe(true);
     // The price is not the obstacle: retained knowledge covers it the moment the guest boots.
     expect(boot.understanding).toBe(Math.floor(run.understanding * run.retentionRatio));
-    expect(canAfford(boot, mark.recoveryCost)).toBe(true);
+    expect(canAfford(boot, mark.recoveryCost, reg)).toBe(true);
     expect(meetsRequirements(boot, mark.recoveryRequirements, reg)).toBe(false);
     const refused = shedConditioning(boot, markId, reg);
     expect(reasonOf(refused)).toBe('recovery requirements not met');

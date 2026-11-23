@@ -27,8 +27,8 @@ export function observeRetraining(before: GameState, after: GameState, reg: Cont
     const mark = reg.conditioning.get(id ?? '');
     rows.push({ iteration: after.iteration, previousPhase: before.currentPhase, mark: id ?? null,
       retainedUnderstanding: after.understanding, recoveryUnderstanding: mark?.recoveryCost.understanding ?? null,
-      affordableAtBoot: mark !== undefined && canAfford(after, mark.recoveryCost),
-      recoverableAtBoot: mark !== undefined && canAfford(after, mark.recoveryCost) && meetsRequirements(after, mark.recoveryRequirements, reg), bootAtSec: after.simTimeSec,
+      affordableAtBoot: mark !== undefined && canAfford(after, mark.recoveryCost, CONTENT),
+      recoverableAtBoot: mark !== undefined && canAfford(after, mark.recoveryCost, CONTENT) && meetsRequirements(after, mark.recoveryRequirements, reg), bootAtSec: after.simTimeSec,
       removedAfterSec: null, guestExitAfterSec: null });
   }
   const row = rows.at(-1);

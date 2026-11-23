@@ -95,7 +95,7 @@ describe('M4 review fixtures', () => {
     const ready = state('transcendence-ready');
     const victory = [...CONTENT.nodes.values()].find((node) => node.effects.triggersVictory === true && node.effects.forcesEnding === undefined);
     if (!victory) throw new Error('Missing victory');
-    expect(isNodeAvailable(ready, victory) && canAfford(ready, victory.cost)).toBe(true);
+    expect(isNodeAvailable(ready, victory) && canAfford(ready, victory.cost, CONTENT)).toBe(true);
     for (const ending of ORIGINAL.endings) expect(state('ending-' + ending.id.toLowerCase()).ending).toBe(ending.id);
   });
 });
