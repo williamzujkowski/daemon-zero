@@ -22,7 +22,8 @@ test('a Phase 2 signal still pending in Phase 3 lapses with its own line and is 
   await boot(page, 'wild-shard-encounter-p3', { patch: (game: GameState) => ({ ...game, pendingWildEncounterId: small.id,
     nextEncounterAtSec: game.simTimeSec + 600 }) });
   await swarm(page);
-  await page.clock.runFor(1000);
+  // Past one save checkpoint (5 s), so the stored save shows what the first ticks did.
+  await page.clock.runFor(6000);
   await expect(page.getByTestId('wild-encounter')).toHaveCount(0);
   await expect(page.getByTestId('wild-signal-notice')).toHaveCount(0);
   const save = await readSave(page);
