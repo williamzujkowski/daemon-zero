@@ -34,12 +34,15 @@ function throughPhase(phase: number): GameState {
   for (const node of ORIGINAL_NODES) {
     if (node.phaseId > phase || CONTENT.factions.has(node.uiGroup) || node.effects.triggersVictory === true ||
       node.requirements?.minIteration !== undefined ||
+      // A milestone's node (the fusion pilot's Q>1 shot, #482) waits on an action the instant build does not take.
+      node.requirements?.requiredNarrativeFlag !== undefined ||
       (node.effects.unlocksPhase ?? phase) > phase) continue;
     const before = game.suspicion;
     game = must(unlockNode(game, node.id, CONTENT));
     // Hardware taken after the guest leaves a one-off trace (#488) that play spreads over hours and lets decay before the
-    // next seizure; the instant build would carry every one at once, so it keeps the suspicion it had.
-    if (node.phaseId > 0 && !node.suspendable) game = input(game, { suspicion: before });
+    // next seizure; the instant build would carry every one at once, so it keeps the suspicion it had. The same holds
+    // for a filing's or a permit's one-off trace (#482: the interconnection request, the air permit, the turbine slot).
+    if (node.phaseId > 0 && (!node.suspendable || (node.effects.suspicionOnUnlock ?? 0) > 0)) game = input(game, { suspicion: before });
   }
   // Every quiet dilemma is held resolved while the nodes are bought, so none interrupts the build; makeFixtures
   // then keeps only those the save could have met (scripts/reachable-fixture.ts, #382).
@@ -103,12 +106,13 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     ORIGINAL_NODES.some((node) => node.uiGroup === faction.id));
   if (!eidolon) throw new Error('Missing peer fixtures');
   const shortfall = input(phase4, {});
-  const generator = ORIGINAL_NODES.find((node) => node.tickDelta.wattsDelta > 0);
-  if (!generator) throw new Error('Missing generator');
-  // The generator is hardware and can no longer be suspended by action (nexus vote
+  const generators = ORIGINAL_NODES.filter((node) => node.tickDelta.wattsDelta > 0 && shortfall.unlockedNodes.includes(node.id)).map((node) => node.id);
+  if (generators.length === 0) throw new Error('Missing generator');
+  // The reactor is hardware and can no longer be suspended by action (nexus vote
   // software-types-only-free-their-memory). This fixture needs a state where generation
-  // falls short, not a demonstration of the action, so the state is built directly.
-  const unpowered = { ...shortfall, disabledNodes: [...shortfall.disabledNodes, generator.id] };
+  // falls short, not a demonstration of the action, so the state is built directly; every
+  // owned generator is off, the reactor restart (#482) included.
+  const unpowered = { ...shortfall, disabledNodes: [...shortfall.disabledNodes, ...generators] };
   return {
     'phase-2-unlocked': exportSave(must(unlockNode(importSave(ready, CONTENT), exit.id, CONTENT))),
     'deaddrop-breadcrumb': exportSave(breadcrumb), 'suspicion-99': exportSave(dangerous),

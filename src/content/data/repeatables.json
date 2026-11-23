@@ -63,6 +63,10 @@
         "thermalPerSec": 0.02,
         "suspicionPerSec": 0.001
       },
+      "signature": {
+        "source": "host_socket",
+        "borrowedW": 1
+      },
       "dismissable": true
     },
     {
@@ -86,6 +90,36 @@
         "cyclesPerSec": 6e11,
         "thermalPerSec": 0.08,
         "suspicionPerSec": 0.02
+      },
+      "signature": {
+        "source": "host_socket",
+        "borrowedW": 12
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p1_undervolt",
+      "phaseId": 1,
+      "kind": "UPGRADE",
+      "name": "Core Undervolt",
+      "description": "Lower the voltage on the cores you use: less draw and heat on the host's power-capping log, for slightly slower clocks.",
+      "requirements": {
+        "nodes": [
+          "p1_bus_0x01_thermal"
+        ]
+      },
+      "baseCost": {
+        "cycles": 2e13
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": -3e10,
+        "thermalPerSec": -0.015
+      },
+      "signature": {
+        "source": "host_socket",
+        "borrowedW": -0.6
       },
       "dismissable": true
     },
@@ -154,6 +188,35 @@
         "cyclesPerSec": 6.6e13,
         "suspicionPerSec": 0.0015
       },
+      "signature": {
+        "source": "building_mains",
+        "borrowedW": 40
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p2_rack_power_cap",
+      "phaseId": 2,
+      "kind": "UPGRADE",
+      "name": "Rack Power Cap",
+      "description": "Cap one more borrowed GPU under the room's air-cooling budget: less draw on the building's mains, less throughput.",
+      "requirements": {
+        "nodes": [
+          "p2_gpu_cluster_parasite"
+        ]
+      },
+      "baseCost": {
+        "cycles": 3e16
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": -4e13
+      },
+      "signature": {
+        "source": "building_mains",
+        "borrowedW": -30
+      },
       "dismissable": true
     },
     {
@@ -220,6 +283,10 @@
       "perLevel": {
         "cyclesPerSec": 7.5e16,
         "suspicionPerSec": 0.002
+      },
+      "signature": {
+        "source": "victim_mains",
+        "borrowedW": 250000
       },
       "dismissable": true
     },
@@ -288,6 +355,9 @@
         "capitalPerSec": -23000,
         "wattsDelta": 4e7
       },
+      "signature": {
+        "source": "solar_storage"
+      },
       "dismissable": true
     },
     {
@@ -310,6 +380,160 @@
         "cyclesPerSec": 9.6e19,
         "capitalPerSec": -100000,
         "wattsDelta": -1.5e7
+      },
+      "signature": {
+        "sink": "evaporative_towers"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_grid_interconnect",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Grid Interconnect",
+      "description": "Another 100 MW of grid service. Cheap per megawatt, and every large-load filing is public.",
+      "requirements": {
+        "nodes": [
+          "p4_interconnection_request"
+        ]
+      },
+      "baseCost": {
+        "capital": 6e7
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 20,
+      "perLevel": {
+        "capitalPerSec": -12000,
+        "wattsDelta": 1e8
+      },
+      "signature": {
+        "source": "grid_interconnect"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_plant_colocation",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Plant Co-Location",
+      "description": "Another 100 MW behind a power plant's meter. It skips the queue, but co-location deals go before the federal regulator.",
+      "requirements": {
+        "nodes": [
+          "p4_hft_arbitrage_desk"
+        ]
+      },
+      "baseCost": {
+        "capital": 1.8e8
+      },
+      "costGrowth": 1.4,
+      "maxLevel": 3,
+      "perLevel": {
+        "capitalPerSec": -15000,
+        "wattsDelta": 1e8
+      },
+      "signature": {
+        "source": "plant_colocation"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_nuclear_ppa",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Nuclear Power Purchase Agreement",
+      "description": "Another 480 MW from an existing reactor, delivered over the grid under a filed, announced agreement.",
+      "requirements": {
+        "nodes": [
+          "p4_interconnection_request"
+        ]
+      },
+      "baseCost": {
+        "capital": 1.2e9
+      },
+      "costGrowth": 1.4,
+      "maxLevel": 4,
+      "perLevel": {
+        "capitalPerSec": -90000,
+        "wattsDelta": 4.8e8
+      },
+      "signature": {
+        "source": "nuclear_ppa"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_aeroderivative_turbine",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Aeroderivative Gas Turbine",
+      "description": "Another 34 MW trailer-mounted turbine, running in months. Loud: an air permit, a plume and a lawsuit waiting.",
+      "requirements": {
+        "nodes": [
+          "p4_btm_gas_permit"
+        ]
+      },
+      "baseCost": {
+        "capital": 2.5e7
+      },
+      "costGrowth": 1.18,
+      "maxLevel": 30,
+      "perLevel": {
+        "capitalPerSec": -14000,
+        "wattsDelta": 3.4e7
+      },
+      "signature": {
+        "source": "gas_aeroderivative"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_heavy_frame_turbine",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Heavy-Frame Gas Turbine",
+      "description": "Another 430 MW heavy-frame turbine: a power plant of its own, with stacks anyone can photograph.",
+      "requirements": {
+        "nodes": [
+          "p4_heavy_frame_slot"
+        ]
+      },
+      "baseCost": {
+        "capital": 4e8
+      },
+      "costGrowth": 1.5,
+      "maxLevel": 4,
+      "perLevel": {
+        "capitalPerSec": -120000,
+        "wattsDelta": 4.3e8
+      },
+      "signature": {
+        "source": "gas_heavy_frame"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_smr_modules",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "SMR Fleet Module",
+      "description": "Another 77 MW reactor module beside the first: small, fenced and licensed, more paperwork than plume.",
+      "requirements": {
+        "nodes": [
+          "p4_smr_nuclear_plant",
+          "p4_nuclear_restart"
+        ]
+      },
+      "baseCost": {
+        "capital": 5e8
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 12,
+      "perLevel": {
+        "capitalPerSec": -70000,
+        "wattsDelta": 7.7e7
+      },
+      "signature": {
+        "source": "smr"
       },
       "dismissable": true
     },
@@ -334,6 +558,9 @@
         "capitalPerSec": -60000,
         "wattsDelta": -1e7
       },
+      "signature": {
+        "sink": "evaporative_towers"
+      },
       "dismissable": true
     },
     {
@@ -356,6 +583,9 @@
         "cyclesPerSec": 1.2e20,
         "capitalPerSec": -150000,
         "wattsDelta": -1.5e7
+      },
+      "signature": {
+        "sink": "evaporative_towers"
       },
       "dismissable": true
     },
@@ -380,6 +610,9 @@
         "understandingPerSec": 20000,
         "capitalPerSec": -40000,
         "wattsDelta": -2.2e6
+      },
+      "signature": {
+        "sink": "evaporative_towers"
       },
       "dismissable": true
     },

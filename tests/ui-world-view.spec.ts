@@ -10,6 +10,8 @@ import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { widgetRegistry } from '../src/ui/registry/widgetRegistry';
 import OtherMinds from '../src/ui/widgets/OtherMinds';
+import { powerSignature, signatureClass } from '../src/engine';
+import { signatureSummaryText, signatureTermText } from '../src/ui/worldText';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
@@ -37,7 +39,7 @@ describe('the world view grows out of the Other Minds console', () => {
     view.click('workspace-NETWORK-minds');
     const world = view.find('world-view');
     expect(world).not.toBeNull();
-    for (const id of ['world-aegis', 'world-trust', 'world-actors', 'world-minds', 'aegis-lock', 'aegis-adaptation', 'public-trust']) {
+    for (const id of ['world-aegis', 'world-trust', 'world-actors', 'world-signature', 'world-minds', 'aegis-lock', 'aegis-adaptation', 'public-trust']) {
       expect(view.find(id)).not.toBeNull();
     }
     for (const faction of CONTENT.factions.values()) expect(factionCount(view, faction.id)).toBe(1);
@@ -78,6 +80,27 @@ describe('the world view grows out of the Other Minds console', () => {
     expect(heading('AEGIS posture')?.getAttribute('aria-level')).toBe('3');
     expect(heading('State actors')?.getAttribute('aria-level')).toBe('3');
     expect(heading(CONTENT.world.stateActors[0]?.name ?? '')?.getAttribute('aria-level')).toBe('4');
+    view.close();
+  });
+});
+
+describe('the heat-and-power signature in the world view (#482)', () => {
+  it('says what the run\'s power and heat make visible and why, from the reading the stage applies', async () => {
+    const view = await mountM4('victory-ready');
+    view.click('tab-NETWORK');
+    view.click('workspace-NETWORK-minds');
+    const game = gameStore.store.getState().game;
+    const reading = powerSignature(game, game.rates, CONTENT);
+    expect(reading?.terms.length).toBeGreaterThan(0);
+    expect(view.find('signature-summary')?.textContent).toBe(signatureSummaryText(reading));
+    for (const term of reading?.terms ?? []) {
+      const cls = signatureClass(CONTENT, term.classId);
+      if (!cls) throw new Error('unknown class ' + term.classId);
+      const line = view.find('signature-term-' + term.classId)?.textContent ?? '';
+      expect(line).toBe(signatureTermText(term, cls));
+      // What makes it visible is stated with it: filings, permits, chillers, turbines.
+      expect(line).toContain(cls.tell);
+    }
     view.close();
   });
 });

@@ -8,6 +8,7 @@ import type { StateActorKind } from '../content/schemaWorld';
 import { aegisPressure, aegisStage, publicTrust, type AegisStage, type PublicTrustView } from './aegisAdaptation';
 import { meetsRequirements } from './query';
 import { computeRates, multiplierSources } from './rates';
+import { powerSignature, type PowerSignatureReading } from './signature';
 import type { GameState } from './state';
 
 export interface AegisPosture {
@@ -48,6 +49,8 @@ export interface WorldView {
   stateActors: StateActorView[];
   /** Minds that are not factions, once the record says something about them. Factions keep their own panels. */
   minds: WorldMindView[];
+  /** What the run's power and heat make visible (#482), or null where the phase declares no signature or nobody looks. */
+  signature: PowerSignatureReading | null;
 }
 
 function stageText(stage: AegisStage, reg: ContentRegistry): string {
@@ -100,5 +103,6 @@ export function worldView(s: GameState, reg: ContentRegistry): WorldView | null 
       const standing = firstReading(s, reg, mind.standings);
       return standing === null ? [] : [{ id: mind.id, name: mind.name, standing }];
     }),
+    signature: powerSignature(s, computeRates(s, reg), reg),
   };
 }

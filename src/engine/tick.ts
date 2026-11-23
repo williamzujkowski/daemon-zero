@@ -14,6 +14,7 @@ import { relayLoggedFeed } from './systems/feedLog';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
 import { integrateScaleScrutiny } from './systems/scrutiny';
+import { integratePowerSignature } from './systems/powerSignature';
 import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import { integrateAegisAdaptation } from './systems/aegisAdaptation';
@@ -28,6 +29,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateThermal,
   // Immediately before suspicion, which integrates the rest of the rate and decides a wipe on the sum (#210).
   integrateScaleScrutiny,
+  // Beside scrutiny, for the same reason: it only adds, and the suspicion stage decides a wipe on the sum (#482).
+  integratePowerSignature,
   integrateSuspicion,
   integrateEscalation,
   integrateAegis,

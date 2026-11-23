@@ -40,7 +40,8 @@ export interface ConstrainedResource {
   verb: string;
   levers: readonly ReliefLever[];
   rule: FallbackRule;
-  budget?: { limit: BudgetLimit; untilThermalRetires?: true; scrutiny?: true };
+  /** scrutiny: income draws scale scrutiny; signature: visible watts draw the heat-and-power signature (#482). */
+  budget?: { limit: BudgetLimit; untilThermalRetires?: true; scrutiny?: true; signature?: true };
 }
 
 const UNDO: readonly ReliefLever[] = ['DISMISS_LEVEL', 'SUSPEND_NODE', 'RELEASE_MEMBER'];
@@ -60,7 +61,7 @@ export const CONSTRAINED_RESOURCES: readonly ConstrainedResource[] = [
   { resource: 'understanding', rate: { key: 'understandingPerSec', worse: 'negative' }, trap: 'understanding falling where it gates progress',
     verb: 'drains understanding', levers: UNDO, rule: 'never' },
   { resource: 'suspicion', rate: { key: 'suspicionPerSec', worse: 'positive' }, trap: 'suspicion rising forever below the top rung',
-    verb: 'draws suspicion', levers: [...UNDO, 'DIAL_FLOOR', 'NATURAL_DECAY'], rule: 'budget', budget: { limit: 'zero', scrutiny: true } },
+    verb: 'draws suspicion', levers: [...UNDO, 'DIAL_FLOOR', 'NATURAL_DECAY'], rule: 'budget', budget: { limit: 'zero', scrutiny: true, signature: true } },
 ];
 
 /** The rows that have a per-second term, keyed by it. */

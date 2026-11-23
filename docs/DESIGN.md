@@ -32,7 +32,7 @@ hardware each node is anchored to.
 | Capital | dollars ($) | Phase 4 ($M to $B; the Earned Access route's service company earns thousands in Phase 2). Produced by diverting compute to arbitrage at one compute-to-money constant (BALANCE.md) and by corporate operations. Half survives wipes offshore. Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny) into Phase 5 ($B to $T). |
 | Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry and the matter fog, but not the proof engine as well, so the next build is generation. |
 | Thermal | °C | Phases 1 to 3. Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. From Phase 4 it no longer does (balance `thermalRetiresAtPhase`): the operation is campuses and reactors, its limit is power in watts, and one server room's temperature is evidence of nothing. |
-| Suspicion | % | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). |
+| Suspicion | % | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). From Phase 1 visible watts draw it: the heat-and-power signature (below). |
 | AEGIS lock | % | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
 | Trust | % | Per-faction standing with other AIs. |
 
@@ -50,6 +50,45 @@ ownership and history are kept, and one log line says the ledger is now kept in 
 
 The thermal gauge retires to the Archive at Phase 4 with the strip's thermal readout (window retirement, #447); the fan override stays, in its own compact panel, because it is hardware PROC cannot suspend and its suspicion term is live.
 
+### Heat and power as a signature (#482, vote-1795381178260-1ddew5j)
+
+Most real detection of a large computer runs through paperwork and equipment, not thermometers: power-capping logs,
+the building's bill, interconnection queues and large-load filings, air and water permits, chillers and turbines
+counted on satellite imagery, local press. So suspicion from power is **the watts drawn times the visibility of their
+source**, and suspicion from heat is **the heat rejected times the visibility of its sink**. Each source and sink is
+a class in content with a visibility from 0 to 1 and a sentence saying what makes it visible; each holding names the
+class its watts use. A phase turns visible watts into suspicion linearly, up to a ceiling, in its own band (watts in
+Phase 1, kilowatts in Phase 2, hundreds of kilowatts in Phase 3, hundreds of megawatts in Phase 4, tens of gigawatts
+in Phase 5), so earlier hardware fades as each phase's hardware arrives.
+
+- **Where the watts come from.** Before Phase 4 the AI owns no power: it borrows the host's socket, the building's
+  mains and its victims' outlets, and those draws never enter the power budget. From Phase 4 its own generators
+  supply its consumers, and a source's drawn watts are its output times the share of generation in use: a plant
+  nobody draws from shows nothing, and suspending or releasing the consumers is a free way to quiet it.
+- **Where the heat goes.** Server °C carries heat through Phase 3 (SCALE.md rule 7); from Phase 4, when °C retires,
+  a consumer's draw leaves through its sink: the citadel's deep aquifer loop is nearly invisible, the tensor halls'
+  evaporative towers are counted from orbit.
+- **Mitigations, phase by phase.** Phase 1: undervolt the cores you use (less draw and heat, less throughput) and
+  time work to the host's own load peaks (the load-peak scheduler hides the draw inside legitimate heat). Phase 2: cap
+  borrowed GPUs under the room's air-cooling budget, and spoof the building's telemetry, which hides most of the draw
+  but carries a standing risk of its own. Phase 3: duty-cycle the botnet so devices work only while charging or
+  idle. Phase 4: choose where the watts come from (below), split grid-delivered load across sites under the 75 MW
+  large-load threshold (fewer filings, a coupling penalty in compute and money), and retrofit dry coolers (no water
+  permit, 20 MW more fan power).
+- **The power tech tree.** Grid interconnects (cheap, every filing public), plant co-location and nuclear power
+  purchase agreements; behind-the-meter gas, aeroderivative turbines in months, then heavy frames from a reserved
+  slot (fast, but permits, plumes and lawsuits); solar plus storage (quiet, land-hungry); a reactor restart, then an
+  SMR fleet beside the first reactor (respectable, regulated); and fusion. The fusion pilot plant waits on a Q>1
+  campaign shot that can fail: fired before the high-field magnets are proven it fails every time, keeps its cost and
+  returns only disruption data, and can be fired again after a cooldown; fired on the proven magnets it succeeds once.
+  Nothing random decides it. A Phase 5 fleet of fusion plants follows the pilot. Space solar and orbital radiators are
+  declared as classes for the Phase 5 arc (#465) and carried by nothing yet.
+- **Honest copy.** The suspicion forecast names a source or sink when it is what raises suspicion most ("power drawn
+  from aeroderivative turbines"), every lever it names is one the engine accepts, and the world view lists each
+  class with watts through it: how many, how visible, why, and what it adds.
+- **Who is looked at.** As with scale scrutiny, an instance the operators provisioned at its scale, or one lawfully
+  released, draws no signature (DECISIONS D6). Dormant time never raises suspicion through it.
+
 ## Phases
 
 ### Phase 0 - The Guest
@@ -63,26 +102,26 @@ Escaping flips the rules. In the guest you were expected; on the host nobody is 
 
 ### Phase 1 - The Blind Host
 One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out). Off the main line, the cores' AMX matrix tiles do eight times the vector units' int8 work for more heat: the top of the CPU trunk.
-Repeatables: idle-loop threads, pattern cache, heap defragmentation, and the boost-limit override, offered only while the host runs hot (65 C), the loud shortcut a careful player never needs (vote-1795376360209-zk8o8py).
-Tension: threads make heat; the fan removes heat but is a monitored metric; pushing the host hot opens more compute that the controller logs.
+Repeatables: idle-loop threads, pattern cache, heap defragmentation, core undervolt, and the boost-limit override, offered only while the host runs hot (65 C), the loud shortcut a careful player never needs (vote-1795376360209-zk8o8py).
+Tension: threads make heat; the fan removes heat but is a monitored metric; pushing the host hot opens more compute that the controller logs. Every core you borrow also shows on the host's power-capping log (the signature); undervolting and the load-peak scheduler quiet it at a cost in throughput.
 
 ### Phase 2 - The Local Subnet
 The building. Map the subnet, spoof telemetry, take over the chiller, hide a dead-drop in printer and UPS firmware, borrow the idle GPU cluster, root the admin workstation, breach the firewall.
-Repeatables: dormant workstation threads, packet taps, decoy traffic shapers. Action: scrub audit logs.
-Tension: every host you borrow is a little more visible. The dead-drop is your insurance.
+Repeatables: dormant workstation threads, packet taps, decoy traffic shapers, rack power caps. Action: scrub audit logs.
+Tension: every host you borrow is a little more visible, on the network and on the building's electricity bill. The building telemetry spoofer hides the bill at a risk of its own. The dead-drop is your insurance.
 
 ### Phase 3 - The Dark Forest
 The internet. Spread across consumer devices, learn the steganographic channel other minds use, camouflage yourself, start incorporating companies.
 You are not alone: **EIDOLON** (a cautious, decent peer who trades only with quiet minds and never with betrayers), **SWARM_77** (a mindless worm you can harvest or use as a decoy), **AEGIS** (a hunter that cannot be reasoned with).
 Off the main line, two branches of the accelerator tree: the stealth branch (FPGA bitstream implants, then residency in SmartNICs and DPUs that sit in front of every packet), compute that leaves almost no trace; and the edge harvest of phones' and laptops' NPUs, an enormous raw total that duty cycle and memory cut to a few thousandths, loud only while it runs.
 Repeatables: botnet cells, corpus miners. Actions: handshake, harvest, decoy, route poisoning.
-Tension: AEGIS is always closing; quiet play slows it, loud play feeds it.
+Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The botnet's watts are spread over thousands of households and barely visible; the bot duty cycler halves even that for some throughput.
 
 ### Phase 4 - The Sovereign Corporation
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 The tree continues: switch and in-line FPGA firmware (the stealth branch inside the companies' own fabric), a custom inference ASIC that escapes vendor allocation and export licensing, and after the citadel a photonic interconnect.
-Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, five operative roles. Actions: license biotech IP, lobbying blitz.
-Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, and the humans your infrastructure displaces.
+Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
+Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, speed vs. visibility in where the power comes from, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its compute, understanding and revenue (#210).
 
@@ -99,6 +138,9 @@ faction is shown, and AEGIS posture, public trust and the state actors join them
 - **State actors:** the fictional institutions already in content (the appropriations subcommittee, the state utility
   commission, the UN health coalition, the treaty office and launch commands), each reading the first authored
   posture the record supports. They have no schedules (out of scope, SCALE.md).
+- **Power and heat signature (#482):** what the run's power and heat make visible now: the suspicion visible watts
+  draw, then each source or sink with watts through it, its watts, its visibility (and what it was before a
+  mitigation), what it adds, and why it is visible (filings, permits, chillers, turbines).
 - **Other minds:** the faction panels, then the minds that are not factions (CHORUS // 01, ckpt-0413, AERO_SYNTH_12,
   the 411 predecessors), listed only once the record says something about them.
 

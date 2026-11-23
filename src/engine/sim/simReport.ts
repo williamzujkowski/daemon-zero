@@ -31,6 +31,16 @@ export function aegisPhaseLine(report: SimReport<string>, phase: number): string
   return `lock ${fixed(stats.peakLock)} | scan ${stats.meanScanPerSec.toFixed(4)}/s | adapt ${fixed(stats.peakAdaptation)} | held ${String(stats.heldSec)} s`;
 }
 
+/** One phase's heat-and-power signature (#482): mean and peak suspicion per second, and peak visible watts. */
+export function signaturePhaseLine(report: SimReport<string>, phase: number): string {
+  const stats = report.signatureByPhase[phase];
+  if (stats === undefined) return '-';
+  return `mean ${stats.meanPerSec.toFixed(4)}/s | peak ${stats.peakPerSec.toFixed(4)}/s | visible ${stats.peakVisibleWatts.toPrecision(3)} W`;
+}
+
+/** The phases that declare a signature rule. */
+const SIGNATURE_PHASES = [1, 2, 3, 4, 5] as const;
+
 /** The phases where AEGIS can still matter late: the corporate phase and after. */
 const AEGIS_PHASES = [3, 4, 5] as const;
 
@@ -44,6 +54,7 @@ function metrics(report: SimReport<string>): [string, string][] {
     ['dilemmas resolved', String(report.dilemmasResolved)],
     ['peak thermal / suspicion / aegis', [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map(fixed).join(' / ')],
     ...AEGIS_PHASES.map((phase): [string, string] => [`phase ${String(phase)} aegis`, aegisPhaseLine(report, phase)]),
+    ...SIGNATURE_PHASES.map((phase): [string, string] => [`phase ${String(phase)} signature`, signaturePhaseLine(report, phase)]),
     ...Object.entries(report.activity).map(([key, value]): [string, string] => [`activity ${key}`, String(value)]),
   ];
 }

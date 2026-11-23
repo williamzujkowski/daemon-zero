@@ -44,15 +44,22 @@ describe('powered output (#483)', () => {
 });
 
 describe('the power row of the free-fallback invariant', () => {
-  it('admits the neuromorphic cores unsuspendable only because their own guaranteed chain covers the draw', () => {
+  it('admits the cores\' 2.6 GW unsuspendable on the power row only because their own guaranteed chain covers it', () => {
     // Their prerequisites (the collector swarm, the reactor) are hardware nobody can suspend: 1.2003 TW guaranteed, against
-    // the citadel in that chain and the fog and foundry beside it (1.15 TW). 2.6 GW fits; 100 GW does not.
-    expect(problemsAfter((raw) => { node(raw, 'p5_neuromorphic_substrate').suspendable = false; })).toBe('');
+    // the citadel in that chain and the fog and foundry beside it (1.15 TW). 2.6 GW fits; 100 GW does not. The signature
+    // is left out here to isolate the power row; with it, the suspicion row refuses them (below).
+    const unsuspendable = (cores: Json): void => { cores.suspendable = false; delete cores.signature; };
+    expect(problemsAfter((raw) => unsuspendable(node(raw, 'p5_neuromorphic_substrate')))).toBe('');
     expect(problemsAfter((raw) => {
       const cores = node(raw, 'p5_neuromorphic_substrate');
-      cores.suspendable = false;
+      unsuspendable(cores);
       cores.tickDelta.wattsDelta = -1e11;
     })).toMatch(/node "p5_neuromorphic_substrate": draws power but cannot be suspended/);
+  });
+
+  it('refuses the cores unsuspendable with their radiator sink: visible watts would be suspicion nothing could undo', () => {
+    expect(problemsAfter((raw) => { node(raw, 'p5_neuromorphic_substrate').suspendable = false; }))
+      .toMatch(/node "p5_neuromorphic_substrate": draws suspicion but cannot be suspended/);
   });
 
   it('counts only generation its prerequisites guarantee, not what a run happens to own', () => {
@@ -61,6 +68,7 @@ describe('the power row of the free-fallback invariant', () => {
     expect(problemsAfter((raw) => {
       const cores = node(raw, 'p5_neuromorphic_substrate');
       cores.suspendable = false;
+      delete cores.signature;
       cores.prerequisites = ['p4_subterranean_citadel'];
     })).toMatch(/node "p5_neuromorphic_substrate": draws power but cannot be suspended/);
   });

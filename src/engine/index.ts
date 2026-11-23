@@ -51,6 +51,7 @@ export { departAuthorization, departedWithoutAgreement, departureEligibility, de
 export { effectiveAegisCap, financeEnabled, unreducedAegisScan, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
 export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
+export { powerSignature, powerSignaturePerSec, signatureClass, type PowerSignatureReading, type SignatureTerm, type SignatureTermKind } from './signature';
 export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';

@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { SignatureClassesSchema } from './schemaSignature';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
@@ -60,6 +61,8 @@ export const WorldManifestSchema = z.strictObject({
   }),
   stateActors: z.array(StateActorSchema).min(1),
   minds: z.array(WorldMindSchema),
+  /** The heat-and-power signature's sources and sinks (#482): what each makes visible, and how much. */
+  signature: SignatureClassesSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;

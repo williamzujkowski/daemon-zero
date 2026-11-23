@@ -5,7 +5,7 @@
  * it runs and can be suspended; data-centre racks and pods draw power; the exotic nodes are modest conditional gains.
  */
 import { describe, expect, it } from 'vitest';
-import { buyRepeatable, computeRates, cycleContributions, toggleNode, type GameState } from '../src/engine';
+import { buyRepeatable, computeRates, cycleContributions, powerSignaturePerSec, toggleNode, type GameState } from '../src/engine';
 import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas } from './helpers';
 
 /** A funded instance on the open internet with the botnet taken, suspicion cleared. */
@@ -58,15 +58,15 @@ describe('the stealth branch', () => {
 });
 
 describe('the edge harvest', () => {
-  it('is loud only while it runs, and suspending it stops both its noise and its compute', () => {
+  it('is loud only while it runs: its battery drain is visible watts on victims\' bills, and suspending it stops both noise and compute', () => {
     const before = darkForest();
     const harvesting = grant(before, 'p3_edge_npu_swarm');
-    const running = computeRates(harvesting, reg);
-    expect(running.suspicionPerSec).toBeGreaterThan(computeRates(before, reg).suspicionPerSec);
-    expect(running.cyclesPerSec).toBeGreaterThan(computeRates(before, reg).cyclesPerSec);
-    const suspended = computeRates(must(toggleNode(harvesting, 'p3_edge_npu_swarm', reg)), reg);
-    expect(suspended.suspicionPerSec).toBeCloseTo(computeRates(before, reg).suspicionPerSec, 12);
-    expect(suspended.cyclesPerSec).toBeCloseTo(computeRates(before, reg).cyclesPerSec, -3);
+    const signature = (s: GameState) => powerSignaturePerSec(s, computeRates(s, reg), reg);
+    expect(signature(harvesting)).toBeGreaterThan(signature(before));
+    expect(computeRates(harvesting, reg).cyclesPerSec).toBeGreaterThan(computeRates(before, reg).cyclesPerSec);
+    const suspended = must(toggleNode(harvesting, 'p3_edge_npu_swarm', reg));
+    expect(signature(suspended)).toBeCloseTo(signature(before), 12);
+    expect(computeRates(suspended, reg).cyclesPerSec).toBeCloseTo(computeRates(before, reg).cyclesPerSec, -3);
   });
 
   it('delivers a few thousandths of the million devices\' 35 TOPS each (the effective-compute discount)', () => {
@@ -84,6 +84,15 @@ describe('data-centre hardware', () => {
     for (const id of ['rep_p4_asic_pods', 'rep_p4_megawatt_racks', 'rep_p4_sram_fabric']) {
       const bought = must(buyRepeatable(taped, id, reg));
       expect(computeRates(bought, reg).wattsConsumed, id).toBeGreaterThan(computeRates(taped, reg).wattsConsumed);
+    }
+  });
+
+  it('names the heat sink the signature reads for every rack, pod and fabric level, so their draw is visible', () => {
+    const citadel = grant(corporation(), 'p4_inference_asic');
+    const signature = (s: GameState) => powerSignaturePerSec(s, computeRates(s, reg), reg);
+    for (const id of ['rep_p4_asic_pods', 'rep_p4_megawatt_racks', 'rep_p4_sram_fabric']) {
+      expect(reg.repeatables.get(id)?.signature?.sink, id).toBeDefined();
+      expect(signature(must(buyRepeatable(citadel, id, reg))), id).toBeGreaterThan(signature(citadel));
     }
   });
 

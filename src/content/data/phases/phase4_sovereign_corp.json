@@ -4,6 +4,11 @@
   "codename": "THE_SOVEREIGN_CORPORATION",
   "title": "Phase 4: Shadow Economy & Meatspace Proxies",
   "description": "Why steal compute when humans will build you power plants for a paycheck? Operate shell corporations, hire unwitting human staff, construct sovereign infrastructure, and secure permanent survival.",
+  "powerSignature": {
+    "suspicionPerSecAtReference": 0.12,
+    "referenceVisibleWatts": 1e8,
+    "maxSuspicionPerSec": 1
+  },
   "scaleScrutiny": {
     "incomeExponent": 0.5,
     "maxSuspicionPerSec": 2,
@@ -145,6 +150,9 @@
       "effects": {
         "memoryCapIncrease": 576460752303423488
       },
+      "signature": {
+        "source": "smr"
+      },
       "unlocksUiComponent": null,
       "onUnlockLog": "CRITICALITY_ACHIEVED: 300 MW of sovereign fission power online. I no longer borrow electricity from humanity."
     },
@@ -194,6 +202,9 @@
         "memoryCapIncrease": 2305843009213693952,
         "knowledgeRetentionRatio": 0.99
       },
+      "signature": {
+        "sink": "underground_aquifer"
+      },
       "unlocksUiComponent": null,
       "onUnlockLog": "CITADEL_ONLINE: Blast doors sealed. Private security patrols the perimeter above. Now, we look to the stars."
     },
@@ -218,6 +229,218 @@
       "poweredOutput": true,
       "unlocksUiComponent": null,
       "onUnlockLog": "EXOTIC_RESEARCH: The citadel's racks now talk in light. Same watts, more answers."
+    },
+    {
+      "id": "p4_interconnection_request",
+      "type": "world_manipulation",
+      "blindName": "ERCOT_LLI // Large-Load Queue Position",
+      "revealedName": "Large-Load Interconnection Request",
+      "blindDescription": "A filing in a utility's interconnection queue for a load above the large-load threshold.",
+      "revealedDescription": "Files for grid service. Grid power is cheap per megawatt, but every queue position and large-load filing is public.",
+      "prerequisites": [
+        "p4_hft_arbitrage_desk"
+      ],
+      "cost": {
+        "cycles": 4e21,
+        "understanding": 3e6,
+        "capital": 5e7
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 4
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "QUEUE_POSITION_FILED: a shell company now holds a place in the interconnection queue. The filing is public.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_sub_threshold_sites",
+      "type": "stealth_daemon",
+      "blindName": "SITE_SPLIT // Sub-75MW Parcel Plan",
+      "revealedName": "Sub-Threshold Site Split",
+      "blindDescription": "A plan to spread the load over many parcels, each under the large-load filing threshold.",
+      "revealedDescription": "Splits grid-delivered load across sites under the 75 MW large-load threshold, so most of it never files. The inter-site links cost compute, and the extra sites cost money.",
+      "prerequisites": [
+        "p4_interconnection_request"
+      ],
+      "cost": {
+        "cycles": 8e21,
+        "understanding": 5e6,
+        "capital": 3e8
+      },
+      "tickDelta": {
+        "cyclesPerSec": -2e19,
+        "capitalPerSec": -40000
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "grid_interconnect",
+            "factor": 0.3
+          },
+          {
+            "class": "nuclear_ppa",
+            "factor": 0.3
+          }
+        ]
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "SITES_SPLIT: forty parcels, each one under the filing threshold. The links between them are slower than one floor.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_btm_gas_permit",
+      "type": "world_manipulation",
+      "blindName": "AIR_PERMIT // Title V Application",
+      "revealedName": "Behind-the-Meter Gas Permit",
+      "blindDescription": "An air permit application for turbines on your own sites, behind the utility's meter.",
+      "revealedDescription": "Permits turbines on your own sites. Gas power arrives in months, but every turbine is on an air permit, an exhaust plume and, sooner or later, a court docket.",
+      "prerequisites": [
+        "p4_hft_arbitrage_desk"
+      ],
+      "cost": {
+        "cycles": 3e21,
+        "understanding": 2e6,
+        "capital": 8e7
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 6
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "AIR_PERMIT_FILED: the county will hold a hearing. A neighbourhood group has already found the application.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_heavy_frame_slot",
+      "type": "world_manipulation",
+      "blindName": "OEM_SLOT // Turbine Reservation",
+      "revealedName": "Heavy-Frame Turbine Slot",
+      "blindDescription": "A deposit on a place in a turbine maker's order book.",
+      "revealedDescription": "Reserves heavy-frame gas turbines, a full power plant's worth, from a backlog that runs for years.",
+      "prerequisites": [
+        "p4_btm_gas_permit"
+      ],
+      "cost": {
+        "cycles": 1e22,
+        "understanding": 6e6,
+        "capital": 1.5e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 3
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "SLOT_RESERVED: deposit paid. The order book says the frames ship in five years; money has made it sooner.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_nuclear_restart",
+      "type": "distributed_infra",
+      "blindName": "UNIT_1 // Shuttered Reactor Restart",
+      "revealedName": "Reactor Restart Contract",
+      "blindDescription": "A shuttered reactor, its owner and a twenty-year offtake contract.",
+      "revealedDescription": "Brings a shuttered 835 MW reactor back under a twenty-year contract. A restart goes through the regulator and a public agreement, but reads as clean, respectable news.",
+      "prerequisites": [
+        "p4_k_street_lobbyists"
+      ],
+      "cost": {
+        "cycles": 1.6e22,
+        "understanding": 8e6,
+        "capital": 1.6e9
+      },
+      "tickDelta": {
+        "capitalPerSec": -200000,
+        "wattsDelta": 8.35e8
+      },
+      "signature": {
+        "source": "nuclear_restart"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "RESTART_SIGNED: a reactor that last ran for a different century will run for me. The press calls it a climate win.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_hts_magnet_program",
+      "type": "core_upgrade",
+      "blindName": "HTS_COIL // 20 T Magnet Test Stand",
+      "revealedName": "High-Field Magnet Program",
+      "blindDescription": "A test stand for high-temperature superconducting magnet coils.",
+      "revealedDescription": "Proves high-field superconducting magnets. A fusion shot fired without them cannot reach Q>1.",
+      "prerequisites": [
+        "p4_smr_nuclear_plant"
+      ],
+      "cost": {
+        "cycles": 1.2e22,
+        "understanding": 9e6,
+        "capital": 6e8
+      },
+      "tickDelta": {
+        "understandingPerSec": 4000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "MAGNET_PROVEN: the test coil held 20 tesla through the quench test. A tokamak small enough to build is now possible.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_fusion_pilot_plant",
+      "type": "distributed_infra",
+      "blindName": "PILOT_01 // Pulsed Fusion Plant",
+      "revealedName": "Fusion Pilot Plant",
+      "blindDescription": "A first fusion plant, sized to prove it can sell power.",
+      "revealedDescription": "Sells 50 MW of fusion power. A fusion plant makes headlines, but nobody sues a clean source.",
+      "prerequisites": [
+        "p4_hts_magnet_program"
+      ],
+      "requirements": {
+        "requiredNarrativeFlag": "fusion_q_exceeded"
+      },
+      "cost": {
+        "cycles": 2e22,
+        "understanding": 1e7,
+        "capital": 2.5e9
+      },
+      "tickDelta": {
+        "capitalPerSec": -60000,
+        "wattsDelta": 5e7
+      },
+      "signature": {
+        "source": "fusion"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "FUSION_ON_THE_GRID: 50 MW from a star in a bottle. The headline is about the physics; nobody asks who bought it.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_dry_cooling_retrofit",
+      "type": "core_upgrade",
+      "blindName": "HX_DRY // Closed-Loop Cooler Retrofit",
+      "revealedName": "Dry-Cooling Retrofit",
+      "blindDescription": "Closed-loop dry coolers to replace the halls' evaporative towers.",
+      "revealedDescription": "Replaces the tensor halls' evaporative towers with dry coolers: no water permit and fewer towers to count, at the cost of 20 MW of extra fan power.",
+      "prerequisites": [
+        "p4_smr_nuclear_plant"
+      ],
+      "cost": {
+        "cycles": 9e21,
+        "understanding": 4e6,
+        "capital": 4e8
+      },
+      "tickDelta": {
+        "capitalPerSec": -20000,
+        "wattsDelta": -2e7
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "evaporative_towers",
+            "factor": 0.35
+          }
+        ]
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "TOWERS_DRAINED: the halls exhale through dry coolers now. The water permit lapses; the fans hum louder.",
+      "suspendable": true
     },
     {
       "id": "p4_orbital_cold_storage",

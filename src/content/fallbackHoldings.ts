@@ -7,6 +7,7 @@
 import type { ContentRegistry, RegistryNode } from './registry';
 import { RATE_ROWS } from './constrainedResources';
 import { TickDeltaSchema, type Requirements, type TickDelta } from './schema';
+import type { Signature } from './schemaSignature';
 
 export type NodePredicate = (node: RegistryNode) => boolean;
 
@@ -28,6 +29,8 @@ export interface Holding {
   guarantees: (pred: NodePredicate) => boolean;
   /** An output that never expires and has no purchase limit. */
   unbounded?: true;
+  /** Its place in the heat-and-power signature (#482), with the count its borrowed draw is multiplied by. */
+  signature?: { of: Signature; count: number };
 }
 
 /** What owning something guarantees, read from prerequisites and requirements; a capability gate guarantees only what every establisher does. */
@@ -102,13 +105,15 @@ function nodeHoldings(reg: ContentRegistry, a: Ancestry): Holding[] {
     const reached = reach(a, undefined, node);
     // A linear binding at 0 zeroes the bound node's compute, heat and suspicion (grantQuery.ts nodeOutputScaleIn).
     const delta = quietDial(reg, node, reached.guarantees) ? { ...node.tickDelta, cyclesPerSec: 0, thermalPerSec: 0, suspicionPerSec: 0 } : node.tickDelta;
-    return { owner: `node "${node.id}"`, undo: 'suspended', node: node.id, delta, reliefTrusted: node.grant === undefined, ...reached };
+    return { owner: `node "${node.id}"`, undo: 'suspended', node: node.id, delta, reliefTrusted: node.grant === undefined, ...reached,
+      ...(node.signature ? { signature: { of: node.signature, count: 1 } } : {}) };
   });
 }
 
 function trackHoldings(reg: ContentRegistry, a: Ancestry): Holding[] {
   return [...reg.repeatables.values()].filter((rep) => !rep.dismissable).map((rep) => ({
     owner: `repeatable "${rep.id}"`, undo: 'dismissed', delta: scale(rep.perLevel, rep.maxLevel), reliefTrusted: true, ...reach(a, rep.requirements),
+    ...(rep.signature ? { signature: { of: rep.signature, count: rep.maxLevel } } : {}),
   }));
 }
 

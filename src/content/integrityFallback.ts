@@ -8,6 +8,7 @@ import { CONSTRAINED_RESOURCES, worsening, worsensAny, type ConstrainedResource 
 import { permanentHoldings, type Holding } from './fallbackHoldings';
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { TickDelta } from './schema';
+import { classVisibility } from './integritySignature';
 
 type RateRow = ConstrainedResource & { rate: NonNullable<ConstrainedResource['rate']> };
 const FINANCE = 'ENABLES_CORPORATE_FINANCE';
@@ -71,15 +72,40 @@ function scrutinyDraw(reg: ContentRegistry, floor: number, income: number): numb
   }));
 }
 
+/** A holding's visible watts while `phase` is current, at full draw and before any mask (relief that could lapse is not counted on). */
+function visibleWatts(reg: ContentRegistry, holding: Holding, phase: number): number {
+  if (holding.signature === undefined) return 0;
+  const { of, count } = holding.signature;
+  let watts = 0;
+  if (of.source !== undefined) watts += (Math.max(0, holding.delta.wattsDelta) + Math.max(0, (of.borrowedW ?? 0) * count)) * classVisibility(reg, of.source);
+  if (of.sink !== undefined && phase >= reg.balance.thermalRetiresAtPhase) watts += Math.max(0, -holding.delta.wattsDelta) * classVisibility(reg, of.sink);
+  return watts;
+}
+
+/** The signature `holdings` draw together under the worst rule a phase at or after `floor` declares; linear then capped, so sums bound it. */
+function signatureDraw(reg: ContentRegistry, floor: number, holdings: readonly Holding[]): number {
+  return Math.max(0, ...reg.phases.filter((phase) => phase.phaseId >= floor).map((phase) => {
+    const rule = phase.powerSignature;
+    if (rule === undefined) return 0;
+    const watts = holdings.reduce((sum, holding) => sum + visibleWatts(reg, holding, phase.phaseId), 0);
+    return Math.min(rule.maxSuspicionPerSec, rule.suspicionPerSecAtReference * watts / rule.referenceVisibleWatts);
+  }));
+}
+
 /** What `x` and its guaranteed closure add, plus the worst each unrelated permanent holding adds, in the row's worse direction. */
 function budgetTotal(row: RateRow, reg: ContentRegistry, x: Holding, pool: readonly Holding[]): number {
   const key = row.rate.key, sign = row.rate.worse === 'negative' ? -1 : 1;
   const closure = pool.filter((y) => inClosure(x, y)), others = pool.filter((y) => !inClosure(x, y) && !descends(y, x));
   let total = closure.reduce((sum, y) => sum + sign * term(y, key), 0);
   if (row.budget?.scrutiny !== true) return total + others.reduce((sum, y) => sum + worsening(key, y.delta[key]), 0);
-  // Net income draws scrutiny: the closure's jointly, each unrelated holding's on its own (the draw is subadditive).
-  total += scrutinyDraw(reg, x.floor, closure.reduce((sum, y) => sum + term(y, 'capitalPerSec'), 0));
-  const draw = (y: Holding) => scrutinyDraw(reg, Math.max(x.floor, y.floor), Math.max(0, y.delta.capitalPerSec));
+  // Net income draws scrutiny and visible watts the signature: the closure's jointly, each unrelated holding's on its own
+  // (both draws are subadditive). The signature row flag keeps the second to the suspicion row (#482).
+  const signed = row.budget.signature === true;
+  total += scrutinyDraw(reg, x.floor, closure.reduce((sum, y) => sum + term(y, 'capitalPerSec'), 0)) + (signed ? signatureDraw(reg, x.floor, closure) : 0);
+  const draw = (y: Holding) => {
+    const floor = Math.max(x.floor, y.floor);
+    return scrutinyDraw(reg, floor, Math.max(0, y.delta.capitalPerSec)) + (signed ? signatureDraw(reg, floor, [y]) : 0);
+  };
   return total + others.reduce((sum, y) => sum + Math.max(0, term(y, key) + draw(y)), 0);
 }
 
@@ -87,7 +113,8 @@ function checkBudget(row: RateRow, reg: ContentRegistry, holdings: readonly Hold
   const b = reg.balance;
   const windowed = row.budget?.untilThermalRetires === true ? holdings.filter((holding) => holding.floor < b.thermalRetiresAtPhase) : holdings;
   const limit = row.budget?.limit === 'coolingHeadroom' ? (b.thermalThresholdForSuspicion - b.ambientThermal) * b.thermalDissipationPerSec : 0;
-  const scrutinised = (holding: Holding) => row.budget?.scrutiny === true && holding.delta.capitalPerSec > 0 && scrutinyDraw(reg, holding.floor, 1) > 0;
+  const scrutinised = (holding: Holding) => (row.budget?.scrutiny === true && holding.delta.capitalPerSec > 0 && scrutinyDraw(reg, holding.floor, 1) > 0)
+    || (row.budget?.signature === true && signatureDraw(reg, holding.floor, [holding]) > 0);
   const problems: string[] = [];
   for (const x of windowed) {
     if (worsening(row.rate.key, x.delta[row.rate.key]) === 0 && !scrutinised(x)) continue;
