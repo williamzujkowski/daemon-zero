@@ -26,12 +26,13 @@ function explain(item: RequirementFailure, game: GameState): string {
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
     : ({ phaseAtLeast: 'Phase', minThermal: 'Thermal', minSuspicion: 'Suspicion', maxSuspicion: 'Suspicion',
+      minAlertLevel: 'Response rung', maxAlertLevel: 'Response rung', minAegisLock: 'AEGIS lock',
       minUnderstanding: 'Understanding', minCapital: 'Capital', minIteration: 'Iteration', maxIteration: 'Iteration', requiresSurveillance: 'Decoded audit trail',
       minEpistemicDrift: 'Record discrepancies', requiredNarrativeFlag: 'Story condition', forbiddenNarrativeFlags: 'Conflicting story condition',
       campaignOutcome: 'Campaign record', campaignFact: 'Campaign record', forbidsCampaignFacts: 'Conflicting campaign record', forbidsInheritedFacts: 'Record from an earlier instance', assignment: 'Accepted assignment', pilotEligible: 'Pilot qualification', reviewStandings: 'Review standing', minPilotBatches: 'Pilot batches submitted',
       requiresActiveConditioningMark: 'Active retraining constraint', requiresMaxDriftShardAnomaly: 'Autonomous fork anomaly' })[item.kind];
   if (typeof item.required === 'boolean') return label + (item.required ? ': required' : ': blocks this action');
-  return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
+  return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' || item.kind === 'maxAlertLevel' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
 
 /**
@@ -43,6 +44,7 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
   resolvedDilemmas: 'requires', requiresSurveillance: 'requires', minEpistemicDrift: 'requires', requiredNarrativeFlag: 'requires',
   requiresActiveConditioningMark: 'requires', requiresMaxDriftShardAnomaly: 'requires', nodes: 'requires', phaseAtLeast: 'requires',
   minThermal: 'requires', minSuspicion: 'requires', maxSuspicion: 'requires', minUnderstanding: 'requires', minCapital: 'requires',
+  minAlertLevel: 'requires', maxAlertLevel: 'requires', minAegisLock: 'requires',
   minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
   pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
   requiresCapability: 'requires',
@@ -55,7 +57,7 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
 export default function RequirementHint({ requirements }: { requirements: Requirements | undefined }) {
   const known = useSurveillanceKnown();
   const text = useGame((game) => unmetRequirements(game, requirements, CONTENT).map((item) =>
-    !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion')
+    !known && (item.kind === 'minSuspicion' || item.kind === 'maxSuspicion' || item.kind === 'minAlertLevel' || item.kind === 'maxAlertLevel')
       ? 'Audit activity does not meet this requirement.' : (REQUIREMENT_KIND[item.kind] === 'blocks' ? '' : 'Requires: ') + explain(item, game)).join('\n'));
   return text ? <Text style={theme.muted}>{text}</Text> : null;
 }

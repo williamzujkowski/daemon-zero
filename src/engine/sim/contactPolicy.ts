@@ -86,7 +86,7 @@ function withholdThenDisclose(s: GameState, reg: ContentRegistry): GameState | n
   const token = presentationToken(s);
   if (!dilemma || token === null) return null;
   const choice = dilemma.trigger.assignment !== undefined
-    ? dilemma.choices.find((entry) => entry.qualification?.discrepancy === true && canAfford(s, entry.cost))
+    ? dilemma.choices.find((entry) => entry.qualification?.discrepancy === true && canAfford(s, entry.cost, reg))
     : dilemma.finding === undefined ? undefined : dilemma.choices.find((entry) => entry.review?.correction === true);
   return choice ? taken(resolveDilemma(s, dilemma.id, choice.id, reg, token)) : null;
 }

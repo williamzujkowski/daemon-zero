@@ -59,7 +59,8 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     // v19 (#491) added the hostile slot, which this transition never writes.
     // v20 (#484) added storage used and capacity, which only node ownership moves; this transition moves none.
     // v21 (#464) added the quantum record, written only by key-breaking and AEGIS's migration; not by this.
-    expect(SCHEMA_VERSION).toBe(21);
+    // v22 (#490) added the escalation announcements, which this transition never writes either.
+    expect(SCHEMA_VERSION).toBe(22);
   });
 });
 

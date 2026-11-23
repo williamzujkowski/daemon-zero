@@ -11,6 +11,7 @@ import { understandingMultiplier } from './conditioning';
 import { nodeOutputScale, nodeOutputScaleIn, useScope } from './grantQuery';
 import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
+import { aegisScanMultiplier } from './statePressure';
 import { couplings, deliveredShare, type Couplings } from './coupling';
 import type { GameState, Rates } from './state';
 
@@ -209,8 +210,9 @@ export function unreducedAegisScan(s: GameState, reg: ContentRegistry): number {
   return base + (s.suspicion / 100) * b.aegisSuspicionScanPerSec;
 }
 
+/** The scan after every reduction, times AEGIS's posture at this rung (#490): reductions shrink the sweep it widens. */
 function aegisScanRate(s: GameState, reg: ContentRegistry, a: Aggregate): number {
-  return unreducedAegisScan(s, reg) * (1 - aegisReduction(a, s, reg).applied);
+  return unreducedAegisScan(s, reg) * (1 - aegisReduction(a, s, reg).applied) * aegisScanMultiplier(s, reg);
 }
 
 /**

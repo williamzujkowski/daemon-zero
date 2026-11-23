@@ -52,8 +52,9 @@ function NoPanel() { return null; }
 
 export const lineageWidget = 'RUN_TABLE';
 export const threatWidget = 'OTHER_MINDS_COMMS_CONSOLE';
-/** The AEGIS lock at which the hunters are close: the alert, the HUD word and the announcement share it. */
-export const AEGIS_CRITICAL = 90;
+/** The AEGIS lock at which the hunters are close: the alert, the HUD word and the announcement share it. Content owns it,
+ *  so every posture's strike, which integrity keeps above it, is warned of first (#490). */
+export const AEGIS_CRITICAL = CONTENT.balance.aegisStrikeWarningAt;
 /** Critical as the player reads it: the HUD shows the lock to one decimal, so 89.95 reads 90.0 and counts. */
 export const aegisCritical = (lock: number): boolean => Math.round(lock * 10) / 10 >= AEGIS_CRITICAL;
 export const thermalWidget = 'THERMAL_AND_SUSPICION_BARS';

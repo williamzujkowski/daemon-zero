@@ -28,6 +28,10 @@ export const REQUIREMENT_SCOPES = {
   minThermal: 'transient',
   minSuspicion: 'transient',
   maxSuspicion: 'transient',
+  // The rung follows suspicion and the lock falls only when answered or struck, so both are transient like suspicion (#490).
+  minAlertLevel: 'transient',
+  maxAlertLevel: 'transient',
+  minAegisLock: 'transient',
   minUnderstanding: 'transient',
   minCapital: 'transient',
   minTrust: 'transient',

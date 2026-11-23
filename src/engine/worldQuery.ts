@@ -7,17 +7,23 @@ import type { ContentRegistry } from '../content/registry';
 import type { StateActorKind } from '../content/schemaWorld';
 import { aegisPressure, aegisStage, publicTrust, type AegisStage, type PublicTrustView } from './aegisAdaptation';
 import { hunterRise } from './hostileEffect';
+import { aegisPostureView, pressureViews, type AegisPostureView, type PressureView } from './pressureQuery';
 import { meetsRequirements } from './query';
 import { computeRates, multiplierSources } from './rates';
 import { powerSignature, type PowerSignatureReading } from './signature';
 import type { GameState } from './state';
+import { aegisStrikeAt } from './statePressure';
 
 export interface AegisPosture {
   lock: number;
   /** The scan the next tick applies, per second. */
   scanPerSec: number;
-  /** Seconds until the lock completes at that scan, or null while it does not rise. */
+  /** The lock at which AEGIS strikes now: 100, or lower in a posture that shortens the warning (#490). */
+  strikeAt: number;
+  /** Seconds until the lock reaches the strike at that scan, or null while it does not rise. */
   secondsToStrike: number | null;
+  /** Its posture at this rung (#490), or null on its standing budget. */
+  posture: AegisPostureView | null;
   adaptation: number;
   stage: AegisStage;
   /** The authored line for the stage. */
@@ -43,7 +49,8 @@ export interface AegisPosture {
   hunter: { perSec: number; ceiling: number } | null;
 }
 
-export interface StateActorView { id: string; name: string; kind: StateActorKind; description: string; posture: string }
+/** An actor and its posture; `pressures` are those the record calls now (#490), in force or answered. */
+export interface StateActorView { id: string; name: string; kind: StateActorKind; description: string; posture: string; pressures: PressureView[] }
 export interface WorldMindView { id: string; name: string; standing: string }
 
 export interface WorldView {
@@ -69,8 +76,10 @@ export function aegisPosture(s: GameState, reg: ContentRegistry): AegisPosture {
   const { aegis } = multiplierSources(s, reg);
   const scanPerSec = computeRates(s, reg).aegisScanPerSec;
   const stage = aegisStage(s.aegisAdaptation, reg);
+  const strikeAt = aegisStrikeAt(s, reg);
   return {
-    lock: s.aegisLock, scanPerSec, secondsToStrike: scanPerSec > 0 ? (100 - s.aegisLock) / scanPerSec : null,
+    lock: s.aegisLock, scanPerSec, strikeAt, secondsToStrike: scanPerSec > 0 ? Math.max(0, strikeAt - s.aegisLock) / scanPerSec : null,
+    posture: aegisPostureView(s, reg),
     adaptation: s.aegisAdaptation, stage, stageText: stageText(stage, reg),
     hunting: pressure.hunting, held: pressure.held, ceiling: pressure.ceiling, coalition: pressure.coalition,
     keyRotationCeiling: b.aegisAdaptation.keyRotationCeiling,
@@ -102,6 +111,7 @@ export function worldView(s: GameState, reg: ContentRegistry): WorldView | null 
       id: actor.id, name: actor.name, kind: actor.kind, description: actor.description,
       // Integrity makes the last posture unconditional, so one always holds; the fallback states that rule.
       posture: firstReading(s, reg, actor.postures) ?? actor.postures.at(-1)?.text ?? '',
+      pressures: pressureViews(s, actor.pressures ?? [], reg),
     })),
     minds: minds.flatMap((mind) => {
       const standing = firstReading(s, reg, mind.standings);

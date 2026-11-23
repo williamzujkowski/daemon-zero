@@ -4,6 +4,7 @@ import { Pressable, Text } from './PhaseTheme';
  * rerender their enclosing cards. Engine queries remain the source of permission.
  */
 
+import { CONTENT } from '../content';
 import type { Cost } from '../content/schema';
 import { canAfford, type ActionResult, type GameState } from '../engine';
 import { recordUnlocks } from '../app/unlockPresentation';
@@ -28,7 +29,7 @@ export default function PurchaseButton({ id, label, text, cost, allowed, action,
   const [asking, ask] = useState(false);
   const ready = useGameValue(selectReady);
   const enabled = useGame((game) => game.activeDilemmaId === null && game.ending === null &&
-    canAfford(game, cost) && (allowed?.(game) ?? true));
+    canAfford(game, cost, CONTENT) && (allowed?.(game) ?? true));
   const buy = () => {
     const before = gameStore.store.getState().game.unlockedNodes;
     // The engine re-checks eligibility and price at dispatch, so a confirmation that outlived them buys nothing.

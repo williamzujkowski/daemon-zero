@@ -348,7 +348,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
-| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class / the quantum capability (#464): section, readout, no-FLOPS line, AEGIS keys, a target, its scheme, reasons, price and BREAK KEY | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}`, `world-quantum`, `quantum-readout`, `quantum-no-flops`, `quantum-aegis-keys`, `quantum-target-{id}`, `quantum-target-{id}-scheme`, `quantum-target-{id}-unmet`, `quantum-target-{id}-cost`, `quantum-target-{id}-break` |
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class / the quantum capability (#464): section, readout, no-FLOPS line, AEGIS keys, a target, its scheme, reasons, price and BREAK KEY | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}`, `world-quantum`, `quantum-readout`, `quantum-no-flops`, `quantum-aegis-keys`, `quantum-target-{id}`, `quantum-target-{id}-scheme`, `quantum-target-{id}-unmet`, `quantum-target-{id}-cost`, `quantum-target-{id}-break`; escalation by phase (#490): `aegis-posture` (also in the Phase 3 console), `pressure-{id}`, `pressure-{id}-text`, `-effect`, `-why`, `-answer`, and a track's `rep-{id}-denied` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -470,6 +470,25 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   one primary scroll), nothing in the sticky HUD (the 35% pin is unchanged), no fixed heights, and the three content
   font sizes (heading, text, muted) the atlas allows. At 200% text every world-view line stays reachable, an AEGIS
   countermeasure keeps its 44 px target and nothing scrolls sideways (`tests/e2e/large-text.e2e.ts`).
+- **Escalation by phase (#490).** AEGIS's posture is one muted line under the scan rate in `AegisStatus`
+  (`aegis-posture`), so it shows in the Phase 3 console and in the world view's AEGIS posture section. It reads
+  "Standing budget: no response rung calls for more." on rung 0. On a rung it gives the posture's text, the scan
+  multiplier and where it strikes; a strike below 100% adds "not 100% (the warning shows at 90%)". It ends with where
+  the posture eases. The strike line says "At this scan AEGIS strikes at 96% in ..." while the strike lock is under 100.
+  The HUD's lock reads up to the strike ("41.0 / 96%"), and CRITICAL still starts at the warning, which content now owns
+  (`aegisStrikeWarningAt`, `AEGIS_CRITICAL`). Under each state actor, every pressure the rung calls is a block
+  (`pressure-{id}`). It holds "IN FORCE:" in the danger colour, or "ANSWERED:", then the content line; the effect in the
+  engine's terms; why ("Response rung 2 calls for it from rung 2 in this phase; it lifts once suspicion falls below
+  42%."); and the answers. An answer is named only when the engine would accept its action now (`pressureViews` tries
+  it): "buy", "resume" or "hire ... (n of m held)". An answered pressure says what holds it off. With no answer
+  actionable the line is omitted, and the why line still says where it lifts. A track whose power source a moratorium
+  closes shows "Refused: the state utility commission has paused new grid interconnects; levels held keep running."
+  (`rep-{id}-denied`), and its buy control is disabled. A capital shortfall under a freeze adds "(30% of capital is
+  frozen)". An enjoined owned process reads "Not permitted: the district court has enjoined algorithmic trading." (the
+  permitted-use note). The FINANCE scrutiny line adds "×1.5 under an inquiry" while one is in force. Every sentence is
+  pure (`src/ui/pressureText.ts`, `tests/pressure-text.spec.ts`). No new live region speaks: the kernel log carries the
+  announcements. The pressure blocks render only while the rung calls a pressure, inside the existing section, with no
+  scroll container, fixed height or HUD item.
 - **Tests.** Engine: `tests/world-view.spec.ts`, `tests/aegis-adaptation.spec.ts`; content:
   `tests/world-integrity.spec.ts`; UI: `tests/ui-world-view.spec.ts`; served build: `tests/e2e/world-view.e2e.ts`
   (phone and desktop: absent in Phase 3; present from Phase 4 with every section, each faction once, axe clean, no

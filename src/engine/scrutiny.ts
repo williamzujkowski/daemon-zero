@@ -6,6 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { GameState, Rates } from './state';
 import { powerSignaturePerSec } from './signature';
+import { scrutinyMultiplier } from './statePressure';
 import { huntedForScale } from './threatQuery';
 
 export interface ScaleScrutinyReading {
@@ -18,9 +19,11 @@ export interface ScaleScrutinyReading {
   referenceIncomeUsdPerSec: number;
   incomeExponent: number;
   maxPerSec: number;
+  /** What an investigation in force multiplies the draw by, its ceiling included (#490); 1 when none is. */
+  investigation: number;
 }
 
-type Scrutinized = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration'>;
+type Scrutinized = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration' | 'alertLevel' | 'disabledNodes' | 'levels'>;
 type AppliedRates = Pick<Rates, 'suspicionPerSec' | 'capitalPerSec' | 'wattsGenerated' | 'wattsConsumed' | 'gridEfficiency'>;
 
 /**
@@ -33,9 +36,11 @@ export function scaleScrutiny(s: Scrutinized, rates: Pick<Rates, 'capitalPerSec'
   if (rule === undefined || !huntedForScale(s, reg)) return null;
   const incomePerSec = Math.max(0, rates.capitalPerSec);
   const drawn = rule.suspicionPerSecAtReference * Math.pow(incomePerSec / rule.referenceIncomeUsdPerSec, rule.incomeExponent);
+  const investigation = scrutinyMultiplier(s, reg);
   return {
-    perSec: Math.min(rule.maxSuspicionPerSec, drawn), incomePerSec,
+    perSec: Math.min(rule.maxSuspicionPerSec, drawn) * investigation, incomePerSec,
     perSecAtReference: rule.suspicionPerSecAtReference, referenceIncomeUsdPerSec: rule.referenceIncomeUsdPerSec, incomeExponent: rule.incomeExponent, maxPerSec: rule.maxSuspicionPerSec,
+    investigation,
   };
 }
 

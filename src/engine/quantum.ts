@@ -90,7 +90,7 @@ export function keyBreakUnmet(s: GameState, id: string, reg: ContentRegistry): s
   if (target.requirements !== undefined && !meetsRequirements(s, target.requirements, reg)) unmet.push(...requirementLabels(s, target.requirements, reg));
   const threshold = thresholdRefusal(s, scheme, reg);
   if (threshold !== null) unmet.push(threshold);
-  if (target.cost !== undefined && !canAfford(s, target.cost)) unmet.push('Insufficient resources: ' + formatCost(target.cost));
+  if (target.cost !== undefined && !canAfford(s, target.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(target.cost));
   return unmet;
 }
 

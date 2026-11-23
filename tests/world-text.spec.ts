@@ -5,7 +5,7 @@ import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryTe
 
 function posture(patch: Partial<AegisPosture> = {}): AegisPosture {
   return {
-    lock: 40, scanPerSec: 0.012, secondsToStrike: 5000, adaptation: 30, stage: 'KEY_ROTATION', stageText: 'KEY ROTATION: ...',
+    lock: 40, scanPerSec: 0.012, strikeAt: 100, secondsToStrike: 5000, posture: null, adaptation: 30, stage: 'KEY_ROTATION', stageText: 'KEY ROTATION: ...',
     hunting: true, held: true, ceiling: 100, keyRotationCeiling: 50, coalition: true,
     applied: 0.81, cap: 0.81, nominalCap: 0.9, heldFrom: 0.85, risePerSec: 0.1, decayPerSec: 0.25, coalitionTrustBelow: 50,
     shieldHeld: false, hunter: null, ...patch,

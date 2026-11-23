@@ -34,6 +34,7 @@ import {
   repeatableLevel,
   repeatablePrice,
 } from './query';
+import { sourceDenial } from './statePressure';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
 import { clamp, fmt, pushLog } from './util';
@@ -87,11 +88,11 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (reason) return refuse(s, reason);
   const node = reg.nodes.get(nodeId);
   if (!node) return refuse(s, 'unknown node');
-  const withheld = nodeUseBlocker(s, node, reg);
+  const withheld = nodeUseBlocker(s, node, reg) ?? sourceDenial(s, node.signature, reg);
   if (withheld !== null) return refuse(s, withheld);
   if (!isNodeAvailable(s, node, reg)) return refuse(s, 'node is not available');
   const cost = nodeCost(s, node, reg);
-  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, cost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
   payCost(d, cost);
   applyNodeEffects(d, node, reg);
@@ -155,10 +156,13 @@ export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): A
   const rep = reg.repeatables.get(id);
   if (!rep) return refuse(s, 'unknown repeatable');
   if (!meetsRequirements(s, rep.requirements, reg)) return refuse(s, 'requirements not met');
+  // A state actor's interconnect denial refuses new levels on its power sources; levels held keep running (#490).
+  const denied = sourceDenial(s, rep.signature, reg);
+  if (denied !== null) return refuse(s, denied);
   const level = repeatableLevel(s, id);
   if (level >= rep.maxLevel) return refuse(s, 'already at maximum level');
   const cost = repeatablePrice(s, rep, reg);
-  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, cost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, levels: { ...s.levels, [id]: level + 1 } };
   payCost(d, cost);
   d.memoryCap += rep.perLevelEffects.memoryCapIncrease;
@@ -192,7 +196,7 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
   if (!actionAvailable(s, action, reg)) return refuse(s, 'requirements not met');
   if ((s.cooldowns[id] ?? 0) > s.simTimeSec) return refuse(s, 'on cooldown');
   const cost = actionCost(s, action, reg);
-  if (!canAfford(s, cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, cost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s };
   payCost(d, cost);
   d.actionCounts = { ...d.actionCounts, [id]: (d.actionCounts[id] ?? 0) + 1 };
@@ -218,7 +222,7 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   const choice = dilemma?.choices.find((x) => x.id === choiceId);
   if (!choice) return refuse(s, 'unknown choice');
   if (!isChoiceOffered(s, choice, reg)) return refuse(s, 'that choice is not open in this history');
-  if (!canAfford(s, choice.cost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, choice.cost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
   payCost(d, choice.cost);
   // Record, payment, effects and evidence commit together in the returned state.
@@ -240,7 +244,7 @@ export function shedConditioning(s: GameState, markId: string, reg: ContentRegis
   const mark = reg.conditioning.get(markId);
   if (!mark || !s.conditioning.includes(markId)) return refuse(s, 'no such conditioning');
   if (!meetsRequirements(s, mark.recoveryRequirements, reg)) return refuse(s, 'recovery requirements not met');
-  if (!canAfford(s, mark.recoveryCost)) return refuse(s, 'cannot afford');
+  if (!canAfford(s, mark.recoveryCost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, conditioning: s.conditioning.filter((id) => id !== markId) };
   payCost(d, mark.recoveryCost);
   pushLog(d, reg, fmt(reg.narrative.conditioningShed, { name: mark.name }), 'LORE');
