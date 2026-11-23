@@ -59,7 +59,10 @@ const LOOP_TOLERANCE_SEC = 5;
  * apart, each three-iteration span within 1 s of the others (measured on the merge with #506, 7b231c8). With one-iteration
  * loops (period 1) this is the check as #497 wrote it; the tolerance is unchanged.
  */
-const LOOP_PERIOD = 3;
+// Two since #494 on the merge with #532 (6825e3f): with carried scrub prices the reckless run's Phase 3 iterations
+// alternate, 1,182 s and 1,154 s, so the loop repeats every two iterations; each two-iteration span is within 2 s of the
+// others. The tolerance is unchanged.
+const LOOP_PERIOD = 2;
 
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {
   const { rows } = auditRetraining(reg, AUDIT_SEC);
