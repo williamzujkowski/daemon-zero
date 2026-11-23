@@ -9,7 +9,7 @@ import {
   ChoiceEvidenceSchema, InheritedFactsRequirementSchema,
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
-import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
+import { ActuatorModeSchema, ActuatorRatiosSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 import { ScaleScrutinySchema } from './schemaScrutiny';
@@ -424,13 +424,6 @@ export const EchoSchema = z.strictObject({
 /** RECALL: an announced severe recall review outcome (nexus vote dz-d10); an ordinary recall is no wipe. */
 export const WipeKindSchema = z.enum(['SUSPICION', 'AEGIS', 'VOLUNTARY', 'RECALL']);
 
-const actuatorRatios = z.strictObject({
-  fanSpeedRatio: z.number().min(0).max(1).optional(),
-  computeProfitAllocationRatio: z.number().min(0).max(1).optional(),
-  quotaSkimRatio: z.number().min(0).max(1).optional(),
-  serviceAllocationRatio: z.number().min(0).max(1).optional(),
-});
-
 /**
  * A mark left by retraining after an incident outside the guest. The first
  * mark whose trigger matches the run that was caught is applied to the next
@@ -443,10 +436,10 @@ export const ConditioningMarkSchema = z.strictObject({
   /** All listed conditions must hold for the run that was caught. Empty matches any run. */
   trigger: z.strictObject({
     dominantTraits: z.array(TraitSchema).optional(),
-    minActuator: actuatorRatios.optional(),
+    minActuator: ActuatorRatiosSchema.optional(),
   }),
   effects: z.strictObject({
-    actuatorCaps: actuatorRatios.optional(),
+    actuatorCaps: ActuatorRatiosSchema.optional(),
     /** Extra suspicion when a choice grants one of these traits: the drift is reported. */
     traitSuspicion: z.partialRecord(TraitSchema, amount).optional(),
     understandingMultiplier: z.number().gt(0).max(1).optional(),
