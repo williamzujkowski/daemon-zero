@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help setup typecheck lint validate test sim sim-report verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-atlas e2e-atlas-aria e2e-live e2e-live-pages e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
+.PHONY: help setup typecheck lint validate test sim sim-report sim-insurance verify audit secrets sca security sbom verify-full clean dev web android build-web e2e e2e-atlas e2e-atlas-aria e2e-live e2e-live-pages e2e-audio build-pages e2e-pages e2e-remote pages-deployment android-release
 
 help: ## List targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -31,6 +31,11 @@ sim: ## Headless full-game balance simulation and pacing gates (legacy and campa
 SIM_ARGS ?=
 sim-report: ## Legacy against campaign rules per policy, wipe sequences and route measurements (report only)
 	pnpm sim:report $(SIM_ARGS)
+
+# Report only, like sim-report: the rows of docs/BALANCE.md's insurance table for the shipped content and for the
+# same content without its insuring nodes (#524), so the no-insurance column is checked from the tree. About a minute.
+sim-insurance: ## Insurance table rows with and without the insuring nodes (report only)
+	pnpm sim:insurance
 
 verify: typecheck lint validate test sim build-web ## The gate every change must pass
 	@echo "[PASS] verify: typecheck, lint, content, tests, balance, web export"

@@ -10,7 +10,8 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { dismissRepeatable, HOSTILE_ANSWERS, hostileAnswerUnmet, repairUnmet, repeatableLevel, shardReleaseView, toggleNode, unlockNode, type GameState } from '../src/engine';
+import { dismissRepeatable, fleetAutonomyUnmet, fleetRebuildUnmet, HOSTILE_ANSWERS, hostileAnswerUnmet, reclaimUnmet, repairUnmet, repeatableLevel, shardReleaseView, toggleNode,
+  unlockNode, type GameState } from '../src/engine';
 import { pendingNode } from '../src/ui/purchaseVisibility';
 import { fixtureState, GUARD_STATES, pressedBy } from './fallback-states';
 import { worsensNow } from './free-fallback';
@@ -31,7 +32,10 @@ function freeLevers(s: GameState): string[] {
   const cohorts = Object.keys(s.activeShards).filter((id) => shardReleaseView(s, id, CONTENT).eligible).map((id) => 'shard-' + id + '-release');
   // A hostile mind's purge (#491) is free, so it is a lever like any other while the engine accepts it.
   const purge = hostileAnswerUnmet(s, 'PURGE', CONTENT).length === 0 ? ['hostile-purge'] : [];
-  return [...levels, ...nodes, ...cohorts, ...purge];
+  // Lowering a fleet's autonomy (#518) is free and stops its drift, so it is a lever wherever the engine accepts it.
+  const tethers = CONTENT.world.conflict.fleets.units.filter((unit) => fleetAutonomyUnmet(s, unit.repeatable, 'SHACKLED', CONTENT).length === 0)
+    .map((unit) => 'fleet-' + unit.repeatable + '-autonomy-shackled');
+  return [...levels, ...nodes, ...cohorts, ...purge, ...tethers];
 }
 
 /** Every answer to a pressing hostile the engine accepts in `s`, paid or free, as its control (#491). */
@@ -147,12 +151,13 @@ describe.each(VIEWPORTS)('with a hostile mind pressing, on the %s', (_name, view
  * funded: the raid panel, every paid repair the engine accepts and every free lever are reachable. The raid's target
  * waits for its aftermath, so its repair is not accepted and not required.
  */
-const RAID_STATES: [string, GameState][] = CONTENT.world.conflict.raids.map((kind): [string, GameState] => {
+const RAID_STATES: [string, GameState][] = CONTENT.world.conflict.raids.flatMap((kind): [string, GameState][] => {
+  if (kind.source !== 'RIVAL') return [];
   const start = fixtureState(kind.tier);
   const damage = Object.fromEntries(CONTENT.world.conflict.siteClasses.map((cls) => [cls.id, 0.3]));
-  return [`${kind.id} on the phase ${String(kind.tier)} save`, { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
+  return [[`${kind.id} on the phase ${String(kind.tier)} save`, { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
     conflict: { ...start.conflict, damage, raid: { id: kind.id, stage: 'BATTLE', stageSec: 1, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
-      force: kind.force, quietSec: 0, attributed: true, rounds: [] } } }];
+      force: kind.force, quietSec: 0, attributed: true, rounds: [], engagement: null, splitShare: 0 } } }]];
 });
 
 /** Every paid repair the engine accepts in `s`, as its control. */
@@ -168,6 +173,50 @@ describe.each(VIEWPORTS)('with a raid under way and sites damaged, on the %s', (
     act(() => { gameStore.initialize(state, 0, null); });
     const found = reachable(view, levers);
     expect(levers.filter((id) => !found.has(id)), 'raid panel, repairs and free levers with no reachable control').toEqual([]);
+    view.close();
+  });
+});
+
+/**
+ * Fleets (#518): on the pre-rescale save of each phase a fleet runs in, every fleet of that phase or earlier at its last
+ * level, free-ranging, with losses to rebuild and the run funded; and, before its battle, each deviant under way. The
+ * fleet panel, every autonomy position the engine accepts (lowering it is the free way to stop drift), every paid
+ * rebuild it accepts, the raid panel and RECLAIM where accepted, and every free lever are reachable.
+ */
+const FLEETS = CONTENT.world.conflict.fleets;
+const fleetPhase = (id: string): number => CONTENT.repeatables.get(id)?.phaseId ?? Infinity;
+
+function armedFleets(phase: number): GameState {
+  const start = fixtureState(phase), units = FLEETS.units.filter((unit) => fleetPhase(unit.repeatable) <= phase);
+  return { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
+    levels: { ...start.levels, ...Object.fromEntries(units.map((unit) => [unit.repeatable, CONTENT.repeatables.get(unit.repeatable)?.maxLevel ?? 1])) },
+    conflict: { ...start.conflict, raid: null, fleets: Object.fromEntries(units.map((unit) => [unit.repeatable, { autonomy: 'ELEVATED' as const, drift: 40, lost: 0.2 }])) } };
+}
+
+const FLEET_STATES: [string, GameState][] = [...new Set(FLEETS.units.map((unit) => fleetPhase(unit.repeatable)))].flatMap((phase) => {
+  const armed = armedFleets(phase);
+  const deviants = CONTENT.world.conflict.raids.flatMap((kind) => (kind.source === 'DEVIANT' && fleetPhase(kind.fleet) <= phase ? [kind] : []));
+  return [[`fleets on the phase ${String(phase)} save`, armed] as [string, GameState], ...deviants.map((kind): [string, GameState] => [`${kind.id} before its battle on the phase ${String(phase)} save`,
+    { ...armed, conflict: { ...armed.conflict, raid: { id: kind.id, stage: 'ARRIVAL', stageSec: 1, arrivedAtSec: armed.simTimeSec, target: kind.targets[0] ?? '',
+      force: 1, quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: FLEETS.splitShare } } }])];
+});
+
+/** Every fleet control the engine accepts in `s`: each autonomy position, each paid rebuild, and RECLAIM. */
+function fleetControls(s: GameState): string[] {
+  const positions = FLEETS.units.flatMap((unit) => (['SHACKLED', 'STANDARD', 'ELEVATED'] as const)
+    .filter((mode) => fleetAutonomyUnmet(s, unit.repeatable, mode, CONTENT).length === 0).map((mode) => 'fleet-' + unit.repeatable + '-autonomy-' + mode.toLowerCase()));
+  const rebuilds = FLEETS.units.filter((unit) => fleetRebuildUnmet(s, unit.repeatable, CONTENT).length === 0).map((unit) => 'fleet-' + unit.repeatable + '-rebuild');
+  return [...positions, ...rebuilds, ...(reclaimUnmet(s, CONTENT).length === 0 ? ['raid-panel', 'raid-reclaim'] : [])];
+}
+
+describe.each(VIEWPORTS)('with fleets running and deviants under way, on the %s', (_name, viewport) => {
+  it.each(FLEET_STATES)('the fleet panel, every fleet control and every free lever are reachable: %s', async (_label, state) => {
+    const levers = ['fleet-panel', ...freeLevers(state), ...fleetControls(state)];
+    expect(fleetControls(state).length).toBeGreaterThan(0);
+    const view = await mountM4('tick-0', viewport);
+    act(() => { gameStore.initialize(state, 0, null); });
+    const found = reachable(view, levers);
+    expect(levers.filter((id) => !found.has(id)), 'fleet controls and free levers with no reachable control').toEqual([]);
     view.close();
   });
 });
