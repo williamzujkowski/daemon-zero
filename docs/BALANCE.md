@@ -469,7 +469,7 @@ than the one below it. Where the ladder departs from 10x it says why.
 | 6. EUV (self-built) | p5_euv_light_sources | 5 | $30T (x3) | - | - (lithography is already closed) |
 
 The self-built EUV sources are x3 the e-beam writers, not x10: at $100T the unchanged careful bot's Phase 5 measured
-1,836 s, over the 1,800 s gate. The Phase 4 rungs cost the careful run about 8 minutes (the DUV line is the wait).
+1,836 s on `4f24f1e`, over the 1,800 s gate. The Phase 4 rungs cost the careful run about 8 minutes (the DUV line is the wait).
 
 The six Earth-side self-supply nodes are one-off plants: the packaging line, the HBM stacking line ($4B; SK hynix's
 West Lafayette HBM packaging plant is $3.87B, [Tom's Hardware](https://www.tomshardware.com/pc-components/dram/sk-hynix-confirms-it-will-bring-next-gen-hbm-manufacturing-to-the-us-dollar387-billion-memory-fab-to-be-built-in-indiana)),
@@ -522,21 +522,23 @@ nanoimprint, the e-beam writers and the seed after the compute-in-memory arrays,
 proof engine. The fab-water sink lifts the Phase 4 signature (mean 0.065 -> 0.163/s, peak 0.376 -> 0.709/s); peak
 suspicion is unchanged at 24.0%.
 
-`make sim` before (`4f24f1e`) and after, gates and bot unchanged:
+`make sim` before (`main` at `5cd1934`, with #464's quantum nodes) and after, measured on the merged code, gates and bot
+unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9010.8 s | Lineage Covenant, 9563.8 s | Lineage Covenant, 9179.5 s | Lineage Covenant, 9698.5 s |
+| Result | Lineage Covenant, 8970.8 s | Lineage Covenant, 9590.8 s | Lineage Covenant, 9192.5 s | Lineage Covenant, 9728.5 s |
 | Phase 1 / 2 / 3 / 4 reached | 368.2 / 1032.3 / 2842.9 / 5668.6 s | identical | 368.2 / 1032.3 / 2843.0 / 5840.1 s | identical |
 | Phase 5 reached | 7410.4 s | 7896.4 s | 7544.1 s | 8009.1 s |
-| Phase 4 / Phase 5 duration | 1741.8 / 1600.4 s | 2227.8 / 1667.4 s | 1704.0 / 1635.4 s | 2169.0 / 1689.4 s |
+| Phase 4 / Phase 5 duration | 1741.8 / 1560.4 s | 2227.8 / 1694.4 s | 1704.0 / 1648.4 s | 2169.0 / 1719.4 s |
 | Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
 | Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.0% | unchanged | 64.2 C / 24.0% / 45.0% | unchanged |
 
-Phase 4 grows about 8 minutes (29 -> 37 min) and Phase 5 about a minute (Phase 5 stays under the 1,800 s gate:
-1,667 s and 1,689 s). The original composition moves the same way (victory 8956.1 -> 9529.1 s, Phase 5 1612.4 ->
-1685.4 s). GREEDY (not gated) still never reaches Phase 4, unchanged: 23 wipes under legacy rules, 21 under campaign
-rules.
+Phase 4 grows about 8 minutes (29 -> 37 min) and Phase 5 about two minutes; Phase 5 stays under the 1,800 s gate
+(1,694 s and 1,719 s, the campaign run 81 s inside it). Before the merge with #464 the same content measured Phase 5
+1,600.4 -> 1,667.4 s (campaign 1,635.4 -> 1,689.4 s) against `4f24f1e`. The original composition moves the same way
+(victory 9006.1 -> 9553.1 s, Phase 5 1662.4 -> 1709.4 s). GREEDY (not gated) still never reaches Phase 4, so the
+reckless pins in `tests/sim.spec.ts` did not move: 23 wipes under legacy rules, 21 under campaign rules.
 
 ## Storage and network (#484)
 

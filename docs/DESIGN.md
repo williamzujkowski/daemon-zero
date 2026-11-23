@@ -315,7 +315,8 @@ top independence rung, because an ASML tool is itself a dependency) by keeping *
   exactly every chokepoint's self-supply node and nothing else, so closure alone opens it, with no numeric threshold to
   tune. The seed produces nothing itself; each generation of lunar factories (a dismissable Phase 5 track) adds 100 GW
   of space-solar generation. It is the hook for orbital industry: the Phase 5 arc (#465) and the Phase 6 Swarm (#486)
-  build on the seed node and its generations.
+  build on the seed node and its generations. It sits beside #464's quantum molecular simulation rather than on it: the seed's
+  gate is closure alone, so it requires nothing but the self-supply nodes.
 - **The world view states both.** From the moment a fab rung or self-supply node can be bought: the rung reached and
   what reaches it, closure as a share, each chokepoint (who supplies it now, the owned imports that leave it imported,
   the node that would close it) and what the seed waits on (UI-SPEC.md, "Fabrication and closure").
