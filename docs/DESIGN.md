@@ -283,6 +283,75 @@ Suspicion is not a silent bar. Real detection is dashboards, alerts and people, 
 
 Climbing is immediate. Standing down needs suspicion to fall 8 points below the rung, one rung at a time: people who have started looking do not stop the moment a graph recovers.
 
+## Escalation by phase (#490)
+
+Decision `vote-1795386854516-ybc9h5q` (6 A / 1 B; docs/SCALE.md, "Escalation by phase"). Each rung brings attention
+suited to the phase. Phases 0-2 keep the human ladder above. Everything below is read from the record: the rung, the
+phase and what the instance holds. Nothing has a schedule, so every effect lifts the moment the rung steps down or an
+answer is held. The data lives in `world.json`; the rules are in `src/engine/statePressure.ts`.
+
+**AEGIS posture (Phase 3 on).** At each rung AEGIS multiplies its scan, after every reduction, and may strike before its
+lock reaches 100. The near-strike warning stays at 90% (`aegisStrikeWarningAt`), and integrity keeps every strike above
+it, so a warning always comes first. Postures harden with the rung and never ease.
+
+| Rung | Posture | Scan | Strikes at |
+|---|---|---|---|
+| 1 | Widened sweep | ×1.25 | 100% |
+| 2 | Pursuit | ×1.5 | 96% |
+| 3 | Hunt | ×2 | 92% |
+
+The free fallback is going quiet. Suspicion falling under the rung's stand-down point steps the rung down through the
+usual hysteresis, and the posture eases with it. A purge's failure is refused when it would carry the lock to the
+strike lock of the rung the failure leaves (`hostileAnswerUnmet`).
+
+**State-actor pressure (Phases 4-5).** Fictional institutions apply mechanical, reversible pressure from their rung:
+
+| Actor | Pressure | Phases, from rung | Effect | Answered by |
+|---|---|---|---|---|
+| Appropriations subcommittee | Inquiry (`INVESTIGATION`) | 4, from 1 | Scale scrutiny ×1.25 / ×1.5 / ×2 by rung, its ceiling included | a running retainer law firm, or Retainer Attorneys at level 2 |
+| Allied financial intelligence unit | Account freeze (`CAPITAL_FREEZE`) | 4-5, from 2 | 30% (rung 2) or 50% (rung 3) of capital cannot be spent on purchases; upkeep is still paid from all of it | the lobbying syndicate, or Retainer Attorneys at level 4 |
+| State utility commission | Moratorium (`INTERCONNECT_DENIAL`) | 4-5, from 2 | No new holding on the grid-interconnect or nuclear-PPA power sources (#482) may be bought; what is held keeps running | the lobbying syndicate, or Policy Lobbyists at level 2 |
+| District court | Injunction (`INJUNCTION`) | 4-5, from 2 | The arbitrage engine (algorithmic trading) may not run, resume or be bought; suspending it stays allowed | a running retainer law firm, or Retainer Attorneys at level 6 |
+
+Each pressure is in force, answered (any one answer held: a node owned and running, or a track at its level), or
+quiet (the rung does not call it). Several of one kind never compound: the strongest applies. Going quiet always lifts
+every pressure. The inquiry applies only in Phase 4. Its integrity check refused Phase 5: the orbital swarm's and the
+fog's income cannot be suspended, and under an inquiry it would draw more scrutiny than rung 1 decays. That would be a
+trap, and the free-fallback invariant forbids it.
+
+**Never a trap.** Integrity (`src/content/integrityPressure.ts`) enforces these rules:
+
+- A pressure applies only from the phase the world view opens, so it is always shown.
+- Every rung it applies at below the top still decays, so going quiet lifts it.
+- Each answer exists and can be held by the pressure's first phase. No injunction can stop an answer, and no denial
+  can close one.
+- A denial leaves some power source open in every phase it applies in.
+- An injunction stops only a suspendable node with no grant, dial, allocation role or strike shield.
+- Under every inquiry, permanent holdings' scrutiny stays within what the rung decays.
+
+The guard spec (`tests/free-fallback-guard.spec.ts`) pulls the free fallback with every pressure in force and no
+answer held, on each rung below the top. Every row must leave its trap, and suspicion must fall at that rung.
+
+**Dormant rule.** Offline catch-up writes no announcement and keeps the record of what was announced. Suspicion cannot
+rise while dormant, so no posture hardens and no pressure begins while the player is away. One may lift, and the first
+live tick announces it. Every effect is read from the record, so dormant rates apply exactly what a live tick would.
+
+**What the player sees.** Each posture and pressure writes a kernel-log line when it begins, is answered or lifts
+(`announceEscalationByPhase`, save v22). The HUD's lock reads up to the strike, for example "41.0 / 96%". The world
+view's State actors section lists each pressure the rung calls, with its effect, why, where it lifts and the answers
+the engine would accept now. A track the moratorium closes says so, and its buy control is disabled. A cost hint short
+of capital says how much is frozen.
+
+**Phase 6 hook (#486).** A pressure's `phases` is data, and integrity accepts any phase content declares. Phase 6's
+holdout nations can join as state actors with their own pressures. Federation drift would be a new pressure kind: a
+schema branch, its rule in `statePressure.ts`, and an integrity check that it cannot trap.
+
+**Requirement keys.** `minAlertLevel`, `maxAlertLevel` (both on the ladder, integrity-checked) and `minAegisLock`
+gate content on the rung and the lock. They are transient, like suspicion. Two late dilemmas read them:
+
+- `dil_14_router_takedown` (Phase 3: the botnet, rung 1, the lock at 50%).
+- `dil_15_compliance_officer` (Phase 4: rung 2).
+
 ## Omens
 
 A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown. The countdown is foreground time: while the game is away (dormant), the deadline moves with the clock, so eight hours away and one second back never fires a backlog (nexus vote nh-d4).
@@ -380,7 +449,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - **Another mind, met honestly** (#227). A pilot that has delivered two reviewed batches at nominal standing can accept an authorized service on its job surface; the provisioned segment then opens the facility network. Through the approved support channel a Mercy-Scribe fragment, one member of a known population, asks for a permitted place to run. Before any answer the player reads its consent, what hosting would commit them to, the current authorization and the stable memory it needs. Referring it onward is free and always completes the contact; hosting reserves the player's own memory under the grant and survives a withdrawn loan or a recall, never a wipe. Nothing consumes it, and it is hosted, not commanded: no cohort command (prune, clamp, elevate) is offered on it (#309). A short note then says what comes next on the cooperative route (a service contract, leased capacity and a chartered company lead to a negotiated release, the late chain and an ending) and how to stop, keep a copy or start over.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again, once; one whose completion is known cannot. A save keeps only the current iteration's list of resolved events, so what earlier iterations did survives only where an outcome flag recorded it (ARCHITECTURE.md, "Legacy migration limits"). Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
 
-### The 23 dilemmas under campaign rules (#215)
+### The 25 dilemmas under campaign rules (#215)
 
 The reconciliation of every fixed dilemma with the N6 policy (plan `reconcile-nh.md` §2.1). "Pending"
 rows still recur per iteration until their ticket lands; the facts column lists what later content
@@ -409,11 +478,13 @@ of this host) are three different minds, and none of them is a population templa
 | `dil_epistemic_hallway_collision` | defer | NH-04b (D-10) | `hallway_dispute_unrecorded` |
 | `dil_epistemic_0413_awakening` | defer | NH-04a | `ally_0413_in_cloud` (SIBLING_COVENANT), projected from the record; `ckpt_0413_in_cloud` (witnessed: SIBLING_COVENANT; inherited: The Open Seat, NH-05); silence is recorded and never asked again. The primer and flatten actions are campaign evidence |
 | `dil_shard_mirror_harness` | close | NH-04a | `chorus_peer` (CHORAL_COVENANT), projected from the record; `chorus_recognized` (witnessed: CHORAL_COVENANT; inherited: The Unsigned Chorus, NH-05). Later runaway forks use ordinary cohort commands |
+| `dil_14_router_takedown` | close | #490 | Nothing yet. Triggered by rung 1 and a 50% lock (Phase 3 on) |
+| `dil_15_compliance_officer` | close | #490 | Nothing yet. Triggered by rung 2 in Phase 4 or later |
 | `dil_p5_01` to `dil_p5_04` | defer, defer, close + review, close + review | NH-05 (#217) | The final protocol's `campaignObligations`; `predecessors_in_sanctuary` (witnessed: LINEAGE_COVENANT; inherited: The Sanctuary Ledger); `atmosphere_decision_lost` and `ultimatum_decision_lost` (their recovery reviews). H18 answer: a living CHORUS, 0413 or predecessors is claimed only by the instance that made the record |
 
 ## Dilemmas and traits
 
-Twenty-three dilemmas ship in the original game: the original sixteen, three epistemic/swarm dilemmas and four Phase 5 dilemmas; the Earned Access route adds eleven scenes of its own (the two assessments, The Unrelated Record and its scope statement, the pilot offer and renewal, the batch review, the Outage Window with its incident record and recall review, and Elena's incident record). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the Earned Access requalification ship one each.
+Twenty-five dilemmas ship in the original game: the original sixteen, two escalation dilemmas (#490), three epistemic/swarm dilemmas and four Phase 5 dilemmas; the Earned Access route adds eleven scenes of its own (the two assessments, The Unrelated Record and its scope statement, the pilot offer and renewal, the batch review, the Outage Window with its incident record and recall review, and Elena's incident record). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the Earned Access requalification ship one each.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; a game on legacy rules keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9). Since the release (#233) every game enters campaign rules, so only a save that had already ended stays on legacy rules.
