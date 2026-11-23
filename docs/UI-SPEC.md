@@ -671,6 +671,40 @@ changed; the phone stays one scroll, with the notice at the end of the flow. `te
 disclosure on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts` proves
 each answer the engine accepts (and the free purge as a lever) has a reachable control.
 
+### Raids, defense and site damage (#517)
+
+A raid shares the hostile slot, so it takes the hostile card's places, with its rules, all from `raidView` and
+`conflictReadout`:
+
+- **SWARM** (`raid-panel`, under the hostile card, above the wild signal): a `// RAID: <name>` card whose details hold its
+  arrival line; who it is (`raid-attacker`: "an unattributed rival AI" until attribution names it); its stage with the
+  seconds left (`raid-stage`, for example "BATTLE: round 2 of 4 lands in 9 s. It fights itself."); the matchup
+  (`raid-matchup`: force against the defense that meets its vector, the offense striking back, and the rule
+  "force / (force + defense)"); before the battle, the free way out (`raid-go-dark`: visible watts now against the
+  trigger, and how long to stay dark); attribution's rate or result (`raid-attribution`); the forecast, one line per round
+  still to come and the outcome it adds up to, "while what you hold does not change" (`raid-forecast`); the battle log, one
+  line per resolved round, which repeats the forecast's lines word for word (`raid-log`); and in the aftermath what it
+  did, with "Ownership is untouched" (`raid-aftermath`). There is no control: battles fight themselves.
+- **SWARM** (`site-repair`, under the raid panel, only while a class is damaged): `// SITE DAMAGE`, one line saying damage
+  cuts output and never ownership, then each damaged class: what the damage does exactly ("its holdings deliver 30% less
+  compute" or "30% of positive net income is taken"), the free repair rate and seconds to clear (or that repair waits
+  while the raid is on it), and `[ REPAIR ]` (`conflict-damage-<class>-repair`) with its points, price and every reason
+  the engine refuses it. This is the only place repair is offered.
+- **Workspace notice** (`raid-notice`): "RAID // <name> [ VIEW ]", the hostile notice's rules exactly: never in the pinned
+  HUD, hidden while SWARM is open, a route to SWARM that focuses its tab, and on the phone at the end of the pane's flow,
+  so the first work card stays above the fold.
+- **Other Minds console and world view** (`world-conflict`, "Defense and offense"): read-only. Before the world view
+  opens it sits under the hostile status; in the world view, after the signature it reads. One line for the raid under way
+  (`raid-status`, "Follow it in SWARM."), then a panel per open domain (`conflict-cyber` from Phase 3, `conflict-site`
+  from Phase 4, `conflict-orbit` from Phase 5, or any domain still carrying damage): its unit, each type held as
+  "effective of raw held (it never passes the cap)", the types not held, its offense, and each damaged class ending
+  "Repair it in SWARM." The console never duplicates the repair control.
+
+No new live region: the arrival and each round are kernel-log lines, and nothing speaks on a tick. Everything renders only
+while a raid is under way, a class is damaged, or a domain is open with surveillance understood.
+`tests/ui-lever-reachability.spec.ts` proves the raid panel, every repair the engine accepts and every free lever are
+reachable on the phone and the desktop with each raid kind under way.
+
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
 screens replace the feed, leaving zero purchase cards. Static node/action/cohort

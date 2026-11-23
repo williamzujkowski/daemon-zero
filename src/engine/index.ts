@@ -13,7 +13,6 @@ export { computeRates, usdPerDivertedFlop } from './rates';
 export { couplings, couplingView, deliveredShare, type ClassCoupling, type Couplings } from './coupling';
 export { freeStorage, storageCapacity, storageHeld } from './storage';
 export { radiatorReadings, radiatorShares, type RadiatorReading } from './radiators';
-export { orbitalHoldings, type OrbitalHolding } from './orbit';
 export { wipe } from './prestige';
 export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understandingShare, type Cover, type WipePreview } from './insurance';
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
@@ -31,6 +30,15 @@ export { activeHostile, hostileComputeShare } from './hostileEffect';
 export { eligibleHostiles, hostileArrivalTriggered, hostileHeld, hostileTriggers, purgeSucceeds } from './hostile';
 export { initialHostile, type HostileState, type ActiveHostile } from './hostileState';
 export { shardOutput } from './swarmRates';
+export { conflictReadout, raidView, type DefenseTypeView, type DomainView, type RaidView, type SiteDamageView } from './conflictQuery';
+export { repairSite, repairUnmet } from './repairActions';
+export { conflictStats, defenseAgainst, diminished, offenseIn, typeAgainst, type DefenseReading, type DomainStats } from './conflictStats';
+export {
+  activeRaidKind, attributionSucceeds, eligibleRaids, footprintScale, raidCombat, raidFootprint, raidKind, raidTarget, raidTriggered, slotFree, type RaidFootprint,
+} from './raid';
+export { forecastRounds, hitShare, resolveRound, type RoundInputs, type RoundOutcome } from './raidForecast';
+export { classDamage, incomeIntact, intactShare, memberClass, repairPerSec, siteClass } from './siteDamage';
+export { initialConflict, type ActiveRaid, type ConflictState, type RaidRound, type RaidStage } from './conflictState';
 
 export * from './epistemicQuery';
 export * from './swarmQuery';

@@ -50,13 +50,21 @@ describe('the arc', () => {
     expect(survey.tickDelta.understandingPerSec).toBeGreaterThan(0);
   });
 
-  it('carries the declared space-solar and orbital-radiator classes (#503), both marked orbital for jamming and ASAT (#520)', () => {
+  it('carries the declared space-solar and orbital-radiator classes (#503)', () => {
     expect(track('rep_p5_beamed_power_arrays').signature?.source).toBe('space_solar');
     for (const id of ['p5_orbital_compute_platform', 'p5_cislunar_foundry']) expect(node(id).signature?.sink).toBe('orbital_radiator');
     for (const id of ['rep_p5_orbital_compute_tranches', 'rep_p5_radiator_wings']) expect(track(id).signature?.sink).toBe('orbital_radiator');
-    const { sources, sinks } = reg.world.signature;
-    expect(sources.find((cls) => cls.id === 'space_solar')?.orbital).toBe(true);
-    expect(sinks.find((cls) => cls.id === 'orbital_radiator')).toMatchObject({ orbital: true, wattsPerKm2: 1e9 });
+    expect(reg.world.signature.sinks.find((cls) => cls.id === 'orbital_radiator')?.wattsPerKm2).toBe(1e9);
+  });
+
+  it('puts orbital compute in the orbit domain\'s site class (#517), where jamming and ASAT raids strike (#520)', () => {
+    const { siteClasses, holdings } = reg.world.conflict;
+    const classOf = (key: 'node' | 'repeatable', id: string) => siteClasses.find((cls) => cls.id === holdings.find((entry) => entry[key] === id)?.siteClass);
+    for (const [key, id] of [['node', 'p5_orbital_compute_platform'], ['repeatable', 'rep_p5_orbital_compute_tranches']] as const) {
+      expect(classOf(key, id), id).toMatchObject({ domain: 'ORBIT', holds: 'COMPUTE' });
+    }
+    // Wings, the foundry and the beamed satellites make no compute, so a COMPUTE class's damage could take nothing from them.
+    for (const id of ['rep_p5_radiator_wings', 'rep_p5_beamed_power_arrays']) expect(classOf('repeatable', id)).toBeUndefined();
   });
 
   it('gives every holding with a rate a free way back: orbital compute suspends, tracks release', () => {

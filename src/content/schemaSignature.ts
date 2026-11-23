@@ -22,11 +22,6 @@ export const SignatureClassSchema = z.strictObject({
    * radiator, so compute whose heat leaves through it runs at the share its radiator area sheds (engine radiators.ts).
    */
   wattsPerKm2: z.number().positive().optional(),
-  /**
-   * In orbit (#465): holdings on this class are orbital assets, the hook for orbital jamming and anti-satellite strikes
-   * (#520). The engine's orbitalHoldings query lists them; nothing acts on them yet.
-   */
-  orbital: z.literal(true).optional(),
 });
 
 export const SignatureClassesSchema = z.strictObject({

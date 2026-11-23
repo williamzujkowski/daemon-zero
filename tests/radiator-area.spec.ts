@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-  buyRepeatable, computeRates, cycleContributions, dismissRepeatable, orbitalHoldings, radiatorReadings, toggleNode, type GameState,
+  buyRepeatable, computeRates, cycleContributions, dismissRepeatable, radiatorReadings, toggleNode, type GameState,
 } from '../src/engine';
 import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, sumTolerance, withoutDilemmas } from './helpers';
 
@@ -127,16 +127,11 @@ describe('energy still binds the arc', () => {
   });
 });
 
-describe('orbital holdings (the #520 hook)', () => {
-  it('lists every owned holding on an orbital class, suspended or not, and nothing on the ground', () => {
-    expect(orbitalHoldings(inOrbit(), reg)).toEqual([]);
-    let s = grant(inOrbit(), PLATFORM, CORES);
-    s = must(buyRepeatable(must(buyRepeatable(s, BEAMED, reg)), BEAMED, reg));
-    s = must(toggleNode(s, CORES, reg));
-    expect(orbitalHoldings(s, reg)).toEqual([
-      { id: PLATFORM, kind: 'node', count: 1, classId: 'orbital_radiator', running: true },
-      { id: CORES, kind: 'node', count: 1, classId: 'orbital_radiator', running: false },
-      { id: BEAMED, kind: 'repeatable', count: 2, classId: 'space_solar', running: true },
-    ]);
+describe('orbit-domain damage (#517)', () => {
+  it('takes its share of orbital compute on top of the radiator share, and touches neither area nor heat', () => {
+    const s = grant(inOrbit(), PLATFORM);
+    const damaged: GameState = { ...s, conflict: { ...s.conflict, damage: { orbital: 0.3 } } };
+    expect(platformShare(damaged) / platformShare(s)).toBeCloseTo(0.7, 9);
+    expect(reading(damaged)).toEqual(reading(s));
   });
 });

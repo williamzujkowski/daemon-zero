@@ -219,8 +219,9 @@ binds it (vote-1795366881977-sw8fa7q):
 
 The two older tracks say what each is: the L1 relay is eighty more collector arrays at the Sun-Earth L1 point, an eighth
 of them computing in place; the stratospheric assemblers pull carbon into silicate, compute on their own sunlight and
-quiet suspicion. Orbital holdings (space solar and orbital radiators) are listed by one engine query, the hook for orbital
-jamming and anti-satellite strikes (#520). Neuromorphic event cores (after the swarm) and
+quiet suspicion. The orbital compute platform and its tranches join the conflict's orbit-domain site class beside the
+swarm and the relay (#517), so jamming and anti-satellite raids (#520) damage their compute as they do the collectors',
+on top of any radiator shortfall. Neuromorphic event cores (after the swarm) and
 compute-in-memory arrays (after the fog) are the tree's last, conditional gains; quantum molecular simulation (after the
 foundry and the quantum hall) feeds the fog's understanding. The fabrication ladder finishes here
 (#485): imported EUV scanners, self-built nanoimprint (which closes lithography, the last chokepoint), maskless e-beam
@@ -800,6 +801,65 @@ and a rival's pin still apply to offline output and memory, bounded as above. A 
 hostile from the earlier tier with its own line (at the purchase, or on the first tick of a loaded save, even while
 dormant), returning its pin. A wipe ends it and starts the rotation over, so a new instance meets its tier's hostiles from the first; the
 purge count carries over, so "3 of every 5" stays exact across a wipe.
+
+### Conflict: defense, offense, raids, damage and repair (#517)
+
+The conflict foundation (docs/SCALE.md "Round 5", votes vote-1795442100055-6zz6hug and vote-1795442090770-5climtc). The
+maintainer's answers stand: battles are automatic, with rare big decisions; staff harm is authored story (#519), not this.
+
+**Defense and offense in three domains.** CYBER (networks and code, readout from Phase 3), SITE (buildings, perimeters
+and the air above them, from Phase 4) and ORBIT (from Phase 5, raids later with #517 item 4). Each is summed from what
+the player owns and runs, as `data/conflict.json` declares per node and per track level; there is no stored ledger, and
+a suspended or enjoined holding defends nothing. Defense comes in types, each with diminishing returns
+(`softCap x raw / (raw + softCap)`, so a mix beats a pile) and a counter multiplier against each attack vector of its
+domain: scrubbing answers a flood, hardening an intrusion, backups ransomware, guards a break-in, and against a drone
+strike interceptor drones (1.5, drone against drone) beat missile interceptors (1) beat lasers (1.2 but engaging 60% of
+the time, in weather) beat guards (0.15). Offense per domain has the same diminishing returns. Every type names the real
+figure its rating rests on (BALANCE.md, "Conflict").
+
+**Resolution is deterministic** (no seed, no `Math.random`). A round lands the hit share `T / (T + D)` of the raid's
+blow (its force T against the defense D that meets its vector): undefended, all of it; however defended, never none.
+Offense O strikes the force down by `counterStrikeShare x O / (O + T)` before the next round. The forecast is the same
+function run forward, so it is exact for as long as what the player holds does not change; buying defense mid-raid
+changes the next round exactly as the new forecast says. The existing exact-ratio counter decides the one single event,
+attribution: exactly 2 of every 3 raids are named (the counter survives a wipe, as the purge count does). Lanchester
+fleet battles come with #518 beside this resolution (`raid.resolution` is `ATTRITION` today).
+
+**Raids share the hostile slot**, one at a time with hostile minds: a mind does not arrive while a raid is under way,
+and a raid does not arrive while a mind presses; when either ends, the slot's 300 s spacing applies to both, and the next
+raid waits its own 420 s too. A raid is a rival AI drawn by the footprint the signature shows (#482): from Phase 3, once
+visible watts reach 20% of the phase's signature reference, whether or not anyone hunts the run. Its force is its
+authored force times the footprint's share of that reference, held between 0.5 and 2. Phase 3 raids are cyber
+(intrusion, ransomware, flood); Phase 4 adds break-ins and drone strikes on the data halls and the player's own fab
+(#485): a drone strike goes for an owned DUV fab first, a break-in for the halls first. Each kind rotates
+deterministically among the raids that have something to strike (a member of a target class that runs; for
+ransomware, positive net income). Drift deviants (#518) are a second source the schema reserves.
+
+Its states: **ARRIVAL** (45 s, the forecast shown), **ATTRIBUTION** (15 s; a named attacker's tooling yields
+understanding), an automatic **BATTLE** of 4 rounds 15 s apart, each logged, and **AFTERMATH** (30 s) before the slot
+clears. Before the battle the free way out is going dark: with visible watts under the trigger for 30 s, the raider
+loses the trail and the raid lapses with no damage. Once the battle starts it fights itself. A phase past the raid's
+tier retires it with its own line, dormant or live; dormant catch-up otherwise holds it in place; a wipe ends it.
+
+**Damage is a capped share of a site class's output, never ownership.** A COMPUTE class's damage scales only the
+positive compute its members deliver (in the rates and the ledger alike); the books' damage (ransomware) scales only
+positive net income, never the balance and never a deficit. Nothing is ever damaged past 50%. No raid touches suspicion,
+the AEGIS lock or a balance, so nothing in conflict can end a run, and the free-fallback invariant holds by
+construction (the guard pulls the levers with every class at the cap and with each raid kind fought out; the divertible
+rule counts the cap against any permanent holding a raid can damage).
+
+**Repair is free but slow** (0.6 points a minute on every class a raid is not inbound on or fighting, offline too),
+**faster if paid** (each class's price restores 15 points at once, refused while a raid is on it), and a holding that
+declares `repairPerSec` adds to the rate while it runs: humanoid site crews (#485) each add 0.3 points a minute, the
+robots that repair (real ground robots are mostly logistics and repair work). Insurance (#498) can restore
+through the same `repairDamage`.
+
+**Interactions.** The footprint that draws raiders is the signature's own visible watts. AEGIS's kinds keep the slot
+first: the hostile stage runs before the raid stage, so a mind due on the same tick arrives first. A state actor's
+capital freeze (#490) limits paid repair as it limits any purchase, and an injunction that stops a node stops its
+defense. Insurance (#498) does not cover raid damage: it pays out across a wipe, and a wipe clears damage. The careful
+bot meets raids from late Phase 3; the reckless one, wiped in Phase 3 with too little footprint,
+meets none (BALANCE.md).
 
 At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
 consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift

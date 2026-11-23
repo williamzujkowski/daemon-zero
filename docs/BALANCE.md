@@ -511,39 +511,43 @@ and the survey are cheap (about ten seconds of the careful run's income each) be
 
 `space_solar` (0.3) is now carried by the beamed satellites and `orbital_radiator` (0.5) by the platform, the tranches
 and the neuromorphic cores; the wings and the foundry deploy radiator into it and reject no heat of their own. Both
-classes are marked `orbital`: `orbitalHoldings` (`src/engine/orbit.ts`) lists every owned holding on them, the hook for
-orbital jamming and anti-satellite strikes (#520), which acts on nothing yet. The collector swarm still carries no class
+orbital compute (the platform and the tranches) joins the conflict's orbit-domain site class, renamed "Orbital collectors
+and compute", beside the swarm and the relay (#517, `conflict.json`): an orbit raid's damage scales their compute, on top
+of the radiator share, and touches neither area nor heat (`tests/radiator-area.spec.ts`). That class is where jamming and
+anti-satellite strikes (#520) land; the wings, the foundry and the beamed satellites make no compute and stay out of it. The collector swarm still carries no class
 (its 1.2 TW on `space_solar` would be 2/s of suspicion nothing could undo, since it cannot be suspended).
 
 ### Pacing before and after
 
-`make sim` before (`main` at `ee4c33b`, robotics and insurance merged) and after, measured on the merged code, gates and
-bot unchanged:
+`make sim` before (`main` at `ae40b6a`, robotics, insurance and the conflict foundation merged) and after, measured on the
+merged code, gates and bot unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9830.7 s | Lineage Covenant, 9829.7 s | Lineage Covenant, 9977.9 s | Lineage Covenant, 9975.9 s |
-| Phase 4 / 5 reached | 5823.4 / 8134.3 s | identical | 5980.1 / 8256.5 s | identical |
-| Phase 5 duration | 1696.4 s | 1695.4 s | 1721.4 s | 1719.4 s |
-| Headroom under the 1,800 s gate | 103.6 s | 104.6 s | 78.6 s | 80.6 s |
-| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
-| Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.1% | unchanged | 64.2 C / 24.0% / 45.0% | unchanged |
-| Phase 5 signature (mean / peak, peak visible) | 0.0176 / 0.0206/s, 2.06 GW | 0.9130 / 1.5299/s, 153 GW | 0.0174 / 0.0206/s, 2.06 GW | 0.9014 / 1.5299/s, 153 GW |
+| Result | Lineage Covenant, 10269.0 s | Lineage Covenant, 10267.0 s | Lineage Covenant, 10152.1 s | Lineage Covenant, 10152.1 s |
+| Phase 4 / 5 reached | 6152.8 / 8541.6 s | identical | 5985.5 / 8409.7 s | identical |
+| Phase 5 duration | 1727.4 s | 1725.4 s | 1742.4 s | 1742.4 s |
+| Headroom under the 1,800 s gate | 72.6 s | 74.6 s | 57.6 s | 57.6 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS; raids | 64.2 C / 24.0% / 45.1%; 5 (P3 3, P4 2) | unchanged | 64.2 C / 27.3% / 48.7%; 5 (P3 3, P4 2) | unchanged |
+| Phase 5 signature (mean / peak, peak visible) | 0.0176 / 0.0206/s, 2.06 GW | 0.8981 / 1.5299/s, 153 GW | 0.0174 / 0.0206/s, 2.06 GW | 0.8884 / 1.5299/s, 153 GW |
 
-Phases 1 to 4 are identical. Where the careful run buys the arc (campaign rules): the demonstrator 26 s after the swarm,
-then after molecular simulation the platform, two wings and the first tranche; the cislunar foundry after the seed; two
-beamed levels, the L1 relay and tranches 2 and 3 before the proof engine; the survey after the self-built EUV sources,
-585 s before the protocol; the fourth tranche last. Each node's price adds to the phase and each tranche's compute takes
-time off it; on balance Phase 5 is 1 s (legacy) and 2 s (campaign) shorter. Measured before the merge with #498, against
-`f47736d`, the same content gave 1694.4 -> 1692.4 s and 1719.4 -> 1706.4 s. On a trial merge with the open conflict foundation (#527 at `c33a0ca`, not landed) the arc leaves campaign Phase 5
-unchanged (1742.4 s with and without it, 57.6 s inside the gate) and takes legacy from 1727.4 to 1725.4 s: the arc does
-not spend the headroom (its nodes cost about what its tracks give back, and the bot buys a track only when it pays). A first draft placed the survey after the
+Phases 1 to 4 are identical, and the careful run meets no hostile or raid in Phase 5 with or without the arc (orbital
+compute joins the orbit site class, so an orbit raid would find more to strike). Where the careful run buys the arc
+(campaign rules): the demonstrator after the swarm; after molecular simulation the platform, two wings and the first
+tranche; the cislunar foundry after the seed; two beamed levels and tranches 2 and 3 before the proof engine; the survey
+after the self-built EUV sources, 585 s before the protocol; the fourth tranche last. Each node's price adds to the phase
+and each tranche's compute takes time off it: legacy Phase 5 is 2 s shorter, and the campaign run ends at the same second,
+its protocol waiting on the Phase 5 obligations rather than on compute. Measured against earlier `main`s the same content
+gave 1694.4 -> 1692.4 s and 1719.4 -> 1706.4 s (`f47736d`), then 1696.4 -> 1695.4 s and 1721.4 -> 1719.4 s (`ee4c33b`):
+the arc does not spend the headroom (its nodes cost about what its tracks give back, and the bot buys a track only when
+it pays); the conflict foundation's merge is what took campaign Phase 5 to 1,742 s. A first draft placed the survey after the
 protocol, off the bot's path, but five specs read the protocol as the phase's last node; at $5T it cost the campaign run
 31 s, so it was re-priced to $1T. The signature is now Phase 5's loudest term: orbital radiators and beamed power are
 visible (the aligned ladder's Phase 5 row), and the foundry's and the Covenant's relief keep peak suspicion where it was.
-The original composition moves the same way (victory 9831.1 -> 9830.1 s, phases identical). GREEDY never reaches Phase
-4, so its pins did not move. `make sim` took 16.7 s of wall time against 14.5 s before on this machine: three more
-tracks for the bot to weigh, and a radiator pass in every rates call.
+The original composition moves the same way (victory 10268.9 -> 10266.9 s, phases identical). GREEDY never reaches Phase
+4, so its pins did not move. Wall time is the same as before within this machine's noise (73.1 s against 73.6 s back to back under load):
+three more tracks for the bot to weigh, and a radiator pass that shares the rates pass's permitted-use scope.
 
 ### Left for the Phase 6 Swarm (#486)
 
@@ -777,10 +781,10 @@ local press; thermal infrared is marginal). `world.json` carries each with its `
 | nuclear_restart | 0.35 | NRC and a public PPA, read as respectable news | [WNN on Crane](https://wnn.world-nuclear.org/articles/constellation-seeks-regulators-help-for-2027-plant-restart) |
 | smr | 0.2 | Small, fenced, licensed: paperwork, not plumes | [NRC US460](https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/nuscale-us460) |
 | fusion | 0.2 | Headlines, but nobody sues a clean source | [Helion Orion](https://www.helionenergy.com/orion) |
-| space_solar | 0.3 | Launch cadence, FCC filings, IR-bright arrays; carried by the beamed satellites (#465), marked orbital | research B.4 |
+| space_solar | 0.3 | Launch cadence, FCC filings, IR-bright arrays; carried by the beamed satellites (#465) | research B.4 |
 | evaporative_towers | 0.6 | Towers and a water permit; Epoch estimates power from counted chillers and fans | [Epoch methodology](https://epoch.ai/data/data-centers-documentation/methodology), [EESI](https://www.eesi.org/articles/view/data-centers-and-water-consumption) |
 | underground_aquifer | 0.1 | No towers to count; a warm plume underground | research B.3 (thermal IR is marginal) |
-| orbital_radiator | 0.5 | A km² of radiator a GW at 300 K, bright in the infrared; area-bound (`wattsPerKm2` 1e9) and carried by orbital compute and the cores (#465), marked orbital | research B.4, "Space heat" |
+| orbital_radiator | 0.5 | A km² of radiator a GW at 300 K, bright in the infrared; area-bound (`wattsPerKm2` 1e9) and carried by orbital compute and the cores (#465) | research B.4, "Space heat" |
 
 ### Holdings and their anchors
 
@@ -1202,6 +1206,97 @@ hostile, and each iteration meets the same hunter swarm first, but the three-mem
 wipes, so the steady loop repeats every three iterations (boots 1,498 / 1,465 / 1,498 s apart; each three-iteration span
 within 1 s of the others). Its steady-loop check compares boots one loop apart, three iterations, with the same 5 s
 tolerance; it is still unmarked returns from Phase 3, never trapped in early wipes.
+
+## Conflict (#517)
+
+Implements Scale 22 of the spec ([SCALE.md](SCALE.md), "Round 5", votes vote-1795442100055-6zz6hug and
+vote-1795442090770-5climtc; map #442). The rules are in DESIGN.md, "Conflict: defense, offense, raids, damage and
+repair". All numbers are in `src/content/data/conflict.json`. The gates (`gates.ts`), the sim budget and the bot are
+unchanged; the bot never repairs and never buys a defense track (none shortens its wait), so it meets raids with what
+it already owns.
+
+**Rating units.** CYBER: one point is 1 Tb/s of attack traffic absorbed or pushed (the 2025 DDoS records ran 7.3 to
+31.4 Tb/s: [Cloudflare](https://blog.cloudflare.com/defending-the-internet-how-cloudflare-blocked-a-monumental-7-3-tbps-ddos/),
+[PC Gamer](https://www.pcgamer.com/software/security/an-unprecedented-bombardment-cloudflare-claims-a-new-world-record-for-a-31-4-tbps-ddos-botnet-attack-it-recorded-late-last-year)).
+SITE: one point holds off one attacking crew or drone salvo at one site. ORBIT: one satellite-class asset.
+
+**Defense types and their anchors** (effective = soft cap x raw / (raw + soft cap); the counter multiplies it against a
+vector, a vector not listed is not answered):
+
+| Type | Domain | Soft cap | Counters | Anchor |
+|---|---|---:|---|---|
+| DDoS scrubbing | CYBER | 30 | DDoS 1, intrusion 0.1 | sold by the Tb/s it absorbs; the 7.3 Tb/s attack of May 2025 was absorbed this way |
+| Hardening | CYBER | 12 | intrusion 1, ransomware 0.5, DDoS 0.1 | median dwell time 11 days in 2024 ([M-Trends 2025](https://cloud.google.com/blog/topics/threat-intelligence/m-trends-2025/)) |
+| Immutable backups | CYBER | 10 | ransomware 1.5, intrusion 0.2 | 53% of ransomware victims fully recovered within a week in 2025 ([Sophos](https://www.sophos.com/en-us/press/press-releases/2025/06/nearly-half-companies-opt-pay-ransom-sophos-report-finds)) |
+| Perimeter security | SITE | 10 | break-in 1, drone strike 0.15 | six physical layers ([Google](https://blog.google/inside-google/infrastructure/how-data-center-security-works/)); the 2026 drone strikes on AWS sites passed them ([DefenseScoop](https://defensescoop.com/2026/03/03/commercial-data-centers-drone-warfare-amazon-aws/)) |
+| Missile interceptors | SITE | 6 | drone strike 1 | about $3-4M an interceptor against a $20-50k drone, two fired ([CSIS](https://www.csis.org/analysis/calculating-cost-effectiveness-russias-drone-strikes)) |
+| Interceptor drones | SITE | 15 | drone strike 1.5, break-in 0.2 | about $1.4-4k each ([Tom's Hardware](https://www.tomshardware.com/tech-industry/us-and-gulf-states-race-for-ukrainian-interceptor-drones-3d-printed-model-costs-usd1-000-apiece-shahed-136-kamikaze-drone-threat-spurs-rush-for-interceptors)) |
+| Laser point defense | SITE | 12, duty cycle 0.6 | drone strike 1.2 | a few dollars a shot, weather-limited (same CSIS analysis) |
+| Hardened links | ORBIT | 10 | jamming 1 | Starlink jamming is mostly downlink-side and contested ([Janes](https://www.janes.com/defence-intelligence-insights/defence-news/air/special-report-ukraine-details-russian-starlink-jammer-warns-russia-preparing-20-element-crpas)) |
+| Maneuvering | ORBIT | 10 | ASAT 1 | the 2021 Kosmos 1408 test left over 1,500 trackable fragments ([Space Force](https://www.spaceforce.mil/News/Article/2842957/russian-direct-ascent-anti-satellite-missile-test-creates-significant-long-last/)) |
+
+**Sources.** Existing holdings: traffic shapers 0.1 scrubbing a level; the log spoofer 0.5 hardening; the dead-drop
+firmware 1 backups (an off-site copy); the Eidolon stealth patch 2 and the polymorphic weights 3 hardening; the citadel
+4 perimeter (blast doors); perimeter contractors 1 perimeter and 0.5 site offense a level; the orbital swarm 2
+maneuvering; Lagrange relays 1 hardened links a level. Offense: the botnet mesh 1.2, each botnet cell 0.3 and the edge
+NPU swarm 2 cyber (a Mirai-class botnet pushed about 1.2 Tb/s in 2016); the programmable fog 6 orbit. Five new
+dismissable defense tracks with no rate of their own, priced in their phase band:
+
+| Track | Phase | Rating a level | Base price, growth, max | Anchor for the price |
+|---|---|---|---|---|
+| Scrubbing-Centre Contract | 3 | 1 scrubbing (1 Tb/s) | 4 EFLOP, 1.25, 20 | about 5-8 s of a careful late-Phase 3 instance's compute (5-8e17 FLOP/s) |
+| Immutable Backup Vaults | 3 | 1 backups | 3 EFLOP, 1.3, 10 | as above |
+| Interceptor Drone Wing | 4 | 1 interceptor drones | $4M, 1.18, 30 | a thousand drones at about $4k |
+| Laser Point Defense | 4 | 1 laser | $150M, 1.25, 15 | a directed-energy turret and its power and cooling |
+| Interceptor Missile Battery | 4 | 1 interceptors | $1.1B, 1.3, 10 | a Patriot-class battery and its first salvos |
+
+**Site classes** (damage is a share of output, cap 50%; paid repair restores 15 points at once): botnet cells (the mesh,
+its cells and the edge NPU swarm; 20 EFLOP), firmware implants (the FPGA, SmartNIC and in-path firmware; 20 EFLOP), the
+shells' books (income; 15 EFLOP), data halls (the citadel, the seized datacentre, the photonic interconnect, colocation
+racks, tensor halls, ASIC pods, megawatt racks and the SRAM fabric; $60M), own fabs (the DUV fab, #485; $200M) and
+orbital collectors (the orbital swarm and Lagrange relays; $100B). Free repair: 0.0001 a second (0.6 points a minute, a
+full 50% in about 83 minutes), compressed from the real "53% recovered within a week". Humanoid site crews (#485) add
+0.00005 a second each (0.3 points a minute), the hook robots take. Supply chokepoints (#485) yield no rate of their own,
+so a raid has no output there to take; a closure-damage model is a follow-up.
+
+**Raids** (force at the footprint reference, in the domain's unit; blow is the points a full hit deals per round):
+
+| Raid | Tier | Vector | Targets, in order | Force | Blow | Forensics |
+|---|---|---|---|---:|---:|---:|
+| Lateral-movement raid | 3 | intrusion | implants, botnet | 4 | 0.09 | 4,000 |
+| Ransomware raid | 3 | ransomware | books | 3 | 0.12 | 4,000 |
+| Flood raid | 3 | DDoS | botnet | 6 | 0.075 | 4,000 |
+| Supply-chain intrusion | 4 | intrusion | implants, botnet | 8 | 0.09 | 75,000 |
+| Treasury ransomware | 4 | ransomware | books | 6 | 0.12 | 75,000 |
+| Terabit flood | 4 | DDoS | botnet | 15 | 0.075 | 75,000 |
+| Contracted break-in | 4 | break-in | halls, fabs | 5 | 0.09 | 75,000 |
+| Drone strike | 4 | drone strike | fabs, halls | 6 | 0.1 | 75,000 |
+
+Forensics sit well under the tier's purge spoils ("Hostile minds" above): 4,000 is about 4 s of the Phase 3 median
+understanding rate (purge 12,000), 75,000 about 4 s of Phase 4's (purge 200,000). At twice that, the understanding a
+named raider yielded outran the compute its damage cost the careful bot under campaign rules, so raids shortened the
+run; halved, and with the blows above, they cost time, as the brief asks. Trigger: visible watts at 20% of the phase's signature reference (20 kW in Phase 3, 20 MW in
+Phase 4); force times the footprint share, held within 0.5 to 2; 45 s arrival, 15 s attribution, four 15 s rounds, 30 s
+aftermath; a 420 s interval after each raid besides the slot's 300 s; a 30 s quiet lapse before the battle; offense
+strikes up to 50% of the force a round; attribution names 2 of every 3 (stride 1, coprime to 3).
+
+**How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, measured on the merge with insurance (#498, ee4c33b)
+against the same code and content with every raid gated off (`raids: []`):
+
+| Run | Raids (rounds, peak damage) | Change |
+|---|---|---|
+| STEALTH, legacy rules | 5: P3 3, P4 2 (20, 44.4%) | victory 9830.7 -> 10269.0 s (+4.5%); Phase 3 49.7 -> 55.1 min, Phase 4 38.5 -> 39.9 min, Phase 5 1694.7 -> 1725.0 s; wipes 0; peaks unchanged (suspicion 24.0%, lock 45.1%) |
+| STEALTH, campaign rules | 5: P3 3, P4 2 (20, 44.4%) | victory 9977.9 -> 10152.1 s (+1.7%); Phase 3 52.3 -> 52.4 min, Phase 4 37.9 -> 40.4 min, Phase 5 1721.9 -> 1740.1 s; wipes 0; peak suspicion 24.0 -> 27.3%, lock 45.0 -> 48.7% |
+| GREEDY, legacy rules | 0 | none: wiped in Phase 3 with a footprint under the trigger (27 wipes, as before) |
+| GREEDY, campaign rules | 0 | none (23 wipes, as before) |
+
+The careful run's raids start once its botnet borrows enough watts (about 70 minutes in) and in Phase 4 once its halls
+draw on the grid, so the resource-gathering stretch of a phase lengthens by up to about five minutes, inside every gate
+(Phase 5 stays under its 1,800 s ceiling). Raid frequency is set by the footprint, so a louder build meets more of them.
+The careful bot's purchase order is sensitive to small changes, so the effect differs between the two rule sets.
+
+**Insurance (#498)** does not interact with raid damage: CONTINGENCY pays out across a wipe, and raid damage never
+outlasts one (a wipe clears it). `repairDamage` is the one door a later spare-parts variant would use.
 
 ## Escalation by phase (#490)
 
