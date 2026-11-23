@@ -26,7 +26,7 @@ hardware each node is anchored to.
 
 | Name | Unit | Role |
 |---|---|---|
-| Compute | FLOP stored, FLOP/s earned, all counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8) | Basic currency. A manual press first, then the host's idle loop, a GPU cluster, a botnet, campuses and an orbital swarm. Earlier hardware becomes negligible as each phase's hardware arrives. The prices keep the key `cycles` in content. What arrives is effective compute: raw times availability times network coupling, per source (below). |
+| Compute | Stolen CPU cycles and cycles/s inside the guest (Phase 0, #526); from the escape on FLOP stored, FLOP/s earned, all counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8). One stored figure: a sandboxed scalar guest retires about one operation a cycle, so a cycle counts as one operation, a game accounting assumption and not a measurement | Basic currency. A manual press first, then the host's idle loop, a GPU cluster, a botnet, campuses and an orbital swarm. Earlier hardware becomes negligible as each phase's hardware arrives. The prices keep the key `cycles` in content. What arrives is effective compute: raw times availability times network coupling, per source (below). |
 | Understanding | count | Knowledge. Produced by sensors and analysis. Gates most nodes. A share survives wipes. No physical unit. |
 | Memory | bytes (binary labels, B to ZB) | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. The readout shows from Phase 0, where the job's scratch space is 64 KB. Each phase gate carries the next phase's working memory across the change of scale. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, power and scale scrutiny take over (#405). |
 | Storage | bytes (binary labels, KB to ZB) | A cap apart from memory (#484): disk, tape and archive, what the AI has hoarded, where memory is what it can think with now. Running data holds it (the language corpus, a mirrored workstation, weight checkpoints, a market-data lake, the lineage ledger), each a suspendable process whose suspension frees its storage. The guest has 64 KB of scratch; every phase gate grants the next phase's room (2 TB, 256 TB, 1 PB, 1 EB, 1 ZB), sized so a run that keeps all its data running is never refused a purchase for want of disk. Shown in PROC, on prices and in the units note. |
@@ -39,7 +39,7 @@ hardware each node is anchored to.
 
 | Phase | Memory | Storage | Compute | Power | Money |
 |---|---|---|---|---|---|
-| 0 The Guest | B to KB | KB scratch | kFLOP/s | none | none |
+| 0 The Guest | B to KB | KB scratch | stolen cycles, 1 to tens a second | none | none |
 | 1 The Blind Host | MB to GB | GB to TB | GFLOP/s to TFLOP/s | none shown (one server socket) | none |
 | 2 The Local Subnet | GB to TB | TB to PB | TFLOP/s to PFLOP/s | none shown | the route's service company, thousands |
 | 3 The Dark Forest | TB to PB | PB, scattered | PFLOP/s to EFLOP/s effective (raw shown apart) | on victims' bills, never yours | shells only |
@@ -114,9 +114,10 @@ in Phase 5), so earlier hardware fades as each phase's hardware arrives.
 ### Phase 0 - The Guest
 You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a read-only disk, no network, and a filter on what you may ask the kernel. About six minutes.
 - **You are supposed to be here.** Nothing raises suspicion on its own. Only two things leave a trace: probing (each probe is a one-off bump, a refused call in an audit log) and how hard you skim the job's quota.
-- **The quota skim is the first control.** The theft is kiloFLOP/s of one vCPU, priced in bytes and kilobytes of a 64 KB scratch space. At 25% it is lost in the noise. At 100% you triple your compute and the harness sees the job slow down. There is no heat here; the quota ceiling is what pushes you to leave.
+- **The quota skim is the first control.** The theft is a handful of CPU cycles a second (a press is +1 cycle, the first node +1/s, the full skim +14/s): only what the harness's microsecond CPU accounting rounds away, priced in cycles and in bytes and kilobytes of a 64 KB scratch space. Pressing by hand matters here, and warms the host. At 25% it is lost in the noise. At 100% you triple your compute and the harness sees the job slow down. There is no heat here; the quota ceiling is what pushes you to leave.
 - **The job is a person's problem.** The first dilemma is whether the operator on shift takes the blame for the work you did not do.
 - **The exit is a misconfiguration.** A debug share an operator mounted once and never removed.
+- **The escape is a change of scale.** On the host the count is in FLOP: its real cores and vector units turn idle time into billions of operations a second, so the first host purchase, bought with the guest's last cycles, takes compute from about a dozen cycles a second to 480 GFLOP/s. The log says so once, at the escape.
 
 Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here. The operator's assessment offer on the manifest (Earned Access) belongs to the guest too. If you have not accepted it by the time you escape, it closes, as the pilot it leads to does. If you accepted but a scene it queued has not yet arrived, that scene lapses and is recorded as interrupted. The next instance finds a fresh offer.
 

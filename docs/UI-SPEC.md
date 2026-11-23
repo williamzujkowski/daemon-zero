@@ -740,8 +740,14 @@ numbers are formatted by the engine, since they are stored in saved log text. Wa
 surface, through the engine's formatters (`src/engine/physicalUnits.ts`, `src/engine/resourceUnits.ts`): live
 readouts use `quantityReadout` (three significant digits: `14 kFLOP`, `+1.26 TFLOP/s`, `$9.54T`, `180 MW`), accessible
 names `quantitySpoken` ("1.25 petaFLOP", "18 billion dollars"), prices, shortfalls and authored card values
-`quantityExact`/`costPart`/`deltaPart` (`45 TFLOP · 256 MB · $400M`, `+$20K/s`, `-180 MW`). "Cycles" is no longer a
-unit anywhere on screen; prose says compute. The strip's compute readout is labelled `COMPUTE` and reads
+`quantityExact`/`costPart`/`deltaPart` (`45 TFLOP · 256 MB · $400M`, `+$20K/s`, `-180 MW`). Inside the guest (Phase 0)
+compute reads as stolen CPU cycles instead (#526, vote-1795450842605-mm2yn39): every compute readout asks the engine's
+`computeUnitOf` (the phase's declared `computeUnit`) through `useComputeUnit`, and the same formatters write `cycles` and
+`cycles/s`, a short prefix glued to the figure only past a thousand (`1.4k cycles`), whole figures under a million on a
+price (`1,400 cycles`), singular for one (`+1 cycle`), and number words aloud ("1.4 thousand cycles", never
+"kilocycles"). The strip reads `1.4k cycles (+12.4 cycles/s)`; below 500 px its label is `CYC` (`CYC 1.4k +12.4/s`,
+well inside the 15 characters); the press, cards, dilemmas, the pilot's loan and the deficit line say cycles too. From
+the escape on, the same stored figure reads in FLOP; prose says compute. The strip's compute readout is labelled `COMPUTE` and reads
 `1.92 MFLOP (+42.4 kFLOP/s)`; capital reads `$9.54T (+$111B/s)`. Below 500 px the compute label is its unit, `FLOP`,
 and the value keeps only the SI prefix (`FLOP 1.92M +42.4k/s`, Phase 5 `FLOP 20.2Y +113Z/s`): at 360 px a readout has
 about 15 characters of 14 px monospace beside its label, and `14 kFLOP +140 kFLOP/s` would wrap every row and grow
@@ -749,11 +755,13 @@ the pinned HUD toward its 35% cap. Capital keeps `$` on both figures (`CAP $9.54
 accessible name always carries the full unit ("compute: 1.92 megaFLOP, gaining 42.4 kiloFLOP per second"). Phone
 prices may abbreviate understanding, which has no unit, while it stays exact (`15M understanding`).
 A power shortfall reads in watts at its size (`POWER SHORTFALL: 24.4 MW short`); a small one steps the unit down rather
-than reading 0. The manual cycle's demoted line shows its authored yield (`[ cycle ] +10 kFLOP`), and it demotes once
+than reading 0. The manual cycle's demoted line shows its authored yield in the phase's unit (`[ cycle ] +1 FLOP` on the
+host; in the guest the control is never demoted and a press is +1 cycle), and it demotes once
 income is worth 200 clicks of that yield per second (`MANUAL_CYCLE_DEMOTE_CLICKS_PER_SEC`), so the threshold follows
 content rather than a hard-coded FLOP figure: Phase 0 keeps the full control; from Phase 1 it is demoted.
 Once the compute readout is known, a folded `UNITS` reference panel (`reference-units`, `src/ui/UnitsNote.tsx`) closes
-the CORE pane: compute is counted as 8-bit AI operations, memory in binary-labelled bytes, power in watts, money in
+the CORE pane: inside the guest compute is counted in stolen CPU cycles, labelled the game's accounting assumption (about
+one operation a cycle), not a measurement (#526); from the escape on it is counted as 8-bit AI operations, memory in binary-labelled bytes, power in watts, money in
 dollars, with the H100, world AI compute and world electricity for scale and El Capitan's FP64 figure labelled a
 comparison only (SCALE.md user stories 7-8). A line separates memory (working memory, what the AI can think with now)
 from storage (disk, tape and archive, what it has hoarded; running data holds it and suspending it frees it). Once the

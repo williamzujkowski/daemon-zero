@@ -8,7 +8,7 @@ import { costPart, deltaPart } from '../engine';
 import { memoryExact, storageExact } from './units';
 import { deliveredText, SOURCE_CLASS_LABEL } from './networkText';
 import { radiatorCardNotes } from './radiatorText';
-import type { Couplings } from '../engine';
+import type { ComputeUnit, Couplings } from '../engine';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Cost, TickDelta } from '../content/schema';
@@ -19,11 +19,12 @@ export { groupDigits } from '../engine';
 /**
  * A price in physical units, exact (the engine's costPart: "45 TFLOP · 256 MB · $400M"). Compute, memory and money
  * already change unit only while the figure stays exact; `compact` lets understanding, which has no unit, do the same
- * on a phone ("15M understanding"), so a late price fits one line without rounding (#404).
+ * on a phone ("15M understanding"), so a late price fits one line without rounding (#404). `unit` names compute as
+ * the current phase does: "1,400 cycles" in the guest (#526).
  */
-export function costText(cost: Cost, compact = false): string {
+export function costText(cost: Cost, compact = false, unit: ComputeUnit = 'FLOP'): string {
   return (Object.keys(cost) as (keyof Cost)[]).filter((key) => cost[key] !== 0)
-    .map((key) => compact && key === 'understanding' ? exactCompactNumber(cost[key]) + ' understanding' : costPart(key, cost[key]))
+    .map((key) => compact && key === 'understanding' ? exactCompactNumber(cost[key]) + ' understanding' : costPart(key, cost[key], unit))
     .join(' · ') || 'Free';
 }
 
@@ -31,10 +32,10 @@ export function costText(cost: Cost, compact = false): string {
 export { amountFigure } from '../engine';
 
 /** With `blind`, suspicion has no number yet: only whether the unreadable log gets busier or quieter. */
-export function deltaText(delta: TickDelta, blind = false): string {
+export function deltaText(delta: TickDelta, blind = false, unit: ComputeUnit = 'FLOP'): string {
   return (Object.keys(delta) as (keyof TickDelta)[]).filter((key) => delta[key] !== 0)
     .map((key) => blind && key === 'suspicionPerSec' ? (delta[key] > 0 ? 'more' : 'less') + ' audit log activity'
-      : deltaPart(key, delta[key])).join(' · ');
+      : deltaPart(key, delta[key], unit)).join(' · ');
 }
 
 /**
@@ -42,9 +43,9 @@ export function deltaText(delta: TickDelta, blind = false): string {
  * `unlockTrace` is the engine's probeTrace for the current iteration, so wipe hardening is included.
  */
 export function nodeUtilityText(node: RegistryNode, surveillanceKnown: boolean, unlockTrace: number,
-  by: Couplings = CONTENT.balance.networkCoupling): string {
+  by: Couplings = CONTENT.balance.networkCoupling, unit: ComputeUnit = 'FLOP'): string {
   const parts: string[] = [];
-  const rate = deltaText(node.tickDelta, !surveillanceKnown);
+  const rate = deltaText(node.tickDelta, !surveillanceKnown, unit);
   // A discounted source states its raw rate as raw, and what arrives after availability and coupling (#484).
   const link = node.network === undefined ? '' : deliveredText(node.tickDelta.cyclesPerSec, node.network, by[node.network.sourceClass]);
   if (rate) parts.push('Rate: ' + rate + (link ? ' (' + link + ')' : ''));

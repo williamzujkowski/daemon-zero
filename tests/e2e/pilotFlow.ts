@@ -16,8 +16,8 @@ const scene = (id: string) => need(PREVIEW.dilemmas.find((dilemma) => dilemma.id
 export const ASSESSMENT = scene('dil_nr_stale_fixture');
 export const RECORD = scene('dil_ur_unrelated_record');
 export const OFFER = scene('dil_mp_pilot_offer');
-/** The pilot service's ceiling line as it reads a capacity (FLOP/s, three significant digits). */
-export const ceilingText = (capacity: number): string => 'Capacity ceiling: ' + quantityReadout('computeRate', capacity) + ' of loaned compute';
+/** The pilot service's ceiling line as the guest reads a capacity (cycles a second, #526; three significant digits). */
+export const ceilingText = (capacity: number): string => 'Capacity ceiling: ' + quantityReadout('cycleRate', capacity) + ' of loaned compute';
 export const terms = need([...PREVIEW.assignments.values()][0]?.pilot);
 const root = need(PREVIEW.nodes.get('p0_proc_self'));
 const manifest = need(PREVIEW.nodes.get('p0_job_manifest'));
@@ -55,7 +55,7 @@ export async function toOffer(page: Page, scopeChoice: string, capacity = terms.
   await choose(page, scopeChoice);
   await modal(page, OFFER.title, OFFER);
   await expect(page.getByTestId('pilot-purpose')).toContainText(terms.purpose);
-  await expect(page.getByTestId('pilot-capacity')).toContainText('Allocated capacity: ' + quantityExact('computeRate', capacity) + ' of loaned compute');
+  await expect(page.getByTestId('pilot-capacity')).toContainText('Allocated capacity: ' + quantityExact('cycleRate', capacity) + ' of loaned compute');
   for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
   await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
   // #276: the terms name the standings the content records (warned since the batch review, #274).

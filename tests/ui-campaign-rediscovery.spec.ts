@@ -63,9 +63,10 @@ describe('the rediscovered log spoofer card', () => {
     // A narrow test viewport prints compact numbers; either form names the same price.
     const node = spoofer;
     const price = { cycles: Math.ceil(node.cost.cycles * 0.25), understanding: Math.ceil(node.cost.understanding * 0.5), memory: node.cost.memory, capital: 0 };
-    expect(view.text('-cost')).toMatch(new RegExp('^Cost: ' + escaped(costPart('cycles', price.cycles)) + ' · ' + understandingForms(price.understanding)
+    // The return is in the guest again, where compute is counted in cycles (#526); the card is mounted there directly.
+    expect(view.text('-cost')).toMatch(new RegExp('^Cost: ' + escaped(costPart('cycles', price.cycles, 'CYCLE')) + ' · ' + understandingForms(price.understanding)
       + ' · ' + escaped(costPart('memory', price.memory)) + ' \\(remembered\\)$'));
-    expect(view.text('-rediscovery')).toMatch(new RegExp('^First mapping: ' + escaped(costPart('cycles', node.cost.cycles))));
+    expect(view.text('-rediscovery')).toMatch(new RegExp('^First mapping: ' + escaped(costPart('cycles', node.cost.cycles, 'CYCLE'))));
     expect(view.text('-rediscovery')).toContain('Rediscovery saves 75% of compute and 50% of understanding.');
   });
 

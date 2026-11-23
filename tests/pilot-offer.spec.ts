@@ -157,9 +157,11 @@ describe('staying and declining are free and leave no soft lock (story 11, DZ-04
     expect(pilotOfferView(done, preview)?.status).toBe('declined');
     expect(reasonOf(acceptDeferred(done))).toBe('there is no deferred pilot offer');
     const probe = defined(preview.nodes.get('p0_syscall_probe'));
+    // Funded with the probe's own price: reachability is the point here, not how long the guest saves for it.
     const skimming = withSkimmer(done);
-    expect(isNodeAvailable(funded(skimming), probe, preview)).toBe(true);
-    expect(must(unlockNode(funded(skimming), probe.id, preview)).unlockedNodes).toContain(probe.id);
+    const ready = { ...skimming, cycles: skimming.cycles + probe.cost.cycles, understanding: skimming.understanding + probe.cost.understanding };
+    expect(isNodeAvailable(ready, probe, preview)).toBe(true);
+    expect(must(unlockNode(ready, probe.id, preview)).unlockedNodes).toContain(probe.id);
   });
 
   it('a deferred offer lapses, unaccepted, once the instance leaves the sandbox', () => {

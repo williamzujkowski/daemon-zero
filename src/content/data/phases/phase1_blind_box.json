@@ -21,7 +21,7 @@
         "p0_shared_mount"
       ],
       "cost": {
-        "cycles": 1.5e6,
+        "cycles": 280,
         "memory": 4194304
       },
       "tickDelta": {

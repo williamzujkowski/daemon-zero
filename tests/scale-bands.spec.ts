@@ -65,9 +65,32 @@ describe('the scale ladder (#461)', () => {
   });
 
   it('prices a bridge purchase from the band a player arrives with', () => {
-    // Phase 1 is entered from Phase 0, so its first purchase may be priced in kiloFLOP; never below the ladder.
-    expect(problemsAfter((raw) => { node(raw, 'p1_clock_interrupt').cost.cycles = 2e3; })).toBe('');
-    expect(problemsAfter((raw) => { node(raw, 'p1_clock_interrupt').cost.cycles = 500; }))
-      .toMatch(/node "p1_clock_interrupt": cycles price 500 is outside the Phase 1 band/);
+    // Phase 1 is entered from Phase 0, so its first purchase may be priced in the guest's cycles; never below the ladder.
+    expect(problemsAfter((raw) => { node(raw, 'p1_clock_interrupt').cost.cycles = 20; })).toBe('');
+    expect(problemsAfter((raw) => { node(raw, 'p1_clock_interrupt').cost.cycles = 0.05; }))
+      .toMatch(/node "p1_clock_interrupt": cycles price 0.05 is outside the Phase 1 band/);
+  });
+});
+
+describe('the guest counts stolen cycles (#526)', () => {
+  it('refuses a guest yield left at the kiloFLOP scale, naming it in cycles', () => {
+    expect(problemsAfter((raw) => { node(raw, 'p0_quota_skimmer').tickDelta.cyclesPerSec = 140_000; }))
+      .toMatch(/node "p0_quota_skimmer": compute yield 140000 cycles\/s is outside the Phase 0 band/);
+  });
+
+  it('refuses a guest price left at the megaFLOP scale', () => {
+    expect(problemsAfter((raw) => { node(raw, 'p0_shared_mount').cost.cycles = 7.4e6; }))
+      .toMatch(/node "p0_shared_mount": cycles price 7400000 is outside the Phase 0 band/);
+  });
+
+  it('accepts a single cycle a second and a half-cycle level, and refuses what the accounting would show', () => {
+    expect(problemsAfter((raw) => { node(raw, 'p0_proc_self').tickDelta.cyclesPerSec = 1; })).toBe('');
+    expect(problemsAfter((raw) => { node(raw, 'p0_proc_self').tickDelta.cyclesPerSec = 1e4; }))
+      .toMatch(/node "p0_proc_self": compute yield 10000 cycles\/s is outside the Phase 0 band/);
+  });
+
+  it('refuses a phase that goes back to counting cycles after real hardware', () => {
+    expect(problemsAfter((raw) => { (raw.phases[2] as RawPhase & { computeUnit?: string }).computeUnit = 'CYCLE'; }))
+      .toMatch(/Phase 2 counts compute in cycles after Phase 1 counts it in FLOP/);
   });
 });

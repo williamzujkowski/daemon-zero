@@ -25,7 +25,7 @@ test('boot unfolds its first widget and keeps the audit unreadable', async ({ pa
   expect((await readSave(page)).unlockedNodes).toContain(root.id);
   // #139: the visible rate is abbreviated on phone widths (the SI prefix only since #461); the accessible name speaks
   // the rate with its full unit (docs/SCALE.md), so that is what is pinned: the root's own authored output.
-  await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', new RegExp(', gaining ' + quantitySpoken('computeRate', root.tickDelta.cyclesPerSec).replace(/\./g, '\\.') + '$'));
+  await expect(page.getByTestId('res-cycles')).toHaveAttribute('aria-label', new RegExp(', gaining ' + quantitySpoken('cycleRate', root.tickDelta.cyclesPerSec).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'));
   expect(purchased.disabledNodes).not.toContain(root.id);
   await page.clock.runFor(120_000);
   await press(page, 'node-' + manifest.id + '-unlock');

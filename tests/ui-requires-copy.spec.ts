@@ -23,7 +23,7 @@ it('says exactly what an unaffordable dilemma choice is short of, never "resourc
     const card = view.find('dilemma-card-' + choice.id)?.textContent ?? '';
     const missing = costShortfall(state, choice.cost, CONTENT);
     const short = costText({ cycles: Math.ceil(missing.cycles), understanding: Math.ceil(missing.understanding),
-      capital: Math.ceil(missing.capital), memory: Math.ceil(missing.memory), storage: Math.ceil(missing.storage) });
+      capital: Math.ceil(missing.capital), memory: Math.ceil(missing.memory), storage: Math.ceil(missing.storage) }, false, 'CYCLE');
     expect(card, choice.id).toContain('Cannot pay yet: short by ' + short);
     expect(card, choice.id).not.toContain('free memory');
   }
