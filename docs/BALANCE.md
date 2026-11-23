@@ -1659,6 +1659,10 @@ On the merge with #532 (6825e3f, the guest in cycles), against main: Phases 1-2 
 reached 0.7 s later (2816.7 s) and lasting 3249.1 s (was 3235.8), Phase 4 at 6065.8 s (was 6051.8), Phase 5 at 8510.9 s
 (was 8445.3), victory 10228.3 s (was 10174.7; Phase 5 lasts 1717.4 s), peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16;
 campaign rules 2.81 -> 2.77 h. The reckless run: 4 h wipes 9 -> 8, ten hours 25 -> 23 (campaign 21 -> 23).
+On the merge with #531 (9da3ff0, fleets), against main: Phases 1-2 identical, Phase 3 at 2816.7 s (was 2816.0), Phase 4
+at 6065.8 s (was 6051.8), Phase 5 at 8657.9 s (was 8406.3), victory 10397.3 s (was 10142.7). **Phase 5 lasts 1739.4 s
+under legacy rules (was 1736.4) and 1721.4 s under campaign rules (was 1723.4)**, against the 1800 s gate. The reckless
+run: ten hours 25 -> 23 wipes (campaign 21 -> 23), still never in Phase 4.
 
 The careful run reaches Phases 1 and 2 at the same second. Phase 2 lasts 1.7 s longer: the careful bot presses the fan
 up as the host heats, and each press now leaves its trace up front instead of a rate while high. Phase 3 then runs

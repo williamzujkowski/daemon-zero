@@ -315,7 +315,9 @@ describe('headless balance simulation', () => {
     // victory 10269.0 -> 10193.2 s, peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16, wipes 0. The gates pass. On the merge
     // with #528 (5f90ef3) every figure is the same but victory, 10267.0 -> 10180.2 s. On the merge with #532 (6825e3f, the
     // guest in cycles): phases 1-2 identical (353.2 / 1017.3 s), Phase 3 2816.0 -> 2816.7 s, Phase 4 6051.8 -> 6065.8,
-    // 5 8445.3 -> 8510.9 s, victory 10174.7 -> 10228.3 s, peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16.
+    // 5 8445.3 -> 8510.9 s, victory 10174.7 -> 10228.3 s, peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16. On the merge with
+    // #531 (9da3ff0, fleets): phases 1-2 identical, Phase 3 2816.0 -> 2816.7, 4 6051.8 -> 6065.8, 5 8406.3 -> 8657.9 s,
+    // victory 10142.7 -> 10397.3 s; Phase 5 lasts 1736.4 -> 1739.4 s (campaign 1723.4 -> 1721.4 s).
     expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('dd5ba2b1966889a3670921594782fc626f5b1468fd20671f97504a98c75262f1');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('b08b82df52037340c9b34bfc397fbcde33286ce1eebb8fa15ed2c1c32d976752');
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
@@ -432,7 +434,7 @@ describe('headless balance simulation', () => {
     // Moved in #518 (v26) with every hash below, frozen mechanics included: the fleets and their deviants are in the same
     // conflict manifest, so the original game's careful run drifts and fights them as production's does.
     // Moved in #525 (the fan's trace) with every hash below, as production's careful run above: victory 10268.9 -> 10193.5 s
-    // (on the merge with #528: 10266.9 -> 10180.5 s; with #532: 10180.2 -> 10227.9 s).
+    // (on the merge with #528: 10266.9 -> 10180.5 s; with #532: 10180.2 -> 10227.9 s; #531 measured on production above).
     expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('c305009ff9941d151c9471bc0c67687fe44e93217c3e46448dc3d7b434bf5568');
     expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('58e73af8f8e8560096827616ff9cf09323c4b944d7979912da3473b13dc48ebf');
     expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('c6e9f73c99e065fea7e29db5e8960be8bebcda077d642eaf013475421fab4053');
@@ -549,7 +551,8 @@ describe('headless balance simulation', () => {
     // trace where the dial drew a rate before. At this 4 h budget: wipes 10 -> 9, Phase 3 first reached 3486.9 -> 3585.6 s,
     // the clock ends 14338.7 -> 14341.8 s, 0 -> 7 dilemmas resolved; still never in Phase 4. The ten-hour make sim run:
     // 27 -> 24 wipes (campaign 23 -> 24). On the merge with #532 (6825e3f): at this budget wipes 9 -> 8, Phase 3 3934.4 ->
-    // 3988.7 s; ten hours 25 -> 23 wipes (campaign 21 -> 23).
+    // 3988.7 s; ten hours 25 -> 23 wipes (campaign 21 -> 23). On the merge with #531 (9da3ff0): ten hours 25 -> 23
+    // (campaign 21 -> 23), still never in Phase 4.
     expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('83b5acc0b1c2979233cd7b6ecf5710ed45f34f1f1db56f9c6fa8cbaad21d79d2');
     expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('82b8195dc6f97d08847af3b32d1266ca95e9032f9cc41f361daf884761b5b1f2');
     expect(greedy.wipes).toBeGreaterThan(0);
