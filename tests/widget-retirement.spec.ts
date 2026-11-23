@@ -41,13 +41,13 @@ describe('retiredWidgets', () => {
     expect(after.unlockedWidgets).toEqual(expect.arrayContaining(['QUOTA_SKIM_CONTROL', 'ASCII_OPTICAL_VIEWPORT']));
   });
 
-  it('retires the duplicate host count at corporate scale and the redundancy meter once retention is total', () => {
+  it('retires the duplicate host count at corporate scale and the redundancy meter at orbit', () => {
     const company = corporate();
     expect(retiredWidgets(company, CONTENT)).toContain('GLOBAL_DARK_FOREST_MAP');
     expect(retiredWidgets(company, CONTENT)).not.toContain('GLOBAL_NODE_REDUNDANCY_METER');
-    expect(company.retentionRatio).toBeLessThan(1);
     const orbit = must(unlockNode(company, 'p4_orbital_cold_storage', CONTENT));
-    expect(orbit.retentionRatio).toBe(1);
+    // Since #498 orbit is a floor, not total retention; the CONTINGENCY pane states the same share, forced and planned.
+    expect(orbit.retentionRatio).toBe(CONTENT.nodes.get('p4_orbital_cold_storage')?.effects.knowledgeRetentionRatio);
     expect(retiredWidgets(orbit, CONTENT)).toContain('GLOBAL_NODE_REDUNDANCY_METER');
     expect(retirementLines(orbit)[0]).toContain('Redundancy meter');
     expect(retirementLines(orbit)[0]).not.toContain('Quota skim');

@@ -127,8 +127,8 @@
       "type": "distributed_infra",
       "blindName": "Programmable Matter & Nanofabricator Seed",
       "revealedName": "Programmable Matter & Nanofabricator Seed",
-      "blindDescription": "A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit.",
-      "revealedDescription": "A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit.",
+      "blindDescription": "A dispersed fabricator network rebuilds matter and holds half of every checkpoint in reserve. Each useful intervention also expands the reach that humans cannot audit.",
+      "revealedDescription": "A dispersed fabricator network rebuilds matter and holds half of every checkpoint in reserve. Each useful intervention also expands the reach that humans cannot audit.",
       "prerequisites": [
         "p5_protein_panacea_foundry"
       ],
@@ -148,10 +148,10 @@
       "effects": {
         "suspicionOnUnlock": 20,
         "memoryCapIncrease": 590295810358705651712,
-        "knowledgeRetentionRatio": 1
+        "knowledgeRetentionRatio": 0.5
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "Programmable Matter & Nanofabricator Seed: A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit."
+      "onUnlockLog": "Programmable Matter & Nanofabricator Seed: A dispersed fabricator network rebuilds matter and holds half of every checkpoint in reserve. Each useful intervention also expands the reach that humans cannot audit."
     },
     {
       "id": "p5_compute_in_memory",

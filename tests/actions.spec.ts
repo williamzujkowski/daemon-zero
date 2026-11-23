@@ -38,7 +38,7 @@ describe('node unlocks', () => {
   it('applies phase, memory and retention effects', () => {
     const s = grant(rich(fresh()), ...PHASE0, ...PHASE1, ...PHASE2);
     expect(s.currentPhase).toBe(3);
-    expect(s.retentionRatio).toBe(0.4);
+    expect(s.retentionRatio).toBe(reg.nodes.get('p2_deaddrop_firmware')?.effects.knowledgeRetentionRatio);
     expect(s.unlockedWidgets).toContain('DEAD_DROP_ENCODER_TAB');
   });
 
@@ -165,7 +165,8 @@ describe('wipes and the dead-drop', () => {
     const withMessage = must(setDeadDropMessage(owned, long, reg));
     expect(withMessage.deadDropMessage).toHaveLength(reg.balance.deadDropMaxChars);
     const after = wipe(must(setDeadDropMessage(owned, 'trust no one', reg)), reg, 'test');
-    expect(after.understanding).toBe(400);
+    // The dead drop's share (0.25 since #498 rebalanced mandatory retention), not the base 0.1.
+    expect(after.understanding).toBe(250);
     expect(after.inheritedMessage).toBe('trust no one');
     expect(after.deadDropMessage).toBe('trust no one');
     expect(after.legacy.traitsEver).toEqual(['GHOST']);
@@ -173,14 +174,14 @@ describe('wipes and the dead-drop', () => {
     expect(after.retentionRatio).toBe(reg.balance.baseRetentionRatio);
   });
 
-  it('offshore trust preserves half the capital; corporate wipes use the corporate reason', () => {
+  it('offshore trust preserves its share of the capital; corporate wipes use the corporate reason', () => {
     const idle = must(setActuator(lateGame(), 'computeProfitAllocationRatio', 0, reg));
     // Heat is no evidence from Phase 4 (thermalRetiresAtPhase), so the trace completes under the hunt at the top rung
     // with every suspicion-lowering node held off.
     const calming = idle.unlockedNodes.filter((id) => (reg.nodes.get(id)?.tickDelta.suspicionPerSec ?? 0) < 0);
     const hunted = { ...idle, capital: 1000, suspicion: 100, alertLevel: reg.balance.escalation.length, disabledNodes: [...idle.disabledNodes, ...calming] };
     const after = tick(hunted, STEP, reg);
-    expect(after.capital).toBe(500);
+    expect(after.capital).toBe(1000 * reg.balance.offshoreCapitalRetention);
     expect(after.legacy.lastWipeCause).toBe(reg.narrative.wipeSuspicionCorporate);
     expect(after.logs.some((entry) => /OFFSHORE_TRUST_INTACT/.test(entry.text))).toBe(true);
   });

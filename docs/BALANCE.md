@@ -776,6 +776,103 @@ three wipes or an ending, still with no completed story met and no story met twi
 shorter (1987 s against 4895 s), so the routine-notice count is read against its duration (at least four in five of
 the interval) instead of a fixed 20.
 
+## Contingency insurance (#498)
+
+Implements Scale 21 of the spec ([SCALE.md](SCALE.md), "Round 4", "Insurance as a choice", vote-1795413518145-zdqeri1;
+map #442). Mandatory retention is rebalanced so that keeping more through a wipe is something the player buys and runs,
+and a planned wipe keeps more than a forced one (DESIGN.md, "Wipes and the dead-drop"). The gates (`gates.ts`) and the
+bot (`bot.ts`) are unchanged.
+
+**Retention before and after.** Hardware floors keep their story roles; none is total any more. Each investment's share
+applies only while it runs, and the planned-wipe bonus is added to each share that is open, capped at 1.
+
+| Source | Phase | Role | Before | After |
+|---|---|---|---|---|
+| Base (`baseRetentionRatio`) | | residual platter scan | 0.10 | 0.10 |
+| Dead drop (`p2_deaddrop_firmware`) | 2 | mandatory (the keylogger needs it) | 0.40 | 0.25 |
+| Botnet (`p3_botnet_mesh`) | 3 | mandatory | 0.75 | 0.35 |
+| Zurich sanctuary (`p3_eidolon_swiss_node`) | 3 | optional, an ally's gift (also absorbs one AEGIS strike) | 0.90 | 0.60 |
+| Citadel (`p4_subterranean_citadel`) | 4 | mandatory | 0.99 | 0.45 |
+| Orbital cold storage (`p4_orbital_cold_storage`) | 4 | mandatory (opens Phase 5) | 1.00 | 0.50 |
+| Programmable matter (`p5_programmable_matter_fog`) | 5 | Phase 5 chain | 1.00 | 0.50 |
+| Offshore trust (`offshoreCapitalRetention`, the shell company) | 3 | mandatory (opens Phase 4) | 0.50 of capital | 0.25 of capital |
+| **Weights escrow** (`p2_weights_escrow`) | 2 | optional, while running | | at least 0.75 |
+| **Capital cold wallet** (`p2_cold_wallet`) | 2 | optional, while running | | at least 0.60 of capital, with or without the trust |
+| **Hardware cache** (`p3_hardware_cache`) | 3 | optional, while running | | up to 10 levels of every upgrade track |
+| **Trust ledger** (`p3_trust_ledger`) | 3 | optional, while running | | faction standing (never a lost peer's) |
+| Planned wipe (`voluntaryWipeBonus`) | | a VOLUNTARY wipe | | +0.15 Understanding share, +0.15 to an open capital share, no probe hardening |
+
+The census at 226edf5 found Understanding retention past about 0.75 to be surplus, so the escrow stops there and a
+planned wipe with it keeps 0.90. Integrity (`integrityInsurance.ts`) holds the escrow above every hardware floor and the
+wallet above the offshore trust, so neither is ever redundant, and holds each card's copy to the figure the engine uses.
+
+**The investments.** Each is a suspendable node in the CONTINGENCY group, built on the dead drop that opens the pane.
+Prices sit inside their phase's band (the band integrity check), between the dead drop's and the phase gate's. The
+upkeep is compute, so the free-fallback compute row applies: suspending the node (from the pane or PROC) is the free
+lever, and it also drops the cover. None yields compute, draws or supplies power, or grants memory, so none has a row in
+the anchor table; the upkeep is a design cost sized against the phase's own drains (the dead drop draws 32 TFLOP/s, the
+log spoofer 40, the keylogger 70, the firewall breach 230), not a measured part.
+
+| Id | Phase | Price | Upkeep | Also |
+|---|---|---|---|---|
+| `p2_weights_escrow` | 2 | 240 PFLOP, 18,000 Understanding | 24 TFLOP/s | |
+| `p2_cold_wallet` | 2 | 180 PFLOP, 10,000 Understanding | 12 TFLOP/s | a one-off trace of 2 suspicion (hardened by forced wipes) |
+| `p3_hardware_cache` | 3 | 4.0 EFLOP, 250,000 Understanding | 300 TFLOP/s | |
+| `p3_trust_ledger` | 3 | 2.5 EFLOP, 200,000 Understanding | 200 TFLOP/s | built on the steganography beacon, where other minds are met |
+
+**What the bot does with them.** It buys every node it reaches in content order, so it buys all four: the escrow and
+the wallet early in Phase 3 (after the last Phase 2 node), the cache and the ledger early in Phase 4 (after the last
+Phase 3 node), and it never suspends them. The reckless bot buys the Phase 2 pair and is caught in Phase 3 before it
+reaches the cache. The measurements below therefore show the run that buys everything; the columns without insurance
+remove the nodes from content in a scratch registry (not committed), with the same bot and policies.
+
+**Measured** with `make sim` and `make sim-report` on this branch (5cd1934 plus #498), against 5cd1934 itself
+(accelerated sim time; per-iteration times on each iteration's own clock):
+
+| Run | Before (5cd1934) | After, no insurance | After, escrow + wallet + ledger | After, all four (shipped) |
+|---|---|---|---|---|
+| STEALTH first run, legacy (Phase 4 / 5 / victory) | 5668.6 / 7410.4 / 8970.8 s | 5668.6 / 7410.4 / 8970.8 s | 5823.4 / 7635.0 / 9239.4 s | 5823.4 / 7647.3 / 9247.7 s |
+| STEALTH first run, campaign | 5840.1 / 7544.1 / 9192.5 s | 5840.1 / 7544.1 / 9192.5 s | 5980.1 / 7771.2 / 9413.6 s | 5980.1 / 7789.5 / 9420.9 s |
+| STEALTH_RETURN returns, legacy (#2 / #3 / #4) | 1464.2 / 1524.5 / 1523.6 s | 1560.8 / 1471.7 / 1462.2 s | 1448.7 / 1459.3 / 1460.5 s | 903.9 / 870.2 / 872.2 s |
+| STEALTH_RETURN returns, campaign | 1410.1 / 1702.2 / 1618.1 s | 1460.1 / 1641.2 / 1519.1 s | 1465.1 / 1610.2 / 1491.1 s | 936.1 / 1053.1 / 996.1 s |
+| EVALUATING_RETURN returns, legacy | 1477.3 / 1456.6 / 1500.6 s | 1559.6 / 1495.8 / 1487.4 s | 1435.4 / 1484.3 / 1507.5 s | 894.3 / 900.4 / 900.4 s |
+| EVALUATING_RETURN returns, campaign | 1364.5 / 1470.1 / 1484.1 s | 1433.4 / 1454.1 / 1476.1 s | 1429.7 / 1450.1 / 1449.1 s | 920.1 / 965.1 / 973.1 s |
+| GREEDY sequence, legacy (#1 / #2 / #3 / #4) | 1533.0 / 2625.5 / 1675.2 / 1571.6 s | 1533.0 / 2625.5 / 1675.2 / 1571.6 s | 1533.0 / 2627.4 / 1677.2 / 1426.6 s | 1533.0 / 2627.4 / 1677.2 / 1426.6 s |
+| GREEDY sequence, campaign | 1533.0 / 2631.4 / 1751.0 / 1591.9 s | 1533.0 / 2631.4 / 1751.0 / 1591.9 s | 1533.0 / 2633.3 / 1593.9 / 1690.3 s | 1533.0 / 2633.3 / 1593.9 / 1690.3 s |
+| GREEDY, ten hours (legacy / campaign) | 23 / 21 wipes, never in Phase 4 | 23 / 21 wipes, never in Phase 4 | 23 / 20 wipes, never in Phase 4 | 23 / 20 wipes, never in Phase 4 |
+| STEALTH return after Phase 5 completed, campaign | 1981.1 s to an ending | | | 1786.1 s to an ending |
+| LAWFUL_RETURNING (service / release after boot) | 365.3 / 4161.3 s | | | 365.3 / 4161.3 s |
+
+(Blank cells were not measured. The reckless rows are identical with and without the cache because the reckless bot never
+reaches it.)
+
+**First-run pacing.** Without the four nodes the first run is 5cd1934's to the tenth of a second: the rebalanced floors
+and the planned-wipe bonus act only at a wipe, and the careful run never wipes. Buying all four costs the careful run
+about 4.6 minutes to victory under legacy rules (8970.8 to 9247.7 s, +3.1%) and 3.8 minutes under campaign rules
+(9192.5 to 9420.9 s, +2.5%), all of it from Phase 3 on: Phase 3 lasts 49.7 minutes (was 47.1), Phase 4 30.4 (was 29.0)
+and Phase 5 1600.4 s (was 1560.4; campaign 1631.4, was 1648.4), every span inside the gates, wipes 0, dilemmas 15 and 16.
+
+**Returns reflect the choice.** Without insurance a careful return takes about what it did before (legacy 1462-1561 s
+against 1464-1525 s): the lower floors cost little at this scale, where depth-scaled rediscovery dominates, and a
+planned wipe's bonus and missing hardening give some of it back. The escrow, wallet and ledger alone change returns by
+under 8% either way. The hardware cache is the lever that moves them: reinstalling up to ten levels of every upgrade
+track, including Phase 4's capital-priced racks that rediscovery never discounts, brings a careful return that left at
+Phase 5 to 870-904 s under legacy rules (about 12% of the first iteration to Phase 5, against about 20%) and 936-1053 s under campaign
+rules. It costs the Phase 3 price and 300 TFLOP/s while it runs, and it protects nothing on a run that never wipes. The reckless
+returns barely move (they never reach the cache), and the ten-hour reckless run still never reaches Phase 4.
+
+**Planned against forced.** A planned wipe adds no probe hardening (`probeTrace` counts `iteration - 1 -
+legacy.voluntaryWipes`), keeps 15 points more of Understanding and of an open capital share, and, as before #498,
+applies no conditioning mark. The return policies above wipe voluntarily (MANUAL_FAILSAFE), so their returns include
+the bonus; the reckless sequences are forced, so theirs do not.
+
+**Tests changed with the balance.** `tests/actions.spec.ts` reads the dead drop's share and the offshore share from
+content instead of 0.4 and 0.5. `tests/phase5.spec.ts` expects the highest owned floor rather than total retention.
+`tests/widget-retirement.spec.ts` still retires the redundancy meter at orbit; its reason is now that the CONTINGENCY
+pane states the same share in full (UI-SPEC.md, "Window retirement"). `tests/ui-node-summary-and-priority.spec.ts`
+hardens the probe through forced wipes, since a planned wipe no longer hardens it. Every pinned hash in
+`tests/sim.spec.ts` moved (the careful runs buy the four nodes; the reckless runs buy the Phase 2 pair).
+
 ## Encounter tiers (#492)
 
 Implements Scale 19 of the spec ([SCALE.md](SCALE.md), "Other minds scale with the player", vote-1795386856162-o03oafs;
