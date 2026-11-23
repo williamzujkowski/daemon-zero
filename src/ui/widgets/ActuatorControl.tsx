@@ -5,9 +5,9 @@ import ConditioningImpact from '../ConditioningImpact';
 import { steppedValue } from '../actuatorSteps';
 import { CONTENT } from '../../content';
 import type { Actuator } from '../../content/schema';
-import { actuatorLimit, actuatorUseBlocker, isActuatorAvailable, setActuator } from '../../engine';
+import { actuatorLimit, actuatorUseBlocker, dialStepTrace, isActuatorAvailable, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
-import { useGame } from '../state';
+import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import { needsProcessControl } from '../purchaseVisibility';
 
@@ -21,6 +21,9 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
   const available = useGame((game) => isActuatorAvailable(game, actuator, CONTENT));
   // A dial that follows a withheld grant is refused by the same rule (DZ-05), and says why.
   const withheld = useGame((game) => actuatorUseBlocker(game, actuator, CONTENT));
+  // What a press up costs (#525), read from the engine that adds it: a number once the audit trail is decoded.
+  const trace = useGame((game) => dialStepTrace(game, actuator, CONTENT));
+  const known = useSurveillanceKnown();
   const step = (direction: -1 | 1) => {
     gameRuntime.dispatch((game) => {
       const cap = actuatorLimit(game, actuator, CONTENT);
@@ -42,6 +45,8 @@ export default function ActuatorControl({ actuator, id, label, hint }: {
       })}
     </View>
     {hint !== undefined && <Text style={theme.muted}>{hint}</Text>}
+    {trace > 0 && <Text testID={id + '-trace'} style={theme.muted}>
+      {known ? `Each step up adds ${String(trace)} suspicion, once.` : 'Each step up leaves a trace in the audit log.'}</Text>}
     {withheld !== null && <Text testID={id + '-withheld'} style={[theme.muted, theme.danger]}>Withheld: {withheld}.</Text>}
     {limit < 1 && <Text testID={id + '-limit'} style={[theme.muted, theme.danger]}>Limited to {Math.round(limit * 100)}%.</Text>}
     <ConditioningImpact actuator={actuator} />
