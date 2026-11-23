@@ -464,9 +464,11 @@ opening phase) and `integrityFallback.ts` (the divertible rule counts the damage
 The sim counts raids per tick (`SimActivity.raids`).
 
 **Retaliation and staff harm (#519).** Content on the dilemma path, no new stage. `raid.ts` writes
-`conflict.lastRaid` (id, named, breach: the mean hit share of the rounds) when a battle's last round lands; a wipe clears
-it. `raidOutcome.ts` answers the `lastRaid` requirement (`schemaRaidOutcome.ts`: `named`, `collateral`, `staffHarm`,
-transient scope), bands a breach by `raid.staffHarm` (`staffHarmFor`, the worst band met wins), fills `{attacker}` and
+`conflict.lastRaid` (id, named, breach: the mean hit share of the rounds, and harm: the worst staff-harm band met among
+the bands a scene can still follow, `openStaffBands`) when a battle's last round lands; a wipe clears it. A harm whose
+scene has no campaign record yet is recorded as an interrupted occurrence (`recordOwedHarm`) before the next battle
+replaces the record and at a wipe (`carryCampaign`), so it is never lost to a busy decision slot. `raidOutcome.ts` answers the `lastRaid` requirement (`schemaRaidOutcome.ts`: `named`, `collateral`, `staffHarm`,
+transient scope), bands a breach by `raid.staffHarm` (`staffHarmFor`, the worst band met wins among the bands given), fills `{attacker}` and
 `{collateral}` (`raiderVars`, used by `dilemmaContext`, `dilemmaOmen` and `choiceText`), and applies the two effect fields
 `applyEffects` hands it: `nextRaidDeltaSec` (moves `nextRaidAtSec`, never before now) and `silencesNamedRaider` (adds the
 named raider to `conflict.silenced`, which `eligibleRaids` excludes and a wipe keeps). `raidView.staff` reads

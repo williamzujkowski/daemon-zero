@@ -11,7 +11,7 @@ import { reg } from './helpers';
 const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v15-p4.json', 'utf8'), reg);
 const answered = (): GameState => {
   const s = p4();
-  return { ...s, conflict: { ...s.conflict, lastRaid: { id: 'raid_p4_break_in', named: true, breach: 0.625 }, silenced: ['raid_p3_ddos'] } };
+  return { ...s, conflict: { ...s.conflict, lastRaid: { id: 'raid_p4_break_in', named: true, breach: 0.625, harm: 'HURT' }, silenced: ['raid_p3_ddos'] } };
 };
 const forge = (s: GameState, edit: (save: Record<string, any>) => void): GameState => {
   const copy = JSON.parse(serialize(s)) as Record<string, any>;

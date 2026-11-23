@@ -38,7 +38,7 @@ async function importCode(page: Page, code: string): Promise<void> {
 
 test('a named raider among people: the scene names it, states each answer\'s raid effects, and an answer commits', async ({ page }) => {
   const flood = raid('raid_p3_ddos');
-  await importCode(page, presented(campaignReady(3), { id: flood.id, named: true, breach: 0.7 }, AMONG));
+  await importCode(page, presented(campaignReady(3), { id: flood.id, named: true, breach: 0.7, harm: null }, AMONG));
   const modal = page.getByTestId('dilemma-modal');
   await expect(modal).toBeVisible();
   await expect(modal).toContainText(flood.attacker.name);
@@ -59,7 +59,7 @@ test('a named raider among people: the scene names it, states each answer\'s rai
 });
 
 test('a site raid that went through its defense: the scene names who was killed, and the answer is recorded', async ({ page }) => {
-  await importCode(page, presented(campaignReady(4), { id: 'raid_p4_break_in', named: false, breach: 1 }, KILLED));
+  await importCode(page, presented(campaignReady(4), { id: 'raid_p4_break_in', named: false, breach: 1, harm: 'KILLED' }, KILLED));
   const modal = page.getByTestId('dilemma-modal');
   await expect(modal).toBeVisible();
   await expect(modal).toContainText('Joseph Mensah');

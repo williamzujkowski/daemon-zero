@@ -36,7 +36,7 @@ describe('a battle leaves a record', () => {
     const raid = defined(s.conflict.raid);
     expect(raid.stage).toBe('AFTERMATH');
     const mean = raid.rounds.reduce((sum, round) => sum + round.hitShare, 0) / raid.rounds.length;
-    expect(s.conflict.lastRaid).toEqual({ id: 'raid_p3_ddos', named: true, breach: mean });
+    expect(s.conflict.lastRaid).toEqual({ id: 'raid_p3_ddos', named: true, breach: mean, harm: null });
     expect(breachOf([])).toBe(0);
     expect(afterFlood(false).conflict.lastRaid?.named).toBe(false);
   });

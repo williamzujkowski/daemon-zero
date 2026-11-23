@@ -28,8 +28,8 @@ describe('who is harmed is decided by the defense, deterministically', () => {
 
   it('undefended, the break-in lands every blow and someone on site is killed; with guards, hurt; with enough, no one', () => {
     expect(breach(0)).toBe(1);
-    expect(lastStaffHarm(breakIn(0), preview)).toBe('KILLED');
-    const bands = [0, 1, 2, 3, 4, 6, 8, 10].map((guards) => [guards, lastStaffHarm(breakIn(guards), preview)] as const);
+    expect(lastStaffHarm(breakIn(0))).toBe('KILLED');
+    const bands = [0, 1, 2, 3, 4, 6, 8, 10].map((guards) => [guards, lastStaffHarm(breakIn(guards))] as const);
     expect(bands.some(([, harm]) => harm === 'HURT')).toBe(true);
     expect(bands.at(-1)?.[1]).toBeNull();
   });
@@ -105,7 +105,7 @@ describe('the harm is recorded, named and kept (campaign continuity)', () => {
   });
 
   it('a hurt technician is named as hurt, never as lost', () => {
-    const guards = [1, 2, 3, 4, 6, 8].find((level) => lastStaffHarm(breakIn(level), preview) === 'HURT');
+    const guards = [1, 2, 3, 4, 6, 8].find((level) => lastStaffHarm(breakIn(level)) === 'HURT');
     const presented = untilPresented(breakIn(defined(guards)));
     expect(presented.activeDilemmaId).toBe(HURT);
     // Other events are recorded by the setup as a load upgrade would; only the staff lines are read here.

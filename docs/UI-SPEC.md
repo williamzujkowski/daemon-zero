@@ -689,7 +689,8 @@ A raid shares the hostile slot, so it takes the hostile card's places, with its 
   says who is at risk (`raid-staff`, #519), for example "PEOPLE ON SITE: people work at the data halls. At what you hold now the battle
   lets through 72% of its blows; at 50% or more someone there is hurt, and at 80% or more someone there is killed. More
   site defense lowers it." The share is the battle's breach (the rounds fought and the forecast's, averaged), so it is
-  exact while holdings do not change; a band whose scene is on record is dropped, and nothing is ever counted.
+  exact while holdings do not change; a band whose scene is on record is dropped (the engine then bands a breach among
+  the open bands only, so the line stays exact), and nothing is ever counted.
 - **SWARM** (`site-repair`, under the raid panel, only while a class is damaged): `// SITE DAMAGE`, one line saying damage
   cuts output and never ownership, then each damaged class: what the damage does exactly ("its holdings deliver 30% less
   compute" or "30% of positive net income is taken"), the free repair rate and seconds to clear (or that repair waits

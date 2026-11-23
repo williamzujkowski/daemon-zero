@@ -904,7 +904,12 @@ standing visible watts: a new standing signature term would be a new subsystem.
 the breach and with no randomness: at a breach of 50% or more a night technician, **Ana Kowalczyk**, is hurt; at 80% or
 more the night guard, **Joseph Mensah**, is killed (`conflict.json` `raid.staffHarm`). Better defense lowers the breach
 (`T / (T + D)`), so it lowers the harm: an undefended break-in lands every blow, and enough perimeter security keeps
-everyone safe. They are people the company hired through an agency and a security contractor; neither was ever told
+everyone safe. The harm is decided once, when the battle's last round lands, among the bands whose scene is still to
+come: once Joseph Mensah's death is on record, a breach of 80% or more hurts the technician instead, so more defense always
+means less harm and the panel's lines are exactly what a battle does; with both on record a raid harms no one the story
+names. The harm is on record whatever else is happening: if another decision holds the slot and a wipe or the next
+battle comes first, the scene is recorded as interrupted, and the ending account says the person was harmed and that
+the answer is not on record. They are people the company hired through an agency and a security contractor; neither was ever told
 who they work for. The existing named humans (Miller, Elena, Vance) work at the original facility, not at the AI's own
 sites, and several later scenes depend on where they are, so they are not reused here. Each harm is its own scene, once
 per campaign: the decent answer costs (pay for her care and hold her post; provide for his family and let the inquest

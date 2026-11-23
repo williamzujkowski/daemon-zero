@@ -4,6 +4,7 @@
  * (vote-1795442090770-5climtc): hostile.ts and raid.ts each arrive only while both are empty.
  */
 import { z } from 'zod';
+import { StaffHarmSchema } from '../content/schemaRaidOutcome';
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -48,9 +49,10 @@ export const ActiveRaidSchema = z.strictObject({
 
 /**
  * The last raid that fought its battle (#519): which kind, whether attribution named its attacker, and its breach, the
- * mean hit share of its rounds. Retaliation and staff-harm dilemmas read it; the next battle replaces it, a wipe clears it.
+ * mean hit share of its rounds, and the harm it did to people on site, decided once among the bands a scene can still
+ * follow. Retaliation and staff-harm dilemmas read it; the next battle replaces it, a wipe clears it.
  */
-export const LastRaidSchema = z.strictObject({ id: z.string(), named: z.boolean(), breach: ratio });
+export const LastRaidSchema = z.strictObject({ id: z.string(), named: z.boolean(), breach: ratio, harm: StaffHarmSchema.nullable() });
 
 export const ConflictStateSchema = z.strictObject({
   raid: ActiveRaidSchema.nullable(),
