@@ -238,7 +238,9 @@ describe('AEGIS', () => {
 
 describe('victory and endings', () => {
   const finish = (traits: GameState['traits']): GameState =>
-    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4, ...FABRICATION)), traits }, 'p4_orbital_cold_storage', ...reg.phases.filter((phase) => phase.phaseId === 5).flatMap((phase) => phase.nodes.map((node) => node.id)));
+    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4, ...FABRICATION)), traits }, 'p4_orbital_cold_storage', ...reg.phases.filter((phase) => phase.phaseId === 5)
+      // Every Phase 5 node but the Mercury seed array, which opens the Swarm and closes the protocol behind it (#486).
+      .flatMap((phase) => phase.nodes.filter((node) => node.effects.unlocksPhase === undefined).map((node) => node.id)));
 
   it('ends the run and freezes everything', () => {
     const won = finish([]);

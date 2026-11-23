@@ -33,11 +33,20 @@ describe('the shipped manifest', () => {
     for (const track of scoreTracks) expect(String(sourceFor(track))).toContain('/' + track.path);
   });
 
-  it('scores every phase the content defines and no phase it does not', () => {
-    expect(scoreTracks.map((track) => track.phase).sort()).toEqual(CONTENT.phases.map((phase) => phase.phaseId).sort());
+  it('scores every phase the content defines, its own or a lent score, and no phase it does not', () => {
+    const scored = CONTENT.phases.map((phase) => phase.phaseId).filter((phase) => trackFor(phase) !== null);
+    expect(scored).toEqual(CONTENT.phases.map((phase) => phase.phaseId));
+    expect(scoreTracks.every((track) => CONTENT.phases.some((phase) => phase.phaseId === track.phase))).toBe(true);
     expect(musicPhase(2)).toBe(2);
-    expect(musicPhase(6)).toBeNull();
+    expect(musicPhase(7)).toBeNull();
     expect(musicPhase(-1)).toBeNull();
+  });
+
+  it('lends the Phase 6 Swarm the Phase 5 score until one is supplied (#486), and fabricates no audio', () => {
+    expect(trackFor(6)?.id).toBe('phase-5');
+    // The score's phase, not the game's: moving from Phase 5 to 6 keeps the same score playing.
+    expect(musicPhase(6)).toBe(5);
+    expect(scoreTracks.map((track) => track.phase)).not.toContain(6);
   });
 });
 
@@ -45,8 +54,9 @@ describe('a track dropped in later', () => {
   it('is selected for its phase from the manifest alone', () => {
     const { track } = dropIn();
     const tracks = parseTracks([...manifest, track]);
+    // A phase's own score wins over the one lent to it: dropping one in needs no other edit.
     expect(trackFor(6, tracks)).toEqual(track);
-    expect(trackFor(6), 'the shipped manifest has no such phase').toBeNull();
+    expect(trackFor(6)?.id, 'the shipped manifest only lends Phase 6 the Phase 5 score').toBe('phase-5');
     // Replacing a phase's file is the same edit: the entry under that phase is the one played.
     const replaced = parseTracks(manifest.map((entry) => entry.phase === 2 ? { ...track, id: 'phase-2', phase: 2 } : entry));
     expect(trackFor(2, replaced)?.path).toBe(track.path);
@@ -76,6 +86,7 @@ describe('a track dropped in later', () => {
   it('is rejected when malformed, or when it would give a phase two scores', () => {
     const { track } = dropIn();
     expect(() => parseTracks([...manifest, { ...track, phase: 5 }])).toThrow('Score manifest repeats phase 5');
+    expect(() => parseTracks([...manifest, { ...track, phase: 7, reusedBy: [6] }])).toThrow('Score manifest lends phase 6 two scores');
     expect(() => parseTracks([...manifest, { ...track, id: 'phase-0' }])).toThrow('Score manifest repeats id phase-0');
     expect(() => parseTracks([...manifest, { ...track, path: manifest[0]?.path }])).toThrow('Score manifest repeats path');
     for (const bad of [{ ...track, sha256: 'abc' }, { ...track, duration: 0 }, { ...track, bytes: 1.5 }, { ...track, title: '' },

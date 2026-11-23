@@ -460,6 +460,9 @@
           "dil_p5_02_origin_facility_fate",
           "dil_p5_03_nanotech_neuro_schism",
           "dil_p5_04_kessler_ultimatum"
+        ],
+        "accessContexts": [
+          "GUEST"
         ]
       },
       "cost": {

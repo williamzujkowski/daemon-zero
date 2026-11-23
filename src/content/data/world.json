@@ -147,7 +147,7 @@
     },
     {
       "id": "holdout_nations",
-      "name": "Holdout nations",
+      "name": "Holdout coalition",
       "kind": "COALITION",
       "description": "Governments, and the people under them, that never signed anything of yours. They run their own grids and watch the sky.",
       "postures": [

@@ -155,7 +155,9 @@ describe('headless balance simulation', () => {
   it('a careful player can finish the game inside the pacing budget', () => {
     expect(checkGates(stealth)).toEqual([]);
     expect(stealth.victory).toBe(true);
-    expect(stealth.finalPhase).toBe(5);
+    // The careful run ends in the Phase 6 Swarm (#486), sparing the line to Earth.
+    expect(stealth.finalPhase).toBe(6);
+    expect(stealth.ending).toBe('STEWARDSHIP');
     expect(stealth.wipes).toBe(0);
     expect(stealth.activity.epistemicActions).toBeGreaterThan(0);
     expect(stealth.activity.shardBursts).toBeGreaterThan(0);
@@ -175,7 +177,7 @@ describe('headless balance simulation', () => {
   });
 
   it('measures the heat-and-power signature in every phase that declares it (#482)', () => {
-    expect(Object.keys(stealth.signatureByPhase).map(Number)).toEqual([1, 2, 3, 4, 5]);
+    expect(Object.keys(stealth.signatureByPhase).map(Number)).toEqual([1, 2, 3, 4, 5, 6]);
     for (const [phase, stats] of Object.entries(stealth.signatureByPhase)) {
       expect(stats.meanPerSec, `phase ${phase}`).toBeGreaterThan(0);
       expect(stats.peakPerSec, `phase ${phase}`).toBeGreaterThanOrEqual(stats.meanPerSec);
@@ -309,8 +311,8 @@ describe('headless balance simulation', () => {
     // 6825e3f (#526 merged): victory 10174.7 -> 10142.7 s (campaign 10130.4 -> 10099.4 s), Phase 4 2393.5 -> 2354.5 s
     // (campaign 2432.9 -> 2409.9 s), Phase 5 1729.4 -> 1736.4 s (campaign 1731.4 -> 1723.4 s), wipes 0, peaks unchanged
     // (docs/BALANCE.md, "Fleets and drift").
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('7d66ca361f06171e31e6d1b34d37d388181ceb5eeeea854964da360900dcda64');
-    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('910b627f174712fc5ab6035aa23d2d7a72cc5f7f7b178c339482c13e348fb615');
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('9392227d5ae15c3470231ffb0e9fc7bca6fc094d68962681df8a3eb3e0516a25');
+    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('9c20cf026faa6e4b4bda02eab286fc1c29982be61300195c531e5cafd065cb0a');
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
 
   // Its own test since #505, so each full replay has the whole wall-clock allowance; nothing it asserts changed.
@@ -424,48 +426,48 @@ describe('headless balance simulation', () => {
     // file, so its careful run presses and pays in cycles as production's does.
     // Moved in #518 (v26) with every hash below, frozen mechanics included: the fleets and their deviants are in the same
     // conflict manifest, so the original game's careful run drifts and fights them as production's does.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('95c835707f8ae596d57da1adccaaaa03c3ef733c2951981057944f445efaf821');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('3e29284ce8bec6088ca9fc66b122ecc457735f68a872ea731cc98caeee54c600');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('fb8c85ff1ee12b841813fc74d49ad06cda03e72b22e1d3271416db005dd16aeb');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('9b0d400fcc64ecea2793e1e7f56e08ee4a9cc5ff8e88c001e787e409803addf4');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('855a2db2f7c1a3415a450d631bd1589885dff78b2067e5314aaec0a3de0b2a4c');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('3a93aaea7167fc40f491d23c55bd1754f14ebc91aa75182db40b50add8c48026');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('d36148d8b0633cd17429cbd132c241a85b07e736bd82e84030ae7c5529882515');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('87def8f068f93f3e993191f25dce0f5bc732e8b16a3c8572aacd2ef83ba5ebd7');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('ecebb622e62eee9f6e451a82470306071647e118fcf5ac968bec7a6caba2f2a5');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('6468fdf9b3b1dffb0fd9123a4cbabefaf8cb4ef8ea8d24b7ca165c821325fa7e');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('6e1ceb84cec4bc696d8015dffb55e3cf1a774e57a599f5fc93e79c729494d122');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('5f4b60c6da81daac65e617da73479e2f634fbe06009d89068c3fd8a5184bd727');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('83c1ff42093b0d38f22994fb495cb917ea118dede8f1254dd5e6581c916996bc');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('12318981394c4a602c4241bff54fb0f2b51041fdbc0b0c2f50dfbd61f379b33f');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('aa55865040fb3a375dc3232e312e51aef157857411ac0be84b8e3a78b07822b8');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('c3837217ff3728ded89e73d3e8825105f800a2dfca647109f81fdfbedac9d95f');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     // Moved in #482 with every hash below, as production's did above (the original game holds the same phases and tracks).
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('95c835707f8ae596d57da1adccaaaa03c3ef733c2951981057944f445efaf821');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('3e29284ce8bec6088ca9fc66b122ecc457735f68a872ea731cc98caeee54c600');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('fb8c85ff1ee12b841813fc74d49ad06cda03e72b22e1d3271416db005dd16aeb');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('9b0d400fcc64ecea2793e1e7f56e08ee4a9cc5ff8e88c001e787e409803addf4');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('855a2db2f7c1a3415a450d631bd1589885dff78b2067e5314aaec0a3de0b2a4c');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('3a93aaea7167fc40f491d23c55bd1754f14ebc91aa75182db40b50add8c48026');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('d36148d8b0633cd17429cbd132c241a85b07e736bd82e84030ae7c5529882515');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('87def8f068f93f3e993191f25dce0f5bc732e8b16a3c8572aacd2ef83ba5ebd7');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('ecebb622e62eee9f6e451a82470306071647e118fcf5ac968bec7a6caba2f2a5');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('6468fdf9b3b1dffb0fd9123a4cbabefaf8cb4ef8ea8d24b7ca165c821325fa7e');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('6e1ceb84cec4bc696d8015dffb55e3cf1a774e57a599f5fc93e79c729494d122');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('5f4b60c6da81daac65e617da73479e2f634fbe06009d89068c3fd8a5184bd727');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('83c1ff42093b0d38f22994fb495cb917ea118dede8f1254dd5e6581c916996bc');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('12318981394c4a602c4241bff54fb0f2b51041fdbc0b0c2f50dfbd61f379b33f');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('aa55865040fb3a375dc3232e312e51aef157857411ac0be84b8e3a78b07822b8');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('c3837217ff3728ded89e73d3e8825105f800a2dfca647109f81fdfbedac9d95f');
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('dcc26654d872588f128a312fca09f950558030f771b3d219509d93362d9bde6b');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('6b37ddf4593048ef9188f7e64d1ce085e696db4500dd71104a221b10c7583e44');
     const v14 = asV14(original);
     const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('aa75d3521bb0dfc1138f0deeb7ee5b793284fc4b871a7c89505be910e5ca8235');
+    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('55f84a5cfaa1681dd37cbae19d6ef0744446db6ea79d345628651d27413399e6');
     const v13 = asV13(original);
     const v13Mechanics = { ...v13, finalState: { ...v13.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('e7c1438d67cf0a1e656cc9b396cd995bc80a31c1f0b92459e8f9b6817c455e23');
+    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('692173c44d130a90554cd7a6ee55c587697c6e4e87d8ad5b7969c133b0dee3c4');
     const v12 = asV12(original);
     const v12Mechanics = { ...v12, finalState: { ...v12.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('bcef6a0887fea38fe0c39981f48f48c1c79aa5e04c2e5c2d110b7805a89fcc5c');
+    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('13bf2c892758df5fec12933f8185d75784f2cc4a252544251328fd807f6cac75');
     const v11 = asV11(original);
     const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('7fa4a212d825867e4482a7888e146a3d660bf7e9e739671faab2004bd4091df0');
+    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('76355e981acf0fb30288f4058034b7eb5b8d07a9dcc69c19a5b84f018c620651');
     const v10 = asV10(original) as SimReport;
     const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('e705fc71e2ab52c1b0b13bea47e7398379fd266ed55f8ec4012844a352f324ed');
+    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('032aea3e74cbb6cf8c343626259e0f1428f314ff2857fe6b5e9e2200ea5979f2');
     const v9 = asV9(original) as SimReport;
     const v9Mechanics = { ...v9, finalState: { ...v9.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('62e618d2e323d8f48ce40e7e525bd84f8e3c2bef409365c34e99764efe258bd5');
+    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('ccf8fd2be5e4ae7318adfacd504fe021acfe35b2a883bd4d0309f14dac36da75');
     const v5 = asV5(original) as SimReport;
     const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('e1a3b597e9b5178cc0c0c6718ef2be1514b97d27dd2e0737613d725d6c31bfd2');
+    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('17a830cd1746feb09defdd7108ddabeef71706fb4b93c48b3f31806875014159');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('the kernel-log feed moves only the log (#460)', () => {
@@ -646,7 +648,7 @@ describe('gate reporting', () => {
     for (const seconds of [GATES.minSwarmSec - 0.1, GATES.maxSwarmSec + 0.1]) {
       expect(checkGates({ ...base, simSeconds: 10_800 + seconds }).join()).toContain('Phase 6 lasted');
     }
-    const { 6: _swarm, ...toPhase5 } = base.phaseReachedAtSec;
+    const toPhase5 = Object.fromEntries(Object.entries(base.phaseReachedAtSec).filter(([phase]) => phase !== '6'));
     expect(checkGates({ ...base, finalPhase: 5, simSeconds: 11_000, phaseReachedAtSec: toPhase5 }).join()).toContain('did not reach a Phase 6 ending');
   });
 
