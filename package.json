@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "sim": "tsx scripts/run-sim.ts",
     "sim:report": "tsx scripts/run-sim-report.ts",
+    "sim:insurance": "tsx scripts/run-insurance-report.ts",
     "start": "expo start",
     "web": "expo start --web",
     "android": "expo start --android",

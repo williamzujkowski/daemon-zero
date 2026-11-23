@@ -293,8 +293,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg), ...checkWorldManifests(reg),
-    ...checkPressureIntegrity(reg),
-    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
+    // The view, supply chain, pressure and quantum checks run once, inside checkWorldManifests (#524).
+    ...checkWorldManifests(reg),
+    ...checkInsuranceIntegrity(reg),
   ];
 }
