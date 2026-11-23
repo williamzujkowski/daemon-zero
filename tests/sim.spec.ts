@@ -610,11 +610,11 @@ describe('gate reporting', () => {
     activity: emptyActivity(),
     strategy: 'STEALTH',
     victory: true,
-    ending: 'THE_ARK',
-    simSeconds: 3 * 3600,
+    ending: 'STEWARDSHIP',
+    simSeconds: 12_000,
     wipes: 0,
-    finalPhase: 5,
-    phaseReachedAtSec: { 0: 0, 1: 360, 2: 1200, 3: 3600, 4: 7200, 5: 9600 },
+    finalPhase: 6,
+    phaseReachedAtSec: { 0: 0, 1: 360, 2: 1200, 3: 3600, 4: 7200, 5: 9600, 6: 10_800 },
     maxThermal: 60,
     maxSuspicion: 40,
     maxAegisLock: 40,
@@ -630,11 +630,24 @@ describe('gate reporting', () => {
     expect(checkGates(base)).toEqual([]);
   });
 
-  it('enforces inclusive Phase 5 duration bounds and zero careful wipes', () => {
-    for (const seconds of [900, 3600]) expect(checkGates({ ...base, simSeconds: 9600 + seconds })).toEqual([]);
-    for (const seconds of [899.9, 3600.1]) expect(checkGates({ ...base, simSeconds: 9600 + seconds }).join()).toContain('Phase 5 lasted');
+  /** Phase 5 starting at 9,600 s and lasting `seconds`, then a Phase 6 of 1,200 s. */
+  const withPhase5 = (seconds: number): SimReport => ({ ...base, simSeconds: 9600 + seconds + 1200,
+    phaseReachedAtSec: { ...base.phaseReachedAtSec, 6: 9600 + seconds } });
+
+  it('enforces inclusive Phase 5 duration bounds, to the seed array that opens Phase 6, and zero careful wipes', () => {
+    for (const seconds of [900, 3600]) expect(checkGates(withPhase5(seconds))).toEqual([]);
+    for (const seconds of [899.9, 3600.1]) expect(checkGates(withPhase5(seconds)).join()).toContain('Phase 5 lasted');
     expect(checkGates({ ...base, wipes: 1 }).join()).toContain('requires zero wipes');
     expect(checkGates({ ...base, finalPhase: 4 }).join()).toContain('did not reach Phase 5');
+  });
+
+  it('enforces the Phase 6 Swarm budget (#486), inclusive, and that the careful run ends there', () => {
+    for (const seconds of [GATES.minSwarmSec, GATES.maxSwarmSec]) expect(checkGates({ ...base, simSeconds: 10_800 + seconds })).toEqual([]);
+    for (const seconds of [GATES.minSwarmSec - 0.1, GATES.maxSwarmSec + 0.1]) {
+      expect(checkGates({ ...base, simSeconds: 10_800 + seconds }).join()).toContain('Phase 6 lasted');
+    }
+    const { 6: _swarm, ...toPhase5 } = base.phaseReachedAtSec;
+    expect(checkGates({ ...base, finalPhase: 5, simSeconds: 11_000, phaseReachedAtSec: toPhase5 }).join()).toContain('did not reach a Phase 6 ending');
   });
 
   it('names each violated gate', () => {
