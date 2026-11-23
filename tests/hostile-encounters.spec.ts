@@ -277,7 +277,7 @@ describe('the answers', () => {
 });
 
 describe('going quiet: the free answer', () => {
-  it('lapses after quietLapseSec of live time with neither trigger holding, returning its pin, with its line', () => {
+  it('lapses after quietLapseSec of live time with the rung not held, returning its pin, with its line', () => {
     const encounter = ofType(3, 'RIVAL');
     let s = quiet(pressing(ready(3), encounter));
     const pinned = s.hostile.active?.pinnedBytes ?? 0;
@@ -289,7 +289,7 @@ describe('going quiet: the free answer', () => {
     expect(s.memoryUsed).toBe(Math.max(0, quiet(pressing(ready(3), encounter)).memoryUsed - pinned));
   });
 
-  it('the quiet clock starts again whenever a trigger holds', () => {
+  it('the quiet clock starts again whenever the rung holds', () => {
     let s = quiet(pressing(ready(3), ofType(3, 'FERAL')));
     for (let t = 0; t < H.quietLapseSec - 10; t++) s = stage(s, 1);
     s = stage(loud(s), 1);
@@ -310,14 +310,81 @@ describe('going quiet: the free answer', () => {
     expect(defined(reg.balance.escalation[H.trigger.alertLevelAtLeast - 1]).decayMultiplier).toBeGreaterThan(0);
   });
 
-  it('the view says what holds it and how going quiet ends it', () => {
+  it('the view says what holds it and how going quiet ends it, and never that the lock holds it', () => {
     const lockAt = H.trigger.aegisLockAtLeast;
     const held = defined(hostileView({ ...pressing(ready(3), ofType(3, 'FERAL')), aegisLock: lockAt }, reg));
-    expect(held.holding).toHaveLength(2);
-    expect(held.quiet).toContain('GO QUIET: free.');
+    expect(held.holding).toHaveLength(1);
+    expect(held.holding[0]).toContain('Suspicion holds it');
+    expect(held.lockNote).toContain('It does not keep this one from lapsing.');
+    expect(held.quiet).toBe(`GO QUIET: free. Keep suspicion under ${String(rungAt(H.trigger.alertLevelAtLeast) - reg.balance.escalationHysteresis)}% for ${String(H.quietLapseSec)} s and it lapses.`);
     const calm = defined(hostileView(stage(quiet(pressing(ready(3), ofType(3, 'FERAL'))), 1), reg));
     expect(calm.holding).toEqual([]);
+    expect(calm.lockNote).toBeNull();
     expect(calm.quiet).toContain(`it lapses in ${String(H.quietLapseSec - 1)} s`);
+  });
+
+  it('the lock note says whether the lock can summon the next, from the state that decides it', () => {
+    const lockAt = H.trigger.aegisLockAtLeast;
+    const summoned = stage({ ...ready(3), aegisLock: lockAt + 5 });
+    expect(summoned.hostile.lockArmed).toBe(false);
+    expect(defined(hostileView(summoned, reg)).lockNote).toContain(`It summons no other until it has been under ${String(lockAt)}%.`);
+    const crossedSince = { ...pressing(ready(3), ofType(3, 'FERAL')), aegisLock: lockAt + 5 };
+    expect(crossedSince.hostile.lockArmed).toBe(true);
+    expect(defined(hostileView(crossedSince, reg)).lockNote).toContain(`the lock summons another after ${String(H.intervalSec)} s unless it is under ${String(lockAt)}% by then.`);
+  });
+});
+
+describe('the lock counts only at arrival (vote-1795386858891-u3kqkis: going quiet always ends it)', () => {
+  const lockAt = H.trigger.aegisLockAtLeast;
+  /** Live seconds of the hostile stage, the lock pinned where `lock` says, suspicion at rest; the arrivals counted. */
+  function live(start: GameState, seconds: number, lock: (t: number) => number = () => lockAt + 5): { s: GameState; arrivals: number } {
+    let s = start;
+    const before = s.hostile.sequence;
+    for (let t = 0; t < seconds; t++) s = stage({ ...s, simTimeSec: s.simTimeSec + 1, aegisLock: lock(t), alertLevel: 0, suspicion: 0 }, 1);
+    return { s, arrivals: s.hostile.sequence - before };
+  }
+
+  it('a lock-summoned hostile lapses by going quiet, though the lock stays past its trigger', () => {
+    const summoned = stage({ ...ready(3), aegisLock: lockAt + 5 });
+    const encounter = defined(hostiles.find((entry) => entry.id === summoned.hostile.active?.id));
+    const { s } = live(summoned, H.quietLapseSec + 1);
+    expect(s.hostile.active).toBeNull();
+    expect(texts(s)).toContain(encounter.lapseLog);
+    expect(s.aegisLock).toBeGreaterThanOrEqual(lockAt);
+  });
+
+  it('forms no arrive-lapse-arrive cycle while the lock stays at or past its trigger and suspicion is low', () => {
+    const { s, arrivals } = live(ready(3), 20 * (H.intervalSec + H.quietLapseSec));
+    expect(arrivals).toBe(1);
+    expect(s.hostile.active).toBeNull();
+    expect(s.hostile.lockArmed).toBe(false);
+  });
+
+  it('re-arms once the lock has been under its trigger, and the next crossing summons exactly one more', () => {
+    const dip = 3 * (H.intervalSec + H.quietLapseSec);
+    const { arrivals } = live(ready(3), 2 * dip, (t) => (t === dip ? lockAt - 1 : lockAt + 5));
+    expect(arrivals).toBe(2);
+  });
+
+  it('the response rung still summons one after another: a loud instance keeps meeting them', () => {
+    let s = loud(ready(3));
+    for (let t = 0; t < 2 * H.intervalSec + 10; t++) {
+      s = stage({ ...s, simTimeSec: s.simTimeSec + 1 }, 1);
+      if (s.hostile.active) s = must(answerHostile(s, 'QUARANTINE', reg));
+    }
+    expect(s.hostile.sequence).toBe(3);
+  });
+
+  it.each(['lapse', 'QUARANTINE', 'PURGE'] as const)('a hunter\'s lock rise stops once it ends by %s', (end) => {
+    const encounter = ofType(3, 'HUNTER');
+    let s = pressing(ready(3), encounter);
+    if (end === 'lapse') s = live(s, H.quietLapseSec + 1, () => 0).s;
+    else if (end === 'QUARANTINE') s = must(answerHostile(s, 'QUARANTINE', reg));
+    else s = must(answerHostile({ ...s, hostile: { ...s.hostile, purges: 0 } }, 'PURGE', reg));
+    expect(purgeSucceeds(0, reg)).toBe(true);
+    expect(s.hostile.active).toBeNull();
+    const after = stage({ ...s, alertLevel: 0, suspicion: 0, aegisLock: 10 }, 60);
+    expect(after.aegisLock).toBe(10);
   });
 });
 

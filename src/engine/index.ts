@@ -22,7 +22,7 @@ export * from './shardActions';
 export * from './hostileActions';
 export * from './hostileQuery';
 export { activeHostile, hostileComputeShare } from './hostileEffect';
-export { eligibleHostiles, hostileTriggered, hostileTriggers, purgeSucceeds } from './hostile';
+export { eligibleHostiles, hostileArrivalTriggered, hostileHeld, hostileTriggers, purgeSucceeds } from './hostile';
 export { initialHostile, type HostileState, type ActiveHostile } from './hostileState';
 export { shardOutput } from './swarmRates';
 

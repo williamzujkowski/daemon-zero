@@ -17,7 +17,7 @@ const victory = (): GameState => importSave(FIXTURES['victory-ready'] ?? '', reg
 function pressed(s: GameState): GameState {
   const rival = defined(reg.swarm.hostileEncounters.find((entry) => entry.type === 'RIVAL' && entry.tier === s.currentPhase));
   return { ...s, memoryUsed: s.memoryUsed + 4096,
-    hostile: { active: { id: rival.id, arrivedAtSec: s.simTimeSec, quietSec: 3, decoySec: 0, pinnedBytes: 4096 }, nextAtSec: 0, sequence: 5, purges: 2 } };
+    hostile: { active: { id: rival.id, arrivedAtSec: s.simTimeSec, quietSec: 3, decoySec: 0, pinnedBytes: 4096 }, nextAtSec: 0, sequence: 5, purges: 2, lockArmed: false } };
 }
 
 describe('save v18 (#491)', () => {
@@ -32,7 +32,7 @@ describe('save v18 (#491)', () => {
     const v17 = { ...raw, schemaVersion: 17 };
     expect(migrate(v17, MIGRATIONS, 18)).toEqual({ ...JSON.parse(serialize(current)), hostile: initialHostile(), schemaVersion: 18 });
     const loaded = deserialize(JSON.stringify(v17), reg);
-    expect(loaded.hostile).toEqual({ active: null, nextAtSec: 0, sequence: 0, purges: 0 });
+    expect(loaded.hostile).toEqual({ active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true });
     expect({ ...loaded, hostile: current.hostile }).toEqual(current);
   });
 
@@ -63,6 +63,7 @@ describe('save v18 (#491)', () => {
     expect(() => deserialize(forge((save) => { save.hostile.active.pinnedBytes = -1; }), reg)).toThrow(/validation/);
     expect(() => deserialize(forge((save) => { save.hostile.purges = 1.5; }), reg)).toThrow(/validation/);
     expect(() => deserialize(forge((save) => { save.hostile.extra = true; }), reg)).toThrow(/validation/);
+    expect(() => deserialize(forge((save) => { save.hostile.lockArmed = 'yes'; }), reg)).toThrow(/validation/);
     expect(() => deserialize(forge((save) => { delete save.hostile; }), reg)).toThrow(/validation/);
   });
 });

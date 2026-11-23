@@ -469,11 +469,14 @@ The rotation stays deterministic: one sequence index over the current tier's lis
 Hostile arrivals (#491) are their own kind, with their own lifecycle (below).
 
 **Hostile minds answer high suspicion** (#491, docs/SCALE.md "Aggressive swarms", vote-1795386858891-u3kqkis). From
-Phase 3, while suspicion holds the second response rung (50%) or the AEGIS lock reaches 60%, a `HOSTILE` mind arrives:
+Phase 3, while suspicion holds the second response rung (50%), or once the AEGIS lock reaches 60%, a `HOSTILE` mind arrives:
 an AEGIS-spawned hunter swarm, a feral cohort or a rival rogue model. It has its own slot beside the wild signal, so it
 never displaces a lesser mind's offer, and at most one presses at a time. Arrivals rotate deterministically through
 the current phase's three (content order, one sequence index, no randomness), at least 300 s after the last one ended.
-Like lesser minds they are authored per tier on the physical ladder, and an earlier tier retires:
+The lock counts only at arrival: once a hostile arrives with the lock at 60% or more, the lock summons no other until it
+has been under 60% (a paid lock answer, a strike a shield absorbs, or a wipe), so a lock held high meets one hostile,
+not one every interval. The rung has no such limit: a loud instance keeps meeting them. Like lesser minds they are
+authored per tier on the physical ladder, and an earlier tier retires:
 
 | Tier | Hunter swarm (raises the lock) | Feral cohort (drains compute) | Rival model (pins memory) |
 |---|---|---|---|
@@ -486,7 +489,8 @@ Each has one effect while unanswered, bounded so it can never push a constrained
 free-fallback invariant holds with any of them pressing; `tests/free-fallback-guard.spec.ts`):
 
 - **Hunter swarm:** raises the AEGIS lock at its rate, never past its ceiling. The ceiling sits under the lock trigger,
-  so a hunter alone never strikes and never holds the trigger that keeps it from lapsing.
+  so a hunter alone never strikes and never carries the lock to the trigger that would summon the next. Its rise
+  stops the moment it ends, however it ends.
 - **Feral cohort:** takes its share of net compute while net compute is positive, so it can never cause a brownout.
 - **Rival model:** pins its share of the memory free when it arrives, so memory used never passes capacity. The pin
   returns whenever the rival lets go.
@@ -501,11 +505,11 @@ The answers:
   something of it (understanding just above the tier's largest lesser burst). Failure draws suspicion (+6, +8, +10 by
   tier; hunters also +4 or +5 lock) and it stays. A purge is refused when a failure would carry suspicion or the lock to
   100, so a click never ends the run.
-- **Go quiet** is the free, safe answer and needs no control. Once neither trigger holds (suspicion under 42%, where the
-  second rung stands down, and the lock under 60%), it lapses after 120 s of live play. The quiet clock starts again if a
-  trigger holds again. Suspicion falls by itself once its sources stop (the free-fallback levers guarantee that, and the
-  trigger rung decays, which integrity checks). The lock does not fall by itself: while the lock holds the trigger, the
-  lock answers already in the game (or a strike a shield absorbs) bring it under, and purge stays available at no cost.
+- **Go quiet** is the free, safe answer, as the vote promised, and needs no control. Once the second rung no longer holds
+  (suspicion under 42%, where it stands down), it lapses after 120 s of live play, whatever summoned it: the lock does
+  not keep a hostile from lapsing, so a lock-summoned one lapses by going quiet too, with the lock still high. The quiet
+  clock starts again if the rung holds again. Suspicion falls by itself once its sources stop (the free-fallback levers
+  guarantee that, and the trigger rung decays, which integrity checks).
 
 Dormancy holds a hostile in place: during offline catch-up nothing arrives, no hunter hunts, no decoy runs down and
 nothing lapses, because a lapse earned only by absence would read as something the player did. A feral cohort's share

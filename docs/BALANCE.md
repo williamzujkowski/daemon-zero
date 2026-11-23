@@ -341,12 +341,13 @@ every pinned report hash was re-measured.
 ## Hostile minds (#491)
 
 Implements Scale 18 of the spec ([SCALE.md](SCALE.md), "Aggressive swarms", vote-1795386858891-u3kqkis; map #442). A
-hostile mind arrives from Phase 3 while suspicion holds response rung 2 or the AEGIS lock is at 60% or more (DESIGN.md,
-"Hostile minds answer high suspicion"). The gates (`gates.ts`) and the bot are unchanged; the bot never answers a
+hostile mind arrives from Phase 3 while suspicion holds response rung 2, or once the AEGIS lock reaches 60% (the lock
+counts only at arrival and re-arms under 60%), and lapses after 120 s with the rung not held (DESIGN.md, "Hostile minds
+answer high suspicion"). The gates (`gates.ts`) and the bot are unchanged; the bot never answers a
 hostile, so every hostile it meets presses until it lapses or a wipe ends it.
 
 **Trigger and timing** (`shards.json`, `hostile`): rung 2 (the second entry of `balance.escalation`, at 50%, standing
-down under 42%), lock 60%, at least 300 s between one ending and the next arriving, a 120 s quiet lapse, a 180 s decoy,
+down under 42%), lock 60% (arrival only), at least 300 s between one ending and the next arriving, a 120 s quiet lapse, a 180 s decoy,
 and a purge that succeeds 3 of every 5 attempts (stride 2, coprime to 5, so the rate is exact over any five in a row).
 The trigger sits above the careful run's peaks (suspicion 26.2 to 27.3%, lock 45.0 to 50.4%), so a careful player meets
 none and a loud one does.
@@ -360,7 +361,8 @@ construction:
 | Phase 4 | 0.06%/s, 50% | 20% | 25% |
 | Phase 5 | 0.08%/s, 55% | 25% | 30% |
 
-Every ceiling is under the 60% lock trigger (integrity), so a hunter alone can neither strike nor hold the trigger.
+Every ceiling is under the 60% lock trigger (integrity), so a hunter alone can neither strike nor carry the lock to the
+trigger that would summon the next.
 
 **Prices** sit in the tier's phase band (integrity, `integrityScale.ts`). A decoy is the hostile's own scale of
 inference: a forward pass costs about 2 FLOP per parameter per token ([Kaplan et al.](https://arxiv.org/abs/2001.08361)),

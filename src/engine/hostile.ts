@@ -11,16 +11,30 @@ import { meetsRequirements } from './query';
 import type { GameState } from './state';
 import { fmt, pushLog } from './util';
 
-/** Which half of the trigger holds: the response rung, the AEGIS lock. */
+/**
+ * Which half of the trigger holds now: the response rung, and the AEGIS lock. The lock counts only at arrival, and
+ * only while armed (the lock has been under its trigger since a hostile last arrived by it), so a lock that stays high
+ * summons one hostile, not one every interval.
+ */
 export function hostileTriggers(s: GameState, reg: ContentRegistry): { rung: boolean; lock: boolean } {
   const { trigger } = reg.swarm.hostile;
   return { rung: s.alertLevel >= trigger.alertLevelAtLeast, lock: s.aegisLock >= trigger.aegisLockAtLeast };
 }
 
-/** A hostile arrives while either half holds, and lapses only once neither does. */
-export function hostileTriggered(s: GameState, reg: ContentRegistry): boolean {
+/** A hostile arrives while the rung holds, or once the armed lock reaches its trigger. */
+export function hostileArrivalTriggered(s: GameState, reg: ContentRegistry): boolean {
   const { rung, lock } = hostileTriggers(s, reg);
-  return rung || lock;
+  return rung || (lock && s.hostile.lockArmed);
+}
+
+/** What keeps a pressing hostile from lapsing: the rung alone, so going quiet always ends it (vote-1795386858891-u3kqkis). */
+export function hostileHeld(s: GameState, reg: ContentRegistry): boolean {
+  return hostileTriggers(s, reg).rung;
+}
+
+/** The lock re-arms once it is under its trigger: a shield-absorbed strike, a paid lock answer, or a wipe. */
+export function rearmLock(d: GameState, reg: ContentRegistry): void {
+  if (!d.hostile.lockArmed && !hostileTriggers(d, reg).lock) d.hostile = { ...d.hostile, lockArmed: true };
 }
 
 /** A tier retires once the player's phase has moved past it, exactly as a lesser mind's does. */
@@ -83,7 +97,8 @@ export function arriveHostile(d: GameState, reg: ContentRegistry): void {
   const eligible = eligibleHostiles(d, reg);
   const next = eligible[d.hostile.sequence % Math.max(1, eligible.length)];
   if (!next) return;
-  d.hostile = { ...d.hostile, sequence: d.hostile.sequence + 1,
+  // Any arrival with the lock at its trigger spends it: the lock must fall under the trigger before it summons again.
+  d.hostile = { ...d.hostile, sequence: d.hostile.sequence + 1, lockArmed: d.hostile.lockArmed && !hostileTriggers(d, reg).lock,
     active: { id: next.id, arrivedAtSec: d.simTimeSec, quietSec: 0, decoySec: 0, pinnedBytes: 0 } };
   pin(d, next);
   pushLog(d, reg, next.description, 'WARN');
@@ -95,12 +110,12 @@ function huntLock(d: GameState, reg: ContentRegistry, dt: number): void {
   if (rise) d.aegisLock = Math.min(rise.ceiling, d.aegisLock + rise.perSec * dt);
 }
 
-/** One live step of the active hostile: the decoy runs down, the quiet clock runs or resets, a hunter hunts. */
+/** One live step of the active hostile: the decoy runs down, the quiet clock runs (or resets while the rung holds), a hunter hunts. */
 export function stepActiveHostile(d: GameState, reg: ContentRegistry, encounter: HostileEncounter, dt: number): void {
   const active = d.hostile.active;
   if (!active) return;
   const decoySec = Math.max(0, active.decoySec - dt);
-  const quietSec = hostileTriggered(d, reg) ? 0 : active.quietSec + dt;
+  const quietSec = hostileHeld(d, reg) ? 0 : active.quietSec + dt;
   d.hostile = { ...d.hostile, active: { ...active, decoySec, quietSec } };
   if (quietSec >= reg.swarm.hostile.quietLapseSec) { endHostile(d, reg, encounter.lapseLog); return; }
   if (active.decoySec > 0 && decoySec <= 0) {

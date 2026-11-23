@@ -34,7 +34,7 @@ const common = {
 
 /**
  * HUNTER: an AEGIS-spawned hunter swarm raises the lock by `perSec`, never past `ceiling`. Integrity keeps the ceiling
- * under the lock trigger, so a hunter can never hold the trigger that keeps it from lapsing, and never strikes alone.
+ * under the lock trigger, so a hunter never carries the lock to the trigger (summoning the next) and never strikes alone.
  * FERAL: a feral cohort drains `share` of net compute while it is positive, so it can never turn compute negative.
  * RIVAL: a rival model pins `share` of the free memory on arrival, so it never pushes memory over its capacity.
  */
@@ -48,8 +48,9 @@ export const HostileEncounterSchema = z.discriminatedUnion('type', [
 export const HostileTypeSchema = z.enum(['HUNTER', 'FERAL', 'RIVAL']);
 
 /**
- * When hostile minds arrive and how they leave. The trigger is a response rung (an index into balance.escalation) or
- * an AEGIS lock; a hostile lapses once neither holds for quietLapseSec of live play. A purge succeeds `successes` times
+ * When hostile minds arrive and how they leave. A hostile arrives while the response rung (an index into
+ * balance.escalation) holds, or once the AEGIS lock reaches its trigger; the lock counts only at arrival and re-arms only
+ * after falling under it. A hostile lapses once the rung has not held for quietLapseSec of live play. A purge succeeds `successes` times
  * in every `cycle` attempts: attempt n succeeds when (n * stride) mod cycle < successes, and integrity keeps stride
  * coprime to the cycle so that statement is exact.
  */

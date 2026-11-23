@@ -568,9 +568,12 @@ A hostile mind pressing the instance (#491) is shown in three places, all from `
 - **SWARM** (`hostile-encounter`, above the wild signal): a `// HOSTILE: <name>` card whose details hold its signature
   and arrival line; its kind and origin (`hostile-origin`); its one effect stated exactly (`hostile-effect`, for example
   "Takes 15% of net compute while net compute is positive."); what holds it and how going quiet ends it
-  (`hostile-quiet`: "Suspicion holds it: response rung 2. ...", "The AEGIS lock holds it: 63%. ...", a running decoy's
-  seconds, and "GO QUIET: free. Keep suspicion under 42% and the lock under 60% for 120 s and it lapses.", which adds
-  "Quiet now: it lapses in N s ..." once neither holds); then each answer's sentence (`hostile-{answer}-text`), its cost
+  (`hostile-quiet`: "Suspicion holds it: response rung 2. ..." while the rung holds; while the lock is at or past 60%,
+  "The AEGIS lock is at 63%, at or past the 60% that summons hostile minds. It does not keep this one from lapsing.",
+  then either "It summons no other until it has been under 60%." or, when the lock crossed since this one arrived,
+  "Once this one ends, the lock summons another after 300 s unless it is under 60% by then."; a running decoy's
+  seconds; and "GO QUIET: free. Keep suspicion under 42% for 120 s and it lapses.", which adds "Quiet now: it lapses in
+  N s unless suspicion reaches response rung 2 again." once the rung no longer holds); then each answer's sentence (`hostile-{answer}-text`), its cost
   and every reason it is refused, and its button (`hostile-quarantine`, `hostile-decoy`, `hostile-purge`). The purge's
   success and failure effects are listed with the same badges as a wild signal's consume effects. Going quiet has no
   control: it is something the player does with the levers they already have, and the copy names no lever.

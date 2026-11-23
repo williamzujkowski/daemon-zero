@@ -39,7 +39,7 @@ function checkAnswers(reg: ContentRegistry, encounter: HostileEncounter): string
   const { success, failure } = encounter.purge;
   if (riskless(failure) || grants(failure)) problems.push(`${owner}: a failed purge must draw suspicion or the lock and grant nothing`);
   if (!riskless(success)) problems.push(`${owner}: a successful purge must not draw suspicion or the lock`);
-  // A hunter may never hold the lock trigger itself: going quiet must stay possible while it hunts.
+  // A hunter may never carry the lock to the trigger itself: it would re-arm nothing, but it would strike and summon on its own.
   const lockAt = reg.swarm.hostile.trigger.aegisLockAtLeast;
   if (encounter.type === 'HUNTER' && encounter.effect.ceiling >= lockAt) {
     problems.push(`${owner}: its lock ceiling ${String(encounter.effect.ceiling)} must be under the lock trigger ${String(lockAt)}`);

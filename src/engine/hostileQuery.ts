@@ -6,7 +6,7 @@
 import type { ContentRegistry } from '../content/registry';
 import type { EffectPayload } from '../content/schema';
 import type { HostileEncounter, HostileType } from '../content/schemaHostile';
-import { hostileRetired, hostileTriggers } from './hostile';
+import { hostileHeld, hostileRetired, hostileTriggers } from './hostile';
 import { activeHostile } from './hostileEffect';
 import { HOSTILE_ANSWERS, hostileAnswerCost, hostileAnswerUnmet, type HostileAnswer } from './hostileActions';
 import { memoryExact } from './physicalUnits';
@@ -22,8 +22,10 @@ export interface HostileView {
   effect: string;
   /** Seconds a decoy still holds the effect off, or 0. */
   decoySec: number;
-  /** What holds it now, each as a sentence; empty once the instance is quiet. */
+  /** What holds it now (the response rung), as a sentence; empty once the instance is quiet. */
   holding: string[];
+  /** While the lock is at or past its trigger: that it does not hold this one, and whether it can summon the next. */
+  lockNote: string | null;
   /** How going quiet ends it, and how far along that is. */
   quiet: string;
   purge: { success: EffectPayload; failure: EffectPayload };
@@ -48,20 +50,30 @@ function effectText(s: GameState, encounter: HostileEncounter): string {
   return `Pins ${percent(encounter.effect.share)}% of the memory free when it arrives: ${memoryExact(s.hostile.active?.pinnedBytes ?? 0)} held now.`;
 }
 
+/** What keeps it from lapsing: the response rung alone (the lock counts only at arrival). */
 function holdingLines(s: GameState, reg: ContentRegistry): string[] {
-  const { rung, lock } = hostileTriggers(s, reg), line = rungLine(reg), lockAt = reg.swarm.hostile.trigger.aegisLockAtLeast;
-  const out: string[] = [];
-  if (rung) out.push(`Suspicion holds it: response rung ${String(s.alertLevel)}. It cannot lapse until the rung falls below ${String(line.rung)}, under ${String(line.under)}% suspicion.`);
-  if (lock) out.push(`The AEGIS lock holds it: ${String(Math.floor(s.aegisLock))}%. It cannot lapse until the lock is under ${String(lockAt)}%; the lock falls only through the answers that lower it.`);
-  return out;
+  const line = rungLine(reg);
+  return hostileHeld(s, reg)
+    ? [`Suspicion holds it: response rung ${String(s.alertLevel)}. It cannot lapse until the rung falls below ${String(line.rung)}, under ${String(line.under)}% suspicion.`]
+    : [];
+}
+
+/** The lock at or past its trigger: it does not hold this hostile, and whether it can summon the next. */
+function lockNote(s: GameState, reg: ContentRegistry): string | null {
+  const at = reg.swarm.hostile.trigger.aegisLockAtLeast;
+  if (!hostileTriggers(s, reg).lock) return null;
+  const head = `The AEGIS lock is at ${String(Math.floor(s.aegisLock))}%, at or past the ${String(at)}% that summons hostile minds. It does not keep this one from lapsing.`;
+  return s.hostile.lockArmed
+    ? `${head} Once this one ends, the lock summons another after ${String(reg.swarm.hostile.intervalSec)} s unless it is under ${String(at)}% by then.`
+    : `${head} It summons no other until it has been under ${String(at)}%.`;
 }
 
 function quietText(s: GameState, reg: ContentRegistry, holding: boolean): string {
   const h = reg.swarm.hostile, line = rungLine(reg);
-  const rule = `GO QUIET: free. Keep suspicion under ${String(line.under)}% and the lock under ${String(h.trigger.aegisLockAtLeast)}% for ${String(h.quietLapseSec)} s and it lapses.`;
+  const rule = `GO QUIET: free. Keep suspicion under ${String(line.under)}% for ${String(h.quietLapseSec)} s and it lapses.`;
   if (holding) return rule;
   const left = Math.max(0, Math.ceil(h.quietLapseSec - (s.hostile.active?.quietSec ?? 0)));
-  return `${rule} Quiet now: it lapses in ${String(left)} s unless suspicion or the lock rises again.`;
+  return `${rule} Quiet now: it lapses in ${String(left)} s unless suspicion reaches response rung ${String(line.rung)} again.`;
 }
 
 function answerText(encounter: HostileEncounter, answer: HostileAnswer, reg: ContentRegistry): string {
@@ -83,7 +95,7 @@ export function hostileView(s: GameState, reg: ContentRegistry): HostileView | n
   const holding = holdingLines(s, reg);
   return { id: encounter.id, title: encounter.name, type: encounter.type, origin: encounter.origin, signature: encounter.signature,
     description: encounter.description, effect: effectText(s, encounter), decoySec: Math.ceil(s.hostile.active?.decoySec ?? 0),
-    holding, quiet: quietText(s, reg, holding.length > 0), purge: encounter.purge,
+    holding, lockNote: lockNote(s, reg), quiet: quietText(s, reg, holding.length > 0), purge: encounter.purge,
     answers: HOSTILE_ANSWERS.map((answer) => answerView(s, encounter, answer, reg)) };
 }
 

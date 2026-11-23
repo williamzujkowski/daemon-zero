@@ -367,7 +367,10 @@ the seam for the Phase 6 sub-minds (#486).
 **Hostile minds (#491).** Content: `swarm.hostileEncounters` (`schemaHostile.ts`, a discriminated union on `type`, so a
 HUNTER carries a lock rise and ceiling, a FERAL or RIVAL a share) and `swarm.hostile` (trigger, intervals, purge
 rate, decoy line). State: `GameState.hostile` (`hostileState.ts`, v18): one `active` slot (id, arrival, live quiet
-seconds, live decoy seconds, pinned bytes), the next arrival time, the rotation index and the purge count. It is
+seconds, live decoy seconds, pinned bytes), the next arrival time, the rotation index, the purge count and `lockArmed`.
+The lock counts only at arrival (`hostileArrivalTriggered`): an arrival with the lock at its trigger disarms it and
+`rearmLock` re-arms it once the lock is under the trigger, so a lock held high summons one hostile, never a cycle.
+Lapse reads the rung alone (`hostileHeld`), so going quiet always ends a hostile. It is
 separate from `pendingWildEncounterId`, so the two slots never contend. The rules live in `hostile.ts` (trigger,
 eligibility, arrival, live step, retire, pin and unpin, purge outcome) and `hostileEffect.ts` (the active hostile and the
 feral share, kept free of the requirement rules so `computeRates` can import it). A new pipeline stage,

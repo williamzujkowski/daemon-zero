@@ -53,7 +53,7 @@ describe('hostile encounters (#491)', () => {
       .toContain('hostile encounters: Phase 5 has no HUNTER');
   });
 
-  it('refuses a hunter whose ceiling reaches the lock trigger, which would keep it from ever lapsing', () => {
+  it('refuses a hunter whose ceiling reaches the lock trigger, which would strike and summon the next on its own', () => {
     expect(problemsAfter((raw) => { hostile(raw, 'hostile_p4_hunter').effect.ceiling = raw.swarm.hostile.trigger.aegisLockAtLeast; }))
       .toContain('hostile encounter "hostile_p4_hunter": its lock ceiling 60 must be under the lock trigger 60');
   });

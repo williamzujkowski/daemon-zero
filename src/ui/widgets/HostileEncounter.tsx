@@ -31,7 +31,7 @@ function Answer({ answer, title }: { answer: HostileAnswer; title: string }) {
 function Quiet() {
   const lines = useGame((game) => {
     const view = hostileView(game, CONTENT);
-    return view ? [...view.holding, view.decoySec > 0 ? `A decoy holds it off for ${String(view.decoySec)} s more.` : '', view.quiet].filter((line) => line !== '').join('\n') : '';
+    return view ? [...view.holding, view.lockNote ?? '', view.decoySec > 0 ? `A decoy holds it off for ${String(view.decoySec)} s more.` : '', view.quiet].filter((line) => line !== '').join('\n') : '';
   });
   return <View testID="hostile-quiet" style={{ gap: 4 }}>
     {lines.split('\n').map((line) => <Text key={line} style={theme.muted}>{line}</Text>)}

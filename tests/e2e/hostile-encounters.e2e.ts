@@ -25,7 +25,7 @@ const rungAt = (rung: number): number => CONTENT.balance.escalation[rung - 1]?.a
 function pressing(encounter: HostileEncounter, pinnedBytes = 0) {
   return (game: GameState): GameState => ({ ...game, alertLevel: H.trigger.alertLevelAtLeast, suspicion: rungAt(H.trigger.alertLevelAtLeast) + 1,
     memoryUsed: game.memoryUsed + pinnedBytes,
-    hostile: { active: { id: encounter.id, arrivedAtSec: game.simTimeSec, quietSec: 0, decoySec: 0, pinnedBytes }, nextAtSec: 0, sequence: 1, purges: 0 } });
+    hostile: { active: { id: encounter.id, arrivedAtSec: game.simTimeSec, quietSec: 0, decoySec: 0, pinnedBytes }, nextAtSec: 0, sequence: 1, purges: 0, lockArmed: true } });
 }
 
 /** The pane that holds the workspace areas now (NETWORK in Phase 3, CORP from Phase 4). */
