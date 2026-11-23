@@ -170,7 +170,8 @@ real saves at every phase.
 - **Content re-anchoring.** Every node, repeatable, action, shard, dilemma and route price is re-authored: its
   capacity, yield and power within x3 of a cited anchor, its costs for pacing inside the phase's unit band.
   BALANCE.md gains an anchor table (id, anchor, source URL). Flat late prices (log scrubbing, the lobbying blitz,
-  dilemma costs) are re-authored in their phase's band so none becomes trivial.
+  dilemma costs) are re-authored in their phase's band so none becomes trivial; since #494 a price paid after its
+  own phase is carried into that phase's band by `balance.phasePriceGrowth` (BALANCE.md, "Carried prices").
 - **Compute-to-money conversion** is one balance constant: a market dollar price per FLOP times a declared
   time-compression constant, documented in BALANCE.md.
 - **Thermal and power:** thermal (server °C) drives Phases 1-3 and retires at Phase 4 with its gauge and fan

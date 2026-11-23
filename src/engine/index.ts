@@ -15,6 +15,7 @@ export { freeStorage, storageCapacity, storageHeld } from './storage';
 export { wipe } from './prestige';
 export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understandingShare, type Cover, type WipePreview } from './insurance';
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
+export { choiceCost } from './phasePrice';
 export * from './query';
 export * from './save';
 export * from './state';

@@ -21,6 +21,7 @@ import { logRetirements } from './retirement';
 import { lapseRetiredEncounter } from './encounterTiers';
 import { retireHostile } from './hostile';
 import { payRebuildGrants } from './rebuildGrant';
+import { choiceCost } from './phasePrice';
 import {
   canAfford,
   chooseEnding,
@@ -220,15 +221,16 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   if (excludedByHistory(s, dilemma, reg)) return refuse(s, 'that incident is already part of the lineage');
   if (structuralFailure(s, dilemma, reg) !== null) return refuse(s, 'the circumstances of that decision no longer hold');
   const choice = dilemma?.choices.find((x) => x.id === choiceId);
-  if (!choice) return refuse(s, 'unknown choice');
+  if (!dilemma || !choice) return refuse(s, 'unknown choice');
   if (!isChoiceOffered(s, choice, reg)) return refuse(s, 'that choice is not open in this history');
-  if (!canAfford(s, choice.cost, reg)) return refuse(s, 'cannot afford');
+  const cost = choiceCost(s, dilemma, choice, reg);
+  if (!canAfford(s, cost, reg)) return refuse(s, 'cannot afford');
   const d: GameState = { ...s, activeDilemmaId: null, resolvedDilemmas: [...s.resolvedDilemmas, dilemmaId] };
-  payCost(d, choice.cost);
+  payCost(d, cost);
   // Record, payment, effects and evidence commit together in the returned state.
   // The log line is this arrangement's wording of the choice (DZ-12); its effects are the authored choice's.
   const effects = { ...recordResolution(d, dilemma, choice), logText: choiceText(s, { id: dilemmaId }, choice, reg).logText };
-  applyEffects(d, effects, reg, dilemmaEvidence(dilemma), choice.cost.memory);
+  applyEffects(d, effects, reg, dilemmaEvidence(dilemma), cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
   // A pilot offer's answer, then any review effect (DZ-06); a refusal leaves the state as it was, unpaid.
