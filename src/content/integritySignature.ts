@@ -7,6 +7,7 @@
 import type { ContentRegistry } from './registry';
 import type { TickDelta } from './schema';
 import type { Signature, SignatureClass } from './schemaSignature';
+import { checkRadiatorIntegrity } from './integrityRadiator';
 
 interface Carrier { owner: string; phase: number; signature: Signature; delta: TickDelta }
 
@@ -69,6 +70,8 @@ function checkPhaseFit(reg: ContentRegistry, c: Carrier): string[] {
   return problems;
 }
 
+/** The signature's rules, radiator area's (#465, integrityRadiator.ts) among them. */
 export function checkSignatureIntegrity(reg: ContentRegistry): string[] {
-  return [...checkClassIds(reg), ...carriers(reg).flatMap((c) => [...checkClassRefs(reg, c), ...checkShape(c), ...checkPhaseFit(reg, c)])];
+  return [...checkClassIds(reg), ...carriers(reg).flatMap((c) => [...checkClassRefs(reg, c), ...checkShape(c), ...checkPhaseFit(reg, c)]),
+    ...checkRadiatorIntegrity(reg)];
 }

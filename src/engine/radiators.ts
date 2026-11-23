@@ -5,7 +5,7 @@
  * that share, and the ledger states it. Ownership is the only thing that moves area or heat, so both are derived from it.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
-import { nodeOutputScaleIn, useScope } from './grantQuery';
+import { nodeOutputScaleIn, useScope, type UseScope } from './grantQuery';
 import type { GameState } from './state';
 
 /** One holding on an area-bound sink: the heat it rejects through it and the radiator it deploys into it (per level on a track). */
@@ -65,7 +65,7 @@ export interface RadiatorReading {
 interface Totals { heat: Float64Array; area: Float64Array; compute: Uint8Array }
 
 /** Heat and area per sink from every running holding: a suspended node's radiators and heat both stop. */
-function totals(s: GameState, reg: ContentRegistry): Totals {
+function totals(s: GameState, reg: ContentRegistry, given?: UseScope): Totals {
   const { sinks, nodes, tracks } = indexed(reg);
   const t: Totals = { heat: new Float64Array(sinks.length), area: new Float64Array(sinks.length), compute: new Uint8Array(sinks.length) };
   const add = (h: Holder, count: number, computes: boolean): void => {
@@ -73,7 +73,7 @@ function totals(s: GameState, reg: ContentRegistry): Totals {
     t.area[h.sink] = (t.area[h.sink] ?? 0) + h.km2 * count;
     if (computes && h.heatW > 0) t.compute[h.sink] = 1;
   };
-  let scope: ReturnType<typeof useScope> | undefined;
+  let scope = given;
   for (const { node, holder: h } of nodes) {
     if (!s.unlockedNodes.includes(node.id)) continue;
     scope ??= useScope(s, reg);
@@ -86,6 +86,7 @@ function totals(s: GameState, reg: ContentRegistry): Totals {
   return t;
 }
 
+const FULL = (): number => 1;
 const shareOf = (capacityW: number, heatW: number): number => (heatW > 0 ? Math.min(1, capacityW / heatW) : 1);
 
 /** Every area-bound sink a running holding uses, in world.json order. Empty before any orbital holding is owned. */
@@ -104,10 +105,11 @@ export function radiatorReadings(s: GameState, reg: ContentRegistry): RadiatorRe
  * The share of its compute a holding runs at now, by node or track id: below 1 only for a holding whose heat leaves
  * through an area-bound sink that sheds less than it is given. One call per rates pass; the lookup it returns is cheap.
  */
-export function radiatorShares(s: GameState, reg: ContentRegistry): (id: string) => number {
-  const { sinks, sinkOf } = indexed(reg);
-  if (sinkOf.size === 0) return () => 1;
-  const t = totals(s, reg);
+export function radiatorShares(s: GameState, reg: ContentRegistry, scope?: UseScope): (id: string) => number {
+  const { sinks, sinkOf, nodes, tracks } = indexed(reg);
+  // The rates pass asks on every tick: nothing owned on an area-bound sink means every share is 1, with nothing built.
+  if (!nodes.some(({ node }) => s.unlockedNodes.includes(node.id)) && !tracks.some(({ id }) => (s.levels[id] ?? 0) > 0)) return FULL;
+  const t = totals(s, reg, scope);
   const shares = sinks.map((sink, i) => shareOf((t.area[i] ?? 0) * sink.wattsPerKm2, t.heat[i] ?? 0));
   return (id) => {
     const slot = sinkOf.get(id);

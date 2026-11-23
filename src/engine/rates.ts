@@ -8,7 +8,7 @@ import type { TickDelta } from '../content/schema';
 import type { NetworkLink } from '../content/schemaNetwork';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
-import { nodeOutputScale, nodeOutputScaleIn, useScope } from './grantQuery';
+import { nodeOutputScale, nodeOutputScaleIn, useScope, type UseScope } from './grantQuery';
 import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
 import { aegisScanMultiplier } from './statePressure';
@@ -102,9 +102,8 @@ function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts>
 /** A holding's radiator share (radiators.ts): what its area-bound sink sheds of its heat, 1 off any such sink. */
 type Radiated = (id: string) => number;
 
-function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings, radiated: Radiated): void {
+function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings, radiated: Radiated, scope: UseScope): void {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
-  const scope = useScope(s, reg);
   const facts = nodeRateFacts(reg);
   for (const id of s.unlockedNodes) {
     const fact = facts.get(id);
@@ -237,8 +236,10 @@ export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
  * explains them (the payroll totals, #210) reads the reduction and multiplier the tick applies.
  */
 export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: AegisReduction; revenueMultiplier: number } {
-  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg);
-  addNodes(a, s, reg, by, radiated);
+  // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270), radiators included.
+  const scope = useScope(s, reg);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg, scope);
+  addNodes(a, s, reg, by, radiated, scope);
   addRepeatables(a, s, reg, by, radiated);
   return { aegis: aegisReduction(a, s, reg), revenueMultiplier: a.revenueMultiplier };
 }
@@ -246,8 +247,10 @@ export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */
 export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const b = reg.balance;
-  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg);
-  addNodes(a, s, reg, by, radiated);
+  // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270), radiators included.
+  const scope = useScope(s, reg);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg, scope);
+  addNodes(a, s, reg, by, radiated, scope);
   addRepeatables(a, s, reg, by, radiated);
   for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
   for (const output of actionOutputs(s, reg)) addDelta(a, output.delta, output.count, 1, 1);
