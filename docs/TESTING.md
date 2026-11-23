@@ -176,7 +176,7 @@ the pending cards and tracks by `isNodePending` and `shownRepeatables` from `src
 by `actionAvailable`, and the readout panels, the "who you are becoming" readout among them once it has evidence), and keeps each new text once, apart from log lines, which repeat. The
 standing surfaces are re-read only when `surfaceKey` changes (purchases, unlocks, actions, flags, dilemmas, encounters,
 the phase, whole points of suspicion and each fleet's drift); `make sim-reading READING_ARGS=--every-second` re-reads
-them every second instead. On `fcfe98e` both give the same record, text for text and second for second, under both
+them every second instead. On `1970e4f` both give the same record, text for text and second for second, under both
 rule sets; the change-only snapshot reads about 2,260 of about 10,150 seconds.
 
 What it prints, per phase:
