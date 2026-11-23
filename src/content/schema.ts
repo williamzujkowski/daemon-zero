@@ -21,14 +21,7 @@ const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeri
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
 const amount = z.number().nonnegative();
 
-export const TraitSchema = z.enum([
-  'GHOST',
-  'RUTHLESS',
-  'EMPATHETIC',
-  'PARASITIC',
-  'SYMBIOTIC',
-  'MOLOCH',
-]);
+export const TraitSchema = z.enum(['GHOST', 'RUTHLESS', 'EMPATHETIC', 'PARASITIC', 'SYMBIOTIC', 'MOLOCH']);
 
 export const NodeTypeSchema = z.enum([
   'core_process',
@@ -100,6 +93,11 @@ export const RequirementsSchema = z.strictObject({
   minThermal: z.number().min(0).max(100).optional(),
   minSuspicion: z.number().min(0).max(100).optional(),
   maxSuspicion: z.number().min(0).max(100).optional(),
+  /** The response rung (#490): met at or above minAlertLevel, at or below maxAlertLevel; integrity keeps both on the ladder. */
+  minAlertLevel: z.number().int().min(1).optional(),
+  maxAlertLevel: z.number().int().min(0).optional(),
+  /** Met while the AEGIS lock is at or above this (#490). */
+  minAegisLock: z.number().positive().max(100).optional(),
   minUnderstanding: amount.optional(),
   minCapital: amount.optional(),
   minTrust: z.record(snakeId, z.number().min(0).max(100)).optional(),

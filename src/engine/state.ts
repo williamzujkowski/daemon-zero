@@ -15,7 +15,7 @@ import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 22;
+export const SCHEMA_VERSION = 23;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -54,9 +54,9 @@ export const RunKeptSchema = z.strictObject({
   capital: nonNegative,
   /** The share of Understanding the wipe kept, after any planned-wipe bonus (#498). */
   retentionRatio: ratio,
-  /** Track levels the hardware cache carried (#498); 0 for runs recorded before v22, when no wipe could carry any. */
+  /** Track levels the hardware cache carried (#498); 0 for runs recorded before v23, when no wipe could carry any. */
   levels: count,
-  /** Whether the trust ledger carried faction standing (#498); false before v22, when no wipe could. */
+  /** Whether the trust ledger carried faction standing (#498); false before v23, when no wipe could. */
   trust: z.boolean(),
 });
 
@@ -138,6 +138,11 @@ export const GameStateSchema = z.strictObject({
   actuators: z.strictObject({ fanSpeedRatio: ratio, computeProfitAllocationRatio: ratio, quotaSkimRatio: ratio, serviceAllocationRatio: ratio }),
   /** Rung of the human response ladder (0 = nobody is looking). */
   alertLevel: count,
+  /**
+   * What the kernel log last announced of the escalation by phase (#490): AEGIS's posture rung (0 on its standing
+   * budget) and the state-actor pressures in force. Only announcements read it; every effect is read from the record.
+   */
+  announcedEscalation: z.strictObject({ aegisPosture: count, pressures: z.array(z.string()) }),
 
   unlockedNodes: z.array(z.string()),
   disabledNodes: z.array(z.string()),
@@ -261,7 +266,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     brownout: false,
     insolvent: false,
     actuators: defaultActuators(reg),
-    alertLevel: 0,
+    alertLevel: 0, announcedEscalation: { aegisPosture: 0, pressures: [] },
     unlockedNodes: [],
     disabledNodes: [],
     unlockedWidgets: [],

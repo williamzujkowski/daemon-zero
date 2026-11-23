@@ -44,6 +44,8 @@ export function wipeKeepsText(preview: WipePreview): string {
   // Fifteen raw digits read as a wall (#380); K/M/B as everywhere else.
   const parts = [compactAmount(preview.understanding) + ' understanding (' + sharePercent(preview.understandingShare) + ')',
     quantityReadout('money', preview.capital) + ' capital' + (preview.capitalShare > 0 ? ' (' + sharePercent(preview.capitalShare) + ')' : '')];
+  // A freeze in force (#490) holds part of the balance; that part stays with the investigators.
+  if (preview.frozenCapital > 0) parts.push(quantityReadout('money', preview.frozenCapital) + ' frozen capital stays behind');
   const levels = levelsText(preview.levels);
   if (levels !== null) parts.push(levels);
   if (preview.trust !== null) parts.push('standing with other minds, through the trust ledger');

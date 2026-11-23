@@ -826,27 +826,27 @@ Phase 3 node), and it never suspends them. The reckless bot buys the Phase 2 pai
 reaches the cache. The measurements below therefore show the run that buys everything; the columns without insurance
 remove the nodes from content in a scratch registry (not committed), with the same bot and policies.
 
-**Measured** with `make sim` and `make sim-report` on this branch (5cd1934 plus #498), against 5cd1934 itself
-(accelerated sim time; per-iteration times on each iteration's own clock):
+**Measured** with `make sim` and the report's wipe sequences on this branch merged with 19e1de3 (#521, escalation by
+phase), against 19e1de3 itself (accelerated sim time; per-iteration times on each iteration's own clock):
 
-| Run | Before (5cd1934) | After, no insurance | After, escrow + wallet + ledger | After, all four (shipped) |
+| Run | Before (19e1de3) | After, no insurance | After, escrow + wallet + ledger | After, all four (shipped) |
 |---|---|---|---|---|
 | STEALTH first run, legacy (Phase 4 / 5 / victory) | 5668.6 / 7410.4 / 8970.8 s | 5668.6 / 7410.4 / 8970.8 s | 5823.4 / 7635.0 / 9239.4 s | 5823.4 / 7647.3 / 9247.7 s |
 | STEALTH first run, campaign | 5840.1 / 7544.1 / 9192.5 s | 5840.1 / 7544.1 / 9192.5 s | 5980.1 / 7771.2 / 9413.6 s | 5980.1 / 7789.5 / 9420.9 s |
 | STEALTH_RETURN returns, legacy (#2 / #3 / #4) | 1464.2 / 1524.5 / 1523.6 s | 1560.8 / 1471.7 / 1462.2 s | 1448.7 / 1459.3 / 1460.5 s | 903.9 / 870.2 / 872.2 s |
 | STEALTH_RETURN returns, campaign | 1410.1 / 1702.2 / 1618.1 s | 1460.1 / 1641.2 / 1519.1 s | 1465.1 / 1610.2 / 1491.1 s | 936.1 / 1053.1 / 996.1 s |
-| EVALUATING_RETURN returns, legacy | 1477.3 / 1456.6 / 1500.6 s | 1559.6 / 1495.8 / 1487.4 s | 1435.4 / 1484.3 / 1507.5 s | 894.3 / 900.4 / 900.4 s |
+| EVALUATING_RETURN returns, legacy | 1477.3 / 1456.6 / 1499.9 s | 1552.7 / 1489.6 / 1486.6 s | 1435.4 / 1484.3 / 1507.5 s | 894.3 / 900.4 / 902.1 s |
 | EVALUATING_RETURN returns, campaign | 1364.5 / 1470.1 / 1484.1 s | 1433.4 / 1454.1 / 1476.1 s | 1429.7 / 1450.1 / 1449.1 s | 920.1 / 965.1 / 973.1 s |
-| GREEDY sequence, legacy (#1 / #2 / #3 / #4) | 1533.0 / 2625.5 / 1675.2 / 1571.6 s | 1533.0 / 2625.5 / 1675.2 / 1571.6 s | 1533.0 / 2627.4 / 1677.2 / 1426.6 s | 1533.0 / 2627.4 / 1677.2 / 1426.6 s |
-| GREEDY sequence, campaign | 1533.0 / 2631.4 / 1751.0 / 1591.9 s | 1533.0 / 2631.4 / 1751.0 / 1591.9 s | 1533.0 / 2633.3 / 1593.9 / 1690.3 s | 1533.0 / 2633.3 / 1593.9 / 1690.3 s |
-| GREEDY, ten hours (legacy / campaign) | 23 / 21 wipes, never in Phase 4 | 23 / 21 wipes, never in Phase 4 | 23 / 20 wipes, never in Phase 4 | 23 / 20 wipes, never in Phase 4 |
-| STEALTH return after Phase 5 completed, campaign | 1981.1 s to an ending | | | 1786.1 s to an ending |
-| LAWFUL_RETURNING (service / release after boot) | 365.3 / 4161.3 s | | | 365.3 / 4161.3 s |
+| GREEDY sequence, legacy (#1 / #2 / #3 / #4) | 1533.0 / 2418.9 / 1456.7 / 1380.2 s | 1533.0 / 2418.9 / 1456.7 / 1380.2 s | 1533.0 / 2429.7 / 1460.7 / 1306.9 s | 1533.0 / 2429.7 / 1460.7 / 1306.9 s |
+| GREEDY sequence, campaign | 1533.0 / 2416.0 / 1594.1 / 1382.4 s | 1533.0 / 2416.0 / 1594.1 / 1382.4 s | 1533.0 / 2435.8 / 1434.0 / 1511.6 s | 1533.0 / 2435.8 / 1434.0 / 1511.6 s |
+| GREEDY, ten hours (legacy / campaign) | 25 / 23 wipes, never in Phase 4 | 25 / 23 wipes, never in Phase 4 | 27 / 23 wipes, never in Phase 4 | 27 / 23 wipes, never in Phase 4 |
+| STEALTH return after Phase 5 completed, campaign | 1981.1 s to an ending (5cd1934) | | | 1786.1 s to an ending (before the merge with #521) |
+| LAWFUL_RETURNING (service / release after boot) | 365.3 / 4161.3 s (5cd1934) | | | 365.3 / 4161.3 s (before the merge with #521) |
 
 (Blank cells were not measured. The reckless rows are identical with and without the cache because the reckless bot never
 reaches it.)
 
-**First-run pacing.** Without the four nodes the first run is 5cd1934's to the tenth of a second: the rebalanced floors
+**First-run pacing.** Without the four nodes the first run is 19e1de3's to the tenth of a second: the rebalanced floors
 and the planned-wipe bonus act only at a wipe, and the careful run never wipes. Buying all four costs the careful run
 about 4.6 minutes to victory under legacy rules (8970.8 to 9247.7 s, +3.1%) and 3.8 minutes under campaign rules
 (9192.5 to 9420.9 s, +2.5%), all of it from Phase 3 on: Phase 3 lasts 49.7 minutes (was 47.1), Phase 4 30.4 (was 29.0)
@@ -859,7 +859,12 @@ under 8% either way. The hardware cache is the lever that moves them: reinstalli
 track, including Phase 4's capital-priced racks that rediscovery never discounts, brings a careful return that left at
 Phase 5 to 870-904 s under legacy rules (about 12% of the first iteration to Phase 5, against about 20%) and 936-1053 s under campaign
 rules. It costs the Phase 3 price and 300 TFLOP/s while it runs, and it protects nothing on a run that never wipes. The reckless
-returns barely move (they never reach the cache), and the ten-hour reckless run still never reaches Phase 4.
+returns move by up to about a tenth either way (they buy the escrow and the wallet, so each forced wipe keeps 75% of
+Understanding, but never reach the cache), and the ten-hour reckless run is caught two more times under legacy rules
+(25 to 27) and still never reaches Phase 4.
+
+**Frozen capital.** A state actor's freeze (#490) holds part of the balance; every capital share, the cold wallet's
+included, applies to the spendable part, so frozen capital never crosses a wipe (`tests/insurance-wipe.spec.ts`).
 
 **Planned against forced.** A planned wipe adds no probe hardening (`probeTrace` counts `iteration - 1 -
 legacy.voluntaryWipes`), keeps 15 points more of Understanding and of an open capital share, and, as before #498,
@@ -988,6 +993,79 @@ hostile, and each iteration meets the same hunter swarm first, but the three-mem
 wipes, so the steady loop repeats every three iterations (boots 1,498 / 1,465 / 1,498 s apart; each three-iteration span
 within 1 s of the others). Its steady-loop check compares boots one loop apart, three iterations, with the same 5 s
 tolerance; it is still unmarked returns from Phase 3, never trapped in early wipes.
+
+## Escalation by phase (#490)
+
+Implements Scale 17 of the spec ([SCALE.md](SCALE.md), "Escalation by phase", vote-1795386854516-ybc9h5q; map #442).
+The rules are in DESIGN.md, "Escalation by phase". The gates (`gates.ts`), the sim budget and the bot are unchanged.
+
+**AEGIS posture** (`world.json` `aegis.postures`, Phase 3 on; `balance.aegisStrikeWarningAt` = 90):
+
+| Rung (suspicion) | Scan multiplier | Strikes at | Warning band before the strike |
+|---|---:|---:|---:|
+| 1 (25%) | 1.25 | 100% | 10 points |
+| 2 (50%) | 1.5 | 96% | 6 points |
+| 3 (75%) | 2 | 92% | 2 points |
+
+The multiplier applies after every reduction, so a player at the 90% cap still sees a tenth of the multiplied sweep.
+Take Phase 3 at suspicion 60 on rung 2 with no reduction: the scan is 0.03 + 0.6 x 0.3 = 0.21/s on the standing
+budget, and 0.315/s in pursuit. A lock at 30% then strikes in 210 s rather than 333 s.
+
+**State-actor pressure** (`world.json` `stateActors[].pressures`):
+
+| Pressure | Phases | Per rung (1 / 2 / 3) | Answer (any one) |
+|---|---|---|---|
+| `books_inquiry` (investigation) | 4 | scrutiny x1.25 / x1.5 / x2 | `p4_retainer_law_firm` running, or `op_retainer_lawyer` level 2 |
+| `account_freeze` (capital freeze) | 4, 5 | - / 30% / 50% frozen | `p4_k_street_lobbyists` running, or `op_retainer_lawyer` level 4 |
+| `interconnect_moratorium` (denial) | 4, 5 | - / grid interconnects and nuclear PPAs / same | `p4_k_street_lobbyists` running, or `op_k_street_lobbyist` level 2 |
+| `trading_injunction` (injunction) | 4, 5 | - / the arbitrage engine stopped / same | `p4_retainer_law_firm` running, or `op_retainer_lawyer` level 6 |
+
+Why these magnitudes:
+
+- **Inquiry.** It multiplies scale scrutiny, and that term is income-driven, so the free fallback stays sound: the
+  allocation dial at break-even leaves no net income to scrutinise. The integrity budget refused it in Phase 5.
+  There, the orbital solar swarm's and the fog's income cannot be suspended, and at x1.25 they draw 0.062/s against
+  rung 1's decay of 0.025/s, and 0.154/s against rung 2's 0.0125/s. So it ships in Phase 4 only.
+- **Freeze.** A third, then half, of the balance is held from purchases but never from bills, so it cannot cause
+  insolvency. Schema caps it at 0.9 and integrity requires it never to ease as the rung rises.
+- **Moratorium.** It closes the two sources a utility commission approves: grid service and grid-delivered PPAs.
+  Behind-the-meter co-location, solar, turbines, SMRs, restarts and fusion stay open.
+- **Injunction.** It stops the Phase 4 income desk, a suspendable node with no dial and no finance flag. The
+  allocation dial still pays upkeep through `ENABLES_CORPORATE_FINANCE`.
+
+The answers are levers the player already buys. The cheapest is two Retainer Attorneys: $9.1M, then $13.65M (cost
+growth 1.5), against Phase 4 incomes of $10^5 to $10^6/s. The deepest answer, the attorneys at level 6, costs $9.1M x
+(1.5^6 - 1) / 0.5 = $189M in all.
+
+**How often each bot meets it.** `make sim` at `SIM_BUDGET_SEC`, and the report-only `make sim-report` policies,
+measured on the merge with #508 (4f24f1e) against the same code with every posture and pressure gated off:
+
+| Run | AEGIS posture (seconds by rung) | State pressure | Change against gated off |
+|---|---|---|---|
+| STEALTH, legacy rules | none | none | None: peak suspicion 24.0%, so it never reaches rung 1; victory 9010.8 s on the merge with #508 (4f24f1e), every pin identical |
+| STEALTH, campaign rules | none | none | None: victory 9179.5 s, identical |
+| GREEDY, legacy rules | rung 1: 8,162 s; rung 2: 4,649 s | none (never reaches Phase 4) | Wipes 23 -> 25; still never past Phase 3 |
+| GREEDY, campaign rules | rung 1: 7,821 s; rung 2: 3,929 s | none | Wipes 21 -> 23; still never past Phase 3 |
+| IDLE, TRUTHFUL_*, RETURNING_LOW_RESOURCE, PILOT_* | none | none | None |
+| DEPARTURE_CHARTERED (7,200 s, report only) | rung 1: 324 s; rung 2: 253 s; rung 3: 163 s | each of the four arrives 3 times (once per iteration); inquiry 740 s, the other three 416 s each | Each swept iteration ends sooner: 2,859.9 -> 2,721.3 s, 1,848.1 -> 1,711.6 s, 1,770.1 -> 1,715.3 s; still 3 wipes, the third now an AEGIS strike at rung 3's 92% lock rather than suspicion; peak sampled lock 91.1 -> 91.7% |
+
+Careful play never triggers state pressure. The only bot that meets it is the company that left its charter without
+agreement and is swept up the ladder in Phase 4. At the 4 h budget `tests/sim.spec.ts` pins, the reckless run spends
+2,751 s in the rung 1 posture and 1,580 s in rung 2's. It goes 8 -> 9 wipes and 14 -> 9 hostile arrivals; the
+original game goes 8 -> 9 wipes and 10 -> 8 arrivals. The careful runs moved only by the v22 field and the report's
+escalation measurement, which `asV15` strips: every historical pin of the careful runs is unchanged.
+
+**Two new dilemmas** (`dil_14_router_takedown`, `dil_15_compliance_officer`) gate on rung 1 with a 50% lock, and on
+rung 2 in Phase 4. Their prices sit in the phase band: 60 EFLOP in Phase 3, between `dil_08`'s 46 EFLOP and `dil_09`'s
+120 EFLOP, and $45M in Phase 4, between `dil_12`'s $37M and `dil_11`'s $150M. No bot meets either in the measured runs.
+The careful runs never reach a rung. The reckless run's last iteration resolves 7 dilemmas against 8 gated off, because
+each wipe now cuts a Phase 3 iteration shorter; it never fires `dil_14`. The bot's dilemma answers are unchanged.
+
+**Runtime.** The pressures are indexed once per registry, and `pressuresInForce` answers at once wherever no pressure
+could apply: below the lowest rung, or outside every pressure's phases. That covers every tick a careful run plays.
+On the merge with #508, back-to-back `make sim` runs on a shared, busy machine measured 39.6 s and 14.0 s with
+escalation, against 51.3 s with every posture and pressure gated off. The spread is the machine, not the change, and
+the careful runs, which never leave that early answer, are byte-identical in play.
 
 ## Quantum capability (#464)
 

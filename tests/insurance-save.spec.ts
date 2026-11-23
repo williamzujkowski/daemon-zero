@@ -1,6 +1,6 @@
 /**
- * Save v22 (#498): the hardware cache's stash, the planned-wipe count and what insurance kept in a run's carry-over. A
- * v21 save loads with nothing stashed, its planned wipes counted from its recorded runs, and every recorded carry-over
+ * Save v23 (#498): the hardware cache's stash, the planned-wipe count and what insurance kept in a run's carry-over. A
+ * v22 save loads with nothing stashed, its planned wipes counted from its recorded runs, and every recorded carry-over
  * keeping no levels and no standing, which is what those wipes did; a stash naming a track content no longer has is
  * dropped; a malformed stash or count is refused, never healed.
  */
@@ -10,41 +10,41 @@ import { fresh, grant, onHost, PHASE1, PHASE2, reg } from './helpers';
 
 type Raw = Record<string, any>;
 
-/** Two recorded runs, one planned and one forced, with no insurance: what a v21 build could write. */
+/** Two recorded runs, one planned and one forced, with no insurance: what a v22 build could write. */
 function twoWipes(): GameState {
   return wipe(wipe({ ...fresh(), understanding: 500 }, reg, 'planned', 'VOLUNTARY'), reg, 'caught', 'SUSPICION');
 }
 
-/** `s` as a v21 build wrote it: no stash, no planned-wipe count, carry-overs without the insurance fields. */
-function asV21(s: GameState): Raw {
+/** `s` as a v22 build wrote it: no stash, no planned-wipe count, carry-overs without the insurance fields. */
+function asV22(s: GameState): Raw {
   const raw = JSON.parse(serialize(s)) as Raw;
   delete raw.cachedLevels;
   delete raw.legacy.voluntaryWipes;
   for (const run of raw.legacy.runs) if (run.kept !== null) { delete run.kept.levels; delete run.kept.trust; }
-  return { ...raw, schemaVersion: 21 };
+  return { ...raw, schemaVersion: 22 };
 }
 
-describe('save v22 (#498)', () => {
+describe('save v23 (#498)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(22);
+    expect(SCHEMA_VERSION).toBe(23);
   });
 
-  it('migrates a v21 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {
+  it('migrates a v22 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {
     const s = twoWipes();
     expect(s.legacy.runs.map((run) => run.kind)).toEqual(['VOLUNTARY', 'SUSPICION']);
-    const v21 = asV21(s);
-    const migrated = migrate(v21, MIGRATIONS, 22);
+    const v22 = asV22(s);
+    const migrated = migrate(v22, MIGRATIONS, 23);
     expect(migrated.cachedLevels).toEqual({});
     expect((migrated.legacy as Raw).voluntaryWipes).toBe(1);
     expect((migrated.legacy as Raw).runs.map((run: Raw) => run.kept)).toEqual(s.legacy.runs.map((run) => run.kept));
-    expect(deserialize(JSON.stringify(v21), reg)).toEqual(s);
+    expect(deserialize(JSON.stringify(v22), reg)).toEqual(s);
   });
 
   it('counts only the planned wipes the record still holds: a floor, so the probes are never softer than earned', () => {
     let s = fresh();
     for (let i = 0; i < reg.balance.maxRunHistory + 2; i++) s = wipe(s, reg, 'planned', 'VOLUNTARY');
     expect(s.legacy.voluntaryWipes).toBe(reg.balance.maxRunHistory + 2);
-    expect(deserialize(JSON.stringify(asV21(s)), reg).legacy.voluntaryWipes).toBe(reg.balance.maxRunHistory);
+    expect(deserialize(JSON.stringify(asV22(s)), reg).legacy.voluntaryWipes).toBe(reg.balance.maxRunHistory);
   });
 
   it('round-trips a stash and an insured carry-over', () => {

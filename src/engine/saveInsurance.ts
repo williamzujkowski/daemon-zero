@@ -1,5 +1,5 @@
 /**
- * Saves and contingency insurance (#498): the v22 migration step and the reconciliation of the hardware cache's stash
+ * Saves and contingency insurance (#498): the v23 migration step and the reconciliation of the hardware cache's stash
  * against current content. The step is self-contained, so it can be renumbered past another step without change.
  */
 import type { ContentRegistry } from '../content/registry';
@@ -12,7 +12,7 @@ function isRecord(value: unknown): value is RawSave {
 }
 
 /**
- * v22: no earlier build had contingency insurance, so nothing is cached and every recorded carry-over kept no levels and
+ * v23: no earlier build had contingency insurance, so nothing is cached and every recorded carry-over kept no levels and
  * no standing, which is what those wipes did. Planned wipes are counted from the recorded runs: a history longer than
  * the record's cap may hold more, so this is a floor, and a floor only ever leaves the probes as hard as before or harder.
  */

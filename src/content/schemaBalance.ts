@@ -43,6 +43,8 @@ export const BalanceSchema = z.strictObject({
   aegisSuspicionScanPerSec: amount,
   aegisMaxReduction: z.number().min(0).max(1),
   aegisShieldSuspicionRelief: amount,
+  /** The lock at which the near-strike warning shows (#490): every posture's strike lands above it, so one always precedes a strike. */
+  aegisStrikeWarningAt: z.number().positive().max(100),
   /**
    * AEGIS adaptation (#463, vote-1795366701521-dhlwfwb): held at or near its scan-reduction cap, the hunter rotates
    * keys and, while public trust is low, wins coalition backing; each point of adaptation erodes the cap. Integrity

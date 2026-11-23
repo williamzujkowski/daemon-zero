@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WipeKind } from '../src/content/schema';
 import {
-  advance, capitalShare, insuranceCover, previewWipe, probeTrace, toggleNode, understandingShare, wipe, type GameState,
+  advance, capitalShare, frozenShare, insuranceCover, previewWipe, probeTrace, toggleNode, understandingShare, wipe, type GameState,
 } from '../src/engine';
 import { fresh, grant, must, onHost, PHASE1, PHASE2, reg, rich, withoutDilemmas } from './helpers';
 
@@ -87,6 +87,26 @@ describe('cold wallet: the capital share (#498)', () => {
     const insured = { ...grant(atDeadDrop(), WALLET), capital: 1000 };
     expect(capitalShare(insured, reg, 'VOLUNTARY')).toBeCloseTo(retention + BONUS.capitalShare, 12);
     expect(capitalShare(suspend(insured, WALLET), reg, 'VOLUNTARY')).toBe(0);
+  });
+});
+
+describe('frozen capital stays with the freeze (#490, #498)', () => {
+  it('every capital share, cold wallet included, applies to the spendable balance only', () => {
+    // Phase 4 with the wallet and the offshore trust, at the financial intelligence unit's rung, its answers not held.
+    const owned = grant(inPhase3(), WALLET, 'p3_polymorphic_weights', 'p3_shell_company_finances');
+    const frozen = { ...owned, capital: 1000, alertLevel: 3, suspicion: 70 };
+    const share = frozenShare(frozen, reg);
+    expect(frozen.currentPhase).toBe(4);
+    expect(share).toBeGreaterThan(0);
+    for (const kind of ['SUSPICION', 'VOLUNTARY'] as const) {
+      const preview = previewWipe(frozen, reg, kind);
+      expect(preview.frozenCapital).toBeCloseTo(1000 * share, 9);
+      expect(preview.capital).toBe(Math.floor(1000 * (1 - share) * capitalShare(frozen, reg, kind)));
+      expect(wipe(frozen, reg, 'test', kind).capital).toBe(preview.capital);
+    }
+    // Quiet again, nothing is frozen and the whole balance counts.
+    expect(previewWipe({ ...frozen, alertLevel: 0, suspicion: 0 }, reg, 'SUSPICION')).toMatchObject({ frozenCapital: 0,
+      capital: Math.floor(1000 * capitalShare(frozen, reg, 'SUSPICION')) });
   });
 });
 

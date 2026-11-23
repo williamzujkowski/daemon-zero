@@ -38,6 +38,18 @@ export function signaturePhaseLine(report: SimReport<string>, phase: number): st
   return `mean ${stats.meanPerSec.toFixed(4)}/s | peak ${stats.peakPerSec.toFixed(4)}/s | visible ${stats.peakVisibleWatts.toPrecision(3)} W`;
 }
 
+/** Escalation by phase (#490): seconds in each AEGIS posture, then each pressure's arrivals and seconds in force. */
+export function postureLine(report: SimReport<string>): string {
+  const entries = Object.entries(report.escalation.postureSec);
+  return entries.length === 0 ? 'none' : entries.map(([rung, sec]) => `rung ${rung} ${String(sec)} s`).join(' | ');
+}
+
+export function pressureLine(report: SimReport<string>): string {
+  const { pressureSec, pressureArrivals } = report.escalation;
+  const entries = Object.entries(pressureSec);
+  return entries.length === 0 ? 'none' : entries.map(([id, sec]) => `${id} ${String(pressureArrivals[id] ?? 0)}x/${String(sec)} s`).join(' | ');
+}
+
 /** The phases that declare a signature rule. */
 const SIGNATURE_PHASES = [1, 2, 3, 4, 5] as const;
 
@@ -55,6 +67,8 @@ function metrics(report: SimReport<string>): [string, string][] {
     ['peak thermal / suspicion / aegis', [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map(fixed).join(' / ')],
     ...AEGIS_PHASES.map((phase): [string, string] => [`phase ${String(phase)} aegis`, aegisPhaseLine(report, phase)]),
     ...SIGNATURE_PHASES.map((phase): [string, string] => [`phase ${String(phase)} signature`, signaturePhaseLine(report, phase)]),
+    ['aegis posture', postureLine(report)],
+    ['state pressure', pressureLine(report)],
     ...Object.entries(report.activity).map(([key, value]): [string, string] => [`activity ${key}`, String(value)]),
   ];
 }

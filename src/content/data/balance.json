@@ -31,6 +31,7 @@
   "aegisSuspicionScanPerSec": 0.3,
   "aegisMaxReduction": 0.9,
   "aegisShieldSuspicionRelief": 40,
+  "aegisStrikeWarningAt": 90,
   "aegisAdaptation": {
     "nearCap": 0.05,
     "risePerSec": 0.1,

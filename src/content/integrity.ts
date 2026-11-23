@@ -41,6 +41,7 @@ import { checkAchievementIntegrity } from './integrityAchievement';
 import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
+import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 import { checkInsuranceIntegrity, CONTINGENCY_GROUP } from './integrityInsurance';
 
@@ -287,7 +288,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
     ...checkWorldIntegrity(reg),
-    ...checkQuantumIntegrity(reg),
-    ...checkInsuranceIntegrity(reg),
+    ...checkPressureIntegrity(reg),
+    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
   ];
 }

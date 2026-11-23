@@ -9,7 +9,7 @@ import { activateCampaignRules } from '../src/engine/campaign';
 import { createInitialState, type GameState } from '../src/engine/state';
 import { checkGates, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
-import { aegisPhaseLine, signaturePhaseLine } from '../src/engine/sim/simReport';
+import { aegisPhaseLine, postureLine, pressureLine, signaturePhaseLine } from '../src/engine/sim/simReport';
 
 function minutes(seconds: number | undefined): string {
   return seconds === undefined ? '   -  ' : (seconds / 60).toFixed(1).padStart(6);
@@ -32,6 +32,9 @@ function print(label: string, report: SimReport): void {
   for (const phase of [3, 4, 5]) console.log(`  aegis P${String(phase)}          ${aegisPhaseLine(report, phase)}`);
   // The heat-and-power signature (#482) per phase, so a balance change shows what visible watts cost.
   for (const phase of [1, 2, 3, 4, 5]) console.log(`  signature P${String(phase)}      ${signaturePhaseLine(report, phase)}`);
+  // Escalation by phase (#490): how often this run meets each AEGIS posture and each state-actor pressure.
+  console.log(`  aegis posture     ${postureLine(report)}`);
+  console.log(`  state pressure    ${pressureLine(report)}`);
 }
 
 /** A new game as the app store admits it: through the one public activation transition. */

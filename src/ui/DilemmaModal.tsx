@@ -71,7 +71,7 @@ function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
  */
 function Choice({ choice, dilemmaId, token, initiallyOpen }: { choice: DilemmaChoice; dilemmaId: string; token: string; initiallyOpen: boolean }) {
   const [open, setOpen] = useState(initiallyOpen);
-  const affordable = useGame((game) => canAfford(game, choice.cost));
+  const affordable = useGame((game) => canAfford(game, choice.cost, CONTENT));
   const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
   const summary = 'Cost: ' + costText(choice.cost) + (affordable ? '' : ' // cannot pay yet');
   return <View testID={'dilemma-card-' + choice.id} style={theme.panel}>

@@ -103,7 +103,7 @@ export function resolveChannelContact(s: GameState, mode: ContactMode, reg: Cont
   }
   const blocked = hostBlockers(s, encounter, template, reg);
   if (blocked.length > 0) return refuse(s, blocked.join(' '));
-  const bound = bindCohort(s, template, memoryCost(template));
+  const bound = bindCohort(s, template, memoryCost(template), reg);
   if (!bound.ok) return bound;
   pushLog(bound.state, reg, encounter.hosting.log, 'LORE');
   record(bound.state, encounter, 'HOSTED', reg);

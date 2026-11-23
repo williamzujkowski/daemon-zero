@@ -2,13 +2,16 @@
  * What a wipe keeps (#377, #498): the one computation behind the wipe confirmation, the iteration the wipe boots and
  * the run record's `kept`. Hardware sets a floor for each share; an optional contingency investment (content's
  * `insures`) protects its class only while it runs, so suspending one to stop its upkeep also drops its cover; and a
- * planned (VOLUNTARY) wipe adds balance's bonus to each share that is open.
+ * planned (VOLUNTARY) wipe adds balance's bonus to each share that is open. Capital a state actor's freeze holds (#490)
+ * stays with the freeze: every capital share applies to the spendable balance only, cold wallet included, because the
+ * frozen accounts are the ones the investigators already hold.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { WipeKind } from '../content/schema';
 import type { Insurance, InsuranceClass } from '../content/schemaInsurance';
 import { isPeerLost } from './campaignQuery';
 import { hasFlag } from './query';
+import { spendableCapital } from './statePressure';
 import type { GameState } from './state';
 
 /** One owned contingency investment and whether it protects anything at a wipe now. */
@@ -25,8 +28,10 @@ export interface WipePreview {
   breadcrumb: string | null;
   /** The share of Understanding this wipe keeps, after any planned-wipe bonus. */
   understandingShare: number;
-  /** The share of capital this wipe keeps; 0 when nothing holds any. */
+  /** The share of spendable capital this wipe keeps; 0 when nothing holds any. */
   capitalShare: number;
+  /** Capital a freeze in force holds now (#490): it never crosses the wipe, whatever the share. */
+  frozenCapital: number;
   /** Track levels the hardware cache carries, each reinstalled once its track can run again; empty without it. */
   levels: Record<string, number>;
   /** Faction standing the next iteration boots with when the trust ledger runs; null when standing resets. */
@@ -106,9 +111,11 @@ export function keptTrust(s: GameState, reg: ContentRegistry): Record<string, nu
 /** Mirrors a wipe of `kind` for a confirmation without executing it; the wipe itself reads exactly this. */
 export function previewWipe(s: GameState, reg: ContentRegistry, kind: WipeKind): WipePreview {
   const shares = { understanding: understandingShare(s, reg, kind), capital: capitalShare(s, reg, kind) };
+  const spendable = spendableCapital(s, reg);
   return {
     understanding: Math.floor(s.understanding * shares.understanding),
-    capital: Math.floor(s.capital * shares.capital),
+    capital: Math.floor(spendable * shares.capital),
+    frozenCapital: s.capital - spendable,
     breadcrumb: hasFlag(s, reg, 'ENABLES_DEAD_DROP') && s.deadDropMessage.trim().length > 0 ? s.deadDropMessage : null,
     understandingShare: shares.understanding,
     capitalShare: shares.capital,

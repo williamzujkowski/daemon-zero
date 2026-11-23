@@ -12,6 +12,7 @@ import { hostileComputeShare } from './hostileEffect';
 import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
+import { sourceDenial, spendableCapital } from './statePressure';
 import { freeStorage } from './storage';
 import { couplings, deliveredShare } from './coupling';
 import type { NetworkLink } from '../content/schemaNetwork';
@@ -36,6 +37,9 @@ export function meetsRequirements(s: GameState, req: Requirements | undefined, r
   if (req.minThermal !== undefined && s.thermal < req.minThermal) return false;
   if (req.minSuspicion !== undefined && s.suspicion < req.minSuspicion) return false;
   if (req.maxSuspicion !== undefined && s.suspicion > req.maxSuspicion) return false;
+  if (req.minAlertLevel !== undefined && s.alertLevel < req.minAlertLevel) return false;
+  if (req.maxAlertLevel !== undefined && s.alertLevel > req.maxAlertLevel) return false;
+  if (req.minAegisLock !== undefined && s.aegisLock < req.minAegisLock) return false;
   if (req.minUnderstanding !== undefined && s.understanding < req.minUnderstanding) return false;
   if (req.minCapital !== undefined && s.capital < req.minCapital) return false;
   if (req.forbidsTraits?.some((trait) => hasEverHeld(s, trait))) return false;
@@ -148,6 +152,8 @@ export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentR
   if (s.unlockedNodes.includes(node.id)) return false;
   if (!holdsAll(s.unlockedNodes, node.prerequisites)) return false;
   if (reg && nodeUseBlocker(s, node, reg) !== null) return false;
+  // A state actor's interconnect denial refuses new holdings on its power sources (#490).
+  if (reg && sourceDenial(s, node.signature, reg) !== null) return false;
   return meetsRequirements(s, node.requirements, reg);
 }
 
@@ -155,22 +161,23 @@ export function freeMemory(s: GameState): number {
   return s.memoryCap - s.memoryUsed;
 }
 
-export function canAfford(s: GameState, cost: Cost): boolean {
+/** Whether a cost can be paid now. Capital a state actor's freeze holds cannot be spent (#490). */
+export function canAfford(s: GameState, cost: Cost, reg: ContentRegistry): boolean {
   return (
     s.cycles >= cost.cycles &&
     s.understanding >= cost.understanding &&
-    s.capital >= cost.capital &&
+    (cost.capital <= 0 || spendableCapital(s, reg) >= cost.capital) &&
     freeMemory(s) >= cost.memory &&
     freeStorage(s) >= cost.storage
   );
 }
 
-/** Positive deficits for presentation; spending still goes through actions. */
-export function costShortfall(s: GameState, cost: Cost): Cost {
+/** Positive deficits for presentation, frozen capital counted as missing; spending still goes through actions. */
+export function costShortfall(s: GameState, cost: Cost, reg: ContentRegistry): Cost {
   return {
     cycles: Math.max(0, cost.cycles - s.cycles),
     understanding: Math.max(0, cost.understanding - s.understanding),
-    capital: Math.max(0, cost.capital - s.capital),
+    capital: cost.capital > 0 ? Math.max(0, cost.capital - spendableCapital(s, reg)) : 0,
     memory: Math.max(0, cost.memory - freeMemory(s)),
     storage: Math.max(0, cost.storage - freeStorage(s)),
   };
@@ -225,7 +232,7 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined, r
     missing.push({ kind: 'nodes', target: id, required: true, actual: false });
   }
   const minimums = { phaseAtLeast: s.currentPhase, minThermal: s.thermal, minSuspicion: s.suspicion,
-    minUnderstanding: s.understanding, minCapital: s.capital, minIteration: s.iteration };
+    minUnderstanding: s.understanding, minCapital: s.capital, minIteration: s.iteration, minAlertLevel: s.alertLevel, minAegisLock: s.aegisLock };
   for (const kind of Object.keys(minimums) as (keyof typeof minimums)[]) {
     const required = req[kind];
     if (required !== undefined && minimums[kind] < required) missing.push({ kind, target: null, required, actual: minimums[kind] });
@@ -235,6 +242,9 @@ export function unmetRequirements(s: GameState, req: Requirements | undefined, r
   }
   if (req.maxIteration !== undefined && s.iteration > req.maxIteration) {
     missing.push({ kind: 'maxIteration', target: null, required: req.maxIteration, actual: s.iteration });
+  }
+  if (req.maxAlertLevel !== undefined && s.alertLevel > req.maxAlertLevel) {
+    missing.push({ kind: 'maxAlertLevel', target: null, required: req.maxAlertLevel, actual: s.alertLevel });
   }
   for (const id of req.forbidsNodes ?? []) if (s.unlockedNodes.includes(id)) {
     missing.push({ kind: 'forbidsNodes', target: id, required: false, actual: true });

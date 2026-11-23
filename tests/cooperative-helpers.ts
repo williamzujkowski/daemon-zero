@@ -78,7 +78,7 @@ export const FRESH_MOMENTS: Moments = {
   orbit: (s) => s.unlockedNodes.includes(ORBIT),
   phase5: (s) => s.currentPhase === 5,
   // The final protocol open and affordable: every obligation complete, the ending one purchase away.
-  final: (s) => s.activeDilemmaId === null && isNodeAvailable(s, finalProtocol(), PREVIEW) && canAfford(s, nodeCost(s, finalProtocol(), PREVIEW)),
+  final: (s) => s.activeDilemmaId === null && isNodeAvailable(s, finalProtocol(), PREVIEW) && canAfford(s, nodeCost(s, finalProtocol(), PREVIEW), PREVIEW),
   // Where the two-iteration campaigns wipe (twoIterations): nothing on screen, and the moment each one names.
   orderResolved: (s) => s.activeDilemmaId === null && s.campaign.events[ORDER]?.status === 'resolved',
   atmosphereForeshadowed: (s) => s.activeDilemmaId === null && s.pendingDilemma?.id === ATMOSPHERE,

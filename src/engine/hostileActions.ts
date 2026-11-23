@@ -11,7 +11,8 @@ import type { ActionResult } from './actions';
 import { OPERATIONAL_EVIDENCE } from './campaign';
 import { decoyHostile, endHostile, hostileRetired, purgeSucceeds } from './hostile';
 import { activeHostile } from './hostileEffect';
-import { canAfford } from './query';
+import { canAfford, responseRungFor } from './query';
+import { aegisStrikeAt } from './statePressure';
 import { formatCost, pausedReason } from './queryPresentation';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
@@ -36,10 +37,15 @@ export function hostileAnswerCost(encounter: HostileEncounter, answer: HostileAn
   return answer === 'QUARANTINE' ? encounter.quarantine.cost : encounter.decoy.cost;
 }
 
-/** Whether a failed purge would carry suspicion or the lock to 100, where the run ends. */
-function purgeWouldEndRun(s: GameState, encounter: HostileEncounter): boolean {
+/**
+ * Whether a failed purge would carry suspicion to 100, or the lock to where AEGIS strikes at the rung the failure leaves
+ * (#490: a higher rung can shorten the warning), where the run ends.
+ */
+function purgeWouldEndRun(s: GameState, encounter: HostileEncounter, reg: ContentRegistry): boolean {
   const { failure } = encounter.purge;
-  return s.suspicion + failure.suspicionDelta >= 100 || s.aegisLock + failure.aegisLockDelta >= 100;
+  const suspicion = s.suspicion + failure.suspicionDelta;
+  const strikeAt = aegisStrikeAt({ currentPhase: s.currentPhase, alertLevel: Math.max(s.alertLevel, responseRungFor(suspicion, reg)) }, reg);
+  return suspicion >= 100 || s.aegisLock + failure.aegisLockDelta >= strikeAt;
 }
 
 /** Every reason this answer is not offered now, in order, or none. */
@@ -47,9 +53,9 @@ export function hostileAnswerUnmet(s: GameState, answer: HostileAnswer, reg: Con
   const unmet = pausedReason(s), encounter = answerable(s, reg);
   if (!encounter) return [...unmet, NO_HOSTILE];
   if (answer === 'DECOY' && (s.hostile.active?.decoySec ?? 0) > 0) unmet.push(DECOY_OUT);
-  if (answer === 'PURGE' && purgeWouldEndRun(s, encounter)) unmet.push(PURGE_ENDS_RUN);
+  if (answer === 'PURGE' && purgeWouldEndRun(s, encounter, reg)) unmet.push(PURGE_ENDS_RUN);
   const cost = hostileAnswerCost(encounter, answer);
-  if (cost && !canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
+  if (cost && !canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
 

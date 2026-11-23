@@ -42,7 +42,7 @@ function asV17(report: SimReport): SimReport {
   const legacy: Record<string, unknown> = { ...report.finalState.legacy };
   delete legacy.deepestPhase;
   delete legacy.knownLevels;
-  // Nor the v22 insurance fields (#498): the planned-wipe count, and what insurance kept on each recorded carry-over.
+  // Nor the v23 insurance fields (#498): the planned-wipe count, and what insurance kept on each recorded carry-over.
   delete legacy.voluntaryWipes;
   legacy.runs = report.finalState.legacy.runs.map((run) => run.kept === null ? run
     : { ...run, kept: { understanding: run.kept.understanding, capital: run.kept.capital, retentionRatio: run.kept.retentionRatio } });
@@ -71,8 +71,12 @@ function asV15(current: SimReport): SimReport {
   // adaptation, which this function already strips.
   expect((finalState.quantum as { broken: string[] }).broken).toEqual([]);
   delete finalState.quantum;
+  // Nor the v22 escalation announcements (#490), left at nothing announced by a run that ends below any posture.
+  delete finalState.announcedEscalation;
   const stripped: Record<string, unknown> = { ...report, finalState };
   delete stripped.aegisByPhase;
+  // Nor the escalation measurement (#490), which no v15 report had.
+  delete stripped.escalation;
   // Nor the heat-and-power signature measurement (#482), which no v15 report had.
   delete stripped.signatureByPhase;
   // Nor the hostile arrival count (#491), which no v15 report had.
@@ -252,14 +256,17 @@ describe('headless balance simulation', () => {
     // adaptation reaches 50 (one log line), and the state gains the quantum record (asV15 strips it; no bot breaks a key).
     // Measured on the merge with #484 (4f24f1e): phases 1-5 identical (368.2 / 1032.3 / 2842.9 / 5668.6 / 7410.4 s),
     // victory 9010.8 -> 8970.8 s (campaign 9179.5 -> 9192.5 s), wipes 0, dilemmas 15, every peak identical. The gates pass.
-    // Moved in #498 (v22, contingency insurance) with every hash in this file: the unchanged bot buys every node it reaches in
+    // Moved in #490 (v22, escalation by phase) only by the announcement field and the report's escalation measurement:
+    // the careful run never reaches rung 1 (peak suspicion 24.0%), so no posture or pressure applies and no new dilemma
+    // fires; asV14, which strips both, is unchanged, so its play is byte-identical.
+    // Moved in #498 (v23, contingency insurance) with every hash in this file: the unchanged bot buys every node it reaches in
     // order, so it buys the four investments (the escrow and the wallet early in Phase 3, after the last Phase 2 node; the
     // cache and the ledger early in Phase 4, after the last Phase 3 node) and pays their compute upkeep; the state gains
-    // the v22 fields (asV17 strips them). Measured
-    // on 5cd1934: phases 1-3 identical (368.2 / 1032.3 / 2842.9 s), phase 4 5668.6 -> 5823.4, 5 7410.4 -> 7647.3 s, victory
+    // the v23 fields (asV17 strips them). Measured
+    // on the merge with 19e1de3: phases 1-3 identical (368.2 / 1032.3 / 2842.9 s), phase 4 5668.6 -> 5823.4, 5 7410.4 -> 7647.3 s, victory
     // 8970.8 -> 9247.7 s (campaign 9192.5 -> 9420.9 s), wipes 0, dilemmas 15. With the four nodes removed the run is the
-    // same as 5cd1934's to the tenth of a second: the rebalanced floors never act on a run that never wipes. The gates pass.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('4220df96ad80e911ceb8d1765a6c0b5e43e052499faba877ae7c2ae3c36049c8');
+    // same as 19e1de3's to the tenth of a second: the rebalanced floors never act on a run that never wipes. The gates pass.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('d4536cdc2b0a85c07e7dd92db3edabbb3834c8ddb4309c0a12bde814091e204c');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('94fb07021c77c5b6432aec6f4ed8cfa7aff571f33ac2cd2090d447c41f466596');
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
 
@@ -358,9 +365,11 @@ describe('headless balance simulation', () => {
     // sources, the link node and the storage fields are in the original game's files, as production's careful run above.
     // Moved in #464 (v21) with every hash below, frozen mechanics included: the quantum nodes are in the original game's
     // phase files, so its careful run buys them as production's does (phases identical, victory 8956.1 -> 9006.1 s).
-    // Moved in #498 (v22) with every hash below, frozen mechanics included: the four investments are in the original game's
+    // Moved in #490 (v22) with the mechanics hash below only by the announcement field and the escalation measurement, as
+    // production above; asV14 and every older pin are unchanged.
+    // Moved in #498 (v23) with every hash below, frozen mechanics included: the four investments are in the original game's
     // phase files, so its careful run buys them and pays their upkeep as production's does.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('eddb959ba0aa50d8f1c9fe73ac0d0f3ab6f2b422601fb967b8b6b5f36e25f8a6');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('ff49b7d013cfd99f1460bef876be39d5e764e781e8f786acdfd8268c4a6f060b');
     expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('7d840b5488c289ac7ab0db04e4dd15e7a5e112181fe02dcba6b2daab5be05855');
     expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('24f20e6f069de3919f44e602e3a1258285193c380ee8e963dde3c1bc823477c7');
     expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('e75ca714ffe571700e1fc3bdbb7b1a17beb50e996cd43909226d3d4bdcbd1323');
@@ -371,7 +380,7 @@ describe('headless balance simulation', () => {
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     // Moved in #482 with every hash below, as production's did above (the original game holds the same phases and tracks).
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('eddb959ba0aa50d8f1c9fe73ac0d0f3ab6f2b422601fb967b8b6b5f36e25f8a6');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('ff49b7d013cfd99f1460bef876be39d5e764e781e8f786acdfd8268c4a6f060b');
     expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('7d840b5488c289ac7ab0db04e4dd15e7a5e112181fe02dcba6b2daab5be05855');
     expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('24f20e6f069de3919f44e602e3a1258285193c380ee8e963dde3c1bc823477c7');
     expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('e75ca714ffe571700e1fc3bdbb7b1a17beb50e996cd43909226d3d4bdcbd1323');
@@ -380,7 +389,7 @@ describe('headless balance simulation', () => {
     expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('99520940ea06c7a71f197f2c92cdc39e9d7fa5b6cae1fb07c094ecd6aec9dd59');
     expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('64eb5022f37402cc64e32b10c9676a2995798c68ac7fe546bec9839532a64db0');
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('9d4b8a98f16ea2d0bad40372130f26a034a15adcb3f6854fb18f1caaa9feb3c2');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('2c5bf2ccee4877ad21e70d4121390ef874bd376c9c441b75aa13f8da8da13b30');
     const v14 = asV14(original);
     const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
     expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('e8c5033e0781e9bf310b050d49c274af9228666711887d848db1d6eb2000f1f2');
@@ -458,11 +467,15 @@ describe('headless balance simulation', () => {
     // whose delivery moved. The ten-hour make sim run: 23 wipes and 21 under campaign rules, as before.
     // Moved in #464 (v21) only by the quantum record, at its initial value: the run never reaches Phase 4, where the
     // machines are, and never holds AEGIS at its cap. asV14 (which strips the record) is unchanged.
-    // Moved in #498 (v22) with every hash: the reckless run buys the escrow and the wallet in Phase 2 (each forced wipe then
-    // keeps 75% of Understanding instead of the dead drop's 40%), and the floors moved. The ten-hour make sim run: 23 wipes
-    // (campaign 20, was 21), still never in Phase 4.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ba5e12e942aa9e947db5c97f697dde103962744d2be9d58b5ee1d62480ea31e0');
-    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('e926901b4c4150dda507e9bf81a4d087e92df205a1f6535d5afbd35657a847a9');
+    // Moved in #490 (escalation by phase) in play: on rungs 1 and 2 of Phase 3 AEGIS sweeps 1.25 and 1.5 times as fast and,
+    // on rung 2, strikes at 96%. At this 4 h budget the run spends 2,751 s in the rung 1 posture and 1,580 s in rung 2's,
+    // meets no state pressure (it never reaches Phase 4), and goes 8 -> 9 wipes with 14 -> 9 hostile arrivals; its last
+    // iteration still ends in Phase 3. The ten-hour make sim run: 23 -> 25 wipes (campaign rules 21 -> 23).
+    // Moved in #498 (v23) with every hash: the reckless run buys the escrow and the wallet in Phase 2 (each forced wipe then
+    // keeps 75% of Understanding instead of the dead drop's 40%), and the floors moved. The ten-hour make sim run on the merge
+    // with 19e1de3: 25 -> 27 wipes (campaign 23, unchanged), still never in Phase 4.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('61249004ba1f9e2a6f729ff3d6faa1bc6b30ae48813a08511f73e777114bc86c');
+    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('a41b7e503c60d4688f87ecb1b756c8c1b91fc314e0f15072a70645b671d87612');
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
     expect(greedy.activity.markRemovals).toBeGreaterThan(0);
@@ -513,15 +526,17 @@ describe('headless balance simulation', () => {
     // Moved in #484 only by the v20 storage fields, as the production reckless run above: every stripped pin is unchanged.
     // Moved in #464 (v21) only by the quantum record, at its initial value: the run never reaches Phase 4, where the
     // machines are, and never holds AEGIS at its cap. asV14 (which strips the record) is unchanged.
-    // Moved in #498 (v22) with every hash below, as the production reckless run above.
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('e4eb3788556abab711b9f79b5ef0e6173e68115fc7a4c734aa1f166b25407f18');
-    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('4117ac9db0177fb060b585f2a7a3ae1eecba4dc281e9f2683412b036427c800e');
-    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('a0fc7bdad66c00cd9b912fc791ee21b9f65430d83bf1c3d0d88ef6c4e12375d5');
-    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('6600279534d3c80790bbea19e9b5699e8a8a69e8d8ad9eb09b690862e5e87033');
-    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('81559b57f1cedc7013a7819f73031bfaddf1d55cfd9befab5802fe1154297390');
-    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('4076898a56f0bf33696631d56aa6ce9704087634156697ce0741b7376902002b');
-    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('8045fd3078dfd1f622192deff262bf228108bb783963a7fa5038990a6c9285d6');
-    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('8af3bf2edbb27962ffc5a2fa6b52c944d64ea82e6e79861543ea2f94bbfbdd98');
+    // Moved in #490 with every hash below, in play, as the production reckless run above: 2,904 s in the rung 1 posture,
+    // 1,873 s in rung 2's, no state pressure, wipes 8 -> 9 and hostile arrivals 10 -> 8.
+    // Moved in #498 (v23) with every hash below, as the production reckless run above.
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('c5ae68f28df224bd78da25103ab2219119777cd4a4baec1a3c26109bfdae10f8');
+    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('b11df547f533d051d4443a1ef357463748b5a752a29de8649678a6eb2267802b');
+    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('4b1162bac953bef79ef2c0180735f7889cff3ad0b44c9f304fe6efd14c3be614');
+    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('4c889de780912d79fc76d79f1e8a11cc8e86f5513347b5f2b0ce003588d01c6d');
+    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('73e942dae8ca4faff86821c72888f5ba0666a552b88aa29edd91e7964bafb569');
+    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('ed2cd15e3a1f7c05ae8ae42976b3159556db882f56951318e5e1a01a75f165ef');
+    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('08f62c39e2f5582ecc4feb7e0a58923a8cf74bf4f755334f74c3d1af19ead20a');
+    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('8bca010a3d135aa761c57906a180878f85c17dcc45559e5f3b1f5627370214b1');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 
@@ -540,6 +555,7 @@ describe('gate reporting', () => {
     maxAegisLock: 40,
     aegisByPhase: {},
     signatureByPhase: {},
+    escalation: { postureSec: {}, pressureSec: {}, pressureArrivals: {} },
     dilemmasResolved: 12,
     traits: [],
     finalState: fresh(),

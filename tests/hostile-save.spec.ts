@@ -21,16 +21,19 @@ function pressed(s: GameState): GameState {
 }
 
 describe('save v19 (#491)', () => {
-  it('is followed only by storage (#484, v20), the quantum record (#464, v21) and contingency insurance (#498, v22)', () => {
-    expect(SCHEMA_VERSION).toBe(22);
+  it('is followed only by storage (#484, v20), the quantum record (#464, v21), the escalation announcements (#490, v22) and insurance (#498, v23)', () => {
+    expect(SCHEMA_VERSION).toBe(23);
   });
 
   it('migrates a v18 save to an empty hostile slot and keeps everything else', () => {
     const current = victory();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     delete raw.hostile;
+    delete raw.announcedEscalation;
     const v18 = { ...raw, schemaVersion: 18 };
-    expect(migrate(v18, MIGRATIONS, 19)).toEqual({ ...JSON.parse(serialize(current)), hostile: initialHostile(), schemaVersion: 19 });
+    const asV19 = JSON.parse(serialize(current)) as Record<string, unknown>;
+    delete asV19.announcedEscalation;
+    expect(migrate(v18, MIGRATIONS, 19)).toEqual({ ...asV19, hostile: initialHostile(), schemaVersion: 19 });
     const loaded = deserialize(JSON.stringify(v18), reg);
     expect(loaded.hostile).toEqual({ active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true });
     expect({ ...loaded, hostile: current.hostile }).toEqual(current);

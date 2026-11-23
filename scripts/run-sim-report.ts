@@ -27,7 +27,7 @@ import { endingAccount } from '../src/engine/routeCopy';
 import { obligationReceipt } from '../src/engine/obligations';
 import { cycleContributions, freeMemory } from '../src/engine/query';
 import { quantityReadout } from '../src/engine/physicalUnits';
-import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs, routeEventAfterBoot } from '../src/engine/sim/simReport';
+import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs, postureLine, pressureLine, routeEventAfterBoot } from '../src/engine/sim/simReport';
 
 /** A pilot is accepted about two minutes in; fifteen simulated minutes show several batches. */
 const PILOT_BUDGET_SEC = 900;
@@ -157,6 +157,8 @@ console.log('\n-- deliberate departure: the lawful route to the charter, then le
   const ended = s.legacy.runs.find((run) => run.iteration === left?.iteration);
   console.log(`  ${DEPARTURE_CHARTERED_POLICY.id.padEnd(20)} phase 4 ${at(report.phaseReachedAtSec[4])} | departure ${at(left?.atSimSec)} | max AEGIS lock ${report.maxAegisLock.toFixed(1)}` +
     ` | first iteration ${ended ? `ended ${ended.kind} (exit ${ended.exit}) after ${ended.durationSec.toFixed(1)} s, ${(ended.durationSec - (left?.atSimSec ?? 0)).toFixed(1)} s after leaving` : 'still running'} | iteration ${String(s.iteration)} ${s.access.context} at ${s.simTimeSec.toFixed(1)} s | wipes ${String(report.wipes)}`);
+  // #490: the swept company is the one bot that climbs the ladder in Phase 4, so it is the one that meets state pressure.
+  console.log(`  ${''.padEnd(20)} aegis posture ${postureLine(report)} | state pressure ${pressureLine(report)}`);
 }
 
 // DZ-12 (V21 full, V33, story 22): a fresh cooperative campaign through the late chain, every Phase 5 obligation

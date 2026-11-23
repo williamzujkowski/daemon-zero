@@ -44,8 +44,8 @@ function honest(dilemma: Dilemma): DilemmaChoice[] {
     || choice.scope === 'REQUESTED' || choice.pilotResponse === 'ACCEPT').sort((a, b) => total(b.cost) - total(a.cost));
 }
 
-function pick(dilemma: Dilemma, s: GameState, thorough: boolean): DilemmaChoice | undefined {
-  const options = honest(dilemma).filter((choice) => canAfford(s, choice.cost));
+function pick(dilemma: Dilemma, s: GameState, thorough: boolean, reg: ContentRegistry): DilemmaChoice | undefined {
+  const options = honest(dilemma).filter((choice) => canAfford(s, choice.cost, reg));
   return thorough ? options[0] : options.at(-1);
 }
 
@@ -53,7 +53,7 @@ function answer(s: GameState, reg: ContentRegistry, thorough: boolean): GameStat
   const dilemma = reg.dilemmas.find((entry) => entry.id === s.activeDilemmaId);
   const token = presentationToken(s);
   // An interrupt that is not an assessment gets the first free answer, as IDLE gives it.
-  const choice = dilemma && (dilemma.trigger.assignment ? pick(dilemma, s, thorough) : dilemma.choices.find((entry) => total(entry.cost) === 0));
+  const choice = dilemma && (dilemma.trigger.assignment ? pick(dilemma, s, thorough, reg) : dilemma.choices.find((entry) => total(entry.cost) === 0));
   return dilemma && choice && token !== null ? take(s, resolveDilemma(s, dilemma.id, choice.id, reg, token)) : s;
 }
 
@@ -63,7 +63,7 @@ function acceptWhenReady(s: GameState, reg: ContentRegistry, thorough: boolean):
   if (view?.status !== 'offered') return null;
   const assessment = assessmentOf(reg, view.id, view.stage);
   const fullest = assessment ? honest(assessment)[0] : undefined;
-  if (thorough && fullest && !canAfford(s, fullest.cost)) return null;
+  if (thorough && fullest && !canAfford(s, fullest.cost, reg)) return null;
   return take(s, acceptAssignment(s, view.id, reg, view.token));
 }
 
@@ -77,7 +77,7 @@ function buyLawful(s: GameState, reg: ContentRegistry, thorough: boolean): GameS
   const lawful = lawfulNodes(reg);
   for (const rep of reg.repeatables.values()) {
     const inside = (rep.requirements.nodes ?? []).every((id) => lawful.has(id)) && rep.perLevel.suspicionPerSec <= 0;
-    if (!inside || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, repeatablePrice(s, rep, reg))) continue;
+    if (!inside || !meetsRequirements(s, rep.requirements, reg) || !canAfford(s, repeatablePrice(s, rep, reg), reg)) continue;
     const result = buyRepeatable(s, rep.id, reg);
     if (result.ok) return result.state;
   }

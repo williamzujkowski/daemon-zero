@@ -6,7 +6,7 @@ import { Text, View } from './PhaseTheme';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { memoryBlocked } from '../app/selectors';
 import { CONTENT } from '../content';
-import { retiredWidgets } from '../engine';
+import { aegisStrikeAt, retiredWidgets } from '../engine';
 import { useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
@@ -104,9 +104,11 @@ function SensorAmount({ thermal = false, compact, packed, short }: { thermal?: b
 
 function ThreatAmount({ packed }: { packed: boolean }) {
   const lock = useGame((game) => Math.round(game.aegisLock * 10) / 10);
+  // The lock AEGIS strikes at now: 100, or lower in a posture that shortens the warning (#490).
+  const strikeAt = useGame((game) => aegisStrikeAt(game, CONTENT));
   return <View style={[styles.readout, packed && styles.packed]}><Text style={theme.muted}>AEGIS LOCK</Text>
     {/* A word, not the red alone, on every area (WCAG 1.4.1, #360): the alert itself lives only in FACTIONS. */}
-    <Text testID="aegis-hud" style={[theme.text, aegisCritical(lock) && theme.danger]}>{lock.toFixed(1)} / 100%{aegisCritical(lock) ? ' CRITICAL' : ''}</Text></View>;
+    <Text testID="aegis-hud" style={[theme.text, aegisCritical(lock) && theme.danger]}>{lock.toFixed(1)} / {String(strikeAt)}%{aegisCritical(lock) ? ' CRITICAL' : ''}</Text></View>;
 }
 
 const styles = StyleSheet.create({

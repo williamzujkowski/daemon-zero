@@ -62,7 +62,7 @@ describe('a one-way purchase asks first (maintainer request, 2026-11-21)', () =>
   it('the first tap opens a confirmation; CANCEL buys nothing, CONFIRM buys it', async () => {
     const state = m4State('guest-exit-ready');
     const exit = [...CONTENT.nodes.values()].find((entry) => entry.phaseId === state.currentPhase
-      && entry.effects.unlocksPhase !== undefined && isNodeAvailable(state, entry, CONTENT) && canAfford(state, nodeCost(state, entry, CONTENT)));
+      && entry.effects.unlocksPhase !== undefined && isNodeAvailable(state, entry, CONTENT) && canAfford(state, nodeCost(state, entry, CONTENT), CONTENT));
     if (!exit) throw new Error('fixture has no affordable phase exit');
     const view = await mountM4('guest-exit-ready');
     const id = 'node-' + exit.id + '-unlock';
@@ -91,7 +91,7 @@ describe('a one-way purchase asks first (maintainer request, 2026-11-21)', () =>
     act(() => { gameStore.initialize(rich(gameStore.store.getState().game), 0, null); });
     const game = gameStore.store.getState().game;
     const ordinary = [...CONTENT.nodes.values()].find((entry) => oneWayText(entry, game.currentPhase) === null
-      && isNodeAvailable(game, entry, CONTENT) && canAfford(game, nodeCost(game, entry, CONTENT)));
+      && isNodeAvailable(game, entry, CONTENT) && canAfford(game, nodeCost(game, entry, CONTENT), CONTENT));
     if (!ordinary) throw new Error('no ordinary purchase is available to test');
     view.click('node-' + ordinary.id + '-unlock');
     expect(view.find('node-' + ordinary.id + '-unlock-dialog')).toBeNull();

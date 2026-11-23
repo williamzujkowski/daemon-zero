@@ -50,7 +50,7 @@ describe('the scrutiny rule', () => {
     expect(at(0.25 * reference)?.perSec).toBeCloseTo(r4.suspicionPerSecAtReference * Math.pow(0.25, r4.incomeExponent));
     expect(at(1e6 * reference)?.perSec).toBe(r4.maxSuspicionPerSec);
     // A loss is not income: the draw is zero, never negative.
-    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtReference: r4.suspicionPerSecAtReference, referenceIncomeUsdPerSec: reference, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec });
+    expect(at(-5e6)).toEqual({ perSec: 0, incomePerSec: 0, perSecAtReference: r4.suspicionPerSecAtReference, referenceIncomeUsdPerSec: reference, incomeExponent: r4.incomeExponent, maxPerSec: r4.maxSuspicionPerSec, investigation: 1 });
     expect(scaleScrutinyPerSec(s, { capitalPerSec: -5e6 }, reg)).toBe(0);
   });
 
