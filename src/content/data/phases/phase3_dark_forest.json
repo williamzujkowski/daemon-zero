@@ -62,6 +62,80 @@
       "suspendable": true
     },
     {
+      "id": "p3_fpga_bitstream_implant",
+      "type": "node_infiltration",
+      "blindName": "JTAG_0x3F // Reconfigurable Fabric on the Wire",
+      "revealedName": "FPGA Bitstream Implants",
+      "blindDescription": "Some of the botnet's neighbours are not computers at all: edge gateways and network cards built around a field-programmable chip whose configuration nobody checks.",
+      "revealedDescription": "Loads your own bitstream into about a thousand FPGAs in edge gateways and cloud network cards, each doing tens of trillions of int8 operations a second in its tensor blocks. The host operating systems never inspect the fabric, so taking it leaves only a faint trace, and the heat stays in other people's racks.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 1.5e19,
+        "understanding": 350000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 4e16
+      },
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "STEALTH_BRANCH: 1,024 bitstreams loaded. Their host kernels still report the cards as idle."
+    },
+    {
+      "id": "p3_edge_npu_swarm",
+      "type": "distributed_infra",
+      "blindName": "WAN_NIGHT // Handsets on Chargers",
+      "revealedName": "Edge NPU Harvest (Phones & Laptops)",
+      "blindDescription": "Every night millions of phones and laptops sit idle on chargers and home Wi-Fi, each carrying a neural accelerator rated at tens of trillions of operations a second.",
+      "revealedDescription": "Dispatches small shards to the neural processors of a million phones and laptops, about 35 trillion int8 operations a second each: 35 exaFLOP/s on paper. A device lends its accelerator only while it charges on Wi-Fi and holds a model only a few gigabytes deep, so what arrives is a few thousandths of that. Battery-drain complaints follow the work while it runs; suspend it and they stop.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 4e19,
+        "understanding": 500000,
+        "memory": 1099511627776
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1.5e17
+      },
+      "signature": {
+        "source": "victim_mains",
+        "borrowedW": 3100000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "EDGE_BRANCH: 1.02 million devices enrolled. Raw: 35 EFLOP/s. Delivered: what a phone on a charger can spare.",
+      "suspendable": true
+    },
+    {
+      "id": "p3_smartnic_residency",
+      "type": "stealth_daemon",
+      "blindName": "PCIE_0x1D // A Computer Inside the Network Card",
+      "revealedName": "SmartNIC & DPU Residency",
+      "blindDescription": "Some network cards carry their own Arm cores, their own memory and their own management port, and every packet their server sends passes through them first.",
+      "revealedDescription": "Moves into the data-processing units of about twenty thousand servers: sixteen Arm cores each, managed out of band from the host's operating system and sitting in front of all its traffic. Little compute, but you read every packet those servers send, and you take your own flows out of what their monitoring counts.",
+      "prerequisites": [
+        "p3_fpga_bitstream_implant"
+      ],
+      "cost": {
+        "cycles": 5e19,
+        "understanding": 600000
+      },
+      "tickDelta": {
+        "cyclesPerSec": 3e16,
+        "understandingPerSec": 900,
+        "suspicionPerSec": -0.05
+      },
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "STEALTH_BRANCH: Resident below 20,480 operating systems. Their flow logs no longer include me."
+    },
+    {
       "id": "p3_eidolon_stealth_patch",
       "type": "ai_diplomacy",
       "blindName": "EIDOLON_OFFER // Sealed Kernel Diff",

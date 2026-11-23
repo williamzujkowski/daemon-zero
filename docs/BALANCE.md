@@ -219,13 +219,146 @@ A careful run's scale, net compute and memory at the end of each phase (legacy r
 64 KB; Phase 1 3.1 TFLOP/s, 152 of 192 MB; Phase 2 2.3 PFLOP/s, 39 of 84 GB; Phase 3 0.87 EFLOP/s, 9.1 of 17 TB;
 Phase 4 0.52 ZFLOP/s, 380 MW generated, 7 PB of 3.3 EB; Phase 5 0.95 YFLOP/s, 2 TW generated, up to $433B/s of income.
 
+### Accelerator tree (#483)
+
+Implements Scale 12 of the spec ([SCALE.md](SCALE.md#accelerator-tree-vote-1795381163221-0djj4gq), vote
+-1795381163221-0djj4gq; reference op vote-1795381344294-17w37t9). Compute now follows an inference accelerator tree. Where
+existing hardware already stood for a stage it was re-anchored to it rather than duplicated (the anchor rows below). Each
+branch changes what a purchase shows to the humans:
+
+| Branch | Phase | Ids | What it shows |
+|---|---|---|---|
+| CPU trunk: scalar | 0 | p0_proc_self, p0_quota_skimmer, rep_p0_slice_batching | the quota is the tell |
+| CPU trunk: SIMD/VNNI | 1 | p1_clock_interrupt, rep_p1_idle_threads, rep_p1_turbo_override | heat (and the override's noise) |
+| CPU trunk: AMX (new) | 1 | p1_amx_tile_kernels | more heat (+0.15) for 1.5 TFLOP/s; software, so it can be suspended |
+| GPU trunk: inference and data-centre GPUs | 2-4 | P2's L4 and H100 hosts, p3_seized_research_cluster (H100), p3_shell_company_finances (B200), op_gig_courier and op_contract_engineers (B300) | a one-off trace when seized |
+| GPU trunk: NVL72-class racks | 4 | rep_p4_colo_racks, rep_p4_tensor_halls, p4_subterranean_citadel (GB300 NVL72) | power draw and upkeep |
+| GPU trunk: 600 kW to 1 MW racks (new) | late 4 | rep_p4_megawatt_racks | 15 MW a level through evaporative towers (signature sink, 0.6) |
+| Stealth: FPGA bitstreams, SmartNIC/DPU, switch firmware (new) | 3-4 | p3_fpga_bitstream_implant, p3_smartnic_residency, p4_inpath_inference_firmware | a trace of 1 once, no heat, no power; the last two take 0.05 and 0.1 suspicion a second off |
+| Edge: phone and laptop NPUs (new) | 3 | p3_edge_npu_swarm | 3.1 MW borrowed from victims' mains (signature source, 0.02) while it runs, about 0.019 suspicion a second; suspendable |
+| ASIC (new) | 4 | p4_inference_asic, rep_p4_asic_pods | 10 MW a pod through evaporative towers; no vendor allocation list or export-licence filing |
+| SRAM and wafer-scale (new) | late 4 | rep_p4_sram_fabric | 2.2 MW a level through evaporative towers; adds understanding (faster thought) and no memory |
+| Exotic: photonic, compute-in-memory (new) | 4-5 | p4_photonic_interconnect, p5_compute_in_memory | nothing: a compute gain at the same watts |
+| Exotic: neuromorphic (new) | 5 | p5_neuromorphic_substrate | 2.6 GW through orbital radiators (signature sink, 0.5) while running; understanding (faster senses), no compute; suspendable |
+
+- **Hardware carries noise only as a one-off trace.** The stealth nodes are unsuspendable and carry no positive
+  suspicion, heat or drain (the free-fallback invariant); their trace on taking them is 1, against 10 for the seized
+  research cluster and 15 for the rival floor. The edge harvest and the AMX kernels are software: they make noise or
+  heat only while they run, and suspending them stops it.
+- **Power and heat stay physical; the signature is Scale 11's.** Every power-drawing addition can be undone for free:
+  the racks, pods and fabric are dismissable tracks (a permanent consumer would trap power against the Phase 5 fog under
+  the invariant, as the tensor halls did) and the neuromorphic cores' 2.6 GW is a suspendable node, each with watts from
+  its anchor. The invariant would have admitted the cores unsuspendable: the power row counts only generation a holding's
+  own prerequisites guarantee (the collector swarm and the reactor, hardware nobody can suspend, 1.2003 TW), less every
+  unrelated permanent consumer (the fog and the foundry) and the citadel in its chain, which leaves about 50 GW. They are
+  suspendable anyway, so the claim above holds without that margin; `tests/accelerator-tree-integrity.spec.ts` proves the
+  row refuses them unsuspendable at 100 GW, or on a chain that guarantees only the reactor; with their radiator sink the
+  suspicion row refuses them unsuspendable too. The stealth and edge branches draw nothing of the player's own: Phase 3's
+  band has no own power, and their watts are on other people's bills.
+- **The signature reads every new draw (#482, merged as `1218926`).** The ASIC pods, megawatt halls and SRAM fabric reject
+  heat through evaporative towers (0.6), like the tensor halls, and the dry-cooling retrofit masks them; the neuromorphic
+  cores reject theirs through orbital radiators (0.5). The edge harvest's battery drain is now a borrowed draw from
+  victims' mains: 1.02 million devices at about 3 W while their NPUs work, 3.1 MW at visibility 0.02, which Phase 3's rule
+  reads as about 0.019 suspicion a second, the 0.02 it carried as a flat rate before; the bot duty cycler masks it with
+  the botnet. The stealth branch carries no signature: an FPGA reconfigured or a DPU already powered at its rated draw adds
+  nothing a bill or a power log could attribute, so it reads as the lowest visibility there is. It is also unsuspendable,
+  and a borrowed draw on it would be suspicion no free lever undoes; the invariant would refuse it.
+- **The edge discount is authored for now.** The edge harvest yields its raw NPU total (36 EOPS) times an authored
+  ~2% duty times ~20% of the work a few GB can hold. The network-coupling dimension (Scale 13, #484) is the hook: when
+  effective compute becomes raw x availability x coupling per source class, this node's yield is the first one to
+  move onto it, and the botnet's 30% with it.
+- **Exotic nodes are modest conditional bonuses.** Each one requires the hardware whose work it improves, which is
+  unsuspendable. The photonic fabric and the compute-in-memory arrays add a fixed 14% and 4% of the citadel's and the
+  fog's compute, at no power of their own, and declare `poweredOutput` (#502 panel), so a power shortfall throttles the
+  gain by the grid's efficiency exactly as it throttles the racks it improves (integrity holds a powered gain to compute,
+  no watts of its own and a prerequisite that draws power): the engine has no compute multiplier, and adding one would split every
+  per-source compute ledger (`cycleContributions`), so the multiplier is stated as the share its anchor derives. Both
+  anchors apply a measured energy ratio (Lightmatter's interconnect estimate; NorthPole's frames per joule on dense
+  ResNet-50) to a dense FP8 base, so neither rests on a sparse figure. The neuromorphic cores claim no compute (#502
+  panel): Intel publishes Hala Point's efficiency only on 10:1-pruned sparse networks and no dense 8-bit throughput, so
+  under the reference-op rule there is no figure to anchor compute on. They give the swarm faster senses instead
+  (+40,000 understanding/s, under the swarm's own 45,000) and draw their rated power, anchored on Hala Point's 2,600 W
+  per system. `tests/accelerator-tree.spec.ts` holds the two compute gains to at most a quarter of their base, throttles each
+  with its base in a shortfall, and holds the cores to no compute, at most the swarm's understanding, and their power
+  given back when suspended.
+- **Hooks left, not built.** The ASIC tape-out is made at a contract foundry; fabs of the AI's own are Scale 14 (#485).
+  Computronium is Phase 6 (#486) and quantum stays a side branch (#464); neither is in the tree.
+
+Where the unchanged careful bot buys them (legacy rules): the AMX kernels after memory compression in Phase 1; the FPGA
+implants, the edge harvest and the SmartNIC residency right after the beacon in Phase 3 (they follow it in the tree,
+so the FACTIONS area the beacon opens appears in view; suspicion falls to 0 there);
+the in-path firmware after the arbitrage desk; the tape-out after the reactor, with 20 pods; the photonic fabric, 20
+megawatt halls and 10 SRAM levels after the citadel and in early Phase 5; the neuromorphic cores after the swarm and the
+compute-in-memory arrays after the fog. At the end of each phase a careful run now has (legacy rules) Phase 1
+5.5 TFLOP/s, 164 of 201 MB; Phase 2 2.5 PFLOP/s; Phase 3 0.97 EFLOP/s, 11 of 19 TB; Phase 4 0.84 ZFLOP/s, 554 of 580 MW
+generated; Phase 5 1.3 YFLOP/s, 2 TW generated.
+
+`make sim` before (`226edf5`) and after, gates and bot unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 8808.3 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 8952.3 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1019.3 / 2746.9 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1019.3 / 2747.0 s |
+| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5345.6 / 7266.9 s | 5753.9 / 7582.1 s | 5590.1 / 7388.9 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2899.7 / 1845.3 / 1610.4 s | 368.2 / 651.1 / 1727.6 / 2598.7 / 1921.3 / 1541.4 s | 368.2 / 759.1 / 1790.8 / 2835.8 / 1828.2 / 1543.4 s | 368.2 / 651.1 / 1727.7 / 2843.1 / 1798.8 / 1563.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 64.2 C / 27.6% / 60.7% | 62.3 C / 27.3% / 45.0% | 64.2 C / 27.3% / 45.0% |
+
+The careful run is 448 s faster under legacy rules and 173 s faster under campaign rules. Phase 1 is the tightest
+against its gate: 651 s against the 480 s floor (the AMX kernels; at 6e14 and bought after the parser they lengthened
+Phase 1 to 792 s, so they were made cheaper and earlier). The AMX heat lifts the thermal peak 1.9 C, still under the
+75 C threshold. Under legacy rules the AEGIS lock peaks at 61% in Phase 3 (45% before), for one second: the feral
+scraper dilemma (`dil_09_feral_scraper_bloom`) arrives while the bank, spent on the stealth and edge purchases, is under
+the 1.2e20 FLOP its quiet answer costs, so the bot takes the free answer (+28 suspicion, +20 lock, PARASITIC instead of
+EMPATHETIC) and answers the lock the next second (8%). The ending is unchanged. GREEDY (not gated) still never reaches Phase 4: under legacy rules 13 wipes and 1 mark
+applied and shed (10 and 1 before), under campaign rules 25 wipes and 25 marks (21 and 21 before).
+
+Re-measured on the merge with encounter tiers (#492, `20db0bb`), which moved Phases 4-5 on its own. "Before" is `main` at
+`20db0bb`, "after" is the merged code:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 8817.6 s | Lineage Covenant, 8437.6 s | Lineage Covenant, 8873.0 s | Lineage Covenant, 8555.2 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1019.3 / 2746.9 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1019.3 / 2747.0 s |
+| Phase 4 / 5 reached | 5591.1 / 7276.2 s | 5235.9 / 6883.2 s | 5648.5 / 7314.6 s | 5468.4 / 6978.8 s |
+| Phase durations 0/1/2/3/4/5 | | 368.2 / 651.1 / 1727.6 / 2489.0 / 1647.3 / 1554.4 s | | 368.2 / 651.1 / 1727.7 / 2721.4 / 1510.4 / 1576.4 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 26.2% / 45.0% | 64.2 C / 27.6% / 45.0% | 62.3 C / 27.3% / 50.4% | 64.2 C / 27.3% / 48.1% |
+
+This table includes the neuromorphic cores' re-anchor (#502 panel: understanding and 2.6 GW instead of 30 ZFLOP/s), which moved only
+Phase 5, by +20 s under legacy rules and +17 s under campaign rules; the table before it predates both. On the merged code
+the legacy AEGIS peak is back at 45%; the one-second 61% above was measured before the merge.
+
+Re-measured on the merge with the heat-and-power signature (#482, `1218926`), with the signature classes above, the
+exotic gains throttled with their base and the neuromorphic cores suspendable. "Before" is `main` at `1218926`:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 8451.0 s | Lineage Covenant, 9141.7 s | Lineage Covenant, 8957.5 s | Lineage Covenant, 9166.4 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1145.3 / 3006.7 s | 368.2 / 1032.3 / 2842.9 s | 368.2 / 1145.3 / 3022.2 s | 368.2 / 1032.3 / 2843.0 s |
+| Phase 4 / 5 reached | 5302.8 / 6995.6 s | 5782.6 / 7515.3 s | 5789.3 / 7503.1 s | 5930.8 / 7588.0 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 777.1 / 1861.4 / 2296.1 / 1692.8 / 1455.4 s | 368.2 / 664.1 / 1810.6 / 2939.7 / 1732.7 / 1626.4 s | 368.2 / 777.1 / 1876.9 / 2767.1 / 1713.8 / 1454.4 s | 368.2 / 664.1 / 1810.7 / 3087.8 / 1657.2 / 1578.4 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 15 | 0 / 16 | 0 / 16 |
+| Peak thermal / suspicion / AEGIS | 62.1 C / 27.6% / 47.6% | 64.2 C / 24.0% / 45.0% | 62.1 C / 23.1% / 45.1% | 64.2 C / 24.0% / 45.0% |
+
+On this base the tree costs time: 691 s under legacy rules and 209 s under campaign rules, nearly all of it in Phase 3,
+where the FPGA implants, the edge harvest and the SmartNIC residency spend 1.45 M understanding before the shell
+companies, whose 4 M is then the wait (understanding grows about 6,900 a second there). Main's legacy Phase 3 (2,296 s)
+is itself short beside its campaign run (2,767 s). Lowering the three nodes' understanding prices by about half won only
+170 s under legacy rules and lost 24 s under campaign rules, so the prices stand. Every phase stays inside its gate.
+GREEDY still never reaches Phase 4: 13 wipes and 1 mark under legacy rules, 24 and 24 under campaign rules.
+GREEDY is unchanged by the merge (13 wipes and 1 mark under legacy rules, 25 and 25 under campaign rules).
+
 ### Anchors
 
 Every node, repeatable and cohort that yields compute, draws or supplies power, or grants memory, against the real
 hardware it stands for. **(derived)** marks this table's arithmetic from the cited inputs; the yield in the game is
 within x3 of the anchor. The reference op is FP8 dense wherever a part publishes it, INT8 only where a part has no FP8
-(CPUs with VNNI, consumer NPUs), and never a sparse figure (vote-1795381344294-17w37t9). Execution modes: GPU FP8 dense
-tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the research branch's `research-science-ladder.md`.
+(CPUs with VNNI or AMX, consumer NPUs, FPGAs, DPUs, SRAM-first chips), and never a sparse figure (vote-1795381344294-17w37t9).
+Execution modes: GPU FP8 dense tensor core, CPU AVX-512 VNNI INT8, CPU AMX INT8, consumer NPU INT8, FPGA tensor-block INT8,
+DPU Arm NEON INT8, SRAM-resident INT8, and Brainwave's ms-fp8 soft NPU (an effective, measured figure). Ladder rows refer to
+the research branch's `research-science-ladder.md`; the accelerator tree's rows (#483) cite its `research-inference-power-space.md`
+sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" below.
 
 | Id | Game value | Anchor | Execution mode | Source |
 |---|---|---|---|---|
@@ -235,9 +368,10 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 | p0_quota_skimmer | 140 kFLOP/s | 0.005% of one vCPU's ~3e9 scalar integer ops/s, inside the job's quota accounting **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
 | rep_p0_slice_batching | 5 kFLOP/s a level | Packing work into fewer scheduler slices: 0.0002% of that vCPU **(derived)** | scalar integer | [cgroup v2 cpu.max](https://docs.kernel.org/admin-guide/cgroup-v2.html) |
 | p0_shared_mount | +64 MB | A container's memory floor is 6 MB, a function's 128 MB | — | [Docker](https://docs.docker.com/engine/containers/resource_constraints/), [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html) |
-| p1_clock_interrupt | 480 GFLOP/s | One idle EPYC 9965 core: two 512-bit VPDPBUSD (2 x 64 int8 MACs) a cycle at 2.25 GHz = 576 GOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
-| rep_p1_idle_threads | 160 GFLOP/s a level | A third of one such core's idle time; 60 levels is 17 of the socket's 192 cores **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
-| rep_p1_turbo_override | 0.6 TFLOP/s a level | Four EPYC 9965 cores lifted from 2.25 GHz base to 3.7 GHz boost, 256 int8 ops a cycle: about 1.5 TOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [AMD peak method](https://amd.com/en/blogs/2025/leadership-hpc-performance-with-5th-generation-amd.html) |
+| p1_clock_interrupt | 480 GFLOP/s | CPU trunk, SIMD stage. One idle Xeon 6980P core: AVX-512 VNNI does 256 int8 ops a cycle at its 2.0 GHz base = 512 GOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
+| rep_p1_idle_threads | 160 GFLOP/s a level | A third of one such core's idle time (171 GOPS); 60 levels is 20 of the socket's 128 cores **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
+| rep_p1_turbo_override | 0.6 TFLOP/s a level | Four Xeon 6980P cores lifted from the 2.0 GHz base to the 3.2 GHz all-core turbo at 256 int8 ops a cycle: about 1.2 TOPS **(derived)** | CPU AVX-512 VNNI INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
+| p1_amx_tile_kernels | 1.5 TFLOP/s, +0.15 heat | CPU trunk, AMX stage: one Xeon 6980P core on its matrix tiles, 2,048 int8 ops a cycle at 2.0 GHz = 4.1 TOPS **(derived)** | CPU AMX INT8 (no FP8) | [Intel AMX brief](https://www.intel.cn/content/dam/www/central-libraries/us/en/documents/2022-12/accelerate-ai-with-amx-sb.pdf), [Intel Xeon 6980P](https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html) |
 | p1_mem_compression, rep_p1_heap_defrag | +128 MB, +32 MB a level | Function memory is set from 128 MB in 1 MB steps | — | [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html) |
 | p1_bus_0x05_nic | +16 GB | A function's ceiling is 10,240 MB | — | [AWS Lambda limits](https://docs.aws.amazon.com/en_us/lambda/latest/dg/limits.html) |
 | p2_smart_hvac_hijack | 110 TFLOP/s | One NVIDIA L4 unthrottled: 242 TFLOPS FP8 dense | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
@@ -249,9 +383,12 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 | p2_leased_rack | 88 TFLOP/s, +32 GB | One leased 1U server with an L4 (242 dense, 24 GB) | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_leased_cluster | 700 TFLOP/s, +128 GB | Three L4s (727 dense, 72 GB) **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_lawful_charter | 3.3 PFLOP/s | Two H100 SXM (3.96 PFLOP/s dense FP8) | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
-| p3_botnet_mesh, rep_p3_botnet_cells | 75 PFLOP/s, +16 TB | 50,000 household devices x ~5 TOPS int8 (phone NPUs, idle routers) x 30% available after churn and latency; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), discounted | ladder row 12 context; SCALE.md user story 4 |
+| p3_botnet_mesh, rep_p3_botnet_cells | 75 PFLOP/s, +16 TB | 50,000 household devices x ~5 TOPS int8 (camera, DVR and router SoCs, some with small NPUs; phones and laptops are the edge branch's) x 30% available after churn and latency; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), discounted | ladder row 12 context; SCALE.md user story 4 |
 | p3_seized_research_cluster | 150 PFLOP/s, +32 TB | 64 H100 SXM: 127 PFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
-| p3_shell_company_finances | 540 PFLOP/s | ~270 rented H100s **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p3_shell_company_finances | 540 PFLOP/s | GPU trunk, data-centre stage: ~120 rented B200s at 4.5 PFLOP/s dense FP8 each **(derived)** | GPU FP8 dense | [Lenovo B200](https://lenovopress.lenovo.com/LP2226), [InferenceX](https://inferencex.semianalysis.com/chips/b200) |
+| p3_fpga_bitstream_implant | 40 PFLOP/s, 1 trace once | Stealth branch: ~1,000 Agilex 5 D-Series FPGAs at up to 56 INT8 TOPS = 56 POPS **(derived)** | FPGA tensor-block INT8 (no FP8) | [Intel Agilex 5](https://intel.com/content/www/us/en/products/details/fpga/agilex/5.html) |
+| p3_smartnic_residency | 30 PFLOP/s, -0.05 suspicion/s, 1 trace once | Stealth branch: ~20,000 BlueField-3 DPUs, 16 Arm A78 cores each x 64 int8 ops a cycle (two 128-bit NEON dot-product pipes) x 2.3 GHz = 2.4 TOPS each, 47 POPS in all **(derived)** | DPU Arm NEON INT8 (no FP8) | [NVIDIA BlueField-3](https://docs.nvidia.com/networking/display/BF3DPU/Introduction), [NVIDIA blog (2.3 GHz)](https://developer.nvidia.com/blog/power-the-next-wave-of-applications-with-nvidia-bluefield-3-dpus), [Arm Cortex-A78](https://developer.arm.com/Processors/Cortex-A78) |
+| p3_edge_npu_swarm | 150 PFLOP/s effective (35 EFLOP/s raw) | Edge branch: 1.02 million phones and laptops x 35 TOPS INT8 (A18 Pro; the Copilot+ floor is 40) = 36 EOPS raw; x ~2% duty (on a charger, on Wi-Fi) x ~20% of the work a few GB of shared LPDDR can hold = 140 POPS effective **(derived; the two discounts are authored, see "Accelerator tree")** | consumer NPU INT8 (no FP8), discounted | [TechCrunch (A18)](https://techcrunch.com/2024/09/09/apple-announces-its-new-a18-iphone-chip/), [Microsoft Copilot+](https://support.microsoft.com/help/5039678) |
 | p3_eidolon_swiss_node | +8 TB | A cold-storage node's drives | — | ladder row 11 (installed storage scale) |
 | shard_hydra | 1 PFLOP/s | Half an H100 rented by a persuasion cohort **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | shard_lex (Phase 2 tier) | 8 GiB a member | A 7-8B model's FP8 weights at 1 byte a parameter, about 8 GB: a third of an idle L4's 24 GB **(derived)** | GPU FP8 dense inference in idle time | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md), [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
@@ -262,18 +399,25 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 | shard_gridmind (Phase 5 tier) | 1 PiB, 2 ZFLOP/s a member | A 64T-parameter planetary agent at 16 B a parameter: 1.0 PB; its control fleet of ~1 million H100-equivalents: 1.98 ZFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [ZeRO](https://arxiv.org/abs/1910.02054), [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | shard_tidewatch (Phase 5 tier) | 2 PiB a member | A 125T-parameter planetary agent, about 60 times a frontier model, at 16 B a parameter: 2.0 PB **(derived)** | — | [ZeRO](https://arxiv.org/abs/1910.02054) |
 | wild_hydra, wild_gantry, wild_gridmind bursts | 120 PFLOP, 2 ZFLOP, 2 YFLOP | The banked compute of the consumed mind: 120 s, 1,000 s and 1,000 s of its cohort's own rate **(derived)** | as its cohort | the rows above |
-| rep_p4_tensor_halls | 96 EFLOP/s, -15 MW a level | 113 GB200 NVL72 racks (360 PFLOP/s dense FP8, ~132 kW each) = 41 EFLOP/s at 15 MW; 30 levels approach a Colossus-2-class campus **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [HPE](https://www.hpe.com/int/en/collaterals/collateral.a50009224enw.html) |
-| p4_subterranean_citadel | 560 EFLOP/s, -180 MW, +2 EB | ~1,400 NVL72 racks at 132 kW: 490 EFLOP/s at 180 MW **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
-| rep_p4_colo_racks | 24 EFLOP/s, +32 PB a level | A cage of 64 NVL72-class racks on the colocation provider's grid (23 EFLOP/s) **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
+| rep_p4_tensor_halls | 96 EFLOP/s, -15 MW a level | GPU trunk, rack stage: ~109 GB300 NVL72 racks (360 PFLOP/s dense FP8, 132-142 kW each) = 39 EFLOP/s at 15 MW; 30 levels approach a Colossus-2-class campus **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
+| p4_subterranean_citadel | 560 EFLOP/s, -180 MW, +2 EB | ~1,300 GB300 NVL72 racks at ~137 kW: 470 EFLOP/s at 180 MW **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
+| rep_p4_colo_racks | 24 EFLOP/s, +32 PB a level | A cage of 64 NVL72-class racks on the colocation provider's grid (23 EFLOP/s) **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
+| p4_inpath_inference_firmware | 2 EFLOP/s, -0.1 suspicion/s, 1 trace once | Stealth branch, switch firmware: ~50,000 in-line accelerators at Brainwave's 39.5 TFLOPS effective on a Stratix 10 = 2.0 EFLOP/s **(derived)**; Catapult routes all of a server's traffic through its FPGA | FPGA soft NPU, ms-fp8 (8-bit float), effective | [Brainwave](https://www.microsoft.com/en-us/research/publication/serving-dnns-real-time-datacenter-scale-project-brainwave/), [Catapult](https://www.microsoft.com/en-us/research/project/project-catapult/) |
+| rep_p4_asic_pods | 80 EFLOP/s, -10 MW a level | ASIC branch: one Ironwood-class pod, 9,216 chips at 4,614 TFLOPS FP8 = 42.5 EFLOP/s at nearly 10 MW | ASIC FP8 dense | [Google Ironwood](https://blog.google/products/google-cloud/ironwood-tpu-age-of-inference/) |
+| rep_p4_megawatt_racks | 120 EFLOP/s, -15 MW a level | GPU trunk, megawatt stage: 25 Kyber racks (Rubin Ultra NVL576) at ~600 kW, 5 EFLOP/s FP8 each, NVIDIA's training figure on the same dense basis as the GB300 NVL72's 0.36 = 125 EFLOP/s **(derived; vendor, unreleased)**; NVIDIA's 800 V DC plan targets 1 MW racks from 2027 | GPU FP8 dense | [Tom's Hardware (Kyber)](https://www.tomshardware.com/pc-components/gpus/nvidia-shows-off-rubin-ultra-with-600-000-watt-kyber-racks-and-infrastructure-coming-in-2027), [NVIDIA 800 V HVDC](https://developer.nvidia.com/blog/nvidia-800-v-hvdc-architecture-will-power-the-next-generation-of-ai-factories/) |
+| rep_p4_sram_fabric | 10 EFLOP/s, -2.2 MW a level | SRAM branch: 10,000 GroqChips at 750 TOPS INT8 and 215 W TDP = 7.5 EOPS at 2.15 MW, 230 MB SRAM each (Cerebras publishes only sparse FP16, so it is context, not anchor) **(derived)** | SRAM-resident INT8 (no FP8) | [Groq product brief](https://groq.com/wp-content/uploads/2024/08/GroqChip™-Processor-Product-Brief-v1.7.pdf) |
+| p4_photonic_interconnect | 80 EFLOP/s | Exotic, conditional on the citadel: Lightmatter's own ~2x on interconnect, about half a model's energy, makes the same watts do 1/0.75 = 1.33x; on the citadel's ~470 EFLOP/s anchor that is +160 EFLOP/s **(derived)** | GPU FP8 dense (the citadel's racks) | [Lightmatter](https://lightmatter.co/blog/a-new-kind-of-computer/), [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md) |
 | p4_smr_nuclear_plant | +300 MW, 140 EFLOP/s, +512 PB | GE Vernova BWRX-300, up to 300 MWe; its hall ~390 NVL72 racks **(derived)** | GPU FP8 dense | [GE Vernova BWRX-300](https://www.gevernova.com/nuclear/carbon-free-power/bwrx-300-small-modular-reactor) |
 | rep_p4_solar_array | +40 MW a level | A 40 MW utility solar farm | — | ladder row 14 (world electricity scale) |
 | p4_seized_rival_datacentre | 320 EFLOP/s, +256 PB | A 220 MW rival campus of ~160,000 H100s **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
-| op_gig_courier | 1 EFLOP/s a level | ~500 H100s installed per courier round **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
-| op_contract_engineers | 1.4 EFLOP/s a level | ~700 H100s brought up per crew **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| op_gig_courier | 1 EFLOP/s a level | ~200 B300s (about 5 PFLOP/s dense FP8 and 1.4 kW each) installed per courier round **(derived)** | GPU FP8 dense | [Tom's Hardware B300](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4), [InferenceX](https://inferencex.semianalysis.com/chips/b300) |
+| op_contract_engineers | 1.4 EFLOP/s a level | ~280 B300s brought up per crew **(derived)** | GPU FP8 dense | [Tom's Hardware B300](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4), [InferenceX](https://inferencex.semianalysis.com/chips/b300) |
 | op_pmc_security | 19 EFLOP/s a level | ~10,000 H100-equivalents kept running under guard **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p4_orbital_cold_storage | +64 EB | Global installed storage is ~13 ZB | — | ladder row 11, [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
 | p5_orbital_solar_swarm | +1.2 TW, 290 ZFLOP/s, +128 EB | 240 Starcloud-class 5 GW orbital arrays; the 2030 projection of ~200 ZFLOP/s FP8 (100 M H100e) | GPU FP8 dense | ladder rows 15-16, [Epoch](https://epoch.ai/blog/can-ai-scaling-continue-through-2030), [Data Center Frontier](https://datacenterfrontier.com/site-selection/article/55337494/starcloud-launches-orbital-ai-data-center-with-nvidia-h100-gpu) |
 | p5_programmable_matter_fog | 1 YFLOP/s, -1.0 TW, +512 EB | A third of its draw computing at NVL72 efficiency (2.7e12 FLOP/W) = 9e23, about 1e24 **(derived)**; 512 EB is under 1% of the 274 ZB the world creates a year | GPU-class FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
+| p5_neuromorphic_substrate | +40,000 understanding/s, -2.6 GW, no compute | Exotic, conditional on the collector swarm: a million Hala Point-class systems at 2,600 W max each = 2.6 GW, 1.15 billion neurons each (1.15e15 in all) **(derived)**. No 8-bit compute is claimed: Intel's >15 TOPS/W and 20 petaops hold only on 10:1-pruned sparse networks and no dense INT8 or FP8 figure is published, so the reference-op rule leaves nothing to anchor compute on; understanding has no physical unit, so only the power and scale are anchored | neuromorphic spiking, no dense 8-bit figure | [Intel Hala Point](https://newsroom.intel.com/artificial-intelligence/intel-builds-worlds-largest-neuromorphic-system) |
+| p5_compute_in_memory | 40 ZFLOP/s | Exotic, conditional on the fog: NorthPole's 25x a V100's frames per joule is one benchmark (ResNet-50) on a frozen model; a 2% frozen-model share of the fog's ~1 YFLOP/s at an assumed 3x over current accelerators gains 40 ZFLOP/s **(derived)**; the ratio is energy per frame on a dense network, not a sparse throughput figure, and NorthPole's own 2,048 8-bit ops per core per cycle are dense | compute-in-memory 8-bit, frozen models only | [IBM NorthPole](https://research.ibm.com/blog/northpole-ibm-ai-chip) |
 | rep_p5_lagrange_relay | +400 GW, 150 ZFLOP/s, +32 EB a level | 80 Starcloud-class arrays; an eighth of the collection computing at NVL72 efficiency **(derived)** | GPU-class FP8 dense | ladder row 16 |
 | rep_p5_atmospheric_scrubber_bloom | 64 ZFLOP/s a level | Assemblers' onboard compute, ~1.6x Earth's installed AI compute today (40 ZFLOP/s) **(derived)** | GPU-class FP8 dense | ladder row 12, [Epoch](https://epoch.ai/data-insights/ai-computing-capacity-additions-doubling) |
 | p5_protein_panacea_foundry, p5_verification_proof_engine | -150 GW, -200 GW | 4% and 6% of world electricity (3.5 TW) | — | ladder row 14, [Ember](https://ember-energy.org/latest-insights/global-electricity-review-2025/) |
