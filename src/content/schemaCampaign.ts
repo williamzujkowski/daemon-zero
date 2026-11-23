@@ -93,6 +93,22 @@ export const CampaignOutcomeRequirementSchema = z.strictObject({ event: id, outc
  */
 export const INTERRUPTED_FACT_OUTCOME = 'interrupted';
 
+/** Whether a recorded choice kept a commitment or broke one (#535, the Order axis). */
+export const CommitmentStanceSchema = z.enum(['kept', 'broken']);
+
+/**
+ * A fact that records a commitment kept or broken when breaking it paid (#535, vote-1795462084705-vjr8jg8): the
+ * Order axis reads these and nothing else from campaign history. `promise` names the fact that made the
+ * commitment, when one did: the choice counts only while that fact holds (a cure dispersed without review is a
+ * breach only where a review was promised). `line` is the evidence line the readout shows. Integrity keeps
+ * unknown outcomes and GHOST choices out (src/content/integrityAlignment.ts).
+ */
+export const CommitmentSchema = z.strictObject({
+  stance: CommitmentStanceSchema,
+  promise: id.optional(),
+  line: z.string().min(20),
+});
+
 /**
  * A declared campaign fact (NARRATIVE-HISTORY N5, N6): a named question later scenes ask about one
  * event, true when its record holds one of these outcomes. Scenes gate on the fact rather than on
@@ -105,6 +121,8 @@ export const CampaignFactSchema = z.strictObject({
   outcomes: z.array(id).min(1),
   /** What the fact establishes, in a sentence. Documentation for authors; never shown. */
   meaning: z.string().min(10),
+  /** Set only on a fact that is evidence of keeping or breaking a commitment (#535). */
+  commitment: CommitmentSchema.optional(),
 });
 
 /**
@@ -158,5 +176,7 @@ export type CampaignEventDeclaration = z.infer<typeof CampaignEventDeclarationSc
 export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
 export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;
 export type CampaignFact = z.infer<typeof CampaignFactSchema>;
+export type Commitment = z.infer<typeof CommitmentSchema>;
+export type CommitmentStance = z.infer<typeof CommitmentStanceSchema>;
 export type CampaignLabels = z.infer<typeof CampaignLabelsSchema>;
 export type CampaignRediscovery = z.infer<typeof CampaignRediscoverySchema>;

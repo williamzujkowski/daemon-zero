@@ -293,6 +293,35 @@ freeze in force holds never crosses a wipe, and `previewWipe` reports it as `fro
   the v17 step's frozen Phase 0 factor (5.3e3) and its cached compute rate by 1e4, divides the pilot's batch progress
   by 1e4 in any phase, and logs one line in the guest. Self-contained, so it renumbers past another step unchanged.
 
+## Alignment axes (#535)
+
+`alignmentView(state, reg)` (src/engine/alignment.ts) is a pure query with no state of its own: no `GameState` field,
+no save step, no tick system. It returns each axis's counts for and against, a value in [-1, 1] (null when nothing
+moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authored reading for the region and
+`hasEvidence`.
+
+- **Regard** counts `endingEvidence(s, reg)` against `alignment.json` `regard.raises` / `regard.lowers`, so it inherits
+  the ending's rules unchanged: the opaque legacy baseline, a campaign choice once across wipes, credited actions,
+  this iteration's operational evidence, and the current traits under legacy rules.
+- **Order** reads two declared sources and no trait. A campaign fact may carry `commitment` (schemaCampaign.ts:
+  `stance`, an optional `promise` fact, the evidence `line`); it counts while `holdsCampaignFact` holds and, when it
+  names one, its promise fact holds too. A fact derives from one event record, so it counts once however many wipes
+  inherit it, and a known outcome recorded at activation (`origin: 'legacy'`) counts once too, since no Order
+  baseline holds it. Route events in `campaign.route` count once each through `alignment.json` `routes` (each is its
+  own instance's act). An event a commitment fact names whose record is `interrupted` or `legacy_unknown` (and whose
+  promise held) adds an `unknown` line from `unknownLine` and counts nothing; `deferred` and `foreshadowed` add
+  nothing.
+- **No content ids in the engine.** The query reads only the manifest and the fact tags; trait names come from
+  content lists. The registry carries the manifest as `ContentRegistry.alignment` (`RawContent.alignment`,
+  production.ts).
+- **Integrity** (`integrityAlignment.ts`, proved in `tests/alignment-integrity.spec.ts`): a commitment fact names no
+  `legacy_unknown` or `interrupted` outcome and no outcome whose choice grants GHOST; its promise is a declared fact
+  that is not itself evidence and is about another event; no event outcome is evidence in two facts; Regard's lists do
+  not overlap; a route event has at most one commitment; each of the nine regions has exactly one reading. The
+  schema keeps `{title}` in `unknownLine`.
+- **UI.** `src/ui/Becoming.tsx` renders the readout on the reboot screen, the ending and a folded CORE reference panel;
+  `src/ui/alignmentText.ts` holds its sentences (UI-SPEC "Who you are becoming").
+
 ## The free-fallback invariant (#461, #488)
 
 Nothing a player owns and cannot undo for free may trap a constrained resource. It is AGENTS.md law 7's no-soft-lock

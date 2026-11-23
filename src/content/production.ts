@@ -5,6 +5,7 @@
  * folder imports JSON directly.
  */
 import achievements from './data/achievements.json';
+import alignment from './data/alignment.json';
 import actions from './data/actions.json';
 import assignments from './data/assignments.json';
 import epistemicActions from './data/epistemic-actions.json';
@@ -62,6 +63,7 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   achievements,
   // The conflict foundation (#517) is its own file, read as part of the world it contends with.
   world: { ...world, conflict },
+  alignment,
 };
 
 /** The Earned Access route, folded in from the preview overlay at release (#233). */
