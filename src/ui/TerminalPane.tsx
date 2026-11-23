@@ -17,6 +17,7 @@ import type { WorkspaceArea } from './workspaceTypes';
 import CorePane from './CorePane';
 import Archive from './Archive';
 import UnitsNote from './UnitsNote';
+import BecomingNote from './Becoming';
 
 /**
  * The opening is "log plus manual control" (docs/UI-SPEC.md), but before the first
@@ -69,6 +70,8 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
     {slots.includes('CORE') && <CoreTree widgetIds={shown.filter(isCore)} area={workspace.active} />}
     {/* Reference material, after every CORE block: what the numbers count (docs/SCALE.md rule 4). */}
     {slots.includes('CORE') && <UnitsNote />}
+    {/* Who you are becoming (#535), folded, once anything on record speaks to it. */}
+    {slots.includes('CORE') && <BecomingNote />}
     {shown.filter((id) => !isCore(id)).map((id) => <Widget key={id} id={id} area={workspace.active} />)}
     {workspace.active === 'operations' && <NetworkActions groups={operationsActionGroups(ids, workspace.slot)} />}
     {workspace.active === 'reference' && workspace.archive && <Archive />}

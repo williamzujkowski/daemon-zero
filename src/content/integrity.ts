@@ -41,6 +41,7 @@ import { checkAchievementIntegrity } from './integrityAchievement';
 import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
+import { checkAlignmentIntegrity } from './integrityAlignment';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
@@ -262,7 +263,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkFeedIntegrity(reg),
     ...checkCampaignIntegrity(reg),
-    ...checkCampaignFactIntegrity(reg),
+    ...checkCampaignFactIntegrity(reg), ...checkAlignmentIntegrity(reg),
     ...checkChoiceGateIntegrity(reg),
     ...checkObligationIntegrity(reg),
     ...checkFollowUpIntegrity(reg),
@@ -300,8 +301,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg), ...checkWorldManifests(reg),
-    ...checkPressureIntegrity(reg),
-    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
+    // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).
+    ...checkWorldManifests(reg),
+    ...checkInsuranceIntegrity(reg),
   ];
 }

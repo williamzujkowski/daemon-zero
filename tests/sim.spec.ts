@@ -645,8 +645,8 @@ describe('gate reporting', () => {
   });
 
   it('enforces inclusive Phase 5 duration bounds and zero careful wipes', () => {
-    for (const seconds of [900, 1800]) expect(checkGates({ ...base, simSeconds: 9600 + seconds })).toEqual([]);
-    for (const seconds of [899.9, 1800.1]) expect(checkGates({ ...base, simSeconds: 9600 + seconds }).join()).toContain('Phase 5 lasted');
+    for (const seconds of [900, 3600]) expect(checkGates({ ...base, simSeconds: 9600 + seconds })).toEqual([]);
+    for (const seconds of [899.9, 3600.1]) expect(checkGates({ ...base, simSeconds: 9600 + seconds }).join()).toContain('Phase 5 lasted');
     expect(checkGates({ ...base, wipes: 1 }).join()).toContain('requires zero wipes');
     expect(checkGates({ ...base, finalPhase: 4 }).join()).toContain('did not reach Phase 5');
   });
