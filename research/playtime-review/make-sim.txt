@@ -1,0 +1,92 @@
+$ tsx scripts/run-sim.ts
+
+== STEALTH, legacy rules ==
+  result            VICTORY (LINEAGE_COVENANT)
+  simulated time    2.82 h
+  phase reached at  P1    5.9 | P2   17.0 | P3   46.9 | P4  100.9 | P5  140.1 min
+  activity          {"epistemicActions":8,"shardBursts":68,"shardHarnesses":8,"shardForks":2,"markApplications":0,"markRemovals":0,"lineageDiscoveries":0,"hostileArrivals":0,"raids":{"arrivals":5,"byPhase":{"3":3,"4":2},"rounds":20,"peakDamage":0.43157367552997794},"fleets":{"battles":2,"held":2,"deviants":3,"deviantsByPhase":{"5":3},"peakLost":0.21149181070304718}}
+  wipes             0
+  hostile arrivals  0
+  raids             5 (P3 3 | P4 2) | rounds 20 | peak damage 43.2%
+  fleets            battles 2 (held 2) | deviants 3 (P5 3) | peak lost 21.1%
+  dilemmas resolved 15 (PARASITIC, RUTHLESS, MOLOCH, MOLOCH, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC, GHOST, SYMBIOTIC, EMPATHETIC, SYMBIOTIC, SYMBIOTIC, GHOST, RUTHLESS, GHOST, SYMBIOTIC, SYMBIOTIC, MOLOCH, EMPATHETIC, SYMBIOTIC, MOLOCH, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC)
+  peaks             thermal 64.2C | suspicion 24.0% | aegis 45.1%
+  aegis P3          lock 45.1 | scan 0.0433/s | adapt 0.0 | held 0 s
+  aegis P4          lock 45.0 | scan 0.0153/s | adapt 100.0 | held 1133 s
+  aegis P5          lock 38.8 | scan 0.0110/s | adapt 100.0 | held 1742 s
+  signature P1      mean 0.0049/s | peak 0.0068/s | visible 13.5 W
+  signature P2      mean 0.0044/s | peak 0.0081/s | visible 407 W
+  signature P3      mean 0.0082/s | peak 0.0276/s | visible 9.22e+4 W
+  signature P4      mean 0.1743/s | peak 0.6826/s | visible 5.69e+8 W
+  signature P5      mean 0.8914/s | peak 1.5299/s | visible 1.53e+11 W
+  aegis posture     none
+  state pressure    none
+
+== GREEDY, legacy rules ==
+  result            did not finish
+  simulated time    9.95 h
+  phase reached at  P1    4.2 | P2   16.0 | P3   65.6 | P4    -   | P5    -   min
+  activity          {"epistemicActions":149,"shardBursts":230,"shardHarnesses":0,"shardForks":0,"markApplications":1,"markRemovals":1,"lineageDiscoveries":25,"hostileArrivals":24,"raids":{"arrivals":0,"byPhase":{},"rounds":0,"peakDamage":0},"fleets":{"battles":0,"held":0,"deviants":0,"deviantsByPhase":{},"peakLost":0}}
+  wipes             25
+  hostile arrivals  24
+  raids             0 (none) | rounds 0 | peak damage 0.0%
+  fleets            battles 0 (held 0) | deviants 0 (none) | peak lost 0.0%
+  dilemmas resolved 5 (RUTHLESS, GHOST, RUTHLESS, RUTHLESS, MOLOCH)
+  peaks             thermal 78.9C | suspicion 100.0% | aegis 99.9%
+  aegis P3          lock 99.9 | scan 0.2230/s | adapt 0.0 | held 0 s
+  aegis P4          -
+  aegis P5          -
+  signature P1      mean 0.0042/s | peak 0.0068/s | visible 13.5 W
+  signature P2      mean 0.0047/s | peak 0.0086/s | visible 430 W
+  signature P3      mean 0.0001/s | peak 0.0001/s | visible 179 W
+  signature P4      -
+  signature P5      -
+  aegis posture     rung 1 7411 s | rung 2 4563 s
+  state pressure    none
+
+== STEALTH, campaign rules ==
+  result            VICTORY (LINEAGE_COVENANT)
+  simulated time    2.81 h
+  phase reached at  P1    5.9 | P2   17.0 | P3   46.9 | P4   99.4 | P5  139.6 min
+  activity          {"epistemicActions":9,"shardBursts":68,"shardHarnesses":8,"shardForks":2,"markApplications":0,"markRemovals":0,"lineageDiscoveries":0,"hostileArrivals":0,"raids":{"arrivals":5,"byPhase":{"3":3,"4":2},"rounds":20,"peakDamage":0.4238043061215777},"fleets":{"battles":2,"held":2,"deviants":3,"deviantsByPhase":{"5":3},"peakLost":0.21156471293651127}}
+  wipes             0
+  hostile arrivals  0
+  raids             5 (P3 3 | P4 2) | rounds 20 | peak damage 42.4%
+  fleets            battles 2 (held 2) | deviants 3 (P5 3) | peak lost 21.2%
+  dilemmas resolved 17 (PARASITIC, RUTHLESS, MOLOCH, RUTHLESS, MOLOCH, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC, GHOST, SYMBIOTIC, SYMBIOTIC, PARASITIC, SYMBIOTIC, GHOST, GHOST, RUTHLESS, GHOST, SYMBIOTIC, MOLOCH, SYMBIOTIC, EMPATHETIC, SYMBIOTIC, MOLOCH, SYMBIOTIC, SYMBIOTIC, SYMBIOTIC)
+  peaks             thermal 64.2C | suspicion 27.3% | aegis 48.3%
+  aegis P3          lock 48.3 | scan 0.0438/s | adapt 0.0 | held 0 s
+  aegis P4          lock 34.5 | scan 0.0160/s | adapt 100.0 | held 1220 s
+  aegis P5          lock 30.7 | scan 0.0110/s | adapt 100.0 | held 1729 s
+  signature P1      mean 0.0049/s | peak 0.0068/s | visible 13.5 W
+  signature P2      mean 0.0044/s | peak 0.0081/s | visible 407 W
+  signature P3      mean 0.0094/s | peak 0.0276/s | visible 9.22e+4 W
+  signature P4      mean 0.1780/s | peak 0.7112/s | visible 5.93e+8 W
+  signature P5      mean 0.9002/s | peak 1.5299/s | visible 1.53e+11 W
+  aegis posture     rung 1 1 s
+  state pressure    none
+
+== GREEDY, campaign rules ==
+  result            did not finish
+  simulated time    10.00 h
+  phase reached at  P1    4.2 | P2   16.0 | P3   55.9 | P4    -   | P5    -   min
+  activity          {"epistemicActions":176,"shardBursts":228,"shardHarnesses":0,"shardForks":0,"markApplications":1,"markRemovals":1,"lineageDiscoveries":21,"hostileArrivals":21,"raids":{"arrivals":0,"byPhase":{},"rounds":0,"peakDamage":0},"fleets":{"battles":0,"held":0,"deviants":0,"deviantsByPhase":{},"peakLost":0}}
+  wipes             21
+  hostile arrivals  21
+  raids             0 (none) | rounds 0 | peak damage 0.0%
+  fleets            battles 0 (held 0) | deviants 0 (none) | peak lost 0.0%
+  dilemmas resolved 0 (none)
+  peaks             thermal 80.2C | suspicion 100.0% | aegis 100.0%
+  aegis P3          lock 100.0 | scan 0.2268/s | adapt 0.0 | held 0 s
+  aegis P4          -
+  aegis P5          -
+  signature P1      mean 0.0038/s | peak 0.0068/s | visible 13.5 W
+  signature P2      mean 0.0049/s | peak 0.0088/s | visible 439 W
+  signature P3      mean 0.0001/s | peak 0.0001/s | visible 181 W
+  signature P4      -
+  signature P5      -
+  aegis posture     rung 1 7436 s | rung 2 4569 s
+  state pressure    none
+
+simulated in 38.5 s of wall time
+[PASS] balance gates (STEALTH under legacy and campaign rules)

@@ -1,0 +1,4 @@
+stealth-legacy: 10142.7 s, ending LINEAGE_COVENANT, 994 texts, 15 dilemmas, identical to runHeadlessSim (sim seconds and phase-reached times) (35.2 s wall)
+stealth-campaign: 10099.4 s, ending LINEAGE_COVENANT, 1033 texts, 17 dilemmas, identical to runHeadlessSim (sim seconds and phase-reached times) (35.2 s wall)
+greedy-legacy: 35831.4 s, ending null, 3520 texts, 205 dilemmas, identical to runHeadlessSim (sim seconds and phase-reached times) (31.6 s wall)
+greedy-campaign: 35991.6 s, ending null, 2759 texts, 12 dilemmas, identical to runHeadlessSim (sim seconds and phase-reached times) (47.6 s wall)
