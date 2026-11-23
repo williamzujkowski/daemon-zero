@@ -47,6 +47,9 @@ describe('stand-down guidance', () => {
     expect(leverText({ kind: 'RELEASE', id: cohort.id, perSecAfter: 0 }, held)).toBe('release one member of ' + cohort.name + ' in SWARM');
     expect(leverText({ kind: 'DIAL', id: 'computeProfitAllocationRatio', to: 1, perSecAfter: 0 }, s)).toBe('turn revenue diversion in FINANCE up');
     expect(sourceName({ kind: 'RESPONSE', id: null, perSec: 1 }, s)).toBe('the human response');
+    // A signature term (#482) names its class and whether its watts are drawn or its heat rejected.
+    expect(sourceName({ kind: 'SIGNATURE', id: 'gas_aeroderivative', perSec: 1 }, s)).toBe('power drawn from aeroderivative turbines');
+    expect(sourceName({ kind: 'SIGNATURE', id: 'evaporative_towers', perSec: 1 }, s)).toBe('heat rejected through evaporative cooling towers');
     expect(topDriver({ sources: [{ kind: 'OVERHEAT', id: null, perSec: -1 }] })).toBeNull();
   });
 });

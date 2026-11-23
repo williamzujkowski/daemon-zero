@@ -36,7 +36,8 @@ describe('post-orbital progression', () => {
     expect(deserialize(serialize(s), reg)).toEqual(s);
   });
   it('caps both Phase 5 repeatables at five without losing their output', () => {
-    for (const rep of reg.repeatables.values()) if (rep.phaseId === 5) {
+    // The two arc repeatables; the fusion plants (#482) wait on the Q>1 milestone and are proved in tests/fusion-milestone.spec.ts.
+    for (const rep of reg.repeatables.values()) if (rep.phaseId === 5 && rep.signature?.source !== 'fusion') {
       let s = developed(); const before = computeRates(s, reg);
       for (let i = 0; i < 5; i++) s = must(buyRepeatable(s, rep.id, reg));
       expect(s.levels[rep.id]).toBe(5);

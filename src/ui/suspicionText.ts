@@ -23,10 +23,22 @@ function entityName(kind: 'NODE' | 'REPEATABLE' | 'SHARD' | 'ACTION', id: string
 }
 
 const isFixed = (kind: SuspicionSourceKind): kind is keyof typeof FIXED_SOURCES => kind in FIXED_SOURCES;
+const lowerFirst = (text: string): string => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** A power source or heat sink in a sentence (#482): what the watts are and how they leave. */
+function signatureName(id: string): string {
+  const { sources, sinks } = CONTENT.world.signature;
+  const source = sources.find((cls) => cls.id === id);
+  if (source) return 'power drawn from ' + lowerFirst(source.name);
+  const sink = sinks.find((cls) => cls.id === id);
+  return sink ? 'heat rejected through ' + lowerFirst(sink.name) : id;
+}
 
 /** What a source is called in a sentence. */
 export function sourceName(source: SuspicionSource, game: GameState): string {
-  return isFixed(source.kind) ? FIXED_SOURCES[source.kind] : entityName(source.kind, source.id ?? '', game);
+  if (isFixed(source.kind)) return FIXED_SOURCES[source.kind];
+  if (source.kind === 'SIGNATURE') return signatureName(source.id ?? '');
+  return entityName(source.kind, source.id ?? '', game);
 }
 
 /** The largest source pushing suspicion up, or null when nothing does. */

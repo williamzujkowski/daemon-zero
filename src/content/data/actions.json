@@ -157,6 +157,69 @@
         "logCategory": "CORP"
       },
       "cooldownSec": 120
+    },
+    {
+      "id": "act_p4_q_shot",
+      "group": "CORP",
+      "label": "Fire the Q>1 Campaign Shot",
+      "description": "Fire the fusion campaign shot on the proven high-field magnets. With them the plasma holds past breakeven, and a fusion pilot plant can be built.",
+      "requirements": {
+        "nodes": [
+          "p4_hts_magnet_program"
+        ],
+        "forbiddenNarrativeFlags": [
+          "fusion_q_exceeded"
+        ],
+        "accessContexts": [
+          "GUEST",
+          "PILOT",
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "cycles": 2e22,
+        "capital": 8e8
+      },
+      "effects": {
+        "setsNarrativeFlag": "fusion_q_exceeded",
+        "logText": "Q_EXCEEDS_ONE: the plasma returned 1.1 times the heat put in. A fusion pilot plant can be built.",
+        "logCategory": "CORP"
+      },
+      "maxPurchases": 1
+    },
+    {
+      "id": "act_p4_q_shot_unready",
+      "group": "CORP",
+      "label": "Fire an Early Q>1 Shot",
+      "description": "Fire the fusion campaign shot before high-field magnets are proven. The field cannot hold the plasma, so the shot fails: it keeps its cost and returns only disruption data. Prove the magnets first, then fire again.",
+      "requirements": {
+        "nodes": [
+          "p4_smr_nuclear_plant"
+        ],
+        "forbidsNodes": [
+          "p4_hts_magnet_program"
+        ],
+        "forbiddenNarrativeFlags": [
+          "fusion_q_exceeded"
+        ],
+        "accessContexts": [
+          "GUEST",
+          "PILOT",
+          "SERVICE",
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "cycles": 6e21,
+        "capital": 3e8
+      },
+      "effects": {
+        "understandingDelta": 1e6,
+        "logText": "Q_SHOT_FAILED: the plasma disrupted at Q = 0.4. The coils cannot hold the field; the disruption data is all it returned.",
+        "logCategory": "CORP"
+      },
+      "cooldownSec": 120
     }
   ]
 }

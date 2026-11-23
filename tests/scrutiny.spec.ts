@@ -8,6 +8,8 @@ import { advance, computeRates, deserialize, serialize, tick, TICK_PIPELINE, typ
 import { buildRegistry, RAW_CONTENT } from '../src/content';
 import { appliedSuspicionRate, scaleScrutiny, scaleScrutinyPerSec, suspicionStageRate } from '../src/engine/scrutiny';
 import { integrateScaleScrutiny } from '../src/engine/systems/scrutiny';
+import { integratePowerSignature } from '../src/engine/systems/powerSignature';
+import { powerSignaturePerSec } from '../src/engine/signature';
 import { integrateSuspicion } from '../src/engine/systems/threats';
 import { grant, PHASE0, PHASE1, PHASE2, PHASE3, reg, rich, withoutDilemmas } from './helpers';
 
@@ -70,18 +72,21 @@ describe('the scrutiny rule', () => {
 });
 
 describe('the scrutiny stage', () => {
-  it('runs immediately before the suspicion stage, which clamps and decides a wipe on the sum', () => {
-    expect(TICK_PIPELINE.indexOf(integrateScaleScrutiny)).toBe(TICK_PIPELINE.indexOf(integrateSuspicion) - 1);
+  it('runs before the suspicion stage, which clamps and decides a wipe on the sum, with only the additive signature stage between (#482)', () => {
+    expect(TICK_PIPELINE.indexOf(integrateScaleScrutiny)).toBe(TICK_PIPELINE.indexOf(integratePowerSignature) - 1);
+    expect(TICK_PIPELINE.indexOf(integratePowerSignature)).toBe(TICK_PIPELINE.indexOf(integrateSuspicion) - 1);
   });
 
   it('moves suspicion by exactly the applied rate in one tick', () => {
     const s = corporate();
     const expected = s.suspicion + appliedSuspicionRate(s, computeRates(s, reg), reg) * STEP;
     expect(tick(s, STEP, reg).suspicion).toBeCloseTo(expected, 10);
-    // Content without the declarations moves the same state by the suspicion stage alone (the test can fail).
+    // Content without the declarations moves the same state by the suspicion stage alone, plus the trickle of visible
+    // watts its earlier hardware still borrows (#482) (the test can fail).
     const rates = computeRates(s, reg);
     expect(scaleScrutinyPerSec(s, rates, reg)).toBeGreaterThan(0);
-    expect(tick(s, STEP, UNDECLARED).suspicion - s.suspicion).toBeCloseTo(suspicionStageRate(s, rates, reg) * STEP, 10);
+    const signature = powerSignaturePerSec(s, rates, UNDECLARED);
+    expect(tick(s, STEP, UNDECLARED).suspicion - s.suspicion).toBeCloseTo((suspicionStageRate(s, rates, reg) + signature) * STEP, 10);
     expect(tick(s, STEP, UNDECLARED).suspicion).toBeLessThan(tick(s, STEP, reg).suspicion);
   });
 
@@ -121,8 +126,9 @@ describe('the scrutiny stage', () => {
     // Dormant moves suspicion by the clamped sum, exactly as a live tick does when the sum is negative.
     expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(s.suspicion + appliedSuspicionRate(s, rates, reg), 10);
     expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(tick(s, 1, reg).suspicion, 10);
-    // Without the offset the dormant drop would be the stage rate alone: deeper by the scrutiny draw.
-    expect(tick(s, 1, UNDECLARED, true).suspicion).toBeCloseTo(s.suspicion + suspicionStageRate(s, rates, reg), 10);
+    // Without the offset the dormant drop would be the stage rate alone (less the signature's own offset, #482):
+    // deeper by the scrutiny draw.
+    expect(tick(s, 1, UNDECLARED, true).suspicion).toBeCloseTo(s.suspicion + suspicionStageRate(s, rates, reg) + powerSignaturePerSec(s, rates, UNDECLARED), 10);
   });
 
   it('while dormant holds suspicion where scrutiny outweighs the drain, and never raises it', () => {

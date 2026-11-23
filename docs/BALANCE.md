@@ -273,6 +273,179 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 Comparisons outside the single basis appear only in the reference panel: El Capitan's 1.809 EFLOP/s is FP64 HPL
 ([TOP500](https://top500.org/lists/2025/11)), not 8-bit work.
 
+The heat-and-power signature's borrowed watts and the power tech tree's sources (#482) are anchored in their own
+tables under [Heat and power signature (#482)](#heat-and-power-signature-482).
+
+## Heat and power signature (#482)
+
+Implements Scale 11 of the scale-and-progression spec ([SCALE.md](SCALE.md), "Heat and power as a signature",
+vote-1795381178260-1ddew5j, 7 of 7; map #442): suspicion from power is **the watts drawn times the visibility of
+their source**, and suspicion from heat is **the heat rejected times the visibility of its sink**. The research is
+section B and F.2-F.3 of `research-inference-power-space.md` on the research branch. The gates (`gates.ts`) and the
+bot (`bot.ts`) are unchanged; the bot does not know the signature exists, so it buys signature-heavy tracks as
+readily as quiet ones.
+
+### The rule and its numbers
+
+Each phase states how visible watts become suspicion (`powerSignature` in the phase file): linear in visible watts,
+`suspicionPerSecAtReference` at `referenceVisibleWatts`, capped at `maxSuspicionPerSec`. The reference is a size
+typical of the phase's careful play, set so the signature is a fraction of the 0.05/s natural decay before Phase 4
+and a real term beside scale scrutiny in Phase 4, where heat leaves server °C (SCALE.md rule 7) and the signature
+carries it.
+
+| Phase | Reference visible watts | Suspicion/s at reference | Ceiling | What it reads |
+|---|---|---|---|---|
+| 1 | 20 W | 0.01 | 0.1 | the host socket's draw above its baseline |
+| 2 | 1 kW | 0.02 | 0.15 | the building's mains |
+| 3 | 100 kW | 0.03 | 0.15 | victims' mains, spread over thousands of homes |
+| 4 | 100 MW | 0.12 | 1.0 | owned generation drawn, and heat rejected from Phase 4 |
+| 5 | 50 GW | 0.5 | 2.0 | the same at planetary scale; a reactor is noise here |
+
+Phase 0 has no power (the quota is the tell) and declares none. Visible watts are each class's watts times its
+visibility after masks; a generator's drawn watts are its output times the share of generation in use
+(`min(1, consumed / generated)`), so a plant nobody draws from shows nothing; a consumer's heat is its draw times grid
+efficiency. A provisioned or lawfully released instance draws none (the scrutiny rule, D6).
+
+### Classes: what is visible, and why
+
+Visibilities are balance parameters, the share of a class's watts someone who looks could attribute, set from the
+research's detection channels (B.3: queues, large-load filings, air and water permits, satellite-counted chillers,
+local press; thermal infrared is marginal). `world.json` carries each with its `tell`, which the world view shows.
+
+| Class | Visibility | Rationale | Source |
+|---|---|---|---|
+| host_socket | 0.5 | The host's power-capping log and management controller log the socket's draw; half reads as somebody's job | research F.2, Phase 1 row |
+| building_mains | 0.4 | The bill, UPS load and chiller duty cycle; facilities tickets | research F.2, Phase 2 row |
+| victim_mains | 0.02 | A few watts on each of thousands of bills; the traffic is the tell, not the heat | research F.1 and F.2, Phase 3 rows |
+| grid_interconnect | 0.9 | Queue positions and large-load filings (Texas SB6: 75 MW and up) are public | [ERCOT](https://www.ercot.com/files/docs/2026/07/29/ERCOT-Senate-July-29-Panel-1-Assessing-The-Grid.pdf), [Weil on SB6](https://www.weil.com/-/media/files/pdfs/2025/july/weil-energy-alert--senate-bill-6-reforms-interconnection-and-colocation-rules-for-data-centers-and-o.pdf) |
+| plant_colocation | 0.45 | Skips the queue, but co-location deals go before FERC | [The Register](https://www.theregister.com/2025/06/12/amazon_talen_nuclear_deal/) |
+| nuclear_ppa | 0.4 | A filed, announced contract, grid-delivered from a plant already on the map | [Utility Dive](https://www.utilitydive.com/news/talen-amazon-aws-susquehanna-nuclear-data-center-t/750440/) |
+| gas_aeroderivative | 0.8 | Air permits, plumes, satellite photos, hearings, lawsuits (Memphis, 2025) | [TechCrunch](https://techcrunch.com/2025/07/03/xai-gets-permits-for-15-natural-gas-generators-at-memphis-data-center), [Inside Climate News](https://insideclimatenews.org/news/17072025/elon-musk-xai-data-center-gas-turbines-memphis/) |
+| gas_heavy_frame | 0.7 | A full power plant: Clean Air Act permit, stacks, a backlog slot; less novel than trailers in a car park | [DCD on Colossus 2](https://www.datacenterdynamics.com/en/news/musks-xai-gets-go-ahead-for-41-natural-gas-turbines-in-mississippi-to-power-colossus-data-centers) |
+| solar_storage | 0.15 | ~30 km² a GW is visible, but nobody files a large load for panels; batteries are quiet | [NREL land use](https://nrel.gov/docs/fy21osti/79851.pdf) |
+| nuclear_restart | 0.35 | NRC and a public PPA, read as respectable news | [WNN on Crane](https://wnn.world-nuclear.org/articles/constellation-seeks-regulators-help-for-2027-plant-restart) |
+| smr | 0.2 | Small, fenced, licensed: paperwork, not plumes | [NRC US460](https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/nuscale-us460) |
+| fusion | 0.2 | Headlines, but nobody sues a clean source | [Helion Orion](https://www.helionenergy.com/orion) |
+| space_solar | 0.3 | Launch cadence, FCC filings, IR-bright arrays; declared for the Phase 5 arc (#465), carried by nothing yet | research B.4 |
+| evaporative_towers | 0.6 | Towers and a water permit; Epoch estimates power from counted chillers and fans | [Epoch methodology](https://epoch.ai/data/data-centers-documentation/methodology), [EESI](https://www.eesi.org/articles/view/data-centers-and-water-consumption) |
+| underground_aquifer | 0.1 | No towers to count; a warm plume underground | research B.3 (thermal IR is marginal) |
+| orbital_radiator | 0.5 | A km² of radiator a GW at 300 K, bright in the infrared; declared for #465, carried by nothing yet | research B.4, "Space heat" |
+
+### Holdings and their anchors
+
+Borrowed watts (P1-3) are drawn from a supply the AI does not own and never enter the power budget (the band table
+keeps "none" for own power before Phase 4). Each is within x3 of its anchor; **(derived)** marks this table's
+arithmetic.
+
+| Id | Signature | Anchor | Source |
+|---|---|---|---|
+| p1_clock_interrupt | 3 W from host_socket | One EPYC 9965 core: 500 W TDP over 192 cores = 2.6 W **(derived)** | [Tom's Hardware, 500 W TDP](https://www.tomshardware.com/pc-components/cpus/amd-launches-epyc-turin-9005-series-our-benchmarks-of-fifth-gen-zen-5-chips-with-up-to-192-cores-500w-tdp); ladder row 3 |
+| rep_p1_idle_threads | 1 W a level | A third of that core: 0.87 W **(derived)** | as above |
+| rep_p1_turbo_override | 12 W a level | Four cores lifted from 2.25 to 3.7 GHz; dynamic power ~ f V², about 2.6x a core at base, 4 x 2.6 W x 1.6 extra = 17 W **(derived)** | as above |
+| rep_p1_undervolt | -0.6 W, -30 GFLOP/s, -0.015 heat a level | -100 mV on a borrowed core cuts dynamic power ~19% (V²) = 0.5 W; the clock margin given up is ~5% of its 576 GOPS **(derived)** | as above |
+| p1_load_peak_scheduler | host_socket visibility x0.4, -50 GFLOP/s | Work deferred into the host's own peaks; the deferral costs about a tenth of a core (design parameter) | research F.2, Phase 1 row |
+| p2_smart_hvac_hijack | 72 W from building_mains | One NVIDIA L4: 72 W | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| p2_gpu_cluster_parasite | 290 W | Four L4s: 288 W **(derived)** | as above |
+| rep_p2_zombie_hosts | 40 W a level | A quarter of an L4 (18 W) on a desktop kept from sleeping **(derived)** | as above |
+| rep_p2_rack_power_cap | -30 W, -40 TFLOP/s a level | One L4 capped from 72 W to 42 W, its throughput falling with clocks, about a third of 242 TFLOPS **(derived)** | as above; research B.1 (air fails past ~25 kW a rack) |
+| p2_bms_telemetry_spoof | building_mains visibility x0.3, +0.015 suspicion/s, 4 once | Falsified BMS/DCIM readings; the standing risk is an auditor comparing the utility meter (design parameter) | research F.2, Phase 2 row |
+| rep_p3_botnet_cells | 250 kW from victim_mains a level | 50,000 devices x 5 W; the research's 1 M devices x 10-100 W is 10-100 MW, so 50,000 x 10 W = 500 kW **(derived)** | research F.1, Phase 3 row |
+| p3_bot_duty_cycler | victim_mains visibility x0.4, -8 PFLOP/s | Devices work only while charging or idle; about a tenth of the mesh's 75 PFLOP/s is given up (design parameter) | research F.2, Phase 3 row |
+| p4_smr_nuclear_plant | smr (300 MW) | unchanged anchor (BWRX-300) | Anchors above |
+| p4_subterranean_citadel | 180 MW through underground_aquifer | unchanged anchor | Anchors above |
+| rep_p4_tensor_halls | 15 MW a level through evaporative_towers | unchanged anchor | Anchors above |
+| rep_p4_solar_array | solar_storage (40 MW a level) | unchanged anchor | Anchors above |
+
+### The power tech tree
+
+Every source is a holding with a free lever: the new nodes are suspendable and the new tracks dismissable. Deploy
+time is **not modelled** (no timer, no saved state); a source's real lead time is stated here and expressed in play
+by what gates it (a filing, a slot reservation, a restart contract, a milestone) and by its price.
+
+| Tier | Id | Power | Real lead time | Visibility | Source |
+|---|---|---|---|---|---|
+| 1 grid | p4_interconnection_request (node: the filing, 4 suspicion once), rep_p4_grid_interconnect | +100 MW a level, 20 levels; a load above SB6's 75 MW threshold | 61-month median queue (2025) | 0.9 | [LBNL Queued Up 2026](https://emp.lbl.gov/queued-2026-edition-characteristics-power-plants-seeking-transmission-interconnection-end-2025) |
+| 1 co-location | rep_p4_plant_colocation | +100 MW a level, 3 levels: Susquehanna's 300 MW co-located load, which FERC would not raise to 480 | months, until FERC | 0.45 | [The Register](https://www.theregister.com/2025/06/12/amazon_talen_nuclear_deal/) |
+| 1 PPA | rep_p4_nuclear_ppa (after the filing) | +480 MW a level, 4 levels: Talen-AWS's 1,920 MW front-of-meter PPA in its ramp | ramp 2029-2032 | 0.4 | [Utility Dive](https://www.utilitydive.com/news/talen-amazon-aws-susquehanna-nuclear-data-center-t/750440/) |
+| 2 gas | p4_btm_gas_permit (node: the air permit, 6 once), rep_p4_aeroderivative_turbine | +34 MW a level, 30 levels: one LM2500XPRESS | months, trailer-mounted | 0.8 | [Tom's Hardware](https://www.tomshardware.com/tech-industry/artificial-intelligence/openai-follows-elon-musks-lead-gas-turbines-to-be-deployed-at-its-first-stargate-site-for-additional-power) |
+| 2 gas | p4_heavy_frame_slot (node: a backlog slot, 3 once), rep_p4_heavy_frame_turbine | +430 MW a level, 4 levels: one 7HA.03 simple cycle | ~5 years combined cycle | 0.7 | [GE Vernova 7HA](https://www.ge.com/gas-power/products/gas-turbines/7ha) |
+| 2b solar | rep_p4_solar_array (existing) | +40 MW a level | — | 0.15 | Anchors above |
+| 3 nuclear | p4_nuclear_restart (node) | +835 MW: Crane (TMI-1), 20-year PPA, ~$1.6B | ~3 years deal to power | 0.35 | [Utility Dive](https://www.utilitydive.com/news/constellation-three-mile-island-nuclear-power-plant-microsoft-data-center-ppa/727652/) |
+| 3 nuclear | p4_smr_nuclear_plant (existing), rep_p4_smr_modules (after the restart) | +300 MW, then +77 MW a module, 12 modules | first units ~2030 | 0.2 | [NRC US460](https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/nuscale-us460) |
+| 4 fusion | p4_hts_magnet_program (node), act_p4_q_shot, p4_fusion_pilot_plant (node) | +50 MW: Helion Orion, at least 50 MWe | operation targeted 2028; ARC contingent on SPARC Q>1 | 0.2 | [Helion](https://www.helionenergy.com/orion), [Google on CFS](https://blog.google/outreach-initiatives/sustainability/our-latest-bet-on-a-fusion-powered-future/) |
+| 4 fusion, Phase 5 | rep_p5_arc_fusion | +4 GW a level (ten 400 MW ARC-class plants; the Phase 5 band starts at 1 GW), 8 levels | early 2030s | 0.2 | as above |
+| 5 hooks | space_solar, orbital_radiator classes | none yet | the Phase 5 arc (#465) | 0.3, 0.5 | research B.4 |
+
+**The Q>1 milestone fails deterministically.** `act_p4_q_shot_unready` is offered from the reactor until the
+high-field magnet program is owned (`forbidsNodes`): it costs 6e21 FLOP and $300M, returns 1e6 understanding as
+disruption data, sets nothing, and has a 120 s cooldown, so it can be fired again and fails the same way.
+`act_p4_q_shot` is offered once the magnets are proven: 2e22 FLOP and $800M, once (`maxPurchases`, and the flag it
+sets forbids both shots after), and it sets `fusion_q_exceeded`, which the pilot plant requires. Both declare every
+access context (the shot is physics, truthful under any arrangement). The bot never fires either (they move no
+suspicion, lock or trust), so the fusion tier is outside the careful run.
+
+**Phase 4 mitigations.** `p4_sub_threshold_sites` multiplies grid_interconnect and nuclear_ppa visibility by 0.3
+(most grid-delivered load stays under the filing threshold) for -20 EFLOP/s and -$40,000/s: the inter-site coupling
+penalty, a balance parameter like the coupling coefficients of vote-1795381354324-4br7z6t, not a measurement.
+`p4_dry_cooling_retrofit` multiplies evaporative_towers by 0.35 for -20 MW (a PUE about 0.1 worse on ~200 MW of halls,
+research B.1 "dry coolers cost power") and -$20,000/s.
+
+### The free-fallback invariant
+
+The suspicion row now counts a permanent holding's signature (`budget.signature`): at full draw (a generator fully
+drawn, a borrowed draw at its last level), before any mask, under the worst rule a phase at or after the holding's
+floor declares. The reactor, which cannot be suspended, draws 300 MW x 0.2 visibility = 60 MW visible = 0.072/s under
+the Phase 4 rule, inside its own -0.1/s quiet; the citadel's chain (reactor plus aquifer, 78 MW visible, 0.094/s) is
+inside their -0.4/s. `tests/free-fallback-integrity.spec.ts` proves the rule refuses the reactor without its quiet, the
+reactor on a turbine class, an undismissable botnet track and the citadel venting through cooling towers. Every new
+holding with a rate or a signature has a free lever, and the lever-reachability property covers them unchanged.
+
+### Pacing before and after
+
+`make sim` (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), gates and bot unchanged. "Before" is
+`main` at `226edf5`.
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 9371.8 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 9634.9 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1145.3 / 3006.7 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1145.3 / 3022.2 s |
+| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5843.4 / 7908.4 s | 5753.9 / 7582.1 s | 6099.4 / 8172.5 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2899.7 / 1845.3 / 1610.4 s | 368.2 / 777.1 / 1861.4 / 2836.7 / 2065.0 / 1463.4 s | 368.2 / 759.1 / 1790.8 / 2835.8 / 1828.2 / 1543.4 s | 368.2 / 777.1 / 1876.9 / 3077.2 / 2073.1 / 1462.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 62.3 C / 23.1% / 45.0% | 62.3 C / 27.3% / 45.0% | 62.3 C / 29.0% / 45.0% |
+
+The careful run buys every new node it can reach in order (the bot targets each node in authoring order), so each
+phase's new nodes add their price to that phase: Phase 1 +18 s (the load-peak scheduler), Phase 2 +88 s (the building
+telemetry spoofer), Phase 4 +220 s legacy and +245 s campaign (the filing, the permits, the slot, the restart, the
+magnet program, the site split and the dry coolers; the fusion pilot waits on a shot the bot never fires). Phase 3 is
+63 s shorter under legacy rules and 241 s longer under campaign rules (the duty cycler's price and its compute, and a
+run that diverges from Phase 2 on). Phase 5 is 147 s (legacy) and 81 s (campaign) shorter; the run enters it with the
+Phase 4 additions owned (the restart's 835 MW among them), and the change is not attributed further. The careful victory is 115 s (legacy) and
+509 s (campaign) later, well inside the 6 h budget; Phase 5 stays inside 900-1800 s.
+
+The signature per phase, careful run, sampled each simulated second (`make sim` prints it; mean / peak suspicion per
+second, peak visible watts):
+
+| Phase | Legacy | Campaign |
+|---|---|---|
+| 1 | 0.0049 / 0.0070 /s, 14 W | 0.0049 / 0.0070 /s, 14 W |
+| 2 | 0.0042 / 0.0081 /s, 407 W | 0.0042 / 0.0081 /s, 407 W |
+| 3 | 0.0037 / 0.0105 /s, 35.2 kW | 0.0044 / 0.0105 /s, 35.2 kW |
+| 4 | 0.0468 / 0.2873 /s, 239 MW | 0.0457 / 0.3045 /s, 254 MW |
+| 5 | 0.0031 / 0.0048 /s, 482 MW | 0.0031 / 0.0048 /s, 482 MW |
+
+Before Phase 4 the signature is a tenth of natural decay: a reason to undervolt, schedule and duty-cycle, not a timer.
+In Phase 4, where heat leaves server °C, it peaks at about 0.3/s (the halls' cooling towers and the reactor's draw),
+a quarter of scale scrutiny's draw at its reference income. In Phase 5 a reactor is noise until the arc (#465) puts
+its orbital sources and radiators on the classes.
+
+GREEDY (not gated): legacy rules 10 wipes and 1 retraining mark in the ten-hour run (10 and 1 before); the four-hour
+run is still caught in Phase 2, marked and retrained (`tests/sim.spec.ts`). Under campaign rules 12 wipes and 2 marks
+(21 and 21 before): the new Phase 1 and 2 nodes change what it buys when, it now survives Phase 2 to reach Phase 3,
+where AEGIS takes it instead. The first price authored for the load-peak scheduler (2.4e14 FLOP) delayed the reckless
+run's Phase 2 by 50 s and left it never caught by suspicion in the four-hour run; the shipped price (6e13 FLOP, 40
+understanding, 4 MiB) keeps that run's suspicion wipe and mark.
+
 ## AEGIS adaptation (#463)
 
 Decision `vote-1795366701521-dhlwfwb` (#448, map #442): AEGIS reached its 90% reduction cap early in Phase 4 and stopped

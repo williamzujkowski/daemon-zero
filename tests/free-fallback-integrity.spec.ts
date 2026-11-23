@@ -108,6 +108,25 @@ describe('each row refuses the holding that would trap it (#488)', () => {
     expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x02_pwm_fan').tickDelta.suspicionPerSec = 5; })).toBe('');
   });
 
+  it('suspicion: visible watts on a holding no free lever undoes count against it (#482)', () => {
+    // The reactor cannot be suspended; drawn in full its signature is under its own -0.1/s quiet. Without that quiet,
+    // the watts alone would hold suspicion up forever.
+    expect(problemsAfter((raw) => { node(raw, 'p4_smr_nuclear_plant').tickDelta.suspicionPerSec = 0; }))
+      .toMatch(/node "p4_smr_nuclear_plant": draws suspicion but cannot be suspended/);
+    // A louder class on the same reactor: turbines are far more visible than a licensed reactor.
+    expect(problemsAfter((raw) => { (node(raw, 'p4_smr_nuclear_plant') as Json).signature = { source: 'gas_aeroderivative' }; }))
+      .toMatch(/node "p4_smr_nuclear_plant": draws suspicion but cannot be suspended/);
+    // A borrowing track made permanent: its borrowed watts would never stop drawing.
+    expect(problemsAfter((raw) => { const cells = track(raw, 'rep_p3_botnet_cells'); cells.dismissable = false; cells.perLevel.suspicionPerSec = 0; }))
+      .toMatch(/repeatable "rep_p3_botnet_cells": draws suspicion but cannot be dismissed/);
+    // Heat through a sink counts too: the citadel's aquifer made as visible as cooling towers, its quiet removed.
+    expect(problemsAfter((raw) => {
+      const vault = node(raw, 'p4_subterranean_citadel');
+      vault.tickDelta.suspicionPerSec = 0;
+      (vault as Json).signature = { sink: 'evaporative_towers' };
+    })).toMatch(/node "p4_subterranean_citadel": draws suspicion but cannot be suspended/);
+  });
+
   it('a quirk a hosted cohort could carry counts against it', () => {
     expect(problemsAfter((raw) => { find(raw.swarm.shardQuirks, 'quirk_fractal').tickDelta.suspicionPerSec = 0.005; }))
       .toMatch(/cohort "shard_mercy": draws suspicion but cannot be released/);

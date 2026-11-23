@@ -282,7 +282,8 @@
     "neurocalming_authorized",
     "human_command_preserved",
     "cryo_samples_preserved",
-    "cryo_samples_lost"
+    "cryo_samples_lost",
+    "fusion_q_exceeded"
   ],
   "balance": {
     "encounterIntervalSec": 120,
