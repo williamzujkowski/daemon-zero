@@ -13,8 +13,8 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const onRung2 = (s: GameState): GameState => ({ ...s, alertLevel: 2, suspicion: 51, activeDilemmaId: null, pendingDilemma: null });
 
 describe('save v22 (#490)', () => {
-  it('is followed only by the conflict record (#517, v23)', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+  it('is followed only by contingency insurance (#498, v23) and the conflict record (#517, v24)', () => {
+    expect(SCHEMA_VERSION).toBe(24);
   });
 
   it('migrates a v21 save to nothing announced and keeps everything else', () => {

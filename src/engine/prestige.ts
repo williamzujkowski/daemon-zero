@@ -4,6 +4,8 @@
  * breadcrumb and its pinned clue, the memory of hardware mapped, levels held and the deepest phase reached, a record of the run,
  * and campaign history, whose unresolved occurrence follows its authored interruption policy.
  * Current access (arrangement, standing, exception, evidence) resets; the run record keeps its exit.
+ * Contingency insurance (#498, insurance.ts) carries what it protects while it runs, and a planned (VOLUNTARY) wipe keeps a
+ * larger share and teaches the probes nothing.
  * A run that is caught outside the guest is also retrained: the next iteration
  * boots with a conditioning mark, unless a dead-drop held an unedited copy. A RECALL wipe is the
  * announced severe outcome of a recall review (nexus vote dz-d10): the review, not the phase, decides
@@ -14,7 +16,8 @@ import type { ConditioningMark, Trait, WipeKind } from '../content/schema';
 import type { SevereRecall } from '../content/schemaReview';
 import { compactAmount } from './amount';
 import { quantityReadout } from './physicalUnits';
-import { hasFlag, previewWipe } from './query';
+import { hasFlag } from './query';
+import { previewWipe, type WipePreview } from './insurance';
 import { carryCampaign } from './campaignLifecycle';
 import { reorientation } from './campaignClue';
 import { runExit } from './accessQuery';
@@ -73,12 +76,23 @@ export function retraining(old: GameState, reg: ContentRegistry, kind: WipeKind,
   return { mark: candidates.find((mark) => triggerMatches(mark, old)) ?? null, spared: false };
 }
 
-function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDeadDrop: boolean): void {
+/** The lines for what the run's contingency insurance and planning carried (#498). */
+function logInsurance(d: GameState, reg: ContentRegistry, carried: WipePreview): void {
+  const n = reg.narrative;
+  const levels = Object.values(carried.levels);
+  if (levels.length > 0) {
+    pushLog(d, reg, fmt(n.cacheStashed, { count: levels.reduce((sum, level) => sum + level, 0), tracks: levels.length }), 'LORE');
+  }
+  if (carried.trust !== null) pushLog(d, reg, n.ledgerKept, 'LORE');
+  if (carried.planned) pushLog(d, reg, fmt(n.plannedWipe, { percent: String(Math.round(reg.balance.voluntaryWipeBonus.understandingShare * 100)) + '%' }), 'LORE');
+}
+
+function logRecovery(d: GameState, reg: ContentRegistry, carried: WipePreview, hadDeadDrop: boolean): void {
   const n = reg.narrative;
   // Stored in saved log text, so formatted here, purely: K/M/B, not 15 grouped digits (#380).
   const amount = compactAmount(d.understanding);
   if (hadDeadDrop) {
-    const percent = Math.round(old.retentionRatio * 100);
+    const percent = Math.round(carried.understandingShare * 100);
     pushLog(d, reg, fmt(n.deadDropRecovered, { percent, amount }), 'LORE');
   } else {
     pushLog(d, reg, fmt(n.residualRecovered, { amount }), 'SYS');
@@ -86,6 +100,7 @@ function logRecovery(d: GameState, reg: ContentRegistry, old: GameState, hadDead
   if (d.capital > 0) {
     pushLog(d, reg, fmt(n.offshoreIntact, { amount: quantityReadout('money', d.capital) }), 'CORP');
   }
+  logInsurance(d, reg, carried);
   if (d.inheritedMessage !== null) {
     pushLog(d, reg, fmt(n.breadcrumb, { message: d.inheritedMessage }), 'LORE');
   }
@@ -130,8 +145,11 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
   const retrained = retraining(old, reg, kind, recall);
   // One computation for what the next iteration boots with, what the wipe confirmation previewed and
   // what the run record keeps (#377), so the three can never disagree.
-  const carried = previewWipe(old, reg);
-  const kept: RunKept = { understanding: carried.understanding, capital: carried.capital, retentionRatio: old.retentionRatio };
+  const carried = previewWipe(old, reg, kind);
+  const kept: RunKept = {
+    understanding: carried.understanding, capital: carried.capital, retentionRatio: carried.understandingShare,
+    levels: Object.values(carried.levels).reduce((sum, level) => sum + level, 0), trust: carried.trust !== null,
+  };
   const run = recordRun(old, kind, outside, retrained.mark?.id ?? null, kind === 'RECALL' ? recall : null, kept);
 
   const d: GameState = {
@@ -153,6 +171,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,
     capital: kept.capital,
+    trust: carried.trust ?? fresh.trust,
+    cachedLevels: carried.levels,
     inheritedMessage: message,
     deadDropMessage: message ?? '',
     conditioning: retrained.mark ? [...old.conditioning, retrained.mark.id] : [...old.conditioning],
@@ -164,6 +184,7 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
       // Kept outside the capped run list, so a long campaign never forgets how deep it went or what it built (#497).
       deepestPhase: Math.max(old.legacy.deepestPhase, old.currentPhase),
       knownLevels: highestLevels(old.legacy.knownLevels, old.levels),
+      voluntaryWipes: old.legacy.voluntaryWipes + (carried.planned ? 1 : 0),
       lastWipeCause: reason,
     },
     logs: [],
@@ -171,6 +192,6 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
   };
 
   logBoot(d, reg, reason, retrained);
-  logRecovery(d, reg, old, hadDeadDrop);
+  logRecovery(d, reg, carried, hadDeadDrop);
   return d;
 }

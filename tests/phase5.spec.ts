@@ -30,7 +30,8 @@ describe('post-orbital progression', () => {
       expect(computeRates(s, reg).understandingPerSec - rates.understandingPerSec).toBeCloseTo(node.tickDelta.understandingPerSec);
       expect(unlockNode(s, node.id, reg).ok).toBe(false);
     }
-    expect(s.retentionRatio).toBe(1);
+    // The highest floor any owned node authors (#498 rebalanced them: none is total any more).
+    expect(s.retentionRatio).toBe(Math.max(...s.unlockedNodes.map((id) => reg.nodes.get(id)?.effects.knowledgeRetentionRatio ?? 0)));
     const quiet = { ...s, suspicion: 0 };
     expect(computeRates(quiet, reg).aegisScanPerSec).toBeCloseTo(reg.balance.aegisBaseScanPerSec * .05);
     expect(deserialize(serialize(s), reg)).toEqual(s);

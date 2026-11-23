@@ -23,11 +23,14 @@ import { integrateHostiles } from './systems/hostiles';
 import { integrateRaids } from './systems/raids';
 import { integrateRepair } from './systems/repair';
 import { integrateQuantumMigration } from './systems/quantumMigration';
+import { reinstallCachedLevels } from './systems/cacheRestore';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
 
 /** Order matters. To add a mechanic, write a TickSystem and insert it here. */
 export const TICK_PIPELINE: readonly TickSystem[] = [
+  // First: a level the hardware cache reinstalls (#498) earns from the next tick's rates, as a bought level does.
+  reinstallCachedLevels,
   integrateResources,
   // Beside resources: the pilot's service share fills its work batch (DZ-05). Inert without a pilot.
   integratePilotService,

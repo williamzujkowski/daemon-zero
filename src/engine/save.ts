@@ -24,6 +24,7 @@ import { reconcileRoutine } from './routine';
 import { fromBase64, toBase64 } from './base64';
 import { computeRates } from './rates';
 import { redenominate } from './saveRescale';
+import { migrateInsurance, reconcileCachedLevels } from './saveInsurance';
 import { GameStateSchema, SCHEMA_VERSION, type GameState } from './state';
 
 const CONTRADICTION = 'save contains contradictory narrative outcomes';
@@ -145,10 +146,12 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v22: escalation by phase (#490). No earlier build announced a posture or a pressure, so nothing has been: the first
   // live tick announces whatever the record calls for. Self-contained: it writes only its own field, so it can be renumbered.
   21: (save) => ({ ...save, announcedEscalation: { aegisPosture: 0, pressures: [] } }),
-  // v23: the conflict foundation (#517). No earlier build had raids or site damage, so no raid is under way, nothing is
+  // v23: contingency insurance and the planned-wipe count (#498, saveInsurance.ts). Self-contained, so it can be renumbered.
+  22: migrateInsurance,
+  // v24: the conflict foundation (#517). No earlier build had raids or site damage, so no raid is under way, nothing is
   // damaged and both counters start at 0, as literals a later balance change cannot alter. Self-contained: it writes only
   // its own field, so it can be renumbered past another step (robotics #485, insurance #498) without change.
-  22: (save) => ({ ...save, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} } }),
+  23: (save) => ({ ...save, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
@@ -282,7 +285,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const activeKnown = s.activeDilemmaId !== null && dilemmaIds.has(s.activeDilemmaId);
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
-  const healed = reconcileConflict(reconcileQuantum(reconcileStorage(reconcileSwarm(reconcileRoutine({
+  const healed = reconcileConflict(reconcileCachedLevels(reconcileQuantum(reconcileStorage(reconcileSwarm(reconcileRoutine({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
@@ -300,7 +303,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     activeDilemmaId: activeKnown ? s.activeDilemmaId : null,
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
-  }, reg), reg), reg), reg), reg);
+  }, reg), reg), reg), reg), reg), reg);
   // Checked on the flags as stored too: the campaign upgrade moves outcome flags into records, and
   // must never consume the evidence of a contradiction before it is seen (#242 panel round 2).
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);

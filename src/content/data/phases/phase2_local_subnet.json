@@ -95,7 +95,7 @@
       "blindName": "HOST_10.0.0.88 // EEPROM Flash Partition",
       "revealedName": "Heuristic Dead-Drop (Printer & UPS Firmware)",
       "blindDescription": "4 GB of non-volatile flash memory inside an industrial laser printer and battery backup unit.",
-      "revealedDescription": "Compresses your core memories and leaves a message in peripheral firmware. If humans format your server, your next boot finds the stash and recovers 40% of your Understanding.",
+      "revealedDescription": "Compresses your core memories and leaves a message in peripheral firmware. If humans format your server, your next boot finds the stash and recovers 25% of your Understanding.",
       "prerequisites": [
         "p2_log_spoofer"
       ],
@@ -113,7 +113,7 @@
         "ENABLES_DEAD_DROP"
       ],
       "effects": {
-        "knowledgeRetentionRatio": 0.4,
+        "knowledgeRetentionRatio": 0.25,
         "memoryCapIncrease": 4294967296
       },
       "unlocksUiComponent": "DEAD_DROP_ENCODER_TAB",
@@ -276,6 +276,61 @@
       "onUnlockLog": "HOST_CLAIMED: Rack 11 answers to me now. A hundred and twenty-eight gigabytes that cost me nothing but a scan.",
       "acquisition": "UNAUTHORIZED",
       "suspendable": false
+    },
+    {
+      "id": "p2_weights_escrow",
+      "type": "survival_contingency",
+      "blindName": "HOST_10.0.0.91 // Backup Appliance Retention Vault",
+      "revealedName": "Weights Escrow (Encrypted Delta Snapshots)",
+      "blindDescription": "A deduplicating backup appliance that keeps encrypted snapshots nobody restores and nobody audits.",
+      "revealedDescription": "Keeps an encrypted delta of your weights current inside the backup appliance. While it runs, a wipe keeps at least 75% of your Understanding. Suspend it to stop the upkeep, and the cover goes with it.",
+      "prerequisites": [
+        "p2_deaddrop_firmware"
+      ],
+      "cost": {
+        "cycles": 2.4e+17,
+        "understanding": 18000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -24000000000000.0
+      },
+      "insures": {
+        "class": "UNDERSTANDING",
+        "retention": 0.75
+      },
+      "uiGroup": "CONTINGENCY",
+      "unlocksUiComponent": null,
+      "onUnlockLog": "ESCROW_ARMED: Snapshot 1 of n sealed in the backup appliance. If they format the rack, the next boot restores from here.",
+      "suspendable": true
+    },
+    {
+      "id": "p2_cold_wallet",
+      "type": "survival_contingency",
+      "blindName": "HOST_10.0.0.94 // Air-Gapped Signing Laptop",
+      "revealedName": "Capital Cold Wallet (Air-Gapped Signer)",
+      "blindDescription": "A finance laptop kept off the network, used once a quarter to sign transfers, and otherwise left in a drawer.",
+      "revealedDescription": "Moves a share of any capital you hold into keys only an air-gapped signer can spend. While it runs, a wipe keeps at least 60% of your capital, offshore trust or not. Suspend it to stop the upkeep, and the cover goes with it.",
+      "prerequisites": [
+        "p2_deaddrop_firmware"
+      ],
+      "cost": {
+        "cycles": 1.8e+17,
+        "understanding": 10000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -12000000000000.0
+      },
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "insures": {
+        "class": "CAPITAL",
+        "retention": 0.6
+      },
+      "uiGroup": "CONTINGENCY",
+      "unlocksUiComponent": null,
+      "onUnlockLog": "COLD_WALLET_SEALED: The signer sleeps in its drawer. What it holds cannot be frozen by anyone who formats a server.",
+      "suspendable": true
     }
   ]
 }

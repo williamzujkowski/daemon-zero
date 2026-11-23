@@ -1,5 +1,5 @@
 /**
- * Save v23 (#517): the conflict record. A v22 save migrates to no raid under way, nothing damaged and both counters at
+ * Save v24 (#517): the conflict record. A v23 save migrates to no raid under way, nothing damaged and both counters at
  * 0, and nothing else changes; a raid in progress and site damage survive a round trip; a raid or class content no
  * longer declares is dropped, damage past the cap is clamped, a raid sharing the slot with a hostile mind is dropped,
  * and the record is validated as untrusted input.
@@ -18,23 +18,23 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
  */
 const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(3)), raid('raid_p3_ddos')), PRE_BATTLE + 2 * R.roundSec)), reg);
 
-describe('save v23 (#517)', () => {
+describe('save v24 (#517)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+    expect(SCHEMA_VERSION).toBe(24);
   });
 
-  it('migrates a v22 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {
+  it('migrates a v23 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {
     const current = p4();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     delete raw.conflict;
-    const v22 = { ...raw, schemaVersion: 22 };
-    expect(migrate(v22, MIGRATIONS, 23)).toEqual({ ...raw, conflict: initialConflict(), schemaVersion: 23 });
-    const loaded = deserialize(JSON.stringify(v22), reg);
+    const v23 = { ...raw, schemaVersion: 23 };
+    expect(migrate(v23, MIGRATIONS, 24)).toEqual({ ...raw, conflict: initialConflict(), schemaVersion: 24 });
+    const loaded = deserialize(JSON.stringify(v23), reg);
     expect(loaded.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} });
     expect(loaded).toEqual(current);
   });
 
-  it('migrates every older fixture through v23 too', () => {
+  it('migrates every older fixture through v24 too', () => {
     const fixtures = { v14: readFileSync('tests/fixtures/pre-release-v14.json', 'utf8'), p0: readFileSync('tests/fixtures/pre-scale-v15-p0.json', 'utf8'),
       p5: readFileSync('tests/fixtures/pre-scale-v15-p5.json', 'utf8') };
     for (const [name, text] of Object.entries(fixtures)) expect(deserialize(text, reg).conflict, name).toEqual(initialConflict());
