@@ -137,7 +137,7 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Co
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
     // A fleet (#518) yields what it has not lost, times its autonomy dial's output: compute and understanding alike.
-    const fleet = fleetYield(s, reg, id), understanding = rep.perLevel.understandingPerSec > 0 ? fleet : 1;
+    const fleet = fleetYield(s, reg, id), understanding = fleet !== 1 && rep.perLevel.understandingPerSec > 0 ? fleet : 1;
     const radiator = radiated === null ? 1 : radiatorShareOf(radiated, radiatorSlot(reg, id));
     addDelta(a, rep.perLevel, level, 1, 1, understanding, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id) * fleet * radiator);
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;

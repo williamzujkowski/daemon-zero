@@ -8,9 +8,10 @@ import type { TickSystem } from './types';
 
 export const integrateFleetRebuild: TickSystem = (d, { dt, reg }) => {
   let rate: number | undefined;
-  for (const [id, record] of Object.entries(d.conflict.fleets)) {
-    const unit = fleetUnit(reg, id);
-    if (record.lost <= 0 || unit === undefined || rebuildHeld(d, reg, unit)) continue;
+  // Keys in place of entries: this runs on every tick, and a run with no fleet holds an empty record.
+  for (const id in d.conflict.fleets) {
+    const record = d.conflict.fleets[id], unit = fleetUnit(reg, id);
+    if (record === undefined || record.lost <= 0 || unit === undefined || rebuildHeld(d, reg, unit)) continue;
     rate ??= fleetRebuildPerSec(d, reg);
     setFleet(d, id, { lost: Math.max(0, fleetRecord(d, id).lost - rate * dt) });
   }

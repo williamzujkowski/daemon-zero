@@ -31,6 +31,12 @@ function fleetIndex(reg: ContentRegistry): FleetIndex {
   return found;
 }
 
+/** Whether no fleet has a level running: the drift stage asks on every tick, so this allocates nothing. */
+export function noFleetRuns(s: Pick<GameState, 'levels'>, reg: ContentRegistry): boolean {
+  for (const unit of reg.world.conflict.fleets.units) if ((s.levels[unit.repeatable] ?? 0) > 0) return false;
+  return true;
+}
+
 /** The fleet a track is, if it is one. */
 export function fleetUnit(reg: ContentRegistry, trackId: string): FleetUnit | undefined {
   return fleetIndex(reg).byTrack.get(trackId);
