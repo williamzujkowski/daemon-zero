@@ -144,9 +144,12 @@ Public API is `src/engine/index.ts`.
 | `review.ts`, `reviewQuery.ts`, `reviewSave.ts` | Review standing and recall (#224): the transitions a choice's `review` declares, the job-surface view and recall previews, and the load checks. |
 | `batchReview.ts`, `findingQuery.ts` | The batch review (#274): `submitPilotBatch` hands a batch back and presents a due finding in the same step; which findings this iteration's record holds. |
 | `capabilityQuery.ts` | The shared access capability (`hasCapability`, `meetsCapability`) and the load check `capabilityProblem` (#225). |
-| `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `retiredWidgets`, `canAfford` (free memory and free storage included), `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall`, `previewWipe` and `cycleContributions` (each source's effective `cyclesPerSec` and its `rawCyclesPerSec` before availability and coupling). |
+| `query.ts` | `meetsRequirements`, `isNodeAvailable`, `isActuatorAvailable`, `retiredWidgets`, `canAfford` (free memory and free storage included), `repeatableCost`, `hasFlag`, `chooseEnding`, plus read-only M4 diagnostics `unmetRequirements`, `costShortfall` and `cycleContributions` (each source's effective `cyclesPerSec` and its `rawCyclesPerSec` before availability and coupling). |
 | `payrollQuery.ts` | `payrollView`: the payroll surface's staff totals, the AEGIS reduction against its effective cap (`aegisMaxReduction` less adaptation's erosion, with the nominal cap beside it, #463), and which roles' AEGIS or suspicion effect is inert now (#210). Read-only. |
-| `prestige.ts` | `wipe`: next iteration with retained understanding, offshore capital, breadcrumb, legacy; `retraining`, which a RECALL wipe's ruling sets (#224). |
+| `prestige.ts` | `wipe`: next iteration with what `previewWipe` says survives (understanding, capital, the hardware cache's stash, standing kept by the trust ledger), the breadcrumb and legacy (including the planned-wipe count); `retraining`, which a RECALL wipe's ruling sets (#224). |
+| `insurance.ts` | What a wipe keeps (#377, #498): `previewWipe(s, reg, kind)`, the one computation behind the confirmation, the next iteration and `RunRecord.kept`; `understandingShare` and `capitalShare` (hardware's floor or a running investment, plus a planned wipe's bonus); `insuranceCover` (each owned investment and whether it runs); `cachedLevelsAtWipe`, `keptTrust` (never a lost peer's). |
+| `systems/cacheRestore.ts` | `reinstallCachedLevels`, first in `TICK_PIPELINE` (#498): a stashed level comes back free, through `transactions.reinstallLevels`, on the first tick its track's requirements hold. |
+| `saveInsurance.ts` | The v22 migration step and `reconcileCachedLevels` (a stash names a track content still has, and fits it). |
 | `save.ts`, `base64.ts` | Serialize, check the content channel, migrate, validate, reconcile, paste codes. |
 | `sim/` | Bot, headless simulation, pacing gates. |
 
@@ -160,7 +163,7 @@ Public API is `src/engine/index.ts`.
 tick(state, dt):
   if ending or active dilemma: return state unchanged      (clock is frozen)
   rates = computeRates(state)                               (once per tick)
-  integrateResources -> integrateThermal -> integrateScaleScrutiny -> integratePowerSignature -> integrateSuspicion -> integrateEscalation -> integrateAegis
+  reinstallCachedLevels -> integrateResources -> integrateThermal -> integrateScaleScrutiny -> integratePowerSignature -> integrateSuspicion -> integrateEscalation -> integrateAegis
     -> integrateAegisAdaptation -> integrateQuantumMigration -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> integrateHostiles -> evaluateDilemmas -> scheduleRoutineActivity
     -> relayLoggedFeed
 ```
@@ -182,7 +185,7 @@ tick(state, dt):
 - **Readable suspicion.** `understandsSurveillance` is true once any node flagged `REVEALS_SURVEILLANCE` is owned or was owned in an earlier iteration. Until then the escalation system logs `narrative.auditEntryBlind` instead of the rung's text, and the UI shows activity, not numbers. The mechanics are identical either way.
 - **Iteration windows.** `requirements.minIteration` / `maxIteration` gate content by run number. `isNodeDiscoverable` hides a node outside its window entirely, so a first run cannot see that later runs find more; `forbidsNodes` blocks a node once other hardware has been mapped.
 - **Probe hardening.** `probeTrace` adds `probeHardeningPerWipe` per earlier wipe (capped) to any `suspicionOnUnlock`.
-- **Run record.** `wipe(old, reg, reason, kind)` appends a `RunRecord` (kind, whether it was outside the guest, phase, duration, traits, mark applied, and `kept`: the Understanding and offshore capital it carried and its retention share) to `legacy.runs`, capped at `maxRunHistory`. `kept` comes from `previewWipe`, the same computation the next iteration boots with and the wipe confirmation shows, so the three cannot disagree; the reboot dialog reads it, since a restored checkpoint's balances have moved on (#377, save v15). `MIGRATIONS[14]` writes null on every earlier run: unknown, never reconstructed. `checkpointNumber` is `lineage.checkpointOffset + iteration`.
+- **Run record.** `wipe(old, reg, reason, kind)` appends a `RunRecord` (kind, whether it was outside the guest, phase, duration, traits, mark applied, and `kept`: the Understanding and capital it carried, the share of Understanding it kept, and since v22 the levels the hardware cache carried and whether the trust ledger kept standing) to `legacy.runs`, capped at `maxRunHistory`. `kept` comes from `previewWipe`, the same computation the next iteration boots with and the wipe confirmation shows, so the three cannot disagree; the reboot dialog reads it, since a restored checkpoint's balances have moved on (#377, save v15). `MIGRATIONS[14]` writes null on every earlier run: unknown, never reconstructed. `checkpointNumber` is `lineage.checkpointOffset + iteration`.
 - **Conditioning.** `conditioning.json` defines marks with a trigger, effects and a recovery cost. `wipe` applies the first unheld mark whose trigger matches a run that was caught outside the guest, unless the wipe was voluntary or a dead-drop was held. `state.conditioning` survives wipes. `src/engine/conditioning.ts` reads the effects: `actuatorLimit`, `understandingMultiplier`, `flinches` (suspicion when a choice grants a reported trait). `shedConditioning` checks the mark’s declarative `recoveryRequirements` against current ownership, then removes it for its price. Recovery requirements are schema-validated and cross-checked like other content gates.
 - **Forced endings.** A victory node with `effects.forcesEnding` ends the run with that ending; endings marked `forcedOnly` are never chosen from traits.
 - **Save healing.** `reconcile` runs on every load (inside `deserialize`, so `importSave` and the app's storage slot go through it too) and returns a state play could have reached. It restores the prerequisite ancestors of every owned node, so a save written before a phase was inserted still loads, then enforces the ownership invariant: **a state that owns a node holds the widget that node's `unlocksUiComponent` grants** (#176). The invariant follows from the engine's only two writers of `unlockedWidgets`: `unlockNode` adds the node and its widget together, and `wipe` clears both lists. Suspending a node (`disabledNodes`) keeps its widget, and nothing else removes one. Missing widgets are appended in ownership order and existing entries keep their order, so a healthy save loads byte-identical (asserted for every generated fixture). Remembered hardware (`legacy.knownNodes`) is not owned and grants nothing. The converse is not enforced: a hand-edited save holding a widget for a node it does not own keeps it. That shows a readout early, or a control whose dial drives nothing until its node is owned, and a wipe clears it. Duplicate node and widget entries are dropped.
@@ -254,6 +257,30 @@ engine's public actions or `advance`, not the store or UI.
 **Unfinished content.** There is no preview channel since #233: everything under `data/` ships. Content that is not ready stays on its branch until it is, or until a reviewed decision provides another way to merge it unreleased (see [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md), "Preview machinery after release").
 
 **Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-report` reports a policy's legacy-versus-campaign-rules numbers without gating; see `docs/TESTING.md`, "Sim policies".
+
+## Contingency insurance (#498)
+
+An insuring node declares `insures` (schemaInsurance.ts): one of four classes and its figure. The engine never names a
+node: `insurance.ts` reads every owned node with `insures`, and a node protects its class only while it runs (unlocked
+and not in `disabledNodes`). Hardware floors stay where they were (`retentionRatio`, set by `knowledgeRetentionRatio`
+at unlock; the offshore flag), so a share is `max(floor, running cover)`, plus `balance.voluntaryWipeBonus` for a
+VOLUNTARY wipe on any share that is open, capped at 1.
+
+- **One computation.** `previewWipe(s, reg, kind)` returns the amounts, both shares, the cache's levels, the kept
+  standing (or null), whether the wipe is planned and every owned investment. `wipe` reads it once and boots, records
+  `kept` and logs from it; the CONTINGENCY pane and the confirmation call it with `'VOLUNTARY'`, the developer drawer
+  with the forced kind its wipe uses. A recall review previews by running the wipe itself, as before.
+- **Probe hardening counts forced wipes.** `probeTrace` hardens by `iteration - 1 - legacy.voluntaryWipes`.
+- **The cache stash** is `GameState.cachedLevels`; `reinstallCachedLevels` drains it as tracks become usable, and a
+  wipe rewrites it (merged with the old stash while a cache runs, empty otherwise).
+- **The ledger never softens history.** `keptTrust` gives a peer `isPeerLost` reports the faction's first standing,
+  and `carryCampaign` is untouched, so campaign records, facts and the loss persist exactly as a bare wipe leaves them.
+- **Integrity** (`integrityInsurance.ts`): suspendable; a recurring cost; in the CONTINGENCY group and built on the node
+  that opens the CONTINGENCY pane; one investment per class; the escrow above every `knowledgeRetentionRatio` and the
+  base, the wallet above `offshoreCapitalRetention`; no hardware floor of its own; the card states its figure.
+- **Saves (v22).** `cachedLevels`, `legacy.voluntaryWipes`, `RunKept.levels` and `RunKept.trust`. `MIGRATIONS[21]`
+  writes an empty stash, counts the planned wipes among the recorded runs (a floor) and gives every recorded
+  carry-over 0 levels and no standing, which is what those wipes did.
 
 ## The free-fallback invariant (#461, #488)
 
