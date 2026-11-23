@@ -4,12 +4,18 @@
  */
 import type { ContentRegistry } from './registry';
 import type { Action, Cost } from './schema';
+import type { SiteClass } from './schemaConflict';
 
 type Phases = Pick<ContentRegistry, 'nodes'>;
 
 /** An action's home phase: the latest of its phase floor and the phases of the nodes it needs. Its listed price is priced there. */
 export function actionHomePhase(reg: Phases, action: Action): number {
   return Math.max(action.requirements.phaseAtLeast ?? 0, ...(action.requirements.nodes ?? []).map((id) => reg.nodes.get(id)?.phaseId ?? 0));
+}
+
+/** A site class's repair is priced in the phase its domain opens in (#517), where the first raid can damage it. */
+export function repairHomePhase(reg: Pick<ContentRegistry, 'world'>, cls: SiteClass): number | undefined {
+  return reg.world.conflict.domains.find((domain) => domain.id === cls.domain)?.fromPhase;
 }
 
 /**

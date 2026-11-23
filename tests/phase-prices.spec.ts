@@ -4,8 +4,9 @@
  * scrub and the lobbying blitz never fall to nothing late, and every free answer stays free in every phase (law 7).
  */
 import { describe, expect, it } from 'vitest';
-import { actionCost, choiceCost, epistemicActionView, performAction, type GameState } from '../src/engine';
+import { actionCost, choiceCost, epistemicActionView, performAction, repairCost, repairSite, type GameState } from '../src/engine';
 import { choose, grant, must, onHost, PHASE1, PHASE2, PHASE3, reasonOf, reg, withoutDilemmas } from './helpers';
+import { ready, withHalls } from './conflict-helpers';
 
 const SCRUB = 'act_p2_scrub_audit_logs';
 const BLITZ = 'act_p4_lobbying_blitz';
@@ -68,6 +69,17 @@ describe('prices carried into a later phase (#494)', () => {
     expect(reasonOf(choose({ ...active, cycles: cost.cycles / 2 }, id, choice.id))).toMatch(/afford/);
     // Paid in full; what remains is only what the choice itself returns.
     expect(must(choose(active, id, choice.id)).cycles).toBe(choice.effects.cyclesDelta);
+  });
+
+  it('charges a paid repair after its domain\'s phase the carried price (#517 raids)', () => {
+    const halls = reg.world.conflict.siteClasses.find((cls) => cls.id === 'halls');
+    if (!halls) throw new Error('missing fixture');
+    const hit = (phase: number): GameState => ({ ...withHalls(ready(4)), currentPhase: phase, conflict: { ...ready(4).conflict, damage: { halls: 0.3 } } });
+    // Site raids open in Phase 4: there the listed price; Phase 5 money starts a thousandfold higher.
+    expect(repairCost(hit(4), halls, reg)).toEqual(halls.repair.cost);
+    const late = hit(5);
+    expect(repairCost(late, halls, reg).capital).toBe(halls.repair.cost.capital * 1e3);
+    expect(must(repairSite(late, 'halls', reg)).capital).toBe(late.capital - halls.repair.cost.capital * 1e3);
   });
 
   it('leaves every dilemma a free answer in every phase it can be answered in (law 7)', () => {

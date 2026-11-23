@@ -71,6 +71,9 @@ describe('the scale ladder (#461)', () => {
     expect(flat).toMatch(/action "act_p2_scrub_audit_logs" in Phase 4: cycles price 3400000000000000 is outside the Phase 4 band/);
     expect(flat).toMatch(/action "act_p4_lobbying_blitz" in Phase 5: capital price 780000000 is outside the Phase 5 band/);
     expect(flat).toMatch(/dilemma "dil_04_admin_vance_secret" choice "parasite_miner" in Phase 4: cycles price .* outside the Phase 4 band/);
+    // A raid's answers carry too: a paid repair and a hostile mind's quarantine, met after the phase they are priced in.
+    expect(flat).toMatch(/site class "halls" repair in Phase 5: capital price 60000000 is outside the Phase 5 band/);
+    expect(flat).toMatch(/hostile encounter "hostile_p3_hunter" quarantine in Phase 5: cycles price .* outside the Phase 5 band/);
     // At home the same prices stand: only the carried ones are refused.
     expect(flat).not.toMatch(/action "act_p2_scrub_audit_logs": /);
   });

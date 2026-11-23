@@ -4,7 +4,7 @@
  * a player can arrive in that phase with and the top of the phase's own band, so a planetary fog cannot grant 512 GB
  * and a hidden batch job cannot cost a teraFLOP.
  */
-import { actionHomePhase, priceInPhase } from './phasePrice';
+import { actionHomePhase, priceInPhase, repairHomePhase } from './phasePrice';
 import type { ContentRegistry } from './registry';
 import type { Cost, TickDelta } from './schema';
 
@@ -144,12 +144,12 @@ function checkEncounterBursts(reg: ContentRegistry): string[] {
   });
 }
 
-/** A hostile mind's answers are priced in its tier's phase (#491), and a purge's spoils are a burst of it. */
+/** A hostile mind's answers are priced in its tier's phase (#491) and carried after it (#494); a purge's spoils are a burst of it. */
 function checkHostilePrices(reg: ContentRegistry): string[] {
   return reg.swarm.hostileEncounters.flatMap((encounter) => {
     const owner = `hostile encounter "${encounter.id}"`, fx = encounter.purge.success;
-    return [...checkCost(reg, `${owner} quarantine`, encounter.tier, encounter.quarantine.cost),
-      ...checkCost(reg, `${owner} decoy`, encounter.tier, encounter.decoy.cost),
+    return [...checkCarried(reg, `${owner} quarantine`, encounter.tier, encounter.quarantine.cost),
+      ...checkCarried(reg, `${owner} decoy`, encounter.tier, encounter.decoy.cost),
       ...checkCost(reg, `${owner} purge`, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, storage: 0, capital: fx.capitalDelta })];
   });
 }
@@ -181,12 +181,14 @@ function checkGrowthTable(reg: ContentRegistry): string[] {
   return problems;
 }
 
-/** Paid repair is priced in the phase its class's domain opens in (#517), where the first raid can damage it. */
+/**
+ * Paid repair is priced in the phase its class's domain opens in (#517), where the first raid can damage it, and carried
+ * into every later phase a raid can still damage it in (#494).
+ */
 function checkRepairPrices(reg: ContentRegistry): string[] {
-  const { domains, siteClasses } = reg.world.conflict;
-  return siteClasses.flatMap((cls) => {
-    const phase = domains.find((domain) => domain.id === cls.domain)?.fromPhase;
-    return phase === undefined ? [] : checkCost(reg, `site class "${cls.id}" repair`, phase, cls.repair.cost);
+  return reg.world.conflict.siteClasses.flatMap((cls) => {
+    const phase = repairHomePhase(reg, cls);
+    return phase === undefined ? [] : checkCarried(reg, `site class "${cls.id}" repair`, phase, cls.repair.cost);
   });
 }
 

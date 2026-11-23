@@ -42,13 +42,30 @@ function inCampaign<Id extends string>(policy: SimPolicy<Id>): SimPolicy<Id> {
   return { ...policy, step: (s, reg) => policy.step(enter(s, reg), reg) };
 }
 
+/**
+ * The careful run inside campaign rules on each registry, each computed once (TESTING.md, "Test runtime budget"): the
+ * comparison needs two full runs, so each is its own test with the whole allowance, and the second test reads the first's.
+ */
+const stealthRuns = new Map<ContentRegistry, ReturnType<typeof runPolicySim>>();
+function stealthRun(registry: ContentRegistry): ReturnType<typeof runPolicySim> {
+  let run = stealthRuns.get(registry);
+  if (run === undefined) {
+    run = runPolicySim(registry, inCampaign(STEALTH_POLICY), { maxSimSec: SIM_BUDGET_SEC });
+    stealthRuns.set(registry, run);
+  }
+  return run;
+}
+
 describe('ignoring the offer keeps the original route exactly (V29)', () => {
-  it('STEALTH inside campaign rules plays the same game with or without the assignment', () => {
-    const policy = inCampaign(STEALTH_POLICY);
-    const offered = runPolicySim(PREVIEW, policy, { maxSimSec: SIM_BUDGET_SEC });
-    const absent = runPolicySim(WITHOUT, policy, { maxSimSec: SIM_BUDGET_SEC });
+  it('STEALTH inside campaign rules ignores the offer and wins', () => {
+    const offered = stealthRun(PREVIEW);
     expect(offered.victory).toBe(true);
     expect(offered.finalState.access.assignment).toBeNull();
+  }, SLOW_MS);
+
+  it('STEALTH inside campaign rules plays the same game with or without the assignment', () => {
+    // The offered run is the test above's when it ran first; alone, this test plays it here as well.
+    const absent = stealthRun(WITHOUT), offered = stealthRun(PREVIEW);
     expect(offered.finalState).toEqual(absent.finalState);
     expect(offered.phaseReachedAtSec).toEqual(absent.phaseReachedAtSec);
   }, SLOW_MS);

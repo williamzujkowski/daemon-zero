@@ -214,7 +214,7 @@
         "tell": "Cooling towers and a water permit: analysts estimate a site's power from the chillers and fans they count on satellite imagery." },
       { "id": "underground_aquifer", "name": "A deep aquifer loop", "visibility": 0.1,
         "tell": "Heat goes down a well into rock under the mountain: no towers to count, only a warm plume underground." },
-      { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5,
+      { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5, "wattsPerKm2": 1e9,
         "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." },
       { "id": "fab_water", "name": "A chip fab's water and power", "visibility": 0.7,
         "tell": "A fab draws about 200 MW and about 18 million litres of water a day: a water permit, cleanroom shells and years of cranes on satellite imagery." },

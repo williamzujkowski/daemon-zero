@@ -9,6 +9,7 @@ import { groupDigits, significant3 } from './amount';
 import { conflictStats, type DomainStats } from './conflictStats';
 import { quantityReadout } from './physicalUnits';
 import { understandsSurveillance } from './query';
+import { repairCost } from './phasePrice';
 import { formatCost } from './queryPresentation';
 import { activeRaidKind, percentOf, raidCombat, raidFootprint, raidRetired } from './raid';
 import { forecastRounds, type RoundOutcome } from './raidForecast';
@@ -44,7 +45,7 @@ function damageText(cls: SiteClass, damage: number, rate: number, held: boolean)
 function classView(s: GameState, reg: ContentRegistry, cls: SiteClass, rate: number): SiteDamageView {
   const damage = classDamage(s, cls.id), held = repairHeld(s, cls.id), unmet = repairUnmet(s, cls.id, reg);
   return { id: cls.id, name: cls.name, damage, held, text: damageText(cls, damage, rate, held),
-    repair: { costLabel: formatCost(cls.repair.cost), points: cls.repair.points, unmet, eligible: unmet.length === 0 } };
+    repair: { costLabel: formatCost(repairCost(s, cls, reg)), points: cls.repair.points, unmet, eligible: unmet.length === 0 } };
 }
 
 /** Whether a domain is shown: open by phase, or carrying damage (which outlasts nothing, but is always repairable where shown). */
