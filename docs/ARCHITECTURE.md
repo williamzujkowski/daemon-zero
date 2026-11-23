@@ -366,7 +366,9 @@ the migrated Phase 2 save was a permanent brownout with the levers of 97d639f an
 **Reachability in the UI** (#488 panel passes 4 and 5). A lever the engine accepts is only free if the player can find
 its control, so every gate on the path to one asks one predicate in `src/ui/purchaseVisibility.ts`:
 `phaseHasLevers(game, phase, scope)` is true while the phase has a card or track to buy in that scope, or holds a level
-the player can release (`shownTracks`: buyable, or `releasable`, a dismissable track with a level). The NETWORK phase
+the player can release (`shownTracks`: buyable, or `releasable`, a dismissable track with a level). The card and track
+rules themselves are engine queries since #540 (`isNodePending`, `shownRepeatables` and `requirementsPermanentlyBlocked`
+in `src/engine/purchaseQuery.ts`), which the UI helpers call and the reading report reads too. The NETWORK phase
 section, the upgrade feed and its "Earlier upgrades" fold, and the track list (`Repeatables`) all use it; CORE and CORP
 have no emptiness gate above the feed. Suspension levers live in PROC, gated by `needsProcessControl` (any node that
 worsens a free-fallback row, read from `worsensAny`, or holds storage, #484); cohort RELEASE lives in the swarm area. Pane tabs and workspace
