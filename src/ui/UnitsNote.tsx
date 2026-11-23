@@ -2,7 +2,8 @@
  * The units note (docs/SCALE.md rule 4, user stories 7-8): what every number in the game counts, said once in a folded
  * reference panel rather than on every card, from the moment the compute readout is known. Static copy; the scale
  * figures are the ladder's cited anchors (BALANCE.md), and El Capitan's FP64 figure is labelled a comparison only. Storage
- * and, once a discounted source is owned, network coupling (#484) are explained here too.
+ * and, once a discounted source is owned, network coupling (#484) are explained here too, and so is the guest's count of stolen
+ * cycles (#526), labelled as the game's accounting assumption it is.
  */
 import ReferencePanel from './ReferencePanel';
 import { Text, View } from './PhaseTheme';
@@ -15,7 +16,9 @@ import { couplingView, type ClassCoupling, type GameState } from '../engine';
 import { SOURCE_CLASS_LABEL } from './networkText';
 
 export const UNITS_NOTE: readonly string[] = [
-  'All compute is counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8), the way accelerators are rated. Memory is in bytes with '
+  'Inside the guest, compute is counted in stolen CPU cycles. Game accounting assumption, not a measurement: a sandboxed scalar job '
+    + 'retires about one operation a cycle, so one cycle counts as one operation, and the same count reads as FLOP from the escape on.',
+  'From the escape on, all compute is counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8), the way accelerators are rated. Memory is in bytes with '
     + 'binary labels (1 KB = 1024 B); power in watts; money in dollars.',
   'Memory is working memory (HBM and DRAM): what you can think with now. Storage is disk, tape and archive, in the same bytes: what you have hoarded. '
     + 'Data you keep running holds storage; suspending it frees that storage.',

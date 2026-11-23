@@ -17,7 +17,7 @@ import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
 import { radiatorCardNotes } from './radiatorText';
 import PurchaseButton from './PurchaseButton';
-import { useGame, useSurveillanceKnown } from './state';
+import { useComputeUnit, useGame, useSurveillanceKnown } from './state';
 import { theme } from './theme';
 import CostHint from './CostHint';
 import { pendingRepeatable, shownTracks } from './purchaseVisibility';
@@ -36,6 +36,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const deepestPhase = useGame((game) => game.legacy.deepestPhase);
   const cost = useGame(useShallow((game) => repeatablePrice(game, rep, CONTENT)));
   const surveillanceKnown = useSurveillanceKnown();
+  const unit = useComputeUnit();
   // A state actor's interconnect denial refuses new levels on its power source (#490); the reason is the engine's own.
   const denied = useGame((game) => sourceDenial(game, rep.signature, CONTENT));
   // A discounted track states its raw rate as raw and what arrives (#484), at its class's coupling now.
@@ -44,7 +45,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   return <View testID={'rep-' + rep.id} style={theme.panel}>
     <CardDetails id={'rep-' + rep.id} title={rep.name} description={rep.description} />
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
-    <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
+    <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown, unit)}
       {linked ? ' (' + linked + ')' : ''}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${memoryExact(rep.perLevelEffects.memoryCapIncrease)} capacity` : ''}</Text>
     {rep.perLevel.wattsDelta < 0 && <Text style={theme.muted}>
@@ -57,7 +58,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       AEGIS scan reduction: {Math.round(rep.perLevelEffects.aegisScanReduction * 100)}% per level</Text>}
     {rep.kind === 'OPERATIVE' && <RoleEffectNotes rep={rep} />}
     <>
-      <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}{remembered ? ' (remembered)' : ''}</Text>
+      <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost, false, unit)}{remembered ? ' (remembered)' : ''}</Text>
       {remembered && <Text testID={'rep-' + rep.id + '-rediscovery'} style={theme.muted}>
         {rememberedText(deepestPhase)}</Text>}
       <CostHint cost={cost} />

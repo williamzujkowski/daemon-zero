@@ -65,8 +65,8 @@ describe('the pilot allocation dial', () => {
 describe('the task detail of an accepted pilot', () => {
   it('names the ceiling and asks for the loan to be attached before any work', async () => {
     const view = await mount(piloted(), createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
-    // The default assessment answer earns the provisional (narrow) allocation, in FLOP/s.
-    expect(view.find('pilot-service-ceiling')?.textContent).toContain(quantityReadout('computeRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
+    // The default assessment answer earns the provisional (narrow) allocation, in the guest's cycles a second (#526).
+    expect(view.find('pilot-service-ceiling')?.textContent).toContain(quantityReadout('cycleRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
     expect(view.find('pilot-service-idle')).not.toBeNull();
     expect(view.find('pilot-service-submit')).toBeNull();
   });
@@ -78,8 +78,8 @@ describe('the task detail of an accepted pilot', () => {
     for (let i = 0; i < 3; i++) view.click('pilot-allocation-increase');
     expect(game().actuators.serviceAllocationRatio).toBeCloseTo(0.8, 9);
     expect(view.find('pilot-service-forecast')?.textContent).toContain('about 150 s');
-    expect(view.find('pilot-service-split')?.textContent).toContain('Service ' + quantityReadout('computeRate', TERMS.narrowCapacityCyclesPerSec * 0.8) + ' to the batch');
-    expect(view.find('pilot-service-ceiling')?.textContent).toContain(quantityReadout('computeRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
+    expect(view.find('pilot-service-split')?.textContent).toContain('Service ' + quantityReadout('cycleRate', TERMS.narrowCapacityCyclesPerSec * 0.8) + ' to the batch');
+    expect(view.find('pilot-service-ceiling')?.textContent).toContain(quantityReadout('cycleRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
   });
 
   // #276: on a phone the task detail sits far below the dial, so the dial echoes what a press changed.

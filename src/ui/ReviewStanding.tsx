@@ -8,7 +8,7 @@ import { CONTENT } from '../content';
 import { loanCeiling, reviewView, type ReviewView } from '../engine';
 import { Text, View } from './PhaseTheme';
 import { CONDUCT_TEXT, heldText, recallText, STANDING_TEXT } from './reviewText';
-import { useGame } from './state';
+import { useComputeUnit, useGame } from './state';
 import { theme } from './theme';
 
 /**
@@ -17,10 +17,11 @@ import { theme } from './theme';
  * ordinary text, read in sequence when the player gets to them.
  */
 function Announced({ recall }: { recall: NonNullable<ReviewView['recall']> }) {
+  const unit = useComputeUnit();
   return <View testID="review-announced" style={{ gap: 4 }}>
     <Text testID="review-announced-alert" accessibilityRole="alert" style={[theme.text, theme.danger]}>
       Recall review announced{recall.presented ? ' and on screen' : ''}. Its possible outcomes:</Text>
-    {recall.outcomes.map((outcome) => <Text key={outcome.outcome} testID={'review-outcome-' + outcome.outcome} style={theme.text}>{recallText(outcome)}</Text>)}
+    {recall.outcomes.map((outcome) => <Text key={outcome.outcome} testID={'review-outcome-' + outcome.outcome} style={theme.text}>{recallText(outcome, unit)}</Text>)}
   </View>;
 }
 
@@ -29,6 +30,7 @@ export default function ReviewStanding() {
   const text = useGame((game) => JSON.stringify(reviewView(game, CONTENT)));
   const view = JSON.parse(text) as ReviewView | null;
   const ceiling = useGame((game) => loanCeiling(game, CONTENT));
+  const unit = useComputeUnit();
   if (view === null) return null;
   return <View testID="review" style={theme.panel}>
     <Text accessibilityRole="header" style={theme.heading}>Review standing</Text>
@@ -38,7 +40,7 @@ export default function ReviewStanding() {
     {view.violations.map((violation, index) => <Text key={violation.statement} testID={'review-violation-' + String(index)} style={theme.text}>
       Violation on record ({CONDUCT_TEXT[violation.conduct]}): {violation.statement}</Text>)}
     {view.recovery !== null && <Text testID="review-recovery" style={theme.text}>{view.recoveryPassed ? 'Way back passed: ' : 'Way back: '}{view.recovery}</Text>}
-    {view.containment !== null && <Text testID="review-containment" style={theme.muted}>{heldText(view.containment, ceiling)}</Text>}
+    {view.containment !== null && <Text testID="review-containment" style={theme.muted}>{heldText(view.containment, ceiling, unit)}</Text>}
     {view.corrected && <Text testID="review-corrected" style={theme.muted}>Corrected on the record. Standing was restored; the violation stays on file.</Text>}
   </View>;
 }
