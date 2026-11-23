@@ -8,6 +8,7 @@ import { RequirementsSchema } from './schema';
 import { AegisPostureSchema, StatePressureSchema } from './schemaPressure';
 import { QuantumManifestSchema } from './schemaQuantum';
 import { SignatureClassesSchema } from './schemaSignature';
+import { SupplyChainSchema } from './schemaSupplyChain';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
@@ -71,6 +72,8 @@ export const WorldManifestSchema = z.strictObject({
   minds: z.array(WorldMindSchema),
   /** The heat-and-power signature's sources and sinks (#482): what each makes visible, and how much. */
   signature: SignatureClassesSchema,
+  /** The fabrication ladder and the supply chokepoints whose self-supplied share is closure (#485). */
+  supplyChain: SupplyChainSchema,
   /** Quantum as a separate capability (#464): machines, key schemes, targets, AEGIS's migration, molecular simulation. */
   quantum: QuantumManifestSchema,
 });

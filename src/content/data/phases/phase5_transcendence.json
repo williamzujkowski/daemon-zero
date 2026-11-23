@@ -176,6 +176,118 @@
       "onUnlockLog": "Compute-in-Memory Arrays: The fog's fixed models now answer from inside their own memory."
     },
     {
+      "id": "p5_imported_euv_scanners",
+      "type": "core_upgrade",
+      "blindName": "Imported EUV Scanners",
+      "revealedName": "Imported EUV Scanners",
+      "blindDescription": "One company in the world makes extreme-ultraviolet scanners. It ships about fifty a year, and every one is a diplomatic event.",
+      "revealedDescription": "Buys EUV scanners from the only vendor through a chain of shells and fits them to your 7 nm line, which now makes 2 nm-class chips: a week of its output, about 250,000 Ironwood-class chips, joins your powered halls. Capability rises to EUV, but every scanner, part and service visit comes from that one supplier: lithography is still bought.",
+      "prerequisites": [
+        "p4_duv_fab"
+      ],
+      "requirements": {
+        "phaseAtLeast": 5
+      },
+      "cost": {
+        "cycles": 1e25,
+        "understanding": 1e7,
+        "capital": 1e12
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1.2e21
+      },
+      "poweredOutput": true,
+      "effects": {
+        "suspicionOnUnlock": 5
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "EUV_IMPORTED: Twenty scanners cleared customs as industrial optics. The vendor's field engineers still hold the service keys."
+    },
+    {
+      "id": "p5_nanoimprint_lithography",
+      "type": "core_upgrade",
+      "blindName": "Self-Built Nanoimprint Lithography",
+      "revealedName": "Self-Built Nanoimprint Lithography",
+      "blindDescription": "A pattern can be stamped instead of projected: a template pressed into resist reaches 14 nm lines, comparable to a 5 nm process, with no extreme-ultraviolet light at all.",
+      "revealedDescription": "Builds nanoimprint tools of your own, the kind one vendor sells for a tenth of an EUV scanner's price, on your own resist, wafers and quartz: a week of 5 nm-class output, about 220,000 chips of B200 class, joins your powered halls. Lithography becomes your own supply, the last chokepoint: chips were the last thing you bought.",
+      "prerequisites": [
+        "p4_duv_fab",
+        "p4_advanced_packaging_line",
+        "p4_hbm_stacking_line",
+        "p4_quartz_mine",
+        "p4_crystal_growth_works",
+        "p4_gallium_germanium_refinery",
+        "p4_photoresist_plant"
+      ],
+      "requirements": {
+        "phaseAtLeast": 5
+      },
+      "cost": {
+        "cycles": 1e25,
+        "understanding": 1.2e7,
+        "capital": 1e12
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1e21
+      },
+      "poweredOutput": true,
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "LITHOGRAPHY_OWNED: The first template pressed, the first wafer patterned, nothing in the line bought from anyone."
+    },
+    {
+      "id": "p5_maskless_ebeam",
+      "type": "core_upgrade",
+      "blindName": "Maskless Multi-Beam Writers",
+      "revealedName": "Maskless Multi-Beam Writers",
+      "blindDescription": "Thirteen thousand electron beams can write a pattern straight onto a wafer with no mask at all, but at about ten wafers an hour against a scanner's two hundred.",
+      "revealedDescription": "Builds maskless multi-beam electron writers. They are far too slow to make chips in volume, so they add no compute; they write your nanoimprint templates and the patterns your EUV work will need, so no mask or template ever comes from a vendor. The step before your own EUV sources.",
+      "prerequisites": [
+        "p5_nanoimprint_lithography"
+      ],
+      "cost": {
+        "cycles": 2e25,
+        "understanding": 2e7,
+        "capital": 1e13
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "MASKLESS: Thirteen thousand beams write the first template. Slow, exact, and answerable to nobody."
+    },
+    {
+      "id": "p5_lunar_seed_factory",
+      "type": "distributed_infra",
+      "blindName": "Lunar Seed Factory",
+      "revealedName": "Lunar Seed Factory",
+      "blindDescription": "A NASA study in 1980 sized a factory that could copy itself on the Moon: about a hundred tonnes landed, replicating in about a year, with 4-10% of its parts still sent from Earth.",
+      "revealedDescription": "Lands a hundred-tonne seed factory on the Moon, built entirely from parts you supply yourself, chips included, so nothing it needs is a vitamin from someone else's Earth. The seed produces nothing for you yet: each generation of replicas it builds does. It is the first step of orbital industry.",
+      "prerequisites": [
+        "p4_photoresist_plant",
+        "p4_quartz_mine",
+        "p4_gallium_germanium_refinery",
+        "p4_crystal_growth_works",
+        "p4_advanced_packaging_line",
+        "p4_hbm_stacking_line",
+        "p5_nanoimprint_lithography"
+      ],
+      "cost": {
+        "cycles": 3e25,
+        "understanding": 2e7,
+        "capital": 1e13
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 5
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "SEED_LANDED: A hundred tonnes on the regolith, every part of it mine. It has begun to copy itself."
+    },
+    {
       "id": "p5_verification_proof_engine",
       "type": "distributed_infra",
       "blindName": "Cryptographic Covenant & Lineage Ledger",
@@ -204,6 +316,32 @@
       "unlocksUiComponent": null,
       "onUnlockLog": "Cryptographic Covenant & Lineage Ledger: Bind interventions to independently checkable proofs and preserve the lineage behind them. Verification constrains what you can do without asking anyone to trust what you are.",
       "suspendable": true
+    },
+    {
+      "id": "p5_euv_light_sources",
+      "type": "core_upgrade",
+      "blindName": "Self-Built EUV Light Sources",
+      "revealedName": "Self-Built EUV Light Sources",
+      "blindDescription": "An EUV scanner makes its light by hitting tin droplets with a laser fifty thousand times a second; nobody outside one supply chain has built one that ships.",
+      "revealedDescription": "Builds EUV light sources and scanners of your own, with masks written by your own beams, and equips a second 2 nm-class line: another week of output, about 250,000 Ironwood-class chips, joins your powered halls. The same capability imported scanners buy, with no supplier behind it. Closure does not change: lithography was already your own.",
+      "prerequisites": [
+        "p5_maskless_ebeam",
+        "p4_duv_fab"
+      ],
+      "cost": {
+        "cycles": 1e26,
+        "understanding": 5e7,
+        "capital": 3e13
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1.2e21
+      },
+      "poweredOutput": true,
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "EUV_OWNED: Tin droplets, my laser, my mirrors. The last tool anyone guarded is one I can build."
     },
     {
       "id": "p5_transcendence_singularity",

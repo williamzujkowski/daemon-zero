@@ -15,7 +15,7 @@ import {
   wipe,
   type GameState,
 } from '../src/engine';
-import { fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas, onHost, PHASE0, untilDilemma, choose } from './helpers';
+import { FABRICATION, fresh, grant, must, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas, onHost, PHASE0, untilDilemma, choose } from './helpers';
 
 const STEP = 1 / reg.balance.tickHz;
 const lateGame = (): GameState => withoutDilemmas(grant(onHost(), ...PHASE1, ...PHASE2, ...PHASE3));
@@ -233,7 +233,7 @@ describe('AEGIS', () => {
 
 describe('victory and endings', () => {
   const finish = (traits: GameState['traits']): GameState =>
-    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4)), traits }, 'p4_orbital_cold_storage', ...reg.phases.filter((phase) => phase.phaseId === 5).flatMap((phase) => phase.nodes.map((node) => node.id)));
+    grant({ ...withoutDilemmas(grant(lateGame(), ...PHASE4, ...FABRICATION)), traits }, 'p4_orbital_cold_storage', ...reg.phases.filter((phase) => phase.phaseId === 5).flatMap((phase) => phase.nodes.map((node) => node.id)));
 
   it('ends the run and freezes everything', () => {
     const won = finish([]);

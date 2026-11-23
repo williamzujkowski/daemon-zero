@@ -281,7 +281,7 @@ branch changes what a purchase shows to the humans:
   per system. `tests/accelerator-tree.spec.ts` holds the two compute gains to at most a quarter of their base, throttles each
   with its base in a shortfall, and holds the cores to no compute, at most the swarm's understanding, and their power
   given back when suspended.
-- **Hooks left, not built.** The ASIC tape-out is made at a contract foundry; fabs of the AI's own are Scale 14 (#485).
+- **Hooks.** The ASIC tape-out is made at a contract foundry; since #485 the AI's own 7 nm line makes the same design ("Robots, drones and fabs (#485)" below).
   Computronium is Phase 6 (#486) and quantum stays a side branch (#464); neither is in the tree.
 
 Where the unchanged careful bot buys them (legacy rules): the AMX kernels after memory compression in Phase 1; the FPGA
@@ -443,6 +443,106 @@ thresholds and the molecular-simulation node are anchored in [Quantum capability
 
 The heat-and-power signature's borrowed watts and the power tech tree's sources (#482) are anchored in their own
 tables under [Heat and power signature (#482)](#heat-and-power-signature-482).
+
+## Robots, drones and fabs (#485)
+
+Implements Scale 14 of the spec ([SCALE.md](SCALE.md#robotics-and-fabrication-vote-1795381358337-jw73j7a), vote
+-1795381358337-jw73j7a), from the research branch's `research-inference-power-space.md` section G. The gates
+(`gates.ts`) and the bot (`bot.ts`) are unchanged. Capability and closure are kept apart (DESIGN.md, "Robots, drones
+and the AI's own chip fabs"): the ladder ranks what the AI can make, closure counts the chokepoints it supplies itself.
+
+### The ladder and its prices
+
+Prices are authored for pacing at each phase's exchange rate, as every price since #461 ("How the numbers were
+re-anchored"); the real cost is the context each is read against. Each rung costs roughly an order of magnitude more
+than the one below it. Where the ladder departs from 10x it says why.
+
+| Rung | Node | Phase | Game price | Real cost it stands for | Chokepoint |
+|---|---|---|---|---|---|
+| 0. Bought chips | (none: every run's baseline) | - | - | - | - |
+| 1. Own packaging | p4_advanced_packaging_line | 4 | $1B | Amkor's Arizona packaging plant, $2B ([Axios](https://www.axios.com/local/phoenix/2023/11/30/amkor-2-billion-semiconductor-facility-peoria)) | self-supplies advanced packaging |
+| 2. Mature-node fab | p4_mature_node_fab | 4 | $10B (x10) | JASM Kumamoto, 12-28 nm, $8.6B for ~55,000 wafers a month ([Tom's Hardware](https://www.tomshardware.com/tech-industry/tsmcs-first-new-overseas-fab-in-years-begins-to-make-chips-jasm-coming-online)) | imports lithography (DUV scanners) |
+| 3. DUV multipatterning | p4_duv_fab | 4 | $100B (x10) | a 3 nm fab ~$20B, 2 nm $28-34B (research G.3); a DUV-only 7 nm line exposes each critical layer several times, so it is priced at about 3x the leading-edge figure | imports lithography (DUV scanners) |
+| 4. Nanoimprint | p5_nanoimprint_lithography | 5 | $1T (x10) | Canon prices its tool "one digit less" than EUV (research G.4); the game price is Phase 5's exchange, not the tool | self-supplies lithography |
+| 5. Maskless e-beam | p5_maskless_ebeam | 5 | $10T (x10) | MAPPER's 13,000-beam writer, >10 wafers an hour (research G.4) | - |
+| 6. EUV (imported) | p5_imported_euv_scanners | 5 | $1T | NXE:3800E ~$180M, High-NA ~$370-380M, 48 shipped in 2025 (research G.3); buying is the cheap way to the top rung | imports lithography |
+| 6. EUV (self-built) | p5_euv_light_sources | 5 | $30T (x3) | - | - (lithography is already closed) |
+
+The self-built EUV sources are x3 the e-beam writers, not x10: at $100T the unchanged careful bot's Phase 5 measured
+1,836 s on `4f24f1e`, over the 1,800 s gate. The Phase 4 rungs cost the careful run about 8 minutes (the DUV line is the wait).
+
+The six Earth-side self-supply nodes are one-off plants: the packaging line, the HBM stacking line ($4B; SK hynix's
+West Lafayette HBM packaging plant is $3.87B, [Tom's Hardware](https://www.tomshardware.com/pc-components/dram/sk-hynix-confirms-it-will-bring-next-gen-hbm-manufacturing-to-the-us-dollar387-billion-memory-fab-to-be-built-in-indiana)),
+the quartz mine ($2B), the crystal and wafer works ($4B), the gallium and germanium refinery ($2B) and the photoresist
+plant ($3B). They have no running cost and cannot be suspended, so owning one is supplying it (integrity holds every
+self-supply node to that); each leaves a trace of 1 or 2 when taken, as permits do. The lunar seed costs $10T. All
+prices sit inside their phase's money band (`integrityScale.ts`).
+
+### Classes: what the new holdings make visible
+
+| Sink | Visibility | Why |
+|---|---|---|
+| A chip fab's water and power (`fab_water`) | 0.7 | Research G.8 rates a fab the loudest step: ~200 MW, ~18 million litres of water a day, 2-3 years of satellite-visible construction. As visible as a heavy-frame plant (0.7); below aeroderivative turbines (0.8), because a fab is subsidised, respectable industry rather than a plume in a lawsuit. Water reclamation (65% recycled at TSMC Arizona, [Axios](https://www.axios.com/local/phoenix/2025/08/27/tsmc-industrial-water-reclamation-plant-phoenix)) masks it to 0.35x. |
+| Robot fleet depots (`fleet_depots`) | 0.3 | "Low per unit, medium as fleets (FAA waivers, import records)" (G.8): a little above solar (0.15), well below anything filed as a large load. |
+| Autonomous mines (`open_pit_mines`) | 0.3 | "Medium (permits, but remote)" (G.8). |
+
+### Anchors
+
+| Id | Game value | Anchor | Execution mode | Source |
+|---|---|---|---|---|
+| p4_mature_node_fab | -200 MW, fab-water sink, no compute | ~200 MW per advanced fab (Taipower), 200-600 MW in all; a mature fab makes controllers, network chips, power electronics and robot brains, not accelerators, so it claims no compute | - | research G.3 ([Environment+Energy Leader](https://environmentenergyleader.com/stories/taiwan-is-guaranteeing-chipmakers-power-not-just-land,132620)) |
+| p4_duv_fab | 100 EFLOP/s, -270 MW | ~360,000 TPU v4-class ASICs (7 nm; TSMC's N7 is DUV-only) at 275 TOPS INT8 = 99 EOPS **(derived)**, at their 192 W measured maximum = 69 MW, plus ~200 MW for the fab. 360,000 chips is about a week of a 20,000-wafer-a-month line at ~70 good dies a wafer (**design parameter**: a fab's output is a stock, counted once as the first run of chips) | ASIC INT8 (no FP8) | [Google Cloud TPU v4](https://cloud.google.com/tpu/docs/v4), research G.3 |
+| p5_imported_euv_scanners | 1.2 ZFLOP/s, powered | ~250,000 Ironwood-class chips at 4,614 TFLOPS FP8 = 1.15 ZFLOP/s **(derived)**: a week of a 50,000-wafer-a-month 2 nm line (IBS, research G.3) at ~20 good dies (**design parameter**). Their ~270 MW (an Ironwood pod is ~10 MW for 9,216 chips) is under Phase 5's 1 GW power floor, so the gain declares `poweredOutput`: throttled in a shortfall with the line it is fitted to | ASIC FP8 dense | [Google Ironwood](https://blog.google/products/google-cloud/ironwood-tpu-age-of-inference/), research G.3 |
+| p5_nanoimprint_lithography | 1.0 ZFLOP/s, powered | ~220,000 B200-class chips at 4.5 PFLOP/s dense FP8 = 0.99 ZFLOP/s **(derived)**; nanoimprint reaches 14 nm lines, "comparable to 5 nm" (Canon), the B200's class; same line and week as above | GPU FP8 dense | [Canon](https://global.canon/en/news/2024/20240926.html), [Lenovo B200](https://lenovopress.lenovo.com/LP2226) |
+| p5_maskless_ebeam | no compute | MAPPER's 13,000 beams target >10 wafers an hour against ~200 for an EUV scanner: too slow for volume, so it writes templates and masks and claims nothing | - | research G.4 |
+| p5_euv_light_sources | 1.2 ZFLOP/s, powered | as the imported scanners: a second 2 nm-class line | ASIC FP8 dense | as above |
+| rep_p4_drone_fleet | 1 EFLOP/s, 200 understanding/s, -1 MW a level | 1,000 drone docks at the DJI Dock 2's 1,000 W maximum input = 1 MW; the compute and understanding are a courier round's (op_gig_courier row above), which the drones carry instead | GPU FP8 dense | [DJI Dock 2](https://enterprise.dji.com/dock-2/specs), research G.2 |
+| rep_p4_humanoid_crews | 19 EFLOP/s, -1.15 MW a level | 2,500 Figure 03-class humanoids at 2.3 kWh per ~5 h = 460 W each on average = 1.15 MW **(derived)**; the compute kept running is a perimeter team's (op_pmc_security row above) | GPU FP8 dense | [Figure 03](https://figure.ai/news/introducing-figure-03) (vendor), research G.1 |
+| rep_p4_autonomous_haul | +$2M/s, -10 MW a level | 10 battery-electric 930E-class haul trucks (2,014 kW gross, at about half on average = 10 MW); Komatsu's >750 driverless trucks hauled >10 bn t by July 2024, ~0.053 t/s a truck over 16 years **(derived)**, so 0.53 t/s of iron ore at $104/t (IMF, 2025 average) = $55/s, x the 42,700 time compression = $2.35M/s gross, $2M/s net of upkeep | - | [Komatsu 930E-5](https://www.komatsu.com/en-us/products/equipment/trucks/electric-drive-mining-trucks/930e-5.html), research G.2, [FRED](https://fred.stlouisfed.org/series/PIORECRUSDA) |
+| rep_p5_lunar_replicators | +100 GW a level | A grown seed's ~1 Mt a year (NASA CP-2255) made into arrays at ~1 kg/m² and ~200 W/m² (lunar sunlight 1,361 W/m² at ~15%), halved by the lunar night: 1e9 m² x 200 W x 0.5 = 100 GW **(derived; areal density and efficiency are design parameters)** | - | [NASA CP-2255](https://ntrs.nasa.gov/citations/19830007081), [Freitas](https://www.rfreitas.com/Astro/GrowingLunarFactory1981.htm) |
+
+### Invariants
+
+- **Free fallback.** Every fab that draws power is a suspendable node (power, upkeep and the fab-water term stop with
+  it); the reclamation plant is suspendable; the fleets and lunar generations are dismissable tracks. The self-supply
+  plants, the lithography rungs and the seed are hardware with no worsening rate: the plants and the seed have none at
+  all, and the lithography rungs add only compute, through powered hardware. `make validate` holds every row.
+- **Lever reachability.** Every new suspend and release lever renders where its kind already does (the process panel,
+  the infrastructure feed's release rows); `tests/ui-lever-reachability.spec.ts` passes on the phase 4 and 5 saves.
+- **Bands.** Yields, draws and prices sit in their phase's band; the Phase 5 lithography gains are at least 1 ZFLOP/s
+  because the band starts there.
+- **No content ids in the engine.** `supplyChain.ts` reads the chokepoints, ladder and seed from `world.json`.
+- **State pressure (#490).** With the interconnect moratorium in force a fab can still be bought and runs on owned
+  generation, while new grid interconnects are refused; fabs stay suspendable and fleets dismissable under pressure
+  (`tests/supply-chain.spec.ts`). The careful run never reaches rung 1, so the merge with #490 (`19e1de3`) left every
+  figure below unchanged.
+
+### Pacing before and after
+
+Where the unchanged careful bot buys them (legacy rules): the packaging and HBM lines, the mature-node fab, water
+reclamation and the four other plants right after the dry-cooling retrofit, then the DUV line six minutes later, then
+40 drone levels, 10 humanoid crews and 7 haul levels across late Phase 4; in Phase 5 the imported scanners,
+nanoimprint, the e-beam writers and the seed after the compute-in-memory arrays, and the self-built EUV sources after the
+proof engine. The fab-water sink lifts the Phase 4 signature (mean 0.065 -> 0.163/s, peak 0.376 -> 0.709/s); peak
+suspicion is unchanged at 24.0%.
+
+`make sim` before (`main` at `5cd1934`, with #464's quantum nodes) and after, measured on the merged code, gates and bot
+unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 8970.8 s | Lineage Covenant, 9590.8 s | Lineage Covenant, 9192.5 s | Lineage Covenant, 9728.5 s |
+| Phase 1 / 2 / 3 / 4 reached | 368.2 / 1032.3 / 2842.9 / 5668.6 s | identical | 368.2 / 1032.3 / 2843.0 / 5840.1 s | identical |
+| Phase 5 reached | 7410.4 s | 7896.4 s | 7544.1 s | 8009.1 s |
+| Phase 4 / Phase 5 duration | 1741.8 / 1560.4 s | 2227.8 / 1694.4 s | 1704.0 / 1648.4 s | 2169.0 / 1719.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
+| Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.0% | unchanged | 64.2 C / 24.0% / 45.0% | unchanged |
+
+Phase 4 grows about 8 minutes (29 -> 37 min) and Phase 5 about two minutes; Phase 5 stays under the 1,800 s gate
+(1,694 s and 1,719 s, the campaign run 81 s inside it). Before the merge with #464 the same content measured Phase 5
+1,600.4 -> 1,667.4 s (campaign 1,635.4 -> 1,689.4 s) against `4f24f1e`. The original composition moves the same way
+(victory 9006.1 -> 9553.1 s, Phase 5 1662.4 -> 1709.4 s). GREEDY (not gated) still never reaches Phase 4, so the
+reckless pins in `tests/sim.spec.ts` did not move: 23 wipes under legacy rules, 21 under campaign rules.
 
 ## Storage and network (#484)
 

@@ -215,8 +215,43 @@
       { "id": "underground_aquifer", "name": "A deep aquifer loop", "visibility": 0.1,
         "tell": "Heat goes down a well into rock under the mountain: no towers to count, only a warm plume underground." },
       { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5,
-        "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." }
+        "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." },
+      { "id": "fab_water", "name": "A chip fab's water and power", "visibility": 0.7,
+        "tell": "A fab draws about 200 MW and about 18 million litres of water a day: a water permit, cleanroom shells and years of cranes on satellite imagery." },
+      { "id": "fleet_depots", "name": "Robot fleet depots", "visibility": 0.3,
+        "tell": "Quiet one machine at a time, visible as a fleet: charging depots on the meter, import records and FAA waivers for flights beyond line of sight." },
+      { "id": "open_pit_mines", "name": "Autonomous mines", "visibility": 0.3,
+        "tell": "A mining permit and a pit visible from orbit, but remote: autonomous haul runs where few people live to notice it." }
     ]
+  },
+  "supplyChain": {
+    "ladder": [
+      { "label": "Bought chips", "nodes": [] },
+      { "label": "Own packaging", "nodes": ["p4_advanced_packaging_line"] },
+      { "label": "Mature-node fab (28 nm class)", "nodes": ["p4_mature_node_fab"] },
+      { "label": "DUV multipatterning (7 nm class)", "nodes": ["p4_duv_fab"] },
+      { "label": "Nanoimprint (5 nm class)", "nodes": ["p5_nanoimprint_lithography"] },
+      { "label": "Maskless e-beam", "nodes": ["p5_maskless_ebeam"] },
+      { "label": "EUV (2 nm class)", "nodes": ["p5_imported_euv_scanners", "p5_euv_light_sources"] }
+    ],
+    "chokepoints": [
+      { "id": "photoresist", "name": "Photoresist", "selfSupplyNode": "p4_photoresist_plant",
+        "tell": "Japan holds about 85-95% of EUV photoresist." },
+      { "id": "high_purity_quartz", "name": "High-purity quartz", "selfSupplyNode": "p4_quartz_mine",
+        "tell": "Spruce Pine, North Carolina, supplies an estimated 70-90% of crucible quartz; Hurricane Helene shut it in 2024 against two or three months of stock." },
+      { "id": "gallium_germanium", "name": "Gallium and germanium", "selfSupplyNode": "p4_gallium_germanium_refinery",
+        "tell": "China makes 99% of primary gallium and leads germanium, and has licensed and banned both for export since 2023." },
+      { "id": "wafers", "name": "Silicon wafers", "selfSupplyNode": "p4_crystal_growth_works",
+        "tell": "Wafers start as silicon metal, 4.0 of the world's 4.6 Mt of it made in China, grown into crystals in quartz crucibles." },
+      { "id": "advanced_packaging", "name": "Advanced packaging", "selfSupplyNode": "p4_advanced_packaging_line",
+        "tell": "TSMC's CoWoS lines, about 70,000 wafers a month in 2025, are the queue every accelerator waits in." },
+      { "id": "hbm", "name": "High-bandwidth memory", "selfSupplyNode": "p4_hbm_stacking_line",
+        "tell": "Three vendors make all HBM: SK hynix 57%, Samsung 22% and Micron 21% (Q3 2025)." },
+      { "id": "lithography", "name": "Lithography", "selfSupplyNode": "p5_nanoimprint_lithography",
+        "importedBy": ["p4_mature_node_fab", "p4_duv_fab", "p5_imported_euv_scanners"],
+        "tell": "ASML is the only EUV vendor, and recognised 48 systems in 2025; getting one is a geopolitical event." }
+    ],
+    "seedNode": "p5_lunar_seed_factory"
   },
   "quantum": {
     "machines": [

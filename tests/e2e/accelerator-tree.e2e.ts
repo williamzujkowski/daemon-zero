@@ -3,14 +3,30 @@
  * stealth branch's FPGA implants and the edge harvest are disclosed once the botnet is held, and the SmartNIC residency
  * only after the implants; in the corporation the in-path firmware, the ASIC tape-out and the photonic fabric are
  * disclosed, and the ASIC pods track only once the tape-out is owned. The review saves own the whole tree, so each
- * test takes the branch's cards back out of the save to meet them as a player does.
+ * test takes the branch's cards back out of the save to meet them as a player does, with what is built on them (the
+ * fab ladder of #485 rests on the tape-out).
  */
 import type { Page } from '@playwright/test';
+import { CONTENT } from '../../src/content';
 import type { GameState } from '../../src/engine';
 import { boot, dismissBoot, expect, press, test } from './helpers';
 
-const without = (...ids: string[]) => (game: GameState): GameState =>
-  ({ ...game, unlockedNodes: game.unlockedNodes.filter((id) => !ids.includes(id)), disabledNodes: game.disabledNodes.filter((id) => !ids.includes(id)) });
+/** The nodes and every node built on them: a save that owns a node is restored with its ancestors (save.ts withAncestors). */
+function withDescendants(ids: readonly string[]): string[] {
+  const out = new Set(ids);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const node of CONTENT.nodes.values()) {
+      if (!out.has(node.id) && node.prerequisites.some((id) => out.has(id))) { out.add(node.id); grew = true; }
+    }
+  }
+  return [...out];
+}
+
+const without = (...taken: string[]) => (game: GameState): GameState => {
+  const ids = withDescendants(taken);
+  return { ...game, unlockedNodes: game.unlockedNodes.filter((id) => !ids.includes(id)), disabledNodes: game.disabledNodes.filter((id) => !ids.includes(id)) };
+};
 
 async function work(page: Page, slot: 'NETWORK' | 'CORP'): Promise<void> {
   await dismissBoot(page);
