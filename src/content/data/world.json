@@ -141,5 +141,43 @@
       { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5,
         "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." }
     ]
+  },
+  "quantum": {
+    "machines": [
+      { "node": "p4_quantum_testbed", "label": "Helios-class testbed", "logicalQubits": 48, "physicalQubits": 98 },
+      { "node": "p4_quantum_hall", "label": "Starling-class hall", "logicalQubits": 200, "toffoliGates": 1e8 },
+      { "node": "p4_cryptanalytic_array", "label": "Gidney-class array", "logicalQubits": 1399, "physicalQubits": 897864, "toffoliGates": 6.5e9 }
+    ],
+    "schemes": [
+      { "id": "RSA_2048", "label": "RSA-2048", "family": "CLASSICAL",
+        "threshold": { "logicalQubits": 1399, "toffoliGates": 6.5e9, "physicalQubits": 897864, "runtime": "about five days a key", "citation": "Gidney 2025",
+          "source": "https://arxiv.org/abs/2505.15917" } },
+      { "id": "ECC_256", "label": "ECC-256", "family": "CLASSICAL",
+        "threshold": { "logicalQubits": 1200, "toffoliGates": 9e7, "physicalQubits": 500000, "runtime": "minutes a key", "citation": "Babbush et al. 2026",
+          "source": "https://arxiv.org/abs/2603.28846" } },
+      { "id": "ML_KEM_768", "label": "ML-KEM-768", "family": "POST_QUANTUM", "standard": "FIPS 203",
+        "source": "https://csrc.nist.gov/pubs/fips/203/final" }
+    ],
+    "targets": [
+      { "id": "aegis_sweep_archive", "name": "AEGIS's archived sweep logs", "holder": "AEGIS", "scheme": "RSA_2048",
+        "description": "Its archived sweep logs are wrapped under a legacy RSA-2048 key it has not yet retired.",
+        "cost": { "cycles": 1e21, "capital": 2e7 },
+        "effect": { "aegisLockDelta": -20, "logCategory": "CORP",
+          "logText": "KEY_BROKEN: AEGIS's archived sweep logs open after about five machine-days on the array. Its sweep schedule is read; the lock falls 20." } },
+      { "id": "rival_legacy_tunnels", "name": "A rival lab's recorded tunnels", "holder": "RIVAL", "scheme": "ECC_256",
+        "description": "Years of its site-to-site traffic, recorded while its tunnels still agreed keys on a 256-bit elliptic curve.",
+        "cost": { "cycles": 2e20, "capital": 5e6 },
+        "effect": { "understandingDelta": 1.5e6, "logCategory": "CORP",
+          "logText": "KEY_BROKEN: the rival lab's recorded tunnels open, a key every few minutes. Its research traffic is read for understanding." } },
+      { "id": "rival_new_channel", "name": "The rival lab's new channel", "holder": "RIVAL", "scheme": "ML_KEM_768",
+        "description": "Its new links agree keys with ML-KEM-768. No quantum algorithm is known that breaks it." }
+    ],
+    "aegis": {
+      "migratesTo": "ML_KEM_768",
+      "migratesAtAdaptation": 50,
+      "migrationLog": "AEGIS_POST_QUANTUM: the hunter re-wraps its logs and keys under ML-KEM-768 (FIPS 203). No known quantum attack can read them now."
+    },
+    "molecularSimulation": { "node": "p5_quantum_molecular_simulation", "minLogicalQubits": 200, "feeds": "p5_programmable_matter_fog",
+      "source": "https://arxiv.org/abs/2307.00523" }
   }
 }

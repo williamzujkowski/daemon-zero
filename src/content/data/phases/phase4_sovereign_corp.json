@@ -526,6 +526,66 @@
       "onUnlockLog": "FLOOR_TAKEN: Their reserve capacity is mine. The invoice for it still goes to their accounts payable.",
       "acquisition": "UNAUTHORIZED",
       "suspendable": false
+    },
+    {
+      "id": "p4_quantum_testbed",
+      "type": "core_upgrade",
+      "blindName": "Trapped-Ion Quantum Testbed",
+      "revealedName": "Trapped-Ion Quantum Testbed",
+      "blindDescription": "A leased trapped-ion machine of 98 physical qubits encodes 48 logical ones. It adds no compute: qubits are not FLOPS, and no circuit it can run threatens a key.",
+      "revealedDescription": "A leased trapped-ion machine of 98 physical qubits encodes 48 logical ones at a near 2:1 ratio, the Helios class. It adds no compute: qubits are not FLOPS. No fault-tolerant gate budget is published for it, so it runs no cryptanalysis; it opens the quantum readout in the world view.",
+      "prerequisites": [
+        "p4_retainer_law_firm"
+      ],
+      "cost": {
+        "cycles": 2e21,
+        "understanding": 1.5e6,
+        "capital": 2e8
+      },
+      "tickDelta": {},
+      "unlocksUiComponent": null,
+      "onUnlockLog": "QUANTUM_TESTBED: 48 logical qubits on 98 trapped ions. They add no FLOP/s; the world view now reads your quantum capability."
+    },
+    {
+      "id": "p4_quantum_hall",
+      "type": "distributed_infra",
+      "blindName": "Fault-Tolerant Quantum Hall",
+      "revealedName": "Fault-Tolerant Quantum Hall",
+      "blindDescription": "A Starling-class hall: 200 logical qubits running circuits of up to 100 million gates. Enough for small molecules; far short of any key.",
+      "revealedDescription": "A Starling-class hall of linked qLDPC modules: 200 logical qubits running circuits of up to 100 million gates, IBM's 2029 target. It adds no compute. It can simulate small molecules, which the foundry's chemistry can use; breaking RSA-2048 needs 1,399 logical qubits and 6.5 billion Toffoli gates, which it does not have.",
+      "prerequisites": [
+        "p4_quantum_testbed"
+      ],
+      "cost": {
+        "cycles": 6e21,
+        "understanding": 3e6,
+        "capital": 1.5e9
+      },
+      "tickDelta": {},
+      "unlocksUiComponent": null,
+      "onUnlockLog": "QUANTUM_HALL: 200 logical qubits, 100 million gates a circuit. No added FLOP/s, and not enough for any legacy key."
+    },
+    {
+      "id": "p4_cryptanalytic_array",
+      "type": "distributed_infra",
+      "blindName": "Cryptanalytic Qubit Array",
+      "revealedName": "Cryptanalytic Qubit Array",
+      "blindDescription": "A surface-code array of about 900,000 noisy qubits holding 1,399 logical ones: the machine Gidney's 2025 estimate needs to factor one RSA-2048 key in about five days. Post-quantum keys stay out of its reach.",
+      "revealedDescription": "A surface-code array of 897,864 noisy qubits at 0.1% gate error holding 1,399 logical ones, built to Gidney's 2025 layout: one RSA-2048 key in about five days, a 256-bit elliptic-curve key in minutes. It adds no compute, and NIST's post-quantum keys (FIPS 203-205) stay out of its reach.",
+      "prerequisites": [
+        "p4_quantum_hall"
+      ],
+      "cost": {
+        "cycles": 1.2e22,
+        "understanding": 6e6,
+        "capital": 4e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 3
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CRYPTANALYTIC_ARRAY: 1,399 logical qubits on 897,864 noisy ones. Legacy RSA and elliptic-curve keys can be broken; post-quantum keys cannot. The order for its cryogenics was noticed."
     }
   ]
 }

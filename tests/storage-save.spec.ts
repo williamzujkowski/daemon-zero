@@ -16,8 +16,8 @@ const withLexicon = (): GameState => {
 };
 
 describe('save v20 (#484)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(20);
+  it('is followed only by the quantum record (#464, v21)', () => {
+    expect(SCHEMA_VERSION).toBe(21);
   });
 
   it('migrates a v19 save to the v20 literals, then derives storage from ownership on load', () => {

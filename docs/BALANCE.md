@@ -438,6 +438,9 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 Comparisons outside the single basis appear only in the reference panel: El Capitan's 1.809 EFLOP/s is FP64 HPL
 ([TOP500](https://top500.org/lists/2025/11)), not 8-bit work.
 
+Quantum machines (#464) yield no compute, power or memory, so they have no row here; their qubit counts, the key-breaking
+thresholds and the molecular-simulation node are anchored in [Quantum capability (#464)](#quantum-capability-464).
+
 The heat-and-power signature's borrowed watts and the power tech tree's sources (#482) are anchored in their own
 tables under [Heat and power signature (#482)](#heat-and-power-signature-482).
 
@@ -888,6 +891,82 @@ hostile, and each iteration meets the same hunter swarm first, but the three-mem
 wipes, so the steady loop repeats every three iterations (boots 1,498 / 1,465 / 1,498 s apart; each three-iteration span
 within 1 s of the others). Its steady-loop check compares boots one loop apart, three iterations, with the same 5 s
 tolerance; it is still unmarked returns from Phase 3, never trapped in early wipes.
+
+## Quantum capability (#464)
+
+Implements Scale 7 of the spec ([SCALE.md](SCALE.md), vote-1795366921778-pgd8u3l and the Contrarian seat's correction;
+map #442): quantum is a logical-qubit capability, never FLOPS ([DESIGN](DESIGN.md#quantum-as-a-separate-capability-464)).
+All numbers are in `world.json` under `quantum` and on the four nodes; integrity (`integrityQuantum.ts`) refuses a machine
+node with any rate, so no number here can become compute. The gates (`gates.ts`) and the bot are unchanged.
+
+**Machines.** Each is one node; the readout shows the largest owned machine, because logical qubits on separate machines
+never join one circuit.
+
+| Node | Logical qubits | Physical qubits | Gate budget a circuit | Anchor | Source |
+|---|---:|---:|---:|---|---|
+| p4_quantum_testbed | 48 | 98 | none published, so no cryptanalysis | Quantinuum Helios (Nov 2025): 98 trapped-ion qubits encoding 48 error-corrected logical qubits at a near 2:1 ratio, 99.921% two-qubit fidelity | [HPCwire](https://www.hpcwire.com/2025/11/05/quantinuum-introduces-helios-quantum-system-as-roadmap-advances-toward-apollo/), [arXiv:2511.05465](https://arxiv.org/abs/2511.05465) |
+| p4_quantum_hall | 200 | not published | 1e8 (IBM counts gates; used as an upper bound on Toffolis) | IBM Starling (2029 target): 200 logical qubits running 100 million gates on qLDPC codes **(vendor)** | [IBM](https://www.ibm.com/quantum/blog/large-scale-ftqc) |
+| p4_cryptanalytic_array | 1,399 | 897,864 | 6.5e9 Toffoli | Gidney 2025's own layout for RSA-2048: 1,399 logical qubits (Table 5; under 1,600 with idle hot patches), 6.5 billion Toffolis, 897,864 noisy qubits rounded up to a million, 0.1% gate error, 1 µs surface-code cycle, 10 µs reaction time, 4.96 days a key | [arXiv:2505.15917](https://arxiv.org/abs/2505.15917) |
+
+Context, not machines in the game: Google Willow (Dec 2024) has 105 physical qubits and showed surface-code memory
+below threshold (distance 3 -> 5 -> 7 roughly halved the logical error each step), not yet logical gates
+([Google](https://blog.google/technology/research/google-willow-quantum-chip/)); IBM Blue Jay (about 2033) targets about
+2,000 logical qubits running a billion gates ([IBM](https://www.ibm.com/quantum/blog/large-scale-ftqc)). A Blue Jay-class
+machine has the qubits for RSA-2048 but not the gate budget, which `tests/quantum.spec.ts` proves the threshold refuses.
+
+**Thresholds** are each paper's own; a machine meets one when it has at least its logical qubits and runs at least its
+Toffoli count in one circuit. Physical qubits and runtime are shown for honesty and not gated on.
+
+| Scheme | Logical qubits | Toffoli gates | Noisy physical qubits | Runtime | Source |
+|---|---:|---:|---:|---|---|
+| RSA-2048 | 1,399 | 6.5e9 | 897,864 (under a million) | about five days a key (4.96) | [Gidney 2025, arXiv:2505.15917](https://arxiv.org/abs/2505.15917) |
+| ECC-256 (256-bit elliptic-curve discrete log) | 1,200 | 9e7 | under 500,000 | minutes a key | [Babbush, Zalcman, Gidney et al. 2026, arXiv:2603.28846](https://arxiv.org/abs/2603.28846) (the paper's other point: under 1,450 logical qubits and 70 million Toffolis) |
+| ML-KEM-768 | none | none | none | never | NIST [FIPS 203](https://csrc.nist.gov/pubs/fips/203/final); with FIPS 204 (ML-DSA) and 205 (SLH-DSA), approved 13 Aug 2024 ([NIST](https://csrc.nist.gov/news/2024/postquantum-cryptography-fips-approved)) |
+
+Only the array meets either legacy scheme; the hall's 200 logical qubits meet neither, and no copy says they do (the
+Contrarian seat's correction: Starling's 200 logical qubits and Gidney's sub-million estimate are different claims).
+
+**Targets.** Each is broken at most once an iteration; prices sit in the Phase 4 band, the phase of the array that can
+break them (`integrityScale.ts`). The effects are one bounded reading each (integrity refuses compute, money, memory,
+heat, trust, traits, flags or a fall in suspicion).
+
+| Target | Holder | Scheme | Price | Effect |
+|---|---|---|---|---|
+| aegis_sweep_archive | AEGIS | RSA-2048, then ML-KEM-768 once AEGIS migrates | 1 ZFLOP, $20M (five days of the array and its classical decoding) | AEGIS lock -20, once; AEGIS migrates at once |
+| rival_legacy_tunnels | rival lab | ECC-256 | 200 EFLOP, $5M | +1,500,000 understanding (about a quarter of the array's own price in understanding) |
+| rival_new_channel | rival lab | ML-KEM-768 | none: always refused | none |
+
+**AEGIS's migration.** `quantum.aegis.migratesAtAdaptation` 50: the top of key rotation (`aegisAdaptation.keyRotationCeiling`),
+so a hunter that has finished rotating its keys re-keys them post-quantum. The careful run's AEGIS reaches 64.1 in Phase 4
+(59.3 under campaign rules), so it migrates there, before the bot owns the array.
+
+**Prices of the machines** are authored inside the Phase 4 band (no vendor publishes a price): testbed 2 ZFLOP, 1.5 M
+understanding, $200M; hall 6 ZFLOP, 3 M, $1.5B; array 12 ZFLOP, 6 M, $4B and a trace of 3 suspicion once (the order for
+its cryogenics is noticed). None draws modelled power: today's systems draw tens of kilowatts, under the Phase 4 power
+band's 1 MW floor, and no wattage is published for a fault-tolerant machine.
+
+**Molecular simulation** (`p5_quantum_molecular_simulation`, after the foundry and the hall): +30,000 understanding/s, no
+compute, no power; 5 YFLOP, 8 M understanding, $1T. Chemistry and materials simulation is the area where quantum
+advantage is most plausible ([Hoefler, Häner and Troyer 2023, arXiv:2307.00523](https://arxiv.org/abs/2307.00523));
+understanding has no physical unit, so only its condition (a 200-logical-qubit machine, the matter path) is anchored. It is
+modest: a quarter of the foundry's 110,000/s and an eighth of the fog's 280,000/s.
+
+**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), before (main at 4f24f1e, with storage and
+network coupling, #484) and after, same bot and budget. The unchanged bot buys the three machines and the molecular node it
+reaches in order and never breaks a key.
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9010.8 s | Lineage Covenant, 8970.8 s | Lineage Covenant, 9179.5 s | Lineage Covenant, 9192.5 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1032.3 / 2842.9 s | identical | 368.2 / 1032.3 / 2843.0 s | identical |
+| Phase 4 / 5 reached | 5668.6 / 7410.4 s | identical | 5840.1 / 7544.1 s | identical |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
+| Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.0% | identical | 64.2 C / 24.0% / 45.0% | identical |
+
+The machines follow the rest of Phase 4 in content order, so the bot buys them early in Phase 5; AEGIS, whose
+adaptation peaks at 64.1 in Phase 4, has migrated by then. GREEDY never reaches Phase 4 and moved only by the new save
+field. The original game's careful run: phases identical, victory 8956.1 -> 9006.1 s. (Measured first against d16236b,
+before #484 merged: victory 9141.7 -> 9136.7 s, campaign 9166.4 -> 9196.4 s, phases identical.)
 
 ## AEGIS adaptation (#463)
 

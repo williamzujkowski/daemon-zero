@@ -141,6 +141,21 @@ function checkHostilePrices(reg: ContentRegistry): string[] {
   });
 }
 
+/**
+ * Breaking a key is priced in the phase of the earliest machine that meets its scheme's threshold (#464); a target no
+ * machine can break is integrityQuantum's to report.
+ */
+function checkKeyBreakPrices(reg: ContentRegistry): string[] {
+  const { machines, schemes, targets } = reg.world.quantum;
+  return targets.flatMap((target) => {
+    const scheme = schemes.find((entry) => entry.id === target.scheme);
+    if (target.cost === undefined || scheme?.family !== 'CLASSICAL') return [];
+    const phases = machines.filter((machine) => machine.logicalQubits >= scheme.threshold.logicalQubits && (machine.toffoliGates ?? 0) >= scheme.threshold.toffoliGates)
+      .flatMap((machine) => reg.nodes.get(machine.node)?.phaseId ?? []);
+    return phases.length === 0 ? [] : checkCost(reg, `key target "${target.id}"`, Math.min(...phases), target.cost);
+  });
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg)];
+  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg)];
 }

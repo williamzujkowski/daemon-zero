@@ -58,7 +58,8 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     // v18 (#497) added the deepest phase and remembered levels to the legacy record, written by a wipe; not by this.
     // v19 (#491) added the hostile slot, which this transition never writes.
     // v20 (#484) added storage used and capacity, which only node ownership moves; this transition moves none.
-    expect(SCHEMA_VERSION).toBe(20);
+    // v21 (#464) added the quantum record, written only by key-breaking and AEGIS's migration; not by this.
+    expect(SCHEMA_VERSION).toBe(21);
   });
 });
 
