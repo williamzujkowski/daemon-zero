@@ -167,7 +167,7 @@ tick(state, dt):
   rates = computeRates(state)                               (once per tick)
   reinstallCachedLevels -> integrateResources -> integrateThermal -> integrateScaleScrutiny -> integratePowerSignature -> integrateSuspicion -> integrateEscalation
     -> announceEscalationByPhase -> integrateAegis -> integrateAegisAdaptation -> integrateQuantumMigration -> applySwarmTickDeltas
-    -> evaluateShardMutationsAndEncounters -> integrateHostiles -> evaluateDilemmas -> scheduleRoutineActivity
+    -> evaluateShardMutationsAndEncounters -> integrateHostiles -> integrateRaids -> integrateRepair -> evaluateDilemmas -> scheduleRoutineActivity
     -> relayLoggedFeed
 ```
 
@@ -248,7 +248,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v22; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v24; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -432,6 +432,27 @@ carries the purge count; the sim counts arrivals per tick (`SimActivity.hostileA
 Integrity: `integrityHostile.ts` (tier binding, one of each type per phase from `fromPhase`, the hunter ceiling under
 the lock trigger, paid answers that cost, a purge that is a real risk with an exact rate, a decaying trigger rung) and
 `integrityScale.ts` (answer prices and purge spoils in the tier's band).
+
+**Conflict: stats, raids, damage and repair (#517).** Content: `data/conflict.json`, composed into `world.conflict`
+(`schemaConflict.ts`): domains, attack vectors, defense types (soft cap, duty cycle, counters, anchor), site classes
+(`COMPUTE` or `INCOME`, paid repair), holdings (per node or per track level: site class, defense, offense,
+`repairPerSec`), the raid balance and the raid kinds. State: `GameState.conflict` (`conflictState.ts`, v24): the raid
+under way (stage, stage clock, target, force, quiet clock, attribution, resolved rounds), `nextRaidAtSec`, the `raids`
+and `attributions` counters (kept across a wipe) and damage per class. The rules: `conflictStats.ts` (stats summed from
+running holdings, no ledger, indexed once per registry), `raidForecast.ts` (`resolveRound`, `forecastRounds`: one
+function for the tick and the forecast, so the forecast is exact), `raid.ts` (footprint trigger from the signature's
+`visibleWatts`, eligibility, rotation, the four stages, attribution by the exact-ratio counter, lapse, retire, the shared
+slot's spacing on end), `siteDamage.ts` (the one way damage moves: `addDamage` capped, `repairDamage` floored at 0, and
+`intactShare`/`incomeIntact`, which `computeRates` and `cycleContributions` both apply, positive compute and positive net
+income only), `repairActions.ts` (`repairSite`, one gate `repairUnmet` shared with the view, spending through `payCost`)
+and `conflictQuery.ts` (`conflictReadout`, `raidView`). Two stages: `integrateRaids` (`systems/raids.ts`) after the
+hostile stage, so a mind due on the same tick takes the slot first, and `integrateRepair` (`systems/repair.ts`), which
+also runs dormant. The hostile stage's arrival also requires no raid under way. Integrity: `integrityConflict.ts`
+(real holdings and classes, members that yield compute, counters within a domain, tier binding, surveillance, a
+defendable vector, coverage of every open domain in a raided phase, exact attribution, stage clocks on tick steps, a
+signature reference in every raided phase, paid repair that costs), `integrityScale.ts` (repair priced in its domain's
+opening phase) and `integrityFallback.ts` (the divertible rule counts the damage cap against a permanent class member).
+The sim counts raids per tick (`SimActivity.raids`).
 
 ## Content composition and preview saves (#204, #233)
 

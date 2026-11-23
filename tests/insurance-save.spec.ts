@@ -25,8 +25,8 @@ function asV22(s: GameState): Raw {
 }
 
 describe('save v23 (#498)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+  it('is followed only by the conflict record (#517, v24)', () => {
+    expect(SCHEMA_VERSION).toBe(24);
   });
 
   it('migrates a v22 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {
