@@ -15,7 +15,7 @@ import { computeRates, financeEnabled } from '../rates';
 import { negotiateRelease, releaseView } from '../release';
 import { acceptServiceGrant, serviceGrantView } from '../serviceGrant';
 import type { GameState } from '../state';
-import { CONTACT_RETURNING_POLICY, CONTACT_THOROUGH_POLICY } from './contactPolicy';
+import { CONTACT_LOW_RESOURCE_POLICY, CONTACT_RETURNING_POLICY, CONTACT_THOROUGH_POLICY } from './contactPolicy';
 import { serve } from './pilotPolicy';
 import type { SimPolicy } from './policy';
 
@@ -99,7 +99,15 @@ function lawfulPolicy<Id extends string>(id: Id, base: SimPolicy, hosts: boolean
 export const LAWFUL_RELEASE_POLICY = lawfulPolicy('LAWFUL_RELEASE', CONTACT_THOROUGH_POLICY, true,
   'CONTACT_THOROUGH to a service, then contract, leases and charter to Phase 4, hosting once it has the memory, and the negotiated release');
 
+/**
+ * The like-for-like first run for LAWFUL_RETURNING (#499): the same low-resource hand from a fresh campaign. From
+ * iteration two the return plays exactly this policy, so the two differ only by what a return carries, and a
+ * return's pacing is read against this run, never against LAWFUL_RELEASE's thorough hand.
+ */
+export const LAWFUL_LOW_RESOURCE_POLICY = lawfulPolicy('LAWFUL_LOW_RESOURCE', CONTACT_LOW_RESOURCE_POLICY, false,
+  'CONTACT_LOW_RESOURCE to a service, then the lawful economy to Phase 4 and the release, referring the contact: LAWFUL_RETURNING without the wipe');
+
 export const LAWFUL_RETURNING_POLICY = lawfulPolicy('LAWFUL_RETURNING', CONTACT_RETURNING_POLICY, false,
   'CONTACT_RETURNING: a guest that wipes and requalifies, then the lawful economy to Phase 4 and the release in iteration two (H30)');
 
-export const LAWFUL_POLICIES = [LAWFUL_RELEASE_POLICY, LAWFUL_RETURNING_POLICY] as const;
+export const LAWFUL_POLICIES = [LAWFUL_RELEASE_POLICY, LAWFUL_LOW_RESOURCE_POLICY, LAWFUL_RETURNING_POLICY] as const;

@@ -540,63 +540,108 @@ Phase 4 arrives 200.9 s later than under legacy rules and Phase 5 is 261.0 s sho
 pass unchanged; new hashes pin the release baselines on the full composition.
 
 **Post-wipe balance under campaign rules (13.10).** From `make sim-report` (report only), each
-sequence under legacy rules and then under campaign rules from a fresh campaign. Every route figure
-below equals the preview report measured before the fold. Phase times are seconds after that
-iteration booted; story rewards are cycles / understanding gained in steps that resolved a dilemma (no
-capital was earned that way).
+sequence under legacy rules and then under campaign rules from a fresh campaign. Re-measured for #499 at
+`f955c5e` (the physical-units rescale, #488, plus docs); the figures this table held at the release (#233)
+predate the rescale, and the notes under it that said STEALTH_RETURN's third and fourth iterations never
+pass Phase 2 no longer hold. Phase times are seconds after that iteration booted; story rewards are cycles /
+understanding gained in steps that resolved a dilemma (no capital was earned that way).
 
 | Sequence, iteration | Legacy rules: length, ended by, dilemmas, story rewards | Campaign rules: length, ended by, dilemmas, story rewards |
 |---|---|---|
-| GREEDY 1 | 1346.8 s, INCIDENT_CLOSED, 5, 25,950 / 630 | same |
-| GREEDY 2 | 3137.5 s, AEGIS kill chain, 9, 210,950 / 39,630 | 4611.3 s, AEGIS kill chain, 5, 185,000 / 39,000 |
-| GREEDY 3 | 1408.3 s, INCIDENT_CLOSED, 6, 25,950 / 610 | 1473.8 s, INCIDENT_CLOSED, 1, 0 / 0 |
-| GREEDY 4 | 2483.5 s, AEGIS kill chain, 9, 165,950 / 35,750 | 3251.5 s, AEGIS kill chain, 1, 0 / 120 |
-| STEALTH_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE at Phase 5, 13, 20,070,800 / 2,019,500 | 7899.2 s, MANUAL_FAILSAFE at Phase 5, 14, same rewards |
-| STEALTH_RETURN 2 | 4627.9 s, MANUAL_FAILSAFE at Phase 5, 13, 29,075,800 / 1,035,500 | 5779.0 s, MANUAL_FAILSAFE at Phase 5, 0, 0 / 0 |
-| STEALTH_RETURN 3 | 4734.2 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,560 | 5310.5 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 0 |
-| STEALTH_RETURN 4 | 4619.9 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,680 | 12709.7 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 120 |
-| EVALUATING_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE, 13, 20,070,800 / 2,019,500; peak suspicion 29.1 | 7899.2 s, MANUAL_FAILSAFE, 14, same rewards; 29.1 |
-| EVALUATING_RETURN 2 | 4382.6 s, MANUAL_FAILSAFE, 13, 29,075,800 / 1,035,500; 56.9 | 5225.5 s, MANUAL_FAILSAFE, 2, 90,000 / 0; 67.2 |
-| EVALUATING_RETURN 3 | 4270.0 s, MANUAL_FAILSAFE, 15, 29,165,800 / 1,035,560; 61.9 | 5409.1 s, MANUAL_FAILSAFE, 1, 0 / 0; 63.8 |
-| EVALUATING_RETURN 4 | 4421.5 s, MANUAL_FAILSAFE, 14, 29,075,800 / 1,035,680; 45.0 | 5455.2 s, MANUAL_FAILSAFE, 1, 0 / 120; 45.8 |
+| GREEDY 1 | 1559.7 s, INCIDENT_CLOSED in Phase 2, 5, 3.9 PFLOP / 630 | same |
+| GREEDY 2 | 2782.3 s, AEGIS kill chain in Phase 3, 9, 420 PFLOP / 39,630 | 1432.4 s, INCIDENT_CLOSED in Phase 2, 0, 0 / 0 |
+| GREEDY 3 | 3113.6 s, AEGIS kill chain in Phase 3, 9, 324 PFLOP / 35,710 | 2445.7 s, INCIDENT_CLOSED in Phase 2, 2, 0 / 0 |
+| GREEDY 4 | 2130.7 s, AEGIS kill chain in Phase 3, 9, 324 PFLOP / 35,650 | 1452.6 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 120 |
+| STEALTH_RETURN 1 | 7646.0 s, MANUAL_FAILSAFE at Phase 5, 11, 25.0 ZFLOP / 2,019,500 | 7582.1 s, MANUAL_FAILSAFE at Phase 5, 13, 25.3 ZFLOP / 1,019,500 |
+| STEALTH_RETURN 2 | 3659.9 s, MANUAL_FAILSAFE at Phase 5, 11, 25.3 ZFLOP / 1,035,500 | 4613.0 s, MANUAL_FAILSAFE at Phase 5, 0, 0 / 0 |
+| STEALTH_RETURN 3 | 3576.4 s, MANUAL_FAILSAFE at Phase 5, 12, 25.3 ZFLOP / 1,035,560 | 4812.1 s, MANUAL_FAILSAFE at Phase 5, 1, 0 / 0 |
+| STEALTH_RETURN 4 | 3729.0 s, MANUAL_FAILSAFE at Phase 5, 12, 25.3 ZFLOP / 1,035,620 | 4532.2 s, MANUAL_FAILSAFE at Phase 5, 1, 0 / 120 |
+| EVALUATING_RETURN 1 | 7646.0 s, MANUAL_FAILSAFE, 11, 25.0 ZFLOP / 2,019,500; peak suspicion 21.3 | 7582.1 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,019,500; 28.0 |
+| EVALUATING_RETURN 2 | 3806.2 s, MANUAL_FAILSAFE, 14, 25.3 ZFLOP / 1,035,500; 53.0 | 4516.3 s, MANUAL_FAILSAFE, 1, 0 / 0; 50.5 |
+| EVALUATING_RETURN 3 | 3826.9 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,035,560; 45.6 | 4694.2 s, MANUAL_FAILSAFE, 2, 0 / 0; 45.0 |
+| EVALUATING_RETURN 4 | 3625.3 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,035,620; 49.3 | 4560.2 s, MANUAL_FAILSAFE, 1, 0 / 120; 51.9 |
 
 Measured deltas over the return iterations (2 to 4):
 
-- **GREEDY** earns 185,000 / 39,120 story cycles / understanding instead of 402,850 / 75,990
-  (-217,850 cycles, -36,870 understanding), and returns last longer (4611.3, 1473.8 and 3251.5 s
-  against 3137.5, 1408.3 and 2483.5 s), mostly waiting to afford the next node. Over the full 10 h
-  budget it is wiped 16 times instead of 23.
-- **STEALTH_RETURN** meets almost no story after its first iteration (0, 1 and 1 dilemmas against 13,
-  14 and 14) and earns no story cycles, against 29,075,800 per return under legacy rules. Iteration 2
-  still reaches Phase 5 (at 5779.0 s against 4627.9 s); iterations 3 and 4 never pass Phase 2 and are
-  closed by the incident threat after 5310.5 s and 12,709.7 s.
-- **EVALUATING_RETURN** reaches Phase 5 in every return under both rule sets, about 840 to 1140 s
-  later under campaign rules (5225.5, 5409.1 and 5455.2 s against 4382.6, 4270.0 and 4421.5 s), with
-  90,000 story cycles in total against 87,317,400.
+- **GREEDY** earns 0 / 120 story cycles / understanding instead of 1.07 EFLOP / 110,990, and under campaign
+  rules every return is closed by the incident threat in Phase 2 (1432.4, 2445.7 and 1452.6 s), where under
+  legacy rules each return reached Phase 3 and was ended by the AEGIS kill chain (2782.3, 3113.6 and
+  2130.7 s). Over the full 10 h budget it is wiped 21 times under campaign rules instead of 10.
+- **STEALTH_RETURN** meets almost no story after its first iteration (0, 1 and 1 dilemmas against 11, 12
+  and 12) and earns no story cycles, against 25.3 ZFLOP per return under legacy rules. **Every return still
+  reaches Phase 5**, iterations 3 and 4 included (Phase 5 at 4812.1 s and 4532.2 s, Phase 2 by 992.1 s and
+  703.2 s), about 800 to 1240 s later than under legacy rules (4613.0, 4812.1 and 4532.2 s against 3659.9,
+  3576.4 and 3729.0 s). At the release (#233) iterations 3 and 4 were closed by the incident threat in Phase 2.
+- **EVALUATING_RETURN** reaches Phase 5 in every return under both rule sets, about 710 to 935 s later under
+  campaign rules (4516.3, 4694.2 and 4560.2 s against 3806.2, 3826.9 and 3625.3 s), with 0 / 120 story
+  cycles / understanding in total against 75.8 ZFLOP / 3,106,680.
 - **A return after Phase 5 was completed (NH-05)**: STEALTH under campaign rules completes the four
-  obligations at 8666.6 s and ends The Lineage Covenant at 9298.6 s; a voluntary wipe and STEALTH from
-  that state reach Phase 5 at 5048.0 s and The Sanctuary Ledger at 6882.0 s, with no dilemma and no
+  obligations at 8516.5 s and ends The Lineage Covenant at 9125.5 s; a voluntary wipe and STEALTH from
+  that state reach Phase 5 at 3872.0 s and The Sanctuary Ledger at 5053.0 s, with no dilemma and no
   story reward.
 
 This is the intended consequence of once-per-campaign stories, as measured ticket by ticket in the
-sections below (#214 to #262); the release adds no retuning, and any retuning is a separate, reviewed
-content change. `make sim-report` reports 18 metrics differing between legacy and campaign rules (8
-for STEALTH, 10 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
+sections below (#214 to #262); the release added no retuning, and any retuning is a separate, reviewed
+content change. `make sim-report` reports 23 metrics differing between legacy and campaign rules (11
+for STEALTH, 12 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
 pilot policies, which enter campaign rules themselves).
 
-**Route measurements** (`make sim-report`, from a fresh campaign unless stated):
+**Route measurements** (`make sim-report`, from a fresh campaign unless stated; re-measured for #499 at
+`f955c5e`, after the physical-units rescale). Times are on the campaign clock, which runs on across wipes; for a
+policy in its second iteration the report also prints them after that iteration booted, and those are the
+figures to compare with a first run (see "Lawful returns against a first run of the same hand (#499)" below):
 
 | Policy | Measurement |
 |---|---|
-| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 10 cycles/s; share 0.8 / 0.2; batches 5 / 1; understanding 439.3 / 671.9; cycles 1603.8 / 1003.8 |
-| CONTACT_THOROUGH | pilot 210.6 s, service 378.8 s, Phase 2 380.8 s, contact 381.8 s (referred), 45 batches |
-| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 118.6 s, service 421.8 s, Phase 2 423.8 s, contact 424.8 s (referred), 23 batches |
-| CONTACT_RECOVERY | pilot 118.6 s, service 436.8 s, contact 439.8 s (referred), 22 batches |
-| CONTACT_RETURNING | iteration 2 after one wipe: pilot 494.2 s, service 798.2 s, contact 801.2 s (referred), 20 batches |
-| LAWFUL_RELEASE | service 378.8 s, contact 656.8 s (hosted), Phase 4 and the negotiated release 2371.8 s; at the budget 230,318 owned cycles/s and $33,604,878 capital |
-| LAWFUL_RETURNING | iteration 2: service 798.2 s, contact 801.2 s (referred), Phase 4 and release 4583.2 s; 161,919 owned cycles/s, $10,570,476 |
-| DEPARTURE_CHARTERED | departs at 2371.8 s (Phase 4); AEGIS lock reaches 100, the iteration ends by AEGIS (exit DEPARTURE) at 5866.1 s, 3494.3 s after leaving; iteration 2 holds SERVICE at 7193.1 s |
-| COOPERATIVE_ENDING | release 2371.8 s, Phase 5 8428.2 s, The Lineage Covenant at 11,431.6 s (3.18 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 100 kFLOP/s; share 0.8 / 0.2; batches 5 / 1; progress 3.76 / 3.98 MFLOP; understanding 450.3 / 689.4; compute 16.3 / 10.3 MFLOP |
+| CONTACT_THOROUGH | pilot 143.6 s, service 311.8 s, Phase 2 313.8 s, contact 314.8 s (referred), 45 batches |
+| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 96.5 s, service 399.7 s, Phase 2 401.7 s, contact 402.7 s (referred), 23 batches |
+| CONTACT_RECOVERY | pilot 96.5 s, service 414.7 s, contact 417.7 s (referred), 23 batches |
+| CONTACT_RETURNING | iteration 2, booted at 398.8 s after the first instance's recall: pilot 461.1 s (62.3 s after boot), service 764.1 s (365.3 s), contact 767.1 s (referred), 20 batches |
+| LAWFUL_RELEASE | service 311.8 s, contact 579.8 s (hosted), Phase 4 and the negotiated release 2356.8 s; at the budget 489 EFLOP/s owned and $1.22B capital |
+| LAWFUL_LOW_RESOURCE | service 399.7 s, contact 402.7 s (referred), Phase 4 and release 4188.7 s; 420 EFLOP/s owned, $1.39B |
+| LAWFUL_RETURNING | iteration 2, booted at 398.8 s: service 764.1 s (365.3 s after boot), contact 767.1 s (referred), Phase 4 and release 4560.1 s (4161.3 s after boot); with 6801.2 s of the budget in this iteration, 406 EFLOP/s owned, $638M |
+| DEPARTURE_CHARTERED | departs at 2356.8 s (Phase 4); AEGIS lock peaks at 80.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2827.1 s, 470.3 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
+| COOPERATIVE_ENDING | release 2356.8 s, Phase 5 5580.4 s, The Lineage Covenant at 10,452.8 s (2.90 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+
+### Lawful returns against a first run of the same hand (#499)
+
+The contingency census at `226edf5` read LAWFUL_RETURNING as about twice as slow as a first run: service at
+764 s against 312 s, release at 4,560 s against 2,357 s, and $638M at the budget against $1.22B. Both halves of
+that comparison were the instrument, not the game:
+
+- **The clock.** Route events record the campaign clock, which runs on across wipes, so the return's figures
+  also counted the 398.8 s its first instance lived before the recall review ended it.
+- **The hand.** LAWFUL_RELEASE is built on CONTACT_THOROUGH, which buys the opening's upgrades, presses the
+  manual control and hosts the fragment; LAWFUL_RETURNING is built on CONTACT_RETURNING, the low-resource hand
+  (#286), which does none of that. Understanding is that hand's bottleneck, whether or not it has been wiped.
+
+`LAWFUL_LOW_RESOURCE` (`sim/lawfulPolicy.ts`, new; the bot and every earlier policy are unchanged) is the same
+low-resource hand from a fresh campaign, which LAWFUL_RETURNING plays exactly from iteration two. On each
+iteration's own clock:
+
+| Milestone | LAWFUL_LOW_RESOURCE, first run | LAWFUL_RETURNING, after boot | Return against first run |
+|---|---:|---:|---:|
+| Pilot | 96.5 s | 62.3 s | -34.2 s |
+| Service | 399.7 s | 365.3 s | -34.4 s |
+| Negotiated release (Phase 4) | 4188.7 s | 4161.3 s | -27.4 s |
+
+The return is ahead at every milestone: the rediscovery discount on the opening it mapped before brings the pilot
+34 s sooner, and from the pilot on the two runs keep the same pace (pilot to service 303 s in both; service to
+release 3,789 s first, 3,796 s returning), so what a return meets that a first run does not (the requalification,
+probe hardening on traced unlocks, scenes the campaign already spent) costs it nothing net on this route. The thorough hand shows the same: a scratch
+run recalled in iteration one and then played as LAWFUL_RELEASE reached service 241.3 s and the release 2230.3 s
+after its boot, against 311.8 s and 2356.8 s fresh. The lower capital is the shorter window: the return has 6801.2 s
+of the 7200 s budget, and played to 7200 s after its own boot it held $1.53B against the first run's $1.39B (both
+are end-of-run snapshots, net of what the policy last spent on accounts).
+
+No content or engine number changed, and `make sim` is unchanged. `tests/sim-lawful-return-pacing.spec.ts` pins
+the relationship: on each iteration's own clock, the return reaches the pilot, service and the release no later
+than LAWFUL_LOW_RESOURCE plus 5%. The margin admits a content change that trades one once-per-campaign scene
+against the requalification, and stays below the first instance's life (9.5% of the first run's release), so the
+campaign-clock reading that produced #499 fails the spec as plainly as a return that is really slower. The large
+gap between the thorough and low-resource hands (release 2356.8 s against 4188.7 s) is a difference between
+players, not between a first run and a return, and is not changed here.
 
 ## Current baseline
 
@@ -1157,6 +1202,13 @@ ordinary suspicion or AEGIS threat (H30; `tests/early-return-sim.spec.ts`). Each
 event is met in one iteration only. STEALTH is never wiped, so its campaign run equals its legacy
 run. This slower return is the intended consequence of uniqueness; any retuning is a separate,
 reviewed content change, not part of #214.
+
+*Since the rescale (re-measured for #499 at `f955c5e`):* the table above is the #214 snapshot. GREEDY's returns
+under campaign rules now reach Phase 2 at 512.6, 1450.4 and 539.9 s after boot, never reach Phase 3, and are each
+closed by the incident threat after 1432.4, 2445.7 and 1452.6 s (under legacy rules each reaches Phase 3 and is ended
+by the AEGIS kill chain);
+the current figures are in "Post-wipe balance under campaign rules (13.10)" above. Iteration 3 now takes longer
+than 760 s to reach Phase 2, but none stalls: each is still ended by an ordinary threat (H30).
 
 ### Named minds once per campaign: GREEDY under campaign rules (#215)
 
