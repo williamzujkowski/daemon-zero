@@ -13,6 +13,7 @@ import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
 import { aegisScanMultiplier } from './statePressure';
 import { couplings, deliveredShare, type Couplings } from './coupling';
+import { radiatorShares } from './radiators';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -98,7 +99,10 @@ function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts>
   return facts;
 }
 
-function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings): void {
+/** A holding's radiator share (radiators.ts): what its area-bound sink sheds of its heat, 1 off any such sink. */
+type Radiated = (id: string) => number;
+
+function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings, radiated: Radiated): void {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
   const scope = useScope(s, reg);
   const facts = nodeRateFacts(reg);
@@ -107,21 +111,22 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Coupling
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
     const output = fact ? nodeOutputScaleIn(scope, fact.node) : null;
     if (!fact || output === null) continue;
+    // Compute whose heat leaves through radiators runs at the share they shed (#465), like a link's delivered share.
     addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered,
-      deliveredShare(fact.link, by));
+      deliveredShare(fact.link, by) * radiated(id));
     a.aegisReductionTech = Math.max(a.aegisReductionTech, fact.aegisRatio);
     // financeEnabled() states the same rule for readers outside the tick.
     if (fact.finance) a.financeEnabled = true;
   }
 }
 
-function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings): void {
+function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings, radiated: Radiated): void {
   // Keys in place of entries: this runs on every tick and the levels record holds plain data.
   for (const id of Object.keys(s.levels)) {
     const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
-    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by));
+    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * radiated(id));
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;
     a.aegisReductionStaff += rep.perLevelEffects.aegisScanReduction * level;
   }
@@ -232,18 +237,18 @@ export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
  * explains them (the payroll totals, #210) reads the reduction and multiplier the tick applies.
  */
 export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: AegisReduction; revenueMultiplier: number } {
-  const a = emptyAggregate(), by = couplings(s, reg);
-  addNodes(a, s, reg, by);
-  addRepeatables(a, s, reg, by);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg);
+  addNodes(a, s, reg, by, radiated);
+  addRepeatables(a, s, reg, by, radiated);
   return { aegis: aegisReduction(a, s, reg), revenueMultiplier: a.revenueMultiplier };
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */
 export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const b = reg.balance;
-  const a = emptyAggregate(), by = couplings(s, reg);
-  addNodes(a, s, reg, by);
-  addRepeatables(a, s, reg, by);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg);
+  addNodes(a, s, reg, by, radiated);
+  addRepeatables(a, s, reg, by, radiated);
   for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
   for (const output of actionOutputs(s, reg)) addDelta(a, output.delta, output.count, 1, 1);
 

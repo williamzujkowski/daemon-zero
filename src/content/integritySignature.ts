@@ -47,7 +47,10 @@ function checkShape(c: Carrier): string[] {
   if (borrowedW !== undefined && source === undefined) problems.push(`${c.owner}: a borrowed draw needs the source it is drawn from`);
   if (source !== undefined && borrowedW === undefined && c.delta.wattsDelta <= 0) problems.push(`${c.owner}: signature source on a holding that neither generates power nor borrows it`);
   if (source !== undefined && borrowedW !== undefined && c.delta.wattsDelta !== 0) problems.push(`${c.owner}: a borrowed draw sits outside the power budget, so it cannot also move wattsDelta`);
-  if (sink !== undefined && c.delta.wattsDelta >= 0) problems.push(`${c.owner}: signature sink on a holding that draws no power, so it rejects no heat`);
+  // A radiator (#465) names its sink to deploy area into it, not to reject heat: integrityRadiator.ts checks it.
+  if (sink !== undefined && c.delta.wattsDelta >= 0 && c.signature.radiatorKm2 === undefined) {
+    problems.push(`${c.owner}: signature sink on a holding that draws no power, so it rejects no heat`);
+  }
   return problems;
 }
 
