@@ -2,7 +2,7 @@ import { Text, View } from '../PhaseTheme';
 /**
  * The world view (#463, vote-1795366701521-dhlwfwb): the Other Minds console from its disclosure phase. It extends
  * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust, the
- * state actors and the heat-and-power signature (#482) join the faction panels, which stay the one place a faction is
+ * state actors, the heat-and-power signature (#482) and the quantum capability (#464) join the faction panels, which stay the one place a faction is
  * shown. Every line is read from the engine's world-view queries; a subscription returns strings so a tick redraws only
  * the sentences that changed.
  */
@@ -12,22 +12,16 @@ import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../../app/session';
 import { CONTENT } from '../../content';
 import { aegisPosture, powerSignature, publicTrust, signatureClass, worldView } from '../../engine';
-import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from '../headingLevel';
 import { theme } from '../theme';
 import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import { HostileStatus } from './HostileEncounter';
+import QuantumSection from './QuantumSection';
+import Section from './WorldSection';
 
 const tenth = (value: number): number => Math.round(value * 10) / 10;
 
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  const level = useHeadingLevel() ?? SECTION_LEVEL + 1;
-  return <View testID={id} style={{ gap: 8 }}>
-    <Text accessibilityRole="header" aria-level={level} style={theme.heading}>{title}</Text>
-    <HeadingLevel level={level + 1}>{children}</HeadingLevel>
-  </View>;
-}
 
 function AegisPostureSection() {
   const lines = useStore(gameStore.store, useShallow(({ game }) => {
@@ -114,6 +108,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <PublicTrustSection />
     <StateActorsSection />
     <SignatureSection />
+    <QuantumSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;
 }
