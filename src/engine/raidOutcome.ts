@@ -126,3 +126,17 @@ export function recordOwedHarm(d: GameState, reg: ContentRegistry): void {
     d.campaign = { ...d.campaign, events: { ...d.campaign.events, [scene.id]: { status: 'interrupted', sourceIteration: d.iteration, origin: 'play' } } };
   }
 }
+
+/**
+ * Draft-only, when the run ends (#537 panel pass 2). A victory freezes the clock for good, so a staff-harm scene still in
+ * its omen, or one never reserved, would never be presented and its person would be missing from the ending account. Both
+ * are recorded as interrupted occurrences, so the account names who was harmed with "No answer for it is on record".
+ */
+export function finalizeHarmAtRunEnd(d: GameState, reg: ContentRegistry): void {
+  const pending = reg.dilemmas.find((dilemma) => dilemma.id === d.pendingDilemma?.id);
+  if (pending?.trigger.lastRaid?.staffHarm !== undefined && campaignRecord(d, pending.id)?.status === 'foreshadowed') {
+    d.campaign = { ...d.campaign, events: { ...d.campaign.events, [pending.id]: { status: 'interrupted', sourceIteration: d.iteration, origin: 'play' } } };
+    d.pendingDilemma = null;
+  }
+  recordOwedHarm(d, reg);
+}

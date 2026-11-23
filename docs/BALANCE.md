@@ -1491,7 +1491,7 @@ more of it. The unit specs reach both scenes, the fallback once one is on record
 follow: with the KILLED scene on record a breach of 80% or more hurts the technician instead, and with both on record a
 raid harms no one the story names, so more defense never brings harm on and the panel's lines are exact. A harm whose
 scene has no record yet (another decision held the slot) is recorded as an interrupted occurrence before the next battle
-replaces the record and at a wipe; the careful run never needs that path. Only a rival's battle is answered or harms
+replaces the record, at a wipe and at the end of the run (#537 panel pass 2); the careful run never needs that path. Only a rival's battle is answered or harms
 staff: a drift deviant (#518) is the player's own fleet.
 
 ## Escalation by phase (#490)

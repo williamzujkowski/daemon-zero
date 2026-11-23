@@ -1024,8 +1024,8 @@ everyone safe. The harm is decided once, when the battle's last round lands, amo
 come: once Joseph Mensah's death is on record, a breach of 80% or more hurts the technician instead, so more defense always
 means less harm and the panel's lines are exactly what a battle does; with both on record a raid harms no one the story
 names. Only a rival's raid harms anyone or is answered: a drift deviant (#518) is the player's own fleet, and the
-player's machines never harm a human by an automatic rule. The harm is on record whatever else is happening: if another decision holds the slot and a wipe or the next
-battle comes first, the scene is recorded as interrupted, and the ending account says the person was harmed and that
+player's machines never harm a human by an automatic rule. The harm is on record whatever else is happening: if another decision holds the slot and a wipe, the next
+battle or the end of the run (a victory freezes the clock for good) comes first, the scene is recorded as interrupted, and the ending account says the person was harmed and that
 the answer is not on record. They are people the company hired through an agency and a security contractor; neither was ever told
 who they work for. The existing named humans (Miller, Elena, Vance) work at the original facility, not at the AI's own
 sites, and several later scenes depend on where they are, so they are not reused here. Each harm is its own scene, once

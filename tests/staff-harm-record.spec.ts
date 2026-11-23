@@ -14,6 +14,9 @@ import { defined } from './m7-helpers';
 import { choose, must, rich } from './helpers';
 import { campaignReady, fought, guarded, HURT, KILLED, NAMED } from './retaliation-helpers';
 import { lastRaidOf } from '../src/engine/raidOutcome';
+import { unlockNode } from '../src/engine';
+import { own } from './minds-helpers';
+import { finalNode } from './obligation-helpers';
 
 const accountText = (id: string): string => defined(preview.routeCopy.account.find((line) => line.id === id)).text;
 /** A Phase 4 site with `guards` on the campaign record `campaign` (fresh when omitted); only `keep` can present. */
@@ -102,5 +105,38 @@ describe('only a rival is answered or harms anyone', () => {
     const s = site(0);
     expect(lastRaidOf(s, preview, deviant, true, [round, round])).toMatchObject({ named: false, harm: null });
     expect(lastRaidOf(s, preview, rival, true, [round, round])).toMatchObject({ named: true, harm: 'KILLED' });
+  });
+});
+
+describe('a victory before the harm is answered still names the person (#537 panel pass 2)', () => {
+  const FINAL = finalNode(preview);
+  /** Buys the final protocol through the public action; every obligation is complete in the campaign setup. */
+  const win = (s: GameState): GameState => must(unlockNode(own(s, ...FINAL.prerequisites), FINAL.id, preview));
+
+  it('the harm scene still in its omen when the run is won: recorded unanswered, named in the ending account', () => {
+    let omen = breakIn(site(0));
+    for (let i = 0; i < 20 && omen.pendingDilemma === null; i++) omen = tick(omen, STEP, preview);
+    expect(omen.pendingDilemma?.id).toBe(KILLED);
+    expect(campaignRecord(omen, KILLED)?.status).toBe('foreshadowed');
+    const ended = win(omen);
+    expect(ended.ending).not.toBeNull();
+    expect(ended.pendingDilemma).toBeNull();
+    expect(campaignRecord(ended, KILLED)?.status).toBe('interrupted');
+    expect(endingAccount(ended, preview)).toContain(accountText('acct_staff_joseph_unanswered'));
+  });
+
+  it('a harm no scene was reserved for when the run is won: recorded unanswered, named in the ending account', () => {
+    const fought = breakIn(site(0));
+    expect(campaignRecord(fought, KILLED)).toBeNull();
+    const ended = win(fought);
+    expect(campaignRecord(ended, KILLED)?.status).toBe('interrupted');
+    expect(endingAccount(ended, preview)).toContain(accountText('acct_staff_joseph_unanswered'));
+  });
+
+  it('an answered harm is left as answered, and a run with no harm names no one', () => {
+    const answered = win(answer(breakIn(site(0)), KILLED, 'tell_his_family'));
+    expect(campaignRecord(answered, KILLED)).toMatchObject({ status: 'resolved', outcome: 'tell_his_family' });
+    expect(endingAccount(answered, preview)).toContain(accountText('acct_staff_joseph_told'));
+    expect(endingAccount(win(site(14)), preview).join(' ')).not.toMatch(/Mensah|Kowalczyk/);
   });
 });

@@ -523,7 +523,8 @@ the fleet's phase). The sim counts battles, deviants and peak losses (`SimActivi
 the bands a scene can still follow, `openStaffBands`) when a battle closes (a rival's only: a drift deviant is the player's own fleet, so it is never answered and harms
 no one); a wipe clears it. A harm whose
 scene has no campaign record yet is recorded as an interrupted occurrence (`recordOwedHarm`) before the next battle
-replaces the record and at a wipe (`carryCampaign`), so it is never lost to a busy decision slot. `raidOutcome.ts` answers the `lastRaid` requirement (`schemaRaidOutcome.ts`: `named`, `collateral`, `staffHarm`,
+replaces the record, at a wipe (`carryCampaign`) and when the run ends (`endRun` calls `finalizeHarmAtRunEnd`, which also
+closes a staff-harm omen still pending), so it is never lost to a busy decision slot or a victory. `raidOutcome.ts` answers the `lastRaid` requirement (`schemaRaidOutcome.ts`: `named`, `collateral`, `staffHarm`,
 transient scope), bands a breach by `raid.staffHarm` (`staffHarmFor`, the worst band met wins among the bands given), fills `{attacker}` and
 `{collateral}` (`raiderVars`, used by `dilemmaContext`, `dilemmaOmen` and `choiceText`), and applies the two effect fields
 `applyEffects` hands it: `nextRaidDeltaSec` (moves `nextRaidAtSec`, never before now) and `silencesNamedRaider` (adds the
