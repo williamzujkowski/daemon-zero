@@ -158,13 +158,13 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
   view.click('processes-close');
   expect(computeRates(gameStore.store.getState().game, CONTENT).understandingPerSec - before.understandingPerSec).toBeCloseTo(solar.tickDelta.understandingPerSec);
   const game = m4State('transcendence-ready');
-  // The arc's two repeatables; the fusion plants (#482) wait on the Q>1 milestone this save has not reached.
+  // The arc's repeatables (#465 added three); the fusion plants (#482) wait on the Q>1 milestone this save has not reached.
   const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 5 && r.signature?.source !== 'fusion');
   act(() => { gameStore.initialize({ ...game, levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel - 1])) } }, 0, null); });
   for (const rep of reps) {
     view.click('rep-' + rep.id + '-buy');
     expect(view.find('rep-' + rep.id)).toBeNull();
-    expect(gameStore.store.getState().game.levels[rep.id]).toBe(5);
+    expect(gameStore.store.getState().game.levels[rep.id]).toBe(rep.maxLevel);
   }
   // A capped track that can be released keeps its release row (#402 panel), so the heading stays only for those (#485's lunar generations).
   const releasable = reps.filter((rep) => rep.dismissable);
