@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ContentRegistry } from '../src/content/registry';
 import { TickDeltaSchema, type TickDelta } from '../src/content/schema';
-import { createInitialState, shardOutput, type GameState } from '../src/engine';
+import { createInitialState, radiatorSlot, shardOutput, type GameState } from '../src/engine';
 import { lawfullyReached } from '../src/engine/threatQuery';
 import { ORIGINAL_GAME, reg } from './helpers';
 
@@ -54,6 +54,16 @@ describe.each(REGISTRIES)('registry caches on %s content', (name, registry) => {
     }
     // The original game has no granted or contracted acquisition, so nothing in it is reached lawfully.
     expect(reached > 0).toBe(name === 'production');
+  });
+
+  it('radiatorSlot names the area-bound sink each node and track rejects heat through, as reading its signature does (#465)', () => {
+    const areaBound = registry.world.signature.sinks.filter((cls) => cls.wattsPerKm2 !== undefined).map((cls) => cls.id);
+    const direct = (sink: string | undefined): number => (sink === undefined ? -1 : areaBound.indexOf(sink));
+    const holdings = [...[...registry.nodes.values()].map((node) => [node.id, node.signature?.sink] as const),
+      ...[...registry.repeatables.values()].map((rep) => [rep.id, rep.signature?.sink] as const)];
+    for (const [id, sink] of holdings) expect([radiatorSlot(registry, id), radiatorSlot(registry, id)], id).toEqual([direct(sink), direct(sink)]);
+    expect(radiatorSlot(registry, 'no_such_holding')).toBe(-1);
+    expect(holdings.some(([id]) => radiatorSlot(registry, id) >= 0)).toBe(areaBound.length > 0);
   });
 
   it('shardOutput gives the same numbers, bit for bit, for every template, quirk, autonomy and count', () => {

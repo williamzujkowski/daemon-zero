@@ -3,7 +3,7 @@ import RoutedText from '../RoutedText';
 /** Corporate finance and power stay explicit while purchases remain registry-driven. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions, financeEnabled, isActuatorAvailable, quantityExact, quantityReadout, scaleScrutiny, setActuator } from '../../engine';
+import { cycleContributions, financeEnabled, isActuatorAvailable, quantityExact, quantityReadout, radiatorReadings, scaleScrutiny, setActuator } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ActionsPanel from '../ActionsPanel';
 import { profitAllocationValues } from '../actuatorSteps';
@@ -11,6 +11,7 @@ import NodeList from '../NodeList';
 import PayrollSummary from '../PayrollSummary';
 import Repeatables from '../Repeatables';
 import { insolvencyRemedy, shortfallText } from '../remedyText';
+import { radiatorText } from '../radiatorText';
 import { useGame, useSurveillanceKnown } from '../state';
 import { theme } from '../theme';
 import UpgradeFeed from '../UpgradeFeed';
@@ -28,9 +29,21 @@ function Ledger() {
     <Text testID="corp-capital" style={theme.text}>Capital: {quantityReadout('money', capital)} ({income >= 0 ? '+' : ''}{quantityReadout('money', income)}/s net)</Text>
     <Text testID="power-ledger" style={theme.text}>Power: {quantityReadout('power', generated)} generated / {quantityReadout('power', consumed)} consumed</Text>
     <Text style={theme.muted}>Grid efficiency: {efficiency}%</Text>
+    <Radiators />
     <Scrutiny />
     <ComputeSplit />
   </View>;
+}
+
+/** Radiator area (#465): one line per area-bound sink a running holding uses, absent before any is owned. */
+function Radiators() {
+  // One string per pass, so the line re-renders only when what it says changes.
+  const joined = useGame((game) => radiatorReadings(game, CONTENT).map((reading) => reading.sinkId + '\t' + radiatorText(reading)).join('\n'));
+  if (joined === '') return null;
+  return <>{joined.split('\n').map((entry) => {
+    const [id = '', text = ''] = entry.split('\t');
+    return <Text key={id} testID={'radiator-ledger-' + id} style={theme.muted}>{text}</Text>;
+  })}</>;
 }
 
 /**

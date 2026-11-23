@@ -17,6 +17,11 @@ export const SignatureClassSchema = z.strictObject({
   visibility: z.number().min(0).max(1),
   /** What is visible, and why: the world view reads this line. */
   tell: line,
+  /**
+   * A sink where heat leaves only as light (#465): it sheds at most this many watts a square kilometre of deployed
+   * radiator, so compute whose heat leaves through it runs at the share its radiator area sheds (engine radiators.ts).
+   */
+  wattsPerKm2: z.number().positive().optional(),
 });
 
 export const SignatureClassesSchema = z.strictObject({
@@ -42,6 +47,8 @@ export const SignatureSchema = z.strictObject({
   /** The sink class its rejected heat leaves through: a consumer's draw (wattsDelta < 0) once heat leaves server °C. */
   sink: snakeId.optional(),
   masks: z.array(SignatureMaskSchema).min(1).optional(),
+  /** Square kilometres of radiator it deploys into its sink (per level on a track): only on a sink that declares wattsPerKm2. */
+  radiatorKm2: z.number().positive().optional(),
 });
 
 /** How a phase turns visible watts into suspicion: linear in the visible watts, up to a ceiling. */
