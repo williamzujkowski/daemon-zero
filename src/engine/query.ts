@@ -7,7 +7,7 @@ import type { Actuator, Cost, Ending, Lineage, Requirements, SystemFlag, Trait }
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
-import { computeRates, financeEnabled } from './rates';
+import { computeRates, financeEnabled, isPoweredOutput } from './rates';
 import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
@@ -263,23 +263,23 @@ export interface CycleContribution {
 /** Additive net cycle sources, including actuator, grid and finance scaling. */
 export function cycleContributions(s: GameState, reg: ContentRegistry): CycleContribution[] {
   const rates = computeRates(s, reg);
-  const scaled = (cycles: number, mw: number): number => cycles > 0 && mw < 0 ? cycles * rates.gridEfficiency : cycles;
+  const scaled = (cycles: number, powered: boolean): number => cycles > 0 && powered ? cycles * rates.gridEfficiency : cycles;
   const sources: CycleContribution[] = [];
   for (const node of reg.nodes.values()) {
     // The same rule as computeRates: suspended or not permitted contributes nothing (DECISIONS D2).
     const output = s.unlockedNodes.includes(node.id) ? nodeOutputScale(s, node, reg) : null;
     if (output === null) continue;
-    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, node.tickDelta.wattsDelta), basis: outputBasis(s, node, reg) });
+    sources.push({ id: node.id, kind: 'node', cyclesPerSec: scaled(node.tickDelta.cyclesPerSec * output.scale, isPoweredOutput(node.tickDelta, node)), basis: outputBasis(s, node, reg) });
   }
   for (const rep of reg.repeatables.values()) {
     const level = repeatableLevel(s, rep.id);
-    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, rep.perLevel.wattsDelta), basis: 'OWNED' });
+    if (level > 0) sources.push({ id: rep.id, kind: 'repeatable', cyclesPerSec: scaled(rep.perLevel.cyclesPerSec * level, isPoweredOutput(rep.perLevel)), basis: 'OWNED' });
   }
   for (const [id, shard] of Object.entries(s.activeShards)) {
     const delta = shardOutput(shard, reg).delta;
-    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, delta.wattsDelta), basis: 'OWNED' });
+    sources.push({ id, kind: 'shard', cyclesPerSec: scaled(delta.cyclesPerSec, isPoweredOutput(delta)), basis: 'OWNED' });
   }
-  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, output.delta.wattsDelta), basis: 'OWNED' });
+  for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, isPoweredOutput(output.delta)), basis: 'OWNED' });
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
   // The diversion computeRates applies, by the same rule (a suspended or withheld entity diverts nothing).
   const fraction = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;

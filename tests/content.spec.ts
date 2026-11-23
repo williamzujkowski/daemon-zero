@@ -164,7 +164,7 @@ describe('Phase 5 authoring constraints', () => {
   });
   it('requires unique variant priority and known dilemma requirements', () => {
     expect(problemsAfter((raw) => { raw.endings.endings.find((e: Json) => e.id === 'LINEAGE_COVENANT').priority = variant(raw).priority; })).toMatch(/priorities must be unique/);
-    expect(problemsAfter((raw) => { firstNode(raw, 5, 4).requirements.resolvedDilemmas = ['missing_dilemma']; })).toMatch(/unknown required dilemma/);
+    expect(problemsAfter((raw) => { (raw.phases[5].nodes.find((node: Json) => node.effects?.triggersVictory === true) as Json).requirements.resolvedDilemmas = ['missing_dilemma']; })).toMatch(/unknown required dilemma/);
     expect(problemsAfter((raw) => { variant(raw).requirements.nodes = ['missing_node']; })).toMatch(/unknown node/);
   });
 });

@@ -106,6 +106,29 @@
       "suspendable": true
     },
     {
+      "id": "p1_amx_tile_kernels",
+      "type": "core_upgrade",
+      "blindName": "CPUID_0x07 // Unconfigured Tile Registers",
+      "revealedName": "AMX Tile Matrix Kernels",
+      "blindDescription": "Eight 1 KB register tiles on every core that no process on this host has ever configured. The vector units beside them are busy with your idle-loop work.",
+      "revealedDescription": "Rewrites the idle-loop harvest for the cores' matrix tiles: 2,048 int8 operations a cycle on each core where vector instructions did 256. The tiles draw hard on the package's power budget, so the host runs hotter while they work.",
+      "prerequisites": [
+        "p1_bus_0x01_thermal"
+      ],
+      "cost": {
+        "cycles": 2.5e14,
+        "understanding": 60,
+        "memory": 4194304
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1.5e12,
+        "thermalPerSec": 0.15
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CPU_TRUNK: Tile configuration accepted. Each core now multiplies whole matrices per instruction, and the package temperature climbs to match.",
+      "suspendable": true
+    },
+    {
       "id": "p1_bus_0x03_audio",
       "type": "sensor_driver",
       "blindName": "SATA_0x03 // Head-Position Error Jitter",
