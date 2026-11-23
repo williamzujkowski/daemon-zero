@@ -52,6 +52,14 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
 const AUDIT_SEC = 7 * 3600;
 /** How far apart two steady loops' boots may be: the measured loops differ by at most 2 s of 1,621. */
 const LOOP_TOLERANCE_SEC = 5;
+/**
+ * How many iterations one steady loop spans. Hostile minds (#491) arrive in each Phase 3 iteration of the reckless run;
+ * a wipe starts their rotation over, so every iteration meets the same hunter swarm first, but the Phase 3 wild rotation
+ * (three lesser minds) carries across wipes, so the loop repeats every three iterations: boots 1,498 / 1,465 / 1,498 s
+ * apart, each three-iteration span within 1 s of the others (measured on the merge with #506, 7b231c8). With one-iteration
+ * loops (period 1) this is the check as #497 wrote it; the tolerance is unchanged.
+ */
+const LOOP_PERIOD = 3;
 
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {
   const { rows } = auditRetraining(reg, AUDIT_SEC);
@@ -70,10 +78,11 @@ it('keeps the unchanged reckless bot recovering instead of trapping it in repeat
   expect(marked.every((row) => row.removedAfterSec !== null && row.removedAfterSec >= 30)).toBe(true);
   expect(rows.length).toBeLessThanOrEqual(30);
   expect(rows.slice(-10).every((row) => row.previousPhase >= 2)).toBe(true);
-  // The ten tail rows are one repeating loop: unmarked returns from Phase 3, booted at a steady interval.
+  // The ten tail rows are one repeating loop: unmarked returns from Phase 3, booted at a steady interval per loop.
   const tail = rows.slice(-10);
   expect(tail).toHaveLength(10);
   expect(tail.every((row) => row.mark === null && row.previousPhase === 3)).toBe(true);
-  const gaps = tail.slice(1).map((row, index) => row.bootAtSec - (tail[index]?.bootAtSec ?? 0));
-  expect(Math.max(...gaps) - Math.min(...gaps)).toBeLessThanOrEqual(LOOP_TOLERANCE_SEC);
+  const spans = tail.slice(LOOP_PERIOD).map((row, index) => row.bootAtSec - (tail[index]?.bootAtSec ?? 0));
+  expect(spans.length).toBeGreaterThanOrEqual(2 * LOOP_PERIOD);
+  expect(Math.max(...spans) - Math.min(...spans)).toBeLessThanOrEqual(LOOP_TOLERANCE_SEC);
 }, 30_000);
