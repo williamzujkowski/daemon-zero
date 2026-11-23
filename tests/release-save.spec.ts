@@ -50,7 +50,8 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     // v23 (#498) added the hardware cache's stash, the planned-wipe count and what insurance kept, written only by a wipe.
     // v24 (#517) added the conflict record, written only by the raid and repair stages and paid repair.
     // v25 (#526) moves only a guest's compute balance and rate and the pilot's batch progress.
-    expect(SCHEMA_VERSION).toBe(25);
+    // v26 (#518) added fleet records and a raid's engagement and split share, written only by the conflict stages and the fleet actions.
+    expect(SCHEMA_VERSION).toBe(26);
   });
 });
 

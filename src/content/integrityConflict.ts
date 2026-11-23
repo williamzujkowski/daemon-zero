@@ -6,7 +6,7 @@
  * exact; stage clocks land on tick steps; and every raided phase declares the signature reference a raid's force reads.
  */
 import type { ContentRegistry } from './registry';
-import type { ConflictHolding, RaidKind } from './schemaConflict';
+import type { ConflictHolding, RaidKind, RivalRaid } from './schemaConflict';
 
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
@@ -57,7 +57,7 @@ function defendable(reg: ContentRegistry, vectorId: string): boolean {
   return reg.world.conflict.holdings.some((entry) => (entry.defense ?? []).some(({ type }) => answering.has(type)));
 }
 
-function checkRaidGates(reg: ContentRegistry, raid: RaidKind, owner: string): string[] {
+function checkRaidGates(reg: ContentRegistry, raid: RivalRaid, owner: string): string[] {
   const { domains, raid: balance } = reg.world.conflict, problems: string[] = [];
   if (!reg.phases.some((phase) => phase.phaseId === raid.tier)) problems.push(`${owner}: tier ${String(raid.tier)} names no phase`);
   if (raid.requirements.phaseAtLeast !== raid.tier) problems.push(`${owner}: tier ${String(raid.tier)} must be its phaseAtLeast (found ${String(raid.requirements.phaseAtLeast)})`);
@@ -67,11 +67,15 @@ function checkRaidGates(reg: ContentRegistry, raid: RaidKind, owner: string): st
   // Its panel lives in the decoded mind's swarm tools, beside the hostile card, so it must need that decoding (reachability).
   if (raid.requirements.requiresSurveillance !== true) problems.push(`${owner}: must require surveillance, where its panel is shown`);
   if (reg.phases.find((phase) => phase.phaseId === raid.tier)?.powerSignature === undefined) problems.push(`${owner}: Phase ${String(raid.tier)} declares no signature reference for its force`);
+  // A fleet (#518) fights by the square law at its lethality; an attrition raid has none to read.
+  if ((raid.resolution === 'LANCHESTER') !== (raid.lethality !== undefined)) problems.push(`${owner}: a lethality is declared exactly when it resolves by LANCHESTER`);
   return problems;
 }
 
 function checkRaid(reg: ContentRegistry, raid: RaidKind): string[] {
-  const { vectors, siteClasses } = reg.world.conflict, owner = `raid "${raid.id}"`, problems = checkRaidGates(reg, raid, owner);
+  const { vectors, siteClasses } = reg.world.conflict, owner = `raid "${raid.id}"`;
+  // A deviant (#518) arrives by a split, not the rotation: its fleet's rules are checked in integrityFleets.ts.
+  const problems = raid.source === 'RIVAL' ? checkRaidGates(reg, raid, owner) : [];
   const vector = vectors.find((entry) => entry.id === raid.vector);
   if (vector === undefined) problems.push(`${owner}: vector "${raid.vector}" is not declared`);
   else if (vector.domain !== raid.domain) problems.push(`${owner}: a ${raid.domain} raid cannot come by ${vector.domain} vector "${vector.id}"`);
@@ -84,9 +88,14 @@ function checkRaid(reg: ContentRegistry, raid: RaidKind): string[] {
   return problems;
 }
 
+/** The raids the rotation deals: every kind but a drift deviant, which only a split brings (#518). */
+export function rivalRaids(reg: ContentRegistry): RivalRaid[] {
+  return reg.world.conflict.raids.flatMap((raid) => (raid.source === 'RIVAL' ? [raid] : []));
+}
+
 /** Every domain open in a phase that has raids, and holding a site class, is raided in that phase. */
 function checkCoverage(reg: ContentRegistry): string[] {
-  const { domains, siteClasses, raids } = reg.world.conflict;
+  const { domains, siteClasses } = reg.world.conflict, raids = rivalRaids(reg);
   return [...new Set(raids.map((raid) => raid.tier))].flatMap((tier) => domains
     .filter((domain) => domain.fromPhase <= tier && siteClasses.some((cls) => cls.domain === domain.id))
     .filter((domain) => !raids.some((raid) => raid.tier === tier && raid.domain === domain.id))
