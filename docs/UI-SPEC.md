@@ -65,7 +65,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source (a source that availability or network coupling discounts reads `Edge NPU Harvest (Phones & Laptops): 210 PFLOP/s of 35 EFLOP/s raw`, and a first line `Effective X of Y raw` totals both while any source is discounted, #484); retention ratio | `cycleContributions` (`cyclesPerSec`, `rawCyclesPerSec`), `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
-| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature` |
+| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `supplyChainView` |
 | `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
@@ -348,7 +348,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
-| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}` |
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class / fabrication and closure (#485): section, capability, closure, one line per chokepoint, the seed | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}`, `world-supply`, `supply-capability`, `supply-closure`, `supply-chokepoint-{id}`, `supply-seed` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -437,7 +437,7 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   disclosure gate (`phaseAtLeast: 4`) holds. Integrity keeps the gate to what never lapses, requires the host to be
   unlocked by a node no later than that phase, and refuses a host that retires, so the view never comes and goes and
   is never sent to the Archive. Before it the console is unchanged.
-- **Where.** NETWORK > FACTIONS, under the console title (level 2). A muted lead line, then four sections, each a
+- **Where.** NETWORK > FACTIONS, under the console title (level 2). A muted lead line, then its sections, each a
   level-3 heading: **AEGIS posture** (the lock meter, scan rate and near-strike alert as before; an `AEGIS
   adaptation` meter; the stage line from content; then why it moves, while held what easing off costs, the cap it has
   left and the time the lock has),
@@ -447,7 +447,14 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   can be seen, then one muted line per source or sink class with watts through it, largest draw first: its watts drawn
   or rejected, its visibility, the visibility before a running mitigation when one lowered it, what it adds per
   second, and the class's `tell` from content, which says what is visible and why) and **Other minds** (the faction
-  panels, their names now at level 4, then any non-faction mind the record names).
+  panels, their names now at level 4, then any non-faction mind the record names). Between the signature and Other minds,
+  **Fabrication and closure** (#485) appears once `supplyChainDisclosed(state)` holds (a ladder or self-supply node is
+  owned or can be bought now): the capability line (the ladder rung reached, the owned nodes that reach it, "rung n of
+  6"), the closure line (self-supplied of total, the share floored to a whole percent, and the rule that buying a tool
+  raises capability, never closure), one muted line per chokepoint in content order (self-supplied by a named node, or
+  "imported" with the chokepoint's `tell`, the owned imports that leave it imported, and the node that would close it),
+  and the seed line (landed, buildable, or how many chokepoints are still imported). Nodes are named as their cards
+  name them: revealed once owned or mapped in an earlier iteration, blind until then.
 - **Truth.** Every sentence is a pure function of the engine's `aegisPosture`, `publicTrust` and `powerSignature` (`src/ui/worldText.ts`,
   unit-tested per branch in `tests/world-text.spec.ts`): the why line restates the stage's own rule (held at or above
   85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
@@ -456,7 +463,10 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   the reduction kept is at least the eroded cap (or, while the cap is still above the band, what easing gives up).
   The target is shown to a tenth of a percent and rounded **up** (#473 pass 2: at adaptation 19 the cap is 84.3%, and
   a nearest-percent "84%" let a dismissal to 84% raise the scan), so any reduction that meets the text meets the cap;
-  `tests/aegis-adaptation.spec.ts` checks that for every adaptation level and every role mix. Cap figures are shown
+  `tests/aegis-adaptation.spec.ts` checks that for every adaptation level and every role mix. The fabrication lines are
+  pure functions of `supplyChainView` (`src/ui/supplyChainText.ts`, proved in `tests/ui-supply-chain.spec.ts`): closure
+  counts owned self-supply nodes, which integrity keeps unsuspendable, so "self-supplied" is never said of a node that
+  could be stopped, and the seed line's "can be built" holds because the seed requires those nodes and nothing else. Cap figures are shown
   to the nearest tenth. It states rules and numbers and names no
   control, so it cannot name a lever that does not act. Payroll's cap lines add "lowered from 90% by AEGIS adaptation"
   when the effective cap differs. The signature lines read the reading the signature stage applies (`game.rates`, the
@@ -473,7 +483,8 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   `tests/world-integrity.spec.ts`; UI: `tests/ui-world-view.spec.ts`; served build: `tests/e2e/world-view.e2e.ts`
   (phone and desktop: absent in Phase 3; present from Phase 4 with every section, each faction once, axe clean, no
   nested scroll, no horizontal scroll, HUD pinned within 35%, nothing in the Archive; the signature section's heading,
-  summary and the reactor, aquifer and cooling-tower lines with their tells, #482). Stage atlas: `p4-world-view`
+  summary and the reactor, aquifer and cooling-tower lines with their tells, #482; the fabrication and closure section's
+  heading and lines, absent before the step, #485, also in `tests/e2e/supply-chain.e2e.ts`). Stage atlas: `p4-world-view`
   (NETWORK > FACTIONS, adaptation 80) with the contract item `world.posture` (heading "AEGIS posture"), which the
   contract now scopes to its workspace area (`ContractItem.area`), and its ARIA baseline lines.
 
