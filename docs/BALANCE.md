@@ -722,29 +722,32 @@ their last level, collects under 2e14 W, so it intercepts under 6e14 W at a thir
 `gates.ts` gained `minSwarmSec` 900 and `maxSwarmSec` 3600, and the careful run must now end in Phase 6. Phase 5 is
 measured to the seed array that opens Phase 6. The ceiling matches Phase 5's story-first cap (vote-1795469247565-89wnt5m,
 #539): it guards against a stall, not against story length, so the swarm's two crises have room to be read. No existing
-bound moved, and `maxHoursToVictory` (6 h) did not need to: the careful run ends at 3.24 h.
+bound moved, and `maxHoursToVictory` (6 h) did not need to: the careful run ends at 3.32 h.
 
 ### Pacing before and after
 
-`make sim` before (`main` at `41c0a16`) and after, the bot unchanged:
+`make sim` before (`main` at `1970e4f`, the fan's trace #525 merged) and after, the bot unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 10142.7 s | Stewardship, 11676.9 s | Lineage Covenant, 10099.4 s | Stewardship, 11633.6 s |
-| Phases 1-4 reached | 353.2 / 1017.3 / 2816.0 / 6051.8 s | identical | 353.2 / 1017.3 / 2816.1 / 5966.1 s | identical |
-| Phase 5 reached / duration | 8406.3 s / 1736.4 s | 8406.3 s / 1737.4 s | 8376.0 s / 1723.4 s | 8376.0 s / 1724.4 s |
-| Phase 6 reached / duration | - | 10143.7 s / 1533.2 s | - | 10100.4 s / 1533.2 s |
-| Wipes / dilemmas | 0 / 15 | 0 / 17 | 0 / 17 | 0 / 19 |
-| Fleet deviants met | 3 (P5) | 6 (P5 3, P6 3), every one destroyed | 3 (P5) | 6 (P5 3, P6 3) |
-| Peak suspicion / AEGIS | 24.0% / 45.1% | unchanged | 27.3% / 48.3% | unchanged |
-| Phase 6 signature (mean / peak, peak visible) | - | 0.0968 / 0.3342/s, 13.4 TW | - | as legacy |
+| Result | Lineage Covenant, 10397.3 s | Stewardship, 11967.5 s | Lineage Covenant, 9913.5 s | Stewardship, 11448.7 s |
+| Phases 1-4 reached | 353.2 / 1017.3 / 2816.7 / 6065.8 s | identical | 353.2 / 1017.3 / 2816.9 / 5891.7 s | identical |
+| Phase 5 reached / duration | 8657.9 s / 1739.4 s | 8657.9 s / 1740.4 s | 8192.1 s / 1721.4 s | 8192.1 s / 1722.4 s |
+| Phase 6 reached / duration | - | 10398.3 s / 1569.2 s | - | 9914.5 s / 1534.2 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 18 | 0 / 17 | 0 / 19 |
+| Raids | 7 (P3 4, P4 3) | 8 (P3 4, P4 3, P6 1: the cascade) | 5 (P3 3, P4 2) | 5 (P3 3, P4 2) |
+| Fleet battles (held) / deviants | 3 (2) / 2 (P5 2) | 5 (4) / 4 (P5 2, P6 2) | 2 (2) / 3 (P5 3) | 6 (6) / 6 (P5 3, P6 3) |
+| Peak suspicion / AEGIS | 25.7% / 45.1% | unchanged | 27.3% / 45.1% | unchanged |
+| Phase 6 signature (mean / peak, peak visible) | - | 0.1020 / 0.3342/s, 13.4 TW | - | 0.0967 / 0.3342/s, 13.4 TW |
 
 Phase 5 is one second longer: the seed array costs what the protocol cost, and the run buys it one second later than it
 bought the protocol. Where the careful run buys Phase 6: the mass drivers, the compute shells (the line to Earth fires;
 it spares it), the federation (the holdouts fire; it leaves them their sky), then two foil radiators, three tranches, two
-sub-minds and one collector generation while it saves for Stewardship at 1e28 FLOP. Its compute ends at 36 YFLOP/s and
-its generation at 18.4 TW. It meets no cascade: the sub-minds' three deviants hold the shared slot through most of the
-phase. GREEDY never reaches Phase 4, so its pins did not move.
+sub-minds and one collector generation while it saves for Stewardship at 1e28 FLOP. Its compute ends at about
+35 YFLOP/s and its generation at 18.4 TW. Under legacy rules it meets one collisional cascade and two divergent sub-minds,
+destroying both; under campaign rules three divergent sub-minds hold the shared slot through most of the phase and no
+cascade arrives (`tests/phase6-hazard.spec.ts` covers the cascade either way). Every Phase 6 battle is held; the one
+lost battle in the legacy run is Phase 5's, as before. GREEDY never reaches Phase 4, so its pins did not move.
 
 ## Robots, drones and fabs (#485)
 
