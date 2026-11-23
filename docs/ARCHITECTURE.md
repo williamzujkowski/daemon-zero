@@ -154,7 +154,7 @@ tick(state, dt):
   if ending or active dilemma: return state unchanged      (clock is frozen)
   rates = computeRates(state)                               (once per tick)
   integrateResources -> integrateThermal -> integrateScaleScrutiny -> integrateSuspicion -> integrateEscalation -> integrateAegis
-    -> integrateAegisAdaptation -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> evaluateDilemmas -> scheduleRoutineActivity
+    -> integrateAegisAdaptation -> applySwarmTickDeltas -> evaluateShardMutationsAndEncounters -> integrateHostiles -> evaluateDilemmas -> scheduleRoutineActivity
     -> relayLoggedFeed
 ```
 
@@ -230,7 +230,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v17; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership.
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v18; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#491) adds the empty hostile slot (`hostileState.ts`).
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -360,9 +360,28 @@ the public engine API. Costs and one-shot outcomes still use transactions.
 The scheduler, `resolveWildEncounter` and `wildEncounterView` all read it. `lapseRetiredEncounter` frees a retired
 tier's pending arrival with its `lapseLog`, both at the purchase that advances the phase (`unlockNode`) and at the
 top of the encounter stage, before the dormant return, which catches a loaded save. Nothing in `GameState` changed, so
-there is no migration. The encounter's `kind` (`LESSER` only) is the seam for hostile arrivals (#491), and
-`integrityEncounterTiers.ts` requires a tier for every phase from the first, which is the seam for the Phase 6
-sub-minds (#486).
+there is no migration. The encounter's `kind` is `LESSER` for every wild encounter; hostile arrivals (#491) are the
+`HOSTILE` kind, in their own list. `integrityEncounterTiers.ts` requires a tier for every phase from the first, which is
+the seam for the Phase 6 sub-minds (#486).
+
+**Hostile minds (#491).** Content: `swarm.hostileEncounters` (`schemaHostile.ts`, a discriminated union on `type`, so a
+HUNTER carries a lock rise and ceiling, a FERAL or RIVAL a share) and `swarm.hostile` (trigger, intervals, purge
+rate, decoy line). State: `GameState.hostile` (`hostileState.ts`, v18): one `active` slot (id, arrival, live quiet
+seconds, live decoy seconds, pinned bytes), the next arrival time, the rotation index and the purge count. It is
+separate from `pendingWildEncounterId`, so the two slots never contend. The rules live in `hostile.ts` (trigger,
+eligibility, arrival, live step, retire, pin and unpin, purge outcome) and `hostileEffect.ts` (the active hostile and the
+feral share, kept free of the requirement rules so `computeRates` can import it). A new pipeline stage,
+`integrateHostiles` (`systems/hostiles.ts`), runs after the encounter stage: it retires a pressing hostile from a
+retired tier before the dormant return (as `lapseRetiredEncounter` does), then steps the active one or schedules the
+next. `unlockNode` retires it too, at the purchase that advances the phase. `computeRates` applies the feral share
+last, to positive net compute only; the hunter's rise is the stage's own write to `aegisLock`, clamped at the ceiling;
+the rival's pin is a `memoryUsed` reservation returned by `unpinHostile`. Answers are `answerHostile` with one gate,
+`hostileAnswerUnmet`, which `hostileView` (`hostileQuery.ts`) also reads, so the view and the action cannot disagree;
+paid answers spend through `payCost`, purge outcomes through `applyEffects`. A wipe resets the slot and carries the
+rotation and purge count. `saveSwarm.ts` drops a pressing hostile content no longer declares and returns its pin.
+Integrity: `integrityHostile.ts` (tier binding, one of each type per phase from `fromPhase`, the hunter ceiling under
+the lock trigger, paid answers that cost, a purge that is a real risk with an exact rate, a decaying trigger rung) and
+`integrityScale.ts` (answer prices and purge spoils in the tier's band).
 
 ## Content composition and preview saves (#204, #233)
 

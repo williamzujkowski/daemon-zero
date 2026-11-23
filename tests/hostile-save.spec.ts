@@ -9,7 +9,9 @@ import { makeFixtures } from '../scripts/make-fixtures';
 import { defined } from './m7-helpers';
 import { reg } from './helpers';
 
-const victory = (): GameState => importSave(makeFixtures()['victory-ready'] ?? '', reg);
+// Built once: every case reads the same engine-played fixtures.
+const FIXTURES = makeFixtures();
+const victory = (): GameState => importSave(FIXTURES['victory-ready'] ?? '', reg);
 
 /** `s` with a rival pressing it, its pin counted in memory used, as the stage leaves it. */
 function pressed(s: GameState): GameState {
@@ -35,7 +37,7 @@ describe('save v18 (#491)', () => {
   });
 
   it('migrates every older save through v18 too', () => {
-    for (const [name, code] of Object.entries(makeFixtures())) expect(importSave(code, reg).hostile, name).toBeDefined();
+    for (const [name, code] of Object.entries(FIXTURES)) expect(importSave(code, reg).hostile, name).toBeDefined();
   });
 
   it('keeps a pressing hostile, its clocks and its pin across a round trip', () => {

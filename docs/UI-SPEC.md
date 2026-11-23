@@ -563,6 +563,33 @@ wild minds. A retired tier's pending
 signal is never shown: it lapses with its own log line at the purchase that advances the phase.
 Buttons remain at least 44 px in both dimensions.
 
+A hostile mind pressing the instance (#491) is shown in three places, all from `hostileView`, and nowhere else:
+
+- **SWARM** (`hostile-encounter`, above the wild signal): a `// HOSTILE: <name>` card whose details hold its signature
+  and arrival line; its kind and origin (`hostile-origin`); its one effect stated exactly (`hostile-effect`, for example
+  "Takes 15% of net compute while net compute is positive."); what holds it and how going quiet ends it
+  (`hostile-quiet`: "Suspicion holds it: response rung 2. ...", "The AEGIS lock holds it: 63%. ...", a running decoy's
+  seconds, and "GO QUIET: free. Keep suspicion under 42% and the lock under 60% for 120 s and it lapses.", which adds
+  "Quiet now: it lapses in N s ..." once neither holds); then each answer's sentence (`hostile-{answer}-text`), its cost
+  and every reason it is refused, and its button (`hostile-quarantine`, `hostile-decoy`, `hostile-purge`). The purge's
+  success and failure effects are listed with the same badges as a wild signal's consume effects. Going quiet has no
+  control: it is something the player does with the levers they already have, and the copy names no lever.
+- **Workspace notice** (`hostile-notice`, under the area tabs, never in the pinned HUD, hidden while SWARM is open):
+  "HOSTILE // <name> [ ANSWER ]", which opens SWARM, laid out like the wild-signal notice (two-line name, unshrinking
+  affordance, accessible name containing the visible text).
+- **Other Minds console** (`hostile-status`): before the world view opens, under the AEGIS status; in the world view, first
+  under "Other minds". One header ("Hostile minds") and one read-only line naming it, its kind and its effect, ending
+  "Answer it in SWARM, or go quiet." The console never duplicates the controls.
+- **AEGIS strike line** (`aegis-strike`, world view): while a hunter swarm presses under its ceiling it adds "A hunter
+  swarm adds 0.04%/s until the lock reaches 45%.", or, when the scan alone would not raise the lock, says "Only a hunter
+  swarm raises the lock: ..." instead of "The lock is not rising.", which would then be false.
+
+No new live region: the arrival is a kernel-log warning (the hostile's own line), and nothing in the panel or the notice
+speaks on a tick. The panel and notice render only while a hostile presses, so no atlas stage or ARIA baseline line
+changed; the phone stays one scroll, with the notice in the flow. `tests/e2e/hostile-encounters.e2e.ts` checks the
+disclosure on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts` proves
+each answer the engine accepts (and the free purge as a lever) has a reachable control.
+
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
 screens replace the feed, leaving zero purchase cards. Static node/action/cohort

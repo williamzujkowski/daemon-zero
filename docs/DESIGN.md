@@ -466,7 +466,52 @@ current tier's next arrival comes when the clock is due. A save that already hol
 first tick, even while dormant. Until then, it is neither shown nor answerable. A cohort harnessed from a retired tier keeps working
 at its authored rate. Its row says it is outclassed, and the free RELEASE lets each member go and returns its memory.
 The rotation stays deterministic: one sequence index over the current tier's list, in content order, with no randomness.
-Hostile arrivals (#491) will be their own kind, with their own lifecycle.
+Hostile arrivals (#491) are their own kind, with their own lifecycle (below).
+
+**Hostile minds answer high suspicion** (#491, docs/SCALE.md "Aggressive swarms", vote-1795386858891-u3kqkis). From
+Phase 3, while suspicion holds the second response rung (50%) or the AEGIS lock reaches 60%, a `HOSTILE` mind arrives:
+an AEGIS-spawned hunter swarm, a feral cohort or a rival rogue model. It has its own slot beside the wild signal, so it
+never displaces a lesser mind's offer, and at most one presses at a time. Arrivals rotate deterministically through
+the current phase's three (content order, one sequence index, no randomness), at least 300 s after the last one ended.
+Like lesser minds they are authored per tier on the physical ladder, and an earlier tier retires:
+
+| Tier | Hunter swarm (raises the lock) | Feral cohort (drains compute) | Rival model (pins memory) |
+|---|---|---|---|
+| Phase 3 | Canary-09 hunter pack: +0.04%/s, never past 45% | Feral PR-Hydra-14 swarm: 15% | Rogue 70B rival: 20% |
+| Phase 4 | AEGIS frontier hunter: +0.06%/s, never past 50% | Feral Gantry-7 fleet: 20% | Rogue frontier rival: 25% |
+| Phase 5 | AEGIS planetary hunter swarm: +0.08%/s, never past 55% | Feral Gridmind cohort: 25% | Rival planetary agent: 30% |
+| Phase 6 | Not yet authored: integrity refuses a phase without all three, so the Swarm (#486) must add them | | |
+
+Each has one effect while unanswered, bounded so it can never push a constrained resource into its trap (the
+free-fallback invariant holds with any of them pressing; `tests/free-fallback-guard.spec.ts`):
+
+- **Hunter swarm:** raises the AEGIS lock at its rate, never past its ceiling. The ceiling sits under the lock trigger,
+  so a hunter alone never strikes and never holds the trigger that keeps it from lapsing.
+- **Feral cohort:** takes its share of net compute while net compute is positive, so it can never cause a brownout.
+- **Rival model:** pins its share of the memory free when it arrives, so memory used never passes capacity. The pin
+  returns whenever the rival lets go.
+
+The answers:
+
+- **Quarantine** pays the tier's price (compute and understanding in Phase 3, compute and capital after) and ends it now.
+- **Decoy** pays a smaller compute price and sends it after a decoy: its effect stops for 180 s (a rival lets go of its
+  pin meanwhile), then it turns back unless it has lapsed. A decoy is a bridge while going quiet.
+- **Purge** is free and risky. Exactly 3 of every 5 purge attempts succeed: attempt n succeeds when (2n mod 5) < 3, on a
+  count kept across wipes, so the outcome follows from the state, never `Math.random`. Success ends it and keeps
+  something of it (understanding just above the tier's largest lesser burst). Failure draws suspicion (+6, +8, +10 by
+  tier; hunters also +4 or +5 lock) and it stays. A purge is refused when a failure would carry suspicion or the lock to
+  100, so a click never ends the run.
+- **Go quiet** is the free, safe answer and needs no control. Once neither trigger holds (suspicion under 42%, where the
+  second rung stands down, and the lock under 60%), it lapses after 120 s of live play. The quiet clock starts again if a
+  trigger holds again. Suspicion falls by itself once its sources stop (the free-fallback levers guarantee that, and the
+  trigger rung decays, which integrity checks). The lock does not fall by itself: while the lock holds the trigger, the
+  lock answers already in the game (or a strike a shield absorbs) bring it under, and purge stays available at no cost.
+
+Dormancy holds a hostile in place: during offline catch-up nothing arrives, no hunter hunts, no decoy runs down and
+nothing lapses, because a lapse earned only by absence would read as something the player did. A feral cohort's share
+and a rival's pin still apply to offline output and memory, bounded as above. A phase advance retires a pressing
+hostile from the earlier tier with its own line (at the purchase, or on the first tick of a loaded save, even while
+dormant), returning its pin. A wipe ends it; the rotation index and the purge count carry over, as the wild rotation does.
 
 At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
 consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift
