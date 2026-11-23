@@ -6,7 +6,8 @@ import { test, expect, boot, dismissBoot, readSave, press, openChoices } from '.
 const edit = [...CONTENT.actions.values()].find((a) => a.effects.epistemicDriftDelta && a.effects.suspicionDelta < 0);
 const capex = [...CONTENT.actions.values()].find((a) => a.maxPurchases === 3);
 const exclusive = [...CONTENT.actions.values()].find((a) => a.exclusiveWith?.length);
-const encounter = CONTENT.swarm.wildShardEncounters[0];
+// The fixture's pending signal is of its own phase's tier (#492).
+const encounter = CONTENT.swarm.wildShardEncounters.find((entry) => entry.tier === 3);
 async function pane(page: Page, slot: string, area = 'work'): Promise<void> {
   await dismissBoot(page);
   if (await page.getByTestId('tab-' + slot).count()) await page.getByTestId('tab-' + slot).click();

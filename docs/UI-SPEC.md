@@ -556,6 +556,11 @@ prices and missing requirements. `[ RELEASE ]` (`shard-{id}-release`, #488 pass 
 mode: "RELEASE: free. One member's task ends; its output stops and its memory returns." plus any reason it waits
 (a pending anomaly decision); it lets one member go, so a clamped or elevated cohort's cost is never permanent, and
 the suspicion guidance names it as "release one member of <cohort> in SWARM" where that lowers the applied rate.
+A cohort harnessed from a tier that has retired (#492) shows one muted line under its status
+(`shard-outclassed-{id}`), from content: "Outclassed: a Phase 2 mind in Phase 3. It keeps working at the rate shown."
+It names no lever, since a channel-hosted cohort offers no RELEASE, and no arrival, since a chartered company meets no
+wild minds. A retired tier's pending
+signal is never shown: it lapses with its own log line at the purchase that advances the phase.
 Buttons remain at least 44 px in both dimensions.
 
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.

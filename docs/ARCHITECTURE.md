@@ -356,6 +356,13 @@ queries. The two new pipeline stages integrate epistemic drift and evaluate
 mutations/encounters after threats and before dilemmas; a threat wipe still halts
 the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
 the public engine API. Costs and one-shot outcomes still use transactions.
+`encounterTiers.ts` (#492) holds the one tier rule: a wild encounter of `tier` N arrives only while the phase is N.
+The scheduler, `resolveWildEncounter` and `wildEncounterView` all read it. `lapseRetiredEncounter` frees a retired
+tier's pending arrival with its `lapseLog`, both at the purchase that advances the phase (`unlockNode`) and at the
+top of the encounter stage, before the dormant return, which catches a loaded save. Nothing in `GameState` changed, so
+there is no migration. The encounter's `kind` (`LESSER` only) is the seam for hostile arrivals (#491), and
+`integrityEncounterTiers.ts` requires a tier for every phase from the first, which is the seam for the Phase 6
+sub-minds (#486).
 
 ## Content composition and preview saves (#204, #233)
 

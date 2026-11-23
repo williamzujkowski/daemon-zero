@@ -11,7 +11,8 @@ async function pane(page: Page, slot: string, area: string): Promise<void> {
 }
 
 test('wild flavor expands with keyboard without changing state or hiding the consume/harness decision', async ({ page }) => {
-  const encounter = CONTENT.swarm.wildShardEncounters[0];
+  // The fixture's pending signal is of its own phase's tier (#492).
+  const encounter = CONTENT.swarm.wildShardEncounters.find((entry) => entry.tier === 3);
   if (!encounter) throw new Error('Missing encounter');
   await boot(page, 'wild-shard-encounter-p3'); await pane(page, 'NETWORK', 'swarm');
   const toggle = page.getByTestId('details-wild-' + encounter.id);

@@ -8,6 +8,7 @@ import { formatCost, pausedReason } from './queryPresentation';
 import type { GameState } from './state';
 import { refreshAnomaly } from './swarmEffects';
 import { OPERATIONAL_EVIDENCE } from './campaign';
+import { pendingWildEncounter } from './encounterTiers';
 import { applyEffects, payCost } from './transactions';
 import { fmt, pushLog } from './util';
 
@@ -45,8 +46,8 @@ export function forkShard(s: GameState, templateId: string, reg: ContentRegistry
 
 export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', reg: ContentRegistry): ActionResult {
   if (unavailable(s)) return refuse(s, 'run is paused');
-  const encounter = reg.swarm.wildShardEncounters.find((entry) => entry.id === s.pendingWildEncounterId);
-  if (!encounter || !meetsRequirements(s, encounter.requirements, reg)) return refuse(s, 'no available encounter');
+  const encounter = pendingWildEncounter(s, reg);
+  if (!encounter) return refuse(s, 'no available encounter');
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === encounter.templateId);
   if (!template) return refuse(s, 'unknown template');
   const result = mode === 'HARNESS' ? bindCohort(s, template, CostSchema.parse({ memory: template.cost.memory })) : { ok: true as const, state: { ...s } };

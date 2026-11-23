@@ -18,6 +18,7 @@ import { choiceText, nodeText } from './routeCopy';
 import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import { logRetirements } from './retirement';
+import { lapseRetiredEncounter } from './encounterTiers';
 import {
   canAfford,
   chooseEnding,
@@ -93,6 +94,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   applyNodeEffects(d, node, reg);
   // A purchase is the only way a window's retirement gate is crossed (integrity), so its one line is written here.
   if (d.ending === null) logRetirements(s, d, reg);
+  // A purchase is also the only way a phase advances, so a retired tier's pending arrival lapses here, in its order (#492).
+  if (d.ending === null) lapseRetiredEncounter(d, reg);
   // A purchase is a transition (NARRATIVE-HISTORY N4): hardware can end the access a queued scene
   // declares (the escape ends the guest's assigned work, nexus vote scenes-lapse-at-escape), so the
   // scene takes its interruption policy now instead of counting down to an interrupt that cannot come.
