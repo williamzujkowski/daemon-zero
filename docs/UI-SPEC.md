@@ -65,7 +65,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source; retention ratio | `computeRates`, `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
-| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust` |
+| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature` |
 | `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
@@ -346,7 +346,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
-| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}` |
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}` |
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -441,9 +441,12 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   left and the time the lock has),
   **Public trust** (a meter, whether coalitions back AEGIS, and each factor that holds with its sign, or "Nothing on
   the public record moves it yet."), **State actors** (name at level 4, kind and description, the posture the record
-  supports) and **Other minds** (the faction panels, their names now at level 4, then any non-faction mind the record
-  names).
-- **Truth.** Every sentence is a pure function of the engine's `aegisPosture` and `publicTrust` (`src/ui/worldText.ts`,
+  supports), **Power and heat signature** (#482: a summary line, the suspicion visible watts draw and how many watts
+  can be seen, then one muted line per source or sink class with watts through it, largest draw first: its watts drawn
+  or rejected, its visibility, the visibility before a running mitigation when one lowered it, what it adds per
+  second, and the class's `tell` from content, which says what is visible and why) and **Other minds** (the faction
+  panels, their names now at level 4, then any non-faction mind the record names).
+- **Truth.** Every sentence is a pure function of the engine's `aegisPosture`, `publicTrust` and `powerSignature` (`src/ui/worldText.ts`,
   unit-tested per branch in `tests/world-text.spec.ts`): the why line restates the stage's own rule (held at or above
   85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
   backing); the strike time is the scan the next tick applies, floored. The ease line (`aegis-ease`, only while held;
@@ -454,7 +457,12 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   `tests/aegis-adaptation.spec.ts` checks that for every adaptation level and every role mix. Cap figures are shown
   to the nearest tenth. It states rules and numbers and names no
   control, so it cannot name a lever that does not act. Payroll's cap lines add "lowered from 90% by AEGIS adaptation"
-  when the effective cap differs.
+  when the effective cap differs. The signature lines read the reading the signature stage applies (`game.rates`, the
+  rates the last tick computed, as the forecast does); a rate under 0.001/s reads "under 0.001/s" rather than a zero
+  that is not true, and "the ceiling at this scale" appears only when the phase's ceiling binds. The suspicion forecast
+  names a class as "power drawn from ..." or "heat rejected through ..." when it is the top source
+  (`src/ui/suspicionText.ts`); the levers it offers are the engine's (`suspicionLevers`), so suspending a consumer or
+  releasing a track's level is named only when it lowers the applied rate.
 - **Layout rules kept.** The view adds blocks inside an existing pane: no scroll container of its own (the phone's
   one primary scroll), nothing in the sticky HUD (the 35% pin is unchanged), no fixed heights, and the three content
   font sizes (heading, text, muted) the atlas allows. At 200% text every world-view line stays reachable, an AEGIS
@@ -462,7 +470,8 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
 - **Tests.** Engine: `tests/world-view.spec.ts`, `tests/aegis-adaptation.spec.ts`; content:
   `tests/world-integrity.spec.ts`; UI: `tests/ui-world-view.spec.ts`; served build: `tests/e2e/world-view.e2e.ts`
   (phone and desktop: absent in Phase 3; present from Phase 4 with every section, each faction once, axe clean, no
-  nested scroll, no horizontal scroll, HUD pinned within 35%, nothing in the Archive). Stage atlas: `p4-world-view`
+  nested scroll, no horizontal scroll, HUD pinned within 35%, nothing in the Archive; the signature section's heading,
+  summary and the reactor, aquifer and cooling-tower lines with their tells, #482). Stage atlas: `p4-world-view`
   (NETWORK > FACTIONS, adaptation 80) with the contract item `world.posture` (heading "AEGIS posture"), which the
   contract now scopes to its workspace area (`ContractItem.area`), and its ARIA baseline lines.
 

@@ -179,9 +179,13 @@ const powerDraw = () => {
 /** Levels of the power draw that bring consumption level with generation, so one more is a shortfall. */
 function levelWithGeneration(game: GameState): GameState {
   const rep = powerDraw();
-  const surplus = game.rates.wattsGenerated - game.rates.wattsConsumed;
-  const level = (game.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.wattsDelta);
-  return earlier(game, { levels: { ...game.levels, [rep.id]: level } });
+  // The save also holds suspendable generation (the reactor restart, #482) more than the halls' cap can draw, so it is
+  // suspended first and the reactor alone is levelled.
+  const extra = [...CONTENT.nodes.values()].filter((node) => node.suspendable && node.tickDelta.wattsDelta > 0 && game.unlockedNodes.includes(node.id));
+  const base = earlier(game, { disabledNodes: [...new Set([...game.disabledNodes, ...extra.map((node) => node.id)])] });
+  const surplus = base.rates.wattsGenerated - base.rates.wattsConsumed;
+  const level = (base.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.wattsDelta);
+  return earlier(base, { levels: { ...base.levels, [rep.id]: level } });
 }
 /**
  * C2.3's three banners: insolvent and in a brownout at once (every cycle and capital producer suspended, the
@@ -238,7 +242,7 @@ const COVERAGE_ROWS: readonly TransitionRow[] = [
     keep: {}, why: 'Capital runs out: one alert for one condition, and the timely set stays in view.' },
   { id: 't-power-shortfall', walk: ['C1.10'],
     before: { stage: 'p4-corp-ledger', reach: 'terminal-screen',
-      patch: { recipe: 'the victory-ready save with the power draw levelled to generation (consumption = generation)', apply: levelWithGeneration } },
+      patch: { recipe: 'the victory-ready save with its suspendable generation suspended and the power draw levelled to generation (consumption = generation)', apply: levelWithGeneration } },
     setup: async (page) => { await clickIfPresent(page, 'workspace-CORP-work'); },
     trigger: { kind: 'click', testId: 'rep-' + powerDraw().id + '-buy' },
     appear: { item: (state) => pick(BAND_ITEMS.shortfall, 'band.shortfall', state), announce: /power shortfall/i, alerts: /power shortfall|MW short/i },

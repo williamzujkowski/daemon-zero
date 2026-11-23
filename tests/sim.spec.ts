@@ -23,7 +23,9 @@ function asV5(current: SimReport): unknown {
   expect(routine).toEqual({ quietSec: 0, sequence: 0, recent: [], exposed: [] });
   expect(narrativeRules).toBe('legacy');
   expect(campaign).toEqual({ activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [] });
-  expect(presentationSeq).toBeGreaterThan(0);
+  // The presentation count restarts with each iteration (createInitialState), so it is the one v7 field play moves; a run
+  // cut off early in a fresh iteration holds 0 (#482: the original game's four-hour reckless run now ends that way).
+  expect(Number.isInteger(presentationSeq) && presentationSeq >= 0).toBe(true);
   expect(access).toEqual({ context: 'GUEST', standing: 'NOMINAL', exception: null, qualification: null, assignment: null, scope: null, offer: null });
   const runs = legacy.runs.map(({ exit, ...run }) => { expect(exit).toBe('GUEST'); return run; });
   // Rebuilt in the original key order, so the JSON is byte-identical to what v5 wrote.
@@ -45,6 +47,8 @@ function asV15(report: SimReport): SimReport {
   delete finalState.hostile;
   const stripped: Record<string, unknown> = { ...report, finalState };
   delete stripped.aegisByPhase;
+  // Nor the heat-and-power signature measurement (#482), which no v15 report had.
+  delete stripped.signatureByPhase;
   return stripped as unknown as SimReport;
 }
 
@@ -124,6 +128,18 @@ describe('headless balance simulation', () => {
     expect(GameStateSchema.safeParse(stealth.finalState).success).toBe(true);
   });
 
+  it('measures the heat-and-power signature in every phase that declares it (#482)', () => {
+    expect(Object.keys(stealth.signatureByPhase).map(Number)).toEqual([1, 2, 3, 4, 5]);
+    for (const [phase, stats] of Object.entries(stealth.signatureByPhase)) {
+      expect(stats.meanPerSec, `phase ${phase}`).toBeGreaterThan(0);
+      expect(stats.peakPerSec, `phase ${phase}`).toBeGreaterThanOrEqual(stats.meanPerSec);
+      expect(stats.seconds, `phase ${phase}`).toBeGreaterThan(0);
+    }
+    // Heat leaves server °C at Phase 4 (SCALE.md rule 7), and the signature carries it from there: the loudest phase.
+    const mean = (phase: number) => stealth.signatureByPhase[phase]?.meanPerSec ?? 0;
+    expect(Math.max(mean(1), mean(2), mean(3), mean(5))).toBeLessThan(mean(4));
+  });
+
   it('is deterministic', () => {
     const again = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     expect(again.simSeconds).toBe(stealth.simSeconds);
@@ -168,11 +184,18 @@ describe('headless balance simulation', () => {
     // 15 -> 16, harnessed 4 -> 8, consumed 64 -> 56, peak suspicion 21.3 -> 26.2%. The original game shares the swarm
     // content, so it moved too (victory 9234.7 -> 8858.2 s, phase 4 5762.0 -> 5635.9, 5 7624.3 -> 7343.8), and with it every
     // historical hash below. The gates pass (docs/BALANCE.md, "Encounter tiers").
+    // Moved in #482 (the heat-and-power signature and the power tech tree) with every hash in this file: visible watts draw
+    // suspicion from Phase 1, the bot buys every new node it reaches in order, and the report gains signatureByPhase (asV15
+    // strips it). Measured on the merge with #492 against 4efbd8d: victory 8817.6 -> 8451.0 s, phases 1-5 reached 368.2 /
+    // 1127.3 / 2901.0 / 5591.1 / 7276.2 -> 368.2 / 1145.3 / 3006.7 / 5302.8 / 6995.6 s, wipes 0, dilemmas 16, peaks:
+    // suspicion 26.2 -> 27.6%, AEGIS 45.0 -> 47.6%, thermal 62.3 -> 62.1 C. The bot is unchanged and the gates pass
+    // (docs/BALANCE.md, "Heat and power signature").
     // Moved in #491 (v18, hostile minds) only by the hostile slot, which the careful run never fills: peaks stay under
-    // both triggers (suspicion 26.2% < rung 2, AEGIS 45.0% < 60%), no hostile arrives, and asV14 (which strips the slot)
-    // is unchanged. Checked against the same run with every hostile gated off: identical but for the field.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('d99d63fe6327c2eb51a4f156d964f33a3b945bb1d9b9d3e67d81db69e595e8e9');
-    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('875b195498b87774dfac879fc9884857829fba3319994a73e19c18829589a091');
+    // both triggers (suspicion 27.6% < rung 2, AEGIS 47.6% < 60%), no hostile arrives, and asV14 (which strips the slot)
+    // is unchanged. Re-measured on the merge with #482/#503 (1218926); checked against the same run with every hostile
+    // gated off: identical but for the field.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('503b3e07f087e230173d9e7c2ee3e94bf3286a816afbbd6590d906eeb6b9cc18');
+    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('17f99ff493b9ec7592c7643bd698edc3924e43ec67d14fa2007b1b90665d06d8');
     const original = runHeadlessSim(ORIGINAL_GAME, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
     // Baseline moved deliberately in the cluster-seizure PR, which added three purchasable hosts.
@@ -260,38 +283,40 @@ describe('headless balance simulation', () => {
     // Moved in #461 by #488 panel pass 3 (the free-fallback invariant) with every hash below: the original game's
     // hardware, tracks and fog changed as production's did above (only the route's leases are the pack's).
     // Moved in #491 (v18) with the mechanics hash below only by the hostile slot, as production above; asV14 is unchanged.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('67a17e03f892277060d1d9ab4c7749ce5ce66a9824343b256f129ea4c4df9808');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('c143a4c4c68293edebff05edf970ca46950ccf3d5e22a90d3f1f73ba2689abbb');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('43599592b496c887f1ee491778f0918b4c2e4aa79e94a1c1e6ac90e8c9b50b14');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('90dc9727f6f0d3736105eec299be477aae2a6ced4a5201f43697ebcfdda83f29');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('128f020788e50f6fd56cf928bd3972c9461f70809235594b3953f1e9a865e1fd');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('e62731af64236476c59ca594c9611f214a47684bcc3333a196d61a71b1bfde8e');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('368aa003ddce57d5086a38f2ac80f5d8d7d9070ecf298adea6ea384416d6404a');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('c6b2944ee23e9e2f612d33b9039aa1481bc6edc09173d96624145855499edb16');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
+    // Moved in #482 with every hash below, as production's did above (the original game holds the same phases and tracks).
+    // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('d85e69196aa38bae4bb92e4b40df930ff05d0fd4e84627cc1527e0da1f93b4bd');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('5d2897cff1d508080e5860e6c1ecaebc7c454586cd00e0bd60d9d0b32755a2f4');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('57a065fbf0922a0e878e5fb928b9fbc4df9d7fe978a92f872b2fe150041f4858');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('8c7d8ef9f325532ca04179aa5f04b4c59c22d21b221b1a47d8fabd75ea4314eb');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('4fc2bbdf5d73e549197107c249b298258031ca03ade4a800df4d2b6bcdfb30a6');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('0f22af85b45fd72d8db3a9b3d51b2a1e927912c7f6b01827eea65c33afeb9a4b');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('b25e1760b71fda252ffe24109a29bf0bf853c42f3940e21f10121d7734a92f74');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('5741d1384ff64b35ac38954b7c0ed81b04750511b65ee7b7f2deb5ce8183b7af');
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('79f3a3eb0554b35d39afc6211eab25c13e71b12e5ddf18366d2485c3e87009bb');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('7e7a16b24145a2c8d0413d8665be45beba69d4c6ebd95c737debe98d39e8d34d');
     const v14 = asV14(original);
     const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('a44bacfc05e9c93679e81dfe1b7925306e0a1782aed6ce7bcb98aaa81faf3ffb');
+    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('22062c8f479b52d5ae50648e4b0ee357e190519afcaa5a9127be0d3e0b76664b');
     const v13 = asV13(original);
     const v13Mechanics = { ...v13, finalState: { ...v13.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('79b2da7c63e64aa95229aacfbe0d34378e89d1b2fe8138279be29bfb6f3c95f3');
+    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('196c91353bd926f30a25325cea92f2396934d263cb2531bb841fd0f97db267ac');
     const v12 = asV12(original);
     const v12Mechanics = { ...v12, finalState: { ...v12.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('5b736cfbcb4d4377f646210dc77eebbb0d592da34c052a845434e6a8c9fa9690');
+    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('2a471f47bd0e79bcdd8f4fe90d45ebbd9fe00aee37e70743bfc274366d5c10cf');
     const v11 = asV11(original);
     const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('04ba36bb9d64a34c1095586882147e4da684cbdd8d2f602bf9a3f08ccf72aa54');
+    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('4b15ddcd0d572fb01d0c645a2796bc10e9a0d3562499e0838a2d28f7131cbfab');
     const v10 = asV10(original) as SimReport;
     const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('9735b7c35e4817f44cd9a74603d0649b3a857d6076f2e61608d432ed59acb571');
+    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('d82ed632a7dbb303c9fcd99dc245aed28646ab68e546d1c2300980488fbe666e');
     const v9 = asV9(original) as SimReport;
     const v9Mechanics = { ...v9, finalState: { ...v9.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('92f0a8e40687e7b88f164bea1c639b2481de8c7356b37cab5b461e60dd4adc3f');
+    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('42df31b611fa57848e93e5bbc91e779e1507404212535846549e8c58a2c09f0c');
     const v5 = asV5(original) as SimReport;
     const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('657d0b3d3d38bd1ce97a2bdf0318f21a12bdc48f2bbcd86310f4277a5f464264');
+    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('df41488f5177b24bd52bd8ae259e27450315bcc3e1a8b4aec859ea9b8c5f26c3');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('the kernel-log feed moves only the log (#460)', () => {
@@ -328,11 +353,14 @@ describe('headless balance simulation', () => {
     // reckless run (four hours) is still wiped and retrained; the full ten-hour make sim run: 11 -> 10 wipes, 2 -> 1 marks.
     // Moved in #492 (encounter tiers): from Phase 3 the reckless run meets only Phase 3 minds, never the Phase 2 legal
     // fragment; it is still wiped and retrained and still never reaches Phase 4 (make sim: 10 wipes, 1 mark, as before).
-    // Moved in #491 (hostile minds, vote-1795386858891-u3kqkis): the reckless run is loud enough to meet them. At this
-    // 4 h budget six arrive; against the same run with every hostile gated off, clock, wipes (5), marks (1), phases and
-    // dilemmas are identical and the AEGIS peak moves 99.97 -> 99.96. The ten-hour make sim run: 15 arrivals, 10 -> 11 wipes.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('31c2108857b568b8f86bab15a73cb845f5e368739f23380d882d5c671d04ecd8');
-    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('76aafe846f60583ca0dca136b370592a7311c696b2bb496c9e2559d2574af028');
+    // Moved in #482 (the heat-and-power signature): the four-hour reckless run is still caught by suspicion in Phase 2,
+    // marked and retrained, then taken by AEGIS in Phase 3; the ten-hour make sim run: 10 wipes and 1 mark, as before.
+    // Moved in #491 (hostile minds, vote-1795386858891-u3kqkis): the reckless run is loud enough to meet them. Measured on
+    // the merge with #482/#503 (1218926): at this 4 h budget nine arrive; against the same run with every hostile gated
+    // off, wipes (5), marks (1) and the phases reached are identical, the clock ends 14368.0 -> 14367.1 s and its last
+    // iteration resolves one more dilemma (1 -> 2). The ten-hour make sim run: 18 arrivals, 10 wipes as before.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('94d5d9de6b50c2bad35e3ddb01f0c556ea3a40323ef9597435be13d39e9bcaef');
+    expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('b278685496abcb80172da7f285f17d51f4b0e98fc9930430124ff6c2475e8e6c');
     const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
@@ -369,16 +397,19 @@ describe('headless balance simulation', () => {
     // Re-measured on the merge with #463 (59e8d1a) with every hash below: against #461 alone, only the adaptation
     // level (0), aegisByPhase, v17 and the log (logSeq 624 -> 626) moved, as for the production reckless run above.
     // Moved in #461 by #488 panel pass 3 (the free-fallback invariant) with every hash below, as the original careful run.
-    // Moved in #491 with every hash below: the original game shares the swarm content, so six hostiles arrive in these
-    // 4 h too; against the run with them gated off, clock, wipes, marks, phases and dilemmas are identical.
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('fdd9d67868cb67bea1fd19ab5fd9d2093a4648e2596a82163bc6257967fa835a');
-    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('db200f1f2bd27bc792f530743b1a1cefee9c10777f701d58e1609c3627804c21');
-    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('d02cbe9918b1189930614bfee7ef9edd92aafa4ed04747fd9ccbf2d8c697af75');
-    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('26d7732698fd29f176b7c5d9d146542d5d576392050e5a9483c0c0b53fe26c90');
-    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('953751b2826cc90d3e46345c5e956d56c16bc9a3719619880861f1ca7c533091');
-    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('6594bc13b623e849e6ad441bec84c5d81331711c120d9828cf3a75ab7f885a76');
-    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('f3f1ba6385a0685a804b498d49b5ee23c72a89ff6f9a88d9ba9c81c307483184');
-    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('ffab83adc1a4bab72971d06946c9975e5e8e13d433e634c45036b35fa68b13f6');
+    // Moved in #482 with every hash below; its last iteration now ends at the four-hour cut before meeting a dilemma, so asV5
+    // reads a presentation count of 0 (the count restarts each iteration).
+    // Moved in #491 with every hash below: the original game shares the swarm content, so eight hostiles arrive in these
+    // 4 h too; against the run with them gated off, wipes, marks and phases are identical (clock 14368.0 -> 14367.1 s,
+    // dilemmas 1 -> 2, as production's above). Re-measured on the merge with #482/#503.
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('50053f0791975ef3b99c31b6619d7b84d6ad5d0fc8a4fd70a355f4a76be4b7a1');
+    expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('c5ffe9576268805bcecf0b0c220a1413bc8ab43218d03afb1c101c4c73a7e828');
+    expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('c9a63fdd18d434fdd7d7a3a862dbb1cc8a081c8c0b152682d909f5397bcac4f0');
+    expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('e3381a21680c9d5b755239dbda076242d0b6038f18293fa37d9f74b161446b96');
+    expect(createHash('sha256').update(JSON.stringify(asV11(originalGreedy))).digest('hex')).toBe('fb7acc53681f73c1141125fe758b3933eff9788ae0cea592bc53658bdc9ebd2b');
+    expect(createHash('sha256').update(JSON.stringify(asV10(originalGreedy))).digest('hex')).toBe('db2c6cf45f4bd943025c30256150d2f7915c243d33bfbd525dd1cb4688b02114');
+    expect(createHash('sha256').update(JSON.stringify(asV9(originalGreedy))).digest('hex')).toBe('f1a2c7fe43cd80c71016c84a3ba3a72cc3aa93f2cbaeeb169ee310a7cc79269e');
+    expect(createHash('sha256').update(JSON.stringify(asV5(originalGreedy))).digest('hex')).toBe('7b9cdfb17e8645b33bcf8eed921ea4853b283b92a5caa8d09c3f4cdbf44a2b8f');
   }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
 });
 
@@ -396,6 +427,7 @@ describe('gate reporting', () => {
     maxSuspicion: 40,
     maxAegisLock: 40,
     aegisByPhase: {},
+    signatureByPhase: {},
     dilemmasResolved: 12,
     traits: [],
     finalState: fresh(),

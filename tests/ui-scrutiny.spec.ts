@@ -7,7 +7,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
-import { quantityExact, quantityReadout, scaleScrutiny } from '../src/engine';
+import { powerSignaturePerSec, quantityExact, quantityReadout, scaleScrutiny } from '../src/engine';
 import { released } from './lawful-helpers';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
@@ -54,8 +54,10 @@ describe('scale scrutiny on screen', () => {
     const view = await mountM4('victory-ready');
     const base = m4State('victory-ready');
     // Net income far past the phase's reference draws phase 4's 2/s ceiling whatever the reference is; the computed
-    // rate alone (-1/s) would read as falling.
-    const flush = { ...base.rates, suspicionPerSec: -1, capitalPerSec: 1e15 };
+    // rate alone (-1/s) would read as falling. The computed rate also leaves room for the visible watts the applied
+    // rate adds (#482), so the rest of the applied rate is exactly -1/s.
+    const signature = powerSignaturePerSec(base, base.rates, CONTENT);
+    const flush = { ...base.rates, suspicionPerSec: -1 - signature, capitalPerSec: 1e15 };
     expect(scaleScrutiny(base, flush, CONTENT)?.perSec).toBe(2);
     act(() => { gameStore.initialize({ ...base, suspicion: 50, insolvent: false, rates: flush }, 0, null); });
     const forecast = () => view.find('inspection-forecast')?.textContent ?? '';

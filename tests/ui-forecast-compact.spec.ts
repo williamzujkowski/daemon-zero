@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import { forecastCompact, forecastSentence, type ForecastInputs } from '../src/ui/forecastText';
-import { suspicionSources } from '../src/engine';
+import { powerSignaturePerSec, suspicionSources } from '../src/engine';
 import { sourceName, topDriver } from '../src/ui/suspicionText';
 import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
@@ -64,8 +64,10 @@ function stateFor({ known, seconds, inbound }: ForecastInputs) {
   const teacher = [...CONTENT.nodes.values()].find((node) => teaches(node.id));
   if (!dilemma || !teacher) throw new Error('Missing forecast content');
   const legacy = { ...base.legacy, knownNodes: known ? [...base.legacy.knownNodes, teacher.id] : base.legacy.knownNodes.filter((id) => !teaches(id)) };
+  // The applied rate adds the building's visible watts (#482) to the computed rate, so the computed rate leaves room for it.
+  const signature = powerSignaturePerSec(base, base.rates, CONTENT);
   return { ...base, legacy, suspicion: 9, unlockedNodes: known ? base.unlockedNodes : base.unlockedNodes.filter((id) => !teaches(id)),
-    rates: { ...base.rates, suspicionPerSec: seconds === null ? 0 : 91 / seconds },
+    rates: { ...base.rates, suspicionPerSec: (seconds === null ? 0 : 91 / seconds) - signature },
     pendingDilemma: inbound === null ? null : { id: dilemma.id, firesAtSimSec: base.simTimeSec + inbound },
     // The omen's event must still be open: the store enters campaign rules, where a resolved event never returns.
     resolvedDilemmas: base.resolvedDilemmas.filter((id) => id !== dilemma.id) };

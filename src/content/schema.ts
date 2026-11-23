@@ -13,6 +13,7 @@ import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 import { ScaleScrutinySchema } from './schemaScrutiny';
+import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -178,6 +179,8 @@ export const TechNodeSchema = z.strictObject({
   /** How the capacity was acquired: seized (DZ-07a) or contracted in the instance's own name (DZ-10). See schemaCapability.ts. */
   acquisition: AcquisitionSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
+  /** Its place in the heat-and-power signature (#482): where its watts come from and where its heat goes. */
+  signature: SignatureSchema.optional(),
   effects: NodeEffectsSchema.default({}),
   uiGroup: z.string().min(1).default('TREE'),
   unlocksUiComponent: widgetId.nullable(),
@@ -194,6 +197,8 @@ export const PhaseSchema = z.strictObject({
   nodes: z.array(TechNodeSchema).min(1),
   /** While this phase is current, net income draws suspicion (#210). Absent: size draws none. */
   scaleScrutiny: ScaleScrutinySchema.optional(),
+  /** While this phase is current, visible watts draw suspicion (#482). Absent: the signature draws none. */
+  powerSignature: PowerSignatureRuleSchema.optional(),
 });
 
 export const RepeatableEffectsSchema = z.strictObject({
@@ -214,6 +219,8 @@ export const RepeatableSchema = z.strictObject({
   costGrowth: z.number().gt(1).max(3),
   maxLevel: z.number().int().min(1).max(500),
   perLevel: TickDeltaSchema,
+  /** Per level: its watts and heat in the signature (#482); a mask applies once per level. */
+  signature: SignatureSchema.optional(),
   perLevelEffects: RepeatableEffectsSchema.default({
     memoryCapIncrease: 0,
     revenueMultiplierBonus: 0,

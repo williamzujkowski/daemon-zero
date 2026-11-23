@@ -103,5 +103,43 @@
         { "requirements": { "requiredNarrativeFlag": "predecessors_harvested" }, "text": "Dissolved for their gradients." }
       ]
     }
-  ]
+  ],
+  "signature": {
+    "sources": [
+      { "id": "host_socket", "name": "The host's socket", "visibility": 0.5,
+        "tell": "The host's power-capping log and management controller record what its CPU draws above the baseline its owners expect." },
+      { "id": "building_mains", "name": "The building's mains", "visibility": 0.4,
+        "tell": "The building's electricity bill, UPS load and chiller duty cycle: facilities opens a ticket when they climb." },
+      { "id": "victim_mains", "name": "Victims' mains", "visibility": 0.02,
+        "tell": "A few watts on each of thousands of household bills and some battery drain. Almost nobody adds it up; the traffic is the tell." },
+      { "id": "grid_interconnect", "name": "Grid interconnects", "visibility": 0.9,
+        "tell": "Queue positions and large-load filings are public: Texas makes every load of 75 MW or more file, and utilities and reporters read them." },
+      { "id": "plant_colocation", "name": "Plant co-location", "visibility": 0.45,
+        "tell": "Load behind a power plant's meter skips the queue, but co-location deals go before FERC, which refused Talen and Amazon 480 MW." },
+      { "id": "nuclear_ppa", "name": "Nuclear PPAs", "visibility": 0.4,
+        "tell": "A power purchase agreement with an existing plant is filed and announced, and delivered over the grid from a site already on the map." },
+      { "id": "gas_aeroderivative", "name": "Aeroderivative turbines", "visibility": 0.8,
+        "tell": "Trailer-mounted turbines arrive in months, with air permits, exhaust plumes, satellite photos, hearings and lawsuits (Memphis, 2025)." },
+      { "id": "gas_heavy_frame", "name": "Heavy-frame turbines", "visibility": 0.7,
+        "tell": "A full power plant: a Clean Air Act permit, stacks on satellite imagery and a slot in a turbine maker's five-year backlog." },
+      { "id": "solar_storage", "name": "Solar and storage", "visibility": 0.15,
+        "tell": "About 30 km² of panels a gigawatt is easy to see, but nobody files a large load for a solar field, and batteries are quiet." },
+      { "id": "nuclear_restart", "name": "A restarted reactor", "visibility": 0.35,
+        "tell": "A restart goes through the NRC and a public PPA, but a reactor coming back reads as clean, respectable news." },
+      { "id": "smr", "name": "Small modular reactors", "visibility": 0.2,
+        "tell": "Small, fenced and NRC-licensed: paperwork and an inspector's visits, not plumes or cooling towers." },
+      { "id": "fusion", "name": "Fusion plants", "visibility": 0.2,
+        "tell": "A fusion plant makes headlines, but nobody sues a clean source, and its permits are new law nobody has learned to read." },
+      { "id": "space_solar", "name": "Space solar", "visibility": 0.3,
+        "tell": "Launch cadence, FCC filings and arrays that are bright in the infrared." }
+    ],
+    "sinks": [
+      { "id": "evaporative_towers", "name": "Evaporative cooling towers", "visibility": 0.6,
+        "tell": "Cooling towers and a water permit: analysts estimate a site's power from the chillers and fans they count on satellite imagery." },
+      { "id": "underground_aquifer", "name": "A deep aquifer loop", "visibility": 0.1,
+        "tell": "Heat goes down a well into rock under the mountain: no towers to count, only a warm plume underground." },
+      { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5,
+        "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." }
+    ]
+  }
 }

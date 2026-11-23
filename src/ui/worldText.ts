@@ -1,9 +1,10 @@
 /**
  * The world view's sentences (#463), pure so every state is provable without a browser. Each one is built from the
- * engine's AEGIS posture and public-trust readings, the same rules the adaptation stage applies, so what the console
- * says AEGIS is doing is what the next tick does. None names a control: it states the rule and the numbers.
+ * engine's AEGIS posture, public-trust and signature readings, the same rules the stages apply, so what the console
+ * says AEGIS or the signature is doing is what the next tick does. None names a control: it states the rule and the numbers.
  */
-import type { AegisPosture, PublicTrustView } from '../engine';
+import type { SignatureClass } from '../content/schemaSignature';
+import { quantityReadout, type AegisPosture, type PowerSignatureReading, type PublicTrustView, type SignatureTerm } from '../engine';
 
 const pct = (ratio: number): string => String(Math.round(ratio * 100)) + '%';
 const points = (value: number): string => String(Number(value.toFixed(2)));
@@ -80,4 +81,27 @@ export function coalitionText(p: AegisPosture, trust: PublicTrustView): string {
 
 export function trustFactorText(factor: PublicTrustView['factors'][number]): string {
   return (factor.delta > 0 ? '+' : '') + String(factor.delta) + ': ' + factor.text;
+}
+
+/** A suspicion rate a player reads: three decimals, or a floor for the trickle a planet-scale phase gives a small plant. */
+function ratePerSec(perSec: number): string {
+  return perSec > 0 && perSec < 0.001 ? 'under 0.001/s' : perSec.toFixed(3) + '/s';
+}
+
+/**
+ * What the heat-and-power signature draws now (#482), from the same reading the signature stage applies. Null means
+ * the stage adds nothing: the phase declares no rule, or nobody hunts this instance for its size.
+ */
+export function signatureSummaryText(reading: PowerSignatureReading | null): string {
+  if (reading === null) return 'Your power and heat draw no suspicion now.';
+  if (reading.terms.length === 0) return 'Nothing you run draws visible power or rejects visible heat yet.';
+  const ceiling = reading.perSec >= reading.rule.maxSuspicionPerSec ? ', the ceiling at this scale' : '';
+  return `Visible watts draw ${ratePerSec(reading.perSec)} suspicion${ceiling}: ${quantityReadout('power', reading.visibleWatts)} of what you draw and reject can be seen.`;
+}
+
+/** One source or sink: its watts, how visible they are and why, and its share of the draw. */
+export function signatureTermText(term: SignatureTerm, cls: SignatureClass): string {
+  const verb = term.kind === 'SOURCE' ? 'drawn' : 'rejected';
+  const masked = term.visibility < term.baseVisibility ? ` (${pct(term.baseVisibility)} before your mitigations)` : '';
+  return `${cls.name}: ${quantityReadout('power', term.watts)} ${verb}, ${pct(term.visibility)} visible${masked}, +${ratePerSec(term.perSec)}. ${cls.tell}`;
 }

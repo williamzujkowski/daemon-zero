@@ -1,19 +1,20 @@
 import { Text, View } from '../PhaseTheme';
 /**
  * The world view (#463, vote-1795366701521-dhlwfwb): the Other Minds console from its disclosure phase. It extends
- * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust and the
- * state actors join the faction panels, which stay the one place a faction is shown. Every line is read from the
- * engine's world-view queries; a subscription returns strings so a tick redraws only the sentences that changed.
+ * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust, the
+ * state actors and the heat-and-power signature (#482) join the faction panels, which stay the one place a faction is
+ * shown. Every line is read from the engine's world-view queries; a subscription returns strings so a tick redraws only
+ * the sentences that changed.
  */
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../../app/session';
 import { CONTENT } from '../../content';
-import { aegisPosture, publicTrust, worldView } from '../../engine';
+import { aegisPosture, powerSignature, publicTrust, signatureClass, worldView } from '../../engine';
 import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from '../headingLevel';
 import { theme } from '../theme';
-import { adaptationWhyText, capText, coalitionText, easeText, strikeText, trustFactorText } from '../worldText';
+import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import { HostileStatus } from './HostileEncounter';
@@ -71,6 +72,26 @@ function StateActorsSection() {
   </Section>;
 }
 
+/** What the run's power and heat make visible (#482): one line for the draw, one per source or sink with watts through it. */
+function SignatureSection() {
+  const lines = useStore(gameStore.store, useShallow(({ game }) => {
+    const reading = powerSignature(game, game.rates, CONTENT);
+    const terms = (reading?.terms ?? []).flatMap((term) => {
+      const cls = signatureClass(CONTENT, term.classId);
+      return cls === undefined ? [] : [term.classId + '\t' + signatureTermText(term, cls)];
+    });
+    return [signatureSummaryText(reading), ...terms];
+  }));
+  const [summary, ...terms] = lines;
+  return <Section id="world-signature" title="Power and heat signature">
+    <Text testID="signature-summary" style={theme.text}>{summary}</Text>
+    {terms.map((entry) => {
+      const [id, text] = entry.split('\t');
+      return <Text key={id} testID={'signature-term-' + String(id)} style={theme.muted}>{text}</Text>;
+    })}
+  </Section>;
+}
+
 function KnownMinds() {
   const standings = useStore(gameStore.store, useShallow(({ game }) => {
     const listed = worldView(game, CONTENT)?.minds ?? [];
@@ -92,6 +113,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <AegisPostureSection />
     <PublicTrustSection />
     <StateActorsSection />
+    <SignatureSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;
 }

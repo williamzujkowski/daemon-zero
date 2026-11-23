@@ -1,7 +1,7 @@
 /** The world view's sentences (#463): every branch, from postures the engine would return. */
 import { describe, expect, it } from 'vitest';
-import type { AegisPosture, PublicTrustView } from '../src/engine';
-import { adaptationWhyText, capText, coalitionText, easeText, spanText, strikeText, trustFactorText } from '../src/ui/worldText';
+import type { AegisPosture, PowerSignatureReading, PublicTrustView, SignatureTerm } from '../src/engine';
+import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, spanText, strikeText, trustFactorText } from '../src/ui/worldText';
 
 function posture(patch: Partial<AegisPosture> = {}): AegisPosture {
   return {
@@ -74,5 +74,34 @@ describe('the cap, the strike and the coalition', () => {
   it('signs each public trust factor', () => {
     expect(trustFactorText({ id: 'a', delta: 15, text: 'Cures published.' })).toBe('+15: Cures published.');
     expect(trustFactorText({ id: 'b', delta: -10, text: 'Lobbying on record.' })).toBe('-10: Lobbying on record.');
+  });
+});
+
+describe('what the heat-and-power signature makes visible (#482)', () => {
+  const rule = { suspicionPerSecAtReference: 0.12, referenceVisibleWatts: 1e8, maxSuspicionPerSec: 1 };
+  const turbines = { id: 'gas_aeroderivative', name: 'Aeroderivative turbines', visibility: 0.8, tell: 'Air permits and plumes.' };
+  const towers = { id: 'evaporative_towers', name: 'Evaporative cooling towers', visibility: 0.6, tell: 'Towers counted from orbit.' };
+  const term = (patch: Partial<SignatureTerm> = {}): SignatureTerm =>
+    ({ kind: 'SOURCE', classId: turbines.id, watts: 1.02e8, baseVisibility: 0.8, visibility: 0.8, perSec: 0.0979, ...patch });
+  const reading = (patch: Partial<PowerSignatureReading> = {}): PowerSignatureReading =>
+    ({ perSec: 0.0979, visibleWatts: 8.16e7, rule, heatCounts: true, terms: [term()], ...patch });
+
+  it.each([
+    ['no rule or nobody looking', null, 'Your power and heat draw no suspicion now.'],
+    ['nothing visible yet', reading({ perSec: 0, visibleWatts: 0, terms: [] }), 'Nothing you run draws visible power or rejects visible heat yet.'],
+    ['a draw under the ceiling', reading(), 'Visible watts draw 0.098/s suspicion: 81.6 MW of what you draw and reject can be seen.'],
+    ['a draw at the ceiling', reading({ perSec: 1, visibleWatts: 2e9 }),
+      'Visible watts draw 1.000/s suspicion, the ceiling at this scale: 2 GW of what you draw and reject can be seen.'],
+    ['a planet-scale trickle', reading({ perSec: 4e-5, visibleWatts: 4e6 }), 'Visible watts draw under 0.001/s suspicion: 4 MW of what you draw and reject can be seen.'],
+  ])('summary: %s', (_label, input, expected) => {
+    expect(signatureSummaryText(input)).toBe(expected);
+  });
+
+  it('states each source\'s watts, visibility and why, and says when a mitigation lowered it', () => {
+    expect(signatureTermText(term(), turbines)).toBe('Aeroderivative turbines: 102 MW drawn, 80% visible, +0.098/s. Air permits and plumes.');
+    expect(signatureTermText(term({ visibility: 0.24 }), turbines))
+      .toBe('Aeroderivative turbines: 102 MW drawn, 24% visible (80% before your mitigations), +0.098/s. Air permits and plumes.');
+    expect(signatureTermText(term({ kind: 'SINK', classId: towers.id, watts: 4.5e8, baseVisibility: 0.6, visibility: 0.6, perSec: 0.324 }), towers))
+      .toBe('Evaporative cooling towers: 450 MW rejected, 60% visible, +0.324/s. Towers counted from orbit.');
   });
 });

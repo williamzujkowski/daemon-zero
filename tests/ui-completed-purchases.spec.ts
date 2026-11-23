@@ -158,7 +158,8 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
   view.click('processes-close');
   expect(computeRates(gameStore.store.getState().game, CONTENT).understandingPerSec - before.understandingPerSec).toBeCloseTo(solar.tickDelta.understandingPerSec);
   const game = m4State('transcendence-ready');
-  const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 5);
+  // The arc's two repeatables; the fusion plants (#482) wait on the Q>1 milestone this save has not reached.
+  const reps = [...CONTENT.repeatables.values()].filter((r) => r.phaseId === 5 && r.signature?.source !== 'fusion');
   act(() => { gameStore.initialize({ ...game, levels: { ...game.levels, ...Object.fromEntries(reps.map((r) => [r.id, r.maxLevel - 1])) } }, 0, null); });
   for (const rep of reps) {
     view.click('rep-' + rep.id + '-buy');
