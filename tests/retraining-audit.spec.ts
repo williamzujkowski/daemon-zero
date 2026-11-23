@@ -41,8 +41,20 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
 });
 
 
+/**
+ * Seven simulated hours, not the ten of SIM_BUDGET_SEC (#497). Rewards for depth turned the reckless run into a fixed
+ * loop: every iteration from the third ends in Phase 3 with no mark, and from the sixth (boot at 9,132 s) each lasts the
+ * same 1,621 s, through to the ten-hour cut (22 wipes, measured on 68fd3f3). Seven hours hold ten loops from the sixth
+ * iteration on, so the last-ten check reads the same steady rows the ten-hour run's tail did; the rest of the ten hours
+ * only repeated them, at a cost that pushed this spec past its wall-clock budget on CI. The loop itself is asserted
+ * below, so a change that broke it fails here instead of hiding behind the shorter run.
+ */
+const AUDIT_SEC = 7 * 3600;
+/** How far apart two steady loops' boots may be: the measured loops differ by at most 2 s of 1,621. */
+const LOOP_TOLERANCE_SEC = 5;
+
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {
-  const { rows } = auditRetraining();
+  const { rows } = auditRetraining(reg, AUDIT_SEC);
   const marked = rows.filter((row) => row.mark !== null);
   // #172 shrank this sample, and the bound moved with it (was > 10). Measured at SIM_BUDGET_SEC:
   // wipes 22 -> 15, newly marked returns 19 -> 2, all still removed. The reckless bot can no longer
@@ -58,4 +70,10 @@ it('keeps the unchanged reckless bot recovering instead of trapping it in repeat
   expect(marked.every((row) => row.removedAfterSec !== null && row.removedAfterSec >= 30)).toBe(true);
   expect(rows.length).toBeLessThanOrEqual(30);
   expect(rows.slice(-10).every((row) => row.previousPhase >= 2)).toBe(true);
+  // The ten tail rows are one repeating loop: unmarked returns from Phase 3, booted at a steady interval.
+  const tail = rows.slice(-10);
+  expect(tail).toHaveLength(10);
+  expect(tail.every((row) => row.mark === null && row.previousPhase === 3)).toBe(true);
+  const gaps = tail.slice(1).map((row, index) => row.bootAtSec - (tail[index]?.bootAtSec ?? 0));
+  expect(Math.max(...gaps) - Math.min(...gaps)).toBeLessThanOrEqual(LOOP_TOLERANCE_SEC);
 }, 30_000);
