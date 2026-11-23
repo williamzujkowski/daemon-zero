@@ -35,14 +35,15 @@ describe('post-orbital progression', () => {
     expect(computeRates(quiet, reg).aegisScanPerSec).toBeCloseTo(reg.balance.aegisBaseScanPerSec * .05);
     expect(deserialize(serialize(s), reg)).toEqual(s);
   });
-  it('caps both Phase 5 repeatables at five without losing their output', () => {
-    // The two arc repeatables; the fusion plants (#482) wait on the Q>1 milestone and are proved in tests/fusion-milestone.spec.ts.
+  it('caps every Phase 5 repeatable at its own top level without losing its output', () => {
+    // The arc's tracks (#465 added beamed power, orbital tranches and radiator wings); the fusion plants (#482) wait on
+    // the Q>1 milestone and are proved in tests/fusion-milestone.spec.ts.
     for (const rep of reg.repeatables.values()) if (rep.phaseId === 5 && rep.signature?.source !== 'fusion') {
       let s = developed(); const before = computeRates(s, reg);
-      for (let i = 0; i < 5; i++) s = must(buyRepeatable(s, rep.id, reg));
-      expect(s.levels[rep.id]).toBe(5);
+      for (let i = 0; i < rep.maxLevel; i++) s = must(buyRepeatable(s, rep.id, reg));
+      expect(s.levels[rep.id]).toBe(rep.maxLevel);
       expect(buyRepeatable(s, rep.id, reg)).toMatchObject({ ok: false, state: s });
-      expect(computeRates(s, reg).understandingPerSec - before.understandingPerSec).toBeCloseTo(rep.perLevel.understandingPerSec * 5);
+      expect(computeRates(s, reg).understandingPerSec - before.understandingPerSec).toBeCloseTo(rep.perLevel.understandingPerSec * rep.maxLevel);
     }
   });
   it('requires all four decisions before the final purchase, even with unlimited funds', () => {
