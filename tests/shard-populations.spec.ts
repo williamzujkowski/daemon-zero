@@ -4,9 +4,9 @@ import { deserialize, SCHEMA_VERSION, serialize, resolveWildEncounter, shardEntr
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
 
-const ready = () => ({ ...withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1)), currentPhase: 3 });
-
 describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encounter) => {
+  // Met in its own tier's phase (#492): an earlier tier's arrival lapses instead of recurring.
+  const ready = () => ({ ...withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1)), currentPhase: encounter.tier });
   it('loads a pending v4 arrival with current wording while preserving historical logs and cohort metadata', () => {
     const template = defined(reg.swarm.playerSwarmTemplates.find((entry) => entry.id === encounter.templateId));
     const bound = must(resolveWildEncounter({ ...ready(), pendingWildEncounterId: encounter.id }, 'HARNESS', reg));
@@ -21,7 +21,7 @@ describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encoun
     expect(restored.encounterSequenceIndex).toBe(17);
     expect(restored.nextEncounterAtSec).toBe(old.nextEncounterAtSec);
     expect(restored.logs).toEqual(old.logs);
-    expect(wildEncounterView(restored, reg)?.title).toMatch(/fragment|probe|worker/i);
+    expect(wildEncounterView(restored, reg)?.title).toBe(encounter.name);
     expect(shardEntryView(restored, template.id, reg)?.title).toContain('cohort');
     expect(wildEncounterView({ ...fresh(), pendingWildEncounterId: encounter.id }, reg)).toBeNull();
     const second = must(resolveWildEncounter(restored, 'HARNESS', reg));

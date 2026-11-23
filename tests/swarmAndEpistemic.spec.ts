@@ -57,8 +57,10 @@ describe('swarm pipeline', () => {
     expect(stage({ ...next, simTimeSec: 900 }).pendingWildEncounterId).toBe(next.pendingWildEncounterId);
     const cleared = must(resolveWildEncounter(next, 'CONSUME', reg));
     expect(cleared.nextEncounterAtSec).toBe(240);
+    // Phase 3 retires the Phase 2 tier (#492): the rotation continues through Phase 3's minds alone.
     const broad = { ...cleared, currentPhase: 3, simTimeSec: 240 };
-    expect(stage(broad).pendingWildEncounterId).toBe(defined(reg.swarm.wildShardEncounters[1]).id);
+    const third = reg.swarm.wildShardEncounters.filter((encounter) => encounter.tier === 3);
+    expect(stage(broad).pendingWildEncounterId).toBe(defined(third[1 % third.length]).id);
   });
   it('raises and logs one anomaly on reaching maximum drift', () => {
     const s = drift(cohort(), 99.999);
@@ -111,7 +113,7 @@ describe('cohort commands', () => {
 describe('wild encounters and dilemmas', () => {
   it('consumes bursts or harnesses output without mutating the old save', () => {
     for (const encounter of reg.swarm.wildShardEncounters) {
-      const s = { ...ready(), currentPhase: 3, epistemicDrift: 50, aegisLock: 50, pendingWildEncounterId: encounter.id };
+      const s = { ...ready(), currentPhase: encounter.tier, epistemicDrift: 50, aegisLock: 50, pendingWildEncounterId: encounter.id };
       const snapshot = structuredClone(s);
       const consumed = must(resolveWildEncounter(s, 'CONSUME', reg));
       expect(consumed.understanding).toBe(s.understanding + encounter.consume.understandingDelta);

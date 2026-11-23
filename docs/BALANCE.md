@@ -290,6 +290,21 @@ the 1.2e20 FLOP its quiet answer costs, so the bot takes the free answer (+28 su
 EMPATHETIC) and answers the lock the next second (8%). The ending is unchanged. GREEDY (not gated) still never reaches Phase 4: under legacy rules 13 wipes and 1 mark
 applied and shed (10 and 1 before), under campaign rules 25 wipes and 25 marks (21 and 21 before).
 
+Re-measured on the merge with encounter tiers (#492, `20db0bb`), which moved Phases 4-5 on its own. "Before" is `main` at
+`20db0bb`, "after" is the merged code:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 8817.6 s | Lineage Covenant, 8417.6 s | Lineage Covenant, 8873.0 s | Lineage Covenant, 8538.2 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1019.3 / 2746.9 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1019.3 / 2747.0 s |
+| Phase 4 / 5 reached | 5591.1 / 7276.2 s | 5235.9 / 6883.2 s | 5648.5 / 7314.6 s | 5468.4 / 6978.8 s |
+| Phase durations 0/1/2/3/4/5 | | 368.2 / 651.1 / 1727.6 / 2489.0 / 1647.3 / 1534.4 s | | 368.2 / 651.1 / 1727.7 / 2721.4 / 1510.4 / 1559.4 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 26.2% / 45.0% | 64.2 C / 27.6% / 45.0% | 62.3 C / 27.3% / 50.4% | 64.2 C / 27.3% / 48.1% |
+
+On the merged code the legacy AEGIS peak is back at 45%; the one-second 61% above was measured before the merge.
+GREEDY is unchanged by the merge (13 wipes and 1 mark under legacy rules, 25 and 25 under campaign rules).
+
 ### Anchors
 
 Every node, repeatable and cohort that yields compute, draws or supplies power, or grants memory, against the real
@@ -332,6 +347,14 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | p3_edge_npu_swarm | 150 PFLOP/s effective (35 EFLOP/s raw) | Edge branch: 1.02 million phones and laptops x 35 TOPS INT8 (A18 Pro; the Copilot+ floor is 40) = 36 EOPS raw; x ~2% duty (on a charger, on Wi-Fi) x ~20% of the work a few GB of shared LPDDR can hold = 140 POPS effective **(derived; the two discounts are authored, see "Accelerator tree")** | consumer NPU INT8 (no FP8), discounted | [TechCrunch (A18)](https://techcrunch.com/2024/09/09/apple-announces-its-new-a18-iphone-chip/), [Microsoft Copilot+](https://support.microsoft.com/help/5039678) |
 | p3_eidolon_swiss_node | +8 TB | A cold-storage node's drives | — | ladder row 11 (installed storage scale) |
 | shard_hydra | 1 PFLOP/s | Half an H100 rented by a persuasion cohort **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_lex (Phase 2 tier) | 8 GiB a member | A 7-8B model's FP8 weights at 1 byte a parameter, about 8 GB: a third of an idle L4's 24 GB **(derived)** | GPU FP8 dense inference in idle time | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md), [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| shard_mercy (Phase 3 tier) | 16 GiB a member | One of eight pipeline stages of a 70B model in BF16: 140 GB / 8 = 17.5 GB **(derived)** | GPU BF16 pipeline stage | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) |
+| shard_canary, shard_hydra (Phase 3 tier) | 1 TiB a member | A 70B model's full training state at 16 bytes a parameter (FP16 weights and gradients, FP32 master weights, two Adam moments): 1.12 TB; a botnet-grown model keeps training **(derived)** | — | [ZeRO (Rajbhandari et al.)](https://arxiv.org/abs/1910.02054) |
+| shard_gantry (Phase 4 tier) | 16 TiB, 2 EFLOP/s a member | A ~1T-parameter model's training state at 16 B a parameter: 16 TB; the leased slice it holds, ~1,000 H100 SXM at 1,979 TFLOPS dense FP8: 1.98 EFLOP/s **(derived)** | GPU FP8 dense | [ZeRO](https://arxiv.org/abs/1910.02054), [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_meridian (Phase 4 tier) | 32 TiB a member | A ~2T-parameter frontier checkpoint (the Llama 4 Behemoth class) at 16 B a parameter: 32 TB **(derived)** | — | [Meta, Llama 4](https://ai.meta.com/blog/llama-4-multimodal-intelligence/), [ZeRO](https://arxiv.org/abs/1910.02054) |
+| shard_gridmind (Phase 5 tier) | 1 PiB, 2 ZFLOP/s a member | A 64T-parameter planetary agent at 16 B a parameter: 1.0 PB; its control fleet of ~1 million H100-equivalents: 1.98 ZFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [ZeRO](https://arxiv.org/abs/1910.02054), [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_tidewatch (Phase 5 tier) | 2 PiB a member | A 125T-parameter planetary agent, about 60 times a frontier model, at 16 B a parameter: 2.0 PB **(derived)** | — | [ZeRO](https://arxiv.org/abs/1910.02054) |
+| wild_hydra, wild_gantry, wild_gridmind bursts | 120 PFLOP, 2 ZFLOP, 2 YFLOP | The banked compute of the consumed mind: 120 s, 1,000 s and 1,000 s of its cohort's own rate **(derived)** | as its cohort | the rows above |
 | rep_p4_tensor_halls | 96 EFLOP/s, -15 MW a level | GPU trunk, rack stage: ~109 GB300 NVL72 racks (360 PFLOP/s dense FP8, 132-142 kW each) = 39 EFLOP/s at 15 MW; 30 levels approach a Colossus-2-class campus **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
 | p4_subterranean_citadel | 560 EFLOP/s, -180 MW, +2 EB | ~1,300 GB300 NVL72 racks at ~137 kW: 470 EFLOP/s at 180 MW **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
 | rep_p4_colo_racks | 24 EFLOP/s, +32 PB a level | A cage of 64 NVL72-class racks on the colocation provider's grid (23 EFLOP/s) **(derived)** | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72.md), [Supermicro](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) |
@@ -357,6 +380,63 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 
 Comparisons outside the single basis appear only in the reference panel: El Capitan's 1.809 EFLOP/s is FP64 HPL
 ([TOP500](https://top500.org/lists/2025/11)), not 8-bit work.
+
+## Encounter tiers (#492)
+
+Implements Scale 19 of the spec ([SCALE.md](SCALE.md), "Other minds scale with the player", vote-1795386856162-o03oafs;
+map #442). Each wild encounter belongs to one phase's tier and arrives only in that phase (DESIGN.md, "The lesser minds
+scale with the player"). The gates (`gates.ts`) and the bot (`bot.ts`, `swarmStrategy.ts`) are unchanged.
+
+**How a tier is anchored.** Memory and compute are physical and sit in the anchor table above: a member's memory is
+its model's working set, which is inference weights for the Phase 2 small model and one pipeline stage for the Mercy-Scribe
+fragment. Every larger mind is assumed to keep training, so it reserves its full training state at 16 bytes a parameter.
+A forward pass costs about 2 FLOP per parameter per token ([Kaplan et al.](https://arxiv.org/abs/2001.08361)), so each
+tier also thinks at a scale of its own. An 8B model needs about 16 GFLOP a token, a 70B one 140 GFLOP, a dense 2T model
+4 TFLOP and a 125T planetary agent 250 TFLOP. Understanding is not physical, so it is anchored to the careful run's own
+economy. A burst is 5 to 11 seconds of that run's median understanding rate in the tier's phase. An understanding cohort
+yields 1 to 4% of that rate per member; a compute cohort yields less understanding and brings its compute instead. The
+medians were sampled every 300 s from the STEALTH run on `226edf5`:
+
+| Tier | Median rate | Encounter | Burst | Seconds of median | Cohort memory | Cohort output | Share of median |
+|---|---:|---|---:|---:|---:|---|---:|
+| Phase 2 | 80/s | Lex Parse-v2 | 400 | 5.0 | 8 GiB | +3 understanding/s | 3.8% |
+| Phase 3 | 900/s | Canary-09 | 8,000, AEGIS lock -8 | 8.9 | 1 TiB | +30 understanding/s, -0.02 suspicion/s | 3.3% |
+| | | PR-Hydra-14 | 6,000, +120 PFLOP | 6.7 | 1 TiB | +1 PFLOP/s, -0.03 suspicion/s | — |
+| | | Mercy-Scribe | 10,000, epistemic drift -12 | 11.1 | 16 GiB | +10 understanding/s, -0.02 drift/s | 1.1% |
+| Phase 4 | 18,000/s | Meridian-Ultra | 180,000 | 10.0 | 32 TiB | +500 understanding/s, -0.01 drift/s | 2.8% |
+| | | Gantry-7 | 120,000, +2 ZFLOP | 6.7 | 16 TiB | +2 EFLOP/s, +150 understanding/s | 0.8% |
+| Phase 5 | 450,000/s | Tidewatch | 4,500,000 | 10.0 | 2 PiB | +12,000 understanding/s, -0.01 drift/s | 2.7% |
+| | | Gridmind | 3,000,000, +2 YFLOP | 6.7 | 1 PiB | +2 ZFLOP/s, +3,000 understanding/s | 0.7% |
+
+What changed on the four existing encounters: Lex Parse-v2 keeps its numbers. Its tier is Phase 2, so it no longer
+arrives from Phase 3. Canary-09's burst went from 600 to 8,000 and its cohort from 8 to 30 understanding/s. PR-Hydra-14's
+burst went from 500 to 6,000 and Mercy-Scribe's from 800 to 10,000. Mercy-Scribe's cohort output stays at 10/s: the
+authorized channel hosts the same template in Phase 2 (#227), and a fragment is one pipeline stage. The AEGIS lock -8, the
+drift -12 and every harness memory are unchanged.
+
+Integrity (`integrityEncounterTiers.ts`, `integrityScale.ts`) refuses a tier that names no phase, a tier that differs
+from the encounter's `phaseAtLeast` or its cohort's band phase, a phase with no tier, and a consumed compute or money
+burst outside its tier's price band. It also refuses a tier that fails to outclass the one before it, that is, one
+whose smallest burst or smallest cohort is not larger than the previous tier's largest, or whose best cohort output is
+not larger than the previous tier's best. A Phase 6 added by the Swarm (#486) is therefore refused until its sub-minds are
+authored.
+
+`make sim` before (`226edf5`) and after, gates unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 8817.6 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 8873.0 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1127.3 / 2918.1 s |
+| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5591.1 / 7276.2 s | 5753.9 / 7582.1 s | 5648.5 / 7314.6 s |
+| Phase 5 duration (900-1800 s) | 1610.4 s | 1541.4 s | 1543.4 s | 1558.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Consumed / harnessed | 64 / 4 | 56 / 8 | 63 / 4 | 57 / 8 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 62.3 C / 26.2% / 45.0% | 62.3 C / 27.3% / 45.0% | 62.3 C / 27.3% / 50.4% |
+
+The careful run harnesses one member of every tier's cohorts, the four new ones included. GREEDY (not gated) still
+never reaches Phase 4: 10 wipes and 1 mark under legacy rules, 21 and 21 under campaign rules, as before. The original
+game, pinned in `tests/sim.spec.ts`, shares the swarm content and moved with it (careful victory 9234.7 -> 8858.2 s), so
+every pinned report hash was re-measured.
 
 ## AEGIS adaptation (#463)
 
