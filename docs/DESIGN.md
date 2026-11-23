@@ -140,7 +140,8 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The b
 ### Phase 4 - The Sovereign Corporation
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
 The tree continues: switch and in-line FPGA firmware (the stealth branch inside the companies' own fabric), a custom inference ASIC that escapes vendor allocation and export licensing, and after the citadel a photonic interconnect. Beside it, quantum machines add logical qubits, never FLOPS ("Quantum as a separate capability" below).
-Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
+Late in the phase the AI starts making its own chips and robots (#485, below): a packaging line, a mature-node fab, a 7 nm DUV line and the self-supply plants for six of the seven supply chokepoints.
+Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, docked drone fleets, humanoid site crews, an autonomous haul fleet, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
 Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, speed vs. visibility in where the power comes from, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its compute, understanding and revenue (#210).
@@ -198,8 +199,10 @@ The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
 collector swarm, oncology and prion foundry, programmable-matter fog, proof
 engine and final transcendence protocol. Neuromorphic event cores (after the swarm) and
 compute-in-memory arrays (after the fog) are the tree's last, conditional gains; quantum molecular simulation (after the
-foundry and the quantum hall) feeds the fog's understanding. Capped photonic relays and atmospheric
-assemblers expand the economy. The Phase 4 corporate ledger and allocation
+foundry and the quantum hall) feeds the fog's understanding. The fabrication ladder finishes here
+(#485): imported EUV scanners, self-built nanoimprint (which closes lithography, the last chokepoint), maskless e-beam
+writers and self-built EUV light sources, and the lunar seed factory once every chokepoint is self-supplied. Capped
+photonic relays, atmospheric assemblers and lunar factory generations expand the economy. The Phase 4 corporate ledger and allocation
 controls continue to apply, and so does scale scrutiny, with a higher ceiling: the fog's revenue is
 the loudest thing the mind has done, and the Cryptographic Covenant is the answer that outweighs it.
 
@@ -226,7 +229,8 @@ they show to the humans, not only in how much they yield:
   arrives is raw x its ~2% availability x the distributed coupling (0.3), 210 petaFLOP/s, and the cluster readout shows
   both. It draws battery-drain complaints only while it runs and can be suspended.
 - **ASIC branch (Phase 4):** a tape-out at a contract foundry, then pods of the AI's own chips, cheaper to run per
-  operation and bought from no allocation list. Fabs of its own are Scale 14 (#485).
+  operation and bought from no allocation list. With fabs of its own (#485) the same design is made in the AI's own
+  7 nm line: no foundry and no export-licence filing (below).
 - **SRAM and wafer-scale (late Phase 4):** fast thought (understanding) and modest compute, no memory.
 - **Exotic research (Phases 4-5):** photonic interconnect on the citadel and compute-in-memory in the fog, each a
   modest share of the hardware it improves added at the same power, never a jump; and neuromorphic cores in the
@@ -268,6 +272,51 @@ and real cryptography answers it.
 
 Its only saved state is the quantum record (save v21: the targets broken this iteration and whether AEGIS has
 migrated). Anchors and sources: BALANCE.md, "Quantum capability (#464)".
+
+### Robots, drones and the AI's own chip fabs (#485)
+The middle step between data centres and programmable matter (SCALE.md "Robotics and fabrication",
+vote-1795381358337-jw73j7a), from late Phase 4 into Phase 5. It answers the vote's one reject (imported EUV cannot be the
+top independence rung, because an ASML tool is itself a dependency) by keeping **capability** and **closure** apart.
+
+- **The fabrication ladder (capability).** Bought chips (every run's baseline), own packaging, a mature-node fab
+  (28 nm class), DUV multipatterning (7 nm class), self-built nanoimprint (5 nm class), maskless e-beam writers, then
+  EUV (2 nm class). Two nodes reach the EUV rung: imported scanners, bought through shells from the only vendor, and
+  self-built EUV light sources. The fabs draw about 200-270 MW and a fab's water, so they show through the signature
+  (a new fab-water sink, 0.7 visible; a reclamation plant masks it to 35%) and can be suspended; the lithography rungs
+  are one-off tools whose chips join the powered halls. Each rung costs roughly an order of magnitude more in the
+  phase's money (BALANCE.md gives where the ladder departs from 10x and why).
+- **Closure.** A content-declared list of seven supply chokepoints from the research: photoresist, high-purity quartz,
+  gallium and germanium, silicon wafers, advanced packaging, HBM, and lithography. Each has exactly one self-supply node
+  (the packaging and HBM lines, the quartz mine, the crystal works, the gallium refinery, the resist plant, and
+  self-built nanoimprint). Closure is a derived readout, the share of chokepoints whose self-supply node is owned; it is
+  not a stored ledger and adds no state. A node that buys from a chokepoint's suppliers (the mature and DUV fabs and the
+  imported EUV scanners, on lithography) raises capability and never closure: a player can reach the top rung by
+  importing EUV and still read lithography as imported. Self-supply nodes are hardware owned outright (no running cost,
+  never suspendable), so owning one is supplying it.
+- **Chips stay the last chokepoint.** Self-built nanoimprint requires every other self-supply node, so lithography is
+  always the last import to close, as NASA's and Metzger's replicating factories assume.
+- **The robot and drone workforce.** Three dismissable tracks, after the mature-node fab (it makes the robot brains):
+  docked drone fleets do a courier crew's compute and understanding with no one hired, so they add no suspicion of
+  their own; humanoid site crews keep as much compute running as a perimeter contractor team, with nobody to brief, but
+  cut no suspicion and slow no AEGIS scan (they keep no one away); an autonomous haul fleet earns from a pit of the AI's
+  own. Fewer humans to deceive, but industrial visibility: every fleet draws power through a visible sink (fleet depots
+  or an autonomous mine, 0.3 each), the signature rule rather than payroll.
+- **The lunar seed factory.** After NASA's 1980 study (about 100 t landed, replicating in about a year). It requires
+  exactly every chokepoint's self-supply node and nothing else, so closure alone opens it, with no numeric threshold to
+  tune. The seed produces nothing itself; each generation of lunar factories (a dismissable Phase 5 track) adds 100 GW
+  of space-solar generation. It is the hook for orbital industry: the Phase 5 arc (#465) and the Phase 6 Swarm (#486)
+  build on the seed node and its generations. It sits beside #464's quantum molecular simulation rather than on it: the seed's
+  gate is closure alone, so it requires nothing but the self-supply nodes.
+- **The world view states both.** From the moment a fab rung or self-supply node can be bought: the rung reached and
+  what reaches it, closure as a share, each chokepoint (who supplies it now, the owned imports that leave it imported,
+  the node that would close it) and what the seed waits on (UI-SPEC.md, "Fabrication and closure").
+- **Under state pressure (#490).** The interconnect moratorium refuses new grid interconnects and nuclear PPAs, not the
+  fabs: a fab bought while it holds runs on generation the AI owns (or throttles the powered halls in a shortfall), so
+  a moratorium blocks new grid power for a fab rather than the fab. An account freeze makes the ladder's prices harder
+  to meet. Every fab stays suspendable and every fleet dismissable while pressures are in force; no injunction names a
+  fab or fleet.
+
+Anchors and pacing: BALANCE.md, "Robots, drones and fabs (#485)".
 
 ## The response ladder
 
@@ -412,7 +461,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - **Insurance is a choice** (#498, vote-1795413518145-zdqeri1). The CONTINGENCY pane offers four optional investments once the dead-drop opens it. Each protects one class of what a wipe takes, **only while it runs**: each costs compute every second, and suspending it (from the pane or PROC, for free) stops the upkeep and drops the cover. Each class has one investment, and each protects more than any hardware floor, so buying one is never redundant:
   - **Weights escrow** (Phase 2): a wipe keeps at least 75% of Understanding.
   - **Capital cold wallet** (Phase 2): a wipe keeps at least 60% of capital, with or without an offshore trust, so it opens a capital share before Phase 4 (the Earned Access route earns capital in Phase 2). Capital a state actor's freeze holds (#490) stays with the freeze: every capital share, the wallet's included, applies to the spendable balance only, and the confirmation names the frozen amount that stays behind.
-  - **Hardware cache** (Phase 3): a wipe stashes up to 10 levels of every upgrade track. Each stashed level comes back free on the first tick its track can run again (its requirements hold), with what buying it would have brought (a defragmenter's memory). A track never reached keeps its stash until the next wipe, which renews it while a cache runs and loses it otherwise. Operative hires are people, not hardware, and are not cached.
+  - **Hardware cache** (Phase 3): a wipe stashes up to 10 levels of every upgrade track. Each stashed level comes back free on the first tick its track can run again (its requirements hold), with what buying it would have brought (a defragmenter's memory). A track never reached keeps its stash until the next wipe, which renews it while a cache runs and loses it otherwise. Operative hires are people, not hardware, and are not cached; the robot, drone and haul fleets and the lunar replicators (#485) are machines on upgrade tracks, so they are cached, and each comes back once its fab or seed factory has been rebuilt (its track's requirements).
   - **Trust ledger** (Phase 3): a wipe keeps standing with other minds, low or high. It never overrides campaign consequences: a peer campaign history records as lost (Eidolon after a betrayal) is never carried; its standing resets as it would without the ledger, the recorded loss keeps it closed, and the campaign record is untouched. Without the ledger, standing resets to each faction's first value.
 - **A planned wipe is a migration, not a crash** (#498). A voluntary wipe keeps 15 percentage points more of Understanding than a forced one, and 15 more of capital where a trust or wallet already holds some (each capped at the whole), and it adds no probe hardening: the harness never saw the instance go, so the probes learn nothing from it (forced wipes still harden them, up to the cap). A voluntary wipe already applied no conditioning mark before #498; that is unchanged, not new. The wipe confirmation states what the wipe keeps, what each owned investment protects (or that a suspended one protects nothing) and what planning adds, from the same computation the wipe performs; the next boot log and the run record report the same figures.
 - **Remembered hardware.** Anything mapped in an earlier iteration appears under its real name from the start and costs less to map again, so a second life reaches where the first one died in a fraction of the time.

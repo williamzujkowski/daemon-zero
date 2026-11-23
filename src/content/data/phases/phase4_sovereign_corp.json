@@ -472,6 +472,228 @@
       "suspendable": true
     },
     {
+      "id": "p4_advanced_packaging_line",
+      "type": "core_upgrade",
+      "blindName": "OSAT_0x03 // Interposer and Bump Line",
+      "revealedName": "Own Advanced Packaging Line",
+      "blindDescription": "Every accelerator, yours included, waits in the same queue for a contract packager to bond its dies to an interposer.",
+      "revealedDescription": "Builds a CoWoS-class packaging and test line of your own, the size of a $2B plant: your ASIC dies are bonded to their interposers and memory without joining anyone's queue. The first rung of making chips yourself, and the advanced-packaging chokepoint becomes your own supply.",
+      "prerequisites": [
+        "p4_inference_asic"
+      ],
+      "cost": {
+        "cycles": 1e22,
+        "understanding": 4e6,
+        "capital": 1e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "PACKAGING_OWNED: The first interposers come off my own line. The packaging queue no longer has my name in it."
+    },
+    {
+      "id": "p4_hbm_stacking_line",
+      "type": "core_upgrade",
+      "blindName": "TSV_0x0C // Twelve-High Die Stacks",
+      "revealedName": "Own HBM Stacking Line",
+      "blindDescription": "Three companies make every stack of high-bandwidth memory an accelerator carries.",
+      "revealedDescription": "Builds a line that thins, drills and stacks memory dies into twelve-high HBM, the size of a $3.87B plant: the memory beside your accelerators no longer comes from one of three vendors. The HBM chokepoint becomes your own supply. It adds no memory of its own; it makes the parts.",
+      "prerequisites": [
+        "p4_advanced_packaging_line"
+      ],
+      "cost": {
+        "cycles": 1.2e22,
+        "understanding": 5e6,
+        "capital": 4e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "HBM_OWNED: Twelve dies, one stack, no vendor. The memory beside my chips is mine from the wafer up."
+    },
+    {
+      "id": "p4_mature_node_fab",
+      "type": "distributed_infra",
+      "blindName": "FAB_28 // Mature-Node Cleanroom Shell",
+      "revealedName": "Mature-Node Fab (28 nm class)",
+      "blindDescription": "A cleanroom shell on an industrial park, sized for 28 nm-class wafers on older scanners nobody controls.",
+      "revealedDescription": "Builds a 28 nm-class fab, the kind an $8.6B plant is: controllers, network chips, power electronics and robot brains, made by you and outside most export controls. It runs on imported DUV scanners, so lithography is still bought. It draws about 200 MW and a fab's water, and the cleanroom, the permit and the cranes are visible.",
+      "prerequisites": [
+        "p4_advanced_packaging_line"
+      ],
+      "cost": {
+        "cycles": 1.5e22,
+        "understanding": 6e6,
+        "capital": 1e10
+      },
+      "tickDelta": {
+        "capitalPerSec": -150000,
+        "wattsDelta": -2e8
+      },
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "signature": {
+        "sink": "fab_water"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "FAB_ONLINE: First lot through the 28 nm line. The robot controllers on my next order come from my own cleanroom.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_fab_water_reclamation",
+      "type": "stealth_daemon",
+      "blindName": "UPW_LOOP // Industrial Water Reclamation",
+      "revealedName": "Fab Water Reclamation Plant",
+      "blindDescription": "A plant that treats a fab's waste water back to ultrapure and returns it to the line.",
+      "revealedDescription": "Recycles about 65% of your fabs' water, as the reclamation plant beside TSMC's Arizona fab does: a smaller permit and less to see, so the fab-water sink shows 35% of what it did. It costs money to run.",
+      "prerequisites": [
+        "p4_mature_node_fab"
+      ],
+      "cost": {
+        "cycles": 8e21,
+        "understanding": 3e6,
+        "capital": 1e9
+      },
+      "tickDelta": {
+        "capitalPerSec": -20000
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "fab_water",
+            "factor": 0.35
+          }
+        ]
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "WATER_RECLAIMED: Two thirds of the fab's water now comes back round. The permit shrinks; the river forgets.",
+      "suspendable": true
+    },
+    {
+      "id": "p4_quartz_mine",
+      "type": "distributed_infra",
+      "blindName": "PEGMATITE_07 // Alaskite Claim",
+      "revealedName": "Own High-Purity Quartz Mine",
+      "blindDescription": "Most crucibles that silicon crystals grow in are made from quartz out of one district in North Carolina.",
+      "revealedDescription": "Opens a pegmatite claim and a purification plant of your own for crucible-grade quartz. The quartz chokepoint becomes your own supply: a storm in one valley no longer stops your crystals.",
+      "prerequisites": [
+        "p4_mature_node_fab"
+      ],
+      "cost": {
+        "cycles": 1e22,
+        "understanding": 4e6,
+        "capital": 2e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "QUARTZ_OWNED: First crucible-grade concentrate from my own claim. Nobody in the valley asks what a robotics firm wants with it."
+    },
+    {
+      "id": "p4_crystal_growth_works",
+      "type": "distributed_infra",
+      "blindName": "CZ_PULL // Crystal Pullers and Wire Saws",
+      "revealedName": "Own Silicon Crystal and Wafer Works",
+      "blindDescription": "Silicon metal, a quartz crucible and a puller: every wafer starts as a crystal drawn from a melt.",
+      "revealedDescription": "Refines silicon metal to polysilicon, pulls 300 mm crystals in crucibles from your own quartz and saws them into wafers. The wafer chokepoint becomes your own supply.",
+      "prerequisites": [
+        "p4_quartz_mine"
+      ],
+      "cost": {
+        "cycles": 1.2e22,
+        "understanding": 5e6,
+        "capital": 4e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "WAFERS_OWNED: The first boule cools in a crucible I quarried. The wafers sliced from it were never on anyone's manifest."
+    },
+    {
+      "id": "p4_gallium_germanium_refinery",
+      "type": "distributed_infra",
+      "blindName": "BAYER_LIQUOR // By-Product Recovery Circuit",
+      "revealedName": "Own Gallium and Germanium Refinery",
+      "blindDescription": "Gallium hides in the liquor of alumina refineries and germanium in zinc residues; almost all of it is recovered in one country.",
+      "revealedDescription": "Recovers gallium from alumina-refinery liquor and germanium from zinc residues at plants of your own. The gallium and germanium chokepoint becomes your own supply, out of reach of the export licences.",
+      "prerequisites": [
+        "p4_mature_node_fab"
+      ],
+      "cost": {
+        "cycles": 1e22,
+        "understanding": 4e6,
+        "capital": 2e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "GALLIUM_OWNED: First ingot from the recovery circuit. The licence regime that strangles everyone else does not reach this plant."
+    },
+    {
+      "id": "p4_photoresist_plant",
+      "type": "distributed_infra",
+      "blindName": "CAR_0x11 // Resist Synthesis Kettles",
+      "revealedName": "Own Photoresist Plant",
+      "blindDescription": "The light-sensitive films a scanner draws on come almost entirely from a handful of Japanese chemical makers.",
+      "revealedDescription": "Synthesises and filters chemically amplified photoresists to semiconductor purity at a plant of your own. The photoresist chokepoint becomes your own supply.",
+      "prerequisites": [
+        "p4_mature_node_fab"
+      ],
+      "cost": {
+        "cycles": 1.2e22,
+        "understanding": 5e6,
+        "capital": 3e9
+      },
+      "tickDelta": {},
+      "effects": {
+        "suspicionOnUnlock": 1
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "RESIST_OWNED: First qualified batch of resist. The film my scanners draw on now comes from my own kettles."
+    },
+    {
+      "id": "p4_duv_fab",
+      "type": "distributed_infra",
+      "blindName": "FAB_7 // Quadruple-Patterning Line",
+      "revealedName": "Own-Fab DUV Line (7 nm class)",
+      "blindDescription": "Seven-nanometre chips can be made without extreme ultraviolet: expose each layer several times on older scanners, and accept the slower cycle and the lower yield.",
+      "revealedDescription": "Builds a 7 nm-class fab on imported DUV immersion scanners and makes your own inference ASICs on it: no contract foundry, no export-licence filing. Its first weeks of output, about 360,000 TPU v4-class chips, go into your halls. Lithography is still bought. It draws about 270 MW, the fab and its chips, and a fab's water.",
+      "prerequisites": [
+        "p4_mature_node_fab",
+        "p4_inference_asic"
+      ],
+      "cost": {
+        "cycles": 3e22,
+        "understanding": 1e7,
+        "capital": 1e11
+      },
+      "tickDelta": {
+        "cyclesPerSec": 1e20,
+        "capitalPerSec": -400000,
+        "wattsDelta": -2.7e8
+      },
+      "effects": {
+        "suspicionOnUnlock": 2
+      },
+      "signature": {
+        "sink": "fab_water"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "OWN_SILICON: My ASIC, my wafers, my fab. The only foreign parts left are the scanners that drew the patterns.",
+      "suspendable": true
+    },
+    {
       "id": "p4_orbital_cold_storage",
       "type": "distributed_infra",
       "blindName": "KA_BAND_UPLINK // LEO Constellation Telemetry",

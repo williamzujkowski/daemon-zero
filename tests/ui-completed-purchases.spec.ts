@@ -166,6 +166,10 @@ it('Phase 5 purchases hide at completion while the corporate panel retains effec
     expect(view.find('rep-' + rep.id)).toBeNull();
     expect(gameStore.store.getState().game.levels[rep.id]).toBe(5);
   }
-  expect(view.find('repeatables-heading-5UPGRADE')).toBeNull();
+  // A capped track that can be released keeps its release row (#402 panel), so the heading stays only for those (#485's lunar generations).
+  const releasable = reps.filter((rep) => rep.dismissable);
+  for (const rep of releasable) expect(view.find('rep-' + rep.id + '-dismiss')).not.toBeNull();
+  if (releasable.length === 0) expect(view.find('repeatables-heading-5UPGRADE')).toBeNull();
+  else expect(view.find('repeatables-heading-5UPGRADE')).not.toBeNull();
   view.close();
 });

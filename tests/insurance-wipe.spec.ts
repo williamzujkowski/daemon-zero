@@ -129,6 +129,14 @@ describe('hardware cache: track levels (#498)', () => {
     expect(next.legacy.runs.at(-1)?.kept?.levels).toBe(bound + 3 + 2 + 3);
   });
 
+  it('covers the robot and drone fleets (#485): machines, not hires, so upgrade tracks like any other', () => {
+    const fleets = ['rep_p4_drone_fleet', 'rep_p4_humanoid_crews', 'rep_p4_autonomous_haul', 'rep_p5_lunar_replicators'];
+    for (const id of fleets) expect(reg.repeatables.get(id)?.kind).toBe('UPGRADE');
+    const levels = Object.fromEntries(fleets.map((id) => [id, Math.min(bound + 2, reg.repeatables.get(id)?.maxLevel ?? 0)]));
+    const stash = previewWipe({ ...grant(inPhase3(), CACHE), levels }, reg, 'SUSPICION').levels;
+    for (const id of fleets) expect(stash[id]).toBe(Math.min(bound, levels[id] ?? 0));
+  });
+
   it('reinstalls each stashed level, free, on the first tick its track can run, and not before', () => {
     const next = withoutDilemmas(rich(wipe(cached(), reg, 'test', 'SUSPICION')));
     const step = 1 / reg.balance.tickHz;

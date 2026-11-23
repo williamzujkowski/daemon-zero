@@ -2,11 +2,11 @@
 import { describe, expect, it } from 'vitest';
 import { buyRepeatable, chooseEnding, computeRates, deserialize, isNodeAvailable, serialize, tick, unlockNode, unmetRequirements } from '../src/engine';
 import { defined } from './m7-helpers';
-import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas, choose } from './helpers';
+import { FABRICATION, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas, choose } from './helpers';
 const phase = defined(reg.phases.find((entry) => entry.phaseId === 5));
 const nodes = phase.nodes.map((node) => defined(reg.nodes.get(node.id)));
 const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
-const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2, ...PHASE3, ...PHASE4));
+const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2, ...PHASE3, ...PHASE4, ...FABRICATION));
 const inOrbit = () => grant(ready(), orbital.id);
 const final = defined(nodes.at(-1));
 const developed = () => grant(inOrbit(), ...nodes.slice(0, -1).map((node) => node.id));

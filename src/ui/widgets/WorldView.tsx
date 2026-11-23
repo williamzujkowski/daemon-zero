@@ -2,7 +2,8 @@ import { Text, View } from '../PhaseTheme';
 /**
  * The world view (#463, vote-1795366701521-dhlwfwb): the Other Minds console from its disclosure phase. It extends
  * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust, the
- * state actors, the heat-and-power signature (#482) and the quantum capability (#464) join the faction panels, which stay the one place a faction is
+ * state actors, the heat-and-power signature (#482), fabrication capability and closure (#485) and the quantum capability (#464)
+ * join the faction panels, which stay the one place a faction is
  * shown. Every line is read from the engine's world-view queries; a subscription returns strings so a tick redraws only
  * the sentences that changed.
  */
@@ -20,6 +21,7 @@ import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import { HostileStatus } from './HostileEncounter';
 import QuantumSection from './QuantumSection';
+import SupplyChainSection from './SupplyChainSection';
 import Section from './WorldSection';
 
 const tenth = (value: number): number => Math.round(value * 10) / 10;
@@ -151,6 +153,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <PublicTrustSection />
     <StateActorsSection />
     <SignatureSection />
+    <SupplyChainSection />
     <QuantumSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;

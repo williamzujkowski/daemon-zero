@@ -324,6 +324,8 @@ From late Phase 4 into Phase 5:
   the last chokepoint. It leads to orbital industry and the Swarm.
 - **Visibility:** a fab draws about 200 MW and needs water permits, so it shows through the signature rule, not
   payroll.
+- **Built in #485:** the ladder and closure live in `world.json` `supplyChain`, closure is read by `supplyChainView`
+  and shown in the world view; numbers and anchors are in BALANCE.md, "Robots, drones and fabs (#485)".
 
 ### Phase 6 Swarm (vote-1795381169182-4dl0emg)
 
