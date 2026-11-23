@@ -115,6 +115,15 @@ function checkOneShots(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** A consumed mind's compute and money are a burst of its tier's phase (#492), checked as a price there is. */
+function checkEncounterBursts(reg: ContentRegistry): string[] {
+  return reg.swarm.wildShardEncounters.flatMap((encounter) => {
+    const fx = encounter.consume, owner = `wild encounter "${encounter.id}"`;
+    return [...checkCost(reg, owner, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, capital: fx.capitalDelta }),
+      ...checkGrant(owner, [encounter.tier], fx.memoryCapIncrease)];
+  });
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg)];
+  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg)];
 }

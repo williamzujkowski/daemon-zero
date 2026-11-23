@@ -9,6 +9,7 @@ import { shardCommandCost, shardCommandTerms, shardCommandUnmet, shardReleaseUnm
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
 import { arrangementAdmits } from './accessQuery';
+import { cohortOutclassed, encounterRetired } from './encounterTiers';
 export function driftProgress(value: number) {
   const percent = Math.min(100, Math.max(0, Math.floor(value))), filled = Math.floor(percent / 10);
   return { percent, label: `[${'#'.repeat(filled)}${'.'.repeat(10 - filled)}] ${String(percent)}%` };
@@ -46,6 +47,7 @@ export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   return { id, title: template.name, count: shard.count, allocatedMb: shard.memoryAllocatedBytes,
     autonomyMode: shard.autonomyMode, drift: driftProgress(shard.drift), output: formatOutput(output.delta, output.epistemic),
     quirk: quirk ? { title: quirk.name, description: quirk.logText, modifiers: formatOutput(quirk.tickDelta, quirk.epistemicDriftPerSec) } : null,
+    outclassed: cohortOutclassed(s, shard.templateId, reg),
     terms, commands: terms !== null ? [] : (['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => shardCommandView(s, id, command, reg)) };
 }
 export function swarmView(s: GameState, reg: ContentRegistry) {
@@ -55,7 +57,8 @@ export function swarmView(s: GameState, reg: ContentRegistry) {
 }
 export function wildEncounterView(s: GameState, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;
-  const encounter = reg.swarm.wildShardEncounters.find((entry) => entry.id === s.pendingWildEncounterId);
+  // A retired tier's arrival is not offered: it lapses on the purchase or tick that retires it (#492).
+  const encounter = reg.swarm.wildShardEncounters.find((entry) => entry.id === s.pendingWildEncounterId && !encounterRetired(s, entry));
   if (!encounter) return null;
   const template = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === encounter.templateId);
   if (!template) return null;

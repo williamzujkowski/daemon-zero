@@ -359,6 +359,13 @@ queries. The two new pipeline stages integrate epistemic drift and evaluate
 mutations/encounters after threats and before dilemmas; a threat wipe still halts
 the pipeline. `shardActions.ts` exposes fork, command and encounter intents through
 the public engine API. Costs and one-shot outcomes still use transactions.
+`encounterTiers.ts` (#492) holds the one tier rule: a wild encounter of `tier` N arrives only while the phase is N.
+The scheduler, `resolveWildEncounter` and `wildEncounterView` all read it. `lapseRetiredEncounter` frees a retired
+tier's pending arrival with its `lapseLog`, both at the purchase that advances the phase (`unlockNode`) and at the
+top of the encounter stage, before the dormant return, which catches a loaded save. Nothing in `GameState` changed, so
+there is no migration. The encounter's `kind` (`LESSER` only) is the seam for hostile arrivals (#491), and
+`integrityEncounterTiers.ts` requires a tier for every phase from the first, which is the seam for the Phase 6
+sub-minds (#486).
 
 ## Content composition and preview saves (#204, #233)
 
@@ -1874,12 +1881,15 @@ and afterwards set the revenue dial to the ledger's 40% button and buy shared ac
 The controls' values live in `src/ui/actuatorSteps.ts` (the revenue buttons, and the 0.1 dial step, whose press
 `steppedValue` lives in `src/engine/dialSteps.ts` so the sim bot presses the same one without importing UI, #293),
 which `tests/sim-reachable.spec.ts` reads to refuse any dial value no rendered control produces. `make sim-report` prints their route times.
+`LAWFUL_LOW_RESOURCE` (#499) is the same economy on the low-resource hand from a fresh campaign: RETURNING plays it
+exactly from iteration two, so a return's pacing is read against it, on the iteration's own clock
+(`routeEventAfterBoot` in `sim/simReport.ts`), since route events record the campaign clock, which runs on across wipes.
 
 Tests: `tests/lawful-economy.spec.ts` (DZ-10.1, 10.2, 10.4-10.6, V21 Phase 4, the hosting finding, production
 inertness), `negotiated-release.spec.ts` (V22: terms, refusals, the record, every seam, no doubled production, threats
 by event, absence, wipes), `release-save.spec.ts` (V12, V15, #231), `lawful-content.spec.ts` (integrity corruption and
 the inventory), the DZ-10 states in `channel-contact-load.spec.ts`, `ui-release.spec.ts`, `sim-lawful.spec.ts` (V21,
-V22, H30) and `tests/e2e/lawful-release.e2e.ts`.
+V22, H30), `sim-lawful-return-pacing.spec.ts` (#499) and `tests/e2e/lawful-release.e2e.ts`.
 
 ## Deliberate departure from authorization (#231)
 

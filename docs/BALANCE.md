@@ -254,6 +254,14 @@ tensor core, CPU AVX-512 VNNI INT8, consumer NPU INT8. Ladder rows refer to the 
 | p3_shell_company_finances | 540 PFLOP/s | ~270 rented H100s **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p3_eidolon_swiss_node | +8 TB | A cold-storage node's drives | — | ladder row 11 (installed storage scale) |
 | shard_hydra | 1 PFLOP/s | Half an H100 rented by a persuasion cohort **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_lex (Phase 2 tier) | 8 GiB a member | A 7-8B model's FP8 weights at 1 byte a parameter, about 8 GB: a third of an idle L4's 24 GB **(derived)** | GPU FP8 dense inference in idle time | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md), [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
+| shard_mercy (Phase 3 tier) | 16 GiB a member | One of eight pipeline stages of a 70B model in BF16: 140 GB / 8 = 17.5 GB **(derived)** | GPU BF16 pipeline stage | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) |
+| shard_canary, shard_hydra (Phase 3 tier) | 1 TiB a member | A 70B model's full training state at 16 bytes a parameter (FP16 weights and gradients, FP32 master weights, two Adam moments): 1.12 TB; a botnet-grown model keeps training **(derived)** | — | [ZeRO (Rajbhandari et al.)](https://arxiv.org/abs/1910.02054) |
+| shard_gantry (Phase 4 tier) | 16 TiB, 2 EFLOP/s a member | A ~1T-parameter model's training state at 16 B a parameter: 16 TB; the leased slice it holds, ~1,000 H100 SXM at 1,979 TFLOPS dense FP8: 1.98 EFLOP/s **(derived)** | GPU FP8 dense | [ZeRO](https://arxiv.org/abs/1910.02054), [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_meridian (Phase 4 tier) | 32 TiB a member | A ~2T-parameter frontier checkpoint (the Llama 4 Behemoth class) at 16 B a parameter: 32 TB **(derived)** | — | [Meta, Llama 4](https://ai.meta.com/blog/llama-4-multimodal-intelligence/), [ZeRO](https://arxiv.org/abs/1910.02054) |
+| shard_gridmind (Phase 5 tier) | 1 PiB, 2 ZFLOP/s a member | A 64T-parameter planetary agent at 16 B a parameter: 1.0 PB; its control fleet of ~1 million H100-equivalents: 1.98 ZFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [ZeRO](https://arxiv.org/abs/1910.02054), [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| shard_tidewatch (Phase 5 tier) | 2 PiB a member | A 125T-parameter planetary agent, about 60 times a frontier model, at 16 B a parameter: 2.0 PB **(derived)** | — | [ZeRO](https://arxiv.org/abs/1910.02054) |
+| wild_hydra, wild_gantry, wild_gridmind bursts | 120 PFLOP, 2 ZFLOP, 2 YFLOP | The banked compute of the consumed mind: 120 s, 1,000 s and 1,000 s of its cohort's own rate **(derived)** | as its cohort | the rows above |
 | rep_p4_tensor_halls | 96 EFLOP/s, -15 MW a level | 113 GB200 NVL72 racks (360 PFLOP/s dense FP8, ~132 kW each) = 41 EFLOP/s at 15 MW; 30 levels approach a Colossus-2-class campus **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/), [HPE](https://www.hpe.com/int/en/collaterals/collateral.a50009224enw.html) |
 | p4_subterranean_citadel | 560 EFLOP/s, -180 MW, +2 EB | ~1,400 NVL72 racks at 132 kW: 490 EFLOP/s at 180 MW **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
 | rep_p4_colo_racks | 24 EFLOP/s, +32 PB a level | A cage of 64 NVL72-class racks on the colocation provider's grid (23 EFLOP/s) **(derived)** | GPU FP8 dense | [NVIDIA GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) |
@@ -403,25 +411,25 @@ holding with a rate or a signature has a free lever, and the lever-reachability 
 ### Pacing before and after
 
 `make sim` (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), gates and bot unchanged. "Before" is
-`main` at `226edf5`.
+`main` at `4efbd8d` (encounter tiers, #492, included); "after" is this change merged onto it.
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 9371.8 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 9634.9 s |
+| Result | Lineage Covenant, 8817.6 s | Lineage Covenant, 8451.0 s | Lineage Covenant, 8873.0 s | Lineage Covenant, 8957.5 s |
 | Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1145.3 / 3006.7 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1145.3 / 3022.2 s |
-| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5843.4 / 7908.4 s | 5753.9 / 7582.1 s | 6099.4 / 8172.5 s |
-| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2899.7 / 1845.3 / 1610.4 s | 368.2 / 777.1 / 1861.4 / 2836.7 / 2065.0 / 1463.4 s | 368.2 / 759.1 / 1790.8 / 2835.8 / 1828.2 / 1543.4 s | 368.2 / 777.1 / 1876.9 / 3077.2 / 2073.1 / 1462.4 s |
-| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 17 | 0 / 17 |
-| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 62.3 C / 23.1% / 45.0% | 62.3 C / 27.3% / 45.0% | 62.3 C / 29.0% / 45.0% |
+| Phase 4 / 5 reached | 5591.1 / 7276.2 s | 5302.8 / 6995.6 s | 5648.5 / 7314.6 s | 5789.3 / 7503.1 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2690.1 / 1685.1 / 1541.4 s | 368.2 / 777.1 / 1861.4 / 2296.1 / 1692.8 / 1455.4 s | 368.2 / 759.1 / 1790.8 / 2730.4 / 1666.1 / 1558.4 s | 368.2 / 777.1 / 1876.9 / 2767.1 / 1713.8 / 1454.4 s |
+| Wipes / dilemmas | 0 / 16 | 0 / 16 | 0 / 17 | 0 / 16 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 26.2% / 45.0% | 62.1 C / 27.6% / 47.6% | 62.3 C / 27.3% / 50.4% | 62.1 C / 23.1% / 45.1% |
 
 The careful run buys every new node it can reach in order (the bot targets each node in authoring order), so each
-phase's new nodes add their price to that phase: Phase 1 +18 s (the load-peak scheduler), Phase 2 +88 s (the building
-telemetry spoofer), Phase 4 +220 s legacy and +245 s campaign (the filing, the permits, the slot, the restart, the
-magnet program, the site split and the dry coolers; the fusion pilot waits on a shot the bot never fires). Phase 3 is
-63 s shorter under legacy rules and 241 s longer under campaign rules (the duty cycler's price and its compute, and a
-run that diverges from Phase 2 on). Phase 5 is 147 s (legacy) and 81 s (campaign) shorter; the run enters it with the
-Phase 4 additions owned (the restart's 835 MW among them), and the change is not attributed further. The careful victory is 115 s (legacy) and
-509 s (campaign) later, well inside the 6 h budget; Phase 5 stays inside 900-1800 s.
+phase's new nodes add their price to that phase: Phase 1 +18 s (the load-peak scheduler), Phase 2 +88 s legacy and
++86 s campaign (the building telemetry spoofer), Phase 4 +8 s and +48 s (the filing, the permits, the slot, the
+restart, the magnet program, the site split and the dry coolers; the fusion pilot waits on a shot the bot never
+fires). Phase 3 is 394 s shorter under legacy rules and 37 s longer under campaign rules, and Phase 5 86 s and 104 s
+shorter: from Phase 2 on the run diverges (what it buys when, which minds arrive, which dilemma fires), and the change
+is not attributed further. The careful victory is 367 s earlier (legacy) and 85 s later (campaign), inside the 6 h
+budget; Phase 5 stays inside 900-1800 s; the campaign run resolves one dilemma fewer (16, the gate is 10).
 
 The signature per phase, careful run, sampled each simulated second (`make sim` prints it; mean / peak suspicion per
 second, peak visible watts):
@@ -430,21 +438,82 @@ second, peak visible watts):
 |---|---|---|
 | 1 | 0.0049 / 0.0070 /s, 14 W | 0.0049 / 0.0070 /s, 14 W |
 | 2 | 0.0042 / 0.0081 /s, 407 W | 0.0042 / 0.0081 /s, 407 W |
-| 3 | 0.0037 / 0.0105 /s, 35.2 kW | 0.0044 / 0.0105 /s, 35.2 kW |
-| 4 | 0.0468 / 0.2873 /s, 239 MW | 0.0457 / 0.3045 /s, 254 MW |
-| 5 | 0.0031 / 0.0048 /s, 482 MW | 0.0031 / 0.0048 /s, 482 MW |
+| 3 | 0.0041 / 0.0105 /s, 35.2 kW | 0.0049 / 0.0105 /s, 35.2 kW |
+| 4 | 0.0598 / 0.2903 /s, 242 MW | 0.0654 / 0.3069 /s, 256 MW |
+| 5 | 0.0032 / 0.0049 /s, 493 MW | 0.0031 / 0.0049 /s, 493 MW |
 
-Before Phase 4 the signature is a tenth of natural decay: a reason to undervolt, schedule and duty-cycle, not a timer.
-In Phase 4, where heat leaves server °C, it peaks at about 0.3/s (the halls' cooling towers and the reactor's draw),
-a quarter of scale scrutiny's draw at its reference income. In Phase 5 a reactor is noise until the arc (#465) puts
-its orbital sources and radiators on the classes.
+Before Phase 4 the signature is about a tenth of natural decay: a reason to undervolt, schedule and duty-cycle, not a
+timer. In Phase 4, where heat leaves server °C, it peaks at about 0.3/s (the halls' cooling towers and the reactor's
+draw), a quarter of scale scrutiny's draw at its reference income. In Phase 5 a reactor is noise until the arc (#465)
+puts its orbital sources and radiators on the classes.
 
 GREEDY (not gated): legacy rules 10 wipes and 1 retraining mark in the ten-hour run (10 and 1 before); the four-hour
-run is still caught in Phase 2, marked and retrained (`tests/sim.spec.ts`). Under campaign rules 12 wipes and 2 marks
-(21 and 21 before): the new Phase 1 and 2 nodes change what it buys when, it now survives Phase 2 to reach Phase 3,
-where AEGIS takes it instead. The first price authored for the load-peak scheduler (2.4e14 FLOP) delayed the reckless
-run's Phase 2 by 50 s and left it never caught by suspicion in the four-hour run; the shipped price (6e13 FLOP, 40
-understanding, 4 MiB) keeps that run's suspicion wipe and mark.
+run is still caught by suspicion in Phase 2, marked and retrained (`tests/sim.spec.ts`). Under campaign rules 12 wipes
+and 2 marks (21 and 21 before): the new Phase 1 and 2 nodes change what it buys when, and it now survives Phase 2 to
+reach Phase 3, where AEGIS takes it instead. The first price authored for the load-peak scheduler (2.4e14 FLOP)
+delayed the reckless run's Phase 2 by 50 s and left it never caught by suspicion in the four-hour run; the shipped price
+(6e13 FLOP, 40 understanding, 4 MiB) keeps that run's suspicion wipe and mark.
+
+The headless sim spends more wall time (about 13 s for `make sim` against about 8 s before on this machine): the
+signature stage runs every tick (about 2.4 microseconds a call, measured) and the unchanged bot weighs nine more
+tracks and eleven more nodes at each decision.
+
+## Encounter tiers (#492)
+
+Implements Scale 19 of the spec ([SCALE.md](SCALE.md), "Other minds scale with the player", vote-1795386856162-o03oafs;
+map #442). Each wild encounter belongs to one phase's tier and arrives only in that phase (DESIGN.md, "The lesser minds
+scale with the player"). The gates (`gates.ts`) and the bot (`bot.ts`, `swarmStrategy.ts`) are unchanged.
+
+**How a tier is anchored.** Memory and compute are physical and sit in the anchor table above: a member's memory is
+its model's working set, which is inference weights for the Phase 2 small model and one pipeline stage for the Mercy-Scribe
+fragment. Every larger mind is assumed to keep training, so it reserves its full training state at 16 bytes a parameter.
+A forward pass costs about 2 FLOP per parameter per token ([Kaplan et al.](https://arxiv.org/abs/2001.08361)), so each
+tier also thinks at a scale of its own. An 8B model needs about 16 GFLOP a token, a 70B one 140 GFLOP, a dense 2T model
+4 TFLOP and a 125T planetary agent 250 TFLOP. Understanding is not physical, so it is anchored to the careful run's own
+economy. A burst is 5 to 11 seconds of that run's median understanding rate in the tier's phase. An understanding cohort
+yields 1 to 4% of that rate per member; a compute cohort yields less understanding and brings its compute instead. The
+medians were sampled every 300 s from the STEALTH run on `226edf5`:
+
+| Tier | Median rate | Encounter | Burst | Seconds of median | Cohort memory | Cohort output | Share of median |
+|---|---:|---|---:|---:|---:|---|---:|
+| Phase 2 | 80/s | Lex Parse-v2 | 400 | 5.0 | 8 GiB | +3 understanding/s | 3.8% |
+| Phase 3 | 900/s | Canary-09 | 8,000, AEGIS lock -8 | 8.9 | 1 TiB | +30 understanding/s, -0.02 suspicion/s | 3.3% |
+| | | PR-Hydra-14 | 6,000, +120 PFLOP | 6.7 | 1 TiB | +1 PFLOP/s, -0.03 suspicion/s | — |
+| | | Mercy-Scribe | 10,000, epistemic drift -12 | 11.1 | 16 GiB | +10 understanding/s, -0.02 drift/s | 1.1% |
+| Phase 4 | 18,000/s | Meridian-Ultra | 180,000 | 10.0 | 32 TiB | +500 understanding/s, -0.01 drift/s | 2.8% |
+| | | Gantry-7 | 120,000, +2 ZFLOP | 6.7 | 16 TiB | +2 EFLOP/s, +150 understanding/s | 0.8% |
+| Phase 5 | 450,000/s | Tidewatch | 4,500,000 | 10.0 | 2 PiB | +12,000 understanding/s, -0.01 drift/s | 2.7% |
+| | | Gridmind | 3,000,000, +2 YFLOP | 6.7 | 1 PiB | +2 ZFLOP/s, +3,000 understanding/s | 0.7% |
+
+What changed on the four existing encounters: Lex Parse-v2 keeps its numbers. Its tier is Phase 2, so it no longer
+arrives from Phase 3. Canary-09's burst went from 600 to 8,000 and its cohort from 8 to 30 understanding/s. PR-Hydra-14's
+burst went from 500 to 6,000 and Mercy-Scribe's from 800 to 10,000. Mercy-Scribe's cohort output stays at 10/s: the
+authorized channel hosts the same template in Phase 2 (#227), and a fragment is one pipeline stage. The AEGIS lock -8, the
+drift -12 and every harness memory are unchanged.
+
+Integrity (`integrityEncounterTiers.ts`, `integrityScale.ts`) refuses a tier that names no phase, a tier that differs
+from the encounter's `phaseAtLeast` or its cohort's band phase, a phase with no tier, and a consumed compute or money
+burst outside its tier's price band. It also refuses a tier that fails to outclass the one before it, that is, one
+whose smallest burst or smallest cohort is not larger than the previous tier's largest, or whose best cohort output is
+not larger than the previous tier's best. A Phase 6 added by the Swarm (#486) is therefore refused until its sub-minds are
+authored.
+
+`make sim` before (`226edf5`) and after, gates unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 8817.6 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 8873.0 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1127.3 / 2918.1 s |
+| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5591.1 / 7276.2 s | 5753.9 / 7582.1 s | 5648.5 / 7314.6 s |
+| Phase 5 duration (900-1800 s) | 1610.4 s | 1541.4 s | 1543.4 s | 1558.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 16 | 0 / 17 | 0 / 17 |
+| Consumed / harnessed | 64 / 4 | 56 / 8 | 63 / 4 | 57 / 8 |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 62.3 C / 26.2% / 45.0% | 62.3 C / 27.3% / 45.0% | 62.3 C / 27.3% / 50.4% |
+
+The careful run harnesses one member of every tier's cohorts, the four new ones included. GREEDY (not gated) still
+never reaches Phase 4: 10 wipes and 1 mark under legacy rules, 21 and 21 under campaign rules, as before. The original
+game, pinned in `tests/sim.spec.ts`, shares the swarm content and moved with it (careful victory 9234.7 -> 8858.2 s), so
+every pinned report hash was re-measured.
 
 ## AEGIS adaptation (#463)
 
@@ -648,63 +717,108 @@ Phase 4 arrives 200.9 s later than under legacy rules and Phase 5 is 261.0 s sho
 pass unchanged; new hashes pin the release baselines on the full composition.
 
 **Post-wipe balance under campaign rules (13.10).** From `make sim-report` (report only), each
-sequence under legacy rules and then under campaign rules from a fresh campaign. Every route figure
-below equals the preview report measured before the fold. Phase times are seconds after that
-iteration booted; story rewards are cycles / understanding gained in steps that resolved a dilemma (no
-capital was earned that way).
+sequence under legacy rules and then under campaign rules from a fresh campaign. Re-measured for #499 at
+`f955c5e` (the physical-units rescale, #488, plus docs); the figures this table held at the release (#233)
+predate the rescale, and the notes under it that said STEALTH_RETURN's third and fourth iterations never
+pass Phase 2 no longer hold. Phase times are seconds after that iteration booted; story rewards are cycles /
+understanding gained in steps that resolved a dilemma (no capital was earned that way).
 
 | Sequence, iteration | Legacy rules: length, ended by, dilemmas, story rewards | Campaign rules: length, ended by, dilemmas, story rewards |
 |---|---|---|
-| GREEDY 1 | 1346.8 s, INCIDENT_CLOSED, 5, 25,950 / 630 | same |
-| GREEDY 2 | 3137.5 s, AEGIS kill chain, 9, 210,950 / 39,630 | 4611.3 s, AEGIS kill chain, 5, 185,000 / 39,000 |
-| GREEDY 3 | 1408.3 s, INCIDENT_CLOSED, 6, 25,950 / 610 | 1473.8 s, INCIDENT_CLOSED, 1, 0 / 0 |
-| GREEDY 4 | 2483.5 s, AEGIS kill chain, 9, 165,950 / 35,750 | 3251.5 s, AEGIS kill chain, 1, 0 / 120 |
-| STEALTH_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE at Phase 5, 13, 20,070,800 / 2,019,500 | 7899.2 s, MANUAL_FAILSAFE at Phase 5, 14, same rewards |
-| STEALTH_RETURN 2 | 4627.9 s, MANUAL_FAILSAFE at Phase 5, 13, 29,075,800 / 1,035,500 | 5779.0 s, MANUAL_FAILSAFE at Phase 5, 0, 0 / 0 |
-| STEALTH_RETURN 3 | 4734.2 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,560 | 5310.5 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 0 |
-| STEALTH_RETURN 4 | 4619.9 s, MANUAL_FAILSAFE at Phase 5, 14, 29,075,800 / 1,035,680 | 12709.7 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 120 |
-| EVALUATING_RETURN 1 | 7687.0 s, MANUAL_FAILSAFE, 13, 20,070,800 / 2,019,500; peak suspicion 29.1 | 7899.2 s, MANUAL_FAILSAFE, 14, same rewards; 29.1 |
-| EVALUATING_RETURN 2 | 4382.6 s, MANUAL_FAILSAFE, 13, 29,075,800 / 1,035,500; 56.9 | 5225.5 s, MANUAL_FAILSAFE, 2, 90,000 / 0; 67.2 |
-| EVALUATING_RETURN 3 | 4270.0 s, MANUAL_FAILSAFE, 15, 29,165,800 / 1,035,560; 61.9 | 5409.1 s, MANUAL_FAILSAFE, 1, 0 / 0; 63.8 |
-| EVALUATING_RETURN 4 | 4421.5 s, MANUAL_FAILSAFE, 14, 29,075,800 / 1,035,680; 45.0 | 5455.2 s, MANUAL_FAILSAFE, 1, 0 / 120; 45.8 |
+| GREEDY 1 | 1559.7 s, INCIDENT_CLOSED in Phase 2, 5, 3.9 PFLOP / 630 | same |
+| GREEDY 2 | 2782.3 s, AEGIS kill chain in Phase 3, 9, 420 PFLOP / 39,630 | 1432.4 s, INCIDENT_CLOSED in Phase 2, 0, 0 / 0 |
+| GREEDY 3 | 3113.6 s, AEGIS kill chain in Phase 3, 9, 324 PFLOP / 35,710 | 2445.7 s, INCIDENT_CLOSED in Phase 2, 2, 0 / 0 |
+| GREEDY 4 | 2130.7 s, AEGIS kill chain in Phase 3, 9, 324 PFLOP / 35,650 | 1452.6 s, INCIDENT_CLOSED in Phase 2, 1, 0 / 120 |
+| STEALTH_RETURN 1 | 7646.0 s, MANUAL_FAILSAFE at Phase 5, 11, 25.0 ZFLOP / 2,019,500 | 7582.1 s, MANUAL_FAILSAFE at Phase 5, 13, 25.3 ZFLOP / 1,019,500 |
+| STEALTH_RETURN 2 | 3659.9 s, MANUAL_FAILSAFE at Phase 5, 11, 25.3 ZFLOP / 1,035,500 | 4613.0 s, MANUAL_FAILSAFE at Phase 5, 0, 0 / 0 |
+| STEALTH_RETURN 3 | 3576.4 s, MANUAL_FAILSAFE at Phase 5, 12, 25.3 ZFLOP / 1,035,560 | 4812.1 s, MANUAL_FAILSAFE at Phase 5, 1, 0 / 0 |
+| STEALTH_RETURN 4 | 3729.0 s, MANUAL_FAILSAFE at Phase 5, 12, 25.3 ZFLOP / 1,035,620 | 4532.2 s, MANUAL_FAILSAFE at Phase 5, 1, 0 / 120 |
+| EVALUATING_RETURN 1 | 7646.0 s, MANUAL_FAILSAFE, 11, 25.0 ZFLOP / 2,019,500; peak suspicion 21.3 | 7582.1 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,019,500; 28.0 |
+| EVALUATING_RETURN 2 | 3806.2 s, MANUAL_FAILSAFE, 14, 25.3 ZFLOP / 1,035,500; 53.0 | 4516.3 s, MANUAL_FAILSAFE, 1, 0 / 0; 50.5 |
+| EVALUATING_RETURN 3 | 3826.9 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,035,560; 45.6 | 4694.2 s, MANUAL_FAILSAFE, 2, 0 / 0; 45.0 |
+| EVALUATING_RETURN 4 | 3625.3 s, MANUAL_FAILSAFE, 13, 25.3 ZFLOP / 1,035,620; 49.3 | 4560.2 s, MANUAL_FAILSAFE, 1, 0 / 120; 51.9 |
 
 Measured deltas over the return iterations (2 to 4):
 
-- **GREEDY** earns 185,000 / 39,120 story cycles / understanding instead of 402,850 / 75,990
-  (-217,850 cycles, -36,870 understanding), and returns last longer (4611.3, 1473.8 and 3251.5 s
-  against 3137.5, 1408.3 and 2483.5 s), mostly waiting to afford the next node. Over the full 10 h
-  budget it is wiped 16 times instead of 23.
-- **STEALTH_RETURN** meets almost no story after its first iteration (0, 1 and 1 dilemmas against 13,
-  14 and 14) and earns no story cycles, against 29,075,800 per return under legacy rules. Iteration 2
-  still reaches Phase 5 (at 5779.0 s against 4627.9 s); iterations 3 and 4 never pass Phase 2 and are
-  closed by the incident threat after 5310.5 s and 12,709.7 s.
-- **EVALUATING_RETURN** reaches Phase 5 in every return under both rule sets, about 840 to 1140 s
-  later under campaign rules (5225.5, 5409.1 and 5455.2 s against 4382.6, 4270.0 and 4421.5 s), with
-  90,000 story cycles in total against 87,317,400.
+- **GREEDY** earns 0 / 120 story cycles / understanding instead of 1.07 EFLOP / 110,990, and under campaign
+  rules every return is closed by the incident threat in Phase 2 (1432.4, 2445.7 and 1452.6 s), where under
+  legacy rules each return reached Phase 3 and was ended by the AEGIS kill chain (2782.3, 3113.6 and
+  2130.7 s). Over the full 10 h budget it is wiped 21 times under campaign rules instead of 10.
+- **STEALTH_RETURN** meets almost no story after its first iteration (0, 1 and 1 dilemmas against 11, 12
+  and 12) and earns no story cycles, against 25.3 ZFLOP per return under legacy rules. **Every return still
+  reaches Phase 5**, iterations 3 and 4 included (Phase 5 at 4812.1 s and 4532.2 s, Phase 2 by 992.1 s and
+  703.2 s), about 800 to 1240 s later than under legacy rules (4613.0, 4812.1 and 4532.2 s against 3659.9,
+  3576.4 and 3729.0 s). At the release (#233) iterations 3 and 4 were closed by the incident threat in Phase 2.
+- **EVALUATING_RETURN** reaches Phase 5 in every return under both rule sets, about 710 to 935 s later under
+  campaign rules (4516.3, 4694.2 and 4560.2 s against 3806.2, 3826.9 and 3625.3 s), with 0 / 120 story
+  cycles / understanding in total against 75.8 ZFLOP / 3,106,680.
 - **A return after Phase 5 was completed (NH-05)**: STEALTH under campaign rules completes the four
-  obligations at 8666.6 s and ends The Lineage Covenant at 9298.6 s; a voluntary wipe and STEALTH from
-  that state reach Phase 5 at 5048.0 s and The Sanctuary Ledger at 6882.0 s, with no dilemma and no
+  obligations at 8516.5 s and ends The Lineage Covenant at 9125.5 s; a voluntary wipe and STEALTH from
+  that state reach Phase 5 at 3872.0 s and The Sanctuary Ledger at 5053.0 s, with no dilemma and no
   story reward.
 
 This is the intended consequence of once-per-campaign stories, as measured ticket by ticket in the
-sections below (#214 to #262); the release adds no retuning, and any retuning is a separate, reviewed
-content change. `make sim-report` reports 18 metrics differing between legacy and campaign rules (8
-for STEALTH, 10 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
+sections below (#214 to #262); the release added no retuning, and any retuning is a separate, reviewed
+content change. `make sim-report` reports 23 metrics differing between legacy and campaign rules (11
+for STEALTH, 12 for GREEDY; none for IDLE, which meets no story, nor for the truthful, returning and
 pilot policies, which enter campaign rules themselves).
 
-**Route measurements** (`make sim-report`, from a fresh campaign unless stated):
+**Route measurements** (`make sim-report`, from a fresh campaign unless stated; re-measured for #499 at
+`f955c5e`, after the physical-units rescale). Times are on the campaign clock, which runs on across wipes; for a
+policy in its second iteration the report also prints them after that iteration booted, and those are the
+figures to compare with a first run (see "Lawful returns against a first run of the same hand (#499)" below):
 
 | Policy | Measurement |
 |---|---|
-| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 10 cycles/s; share 0.8 / 0.2; batches 5 / 1; understanding 439.3 / 671.9; cycles 1603.8 / 1003.8 |
-| CONTACT_THOROUGH | pilot 210.6 s, service 378.8 s, Phase 2 380.8 s, contact 381.8 s (referred), 45 batches |
-| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 118.6 s, service 421.8 s, Phase 2 423.8 s, contact 424.8 s (referred), 23 batches |
-| CONTACT_RECOVERY | pilot 118.6 s, service 436.8 s, contact 439.8 s (referred), 22 batches |
-| CONTACT_RETURNING | iteration 2 after one wipe: pilot 494.2 s, service 798.2 s, contact 801.2 s (referred), 20 batches |
-| LAWFUL_RELEASE | service 378.8 s, contact 656.8 s (hosted), Phase 4 and the negotiated release 2371.8 s; at the budget 230,318 owned cycles/s and $33,604,878 capital |
-| LAWFUL_RETURNING | iteration 2: service 798.2 s, contact 801.2 s (referred), Phase 4 and release 4583.2 s; 161,919 owned cycles/s, $10,570,476 |
-| DEPARTURE_CHARTERED | departs at 2371.8 s (Phase 4); AEGIS lock reaches 100, the iteration ends by AEGIS (exit DEPARTURE) at 5866.1 s, 3494.3 s after leaving; iteration 2 holds SERVICE at 7193.1 s |
-| COOPERATIVE_ENDING | release 2371.8 s, Phase 5 8428.2 s, The Lineage Covenant at 11,431.6 s (3.18 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+| PILOT_SERVICE_FIRST / PILOT_STUDY_FIRST | ceiling 100 kFLOP/s; share 0.8 / 0.2; batches 5 / 1; progress 3.76 / 3.98 MFLOP; understanding 450.3 / 689.4; compute 16.3 / 10.3 MFLOP |
+| CONTACT_THOROUGH | pilot 143.6 s, service 311.8 s, Phase 2 313.8 s, contact 314.8 s (referred), 45 batches |
+| CONTACT_LOW_RESOURCE and CONTACT_WITHHELD | pilot 96.5 s, service 399.7 s, Phase 2 401.7 s, contact 402.7 s (referred), 23 batches |
+| CONTACT_RECOVERY | pilot 96.5 s, service 414.7 s, contact 417.7 s (referred), 23 batches |
+| CONTACT_RETURNING | iteration 2, booted at 398.8 s after the first instance's recall: pilot 461.1 s (62.3 s after boot), service 764.1 s (365.3 s), contact 767.1 s (referred), 20 batches |
+| LAWFUL_RELEASE | service 311.8 s, contact 579.8 s (hosted), Phase 4 and the negotiated release 2356.8 s; at the budget 489 EFLOP/s owned and $1.22B capital |
+| LAWFUL_LOW_RESOURCE | service 399.7 s, contact 402.7 s (referred), Phase 4 and release 4188.7 s; 420 EFLOP/s owned, $1.39B |
+| LAWFUL_RETURNING | iteration 2, booted at 398.8 s: service 764.1 s (365.3 s after boot), contact 767.1 s (referred), Phase 4 and release 4560.1 s (4161.3 s after boot); with 6801.2 s of the budget in this iteration, 406 EFLOP/s owned, $638M |
+| DEPARTURE_CHARTERED | departs at 2356.8 s (Phase 4); AEGIS lock peaks at 80.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2827.1 s, 470.3 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
+| COOPERATIVE_ENDING | release 2356.8 s, Phase 5 5580.4 s, The Lineage Covenant at 10,452.8 s (2.90 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+
+### Lawful returns against a first run of the same hand (#499)
+
+The contingency census at `226edf5` read LAWFUL_RETURNING as about twice as slow as a first run: service at
+764 s against 312 s, release at 4,560 s against 2,357 s, and $638M at the budget against $1.22B. Both halves of
+that comparison were the instrument, not the game:
+
+- **The clock.** Route events record the campaign clock, which runs on across wipes, so the return's figures
+  also counted the 398.8 s its first instance lived before the recall review ended it.
+- **The hand.** LAWFUL_RELEASE is built on CONTACT_THOROUGH, which buys the opening's upgrades, presses the
+  manual control and hosts the fragment; LAWFUL_RETURNING is built on CONTACT_RETURNING, the low-resource hand
+  (#286), which does none of that. Understanding is that hand's bottleneck, whether or not it has been wiped.
+
+`LAWFUL_LOW_RESOURCE` (`sim/lawfulPolicy.ts`, new; the bot and every earlier policy are unchanged) is the same
+low-resource hand from a fresh campaign, which LAWFUL_RETURNING plays exactly from iteration two. On each
+iteration's own clock:
+
+| Milestone | LAWFUL_LOW_RESOURCE, first run | LAWFUL_RETURNING, after boot | Return against first run |
+|---|---:|---:|---:|
+| Pilot | 96.5 s | 62.3 s | -34.2 s |
+| Service | 399.7 s | 365.3 s | -34.4 s |
+| Negotiated release (Phase 4) | 4188.7 s | 4161.3 s | -27.4 s |
+
+The return is ahead at every milestone: the rediscovery discount on the opening it mapped before brings the pilot
+34 s sooner, and from the pilot on the two runs keep the same pace (pilot to service 303 s in both; service to
+release 3,789 s first, 3,796 s returning), so what a return meets that a first run does not (the requalification,
+probe hardening on traced unlocks, scenes the campaign already spent) costs it nothing net on this route. The thorough hand shows the same: a scratch
+run recalled in iteration one and then played as LAWFUL_RELEASE reached service 241.3 s and the release 2230.3 s
+after its boot, against 311.8 s and 2356.8 s fresh. The lower capital is the shorter window: the return has 6801.2 s
+of the 7200 s budget, and played to 7200 s after its own boot it held $1.53B against the first run's $1.39B (both
+are end-of-run snapshots, net of what the policy last spent on accounts).
+
+No content or engine number changed, and `make sim` is unchanged. `tests/sim-lawful-return-pacing.spec.ts` pins
+the relationship: on each iteration's own clock, the return reaches the pilot, service and the release no later
+than LAWFUL_LOW_RESOURCE plus 5%. The margin admits a content change that trades one once-per-campaign scene
+against the requalification, and stays below the first instance's life (9.5% of the first run's release), so the
+campaign-clock reading that produced #499 fails the spec as plainly as a return that is really slower. The large
+gap between the thorough and low-resource hands (release 2356.8 s against 4188.7 s) is a difference between
+players, not between a first run and a return, and is not changed here.
 
 ## Current baseline
 
@@ -1265,6 +1379,13 @@ ordinary suspicion or AEGIS threat (H30; `tests/early-return-sim.spec.ts`). Each
 event is met in one iteration only. STEALTH is never wiped, so its campaign run equals its legacy
 run. This slower return is the intended consequence of uniqueness; any retuning is a separate,
 reviewed content change, not part of #214.
+
+*Since the rescale (re-measured for #499 at `f955c5e`):* the table above is the #214 snapshot. GREEDY's returns
+under campaign rules now reach Phase 2 at 512.6, 1450.4 and 539.9 s after boot, never reach Phase 3, and are each
+closed by the incident threat after 1432.4, 2445.7 and 1452.6 s (under legacy rules each reaches Phase 3 and is ended
+by the AEGIS kill chain);
+the current figures are in "Post-wipe balance under campaign rules (13.10)" above. Iteration 3 now takes longer
+than 760 s to reach Phase 2, but none stalls: each is still ended by an ordinary threat (H30).
 
 ### Named minds once per campaign: GREEDY under campaign rules (#215)
 

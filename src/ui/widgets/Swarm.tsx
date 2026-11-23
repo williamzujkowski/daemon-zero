@@ -58,6 +58,11 @@ function CohortDetails({ id }: { id: string }) {
   return <><Text testID={'shard-status-' + id} style={theme.text}>{label}</Text><Drift id={id} />
     <Quirk id={id} /></>;
 }
+/** A cohort from a retired tier (#492) says so; it keeps working, so nothing else about the row changes. */
+function Outclassed({ id }: { id: string }) {
+  const text = useGame((game) => shardEntryView(game, id, CONTENT)?.outclassed ?? null);
+  return text === null ? null : <Text testID={'shard-outclassed-' + id} style={theme.muted}>{text}</Text>;
+}
 function Quirk({ id }: { id: string }) {
   const quirk = useStore(gameStore.store, useShallow(({ game }) => shardEntryView(game, id, CONTENT)?.quirk ?? null));
   return <View testID={'shard-quirk-' + id} style={{ gap: 8 }}>
@@ -73,7 +78,7 @@ const Cohort = memo(function Cohort({ id }: { id: string }) {
   // A channel-hosted member is not commanded (#309): the row says why and offers no command.
   const terms = useGame((game) => shardCommandTerms(game, id, CONTENT));
   return <View testID={'shard-row-' + id} style={[theme.panel, { gap: 8 }]}>
-    <Text style={theme.heading}>{title}</Text><CohortDetails id={id} />
+    <Text style={theme.heading}>{title}</Text><CohortDetails id={id} /><Outclassed id={id} />
     {terms !== null ? <Text testID={'shard-terms-' + id} style={theme.muted}>{terms}</Text> : <>
       <Text style={theme.muted}>PRUNE resets drift. CLAMP is permanent: +{Math.round((CONTENT.swarm.balance.clampOutputMultiplier - 1) * 100)}% output, MOLOCH. ELEVATE is permanent: stable peer, SYMBIOTIC.</Text>
       {(['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => <Command key={command} id={id} command={command} />)}

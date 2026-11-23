@@ -488,6 +488,28 @@ and adds its output to the shared rate calculation. Wild encounters do not pause
 the clock. Dormancy freezes epistemic/autonomy drift and encounter scheduling;
 resource output uses the existing reduced-yield, no-drain offline rules.
 
+**The lesser minds scale with the player** (#492, docs/SCALE.md "Other minds scale with the player",
+vote-1795386856162-o03oafs). Every wild encounter is a `LESSER` kind of mind and belongs to one phase's tier,
+and only the current phase's tier arrives:
+
+| Tier | Minds | Encounters |
+|---|---|---|
+| Phase 2 | Small models, about 4 to 8 billion parameters, running in idle GPU time | Lex Parse-v2 |
+| Phase 3 | 70B-class models grown on botnets | Canary-09 (consuming it lowers the AEGIS lock), PR-Hydra-14, Mercy-Scribe (EIDOLON-associated) |
+| Phase 4 | Frontier-scale models from rogue labs | Meridian-Ultra, Gantry-7 |
+| Phase 5 | Planetary agents | Tidewatch, Gridmind |
+| Phase 6 | Swarm sub-minds | Not yet authored: the Swarm (#486) adds its tier, and integrity refuses a phase with no tier |
+
+A tier's burst, its cohort's memory and its cohort's output sit in its phase's band, and each tier outclasses the one
+before it on all three; integrity checks both (BALANCE.md, "Encounter tiers"). When a purchase advances the phase,
+an earlier tier retires. If one of its arrivals is still pending, it lapses at that purchase with its own line (for
+example, "the fragment's request lapses unanswered ... nothing was taken or given"). Nothing is paid or granted, and the
+current tier's next arrival comes when the clock is due. A save that already holds such an arrival lapses it on its
+first tick, even while dormant. Until then, it is neither shown nor answerable. A cohort harnessed from a retired tier keeps working
+at its authored rate. Its row says it is outclassed, and the free RELEASE lets each member go and returns its memory.
+The rotation stays deterministic: one sequence index over the current tier's list, in content order, with no randomness.
+Hostile arrivals (#491) will be their own kind, with their own lifecycle.
+
 At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
 consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift
 cohort cannot be pruned out from under the decision. The choices include free

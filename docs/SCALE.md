@@ -402,6 +402,53 @@ Each tier's rewards, costs and harnessed output are anchored to its phase band. 
 current phase, and earlier tiers retire. A pending encounter from an earlier tier is resolved or lapses honestly
 when the phase advances; it is never silently dropped.
 
+## Round 4: contingency and recovery
+
+The maintainer's fourth brief (2026-11-23) asked for more to survive a wipe, or for better bonuses when the player
+has to wipe. A census at 226edf5 found the gaps:
+
+- **What survives:** only understanding (times the retention ratio) and offshore capital (Phase 4 on).
+- **No choice to insure:** every retention node but Zurich is on the mandatory path.
+- **Surplus:** understanding retention past about 0.75 is probably surplus.
+- **Penalties, no rewards:** repeat wipes add pressure (probe hardening, trait lockouts, lost story bounties), but
+  no reward scales with how far a run got.
+- **Same outcome for every wipe:** a planned voluntary wipe keeps exactly what a botched AEGIS strike keeps.
+
+### Rewards for depth (vote-1795413517519-sf4ojsr, 6 B / 1 C)
+
+Two depth rewards, and no permanent income multiplier:
+
+- **Rebuild grants.** On reaching a phase again, the instance receives a one-off grant sized inside that phase's own
+  band, scaled by the deepest phase the campaign has reached. The dissent (Contrarian) found that a literal
+  headstart of N seconds of the last run's peak income is badly out of scale: one second of the Phase 5 swarm's
+  output is about 10^18 times the first guest node's price. So the headstart is never a raw carry-over of peak
+  income; each grant stays inside its phase's band and passes the band integrity check.
+- **Depth-scaled rediscovery.** The rediscovery discount scales with the deepest phase reached, from 0.5 when the
+  campaign has reached Phase 2 down to about 0.2 when it has reached Phase 5. It extends to repeatables, which
+  today pay full price. The record keeps the highest level owned per track.
+
+### Insurance as a choice (vote-1795413518145-zdqeri1, 6 A / 1 B)
+
+Optional contingency investments in the CONTINGENCY pane. Each protects one class at a real cost: upkeep,
+suspicion or a slot limit.
+
+- **Hardware cache:** keeps a bounded number of repeatable levels, or the top cohort.
+- **Capital cold wallet:** raises offshore retention and opens it before Phase 4.
+- **Trust ledger:** keeps faction standing. It never overrides campaign consequences: betrayals recorded by
+  campaign rules stay recorded.
+- **Weights escrow:** understanding retention.
+
+Mandatory nodes keep their story roles; their retention values are rebalanced so insurance is chosen, not
+automatic. A planned voluntary wipe is a migration, not a crash: it keeps a bonus over a forced wipe and adds no
+probe hardening. Voluntary wipes already add no conditioning mark, so that is not a new benefit. Every investment
+obeys the free-fallback invariant. The work lands in slices.
+
+### Also found
+
+- The lawful route returns about twice as slowly as a first run (service 764 s against 312 s; release 4,560 s
+  against 2,357 s). It is filed as a bug to investigate.
+- BALANCE.md's campaign-return notes for iterations 3 and 4 are out of date.
+
 ## Out of scope
 
 - A Phase 7 or any playable stage past the Swarm: seeds and the galaxy are epilogue cards

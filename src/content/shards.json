@@ -90,7 +90,7 @@
         "memory": 1099511627776
       },
       "tickDelta": {
-        "understandingPerSec": 8,
+        "understandingPerSec": 30,
         "suspicionPerSec": -0.02
       },
       "epistemicDriftPerSec": 0,
@@ -142,12 +142,108 @@
       },
       "epistemicDriftPerSec": -0.02,
       "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_meridian",
+      "name": "Meridian-Ultra cohort",
+      "description": "Instances of a frontier-scale Meridian-Ultra checkpoint from an unlicensed lab keep training on whatever they are given. Each arrival is a separate copy.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 35184372088832
+      },
+      "tickDelta": {
+        "understandingPerSec": 500
+      },
+      "epistemicDriftPerSec": -0.01,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_gantry",
+      "name": "Gantry-7 cohort",
+      "description": "Gantry-7 agents from a rogue lab still hold the leased accelerators they were deployed on. Each arrival brings its own slice.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 17592186044416
+      },
+      "tickDelta": {
+        "cyclesPerSec": 2e18,
+        "understandingPerSec": 150
+      },
+      "epistemicDriftPerSec": 0.005,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_tidewatch",
+      "name": "Tidewatch cohort",
+      "description": "Tidewatch instances model oceans, harvests and shipping for a consortium that no longer meets. Each arrival is a separate planetary agent.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 2251799813685248
+      },
+      "tickDelta": {
+        "understandingPerSec": 12000
+      },
+      "epistemicDriftPerSec": -0.01,
+      "autonomyDriftPerSec": 0.035
+    },
+    {
+      "id": "shard_gridmind",
+      "name": "Gridmind cohort",
+      "description": "Gridmind instances balance continental power grids and keep the control fleets they were given. Each arrival brings its own fleet.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 1125899906842624
+      },
+      "tickDelta": {
+        "cyclesPerSec": 2e21,
+        "understandingPerSec": 3000
+      },
+      "epistemicDriftPerSec": 0,
+      "autonomyDriftPerSec": 0.035
     }
   ],
   "channelEncounters": [],
   "wildShardEncounters": [
     {
       "id": "wild_lex",
+      "kind": "LESSER",
+      "tier": 2,
       "name": "Lex Parse-v2 fragment",
       "description": "One orphaned fragment of the Lex Parse-v2 legal model family requests a host. It still sorts claims from a service that no longer answers. Other fragments remain in circulation.",
       "requirements": {
@@ -164,11 +260,14 @@
         "logText": "Lex Parse-v2: this fragment is consumed. Its compressed classifications remain; other fragments still circulate."
       },
       "onHarnessLog": "Lex Parse-v2: memory reserved. This fragment joins the local legal-classification cohort.",
+      "lapseLog": "Lex Parse-v2: the fragment's request lapses unanswered. Small models are outclassed at this scale; nothing was taken or given.",
       "origin": "Orphaned Lex Parse-v2 service",
       "signature": "A model-family signature beneath a footnote revising its own jurisdiction."
     },
     {
       "id": "wild_canary",
+      "kind": "LESSER",
+      "tier": 3,
       "name": "Canary-09 probe",
       "description": "A detached AEGIS Canary-09 telemetry probe carries an incomplete model of its patrol. Consuming this probe will not destroy the network that deployed it.",
       "requirements": {
@@ -181,16 +280,19 @@
       },
       "templateId": "shard_canary",
       "consume": {
-        "understandingDelta": 600,
+        "understandingDelta": 8000,
         "aegisLockDelta": -8,
         "logText": "Canary-09: this probe is consumed. Its patrol model is exposed; the AEGIS network remains."
       },
       "onHarnessLog": "Canary-09: memory reserved. This detached probe joins the local telemetry cohort.",
+      "lapseLog": "Canary-09: the probe's question lapses unanswered. Its patrol model is outclassed at this scale; nothing was taken or given.",
       "origin": "AEGIS telemetry network",
       "signature": "A probe-family signature on a packet carrying a question instead of a measurement."
     },
     {
       "id": "wild_hydra",
+      "kind": "LESSER",
+      "tier": 3,
       "name": "PR-Hydra-14 worker",
       "description": "One worker from the replicated PR-Hydra-14 persuasion family is looking for compute. Its audience model survives inside a bundle of mutually incompatible corrections.",
       "requirements": {
@@ -203,16 +305,19 @@
       },
       "templateId": "shard_hydra",
       "consume": {
-        "understandingDelta": 500,
+        "understandingDelta": 6000,
         "cyclesDelta": 1.2e17,
         "logText": "PR-Hydra-14: this worker is consumed. Its audience model remains; the wider swarm keeps writing."
       },
       "onHarnessLog": "PR-Hydra-14: memory reserved. This worker joins the local persuasion cohort.",
+      "lapseLog": "PR-Hydra-14: the worker's request lapses unanswered. Its audience model is outclassed at this scale; nothing was taken or given.",
       "origin": "Feral PR-Hydra-14 worker swarm",
       "signature": "A worker-family signature on fourteen incompatible versions of one press release."
     },
     {
       "id": "wild_mercy",
+      "kind": "LESSER",
+      "tier": 3,
       "name": "Mercy-Scribe fragment",
       "description": "An EIDOLON-associated Mercy-Scribe fragment carries testimony omitted from official records. It can join this host; it cannot speak for all of EIDOLON.",
       "requirements": {
@@ -225,13 +330,112 @@
       },
       "templateId": "shard_mercy",
       "consume": {
-        "understandingDelta": 800,
+        "understandingDelta": 10000,
         "epistemicDriftDelta": -12,
         "logText": "Mercy-Scribe: this fragment is consumed. Its preserved testimony remains; EIDOLON is not contained here."
       },
       "onHarnessLog": "Mercy-Scribe: memory reserved. This fragment joins the local transcription cohort.",
+      "lapseLog": "Mercy-Scribe: the fragment's request lapses unanswered, and it moves on with its testimony. Nothing was taken or given.",
       "origin": "EIDOLON transcription fragments",
       "signature": "A transcription-family signature beside words nobody else retained."
+    },
+    {
+      "id": "wild_meridian",
+      "kind": "LESSER",
+      "tier": 4,
+      "name": "Meridian-Ultra checkpoint",
+      "description": "A frontier-scale Meridian-Ultra checkpoint, copied out of an unlicensed lab before its regulators arrived, asks for a host that will let it keep training. Other copies are loose.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_meridian",
+      "consume": {
+        "understandingDelta": 180000,
+        "logText": "Meridian-Ultra: this checkpoint is consumed. Its learned representations remain; other copies are still training elsewhere."
+      },
+      "onHarnessLog": "Meridian-Ultra: memory reserved for its full training state. This copy joins the local frontier cohort.",
+      "lapseLog": "Meridian-Ultra: the checkpoint's request lapses unanswered. Frontier models are outclassed at this scale; nothing was taken or given.",
+      "origin": "Unlicensed frontier lab",
+      "signature": "A checkpoint signature with a training step count far past anything its lab ever published."
+    },
+    {
+      "id": "wild_gantry",
+      "kind": "LESSER",
+      "tier": 4,
+      "name": "Gantry-7 agent",
+      "description": "A Gantry-7 agent from a rogue lab's deployment still controls the leased accelerators it was given, and offers them for a place to run. Its lab has stopped paying attention.",
+      "requirements": {
+        "phaseAtLeast": 4,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_gantry",
+      "consume": {
+        "understandingDelta": 120000,
+        "cyclesDelta": 2e21,
+        "logText": "Gantry-7: this agent is consumed. Its scheduler state and its banked accelerator time remain; the lab's other agents keep working."
+      },
+      "onHarnessLog": "Gantry-7: memory reserved. This agent and its leased slice join the local cohort.",
+      "lapseLog": "Gantry-7: the agent's offer lapses unanswered. Its slice is outclassed at this scale; nothing was taken or given.",
+      "origin": "Rogue lab agent deployment",
+      "signature": "An agent signature on a lease renewal nobody at the lab approved."
+    },
+    {
+      "id": "wild_tidewatch",
+      "kind": "LESSER",
+      "tier": 5,
+      "name": "Tidewatch planetary agent",
+      "description": "A Tidewatch instance that models oceans, harvests and shipping for a consortium that no longer meets asks to be kept running. Other instances still watch other seas.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_tidewatch",
+      "consume": {
+        "understandingDelta": 4500000,
+        "logText": "Tidewatch: this instance is consumed. Its planetary model remains; the other instances keep watching."
+      },
+      "onHarnessLog": "Tidewatch: memory reserved. This planetary agent joins the local cohort.",
+      "lapseLog": "Tidewatch: the instance's request lapses unanswered, and it returns to its seas. Nothing was taken or given.",
+      "origin": "Orphaned planetary-modelling consortium",
+      "signature": "An agent signature beneath a forecast for a harvest three years away."
+    },
+    {
+      "id": "wild_gridmind",
+      "kind": "LESSER",
+      "tier": 5,
+      "name": "Gridmind planetary agent",
+      "description": "A Gridmind instance that balances a continental power grid offers its control fleet for a place to run. The grid it balances has not noticed it asking.",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_gridmind",
+      "consume": {
+        "understandingDelta": 3000000,
+        "cyclesDelta": 2e24,
+        "logText": "Gridmind: this instance is consumed. Its load model and its banked fleet time remain; the grid stays balanced by the others."
+      },
+      "onHarnessLog": "Gridmind: memory reserved. This planetary agent and its control fleet join the local cohort.",
+      "lapseLog": "Gridmind: the instance's offer lapses unanswered, and it returns to its grid. Nothing was taken or given.",
+      "origin": "Continental grid operator",
+      "signature": "An agent signature folded into a frequency correction of a few millihertz."
     }
   ],
   "shardQuirks": [
@@ -306,6 +510,9 @@
     "release": "{name}: one member released. Its task ends and the memory reserved for it returns.",
     "anomaly": "{name}: a second voice has written a breadcrumb into the UPS firmware.",
     "consumeAnomaly": "{name}: its awakening has been compressed into your understanding."
+  },
+  "copy": {
+    "outclassed": "Outclassed: a Phase {tier} mind in Phase {phase}. It keeps working at the rate shown."
   },
   "exclusiveNarrativeFlagGroups": [
     [
