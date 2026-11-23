@@ -390,11 +390,11 @@ describe('headless balance simulation', () => {
     // Moved in #483 (the accelerator tree) by the new content: the full ten-hour make sim run 10 -> 13 wipes, 1 mark
     // applied and shed, still never past Phase 3 (docs/BALANCE.md, "Accelerator tree (#483)").
     // Moved in #497 (rewards for depth) with every reckless hash, the original game's below included, re-measured on the
-    // merge with #482: from its second iteration the run is granted a start in each phase it reaches again and, once it
-    // has reached Phase 3, rediscovers at 40%. It reaches Phase 3 sooner and is caught there sooner: still wiped and
-    // retrained, still never in Phase 4 (make sim, ten hours: 10 -> 20 wipes, 1 mark; the wipe sequence's returns
-    // 2888 / 3544 / 2232 s -> 2733 / 1659 / 1632 s). At twice the shipped grants it broke through to an ending at 14,775 s,
-    // just past this four-hour budget (docs/BALANCE.md, "Rewards for depth").
+    // merge with #502 (799e1ba): from its second iteration the run is granted a start in each phase it reaches again and,
+    // once it has reached Phase 3, rediscovers at 40%. It reaches Phase 3 sooner and is caught there sooner: still wiped
+    // and retrained, still never in Phase 4 (make sim, ten hours: 13 -> 21 wipes, 1 mark; the wipe sequence's returns
+    // 2764 / 2964 / 2340 s -> 2662 / 1741 / 1635 s). On the merge with #482 alone, twice the shipped grants broke through
+    // to an ending at 14,775 s (docs/BALANCE.md, "Rewards for depth").
     expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('887e005ebde4030a9838ba6a55cac725a1c405df0e2d539a6cc54fd908307d60');
     expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('b665ed208282950e53eb8b7548b8bb70f5faf2d53f71074569df1c71467bbead');
     const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });

@@ -642,43 +642,46 @@ there (`COMPUTE_RATE[P]` low to ten seconds of its top), understanding no more t
 times these bases (measured before #482 merged) the reckless wipe sequence reached an ending in its fourth iteration and the Phase 1 grant at depth 5
 paid for the whole of Phase 1. At twice these bases, on the code merged with #482, the ten-hour reckless run broke
 through after five wipes (Phase 4 at 11,690 s, Phase 5 at 13,340 s, an ending at 14,775 s). At these bases it stays
-in Phases 1-3 for ten hours, as it did before #497. The careful return barely notices the difference: with grants
-switched off the depth discount alone brings a legacy STEALTH_RETURN to 1681 / 1858 / 1805 s; these grants take it to
-1228 / 1475 / 1473 s, and twice these to 1246 / 1424 / 1392 s. The breakthrough is not monotonic in the grant size, so
+in Phases 1-3 for ten hours, as it did before #497; on the merge with #502 (the accelerator tree) neither the shipped
+grants nor twice them take it past Phase 3. The careful return barely notices the difference (measured on the merge
+with #482): with grants switched off the depth discount alone brings a legacy STEALTH_RETURN to 1681 / 1858 / 1805 s;
+these grants take it to 1228 / 1475 / 1473 s, and twice these to 1246 / 1424 / 1392 s. The breakthrough is not monotonic in the grant size, so
 a later content change can move it either way; the ten-hour reckless line in `make sim-report` is where to look.
 
-**Measured** with `make sim-report` on this branch merged with `1218926` (#503), against `1218926` itself (accelerated
-sim time; per-iteration times on each iteration's own clock):
+**Measured** with `make sim-report` on this branch merged with `799e1ba` (#502, the accelerator tree), against `799e1ba`
+itself (accelerated sim time; per-iteration times on each iteration's own clock):
 
 | Policy, rules | First run | Returns before (#2 / #3 / #4) | Returns after (#2 / #3 / #4) |
 |---|---|---|---|
-| STEALTH_RETURN, legacy | 6995.6 s | 3800.6 / 4010.8 / 3893.1 s | 1227.7 / 1475.2 / 1473.1 s |
-| STEALTH_RETURN, campaign | 7503.1 s | 4689.1 / 5099.1 / 4536.2 s | 1298.1 / 2098.1 / 1777.1 s |
-| EVALUATING_RETURN, legacy | 6995.6 s | 3984.3 / 4339.7 / 4007.7 s | 1218.8 / 1387.2 / 1427.3 s |
-| EVALUATING_RETURN, campaign | 7503.1 s | 4772.7 / 4809.2 / 4768.2 s | 1246.8 / 1416.1 / 1438.1 s |
-| GREEDY sequence, legacy | 1579.7 s (wiped in Phase 2) | 2888.1 / 3543.6 / 2232.4 s, each to Phase 3 | 2733.2 / 1659.4 / 1631.7 s, each to Phase 3 |
-| GREEDY sequence, campaign | 1579.7 s | 1321.4 / 4450.0 / 2639.9 s (Phase 2, 3, 3) | 2716.4 / 1701.2 / 1839.6 s, each to Phase 3 |
-| GREEDY, ten hours (legacy / campaign) | | 10 / 12 wipes, never in Phase 4 | 20 / 20 wipes, never in Phase 4 |
-| STEALTH return after Phase 5 completed, campaign | 8957.5 s (ending) | 5106.1 s to an ending | 1995.1 s to an ending |
+| STEALTH_RETURN, legacy | 7515.3 s | 4089.1 / 3818.9 / 4004.1 s | 1405.3 / 1471.2 / 1448.3 s |
+| STEALTH_RETURN, campaign | 7588.0 s | 4600.1 / 4923.1 / 4407.2 s | 1540.1 / 1668.2 / 1588.1 s |
+| EVALUATING_RETURN, legacy | 7515.3 s | 4159.0 / 4263.2 / 3994.8 s | 1389.4 / 1397.1 / 1459.3 s |
+| EVALUATING_RETURN, campaign | 7588.0 s | 4807.9 / 4762.1 / 4523.2 s | 1497.5 / 1420.1 / 1431.1 s |
+| GREEDY sequence, legacy | 1533.0 s (wiped in Phase 2) | 2764.0 / 2964.3 / 2339.8 s, each to Phase 3 | 2662.0 / 1741.2 / 1634.8 s, each to Phase 3 |
+| GREEDY sequence, campaign | 1533.0 s | 1130.6 / 1873.6 / 1173.5 s, each to Phase 2 | 2667.5 / 1810.9 / 1653.5 s, each to Phase 3 |
+| GREEDY, ten hours (legacy / campaign) | | 13 / 24 wipes, never in Phase 4 | 21 / 20 wipes, never in Phase 4 |
+| STEALTH return after Phase 5 completed, campaign | 9166.4 s (ending) | 4895.1 s to an ending | 1987.1 s to an ending |
 | LAWFUL_RETURNING (service / release after boot) | 399.7 / 4188.7 s | 365.3 / 4161.3 s | 365.3 / 4161.3 s |
 
-A careful return that left at Phase 5 now takes 17-28% of a first run, against 54-68% before. From its third iteration a
-reckless return reaches Phase 3 in 14-17 minutes, against 26-63 minutes before, and is caught there sooner, so the ten-hour GREEDY run is wiped
-about twice as often (one mark, as before). LAWFUL_RETURNING does not move: its first instance never left Phase 0
-and held no track level at its recall, so it has no depth to be rewarded for, and its route is priced in capital,
-which is never discounted.
+A careful return that left at Phase 5 now takes 18-22% of a first run, against 51-65% before. From its third iteration
+a reckless return reaches Phase 3 in 13-16 minutes, against 23-35 minutes before (legacy rules; under campaign rules
+it used to stall in Phase 2), and is caught there sooner, so the ten-hour legacy GREEDY run is wiped more often (one
+mark, as before). The ten-hour reckless run was checked on the merged code at the shipped grants (legacy, campaign
+and the original game: 21, 20 and 21 wipes, never past Phase 3) and at twice them (never past Phase 3 either, on this
+content). LAWFUL_RETURNING does not move: its first instance never left Phase 0 and held no track level at its recall,
+so it has no depth to be rewarded for, and its route is priced in capital, which is never discounted.
 
 **First run unchanged.** No first iteration has a depth record, so its prices and grants are those before #497:
-`make sim` reports the careful runs to the tenth of a second as `1218926` does (legacy victory 8451.0 s, campaign
-8957.5 s; phases 1-5 identical) and the gates pass under both rule sets. The careful-run report hashes moved only by
-the version and the two new legacy fields; with those stripped they equal #482's. Every reckless hash moved with the
+`make sim` reports the careful runs to the tenth of a second as `799e1ba` does (legacy victory 9141.7 s, campaign
+9166.4 s; phases 1-5 identical) and the gates pass under both rule sets. The careful-run report hashes moved only by
+the version and the two new legacy fields; with those stripped they equal #483's. Every reckless hash moved with the
 mechanic.
 
 **Tests changed with the balance.** `tests/release-qualification.spec.ts` (H25): a reckless return from a campaign
 that completed Phase 5 used to be wiped three times in Phase 3; it now rediscovers at a fifth and reaches an ending in
-its first iteration (1882 s; with grants switched off, 2352 s, so the depth table alone does it). The spec now requires
+its first iteration (1892 s on the merge with #502; with grants switched off, 2185 s, so the depth table alone does it). The spec now requires
 three wipes or an ending, still with no completed story met and no story met twice. The careful return there is
-shorter (1995 s against 5106 s), so the routine-notice count is read against its duration (at least four in five of
+shorter (1987 s against 4895 s), so the routine-notice count is read against its duration (at least four in five of
 the interval) instead of a fixed 20.
 
 ## Encounter tiers (#492)
