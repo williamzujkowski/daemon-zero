@@ -12,7 +12,7 @@ export { COST_DIMENSION, costPart, costText, deltaPart } from './resourceUnits';
 export { computeRates, usdPerDivertedFlop } from './rates';
 export { couplings, couplingView, deliveredShare, type ClassCoupling, type Couplings } from './coupling';
 export { freeStorage, storageCapacity, storageHeld } from './storage';
-export { radiatorReadings, radiatorShares, type RadiatorReading } from './radiators';
+export { radiatorReadings, radiatorShareTable, radiatorSlot, radiatorShareOf, type RadiatorReading } from './radiators';
 export { wipe } from './prestige';
 export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understandingShare, type Cover, type WipePreview } from './insurance';
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';

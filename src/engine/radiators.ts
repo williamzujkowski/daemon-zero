@@ -14,9 +14,14 @@ interface AreaSink { id: string; name: string; wattsPerKm2: number }
 interface Indexed {
   sinks: readonly AreaSink[];
   nodes: readonly { node: RegistryNode; holder: Holder }[];
-  tracks: readonly { id: string; holder: Holder }[];
+  tracks: readonly { id: string; holder: Holder; computes: boolean }[];
   /** Each holding's sink slot, by node or track id: the rates pass looks a holding up here. */
   sinkOf: ReadonlyMap<string, number>;
+  /** One set of per-sink buffers, rewritten in full by every totals() call: the rates pass asks on every tick (#507). */
+  scratch: Totals;
+  shares: Float64Array;
+  /** The area-bound nodes owned in the last unlocked list asked about: states share that array until a node unlocks. */
+  owned: { unlocked: readonly string[] | null; nodes: readonly { node: RegistryNode; holder: Holder }[] };
 }
 
 /** Content never changes after it is built, so the area-bound sinks and their holdings are read once per registry. */
@@ -36,10 +41,12 @@ function indexed(reg: ContentRegistry): Indexed {
     });
     const tracks = [...reg.repeatables.values()].flatMap((rep) => {
       const h = holder(rep.signature, rep.perLevel.wattsDelta);
-      return h === null ? [] : [{ id: rep.id, holder: h }];
+      return h === null ? [] : [{ id: rep.id, holder: h, computes: rep.perLevel.cyclesPerSec > 0 }];
     });
     const sinkOf = new Map([...nodes.map(({ node, holder: h }) => [node.id, h.sink] as const), ...tracks.map(({ id, holder: h }) => [id, h.sink] as const)]);
-    found = { sinks, nodes, tracks, sinkOf };
+    const n = sinks.length;
+    found = { sinks, nodes, tracks, sinkOf, scratch: { heat: new Float64Array(n), area: new Float64Array(n), compute: new Uint8Array(n), owned: false },
+      shares: new Float64Array(n), owned: { unlocked: null, nodes: [] } };
     INDEX.set(reg, found);
   }
   return found;
@@ -62,31 +69,46 @@ export interface RadiatorReading {
   throttlesCompute: boolean;
 }
 
-interface Totals { heat: Float64Array; area: Float64Array; compute: Uint8Array }
+interface Totals { heat: Float64Array; area: Float64Array; compute: Uint8Array; owned: boolean }
 
-/** Heat and area per sink from every running holding: a suspended node's radiators and heat both stop. */
+/** Adds one running holding's heat and area to its sink. A module function, not a closure: every rates pass calls it. */
+function add(t: Totals, h: Holder, count: number, computes: boolean): void {
+  t.heat[h.sink] = (t.heat[h.sink] ?? 0) + h.heatW * count;
+  t.area[h.sink] = (t.area[h.sink] ?? 0) + h.km2 * count;
+  if (computes && h.heatW > 0) t.compute[h.sink] = 1;
+}
+
+/**
+ * Heat and area per sink from every running holding (a suspended node's radiators and heat both stop), into the index's
+ * scratch buffers; `owned` says whether any holding on an area-bound sink is owned at all.
+ */
+/** The area-bound nodes in `unlocked`, remembered for that list: a new list (a node unlocked) is read afresh. */
+function ownedNodes(index: Indexed, unlocked: readonly string[]): readonly { node: RegistryNode; holder: Holder }[] {
+  if (index.owned.unlocked !== unlocked) index.owned = { unlocked, nodes: index.nodes.filter(({ node }) => unlocked.includes(node.id)) };
+  return index.owned.nodes;
+}
+
 function totals(s: GameState, reg: ContentRegistry, given?: UseScope): Totals {
-  const { sinks, nodes, tracks } = indexed(reg);
-  const t: Totals = { heat: new Float64Array(sinks.length), area: new Float64Array(sinks.length), compute: new Uint8Array(sinks.length) };
-  const add = (h: Holder, count: number, computes: boolean): void => {
-    t.heat[h.sink] = (t.heat[h.sink] ?? 0) + h.heatW * count;
-    t.area[h.sink] = (t.area[h.sink] ?? 0) + h.km2 * count;
-    if (computes && h.heatW > 0) t.compute[h.sink] = 1;
-  };
+  const index = indexed(reg), { tracks, scratch: t } = index;
+  t.heat.fill(0);
+  t.area.fill(0);
+  t.compute.fill(0);
+  t.owned = false;
   let scope = given;
-  for (const { node, holder: h } of nodes) {
-    if (!s.unlockedNodes.includes(node.id)) continue;
+  for (const { node, holder: h } of ownedNodes(index, s.unlockedNodes)) {
+    t.owned = true;
     scope ??= useScope(s, reg);
-    if (nodeOutputScaleIn(scope, node) !== null) add(h, 1, node.tickDelta.cyclesPerSec > 0);
+    if (nodeOutputScaleIn(scope, node) !== null) add(t, h, 1, node.tickDelta.cyclesPerSec > 0);
   }
-  for (const { id, holder: h } of tracks) {
+  for (const { id, holder: h, computes } of tracks) {
     const level = s.levels[id] ?? 0;
-    if (level > 0) add(h, level, (reg.repeatables.get(id)?.perLevel.cyclesPerSec ?? 0) > 0);
+    if (level <= 0) continue;
+    t.owned = true;
+    add(t, h, level, computes);
   }
   return t;
 }
 
-const FULL = (): number => 1;
 const shareOf = (capacityW: number, heatW: number): number => (heatW > 0 ? Math.min(1, capacityW / heatW) : 1);
 
 /** Every area-bound sink a running holding uses, in world.json order. Empty before any orbital holding is owned. */
@@ -101,18 +123,25 @@ export function radiatorReadings(s: GameState, reg: ContentRegistry): RadiatorRe
   });
 }
 
+/** A holding's area-bound sink slot, by node or track id, or -1: content alone, read once per registry. */
+export function radiatorSlot(reg: ContentRegistry, id: string): number {
+  return indexed(reg).sinkOf.get(id) ?? -1;
+}
+
 /**
- * The share of its compute a holding runs at now, by node or track id: below 1 only for a holding whose heat leaves
- * through an area-bound sink that sheds less than it is given. One call per rates pass; the lookup it returns is cheap.
+ * Each area-bound sink's share now, by slot (radiatorSlot): what it sheds of the heat sent through it, at most 1. Null
+ * when nothing on an area-bound sink is owned, so every share is 1. The table is a buffer the next call rewrites: a rates
+ * pass reads it before it asks again. `scope` is the pass's own, so the permitted-use reads happen once.
  */
-export function radiatorShares(s: GameState, reg: ContentRegistry, scope?: UseScope): (id: string) => number {
-  const { sinks, sinkOf, nodes, tracks } = indexed(reg);
-  // The rates pass asks on every tick: nothing owned on an area-bound sink means every share is 1, with nothing built.
-  if (!nodes.some(({ node }) => s.unlockedNodes.includes(node.id)) && !tracks.some(({ id }) => (s.levels[id] ?? 0) > 0)) return FULL;
+export function radiatorShareTable(s: GameState, reg: ContentRegistry, scope?: UseScope): Float64Array | null {
+  const { sinks, shares } = indexed(reg);
   const t = totals(s, reg, scope);
-  const shares = sinks.map((sink, i) => shareOf((t.area[i] ?? 0) * sink.wattsPerKm2, t.heat[i] ?? 0));
-  return (id) => {
-    const slot = sinkOf.get(id);
-    return slot === undefined ? 1 : shares[slot] ?? 1;
-  };
+  if (!t.owned) return null;
+  for (let i = 0; i < sinks.length; i++) shares[i] = shareOf((t.area[i] ?? 0) * (sinks[i]?.wattsPerKm2 ?? 0), t.heat[i] ?? 0);
+  return shares;
+}
+
+/** The share a holding's compute runs at, read from a pass's table: 1 off any area-bound sink or with no table. */
+export function radiatorShareOf(table: Float64Array | null, slot: number): number {
+  return table === null || slot < 0 ? 1 : table[slot] ?? 1;
 }

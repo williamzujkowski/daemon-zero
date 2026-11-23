@@ -13,7 +13,7 @@ import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
 import { aegisScanMultiplier } from './statePressure';
 import { couplings, deliveredShare, type Couplings } from './coupling';
-import { radiatorShares } from './radiators';
+import { radiatorShareOf, radiatorShareTable, radiatorSlot } from './radiators';
 import { incomeIntact, intactShare, memberClass } from './siteDamage';
 import type { GameState, Rates } from './state';
 
@@ -82,7 +82,11 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
 }
 
 /** What addNodes reads from a node's content besides its output scale, in one shape for every node. */
-interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean; link: NetworkLink | undefined; damagedBy: string | undefined }
+interface NodeRateFacts {
+  node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean; link: NetworkLink | undefined; damagedBy: string | undefined;
+  /** Its area-bound sink's slot (#465), or -1; the sink's share now is state, read once per pass. */
+  radiatorSlot: number;
+}
 /** Content never changes after it is built, so each node's facts are read once per registry: every tick asks (#505). */
 const NODE_RATE_FACTS = new WeakMap<ContentRegistry, ReadonlyMap<string, NodeRateFacts>>();
 
@@ -96,14 +100,15 @@ function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts>
       link: node.network,
       // The site class whose damage scales its compute (#517); its damage now is state, read per pass.
       damagedBy: memberClass(reg, node.id)?.holds === 'COMPUTE' ? memberClass(reg, node.id)?.id : undefined,
+      radiatorSlot: radiatorSlot(reg, node.id),
     }]));
     NODE_RATE_FACTS.set(reg, facts);
   }
   return facts;
 }
 
-/** A holding's radiator share (radiators.ts): what its area-bound sink sheds of its heat, 1 off any such sink. */
-type Radiated = (id: string) => number;
+/** The pass's radiator shares by sink slot (radiators.ts), or null when nothing on an area-bound sink is owned. */
+type Radiated = Float64Array | null;
 
 function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings, radiated: Radiated, scope: UseScope): void {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
@@ -117,7 +122,7 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Coupling
     // Damage (#517) discounts what arrives, as coupling does: positive compute only, never a drain.
     const intact = fact.damagedBy === undefined ? 1 : 1 - (s.conflict.damage[fact.damagedBy] ?? 0);
     addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered,
-      deliveredShare(fact.link, by) * intact * radiated(id));
+      deliveredShare(fact.link, by) * intact * radiatorShareOf(radiated, fact.radiatorSlot));
     a.aegisReductionTech = Math.max(a.aegisReductionTech, fact.aegisRatio);
     // financeEnabled() states the same rule for readers outside the tick.
     if (fact.finance) a.financeEnabled = true;
@@ -130,7 +135,7 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Co
     const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
-    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id) * radiated(id));
+    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id) * (radiated === null ? 1 : radiatorShareOf(radiated, radiatorSlot(reg, id))));
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;
     a.aegisReductionStaff += rep.perLevelEffects.aegisScanReduction * level;
   }
@@ -243,7 +248,7 @@ export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
 export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: AegisReduction; revenueMultiplier: number } {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270), radiators included.
   const scope = useScope(s, reg);
-  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg, scope);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShareTable(s, reg, scope);
   addNodes(a, s, reg, by, radiated, scope);
   addRepeatables(a, s, reg, by, radiated);
   return { aegis: aegisReduction(a, s, reg), revenueMultiplier: a.revenueMultiplier };
@@ -254,7 +259,7 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const b = reg.balance;
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270), radiators included.
   const scope = useScope(s, reg);
-  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShares(s, reg, scope);
+  const a = emptyAggregate(), by = couplings(s, reg), radiated = radiatorShareTable(s, reg, scope);
   addNodes(a, s, reg, by, radiated, scope);
   addRepeatables(a, s, reg, by, radiated);
   for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
