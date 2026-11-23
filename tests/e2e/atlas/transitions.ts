@@ -180,8 +180,9 @@ const powerDraw = () => {
 function levelWithGeneration(game: GameState): GameState {
   const rep = powerDraw();
   // The save also holds suspendable generation (the reactor restart, #482) more than the halls' cap can draw, so it is
-  // suspended first and the reactor alone is levelled.
-  const extra = [...CONTENT.nodes.values()].filter((node) => node.suspendable && node.tickDelta.wattsDelta > 0 && game.unlockedNodes.includes(node.id));
+  // suspended first and the reactor alone is levelled; its suspendable consumers (the fabs, #485) draw more than the
+  // reactor makes, so they are suspended too and the halls alone take up the slack.
+  const extra = [...CONTENT.nodes.values()].filter((node) => node.suspendable && node.tickDelta.wattsDelta !== 0 && game.unlockedNodes.includes(node.id));
   const base = earlier(game, { disabledNodes: [...new Set([...game.disabledNodes, ...extra.map((node) => node.id)])] });
   const surplus = base.rates.wattsGenerated - base.rates.wattsConsumed;
   const level = (base.levels[rep.id] ?? 0) + Math.floor(surplus / -rep.perLevel.wattsDelta);
@@ -242,7 +243,7 @@ const COVERAGE_ROWS: readonly TransitionRow[] = [
     keep: {}, why: 'Capital runs out: one alert for one condition, and the timely set stays in view.' },
   { id: 't-power-shortfall', walk: ['C1.10'],
     before: { stage: 'p4-corp-ledger', reach: 'terminal-screen',
-      patch: { recipe: 'the victory-ready save with its suspendable generation suspended and the power draw levelled to generation (consumption = generation)', apply: levelWithGeneration } },
+      patch: { recipe: 'the victory-ready save with its suspendable generation and consumers suspended and the power draw levelled to generation (consumption = generation)', apply: levelWithGeneration } },
     setup: async (page) => { await clickIfPresent(page, 'workspace-CORP-work'); },
     trigger: { kind: 'click', testId: 'rep-' + powerDraw().id + '-buy' },
     appear: { item: (state) => pick(BAND_ITEMS.shortfall, 'band.shortfall', state), announce: /power shortfall/i, alerts: /power shortfall|MW short/i },

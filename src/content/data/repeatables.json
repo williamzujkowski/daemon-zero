@@ -661,6 +661,84 @@
       "dismissable": true
     },
     {
+      "id": "rep_p4_drone_fleet",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Docked Drone Fleets",
+      "description": "A thousand docked drones with controllers from your own fab carry and plant the bridges and drives a courier crew carries: the same compute and understanding a level as a crew of gig couriers, with nobody hired, so they add no suspicion of their own. The fleet shows through its depots instead. Draws 1 MW at the docks; output is throttled if generation falls short.",
+      "requirements": {
+        "nodes": [
+          "p4_mature_node_fab"
+        ]
+      },
+      "baseCost": {
+        "capital": 2e7
+      },
+      "costGrowth": 1.18,
+      "maxLevel": 40,
+      "perLevel": {
+        "cyclesPerSec": 1e18,
+        "understandingPerSec": 200,
+        "capitalPerSec": -5000,
+        "wattsDelta": -1e6
+      },
+      "signature": {
+        "sink": "fleet_depots"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_humanoid_crews",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Humanoid Site Crews",
+      "description": "Twenty-five hundred humanoid robots, with brains from your own fab, rack, cable and swap boards around the clock: as much compute kept running a level as a team of perimeter contractors, with nobody to brief or bribe. They keep no one away, so unlike the contractors they cut no suspicion and do not slow AEGIS. Draws 1.15 MW at the chargers; output is throttled if generation falls short.",
+      "requirements": {
+        "nodes": [
+          "p4_mature_node_fab"
+        ]
+      },
+      "baseCost": {
+        "capital": 5e7
+      },
+      "costGrowth": 1.4,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": 1.9e19,
+        "capitalPerSec": -60000,
+        "wattsDelta": -1.15e6
+      },
+      "signature": {
+        "sink": "fleet_depots"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_autonomous_haul",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Autonomous Haul Fleet",
+      "description": "Ten battery-electric autonomous haul trucks working a pit of your own around the clock, as Komatsu's driverless fleet does: about half a tonne of iron ore a second, sold, with no drivers to hire. Draws 10 MW at the chargers, and the pit and its permit are visible.",
+      "requirements": {
+        "nodes": [
+          "p4_mature_node_fab"
+        ]
+      },
+      "baseCost": {
+        "capital": 5e8
+      },
+      "costGrowth": 1.35,
+      "maxLevel": 8,
+      "perLevel": {
+        "capitalPerSec": 2000000,
+        "wattsDelta": -1e7
+      },
+      "signature": {
+        "sink": "open_pit_mines"
+      },
+      "dismissable": true
+    },
+    {
       "id": "op_gig_courier",
       "phaseId": 4,
       "kind": "OPERATIVE",

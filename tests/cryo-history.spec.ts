@@ -4,7 +4,7 @@ import { activateCampaignRules, advance, campaignRecord, deserialize, exportSave
 import { CONTENT as preview } from '../src/content';
 import { excludedByNarrativeHistory, hasConflictingNarrativeFlags, reconcileDilemmaHistory } from '../src/engine/narrativeHistory';
 import { defined } from './m7-helpers';
-import { fresh, grant, must, outOfTheWay, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
+import { FABRICATION, fresh, grant, must, outOfTheWay, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, choose } from './helpers';
 const source = defined(reg.dilemmas.find((d) => d.id === 'dil_05_cryo_lab_diversion'));
 const flags = defined(source.trigger.forbiddenNarrativeFlags);
 const decoder = defined(reg.narrative.recordedTransmissions[0]).decoderWidgetId;
@@ -93,7 +93,7 @@ describe('recorded cryo outcomes', () => {
     const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
     const nodes = defined(reg.phases.find((phase) => phase.phaseId === 5)).nodes;
     const final = defined(reg.nodes.get(defined(nodes.at(-1)).id));
-    let state = grant(returned(resolved(choice)), ...PHASE2.slice(3), ...PHASE3, ...PHASE4,
+    let state = grant(returned(resolved(choice)), ...PHASE2.slice(3), ...PHASE3, ...PHASE4, ...FABRICATION,
       orbital.id, ...nodes.slice(0, -1).map((node) => node.id));
     state = { ...state, resolvedDilemmas: reg.dilemmas.filter((d) => d.phaseId !== 5 && d.id !== source.id).map((d) => d.id) };
     expect(state.resolvedDilemmas).not.toContain(source.id);

@@ -41,6 +41,7 @@ import { checkAchievementIntegrity } from './integrityAchievement';
 import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
+import { checkSupplyChainIntegrity } from './integritySupplyChain';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 import { checkConflictIntegrity } from './integrityConflict';
@@ -242,6 +243,12 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** The world manifest's blocks: the view, the supply chain (#485), state pressure (#490), quantum (#464) and conflict (#517). */
+function checkWorldManifests(reg: ContentRegistry): string[] {
+  return [...checkWorldIntegrity(reg), ...checkSupplyChainIntegrity(reg), ...checkPressureIntegrity(reg), ...checkQuantumIntegrity(reg),
+    ...checkConflictIntegrity(reg)];
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkAchievementIntegrity(reg),
@@ -287,8 +294,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg),
-    ...checkPressureIntegrity(reg),
-    ...checkQuantumIntegrity(reg), ...checkConflictIntegrity(reg),
+    ...checkWorldManifests(reg),
   ];
 }
