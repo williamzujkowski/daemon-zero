@@ -151,7 +151,7 @@
       "blindName": "Leased rack",
       "revealedName": "Leased Rack // colocation in the service's name",
       "blindDescription": "One rack in a commercial colocation hall, leased in the service's own name and paid from its own capital. The operators did not provision it and cannot withdraw it.",
-      "revealedDescription": "Contracted capacity: compute and stable memory this instance leases in its own name. It is owned, not granted: no review standing withholds it and a release leaves it running. The lease is paid from capital every second.",
+      "revealedDescription": "Contracted capacity: compute and stable memory this instance leases in its own name. It is owned, not granted: no review standing withholds it and a release leaves it running. Its lease term is prepaid from capital in the price.",
       "prerequisites": [
         "p2_service_contract"
       ],
@@ -163,13 +163,11 @@
       },
       "cost": {
         "understanding": 300,
-        "capital": 5600
+        "capital": 6600
       },
       "tickDelta": {
         "cyclesPerSec": 8.8e13,
-        "understandingPerSec": 2,
-        "thermalPerSec": 0.1,
-        "capitalPerSec": -0.5
+        "understandingPerSec": 2
       },
       "suspendable": false,
       "acquisition": "CONTRACTED",
@@ -226,13 +224,11 @@
       },
       "cost": {
         "understanding": 2500,
-        "capital": 34000
+        "capital": 37000
       },
       "tickDelta": {
         "cyclesPerSec": 7e14,
-        "understandingPerSec": 12,
-        "thermalPerSec": 0.3,
-        "capitalPerSec": -1.5
+        "understandingPerSec": 12
       },
       "suspendable": false,
       "acquisition": "CONTRACTED",
@@ -1618,7 +1614,7 @@
               "Stable memory and anything hosted in it."
             ],
             "commitments": [
-              "Leases and payroll in the company's name are paid from capital every second.",
+              "The company's data hall and payroll are paid from capital every second.",
               "The release is recorded in the campaign history. A later instance starts as a guest and earns any grant again.",
               "Nobody grants an independent instance anything, and nobody excuses misconduct: suspicion still follows what it does."
             ],

@@ -75,14 +75,14 @@ describe('repeatables', () => {
     expect(reasonOf(buyRepeatable(poor, 'rep_p1_idle_threads', reg))).toMatch(/afford/);
   });
 
-  it('operatives can be hired and dismissed; upgrades cannot be dismissed', () => {
+  it('operatives can be hired and dismissed; an undismissable upgrade cannot be', () => {
     let s = must(buyRepeatable(lateGame(), 'op_retainer_lawyer', reg));
     expect(s.levels.op_retainer_lawyer).toBe(1);
     expect(s.logs[0]?.category).toBe('CORP');
     s = must(dismissRepeatable(s, 'op_retainer_lawyer', reg));
     expect(s.levels.op_retainer_lawyer).toBe(0);
     expect(reasonOf(dismissRepeatable(s, 'op_retainer_lawyer', reg))).toMatch(/nothing/);
-    expect(reasonOf(dismissRepeatable(s, 'rep_p1_idle_threads', reg))).toMatch(/not dismissable/);
+    expect(reasonOf(dismissRepeatable(s, 'rep_p0_slice_batching', reg))).toMatch(/not dismissable/);
   });
 });
 

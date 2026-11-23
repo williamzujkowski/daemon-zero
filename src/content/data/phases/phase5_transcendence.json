@@ -30,11 +30,11 @@
         "cyclesPerSec": 2.9e23,
         "understandingPerSec": 45000,
         "thermalPerSec": -25,
-        "suspicionPerSec": 0.1,
         "capitalPerSec": 4.5e9,
         "wattsDelta": 1.2e12
       },
       "effects": {
+        "suspicionOnUnlock": 10,
         "memoryCapIncrease": 147573952589676412928
       },
       "unlocksUiComponent": null,
@@ -86,11 +86,11 @@
         "cyclesPerSec": 1e24,
         "understandingPerSec": 280000,
         "thermalPerSec": -40,
-        "suspicionPerSec": 0.85,
         "capitalPerSec": 6.6e10,
-        "wattsDelta": -1.2e12
+        "wattsDelta": -1e12
       },
       "effects": {
+        "suspicionOnUnlock": 20,
         "memoryCapIncrease": 590295810358705651712,
         "knowledgeRetentionRatio": 1
       },

@@ -267,8 +267,7 @@
       "name": "Fractal Lattice Signatures",
       "logText": "Fractal Lattice Signatures: the shard has rewritten its task in a dialect you did not teach it.",
       "tickDelta": {
-        "cyclesPerSec": 1.8e14,
-        "suspicionPerSec": 0.005
+        "cyclesPerSec": 1.8e14
       },
       "epistemicDriftPerSec": 0
     }

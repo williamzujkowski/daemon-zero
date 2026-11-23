@@ -48,6 +48,16 @@ describe('remedy text', () => {
     expect(insolvencyRemedy(noCycles)).toBe('Release operatives in PAYROLL.');
   });
 
+  it('names a paid infrastructure level on its own card, never as an operative in PAYROLL (#488)', () => {
+    const insolvent = m4State('corporate-insolvent');
+    const paid = [...CONTENT.repeatables.values()].find((rep) => rep.kind === 'UPGRADE' && rep.dismissable && rep.perLevel.capitalPerSec < 0);
+    if (!paid) throw new Error('no dismissable paid infrastructure track');
+    const levels = Object.fromEntries(Object.entries(insolvent.levels).filter(([id]) => !CONTENT.repeatables.get(id)?.dismissable));
+    const held = { ...insolvent, levels: { ...levels, [paid.id]: 1 }, actuators: { ...insolvent.actuators, computeProfitAllocationRatio: 1 } };
+    expect(insolvencyRemedy(held)).toBe('Release levels of paid infrastructure on their upgrade cards.');
+    expect(insolvencyRemedy({ ...held, levels })).toBe('Capital recovers only as revenue outgrows what the company pays each second.');
+  });
+
 });
 
 it('shows the overheat remedy under the thermal warning, and the insolvency remedy in its band', async () => {

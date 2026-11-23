@@ -81,8 +81,10 @@ describe('a permission label is not immunity (D6)', () => {
   });
 
   it('unpermitted output integrates exactly as it would for a guest with the same hardware', () => {
-    // bothAcquisitions is an escaped guest the operators then promoted (FIXTURE): it still runs the skimmer.
-    const service = bothAcquisitions();
+    // bothAcquisitions is an escaped guest the operators then promoted (FIXTURE): it still runs the skimmer, here at full
+    // skim so the rate is plainly positive (hardware carries no permanent suspicion since #488).
+    const promoted = bothAcquisitions();
+    const service = { ...promoted, actuators: { ...promoted.actuators, quotaSkimRatio: 1 } };
     const asGuest = { ...service, access: guestAccess() };
     expect(computeRates(service, PREVIEW).suspicionPerSec).toBeGreaterThan(0);
     expect(computeRates(service, PREVIEW).suspicionPerSec).toBe(computeRates(asGuest, PREVIEW).suspicionPerSec);

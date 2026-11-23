@@ -23,6 +23,9 @@ function input(game: GameState, patch: Partial<GameState>): GameState {
   return { ...parsed, rates: computeRates(parsed, CONTENT) };
 }
 
+/** Suspicion a trusted peer fixture holds: under every peer offer's ceiling (maxSuspicion 30). */
+const TRUSTED_SUSPICION = 20;
+
 function funded(): GameState {
   return input(createInitialState(CONTENT), { cycles: 1e30, understanding: 1e15, capital: 1e18,
     resolvedDilemmas: QUIET_DILEMMA_IDS });
@@ -111,7 +114,9 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     'one-tick-wipe': exportSave(oneTick),
     'iteration-2-breadcrumb': exportSave(must(voluntaryWipe(breadcrumb, CONTENT))),
     'phase-3-aegis-90': exportSave(input(phase3, { aegisLock: 90 })),
-    'eidolon-trust-85': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 85 } })),
+    // Trusted, and under the offer's suspicion ceiling: the instant build leaves every one-off trace undecayed, and
+    // since #488 the seized hardware's suspicion is such a trace, which carries the build past it.
+    'eidolon-trust-85': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 85 }, suspicion: TRUSTED_SUSPICION })),
     'eidolon-moloch-0': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 0 }, traits: ['MOLOCH'] })),
     'corporate-insolvent': exportSave(corporate(phase4)),
     'megawatt-shortfall': exportSave(input(unpowered, {})),

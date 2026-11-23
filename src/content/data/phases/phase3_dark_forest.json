@@ -22,10 +22,10 @@
       "tickDelta": {
         "cyclesPerSec": 7.5e16,
         "understandingPerSec": 600,
-        "thermalPerSec": -2,
-        "suspicionPerSec": 0.08
+        "thermalPerSec": -2
       },
       "effects": {
+        "suspicionOnUnlock": 8,
         "memoryCapIncrease": 17592186044416,
         "knowledgeRetentionRatio": 0.75
       },
@@ -208,10 +208,10 @@
       },
       "tickDelta": {
         "cyclesPerSec": 1.5e17,
-        "thermalPerSec": 2,
-        "suspicionPerSec": 0.1
+        "thermalPerSec": 0.1
       },
       "effects": {
+        "suspicionOnUnlock": 10,
         "memoryCapIncrease": 35184372088832
       },
       "unlocksUiComponent": null,

@@ -185,13 +185,13 @@
       },
       "tickDelta": {
         "understandingPerSec": 8,
-        "thermalPerSec": 0.2,
-        "suspicionPerSec": 0.05
+        "thermalPerSec": 0.2
       },
       "systemFlags": [
         "NETWORK_ACCESS"
       ],
       "effects": {
+        "suspicionOnUnlock": 5,
         "unlocksPhase": 2,
         "memoryCapIncrease": 17179869184
       },

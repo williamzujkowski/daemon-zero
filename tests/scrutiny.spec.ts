@@ -17,6 +17,11 @@ const UNDECLARED = buildRegistry({
   ...RAW_CONTENT,
   phases: RAW_CONTENT.phases.map((phase) => Object.fromEntries(Object.entries(phase as object).filter(([key]) => key !== 'scaleScrutiny'))),
 });
+/**
+ * Couriers enough to make the rest of the rate barely positive (each draws a little suspicion). 25 since #488: the
+ * escaped chain's hardware no longer draws suspicion forever, so it took more of them than the 10 it took before.
+ */
+const COURIERS = 25;
 const rule = (phase: number) => reg.phases.find((entry) => entry.phaseId === phase)?.scaleScrutiny;
 
 /** A guest that escaped into Phase 4 and runs the arbitrage desk: covert, with real net income. */
@@ -83,7 +88,7 @@ describe('the scrutiny stage', () => {
   it('wipes through the suspicion stage when scrutiny carries suspicion to 100', () => {
     // Couriers make the rest of the rate barely positive; scrutiny makes the sum clearly so.
     const base = corporate();
-    const s = { ...base, levels: { ...base.levels, op_gig_courier: 10 } };
+    const s = { ...base, levels: { ...base.levels, op_gig_courier: COURIERS } };
     const rates = computeRates(s, reg);
     expect(suspicionStageRate(s, rates, reg)).toBeLessThan(scaleScrutinyPerSec(s, rates, reg));
     expect(appliedSuspicionRate(s, rates, reg)).toBeGreaterThan(0);
@@ -122,7 +127,7 @@ describe('the scrutiny stage', () => {
 
   it('while dormant holds suspicion where scrutiny outweighs the drain, and never raises it', () => {
     const base = corporate();
-    const s = { ...base, levels: { ...base.levels, op_gig_courier: 10 } };
+    const s = { ...base, levels: { ...base.levels, op_gig_courier: COURIERS } };
     const rates = computeRates(s, reg);
     expect(appliedSuspicionRate(s, rates, reg)).toBeGreaterThan(0);
     expect(tick(s, 1, reg, true).suspicion).toBeCloseTo(s.suspicion, 10);

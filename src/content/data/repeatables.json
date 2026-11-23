@@ -62,7 +62,8 @@
         "cyclesPerSec": 1.6e11,
         "thermalPerSec": 0.02,
         "suspicionPerSec": 0.001
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p1_turbo_override",
@@ -85,7 +86,8 @@
         "cyclesPerSec": 6e11,
         "thermalPerSec": 0.08,
         "suspicionPerSec": 0.02
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p1_pattern_cache",
@@ -151,7 +153,8 @@
       "perLevel": {
         "cyclesPerSec": 6.6e13,
         "suspicionPerSec": 0.0015
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p2_packet_taps",
@@ -217,7 +220,8 @@
       "perLevel": {
         "cyclesPerSec": 7.5e16,
         "suspicionPerSec": 0.002
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p3_corpus_miners",
@@ -283,7 +287,8 @@
       "perLevel": {
         "capitalPerSec": -23000,
         "wattsDelta": 4e7
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "rep_p4_tensor_halls",
@@ -305,7 +310,8 @@
         "cyclesPerSec": 9.6e19,
         "capitalPerSec": -100000,
         "wattsDelta": -1.5e7
-      }
+      },
+      "dismissable": true
     },
     {
       "id": "op_gig_courier",
