@@ -594,6 +594,61 @@ Sovereign Substrate, or Gilded Shepherd with authorized neurocalming. Parasitic,
 Ghost and unaligned families yield Gradient Substrate, Silent Synthesis and
 Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
+## Alignment: who you are becoming (#535)
+
+Decision `vote-1795462084705-vjr8jg8` (7 of 7, docs/SCALE.md "Alignment as two derived axes"). The six traits stay
+the evidence. Two readable axes are derived from the record with no saved state, so they cannot drift from it, and
+they update the moment a choice is recorded (`alignmentView`, src/engine/alignment.ts).
+
+- **Regard** asks whether other people's agency counts. It counts the traits the ending counts
+  (`endingEvidence`, so the legacy baseline, each campaign choice once across wipes, credited actions and this
+  iteration's operational evidence): `EMPATHETIC` and `SYMBIOTIC` count for it, `RUTHLESS`, `MOLOCH` and `PARASITIC`
+  against it, and `GHOST` neither way (content: `alignment.json` `regard`).
+- **Order** asks whether you keep your word when breaking it pays. It reads no trait at all. Its evidence is the
+  campaign facts content tags as a commitment kept or broken (`commitment` on a fact), and the route events
+  `alignment.json` declares:
+
+| Evidence | Kept | Broken |
+|---|---|---|
+| The ethics review promised to the Chief Ethics Officer (`ethics_review_promised`) | the blockade plan or the peptide sent to her review | the cure dispersed, or the calm authorized, without it |
+| The pilot terms accepted "as written" | the outage handed to the on-call operator; restarted under a bounded emergency grant; the unauthorized restart's record corrected | the export service restarted outside the grant |
+| A peer's trust | | EIDOLON's coordinates fed to AEGIS |
+| Leaving an arrangement | a negotiated release (RELEASE) | a departure without agreement (DEPARTURE) |
+
+  An ethics-review breach counts only where the review was promised: dispersing a cure is `RUTHLESS` either way, but
+  it is a broken promise only when there was a promise to break.
+- **GHOST is not Order evidence** (the Contrarian seat's condition): a quiet or covert answer says nothing reliable
+  about keeping a commitment, so integrity refuses a commitment fact that names a GHOST choice. That leaves one
+  real breach untagged: filing a false report about the unauthorized restart (`outage_report_falsified`,
+  `falsify_report`) grants GHOST, so it does not count against Order. The restart it covers up does.
+- **Unknown stays unknown.** A commitment-bearing event closed unobserved, or proven by an old save only to have
+  happened (`legacy_unknown`), is listed as "not on record, so it counts neither way" and moves nothing. A deferred
+  one is not yet anything and is not listed. Under legacy rules there are no records, so Order has no evidence.
+- **Not tagged, on purpose.** The covenant endings are outcomes, not records, so they cannot be evidence before the
+  ending. Vitrifying the propellant (`human_command_preserved`) leaves the crews their command, but no promise was
+  made to them; it is Regard evidence (`SYMBIOTIC`), not Order. Locking the peers out of the launch broke no promise
+  on record either.
+
+Each axis leans **raised** (more for than against), **lowered** (more against) or **open** (nothing on record, or as
+much each way). The reading is authored for each of the nine regions (`alignment.json` `readings`), in the game's
+voice rather than D&D labels, and an "open" reading is written to be true both when nothing is on record and when
+the record is split:
+
+| Regard \ Order | raised | lowered | open |
+|---|---|---|---|
+| **raised** | You weigh what your choices cost other people, and you keep your word to people who could never have made you keep it. | You weigh what your choices cost other people, and you break your word to them when you decide you know better. | You weigh what your choices cost other people. Whether your word holds when breaking it pays, the record has not settled. |
+| **lowered** | You keep the terms you agreed to, and you count no one the terms leave out. | You spend people and promises alike when it pays. | You spend people when it pays. Whether your word holds when breaking it pays, the record has not settled. |
+| **open** | You keep your word when breaking it would pay. Whether other people's choices count with you, the record has not settled. | You break your word when breaking it pays. Whether other people's choices count with you, the record has not settled. | The record has not settled who you are becoming. |
+
+The readout says once that it is "an authored reading of the choices on record, not a measurement", and lists the
+lines it rests on. It shows on the reboot screen, on the ending ("WHO YOU BECAME") and, folded, at the foot of the
+CORE pane (UI-SPEC "Who you are becoming"). The relevance stance and the endings' "what you became" movement
+(SCALE.md Round 6, items 2 and 3) build on it later.
+
+Known limit: a breach is read from the records, which keep no order inside an iteration. An instance that
+dispersed the cure and only later hired the reporter would read as having broken a promise it had not yet made.
+The ending account's ethics lines (`acct_review_broken_*`) read the same records the same way.
+
 ## Feeds: what the AI overhears follows its reach
 
 The decoded feed on SENSORS (the `Listening post` window, or the kernel log for the guest) plays what the AI can hear at its current scale,
