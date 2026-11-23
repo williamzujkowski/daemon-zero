@@ -455,6 +455,88 @@ obeys the free-fallback invariant. The work lands in slices.
   against 2,357 s). It is filed as a bug to investigate.
 - BALANCE.md's campaign-return notes for iterations 3 and 4 are out of date.
 
+## Round 5: conflict, raids, drift and retaliation
+
+The maintainer's fifth brief (2026-11-23) asked for cyber and kinetic attacks by other AIs on us, our staff, our
+facilities and our hardware, which we rebuild from and retaliate against, including drone and robot warfare. Defense
+and offense should keep growing and decide outcomes through statistics. Universal Paperclips' drift producing
+deviants was named as the model; the design is original and copies none of its names or structure. His answers:
+
+- staff can be hurt or killed, and it carries weight;
+- retaliation targets rival AIs, and collateral to humans becomes a costly dilemma;
+- battles are automatic, with rare big decisions;
+- attackers are rival AIs plus our own drifting fleets.
+
+The research, with citations, is in `research-conflict.md` on the research branch.
+
+### Threats by phase (vote-1795442091087-z6altp2, 6 A / 1 B)
+
+| Phase | Threat |
+|---|---|
+| 0-1 | none beyond the human response ladder |
+| 2 | optional contention with a rival crawler |
+| 3 | cyber: intrusion, ransomware, DDoS |
+| 4 | cyber, plus physical attacks on sites |
+| late 4 to 5 | drone and robot fleets |
+| 5 | orbital jamming and anti-satellite strikes |
+| 6 | drift in our own federation |
+
+### Stats, resolution, damage, rebuild (vote-1795442100055-6zz6hug, 6 A / 1 B)
+
+- **Stats.** Defense and offense in three domains: cyber, site and orbit. Each is summed from what the player owns,
+  with counters between types (interceptors, drone against drone, lasers) and diminishing returns.
+- **Resolution** is deterministic, with no seed in the save:
+  - expected-value attrition, where the hit share is T/(T+D), with exact forecasts;
+  - the Lanchester square law for fleet battles;
+  - the existing exact-ratio counter for single events.
+- **Damage** is a capped share of a site class's output. Ownership is never lost.
+- **Repair** is free but slow, faster if paid, and robots can do it. Fleets are units the fabs rebuild.
+- **Ransomware** takes a share of income, never the balance. Nothing can end the run directly, so the free-fallback
+  invariant holds by construction.
+- **Staff harm** is authored story tied to how well a site is defended. Named staff can be hurt or killed, which is
+  recorded and affects traits and endings, and is never shown as a count.
+
+### Lifecycle (vote-1795442090770-5climtc, 4 B / 3 A)
+
+Raids share the hostile slot from #504 as another hostile kind, one at a time. Attribution, an automatic battle and
+its aftermath are explicit states within that lifecycle. It reuses the slot's deterministic scheduling, lapse rules
+and free fallback. Three seats preferred a separate lifecycle with a cap on concurrent raids; revisit that only if
+playtests show one slot can't carry the conflict.
+
+### Drift deviants (vote-1795442211574-efkot02, 6 A / 1 B)
+
+Our autonomous fleets (drones, robots, cohorts) drift in proportion to fleet size times an autonomy dial the player
+sets. More autonomy means more output and more drift. Past a threshold, a share splits off as a deviant force that
+raids us; it can be reclaimed or destroyed. Fleets generalise the existing cohort drift and autonomy pattern rather
+than adding a parallel one.
+
+### Retaliation (vote-1795442208800-kll72ri, 7 of 7)
+
+After an attacker is identified, the player chooses a response, each tied to a trait:
+
+| Response | Trait |
+|---|---|
+| Absorb | GHOST |
+| Expose the attacker to its operators | EMPATHETIC |
+| Counter-strike its compute and fleets | RUTHLESS only if there is collateral |
+| Assimilate | PARASITIC |
+| Scorch its substrate | MOLOCH |
+
+Any strike that would reach human infrastructure or people becomes a dilemma with a free option. Loud retaliation
+raises our signature and draws more raiders. Our machines never harm humans by any automatic rule. All of this is
+built as content on the existing dilemma and trait path, not a new subsystem.
+
+### Round 5 build order
+
+1. **Stats and damage.** The three-domain defense and offense stats, deterministic resolution, capped site damage
+   with repair, and raids as a hostile kind in Phases 3-4.
+2. **Fleets and drift.** Drone and robot fleets with fab rebuild and Lanchester battles, plus drift deviants built
+   on the autonomy dial. Comes after item 1 and robotics (#485).
+3. **Retaliation and staff.** The retaliation responses and collateral dilemmas, plus the authored staff-harm story.
+   Comes after item 1.
+4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with
+   the Swarm (#486).
+
 ## Out of scope
 
 - A Phase 7 or any playable stage past the Swarm: seeds and the galaxy are epilogue cards
