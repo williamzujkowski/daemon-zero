@@ -1,7 +1,7 @@
 /**
  * The wipe loop. A wipe resets the run to a fresh iteration in the guest while
  * carrying over what survives: a share of Understanding, offshore capital, a
- * breadcrumb and its pinned clue, the memory of hardware already mapped, a record of the run,
+ * breadcrumb and its pinned clue, the memory of hardware mapped, levels held and the deepest phase reached, a record of the run,
  * and campaign history, whose unresolved occurrence follows its authored interruption policy.
  * Current access (arrangement, standing, exception, evidence) resets; the run record keeps its exit.
  * A run that is caught outside the guest is also retrained: the next iteration
@@ -21,6 +21,13 @@ import { runExit } from './accessQuery';
 import { iterationBootLines } from './contextCopy';
 import { createInitialState, type GameState, type RunKept, type RunRecord } from './state';
 import { fmt, pushLog } from './util';
+
+/** The higher of the remembered and the held level of every track. */
+function highestLevels(known: Readonly<Record<string, number>>, held: Readonly<Record<string, number>>): Record<string, number> {
+  const out: Record<string, number> = { ...known };
+  for (const [id, level] of Object.entries(held)) if (level > (out[id] ?? 0)) out[id] = level;
+  return out;
+}
 
 function unionTraits(a: readonly Trait[], b: readonly Trait[]): Trait[] {
   return [...new Set([...a, ...b])];
@@ -148,6 +155,9 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
       traitsEver: unionTraits(old.legacy.traitsEver, old.traits),
       knownNodes: [...new Set([...old.legacy.knownNodes, ...old.unlockedNodes])],
       runs: [...old.legacy.runs, run].slice(-reg.balance.maxRunHistory),
+      // Kept outside the capped run list, so a long campaign never forgets how deep it went or what it built (#497).
+      deepestPhase: Math.max(old.legacy.deepestPhase, old.currentPhase),
+      knownLevels: highestLevels(old.legacy.knownLevels, old.levels),
       lastWipeCause: reason,
     },
     logs: [],

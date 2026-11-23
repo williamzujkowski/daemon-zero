@@ -10,7 +10,7 @@ import type { ContentRegistry, RegistryNode } from '../../content/registry';
 import { buyRepeatable, setActuator, unlockNode, type ActionResult } from '../actions';
 import { channelContactView, contactToken, resolveChannelContact } from '../channelContact';
 import { actuatorLimit } from '../conditioning';
-import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, repeatableCost, repeatableLevel } from '../query';
+import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, repeatablePrice, repeatableLevel } from '../query';
 import { computeRates, financeEnabled } from '../rates';
 import { negotiateRelease, releaseView } from '../release';
 import { acceptServiceGrant, serviceGrantView } from '../serviceGrant';
@@ -68,8 +68,8 @@ export function expand(s: GameState, reg: ContentRegistry): GameState | null {
     return taken(setActuator(s, 'computeProfitAllocationRatio', share, reg));
   }
   const reps = [...reg.repeatables.values()].filter((rep) => meetsRequirements(s, rep.requirements, reg) && repeatableLevel(s, rep.id) < rep.maxLevel
-    && rep.perLevel.cyclesPerSec > 0 && canAfford(s, repeatableCost(rep, repeatableLevel(s, rep.id))));
-  reps.sort((a, b) => repeatableCost(a, repeatableLevel(s, a.id)).capital - repeatableCost(b, repeatableLevel(s, b.id)).capital);
+    && rep.perLevel.cyclesPerSec > 0 && canAfford(s, repeatablePrice(s, rep, reg)));
+  reps.sort((a, b) => repeatablePrice(s, a, reg).capital - repeatablePrice(s, b, reg).capital);
   for (const rep of reps) {
     const bought = taken(buyRepeatable(s, rep.id, reg));
     if (bought && computeRates(bought, reg).capitalPerSec >= 0) return bought;

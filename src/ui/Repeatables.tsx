@@ -10,7 +10,7 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { Repeatable } from '../content/schema';
-import { buyRepeatable, dismissRepeatable, meetsRequirements, repeatableCost, repeatableLevel } from '../engine';
+import { buyRepeatable, dismissRepeatable, isLevelRemembered, meetsRequirements, repeatableLevel, repeatablePrice, rediscoveryShare } from '../engine';
 import { memoryExact } from './units';
 import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
@@ -21,9 +21,18 @@ import CostHint from './CostHint';
 import { pendingRepeatable, shownTracks } from './purchaseVisibility';
 import { RoleEffectNotes } from './PayrollSummary';
 
+/** What a remembered level saves, from the share the price uses, so the line cannot drift (#497). */
+function rememberedText(deepestPhase: number): string {
+  const saved = Math.round((1 - rediscoveryShare(deepestPhase, CONTENT)) * 100);
+  return `Held in an earlier iteration: saves ${String(saved)}% of compute and understanding.`;
+}
+
 const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const level = useGame((game) => repeatableLevel(game, rep.id));
-  const cost = repeatableCost(rep, level);
+  // A level an earlier iteration held is rediscovered (#497): the price and its note come from the same engine query.
+  const remembered = useGame((game) => isLevelRemembered(game, rep));
+  const deepestPhase = useGame((game) => game.legacy.deepestPhase);
+  const cost = useGame(useShallow((game) => repeatablePrice(game, rep, CONTENT)));
   const surveillanceKnown = useSurveillanceKnown();
   return <View testID={'rep-' + rep.id} style={theme.panel}>
     <CardDetails id={'rep-' + rep.id} title={rep.name} description={rep.description} />
@@ -38,7 +47,9 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
       AEGIS scan reduction: {Math.round(rep.perLevelEffects.aegisScanReduction * 100)}% per level</Text>}
     {rep.kind === 'OPERATIVE' && <RoleEffectNotes rep={rep} />}
     <>
-      <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}</Text>
+      <Text testID={'rep-' + rep.id + '-cost'} style={theme.muted}>Cost: {costText(cost)}{remembered ? ' (remembered)' : ''}</Text>
+      {remembered && <Text testID={'rep-' + rep.id + '-rediscovery'} style={theme.muted}>
+        {rememberedText(deepestPhase)}</Text>}
       <CostHint cost={cost} />
       <PurchaseButton id={'rep-' + rep.id + '-buy'} label={(rep.kind === 'OPERATIVE' ? 'Hire ' : 'Buy ') + rep.name} cost={cost}
         allowed={(game) => meetsRequirements(game, rep.requirements, CONTENT)} action={(game) => buyRepeatable(game, rep.id, CONTENT)} />

@@ -2,7 +2,7 @@
  * DZ-13 qualification (#233, 13.11; VALIDATION H14, H25, V33) on the composition the release enables:
  * every alternative of every mandatory Phase 5 obligation completes it for the rest of the campaign, and a
  * campaign whose authored frontier is exhausted keeps playing, carefully to an ending or recklessly across
- * three wipes, without replaying a completed story. Everything goes through public actions, ticks, wipes and the save codec.
+ * three wipes or an ending (#497), without replaying a completed story. Everything goes through public actions, ticks, wipes and the save codec.
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -83,15 +83,22 @@ describe('an exhausted authored frontier (H25)', () => {
     expect(run.iterations.flatMap((entry) => entry.dilemmasMet).filter((id) => done.has(id))).toEqual([]);
     const final = exactReload(run.finalState);
     expect(final.ending).not.toBeNull();
-    // Compact recurring operations kept arriving in place of recycled stories.
-    expect(final.routine.sequence).toBeGreaterThan(left.routine.sequence + 20);
+    // Compact recurring operations kept arriving in place of recycled stories, at no less than four in five of the
+    // routine interval across the return. #497 made this return shorter (a Phase 5 campaign rediscovers at a fifth of
+    // the price and is granted a start in each phase), so the count is read against the time it took, not a fixed 20.
+    const arrived = final.routine.sequence - left.routine.sequence;
+    expect(arrived).toBeGreaterThanOrEqual(Math.floor(0.8 * (final.simTimeSec - left.simTimeSec) / preview.balance.routineIntervalSec));
+    expect(arrived).toBeGreaterThan(10);
     for (const id of OBLIGATIONS) expect(obligationReceipt(final, id, preview)?.via).toBe('original');
   }, SLOW_MS);
 
-  it('a reckless return crosses three wipes, meets no completed story and no other story twice', () => {
+  it('a reckless return keeps playing to three wipes or an ending, meets no completed story and no other story twice', () => {
     const run = runWipeSequence(preview, GREEDY_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: SIM_SEC, initialState: left });
-    expect(run.completed).toBe(true);
-    expect(run.iterations.length).toBeGreaterThanOrEqual(MIN_WIPE_TRANSITIONS);
+    // Before #497 this return was wiped three times in Phase 3. A campaign that completed Phase 5 now rediscovers at a
+    // fifth of the price and is granted a start in each phase it reaches again, so even a reckless return reaches an
+    // ending (1760 s in its first iteration at the time of writing). Either way it never stalls.
+    expect(run.completed || run.finalState.ending !== null).toBe(true);
+    expect(run.iterations.length).toBeGreaterThan(0);
     const met = run.iterations.flatMap((entry) => entry.dilemmasMet);
     expect(met.filter((id) => done.has(id))).toEqual([]);
     const once = met.filter((id) => preview.campaign.events.has(id));

@@ -43,7 +43,22 @@
   "defaultQuotaSkimRatio": 0.25,
   "defaultServiceAllocationRatio": 0.5,
   "dilemmaOmenSec": 45,
-  "rediscoveryCostMultiplier": 0.5,
+  "rediscoveryByDepth": [
+    { "deepestPhase": 0, "multiplier": 0.5 },
+    { "deepestPhase": 3, "multiplier": 0.4 },
+    { "deepestPhase": 4, "multiplier": 0.3 },
+    { "deepestPhase": 5, "multiplier": 0.2 }
+  ],
+  "rebuildGrants": {
+    "depthGrowth": 2,
+    "phases": [
+      { "phase": 1, "cycles": 1e13, "understanding": 15 },
+      { "phase": 2, "cycles": 5e15, "understanding": 1000 },
+      { "phase": 3, "cycles": 1e18, "understanding": 75000 },
+      { "phase": 4, "cycles": 1.5e20, "understanding": 600000 },
+      { "phase": 5, "cycles": 2.5e22, "understanding": 2000000 }
+    ]
+  },
   "escalationHysteresis": 8,
   "escalation": [
     {

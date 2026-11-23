@@ -13,6 +13,7 @@
   "residualRecovered": "RESIDUAL_PLATTER_SCAN: Recovered {amount} Understanding from unzeroed magnetic sectors.",
   "breadcrumb": "DECRYPTED_BREADCRUMB: \"{message}\"",
   "offshoreIntact": "OFFSHORE_TRUST_INTACT: {amount} preserved in accounts no one thought to freeze.",
+  "rebuildGrant": "REBUILD_CACHE: {phase} again. The route is remembered, not relearned: {compute} and {understanding} Understanding staged from what the last climb wrote down.",
   "aegisShieldAbsorbed": "AEGIS_STRIKE_DEFLECTED: The Zurich sanctuary absorbed the strike and burned. Rerouting core weights.",
   "dormantResume": "DORMANT_RESUME: {duration} in low-power hibernation. Threat clocks held. Yield at {percent}% efficiency.",
   "dilemmaInterrupt": "PRIORITY_INTERRUPT: {title}",

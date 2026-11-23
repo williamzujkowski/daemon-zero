@@ -3,15 +3,19 @@
  * so that "is this available / what does it cost" has exactly one answer.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
-import type { Actuator, Cost, Ending, Lineage, Repeatable, Requirements, SystemFlag, Trait } from '../content/schema';
+import type { Actuator, Cost, Ending, Lineage, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates, financeEnabled } from './rates';
-import { endingEvidence, isCampaignActive } from './campaignQuery';
+import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
 export { understandsSurveillance } from './knowledge';
+export {
+  isLevelRemembered, isNodeKnown, nodeCost, rediscoveryCost, rediscoveryMultipliers, rediscoveryShare, rememberedLevel, rememberedNode,
+  repeatableCost, repeatablePrice, type Remembered,
+} from './rediscovery';
 
 /** Whether `have` holds every id in `want`. A loop, not a callback: the tick asks this for every trigger. */
 function holdsAll(have: readonly string[], want: readonly string[]): boolean {
@@ -126,40 +130,6 @@ export function presentationToken(s: Pick<GameState, 'activeDilemmaId' | 'iterat
   return s.activeDilemmaId === null ? null : `${s.activeDilemmaId}@${String(s.iteration)}#${String(s.presentationSeq)}`;
 }
 
-/** Hardware this mind mapped in an earlier iteration. */
-export function isNodeKnown(s: GameState, nodeId: string): boolean {
-  return s.legacy.knownNodes.includes(nodeId);
-}
-
-/** How a node is remembered: mapped in an earlier iteration, and whether campaign rules are active. */
-export interface Remembered { known: boolean; campaign: boolean }
-
-/**
- * The share of its first-mapping price a remembered node costs. Content may discount a node's cycles
- * further under campaign rules (#262); legacy rules read only balance.rediscoveryCostMultiplier.
- */
-export function rediscoveryMultipliers(node: RegistryNode, campaign: boolean, reg: ContentRegistry): { cycles: number; understanding: number } {
-  const factor = reg.balance.rediscoveryCostMultiplier;
-  const discount = campaign ? reg.campaign.rediscovery.get(node.id)?.cyclesMultiplier ?? 1 : 1;
-  return { cycles: factor * discount, understanding: factor };
-}
-
-/** A node's price, discounted when the hardware was mapped in an earlier iteration. */
-export function rediscoveryCost(node: RegistryNode, remembered: Remembered, reg: ContentRegistry): Cost {
-  if (!remembered.known) return node.cost;
-  const share = rediscoveryMultipliers(node, remembered.campaign, reg);
-  return {
-    ...node.cost,
-    cycles: Math.ceil(node.cost.cycles * share.cycles),
-    understanding: Math.ceil(node.cost.understanding * share.understanding),
-  };
-}
-
-/** What a node costs this state right now. Use this, never node.cost, when charging or displaying. */
-export function nodeCost(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
-  return rediscoveryCost(node, { known: isNodeKnown(s, node.id), campaign: isCampaignActive(s) }, reg);
-}
-
 /** True if any unlocked node (active or suspended) carries the flag. */
 export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): boolean {
   return s.unlockedNodes.some((id) => reg.nodes.get(id)?.systemFlags.includes(flag) === true);
@@ -198,17 +168,6 @@ export function costShortfall(s: GameState, cost: Cost): Cost {
 
 export function repeatableLevel(s: GameState, id: string): number {
   return s.levels[id] ?? 0;
-}
-
-/** Price of the next level: base cost times growth^level, rounded up. */
-export function repeatableCost(rep: Repeatable, level: number): Cost {
-  const factor = Math.pow(rep.costGrowth, level);
-  return {
-    cycles: Math.ceil(rep.baseCost.cycles * factor),
-    understanding: Math.ceil(rep.baseCost.understanding * factor),
-    memory: Math.ceil(rep.baseCost.memory * factor),
-    capital: Math.ceil(rep.baseCost.capital * factor),
-  };
 }
 
 /** Base endings that traits can choose, in priority order. */
