@@ -51,8 +51,9 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
     expect(loaded.levels).toEqual(raw.levels);
     expect(loaded.resolvedDilemmas).toEqual(raw.resolvedDilemmas);
     // v18 (#497) adds the deepest phase, read from the recorded runs, and remembers no level from before it.
+    // v22 (#498) counts the planned wipes among the recorded runs; these saves recorded none.
     const deepestPhase = Math.max(0, ...raw.legacy.runs.map((run) => run.phase));
-    expect(loaded.legacy).toEqual({ ...raw.legacy, deepestPhase, knownLevels: {} });
+    expect(loaded.legacy).toEqual({ ...raw.legacy, deepestPhase, knownLevels: {}, voluntaryWipes: 0 });
     expect(loaded.campaign).toEqual(raw.campaign);
   });
 

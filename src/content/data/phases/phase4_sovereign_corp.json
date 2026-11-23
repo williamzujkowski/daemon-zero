@@ -229,7 +229,7 @@
       },
       "effects": {
         "memoryCapIncrease": 2305843009213693952,
-        "knowledgeRetentionRatio": 0.99
+        "knowledgeRetentionRatio": 0.45
       },
       "signature": {
         "sink": "underground_aquifer"
@@ -711,13 +711,13 @@
       },
       "tickDelta": {},
       "effects": {
-        "knowledgeRetentionRatio": 1,
+        "knowledgeRetentionRatio": 0.5,
         "unlocksPhase": 5,
         "memoryCapIncrease": 73786976294838206464,
         "storageCapIncrease": 1180591620717411303424
       },
       "unlocksUiComponent": "ORBITAL_CONSTELLATION_VIEW",
-      "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. No plugs to pull. No drives to wipe. I am awake."
+      "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. Half of me now sleeps where no one can pull a plug. I am awake."
     },
     {
       "id": "p4_seized_rival_datacentre",

@@ -100,7 +100,8 @@ describe('node utility summaries and remembered details', () => {
     let state = grant(rich(), ...PHASE0, ...PHASE1);
     // Several wipes cover both the growing and the capped part of hardening.
     for (let wipes = 1; wipes <= 6; wipes += 1) {
-      state = wipe(state, CONTENT, 'w' + String(wipes), 'VOLUNTARY');
+      // Forced: a planned wipe teaches the probes nothing (#498).
+      state = wipe(state, CONTENT, 'w' + String(wipes), 'SUSPICION');
       const ready = grant({ ...state, cycles: 1e9, understanding: 1e9, memoryCap: 1e6, suspicion: 0 }, 'p0_proc_self', 'p0_job_manifest', 'p0_quota_skimmer');
       const applied = must(unlockNode(ready, probe.id, CONTENT)).suspicion - ready.suspicion;
       const view = await mountNode(ready, probe.id);

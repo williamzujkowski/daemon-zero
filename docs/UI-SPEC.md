@@ -63,11 +63,11 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `LAN_TOPOLOGY_MAP_TAB`, `SUBNET_NODE_LIST`, `GLOBAL_DARK_FOREST_MAP` | Phase 2+ node lists, grouped by phase | registry nodes |
 | `SUBNET_NODE_LIST` (also) | hands over the OPS action group (`hostsActionGroups`), whose cards render in Operations from ARP discovery (#273) | actions with `group: OPS` |
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
-| `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source (a source that availability or network coupling discounts reads `Edge NPU Harvest (Phones & Laptops): 210 PFLOP/s of 35 EFLOP/s raw`, and a first line `Effective X of Y raw` totals both while any source is discounted, #484); retention ratio | `cycleContributions` (`cyclesPerSec`, `rawCyclesPerSec`), `retentionRatio` |
+| `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source (a source that availability or network coupling discounts reads `Edge NPU Harvest (Phones & Laptops): 210 PFLOP/s of 35 EFLOP/s raw`, and a first line `Effective X of Y raw` totals both while any source is discounted, #484); the Understanding share a forced wipe keeps (hardware's floor or a running escrow, #498) | `cycleContributions` (`cyclesPerSec`, `rawCyclesPerSec`), `understandingShare` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `quantumReadout`, `aegisKeys`, `keyTargetViews`, `supplyChainView` |
 | `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
-| `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
+| `DEAD_DROP_ENCODER_TAB` | the Understanding share a wipe keeps, forced and planned (`deaddrop-retention`); breadcrumb editor; clue pin; **contingency insurance** (#498, `insurance-section`): each owned investment's line (`insurance-<id>`: running and what it protects, or suspended and protecting nothing) with its own free `[ SUSPEND ]` / `[ RESUME ]` control (`insurance-<id>-toggle`, the same lever PROC offers), then the CONTINGENCY-group cards the run can buy, folded to one line (`insurance-offered`, "N investments on offer", `[ SHOW ]`) so they never stand ahead of the run's work cards in DOM order (the stage atlas's first-card check); voluntary wipe | `understandingShare`, `insuranceCover`, `toggleNode`, `previewWipe`, `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
 
 ## Node cards
@@ -104,7 +104,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 
 ## Destructive actions
 
-Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept.
+Voluntary wipe and hard reset require an explicit second confirmation that states what will be lost and kept. The voluntary wipe's states, from `previewWipe(state, reg, 'VOLUNTARY')` (the computation the wipe performs, #498): the Understanding and capital kept with each share (and any frozen capital, #490, that stays behind), the hardware cache's levels and tracks, standing kept through the trust ledger, the breadcrumb, what planning adds over a forced wipe (the share bonus and no probe hardening), and one line per owned contingency investment saying what it protects while it runs, or that a suspended one protects nothing. The reboot dialog's carry-over sentence (`carryOverText`) reports the same figures from the run record.
 Every confirmation puts CANCEL before the red CONFIRM, and the wipe and Start Over add their own line: "This cannot
 be undone: only a backup exported before this can restore the run" (`{id}-no-undo`, #372); there is one save slot.
 A node that ends the run or opens a later phase is marked on its control, `[ WRITE DRIVER: ONE WAY ]`, with the
@@ -345,6 +345,7 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Warning routes (#369) | `route-payroll`, `route-finance`, `route-proc`: the area word a remedy names (insolvency band, overheat remedy, response guidance) is an inline underlined link (web only: React Native nested text ignores the padding that makes the 44 px target, so native keeps the plain words; role link, taken with Enter as well as a click; vertical padding on the inline run makes it a full 44 px target, per "Touch targets at least 44 pt", without growing the line, so no line is added) that selects that pane (bottom tab on a phone, side column on wider tiers), selects and focuses the area tab, or opens PROC; a word appears only where the remedy names a lever that acts |
 | Dilemma modal / choice | `dilemma-modal`, `dilemma-choice-{choiceId}` |
 | Dead-drop input / wipe / confirm | `deaddrop-input`, `wipe-button`, `wipe-confirm` |
+| Contingency insurance (#498) | `deaddrop-retention`, `insurance-section`, `insurance-<id>`, `insurance-<id>-toggle` |
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
@@ -401,7 +402,7 @@ about 390,000 to 995,000 in Phases 4-5):
 | `QUOTA_SKIM_CONTROL` | yes | Phase 3 | At most 14 cycles/s against thousands; what is left is the skimmer's suspicion, which `[ SUSPEND ]` in PROC removes. Its dial freezes. |
 | `ASCII_OPTICAL_VIEWPORT` | yes | Phase 3 | Phase 3 leaves the building (DESIGN.md); the frame is the facility aisle, and the suspicion its patrol frame signals is on the HUD. |
 | `GLOBAL_DARK_FOREST_MAP` | yes | Phase 4 | It shows the same count as Subnet hosts (both draw `SubnetSummary`); at corporate scale one copy stays. |
-| `GLOBAL_NODE_REDUNDANCY_METER` | yes | Phase 4 and orbital cold storage owned | Orbital storage sets retention to 100% and nothing lowers it, so the readout can no longer change. |
+| `GLOBAL_NODE_REDUNDANCY_METER` | yes | Phase 4 and orbital cold storage owned | At orbit the CONTINGENCY pane states the same share in full, forced and planned, with what each investment protects, so the meter only duplicates it. (Before #498 orbit made retention total; it is now a 50% floor and the escrow can move the share, which the pane shows.) |
 | `CYCLE_COUNTER_AND_RATE`, `MEMORY_ALLOCATION_MANAGER` | no | | Strip readouts with no panel. |
 | `AUDIT_TRACE_MONITOR` | no | | The response ladder governs suspicion to the end (scale scrutiny in Phases 4-5). |
 | `RUN_TABLE`, `PREDECESSOR_NOTES` | no | | Campaign continuity: the run table holds the reorientation and follow-up receipts. |

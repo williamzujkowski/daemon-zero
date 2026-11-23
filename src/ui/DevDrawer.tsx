@@ -30,7 +30,7 @@ function DrawerActions({ ask, apply }: Commands) {
   const [amount, setAmount] = useState('1000000');
   const ended = useGame((game) => game.ending !== null);
   const retained = useGame((game) => {
-    const kept = previewWipe(game, CONTENT);
+    const kept = previewWipe(game, CONTENT, 'SUSPICION');
     return String(kept.understanding) + ' understanding, ' + quantityReadout('money', kept.capital) + ' capital; breadcrumb: ' + (kept.breadcrumb ?? 'None');
   });
   return <>

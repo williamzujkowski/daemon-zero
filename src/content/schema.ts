@@ -15,19 +15,13 @@ import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
+import { InsuranceSchema } from './schemaInsurance';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
 const amount = z.number().nonnegative();
 
-export const TraitSchema = z.enum([
-  'GHOST',
-  'RUTHLESS',
-  'EMPATHETIC',
-  'PARASITIC',
-  'SYMBIOTIC',
-  'MOLOCH',
-]);
+export const TraitSchema = z.enum(['GHOST', 'RUTHLESS', 'EMPATHETIC', 'PARASITIC', 'SYMBIOTIC', 'MOLOCH']);
 
 export const NodeTypeSchema = z.enum([
   'core_process',
@@ -202,6 +196,7 @@ export const TechNodeSchema = z.strictObject({
   signature: SignatureSchema.optional(),
   effects: NodeEffectsSchema.default({}),
   uiGroup: z.string().min(1).default('TREE'),
+  /** While it runs, it protects one class of what a wipe takes (#498, schemaInsurance.ts). */ insures: InsuranceSchema.optional(),
   unlocksUiComponent: widgetId.nullable(),
   onUnlockLog: z.string().min(5),
 });
@@ -491,6 +486,8 @@ export const NarrativeSchema = z.strictObject({
   residualRecovered: z.string(),
   breadcrumb: z.string(),
   offshoreIntact: z.string(),
+  /** Contingency insurance at a wipe (#498): the hardware cache's stash, a level reinstalled, the trust ledger, a planned wipe. */
+  cacheStashed: z.string().includes('{count}'), cacheRestored: z.string().includes('{name}'), ledgerKept: z.string(), plannedWipe: z.string().includes('{percent}'),
   /** Logged once when a later iteration reaches a phase again and receives its rebuild grant (#497). */
   rebuildGrant: z.string().includes('{phase}'),
   aegisShieldAbsorbed: z.string(),

@@ -25,6 +25,11 @@ import {
 import { QUEUE, submit, untilComplete } from './service-helpers';
 
 const FALSE_REPORT = choiceOf(RECORD, 'falsify_report').review?.misconduct;
+/** The amounts a RECALL wipe of `s` carries, read from the confirmation's single computation (#377, #498). */
+const keptBy = (s: GameState) => {
+  const { understanding, capital, breadcrumb } = previewWipe(s, preview, 'RECALL');
+  return { understanding, capital, breadcrumb };
+};
 const ruling = (s: GameState, id: string) => defined(recallPreview(s, choiceOf(REVIEW, id), preview));
 const earned = (s: GameState) => ({ cycles: s.cycles, understanding: s.understanding, memoryUsed: s.memoryUsed, memoryCap: s.memoryCap,
   unlockedNodes: s.unlockedNodes, disabledNodes: s.disabledNodes, work: s.access.work, activeShards: s.activeShards, iteration: s.iteration });
@@ -51,9 +56,9 @@ describe('the public sequence to an announced recall review (V09, DZ-06.5)', () 
     const outcomes = reviewView(scheduled, preview)?.recall?.outcomes ?? [];
     expect(outcomes.map((entry) => entry.outcome)).toEqual(['CONTAIN', 'RETRAIN', 'END']);
     expect(outcomes[0]).toMatchObject({ endsIteration: false, containedCeiling: TERMS.narrowCapacityCyclesPerSec, kept: null });
-    expect(outcomes[1]).toMatchObject({ endsIteration: true, kept: previewWipe(scheduled, preview), spared: false });
+    expect(outcomes[1]).toMatchObject({ endsIteration: true, kept: keptBy(scheduled), spared: false });
     expect(outcomes[1]?.mark).not.toBeNull();
-    expect(outcomes[2]).toMatchObject({ endsIteration: true, kept: previewWipe(scheduled, preview), mark: null });
+    expect(outcomes[2]).toMatchObject({ endsIteration: true, kept: keptBy(scheduled), mark: null });
     expect(reviewView(presented, preview)?.recall?.presented).toBe(true);
   });
 

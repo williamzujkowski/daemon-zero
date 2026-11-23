@@ -41,12 +41,12 @@ describe('M4 read-only queries', () => {
   it('previews actual wipe retention and breadcrumb behavior', () => {
     for (const game of [fresh(), onHost(), grant(onHost(), 'p1_clock_interrupt'), importSave(fixtures['deaddrop-breadcrumb'] ?? '', CONTENT)]) {
       const before = JSON.stringify(game), actual = wipe(game, CONTENT, 'Query comparison');
-      expect(previewWipe(game, CONTENT)).toEqual({ understanding: actual.understanding, capital: actual.capital, breadcrumb: actual.inheritedMessage });
+      expect(previewWipe(game, CONTENT, 'SUSPICION')).toMatchObject({ understanding: actual.understanding, capital: actual.capital, breadcrumb: actual.inheritedMessage });
       expect(JSON.stringify(game)).toBe(before);
     }
     const corp = importSave(fixtures['victory-ready'] ?? '', CONTENT);
-    expect(previewWipe(corp, CONTENT).capital).toBeGreaterThan(0);
-    expect(previewWipe({ ...corp, deadDropMessage: ' ' }, CONTENT).breadcrumb).toBeNull();
+    expect(previewWipe(corp, CONTENT, 'SUSPICION').capital).toBeGreaterThan(0);
+    expect(previewWipe({ ...corp, deadDropMessage: ' ' }, CONTENT, 'SUSPICION').breadcrumb).toBeNull();
   });
 
   it('adds cycle sources to net engine income under fan, suspension, finance and grid scaling', () => {

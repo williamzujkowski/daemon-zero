@@ -16,8 +16,8 @@ const withLexicon = (): GameState => {
 };
 
 describe('save v20 (#484)', () => {
-  it('is followed only by the quantum record (#464, v21) and the escalation announcements (#490, v22)', () => {
-    expect(SCHEMA_VERSION).toBe(22);
+  it('is followed only by the quantum record (#464, v21), the escalation announcements (#490, v22) and insurance (#498, v23)', () => {
+    expect(SCHEMA_VERSION).toBe(23);
   });
 
   it('migrates a v19 save to the v20 literals, then derives storage from ownership on load', () => {

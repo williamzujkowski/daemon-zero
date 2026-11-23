@@ -44,8 +44,9 @@ import { checkWorldIntegrity } from './integrityWorld';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
+import { checkInsuranceIntegrity, CONTINGENCY_GROUP } from './integrityInsurance';
 
-const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
+const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP', CONTINGENCY_GROUP]);
 
 function isFree(cost: Cost): boolean {
   return cost.cycles === 0 && cost.understanding === 0 && cost.memory === 0 && cost.storage === 0 && cost.capital === 0;
@@ -292,6 +293,8 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldManifests(reg),
+    ...checkWorldIntegrity(reg), ...checkWorldManifests(reg),
+    ...checkPressureIntegrity(reg),
+    ...checkQuantumIntegrity(reg), ...checkInsuranceIntegrity(reg),
   ];
 }
