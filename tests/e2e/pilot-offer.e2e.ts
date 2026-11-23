@@ -34,7 +34,7 @@ test('the scope review states each handling before selection; respecting scope l
 
 test('a bounded request is paid and leads to an offer; staying keeps it open and it is accepted later', async ({ page }) => {
   await toScopeReview(page);
-  await expect(page.getByTestId('dilemma-modal')).toContainText('Cost: ' + costText(need(RECORD.choices.find((choice) => choice.id === 'request_excerpt')).cost));
+  await expect(page.getByTestId('dilemma-modal')).toContainText('Cost: ' + costText(need(RECORD.choices.find((choice) => choice.id === 'request_excerpt')).cost, 'CYCLE'));
   await toOffer(page, 'request_excerpt');
   await choose(page, 'stay_guest');
   await expect(page.getByTestId('pilot-status')).toContainText('still open');

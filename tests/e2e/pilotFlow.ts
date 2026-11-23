@@ -55,7 +55,7 @@ export async function toOffer(page: Page, scopeChoice: string, capacity = terms.
   await choose(page, scopeChoice);
   await modal(page, OFFER.title, OFFER);
   await expect(page.getByTestId('pilot-purpose')).toContainText(terms.purpose);
-  await expect(page.getByTestId('pilot-capacity')).toContainText('Allocated capacity: ' + quantityExact('computeRate', capacity) + ' of loaned compute');
+  await expect(page.getByTestId('pilot-capacity')).toContainText('Allocated capacity: ' + quantityExact('cycleRate', capacity) + ' of loaned compute');
   for (const line of [...terms.permittedWork, ...terms.reviewConditions]) await expect(page.getByTestId('dilemma-modal')).toContainText(line);
   await expect(page.getByTestId('pilot-alternative')).toHaveCount(0);
   // #276: the terms name the standings the content records (warned since the batch review, #274).
