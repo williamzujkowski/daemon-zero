@@ -61,3 +61,17 @@ describe('PROC lists every node a suspension relieves', () => {
     }
   });
 });
+
+describe('PROC lists every earner whose income a phase scrutinises', () => {
+  it('each suspendable node with income is listed in a scrutinised phase (its suspension is a suspicion lever)', () => {
+    const base = m4State('victory-ready');
+    const earners = [...CONTENT.nodes.values()].filter((node) => node.suspendable && node.tickDelta.capitalPerSec > 0);
+    expect(earners.length).toBeGreaterThan(0);
+    for (const phase of CONTENT.phases.filter((entry) => entry.scaleScrutiny !== undefined)) {
+      for (const earner of earners) {
+        const owned = { ...base, currentPhase: phase.phaseId, unlockedNodes: [...base.unlockedNodes, earner.id] };
+        expect(needsProcessControl(owned, earner), `${earner.id} in phase ${String(phase.phaseId)}`).toBe(true);
+      }
+    }
+  });
+});
