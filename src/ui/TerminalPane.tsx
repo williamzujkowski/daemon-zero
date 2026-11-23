@@ -10,7 +10,7 @@ import { useGame, useWidgetIds } from './state';
 import { selectBootLogText, selectOpening, selectReady, useGameValue } from '../app/selectors';
 import { theme } from './theme';
 import { CONTENT_MAX_WIDTH, layoutFor } from './layout';
-import { useWorkspace, WorkspaceHeader } from './Workspace';
+import { useWorkspace, WorkspaceHeader, WorkspaceNotices } from './Workspace';
 import MindTools from './widgets/MindTools';
 import { NetworkActions } from './widgets/Network';
 import type { WorkspaceArea } from './workspaceTypes';
@@ -74,9 +74,10 @@ export default function TerminalPane({ slots, flow = false }: { slots: string[];
     {workspace.active === 'reference' && workspace.archive && <Archive />}
     {(workspace.slot === 'NETWORK' || workspace.slot === 'CORP') &&
       <MindTools slot={workspace.slot} area={workspace.active} />}
+    {flow && <WorkspaceNotices workspace={workspace} />}
   </>;
   return <View style={flow ? styles.flow : styles.pane}>
-    <WorkspaceHeader workspace={workspace} />
+    <WorkspaceHeader workspace={workspace} flow={flow} />
     {pinned.length > 0 && <View testID="guest-console" style={styles.pinned}>
       {pinned.map((id) => <Widget key={id} id={id} compact />)}
     </View>}

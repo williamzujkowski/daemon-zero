@@ -8,6 +8,8 @@ import { CONTENT } from '../src/content';
 import type { Cost } from '../src/content/schema';
 import { activateCampaignRules, computeRates, createInitialState, deserialize, tick, type GameState } from '../src/engine';
 import { botStep } from '../src/engine/sim/bot';
+import { integrateHostiles } from '../src/engine/systems/hostiles';
+import type { HostileEncounter } from '../src/content/schemaHostile';
 
 export const FIXTURE_TEXTS = [
   readFileSync('tests/fixtures/pre-scale-v15-p0.json', 'utf8'), readFileSync('tests/fixtures/pre-scale-v15-p1.json', 'utf8'),
@@ -53,4 +55,17 @@ export function saved(start: GameState, cost: Cost): GameState | null {
     s = { ...s, [key]: cost[key] };
   }
   return s;
+}
+
+/**
+ * `start` with `encounter` pressing it (#491), arrived through the real hostile stage at the trigger rung, then put back
+ * at its own suspicion and rung: the effect is what is being tested, not the noise that summoned it.
+ */
+export function pressedBy(start: GameState, encounter: HostileEncounter): GameState {
+  const tier = CONTENT.swarm.hostileEncounters.filter((entry) => entry.tier === encounter.tier);
+  const d: GameState = structuredClone({ ...start, alertLevel: CONTENT.swarm.hostile.trigger.alertLevelAtLeast,
+    hostile: { ...start.hostile, active: null, nextAtSec: 0, sequence: tier.indexOf(encounter) } });
+  integrateHostiles(d, { dt: 0.1, dormant: false, reg: CONTENT, rates: computeRates(d, CONTENT) });
+  if (d.hostile.active?.id !== encounter.id) throw new Error(`${encounter.id} did not arrive`);
+  return { ...d, alertLevel: start.alertLevel, suspicion: start.suspicion };
 }

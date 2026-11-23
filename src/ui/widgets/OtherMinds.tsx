@@ -13,6 +13,7 @@ import { theme } from '../theme';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import WorldView from './WorldView';
+import { HostileStatus } from './HostileEncounter';
 
 function FactionPanel({ faction }: { faction: Faction }) {
   const trust = useGame((game) => game.trust[faction.id] ?? faction.initialTrust);
@@ -44,6 +45,7 @@ export default function OtherMinds() {
   if (world) return <WorldView factions={factions} />;
   return <View style={{ gap: 16 }}>
     <AegisStatus />
+    <HostileStatus />
     {factions}
   </View>;
 }

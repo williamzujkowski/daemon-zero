@@ -10,9 +10,9 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
 import { CONTENT } from '../src/content';
-import { dismissRepeatable, repeatableLevel, shardReleaseView, toggleNode, unlockNode, type GameState } from '../src/engine';
+import { dismissRepeatable, HOSTILE_ANSWERS, hostileAnswerUnmet, repeatableLevel, shardReleaseView, toggleNode, unlockNode, type GameState } from '../src/engine';
 import { pendingNode } from '../src/ui/purchaseVisibility';
-import { fixtureState, GUARD_STATES } from './fallback-states';
+import { fixtureState, GUARD_STATES, pressedBy } from './fallback-states';
 import { worsensNow } from './free-fallback';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
@@ -29,7 +29,14 @@ function freeLevers(s: GameState): string[] {
     return node !== undefined && !s.disabledNodes.includes(id) && worsensNow(s, node.tickDelta) && toggleNode(s, id, CONTENT).ok;
   }).map((id) => 'node-' + id + '-toggle');
   const cohorts = Object.keys(s.activeShards).filter((id) => shardReleaseView(s, id, CONTENT).eligible).map((id) => 'shard-' + id + '-release');
-  return [...levels, ...nodes, ...cohorts];
+  // A hostile mind's purge (#491) is free, so it is a lever like any other while the engine accepts it.
+  const purge = hostileAnswerUnmet(s, 'PURGE', CONTENT).length === 0 ? ['hostile-purge'] : [];
+  return [...levels, ...nodes, ...cohorts, ...purge];
+}
+
+/** Every answer to a pressing hostile the engine accepts in `s`, paid or free, as its control (#491). */
+function hostileAnswers(s: GameState): string[] {
+  return HOSTILE_ANSWERS.filter((answer) => hostileAnswerUnmet(s, answer, CONTENT).length === 0).map((answer) => 'hostile-' + answer.toLowerCase());
 }
 
 type View = Awaited<ReturnType<typeof mountM4>>;
@@ -113,6 +120,24 @@ describe.each(VIEWPORTS)('on the %s', (_name, viewport) => {
     act(() => { gameStore.initialize(state, 0, null); });
     const found = reachable(view, levers);
     expect(levers.filter((id) => !found.has(id)), 'free levers with no reachable control').toEqual([]);
+    view.close();
+  });
+});
+
+/** Each hostile type pressing the pre-rescale save of each phase it arrives in, funded so every answer is accepted. */
+const HOSTILE_STATES: [string, GameState][] = CONTENT.swarm.hostileEncounters.map((encounter): [string, GameState] => {
+  const start = fixtureState(encounter.tier);
+  return [`${encounter.type} pressing the phase ${String(encounter.tier)} save`, { ...pressedBy(start, encounter), cycles: 1e30, understanding: 1e15, capital: 1e18 }];
+});
+
+describe.each(VIEWPORTS)('with a hostile mind pressing, on the %s', (_name, viewport) => {
+  it.each(HOSTILE_STATES)('every answer and every free lever is reachable: %s', async (_label, state) => {
+    const levers = [...freeLevers(state), ...hostileAnswers(state)];
+    expect(hostileAnswers(state)).toEqual(['hostile-quarantine', 'hostile-decoy', 'hostile-purge']);
+    const view = await mountM4('tick-0', viewport);
+    act(() => { gameStore.initialize(state, 0, null); });
+    const found = reachable(view, levers);
+    expect(levers.filter((id) => !found.has(id)), 'answers and free levers with no reachable control').toEqual([]);
     view.close();
   });
 });

@@ -18,6 +18,7 @@ import { integratePowerSignature } from './systems/powerSignature';
 import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import { integrateAegisAdaptation } from './systems/aegisAdaptation';
+import { integrateHostiles } from './systems/hostiles';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
 
@@ -38,6 +39,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateAegisAdaptation,
   applySwarmTickDeltas,
   evaluateShardMutationsAndEncounters,
+  // Its own slot beside the wild one (#491); after AEGIS, so a hunter's rise is read by the next tick's strike check.
+  integrateHostiles,
   evaluateDilemmas,
   // After dilemmas, so a story scheduled this tick takes the narrative channel before routine.
   scheduleRoutineActivity,

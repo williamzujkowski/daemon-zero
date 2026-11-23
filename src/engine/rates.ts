@@ -9,6 +9,7 @@ import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
 import { nodeOutputScale, nodeOutputScaleIn, useScope } from './grantQuery';
 import { heatIsEvidence, huntedForScale } from './threatQuery';
+import { hostileComputeShare } from './hostileEffect';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -243,8 +244,10 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const rung = b.escalation[s.alertLevel - 1];
   const decay = b.suspicionDecayPerSec * (rung?.decayMultiplier ?? 1);
 
+  // A feral hostile (#491) takes a share of net compute only while it is positive, so it can never cause a brownout.
+  const net = gross - diverted;
   return {
-    cyclesPerSec: gross - diverted,
+    cyclesPerSec: net > 0 ? net * (1 - hostileComputeShare(s, reg)) : net,
     understandingPerSec: a.understanding > 0 ? a.understanding * understandingMultiplier(s, reg) : a.understanding,
     capitalPerSec: revenue - a.upkeep,
     heatLoad: a.heat,

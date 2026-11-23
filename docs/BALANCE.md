@@ -741,6 +741,65 @@ never reaches Phase 4: 10 wipes and 1 mark under legacy rules, 21 and 21 under c
 game, pinned in `tests/sim.spec.ts`, shares the swarm content and moved with it (careful victory 9234.7 -> 8858.2 s), so
 every pinned report hash was re-measured.
 
+## Hostile minds (#491)
+
+Implements Scale 18 of the spec ([SCALE.md](SCALE.md), "Aggressive swarms", vote-1795386858891-u3kqkis; map #442). A
+hostile mind arrives from Phase 3 while suspicion holds response rung 2, or once the AEGIS lock reaches 60% (the lock
+counts only at arrival and re-arms under 60%), and lapses after 120 s with the rung not held (DESIGN.md, "Hostile minds
+answer high suspicion"). The gates (`gates.ts`) and the bot are unchanged; the bot never answers a
+hostile, so every hostile it meets presses until it lapses or a wipe ends it.
+
+**Trigger and timing** (`shards.json`, `hostile`): rung 2 (the second entry of `balance.escalation`, at 50%, standing
+down under 42%), lock 60% (arrival only), at least 300 s between one ending and the next arriving, a 120 s quiet lapse, a 180 s decoy,
+and a purge that succeeds 3 of every 5 attempts (stride 2, coprime to 5, so the rate is exact over any five in a row).
+The trigger sits above the careful run's peaks (suspicion 24.0%, lock 45.0% on the merged code), so a careful player meets
+none and a loud one does.
+
+**Effects** are shares of the player's own anchored capacity, not new magnitudes, so they stay in the band by
+construction:
+
+| Tier | Hunter: lock rise, ceiling | Feral: share of net compute | Rival: share of free memory |
+|---|---|---:|---:|
+| Phase 3 | 0.04%/s, 45% | 15% | 20% |
+| Phase 4 | 0.06%/s, 50% | 20% | 25% |
+| Phase 5 | 0.08%/s, 55% | 25% | 30% |
+
+Every ceiling is under the 60% lock trigger (integrity), so a hunter alone can neither strike nor carry the lock to the
+trigger that would summon the next.
+
+**Prices** sit in the tier's phase band (integrity, `integrityScale.ts`). A decoy is the hostile's own scale of
+inference: a forward pass costs about 2 FLOP per parameter per token ([Kaplan et al.](https://arxiv.org/abs/2001.08361)),
+and the decoy serves enough tokens to hold its attention. Quarantine re-images or buys out what the hostile runs on.
+Purge spoils are just above the tier's largest lesser burst ("Encounter tiers" above), anchored to the same medians:
+
+| Tier | Decoy (anchor) | Quarantine | Purge success | Purge failure |
+|---|---|---|---:|---|
+| Phase 3 | 14 EFLOP (70B model, 140 GFLOP/token x 100M tokens) | 40 EFLOP, 300,000 understanding (333 s of the 900/s median) | 12,000 (13.3 s) | +6 suspicion; hunter +4 lock |
+| Phase 4 | 2 ZFLOP (dense 2T model, 4 TFLOP/token x 500M tokens) | 4 ZFLOP, $150M (about 50 racks of leased accelerators bought out) | 200,000 (11.1 s) | +8 suspicion; hunter +5 lock |
+| Phase 5 | 2 YFLOP (125T planetary agent, 250 TFLOP/token x 8B tokens) | 4 YFLOP, $2T (444 s of the orbital solar swarm's revenue) | 5,000,000 (11.1 s) | +10 suspicion; hunter +5 lock |
+
+How often each bot meets them, `make sim` at `SIM_BUDGET_SEC`, measured on the merge with rewards for depth
+(#497/#506, 7b231c8) against the same code with every hostile gated off. The arrivals are the report's per-tick count
+(`SimActivity.hostileArrivals`), since a wipe starts the rotation over:
+
+| Run | Hostile arrivals | Change |
+|---|---:|---|
+| STEALTH, legacy rules | 0 | None: victory 9141.7 s; every phase, wipe, dilemma and peak identical (peaks: suspicion 24.0%, lock 45.0%) |
+| STEALTH, campaign rules | 0 | None: victory 9166.4 s, identical |
+| GREEDY, legacy rules | 38 | Wipes 21 -> 23, 1 mark as before; still never past Phase 3 |
+| GREEDY, campaign rules | 21 | Wipes 20 -> 21, 1 mark as before; still never past Phase 3 |
+
+At the 4 h budget `tests/sim.spec.ts` pins, the reckless run meets fourteen (ten in the original game). Its wipes, marks
+and first-reached phases are identical to the run with them gated off (the original game's wipes go 7 -> 8), so its
+report hashes and the original game's were re-measured. The careful runs moved only by the new save field and arrival
+count, which `asV15` strips.
+
+The retraining audit's reckless loop (`tests/retraining-audit.spec.ts`, #497): every Phase 3 iteration now meets a
+hostile, and each iteration meets the same hunter swarm first, but the three-member Phase 3 wild rotation carries across
+wipes, so the steady loop repeats every three iterations (boots 1,498 / 1,465 / 1,498 s apart; each three-iteration span
+within 1 s of the others). Its steady-loop check compares boots one loop apart, three iterations, with the same 5 s
+tolerance; it is still unmarked returns from Phase 3, never trapped in early wipes.
+
 ## AEGIS adaptation (#463)
 
 Decision `vote-1795366701521-dhlwfwb` (#448, map #442): AEGIS reached its 90% reduction cap early in Phase 4 and stopped

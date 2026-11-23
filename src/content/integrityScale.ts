@@ -124,6 +124,16 @@ function checkEncounterBursts(reg: ContentRegistry): string[] {
   });
 }
 
+/** A hostile mind's answers are priced in its tier's phase (#491), and a purge's spoils are a burst of it. */
+function checkHostilePrices(reg: ContentRegistry): string[] {
+  return reg.swarm.hostileEncounters.flatMap((encounter) => {
+    const owner = `hostile encounter "${encounter.id}"`, fx = encounter.purge.success;
+    return [...checkCost(reg, `${owner} quarantine`, encounter.tier, encounter.quarantine.cost),
+      ...checkCost(reg, `${owner} decoy`, encounter.tier, encounter.decoy.cost),
+      ...checkCost(reg, `${owner} purge`, encounter.tier, { cycles: fx.cyclesDelta, understanding: 0, memory: 0, capital: fx.capitalDelta })];
+  });
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg)];
+  return [...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg)];
 }
