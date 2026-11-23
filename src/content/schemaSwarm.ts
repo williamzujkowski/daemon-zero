@@ -13,11 +13,22 @@ export const ShardQuirkSchema = z.strictObject({
   id, name: z.string().min(3), logText: z.string().min(10),
   tickDelta: TickDeltaSchema, epistemicDriftPerSec: z.number(),
 });
+/**
+ * What kind of mind an arrival is. LESSER: a lesser AI met in passing, consumed or harnessed (#492). Hostile arrivals
+ * (#491) join as their own kind with their own lifecycle, so every rule here is written for one kind.
+ */
+export const EncounterKindSchema = z.enum(['LESSER']);
+/**
+ * A lesser mind met in the wild. It belongs to one phase's tier (#492, docs/SCALE.md "Other minds scale with the
+ * player"): it arrives only while that is the player's phase, and when the phase moves on, an arrival still pending
+ * lapses with `lapseLog`. Integrity keeps the tier equal to its phase gate and its cohort's band phase.
+ */
 export const WildEncounterSchema = z.strictObject({
   origin: z.string().min(3), signature: z.string().min(3),
   id, name: z.string().min(3), description: z.string().min(10),
+  kind: EncounterKindSchema, tier: z.number().int().min(0),
   requirements: RequirementsSchema, templateId: id, consume: EffectPayloadSchema,
-  onHarnessLog: z.string().min(10),
+  onHarnessLog: z.string().min(10), lapseLog: z.string().min(10),
 });
 /**
  * A mind that arrives through a channel this instance is authorized to use (DZ-08, SPEC "A Voice on
@@ -63,9 +74,12 @@ export const SwarmSchema = z.strictObject({
   /** release: one member let go for free (#488 pass 3), the cohort's way out of anything it costs. */
   logs: z.strictObject({ fork: z.string(), prune: z.string(), clamp: z.string(), elevate: z.string(),
     release: z.string().includes('{name}'), anomaly: z.string(), consumeAnomaly: z.string() }),
+  /** outclassed: beside a cohort whose tier has retired (#492); it names that tier and the player's phase. */
+  copy: z.strictObject({ outclassed: z.string().includes('{tier}').includes('{phase}') }),
 });
 export type ShardTemplate = z.infer<typeof ShardTemplateSchema>;
 export type ShardQuirk = z.infer<typeof ShardQuirkSchema>;
 export type WildEncounter = z.infer<typeof WildEncounterSchema>;
+export type EncounterKind = z.infer<typeof EncounterKindSchema>;
 export type ChannelEncounter = z.infer<typeof ChannelEncounterSchema>;
 export type Swarm = z.infer<typeof SwarmSchema>;

@@ -88,6 +88,20 @@ describe('M7 panels', () => {
     expect(gameStore.store.getState().game.memoryCap).toBe(before + 3 * memo.effects.memoryCapIncrease);
     expect(computeRates(gameStore.store.getState().game, CONTENT).cyclesPerSec).not.toBe(0);
   });
+  it('marks a cohort from a retired tier as outclassed and leaves a current tier\'s cohort unmarked (#492)', async () => {
+    const base = m4State('wild-shard-encounter-p3');
+    const cohortOf = (tier: number) => defined(CONTENT.swarm.playerSwarmTemplates.find((t) =>
+      t.id === CONTENT.swarm.wildShardEncounters.find((e) => e.tier === tier)?.templateId));
+    const [small, current] = [cohortOf(2), cohortOf(3)];
+    const member = (id: string, memory: number) => ({ templateId: id, count: 1, drift: 0, quirkId: null, autonomyMode: 'STANDARD' as const, memoryAllocatedBytes: memory });
+    const view = await mountM4('wild-shard-encounter-p3');
+    await act(async () => { gameStore.initialize({ ...base, memoryUsed: base.memoryUsed + small.cost.memory + current.cost.memory,
+      activeShards: { [small.id]: member(small.id, small.cost.memory), [current.id]: member(current.id, current.cost.memory) } }, 0, null); await Promise.resolve(); });
+    view.click('workspace-NETWORK-swarm');
+    expect(view.find('shard-outclassed-' + small.id)?.textContent).toBe(CONTENT.swarm.copy.outclassed.replace('{tier}', '2').replace('{phase}', '3'));
+    expect(view.find('shard-outclassed-' + current.id)).toBeNull();
+    expect(view.find('shard-' + small.id + '-release')).not.toBeNull();
+  });
   it.each(['shard-drift-quirk-p4', 'phase5-midgame'])('keeps card parents flat across 30 live ticks in %s', async (fixture) => {
     vi.stubGlobal('__DEV__', true);
     const view = await mountM4(fixture);
