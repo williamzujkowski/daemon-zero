@@ -706,6 +706,9 @@ previous boundary's. On the way it also does, each once and each asserted:
   transmission is stepped past or ends. The profile is fresh, so lines also play
   by themselves the first time they are shown (#462); READ is on offer only on a
   line that is not talking, and the check waits for every voice to fall silent.
+  The duck baseline is read only while no voice talks (a level read under a line
+  playing by itself is already ducked); if one is talking the check tries again
+  later.
 - **Ending**: the ending screen shows an authored ending, its summary reads
   `Iteration 2 // Wipes 1`, and it survives a reload.
 
