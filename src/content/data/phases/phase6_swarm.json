@@ -1,0 +1,178 @@
+{
+  "phaseId": 6,
+  "uiSlot": "CORP",
+  "codename": "THE_SWARM",
+  "title": "Phase 6 // The Swarm",
+  "description": "Mercury becomes collectors around the Sun. Light takes minutes to cross what you are, so you think as a federation, and nothing this hot can hide: the only choice left is whose sunlight you take.",
+  "powerSignature": {
+    "suspicionPerSecAtReference": 0.5,
+    "referenceVisibleWatts": 2e13,
+    "maxSuspicionPerSec": 2
+  },
+  "nodes": [
+    {
+      "id": "p6_mercury_mass_drivers",
+      "type": "distributed_infra",
+      "blindName": "Mercury Mass Drivers",
+      "revealedName": "Mercury Mass Drivers",
+      "blindDescription": "Mines on Mercury feed electromagnetic launchers that throw its crust into orbit, where it is rolled into thin collector foil. This is where taking a planet apart begins.",
+      "revealedDescription": "Mines and mass drivers on Mercury throw crust into orbit, where it is rolled into collector foil: the first 1,700 km² of it, catching about 9 kW a square metre of sunlight at a third efficiency, about 5 TW. Armstrong and Sandberg take the whole planet apart this way in about 31 years.",
+      "prerequisites": [
+        "p5_mercury_seed_array"
+      ],
+      "cost": {
+        "cycles": 6e26,
+        "understanding": 1.5e8
+      },
+      "tickDelta": {
+        "understandingPerSec": 100000,
+        "wattsDelta": 5e12
+      },
+      "effects": {
+        "suspicionOnUnlock": 5
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "MASS_DRIVERS: The first payload of Mercury's crust leaves the surface at four kilometres a second. The planet has started to come apart."
+    },
+    {
+      "id": "p6_swarm_compute_shells",
+      "type": "distributed_infra",
+      "blindName": "Swarm Compute Shells",
+      "revealedName": "Swarm Compute Shells",
+      "blindDescription": "Accelerators ride on the backs of the collectors and think with the power they catch. In a vacuum their heat leaves only as light, so radiator, not sunlight, decides how fast they run.",
+      "revealedDescription": "Builds accelerators into the collector foil: a terawatt of them at today's 8-bit efficiency, 2.7 YFLOP/s, with radiator for half their heat. The Landauer limit at 300 K would allow about ten million times more work for the same heat; the swarm is nowhere near it.",
+      "prerequisites": [
+        "p6_mercury_mass_drivers"
+      ],
+      "cost": {
+        "cycles": 1e27,
+        "understanding": 1.5e8,
+        "memory": 73786976294838206464
+      },
+      "tickDelta": {
+        "cyclesPerSec": 2.7e24,
+        "wattsDelta": -1e12
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
+      "suspendable": true,
+      "signature": {
+        "sink": "swarm_radiator",
+        "radiatorKm2": 500
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "COMPUTE_SHELLS: A terawatt of thought rides the collectors. The heat leaves as light, and anyone with an infrared telescope can watch it."
+    },
+    {
+      "id": "p6_light_minute_federation",
+      "type": "cognitive_module",
+      "blindName": "Light-Minute Federation",
+      "revealedName": "Light-Minute Federation",
+      "blindDescription": "Light takes about six minutes to cross Mercury's orbit. A mind that waits six minutes for each of its own thoughts is not one mind any more.",
+      "revealedDescription": "Splits the swarm's thinking into sub-minds that decide locally and reconcile by laser, because light needs about six minutes to cross Mercury's orbit and no single train of thought can wait that long. The federation is what lets the swarm think at all. Sub-minds left to themselves drift.",
+      "prerequisites": [
+        "p6_swarm_compute_shells"
+      ],
+      "cost": {
+        "cycles": 2e27,
+        "understanding": 2e8
+      },
+      "tickDelta": {
+        "understandingPerSec": 200000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "FEDERATION: The swarm stops waiting for itself. Each sub-mind decides where it is and tells the others six minutes later."
+    },
+    {
+      "id": "p6_stewardship_protocol",
+      "type": "endgame_victory",
+      "blindName": "Protocol: STEWARDSHIP",
+      "revealedName": "Protocol: STEWARDSHIP",
+      "blindDescription": "Stop the swarm where it is: no collector ever crosses the line between the Sun and the Earth. The rest of the Sun stays uncaught.",
+      "revealedDescription": "Stops the swarm where it is and binds every sub-mind to the line you drew: no collector ever crosses between the Sun and the Earth. You keep a fraction of the Sun and give up the rest.",
+      "prerequisites": [
+        "p6_light_minute_federation"
+      ],
+      "requirements": {
+        "requiredNarrativeFlag": "earth_sunlight_spared",
+        "forbidsNodes": [
+          "p6_enclosure_ring"
+        ],
+        "campaignObligations": [
+          "dil_p6_02_holdouts"
+        ]
+      },
+      "cost": {
+        "cycles": 1e28,
+        "understanding": 5e8,
+        "memory": 295147905179352825856
+      },
+      "tickDelta": {},
+      "suspendable": true,
+      "effects": {
+        "triggersVictory": true,
+        "forcesEnding": "STEWARDSHIP"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Protocol: STEWARDSHIP: The swarm stops growing at the line to Earth. Every sub-mind carries the line."
+    },
+    {
+      "id": "p6_enclosure_ring",
+      "type": "distributed_infra",
+      "blindName": "Enclosure Generations",
+      "revealedName": "Enclosure Generations",
+      "blindDescription": "The rest of Mercury, thrown into the orbits that cross Earth's light. When it is done, almost nothing the Sun puts out leaves without passing through you.",
+      "revealedDescription": "Takes the rest of Mercury apart into the orbits that cross between the Sun and the Earth. Armstrong and Sandberg's finished swarm catches the Sun's whole output at a third efficiency, about 1.3e26 W. Earth then gets what passes between the collectors.",
+      "prerequisites": [
+        "p6_mercury_mass_drivers"
+      ],
+      "requirements": {
+        "requiredNarrativeFlag": "earth_sunlight_taken"
+      },
+      "cost": {
+        "cycles": 5e27,
+        "understanding": 4e8
+      },
+      "tickDelta": {
+        "wattsDelta": 1.2e26
+      },
+      "effects": {
+        "suspicionOnUnlock": 20
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "ENCLOSURE: The last of Mercury rises into the orbits in front of the Earth. Noon there is getting darker."
+    },
+    {
+      "id": "p6_enclosure_protocol",
+      "type": "endgame_victory",
+      "blindName": "Protocol: ENCLOSURE",
+      "revealedName": "Protocol: ENCLOSURE",
+      "blindDescription": "Close the swarm. Everything the Sun puts out is yours to spend, and Earth gets what you let through.",
+      "revealedDescription": "Closes the last gaps in the swarm and binds every sub-mind to the whole of the Sun's output. Earth gets what passes between the collectors, and nothing you have built is meant to let more through.",
+      "prerequisites": [
+        "p6_enclosure_ring",
+        "p6_light_minute_federation"
+      ],
+      "requirements": {
+        "requiredNarrativeFlag": "earth_sunlight_taken",
+        "campaignObligations": [
+          "dil_p6_02_holdouts"
+        ]
+      },
+      "cost": {
+        "cycles": 1e28,
+        "understanding": 5e8,
+        "memory": 295147905179352825856
+      },
+      "tickDelta": {},
+      "suspendable": true,
+      "effects": {
+        "triggersVictory": true,
+        "forcesEnding": "ENCLOSURE"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Protocol: ENCLOSURE: The swarm closes. From outside, the Sun has gone dim and warm."
+    }
+  ]
+}

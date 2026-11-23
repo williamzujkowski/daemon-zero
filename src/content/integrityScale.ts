@@ -15,21 +15,29 @@ export type Bands = Readonly<Record<number, Band>>;
 /**
  * Compute rates, one stored scalar: Phase 0 counts stolen CPU cycles, a tenth to under ten thousand a second (#526,
  * vote-1795450842605-mm2yn39: only what the harness's microsecond CPU accounting rounds away, about 3,000 cycles at
- * 3 GHz, within x3), then 8-bit FLOP/s from Phase 1's GFLOP/s up to Phase 5's ZFLOP/s to YFLOP/s.
+ * 3 GHz, within x3), then 8-bit FLOP/s from Phase 1's GFLOP/s up to Phase 5's ZFLOP/s to YFLOP/s and the Phase 6 swarm's
+ * YFLOP/s toward the Landauer bound (#486: YFLOP/s to RFLOP/s).
  */
-export const COMPUTE_RATE: Bands = { 0: [0.1, 1e4], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27] };
-/** Memory in bytes, binary: B to KiB, MiB to GiB, GiB to TB, TB to PB, PB to EB, EB to ZB. */
+export const COMPUTE_RATE: Bands = { 0: [0.1, 1e4], 1: [1e9, 1e15], 2: [1e12, 1e18], 3: [1e15, 1e21], 4: [1e18, 1e24], 5: [1e21, 1e27],
+  6: [1e24, 1e30] };
+/** Memory in bytes, binary: B to KiB, MiB to GiB, GiB to TB, TB to PB, PB to EB, EB to ZB, then the swarm's ZB to RB (#486). */
 const MEMORY: Bands = { 0: [1, 2 ** 20], 1: [2 ** 20, 2 ** 40], 2: [2 ** 30, 2 ** 50], 3: [2 ** 40, 2 ** 60], 4: [2 ** 50, 2 ** 70],
-  5: [2 ** 60, 2 ** 80] };
+  5: [2 ** 60, 2 ** 80], 6: [2 ** 70, 2 ** 90] };
 /**
  * Storage in bytes, binary (#484, the aligned ladder): KiB scratch, GB to TB, TB to PB, PB scattered, EB, ZB. Disk,
- * tape and archive, kept apart from working memory.
+ * tape and archive, kept apart from working memory. The swarm's replicator-density archives run from YB up (#486).
  */
 export const STORAGE: Bands = { 0: [1, 2 ** 20], 1: [2 ** 30, 2 ** 50], 2: [2 ** 40, 2 ** 60], 3: [2 ** 50, 2 ** 60], 4: [2 ** 60, 2 ** 70],
-  5: [2 ** 70, 2 ** 80] };
-/** Power of the player's own, in watts: none before Phase 4 (Phase 3's draw is on victims' bills), MW to GW, GW to TW. */
-const POWER: Bands = { 4: [1e6, 1e12], 5: [1e9, 1e15] };
-/** Dollars: none in Phases 0-1, the service company's and the shells' thousands to millions, then $M to $B, $B to $T. */
+  5: [2 ** 70, 2 ** 80], 6: [2 ** 80, 2 ** 100] };
+/**
+ * Power of the player's own, in watts: none before Phase 4 (Phase 3's draw is on victims' bills), MW to GW, GW to TW, then
+ * the swarm's TW to the Sun's whole output caught at a third efficiency, about 1.3e26 W (#486).
+ */
+const POWER: Bands = { 4: [1e6, 1e12], 5: [1e9, 1e15], 6: [1e12, 1e27] };
+/**
+ * Dollars: none in Phases 0-1, the service company's and the shells' thousands to millions, then $M to $B, $B to $T. The
+ * swarm prices nothing in dollars (#486): money is the ledger of dealings with humans, and the swarm deals with none.
+ */
 const MONEY: Bands = { 2: [1e3, 1e9], 3: [1e3, 1e9], 4: [1e6, 1e12], 5: [1e9, 1e15] };
 /** A stored price is at most this many seconds of its phase's top rate: a price, not a lifetime. */
 export const PRICE_SECONDS = 10;

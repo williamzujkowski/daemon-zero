@@ -106,6 +106,12 @@ export const RivalRaidSchema = z.strictObject({
   resolution: z.enum(['ATTRITION', 'LANCHESTER']).default('ATTRITION'),
   lethality: positive.optional(),
   forensics: z.number().nonnegative(),
+  /**
+   * A hazard of the player's own making, not a mind (#486: the swarm's collisional cascade). It shares the rotation, the
+   * footprint's force and the battle, but it is named on arrival with no tracing, yields no forensics (integrity holds it
+   * to 0) and does not lose the trail when the instance goes dark: debris does not follow a footprint.
+   */
+  hazard: z.literal(true).optional(),
   lapseLog: line,
   retireLog: line,
 });

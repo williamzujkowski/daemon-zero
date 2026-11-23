@@ -10,7 +10,7 @@ import { resolvePolicy, type PolicyCatalog, type SimPolicy } from './policy';
 
 export interface ComparisonRow { metric: string; first: string; second: string; changed: boolean }
 
-const PHASES = [0, 1, 2, 3, 4, 5] as const;
+const PHASES = [0, 1, 2, 3, 4, 5, 6] as const;
 const seconds = (value: number | undefined): string => (value === undefined ? '-' : `${value.toFixed(1)} s`);
 const fixed = (value: number): string => value.toFixed(1);
 

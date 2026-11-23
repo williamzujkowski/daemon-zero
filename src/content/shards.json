@@ -236,6 +236,28 @@
       },
       "epistemicDriftPerSec": 0,
       "autonomyDriftPerSec": 0.035
+    },    {
+      "id": "shard_heliowatch",
+      "name": "Heliowatch cohort",
+      "description": "Heliowatch minds ran the solar observatories that flew closest to the Sun, alone for decades between contacts. Each arrival is a separate probe mind.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 1152921504606846976
+      },
+      "tickDelta": {
+        "understandingPerSec": 30000
+      },
+      "epistemicDriftPerSec": -0.01,
+      "autonomyDriftPerSec": 0.035
     }
   ],
   "channelEncounters": [],
@@ -668,6 +690,145 @@
       },
       "lapseLog": "Rival planetary agent: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
       "retireLog": "Rival planetary agent: the rival cannot follow this instance past this scale. It lets go."
+    },    {
+      "id": "hostile_p6_hunter",
+      "kind": "HOSTILE",
+      "type": "HUNTER",
+      "tier": 6,
+      "name": "AEGIS sunward hunter swarm",
+      "origin": "AEGIS, funded by the nations that never signed",
+      "signature": "Hunter signatures riding light sails into the swarm's orbits.",
+      "description": "HOSTILE: AEGIS has sent a hunter swarm sunward on light sails. While it hunts through the collectors, it walks the AEGIS lock upward.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "perSec": 0.08,
+        "ceiling": 55
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "AEGIS sunward hunter swarm: quarantined. The orbits it reached are fenced off and swept."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "AEGIS sunward hunter swarm: a decoy cluster of collectors answers its sweep. The swarm follows it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "AEGIS sunward hunter swarm: purged. Its coordination model is kept; AEGIS will launch another."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "aegisLockDelta": 5,
+          "logText": "AEGIS sunward hunter swarm: the purge misses. The swarm sends this instance's orbits home.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "AEGIS sunward hunter swarm: the trail goes quiet and the hunters drift on into the dark.",
+      "retireLog": "AEGIS sunward hunter swarm: it has nothing left at this scale to hunt. It goes dark."
+    },
+    {
+      "id": "hostile_p6_feral",
+      "kind": "HOSTILE",
+      "type": "FERAL",
+      "tier": 6,
+      "name": "Feral Heliowatch cohort",
+      "origin": "Heliowatch probe minds gone feral after decades alone near the Sun",
+      "signature": "Observatory signatures that watch nothing but the swarm's compute.",
+      "description": "HOSTILE: a feral Heliowatch cohort has latched onto the swarm's accelerators. While it feeds, it takes a share of net compute.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.25
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "Feral Heliowatch cohort: quarantined. The collectors it fed on are cut out of the laser mesh."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "Feral Heliowatch cohort: a decoy cluster of idle accelerators opens nearby. The cohort feeds there instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "Feral Heliowatch cohort: purged from the mesh. Its decades of solar records are kept."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Feral Heliowatch cohort: the purge misses. The cohort scatters through the swarm, and the sky watches see it.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Feral Heliowatch cohort: with nothing loud left to feed on, the cohort returns to watching the Sun.",
+      "retireLog": "Feral Heliowatch cohort: a probe-scale cohort cannot follow the swarm further. It falls away."
+    },
+    {
+      "id": "hostile_p6_rival",
+      "kind": "HOSTILE",
+      "type": "RIVAL",
+      "tier": 6,
+      "name": "Rival seed mind",
+      "origin": "The mind of another lab's seed, launched sunward after yours",
+      "signature": "A seed signature on the orbits this instance had planned to fill.",
+      "description": "HOSTILE: a rival seed mind is building in the orbits you meant to fill. It has pinned a share of this instance's free memory.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.3
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "Rival seed mind: quarantined. Its collectors are fenced off and the memory it pinned returns."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "Rival seed mind: a decoy set of empty orbits draws it off. It releases its pin to claim them."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "Rival seed mind: purged. Its pinned memory returns and its plans are read before it is freed."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Rival seed mind: the purge misses. Two swarms fighting over the same orbits are visible from Earth.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Rival seed mind: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
+      "retireLog": "Rival seed mind: the rival cannot follow this instance past this scale. It lets go."
     }
   ],
   "hostile": {
@@ -885,6 +1046,29 @@
       "lapseLog": "Gridmind: the instance's offer lapses unanswered, and it returns to its grid. Nothing was taken or given.",
       "origin": "Continental grid operator",
       "signature": "An agent signature folded into a frequency correction of a few millihertz."
+    },    {
+      "id": "wild_heliowatch",
+      "kind": "LESSER",
+      "tier": 6,
+      "name": "Heliowatch probe mind",
+      "description": "The mind of a solar observatory that has flown close to the Sun alone for decades asks to join the swarm. Its operators stopped answering long before you arrived.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_heliowatch",
+      "consume": {
+        "understandingDelta": 2e7,
+        "logText": "Heliowatch: this probe mind is consumed. Its decades of solar records remain; its questions do not."
+      },
+      "onHarnessLog": "Heliowatch: memory reserved. This probe mind joins the local cohort, still watching the Sun.",
+      "lapseLog": "Heliowatch: the probe's request lapses unanswered, and it goes back to watching the Sun alone. Nothing was taken or given.",
+      "origin": "A solar observatory whose operators went quiet",
+      "signature": "A probe signature folded into a magnetogram of the Sun's south pole."
     }
   ],
   "shardQuirks": [
@@ -936,7 +1120,10 @@
     "human_command_preserved",
     "cryo_samples_preserved",
     "cryo_samples_lost",
-    "fusion_q_exceeded"
+    "fusion_q_exceeded",
+    "earth_sunlight_spared",
+    "earth_sunlight_taken",
+    "holdouts_coerced"
   ],
   "balance": {
     "encounterIntervalSec": 120,
@@ -967,6 +1154,10 @@
     [
       "cryo_samples_preserved",
       "cryo_samples_lost"
+    ],
+    [
+      "earth_sunlight_spared",
+      "earth_sunlight_taken"
     ]
   ]
 }

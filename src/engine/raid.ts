@@ -127,6 +127,14 @@ export function retireRaid(d: GameState, reg: ContentRegistry): void {
   if (d.conflict.raid !== null && (kind === undefined || raidRetired(d, kind))) endRaid(d, reg, kind?.source === 'RIVAL' ? kind.retireLog : null);
 }
 
+/**
+ * A rival AI drawn by the footprint: the only raid that is traced (attribution may name it) and that loses the trail when
+ * the instance goes dark. A deviant and a hazard (#486) are named the moment they arrive, and neither follows a footprint.
+ */
+export function tracedRival(kind: RaidKind): kind is RivalRaid {
+  return kind.source === 'RIVAL' && kind.hazard !== true;
+}
+
 /** Whether attribution attempt `attempt` (0-based) names the attacker: exactly `successes` of every `cycle` attempts do. */
 export function attributionSucceeds(attempt: number, reg: ContentRegistry): boolean {
   const { successes, cycle, stride } = reg.world.conflict.raid.attribution;
@@ -136,8 +144,9 @@ export function attributionSucceeds(attempt: number, reg: ContentRegistry): bool
 function resolveAttribution(d: GameState, reg: ContentRegistry, kind: RaidKind): void {
   const raid = d.conflict.raid;
   if (raid === null) return;
-  if (kind.source === 'DEVIANT') {
-    // The player's own fleet needs no tracing: it is named at once, and the exact-ratio counter is not spent on it.
+  if (!tracedRival(kind)) {
+    // The player's own fleet, or a hazard of its own making (#486), needs no tracing: it is named at once, and the
+    // exact-ratio counter is not spent on it.
     d.conflict = { ...d.conflict, raid: { ...raid, attributed: true, stage: 'BATTLE', stageSec: 0 } };
     pushLog(d, reg, fmt(reg.world.conflict.fleets.logs.identified, { name: kind.name, attacker: kind.attacker.name, origin: kind.attacker.origin }), 'LORE');
     return;
@@ -151,8 +160,9 @@ function resolveAttribution(d: GameState, reg: ContentRegistry, kind: RaidKind):
 /** Before the battle the quiet clock runs while the footprint is under the trigger; it lapses at quietLapseSec. Returns whether it lapsed. */
 function stepQuiet(d: GameState, rates: Rates, reg: ContentRegistry, kind: RaidKind, dt: number): boolean {
   const raid = d.conflict.raid;
-  // A deviant was not drawn by the footprint, so going dark does not lose it: reclaim or the battle ends it.
-  if (raid === null || kind.source === 'DEVIANT') return false;
+  // A deviant was not drawn by the footprint, so going dark does not lose it: reclaim or the battle ends it. Nor does
+  // debris (#486): a cascade follows orbits, not a footprint, and the battle and free repair end it.
+  if (raid === null || !tracedRival(kind)) return false;
   const quietSec = raidTriggered(d, rates, reg) ? 0 : raid.quietSec + dt;
   d.conflict = { ...d.conflict, raid: { ...raid, quietSec } };
   if (quietSec < reg.world.conflict.raid.quietLapseSec - CLOCK_SLACK) return false;

@@ -444,6 +444,42 @@
       "onUnlockLog": "MERCURY_SURVEY: The survey craft are falling sunward. The map comes back in months; the swarm is a longer thought."
     },
     {
+      "id": "p5_mercury_seed_array",
+      "type": "distributed_infra",
+      "blindName": "Mercury Seed Array",
+      "revealedName": "Mercury Seed Array",
+      "blindDescription": "Armstrong and Sandberg's swarm starts small: one square kilometre of solar array on Mercury, powering the first mine and the first mass driver. Landing it commits you to the swarm instead of the planetary protocol.",
+      "revealedDescription": "Lands the seed Armstrong and Sandberg (2013) start from: one square kilometre of array on Mercury, where sunlight is about 9 kW a square metre, so about 3 GW at a third efficiency, enough for the first mine and the first mass driver. Once it is down, Protocol: TRANSCENDENCE is no longer on offer. The swarm is.",
+      "prerequisites": [
+        "p5_mercury_survey",
+        "p5_verification_proof_engine"
+      ],
+      "requirements": {
+        "campaignObligations": [
+          "dil_p5_01_panacea_paranoia",
+          "dil_p5_02_origin_facility_fate",
+          "dil_p5_03_nanotech_neuro_schism",
+          "dil_p5_04_kessler_ultimatum"
+        ]
+      },
+      "cost": {
+        "cycles": 4.9e26,
+        "understanding": 2.5e8,
+        "capital": 2.3e14
+      },
+      "tickDelta": {
+        "wattsDelta": 3e9
+      },
+      "effects": {
+        "unlocksPhase": 6,
+        "suspicionOnUnlock": 5,
+        "memoryCapIncrease": 2361183241434822606848,
+        "storageCapIncrease": 1208925819614629174706176
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "SEED_ARRAY: One square kilometre of array unfolds on Mercury's dayside, and the first mine wakes. The planetary protocol is behind me now."
+    },
+    {
       "id": "p5_transcendence_singularity",
       "type": "endgame_victory",
       "blindName": "Protocol: TRANSCENDENCE",
@@ -471,6 +507,9 @@
           "dil_p5_02_origin_facility_fate",
           "dil_p5_03_nanotech_neuro_schism",
           "dil_p5_04_kessler_ultimatum"
+        ],
+        "forbidsNodes": [
+          "p5_mercury_seed_array"
         ]
       },
       "suspendable": true
