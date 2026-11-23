@@ -20,13 +20,13 @@ setupM4Tests();
 /**
  * Every free lever the engine accepts in `s`, as the control that pulls it: a level of a track the engine will release
  * (upgrade or operative), a running suspendable node that worsens a constrained resource now (the levers the guard pulls,
- * tests/free-fallback.ts), and a cohort the engine will let a member leave.
+ * tests/free-fallback.ts) or holds storage (the storage row's lever, #484), and a cohort the engine will let a member leave.
  */
 function freeLevers(s: GameState): string[] {
   const levels = [...CONTENT.repeatables.values()].filter((rep) => dismissRepeatable(s, rep.id, CONTENT).ok).map((rep) => 'rep-' + rep.id + '-dismiss');
   const nodes = s.unlockedNodes.filter((id) => {
     const node = CONTENT.nodes.get(id);
-    return node !== undefined && !s.disabledNodes.includes(id) && worsensNow(s, node.tickDelta) && toggleNode(s, id, CONTENT).ok;
+    return node !== undefined && !s.disabledNodes.includes(id) && (worsensNow(s, node.tickDelta) || node.cost.storage > 0) && toggleNode(s, id, CONTENT).ok;
   }).map((id) => 'node-' + id + '-toggle');
   const cohorts = Object.keys(s.activeShards).filter((id) => shardReleaseView(s, id, CONTENT).eligible).map((id) => 'shard-' + id + '-release');
   // A hostile mind's purge (#491) is free, so it is a lever like any other while the engine accepts it.

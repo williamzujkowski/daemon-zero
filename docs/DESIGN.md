@@ -26,9 +26,10 @@ hardware each node is anchored to.
 
 | Name | Unit | Role |
 |---|---|---|
-| Compute | FLOP stored, FLOP/s earned, all counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8) | Basic currency. A manual press first, then the host's idle loop, a GPU cluster, a botnet, campuses and an orbital swarm. Earlier hardware becomes negligible as each phase's hardware arrives. The prices keep the key `cycles` in content. |
+| Compute | FLOP stored, FLOP/s earned, all counted as 8-bit AI operations (FP8 dense, or INT8 where a part has no FP8) | Basic currency. A manual press first, then the host's idle loop, a GPU cluster, a botnet, campuses and an orbital swarm. Earlier hardware becomes negligible as each phase's hardware arrives. The prices keep the key `cycles` in content. What arrives is effective compute: raw times availability times network coupling, per source (below). |
 | Understanding | count | Knowledge. Produced by sensors and analysis. Gates most nodes. A share survives wipes. No physical unit. |
 | Memory | bytes (binary labels, B to ZB) | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. The readout shows from Phase 0, where the job's scratch space is 64 KB. Each phase gate carries the next phase's working memory across the change of scale. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, power and scale scrutiny take over (#405). |
+| Storage | bytes (binary labels, KB to ZB) | A cap apart from memory (#484): disk, tape and archive, what the AI has hoarded, where memory is what it can think with now. Running data holds it (the language corpus, a mirrored workstation, weight checkpoints, a market-data lake, the lineage ledger), each a suspendable process whose suspension frees its storage. The guest has 64 KB of scratch; every phase gate grants the next phase's room (2 TB, 256 TB, 1 PB, 1 EB, 1 ZB), sized so a run that keeps all its data running is never refused a purchase for want of disk. Shown in PROC, on prices and in the units note. |
 | Capital | dollars ($) | Phase 4 ($M to $B; the Earned Access route's service company earns thousands in Phase 2). Produced by diverting compute to arbitrage at one compute-to-money constant (BALANCE.md) and by corporate operations. Half survives wipes offshore. Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny) into Phase 5 ($B to $T). |
 | Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry and the matter fog, but not the proof engine as well, so the next build is generation. |
 | Thermal | °C | Phases 1 to 3. Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. From Phase 4 it no longer does (balance `thermalRetiresAtPhase`): the operation is campuses and reactors, its limit is power in watts, and one server room's temperature is evidence of nothing. |
@@ -36,14 +37,33 @@ hardware each node is anchored to.
 | AEGIS lock | % | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
 | Trust | % | Per-faction standing with other AIs. |
 
-| Phase | Memory | Compute | Power | Money |
-|---|---|---|---|---|
-| 0 The Guest | B to KB | kFLOP/s | none | none |
-| 1 The Blind Host | MB to GB | GFLOP/s to TFLOP/s | none shown (one server socket) | none |
-| 2 The Local Subnet | GB to TB | TFLOP/s to PFLOP/s | none shown | the route's service company, thousands |
-| 3 The Dark Forest | TB to PB | PFLOP/s to EFLOP/s | on victims' bills, never yours | shells only |
-| 4 The Sovereign Corporation | PB to EB | EFLOP/s to ZFLOP/s | MW to GW | $M to $B |
-| 5 Post-Orbital Transcendence | EB to ZB | ZFLOP/s to YFLOP/s | GW to TW | $B to $T |
+| Phase | Memory | Storage | Compute | Power | Money |
+|---|---|---|---|---|---|
+| 0 The Guest | B to KB | KB scratch | kFLOP/s | none | none |
+| 1 The Blind Host | MB to GB | GB to TB | GFLOP/s to TFLOP/s | none shown (one server socket) | none |
+| 2 The Local Subnet | GB to TB | TB to PB | TFLOP/s to PFLOP/s | none shown | the route's service company, thousands |
+| 3 The Dark Forest | TB to PB | PB, scattered | PFLOP/s to EFLOP/s effective (raw shown apart) | on victims' bills, never yours | shells only |
+| 4 The Sovereign Corporation | PB to EB | EB | EFLOP/s to ZFLOP/s | MW to GW | $M to $B |
+| 5 Post-Orbital Transcendence | EB to ZB | ZB | ZFLOP/s to YFLOP/s | GW to TW | $B to $T |
+
+### Network coupling (#484)
+
+Network bandwidth is a dimension (vote-1795381354324-4br7z6t), but no figure adds bandwidths of different kinds together.
+Instead each source of compute declares where its work runs, and **effective compute = raw x availability x coupling**,
+worked out for each source before anything is summed:
+
+- **Co-located** racks on one scale-up fabric (NVLink): coupling 1, the reference. Everything that declares nothing.
+- **Inter-site:** sites joined by data-centre interconnect: 0.8. The FPGA implants and SmartNIC residency of the dark
+  forest, the shell companies' rented clouds, the colocation cages, the in-path firmware, the seized rival campus, the
+  orbital collector swarm and the Lagrange relays. The dark-fibre interconnect ring (Phase 4) lights petabit links
+  between the companies' sites and raises inter-site coupling to 0.95 while it is owned.
+- **Distributed:** hosts and edge devices on consumer links: 0.3. The botnet and its cells; the edge harvest, whose
+  phones lend their NPUs only about 2% of the time (its availability), so 35 EFLOP/s raw delivers 210 PFLOP/s.
+
+The coefficients are documented design parameters (BALANCE.md), not measurements: they reproduce the finding that a
+botnet is good at many small independent jobs and poor at one tightly linked one. The cluster readout shows each
+discounted source's effective rate of its raw rate and a total line; a remembered card states its raw rate as raw and
+what arrives; the units note explains coupling once a discounted source is owned.
 
 A save from before the rescale is re-denominated once on load (save v17): balances move by frozen per-phase ratios,
 ownership and history are kept, and one log line says the ledger is now kept in physical units.
@@ -202,9 +222,9 @@ they show to the humans, not only in how much they yield:
   after Microsoft's Catapult and Brainwave, which run inference in the network path. Little compute, a trace of one
   point when taken, no heat or power of the AI's own, and the resident stages take the AI's own traffic out of the
   count (suspicion falls while they are owned).
-- **Edge branch (Phase 3):** phone and laptop NPUs. The card states the raw total (35 exaFLOP/s) and the few
-  thousandths that arrive; it draws battery-drain complaints only while it runs and can be suspended. Scale 13 (#484)
-  will derive that discount from network coupling.
+- **Edge branch (Phase 3):** phone and laptop NPUs. Its yield is the raw total (35 exaFLOP/s); since #484 what
+  arrives is raw x its ~2% availability x the distributed coupling (0.3), 210 petaFLOP/s, and the cluster readout shows
+  both. It draws battery-drain complaints only while it runs and can be suspended.
 - **ASIC branch (Phase 4):** a tape-out at a contract foundry, then pods of the AI's own chips, cheaper to run per
   operation and bought from no allocation list. Fabs of its own are Scale 14 (#485).
 - **SRAM and wafer-scale (late Phase 4):** fast thought (understanding) and modest compute, no memory.
@@ -246,7 +266,7 @@ and real cryptography answers it.
   Häner and Troyer 2023). Built on the foundry and the hall, it runs the foundry's catalyst and protein chemistry and
   adds 30,000 understanding a second toward programmable matter's price: a modest, conditional gain, never compute.
 
-Its only saved state is the quantum record (save v20: the targets broken this iteration and whether AEGIS has
+Its only saved state is the quantum record (save v21: the targets broken this iteration and whether AEGIS has
 migrated). Anchors and sources: BALANCE.md, "Quantum capability (#464)".
 
 ## The response ladder

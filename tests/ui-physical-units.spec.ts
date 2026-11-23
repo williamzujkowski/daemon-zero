@@ -90,15 +90,15 @@ describe('power shortfall', () => {
 
 describe('prices and rates', () => {
   it('prices every resource through the engine, exactly', () => {
-    const cost = { cycles: 45e12, understanding: 15_000_001, memory: 256 * 1024 ** 2, capital: 400e6 };
+    const cost = { cycles: 45e12, understanding: 15_000_001, memory: 256 * 1024 ** 2, storage: 0, capital: 400e6 };
     expect(costText(cost)).toBe(['cycles', 'understanding', 'memory', 'capital'].map((key) => costPart(key as keyof typeof cost, cost[key as keyof typeof cost])).join(' · '));
     expect(costText(cost)).toBe('45 TFLOP · 15,000,001 understanding · 256 MB · $400M');
     expect(costText(cost)).not.toMatch(/cycles|capital/);
   });
 
   it('abbreviates understanding on a phone only while it stays exact', () => {
-    expect(costText({ cycles: 0, understanding: 15_000_000, memory: 0, capital: 0 }, true)).toBe('15M understanding');
-    expect(costText({ cycles: 0, understanding: 15_000_001, memory: 0, capital: 0 }, true)).toBe('15,000,001 understanding');
+    expect(costText({ cycles: 0, understanding: 15_000_000, memory: 0, storage: 0, capital: 0 }, true)).toBe('15M understanding');
+    expect(costText({ cycles: 0, understanding: 15_000_001, memory: 0, storage: 0, capital: 0 }, true)).toBe('15,000,001 understanding');
   });
 
   it('states continuous output in FLOP/s, $/s and W', () => {

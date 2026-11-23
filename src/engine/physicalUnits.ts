@@ -1,11 +1,11 @@
 /**
  * Physical quantities in the unit their size reads best in (docs/SCALE.md "The ladder"): compute as 8-bit AI FLOP
- * and FLOP/s with decimal SI prefixes (ronna and quetta for the epilogue), memory in bytes with binary JEDEC labels to
- * YB, power in watts, money in dollars with the voted K/M/B/T suffixes. Pure display: callers pass base units.
+ * and FLOP/s with decimal SI prefixes (ronna and quetta for the epilogue), memory and storage in bytes with binary
+ * JEDEC labels to YB, power in watts, money in dollars with the voted K/M/B/T suffixes. Pure display: callers pass base units.
  */
 import { compactAmount, groupDigits, significant3, spokenAmount } from './amount';
 
-export type Dimension = 'compute' | 'computeRate' | 'memory' | 'power' | 'money';
+export type Dimension = 'compute' | 'computeRate' | 'memory' | 'storage' | 'power' | 'money';
 
 /** [size, symbol, spoken prefix], smallest first. */
 type Scale = readonly (readonly [number, string, string])[];
@@ -23,6 +23,8 @@ const UNITS: Readonly<Record<Exclude<Dimension, 'money'>, Unit>> = {
   compute: { scale: SI, symbol: 'FLOP', word: () => 'FLOP', perSecond: false },
   computeRate: { scale: SI, symbol: 'FLOP', word: () => 'FLOP', perSecond: true },
   memory: { scale: BINARY, symbol: 'B', word: (plural) => (plural ? 'bytes' : 'byte'), perSecond: false },
+  // Storage reads like memory, binary labels to YB, so one scheme covers every byte the game counts (#484).
+  storage: { scale: BINARY, symbol: 'B', word: (plural) => (plural ? 'bytes' : 'byte'), perSecond: false },
   power: { scale: SI, symbol: 'W', word: (plural) => (plural ? 'watts' : 'watt'), perSecond: false },
 };
 
@@ -116,4 +118,9 @@ export function quantityExact(dimension: Dimension, value: number): string {
 /** Memory a player buys, holds or is short by, in bytes, exactly ("64 KB", "353.5 GB"). */
 export function memoryExact(bytes: number): string {
   return quantityExact('memory', bytes);
+}
+
+/** Storage a node holds or grants, or a player is short by, in bytes, exactly ("2 TB", "400 GB"). */
+export function storageExact(bytes: number): string {
+  return quantityExact('storage', bytes);
 }

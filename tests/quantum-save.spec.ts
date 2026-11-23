@@ -1,5 +1,5 @@
 /**
- * Save v20 (#464): quantum key-breaking state. A v19 save loads with nothing broken and AEGIS unmigrated, a save naming a
+ * Save v21 (#464): quantum key-breaking state. A v20 save loads with nothing broken and AEGIS unmigrated, a save naming a
  * target content no longer declares loads without it, and a malformed quantum record is refused, never healed.
  */
 import { describe, expect, it } from 'vitest';
@@ -22,18 +22,18 @@ function broken(): GameState {
   return result.state;
 }
 
-describe('save v20 (#464)', () => {
+describe('save v21 (#464)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(20);
+    expect(SCHEMA_VERSION).toBe(21);
   });
 
-  it('migrates a v19 save to nothing broken and AEGIS unmigrated, and keeps everything else', () => {
+  it('migrates a v20 save to nothing broken and AEGIS unmigrated, and keeps everything else', () => {
     const current = late();
     const raw = JSON.parse(serialize(current)) as Raw;
     delete raw.quantum;
-    const v19 = { ...raw, schemaVersion: 19 };
-    expect(migrate(v19, MIGRATIONS, 20)).toEqual({ ...raw, quantum: { broken: [], aegisMigrated: false }, schemaVersion: 20 });
-    expect(deserialize(JSON.stringify(v19), reg)).toEqual(current);
+    const v20 = { ...raw, schemaVersion: 20 };
+    expect(migrate(v20, MIGRATIONS, 21)).toEqual({ ...raw, quantum: { broken: [], aegisMigrated: false }, schemaVersion: 21 });
+    expect(deserialize(JSON.stringify(v20), reg)).toEqual(current);
   });
 
   it('round-trips what key-breaking wrote', () => {

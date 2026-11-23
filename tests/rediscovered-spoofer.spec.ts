@@ -38,7 +38,7 @@ describe('the rediscovered log spoofer under campaign rules', () => {
     expect(DISCOUNTED).toBe(ordinary(FULL.cycles) / 2);
     const s = returning(PREVIEW, true);
     expect(s.legacy.knownNodes).toContain(SPOOFER);
-    expect(nodeCost(s, node, PREVIEW)).toEqual({ cycles: DISCOUNTED, understanding: ordinary(FULL.understanding), memory: FULL.memory, capital: 0 });
+    expect(nodeCost(s, node, PREVIEW)).toEqual({ cycles: DISCOUNTED, understanding: ordinary(FULL.understanding), memory: FULL.memory, storage: 0, capital: 0 });
   });
 
   it('keeps the first mapping at the full price', () => {

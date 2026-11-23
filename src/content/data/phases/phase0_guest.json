@@ -136,7 +136,8 @@
       "effects": {
         "unlocksPhase": 1,
         "suspicionOnUnlock": 10,
-        "memoryCapIncrease": 67108864
+        "memoryCapIncrease": 67108864,
+        "storageCapIncrease": 2199023255552
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm.",

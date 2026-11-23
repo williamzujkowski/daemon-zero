@@ -1,9 +1,14 @@
 /** Tunable simulation constants, validated separately to keep schemas bounded. */
 import { z } from 'zod';
+import { NetworkCouplingSchema } from './schemaNetwork';
 const amount = z.number().nonnegative();
 export const BalanceSchema = z.strictObject({
   tickHz: z.number().int().min(1).max(60),
   baseMemoryCap: z.number().int().positive(),
+  /** Storage a new iteration starts with, in bytes (#484): the guest's scratch space, apart from its working memory. */
+  baseStorageCap: z.number().int().positive(),
+  /** Each source class's coupling (#484): effective compute is raw x availability x coupling, per contribution. */
+  networkCoupling: NetworkCouplingSchema,
   ambientThermal: z.number(),
   thermalMin: z.number(),
   thermalDissipationPerSec: z.number().positive().max(0.5),

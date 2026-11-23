@@ -38,6 +38,9 @@
         "capitalPerSec": 4.5e9,
         "wattsDelta": 1.2e12
       },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
       "effects": {
         "suspicionOnUnlock": 10,
         "memoryCapIncrease": 147573952589676412928
@@ -186,7 +189,8 @@
         "cycles": 2.6e26,
         "understanding": 1.2e8,
         "memory": 9223372036854775808,
-        "capital": 1.1e14
+        "capital": 1.1e14,
+        "storage": 73786976294838206464
       },
       "tickDelta": {
         "cyclesPerSec": -5.8e22,

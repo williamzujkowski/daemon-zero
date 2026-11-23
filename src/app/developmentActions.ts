@@ -34,7 +34,7 @@ export class DevelopmentActions {
       if (!Number.isFinite(amount) || amount <= 0) throw new Error('Enter a finite positive amount.');
       return edited(game, (raw) => {
         raw.cycles = game.cycles + amount; raw.understanding = game.understanding + amount;
-        raw.capital = game.capital + amount; raw.memoryCap = game.memoryCap + amount;
+        raw.capital = game.capital + amount; raw.memoryCap = game.memoryCap + amount; raw.storageCap = game.storageCap + amount;
       });
     });
   }

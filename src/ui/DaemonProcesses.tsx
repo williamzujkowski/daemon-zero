@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { cycleContributions, nodeUseBlocker, toggleNode } from '../engine';
-import { memoryExact } from './units';
+import { memoryExact, storageExact } from './units';
 import { computeRateText } from './rateText';
 import { gameStore } from '../app/session';
 import { Text, View } from './PhaseTheme';
@@ -24,12 +24,18 @@ function Impact({ node }: { node: RegistryNode }) {
 
 function CycleImpact({ node }: { node: RegistryNode }) {
   const cycles = useGame((game) => cycleContributions(game, CONTENT).find((source) => source.id === node.id)?.cyclesPerSec ?? 0);
-  const held = node.cost.memory;
+  const held = node.cost.memory, stored = node.cost.storage;
   // Memory is what the player is hunting when they open this panel: a process that holds
-  // 4096 MB has to say so next to the control that takes it back (maintainer playtest note).
+  // 4096 MB has to say so next to the control that takes it back (maintainer playtest note). Storage too (#484).
   return <Text testID={'daemon-impact-' + node.id} style={theme.muted}>
-    {computeRateText(cycles)} net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}
+    {computeRateText(cycles)} net{held > 0 ? ' · ' + memoryExact(held) + ' held' : ''}{stored > 0 ? ' · ' + storageExact(stored) + ' stored' : ''}
   </Text>;
+}
+
+/** What suspending a process gives back: its memory, and its storage when it holds any (#484). */
+function freedText(node: RegistryNode): string {
+  const memory = memoryExact(node.cost.memory);
+  return node.cost.storage > 0 ? memory + ' of memory and ' + storageExact(node.cost.storage) + ' of storage' : memory;
 }
 
 const Process = memo(function Process({ node }: { node: RegistryNode }) {
@@ -44,8 +50,8 @@ const Process = memo(function Process({ node }: { node: RegistryNode }) {
         software-types-only-free-their-memory). */}
     {node.suspendable
       ? <PurchaseButton id={'node-' + node.id + '-toggle'} label={(suspended ? 'Resume ' : 'Suspend ') + node.revealedName
-          + (suspended ? '' : ' and free ' + memoryExact(node.cost.memory))}
-        text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, capital: 0 }}
+          + (suspended ? '' : ' and free ' + freedText(node))}
+        text={suspended ? '[ RESUME ]' : '[ SUSPEND ]'} cost={{ cycles: 0, understanding: 0, memory: 0, storage: 0, capital: 0 }}
         allowed={(game) => !game.disabledNodes.includes(node.id) || nodeUseBlocker(game, node, CONTENT) === null}
         action={(game) => toggleNode(game, node.id, CONTENT)} />
       : <Text testID={'daemon-hardware-' + node.id} style={theme.muted}>[ HARDWARE ] cannot be suspended</Text>}

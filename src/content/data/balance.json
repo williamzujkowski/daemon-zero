@@ -1,6 +1,12 @@
 {
   "tickHz": 10,
   "baseMemoryCap": 65536,
+  "baseStorageCap": 65536,
+  "networkCoupling": {
+    "CO_LOCATED": 1,
+    "INTER_SITE": 0.8,
+    "DISTRIBUTED": 0.3
+  },
   "ambientThermal": 22,
   "thermalMin": 10,
   "thermalDissipationPerSec": 0.04,

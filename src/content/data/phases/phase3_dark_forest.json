@@ -25,9 +25,12 @@
         "understanding": 300000
       },
       "tickDelta": {
-        "cyclesPerSec": 7.5e16,
+        "cyclesPerSec": 2.5e17,
         "understandingPerSec": 600,
         "thermalPerSec": -2
+      },
+      "network": {
+        "sourceClass": "DISTRIBUTED"
       },
       "effects": {
         "suspicionOnUnlock": 8,
@@ -76,7 +79,10 @@
         "understanding": 350000
       },
       "tickDelta": {
-        "cyclesPerSec": 4e16
+        "cyclesPerSec": 5e16
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
       },
       "effects": {
         "suspicionOnUnlock": 1
@@ -100,7 +106,11 @@
         "memory": 1099511627776
       },
       "tickDelta": {
-        "cyclesPerSec": 1.5e17
+        "cyclesPerSec": 3.5e19
+      },
+      "network": {
+        "sourceClass": "DISTRIBUTED",
+        "availability": 0.02
       },
       "signature": {
         "source": "victim_mains",
@@ -125,9 +135,12 @@
         "understanding": 600000
       },
       "tickDelta": {
-        "cyclesPerSec": 3e16,
+        "cyclesPerSec": 3.75e16,
         "understandingPerSec": 900,
         "suspicionPerSec": -0.05
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
       },
       "effects": {
         "suspicionOnUnlock": 1
@@ -207,7 +220,8 @@
       ],
       "effects": {
         "memoryCapIncrease": 8796093022208,
-        "knowledgeRetentionRatio": 0.9
+        "knowledgeRetentionRatio": 0.9,
+        "storageCapIncrease": 18014398509481984
       },
       "uiGroup": "ai_eidolon",
       "unlocksUiComponent": null,
@@ -227,7 +241,8 @@
       "cost": {
         "cycles": 1.5e20,
         "understanding": 1.5e6,
-        "memory": 4398046511104
+        "memory": 4398046511104,
+        "storage": 70368744177664
       },
       "tickDelta": {
         "cyclesPerSec": -2.4e16,
@@ -289,13 +304,17 @@
         "thermalPerSec": -5,
         "suspicionPerSec": -0.2
       },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
       "systemFlags": [
         "ENABLES_CORPORATE_FINANCE",
         "OFFSHORE_TRUST_RETENTION"
       ],
       "effects": {
         "memoryCapIncrease": 144115188075855872,
-        "unlocksPhase": 4
+        "unlocksPhase": 4,
+        "storageCapIncrease": 1152921504606846976
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
       "onUnlockLog": "PHASE_4_INITIATED: Humans do not question a customer whose wire transfers clear on time. I now rent the kind of servers that used to cage me.",

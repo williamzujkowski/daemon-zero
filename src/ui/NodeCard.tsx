@@ -6,10 +6,11 @@ import DisclosureText from './DisclosureText';
  */
 import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import type { Cost } from '../content/schema';
-import { isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker, type Remembered } from '../engine';
+import { couplings, isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker, type Remembered } from '../engine';
 import PurchaseButton from './PurchaseButton';
 import CardDetails from './CardDetails';
 import { costText, nodeUtilityText } from './format';
@@ -81,7 +82,9 @@ function NodeCard({ node }: { node: RegistryNode }) {
   // A primitive selector: the trace changes only with iteration, never per tick.
   const trace = useGame((game) => probeTrace(game, node, CONTENT));
   const refusal = useGame((game) => nodeUseBlocker(game, node, CONTENT));
-  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace) : ''), [known, node, surveillanceKnown, trace]);
+  // Each class's coupling now (#484): a link node raises one while it runs, so a remembered card states what arrives today.
+  const by = useGame(useShallow((game) => couplings(game, CONTENT)));
+  const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace, by) : ''), [known, node, surveillanceKnown, trace, by]);
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
     {node.effects.forcesEnding !== undefined && <Text style={[theme.heading, theme.danger]}>EVALUATION // ends this run</Text>}

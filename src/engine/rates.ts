@@ -5,11 +5,13 @@
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { TickDelta } from '../content/schema';
+import type { NetworkLink } from '../content/schemaNetwork';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { understandingMultiplier } from './conditioning';
 import { nodeOutputScale, nodeOutputScaleIn, useScope } from './grantQuery';
 import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
+import { couplings, deliveredShare, type Couplings } from './coupling';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -55,9 +57,14 @@ export function isPoweredOutput(delta: TickDelta, node?: { poweredOutput?: true 
   return delta.wattsDelta < 0 || node?.poweredOutput === true;
 }
 
+/**
+ * Adds one contribution. `delivered` is its availability times its class's coupling (coupling.ts): it discounts the
+ * contribution's positive compute here, before anything is summed (#484); a drain is work spent, never discounted.
+ */
 function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number, understandingScale = 1,
-  powered = isPoweredOutput(delta)): void {
-  const cycles = delta.cyclesPerSec * count * scale;
+  powered = isPoweredOutput(delta), delivered = 1): void {
+  const raw = delta.cyclesPerSec * count * scale;
+  const cycles = raw > 0 ? raw * delivered : raw;
   if (cycles > 0 && powered) a.poweredCycles += cycles;
   else a.cycles += cycles;
   a.understanding += delta.understandingPerSec * count * understandingScale;
@@ -72,7 +79,7 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
 }
 
 /** What addNodes reads from a node's content besides its output scale, in one shape for every node. */
-interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean }
+interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean; link: NetworkLink | undefined }
 /** Content never changes after it is built, so each node's facts are read once per registry: every tick asks (#505). */
 const NODE_RATE_FACTS = new WeakMap<ContentRegistry, ReadonlyMap<string, NodeRateFacts>>();
 
@@ -82,13 +89,15 @@ function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts>
     facts = new Map([...reg.nodes.values()].map((node) => [node.id, {
       node, powered: isPoweredOutput(node.tickDelta, node), aegisRatio: node.effects.aegisScanReductionRatio ?? 0,
       finance: node.systemFlags.includes('ENABLES_CORPORATE_FINANCE'),
+      // Where its compute runs (#484) is content; the class's coupling now is state, read once per pass (`by`).
+      link: node.network,
     }]));
     NODE_RATE_FACTS.set(reg, facts);
   }
   return facts;
 }
 
-function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
+function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings): void {
   // One scope for every owned node: the permitted-use rule's run-level reads happen once per pass (#270).
   const scope = useScope(s, reg);
   const facts = nodeRateFacts(reg);
@@ -97,20 +106,21 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
     const output = fact ? nodeOutputScaleIn(scope, fact.node) : null;
     if (!fact || output === null) continue;
-    addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered);
+    addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered,
+      deliveredShare(fact.link, by));
     a.aegisReductionTech = Math.max(a.aegisReductionTech, fact.aegisRatio);
     // financeEnabled() states the same rule for readers outside the tick.
     if (fact.finance) a.financeEnabled = true;
   }
 }
 
-function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry): void {
+function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Couplings): void {
   // Keys in place of entries: this runs on every tick and the levels record holds plain data.
   for (const id of Object.keys(s.levels)) {
     const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
-    addDelta(a, rep.perLevel, level, 1, 1);
+    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by));
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;
     a.aegisReductionStaff += rep.perLevelEffects.aegisScanReduction * level;
   }
@@ -220,18 +230,18 @@ export function financeEnabled(s: GameState, reg: ContentRegistry): boolean {
  * explains them (the payroll totals, #210) reads the reduction and multiplier the tick applies.
  */
 export function multiplierSources(s: GameState, reg: ContentRegistry): { aegis: AegisReduction; revenueMultiplier: number } {
-  const a = emptyAggregate();
-  addNodes(a, s, reg);
-  addRepeatables(a, s, reg);
+  const a = emptyAggregate(), by = couplings(s, reg);
+  addNodes(a, s, reg, by);
+  addRepeatables(a, s, reg, by);
   return { aegis: aegisReduction(a, s, reg), revenueMultiplier: a.revenueMultiplier };
 }
 
 /** Net rates for a state. Pure. Insolvency and brownout adjustments are applied by the tick. */
 export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const b = reg.balance;
-  const a = emptyAggregate();
-  addNodes(a, s, reg);
-  addRepeatables(a, s, reg);
+  const a = emptyAggregate(), by = couplings(s, reg);
+  addNodes(a, s, reg, by);
+  addRepeatables(a, s, reg, by);
   for (const shard of Object.values(s.activeShards)) addDelta(a, shardOutput(shard, reg).delta, 1, 1, 1);
   for (const output of actionOutputs(s, reg)) addDelta(a, output.delta, output.count, 1, 1);
 

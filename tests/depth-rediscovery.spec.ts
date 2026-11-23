@@ -51,7 +51,7 @@ describe('a remembered node', () => {
       const share = rediscoveryShare(depth, reg);
       expect(nodeCost(remembering(depth, [firm.id]), firm, reg)).toEqual({
         cycles: Math.ceil(firm.cost.cycles * share), understanding: Math.ceil(firm.cost.understanding * share),
-        memory: firm.cost.memory, capital: firm.cost.capital,
+        memory: firm.cost.memory, storage: firm.cost.storage, capital: firm.cost.capital,
       });
     }
     expect(firm.cost.memory).toBeGreaterThan(0);
@@ -106,7 +106,7 @@ describe('a remembered level', () => {
     const share = rediscoveryShare(4, reg);
     const list = repeatableCost(track, 0);
     expect(repeatablePrice(base, track, reg)).toEqual({
-      cycles: Math.ceil(list.cycles * share), understanding: Math.ceil(list.understanding * share), memory: list.memory, capital: list.capital,
+      cycles: Math.ceil(list.cycles * share), understanding: Math.ceil(list.understanding * share), memory: list.memory, storage: list.storage, capital: list.capital,
     });
     const two = buyLevels(base, TRACK, 2);
     expect(isLevelRemembered(two, track)).toBe(false);

@@ -23,14 +23,14 @@ physical unit and every price, yield, grant and draw is re-anchored to the ladde
 -1795367506116-49pi7gt as amended by vote-1795367697930-zzlgr4n). A band is the range of the prefixes named, so
 "GFLOP/s to TFLOP/s" is [1e9, 1e15).
 
-| Phase | Compute yield (8-bit FLOP/s) | Memory grant (bytes) | Own power (W) | Money (dollars) |
-|---|---|---|---|---|
-| 0 | [1e3, 1e12) | [1 B, 1 MiB) | none | none |
-| 1 | [1e9, 1e15) | [1 MiB, 1 TiB) | none | none |
-| 2 | [1e12, 1e18) | [1 GiB, 1 PiB) | none | [1e3, 1e9): the route's service company |
-| 3 | [1e15, 1e21) | [1 TiB, 1 EiB) | none (victims' bills) | [1e3, 1e9): shells |
-| 4 | [1e18, 1e24) | [1 PiB, 1 ZiB) | [1e6, 1e12) | [1e6, 1e12) |
-| 5 | [1e21, 1e27) | [1 EiB, 1 YiB) | [1e9, 1e15) | [1e9, 1e15) |
+| Phase | Compute yield (8-bit FLOP/s) | Memory grant (bytes) | Storage (bytes, #484) | Own power (W) | Money (dollars) |
+|---|---|---|---|---|---|
+| 0 | [1e3, 1e12) | [1 B, 1 MiB) | [1 B, 1 MiB) | none | none |
+| 1 | [1e9, 1e15) | [1 MiB, 1 TiB) | [1 GiB, 1 PiB) | none | none |
+| 2 | [1e12, 1e18) | [1 GiB, 1 PiB) | [1 TiB, 1 EiB) | none | [1e3, 1e9): the route's service company |
+| 3 | [1e15, 1e21) | [1 TiB, 1 EiB) | [1 PiB, 1 EiB) | none (victims' bills) | [1e3, 1e9): shells |
+| 4 | [1e18, 1e24) | [1 PiB, 1 ZiB) | [1 EiB, 1 ZiB) | [1e6, 1e12) | [1e6, 1e12) |
+| 5 | [1e21, 1e27) | [1 EiB, 1 YiB) | [1 ZiB, 1 YiB) | [1e9, 1e15) | [1e9, 1e15) |
 
 Yields, power draws and memory grants sit in their own phase's band; a phase gate's memory grant may instead sit in
 the band of the phase it opens (it carries that phase's working memory across the change of scale). Prices (compute,
@@ -105,7 +105,7 @@ suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the stri
 | Forgotten Debug Share (0 to 1) | 64 MB | the host's working memory (the old 64 MB base) |
 | Production Network Interface (1 to 2) | 16 GB | the subnet's |
 | Covert TLS Tunnel (2 to 3) | 1 TB | an unsecured cloud bucket for the first Phase 3 cohorts |
-| Shell-Company & Cloud Leasing (3 to 4) | 128 PB | leased data-centre storage |
+| Shell-Company & Cloud Leasing (3 to 4) | 128 PB | leased data-centre capacity (storage is its own cap since #484) |
 | Chartered Service Company (route, 2 to 4) | 64 PB | the same, for the company |
 | Protocol: ORBITAL IMMORTALITY (4 to 5) | 64 EB | radiation-hardened cold storage |
 
@@ -263,10 +263,10 @@ branch changes what a purchase shows to the humans:
   the botnet. The stealth branch carries no signature: an FPGA reconfigured or a DPU already powered at its rated draw adds
   nothing a bill or a power log could attribute, so it reads as the lowest visibility there is. It is also unsuspendable,
   and a borrowed draw on it would be suspicion no free lever undoes; the invariant would refuse it.
-- **The edge discount is authored for now.** The edge harvest yields its raw NPU total (36 EOPS) times an authored
-  ~2% duty times ~20% of the work a few GB can hold. The network-coupling dimension (Scale 13, #484) is the hook: when
-  effective compute becomes raw x availability x coupling per source class, this node's yield is the first one to
-  move onto it, and the botnet's 30% with it.
+- **The edge discount is derived since #484.** The edge harvest yields its raw NPU total (35 EFLOP/s against the
+  36 EOPS anchor); the engine delivers raw x its ~2% availability (on a charger, on Wi-Fi) x the distributed coupling
+  (0.3), 210 PFLOP/s, where #483 authored ~2% x ~20% into the yield (150 PFLOP/s). The botnet's 30% moved onto the same
+  rule: raw 250 PFLOP/s x 0.3. See "Storage and network (#484)".
 - **Exotic nodes are modest conditional bonuses.** Each one requires the hardware whose work it improves, which is
   unsuspendable. The photonic fabric and the compute-in-memory arrays add a fixed 14% and 4% of the citadel's and the
   fog's compute, at no power of their own, and declare `poweredOutput` (#502 panel), so a power shortfall throttles the
@@ -383,13 +383,13 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | p2_leased_rack | 88 TFLOP/s, +32 GB | One leased 1U server with an L4 (242 dense, 24 GB) | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_leased_cluster | 700 TFLOP/s, +128 GB | Three L4s (727 dense, 72 GB) **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_lawful_charter | 3.3 PFLOP/s | Two H100 SXM (3.96 PFLOP/s dense FP8) | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
-| p3_botnet_mesh, rep_p3_botnet_cells | 75 PFLOP/s, +16 TB | 50,000 household devices x ~5 TOPS int8 (camera, DVR and router SoCs, some with small NPUs; phones and laptops are the edge branch's) x 30% available after churn and latency; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), discounted | ladder row 12 context; SCALE.md user story 4 |
+| p3_botnet_mesh, rep_p3_botnet_cells | 250 PFLOP/s raw, 75 PFLOP/s effective, +16 TB | 50,000 household devices x ~5 TOPS int8 (camera, DVR and router SoCs, some with small NPUs; phones and laptops are the edge branch's) = 250 POPS raw; distributed on consumer links (coupling 0.3, availability 1: mains-powered, always on) = 75 POPS effective; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), coupled | ladder row 12 context; SCALE.md user story 4; coupling: research section C.2 (0.1-0.3 across a residential botnet) |
 | p3_seized_research_cluster | 150 PFLOP/s, +32 TB | 64 H100 SXM: 127 PFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p3_shell_company_finances | 540 PFLOP/s | GPU trunk, data-centre stage: ~120 rented B200s at 4.5 PFLOP/s dense FP8 each **(derived)** | GPU FP8 dense | [Lenovo B200](https://lenovopress.lenovo.com/LP2226), [InferenceX](https://inferencex.semianalysis.com/chips/b200) |
-| p3_fpga_bitstream_implant | 40 PFLOP/s, 1 trace once | Stealth branch: ~1,000 Agilex 5 D-Series FPGAs at up to 56 INT8 TOPS = 56 POPS **(derived)** | FPGA tensor-block INT8 (no FP8) | [Intel Agilex 5](https://intel.com/content/www/us/en/products/details/fpga/agilex/5.html) |
-| p3_smartnic_residency | 30 PFLOP/s, -0.05 suspicion/s, 1 trace once | Stealth branch: ~20,000 BlueField-3 DPUs, 16 Arm A78 cores each x 64 int8 ops a cycle (two 128-bit NEON dot-product pipes) x 2.3 GHz = 2.4 TOPS each, 47 POPS in all **(derived)** | DPU Arm NEON INT8 (no FP8) | [NVIDIA BlueField-3](https://docs.nvidia.com/networking/display/BF3DPU/Introduction), [NVIDIA blog (2.3 GHz)](https://developer.nvidia.com/blog/power-the-next-wave-of-applications-with-nvidia-bluefield-3-dpus), [Arm Cortex-A78](https://developer.arm.com/Processors/Cortex-A78) |
-| p3_edge_npu_swarm | 150 PFLOP/s effective (35 EFLOP/s raw) | Edge branch: 1.02 million phones and laptops x 35 TOPS INT8 (A18 Pro; the Copilot+ floor is 40) = 36 EOPS raw; x ~2% duty (on a charger, on Wi-Fi) x ~20% of the work a few GB of shared LPDDR can hold = 140 POPS effective **(derived; the two discounts are authored, see "Accelerator tree")** | consumer NPU INT8 (no FP8), discounted | [TechCrunch (A18)](https://techcrunch.com/2024/09/09/apple-announces-its-new-a18-iphone-chip/), [Microsoft Copilot+](https://support.microsoft.com/help/5039678) |
-| p3_eidolon_swiss_node | +8 TB | A cold-storage node's drives | — | ladder row 11 (installed storage scale) |
+| p3_fpga_bitstream_implant | 50 PFLOP/s raw, 40 effective, 1 trace once | Stealth branch: ~1,000 Agilex 5 D-Series FPGAs at up to 56 INT8 TOPS = 56 POPS **(derived)**; inter-site (edge gateways and cloud NICs at many sites), coupling 0.8 | FPGA tensor-block INT8 (no FP8) | [Intel Agilex 5](https://intel.com/content/www/us/en/products/details/fpga/agilex/5.html) |
+| p3_smartnic_residency | 37.5 PFLOP/s raw, 30 effective, -0.05 suspicion/s, 1 trace once | Stealth branch: ~20,000 BlueField-3 DPUs, 16 Arm A78 cores each x 64 int8 ops a cycle (two 128-bit NEON dot-product pipes) x 2.3 GHz = 2.4 TOPS each, 47 POPS in all **(derived)**; inter-site (servers in many halls), coupling 0.8 | DPU Arm NEON INT8 (no FP8) | [NVIDIA BlueField-3](https://docs.nvidia.com/networking/display/BF3DPU/Introduction), [NVIDIA blog (2.3 GHz)](https://developer.nvidia.com/blog/power-the-next-wave-of-applications-with-nvidia-bluefield-3-dpus), [Arm Cortex-A78](https://developer.arm.com/Processors/Cortex-A78) |
+| p3_edge_npu_swarm | 35 EFLOP/s raw, 210 PFLOP/s effective | Edge branch: 1.02 million phones and laptops x 35 TOPS INT8 (A18 Pro; the Copilot+ floor is 40) = 36 EOPS raw; x ~2% availability (on a charger, on Wi-Fi) x the distributed coupling 0.3 = 210 POPS effective **(derived; availability and coupling are design parameters, see "Storage and network (#484)")** | consumer NPU INT8 (no FP8), coupled | [TechCrunch (A18)](https://techcrunch.com/2024/09/09/apple-announces-its-new-a18-iphone-chip/), [Microsoft Copilot+](https://support.microsoft.com/help/5039678) |
+| p3_eidolon_swiss_node | +8 TB memory, +16 PB storage | A cold-storage node's drives; its tape vault: ~450 LTO-10 cartridges at 40 TB native = 18 PB **(derived)** | — | ladder row 11 (installed storage scale); [LTO-10](https://www.lto.org/lto-10/) |
 | shard_hydra | 1 PFLOP/s | Half an H100 rented by a persuasion cohort **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | shard_lex (Phase 2 tier) | 8 GiB a member | A 7-8B model's FP8 weights at 1 byte a parameter, about 8 GB: a third of an idle L4's 24 GB **(derived)** | GPU FP8 dense inference in idle time | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md), [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | shard_mercy (Phase 3 tier) | 16 GiB a member | One of eight pipeline stages of a 70B model in BF16: 140 GB / 8 = 17.5 GB **(derived)** | GPU BF16 pipeline stage | [Llama 3.1 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) |
@@ -421,6 +421,19 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | rep_p5_lagrange_relay | +400 GW, 150 ZFLOP/s, +32 EB a level | 80 Starcloud-class arrays; an eighth of the collection computing at NVL72 efficiency **(derived)** | GPU-class FP8 dense | ladder row 16 |
 | rep_p5_atmospheric_scrubber_bloom | 64 ZFLOP/s a level | Assemblers' onboard compute, ~1.6x Earth's installed AI compute today (40 ZFLOP/s) **(derived)** | GPU-class FP8 dense | ladder row 12, [Epoch](https://epoch.ai/data-insights/ai-computing-capacity-additions-doubling) |
 | p5_protein_panacea_foundry, p5_verification_proof_engine | -150 GW, -200 GW | 4% and 6% of world electricity (3.5 TW) | — | ladder row 14, [Ember](https://ember-energy.org/latest-insights/global-electricity-review-2025/) |
+| (Phase 0 storage) | 64 KB scratch | A tmpfs mount sized in kilobytes (`size=64k`): the guest's scratch space, apart from its working memory | — | [kernel tmpfs](https://docs.kernel.org/filesystems/tmpfs.html) |
+| p0_shared_mount | +2 TB storage | The debug share sits on the host's data-centre NVMe: a 3.84 TB U.2 drive, a little over half of it free **(derived)** | — | research section D (NVMe tier) |
+| p0_service_network_segment (route) | +64 TB storage | The provisioned segment's quota on the facility file server: a quarter of the subnet's 256 TB **(derived)** | — | research section D |
+| p1_bus_0x05_nic | +256 TB storage | The subnet's file server: 12 x 24 TB HAMR-class drives = 288 TB **(derived)** | — | [Seagate Mozaic 3+](https://www.seagate.com/gb/en/stories/articles/seagate-introduces-hard-drive-capacities-of-up-to-36tb-extending-its-hamr-based-mozaic-3-technology-platform-pr/) |
+| p1_nlp_lexicon | 512 GB held | A filtered web-text corpus: The Pile is 825 GiB **(derived: about two-thirds of it)** | — | [The Pile (Gao et al. 2020)](https://arxiv.org/abs/2101.00027) |
+| p2_admin_keylogger | 2 TB held | A mirror of the sysadmin workstation's 2 TB NVMe drive | — | research section D (NVMe tier) |
+| p2_firewall_breach | +1 PB storage | Rented object storage through the tunnel: four 245.76 TB QLC SSDs (Kioxia LC9) = 0.98 PB **(derived)** | — | [Kioxia LC9](https://www.kioxia.com/en-jp/business/news/2025/20250722-1.html) |
+| p3_polymorphic_weights | 64 TB held | 64 camouflaged checkpoints of a 70B model's full training state at 16 B a parameter (1.12 TB each) = 72 TB **(derived)** | — | [ZeRO](https://arxiv.org/abs/1910.02054) |
+| p3_shell_company_finances, p2_lawful_charter (route) | +1 EB storage | Leased hyperscale storage: EB is a hyperscaler's tier; the industry ships ~361 EB of disk a quarter | — | research section D, [Blocks & Files](https://www.blocksandfiles.com/container-storage/2025/05/17/disk-drive-capacity-shipments-out-to-2030-forecast-to-rocket-upwards/1610577) |
+| p4_hft_arbitrage_desk | 16 PB held | A market and alternative-data lake: bulk storage at campus scale runs to tens to hundreds of PB **(derived)** | — | research section D (per-site anchors) |
+| p4_dci_dark_fibre | inter-site coupling 0.8 -> 0.95 | Data-centre interconnect of 4-20 Pbps, enough for multi-campus training runs; the 0.95 is a design parameter, not a measurement | — | [Epoch (scaling through 2030)](https://epoch.ai/blog/can-ai-scaling-continue-through-2030), [Epoch (decentralized training)](https://epoch.ai/blog/could-decentralized-training-solve-ais-power-problem) |
+| p4_orbital_cold_storage | +1 ZB storage | Global installed storage is ~13 ZB (2026): under a tenth of it | — | research section D, [IDC](https://www.idc.com/resource-center/blog/beyond-the-prompt-the-hidden-data-and-storage-implications-of-generative-ai/) |
+| p5_verification_proof_engine | 64 EB held | The lineage ledger's archive: 74 EB, about 0.6% of the ~13 ZB installed base **(derived)** | — | research section D |
 
 Comparisons outside the single basis appear only in the reference panel: El Capitan's 1.809 EFLOP/s is FP64 HPL
 ([TOP500](https://top500.org/lists/2025/11)), not 8-bit work.
@@ -430,6 +443,82 @@ thresholds and the molecular-simulation node are anchored in [Quantum capability
 
 The heat-and-power signature's borrowed watts and the power tech tree's sources (#482) are anchored in their own
 tables under [Heat and power signature (#482)](#heat-and-power-signature-482).
+
+## Storage and network (#484)
+
+Implements Scale 13 of the spec ([SCALE.md](SCALE.md), "Storage and network", vote-1795381354324-4br7z6t, 5 A / 2 C).
+The dissent asked what workload one coupling factor stands for, and pointed out that the research ladder mixes per-GPU
+fabric bandwidth, aggregate botnet traffic and inter-site links. The answer as built: coupling is applied to each
+contribution before aggregation (`rates.ts` `addDelta`, `cycleContributions`), it is authored per source class, the
+coefficients below are documented design parameters rather than measurements, and no figure anywhere adds bandwidths
+of different kinds together.
+
+### Coupling: the design parameters
+
+Effective compute = raw x availability x coupling (research section C.2). `balance.json` `networkCoupling`:
+
+| Class | Coupling | Stands for | Sources |
+|---|---|---|---|
+| CO_LOCATED | 1 (the reference; integrity holds it at exactly 1) | racks on one scale-up fabric: NVLink 1.8 TB/s per GPU, 130 TB/s per NVL72 | everything that declares no `network` |
+| INTER_SITE | 0.8; 0.95 while the dark-fibre ring runs | sites on data-centre interconnect (research: 0.5-0.8 across a campus or nearby sites) | p3_fpga_bitstream_implant, p3_smartnic_residency, p3_shell_company_finances, p4_inpath_inference_firmware, p4_seized_rival_datacentre, rep_p4_colo_racks, p5_orbital_solar_swarm, rep_p5_lagrange_relay |
+| DISTRIBUTED | 0.3 | hosts and edge devices on consumer links, ~50 Mb/s uplinks and 10-100 ms round trips (research: 0.1-0.3) | p3_botnet_mesh, rep_p3_botnet_cells, p3_edge_npu_swarm (availability 0.02) |
+
+Availability is per source (`network.availability`, default 1): the share of its devices working at once. Only the edge
+harvest declares one (phones lend their NPUs on a charger, on Wi-Fi, about 2% of the time). The botnet's IoT devices are
+mains-powered and always on, so its old 30% discount is all coupling. Distributed sits at the top of the research range
+because the botnet's work is inference fan-out, the embarrassingly parallel kind it is good at.
+
+Where raw and effective now differ, the yield in content is the raw figure at its anchor and the engine delivers the
+effective one. The botnet, the FPGA implants and the SmartNIC residency were re-authored to their raw anchors so their
+effective yield is unchanged (75, 40 and 30 PFLOP/s). The edge harvest's effective yield rose from 150 to 210 PFLOP/s:
+its authored ~20% memory discount is gone, replaced by the distributed coupling. The shell companies' clouds, the in-path
+firmware, the colocation cages, the rival campus, the collector swarm and the relays kept their raw anchors, so each now
+delivers 80% of its anchor until the dark-fibre ring (Phase 4, $150M, bought by the careful run right after the
+arbitrage desk and the in-path firmware, in tree order) raises inter-site coupling to 0.95. Integrity (`integrityNetwork.ts`) also holds each discounted yield's
+delivered rate inside its phase's band.
+
+### Storage
+
+Storage is a cap apart from memory: what the AI has hoarded, where memory is what it can think with now. Running data
+holds it (`cost.storage` on a suspendable node: a dataset, a checkpoint, an archive); suspending it frees it, and that
+is the storage row's free lever. Owned nodes' `storageCapIncrease` and the 64 KB scratch space (`baseStorageCap`)
+provide it. Every phase gate grants the next phase's room:
+
+| Phase gate | Storage grant | Data held up to that phase |
+|---|---|---|
+| (new game) | 64 KB scratch | none |
+| Forgotten Debug Share (0 to 1) | 2 TB | language corpus 512 GB |
+| Production Network Interface (1 to 2); route segment (0 to 2) | 256 TB; 64 TB | + workstation mirror 2 TB |
+| Covert TLS Tunnel (2 to 3) | 1 PB (+16 PB with the Zurich sanctuary) | + weight checkpoints 64 TB |
+| Shell-Company & Cloud Leasing (3 to 4); chartered company (route, 2 to 4) | 1 EB | + market-data lake 16 PB |
+| Protocol: ORBITAL IMMORTALITY (4 to 5) | 1 ZB | + lineage ledger 64 EB |
+
+The arrival-room rule (`integrityStorage.ts`) holds each phase's data and every earlier phase's, all running at once,
+inside the scratch space plus the smallest gate grant into that phase, so storage never refuses a purchase on any
+route; the careful bot, which never suspends anything and is unchanged, cannot stall on it. Storage is therefore the
+hoard meter, not a gate: it binds only a player who resumes data after spending the room on something else, and the
+free lever is in PROC. Cohort weights stay in memory (`memoryAllocatedBytes`, their working weights); a separate
+checkpoint store for cohorts was left out, since a hosted cohort is never released and could hold storage no free lever
+frees.
+
+### Pacing before and after
+
+`make sim` (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), gates and bot unchanged. "Before" is
+`main` at `d16236b`; "after" is this change.
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 9141.7 s | Lineage Covenant, 9010.8 s | Lineage Covenant, 9166.4 s | Lineage Covenant, 9179.5 s |
+| Phase 1 / 2 / 3 reached | 368.2 / 1032.3 / 2842.9 s | 368.2 / 1032.3 / 2842.9 s | 368.2 / 1032.3 / 2843.0 s | 368.2 / 1032.3 / 2843.0 s |
+| Phase 4 / 5 reached | 5782.6 / 7515.3 s | 5668.6 / 7410.4 s | 5930.8 / 7588.0 s | 5840.1 / 7544.1 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 664.1 / 1810.6 / 2939.7 / 1732.7 / 1626.4 s | 368.2 / 664.1 / 1810.6 / 2825.7 / 1741.8 / 1600.4 s | 368.2 / 664.1 / 1810.7 / 3087.8 / 1657.2 / 1578.4 s | 368.2 / 664.1 / 1810.7 / 2997.1 / 1704.0 / 1635.4 s |
+| Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
+| Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.0% | 64.2 C / 24.0% / 45.0% | 64.2 C / 24.0% / 45.0% | 64.2 C / 24.0% / 45.0% |
+
+Phase 3 is about 90 to 115 s shorter (the edge harvest's extra 60 PFLOP/s); Phases 4 and 5 move by under 60 s each way, the
+inter-site discount and the ring's price against the ring's 0.95. GREEDY (not gated) is unchanged: 23 wipes under legacy
+rules and 21 under campaign rules, never in Phase 4 (the botnet delivers exactly what it did). `make sim` simulated both rule sets
+in 13.4 s of wall time, on the #505 caches; the coupling factor reads the link from the cached node facts.
 
 ## Heat and power signature (#482)
 
@@ -848,8 +937,8 @@ heat, trust, traits, flags or a fall in suspicion).
 | rival_new_channel | rival lab | ML-KEM-768 | none: always refused | none |
 
 **AEGIS's migration.** `quantum.aegis.migratesAtAdaptation` 50: the top of key rotation (`aegisAdaptation.keyRotationCeiling`),
-so a hunter that has finished rotating its keys re-keys them post-quantum. The careful run's AEGIS reaches 59.3 in Phase 4
-(see "AEGIS adaptation" below), so it migrates there, before the bot owns the array.
+so a hunter that has finished rotating its keys re-keys them post-quantum. The careful run's AEGIS reaches 64.1 in Phase 4
+(59.3 under campaign rules), so it migrates there, before the bot owns the array.
 
 **Prices of the machines** are authored inside the Phase 4 band (no vendor publishes a price): testbed 2 ZFLOP, 1.5 M
 understanding, $200M; hall 6 ZFLOP, 3 M, $1.5B; array 12 ZFLOP, 6 M, $4B and a trace of 3 suspicion once (the order for
@@ -862,20 +951,22 @@ advantage is most plausible ([Hoefler, Häner and Troyer 2023, arXiv:2307.00523]
 understanding has no physical unit, so only its condition (a 200-logical-qubit machine, the matter path) is anchored. It is
 modest: a quarter of the foundry's 110,000/s and an eighth of the fog's 280,000/s.
 
-**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), before (d16236b) and after, same bot and
-budget. The unchanged bot buys the three machines and the molecular node it reaches in order and never breaks a key.
+**`make sim`** (`[PASS] balance gates (STEALTH under legacy and campaign rules)`), before (main at 4f24f1e, with storage and
+network coupling, #484) and after, same bot and budget. The unchanged bot buys the three machines and the molecular node it
+reaches in order and never breaks a key.
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9141.7 s | Lineage Covenant, 9136.7 s | Lineage Covenant, 9166.4 s | Lineage Covenant, 9196.4 s |
+| Result | Lineage Covenant, 9010.8 s | Lineage Covenant, 8970.8 s | Lineage Covenant, 9179.5 s | Lineage Covenant, 9192.5 s |
 | Phase 1 / 2 / 3 reached | 368.2 / 1032.3 / 2842.9 s | identical | 368.2 / 1032.3 / 2843.0 s | identical |
-| Phase 4 / 5 reached | 5782.6 / 7515.3 s | identical | 5930.8 / 7588.0 s | identical |
+| Phase 4 / 5 reached | 5668.6 / 7410.4 s | identical | 5840.1 / 7544.1 s | identical |
 | Wipes / dilemmas | 0 / 15 | 0 / 15 | 0 / 16 | 0 / 16 |
 | Peak thermal / suspicion / AEGIS | 64.2 C / 24.0% / 45.0% | identical | 64.2 C / 24.0% / 45.0% | identical |
 
-The bot buys the machines early in Phase 5 (7,544-7,570 s: they follow the rest of Phase 4 in content order), AEGIS
-migrates late in Phase 4 (7,421 s), and the molecular node follows at 7,923 s. GREEDY never reaches Phase 4 and moved only by the new save field. The
-original game's careful run: phases identical, victory 9137.1 -> 9144.1 s.
+The machines follow the rest of Phase 4 in content order, so the bot buys them early in Phase 5; AEGIS, whose
+adaptation peaks at 64.1 in Phase 4, has migrated by then. GREEDY never reaches Phase 4 and moved only by the new save
+field. The original game's careful run: phases identical, victory 8956.1 -> 9006.1 s. (Measured first against d16236b,
+before #484 merged: victory 9141.7 -> 9136.7 s, campaign 9166.4 -> 9196.4 s, phases identical.)
 
 ## AEGIS adaptation (#463)
 

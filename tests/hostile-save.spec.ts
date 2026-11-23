@@ -21,8 +21,8 @@ function pressed(s: GameState): GameState {
 }
 
 describe('save v19 (#491)', () => {
-  it('is followed only by the quantum record (#464, v20)', () => {
-    expect(SCHEMA_VERSION).toBe(20);
+  it('is followed only by storage (#484, v20) and the quantum record (#464, v21)', () => {
+    expect(SCHEMA_VERSION).toBe(21);
   });
 
   it('migrates a v18 save to an empty hostile slot and keeps everything else', () => {

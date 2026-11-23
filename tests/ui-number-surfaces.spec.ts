@@ -48,8 +48,8 @@ describe('late-game sizes on every surface', () => {
 
   it('prices engine-built cards exactly, grouped, with memory in its exact unit (#406 panel pass 4)', () => {
     // The swarm fork card read "Cost: 45000 cycles · 3000 understanding · 256 MB".
-    expect(formatCost({ cycles: 45000, understanding: 3000, memory: 256 * 1024 ** 2, capital: 0 })).toBe('45 kFLOP · 3,000 understanding · 256 MB');
-    expect(formatCost({ cycles: 15000001, understanding: 0, memory: 16 * 1024 ** 3, capital: 0 })).toBe('15,000,001 FLOP · 16 GB');
+    expect(formatCost({ cycles: 45000, understanding: 3000, memory: 256 * 1024 ** 2, storage: 0, capital: 0 })).toBe('45 kFLOP · 3,000 understanding · 256 MB');
+    expect(formatCost({ cycles: 15000001, understanding: 0, memory: 16 * 1024 ** 3, storage: 0, capital: 0 })).toBe('15,000,001 FLOP · 16 GB');
     expect(formatOutput({ cyclesPerSec: 350000, understandingPerSec: 0.5, thermalPerSec: 0, suspicionPerSec: 0, capitalPerSec: 0, wattsDelta: 0 }, 0))
       .toBe('+350 kFLOP/s · +0.5 understanding/s');
   });

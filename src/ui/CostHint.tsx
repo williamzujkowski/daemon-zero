@@ -20,7 +20,7 @@ export default function CostHint({ cost, lead = 'Short by', danger = false }: { 
   const missing = useStore(gameStore.store, useShallow(({ game }) => {
     const missing = costShortfall(game, cost);
     return { cycles: Math.ceil(missing.cycles), understanding: Math.ceil(missing.understanding),
-      capital: Math.ceil(missing.capital), memory: Math.ceil(missing.memory) };
+      capital: Math.ceil(missing.capital), memory: Math.ceil(missing.memory), storage: Math.ceil(missing.storage) };
   }));
   const full = costText(missing);
   // 'Need' beside the card's 'Cost' read as a second price when this is the SHORTFALL

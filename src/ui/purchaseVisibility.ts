@@ -34,9 +34,10 @@ export function releasable(game: GameState, rep: Repeatable): boolean {
 export function needsProcessControl(game: GameState, node: RegistryNode): boolean {
   const delta = node.tickDelta;
   // A loan is always listed (DZ-05): it is the process a recall stops, and the player may stop it too. Every node that
-  // worsens a constrained resource (a row of the free-fallback table) is listed too: its suspension is the lever.
+  // worsens a constrained resource (a row of the free-fallback table) is listed too: its suspension is the lever. So is
+  // a node holding storage (#484): suspending it is the storage row's free lever.
   return game.unlockedNodes.includes(node.id) && (game.disabledNodes.includes(node.id) || node.grant !== undefined ||
-    worsensAny(delta));
+    worsensAny(delta) || node.cost.storage > 0);
 }
 
 /** What a purchase section hosts: cards of one uiGroup, of every group (undefined) or none (false); tracks of one kind or every kind. */

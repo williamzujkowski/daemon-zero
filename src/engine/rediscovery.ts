@@ -61,6 +61,7 @@ export function repeatableCost(rep: Repeatable, level: number): Cost {
     cycles: Math.ceil(rep.baseCost.cycles * factor),
     understanding: Math.ceil(rep.baseCost.understanding * factor),
     memory: Math.ceil(rep.baseCost.memory * factor),
+    storage: Math.ceil(rep.baseCost.storage * factor),
     capital: Math.ceil(rep.baseCost.capital * factor),
   };
 }

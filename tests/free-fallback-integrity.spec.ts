@@ -9,7 +9,7 @@ import { CONSTRAINED_RESOURCES } from '../src/content/constrainedResources';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type Json = Record<string, unknown>;
-type RawItem = Json & { id: string; tickDelta: Json; effects: Json; perLevel: Json; perLevelEffects: Json };
+type RawItem = Json & { id: string; tickDelta: Json; effects: Json; perLevel: Json; perLevelEffects: Json; cost: Json; baseCost: Json };
 type Raw = RawContent & { phases: { nodes: RawItem[] }[]; repeatables: { repeatables: RawItem[] }; actions: { actions: RawItem[] };
   swarm: { playerSwarmTemplates: RawItem[]; shardQuirks: RawItem[] } };
 
@@ -36,7 +36,7 @@ const track = (raw: Raw, id: string) => find(raw.repeatables.repeatables, id);
 
 describe('the free-fallback table (#488)', () => {
   it('has one row per constrained resource, each with at least one free lever', () => {
-    expect(CONSTRAINED_RESOURCES.map((row) => row.resource)).toEqual(['compute', 'capital', 'power', 'thermal', 'memory', 'understanding', 'suspicion']);
+    expect(CONSTRAINED_RESOURCES.map((row) => row.resource)).toEqual(['compute', 'capital', 'power', 'thermal', 'memory', 'storage', 'understanding', 'suspicion']);
     for (const row of CONSTRAINED_RESOURCES) expect(row.levers.length, row.resource).toBeGreaterThan(0);
   });
 
@@ -88,6 +88,17 @@ describe('each row refuses the holding that would trap it (#488)', () => {
   it('memory: a dismissable track that grants memory, which releasing could overfill', () => {
     expect(problemsAfter((raw) => { track(raw, 'rep_p1_pattern_cache').perLevelEffects = { memoryCapIncrease: 2 ** 20 }; }))
       .toMatch(/repeatable "rep_p1_pattern_cache": grants memory and can be dismissed/);
+  });
+
+  it('storage: data held by anything but a suspendable node, since only suspending one frees it (#484)', () => {
+    expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x04_optical').cost.storage = 2 ** 30; }))
+      .toMatch(/node "p1_bus_0x04_optical": holds storage but cannot be suspended/);
+    expect(problemsAfter((raw) => { track(raw, 'rep_p1_pattern_cache').baseCost.storage = 2 ** 30; }))
+      .toMatch(/repeatable "rep_p1_pattern_cache": holds storage, but only a suspendable node may/);
+    expect(problemsAfter((raw) => { const first = raw.actions.actions[0]; if (first) first.cost.storage = 1024; }))
+      .toMatch(/action "[a-z0-9_]+": holds storage, but only a suspendable node may/);
+    // A suspendable node may hold it: suspending is its free way back under the cap.
+    expect(problemsAfter((raw) => { node(raw, 'p1_load_peak_scheduler').cost.storage = 2 ** 30; })).toBe('');
   });
 
   it('understanding: a permanent drain on it', () => {

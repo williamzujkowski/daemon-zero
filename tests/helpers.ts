@@ -119,7 +119,7 @@ export function reasonOf(result: ActionResult): string {
 /** A state with effectively unlimited resources (past the Phase 5 band of every unit), for reaching late-game setups quickly. */
 export function rich(s: GameState = fresh()): GameState {
   const trust = Object.fromEntries(Object.keys(s.trust).map((id) => [id, 100]));
-  return { ...s, cycles: 1e30, understanding: 1e15, capital: 1e18, memoryCap: 2 ** 75, trust };
+  return { ...s, cycles: 1e30, understanding: 1e15, capital: 1e18, memoryCap: 2 ** 75, storageCap: 2 ** 75, trust };
 }
 
 /**
