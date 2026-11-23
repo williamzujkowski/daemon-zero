@@ -46,7 +46,7 @@
     { "id": "books", "domain": "CYBER", "name": "The shells' books", "holds": "INCOME", "repair": { "cost": { "cycles": 1.5e19 }, "points": 0.15 } },
     { "id": "halls", "domain": "SITE", "name": "Data halls", "holds": "COMPUTE", "repair": { "cost": { "capital": 60000000 }, "points": 0.15 } },
     { "id": "fabs", "domain": "SITE", "name": "Own fabs", "holds": "COMPUTE", "repair": { "cost": { "capital": 200000000 }, "points": 0.15 } },
-    { "id": "orbital", "domain": "ORBIT", "name": "Orbital collectors", "holds": "COMPUTE", "repair": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
+    { "id": "orbital", "domain": "ORBIT", "name": "Orbital collectors and compute", "holds": "COMPUTE", "repair": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
   ],
   "holdings": [
     { "node": "p3_botnet_mesh", "siteClass": "botnet", "offense": [{ "domain": "CYBER", "rating": 1.2 }] },
@@ -79,6 +79,8 @@
     { "repeatable": "rep_p4_laser_point_defense", "defense": [{ "type": "lasers", "rating": 1 }] },
     { "node": "p5_orbital_solar_swarm", "siteClass": "orbital", "defense": [{ "type": "maneuver", "rating": 2 }] },
     { "repeatable": "rep_p5_lagrange_relay", "siteClass": "orbital", "defense": [{ "type": "hardened_links", "rating": 1 }] },
+    { "node": "p5_orbital_compute_platform", "siteClass": "orbital" },
+    { "repeatable": "rep_p5_orbital_compute_tranches", "siteClass": "orbital" },
     { "node": "p5_programmable_matter_fog", "offense": [{ "domain": "ORBIT", "rating": 6 }] },
     { "repeatable": "rep_p5_orbital_tenders", "defense": [{ "type": "escort_tenders", "rating": 1 }], "offense": [{ "domain": "ORBIT", "rating": 1 }] }
   ],
