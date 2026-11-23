@@ -8,6 +8,7 @@ import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
 import { actionOutputs, shardOutput } from './swarmRates';
 import { computeRates, financeEnabled, isPoweredOutput } from './rates';
+import { hostileComputeShare } from './hostileEffect';
 import { endingEvidence } from './campaignQuery';
 import { grantDiscoverable, nodeOutputScale, nodeUseBlocker, outputBasis, type OutputBasis } from './grantQuery';
 import { meetsCapability } from './capabilityQuery';
@@ -282,6 +283,8 @@ export function cycleContributions(s: GameState, reg: ContentRegistry): CycleCon
   for (const output of actionOutputs(s, reg)) sources.push({ id: output.id, kind: 'action', cyclesPerSec: scaled(output.delta.cyclesPerSec * output.count, isPoweredOutput(output.delta)), basis: 'OWNED' });
   const gross = sources.reduce((sum, source) => sum + source.cyclesPerSec, 0);
   // The diversion computeRates applies, by the same rule (a suspended or withheld entity diverts nothing).
-  const fraction = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;
+  const diverted = gross > 0 && financeEnabled(s, reg) ? 1 - s.actuators.computeProfitAllocationRatio : 1;
+  // A feral hostile's share (#491) of positive net compute, by the same rule: every source gives up the same share.
+  const fraction = gross * diverted > 0 ? diverted * (1 - hostileComputeShare(s, reg)) : diverted;
   return sources.filter((source) => source.cyclesPerSec !== 0).map((source) => ({ ...source, cyclesPerSec: source.cyclesPerSec * fraction }));
 }

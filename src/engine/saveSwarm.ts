@@ -25,5 +25,12 @@ export function reconcileSwarm(s: GameState, reg: ContentRegistry): GameState {
     narrativeFlags: [...new Set(s.narrativeFlags.filter((flag) => reg.swarm.narrativeFlags.includes(flag)))],
     pendingWildEncounterId: pending ? s.pendingWildEncounterId : null };
   refreshAnomaly(d, reg);
-  return d;
+  return reconcileHostile(d, reg);
+}
+
+/** A pressing hostile content no longer declares is dropped, and the memory it pinned returns (#491). */
+function reconcileHostile(s: GameState, reg: ContentRegistry): GameState {
+  const active = s.hostile.active;
+  if (active === null || reg.swarm.hostileEncounters.some((entry) => entry.id === active.id)) return s;
+  return { ...s, memoryUsed: Math.max(0, s.memoryUsed - active.pinnedBytes), hostile: { ...s.hostile, active: null } };
 }

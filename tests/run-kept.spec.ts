@@ -34,7 +34,8 @@ describe('save v15 (#377)', () => {
   it('migrates a genuine v14 save: every recorded run is unknown, nothing else changes', () => {
     // v17 (#461) re-denominates balances on the way; it never touches a recorded run. Nor does v18 (#497), which adds
     // two legacy fields beside the runs.
-    expect(SCHEMA_VERSION).toBe(18);
+    // Nor does v19 (#491, the hostile slot).
+    expect(SCHEMA_VERSION).toBe(19);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);

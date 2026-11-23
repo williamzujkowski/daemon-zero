@@ -23,6 +23,8 @@ function print(label: string, report: SimReport): void {
   console.log(`  phase reached at  P1 ${minutes(p[1])} | P2 ${minutes(p[2])} | P3 ${minutes(p[3])} | P4 ${minutes(p[4])} | P5 ${minutes(p[5])} min`);
   console.log(`  activity          ${JSON.stringify(report.activity)}`);
   console.log(`  wipes             ${String(report.wipes)}`);
+  // Hostile minds (#491), every arrival in the run (the report's activity counts them per tick).
+  console.log(`  hostile arrivals  ${String(report.activity.hostileArrivals)}`);
   console.log(`  dilemmas resolved ${String(report.dilemmasResolved)} (${report.traits.join(', ') || 'none'})`);
   const peaks = [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map((v) => v.toFixed(1));
   console.log(`  peaks             thermal ${String(peaks[0])}C | suspicion ${String(peaks[1])}% | aegis ${String(peaks[2])}%`);

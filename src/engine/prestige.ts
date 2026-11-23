@@ -143,6 +143,9 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     narrativeFlags: [...old.narrativeFlags],
     nextEncounterAtSec: old.simTimeSec + reg.swarm.balance.encounterIntervalSec,
     encounterSequenceIndex: old.encounterSequenceIndex,
+    // A wipe ends any hostile pressing the run (its pin went with the run's memory) and starts the rotation over: a new
+    // instance meets its tier's hostiles from the first. The purge count carries, so the purge's rate stays exact.
+    hostile: { ...fresh.hostile, purges: old.hostile.purges },
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,

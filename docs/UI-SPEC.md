@@ -574,6 +574,42 @@ wild minds. A retired tier's pending
 signal is never shown: it lapses with its own log line at the purchase that advances the phase.
 Buttons remain at least 44 px in both dimensions.
 
+A hostile mind pressing the instance (#491) is shown in three places, all from `hostileView`, and nowhere else:
+
+- **SWARM** (`hostile-encounter`, above the wild signal): a `// HOSTILE: <name>` card whose details hold its signature
+  and arrival line; its kind and origin (`hostile-origin`); its one effect stated exactly (`hostile-effect`, for example
+  "Takes 15% of net compute while net compute is positive."); what holds it and how going quiet ends it
+  (`hostile-quiet`: "Suspicion holds it: response rung 2. ..." while the rung holds; while the lock is at or past 60%,
+  "The AEGIS lock is at 63%, at or past the 60% that summons hostile minds. It does not keep this one from lapsing.",
+  then either "It summons no other until it has been under 60%." or, when the lock crossed since this one arrived,
+  "Once this one ends, the lock summons another after 300 s unless it is under 60% by then."; a running decoy's
+  seconds; and "GO QUIET: free. Keep suspicion under 42% for 120 s and it lapses.", which adds "Quiet now: it lapses in
+  N s unless suspicion reaches response rung 2 again." once the rung no longer holds); then each answer's sentence (`hostile-{answer}-text`), its cost
+  and every reason it is refused, and its button (`hostile-quarantine`, `hostile-decoy`, `hostile-purge`). The purge's
+  success and failure effects are listed with the same badges as a wild signal's consume effects. Going quiet has no
+  control: it is something the player does with the levers they already have, and the copy names no lever.
+- **Workspace notice** (`hostile-notice`, never in the pinned HUD, hidden while SWARM is open): "HOSTILE // <name>
+  [ ANSWER ]", which opens SWARM, laid out like the wild-signal notice (two-line name, unshrinking affordance, accessible
+  name containing the visible text). In the columns it sits under the area tabs. On the phone it closes the pane's flow,
+  after the area's content, so it never pushes the first work card below the fold: in the t-three-banners state
+  (brownout, insolvent and response bands, with suspicion on rung 2, so a hostile arrives) a notice under the tabs put
+  the first card's box at 782 px against a 799 px fold (`firstCard`, 0.386 visible), and at the end of the flow the
+  transition keeps it. ANSWER is a route (`requestRoute`, #369), not a bare selection: the workspace selects SWARM and focuses
+  its tab, so from the bottom of a deep scroll the phone lands on the tab with the hostile card fully in view under the
+  pinned chrome, and focus never goes down with the unmounted notice (`hostile-encounters.e2e.ts`, phone).
+- **Other Minds console** (`hostile-status`): before the world view opens, under the AEGIS status; in the world view, first
+  under "Other minds". One header ("Hostile minds") and one read-only line naming it, its kind and its effect, ending
+  "Answer it in SWARM, or go quiet." The console never duplicates the controls.
+- **AEGIS strike line** (`aegis-strike`, world view): while a hunter swarm presses under its ceiling it adds "A hunter
+  swarm adds 0.04%/s until the lock reaches 45%.", or, when the scan alone would not raise the lock, says "Only a hunter
+  swarm raises the lock: ..." instead of "The lock is not rising.", which would then be false.
+
+No new live region: the arrival is a kernel-log warning (the hostile's own line), and nothing in the panel or the notice
+speaks on a tick. The panel and notice render only while a hostile presses, so no atlas stage or ARIA baseline line
+changed; the phone stays one scroll, with the notice at the end of the flow. `tests/e2e/hostile-encounters.e2e.ts` checks the
+disclosure on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts` proves
+each answer the engine accepts (and the free purge as a lever) has a reachable control.
+
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
 screens replace the feed, leaving zero purchase cards. Static node/action/cohort

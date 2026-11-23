@@ -19,6 +19,7 @@ import { actuatorLimit } from './conditioning';
 import { wipe } from './prestige';
 import { logRetirements } from './retirement';
 import { lapseRetiredEncounter } from './encounterTiers';
+import { retireHostile } from './hostile';
 import { payRebuildGrants } from './rebuildGrant';
 import {
   canAfford,
@@ -99,6 +100,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   if (d.ending === null) logRetirements(s, d, reg);
   // A purchase is also the only way a phase advances, so a retired tier's pending arrival lapses here, in its order (#492).
   if (d.ending === null) lapseRetiredEncounter(d, reg);
+  // And a hostile from the retired tier lapses with its retire line (#491).
+  if (d.ending === null) retireHostile(d, reg);
   // A purchase is a transition (NARRATIVE-HISTORY N4): hardware can end the access a queued scene
   // declares (the escape ends the guest's assigned work, nexus vote scenes-lapse-at-escape), so the
   // scene takes its interruption policy now instead of counting down to an interrupt that cannot come.

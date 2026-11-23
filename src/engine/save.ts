@@ -128,6 +128,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     const phases = runs.map((run: unknown) => isRecord(run) && typeof run.phase === 'number' ? run.phase : 0);
     return { ...save, legacy: { ...legacy, deepestPhase: Math.max(0, ...phases), knownLevels: {} } };
   },
+  // v19: the hostile-mind slot (#491). No earlier build had hostiles, so every save starts with none pressing, the
+  // rotation and purge count at 0 and the lock armed. Self-contained: it writes only its own field, so it can be renumbered.
+  18: (save) => ({ ...save, hostile: { active: null, nextAtSec: 0, sequence: 0, purges: 0, lockArmed: true } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

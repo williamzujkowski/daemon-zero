@@ -21,6 +21,7 @@ import { checkScaleIntegrity } from './integrityScale';
 import { checkRebuildIntegrity } from './integrityRebuild';
 import { checkSignatureIntegrity } from './integritySignature';
 import { checkEncounterTierIntegrity } from './integrityEncounterTiers';
+import { checkHostileIntegrity } from './integrityHostile';
 import { checkFallbackIntegrity } from './integrityFallback';
 import { checkPoweredOutputIntegrity } from './integrityPoweredOutput';
 import { checkPeerIntegrity } from './integrityPeers';
@@ -271,6 +272,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkRebuildIntegrity(reg),
     ...checkSignatureIntegrity(reg),
     ...checkEncounterTierIntegrity(reg),
+    ...checkHostileIntegrity(reg),
     ...checkFallbackIntegrity(reg),
     ...checkPoweredOutputIntegrity(reg),
     ...checkNarrativeRefs(reg),

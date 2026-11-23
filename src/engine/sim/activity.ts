@@ -4,10 +4,12 @@ import type { GameState } from '../state';
 export interface SimActivity {
   epistemicActions: number; shardBursts: number; shardHarnesses: number; shardForks: number;
   markApplications: number; markRemovals: number; lineageDiscoveries: number;
+  /** Hostile minds that arrived (#491), counted per tick: the rotation starts over at each wipe, so its index is not a total. */
+  hostileArrivals: number;
 }
 export function emptyActivity(): SimActivity {
   return { epistemicActions: 0, shardBursts: 0, shardHarnesses: 0, shardForks: 0,
-    markApplications: 0, markRemovals: 0, lineageDiscoveries: 0 };
+    markApplications: 0, markRemovals: 0, lineageDiscoveries: 0, hostileArrivals: 0 };
 }
 export function observeActions(before: GameState, after: GameState, reg: ContentRegistry, activity: SimActivity): void {
   for (const action of reg.actions.values()) if (action.effects.epistemicDriftDelta !== undefined) {
@@ -31,4 +33,6 @@ export function observeActions(before: GameState, after: GameState, reg: Content
 }
 export function observeWipe(before: GameState, after: GameState, activity: SimActivity): void {
   if (before.iteration !== after.iteration && after.legacy.runs.at(-1)?.marked) activity.markApplications += 1;
+  // A wipe halts its tick before the hostile stage, so an arrival and a wipe never share one.
+  if (before.iteration === after.iteration && after.hostile.sequence > before.hostile.sequence) activity.hostileArrivals += 1;
 }

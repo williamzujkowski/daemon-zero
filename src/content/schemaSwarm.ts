@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { CostSchema, EffectPayloadSchema, RequirementsSchema, TickDeltaSchema } from './schema';
 import { GrantSchema } from './schemaGrant';
+import { HostileBalanceSchema, HostileEncounterSchema } from './schemaHostile';
 const id = z.string().regex(/^[a-z0-9_]+$/);
 export const ShardTemplateSchema = z.strictObject({
   id, name: z.string().min(3), description: z.string().min(10),
@@ -14,10 +15,11 @@ export const ShardQuirkSchema = z.strictObject({
   tickDelta: TickDeltaSchema, epistemicDriftPerSec: z.number(),
 });
 /**
- * What kind of mind an arrival is. LESSER: a lesser AI met in passing, consumed or harnessed (#492). Hostile arrivals
- * (#491) join as their own kind with their own lifecycle, so every rule here is written for one kind.
+ * What kind of mind an arrival is. LESSER: a lesser AI met in passing, consumed or harnessed (#492). HOSTILE: a mind
+ * that presses this instance while suspicion or the lock is high (#491, schemaHostile.ts), with its own list, slot and
+ * lifecycle, so a wild encounter is always LESSER and a hostile one always HOSTILE.
  */
-export const EncounterKindSchema = z.enum(['LESSER']);
+export const EncounterKindSchema = z.enum(['LESSER', 'HOSTILE']);
 /**
  * A lesser mind met in the wild. It belongs to one phase's tier (#492, docs/SCALE.md "Other minds scale with the
  * player"): it arrives only while that is the player's phase, and when the phase moves on, an arrival still pending
@@ -26,7 +28,7 @@ export const EncounterKindSchema = z.enum(['LESSER']);
 export const WildEncounterSchema = z.strictObject({
   origin: z.string().min(3), signature: z.string().min(3),
   id, name: z.string().min(3), description: z.string().min(10),
-  kind: EncounterKindSchema, tier: z.number().int().min(0),
+  kind: z.literal('LESSER'), tier: z.number().int().min(0),
   requirements: RequirementsSchema, templateId: id, consume: EffectPayloadSchema,
   onHarnessLog: z.string().min(10), lapseLog: z.string().min(10),
 });
@@ -63,6 +65,9 @@ export const SwarmSchema = z.strictObject({
   wildShardEncounters: z.array(WildEncounterSchema).min(1),
   /** Authorized-channel encounters (DZ-08). shards.json declares none; the Earned Access pack adds them. */
   channelEncounters: z.array(ChannelEncounterSchema),
+  /** Hostile minds (#491): authored per tier from hostile.fromPhase, one of each type in every phase. */
+  hostileEncounters: z.array(HostileEncounterSchema).min(1),
+  hostile: HostileBalanceSchema,
   shardQuirks: z.array(ShardQuirkSchema).min(1),
   narrativeFlags: z.array(id),
   exclusiveNarrativeFlagGroups: z.array(z.array(id).min(2)).default([]),

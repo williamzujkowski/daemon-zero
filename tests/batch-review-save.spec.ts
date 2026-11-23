@@ -56,7 +56,8 @@ describe('every #274 transition reloads unchanged (V12)', () => {
     // v15 (#377) added only RunRecord.kept, written by a wipe; this transition still writes no new field.
     // v17 (#461) re-denominated stored balances into physical units; it added no field either.
     // v18 (#497) added the deepest phase and remembered levels to the legacy record, written by a wipe; not by this.
-    expect(SCHEMA_VERSION).toBe(18);
+    // v19 (#491) added the hostile slot, which this transition never writes.
+    expect(SCHEMA_VERSION).toBe(19);
   });
 });
 
