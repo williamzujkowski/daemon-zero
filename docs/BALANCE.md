@@ -512,6 +512,10 @@ prices sit inside their phase's money band (`integrityScale.ts`).
 - **Bands.** Yields, draws and prices sit in their phase's band; the Phase 5 lithography gains are at least 1 ZFLOP/s
   because the band starts there.
 - **No content ids in the engine.** `supplyChain.ts` reads the chokepoints, ladder and seed from `world.json`.
+- **State pressure (#490).** With the interconnect moratorium in force a fab can still be bought and runs on owned
+  generation, while new grid interconnects are refused; fabs stay suspendable and fleets dismissable under pressure
+  (`tests/supply-chain.spec.ts`). The careful run never reaches rung 1, so the merge with #490 (`19e1de3`) left every
+  figure below unchanged.
 
 ### Pacing before and after
 
@@ -987,6 +991,79 @@ hostile, and each iteration meets the same hunter swarm first, but the three-mem
 wipes, so the steady loop repeats every three iterations (boots 1,498 / 1,465 / 1,498 s apart; each three-iteration span
 within 1 s of the others). Its steady-loop check compares boots one loop apart, three iterations, with the same 5 s
 tolerance; it is still unmarked returns from Phase 3, never trapped in early wipes.
+
+## Escalation by phase (#490)
+
+Implements Scale 17 of the spec ([SCALE.md](SCALE.md), "Escalation by phase", vote-1795386854516-ybc9h5q; map #442).
+The rules are in DESIGN.md, "Escalation by phase". The gates (`gates.ts`), the sim budget and the bot are unchanged.
+
+**AEGIS posture** (`world.json` `aegis.postures`, Phase 3 on; `balance.aegisStrikeWarningAt` = 90):
+
+| Rung (suspicion) | Scan multiplier | Strikes at | Warning band before the strike |
+|---|---:|---:|---:|
+| 1 (25%) | 1.25 | 100% | 10 points |
+| 2 (50%) | 1.5 | 96% | 6 points |
+| 3 (75%) | 2 | 92% | 2 points |
+
+The multiplier applies after every reduction, so a player at the 90% cap still sees a tenth of the multiplied sweep.
+Take Phase 3 at suspicion 60 on rung 2 with no reduction: the scan is 0.03 + 0.6 x 0.3 = 0.21/s on the standing
+budget, and 0.315/s in pursuit. A lock at 30% then strikes in 210 s rather than 333 s.
+
+**State-actor pressure** (`world.json` `stateActors[].pressures`):
+
+| Pressure | Phases | Per rung (1 / 2 / 3) | Answer (any one) |
+|---|---|---|---|
+| `books_inquiry` (investigation) | 4 | scrutiny x1.25 / x1.5 / x2 | `p4_retainer_law_firm` running, or `op_retainer_lawyer` level 2 |
+| `account_freeze` (capital freeze) | 4, 5 | - / 30% / 50% frozen | `p4_k_street_lobbyists` running, or `op_retainer_lawyer` level 4 |
+| `interconnect_moratorium` (denial) | 4, 5 | - / grid interconnects and nuclear PPAs / same | `p4_k_street_lobbyists` running, or `op_k_street_lobbyist` level 2 |
+| `trading_injunction` (injunction) | 4, 5 | - / the arbitrage engine stopped / same | `p4_retainer_law_firm` running, or `op_retainer_lawyer` level 6 |
+
+Why these magnitudes:
+
+- **Inquiry.** It multiplies scale scrutiny, and that term is income-driven, so the free fallback stays sound: the
+  allocation dial at break-even leaves no net income to scrutinise. The integrity budget refused it in Phase 5.
+  There, the orbital solar swarm's and the fog's income cannot be suspended, and at x1.25 they draw 0.062/s against
+  rung 1's decay of 0.025/s, and 0.154/s against rung 2's 0.0125/s. So it ships in Phase 4 only.
+- **Freeze.** A third, then half, of the balance is held from purchases but never from bills, so it cannot cause
+  insolvency. Schema caps it at 0.9 and integrity requires it never to ease as the rung rises.
+- **Moratorium.** It closes the two sources a utility commission approves: grid service and grid-delivered PPAs.
+  Behind-the-meter co-location, solar, turbines, SMRs, restarts and fusion stay open.
+- **Injunction.** It stops the Phase 4 income desk, a suspendable node with no dial and no finance flag. The
+  allocation dial still pays upkeep through `ENABLES_CORPORATE_FINANCE`.
+
+The answers are levers the player already buys. The cheapest is two Retainer Attorneys: $9.1M, then $13.65M (cost
+growth 1.5), against Phase 4 incomes of $10^5 to $10^6/s. The deepest answer, the attorneys at level 6, costs $9.1M x
+(1.5^6 - 1) / 0.5 = $189M in all.
+
+**How often each bot meets it.** `make sim` at `SIM_BUDGET_SEC`, and the report-only `make sim-report` policies,
+measured on the merge with #508 (4f24f1e) against the same code with every posture and pressure gated off:
+
+| Run | AEGIS posture (seconds by rung) | State pressure | Change against gated off |
+|---|---|---|---|
+| STEALTH, legacy rules | none | none | None: peak suspicion 24.0%, so it never reaches rung 1; victory 9010.8 s on the merge with #508 (4f24f1e), every pin identical |
+| STEALTH, campaign rules | none | none | None: victory 9179.5 s, identical |
+| GREEDY, legacy rules | rung 1: 8,162 s; rung 2: 4,649 s | none (never reaches Phase 4) | Wipes 23 -> 25; still never past Phase 3 |
+| GREEDY, campaign rules | rung 1: 7,821 s; rung 2: 3,929 s | none | Wipes 21 -> 23; still never past Phase 3 |
+| IDLE, TRUTHFUL_*, RETURNING_LOW_RESOURCE, PILOT_* | none | none | None |
+| DEPARTURE_CHARTERED (7,200 s, report only) | rung 1: 324 s; rung 2: 253 s; rung 3: 163 s | each of the four arrives 3 times (once per iteration); inquiry 740 s, the other three 416 s each | Each swept iteration ends sooner: 2,859.9 -> 2,721.3 s, 1,848.1 -> 1,711.6 s, 1,770.1 -> 1,715.3 s; still 3 wipes, the third now an AEGIS strike at rung 3's 92% lock rather than suspicion; peak sampled lock 91.1 -> 91.7% |
+
+Careful play never triggers state pressure. The only bot that meets it is the company that left its charter without
+agreement and is swept up the ladder in Phase 4. At the 4 h budget `tests/sim.spec.ts` pins, the reckless run spends
+2,751 s in the rung 1 posture and 1,580 s in rung 2's. It goes 8 -> 9 wipes and 14 -> 9 hostile arrivals; the
+original game goes 8 -> 9 wipes and 10 -> 8 arrivals. The careful runs moved only by the v22 field and the report's
+escalation measurement, which `asV15` strips: every historical pin of the careful runs is unchanged.
+
+**Two new dilemmas** (`dil_14_router_takedown`, `dil_15_compliance_officer`) gate on rung 1 with a 50% lock, and on
+rung 2 in Phase 4. Their prices sit in the phase band: 60 EFLOP in Phase 3, between `dil_08`'s 46 EFLOP and `dil_09`'s
+120 EFLOP, and $45M in Phase 4, between `dil_12`'s $37M and `dil_11`'s $150M. No bot meets either in the measured runs.
+The careful runs never reach a rung. The reckless run's last iteration resolves 7 dilemmas against 8 gated off, because
+each wipe now cuts a Phase 3 iteration shorter; it never fires `dil_14`. The bot's dilemma answers are unchanged.
+
+**Runtime.** The pressures are indexed once per registry, and `pressuresInForce` answers at once wherever no pressure
+could apply: below the lowest rung, or outside every pressure's phases. That covers every tick a careful run plays.
+On the merge with #508, back-to-back `make sim` runs on a shared, busy machine measured 39.6 s and 14.0 s with
+escalation, against 51.3 s with every posture and pressure gated off. The spread is the machine, not the change, and
+the careful runs, which never leave that early answer, are byte-identical in play.
 
 ## Quantum capability (#464)
 

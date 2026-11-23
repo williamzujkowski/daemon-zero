@@ -14,7 +14,7 @@ export function epistemicActionVisible(s: GameState, action: Action, reg: Conten
 export function epistemicActionView(s: GameState, action: Action, reg: ContentRegistry) {
   const cost = actionCost(s, action, reg), cooldown = Math.max(0, Math.ceil((s.cooldowns[action.id] ?? 0) - s.simTimeSec));
   const unmet = [...requirementLabels(s, action.requirements, reg), ...pausedReason(s)];
-  if (!canAfford(s, cost)) unmet.push('Insufficient resources: ' + formatCost(cost));
+  if (!canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   if (cooldown > 0) unmet.push(`Cooldown: ${String(cooldown)}s`);
   return { id: action.id, title: action.label, description: action.description, cost, costLabel: formatCost(cost),
     cooldown, status: cooldown > 0 ? 'COOLDOWN' : 'READY', unmet,

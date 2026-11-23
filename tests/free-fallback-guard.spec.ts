@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { buyRepeatable, computeRates, executeShardCommand, forkShard, isNodeAvailable, nodeCost, performAction, repeatableCost, repeatableLevel,
+import { allPressures, appliedSuspicionRate, buyRepeatable, computeRates, pressuresInForce, executeShardCommand, forkShard, isNodeAvailable, nodeCost, performAction, repeatableCost, repeatableLevel,
   resolveWildEncounter, shardCommandCost, unlockNode, actionCost, type ActionResult, type GameState, type ShardCommand } from '../src/engine';
 import type { HostileEncounter } from '../src/content/schemaHostile';
 import { fixtureState, GUARD_STATES, pressedBy, saved } from './fallback-states';
@@ -103,6 +103,45 @@ describe('with a hostile mind pressing (#491)', () => {
   it.each(HOSTILE_STATES)('from %s: so does every purchase it can save for', (_label, state, encounter) => {
     const trapped = afterEach(pressedBy(state, encounter)).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
     expect(trapped).toEqual([]);
+  });
+});
+
+/**
+ * Every state-actor pressure in force (#490): from each guard state in a phase pressure applies in, put on each rung below
+ * the top with every answer taken away (the worst case: nothing holds a pressure off), the free fallback must still leave
+ * every row out of its trap, read at that rung so the injunction's paused output and the freeze count, and suspicion's
+ * own sources must stay under that rung's decay, so going quiet always steps the rung down and lifts the pressure.
+ */
+const ANSWER_NODES = new Set(allPressures(CONTENT).flatMap(({ pressure }) => pressure.answers.flatMap((answer) => 'node' in answer ? [answer.node] : [])));
+const ANSWER_TRACKS = new Set(allPressures(CONTENT).flatMap(({ pressure }) => pressure.answers.flatMap((answer) => 'repeatable' in answer ? [answer.repeatable] : [])));
+const PRESSURED_PHASES = new Set(allPressures(CONTENT).flatMap(({ pressure }) => pressure.phases));
+const BELOW_TOP = CONTENT.balance.escalation.slice(0, -1).map((_rung, index) => index + 1);
+
+function pressured(start: GameState, rung: number): GameState {
+  const at = CONTENT.balance.escalation[rung - 1]?.at ?? 0;
+  return { ...start, alertLevel: rung, suspicion: at + 1, unlockedNodes: start.unlockedNodes.filter((id) => !ANSWER_NODES.has(id)),
+    levels: Object.fromEntries(Object.entries(start.levels).filter(([id]) => !ANSWER_TRACKS.has(id))) };
+}
+
+/** Suspicion's own sources at the state's rung, its decay and hunt included, overheat and insolvency (their own rows) aside. */
+function netAtRung(s: GameState): number {
+  const held = { ...s, insolvent: false, thermal: Math.min(s.thermal, CONTENT.balance.thermalThresholdForSuspicion) };
+  return appliedSuspicionRate(held, computeRates(held, CONTENT), CONTENT);
+}
+
+const PRESSURE_STATES = GUARD_STATES.filter(([, state]) => PRESSURED_PHASES.has(state.currentPhase))
+  .flatMap(([label, state]) => BELOW_TOP.map((rung): [string, GameState] => [`${label}, rung ${String(rung)}`, pressured(state, rung)]));
+
+describe('with every state-actor pressure the rung calls in force (#490)', () => {
+  it('covers every phase a pressure applies in, with pressure in force', () => {
+    expect([...new Set(PRESSURE_STATES.map(([, state]) => state.currentPhase))].sort()).toEqual([...PRESSURED_PHASES].sort());
+    for (const [label, state] of PRESSURE_STATES) if (state.alertLevel >= 2) expect(pressuresInForce(state, CONTENT).length, label).toBeGreaterThan(0);
+  });
+
+  it.each(PRESSURE_STATES)('from %s: the free fallback leaves every row out of its trap, and suspicion falls at the rung', (_label, state) => {
+    const pulled = freeFallback(state);
+    expect(traps(pulled)).toEqual([]);
+    expect(netAtRung(pulled)).toBeLessThan(0);
   });
 });
 

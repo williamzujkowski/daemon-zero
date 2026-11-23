@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-  buyRepeatable, computeRates, dismissRepeatable, isNodeAvailable, powerSignature, serialize, supplyChainDisclosed,
+  buyRepeatable, computeRates, dismissRepeatable, isNodeAvailable, powerSignature, pressuresInForce, serialize, supplyChainDisclosed,
   supplyChainView, toggleNode, unlockNode, type GameState,
 } from '../src/engine';
 import { grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reasonOf, reg, rich, withoutDilemmas } from './helpers';
@@ -200,5 +200,31 @@ describe('robot fleets do operatives\' work with fewer humans to deceive', () =>
     const s = staffed();
     const hauled = must(buyRepeatable(s, 'rep_p4_autonomous_haul', reg));
     expect(computeRates(hauled, reg).capitalPerSec).toBeGreaterThan(computeRates(s, reg).capitalPerSec);
+  });
+});
+
+describe('state pressure (#490) and the fabrication step', () => {
+  /** A corporation at response rung 2 with its lobbying suspended, so the interconnect moratorium is in force. */
+  const pressed = (): GameState => {
+    const s = grant(corporation(), 'p4_inference_asic', 'p4_advanced_packaging_line', 'p4_interconnection_request');
+    return { ...must(toggleNode(s, 'p4_k_street_lobbyists', reg)), alertLevel: 2, levels: { ...s.levels, op_k_street_lobbyist: 0 } };
+  };
+
+  it('a grid moratorium refuses new grid power for a fab, but not the fab, which runs on generation the AI owns', () => {
+    const s = pressed();
+    expect(pressuresInForce(s, reg).some((entry) => entry.pressure.kind === 'INTERCONNECT_DENIAL')).toBe(true);
+    expect(buyRepeatable(s, 'rep_p4_grid_interconnect', reg).ok).toBe(false);
+    expect(buyRepeatable({ ...s, alertLevel: 0 }, 'rep_p4_grid_interconnect', reg).ok).toBe(true);
+    const fab = must(unlockNode(s, 'p4_mature_node_fab', reg));
+    expect(computeRates(fab, reg).wattsConsumed).toBeGreaterThan(computeRates(s, reg).wattsConsumed);
+  });
+
+  it('every fab and fleet keeps its free way back while pressures are in force', () => {
+    const fab = must(unlockNode(pressed(), 'p4_mature_node_fab', reg));
+    expect(must(toggleNode(fab, 'p4_mature_node_fab', reg)).disabledNodes).toContain('p4_mature_node_fab');
+    for (const id of ['rep_p4_drone_fleet', 'rep_p4_humanoid_crews', 'rep_p4_autonomous_haul']) {
+      const bought = must(buyRepeatable(fab, id, reg));
+      expect(must(dismissRepeatable(bought, id, reg)).levels[id], id).toBe(0);
+    }
   });
 });

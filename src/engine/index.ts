@@ -76,3 +76,8 @@ export { aegisKeys, aegisMigrationDue, breakKey, type AegisKeysView, currentSche
 export { initialQuantum, type QuantumState } from './quantumState';
 export { aegisPosture, worldView, worldViewOpen, type AegisPosture, type StateActorView, type WorldMindView, type WorldView } from './worldQuery';
 export { supplyChainDisclosed, supplyChainView, type CapabilityReading, type ChokepointReading, type SupplyChainView } from './supplyChain';
+export {
+  aegisPostureNow, aegisScanMultiplier, aegisStrikeAt, allPressures, answerHeld, frozenShare, injunctionOf, pressuresInForce, pressureStatus,
+  pressureTriggered, scrutinyMultiplier, sourceDenial, spendableCapital, type ActorPressure, type PressureStatus,
+} from './statePressure';
+export { aegisPostureView, pressureViews, standDownBelow, type AegisPostureView, type AnswerAction, type AnswerView, type PressureView } from './pressureQuery';

@@ -41,7 +41,7 @@ function lawfulFor(s: GameState, node: RegistryNode, reg: ContentRegistry): bool
 
 /** Buys the cheapest lawful acquisition it can afford now. */
 export function acquire(s: GameState, reg: ContentRegistry): GameState | null {
-  const open = [...reg.nodes.values()].filter((node) => lawfulFor(s, node, reg) && isNodeAvailable(s, node, reg) && canAfford(s, nodeCost(s, node, reg)));
+  const open = [...reg.nodes.values()].filter((node) => lawfulFor(s, node, reg) && isNodeAvailable(s, node, reg) && canAfford(s, nodeCost(s, node, reg), reg));
   open.sort((a, b) => nodeCost(s, a, reg).capital - nodeCost(s, b, reg).capital);
   for (const node of open) {
     const bought = taken(unlockNode(s, node.id, reg));
@@ -68,7 +68,7 @@ export function expand(s: GameState, reg: ContentRegistry): GameState | null {
     return taken(setActuator(s, 'computeProfitAllocationRatio', share, reg));
   }
   const reps = [...reg.repeatables.values()].filter((rep) => meetsRequirements(s, rep.requirements, reg) && repeatableLevel(s, rep.id) < rep.maxLevel
-    && rep.perLevel.cyclesPerSec > 0 && canAfford(s, repeatablePrice(s, rep, reg)));
+    && rep.perLevel.cyclesPerSec > 0 && canAfford(s, repeatablePrice(s, rep, reg), reg));
   reps.sort((a, b) => repeatablePrice(s, a, reg).capital - repeatablePrice(s, b, reg).capital);
   for (const rep of reps) {
     const bought = taken(buyRepeatable(s, rep.id, reg));

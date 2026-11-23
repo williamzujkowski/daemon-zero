@@ -11,6 +11,7 @@ import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from './sys
 import { evaluateDilemmas } from './systems/dilemmas';
 import { scheduleRoutineActivity } from './systems/routine';
 import { relayLoggedFeed } from './systems/feedLog';
+import { announceEscalationByPhase } from './systems/escalationByPhase';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
 import { integrateScaleScrutiny } from './systems/scrutiny';
@@ -35,6 +36,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integratePowerSignature,
   integrateSuspicion,
   integrateEscalation,
+  // Beside the rung it reads (#490). It only announces: the strike reads the rung live, the scan from the next tick's rates.
+  announceEscalationByPhase,
   integrateAegis,
   // After the strike: this tick's lock used the cap the last tick left, and a wipe halts before AEGIS learns more (#463).
   integrateAegisAdaptation,

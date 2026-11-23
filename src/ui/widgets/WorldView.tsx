@@ -12,7 +12,9 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../../app/session';
 import { CONTENT } from '../../content';
-import { aegisPosture, powerSignature, publicTrust, signatureClass, worldView } from '../../engine';
+import type { StatePressure } from '../../content/schemaPressure';
+import { aegisPosture, isNodeKnown, powerSignature, pressureViews, publicTrust, signatureClass, worldView, worldViewOpen, type GameState } from '../../engine';
+import { pressureAnswerText, pressureEffectText, pressureWhyText, type Names } from '../pressureText';
 import { theme } from '../theme';
 import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
@@ -57,6 +59,46 @@ function PublicTrustSection() {
   </Section>;
 }
 
+/** Names as the player knows them: a node by its revealed name once owned or remembered, its blind name before. */
+function namesFor(game: GameState): Names {
+  return {
+    node: (id) => {
+      const node = CONTENT.nodes.get(id);
+      if (!node) return id;
+      return game.unlockedNodes.includes(id) || isNodeKnown(game, id) ? node.revealedName : node.blindName;
+    },
+    track: (id) => CONTENT.repeatables.get(id)?.name ?? id,
+    source: (id) => signatureClass(CONTENT, id)?.name ?? id,
+  };
+}
+
+/** One line per field, tab-separated, so a subscription compares strings and a tick redraws only what changed. */
+const FIELDS = ['inForce', 'text', 'effect', 'why', 'answer'] as const;
+
+/** An actor's pressures the record calls now (#490): in force or answered, with effect, why, and the answers the engine accepts. */
+function ActorPressures({ pressures }: { pressures: readonly StatePressure[] }) {
+  const rows = useStore(gameStore.store, useShallow(({ game }) => {
+    const names = namesFor(game);
+    // Only this actor's pressures, and only while the view is open: the rest of the world view is not read per tick here.
+    return (worldViewOpen(game, CONTENT) ? pressureViews(game, pressures, CONTENT) : []).map((view) => [
+      view.pressure.id, view.inForce ? 'in force' : '', view.inForce ? view.pressure.text : view.pressure.answeredText,
+      pressureEffectText(view, names), pressureWhyText(view, game.alertLevel), pressureAnswerText(view, names) ?? '',
+    ].join('\t'));
+  }));
+  return <>{rows.map((row) => {
+    const [pressureId = '', ...values] = row.split('\t');
+    const field = Object.fromEntries(FIELDS.map((key, index) => [key, values[index] ?? '']));
+    const testID = 'pressure-' + pressureId;
+    return <View key={pressureId} testID={testID} style={{ gap: 2 }}>
+      <Text testID={testID + '-text'} style={[theme.text, field.inForce !== '' && theme.danger]}>
+        {(field.inForce !== '' ? 'IN FORCE: ' : 'ANSWERED: ') + String(field.text)}</Text>
+      <Text testID={testID + '-effect'} style={theme.muted}>{field.effect}</Text>
+      <Text testID={testID + '-why'} style={theme.muted}>{field.why}</Text>
+      {field.answer !== '' && <Text testID={testID + '-answer'} style={theme.muted}>{field.answer}</Text>}
+    </View>;
+  })}</>;
+}
+
 function StateActorsSection() {
   const postures = useStore(gameStore.store, useShallow(({ game }) => worldView(game, CONTENT)?.stateActors.map((actor) => actor.posture) ?? []));
   return <Section id="world-actors" title="State actors">
@@ -64,6 +106,7 @@ function StateActorsSection() {
       <Text accessibilityRole="header" style={theme.heading}>{actor.name}</Text>
       <Text style={theme.muted}>{actor.kind.replaceAll('_', ' ')}: {actor.description}</Text>
       <Text testID={'actor-' + actor.id + '-posture'} style={theme.text}>{postures[index] ?? ''}</Text>
+      {actor.pressures !== undefined && <ActorPressures pressures={actor.pressures} />}
     </View>)}
   </Section>;
 }

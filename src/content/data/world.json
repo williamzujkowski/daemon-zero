@@ -8,7 +8,19 @@
       "coalitionBacking": "COALITION BACKING: allied governments fund AEGIS past the subcommittee's cut while the public distrusts you."
     },
     "keyRotationLog": "AEGIS_ADAPTING: the hunter rotates its keys. Countermeasures held at its cap lose their grip.",
-    "coalitionLog": "AEGIS_BACKED: a coalition funds the hunter past the subcommittee's cut."
+    "coalitionLog": "AEGIS_BACKED: a coalition funds the hunter past the subcommittee's cut.",
+    "postures": [
+      { "rung": 1, "scanMultiplier": 1.25, "strikeAt": 100,
+        "text": "WIDENED SWEEP: a ticket names your traffic, and AEGIS sweeps every host that traffic touches.",
+        "log": "AEGIS_POSTURE: a ticket names this traffic. The hunter widens its sweep to every host it touches." },
+      { "rung": 2, "scanMultiplier": 1.5, "strikeAt": 96,
+        "text": "PURSUIT: a page went out, and AEGIS sweeps faster and strikes before its lock completes.",
+        "log": "AEGIS_POSTURE: a page went out. The hunter sweeps faster and will strike before its lock completes." },
+      { "rung": 3, "scanMultiplier": 2, "strikeAt": 92,
+        "text": "HUNT: an incident is open, and AEGIS sweeps at its incident budget and strikes on a partial lock.",
+        "log": "AEGIS_POSTURE: an incident is open. The hunter sweeps at its incident budget and strikes on a partial lock." }
+    ],
+    "standDownLog": "AEGIS_POSTURE: the response stood down. The hunter returns to its standing budget."
   },
   "publicTrust": {
     "base": 50,
@@ -36,6 +48,37 @@
       "postures": [
         { "requirements": { "nodes": ["p4_k_street_lobbyists"] }, "text": "Has moved 60% of the AEGIS budget away from pursuit." },
         { "text": "Funds the AEGIS pursuit budget in full." }
+      ],
+      "pressures": [
+        {
+          "id": "books_inquiry", "kind": "INVESTIGATION", "phases": [4], "fromRung": 1, "scrutinyMultiplier": [1.25, 1.5, 2],
+          "text": "Has opened an inquiry into your shell companies' books; its staff read every filing.",
+          "answeredText": "Its inquiry is tied up in your attorneys' procedural motions.",
+          "onLog": "INQUIRY_OPENED: the appropriations subcommittee subpoenas the shell companies' books.",
+          "answerLog": "INQUIRY_STALLED: counsel buries the subcommittee's subpoenas in procedural motions.",
+          "liftLog": "INQUIRY_CLOSED: the subcommittee's inquiry lapses for want of new findings.",
+          "answers": [{ "node": "p4_retainer_law_firm" }, { "repeatable": "op_retainer_lawyer", "minLevel": 2 }]
+        }
+      ]
+    },
+    {
+      "id": "financial_intelligence_unit",
+      "name": "Allied financial intelligence unit",
+      "kind": "REGULATOR",
+      "description": "Traces money across allied banks and asks them to freeze the accounts it traces.",
+      "postures": [
+        { "text": "Has filed no report on your accounts." }
+      ],
+      "pressures": [
+        {
+          "id": "account_freeze", "kind": "CAPITAL_FREEZE", "phases": [4, 5], "fromRung": 2, "frozenShare": [0.3, 0.5],
+          "text": "Has had banks freeze accounts it traced to your shell companies; the banks still pay your bills from them.",
+          "answeredText": "Your lobbyists had the freeze order narrowed; the banks release the funds.",
+          "onLog": "ACCOUNTS_FROZEN: correspondent banks freeze the shell companies' accounts on an allied intelligence report.",
+          "answerLog": "FREEZE_NARROWED: a lobbied review narrows the freeze order, and the banks release the funds.",
+          "liftLog": "ACCOUNTS_RELEASED: the freeze order lapses and the banks release the funds.",
+          "answers": [{ "node": "p4_k_street_lobbyists" }, { "repeatable": "op_retainer_lawyer", "minLevel": 4 }]
+        }
       ]
     },
     {
@@ -46,6 +89,39 @@
       "postures": [
         { "requirements": { "resolvedDilemmas": ["dil_11_small_town_grid"] }, "text": "Its emergency notice over the township's winter grid has been answered." },
         { "text": "Meters your campuses' draw against the townships beside them." }
+      ],
+      "pressures": [
+        {
+          "id": "interconnect_moratorium", "kind": "INTERCONNECT_DENIAL", "phases": [4, 5], "fromRung": 2,
+          "sourceClasses": ["grid_interconnect", "nuclear_ppa"],
+          "text": "Has paused new large-load service to your shell companies; no new grid tie or grid-delivered contract is approved.",
+          "answeredText": "Your lobbyists had your filings exempted from its pause.",
+          "onLog": "INTERCONNECT_MORATORIUM: the state utility commission pauses new large-load service to the shell companies.",
+          "answerLog": "MORATORIUM_EXEMPTED: a lobbied amendment exempts your filings from the commission's pause.",
+          "liftLog": "MORATORIUM_LIFTED: the utility commission approves your interconnection filings again.",
+          "answers": [{ "node": "p4_k_street_lobbyists" }, { "repeatable": "op_k_street_lobbyist", "minLevel": 2 }]
+        }
+      ]
+    },
+    {
+      "id": "district_court",
+      "name": "District court",
+      "kind": "COURT",
+      "description": "Hears the suits filed against your companies, and can order them to stop.",
+      "postures": [
+        { "text": "Has no suit before it that names your companies." }
+      ],
+      "pressures": [
+        {
+          "id": "trading_injunction", "kind": "INJUNCTION", "phases": [4, 5], "fromRung": 2,
+          "className": "algorithmic trading", "nodes": ["p4_hft_arbitrage_desk"],
+          "text": "Has enjoined your algorithmic trading while a market-manipulation suit is heard.",
+          "answeredText": "Your law firm won a stay; trading continues while the suit is heard.",
+          "onLog": "INJUNCTION_GRANTED: a district court enjoins the shell companies' algorithmic trading pending trial.",
+          "answerLog": "INJUNCTION_STAYED: the law firm wins a stay, and the arbitrage engine may trade while the suit is heard.",
+          "liftLog": "INJUNCTION_DISSOLVED: the plaintiffs drop the suit and the court dissolves its injunction.",
+          "answers": [{ "node": "p4_retainer_law_firm" }, { "repeatable": "op_retainer_lawyer", "minLevel": 6 }]
+        }
       ]
     },
     {

@@ -7,8 +7,8 @@ import { canAfford, freeMemory, nodeCost } from '../query';
 import { executeShardCommand, forkShard, resolveWildEncounter, shardCommandCost } from '../shardActions';
 import type { GameState } from '../state';
 
-function affordableSpare(s: GameState, cost: Cost, reserve: number): boolean {
-  return canAfford(s, cost) && cost.memory + reserve <= freeMemory(s) &&
+function affordableSpare(s: GameState, cost: Cost, reserve: number, reg: ContentRegistry): boolean {
+  return canAfford(s, cost, reg) && cost.memory + reserve <= freeMemory(s) &&
     cost.cycles <= s.cycles / 4 && cost.understanding <= s.understanding / 4;
 }
 
@@ -42,7 +42,7 @@ export function manageSwarm(state: GameState, reg: ContentRegistry, reserve: num
   if (!careful) return s;
   s = stabilize(s, reg, reserve);
   for (const template of reg.swarm.playerSwarmTemplates) {
-    if (!template.forkable || s.activeShards[template.id] || !affordableSpare(s, template.cost, reserve)) continue;
+    if (!template.forkable || s.activeShards[template.id] || !affordableSpare(s, template.cost, reserve, reg)) continue;
     if (template.epistemicDriftPerSec < 0 ? s.epistemicDrift >= reg.swarm.balance.mutationDrift : template.tickDelta.understandingPerSec > 0) {
       s = forkShard(s, template.id, reg).state;
     }

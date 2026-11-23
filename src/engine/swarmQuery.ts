@@ -20,7 +20,7 @@ function bindingReasons(s: GameState, template: ShardTemplate): string[] {
 }
 export function forkView(s: GameState, template: ShardTemplate, reg: ContentRegistry) {
   const unmet = [...pausedReason(s), ...requirementLabels(s, template.requirements, reg), ...bindingReasons(s, template)];
-  if (!canAfford(s, template.cost)) unmet.push('Insufficient resources: ' + formatCost(template.cost));
+  if (!canAfford(s, template.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(template.cost));
   return { id: template.id, title: template.name, description: template.description, cost: template.cost,
     costLabel: formatCost(template.cost), output: formatOutput(template.tickDelta, template.epistemicDriftPerSec),
     unmet, eligible: template.forkable && understandsSurveillance(s, reg) && unmet.length === 0 };
@@ -65,7 +65,7 @@ export function wildEncounterView(s: GameState, reg: ContentRegistry) {
   const cost = CostSchema.parse({ memory: template.cost.memory });
   const unmet = [...pausedReason(s), ...requirementLabels(s, encounter.requirements, reg)];
   const harnessUnmet = [...unmet, ...bindingReasons(s, template)];
-  if (!canAfford(s, cost)) harnessUnmet.push(`Requires ${memoryExact(cost.memory)} free memory.`);
+  if (!canAfford(s, cost, reg)) harnessUnmet.push(`Requires ${memoryExact(cost.memory)} free memory.`);
   return { id: encounter.id, title: encounter.name, origin: encounter.origin, signature: encounter.signature,
     description: encounter.description, consume: encounter.consume, consumeEligible: unmet.length === 0, unmet,
     harnessCost: cost, harnessCostLabel: formatCost(cost), harnessOutput: formatOutput(template.tickDelta, template.epistemicDriftPerSec),

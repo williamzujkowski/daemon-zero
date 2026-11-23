@@ -42,6 +42,7 @@ import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
+import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
@@ -241,6 +242,11 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/** The world manifest's blocks (world.json): the view, the supply chain (#485), state pressure (#490) and quantum (#464). */
+function checkWorldManifests(reg: ContentRegistry): string[] {
+  return [...checkWorldIntegrity(reg), ...checkSupplyChainIntegrity(reg), ...checkPressureIntegrity(reg), ...checkQuantumIntegrity(reg)];
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkAchievementIntegrity(reg),
@@ -286,8 +292,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkActuatorHosts(reg),
     ...checkActionHostIntegrity(reg),
     ...checkRetirementIntegrity(reg),
-    ...checkWorldIntegrity(reg),
-    ...checkSupplyChainIntegrity(reg),
-    ...checkQuantumIntegrity(reg),
+    ...checkWorldManifests(reg),
   ];
 }

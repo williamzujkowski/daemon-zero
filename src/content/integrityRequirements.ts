@@ -52,6 +52,19 @@ function checkCampaignHistoryGates(reg: ContentRegistry, owner: string, req: Req
   return problems;
 }
 
+/** A rung gate names a rung on the ladder and a window that can hold (#490); 0 is the bottom, where nobody is looking. */
+function checkAlertLevels(reg: ContentRegistry, owner: string, req: Requirements): string[] {
+  const top = reg.balance.escalation.length, problems: string[] = [];
+  for (const key of ['minAlertLevel', 'maxAlertLevel'] as const) {
+    const rung = req[key];
+    if (rung !== undefined && rung > top) problems.push(`${owner}: ${key} ${String(rung)} is above the top response rung (${String(top)})`);
+  }
+  if (req.minAlertLevel !== undefined && req.maxAlertLevel !== undefined && req.maxAlertLevel < req.minAlertLevel) {
+    problems.push(`${owner}: maxAlertLevel is below minAlertLevel`);
+  }
+  return problems;
+}
+
 export function checkRequirements(reg: ContentRegistry, owner: string, req: Requirements | undefined): string[] {
   if (!req) return [];
   const problems: string[] = [];
@@ -63,6 +76,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   if (req.minIteration !== undefined && req.maxIteration !== undefined && req.maxIteration < req.minIteration) {
     problems.push(`${owner}: maxIteration is below minIteration`);
   }
+  problems.push(...checkAlertLevels(reg, owner, req));
   for (const id of Object.keys(req.minTrust ?? {})) {
     if (!reg.factions.has(id)) problems.push(`${owner}: requirement references unknown faction "${id}"`);
   }
