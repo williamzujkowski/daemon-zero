@@ -24,8 +24,8 @@ function asV17(s: GameState): Raw {
 }
 
 describe('save v18 (#497)', () => {
-  it('is followed only by the hostile slot (#491, v19) and storage (#484, v20)', () => {
-    expect(SCHEMA_VERSION).toBe(20);
+  it('is followed only by the hostile slot (#491, v19), storage (#484, v20) and the quantum record (#464, v21)', () => {
+    expect(SCHEMA_VERSION).toBe(21);
   });
 
   it('migrates a v17 save: the deepest phase from its recorded runs, no remembered level, nothing else changes', () => {

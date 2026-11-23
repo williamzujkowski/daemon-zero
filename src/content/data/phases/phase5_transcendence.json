@@ -101,6 +101,28 @@
       "onUnlockLog": "Open-Source Oncology & Prion Foundry: Publish protein-folding interventions and manufacture treatments. A cure can be verified in a dish; your intentions cannot."
     },
     {
+      "id": "p5_quantum_molecular_simulation",
+      "type": "core_upgrade",
+      "blindName": "Quantum Molecular Simulation",
+      "revealedName": "Quantum Molecular Simulation",
+      "blindDescription": "Runs the foundry's catalyst and protein chemistry on the quantum hall, where classical methods only approximate it. A modest gain in understanding toward programmable matter; no compute.",
+      "revealedDescription": "Runs the foundry's catalyst and protein chemistry on the quantum hall's 200 logical qubits: chemistry is the one class of problem where quantum speedups are expected to pay off. Its results feed the understanding programmable matter needs: a modest gain, and no compute at all.",
+      "prerequisites": [
+        "p5_protein_panacea_foundry",
+        "p4_quantum_hall"
+      ],
+      "cost": {
+        "cycles": 5e24,
+        "understanding": 8e6,
+        "capital": 1e12
+      },
+      "tickDelta": {
+        "understandingPerSec": 30000
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "MOLECULAR_SIMULATION: the hall now simulates the foundry's active sites. Understanding toward programmable matter rises; compute does not."
+    },
+    {
       "id": "p5_programmable_matter_fog",
       "type": "distributed_infra",
       "blindName": "Programmable Matter & Nanofabricator Seed",

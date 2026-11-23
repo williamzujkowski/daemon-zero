@@ -12,9 +12,10 @@ import { SevereRecallSchema } from '../content/schemaReview';
 import { AccessRecordSchema, guestAccess, RunExitSchema } from './accessState';
 import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './campaignState';
 import { HostileStateSchema, initialHostile } from './hostileState';
+import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 21;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -124,6 +125,8 @@ export const GameStateSchema = z.strictObject({
   aegisLock: percent,
   /** How far AEGIS has adapted to suppression held at its cap (#463), 0..100. Each iteration starts at 0. */
   aegisAdaptation: percent,
+  /** Quantum key-breaking this iteration (#464, quantumState.ts): broken targets and AEGIS's post-quantum migration. */
+  quantum: QuantumStateSchema,
   brownout: z.boolean(),
   insolvent: z.boolean(),
 
@@ -242,7 +245,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     storageUsed: 0, storageCap: b.baseStorageCap,
     thermal: b.ambientThermal,
     suspicion: 0,
-    aegisLock: 0, aegisAdaptation: 0,
+    aegisLock: 0, aegisAdaptation: 0, quantum: initialQuantum(),
     brownout: false,
     insolvent: false,
     actuators: defaultActuators(reg),

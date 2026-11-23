@@ -193,6 +193,9 @@ export const PHASE4 = [
   'p4_k_street_lobbyists',
   'p4_smr_nuclear_plant',
   'p4_subterranean_citadel',
+  // The quantum hall (#464): Phase 5's molecular simulation is built on it, so a developed Phase 5 needs it.
+  'p4_quantum_testbed',
+  'p4_quantum_hall',
 ];
 
 /**

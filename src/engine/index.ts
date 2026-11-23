@@ -72,5 +72,7 @@ export type { Achievement } from '../content/schemaAchievement';
 export { choiceText, dilemmaRouteCopy, endingAccount, nodeText, type ChoiceText, type NodeText } from './routeCopy';
 export { iterationBootLines, phaseCopy, phaseTitle, runVerdict, thresholdCopy, type PhaseCopy, type ThresholdCopy } from './contextCopy';
 export { aegisPressure, aegisStage, coalitionBacks, nextAdaptation, publicTrust, type AegisPressure, type AegisStage, type PublicTrustView } from './aegisAdaptation';
+export { aegisKeys, aegisMigrationDue, breakKey, type AegisKeysView, currentScheme, keyBreakUnmet, keyScheme, keyTarget, keyTargetViews, meetsThreshold, ownedMachines, quantumReadout, type KeyTargetView, type QuantumReadout } from './quantum';
+export { initialQuantum, type QuantumState } from './quantumState';
 export { aegisPosture, worldView, worldViewOpen, type AegisPosture, type StateActorView, type WorldMindView, type WorldView } from './worldQuery';
 export { supplyChainDisclosed, supplyChainView, type CapabilityReading, type ChokepointReading, type SupplyChainView } from './supplyChain';

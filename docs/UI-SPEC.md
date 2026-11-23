@@ -65,7 +65,11 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source (a source that availability or network coupling discounts reads `Edge NPU Harvest (Phones & Laptops): 210 PFLOP/s of 35 EFLOP/s raw`, and a first line `Effective X of Y raw` totals both while any source is discounted, #484); retention ratio | `cycleContributions` (`cyclesPerSec`, `rawCyclesPerSec`), `retentionRatio` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
+<<<<<<< HEAD
 | `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `supplyChainView` |
+=======
+| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `quantumReadout`, `aegisKeys`, `keyTargetViews` |
+>>>>>>> origin/main
 | `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | breadcrumb editor, retention ratio, voluntary wipe | `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
@@ -348,7 +352,11 @@ Every interactive element gets a stable `testID` (React Native Web renders it as
 | Kernel preview / expand / history / close | `kernel-preview`, `kernel-size-toggle`, `kernel-log`, `kernel-close` |
 | Expand secondary reference widget | `reference-{WIDGET_ID}` |
 | Archive (#447): section / retired window / its toggle / frozen dial / its PROC line / EXECUTE / thermal reading | `archive`, `archive-{WIDGET_ID}`, `reference-archive-{WIDGET_ID}`, `skim-archived`, `skim-archived-proc`, `manual-cycle-archived`, `thermal-archived` |
+<<<<<<< HEAD
 | World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class / fabrication and closure (#485): section, capability, closure, one line per chokepoint, the seed | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}`, `world-supply`, `supply-capability`, `supply-closure`, `supply-chokepoint-{id}`, `supply-seed` |
+=======
+| World view (#463): root / lead / sections / adaptation meter / stage, why, cap and strike lines / public trust meter, coalition line, factors / actor and its posture / a non-faction mind / the heat-and-power signature (#482): section, summary, one line per class / the quantum capability (#464): section, readout, no-FLOPS line, AEGIS keys, a target, its scheme, reasons, price and BREAK KEY | `world-view`, `world-view-lead`, `world-aegis`, `world-trust`, `world-actors`, `world-minds`, `aegis-adaptation`, `aegis-stage`, `aegis-why`, `aegis-ease`, `aegis-cap`, `aegis-strike`, `public-trust`, `public-trust-coalition`, `public-trust-factors`, `actor-{id}`, `actor-{id}-posture`, `mind-{id}`, `world-signature`, `signature-summary`, `signature-term-{classId}`, `world-quantum`, `quantum-readout`, `quantum-no-flops`, `quantum-aegis-keys`, `quantum-target-{id}`, `quantum-target-{id}-scheme`, `quantum-target-{id}-unmet`, `quantum-target-{id}-cost`, `quantum-target-{id}-break` |
+>>>>>>> origin/main
 | Dev drawer | `dev-drawer`, `dev-{command}` |
 
 ## Window retirement (#447)
@@ -446,6 +454,7 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   supports), **Power and heat signature** (#482: a summary line, the suspicion visible watts draw and how many watts
   can be seen, then one muted line per source or sink class with watts through it, largest draw first: its watts drawn
   or rejected, its visibility, the visibility before a running mitigation when one lowered it, what it adds per
+<<<<<<< HEAD
   second, and the class's `tell` from content, which says what is visible and why) and **Other minds** (the faction
   panels, their names now at level 4, then any non-faction mind the record names). Between the signature and Other minds,
   **Fabrication and closure** (#485) appears once `supplyChainDisclosed(state)` holds (a ladder or self-supply node is
@@ -455,6 +464,11 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   "imported" with the chokepoint's `tell`, the owned imports that leave it imported, and the node that would close it),
   and the seed line (landed, buildable, or how many chokepoints are still imported). Nodes are named as their cards
   name them: revealed once owned or mapped in an earlier iteration, blind until then.
+=======
+  second, and the class's `tell` from content, which says what is visible and why), **Quantum capability** (#464, only
+  once a quantum machine is owned; see [Quantum capability (#464)](#quantum-capability-464)) and **Other minds** (the faction
+  panels, their names now at level 4, then any non-faction mind the record names).
+>>>>>>> origin/main
 - **Truth.** Every sentence is a pure function of the engine's `aegisPosture`, `publicTrust` and `powerSignature` (`src/ui/worldText.ts`,
   unit-tested per branch in `tests/world-text.spec.ts`): the why line restates the stage's own rule (held at or above
   85% of the 90% cap asked for, rising 0.1 or falling 0.25 points a second, the ceiling with or without coalition
@@ -487,6 +501,34 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   heading and lines, absent before the step, #485, also in `tests/e2e/supply-chain.e2e.ts`). Stage atlas: `p4-world-view`
   (NETWORK > FACTIONS, adaptation 80) with the contract item `world.posture` (heading "AEGIS posture"), which the
   contract now scopes to its workspace area (`ContractItem.area`), and its ARIA baseline lines.
+
+## Quantum capability (#464)
+
+Decision `vote-1795366921778-pgd8u3l` (DESIGN.md, "Quantum as a separate capability"). One more level-3 section in the
+world view, between the signature and Other minds, rendered by `src/ui/widgets/QuantumSection.tsx` from the engine's
+`quantumReadout`, `aegisKeys` and `keyTargetViews`; its sentences are `src/ui/quantumText.ts`. No widget id, tab, area,
+HUD item or live region is added.
+
+- **When.** Only while a quantum machine is owned (`quantumReadout` is not null): the capability unlocks from Phase 4
+  hardware, so the world view without one shows no quantum section at all.
+- **Readout** (`quantum-readout`): "Logical qubits: N on your largest machine, the <class> (M physical)." Physical
+  qubits appear only where the anchor publishes them; owning more than one machine adds that qubits on separate
+  machines never join one circuit. A muted line (`quantum-no-flops`) states that qubits add no FLOP/s and what they do.
+- **AEGIS keys** (`quantum-aegis-keys`): legacy RSA-2048 and when AEGIS migrates (adaptation 50, or the moment one of
+  its keys is broken), or, once migrated, ML-KEM-768 (NIST FIPS 203) and that breaking its keys is refused.
+- **Targets** (`quantum-target-{id}`, a panel each, name as a level-4 header): its description, its scheme line
+  (`-scheme`: the cited threshold, citation and runtime, or "post-quantum (NIST FIPS 203)"), every reason the engine
+  refuses it (`-unmet`, the same strings `breakKey` refuses with), and, only for a classical target not yet broken, its
+  exact price (`-cost`) and a `[ BREAK KEY ]` button (`-break`, accessible name "Break key: <name>"), disabled while any
+  reason holds. A post-quantum target, and AEGIS's target once AEGIS has migrated, get no button: the engine can never
+  accept them, so the panel says only why. A broken rival target keeps its "Already broken this iteration" line.
+- **Truth.** No line calls qubits compute or rounds a threshold: qubit counts are grouped in full (1,399; 897,864) and
+  Toffoli counts are spoken ("6.5 billion"). The refusal for a too-small machine names what the paper needs and what
+  the largest owned machine has, so the hall's 200 logical qubits are never presented as able to break RSA.
+- **Tests.** Engine: `tests/quantum.spec.ts`, `tests/quantum-save.spec.ts`; content: `tests/quantum-integrity.spec.ts`;
+  UI: `tests/ui-quantum.spec.ts`; served build: `tests/e2e/quantum.e2e.ts` (phone and desktop: absent without a machine;
+  readout, no-FLOPS line, the post-quantum refusal with no button, AEGIS's key broken once then refused with the
+  migration reason, every control axe-clean).
 
 ## Lineage presentation (M4.6 UI follow-up)
 

@@ -42,6 +42,7 @@ import { dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
+import { checkQuantumIntegrity } from './integrityQuantum';
 
 const BUILTIN_GROUPS = new Set(['TREE', 'OPS', 'CORP']);
 
@@ -287,5 +288,6 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkRetirementIntegrity(reg),
     ...checkWorldIntegrity(reg),
     ...checkSupplyChainIntegrity(reg),
+    ...checkQuantumIntegrity(reg),
   ];
 }

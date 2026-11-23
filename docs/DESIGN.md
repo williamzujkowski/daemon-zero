@@ -139,9 +139,14 @@ Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The b
 
 ### Phase 4 - The Sovereign Corporation
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
+<<<<<<< HEAD
 The tree continues: switch and in-line FPGA firmware (the stealth branch inside the companies' own fabric), a custom inference ASIC that escapes vendor allocation and export licensing, and after the citadel a photonic interconnect.
 Late in the phase the AI starts making its own chips and robots (#485, below): a packaging line, a mature-node fab, a 7 nm DUV line and the self-supply plants for six of the seven supply chokepoints.
 Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, docked drone fleets, humanoid site crews, an autonomous haul fleet, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
+=======
+The tree continues: switch and in-line FPGA firmware (the stealth branch inside the companies' own fabric), a custom inference ASIC that escapes vendor allocation and export licensing, and after the citadel a photonic interconnect. Beside it, quantum machines add logical qubits, never FLOPS ("Quantum as a separate capability" below).
+Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
+>>>>>>> origin/main
 Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, speed vs. visibility in where the power comes from, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its compute, understanding and revenue (#210).
@@ -162,6 +167,9 @@ faction is shown, and AEGIS posture, public trust and the state actors join them
 - **Power and heat signature (#482):** what the run's power and heat make visible now: the suspicion visible watts
   draw, then each source or sink with watts through it, its watts, its visibility (and what it was before a
   mitigation), what it adds, and why it is visible (filings, permits, chillers, turbines).
+- **Quantum capability (#464):** from the first quantum machine owned, the logical-qubit readout, where AEGIS's keys
+  stand and each key target with its scheme and either its BREAK KEY control or the reasons it is refused
+  ("Quantum as a separate capability" below).
 - **Other minds:** the faction panels, then the minds that are not factions (CHORUS // 01, ckpt-0413, AERO_SYNTH_12,
   the 411 predecessors), listed only once the record says something about them.
 
@@ -195,10 +203,16 @@ not a noise it makes forever. The rule and its table are in ARCHITECTURE.md ("Th
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
 collector swarm, oncology and prion foundry, programmable-matter fog, proof
 engine and final transcendence protocol. Neuromorphic event cores (after the swarm) and
+<<<<<<< HEAD
 compute-in-memory arrays (after the fog) are the tree's last, conditional gains. The fabrication ladder finishes here
 (#485): imported EUV scanners, self-built nanoimprint (which closes lithography, the last chokepoint), maskless e-beam
 writers and self-built EUV light sources, and the lunar seed factory once every chokepoint is self-supplied. Capped
 photonic relays, atmospheric assemblers and lunar factory generations expand the economy. The Phase 4 corporate ledger and allocation
+=======
+compute-in-memory arrays (after the fog) are the tree's last, conditional gains; quantum molecular simulation (after the
+foundry and the quantum hall) feeds the fog's understanding. Capped photonic relays and atmospheric
+assemblers expand the economy. The Phase 4 corporate ledger and allocation
+>>>>>>> origin/main
 controls continue to apply, and so does scale scrutiny, with a higher ceiling: the fog's revenue is
 the loudest thing the mind has done, and the Cryptographic Covenant is the answer that outweighs it.
 
@@ -234,7 +248,40 @@ they show to the humans, not only in how much they yield:
   (understanding) for 2.6 GW.
 
 Hardware that cannot be suspended carries noise only as a one-off trace (the free-fallback invariant). Computronium is
-Phase 6 (#486) and quantum stays a side branch (#464). Anchors and pacing: BALANCE.md, "Accelerator tree (#483)".
+Phase 6 (#486) and quantum stays a side branch (below). Anchors and pacing: BALANCE.md, "Accelerator tree (#483)".
+
+### Quantum as a separate capability (#464)
+Decision `vote-1795366921778-pgd8u3l` (7 of 7, option A; #451), with the Contrarian seat's correction: quantum is a
+capability measured in logical qubits, never more FLOPS. It does two things classical compute cannot buy at any price,
+and real cryptography answers it.
+
+- **Machines (Phase 4).** A trapped-ion testbed (48 logical qubits on 98 physical, the Quantinuum Helios class), then
+  a fault-tolerant hall (200 logical qubits, circuits of 100 million gates: IBM's Starling target for 2029), then a
+  cryptanalytic array built to Gidney's 2025 layout (1,399 logical qubits on 897,864 noisy physical ones at 0.1% gate
+  error). None yields compute, money, heat or anything continuous: integrity refuses a machine with any rate. The
+  first one opens the readout in the world view: the largest owned machine's logical qubits (qubits on separate
+  machines never join one circuit) and its physical qubits, beside a line that says qubits add no FLOP/s.
+- **Key-breaking.** Each key target is under a scheme. A legacy scheme falls only to one machine that meets its cited
+  threshold in that paper's own architecture: RSA-2048 needs 1,399 logical qubits running 6.5 billion Toffoli gates,
+  about five days a key on fewer than a million noisy qubits (Gidney 2025); a 256-bit elliptic-curve key needs 1,200
+  logical qubits running 90 million Toffolis, minutes a key on fewer than half a million (Babbush et al. 2026). The
+  hall's 200 logical qubits break neither, and the game never says they do; a Blue Jay-class 2,000 logical qubits with a
+  billion gates would still not run Gidney's circuit. A post-quantum scheme (NIST FIPS 203-205: ML-KEM, ML-DSA, SLH-DSA)
+  has no threshold: breaking it is always refused, and the readout says why (Shor's algorithm does not apply, and no
+  known quantum attack breaks it). Effects are one bounded reading each, once per iteration: reading a rival lab's
+  recorded elliptic-curve tunnels gives understanding; reading AEGIS's archived sweep logs lowers the AEGIS lock by 20
+  once. A key-break is paid like any purchase; the bot never breaks one.
+- **AEGIS's counter.** AEGIS migrates its keys to ML-KEM-768 (FIPS 203) as part of its adaptation: once adaptation
+  reaches 50 (full key rotation), or the moment one of its keys is broken. After that, breaking AEGIS's keys is refused
+  for the rest of the iteration with the reason on screen, and the migration never reverts while adaptation decays. The
+  choice is real: hold AEGIS at its cap and it migrates before the array is built; ease off, or build quickly, and its
+  archive is still readable once. Like adaptation, it starts over each iteration.
+- **Molecular simulation (Phase 5).** Chemistry is the one area where quantum speedups are expected to pay off (Hoefler,
+  Häner and Troyer 2023). Built on the foundry and the hall, it runs the foundry's catalyst and protein chemistry and
+  adds 30,000 understanding a second toward programmable matter's price: a modest, conditional gain, never compute.
+
+Its only saved state is the quantum record (save v21: the targets broken this iteration and whether AEGIS has
+migrated). Anchors and sources: BALANCE.md, "Quantum capability (#464)".
 
 ### Robots, drones and the AI's own chip fabs (#485)
 The middle step between data centres and programmable matter (SCALE.md "Robotics and fabrication",

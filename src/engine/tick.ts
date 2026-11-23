@@ -19,6 +19,7 @@ import { integratePilotService } from './systems/pilotService';
 import { integrateAegis, integrateSuspicion, integrateThermal } from './systems/threats';
 import { integrateAegisAdaptation } from './systems/aegisAdaptation';
 import { integrateHostiles } from './systems/hostiles';
+import { integrateQuantumMigration } from './systems/quantumMigration';
 import type { TickSystem } from './systems/types';
 import { fmt, pushLog } from './util';
 
@@ -37,6 +38,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateAegis,
   // After the strike: this tick's lock used the cap the last tick left, and a wipe halts before AEGIS learns more (#463).
   integrateAegisAdaptation,
+  // Right after adaptation, which it reads: AEGIS re-keys under post-quantum keys once adaptation reaches its level (#464).
+  integrateQuantumMigration,
   applySwarmTickDeltas,
   evaluateShardMutationsAndEncounters,
   // Its own slot beside the wild one (#491); after AEGIS, so a hunter's rise is read by the next tick's strike check.

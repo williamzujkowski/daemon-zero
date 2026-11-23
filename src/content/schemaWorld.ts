@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { QuantumManifestSchema } from './schemaQuantum';
 import { SignatureClassesSchema } from './schemaSignature';
 import { SupplyChainSchema } from './schemaSupplyChain';
 
@@ -66,6 +67,8 @@ export const WorldManifestSchema = z.strictObject({
   signature: SignatureClassesSchema,
   /** The fabrication ladder and the supply chokepoints whose self-supplied share is closure (#485). */
   supplyChain: SupplyChainSchema,
+  /** Quantum as a separate capability (#464): machines, key schemes, targets, AEGIS's migration, molecular simulation. */
+  quantum: QuantumManifestSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;
