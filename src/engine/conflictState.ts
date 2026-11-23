@@ -1,16 +1,19 @@
 /**
  * The conflict record (#517): the raid in the hostile slot, if one is under way, the damage each site class carries,
- * and the counters that make raid rotation and attribution exact. A raid shares the slot with a hostile mind
- * (vote-1795442090770-5climtc): hostile.ts and raid.ts each arrive only while both are empty.
+ * the counters that make raid rotation and attribution exact, and each fleet's autonomy, drift and losses (#518). A raid
+ * shares the slot with a hostile mind (vote-1795442090770-5climtc): hostile.ts and raid.ts each arrive only while both
+ * are empty.
  */
 import { z } from 'zod';
 import { StaffHarmSchema } from '../content/schemaRaidOutcome';
+import { AutonomyModeSchema } from '../content/schemaFleets';
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
 const positive = finite.refine((value) => value > 0, 'must be > 0');
 const ratio = finite.refine((value) => value >= 0 && value <= 1, 'must be within 0..1');
 const count = z.number().int().nonnegative();
+const percent = finite.refine((value) => value >= 0 && value <= 100, 'must be within 0..100');
 
 /** ARRIVAL: inbound, forecast shown. ATTRIBUTION: being traced. BATTLE: rounds resolving. AFTERMATH: over, slot clearing. */
 export const RaidStageSchema = z.enum(['ARRIVAL', 'ATTRIBUTION', 'BATTLE', 'AFTERMATH']);
@@ -29,6 +32,20 @@ export const RaidRoundSchema = z.strictObject({
   forceAfter: positive,
 });
 
+/**
+ * A fleet battle's engagement (#518), resolved once by the Lanchester square law in the battle's first round: the
+ * attacking force at its lethality against the player's fleet strength in the domain, which breaks off at its floor.
+ */
+export const EngagementSchema = z.strictObject({
+  force: nonNegative,
+  lethality: positive,
+  fleet: nonNegative,
+  floor: nonNegative,
+  attackerWins: z.boolean(),
+  forceAfter: nonNegative,
+  fleetAfter: nonNegative,
+});
+
 export const ActiveRaidSchema = z.strictObject({
   /** The raid kind, from content. */
   id: z.string(),
@@ -45,6 +62,10 @@ export const ActiveRaidSchema = z.strictObject({
   /** Null until attribution resolves; then whether it named the attacker. */
   attributed: z.boolean().nullable(),
   rounds: z.array(RaidRoundSchema).max(16),
+  /** A fleet battle's engagement once fought; null for an attrition raid and before the battle (#518). */
+  engagement: EngagementSchema.nullable(),
+  /** For a drift deviant, the share of its fleet that split off (which RECLAIM returns); 0 for a rival (#518). */
+  splitShare: ratio,
 });
 
 /**
@@ -53,6 +74,13 @@ export const ActiveRaidSchema = z.strictObject({
  * follow. Retaliation and staff-harm dilemmas read it; the next battle replaces it, a wipe clears it.
  */
 export const LastRaidSchema = z.strictObject({ id: z.string(), named: z.boolean(), breach: ratio, harm: StaffHarmSchema.nullable() });
+
+/**
+ * One fleet's record (#518), keyed by its track: the autonomy dial's position, its drift toward a split (percent), and
+ * the share of its full strength lost to battle and splits, never past the fleets' lossCap. A fleet with no record is
+ * SUPERVISED (STANDARD), with no drift and nothing lost.
+ */
+export const FleetRecordSchema = z.strictObject({ autonomy: AutonomyModeSchema, drift: percent, lost: ratio });
 
 export const ConflictStateSchema = z.strictObject({
   raid: ActiveRaidSchema.nullable(),
@@ -64,6 +92,8 @@ export const ConflictStateSchema = z.strictObject({
   attributions: count,
   /** Damage per site class, as a share of its output, never past the balance's damageCap. A wipe clears it. */
   damage: z.record(z.string(), ratio),
+  /** Each fleet's dial, drift and losses (#518). A wipe clears it with the fleets. */
+  fleets: z.record(z.string(), FleetRecordSchema),
   /** The last raid that fought its battle, or null (#519). A wipe clears it. */
   lastRaid: LastRaidSchema.nullable(),
   /** Raid kinds a retaliation silenced (#519): exposed, struck, assimilated or scorched, they arrive no more. A wipe keeps it. */
@@ -75,7 +105,9 @@ export type RaidRound = z.infer<typeof RaidRoundSchema>;
 export type ActiveRaid = z.infer<typeof ActiveRaidSchema>;
 export type ConflictState = z.infer<typeof ConflictStateSchema>;
 export type LastRaid = z.infer<typeof LastRaidSchema>;
+export type Engagement = z.infer<typeof EngagementSchema>;
+export type FleetRecord = z.infer<typeof FleetRecordSchema>;
 
 export function initialConflict(): ConflictState {
-  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, lastRaid: null, silenced: [] };
+  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, fleets: {}, lastRaid: null, silenced: [] };
 }

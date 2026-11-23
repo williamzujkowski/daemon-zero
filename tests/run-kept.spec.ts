@@ -38,7 +38,8 @@ describe('save v15 (#377)', () => {
     // escalation announcements). v23 (#498) adds what insurance kept to a recorded carry-over, and a v14 run has none to add to.
     // Nor does v24 (#517, the conflict record).
     // Nor does v25 (#526), which moves only a guest's compute and the pilot's batch progress.
-    expect(SCHEMA_VERSION).toBe(26);
+    // Nor does v26 (#518, fleets).
+    expect(SCHEMA_VERSION).toBe(27);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);

@@ -17,7 +17,7 @@ import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { allPressures } from './statePressure';
-import { reconcileConflict } from './conflictSave';
+import { migrateFleets, reconcileConflict } from './conflictSave';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
 import { reconcileRoutine } from './routine';
@@ -156,9 +156,11 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v25: the guest counts stolen CPU cycles (#526, saveCycles.ts): a guest balance and rate, and the pilot's batch
   // progress in any phase, move by frozen ratios. Self-contained, so it can be renumbered past another step.
   24: recountGuestCycles,
-  // v26: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
+  // v26: fleets and drift deviants (#518, conflictSave.ts). Self-contained, so it can be renumbered past another step.
+  25: migrateFleets,
+  // v27: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
   // held. Self-contained: it adds only its own two fields to the conflict record, so it can be renumbered past another step.
-  25: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
+  26: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

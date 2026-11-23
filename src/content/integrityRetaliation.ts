@@ -76,7 +76,9 @@ function checkPlaceholders(reg: ContentRegistry): string[] {
 /** Every raider attribution can name meets an answer: some named-raider dilemma accepts its collateral either way. */
 function checkAnswerable(reg: ContentRegistry): string[] {
   const answers = reg.dilemmas.map((dilemma) => dilemma.trigger.lastRaid).filter((gate) => gate?.named === true);
+  // Only a rival is answered: a drift deviant is the player's own fleet (#518).
   return reg.world.conflict.raids.flatMap((kind) => {
+    if (kind.source !== 'RIVAL') return [];
     const collateral = kind.attacker.collateral !== undefined;
     return answers.some((gate) => gate?.collateral === undefined || gate.collateral === collateral) ? []
       : [`raid "${kind.id}": no retaliation dilemma answers ${kind.attacker.name} (collateral ${String(collateral)})`];

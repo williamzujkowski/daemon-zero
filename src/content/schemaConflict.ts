@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { CostSchema, RequirementsSchema } from './schema';
 import { StaffHarmSchema } from './schemaRaidOutcome';
+import { FleetBalanceSchema } from './schemaFleets';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
@@ -75,18 +76,12 @@ export const ConflictHoldingSchema = z.strictObject({
   repairPerSec: z.number().positive().max(0.01).optional(),
 });
 
-/**
- * A raid: a rival AI drawn by the footprint the signature shows (#482). Its force at the footprint reference is `force`
- * in its domain's rating unit; a round at a full hit deals `blow` points of damage. Attribution that names it yields
- * `forensics` understanding. RIVAL is the only source yet: drift deviants (#518) add DEVIANT.
- */
-export const RaidKindSchema = z.strictObject({
+/** What every raid kind carries, rival or deviant: what it is, how it comes, what it strikes and how hard. */
+const raidCommon = {
   id: snakeId,
   kind: z.literal('RAID'),
-  tier: z.number().int().min(0),
   domain: ConflictDomainSchema,
   vector: snakeId,
-  source: z.enum(['RIVAL']),
   name,
   /**
    * Who it is. `collateral`, where present, says what people's machines its compute and fleets run among: a strike at it
@@ -95,15 +90,46 @@ export const RaidKindSchema = z.strictObject({
   attacker: z.strictObject({ name, origin: line, collateral: line.optional() }),
   /** The arrival line, logged when it arrives. */
   description: line,
-  requirements: RequirementsSchema,
   /** The site classes it aims at, in order: it strikes the first the player has exposed. */
   targets: z.array(snakeId).min(1),
-  force: positive,
   blow: z.number().positive().max(0.25),
+};
+
+/**
+ * A rival raid: a rival AI drawn by the footprint the signature shows (#482). Its force at the footprint reference is
+ * `force` in its domain's rating unit; a round at a full hit deals `blow` points of damage. Attribution that names it
+ * yields `forensics` understanding. ATTRITION resolves every round by expected-value attrition; LANCHESTER (#518) is a
+ * fleet: its first round is an engagement with the player's fleets in its domain by the square law, at `lethality` (its
+ * per-unit effectiveness against one of the player's), and only a force that breaks them strikes in the rounds after.
+ */
+export const RivalRaidSchema = z.strictObject({
+  ...raidCommon,
+  source: z.literal('RIVAL'),
+  tier: z.number().int().min(0),
+  requirements: RequirementsSchema,
+  force: positive,
+  resolution: z.enum(['ATTRITION', 'LANCHESTER']).default('ATTRITION'),
+  lethality: positive.optional(),
   forensics: z.number().nonnegative(),
   lapseLog: line,
   retireLog: line,
 });
+
+/**
+ * A drift deviant (#518, vote-1795442211574-efkot02): the share of one of the player's own fleets that drifted past the
+ * split and turned on it. It arrives only by a split, never by the rotation, so it has no tier, footprint or forensics;
+ * its force is the split share of the fleet's strength, and it always resolves by the square law at `lethality`.
+ * RECLAIM pays `reclaim.cost` before the battle to bring the share back; otherwise the battle destroys it or it wins.
+ */
+export const DeviantRaidSchema = z.strictObject({
+  ...raidCommon,
+  source: z.literal('DEVIANT'),
+  fleet: snakeId,
+  lethality: positive,
+  reclaim: z.strictObject({ cost: CostSchema }),
+});
+
+export const RaidKindSchema = z.discriminatedUnion('source', [RivalRaidSchema, DeviantRaidSchema]);
 
 /**
  * When raids come and how they resolve. A raid arrives once visible watts reach trigger.visibleShareAtLeast of the
@@ -130,8 +156,6 @@ export const RaidBalanceSchema = z.strictObject({
   damageCap: z.number().positive().max(0.5),
   /** Points of damage repaired each second for free on every class a raid is not inbound on or fighting. */
   freeRepairPerSec: positive,
-  /** How a battle resolves. Lanchester fleet battles (#518) add LANCHESTER; every raid here is expected-value attrition. */
-  resolution: z.literal('ATTRITION'),
   /**
    * When a site's defense fails (#519): a battle's breach is the mean hit share of its rounds, the share of its blows the
    * defense let through. In these domains a breach at or past `hurt` hurts a named person on site, at or past `killed`
@@ -158,6 +182,8 @@ export const ConflictManifestSchema = z.strictObject({
   holdings: z.array(ConflictHoldingSchema),
   raid: RaidBalanceSchema,
   raids: z.array(RaidKindSchema).min(1),
+  /** Fleets, their autonomy dial and their rebuild (#518, schemaFleets.ts). */
+  fleets: FleetBalanceSchema,
 });
 
 export type ConflictDomainEntry = z.infer<typeof ConflictDomainEntrySchema>;
@@ -166,5 +192,7 @@ export type DefenseType = z.infer<typeof DefenseTypeSchema>;
 export type SiteClass = z.infer<typeof SiteClassSchema>;
 export type ConflictHolding = z.infer<typeof ConflictHoldingSchema>;
 export type RaidKind = z.infer<typeof RaidKindSchema>;
+export type RivalRaid = z.infer<typeof RivalRaidSchema>;
+export type DeviantRaid = z.infer<typeof DeviantRaidSchema>;
 export type RaidBalance = z.infer<typeof RaidBalanceSchema>;
 export type ConflictManifest = z.infer<typeof ConflictManifestSchema>;

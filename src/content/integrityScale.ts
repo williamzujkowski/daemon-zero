@@ -183,7 +183,22 @@ function checkRepairPrices(reg: ContentRegistry): string[] {
   });
 }
 
+/**
+ * A fleet's paid rebuild, and the reclaim of the deviant it splits into, are priced in its track's phase (#518), where
+ * the fleet is first bought and can first drift.
+ */
+function checkFleetPrices(reg: ContentRegistry): string[] {
+  const { units } = reg.world.conflict.fleets;
+  return [...units.flatMap((unit) => {
+    const phase = reg.repeatables.get(unit.repeatable)?.phaseId;
+    return phase === undefined ? [] : checkCost(reg, `fleet "${unit.repeatable}" rebuild`, phase, unit.rebuild.cost);
+  }), ...reg.world.conflict.raids.flatMap((kind) => {
+    const phase = kind.source === 'DEVIANT' ? reg.repeatables.get(kind.fleet)?.phaseId : undefined;
+    return kind.source === 'DEVIANT' && phase !== undefined ? checkCost(reg, `deviant "${kind.id}" reclaim`, phase, kind.reclaim.cost) : [];
+  })];
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
   return [...checkComputeUnits(reg), ...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg),
-    ...checkRepairPrices(reg)];
+    ...checkRepairPrices(reg), ...checkFleetPrices(reg)];
 }

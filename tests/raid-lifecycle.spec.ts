@@ -195,7 +195,7 @@ describe('going dark, retiring and dormancy', () => {
     const next = wipe(fought, reg, 'test');
     // A raider a retaliation silenced stays silenced (#519); the last battle's record goes with the run.
     expect(next.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: fought.conflict.raids, attributions: fought.conflict.attributions, damage: {},
-      lastRaid: null, silenced: fought.conflict.silenced });
+      fleets: {}, lastRaid: null, silenced: fought.conflict.silenced });
   });
 });
 

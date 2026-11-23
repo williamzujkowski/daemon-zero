@@ -3,7 +3,7 @@
  * watts make a footprint rival minds read, and one pass of the raid stage through its public seam.
  */
 import { expect } from 'vitest';
-import type { RaidKind } from '../src/content/schemaConflict';
+import type { DeviantRaid, RivalRaid } from '../src/content/schemaConflict';
 import { computeRates, eligibleRaids, type GameState } from '../src/engine';
 import { integrateRaids } from '../src/engine/systems/raids';
 import { integrateRepair } from '../src/engine/systems/repair';
@@ -12,7 +12,18 @@ import { grant, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
 
 export const R = reg.world.conflict.raid;
 export const RAIDS = reg.world.conflict.raids;
-export const raid = (id: string): RaidKind => defined(RAIDS.find((kind) => kind.id === id));
+/** A rival raid kind, by id: the rotation deals these. */
+export const raid = (id: string): RivalRaid => {
+  const kind = defined(RAIDS.find((entry) => entry.id === id));
+  if (kind.source !== 'RIVAL') throw new Error(`${id} is not a rival raid`);
+  return kind;
+};
+/** A drift deviant kind, by id (#518): only a split brings these. */
+export const deviant = (id: string): DeviantRaid => {
+  const kind = defined(RAIDS.find((entry) => entry.id === id));
+  if (kind.source !== 'DEVIANT') throw new Error(`${id} is not a deviant`);
+  return kind;
+};
 
 /** A decoded Phase `phase` mind at rest: nothing draws a raid, no hostile or wild slot is due, no dilemma is pending. */
 export function ready(phase: number): GameState {
@@ -56,7 +67,7 @@ export function run(s: GameState, seconds: number): GameState {
 }
 
 /** `kind` arriving on `s` through the real stage: the rotation is set so it is next. */
-export function arrived(s: GameState, kind: RaidKind): GameState {
+export function arrived(s: GameState, kind: RivalRaid): GameState {
   const eligible = eligibleRaids(s, computeRates(s, reg), reg);
   const index = eligible.indexOf(kind);
   expect(index, `${kind.id} is not eligible`).toBeGreaterThanOrEqual(0);

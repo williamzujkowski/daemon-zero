@@ -13,6 +13,7 @@ import { STEP, untilPresented } from './interruption-helpers';
 import { defined } from './m7-helpers';
 import { choose, must, rich } from './helpers';
 import { campaignReady, fought, guarded, HURT, KILLED, NAMED } from './retaliation-helpers';
+import { lastRaidOf } from '../src/engine/raidOutcome';
 
 const accountText = (id: string): string => defined(preview.routeCopy.account.find((line) => line.id === id)).text;
 /** A Phase 4 site with `guards` on the campaign record `campaign` (fresh when omitted); only `keep` can present. */
@@ -90,5 +91,16 @@ describe('a harm is on record even when the decision slot is busy', () => {
     expect(s.conflict.lastRaid?.harm).toBeNull();
     const forged = { ...s, conflict: { ...s.conflict, lastRaid: { ...defined(s.conflict.lastRaid), harm: 'KILLED' as const } } };
     expect(deserialize(serialize(forged), preview).conflict.lastRaid?.harm).toBeNull();
+  });
+});
+
+describe('only a rival is answered or harms anyone', () => {
+  it('a drift deviant is the player\'s own fleet: its battle is never named and never harms staff, however it lands', () => {
+    const deviant = defined(preview.world.conflict.raids.find((kind) => kind.source === 'DEVIANT' && kind.domain === 'SITE'));
+    const rival = raid('raid_p4_break_in');
+    const round = { force: 5, defense: 0, offense: 0, hitShare: 1, damage: 0.1, damageAfter: 0.1, forceAfter: 5 };
+    const s = site(0);
+    expect(lastRaidOf(s, preview, deviant, true, [round, round])).toMatchObject({ named: false, harm: null });
+    expect(lastRaidOf(s, preview, rival, true, [round, round])).toMatchObject({ named: true, harm: 'KILLED' });
   });
 });

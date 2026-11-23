@@ -21,8 +21,8 @@ function pressed(s: GameState): GameState {
 }
 
 describe('save v19 (#491)', () => {
-  it('is followed only by storage (#484, v20), the quantum record (#464, v21), the escalation announcements (#490, v22), insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25) and the raid aftermath (#519, v26)', () => {
-    expect(SCHEMA_VERSION).toBe(26);
+  it('is followed only by storage (#484, v20), the quantum record (#464, v21), the escalation announcements (#490, v22), insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27)', () => {
+    expect(SCHEMA_VERSION).toBe(27);
   });
 
   it('migrates a v18 save to an empty hostile slot and keeps everything else', () => {

@@ -71,12 +71,15 @@ export function raiderVars(s: Pick<GameState, 'conflict'>, reg: ContentRegistry)
 }
 
 /**
- * The record a battle leaves when its last round lands. Its harm is decided here, once, among the bands a scene can still
- * follow, so one raid harms one person at most, and a scene answered later cannot re-band the same raid.
+ * The record a battle leaves when it is over. Its breach is the mean hit share of its strikes (a fleet battle its fleets
+ * won has none, so its breach is 0). Its harm is decided here, once, among the bands a scene can still follow, so one raid
+ * harms one person at most, and a scene answered later cannot re-band the same raid.
  */
 export function lastRaidOf(s: GameState, reg: ContentRegistry, kind: RaidKind, attributed: boolean | null, rounds: readonly RaidRound[]): LastRaid {
-  const breach = breachOf(rounds);
-  return { id: kind.id, named: attributed === true, breach, harm: staffHarmFor(kind, breach, reg, openStaffBands(s, reg)) };
+  const breach = breachOf(rounds), rival = kind.source === 'RIVAL';
+  // Only a rival is answered or harms anyone: a drift deviant is the player's own fleet, and the player's machines never
+  // harm a human by an automatic rule; retaliation targets rival AIs.
+  return { id: kind.id, named: rival && attributed === true, breach, harm: rival ? staffHarmFor(kind, breach, reg, openStaffBands(s, reg)) : null };
 }
 
 /**

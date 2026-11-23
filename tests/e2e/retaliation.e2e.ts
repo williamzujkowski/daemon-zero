@@ -8,15 +8,15 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
-import type { RaidKind } from '../../src/content/schemaConflict';
+import type { RivalRaid } from '../../src/content/schemaConflict';
 import { exportSave, tick, type GameState } from '../../src/engine';
 import { AMONG, campaignReady, KILLED, SCENES } from '../raid-scene-helpers';
 import { axeReport } from './axe';
 import { boot, dismissBoot, expect, openChoices, openSave, readSave, test } from './helpers';
 
-const raid = (id: string): RaidKind => {
+const raid = (id: string): RivalRaid => {
   const found = CONTENT.world.conflict.raids.find((kind) => kind.id === id);
-  if (!found) throw new Error(`no raid ${id}`);
+  if (found?.source !== 'RIVAL') throw new Error(`no rival raid ${id}`);
   return found;
 };
 
@@ -75,12 +75,12 @@ test('a site raid that went through its defense: the scene names who was killed,
  * `kind` inbound on the data halls of the Phase 4 fixture, its halls drawing on the grid so the footprint holds, no guards
  * hired. The fixture counts every scene resolved; the four that answer a raid are left open, as in a run that has met none.
  */
-function inbound(kind: RaidKind) {
+function inbound(kind: RivalRaid) {
   return (game: GameState): GameState => ({ ...game, activeDilemmaId: null, pendingDilemma: null,
     resolvedDilemmas: game.resolvedDilemmas.filter((id) => !SCENES.includes(id)),
     levels: { ...game.levels, rep_p4_tensor_halls: Math.max(game.levels.rep_p4_tensor_halls ?? 0, 2), rep_p4_grid_interconnect: Math.max(game.levels.rep_p4_grid_interconnect ?? 0, 1), op_pmc_security: 0 },
     hostile: { ...game.hostile, active: null },
-    conflict: { ...game.conflict, raid: { id: kind.id, stage: 'ARRIVAL', stageSec: 0, arrivedAtSec: game.simTimeSec, target: 'halls', force: kind.force, quietSec: 0, attributed: null, rounds: [] } } });
+    conflict: { ...game.conflict, raid: { id: kind.id, stage: 'ARRIVAL', stageSec: 0, arrivedAtSec: game.simTimeSec, target: 'halls', force: kind.force, quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: 0 } } });
 }
 
 async function openSwarm(page: Page): Promise<void> {

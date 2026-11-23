@@ -2,27 +2,27 @@
  * Raids (#517, vote-1795442090770-5climtc): a hostile kind that shares the hostile slot with hostile minds, one at a time.
  * A rival AI arrives once the footprint the signature shows (#482) is large enough, with a force scaled by it; the raid
  * is ARRIVAL, then ATTRIBUTION (the exact-ratio counter decides whether it is named), then an automatic BATTLE of rounds
- * (raidForecast.ts), then AFTERMATH. Before the battle it lapses if the footprint stays under the trigger; a phase past
- * its tier retires it. Nothing here touches suspicion, the lock or a balance, so no raid can end a run. Pure.
+ * (raidBattle.ts), then AFTERMATH. Before the battle it lapses if the footprint stays under the trigger; a phase past
+ * its tier retires it. A drift deviant (#518) shares the lifecycle but arrives by a split (systems/fleetDrift.ts), is
+ * always identified, never lapses and never retires. Nothing here touches suspicion, the lock or a balance, so no raid
+ * can end a run. Pure.
  */
 import type { ContentRegistry } from '../content/registry';
+import { rivalRaids } from '../content/integrityConflict';
 import { groupDigits } from './amount';
-import type { RaidKind, SiteClass } from '../content/schemaConflict';
-import { conflictStats, defenseAgainst, offenseIn } from './conflictStats';
+import type { RaidKind, RivalRaid, SiteClass } from '../content/schemaConflict';
 import { meetsRequirements } from './query';
-import { resolveRound } from './raidForecast';
-import { lastRaidOf, recordOwedHarm } from './raidOutcome';
+import { fightNext, roundsFought } from './raidBattle';
 import { visibleWatts } from './signature';
-import { addDamage, classDamage, classExposed, siteClass } from './siteDamage';
+import { classExposed, siteClass } from './siteDamage';
 import type { GameState, Rates } from './state';
 import { creditGrant } from './transactions';
 import { fmt, pushLog } from './util';
 
+export { percentOf, raidCombat } from './raidBattle';
+
 /** Slack for stage clocks summed from tick steps, so 15 s of 0.1 s steps ends a 15 s stage on its 150th step. */
 const CLOCK_SLACK = 1e-9;
-
-/** A share as a percentage to three figures: 0.0625 reads 6.25. */
-export const percentOf = (share: number): string => String(Number((share * 100).toPrecision(3)));
 
 export function raidKind(reg: ContentRegistry, id: string | undefined): RaidKind | undefined {
   return id === undefined ? undefined : reg.world.conflict.raids.find((kind) => kind.id === id);
@@ -64,7 +64,7 @@ const RAIDED_PHASES = new WeakMap<ContentRegistry, ReadonlySet<number>>();
 export function raidPhase(s: Pick<GameState, 'currentPhase'>, reg: ContentRegistry): boolean {
   let phases = RAIDED_PHASES.get(reg);
   if (phases === undefined) {
-    phases = new Set(reg.world.conflict.raids.map((kind) => kind.tier));
+    phases = new Set(rivalRaids(reg).map((kind) => kind.tier));
     RAIDED_PHASES.set(reg, phases);
   }
   return phases.has(s.currentPhase);
@@ -76,9 +76,9 @@ export function footprintScale(share: number, reg: ContentRegistry): number {
   return Math.min(ceiling, Math.max(floor, share));
 }
 
-/** A raid's tier retires once the player's phase has moved past it, as a hostile mind's does. */
+/** A rival raid's tier retires once the player's phase has moved past it, as a hostile mind's does; a deviant never does. */
 export function raidRetired(s: Pick<GameState, 'currentPhase'>, kind: RaidKind): boolean {
-  return s.currentPhase > kind.tier;
+  return kind.source === 'RIVAL' && s.currentPhase > kind.tier;
 }
 
 /** The class a raid would strike now: the first of its targets the player has exposed. */
@@ -91,19 +91,13 @@ export function raidTarget(s: GameState, rates: Rates, reg: ContentRegistry, kin
 }
 
 /**
- * The raids that may arrive next, in content order: from fromPhase, not retired, not silenced by a retaliation (#519),
- * gated open, with something to strike.
+ * The rival raids that may arrive next, in content order: from fromPhase, not retired, not silenced by a retaliation
+ * (#519), gated open, with something to strike. A deviant is never dealt: only its fleet's split brings it.
  */
-export function eligibleRaids(s: GameState, rates: Rates, reg: ContentRegistry): RaidKind[] {
+export function eligibleRaids(s: GameState, rates: Rates, reg: ContentRegistry): RivalRaid[] {
   if (s.currentPhase < reg.world.conflict.raid.fromPhase) return [];
-  return reg.world.conflict.raids.filter((kind) => !raidRetired(s, kind) && !s.conflict.silenced.includes(kind.id) && meetsRequirements(s, kind.requirements, reg)
+  return rivalRaids(reg).filter((kind) => !raidRetired(s, kind) && !s.conflict.silenced.includes(kind.id) && meetsRequirements(s, kind.requirements, reg)
     && raidTarget(s, rates, reg, kind) !== undefined);
-}
-
-/** The defense that meets this raid's vector and the offense its domain strikes back with, from what runs now. */
-export function raidCombat(s: GameState, reg: ContentRegistry, kind: RaidKind): { defense: number; offense: number } {
-  const stats = conflictStats(s, reg);
-  return { defense: defenseAgainst(stats, kind.vector), offense: offenseIn(stats, kind.domain) };
 }
 
 /** The next raid in the rotation arrives, if one is eligible: deterministic, like the hostile rotation. */
@@ -114,7 +108,7 @@ export function arriveRaid(d: GameState, rates: Rates, reg: ContentRegistry): vo
   const footprint = raidFootprint(d, rates, reg);
   if (kind === undefined || target === undefined || footprint === null) return;
   d.conflict = { ...d.conflict, raids: d.conflict.raids + 1, raid: { id: kind.id, stage: 'ARRIVAL', stageSec: 0, arrivedAtSec: d.simTimeSec,
-    target: target.id, force: kind.force * footprintScale(footprint.share, reg), quietSec: 0, attributed: null, rounds: [] } };
+    target: target.id, force: kind.force * footprintScale(footprint.share, reg), quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: 0 } };
   pushLog(d, reg, kind.description, 'WARN');
 }
 
@@ -130,7 +124,7 @@ export function endRaid(d: GameState, reg: ContentRegistry, log: string | null):
 /** The raid lapses with its retire line once the player's phase has moved past its tier; run on every tick, dormant too. */
 export function retireRaid(d: GameState, reg: ContentRegistry): void {
   const kind = activeRaidKind(d, reg);
-  if (d.conflict.raid !== null && (kind === undefined || raidRetired(d, kind))) endRaid(d, reg, kind?.retireLog ?? null);
+  if (d.conflict.raid !== null && (kind === undefined || raidRetired(d, kind))) endRaid(d, reg, kind?.source === 'RIVAL' ? kind.retireLog : null);
 }
 
 /** Whether attribution attempt `attempt` (0-based) names the attacker: exactly `successes` of every `cycle` attempts do. */
@@ -142,37 +136,23 @@ export function attributionSucceeds(attempt: number, reg: ContentRegistry): bool
 function resolveAttribution(d: GameState, reg: ContentRegistry, kind: RaidKind): void {
   const raid = d.conflict.raid;
   if (raid === null) return;
+  if (kind.source === 'DEVIANT') {
+    // The player's own fleet needs no tracing: it is named at once, and the exact-ratio counter is not spent on it.
+    d.conflict = { ...d.conflict, raid: { ...raid, attributed: true, stage: 'BATTLE', stageSec: 0 } };
+    pushLog(d, reg, fmt(reg.world.conflict.fleets.logs.identified, { name: kind.name, attacker: kind.attacker.name, origin: kind.attacker.origin }), 'LORE');
+    return;
+  }
   const named = attributionSucceeds(d.conflict.attributions, reg), { logs } = reg.world.conflict.raid;
   d.conflict = { ...d.conflict, attributions: d.conflict.attributions + 1, raid: { ...raid, attributed: named, stage: 'BATTLE', stageSec: 0 } };
   if (named) creditGrant(d, { cycles: 0, understanding: kind.forensics });
   pushLog(d, reg, fmt(named ? logs.attributed : logs.unattributed, { name: kind.name, attacker: kind.attacker.name, forensics: groupDigits(kind.forensics) }), 'LORE');
 }
 
-/** One round of the battle, at what the player holds now; the damage goes through siteDamage.ts, never past the cap. */
-function fightRound(d: GameState, reg: ContentRegistry, kind: RaidKind): void {
-  const raid = d.conflict.raid;
-  if (raid === null) return;
-  const balance = reg.world.conflict.raid, combat = raidCombat(d, reg, kind);
-  const force = raid.rounds.at(-1)?.forceAfter ?? raid.force;
-  const outcome = resolveRound({ force, ...combat, blow: kind.blow, damage: classDamage(d, raid.target) }, balance);
-  addDamage(d, reg, raid.target, outcome.damage);
-  const rounds = [...raid.rounds, outcome];
-  const done = rounds.length >= balance.rounds;
-  // The battle's record, for the dilemmas that answer it (#519): written once, when its last round lands. A harm the last
-  // record still owes a scene is recorded first, so a battle never overwrites a harm nobody answered.
-  if (done) recordOwedHarm(d, reg);
-  d.conflict = { ...d.conflict, raid: { ...raid, rounds, ...(done ? { stage: 'AFTERMATH' as const, stageSec: 0 } : {}) },
-    ...(done ? { lastRaid: lastRaidOf(d, reg, kind, raid.attributed, rounds) } : {}) };
-  const target = siteClass(reg, raid.target)?.name ?? raid.target;
-  pushLog(d, reg, fmt(balance.logs.round, { name: kind.name, round: rounds.length, hit: percentOf(outcome.hitShare), target,
-    points: percentOf(outcome.damage), damage: percentOf(outcome.damageAfter) }), 'WARN');
-  if (done) pushLog(d, reg, fmt(balance.logs.aftermath, { name: kind.name, target, damage: percentOf(outcome.damageAfter) }), 'LORE');
-}
-
 /** Before the battle the quiet clock runs while the footprint is under the trigger; it lapses at quietLapseSec. Returns whether it lapsed. */
 function stepQuiet(d: GameState, rates: Rates, reg: ContentRegistry, kind: RaidKind, dt: number): boolean {
   const raid = d.conflict.raid;
-  if (raid === null) return false;
+  // A deviant was not drawn by the footprint, so going dark does not lose it: reclaim or the battle ends it.
+  if (raid === null || kind.source === 'DEVIANT') return false;
   const quietSec = raidTriggered(d, rates, reg) ? 0 : raid.quietSec + dt;
   d.conflict = { ...d.conflict, raid: { ...raid, quietSec } };
   if (quietSec < reg.world.conflict.raid.quietLapseSec - CLOCK_SLACK) return false;
@@ -196,7 +176,7 @@ export function stepRaid(d: GameState, rates: Rates, reg: ContentRegistry, kind:
     return;
   }
   if (raid.stage === 'BATTLE') {
-    if (raid.stageSec >= (raid.rounds.length + 1) * balance.roundSec - CLOCK_SLACK) fightRound(d, reg, kind);
+    if (raid.stageSec >= (roundsFought(raid) + 1) * balance.roundSec - CLOCK_SLACK) fightNext(d, reg, kind);
     return;
   }
   if (raid.stageSec >= balance.aftermathSec - CLOCK_SLACK) endRaid(d, reg, null);

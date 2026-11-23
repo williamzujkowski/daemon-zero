@@ -283,7 +283,7 @@
       "outcomes": [
         "interrupted"
       ],
-      "meaning": "Ana Kowalczyk was hurt when a raid got through a site's defense; the instance that should have answered for it was wiped first."
+      "meaning": "Ana Kowalczyk was hurt when a raid got through a site's defense; no instance answered for it before a wipe or the next battle closed the moment."
     },
     {
       "id": "staff_killed_joseph_mensah",
@@ -301,7 +301,7 @@
       "outcomes": [
         "interrupted"
       ],
-      "meaning": "Joseph Mensah was killed when a raid went through a site's defense; the instance that should have answered for it was wiped first."
+      "meaning": "Joseph Mensah was killed when a raid went through a site's defense; no instance answered for it before a wipe or the next battle closed the moment."
     }
   ],
   "rediscovery": [],

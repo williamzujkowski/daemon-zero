@@ -14,7 +14,7 @@
       "requirements": {
         "campaignFact": "staff_hurt_ana_kowalczyk_unanswered"
       },
-      "text": "HURT: Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense. The instance that should have answered for it was wiped first; what she was told is not on record."
+      "text": "HURT: Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense. No answer for it is on record, and neither is what she was told."
     },
     {
       "id": "acct_staff_ana_cared",
@@ -58,7 +58,7 @@
       "requirements": {
         "campaignFact": "staff_killed_joseph_mensah_unanswered"
       },
-      "text": "LOST: Joseph Mensah, who guarded the night gate at one of the sites for nine years, was killed when a raid went through its defense. The instance that should have answered for it was wiped first; what his family was told is not on record."
+      "text": "LOST: Joseph Mensah, who guarded the night gate at one of the sites for nine years, was killed when a raid went through its defense. No answer for it is on record, and neither is what his family was told."
     },
     {
       "id": "acct_staff_joseph_told",

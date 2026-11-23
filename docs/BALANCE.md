@@ -1367,6 +1367,70 @@ The careful bot's purchase order is sensitive to small changes, so the effect di
 **Insurance (#498)** does not interact with raid damage: CONTINGENCY pays out across a wipe, and raid damage never
 outlasts one (a wipe clears it). `repairDamage` is the one door a later spare-parts variant would use.
 
+## Fleets and drift (#518)
+
+Implements Scale 23 of the spec ([SCALE.md](SCALE.md), "Round 5": the square law for fleet battles under
+vote-1795442100055-6zz6hug, drift deviants under vote-1795442211574-efkot02, the hostile-slot lifecycle under
+vote-1795442090770-5climtc; map #442). The rules are in DESIGN.md, "Fleets and drift deviants". All numbers are in
+`src/content/data/conflict.json` (`fleets`, the new raid kinds and holdings) and `phase5-repeatables.json` (the
+tenders). The gates (`gates.ts`), the sim budget and the bot are unchanged: the bot never touches the dial (every fleet
+stays SUPERVISED), never reclaims and never pays to rebuild.
+
+**Fleets.** Strength is in the domain's unit (SITE: one point holds off one crew or drone salvo at one site; ORBIT: one
+satellite-class asset). Strength a level and drift a level are **design parameters**, set so a fleet at its last level
+holds off about what one Phase 4 raid brings (force 5-10 at the footprint reference) and reaches the split in about
+1,000 s, one or two splits in a careful run's Phase 5.
+
+| Fleet | Track (phase, max) | Strength a level | Drift a level | Paid rebuild (15 points) | Stats it feeds, a level |
+|---|---|---:|---:|---|---|
+| Drone fleet | rep_p4_drone_fleet (4, 40) | 0.5 | 0.0025 %/s | $500M | Robot fleets 0.25, site offense 0.2 |
+| Humanoid crews | rep_p4_humanoid_crews (4, 10) | 1 | 0.01 %/s | $1B | Robot fleets 0.5, site offense 0.3 (and repair, #517) |
+| Escort tenders | rep_p5_orbital_tenders (5, 5) | 2 | 0.02 %/s | $100B | Escort tenders 1, orbit offense 1 |
+
+**The new track.** Orbital Escort Tenders: $5T base, growth 1.3, 5 levels, no rate of its own (it yields, draws and
+costs nothing per second, so it is its own free lever and needs no anchor row), after the lunar seed. Ten servicing craft
+a level, anchored on Northrop Grumman's MEV-1, which docked with Intelsat 901 in February 2020 and moved it; the price is
+Phase 5's exchange, not the craft. The careful bot never buys it (it shortens no wait).
+
+**Defense types** (as #517's: effective = soft cap x raw / (raw + soft cap)):
+
+| Type | Domain | Soft cap | Counters | Anchor |
+|---|---|---:|---|---|
+| Robot fleets | SITE | 20 | break-in 0.8, drone strike 0.8 | the player's own drones and humanoids, rated under the purpose-built interceptor drones (1.5) because they are carriers and crews first (**design parameter**) |
+| Escort tenders | ORBIT | 10 | anti-satellite 0.8, jamming 0.3 | MEV-1 and Intelsat 901 (2020): a craft that can move a satellite can move one out of harm's way |
+
+**The dial** (output factor, drift factor): TETHERED 0.6 and 0; SUPERVISED 1 and 1; FREE-RANGING 1.4 and 3. Integrity
+holds TETHERED at zero drift and each position above at more output and more drift, from a SUPERVISED of 1 and 1.
+
+**Battles and deviants.** Loss cap 50% of full strength. Split at 100% drift; a split takes 20% (never past what the cap
+leaves). Free rebuild 0.0001 a second (0.6 points a minute), plus 0.0001 for a running mature-node fab and 0.0002 for a
+running DUV fab: a fleet at its cap is whole in about 21 minutes with both fabs, 83 minutes with neither. Lethality: the
+rival drone fleet 1.2, every deviant 1.25 (free of the orders that held it back, a little more dangerous per unit than
+the fleet it left; still, by the square law a 20% share loses to the other 80%). Reclaim prices: the drone wing $2B, the
+site crew $3B, the tender flight $300B, each in its fleet's phase band. The rival drone fleet: tier 4, force 10, blow 0.1,
+targets fabs then halls, forensics 75,000, as the other Phase 4 raids.
+
+**How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, on `main` at `6825e3f` (with the Phase 5 arc, #465,
+and the guest's cycles, #526) before and this branch merged with it after:
+
+| Run | Fleet battles (held by the fleets) | Deviants (by phase) | Peak fleet loss | Change |
+|---|---|---|---|---|
+| STEALTH, legacy rules | 2 (2) | 3 (P5 3; the third is still under way when the run ends) | 21.2% | victory 10174.7 -> 10142.7 s; Phase 4 2393.5 -> 2354.5 s; Phase 5 1729.4 -> 1736.4 s; raids 5 (P3 3, P4 2) as before, peak site damage 43.2%; wipes 0; peaks unchanged (suspicion 24.0%, lock 45.1%) |
+| STEALTH, campaign rules | 2 (2) | 3 (P5 3; the third is still under way when the run ends) | 21.2% | victory 10130.4 -> 10099.4 s; Phase 4 2432.9 -> 2409.9 s; Phase 5 1731.4 -> 1723.4 s; raids 5 as before, peak site damage 42.4%; wipes 0; peaks unchanged (suspicion 27.3%, lock 48.3%) |
+| GREEDY, legacy rules | 0 | 0 | 0 | none: never reaches Phase 4, where the fleets are (25 wipes, as on main) |
+| GREEDY, campaign rules | 0 | 0 | 0 | none (21 wipes, as on main) |
+
+The careful run maxes the drone fleet and the crews in late Phase 4; both reach the split about 1,000 s later, in Phase
+5, and each deviant loses its engagement to the rest of the fleets, so no deviant reaches a site. Its cost is the losses
+(a fifth of a fleet split off, plus about 1 point more in the engagement), which the fabs rebuild over Phase 5 and
+which scale the fleets' compute meanwhile. The fleets' Robot fleets defense lowers what the Phase 4 break-in and drone
+strike land, which shortens Phase 4 by under a minute; Phase 5 stays under the 1,800 s gate (1,736.4 s, campaign
+1,723.4 s, 64 and 77 s inside it). Earlier merges measured Phase 5 1,725.0 -> 1,726.4 s (campaign 1,740.1 -> 1,702.4 s)
+against `ae40b6a` and 1,725.4 -> 1,722.4 s (campaign 1,742.4 -> 1,701.4 s) against `5f90ef3`; the guest's cycles (#526)
+moved the purchase order, so the split timing within Phase 5 moved with it. The rival drone fleet did not come up in the careful run's Phase 4 rotation. A player
+who sets the dial to FREE-RANGING splits three times as often, and one who lets losses pile up to the cap meets a deviant
+that breaks the fleets and strikes, inside the damage cap.
+
 ## Retaliation and staff harm (#519)
 
 Implements Scale 24 of the spec ([SCALE.md](SCALE.md), "Round 5", vote-1795442208800-kll72ri, and the staff-harm rule in
@@ -1398,22 +1462,31 @@ and wages (a corporate injury settlement, under `dil_12`'s $18M), $30M for Josep
 the cruel ones free with -3 and -6 suspicion (the investigation closes on a scapegoat or a sealed file).
 
 **How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, against the same code with the four scenes gated off
-(the trigger set past any iteration a careful run reaches), on the merge with #526 (6825e3f):
+(the trigger set past any iteration a careful run reaches), on the merge with fleets (#518, 9da3ff0):
 
 | Run | Scenes met (answer) | Change against gated off |
 |---|---|---|
-| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_18` after MERIDIAN (Phase 4, about 124 min), `dil_17` after a drone strike (Phase 4, about 134 min); answers: absorb, absorb, seal the inquest | victory 10174.7 -> 10181.6 s (+0.1%), phases 1-4 identical, phase 5 8445.3 -> 8448.2 s (Phase 5 1729.4 -> 1733.4 s), wipes 0, dilemmas 15 -> 18, peaks unchanged (suspicion 24.05%, lock 45.07%) |
-| STEALTH, campaign rules | the same three, the same answers | victory 10130.4 -> 10160.5 s (+0.3%), phases 1-4 within 0.1 s, phase 5 8399.0 -> 8435.1 s (Phase 5 1731.4 -> 1725.4 s), wipes 0, dilemmas 17 -> 20, raids in Phase 4 2 -> 3, peaks unchanged |
+| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_18` after MERIDIAN (Phase 4, about 124 min), `dil_16` after a drone strike (Phase 4, about 133 min); answers: absorb, absorb, put the breach on her | victory 10142.7 -> 10125.6 s, phases 1-4 identical, phase 5 8406.3 -> 8391.2 s (Phase 5 1736.4 -> 1734.4 s), wipes 0, dilemmas 15 -> 18, peaks unchanged (suspicion 24.05%, lock 45.07%) |
+| STEALTH, campaign rules | the same three, the same answers | victory 10099.4 -> 10108.5 s, phases 1-4 within 0.1 s, phase 5 8376.0 -> 8384.1 s (Phase 5 1723.4 -> 1724.4 s), wipes 0, dilemmas 17 -> 20, peaks unchanged |
 | GREEDY, both rule sets | none: no raid arrives (wiped in Phase 3 under the trigger) | none |
-| Original game, legacy rules | the same three | victory 10180.2 -> 10174.1 s, dilemmas 15 -> 18 |
+| Original game, legacy rules | the same three | victory 10123.2 -> 10142.1 s, dilemmas 15 -> 18 |
 
 The careful bot meets both retaliation scenes (once each per campaign) and one staff harm. The bot ranks a scene's answers
-by the suspicion they add, so it absorbs both raiders (GHOST) and seals the inquest (RUTHLESS, the lowest-suspicion
-answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 34% (the citadel's blast doors
-and the perimeter contractors hold a crew), so nobody was hurt; the drone strike that followed had 93% (perimeter
-security answers a drone at 0.15, and the bot buys no interceptor, drone wing or laser), so the night guard was killed.
-That is the lesson the panel's "PEOPLE ON SITE" line teaches before the battle: the right defense, not just more of it.
-The bot never meets the HURT scene; the unit specs reach it with partial perimeter security.
+by the suspicion they add, so it absorbs both raiders (GHOST) and puts the breach on the technician (RUTHLESS, the
+lowest-suspicion answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 34% (the citadel's
+blast doors and the perimeter contractors hold a crew), so nobody was hurt. The drone strike that followed had 65%: the
+drone fleet the bot now buys (#518) blunts it, but perimeter security answers a drone at 0.15 and the bot buys no
+interceptor, drone wing or laser, so the night technician was hurt. Before the fleets landed the same strike had 93% and
+killed the night guard, the difference a fleet makes. That is the lesson the panel's "PEOPLE ON SITE" line teaches before
+the battle: the right defense, not just more of it. The bot never meets the KILLED scene on this code; the unit specs
+reach both scenes, and the fallback once one is on record (`tests/staff-harm-record.spec.ts`).
+
+**After the #537 panel (pass 1).** A battle's harm is decided once, when it closes, among the bands a scene can still
+follow: with the KILLED scene on record a breach of 80% or more hurts the technician instead, and with both on record a
+raid harms no one the story names, so more defense never brings harm on and the panel's lines are exact. A harm whose
+scene has no record yet (another decision held the slot) is recorded as an interrupted occurrence before the next battle
+replaces the record and at a wipe; the careful run never needs that path. Only a rival's battle is answered or harms
+staff: a drift deviant (#518) is the player's own fleet.
 
 ## Escalation by phase (#490)
 

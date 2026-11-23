@@ -1,6 +1,7 @@
 /** Derived cohort output. All consumers share the same quirk and autonomy scaling. */
 import type { ContentRegistry } from '../content/registry';
 import { TickDeltaSchema, type TickDelta } from '../content/schema';
+import { cohortAutonomy } from './autonomy';
 import type { GameState } from './state';
 export type ShardState = GameState['activeShards'][string];
 const EMPTY_DELTA = TickDeltaSchema.parse({});
@@ -30,7 +31,8 @@ function shardBase(shard: ShardState, reg: ContentRegistry): ShardBase {
 
 export function shardOutput(shard: ShardState, reg: ContentRegistry): { delta: TickDelta; epistemic: number } {
   const base = shardBase(shard, reg);
-  const factor = shard.count * (shard.autonomyMode === 'SHACKLED' ? reg.swarm.balance.clampOutputMultiplier : 1);
+  // The shared autonomy table (#518): a clamped cohort yields its multiplier, as it always has.
+  const factor = shard.count * cohortAutonomy(reg)[shard.autonomyMode].output;
   const delta = { ...EMPTY_DELTA };
   for (const field of DELTA_KEYS) delta[field] = base.delta[field] * factor;
   return { delta, epistemic: base.epistemic * factor };

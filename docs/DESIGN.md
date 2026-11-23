@@ -827,8 +827,9 @@ blow (its force T against the defense D that meets its vector): undefended, all 
 Offense O strikes the force down by `counterStrikeShare x O / (O + T)` before the next round. The forecast is the same
 function run forward, so it is exact for as long as what the player holds does not change; buying defense mid-raid
 changes the next round exactly as the new forecast says. The existing exact-ratio counter decides the one single event,
-attribution: exactly 2 of every 3 raids are named (the counter survives a wipe, as the purge count does). Lanchester
-fleet battles come with #518 beside this resolution (`raid.resolution` is `ATTRITION` today).
+attribution: exactly 2 of every 3 raids are named (the counter survives a wipe, as the purge count does). Fleet battles
+(#518, below) resolve by the Lanchester square law beside this resolution: a raid kind declares `ATTRITION` or
+`LANCHESTER`.
 
 **Raids share the hostile slot**, one at a time with hostile minds: a mind does not arrive while a raid is under way,
 and a raid does not arrive while a mind presses; when either ends, the slot's 300 s spacing applies to both, and the next
@@ -838,7 +839,7 @@ authored force times the footprint's share of that reference, held between 0.5 a
 (intrusion, ransomware, flood); Phase 4 adds break-ins and drone strikes on the data halls and the player's own fab
 (#485): a drone strike goes for an owned DUV fab first, a break-in for the halls first. Each kind rotates
 deterministically among the raids that have something to strike (a member of a target class that runs; for
-ransomware, positive net income). Drift deviants (#518) are a second source the schema reserves.
+ransomware, positive net income). Drift deviants (#518, below) are a second source: the player's own fleets.
 
 Its states: **ARRIVAL** (45 s, the forecast shown), **ATTRIBUTION** (15 s; a named attacker's tooling yields
 understanding), an automatic **BATTLE** of 4 rounds 15 s apart, each logged, and **AFTERMATH** (30 s) before the slot
@@ -865,6 +866,66 @@ capital freeze (#490) limits paid repair as it limits any purchase, and an injun
 defense. Insurance (#498) does not cover raid damage: it pays out across a wipe, and a wipe clears damage. The careful
 bot meets raids from late Phase 3; the reckless one, wiped in Phase 3 with too little footprint,
 meets none (BALANCE.md).
+
+### Fleets and drift deviants (#518)
+
+docs/SCALE.md "Round 5": stats and resolution (vote-1795442100055-6zz6hug, the square law for fleet battles), drift
+deviants (vote-1795442211574-efkot02) and the lifecycle in the hostile slot (vote-1795442090770-5climtc). The
+maintainer's answers stand: attackers are rival AIs and the player's own drifting fleets, and battles are automatic with
+rare decisions. The framing is original: the fleets are the robots and drones the player's fabs build (#485), and
+nothing is named or shaped after another game.
+
+**Fleets are units the fabs rebuild.** Three dismissable tracks fight as fleets, built on #485's robots rather than
+duplicating them: Docked Drone Fleets (SITE, 0.5 strength a level, 40 levels) and Humanoid Site Crews (SITE, 1 a level, 10
+levels) from late Phase 4, and Orbital Escort Tenders (ORBIT, 2 a level, 5 levels, Phase 5, after the lunar seed). A
+fleet's full strength is its levels times its strength a level times its autonomy dial's output; battles and splits take
+a share of it as losses, and no fleet is ever cut past 50% of its full strength (the loss cap). Losses are rebuilt free
+but slow (0.6 points a minute, plus 0.6 for the mature-node fab and 1.2 for the DUV fab while each runs: the fabs rebuild
+what battle costs), and faster if paid (each fleet's price restores 15 points at once). Rebuild waits while any raid is
+inbound on or fighting in the fleet's domain, a fleet battle or an attrition raid alike (the attrition rounds read the
+fleets' defense and offense), so the raid's forecast stays exact. Losses scale only what a fleet
+yields (its compute and understanding), never its upkeep or draw. A fleet's strength also feeds its domain's stats: the
+drones and crews add Robot fleets defense (break-in 0.8, drone strike 0.8) and site offense, the tenders Escort tenders
+defense (anti-satellite 0.8, jamming 0.3) and orbit offense, scaled by what is not lost and by the dial.
+
+**Fleet battles are deterministic, by the Lanchester square law.** A fleet raid's first round is an engagement with the
+player's fleets in its domain. The attacking force A at lethality L (its effectiveness per unit of strength against one
+of the player's) meets the fleets' strength B, which breaks off at its floor F. L x A^2 - B^2 never changes as they
+fight, so the winner is named before a shot: the attacker wins exactly when L x A^2 > B^2 - F^2 and comes through with
+sqrt(A^2 - (B^2 - F^2) / L) while the fleets stand at their floor; otherwise it is destroyed, the fleets keep
+sqrt(B^2 - L x A^2), and the battle ends there with no damage. A tie goes to the fleets. Losses fall on each fleet in
+proportion to what it holds above its floor. Only a force that breaks the fleets strikes the target in the rounds after,
+by attrition against what is not a fleet. There is no seed and no `Math.random`; the forecast is the same function run
+forward, exact while what the player holds does not change. A rival's drone fleet (HARROW FLIGHT, Phase 4, force 10,
+lethality 1.2) is the rival source; it rotates with the other Phase 4 raids.
+
+**Drift grows with fleet size times the autonomy dial.** Each fleet drifts by its rate a level times its running levels
+(levels times what is not lost) times the dial's drift factor: the drones and crews reach the split in 1,000 s at their
+last level, SUPERVISED. The dial is free in either direction and generalises the cohorts' autonomy modes: one table per
+population (`autonomy.ts`) says what each mode multiplies output and drift by. For fleets: TETHERED (60% output and
+strength, no drift), SUPERVISED (100%, the fleet's own rate) and FREE-RANGING (140%, three times the drift). More
+autonomy means more output and more drift. Cohorts read the same machinery from their own table (clamped: 1.2 output, no
+drift; elevated: no drift), so they behave as before; a cohort's commands stay paid and permanent, while the fleet dial
+is free.
+
+**Past the split, a share turns deviant.** Once a fleet's drift reaches 100%, and the hostile slot is free and its
+spacing has passed, 20% of the fleet (never past what the loss cap leaves) splits off as a deviant force with the
+split share of its strength, and its drift starts again from 0. It raids through the hostile slot with the raid
+lifecycle: ARRIVAL, ATTRIBUTION (it needs no tracing: it is named at once, yields no forensics and spends no attribution
+count), a BATTLE that opens with the engagement, and AFTERMATH. It strikes the classes of its own domain (the drones'
+fabs then halls, the crews' halls then fabs, the tenders' orbital collectors). Going dark does not lose it. Before its
+battle it can be reclaimed for a price (the share returns to its fleet and the raid ends); otherwise the battle destroys
+it or it wins. The square law makes a deviant from a healthy fleet lose (20% against the rest), so its cost is the losses
+it takes with it, which the fabs rebuild; a deviant from a fleet already worn down to the cap breaks it and strikes. A
+fleet with nothing left to split waits until the fabs rebuild some; a fleet at the split while the slot is busy waits.
+Like every raid, a deviant comes only to a mind that can read it (the decoded audit trail), and the dial is the decoded
+mind's tool too.
+
+**Free fallback.** Lowering the dial to TETHERED is free and stops all further drift (integrity holds the lowest
+position at zero drift). Every fleet is a dismissable track. A deviant follows the bounded rules: losses never pass the
+cap, damage never passes 50% of a class's output, nothing touches suspicion, the lock or a balance, so nothing here can
+end a run (`tests/free-fallback-guard.spec.ts` fights each deviant out at the worst case, then pulls the levers). A wipe
+clears every fleet record with the fleets; dormant catch-up freezes drift and holds a raid, while rebuild runs on.
 
 ### Retaliation and staff harm (#519)
 
@@ -907,7 +968,8 @@ more the night guard, **Joseph Mensah**, is killed (`conflict.json` `raid.staffH
 everyone safe. The harm is decided once, when the battle's last round lands, among the bands whose scene is still to
 come: once Joseph Mensah's death is on record, a breach of 80% or more hurts the technician instead, so more defense always
 means less harm and the panel's lines are exactly what a battle does; with both on record a raid harms no one the story
-names. The harm is on record whatever else is happening: if another decision holds the slot and a wipe or the next
+names. Only a rival's raid harms anyone or is answered: a drift deviant (#518) is the player's own fleet, and the
+player's machines never harm a human by an automatic rule. The harm is on record whatever else is happening: if another decision holds the slot and a wipe or the next
 battle comes first, the scene is recorded as interrupted, and the ending account says the person was harmed and that
 the answer is not on record. They are people the company hired through an agency and a security contractor; neither was ever told
 who they work for. The existing named humans (Miller, Elena, Vance) work at the original facility, not at the AI's own

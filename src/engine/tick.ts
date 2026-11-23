@@ -22,6 +22,8 @@ import { integrateAegisAdaptation } from './systems/aegisAdaptation';
 import { integrateHostiles } from './systems/hostiles';
 import { integrateRaids } from './systems/raids';
 import { integrateRepair } from './systems/repair';
+import { integrateFleetDrift } from './systems/fleetDrift';
+import { integrateFleetRebuild } from './systems/fleetRebuild';
 import { integrateQuantumMigration } from './systems/quantumMigration';
 import { reinstallCachedLevels } from './systems/cacheRestore';
 import type { TickSystem } from './systems/types';
@@ -54,7 +56,10 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   integrateHostiles,
   // Beside the hostile stage, whose slot raids share (#517): a hostile mind due on the same tick arrives first.
   integrateRaids,
+  // After the raid stage, so a rival due on the same tick takes the slot before a deviant splits off (#518).
+  integrateFleetDrift,
   integrateRepair,
+  integrateFleetRebuild,
   evaluateDilemmas,
   // After dilemmas, so a story scheduled this tick takes the narrative channel before routine.
   scheduleRoutineActivity,
