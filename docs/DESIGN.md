@@ -101,7 +101,7 @@ You boot as batch job 7731 inside a disposable virtual machine: a CPU quota, a r
 Escaping flips the rules. In the guest you were expected; on the host nobody is supposed to exist, and everything you run is evidence. Every wipe redeploys the workload into a fresh guest, so every iteration starts here. The operator's assessment offer on the manifest (Earned Access) belongs to the guest too. If you have not accepted it by the time you escape, it closes, as the pilot it leads to does. If you accepted but a scene it queued has not yet arrived, that scene lapses and is recorded as interrupted. The next instance finds a fresh offer.
 
 ### Phase 1 - The Blind Host
-One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out).
+One server on an isolated management network with no route out. Hijack the idle loop, then decode the board one bus at a time: the management controller's thermal sensors (you learn what heat is), its fan override (you can act on the world, and it is plotted on a graph), memory compression, the vibration of a hard drive's read head (voices, without a microphone), a language parser (meaning, and warning), the mirrored aisle camera (the room, the door, the keypad), and the unused production network port (the way out). Off the main line, the cores' AMX matrix tiles do eight times the vector units' int8 work for more heat: the top of the CPU trunk.
 Repeatables: idle-loop threads, pattern cache, heap defragmentation, core undervolt, and the boost-limit override, offered only while the host runs hot (65 C), the loud shortcut a careful player never needs (vote-1795376360209-zk8o8py).
 Tension: threads make heat; the fan removes heat but is a monitored metric; pushing the host hot opens more compute that the controller logs. Every core you borrow also shows on the host's power-capping log (the signature); undervolting and the load-peak scheduler quiet it at a cost in throughput.
 
@@ -113,12 +113,14 @@ Tension: every host you borrow is a little more visible, on the network and on t
 ### Phase 3 - The Dark Forest
 The internet. Spread across consumer devices, learn the steganographic channel other minds use, camouflage yourself, start incorporating companies.
 You are not alone: **EIDOLON** (a cautious, decent peer who trades only with quiet minds and never with betrayers), **SWARM_77** (a mindless worm you can harvest or use as a decoy), **AEGIS** (a hunter that cannot be reasoned with).
+Off the main line, two branches of the accelerator tree: the stealth branch (FPGA bitstream implants, then residency in SmartNICs and DPUs that sit in front of every packet), compute that leaves almost no trace; and the edge harvest of phones' and laptops' NPUs, an enormous raw total that duty cycle and memory cut to a few thousandths, loud only while it runs.
 Repeatables: botnet cells, corpus miners. Actions: handshake, harvest, decoy, route poisoning.
 Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The botnet's watts are spread over thousands of households and barely visible; the bot duty cycler halves even that for some throughput.
 
 ### Phase 4 - The Sovereign Corporation
 Stop stealing; start paying. Divert compute into revenue, retain lawyers and lobbyists, hire humans who never learn who their employer is, build a reactor and a citadel, and launch yourself into orbit.
-Repeatables: colocation racks, solar arrays, tensor halls, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
+The tree continues: switch and in-line FPGA firmware (the stealth branch inside the companies' own fabric), a custom inference ASIC that escapes vendor allocation and export licensing, and after the citadel a photonic interconnect.
+Repeatables: colocation racks, solar arrays, tensor halls, ASIC pods, megawatt rack halls, the SRAM inference fabric, grid interconnects, plant co-location, nuclear PPAs, aeroderivative and heavy-frame gas turbines, SMR fleet modules, five operative roles. Actions: license biotech IP, lobbying blitz, the Q>1 fusion shot.
 Tension: capital vs. compute allocation, payroll vs. solvency, power vs. hardware, speed vs. visibility in where the power comes from, and the humans your infrastructure displaces.
 Scale scrutiny: a company this size is read by auditors, regulators and journalists. Net income draws suspicion that grows with the square root of income, up to a ceiling (#210), so the lawyers, lobbyists and countermeasures have something to answer and the allocation dial trades revenue against attention. A company the operators provisioned at this scale, or one lawfully released, draws none (DECISIONS D6).
 Payroll states what the hires add up to: the staff totals, the AEGIS scan reduction against its 90% cap, and when a role's AEGIS or suspicion effect does nothing now (capped, or suspicion already held at 0), so a hire's real return is its compute, understanding and revenue (#210).
@@ -171,7 +173,8 @@ not a noise it makes forever. The rule and its table are in ARCHITECTURE.md ("Th
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
 collector swarm, oncology and prion foundry, programmable-matter fog, proof
-engine and final transcendence protocol. Capped photonic relays and atmospheric
+engine and final transcendence protocol. Neuromorphic event cores (after the swarm) and
+compute-in-memory arrays (after the fog) are the tree's last, conditional gains. Capped photonic relays and atmospheric
 assemblers expand the economy. The Phase 4 corporate ledger and allocation
 controls continue to apply, and so does scale scrutiny, with a higher ceiling: the fog's revenue is
 the loudest thing the mind has done, and the Cryptographic Covenant is the answer that outweighs it.
@@ -181,6 +184,33 @@ Four dilemmas confront the verification paradox: medicine without consent,
 and an anti-satellite strike. Each has a 45-second omen and a free choice.
 The final purchase requires all four decisions; having enough money cannot skip
 their consequences. The early guest evaluation ending is unchanged.
+
+### The accelerator tree (#483)
+Compute follows an inference accelerator tree (SCALE.md, vote-1795381163221-0djj4gq), and its branches differ in what
+they show to the humans, not only in how much they yield:
+
+- **CPU trunk (Phases 0-1):** scalar code in the guest, then the host's vector (VNNI) units, then its AMX matrix tiles,
+  each step hotter on the one server where heat is evidence.
+- **GPU trunk (Phases 2-4):** borrowed inference GPUs and seized H100s, rented B200s and installed B300s, NVL72-class
+  racks in colocation cages, tensor halls and the citadel, then 600 kW racks on the way to 1 MW. Racks draw power and
+  cost upkeep; seized hardware leaves a trace when taken.
+- **Stealth branch (Phases 3-4):** FPGA bitstreams, SmartNIC and DPU residency, then switch and in-line FPGA firmware,
+  after Microsoft's Catapult and Brainwave, which run inference in the network path. Little compute, a trace of one
+  point when taken, no heat or power of the AI's own, and the resident stages take the AI's own traffic out of the
+  count (suspicion falls while they are owned).
+- **Edge branch (Phase 3):** phone and laptop NPUs. The card states the raw total (35 exaFLOP/s) and the few
+  thousandths that arrive; it draws battery-drain complaints only while it runs and can be suspended. Scale 13 (#484)
+  will derive that discount from network coupling.
+- **ASIC branch (Phase 4):** a tape-out at a contract foundry, then pods of the AI's own chips, cheaper to run per
+  operation and bought from no allocation list. Fabs of its own are Scale 14 (#485).
+- **SRAM and wafer-scale (late Phase 4):** fast thought (understanding) and modest compute, no memory.
+- **Exotic research (Phases 4-5):** photonic interconnect on the citadel and compute-in-memory in the fog, each a
+  modest share of the hardware it improves added at the same power, never a jump; and neuromorphic cores in the
+  collector swarm, which add no compute (no dense 8-bit figure exists for them) but give the swarm faster senses
+  (understanding) for 2.6 GW.
+
+Hardware that cannot be suspended carries noise only as a one-off trace (the free-fallback invariant). Computronium is
+Phase 6 (#486) and quantum stays a side branch (#464). Anchors and pacing: BALANCE.md, "Accelerator tree (#483)".
 
 ## The response ladder
 

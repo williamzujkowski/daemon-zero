@@ -55,7 +55,8 @@ function checkDivertible(row: RateRow, reg: ContentRegistry, holdings: readonly 
     const missing = dialMissing(reg, holding);
     if (missing !== null) { problems.push(`${head} ${missing}`); continue; }
     // Its own compute diverted at the dial's ceiling, powered output at the grid's floor: the worst it can pay itself.
-    const own = Math.max(0, holding.delta.cyclesPerSec) * (holding.delta.wattsDelta < 0 ? reg.balance.minGridEfficiency : 1);
+    const powered = holding.delta.wattsDelta < 0 || (holding.node !== undefined && reg.nodes.get(holding.node)?.poweredOutput === true);
+    const own = Math.max(0, holding.delta.cyclesPerSec) * (powered ? reg.balance.minGridEfficiency : 1);
     const pays = own * limit * usdPerFlop;
     if (pays < upkeep) problems.push(`${head} its own compute diverted pays $${fmtNumber(pays)}/s of its $${fmtNumber(upkeep)}/s upkeep`);
   }

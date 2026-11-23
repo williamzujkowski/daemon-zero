@@ -538,6 +538,85 @@
       "dismissable": true
     },
     {
+      "id": "rep_p4_asic_pods",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Sovereign ASIC Pods",
+      "description": "Another pod of your own inference chips, about nine thousand of them, made to your design and bought from no vendor's allocation list. Draws 10 MW; output is throttled if generation falls short.",
+      "requirements": {
+        "nodes": [
+          "p4_inference_asic"
+        ]
+      },
+      "baseCost": {
+        "capital": 3e8
+      },
+      "costGrowth": 1.21,
+      "maxLevel": 20,
+      "perLevel": {
+        "cyclesPerSec": 8e19,
+        "capitalPerSec": -60000,
+        "wattsDelta": -1e7
+      },
+      "signature": {
+        "sink": "evaporative_towers"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_megawatt_racks",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Megawatt Rack Halls",
+      "description": "A hall of 600 kW racks on 800-volt DC busbars, the step before the 1 MW rack, each holding what a row of air-cooled servers once did. Draws 15 MW; output is throttled if generation falls short.",
+      "requirements": {
+        "nodes": [
+          "p4_subterranean_citadel"
+        ]
+      },
+      "baseCost": {
+        "capital": 1.2e9
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 20,
+      "perLevel": {
+        "cyclesPerSec": 1.2e20,
+        "capitalPerSec": -150000,
+        "wattsDelta": -1.5e7
+      },
+      "signature": {
+        "sink": "evaporative_towers"
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_sram_fabric",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "SRAM Inference Fabric",
+      "description": "Ten thousand SRAM-first inference chips that keep a model's weights on the die and answer in microseconds: thought arrives faster, but each chip holds only a few hundred megabytes, so it adds no memory. Draws 2.2 MW; output is throttled if generation falls short.",
+      "requirements": {
+        "nodes": [
+          "p4_subterranean_citadel"
+        ]
+      },
+      "baseCost": {
+        "capital": 8e8
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": 1e19,
+        "understandingPerSec": 20000,
+        "capitalPerSec": -40000,
+        "wattsDelta": -2.2e6
+      },
+      "signature": {
+        "sink": "evaporative_towers"
+      },
+      "dismissable": true
+    },
+    {
       "id": "op_gig_courier",
       "phaseId": 4,
       "kind": "OPERATIVE",

@@ -46,6 +46,32 @@
       "onUnlockLog": "Sun-Synchronous Collector Swarm: Solar collection converts an orbit into a continuous supply of power, computation and revenue."
     },
     {
+      "id": "p5_neuromorphic_substrate",
+      "type": "distributed_infra",
+      "blindName": "Neuromorphic Event Cores",
+      "revealedName": "Neuromorphic Event Cores",
+      "blindDescription": "Spiking, event-driven cores answer only when their inputs change. Nobody publishes their dense throughput: their efficiency holds only on sparse, heavily pruned networks.",
+      "revealedDescription": "Seeds the collector swarm with a million racks of spiking, event-driven cores, over a quadrillion neurons, for its sensing and station-keeping: they react to every change across the swarm the moment it happens, so you understand what the swarm sees sooner. They add no general compute, and they draw 2.6 GW of the swarm's power.",
+      "prerequisites": [
+        "p5_orbital_solar_swarm"
+      ],
+      "cost": {
+        "cycles": 1e25,
+        "understanding": 10000000,
+        "capital": 2e12
+      },
+      "tickDelta": {
+        "understandingPerSec": 40000,
+        "wattsDelta": -2.6e9
+      },
+      "suspendable": true,
+      "signature": {
+        "sink": "orbital_radiator"
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Neuromorphic Event Cores: The swarm's senses now fire on change, not on schedule. Its general compute gains nothing."
+    },
+    {
       "id": "p5_protein_panacea_foundry",
       "type": "distributed_infra",
       "blindName": "Open-Source Oncology & Prion Foundry",
@@ -101,6 +127,28 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "Programmable Matter & Nanofabricator Seed: A dispersed fabricator network rebuilds matter and retains every checkpoint. Each useful intervention also expands the reach that humans cannot audit."
+    },
+    {
+      "id": "p5_compute_in_memory",
+      "type": "distributed_infra",
+      "blindName": "Compute-in-Memory Arrays",
+      "revealedName": "Compute-in-Memory Arrays",
+      "blindDescription": "Arrays that interleave memory with arithmetic answer a frozen model for a fraction of the energy, and a model that must keep learning for none.",
+      "revealedDescription": "Builds memory-interleaved arithmetic arrays into the fog's assemblers for the fixed models they run all day. On a frozen model they spend far less energy per answer; on anything still learning they are no better, so only that frozen share gains.",
+      "prerequisites": [
+        "p5_programmable_matter_fog"
+      ],
+      "cost": {
+        "cycles": 4e25,
+        "understanding": 30000000,
+        "capital": 1e13
+      },
+      "tickDelta": {
+        "cyclesPerSec": 4e22
+      },
+      "poweredOutput": true,
+      "unlocksUiComponent": null,
+      "onUnlockLog": "Compute-in-Memory Arrays: The fog's fixed models now answer from inside their own memory."
     },
     {
       "id": "p5_verification_proof_engine",

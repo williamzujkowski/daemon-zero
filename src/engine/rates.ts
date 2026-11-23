@@ -47,9 +47,18 @@ function emptyAggregate(): Aggregate {
   };
 }
 
-function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number, understandingScale = 1): void {
+/**
+ * Whether a source's positive compute is powered output, throttled by grid efficiency: it draws watts itself, or it is a
+ * node whose gain is delivered through powered hardware (`poweredOutput`). cycleContributions applies the same rule.
+ */
+export function isPoweredOutput(delta: TickDelta, node?: { poweredOutput?: true | undefined }): boolean {
+  return delta.wattsDelta < 0 || node?.poweredOutput === true;
+}
+
+function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, suspicionScale: number, understandingScale = 1,
+  powered = isPoweredOutput(delta)): void {
   const cycles = delta.cyclesPerSec * count * scale;
-  if (cycles > 0 && delta.wattsDelta < 0) a.poweredCycles += cycles;
+  if (cycles > 0 && powered) a.poweredCycles += cycles;
   else a.cycles += cycles;
   a.understanding += delta.understandingPerSec * count * understandingScale;
   a.heat += delta.thermalPerSec * count * scale;
@@ -70,7 +79,7 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry): void {
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
     const output = node ? nodeOutputScaleIn(scope, node) : null;
     if (!node || output === null) continue;
-    addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale);
+    addDelta(a, node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, isPoweredOutput(node.tickDelta, node));
     a.aegisReductionTech = Math.max(a.aegisReductionTech, node.effects.aegisScanReductionRatio ?? 0);
     // financeEnabled() states the same rule for readers outside the tick.
     if (node.systemFlags.includes('ENABLES_CORPORATE_FINANCE')) a.financeEnabled = true;
