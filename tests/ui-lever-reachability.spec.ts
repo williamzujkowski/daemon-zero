@@ -36,7 +36,7 @@ type View = Awaited<ReturnType<typeof mountM4>>;
 const all = (selector: string) => [...host.document.querySelectorAll<HTMLElement>(selector)];
 const testIds = (selector: string) => all(selector).flatMap((element) => element.getAttribute('data-testid') ?? []);
 /** A fold over pane content: a reference panel, or a settled fold or boundary note's toggle. */
-const isFold = (element: HTMLElement) => /^reference-|-toggle$/.test(element.getAttribute('data-testid') ?? '');
+const isFold = (element: HTMLElement) => /^(?:reference-.*|.*-toggle)$/.test(element.getAttribute('data-testid') ?? '');
 
 /**
  * The levers rendered anywhere a player can get to from here, by walking every path the screen offers. The walk stops
