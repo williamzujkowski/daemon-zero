@@ -705,6 +705,37 @@ while a raid is under way, a class is damaged, or a domain is open with surveill
 `tests/ui-lever-reachability.spec.ts` proves the raid panel, every repair the engine accepts and every free lever are
 reachable on the phone and the desktop with each raid kind under way.
 
+### Fleets and drift deviants (#518)
+
+All from `fleetReadout`, `raidView` and `conflictReadout`; every sentence is the engine's own:
+
+- **SWARM** (`fleet-panel`, under site repair, above the wild signal, only while a fleet runs and the audit trail is
+  decoded): `// FLEETS`, one line saying a fleet raid meets the fleets first by the square law, drift grows with size and
+  autonomy, and the fabs rebuild. Then each running fleet (`fleet-<track>`): its strength, losses and floor
+  (`-strength`); the autonomy dial (`-autonomy`): three buttons in a wrapping row, `fleet-<track>-autonomy-shackled`,
+  `-standard` and `-elevated`, labelled with the position's content name (TETHERED, SUPERVISED, FREE-RANGING), the set one
+  pressed (`aria-pressed`, `selected`) and drawn in the heading style, each accessible name leading with its visible
+  name; under it (`-autonomy-summary`) "Now <position>: <what it does>" and any reason a position is refused. Then its
+  drift (`-drift`: the percentage, its rate at this position and seconds to the split, or "At TETHERED it does not grow.",
+  or at the split why it waits); the split forecast (`-forecast`: what a split now would turn on you, written out by the
+  square law with its numbers, and what it strikes if it would win); and its rebuild (`-rebuild-text`: the free rate and
+  seconds to whole, or that rebuild waits for a raid in its domain; the paid points, price and every refusal) with
+  `[ REBUILD ]` (`fleet-<track>-rebuild`).
+- **The raid panel** for a fleet battle adds the engagement: the matchup says round 1 is an engagement with the domain's
+  fleets by the square law, the forecast's first line is "Round 1, the engagement: ..." with the arithmetic, and the log
+  repeats it word for word. A deviant's panel says "Identified" (it needs no tracing), shows no GO DARK line (going dark
+  does not lose it), and before its battle offers `[ RECLAIM ]` (`raid-reclaim`) with its price, what it returns and every
+  refusal (`raid-reclaim-text`). The workspace notice is the raid notice, unchanged.
+- **Other Minds console and world view** (`conflict-site-fleet`, `conflict-orbit-fleet`): one read-only line per domain
+  with a fleet running: its strength and floor, and "Set their autonomy in SWARM."
+
+No new live region: a split, the arrival and the engagement are kernel-log lines, and nothing speaks on a tick. The
+panel renders only while a fleet runs, so no atlas stage or ARIA baseline line changed; on the phone it is part of the
+SWARM area's one scroll, and the dial wraps rather than scrolling sideways. `tests/e2e/fleets.e2e.ts` drives the dial,
+a split and RECLAIM on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts`
+proves the fleet panel, every autonomy position the engine accepts (lowering it is a free lever), every paid rebuild and
+RECLAIM are reachable on both.
+
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
 screens replace the feed, leaving zero purchase cards. Static node/action/cohort

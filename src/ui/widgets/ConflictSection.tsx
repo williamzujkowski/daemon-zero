@@ -15,12 +15,13 @@ import { theme } from '../theme';
 import { RaidStatus } from './RaidPanel';
 import Section from './WorldSection';
 
-interface DomainLines { id: string; name: string; unit: string; held: string[]; unheld: string; offense: string; damage: string[] }
+interface DomainLines { id: string; name: string; unit: string; held: string[]; unheld: string; offense: string; damage: string[]; fleet: string | null }
 
 function lines(domain: DomainView): DomainLines {
   const unheld = domain.defense.filter((type) => type.raw <= 0).map((type) => type.name.toLowerCase());
   return { id: domain.id.toLowerCase(), name: domain.name, unit: domain.unit, held: domain.defense.filter((type) => type.raw > 0).map((type) => type.text),
-    unheld: unheld.length > 0 ? 'Not held: ' + unheld.join(', ') + '.' : '', offense: domain.offense, damage: domain.classes.map((cls) => cls.text) };
+    unheld: unheld.length > 0 ? 'Not held: ' + unheld.join(', ') + '.' : '', offense: domain.offense, damage: domain.classes.map((cls) => cls.text),
+    fleet: domain.fleet };
 }
 
 /** Null before the first domain opens, or for a mind that cannot yet read who is attacking it. */
@@ -37,6 +38,7 @@ export default function ConflictSection() {
         : domain.held.map((line) => <Text key={line} style={theme.text}>{line}</Text>)}
       {domain.unheld !== '' && <Text testID={'conflict-' + domain.id + '-unheld'} style={theme.muted}>{domain.unheld}</Text>}
       <Text testID={'conflict-' + domain.id + '-offense'} style={theme.muted}>{domain.offense}</Text>
+      {domain.fleet !== null && <Text testID={'conflict-' + domain.id + '-fleet'} style={theme.muted}>{domain.fleet}</Text>}
       {domain.damage.map((line) => <Text key={line} style={[theme.text, theme.danger]}>{line} Repair it in SWARM.</Text>)}
     </View>)}
   </Section>;

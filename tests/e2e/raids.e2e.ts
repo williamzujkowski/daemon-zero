@@ -5,24 +5,24 @@
  */
 import type { Page } from '@playwright/test';
 import { CONTENT } from '../../src/content';
-import type { RaidKind } from '../../src/content/schemaConflict';
+import type { RivalRaid } from '../../src/content/schemaConflict';
 import type { GameState } from '../../src/engine';
 import { axeEachControl } from './axe';
 import { test, expect, boot, dismissBoot, readSave } from './helpers';
 
 const R = CONTENT.world.conflict.raid;
-const raid = (id: string): RaidKind => {
+const raid = (id: string): RivalRaid => {
   const found = CONTENT.world.conflict.raids.find((kind) => kind.id === id);
-  if (!found) throw new Error(`no raid ${id}`);
+  if (found?.source !== 'RIVAL') throw new Error(`no rival raid ${id}`);
   return found;
 };
 
 /** `kind` under way at arrival on its first target, the botnet borrowing watts so the footprint holds, and `damage` applied. */
-function underWay(kind: RaidKind, damage: Record<string, number> = {}) {
+function underWay(kind: RivalRaid, damage: Record<string, number> = {}) {
   return (game: GameState): GameState => ({ ...game, levels: { ...game.levels, rep_p3_botnet_cells: Math.max(game.levels.rep_p3_botnet_cells ?? 0, 10) },
     unlockedNodes: [...new Set([...game.unlockedNodes, 'p3_botnet_mesh'])], hostile: { ...game.hostile, active: null },
     conflict: { ...game.conflict, damage, raid: { id: kind.id, stage: 'ARRIVAL', stageSec: 0, arrivedAtSec: game.simTimeSec, target: kind.targets[0] ?? '',
-      force: kind.force, quietSec: 0, attributed: null, rounds: [] } } });
+      force: kind.force, quietSec: 0, attributed: null, rounds: [], engagement: null, splitShare: 0 } } });
 }
 
 /** The pane that holds the workspace areas now (NETWORK in Phase 3, CORP from Phase 4). */
