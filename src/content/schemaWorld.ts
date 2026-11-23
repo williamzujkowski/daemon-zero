@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
+import { QuantumManifestSchema } from './schemaQuantum';
 import { SignatureClassesSchema } from './schemaSignature';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
@@ -63,6 +64,8 @@ export const WorldManifestSchema = z.strictObject({
   minds: z.array(WorldMindSchema),
   /** The heat-and-power signature's sources and sinks (#482): what each makes visible, and how much. */
   signature: SignatureClassesSchema,
+  /** Quantum as a separate capability (#464): machines, key schemes, targets, AEGIS's migration, molecular simulation. */
+  quantum: QuantumManifestSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;
