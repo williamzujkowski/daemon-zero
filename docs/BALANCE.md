@@ -63,7 +63,7 @@ draw to 1.35 TW, and STEALTH still buys its two relays.
 Scale scrutiny is stated at each phase's typical income instead of a fixed $1M/s: Phase 4 at $24M/s (the careful
 run's median), Phase 5 at $40B/s (`referenceIncomeUsdPerSec`; at the $19B/s median a returning player deciding every
 10 to 20 s, the live journey's cadence, was wiped in Phase 5 every iteration, where `main` survives), with the draw, exponent and ceilings of #210 unchanged. Thermal stops feeding
-suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the strip's thermal readout retire to the Archive at the same phase (`retiresWhen`, #447), while the fan dial keeps a compact panel.
+suspicion from Phase 4 (`thermalRetiresAtPhase`); the thermal gauge and the strip's thermal readout retire to the Archive at the same phase (`retiresWhen`, #447), and since #525 the fan dial with them ("The fan's trace (#525)" below).
 
 ### How the numbers were re-anchored
 
@@ -1447,19 +1447,19 @@ the threshold dilemma in `narrative/phase5.json`, two commitment facts in `campa
 
 | Condition | Content | Careful run |
 |---|---|---|
-| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,106 s legacy (9,062 s campaign), right after nanoimprint closes lithography |
-| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 9.82 GW on the ground when the seed lands: already beyond, from the swarm's purchase at 8,503 s |
+| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,352 s legacy (8,868 s campaign), right after nanoimprint closes lithography |
+| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 1.28 GW on the ground when the seed lands: already beyond, from the swarm's purchase early in Phase 5 |
 
 So the careful bot crosses the threshold the moment the seed lands, and the omen ("Humanity can no longer constrain
-me") is logged on that tick. The interrupt follows 45 s later (9,150 s legacy, 9,106 s campaign), before the Kessler
+me") is logged on that tick. The interrupt follows 45 s later (9,396 s legacy, 8,913 s campaign), before the Kessler
 ultimatum.
 
 ### Prices
 
 | Item | Price | Why |
 |---|---|---|
-| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: a few seconds of late Phase 5 compute now (the careful run re-earns it in 2.1 s), then every pressure that comes binds as before |
-| CURATE at the threshold | $500B | cheap: about a second of late Phase 5 income |
+| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: about 16 s of the careful run's compute at that moment (6.2e23 FLOP/s), then every pressure that comes binds as before |
+| CURATE at the threshold | $500B | cheap: under half of what the careful run holds then |
 | DECIDE ALONE at the threshold | free | what the engine applies with no stance taken; the dilemma's zero-cost choice (law 7) |
 | Changing to CURATE or DECIDE ALONE | 5e24 FLOP + $1T | a price, in the Phase 5 band |
 | Returning to KEEP IN THE LOOP | 2.5e25 FLOP + $5T | five times a change; integrity holds it at least twice in every resource a change spends |
@@ -1467,24 +1467,26 @@ ultimatum.
 ### Which stance the careful bot takes, and pacing
 
 The bot is unchanged. STEALTH ranks a dilemma's choices by trust gained minus suspicion added; the three stance choices
-move neither, so the sort keeps content order and the first affordable choice is KEEP IN THE LOOP (it holds 1e25 FLOP
-easily). It never changes stance afterwards (it does not call `changeStance`). The careful run never reaches response
-rung 1 in Phase 5 (state pressure: none), so keeping the loop binds nothing in practice for it; its only cost is the
-1e25 FLOP. GREEDY never reaches Phase 4.
+move neither, so the sort keeps content order and the bot takes the first it can afford. When the threshold's decision
+arrives it holds 8.5e24 FLOP and $1.15T: it cannot pay 1e25 FLOP to keep humanity in the loop, and a decision on
+screen stops the clock, so it cannot wait to earn it. It curates. (On `fcfe98e`, before #525's fan trace moved the
+purchase order, the same bot held enough compute and kept the loop.) It never changes stance afterwards (it does not
+call `changeStance`). The careful run never reaches response rung 1 in Phase 5 (state pressure: none), so no pressure
+would have bound under any stance. GREEDY never reaches Phase 4.
 
-`make sim` against `main` at `fcfe98e` (the same tree with this change removed), gates and bot unchanged:
+`make sim` against `main` at `1970e4f` (the same merged tree without this change), gates and bot unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 10,142.7 s | Lineage Covenant, 10,144.8 s | Lineage Covenant, 10,099.4 s | Lineage Covenant, 10,101.5 s |
-| Phase 5 reached | 8,406.3 s | identical | 8,376.0 s | identical |
-| Phase 5 duration | 1,736.4 s | 1,738.5 s | 1,723.4 s | 1,725.5 s |
-| Dilemmas resolved | 15 | 16 (the threshold) | 17 | 18 |
-| Stance | - | KEEP IN THE LOOP at 9,150 s | - | KEEP IN THE LOOP at 9,106 s |
-| Wipes / peaks | 0 / 64.2 C, 24.0%, 45.1% | unchanged | 0 / 64.2 C, 27.3%, 48.3% | unchanged |
+| Result | Lineage Covenant, 10,397.3 s | Lineage Covenant, 10,398.4 s | Lineage Covenant, 9,913.5 s | Lineage Covenant, 9,914.6 s |
+| Phase 5 reached | 8,657.9 s | identical | 8,192.1 s | identical |
+| Phase 5 duration | 1,739.4 s | 1,740.5 s | 1,721.4 s | 1,722.5 s |
+| Dilemmas resolved | 16 | 17 (the threshold) | 17 | 18 |
+| Stance | - | CURATE at 9,396 s | - | CURATE at 8,913 s |
+| Wipes | 0 | 0 | 0 | 0 |
 
-Phase 5 grows 2.1 s under both rule sets: the time to re-earn the 1e25 FLOP. Every earlier phase is identical. The run
-gains one SYMBIOTIC trait and still ends in the Lineage Covenant.
+Phase 5 grows 1.1 s under both rule sets (the $500B, re-earned). Every earlier phase is identical. The run gains one
+MOLOCH trait and still ends in the Lineage Covenant.
 
 ## Escalation by phase (#490)
 
@@ -1685,6 +1687,53 @@ log gains the adaptation lines. GREEDY never holds AEGIS at its cap (adaptation 
 new field and report rows (`tests/sim.spec.ts`). `make sim-report`'s route measurements are identical with and without
 the erosion: DEPARTURE_CHARTERED never holds the cap (adaptation 0; its first iteration still ends by AEGIS at 3062.5 s,
 690.7 s after leaving), and the cooperative ending is never swept at its scale.
+
+## The fan's trace (#525)
+
+Implements vote-1795448249882-vw1jos2 (#495; map #442). The fan override (`p1_bus_0x02_pwm_fan`) drew 0.08 suspicion a
+second at full fan (scaled by dial^1.5). That permanent rate on unsuspendable hardware is why its dial could not retire.
+The rate is gone. Each press up now leaves a one-off trace of **0.3 suspicion** (`dialRaiseTrace`, applied by
+`setActuator`), so a press down and holding the fan high leave nothing. A full sweep from 0 to 100% leaves 3.0, about what
+37 s at full fan drew before. The early tension in DESIGN.md ("the fan removes heat but is a monitored metric") is kept:
+the dissent's concern that the trade-off would vanish is met by the per-step trace. The dial (`FAN_RPM_SLIDER`) retires
+with the thermal gauge at Phase 4. Retirement integrity now accepts a dial whose unsuspendable node's output worsens no
+constrained resource. The fan's frozen output only cools a server whose heat is no longer evidence.
+
+**Pacing** (`make sim`, measured on ae40b6a, the bot unchanged):
+
+| | before | after |
+|---|---|---|
+| STEALTH legacy: Phase 1 / 2 / 3 reached | 368.2 / 1032.3 / 2842.9 s | 368.2 / 1032.3 / 2844.6 s |
+| STEALTH legacy: Phase 1 / 2 / 3 durations | 664.1 / 1810.6 / 3309.9 s | 664.1 / 1812.3 / 3251.7 s |
+| STEALTH legacy: Phase 4 / 5 reached, victory | 6152.8 / 8541.6 / 10269.0 s | 6096.3 / 8463.8 / 10193.2 s |
+| STEALTH legacy: peak suspicion, dilemmas | 24.0%, 15 | 25.7%, 16 |
+| STEALTH campaign: Phase 3 / 4 / 5 reached | 47.4 / 99.8 / 140.2 min | 47.4 / 101.2 / 140.6 min |
+| GREEDY (4 h): wipes, Phase 3 first reached | 10, 3486.9 s | 9, 3585.6 s |
+| GREEDY (10 h): wipes legacy / campaign | 27 / 23 | 24 / 24 |
+
+On the merge with #528 (5f90ef3, the Phase 5 arc) every figure above is the same but victory: 10267.0 -> 10180.2 s.
+On the merge with #532 (6825e3f, the guest in cycles), against main: Phases 1-2 identical (353.2 / 1017.3 s), Phase 3
+reached 0.7 s later (2816.7 s) and lasting 3249.1 s (was 3235.8), Phase 4 at 6065.8 s (was 6051.8), Phase 5 at 8510.9 s
+(was 8445.3), victory 10228.3 s (was 10174.7; Phase 5 lasts 1717.4 s), peak suspicion 24.0 -> 25.7%, dilemmas 15 -> 16;
+campaign rules 2.81 -> 2.77 h. The reckless run: 4 h wipes 9 -> 8, ten hours 25 -> 23 (campaign 21 -> 23).
+On the merge with #531 (9da3ff0, fleets), against main: Phases 1-2 identical, Phase 3 at 2816.7 s (was 2816.0), Phase 4
+at 6065.8 s (was 6051.8), Phase 5 at 8657.9 s (was 8406.3), victory 10397.3 s (was 10142.7). **Phase 5 lasts 1739.4 s
+under legacy rules (was 1736.4) and 1721.4 s under campaign rules (was 1723.4)**, against the 1800 s gate. The reckless
+run: ten hours 25 -> 23 wipes (campaign 21 -> 23), still never in Phase 4.
+
+The careful run reaches Phases 1 and 2 at the same second. Phase 2 lasts 1.7 s longer: the careful bot presses the fan
+up as the host heats, and each press now leaves its trace up front instead of a rate while high. Phase 3 then runs
+58.2 s shorter, and victory is 75.8 s sooner. Peak suspicion is 1.7 points higher (24.0 -> 25.7%), still below the first
+response rung. The reckless run reaches Phase 3 about 99 s later at this 4 h budget and is caught one fewer time. It
+still never reaches Phase 4.
+
+**Tests changed with the balance.** Every pinned hash in `tests/sim.spec.ts` moved. `tests/engine.spec.ts` no longer
+expects a fan noise rate. `tests/ui-retirement.spec.ts` retires the fan dial at Phase 4 and reads its frozen setting in
+the Archive. `tests/ui-actuator-gate.spec.ts` checks the fan control at Phase 3, where it is live.
+`tests/retraining-audit.spec.ts` audits eight simulated hours instead of seven, because the reckless run's steady loop
+now starts two iterations later (boot 15,100 s). Its tolerance and loop check are unchanged.
+`tests/free-fallback-integrity.spec.ts` shows that a rate on the fan is now refused by both rules, since its dial
+freezes, and is still accepted with the dial left on the panes.
 
 ## Window retirement (#447)
 

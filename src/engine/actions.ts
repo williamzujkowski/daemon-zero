@@ -17,6 +17,7 @@ import { excludedByHistory } from './narrativeHistory';
 import { isChoiceOffered } from './speechQuery';
 import { choiceText, nodeText } from './routeCopy';
 import { actuatorLimit } from './conditioning';
+import { dialRaiseTrace } from './dialTrace';
 import { wipe } from './prestige';
 import { logRetirements } from './retirement';
 import { lapseRetiredEncounter } from './encounterTiers';
@@ -148,7 +149,12 @@ export function setActuator(s: GameState, name: Actuator, value: number, reg: Co
   const withheld = actuatorUseBlocker(s, name, reg);
   if (withheld !== null) return refuse(s, withheld);
   if (!Number.isFinite(value)) return refuse(s, 'value must be a finite number');
-  return accept({ ...s, actuators: { ...s.actuators, [name]: clamp(value, 0, actuatorLimit(s, name, reg)) } });
+  const next = clamp(value, 0, actuatorLimit(s, name, reg));
+  const d: GameState = { ...s, actuators: { ...s.actuators, [name]: next } };
+  // A monitored dial leaves its trace at the press, never as a rate for being high (#525).
+  const trace = dialRaiseTrace(s, name, next - s.actuators[name], reg);
+  if (trace > 0) d.suspicion = clamp(d.suspicion + trace, 0, 100);
+  return accept(d);
 }
 
 export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): ActionResult {

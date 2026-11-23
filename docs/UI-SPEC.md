@@ -56,7 +56,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `AUDIT_TRACE_MONITOR` | decoded suspicion HUD readout, response ladder and next threshold; gates understanding | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
 | `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
-| `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile; its own compact panel once the gauge retires at Phase 4 | `actuators.fanSpeedRatio`, `setActuator` |
+| `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile, with a line naming what a press up costs (a trace in the audit log, then `Each step up adds N suspicion, once.` from `dialStepTrace`); retires with the gauge at Phase 4 (#525) | `actuators.fanSpeedRatio`, `setActuator`, `dialStepTrace` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | `Listening post`: animated waveform, the feed source's label, the decoded line | `eligibleAmbientSpeech` (the current reach's source, `minSuspicion`, requirements), `ambientFeedSource` (label) |
 | `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `appliedSuspicionRate` (the computed rate plus the insolvency drain and scale scrutiny, #210), `suspicion` (time to 100 at that rate) |
 | `ASCII_OPTICAL_VIEWPORT` | camera frame; patrol frame above threshold | `narrative.asciiFrames` |
@@ -408,7 +408,7 @@ about 390,000 to 995,000 in Phases 4-5):
 | `AUDIT_TRACE_MONITOR` | no | | The response ladder governs suspicion to the end (scale scrutiny in Phases 4-5). |
 | `RUN_TABLE`, `PREDECESSOR_NOTES` | no | | Campaign continuity: the run table holds the reorientation and follow-up receipts. |
 | `THERMAL_AND_SUSPICION_BARS` | yes | Phase 4 | Thermal retires into the power budget (SCALE.md rule 7, #461): from Phase 4 heat is no longer evidence (`thermalRetiresAtPhase`) and power in watts is the limit. The strip's thermal readout and the overheat warnings leave with it; the Archive keeps the last reading (`thermal-archived`). Suspicion stays on the HUD: it was never in this panel. |
-| `FAN_RPM_SLIDER` | no | | The fan override is hardware PROC cannot suspend, with a live suspicion term, so a frozen dial could not be corrected and integrity refuses its retirement. Its control used to draw inside the thermal gauge; once the gauge retires the dial keeps a compact panel of its own on SENSORS (`drawsOwnPanel`). Retiring the fan itself would need its own design decision. |
+| `FAN_RPM_SLIDER` | `phaseAtLeast: 4` | `fan-archived`: "Fan output: N%, fixed at its last setting." (no PROC line: the fan is hardware) | Retires with the thermal gauge (#525, vote-1795448249882-vw1jos2). The fan is hardware PROC cannot suspend; integrity accepts the retirement because its output no longer worsens any constrained resource (its noise is a trace at each press up), so the frozen dial needs no correcting. Through Phase 3 its control draws inside the thermal gauge. |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | no | | A separate slice re-sources the feed per phase. |
 | `INSPECTION_COUNTDOWN_TIMER` | no | | Dilemmas and suspicion matter to the end; it also decodes speech. |
 | `LAN_TOPOLOGY_MAP_TAB` | no | | Holds the Phase 2-3 purchase tree; an unbought card there can still be bought. |
