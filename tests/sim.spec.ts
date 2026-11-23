@@ -316,7 +316,9 @@ describe('headless balance simulation', () => {
     // wipes 0, peaks unchanged (thermal 64.2 C, suspicion 24.0%, AEGIS 45.1 -> 45.0%). The gates pass. Re-measured on the
     // merge with #532 (6825e3f, the guest in cycles; the table's guest jump is 1e10), against the same code with the table
     // emptied: phases 1-3 identical, phase 4 6051.8 -> 6130.4, 5 8445.3 -> 8475.2 s, victory 10174.7 -> 10234.6 s (Phase 5
-    // 1729.4 -> 1759.4 s), epistemic actions 8 -> 6, dilemmas 15.
+    // 1729.4 -> 1759.4 s), epistemic actions 8 -> 6, dilemmas 15. On the merge with #531 (fleets) and #539, against main
+    // 41c0a16: phases 1-3 identical, phase 4 6051.8 -> 6130.4, 5 8406.3 -> 8419.2 s, victory 10142.7 -> 10149.6 s; Phase 5
+    // lasts 1736.4 -> 1730.4 s (campaign 1723.4 -> 1724.4 s).
     // A raid's paid repair and a hostile mind's answers carry the same way; the careful run pays neither after its phase.
     expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('7e496f3bcc4cebc68e78a4f029a80b64522cac0d617d2ae2f7e2a0f504452492');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('146bdf6f5c38d64a053969e2bd805f4bd7c23668291ff2c016279937245256b6');

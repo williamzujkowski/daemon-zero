@@ -1035,6 +1035,17 @@ identical, Phase 4 is reached at 6130.4 s (was 6051.8), Phase 5 at 8475.2 s (was
 rules 2.81 -> 2.85 h. The reckless run: ten hours 25 -> 28 wipes (campaign 21 -> 26), wipe-sequence returns
 2993.9 / 1456.9 / 1374.4 s -> 2852.2 / 1229.8 / 1157.9 s, still never in Phase 4.
 
+Re-measured on the merge with #531 (fleets) and #539 (the Phase 5 cap at 3600 s), against main 41c0a16: the careful
+run's phases 1-3 are identical, Phase 4 at 6130.4 s (was 6051.8), Phase 5 at 8419.2 s (was 8406.3), victory 10149.6 s
+(was 10142.7). **Phase 5 lasts 1730.4 s under legacy rules (was 1736.4) and 1724.4 s under campaign rules (was 1723.4).**
+Stacked with #525 (the fan's trace) as well, measured on a local merge of both: 1730.4 s legacy, 1721.4 s campaign. The
+reckless run: ten hours 25 -> 28 wipes (campaign 21 -> 26); its Phase 3 loop now alternates 1,182 s and 1,154 s
+iterations (tests/retraining-audit.spec.ts, period 2).
+
+**Fleet prices carry** (#518). A fleet's paid rebuild and the reclaim of the deviant it splits into are priced in the
+fleet track's phase (`fleetHomePhase`) and carried when paid later (`fleetRebuildCost`, `reclaimCost`, shown in the fleet
+and raid panels). With the table emptied, integrity refuses the Phase 4 drone fleet's $500M rebuild in Phase 5.
+
 **Raid answers carry too** (#517, #491). A paid repair is priced in the phase its site class's domain opens in (cyber 3,
 site 4, orbit 5; `repairHomePhase`) and a hostile mind's quarantine and decoy in its tier's phase; paid later, both carry
 by the same table (`repairCost`, `hostileAnswerCost`, shown in the CONFLICT and hostile panels). With the table emptied,
