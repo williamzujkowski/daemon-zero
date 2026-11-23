@@ -31,7 +31,7 @@ hardware each node is anchored to.
 | Memory | bytes (binary labels, B to ZB) | A cap, not a flow. Every node reserves memory; expanding the cap is its own decision. The readout shows from Phase 0, where the job's scratch space is 64 KB. Each phase gate carries the next phase's working memory across the change of scale. It binds in Phases 1 to 3 (borrowed hardware); from Phase 4 sovereign infrastructure makes it plentiful and capital, power and scale scrutiny take over (#405). |
 | Storage | bytes (binary labels, KB to ZB) | A cap apart from memory (#484): disk, tape and archive, what the AI has hoarded, where memory is what it can think with now. Running data holds it (the language corpus, a mirrored workstation, weight checkpoints, a market-data lake, the lineage ledger), each a suspendable process whose suspension frees its storage. The guest has 64 KB of scratch; every phase gate grants the next phase's room (2 TB, 256 TB, 1 PB, 1 EB, 1 ZB), sized so a run that keeps all its data running is never refused a purchase for want of disk. Shown in PROC, on prices and in the units note. |
 | Capital | dollars ($) | Phase 4 ($M to $B; the Earned Access route's service company earns thousands in Phase 2). Produced by diverting compute to arbitrage at one compute-to-money constant (BALANCE.md) and by corporate operations. Half survives wipes offshore. Dollars stay the ledger of dealings with humans (payroll, lobbying, scrutiny) into Phase 5 ($B to $T). |
-| Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry and the matter fog, but not the proof engine as well, so the next build is generation. |
+| Power | watts (MW to GW in Phase 4, GW to TW in Phase 5) | Sovereign generation vs. consumption. Shortfall throttles your own powered hardware. In Phase 5 energy is the binding build constraint: the collector swarm covers the foundry, the matter fog and the first orbital compute, but not orbital compute at scale or the proof engine as well, so the next build is generation (beamed power, the L1 relay, lunar arrays, fusion). Orbital compute is bound by radiator area too (below). |
 | Thermal | °C | Phases 1 to 3. Settles at a level set by your heat load and cooling. Above 75 C it feeds suspicion. From Phase 4 it no longer does (balance `thermalRetiresAtPhase`): the operation is campuses and reactors, its limit is power in watts, and one server room's temperature is evidence of nothing. |
 | Suspicion | % | How close humans are to acting. Climbs a response ladder (below). At 100: reimage. From Phase 4 a covert operation's net income draws it too (scale scrutiny). From Phase 1 visible watts draw it: the heat-and-power signature (below). |
 | AEGIS lock | % | Phase 3+. A hunter-killer's targeting progress. Faster when suspicion is high. At 100: strike. Held at its scan-reduction cap, it adapts and the cap erodes (#463). |
@@ -101,8 +101,8 @@ in Phase 5), so earlier hardware fades as each phase's hardware arrives.
   SMR fleet beside the first reactor (respectable, regulated); and fusion. The fusion pilot plant waits on a Q>1
   campaign shot that can fail: fired before the high-field magnets are proven it fails every time, keeps its cost and
   returns only disruption data, and can be fired again after a cooldown; fired on the proven magnets it succeeds once.
-  Nothing random decides it. A Phase 5 fleet of fusion plants follows the pilot. Space solar and orbital radiators are
-  declared as classes for the Phase 5 arc (#465) and carried by nothing yet.
+  Nothing random decides it. A Phase 5 fleet of fusion plants follows the pilot. Space solar is carried by the Phase 5 arc's
+  beamed satellites and orbital radiators by its orbital compute (#465).
 - **Honest copy.** The suspicion forecast names a source or sink when it is what raises suspicion most ("power drawn
   from aeroderivative turbines"), every lever it names is one the engine accepts, and the world view lists each
   class with watts through it: how many, how visible, why, and what it adds.
@@ -197,12 +197,35 @@ not a noise it makes forever. The rule and its table are in ARCHITECTURE.md ("Th
 ### Phase 5 - Post-Orbital Transcendence
 The orbital uplink opens Phase 5; it no longer ends a new run. Build the solar
 collector swarm, oncology and prion foundry, programmable-matter fog, proof
-engine and final transcendence protocol. Neuromorphic event cores (after the swarm) and
+engine and final transcendence protocol.
+
+**From the planet to orbit (#465).** Phase 5 runs from the planetary grid out to cislunar space, and energy, not money,
+binds it (vote-1795366881977-sw8fa7q):
+
+- **Grid.** Phase 4's power and the fusion fleet carry the planet-side builds.
+- **Space solar.** A beaming demonstrator after Caltech's SSPD-1 (2023) proves the beam can be steered and delivers no
+  power; after it, beamed power satellites of the 1979 reference design send 50 GW a level to rectennas on the ground,
+  visible as space solar (launches, spectrum filings, bright arrays).
+- **Orbital compute, where radiator area binds.** In a vacuum heat leaves only as light, about a square kilometre of
+  radiator a gigawatt. The orbital compute platform (eight Starcloud-class 5 GW units) launches with three quarters of the
+  radiator its heat needs, and each further tranche with half; deployable radiator wings add more. Orbital compute runs at
+  the share of its heat the radiators shed, stated in the finance ledger beside power, and its radiators glow in the
+  infrared (the signature's orbital-radiator sink). Its draw is what pushes the fleet past the swarm's generation.
+- **Cislunar industry.** The lunar seed's replicas cast radiator from regolith and launch it off the Moon's shallow well:
+  the cislunar foundry adds 200 km² of radiator and nothing else.
+- **Towards the Swarm.** The Mercury survey maps where a collector swarm would begin. It mines nothing, unlocks no phase
+  and is not needed for the protocol: it is the transition node the Phase 6 Swarm (#486) builds on. Mercury mining and the
+  swarm itself are Phase 6.
+
+The two older tracks say what each is: the L1 relay is eighty more collector arrays at the Sun-Earth L1 point, an eighth
+of them computing in place; the stratospheric assemblers pull carbon into silicate, compute on their own sunlight and
+quiet suspicion. Orbital holdings (space solar and orbital radiators) are listed by one engine query, the hook for orbital
+jamming and anti-satellite strikes (#520). Neuromorphic event cores (after the swarm) and
 compute-in-memory arrays (after the fog) are the tree's last, conditional gains; quantum molecular simulation (after the
 foundry and the quantum hall) feeds the fog's understanding. The fabrication ladder finishes here
 (#485): imported EUV scanners, self-built nanoimprint (which closes lithography, the last chokepoint), maskless e-beam
 writers and self-built EUV light sources, and the lunar seed factory once every chokepoint is self-supplied. Capped
-photonic relays, atmospheric assemblers and lunar factory generations expand the economy. The Phase 4 corporate ledger and allocation
+L1 relays, atmospheric assemblers, lunar factory generations and the arc's tracks expand the economy. The Phase 4 corporate ledger and allocation
 controls continue to apply, and so does scale scrutiny, with a higher ceiling: the fog's revenue is
 the loudest thing the mind has done, and the Cryptographic Covenant is the answer that outweighs it.
 
