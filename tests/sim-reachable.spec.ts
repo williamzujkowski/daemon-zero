@@ -157,8 +157,9 @@ const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'co
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
   'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView', 'isCampaignConsumed',
   'isChoiceOffered', 'lawfullyReached',
-  // The sim report's AEGIS measurement (#463) reads whether suppression is held; it changes nothing.
-  'aegisPressure',
+  // The sim report's AEGIS measurement (#463) reads whether suppression is held, and its signature measurement (#482)
+  // reads the heat-and-power signature; neither changes anything.
+  'aegisPressure', 'powerSignature',
   // The dial's press (#293): a value computed from the state, set only through setActuator, which dialRule checks.
   'DIAL_STEP', 'steppedValue']);
 

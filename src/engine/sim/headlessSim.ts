@@ -6,6 +6,7 @@
 import { emptyActivity, observeActions, observeWipe, type SimActivity } from './activity';
 import type { ContentRegistry } from '../../content/registry';
 import { aegisPressure } from '../aegisAdaptation';
+import { powerSignature } from '../signature';
 import { createInitialState, type GameState } from '../state';
 import { tick } from '../tick';
 import type { Strategy } from './bot';
@@ -34,6 +35,16 @@ export interface AegisPhaseStats {
   heldSec: number;
 }
 
+/** The heat-and-power signature through one phase, sampled once per simulated second (#482). */
+export interface SignaturePhaseStats {
+  seconds: number;
+  /** Mean and peak suspicion per second the signature stage added. */
+  meanPerSec: number;
+  peakPerSec: number;
+  /** Peak visible watts (watts times visibility). */
+  peakVisibleWatts: number;
+}
+
 /** `strategy` holds the id of the policy that played (kept under that key so old reports hash the same). */
 export interface SimReport<Id extends string = Strategy> {
   activity: SimActivity;
@@ -50,6 +61,8 @@ export interface SimReport<Id extends string = Strategy> {
   maxAegisLock: number;
   /** AEGIS per phase reached, keyed by phase id (#463). */
   aegisByPhase: Record<number, AegisPhaseStats>;
+  /** The signature per phase reached, keyed by phase id, for phases that declare one (#482). */
+  signatureByPhase: Record<number, SignaturePhaseStats>;
   dilemmasResolved: number;
   traits: string[];
   finalState: GameState;
@@ -64,12 +77,23 @@ function observeAegis(report: SimReport<string>, s: GameState, reg: ContentRegis
   if (s.currentPhase >= reg.balance.aegisActiveFromPhase && aegisPressure(s, reg).held) stats.heldSec += 1;
 }
 
+function observeSignature(report: SimReport<string>, s: GameState, reg: ContentRegistry): void {
+  const reading = powerSignature(s, s.rates, reg);
+  if (reading === null) return;
+  const stats = report.signatureByPhase[s.currentPhase] ??= { seconds: 0, meanPerSec: 0, peakPerSec: 0, peakVisibleWatts: 0 };
+  stats.meanPerSec = (stats.meanPerSec * stats.seconds + reading.perSec) / (stats.seconds + 1);
+  stats.seconds += 1;
+  stats.peakPerSec = Math.max(stats.peakPerSec, reading.perSec);
+  stats.peakVisibleWatts = Math.max(stats.peakVisibleWatts, reading.visibleWatts);
+}
+
 function observe(report: SimReport<string>, s: GameState, reg: ContentRegistry): void {
   report.phaseReachedAtSec[s.currentPhase] ??= s.simTimeSec;
   report.maxThermal = Math.max(report.maxThermal, s.thermal);
   report.maxSuspicion = Math.max(report.maxSuspicion, s.suspicion);
   report.maxAegisLock = Math.max(report.maxAegisLock, s.aegisLock);
   observeAegis(report, s, reg);
+  observeSignature(report, s, reg);
 }
 
 function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<Id> {
@@ -86,6 +110,7 @@ function createReport<Id extends string>(strategy: Id, s: GameState): SimReport<
     maxSuspicion: 0,
     maxAegisLock: 0,
     aegisByPhase: {},
+    signatureByPhase: {},
     dilemmasResolved: 0,
     traits: [],
     finalState: s,

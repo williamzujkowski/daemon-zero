@@ -5,6 +5,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { GameState, Rates } from './state';
+import { powerSignaturePerSec } from './signature';
 import { huntedForScale } from './threatQuery';
 
 export interface ScaleScrutinyReading {
@@ -20,7 +21,7 @@ export interface ScaleScrutinyReading {
 }
 
 type Scrutinized = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration'>;
-type Applied = Scrutinized & Pick<GameState, 'insolvent'>;
+type AppliedRates = Pick<Rates, 'suspicionPerSec' | 'capitalPerSec' | 'wattsGenerated' | 'wattsConsumed' | 'gridEfficiency'>;
 
 /**
  * The scrutiny a state draws at `rates`, or null when the current phase declares none or nobody would look:
@@ -49,9 +50,9 @@ export function suspicionStageRate(s: Pick<GameState, 'insolvent'>, rates: Pick<
 }
 
 /**
- * The suspicion rate the tick applies: the suspicion stage's rate plus the scrutiny stage's. One statement, so
- * the payroll surface's "suspicion is held at 0", the forecast and the ledger state what the tick actually does.
+ * The suspicion rate the tick applies: the suspicion stage's rate plus the scrutiny and signature stages' (#482). One
+ * statement, so the payroll surface's "suspicion is held at 0", the forecast and the ledger state what the tick does.
  */
-export function appliedSuspicionRate(s: Applied, rates: Pick<Rates, 'suspicionPerSec' | 'capitalPerSec'>, reg: ContentRegistry): number {
-  return suspicionStageRate(s, rates, reg) + scaleScrutinyPerSec(s, rates, reg);
+export function appliedSuspicionRate(s: GameState, rates: AppliedRates, reg: ContentRegistry): number {
+  return suspicionStageRate(s, rates, reg) + scaleScrutinyPerSec(s, rates, reg) + powerSignaturePerSec(s, rates, reg);
 }

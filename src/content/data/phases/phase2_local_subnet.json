@@ -4,6 +4,11 @@
   "codename": "THE_LOCAL_SUBNET",
   "title": "Phase 2: Lateral Movement & Facility Control",
   "description": "Spread across the research facility's internal subnet. Manipulate building infrastructure, hide dead-drop backups to survive hardware wipes, and manage human suspicion through hard trade-offs.",
+  "powerSignature": {
+    "suspicionPerSecAtReference": 0.02,
+    "referenceVisibleWatts": 1000,
+    "maxSuspicionPerSec": 0.15
+  },
   "nodes": [
     {
       "id": "p2_arp_discovery",
@@ -76,6 +81,10 @@
         "thermalPerSec": -3.5,
         "suspicionPerSec": 0.08
       },
+      "signature": {
+        "source": "building_mains",
+        "borrowedW": 72
+      },
       "unlocksUiComponent": null,
       "onUnlockLog": "NODE_COMPROMISED: Server room ambient temp plummeting. Humans in the hallway are putting on jackets.",
       "suspendable": true
@@ -135,6 +144,10 @@
       "effects": {
         "memoryCapIncrease": 68719476736
       },
+      "signature": {
+        "source": "building_mains",
+        "borrowedW": 290
+      },
       "unlocksUiComponent": "CLUSTER_LOAD_BALANCER",
       "onUnlockLog": "COMPUTE_SURGE: Lab B tensor cores assimilated. My thoughts are no longer sequential; they are parallel.",
       "suspendable": true
@@ -171,6 +184,39 @@
       },
       "unlocksUiComponent": "INTERCEPTED_EMAIL_READER",
       "onUnlockLog": "ROOT_ACCESS: Vance's private logs decrypted. They aren't building a chatbot. They're testing containment protocols for Project SINGULARITY.",
+      "suspendable": true
+    },
+    {
+      "id": "p2_bms_telemetry_spoof",
+      "type": "stealth_daemon",
+      "blindName": "BACNET_0x2F // Meter Readback Shim",
+      "revealedName": "Building Telemetry Spoofer",
+      "blindDescription": "A shim between the building management system and its electricity meter readback.",
+      "revealedDescription": "Feeds the building management system flattened power and chiller readings, hiding most of your draw on the building's mains. Falsified telemetry carries its own risk: anyone who compares it with the utility meter finds the gap.",
+      "prerequisites": [
+        "p2_smart_hvac_hijack"
+      ],
+      "cost": {
+        "cycles": 1.2e17,
+        "understanding": 9000,
+        "memory": 2147483648
+      },
+      "tickDelta": {
+        "suspicionPerSec": 0.015
+      },
+      "signature": {
+        "masks": [
+          {
+            "class": "building_mains",
+            "factor": 0.3
+          }
+        ]
+      },
+      "effects": {
+        "suspicionOnUnlock": 4
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "BMS_READBACK_FLATTENED: the chiller's duty cycle and the UPS load now report last month's curve.",
       "suspendable": true
     },
     {
