@@ -2,7 +2,7 @@ import { Text, View } from '../PhaseTheme';
 /**
  * The world view (#463, vote-1795366701521-dhlwfwb): the Other Minds console from its disclosure phase. It extends
  * the canonical console rather than duplicating it (the Scope Steward's dissent): AEGIS posture, public trust, the
- * state actors and the heat-and-power signature (#482) join the faction panels, which stay the one place a faction is
+ * state actors, the heat-and-power signature (#482) and fabrication capability and closure (#485) join the faction panels, which stay the one place a faction is
  * shown. Every line is read from the engine's world-view queries; a subscription returns strings so a tick redraws only
  * the sentences that changed.
  */
@@ -11,9 +11,10 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { gameStore } from '../../app/session';
 import { CONTENT } from '../../content';
-import { aegisPosture, powerSignature, publicTrust, signatureClass, worldView } from '../../engine';
+import { aegisPosture, isNodeKnown, powerSignature, publicTrust, signatureClass, supplyChainDisclosed, supplyChainView, worldView, type GameState } from '../../engine';
 import { HeadingLevel, SECTION_LEVEL, useHeadingLevel } from '../headingLevel';
 import { theme } from '../theme';
+import { capabilityText, chokepointText, closureText, seedText } from '../supplyChainText';
 import { adaptationWhyText, capText, coalitionText, easeText, signatureSummaryText, signatureTermText, strikeText, trustFactorText } from '../worldText';
 import AegisStatus from './AegisStatus';
 import Meter from './Meter';
@@ -92,6 +93,34 @@ function SignatureSection() {
   </Section>;
 }
 
+/** A node as its card names it now: revealed once owned or mapped before, its blind name until then. */
+function cardName(game: GameState, id: string): string {
+  const node = CONTENT.nodes.get(id);
+  if (node === undefined) return id;
+  return game.unlockedNodes.includes(id) || isNodeKnown(game, id) ? node.revealedName : node.blindName;
+}
+
+/** Fabrication capability and supply-chain closure (#485): the rung reached, the share self-supplied, each chokepoint, the seed. */
+function SupplyChainSection() {
+  const lines = useStore(gameStore.store, useShallow(({ game }) => {
+    if (!supplyChainDisclosed(game, CONTENT)) return [];
+    const view = supplyChainView(game, CONTENT), name = (id: string) => cardName(game, id);
+    return [capabilityText(view, name), closureText(view), seedText(view, name),
+      ...view.chokepoints.map((point) => point.id + '\t' + chokepointText(point, name))];
+  }));
+  if (lines.length === 0) return null;
+  const [capability, closure, seed, ...points] = lines;
+  return <Section id="world-supply" title="Fabrication and closure">
+    <Text testID="supply-capability" style={theme.text}>{capability}</Text>
+    <Text testID="supply-closure" style={theme.text}>{closure}</Text>
+    {points.map((entry) => {
+      const [id, text] = entry.split('\t');
+      return <Text key={id} testID={'supply-chokepoint-' + String(id)} style={theme.muted}>{text}</Text>;
+    })}
+    <Text testID="supply-seed" style={theme.muted}>{seed}</Text>
+  </Section>;
+}
+
 function KnownMinds() {
   const standings = useStore(gameStore.store, useShallow(({ game }) => {
     const listed = worldView(game, CONTENT)?.minds ?? [];
@@ -114,6 +143,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <PublicTrustSection />
     <StateActorsSection />
     <SignatureSection />
+    <SupplyChainSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>
   </View>;
 }
