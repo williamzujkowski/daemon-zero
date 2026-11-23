@@ -6,6 +6,7 @@
  * production run, answers exactly as before.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
+import type { Capability } from '../content/schemaCapability';
 import { isReviewed, iterationRoute } from './accessQuery';
 import type { GameState } from './state';
 
@@ -40,13 +41,25 @@ function mappedPath(id: string, reg: ContentRegistry, seen: Set<string> = new Se
  */
 export function lawfullyReached(s: Threatened, node: RegistryNode, reg: ContentRegistry): boolean {
   if (lawfulAcquisition(node)) return true;
-  return [...mappedPath(node.id, reg)].some((id) => {
-    const capability = reg.nodes.get(id)?.requirements?.requiresCapability;
-    return capability !== undefined && s.unlockedNodes.some((owned) => {
-      const provider = reg.nodes.get(owned);
-      return provider !== undefined && provider.systemFlags.includes(capability) && lawfulAcquisition(provider);
-    });
-  });
+  return pathGates(node.id, reg).some((capability) => s.unlockedNodes.some((owned) => {
+    const provider = reg.nodes.get(owned);
+    return provider !== undefined && provider.systemFlags.includes(capability) && lawfulAcquisition(provider);
+  }));
+}
+
+/** Content never changes after it is built, so each node's path gates are found once per registry (#505). */
+const PATH_GATES = new WeakMap<ContentRegistry, Map<string, readonly Capability[]>>();
+
+/** The capability gates on a node's mapped path, in path order: the only ids lawfullyReached can answer true for. */
+function pathGates(id: string, reg: ContentRegistry): readonly Capability[] {
+  let byNode = PATH_GATES.get(reg);
+  if (byNode === undefined) { byNode = new Map(); PATH_GATES.set(reg, byNode); }
+  let gates = byNode.get(id);
+  if (gates === undefined) {
+    gates = [...mappedPath(id, reg)].flatMap((step) => reg.nodes.get(step)?.requirements?.requiresCapability ?? []);
+    byNode.set(id, gates);
+  }
+  return gates;
 }
 
 /**

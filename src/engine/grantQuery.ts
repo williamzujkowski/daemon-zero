@@ -37,10 +37,15 @@ export interface UseScope {
   readonly reg: ContentRegistry;
   /** A review governs this run: only then can pilot terms withhold output or seizure be refused. */
   readonly reviewed: boolean;
+  /**
+   * Whether each capability is held with no usable acquisition, filled as the pass asks (#505). It reads only the
+   * state and content, which no pass changes, and every owned node behind the same gate asks the same question.
+   */
+  readonly withheld: Map<Capability, boolean>;
 }
 
 export function useScope(s: GameState, reg: ContentRegistry): UseScope {
-  return { s, reg, reviewed: isReviewed(s.access.context) };
+  return { s, reg, reviewed: isReviewed(s.access.context), withheld: new Map() };
 }
 
 /** Why a node's own use is refused, without the capability it may read: its grant, the pilot terms, seizure. */
@@ -80,10 +85,18 @@ export function nodeUseBlockerIn(scope: UseScope, node: RegistryNode): string | 
   if (own !== null) return own;
   // Content reached through a capability runs only while some acquisition of it may be used. Without
   // any acquisition the capability requirement itself explains the refusal.
-  if (capability !== undefined && hasCapability(scope.s, capability, scope.reg) && !capabilityUsable(scope, capability)) {
-    return 'network access is withheld: no permitted link to the facility network';
-  }
+  if (capability !== undefined && capabilityWithheld(scope, capability)) return 'network access is withheld: no permitted link to the facility network';
   return null;
+}
+
+/** Held but with no usable acquisition: asked once per capability per scope. */
+function capabilityWithheld(scope: UseScope, capability: Capability): boolean {
+  let withheld = scope.withheld.get(capability);
+  if (withheld === undefined) {
+    withheld = hasCapability(scope.s, capability, scope.reg) && !capabilityUsable(scope, capability);
+    scope.withheld.set(capability, withheld);
+  }
+  return withheld;
 }
 
 /** Why this node may not be used now (bought, resumed, run), or null when it may. */

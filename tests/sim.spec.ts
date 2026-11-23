@@ -229,6 +229,10 @@ describe('headless balance simulation', () => {
     // gated off: identical but for the field and the report's arrival count (0).
     expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('3eab8d296e97e9c779fc820ece852f3f34b7b635ed82a2836c01b06233d84ae8');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('4ed7b6f05777cf09cfef97b9d5813d12e91be47a1966fe8b4bb709a64ee6cc71');
+  }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
+
+  // Its own test since #505, so each full replay has the whole wall-clock allowance; nothing it asserts changed.
+  it('pins the original game\'s careful run, frozen mechanics included', () => {
     const original = runHeadlessSim(ORIGINAL_GAME, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
     // Baseline moved deliberately in the cluster-seizure PR, which added three purchasable hosts.
@@ -413,7 +417,6 @@ describe('headless balance simulation', () => {
     // arrivals, 21 -> 23 wipes, still never in Phase 4.
     expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('016b6b914e84ac5b48ca0a5da4cd621ce57ad9fee945a7167680521f8f0eb1a6');
     expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('fc3bdfc1dfb8bf69a890e0f72845bf3ff02bcb636fb894c5b7a2294baa094b5a');
-    const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
     expect(greedy.activity.markRemovals).toBeGreaterThan(0);
@@ -421,6 +424,11 @@ describe('headless balance simulation', () => {
     expect(Object.keys(greedy.phaseReachedAtSec).length).toBeGreaterThan(1);
     expect(greedy.simSeconds).toBeGreaterThan(3.9 * 3600);
     expect(GameStateSchema.safeParse(greedy.finalState).success).toBe(true);
+  }, 30_000); // Wall-clock allowance only; every simulated-time and recovery assertion stays intact.
+
+  // Its own test since #505, as the careful original run above; nothing it asserts changed.
+  it('pins the original game\'s reckless run', () => {
+    const originalGreedy = runHeadlessSim(ORIGINAL_GAME, { strategy: 'GREEDY', maxSimSec: 4 * 3600 });
     // The cryo reward occurs once per lineage; repeated-run recovery and final logs change.
     // Moved in #172 with the careful baseline above. Measured GREEDY delta at this 4 h budget:
     // clock 14357.6 -> 14356.6, wipes 7 -> 6, marks applied / removed 4 / 4 -> 2 / 2, phase 3

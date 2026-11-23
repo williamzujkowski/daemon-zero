@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+import { BalancedShardSequencer } from './tests/shard-balance.mjs';
 
 export default defineConfig({
   // `react-native` maps to the web build; `expo-audio` maps to a stub because the real module
@@ -23,6 +24,8 @@ export default defineConfig({
     server: { deps: { inline: [/react-native-safe-area-context/] } },
     include: ['tests/**/*.spec.ts'],
     environment: 'node',
+    // CI's `--shard` splits by expected run time, not by path hash, so the full-campaign specs spread out (#505).
+    sequence: { sequencer: BalancedShardSequencer },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}', 'App.tsx'],
