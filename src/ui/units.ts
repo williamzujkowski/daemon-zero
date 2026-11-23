@@ -7,7 +7,7 @@
 import { groupDigits, quantityReadout, quantityStep, significant3 } from '../engine';
 
 // The exact form lives in the engine, which also builds price text (swarm and epistemic cards, #406 panel pass 4).
-export { memoryExact } from '../engine';
+export { memoryExact, storageExact } from '../engine';
 
 /** A live readout, three significant digits: "452 GB", "6.45 GB", "440 B". */
 export function memoryReadout(bytes: number): string {
@@ -19,10 +19,11 @@ const SMALLEST_SHOWN = 0.001;
 
 /**
  * Used of capacity in the capacity's unit, so the two compare at a glance: "6.45 / 452 GB", "0.0434 / 1.14 TB".
- * Used keeps three significant digits even far below the capacity, and memory held is never shown as 0.
+ * Used keeps three significant digits even far below the capacity, and memory held is never shown as 0. Storage (#484)
+ * reads the same way.
  */
-export function memoryPair(used: number, cap: number): { shown: string; spoken: string } {
-  const { size, symbol, word } = quantityStep('memory', cap);
+export function memoryPair(used: number, cap: number, dimension: 'memory' | 'storage' = 'memory'): { shown: string; spoken: string } {
+  const { size, symbol, word } = quantityStep(dimension, cap);
   const figure = (bytes: number) => size === 1 ? groupDigits(Math.round(bytes)) : significant3(bytes / size);
   const tiny = size > 1 && used > 0 && used / size < SMALLEST_SHOWN;
   const usedShown = tiny ? '<' + String(SMALLEST_SHOWN) : figure(used);

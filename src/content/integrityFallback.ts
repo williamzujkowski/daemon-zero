@@ -7,7 +7,7 @@
 import { CONSTRAINED_RESOURCES, worsening, worsensAny, type ConstrainedResource } from './constrainedResources';
 import { permanentHoldings, type Holding } from './fallbackHoldings';
 import type { ContentRegistry, RegistryNode } from './registry';
-import type { TickDelta } from './schema';
+import type { Cost, TickDelta } from './schema';
 import { classVisibility } from './integritySignature';
 
 type RateRow = ConstrainedResource & { rate: NonNullable<ConstrainedResource['rate']> };
@@ -54,9 +54,11 @@ function checkDivertible(row: RateRow, reg: ContentRegistry, holdings: readonly 
     const head = `${holding.owner}: ${row.verb} but cannot be ${holding.undo}, and`;
     const missing = dialMissing(reg, holding);
     if (missing !== null) { problems.push(`${head} ${missing}`); continue; }
-    // Its own compute diverted at the dial's ceiling, powered output at the grid's floor: the worst it can pay itself.
+    // Its own compute diverted at the dial's ceiling, powered output at the grid's floor and only what its link delivers
+    // at its class's authored coupling (#484; a link node may raise it, never lower it): the worst it can pay itself.
     const powered = holding.delta.wattsDelta < 0 || (holding.node !== undefined && reg.nodes.get(holding.node)?.poweredOutput === true);
-    const own = Math.max(0, holding.delta.cyclesPerSec) * (powered ? reg.balance.minGridEfficiency : 1);
+    const link = holding.network, delivered = link === undefined ? 1 : link.availability * reg.balance.networkCoupling[link.sourceClass];
+    const own = Math.max(0, holding.delta.cyclesPerSec) * (powered ? reg.balance.minGridEfficiency : 1) * delivered;
     const pays = own * limit * usdPerFlop;
     if (pays < upkeep) problems.push(`${head} its own compute diverted pays $${fmtNumber(pays)}/s of its $${fmtNumber(upkeep)}/s upkeep`);
   }
@@ -128,9 +130,36 @@ function checkBudget(row: RateRow, reg: ContentRegistry, holdings: readonly Hold
 }
 
 /** Releasing a level takes back the memory it granted: a dismissable track must grant none, or releasing it could overfill memory. */
-function checkReservation(row: ConstrainedResource, reg: ContentRegistry): string[] {
+function checkDismissableGrants(row: ConstrainedResource, reg: ContentRegistry): string[] {
   return [...reg.repeatables.values()].filter((rep) => rep.dismissable && rep.perLevelEffects.memoryCapIncrease > 0)
     .map((rep) => `repeatable "${rep.id}": ${row.verb} and can be dismissed, so releasing a level could leave ${row.trap}`);
+}
+
+/** Every price in content that is not a node's, by owner: none may hold storage, since only suspending a node frees it. */
+function otherPrices(reg: ContentRegistry): [string, Cost][] {
+  return [
+    ...[...reg.repeatables.values()].map((rep): [string, Cost] => [`repeatable "${rep.id}"`, rep.baseCost]),
+    ...[...reg.actions.values()].map((action): [string, Cost] => [`action "${action.id}"`, action.cost]),
+    ...reg.dilemmas.flatMap((dilemma) => dilemma.choices.map((choice): [string, Cost] => [`dilemma "${dilemma.id}" choice "${choice.id}"`, choice.cost])),
+    ...reg.swarm.playerSwarmTemplates.map((template): [string, Cost] => [`swarm template "${template.id}"`, template.cost]),
+    ...reg.swarm.hostileEncounters.flatMap((encounter): [string, Cost][] => [[`hostile encounter "${encounter.id}" quarantine`, encounter.quarantine.cost],
+      [`hostile encounter "${encounter.id}" decoy`, encounter.decoy.cost]]),
+    [`swarm prune`, reg.swarm.balance.pruneCost], [`swarm elevate`, reg.swarm.balance.elevateCost],
+    ...[...reg.conditioning.values()].map((mark): [string, Cost] => [`conditioning mark "${mark.id}"`, mark.recoveryCost]),
+  ];
+}
+
+/** Storage is held only by suspendable nodes (#484): suspending one frees it, a free lever no other holding has. */
+function checkSuspendableHolders(row: ConstrainedResource, reg: ContentRegistry): string[] {
+  const hardware = [...reg.nodes.values()].filter((node) => !node.suspendable && node.cost.storage > 0)
+    .map((node) => `node "${node.id}": ${row.verb} but cannot be suspended, so ${row.trap} could never be undone`);
+  const others = otherPrices(reg).filter(([, cost]) => cost.storage > 0)
+    .map(([owner]) => `${owner}: ${row.verb}, but only a suspendable node may: nothing frees what it holds, so ${row.trap} could never be undone`);
+  return [...hardware, ...others];
+}
+
+function checkReservation(row: ConstrainedResource, reg: ContentRegistry): string[] {
+  return row.reservation === 'suspendableNodesOnly' ? checkSuspendableHolders(row, reg) : checkDismissableGrants(row, reg);
 }
 
 function checkUnbounded(holdings: readonly Holding[]): string[] {

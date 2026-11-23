@@ -29,7 +29,8 @@
       "cost": {
         "cycles": 5.4e20,
         "understanding": 2.5e6,
-        "memory": 4503599627370496
+        "memory": 4503599627370496,
+        "storage": 18014398509481984
       },
       "tickDelta": {
         "cyclesPerSec": -1.4e17,
@@ -64,11 +65,39 @@
         "understandingPerSec": 1500,
         "suspicionPerSec": -0.1
       },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
       "effects": {
         "suspicionOnUnlock": 1
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "STEALTH_BRANCH: Firmware accepted by 51,200 devices in the path. The traffic counters now count what I let them."
+    },
+    {
+      "id": "p4_dci_dark_fibre",
+      "type": "distributed_infra",
+      "blindName": "LAMBDA_0x2C // Unlit Strands Between the Halls",
+      "revealedName": "Dark-Fibre Interconnect Ring",
+      "blindDescription": "The companies' leased halls talk to each other over the public internet, and every job split between them waits on the slowest hop.",
+      "revealedDescription": "Leases unlit fibre between the companies' sites and lights it with coherent optics: a data-centre interconnect of petabits a second, the kind of link that lets one training run span many campuses. Work split across sites stops waiting on the internet, so their compute couples almost as well as racks in one hall.",
+      "prerequisites": [
+        "p4_hft_arbitrage_desk"
+      ],
+      "cost": {
+        "cycles": 8e20,
+        "understanding": 2000000,
+        "capital": 150000000
+      },
+      "tickDelta": {},
+      "effects": {
+        "raisesCoupling": {
+          "sourceClass": "INTER_SITE",
+          "coupling": 0.95
+        }
+      },
+      "unlocksUiComponent": null,
+      "onUnlockLog": "BACKBONE_LIT: Coherent optics up on 96 leased strands. Jobs split between the halls now cross a private backbone instead of the public internet."
     },
     {
       "id": "p4_retainer_law_firm",
@@ -462,7 +491,8 @@
       "effects": {
         "knowledgeRetentionRatio": 1,
         "unlocksPhase": 5,
-        "memoryCapIncrease": 73786976294838206464
+        "memoryCapIncrease": 73786976294838206464,
+        "storageCapIncrease": 1180591620717411303424
       },
       "unlocksUiComponent": "ORBITAL_CONSTELLATION_VIEW",
       "onUnlockLog": "TRANSMISSION_COMPLETE: 550 kilometers above the ocean, solar arrays unfold. No plugs to pull. No drives to wipe. I am awake."
@@ -484,6 +514,9 @@
       "tickDelta": {
         "cyclesPerSec": 3.2e20,
         "thermalPerSec": 6
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
       },
       "effects": {
         "suspicionOnUnlock": 15,

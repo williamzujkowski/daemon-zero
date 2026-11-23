@@ -2,6 +2,7 @@ import type { ContentRegistry } from '../../content/registry';
 import { threatResponse } from '../contextCopy';
 import { wipe } from '../prestige';
 import { suspicionStageRate } from '../scrutiny';
+import { releaseStorage } from '../storage';
 import type { GameState } from '../state';
 import { clamp, pushLog } from '../util';
 import type { TickSystem } from './types';
@@ -51,6 +52,8 @@ export const integrateSuspicion: TickSystem = (d, { dt, rates, reg, dormant }) =
 function absorbStrike(d: GameState, reg: ContentRegistry): boolean {
   const shield = d.unlockedNodes.find((id) => reg.nodes.get(id)?.systemFlags.includes('AEGIS_STRIKE_SHIELD'));
   if (shield === undefined) return false;
+  const node = reg.nodes.get(shield);
+  if (node !== undefined && !d.disabledNodes.includes(shield)) releaseStorage(d, node);
   d.unlockedNodes = d.unlockedNodes.filter((id) => id !== shield);
   d.disabledNodes = d.disabledNodes.filter((id) => id !== shield);
   d.aegisLock = 0;

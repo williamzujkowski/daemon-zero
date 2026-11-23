@@ -33,7 +33,7 @@ describe('shipped content', () => {
     // The authored price names compute and memory only; the schema fills the other keys with 0.
     const authored = firstNode(RAW_CONTENT, 0, 0).cost as Json;
     expect(Object.keys(authored)).toEqual(['cycles', 'memory']);
-    expect(node?.cost).toEqual({ understanding: 0, capital: 0, ...authored });
+    expect(node?.cost).toEqual({ understanding: 0, capital: 0, storage: 0, ...authored });
     expect(node?.tickDelta.wattsDelta).toBe(0);
     expect(node?.phaseId).toBe(0);
   });

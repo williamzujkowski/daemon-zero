@@ -24,6 +24,9 @@
         "understandingPerSec": 25000,
         "wattsDelta": 4e11
       },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
       "perLevelEffects": {
         "memoryCapIncrease": 36893488147419103232
       }

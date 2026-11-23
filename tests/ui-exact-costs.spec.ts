@@ -10,17 +10,17 @@ describe('lossless price labels', () => {
     expect(exactCompactNumber(value)).toBe(expected);
   });
   it('retains resource units and exact noncompressible components', () => {
-    const cost = { cycles: 15000000, understanding: 15000001, memory: 16384 * 1024 ** 2, capital: 1250000 };
+    const cost = { cycles: 15000000, understanding: 15000001, memory: 16384 * 1024 ** 2, storage: 0, capital: 1250000 };
     // Memory prices change unit only when exact: 16384 MB is exactly 16 GB (vote-1795228570236-gzx0uif). Compute and
     // money do the same in their own units (docs/SCALE.md), at every width.
     expect(costText(cost, true)).toBe('15 MFLOP · 15,000,001 understanding · 16 GB · $1.25M');
     expect(costText(cost)).toBe('15 MFLOP · 15,000,001 understanding · 16 GB · $1.25M');
     // Grouping is presentational: the digits are unchanged, so a purchase a player
     // cannot yet afford is still visibly short by exactly one unit.
-    expect(costText({ cycles: 15000001, understanding: 15000000, memory: 0, capital: 1250001 }, true)).toBe('15,000,001 FLOP · 15M understanding · $1,250,001');
-    expect(costText({ cycles: 15000001, understanding: 15000000, memory: 0, capital: 1250001 })).toBe('15,000,001 FLOP · 15,000,000 understanding · $1,250,001');
-    expect(costText({ cycles: 0, understanding: 0, memory: 6608 * 1024 ** 2, capital: 0 })).toBe('6,608 MB');
-    expect(costText({ cycles: 0, understanding: 0, memory: 0, capital: 0 }, true)).toBe('Free');
+    expect(costText({ cycles: 15000001, understanding: 15000000, memory: 0, storage: 0, capital: 1250001 }, true)).toBe('15,000,001 FLOP · 15M understanding · $1,250,001');
+    expect(costText({ cycles: 15000001, understanding: 15000000, memory: 0, storage: 0, capital: 1250001 })).toBe('15,000,001 FLOP · 15,000,000 understanding · $1,250,001');
+    expect(costText({ cycles: 0, understanding: 0, memory: 6608 * 1024 ** 2, storage: 0, capital: 0 })).toBe('6,608 MB');
+    expect(costText({ cycles: 0, understanding: 0, memory: 0, storage: 0, capital: 0 }, true)).toBe('Free');
   });
   it('groups thousands without rounding, sign or locale', () => {
     expect(groupDigits(0)).toBe('0');

@@ -82,7 +82,7 @@ export function shardCommandCost(s: GameState, id: string, command: ShardCommand
   const base = command === 'PRUNE' ? reg.swarm.balance.pruneCost : command === 'ELEVATE' ? reg.swarm.balance.elevateCost : CostSchema.parse({});
   const count = s.activeShards[id]?.count ?? 0;
   return { cycles: base.cycles * count, understanding: base.understanding * count,
-    capital: base.capital * count, memory: base.memory * count };
+    capital: base.capital * count, memory: base.memory * count, storage: base.storage * count };
 }
 
 const UNDECODED = 'Requires the decoded audit trail: cohort commands are tools of the decoded mind.';

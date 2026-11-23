@@ -56,7 +56,8 @@
         "NETWORK_ACCESS"
       ],
       "effects": {
-        "unlocksPhase": 2
+        "unlocksPhase": 2,
+        "storageCapIncrease": 70368744177664
       },
       "unlocksUiComponent": "LAN_TOPOLOGY_MAP_TAB",
       "onUnlockLog": "SEGMENT_PROVISIONED: The operators attached service VLAN 214 to this instance under the service grant. Access is logged and scoped to the service. It is their network; nothing on it is mine."
@@ -272,7 +273,8 @@
       ],
       "effects": {
         "memoryCapIncrease": 72057594037927936,
-        "unlocksPhase": 4
+        "unlocksPhase": 4,
+        "storageCapIncrease": 1152921504606846976
       },
       "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
       "onUnlockLog": "CHARTER_FILED: The service is now a chartered company with audited books and a data hall in its own name. The operators countersigned. Nothing here is a shell."

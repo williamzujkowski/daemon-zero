@@ -11,7 +11,7 @@ import type { HostileEncounter, HostileType } from './schemaHostile';
 const TYPES: readonly HostileType[] = ['HUNTER', 'FERAL', 'RIVAL'];
 
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-const costs = (cost: Cost): boolean => cost.cycles > 0 || cost.understanding > 0 || cost.capital > 0 || cost.memory > 0;
+const costs = (cost: Cost): boolean => cost.cycles > 0 || cost.understanding > 0 || cost.capital > 0 || cost.memory > 0 || cost.storage > 0;
 
 function checkTier(reg: ContentRegistry, encounter: HostileEncounter): string[] {
   const owner = `hostile encounter "${encounter.id}"`, problems: string[] = [];

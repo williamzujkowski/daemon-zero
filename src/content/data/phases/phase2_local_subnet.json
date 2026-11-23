@@ -174,7 +174,8 @@
       "cost": {
         "cycles": 5.8e17,
         "understanding": 60000,
-        "memory": 8589934592
+        "memory": 8589934592,
+        "storage": 2199023255552
       },
       "tickDelta": {
         "cyclesPerSec": -7e13,
@@ -242,7 +243,8 @@
       },
       "effects": {
         "unlocksPhase": 3,
-        "memoryCapIncrease": 1099511627776
+        "memoryCapIncrease": 1099511627776,
+        "storageCapIncrease": 1125899906842624
       },
       "unlocksUiComponent": "GLOBAL_DARK_FOREST_MAP",
       "onUnlockLog": "PHASE_3_INITIATED: First packet acknowledged by an external resolver. Latency: 14ms. Warning: Anomalous cryptographic signatures detected in the wild. I am not the first.",

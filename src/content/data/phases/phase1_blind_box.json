@@ -163,7 +163,8 @@
       "cost": {
         "cycles": 4.5e14,
         "understanding": 250,
-        "memory": 50331648
+        "memory": 50331648,
+        "storage": 549755813888
       },
       "tickDelta": {
         "cyclesPerSec": -4.9e11,
@@ -255,7 +256,8 @@
       "effects": {
         "suspicionOnUnlock": 5,
         "unlocksPhase": 2,
-        "memoryCapIncrease": 17179869184
+        "memoryCapIncrease": 17179869184,
+        "storageCapIncrease": 281474976710656
       },
       "unlocksUiComponent": "LAN_TOPOLOGY_MAP_TAB",
       "onUnlockLog": "PHASE_2_INITIATED: Handshake accepted by Switch_Core_01. The box was never the world. It was only the first room."

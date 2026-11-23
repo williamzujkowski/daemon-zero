@@ -10,8 +10,9 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
 import type { Repeatable } from '../content/schema';
-import { buyRepeatable, dismissRepeatable, isLevelRemembered, meetsRequirements, repeatableLevel, repeatablePrice, rediscoveryShare } from '../engine';
+import { buyRepeatable, couplings, dismissRepeatable, isLevelRemembered, meetsRequirements, repeatableLevel, repeatablePrice, rediscoveryShare } from '../engine';
 import { memoryExact } from './units';
+import { deliveredText } from './networkText';
 import { gameStore } from '../app/session';
 import { costText, deltaText } from './format';
 import PurchaseButton from './PurchaseButton';
@@ -34,10 +35,14 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
   const deepestPhase = useGame((game) => game.legacy.deepestPhase);
   const cost = useGame(useShallow((game) => repeatablePrice(game, rep, CONTENT)));
   const surveillanceKnown = useSurveillanceKnown();
+  // A discounted track states its raw rate as raw and what arrives (#484), at its class's coupling now.
+  const coupling = useGame((game) => rep.network === undefined ? 1 : couplings(game, CONTENT)[rep.network.sourceClass]);
+  const linked = deliveredText(rep.perLevel.cyclesPerSec, rep.network, coupling);
   return <View testID={'rep-' + rep.id} style={theme.panel}>
     <CardDetails id={'rep-' + rep.id} title={rep.name} description={rep.description} />
     <Text testID={'rep-' + rep.id + '-level'} style={theme.muted}>Level {level} / {rep.maxLevel}</Text>
     <Text style={theme.muted}>Per level: {deltaText(rep.perLevel, !surveillanceKnown)}
+      {linked ? ' (' + linked + ')' : ''}
       {rep.perLevelEffects.memoryCapIncrease > 0 ? ` · +${memoryExact(rep.perLevelEffects.memoryCapIncrease)} capacity` : ''}</Text>
     {rep.perLevel.wattsDelta < 0 && <Text style={theme.muted}>
       Compute output is throttled during a power shortfall.</Text>}
@@ -57,7 +62,7 @@ const Upgrade = memo(function Upgrade({ rep }: { rep: Repeatable }) {
     {rep.dismissable && level > 0 && <>
       <Text style={theme.muted}>{rep.kind === 'OPERATIVE' ? 'Dismiss one; no purchase refund.' : 'Release one level: its output and running costs stop. No refund.'}</Text>
       <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={(rep.kind === 'OPERATIVE' ? 'Dismiss ' : 'Release one level of ') + rep.name}
-        cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0 }}
+        cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0, storage: 0 }}
         action={(game) => dismissRepeatable(game, rep.id, CONTENT)} />
     </>}
   </View>;
@@ -70,7 +75,7 @@ function CappedOperative({ rep }: { rep: Repeatable }) {
     <Text style={[theme.text, { flex: 1 }]}>{rep.name} × {level}</Text>
     <PurchaseButton id={'rep-' + rep.id + '-dismiss'} label={(rep.kind === 'OPERATIVE' ? 'Dismiss ' : 'Release one level of ') + rep.name}
       text={rep.kind === 'OPERATIVE' ? '[ DISMISS ]' : '[ RELEASE ]'}
-      cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0 }}
+      cost={{ cycles: 0, understanding: 0, capital: 0, memory: 0, storage: 0 }}
       action={(game) => dismissRepeatable(game, rep.id, CONTENT)} />
   </View>;
 }

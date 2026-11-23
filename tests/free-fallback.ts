@@ -97,6 +97,7 @@ export function traps(state: GameState): string[] {
     power: [r.wattsGenerated >= r.wattsConsumed, `power ${String(r.wattsGenerated)} W against ${String(r.wattsConsumed)} W`],
     thermal: [s.currentPhase >= b.thermalRetiresAtPhase || r.heatLoad <= COOLING_HEADROOM + 1e-9, `heat load ${String(r.heatLoad)}`],
     memory: [s.memoryUsed <= s.memoryCap, `memory ${String(s.memoryUsed)} B used of ${String(s.memoryCap)} B`],
+    storage: [s.storageUsed <= s.storageCap, `storage ${String(s.storageUsed)} B used of ${String(s.storageCap)} B`],
     understanding: [r.understandingPerSec >= 0, `understanding ${String(r.understandingPerSec)}/s`],
     suspicion: [sources <= 1e-9, `suspicion sources ${String(sources)}/s at the bottom rung`],
   };

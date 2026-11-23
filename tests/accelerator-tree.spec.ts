@@ -69,9 +69,13 @@ describe('the edge harvest', () => {
     expect(computeRates(suspended, reg).cyclesPerSec).toBeCloseTo(computeRates(before, reg).cyclesPerSec, -3);
   });
 
-  it('delivers a few thousandths of the million devices\' 35 TOPS each (the effective-compute discount)', () => {
-    const raw = 1.02e6 * 35e12;
-    const delivered = node('p3_edge_npu_swarm').tickDelta.cyclesPerSec / raw;
+  it('delivers a few thousandths of the million devices\' 35 TOPS each, through availability and coupling (#484)', () => {
+    const raw = 1.02e6 * 35e12, edge = node('p3_edge_npu_swarm');
+    // The yield is the raw total, within x3 of the anchor; the discount is the engine's, not authored into the yield.
+    expect(edge.tickDelta.cyclesPerSec / raw).toBeGreaterThan(1 / 3);
+    expect(edge.tickDelta.cyclesPerSec / raw).toBeLessThan(3);
+    const before = darkForest(), harvesting = grant(before, 'p3_edge_npu_swarm');
+    const delivered = (computeRates(harvesting, reg).cyclesPerSec - computeRates(before, reg).cyclesPerSec) / raw;
     expect(delivered).toBeGreaterThan(1e-3);
     expect(delivered).toBeLessThan(1e-2);
   });

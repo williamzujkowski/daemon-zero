@@ -1,6 +1,6 @@
 /**
  * Which physical dimension each stored resource is in, and its price and rate text (docs/SCALE.md "Implementation
- * decisions"): compute is FLOP (rates FLOP/s, 8-bit AI ops), memory bytes, power watts, capital dollars.
+ * decisions"): compute is FLOP (rates FLOP/s, 8-bit AI ops), memory and storage bytes, power watts, capital dollars.
  * Understanding has no physical unit and keeps its word. The UI and the engine's own text both build on this.
  */
 import type { Cost, TickDelta } from '../content/schema';
@@ -9,7 +9,7 @@ import { quantityExact, type Dimension } from './physicalUnits';
 
 /** The dimension a price key is stored in; understanding is a plain count. */
 export const COST_DIMENSION: Readonly<Record<keyof Cost, Dimension | null>> = {
-  cycles: 'compute', understanding: null, memory: 'memory', capital: 'money',
+  cycles: 'compute', understanding: null, memory: 'memory', storage: 'storage', capital: 'money',
 };
 
 /** One part of a price, exact (vote-1795228570236-gzx0uif): "45 TFLOP", "256 MB", "$400M", "1,500 understanding". */

@@ -10,9 +10,9 @@ const fixtures = makeFixtures();
 describe('M4 read-only queries', () => {
   it('reports exact affordability deficits without changing the spending decision', () => {
     // 36 bytes more memory than a fresh guest's whole free cap.
-    const cost = { cycles: 12, understanding: 3, memory: fresh().memoryCap + 36, capital: 8 };
+    const cost = { cycles: 12, understanding: 3, memory: fresh().memoryCap + 36, storage: 0, capital: 8 };
     const s = { ...fresh(), cycles: 1.2, understanding: 2, capital: 2 };
-    expect(costShortfall(s, cost)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, capital: 6 });
+    expect(costShortfall(s, cost)).toEqual({ cycles: 10.8, understanding: 1, memory: 36, storage: 0, capital: 6 });
     for (const code of Object.values(fixtures)) {
       const game = importSave(code, CONTENT);
       expect(Object.values(costShortfall(game, cost)).every((value) => value === 0)).toBe(canAfford(game, cost));

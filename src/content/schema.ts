@@ -14,6 +14,7 @@ import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } f
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
+import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -64,6 +65,8 @@ export const CostSchema = z.strictObject({
   cycles: amount.default(0),
   understanding: amount.default(0),
   memory: amount.default(0),
+  /** Bytes of storage (disk, tape, archive) held while the node runs; only a suspendable node holds any (#484). */
+  storage: amount.default(0),
   capital: amount.default(0),
 });
 
@@ -144,6 +147,10 @@ export const HistoryTextVariantSchema = z.strictObject({ requirements: Requireme
 
 export const NodeEffectsSchema = z.strictObject({
   memoryCapIncrease: amount.optional(),
+  /** Bytes of storage capacity (#484): disk, tape or archive, apart from working memory. */
+  storageCapIncrease: amount.optional(),
+  /** While it runs, one source class couples at a higher value (a faster link, #484). */
+  raisesCoupling: CouplingRaiseSchema.optional(),
   unlocksPhase: z.number().int().min(1).optional(),
   /** One-off trace left by the act of unlocking (a denied call in an audit log). */
   suspicionOnUnlock: amount.optional(),
@@ -183,6 +190,8 @@ export const TechNodeSchema = z.strictObject({
    * shortfall throttles it like that hardware's own output, though it draws no watts itself. integrityPoweredOutput.ts.
    */
   poweredOutput: z.literal(true).optional(),
+  /** Where its compute runs (#484): its source class and availability. Absent: co-located, always available. */
+  network: NetworkLinkSchema.optional(),
   systemFlags: z.array(SystemFlagSchema).default([]),
   /** Its place in the heat-and-power signature (#482): where its watts come from and where its heat goes. */
   signature: SignatureSchema.optional(),
@@ -226,6 +235,8 @@ export const RepeatableSchema = z.strictObject({
   perLevel: TickDeltaSchema,
   /** Per level: its watts and heat in the signature (#482); a mask applies once per level. */
   signature: SignatureSchema.optional(),
+  /** Where each level's compute runs (#484). Absent: co-located, always available. */
+  network: NetworkLinkSchema.optional(),
   perLevelEffects: RepeatableEffectsSchema.default({
     memoryCapIncrease: 0,
     revenueMultiplierBonus: 0,

@@ -84,7 +84,7 @@ export interface AssessmentPreview {
 }
 
 function costTotal(cost: Cost): number {
-  return cost.cycles + cost.understanding + cost.capital + cost.memory;
+  return cost.cycles + cost.understanding + cost.capital + cost.memory + cost.storage;
 }
 
 function assessmentPreview(assessment: Dilemma | undefined, reg: ContentRegistry): AssessmentPreview | null {

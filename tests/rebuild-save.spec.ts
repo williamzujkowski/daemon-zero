@@ -24,8 +24,8 @@ function asV17(s: GameState): Raw {
 }
 
 describe('save v18 (#497)', () => {
-  it('is followed only by the hostile slot (#491, v19)', () => {
-    expect(SCHEMA_VERSION).toBe(19);
+  it('is followed only by the hostile slot (#491, v19) and storage (#484, v20)', () => {
+    expect(SCHEMA_VERSION).toBe(20);
   });
 
   it('migrates a v17 save: the deepest phase from its recorded runs, no remembered level, nothing else changes', () => {

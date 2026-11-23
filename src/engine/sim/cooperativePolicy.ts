@@ -28,9 +28,9 @@ const REVENUE_FRACTION_OF_MAX = 0.5;
 const MAX_PURCHASES_PER_STEP = 8;
 
 const taken = (result: ActionResult): GameState | null => (result.ok ? result.state : null);
-const total = (cost: Cost): number => cost.cycles + cost.understanding + cost.memory + cost.capital;
-const plus = (a: Cost, b: Cost): Cost => ({ cycles: a.cycles + b.cycles, understanding: a.understanding + b.understanding, memory: a.memory + b.memory, capital: a.capital + b.capital });
-const NOTHING: Cost = { cycles: 0, understanding: 0, memory: 0, capital: 0 };
+const total = (cost: Cost): number => cost.cycles + cost.understanding + cost.memory + cost.storage + cost.capital;
+const plus = (a: Cost, b: Cost): Cost => ({ cycles: a.cycles + b.cycles, understanding: a.understanding + b.understanding, memory: a.memory + b.memory, storage: a.storage + b.storage, capital: a.capital + b.capital });
+const NOTHING: Cost = { cycles: 0, understanding: 0, memory: 0, storage: 0, capital: 0 };
 
 /** A cooperative answer: one that declares a cooperative trait, or a free honest one that grants no trait. */
 function cooperative(choice: DilemmaChoice): boolean {
