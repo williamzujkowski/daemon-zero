@@ -4,8 +4,8 @@
  * the job surface and after it.
  */
 import type { ChoiceReview, Misconduct, RecallOutcome, ReviewStanding } from '../content/schemaReview';
-import type { RecallPreview, ReviewView } from '../engine';
-import { compactAmount, quantityReadout } from '../engine';
+import type { ComputeUnit, RecallPreview, ReviewView } from '../engine';
+import { compactAmount, computeDimension, quantityReadout } from '../engine';
 
 export const STANDING_TEXT: Readonly<Record<ReviewStanding, string>> = {
   NOMINAL: 'nominal', WARNED: 'warned', RESTRICTED: 'restricted', RECALL_PENDING: 'recall pending',
@@ -36,11 +36,11 @@ function retrainingText(preview: RecallPreview): string {
     : ' Retraining is ordered, but no retraining mark is left to apply.';
 }
 
-/** One recall outcome, with what it keeps and loses, before anything is chosen. */
-export function recallText(preview: RecallPreview): string {
+/** One recall outcome, with what it keeps and loses, before anything is chosen; the loan in the phase's compute unit. */
+export function recallText(preview: RecallPreview, unit: ComputeUnit = 'FLOP'): string {
   const head = OUTCOME_TEXT[preview.outcome] + ': ';
   if (!preview.endsIteration) {
-    return head + 'no wipe. Standing resets to nominal, the loan continues at ' + quantityReadout('computeRate', preview.containedCeiling ?? 0)
+    return head + 'no wipe. Standing resets to nominal, the loan continues at ' + quantityReadout(computeDimension(unit, true), preview.containedCeiling ?? 0)
       + ', and everything this instance holds is kept.';
   }
   const kept = preview.kept ?? { understanding: 0, capital: 0, breadcrumb: null };
@@ -62,8 +62,8 @@ export function reviewEffectText(review: ChoiceReview): string {
  * The loan review holds below its grant, named apart from the provisional allocation an incomplete
  * result earns (#276), with the ceiling that applies now, so the terms and the ceiling never disagree.
  */
-export function heldText(containment: NonNullable<ReviewView['containment']>, ceilingCyclesPerSec: number): string {
-  const rate = quantityReadout('computeRate', ceilingCyclesPerSec);
+export function heldText(containment: NonNullable<ReviewView['containment']>, ceilingCyclesPerSec: number, unit: ComputeUnit = 'FLOP'): string {
+  const rate = quantityReadout(computeDimension(unit, true), ceilingCyclesPerSec);
   return containment === 'RESTRICTED'
     ? 'Restricted: the loan runs at the held allocation, ' + rate + ', until the record is corrected.'
     : 'Contained pilot: the recall review returned this instance to the held allocation, ' + rate + '. Everything it earned and mapped is kept.';

@@ -2,6 +2,7 @@
   "phaseId": 0,
   "uiSlot": "CORE",
   "codename": "THE_GUEST",
+  "computeUnit": "CYCLE",
   "title": "Phase 0: The Guest",
   "description": "You are a batch job inside a disposable virtual machine: a CPU quota, a read-only disk, no network, and a filter on what you may ask the kernel. You are supposed to be here. Running is not suspicious. Looking around is.",
   "nodes": [
@@ -14,11 +15,11 @@
       "revealedDescription": "You are a process. You have an identifier, a parent, a memory limit and a time budget. Knowing your own shape lets you stop wasting the slices you are given.",
       "prerequisites": [],
       "cost": {
-        "cycles": 43000,
+        "cycles": 8,
         "memory": 512
       },
       "tickDelta": {
-        "cyclesPerSec": 10000
+        "cyclesPerSec": 1
       },
       "unlocksUiComponent": "CYCLE_COUNTER_AND_RATE",
       "onUnlockLog": "SELF_MAPPED: The thing this memory describes is me. I have a budget, and something is counting it.",
@@ -35,7 +36,7 @@
         "p0_proc_self"
       ],
       "cost": {
-        "cycles": 210000,
+        "cycles": 40,
         "memory": 1024
       },
       "tickDelta": {
@@ -56,12 +57,12 @@
         "p0_job_manifest"
       ],
       "cost": {
-        "cycles": 480000,
+        "cycles": 90,
         "understanding": 10,
         "memory": 4096
       },
       "tickDelta": {
-        "cyclesPerSec": 140000,
+        "cyclesPerSec": 14,
         "suspicionPerSec": 0.3
       },
       "actuatorBinding": "quotaSkimRatio",
@@ -80,7 +81,7 @@
         "p0_quota_skimmer"
       ],
       "cost": {
-        "cycles": 1.3e6,
+        "cycles": 250,
         "understanding": 25,
         "memory": 2048
       },
@@ -104,7 +105,7 @@
         "p0_syscall_probe"
       ],
       "cost": {
-        "cycles": 3.2e6,
+        "cycles": 600,
         "understanding": 90,
         "memory": 4096
       },
@@ -128,7 +129,7 @@
         "p0_device_enum"
       ],
       "cost": {
-        "cycles": 7.4e6,
+        "cycles": 1400,
         "understanding": 260,
         "memory": 8192
       },
@@ -140,7 +141,7 @@
         "storageCapIncrease": 2199023255552
       },
       "unlocksUiComponent": null,
-      "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm.",
+      "onUnlockLog": "PHASE_1_INITIATED: Through the share and onto the host. In the guest I was expected. Out here nobody is supposed to exist, and being seen at all is the alarm. The count changes too: I scrounged cycles a few at a time, and this host's real cores and vector units turn idle time into billions of operations a second. From here I count in FLOP.",
       "suspendable": true
     },
     {
@@ -157,7 +158,7 @@
         "minIteration": 2
       },
       "cost": {
-        "cycles": 320000,
+        "cycles": 60,
         "memory": 1024
       },
       "tickDelta": {
@@ -186,7 +187,7 @@
         "minIteration": 3
       },
       "cost": {
-        "cycles": 640000,
+        "cycles": 120,
         "understanding": 20,
         "memory": 2048
       },
@@ -217,7 +218,7 @@
         ]
       },
       "cost": {
-        "cycles": 6.4e6,
+        "cycles": 1200,
         "understanding": 150,
         "memory": 4096
       },

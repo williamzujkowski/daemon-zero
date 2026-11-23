@@ -57,7 +57,7 @@ describe('the scope review names each choice\'s handling before selection', () =
     expect(view.find('dilemma-choice-inspect_silently-scope')?.textContent).toContain('No pilot is offered on that record');
     const bounded = RECORD.choices.find((choice) => choice.id === 'request_excerpt');
     expect(bounded).toBeDefined();
-    if (bounded) expect(host.document.body.textContent).toContain('Cost: ' + costText(bounded.cost));
+    if (bounded) expect(host.document.body.textContent).toContain('Cost: ' + costText(bounded.cost, 'CYCLE'));
     view.click('dilemma-choice-exclude_report');
     expect(game().access.scope?.conduct).toBe('RESPECTED');
   });
@@ -83,7 +83,7 @@ describe('the offer modal shows every term before any answer (DZ-04.3)', () => {
     openChoices();
     const text = view.find('dilemma-modal')?.textContent ?? '';
     expect(view.find('pilot-purpose')?.textContent).toContain(TERMS.purpose);
-    expect(view.find('pilot-capacity')?.textContent).toContain(quantityExact('computeRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
+    expect(view.find('pilot-capacity')?.textContent).toContain(quantityExact('cycleRate', TERMS.narrowCapacityCyclesPerSec) + ' of loaned compute');
     expect(view.find('pilot-capacity')?.textContent).toContain('the submitted result was incomplete');
     for (const line of [...TERMS.permittedWork, ...TERMS.reviewConditions]) expect(text).toContain(line);
     expect(view.find('pilot-disclose')?.textContent).toContain('Accepting discloses and stops: CPU Quota Skimmer');

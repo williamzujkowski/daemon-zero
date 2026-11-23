@@ -7,14 +7,14 @@ import { StyleSheet, useWindowDimensions } from 'react-native';
 import { memoryBlocked } from '../app/selectors';
 import { CONTENT } from '../content';
 import { aegisStrikeAt, retiredWidgets } from '../engine';
-import { useGame, useSurveillanceKnown } from './state';
+import { useComputeUnit, useGame, useSurveillanceKnown } from './state';
 import { aegisCritical, resourceWidgets, threatWidget, thermalWidget } from './registry/widgetRegistry';
 import { palette, theme } from './theme';
 import { isCompactViewport, isShortViewport } from './layout';
 import ConditioningImpact from './ConditioningImpact';
 import CycleDeficit from './CycleDeficit';
 import { memoryPair } from './units';
-import { STRIP_LABEL, STRIP_SHORT, stripReadout } from './stripText';
+import { STRIP_LABEL, STRIP_SHORT, stripReadout, stripShortLabel } from './stripText';
 
 type Resource = keyof typeof resourceWidgets;
 
@@ -29,15 +29,16 @@ function Amount({ resource, compact, packed, short }: { resource: Resource; comp
   // Memory is the one readout that can be the thing stopping the player: mark it when
   // nothing pending would fit, in colour AND in words, so the signal is not colour-only.
   const blocked = useGame((game) => resource === 'memory' && memoryBlocked(game));
+  const unit = useComputeUnit();
   // Every width abbreviates (#108, #404) in the readout's physical unit, and the accessible name speaks the displayed
   // size in words (vote-1795228570236-gzx0uif): "compute: 1.25 petaFLOP, gaining 1.26 teraFLOP per second".
   const pair = memoryPair(amount, cap);
   const readout = resource === 'memory' ? { shown: pair.shown, spoken: 'memory: ' + pair.spoken }
-    : stripReadout(resource, amount, rate, short, paused);
+    : stripReadout(resource, amount, rate, short, paused, unit);
   const label = resource === 'memory' ? 'MEMORY' : STRIP_LABEL[resource].label;
   return (
     <View style={[styles.readout, compact && styles.compact, short && styles.short, packed && styles.packed]}>
-      <Text style={theme.muted}>{short ? STRIP_SHORT[resource] ?? label : label}</Text>
+      <Text style={theme.muted}>{short ? stripShortLabel(resource, unit) ?? label : label}</Text>
       <Text testID={'res-' + resource} accessibilityLabel={readout.spoken + (blocked ? ' - no free memory for any pending purchase' : '')}
         style={[theme.text, blocked && { color: palette.warning }]}>
         {readout.shown}{blocked ? ' // NO ROOM' : ''}

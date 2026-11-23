@@ -61,8 +61,8 @@ describe('node utility summaries and remembered details', () => {
     expect(blindView.find('node-' + skimmer.id + '-title')?.textContent).toContain(skimmer.revealedName);
     expect(blindView.container.textContent).not.toContain(skimmer.revealedDescription);
     const blindUtility = blindView.find('node-' + skimmer.id + '-utility')?.textContent ?? '';
-    expect(blindUtility).toContain(deltaPart('cyclesPerSec', skimmer.tickDelta.cyclesPerSec));
-    expect(blindUtility).toMatch(/\+[\d.,]+ [kMGTPEZY]?FLOP\/s/);
+    expect(blindUtility).toContain(deltaPart('cyclesPerSec', skimmer.tickDelta.cyclesPerSec, 'CYCLE'));
+    expect(blindUtility).toMatch(/\+[\d.,]+k? cycles\/s/);
     expect(blindUtility).toContain('audit log activity');
     expect(blindUtility).not.toMatch(/suspicion/i);
     act(() => { blindView.find('details-node-' + skimmer.id)?.click(); });

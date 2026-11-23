@@ -168,7 +168,7 @@ describe('second-pass presentation follow-up', () => {
     expect(view.find('cycle-deficit')).toBeNull();
     const guest = m4State('guest-skimmer');
     load({ ...guest, rates: { ...guest.rates, cyclesPerSec: -2 }, brownout: false });
-    expect(view.find('cycle-deficit')?.textContent).toContain('CYCLE DEFICIT: net -2 FLOP/s.');
+    expect(view.find('cycle-deficit')?.textContent).toContain('CYCLE DEFICIT: net -2 cycles/s.');
     load({ ...m4State('tick-0'), rates: { ...guest.rates, cyclesPerSec: -2 } });
     expect(view.find('cycle-deficit')).toBeNull();
     view.close();
@@ -179,10 +179,10 @@ describe('second-pass presentation follow-up', () => {
     const root = CONTENT.phases[0]?.nodes[0];
     if (!root) throw new Error('Missing root');
     expect(view.find('node-' + root.id)?.textContent).toContain('[REMEMBERED] ' + root.revealedName);
-    expect(view.find('node-' + root.id + '-rediscovery')?.textContent).toContain('First mapping: ' + costPart('cycles', root.cost.cycles));
+    expect(view.find('node-' + root.id + '-rediscovery')?.textContent).toContain('First mapping: ' + costPart('cycles', root.cost.cycles, 'CYCLE'));
     const price = Math.ceil(root.cost.cycles * rediscoveryShare(gameStore.store.getState().game.legacy.deepestPhase, CONTENT));
     const shown = view.find('node-' + root.id + '-cost')?.textContent ?? '';
-    expect(shown.startsWith('Cost: ' + costPart('cycles', price) + ' ')).toBe(true);
+    expect(shown.startsWith('Cost: ' + costPart('cycles', price, 'CYCLE') + ' ')).toBe(true);
     expect(shown.endsWith(' (remembered)')).toBe(true);
     view.click('reboot-continue');
     // Each click adds the authored yield, so click until the remembered price is held, then pay exactly it.
