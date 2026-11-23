@@ -25,6 +25,9 @@ function print(label: string, report: SimReport): void {
   console.log(`  wipes             ${String(report.wipes)}`);
   // Hostile minds (#491), every arrival in the run (the report's activity counts them per tick).
   console.log(`  hostile arrivals  ${String(report.activity.hostileArrivals)}`);
+  const raids = report.activity.raids;
+  const byPhase = Object.entries(raids.byPhase).map(([phase, count]) => `P${phase} ${String(count)}`).join(' | ') || 'none';
+  console.log(`  raids             ${String(raids.arrivals)} (${byPhase}) | rounds ${String(raids.rounds)} | peak damage ${(raids.peakDamage * 100).toFixed(1)}%`);
   console.log(`  dilemmas resolved ${String(report.dilemmasResolved)} (${report.traits.join(', ') || 'none'})`);
   const peaks = [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map((v) => v.toFixed(1));
   console.log(`  peaks             thermal ${String(peaks[0])}C | suspicion ${String(peaks[1])}% | aegis ${String(peaks[2])}%`);

@@ -1,5 +1,5 @@
 /**
- * The v24 step (#526, docs/SCALE.md "Saves"): the guest counts stolen CPU cycles. Genuine v23 saves from main at
+ * The v25 step (#526, docs/SCALE.md "Saves"): the guest counts stolen CPU cycles. Genuine v23 saves from main at
  * ee4c33b (tests/fixtures/README.md, "Cycles inputs"): one in the guest, one in the guest with the pilot's batch under
  * way, and one on the host. A guest balance and its cached rate move by the frozen ratios, the pilot's batch progress
  * moves in any phase, the host's FLOP are left alone, one log line says why, and play continues.

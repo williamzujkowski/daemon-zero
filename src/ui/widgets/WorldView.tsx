@@ -21,6 +21,7 @@ import AegisStatus from './AegisStatus';
 import Meter from './Meter';
 import { HostileStatus } from './HostileEncounter';
 import QuantumSection from './QuantumSection';
+import ConflictSection from './ConflictSection';
 import SupplyChainSection from './SupplyChainSection';
 import Section from './WorldSection';
 
@@ -153,6 +154,7 @@ export default function WorldView({ factions }: { factions: ReactNode }) {
     <PublicTrustSection />
     <StateActorsSection />
     <SignatureSection />
+    <ConflictSection />
     <SupplyChainSection />
     <QuantumSection />
     <Section id="world-minds" title="Other minds"><HostileStatus />{factions}<KnownMinds /></Section>

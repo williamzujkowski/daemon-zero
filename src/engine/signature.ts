@@ -154,6 +154,14 @@ export function powerSignaturePerSec(s: GameState, rates: SignatureRates, reg: C
   return drawFor(rule, visibleOf(flows(s, rates, reg, s.currentPhase >= reg.balance.thermalRetiresAtPhase), reg));
 }
 
+/**
+ * Visible watts now, whether or not anyone hunts the run: the footprint rival minds read when they choose a target (#517).
+ * The same flows the signature charges, so a raid drawn by the footprint names the watts the world view shows.
+ */
+export function visibleWatts(s: GameState, rates: SignatureRates, reg: ContentRegistry): number {
+  return visibleOf(flows(s, rates, reg, s.currentPhase >= reg.balance.thermalRetiresAtPhase), reg);
+}
+
 /** A class by id, for readers that name a term. */
 export function signatureClass(reg: ContentRegistry, id: string): SignatureClass | undefined {
   const { sources, sinks } = reg.world.signature;

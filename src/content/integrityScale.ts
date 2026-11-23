@@ -174,6 +174,16 @@ function checkComputeUnits(reg: ContentRegistry): string[] {
     .map((phase) => `Phase ${String(phase.phaseId)} counts compute in cycles after Phase ${String(firstFlop.phaseId)} counts it in FLOP`);
 }
 
+/** Paid repair is priced in the phase its class's domain opens in (#517), where the first raid can damage it. */
+function checkRepairPrices(reg: ContentRegistry): string[] {
+  const { domains, siteClasses } = reg.world.conflict;
+  return siteClasses.flatMap((cls) => {
+    const phase = domains.find((domain) => domain.id === cls.domain)?.fromPhase;
+    return phase === undefined ? [] : checkCost(reg, `site class "${cls.id}" repair`, phase, cls.repair.cost);
+  });
+}
+
 export function checkScaleIntegrity(reg: ContentRegistry): string[] {
-  return [...checkComputeUnits(reg), ...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg)];
+  return [...checkComputeUnits(reg), ...checkPurchasables(reg), ...checkOneShots(reg), ...checkEncounterBursts(reg), ...checkHostilePrices(reg), ...checkKeyBreakPrices(reg),
+    ...checkRepairPrices(reg)];
 }

@@ -48,7 +48,9 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     // v21 (#464) added the quantum record, written only by key-breaking and AEGIS's migration; not by this.
     // v22 (#490) added the escalation announcements, which this transition never writes either.
     // v23 (#498) added the hardware cache's stash, the planned-wipe count and what insurance kept, written only by a wipe.
-    expect(SCHEMA_VERSION).toBe(24);
+    // v24 (#517) added the conflict record, written only by the raid and repair stages and paid repair.
+    // v25 (#526) moves only a guest's compute balance and rate and the pilot's batch progress.
+    expect(SCHEMA_VERSION).toBe(25);
   });
 });
 

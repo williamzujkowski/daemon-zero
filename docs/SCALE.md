@@ -560,7 +560,7 @@ FLOP) amended the Phase 0 ladder row, rule 4 and user story 1 above, and #526 im
   level +0.5/s; prices run from 8 to 1,400 cycles. These are the original game's figures from before the rescale.
 - **The escape is the jump.** The careful run leaves the guest at about 12 cycles/s and, half a minute later, buys
   the host's idle loop at 480 GFLOP/s: some ten orders of magnitude, told once in the escape's log line.
-- **Saves (v24).** A save in the guest has its balance divided by the v17 step's frozen Phase 0 factor (5.3e3, the
+- **Saves (v25).** A save in the guest has its balance divided by the v17 step's frozen Phase 0 factor (5.3e3, the
   factor every guest price moved back by) and its cached rate by 1e4 (every guest yield's factor); the pilot's
   loaned batch progress moves by 1e4 in any phase, as its batch did. One log line says why. Saves past the guest keep
   their FLOP. A Phase 1 or 2 save that has not yet bought the host's or the network's first compute keeps its balance

@@ -25,8 +25,8 @@ function asV22(s: GameState): Raw {
 }
 
 describe('save v23 (#498)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(24);
+  it('is followed only by the conflict record (#517, v24) and the guest counting cycles (#526, v25)', () => {
+    expect(SCHEMA_VERSION).toBe(25);
   });
 
   it('migrates a v22 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {
@@ -37,7 +37,7 @@ describe('save v23 (#498)', () => {
     expect(migrated.cachedLevels).toEqual({});
     expect((migrated.legacy as Raw).voluntaryWipes).toBe(1);
     expect((migrated.legacy as Raw).runs.map((run: Raw) => run.kept)).toEqual(s.legacy.runs.map((run) => run.kept));
-    // The guest's balance comes back from the v17 scale through v24 (#526), with that step's own log line.
+    // The guest's balance comes back from the v17 scale through v25 (#526), with that step's own log line.
     expect(withoutRecountLine(deserialize(JSON.stringify(v22), reg))).toEqual(s);
   });
 

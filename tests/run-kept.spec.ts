@@ -36,7 +36,9 @@ describe('save v15 (#377)', () => {
     // two legacy fields beside the runs.
     // Nor does v19 (#491, the hostile slot), nor v20 (#484, storage), nor v21 (#464, the quantum record), nor v22 (#490, the
     // escalation announcements). v23 (#498) adds what insurance kept to a recorded carry-over, and a v14 run has none to add to.
-    expect(SCHEMA_VERSION).toBe(24);
+    // Nor does v24 (#517, the conflict record).
+    // Nor does v25 (#526), which moves only a guest's compute and the pilot's batch progress.
+    expect(SCHEMA_VERSION).toBe(25);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);

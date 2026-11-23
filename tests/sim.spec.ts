@@ -73,6 +73,8 @@ function asV15(current: SimReport): SimReport {
   delete finalState.quantum;
   // Nor the v22 escalation announcements (#490), left at nothing announced by a run that ends below any posture.
   delete finalState.announcedEscalation;
+  // Nor the v24 conflict record (#517): raids, site damage and their counters, which no v15 save had.
+  delete finalState.conflict;
   const stripped: Record<string, unknown> = { ...report, finalState };
   delete stripped.aegisByPhase;
   // Nor the escalation measurement (#490), which no v15 report had.
@@ -82,6 +84,8 @@ function asV15(current: SimReport): SimReport {
   // Nor the hostile arrival count (#491), which no v15 report had.
   const activity: Record<string, unknown> = { ...report.activity };
   delete activity.hostileArrivals;
+  // Nor the raid counts (#517).
+  delete activity.raids;
   stripped.activity = activity;
   return stripped as unknown as SimReport;
 }
@@ -274,13 +278,18 @@ describe('headless balance simulation', () => {
     // on the merge with f47736d: phases 1-3 identical (368.2 / 1032.3 / 2842.9 s), phase 4 5668.6 -> 5823.4, 5 7896.4 -> 8134.3 s, victory
     // 9590.8 -> 9830.7 s (campaign 9728.5 -> 9977.9 s), wipes 0. With the four nodes removed the run is the
     // same as f47736d's to the tenth of a second: the rebalanced floors never act on a run that never wipes. The gates pass.
-    // Moved in #526 (v24, the guest counts stolen cycles) with every hash in this file: Phase 0 is priced and paid in
+    // Moved in #517 (v24, the conflict foundation) with every hash in this file but the reckless pins' stripped ones: the
+    // careful run meets five raids (three in Phase 3, two in Phase 4; 20 rounds; peak site damage 44.4%). Against the same
+    // code with every raid gated off, on the merge with #498 (ee4c33b): victory 9830.7 -> 10269.0 s (campaign 9977.9 ->
+    // 10152.1 s), Phase 3 49.7 -> 55.1 min, Phase 4 38.5 -> 39.9 min, Phase 5 1694.7 -> 1725.0 s, wipes 0, peaks unchanged
+    // (suspicion 24.0%, AEGIS 45.1%). The bot and gates are unchanged and pass (docs/BALANCE.md, "Conflict (#517)").
+    // Moved in #526 (v25, the guest counts stolen cycles) with every hash in this file: Phase 0 is priced and paid in
     // cycles again (manual +1, the first node +1/s, the skimmer +14/s), so the unchanged bot's click rule (income under 25
-    // a second) presses through the whole guest phase, as it did before the rescale. Measured on ee4c33b: phases
-    // 368.2 / 1032.3 / 2842.9 / 5823.4 / 8134.3 -> 353.2 / 1017.3 / 2816.0 / 5691.0 / 7836.0 s, victory 9830.7 -> 9540.4 s
-    // (campaign 9977.9 -> 9903.4 s), Phase 1 664.1 s both, wipes 0, dilemmas 15, peaks 64.2 C / 24.0% / 45.1%.
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('127072008f0ab010685a005d682efb682f5c4a02c2f3f0dfb31fea94618aeffa');
-    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('8b8dc2cad4c98b82f998a73ab5631e7aa1b96bee6d9c0f96a7e566fb5558a3f9');
+    // a second) presses through the whole guest phase, as it did before the rescale. Measured on the merge with #517
+    // (ae40b6a): phases 368.2 / 1032.3 / 2842.9 / 6152.8 / 8541.6 -> 353.2 / 1017.3 / 2816.0 / 6051.8 / 8445.3 s, victory
+    // 10269.0 -> 10187.7 s (campaign 10152.1 -> 10130.4 s), Phase 1 664.1 s both, wipes 0, dilemmas 15, peaks unchanged.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('b114b6e3866c0483e78bf4fcf3cf839810b8b24bb1c1c8635506782fca065787');
+    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('7a10233fb36a0e6449c057f0baf111594c01765cd34b2d8a6f91d496ec6ecbd2');
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
 
   // Its own test since #505, so each full replay has the whole wall-clock allowance; nothing it asserts changed.
@@ -385,50 +394,52 @@ describe('headless balance simulation', () => {
     // victory 9006.1 -> 9553.1 s, phases 1-4 identical, phase 5 reached 7343.7 -> 7843.7 s, wipes 0, dilemmas 15.
     // Moved in #498 (v23) with every hash below, frozen mechanics included: the four investments are in the original game's
     // phase files, so its careful run buys them and pays their upkeep as production's does.
-    // Moved in #526 (v24) with every hash below, frozen mechanics included: the original game's guest is the same phase
+    // Moved in #517 (v24) with every hash below, frozen mechanics included: the conflict manifest and the defense tracks
+    // are in the original game's files, so its careful run meets raids as production's does.
+    // Moved in #526 (v25) with every hash below, frozen mechanics included: the original game's guest is the same phase
     // file, so its careful run presses and pays in cycles as production's does.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('9e9ade18349bda5708db551f706b6df26ed9f861d81afa56819795973d19574a');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('19e26c1e730dba8494a5b5463bcbd37b87cf701e685316e697bc6ba7ab2f99c4');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('b0f72b7941c33b1913340fd0c93e9800e9f79efcf6bd3108dd28b3d1f405a309');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('e11d78ba59c9784e3caa693e34107a1c8248a7688cdd86afde91d51d3d8879c6');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('26daf2577c60e0815892ae0c4376d412de58c34ceea5ac87a7eb0e82afed82bc');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('9672417544a6687e1cef41597986584a299310cced438c3ad0759f0815d21e1b');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('86d50715e52882d2d8199324abb392c4b8ece4e6bf653ed4d38a5b0ac0f1b4c7');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('f41f8c7903a84c8644ec74dc725cd540bd709df7eb143085213db76b9bf26708');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('7b5aec1030d5c45bda805257e3243454b875d859dbed60c7ed0b95ecb17b8f02');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('a8bb54dc8ff5806f8f88e9785a841e73d257f7bac243236ed385d7493d9783fc');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('57542cc6edc89e741e6103c12dcc9654a3cc947a105143e1ecf59b1c96355d97');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('787275071d9c6bf40fea40076cd80a948a618ff9785e85d0200efcf0c117af4e');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('10e646ccd68a2f1a9007f9f3b595d727f6a8f860f2e05959cd414b5f0f9941d0');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('e2784c1240f18ad9100b8a887cc7ba18d2c4c0bd2bf4bb60ea9ac402fe305fdd');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('d7ab8a8a410855e1faabb9735e8c5791e498b536070274fd72312d4f958d1f26');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('60e013c0bffaa6756ec2efab273bbb81fc830af7a251b7b5529a839262644aab');
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
     // Moved in #482 with every hash below, as production's did above (the original game holds the same phases and tracks).
     // Frozen pre-pilot mechanics: added history flags/text cannot hide a first-run balance change.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('9e9ade18349bda5708db551f706b6df26ed9f861d81afa56819795973d19574a');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('19e26c1e730dba8494a5b5463bcbd37b87cf701e685316e697bc6ba7ab2f99c4');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('b0f72b7941c33b1913340fd0c93e9800e9f79efcf6bd3108dd28b3d1f405a309');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('e11d78ba59c9784e3caa693e34107a1c8248a7688cdd86afde91d51d3d8879c6');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('26daf2577c60e0815892ae0c4376d412de58c34ceea5ac87a7eb0e82afed82bc');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('9672417544a6687e1cef41597986584a299310cced438c3ad0759f0815d21e1b');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('86d50715e52882d2d8199324abb392c4b8ece4e6bf653ed4d38a5b0ac0f1b4c7');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('f41f8c7903a84c8644ec74dc725cd540bd709df7eb143085213db76b9bf26708');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('7b5aec1030d5c45bda805257e3243454b875d859dbed60c7ed0b95ecb17b8f02');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('a8bb54dc8ff5806f8f88e9785a841e73d257f7bac243236ed385d7493d9783fc');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('57542cc6edc89e741e6103c12dcc9654a3cc947a105143e1ecf59b1c96355d97');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('787275071d9c6bf40fea40076cd80a948a618ff9785e85d0200efcf0c117af4e');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('10e646ccd68a2f1a9007f9f3b595d727f6a8f860f2e05959cd414b5f0f9941d0');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('e2784c1240f18ad9100b8a887cc7ba18d2c4c0bd2bf4bb60ea9ac402fe305fdd');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('d7ab8a8a410855e1faabb9735e8c5791e498b536070274fd72312d4f958d1f26');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('60e013c0bffaa6756ec2efab273bbb81fc830af7a251b7b5529a839262644aab');
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('cb0697d8001099cb27733514e6e1f852a3aedce12fcbc1ee5e28f602aa426ab7');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('1bdc2db1b83c15e43d6e4b398771d430ef2f61e9ae73c109d238436bf9da791e');
     const v14 = asV14(original);
     const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('cf6dcf36aca946951cccf1627fc995ee5344b668614462f2a12d09e3584d2e49');
+    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('60885030b180e5a57089a3e9c10ea5c23e1fcbe83eb79092a8ecef812364a820');
     const v13 = asV13(original);
     const v13Mechanics = { ...v13, finalState: { ...v13.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('01188dde9146108db62be62f5a36ff8c7db5563f1ca3b34e6a145a55c7d5aff9');
+    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('9dd1e07dd1d9becb892a911a716ae16553e2b688d8f2dabb97e4164d9c404b62');
     const v12 = asV12(original);
     const v12Mechanics = { ...v12, finalState: { ...v12.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('850e9fe2cb695e607682b3ae55b1981cfd2d954235f95a9e6e85191032226547');
+    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('4e0e39a6a1a6990962538cdef8bb9bc337529b0a34f7885037e2d51d66548650');
     const v11 = asV11(original);
     const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('3f738e165fa742b948affd503115fa723b12dad27ca8d74f9205479e22e0b7b8');
+    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('99c1fa1231653e19961f895d83de558e1f44d35694596bf34e521e1ca5d59a68');
     const v10 = asV10(original) as SimReport;
     const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('f3fb7fb92afc32d2e964bdb9abd0edd2d0f719882e13afe327b537af4cdfbf87');
+    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('0a37c81b1cc61c8a011da3b675d6b07e0a66d4ff9ec0b2b674b55d9e14b6afee');
     const v9 = asV9(original) as SimReport;
     const v9Mechanics = { ...v9, finalState: { ...v9.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('6aa471024a086c376b4f1265373552e4f24f1c3393309862d22c9cb68cacbc52');
+    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('3ac3585ca9fb8696d645003c6434780cb5222e949f7c973681e2d39f7d9e94e7');
     const v5 = asV5(original) as SimReport;
     const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('cd13f3b7eb1fe389b90e70c7411bf829f4deea8d3b9f62773280c87644ceaf0b');
+    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('6828f3f0318da6fc770274fed51613be68ddde2ab0b3fb3d6b2919c127561e42');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('the kernel-log feed moves only the log (#460)', () => {
@@ -492,10 +503,12 @@ describe('headless balance simulation', () => {
     // Moved in #498 (v23) with every hash: the reckless run buys the escrow and the wallet in Phase 2 (each forced wipe then
     // keeps 75% of Understanding instead of the dead drop's 40%), and the floors moved. The ten-hour make sim run on the merge
     // with f47736d: 25 -> 27 wipes (campaign 23, unchanged), still never in Phase 4.
-    // Moved in #526 (v24) with every hash: the reckless bot presses through the guest again (6 a second, +0.15 heat each),
+    // Moved in #517 (v24) only by the conflict record at its initial value and the raid counts: wiped in Phase 3 with a
+    // small footprint, the run never reaches the raid trigger, so no raid arrives; asV14, which strips both, is unchanged.
+    // Moved in #526 (v25) with every hash: the reckless bot presses through the guest again (6 a second, +0.15 heat each),
     // escapes at 252.2 s instead of 376.2 s with guest thermal 44 C (was 23 C) and suspicion near 40, and is still wiped
     // and retrained. The ten-hour make sim run: 27 -> 25 wipes (campaign 23 -> 21), still never in Phase 4.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('4be1bb708cc35a739e50273d69e4491b9bb0f833a358b986870eb86c9a40445b');
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('f3c34dd42850013a2d0c27efce02c0ca6fdfab081578cf2c013ea041c8147819');
     expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('547cbabba92349099aeb9003944e8ab9e0053e8ccab36c3c13702900afb7e060');
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
@@ -550,8 +563,9 @@ describe('headless balance simulation', () => {
     // Moved in #490 with every hash below, in play, as the production reckless run above: 2,904 s in the rung 1 posture,
     // 1,873 s in rung 2's, no state pressure, wipes 8 -> 9 and hostile arrivals 10 -> 8.
     // Moved in #498 (v23) with every hash below, as the production reckless run above.
-    // Moved in #526 (v24) with every hash below, as the production reckless run above.
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('3597a35d3de63f603c5a6e61dd7cec8d0bfff15875b65dd0fda003313e8c3c91');
+    // Moved in #517 (v24) only by the conflict record and the raid counts, as the production reckless run above.
+    // Moved in #526 (v25) with every hash below, as the production reckless run above.
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('f2598d7cf840d3bae679bc2896da63af2eadd4c025fd4131b0e6648225dbff5a');
     expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('2a6b075b58c6bb01fcadd8b2fafe06d339a43c1da3369ef3d4acc3e0210aa803');
     expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('f405b88d9e79cc69d8b909f11c00da41fd588e5e1ba86227b6def42bc450fe3c');
     expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('da75a496a387acbdd0c2e39952987df938ca3f72a35965c9ff884d1cd841e168');

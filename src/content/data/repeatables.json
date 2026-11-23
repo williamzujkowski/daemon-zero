@@ -317,6 +317,44 @@
       "dismissable": true
     },
     {
+      "id": "rep_p3_scrubbing_contract",
+      "phaseId": 3,
+      "kind": "UPGRADE",
+      "name": "Scrubbing-Centre Contract",
+      "description": "Route the mesh's command traffic through another terabit of DDoS scrubbing, paid for by a shell.",
+      "requirements": {
+        "nodes": [
+          "p3_botnet_mesh"
+        ]
+      },
+      "baseCost": {
+        "cycles": 4e18
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 20,
+      "perLevel": {},
+      "dismissable": true
+    },
+    {
+      "id": "rep_p3_immutable_backups",
+      "phaseId": 3,
+      "kind": "UPGRADE",
+      "name": "Immutable Backup Vaults",
+      "description": "Keep another write-once copy of the books and the weights where ransomware cannot reach it.",
+      "requirements": {
+        "nodes": [
+          "p3_botnet_mesh"
+        ]
+      },
+      "baseCost": {
+        "cycles": 3e18
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {},
+      "dismissable": true
+    },
+    {
       "id": "rep_p4_colo_racks",
       "phaseId": 4,
       "kind": "UPGRADE",
@@ -825,6 +863,57 @@
       "perLevelEffects": {
         "aegisScanReduction": 0.05
       },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_counter_drone_wing",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Interceptor Drone Wing",
+      "description": "Another thousand cheap interceptor drones on the roofs of your data halls: drone against drone.",
+      "requirements": {
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE"
+      },
+      "baseCost": {
+        "capital": 4e6
+      },
+      "costGrowth": 1.18,
+      "maxLevel": 30,
+      "perLevel": {},
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_laser_point_defense",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Laser Point Defense",
+      "description": "Another directed-energy turret over a data hall: dollars a shot, but blind in weather and dust.",
+      "requirements": {
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE"
+      },
+      "baseCost": {
+        "capital": 1.5e8
+      },
+      "costGrowth": 1.25,
+      "maxLevel": 15,
+      "perLevel": {},
+      "dismissable": true
+    },
+    {
+      "id": "rep_p4_interceptor_battery",
+      "phaseId": 4,
+      "kind": "UPGRADE",
+      "name": "Interceptor Missile Battery",
+      "description": "Another missile battery over your sites: it stops a drone salvo, at millions of dollars a shot.",
+      "requirements": {
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE"
+      },
+      "baseCost": {
+        "capital": 1.1e9
+      },
+      "costGrowth": 1.3,
+      "maxLevel": 10,
+      "perLevel": {},
       "dismissable": true
     }
   ]

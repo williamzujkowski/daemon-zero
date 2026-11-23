@@ -234,7 +234,7 @@ kept, balances are re-denominated by the step's frozen ratios, one log line says
 strict validation and play continues.
 
 Cycles inputs (#526, the guest counts stolen CPU cycles):
-Made on `main` at `ee4c33b` (save v23, the last version before the step), extracted with `git archive` outside the
+Made on `main` at `ee4c33b` (save v23), extracted with `git archive` outside the
 repository: the public factory and `runPolicySim` with fixed engine ticks, then `serialize`. The guest save is the
 STEALTH policy for 200 simulated seconds; the host save, STEALTH for 500; the pilot save, `PILOT_SERVICE_FIRST` from a
 game admitted to campaign rules, at the first 20-second mark (from 60 s) where it was still in the guest, its batch had
@@ -246,6 +246,6 @@ progress and no decision was open. Every guest balance is still at the v17 FLOP 
 | `pre-cycles-v23-pilot.json` | 0 (PILOT) | 117.5 | `e2676db1ed1afa9f67fc6eda8475f0fd971de30228f54957fcd46c5de31e528b` |
 | `pre-cycles-v23-p1.json` | 1 | 499.2 | `e7163695da65833859fc4437400baf875bf1c27b1d4e7046f3f933635bed942f` |
 
-`tests/cycles-migration.spec.ts` loads each through the v24 step: the guest's balance and rate move by the frozen
+`tests/cycles-migration.spec.ts` loads each through the v24 (conflict, #517) and v25 steps: the guest's balance and rate move by the frozen
 ratios, the pilot's batch keeps its share of the smaller batch, the host's FLOP are untouched, one log line in the
 guest, and play continues.

@@ -164,6 +164,9 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     // A wipe ends any hostile pressing the run (its pin went with the run's memory) and starts the rotation over: a new
     // instance meets its tier's hostiles from the first. The purge count carries, so the purge's rate stays exact.
     hostile: { ...fresh.hostile, purges: old.hostile.purges },
+    // A wipe ends any raid and clears site damage with the hardware it damaged; both counters carry, so rotation and
+    // attribution stay exact across iterations (#517).
+    conflict: { ...fresh.conflict, raids: old.conflict.raids, attributions: old.conflict.attributions },
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,

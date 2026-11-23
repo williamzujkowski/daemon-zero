@@ -1,5 +1,5 @@
 /**
- * The v24 save step: the guest counts stolen CPU cycles (#526, vote-1795450842605-mm2yn39). A save still in the guest
+ * The v25 save step: the guest counts stolen CPU cycles (#526, vote-1795450842605-mm2yn39). A save still in the guest
  * has its compute balance and its cached compute rate moved by frozen ratios into cycles, the pilot's loaned batch
  * progress moves in every phase, and one log line says why. It runs before strict validation, so it touches only finite
  * numbers of the expected type. Self-contained, so it can be renumbered past another step without change.
@@ -37,7 +37,7 @@ function withLog(save: RawSave): RawSave {
   return { ...save, logSeq: logSeq + 1, logs: [entry, ...(logs as unknown[])] };
 }
 
-/** The v23 to v24 step. */
+/** The v24 to v25 step. */
 export function recountGuestCycles(save: RawSave): RawSave {
   const recounted = Object.hasOwn(save, 'access') ? { ...save, access: recountAccess(save.access) } : save;
   if (save.currentPhase !== GUEST_PHASE) return recounted;

@@ -3,7 +3,7 @@
  * pre-rescale saves from every phase (tests/fixtures/README.md, "Pre-rescale inputs"). Ownership, levels and history
  * are kept, the balances move into physical units in proportion, one log line says so, the result passes strict
  * validation with its rates derived again, malformed input is refused, and play continues. A guest save then passes the
- * v24 step (#526): the guest counts stolen cycles, so its compute comes back to the figure it held, with that step's line.
+ * v25 step (#526): the guest counts stolen cycles, so its compute comes back to the figure it held, with that step's line.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -60,7 +60,7 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
   });
 
   it('re-denominates its balances in proportion, never shrinking one', () => {
-    // The guest's compute goes to FLOP at v17 and back to counted cycles at v24, by the same frozen factor.
+    // The guest's compute goes to FLOP at v17 and back to counted cycles at v25, by the same frozen factor.
     if (phase === 0) expect(loaded.cycles).toBeCloseTo(raw.cycles, 9);
     else expect(loaded.cycles).toBeGreaterThanOrEqual(raw.cycles);
     expect(loaded.capital).toBeGreaterThanOrEqual(raw.capital);

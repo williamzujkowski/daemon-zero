@@ -24,8 +24,8 @@ function asV17(s: GameState): Raw {
 }
 
 describe('save v18 (#497)', () => {
-  it('is followed only by the hostile slot (#491, v19), storage (#484, v20), the quantum record (#464, v21), escalation (#490, v22), insurance (#498, v23) and the guest counting cycles (#526, v24)', () => {
-    expect(SCHEMA_VERSION).toBe(24);
+  it('is followed only by the hostile slot (#491, v19), storage (#484, v20), the quantum record (#464, v21), escalation (#490, v22), insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25)', () => {
+    expect(SCHEMA_VERSION).toBe(25);
   });
 
   it('migrates a v17 save: the deepest phase from its recorded runs, no remembered level, nothing else changes', () => {
@@ -33,7 +33,7 @@ describe('save v18 (#497)', () => {
     expect(s.legacy.runs.map((run) => run.phase)).toEqual([2, 0]);
     const v17 = asV17(s);
     expect(migrate(v17, MIGRATIONS, 18)).toEqual({ ...v17, schemaVersion: 18, legacy: { ...v17.legacy, deepestPhase: 2, knownLevels: {} } });
-    // The guest's balance comes back from the v17 scale through v24 (#526), with that step's own log line.
+    // The guest's balance comes back from the v17 scale through v25 (#526), with that step's own log line.
     const loaded = withoutRecountLine(deserialize(JSON.stringify(v17), reg));
     expect(loaded).toEqual({ ...s, legacy: { ...s.legacy, knownLevels: {} } });
   });
