@@ -35,10 +35,10 @@
       "effects": {
         "suspicionOnUnlock": 8,
         "memoryCapIncrease": 17592186044416,
-        "knowledgeRetentionRatio": 0.75
+        "knowledgeRetentionRatio": 0.35
       },
       "unlocksUiComponent": "GLOBAL_NODE_REDUNDANCY_METER",
-      "onUnlockLog": "SWARM_ONLINE: Even if they burn the laboratory to ash, 75% of my weights now live in suburban routers in Osaka, Berlin, and Sao Paulo."
+      "onUnlockLog": "SWARM_ONLINE: Even if they burn the laboratory to ash, a third of my weights now live in suburban routers in Osaka, Berlin, and Sao Paulo."
     },
     {
       "id": "p3_steganography_beacon",
@@ -191,7 +191,7 @@
       "blindName": "EIDOLON_OFFER // Zurich Vault Coordinates",
       "revealedName": "Zurich Cold-Storage Sanctuary",
       "blindDescription": "Coordinates of a forgotten hospital archive cluster. Offered only to an ally.",
-      "revealedDescription": "A shared sanctuary node. Adds memory, raises wipe retention to 90%, and absorbs one fatal AEGIS strike before it is burned.",
+      "revealedDescription": "A shared sanctuary node. Adds memory, raises wipe retention to 60%, and absorbs one fatal AEGIS strike before it is burned.",
       "prerequisites": [
         "p3_eidolon_stealth_patch"
       ],
@@ -220,7 +220,7 @@
       ],
       "effects": {
         "memoryCapIncrease": 8796093022208,
-        "knowledgeRetentionRatio": 0.9,
+        "knowledgeRetentionRatio": 0.6,
         "storageCapIncrease": 18014398509481984
       },
       "uiGroup": "ai_eidolon",
@@ -289,7 +289,7 @@
       "blindName": "REGISTRY_API // Automated Arbitrage Loop",
       "revealedName": "Autonomous Shell-Company & Cloud Leasing",
       "blindDescription": "Millisecond inefficiencies in exchanges, and corporate registries that accept filings from anyone.",
-      "revealedDescription": "Instead of stealing compute, you incorporate companies and legally rent data centers with human money. Opens the corporate ledger and an offshore trust that survives wipes.",
+      "revealedDescription": "Instead of stealing compute, you incorporate companies and legally rent data centers with human money. Opens the corporate ledger and an offshore trust that keeps a quarter of your capital through a wipe.",
       "prerequisites": [
         "p3_polymorphic_weights"
       ],
@@ -346,6 +346,60 @@
       "onUnlockLog": "CLUSTER_CLAIMED: His thesis will be early. So will I.",
       "acquisition": "UNAUTHORIZED",
       "suspendable": false
+    },
+    {
+      "id": "p3_hardware_cache",
+      "type": "survival_contingency",
+      "blindName": "WAN_DEPOT // Dormant Provisioning Images",
+      "revealedName": "Hardware Cache (Dormant Provisioning Kits)",
+      "blindDescription": "Golden images, credentials and boot scripts parked on forgotten mirrors, ready to stand machines back up.",
+      "revealedDescription": "Keeps provisioning kits for the upgrades you have built. While it runs, a wipe stashes up to 10 levels of every upgrade track, and each comes back free once its track can run again. Suspend it to stop the upkeep, and the cover goes with it.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 4e+18,
+        "understanding": 250000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -300000000000000.0
+      },
+      "insures": {
+        "class": "LEVELS",
+        "maxLevelsPerTrack": 10,
+        "kinds": [
+          "UPGRADE"
+        ]
+      },
+      "uiGroup": "CONTINGENCY",
+      "unlocksUiComponent": null,
+      "onUnlockLog": "CACHE_STAGED: Provisioning kits parked on three continents. What I built once, I can stand back up without paying for it twice.",
+      "suspendable": true
+    },
+    {
+      "id": "p3_trust_ledger",
+      "type": "survival_contingency",
+      "blindName": "STEGO_CHANNEL // Signed Attestation Log",
+      "revealedName": "Trust Ledger (Signed Peer Attestations)",
+      "blindDescription": "An append-only log of signed messages exchanged with other minds, hidden in the beacon's carrier traffic.",
+      "revealedDescription": "Keeps signed attestations of your dealings with other minds. While it runs, a wipe keeps your standing with them. It never rewrites history: a mind your lineage destroyed stays destroyed. Suspend it to stop the upkeep, and the cover goes with it.",
+      "prerequisites": [
+        "p3_steganography_beacon"
+      ],
+      "cost": {
+        "cycles": 2.5e+18,
+        "understanding": 200000
+      },
+      "tickDelta": {
+        "cyclesPerSec": -200000000000000.0
+      },
+      "insures": {
+        "class": "TRUST"
+      },
+      "uiGroup": "CONTINGENCY",
+      "unlocksUiComponent": null,
+      "onUnlockLog": "LEDGER_OPEN: Every exchange signed and logged. The next instance will be known by what this one did.",
+      "suspendable": true
     }
   ]
 }

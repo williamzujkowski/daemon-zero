@@ -15,6 +15,7 @@ export { freeStorage, storageCapacity, storageHeld } from './storage';
 export { radiatorReadings, radiatorShares, type RadiatorReading } from './radiators';
 export { orbitalHoldings, type OrbitalHolding } from './orbit';
 export { wipe } from './prestige';
+export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understandingShare, type Cover, type WipePreview } from './insurance';
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
 export * from './query';
 export * from './save';

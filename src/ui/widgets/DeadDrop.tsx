@@ -1,44 +1,49 @@
 import { Pressable, Text } from '../PhaseTheme';
-/** Saves a bounded breadcrumb, pins one disclosed clue and confirms the engine's exact wipe retention. */
+/**
+ * Saves a bounded breadcrumb, pins one disclosed clue, lists contingency insurance (#498) and confirms the engine's
+ * exact wipe retention: the confirmation reads previewWipe, the same computation the wipe performs.
+ */
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { CONTENT } from '../../content';
-import { previewWipe, setDeadDropMessage, voluntaryWipe, compactAmount, quantityReadout } from '../../engine';
+import { previewWipe, setDeadDropMessage, understandingShare, voluntaryWipe } from '../../engine';
 import { gameRuntime } from '../../app/session';
 import ConfirmDialog from '../ConfirmDialog';
 import CluePin from './CluePin';
+import Insurance from './Insurance';
+import { sharePercent } from '../carryText';
+import { wipeConfirmDetail } from '../insuranceText';
 import { useGame } from '../state';
 import { palette, theme } from '../theme';
+
+const BONUS = CONTENT.balance.voluntaryWipeBonus;
 
 function WipeButton() {
   const [confirming, confirm] = useState(false);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
-  const preview = useGame((game) => {
-    const kept = previewWipe(game, CONTENT);
-    // Fifteen raw digits read as a wall (#380); K/M/B as everywhere else.
-    return compactAmount(kept.understanding) + ' understanding; ' + quantityReadout('money', kept.capital) + ' capital. Breadcrumb: ' + (kept.breadcrumb ?? 'None');
-  });
+  const detail = useGame((game) => wipeConfirmDetail(previewWipe(game, CONTENT, 'VOLUNTARY'), BONUS.understandingShare, BONUS.capitalShare));
   return <>
     <Pressable testID="wipe-button" accessibilityRole="button" accessibilityLabel="Voluntary wipe" disabled={blocked}
       style={[theme.button, blocked && theme.disabled]} onPress={() => { confirm(true); }}>
       <Text style={[theme.text, theme.danger]}>[ VOLUNTARY WIPE ]</Text>
     </Pressable>
     {confirming && <ConfirmDialog id="wipe" title="Voluntary wipe" irreversible cancel={() => { confirm(false); }}
-      detail={'Lose all hardware, upgrades, compute and current traits. Keep legacy history and these recoverable resources: ' + preview}
+      detail={detail}
       confirm={() => { gameRuntime.dispatch((game) => voluntaryWipe(game, CONTENT)); confirm(false); }} />}
   </>;
 }
 
 export default function DeadDrop() {
   const saved = useGame((game) => game.deadDropMessage);
-  const retention = useGame((game) => Math.round(game.retentionRatio * 100));
+  const forced = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'SUSPICION')));
+  const planned = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'VOLUNTARY')));
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const iteration = useGame((game) => game.iteration);
   const [draft, setDraft] = useState<string | null>(null);
   const value = draft ?? saved;
   const limit = CONTENT.balance.deadDropMaxChars;
   return <>
-    <Text style={theme.text}>Understanding retention: {retention}%</Text>
+    <Text testID="deaddrop-retention" style={theme.text}>Understanding a wipe keeps: {forced} if forced, {planned} if planned</Text>
     <TextInput testID="deaddrop-input" accessibilityLabel="Breadcrumb for next iteration" multiline editable={!blocked}
       value={value} onChangeText={(text) => { setDraft(Array.from(text).slice(0, limit).join('')); }}
       style={[theme.text, { borderWidth: 1, borderColor: palette.border, padding: 12, minHeight: 88 }]} />
@@ -51,6 +56,7 @@ export default function DeadDrop() {
     <Text testID="deaddrop-saved" style={theme.muted}>Stored: {saved || 'Empty'}</Text>
     {/* A reboot is an ordinary dispatch, not a remount (#411 panel), so the key starts each iteration's list folded. */}
     <CluePin key={iteration} />
+    <Insurance />
     <WipeButton />
   </>;
 }

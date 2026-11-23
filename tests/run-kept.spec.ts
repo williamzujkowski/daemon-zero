@@ -12,12 +12,12 @@ import { fresh } from './helpers';
 describe('a wipe records what it carried (#377)', () => {
   it('records the Understanding and capital the next iteration boots with, and the share the run could keep', () => {
     const before: GameState = { ...fresh(), understanding: 12_345, capital: 900, retentionRatio: 0.4 };
-    const preview = previewWipe(before, CONTENT);
-    const next = wipe(before, CONTENT, 'test', 'VOLUNTARY');
+    const preview = previewWipe(before, CONTENT, 'SUSPICION');
+    const next = wipe(before, CONTENT, 'test', 'SUSPICION');
     const kept = next.legacy.runs.at(-1)?.kept;
-    expect(kept).toEqual({ understanding: Math.floor(12_345 * 0.4), capital: 0, retentionRatio: 0.4 });
+    expect(kept).toEqual({ understanding: Math.floor(12_345 * 0.4), capital: 0, retentionRatio: 0.4, levels: 0, trust: false });
     // The record, the boot and the confirmation's preview are one computation.
-    expect(kept).toEqual({ understanding: preview.understanding, capital: preview.capital, retentionRatio: 0.4 });
+    expect(kept).toEqual({ understanding: preview.understanding, capital: preview.capital, retentionRatio: preview.understandingShare, levels: 0, trust: false });
     expect([next.understanding, next.capital]).toEqual([preview.understanding, preview.capital]);
   });
 
@@ -34,8 +34,9 @@ describe('save v15 (#377)', () => {
   it('migrates a genuine v14 save: every recorded run is unknown, nothing else changes', () => {
     // v17 (#461) re-denominates balances on the way; it never touches a recorded run. Nor does v18 (#497), which adds
     // two legacy fields beside the runs.
-    // Nor does v19 (#491, the hostile slot), nor v20 (#484, storage), nor v21 (#464, the quantum record), nor v22 (#490, the escalation announcements).
-    expect(SCHEMA_VERSION).toBe(22);
+    // Nor does v19 (#491, the hostile slot), nor v20 (#484, storage), nor v21 (#464, the quantum record), nor v22 (#490, the
+    // escalation announcements). v23 (#498) adds what insurance kept to a recorded carry-over, and a v14 run has none to add to.
+    expect(SCHEMA_VERSION).toBe(23);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);
@@ -49,9 +50,12 @@ describe('save v15 (#377)', () => {
   it('refuses a carry-over the schema cannot hold', () => {
     const next = wipe({ ...fresh(), understanding: 100 }, CONTENT, 'test', 'VOLUNTARY');
     const forged = (kept: unknown) => serialize(next).replace(/"kept":\{[^}]*\}/, '"kept":' + JSON.stringify(kept));
-    expect(forged({ understanding: 10, capital: 0, retentionRatio: 0.1 })).toContain('"kept":{');
-    expect(() => deserialize(forged({ understanding: 10, capital: 0, retentionRatio: 1.5 }), CONTENT)).toThrow(/validation/);
-    expect(() => deserialize(forged({ understanding: -1, capital: 0, retentionRatio: 0.1 }), CONTENT)).toThrow(/validation/);
-    expect(() => deserialize(forged({ understanding: 10, capital: 0 }), CONTENT)).toThrow(/validation/);
+    const valid = { understanding: 10, capital: 0, retentionRatio: 0.1, levels: 0, trust: false };
+    expect(forged(valid)).toContain('"kept":{');
+    expect(() => deserialize(forged(valid), CONTENT)).not.toThrow();
+    expect(() => deserialize(forged({ ...valid, retentionRatio: 1.5 }), CONTENT)).toThrow(/validation/);
+    expect(() => deserialize(forged({ ...valid, understanding: -1 }), CONTENT)).toThrow(/validation/);
+    expect(() => deserialize(forged({ ...valid, levels: 1.5 }), CONTENT)).toThrow(/validation/);
+    expect(() => deserialize(forged({ understanding: 10, capital: 0, retentionRatio: 0.1 }), CONTENT)).toThrow(/validation/);
   });
 });

@@ -4,7 +4,7 @@
  * so costs and rewards cannot drift apart or drive a resource negative.
  */
 import type { ContentRegistry } from '../content/registry';
-import type { Cost, EffectPayload, Trait } from '../content/schema';
+import type { Cost, EffectPayload, Repeatable, Trait } from '../content/schema';
 import { recordTraitEvidence, type EvidenceSource } from './campaign';
 import { isPeerLost } from './campaignQuery';
 import { resolveShardAnomaly } from './swarmEffects';
@@ -71,4 +71,15 @@ export function applyEffects(d: GameState, fx: EffectPayload, reg: ContentRegist
     recordTraitEvidence(d, fx.grantsTrait, evidence);
     reportDrift(d, fx.grantsTrait, reg);
   }
+}
+
+/**
+ * Reinstalls a cached level on a draft (#498): the track is set to `level` and gains the per-level effects a purchase
+ * would have applied, at no price, because the run that built it paid.
+ */
+export function reinstallLevels(d: GameState, rep: Repeatable, level: number): void {
+  const from = d.levels[rep.id] ?? 0;
+  if (level <= from) return;
+  d.levels = { ...d.levels, [rep.id]: level };
+  d.memoryCap += rep.perLevelEffects.memoryCapIncrease * (level - from);
 }
