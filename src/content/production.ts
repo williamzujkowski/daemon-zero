@@ -13,6 +13,7 @@ import swarmNarrative from './narrative/m7.json';
 import balance from './data/balance.json';
 import campaign from './data/campaign.json';
 import conditioning from './data/conditioning.json';
+import conflict from './data/conflict.json';
 import contextCopy from './data/context-copy.json';
 import earnedAccess from './data/earned-access.json';
 import dilemmas from './data/dilemmas.json';
@@ -59,7 +60,8 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   contextCopy,
   routeCopy,
   achievements,
-  world,
+  // The conflict foundation (#517) is its own file, read as part of the world it contends with.
+  world: { ...world, conflict },
 };
 
 /** The Earned Access route, folded in from the preview overlay at release (#233). */

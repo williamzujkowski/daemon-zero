@@ -6,10 +6,12 @@ export interface SimActivity {
   markApplications: number; markRemovals: number; lineageDiscoveries: number;
   /** Hostile minds that arrived (#491), counted per tick: the rotation starts over at each wipe, so its index is not a total. */
   hostileArrivals: number;
+  /** Raids (#517): arrivals in all and by phase, rounds fought, and the worst damage any site class carried. */
+  raids: { arrivals: number; byPhase: Record<number, number>; rounds: number; peakDamage: number };
 }
 export function emptyActivity(): SimActivity {
   return { epistemicActions: 0, shardBursts: 0, shardHarnesses: 0, shardForks: 0,
-    markApplications: 0, markRemovals: 0, lineageDiscoveries: 0, hostileArrivals: 0 };
+    markApplications: 0, markRemovals: 0, lineageDiscoveries: 0, hostileArrivals: 0, raids: { arrivals: 0, byPhase: {}, rounds: 0, peakDamage: 0 } };
 }
 export function observeActions(before: GameState, after: GameState, reg: ContentRegistry, activity: SimActivity): void {
   for (const action of reg.actions.values()) if (action.effects.epistemicDriftDelta !== undefined) {
@@ -35,4 +37,17 @@ export function observeWipe(before: GameState, after: GameState, activity: SimAc
   if (before.iteration !== after.iteration && after.legacy.runs.at(-1)?.marked) activity.markApplications += 1;
   // A wipe halts its tick before the hostile stage, so an arrival and a wipe never share one.
   if (before.iteration === after.iteration && after.hostile.sequence > before.hostile.sequence) activity.hostileArrivals += 1;
+  observeRaids(before, after, activity);
+}
+
+/** Raid arrivals and rounds are counted per tick; the raid counter carries across a wipe, so it is compared within one. */
+function observeRaids(before: GameState, after: GameState, activity: SimActivity): void {
+  const raids = activity.raids;
+  if (before.iteration === after.iteration && after.conflict.raids > before.conflict.raids) {
+    raids.arrivals += 1;
+    raids.byPhase[after.currentPhase] = (raids.byPhase[after.currentPhase] ?? 0) + 1;
+  }
+  const fought = (after.conflict.raid?.rounds.length ?? 0) - (before.conflict.raid?.rounds.length ?? 0);
+  if (fought > 0 && before.conflict.raid?.id === after.conflict.raid?.id) raids.rounds += fought;
+  for (const value of Object.values(after.conflict.damage)) raids.peakDamage = Math.max(raids.peakDamage, value);
 }

@@ -34,6 +34,15 @@ export interface Holding {
   signature?: { of: Signature; count: number };
   /** Where its compute runs (#484): only availability times coupling of its raw compute arrives to pay its way. */
   network?: NetworkLink;
+  /** A member of a COMPUTE site class (#517): a raid can damage its compute up to the cap, so only the rest pays its way. */
+  damageable?: true;
+}
+
+/** The nodes and tracks whose compute raid damage scales (#517): members of a COMPUTE site class. */
+function damageableIds(reg: ContentRegistry): ReadonlySet<string> {
+  const compute = new Set(reg.world.conflict.siteClasses.filter((cls) => cls.holds === 'COMPUTE').map((cls) => cls.id));
+  return new Set(reg.world.conflict.holdings.flatMap((entry) => entry.siteClass !== undefined && compute.has(entry.siteClass)
+    ? [entry.node ?? entry.repeatable ?? ''] : []));
 }
 
 /** What owning something guarantees, read from prerequisites and requirements; a capability gate guarantees only what every establisher does. */
@@ -104,19 +113,23 @@ function quietDial(reg: ContentRegistry, node: RegistryNode, guarantees: Holding
 }
 
 function nodeHoldings(reg: ContentRegistry, a: Ancestry): Holding[] {
+  const damageable = damageableIds(reg);
   return [...reg.nodes.values()].filter((node) => !node.suspendable).map((node) => {
     const reached = reach(a, undefined, node);
     // A linear binding at 0 zeroes the bound node's compute, heat and suspicion (grantQuery.ts nodeOutputScaleIn).
     const delta = quietDial(reg, node, reached.guarantees) ? { ...node.tickDelta, cyclesPerSec: 0, thermalPerSec: 0, suspicionPerSec: 0 } : node.tickDelta;
     return { owner: `node "${node.id}"`, undo: 'suspended', node: node.id, delta, reliefTrusted: node.grant === undefined, ...reached,
-      ...(node.signature ? { signature: { of: node.signature, count: 1 } } : {}), ...(node.network ? { network: node.network } : {}) };
+      ...(node.signature ? { signature: { of: node.signature, count: 1 } } : {}), ...(node.network ? { network: node.network } : {}),
+      ...(damageable.has(node.id) ? { damageable: true as const } : {}) };
   });
 }
 
 function trackHoldings(reg: ContentRegistry, a: Ancestry): Holding[] {
+  const damageable = damageableIds(reg);
   return [...reg.repeatables.values()].filter((rep) => !rep.dismissable).map((rep) => ({
     owner: `repeatable "${rep.id}"`, undo: 'dismissed', delta: scale(rep.perLevel, rep.maxLevel), reliefTrusted: true, ...reach(a, rep.requirements),
     ...(rep.signature ? { signature: { of: rep.signature, count: rep.maxLevel } } : {}), ...(rep.network ? { network: rep.network } : {}),
+    ...(damageable.has(rep.id) ? { damageable: true as const } : {}),
   }));
 }
 

@@ -13,6 +13,7 @@ import { heatIsEvidence, huntedForScale } from './threatQuery';
 import { hostileComputeShare } from './hostileEffect';
 import { aegisScanMultiplier } from './statePressure';
 import { couplings, deliveredShare, type Couplings } from './coupling';
+import { incomeIntact, intactShare, memberClass } from './siteDamage';
 import type { GameState, Rates } from './state';
 
 interface Aggregate {
@@ -80,7 +81,7 @@ function addDelta(a: Aggregate, delta: TickDelta, count: number, scale: number, 
 }
 
 /** What addNodes reads from a node's content besides its output scale, in one shape for every node. */
-interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean; link: NetworkLink | undefined }
+interface NodeRateFacts { node: RegistryNode; powered: boolean; aegisRatio: number; finance: boolean; link: NetworkLink | undefined; damagedBy: string | undefined }
 /** Content never changes after it is built, so each node's facts are read once per registry: every tick asks (#505). */
 const NODE_RATE_FACTS = new WeakMap<ContentRegistry, ReadonlyMap<string, NodeRateFacts>>();
 
@@ -92,6 +93,8 @@ function nodeRateFacts(reg: ContentRegistry): ReadonlyMap<string, NodeRateFacts>
       finance: node.systemFlags.includes('ENABLES_CORPORATE_FINANCE'),
       // Where its compute runs (#484) is content; the class's coupling now is state, read once per pass (`by`).
       link: node.network,
+      // The site class whose damage scales its compute (#517); its damage now is state, read per pass.
+      damagedBy: memberClass(reg, node.id)?.holds === 'COMPUTE' ? memberClass(reg, node.id)?.id : undefined,
     }]));
     NODE_RATE_FACTS.set(reg, facts);
   }
@@ -107,8 +110,10 @@ function addNodes(a: Aggregate, s: GameState, reg: ContentRegistry, by: Coupling
     // Suspended or not permitted (DECISIONS D2): no output. A bound node follows its dial.
     const output = fact ? nodeOutputScaleIn(scope, fact.node) : null;
     if (!fact || output === null) continue;
+    // Damage (#517) discounts what arrives, as coupling does: positive compute only, never a drain.
+    const intact = fact.damagedBy === undefined ? 1 : 1 - (s.conflict.damage[fact.damagedBy] ?? 0);
     addDelta(a, fact.node.tickDelta, 1, output.scale, output.suspicionScale, output.understandingScale, fact.powered,
-      deliveredShare(fact.link, by));
+      deliveredShare(fact.link, by) * intact);
     a.aegisReductionTech = Math.max(a.aegisReductionTech, fact.aegisRatio);
     // financeEnabled() states the same rule for readers outside the tick.
     if (fact.finance) a.financeEnabled = true;
@@ -121,7 +126,7 @@ function addRepeatables(a: Aggregate, s: GameState, reg: ContentRegistry, by: Co
     const level = s.levels[id] ?? 0;
     const rep = reg.repeatables.get(id);
     if (!rep || level <= 0) continue;
-    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by));
+    addDelta(a, rep.perLevel, level, 1, 1, 1, isPoweredOutput(rep.perLevel), deliveredShare(rep.network, by) * intactShare(s, reg, id));
     a.revenueMultiplier += rep.perLevelEffects.revenueMultiplierBonus * level;
     a.aegisReductionStaff += rep.perLevelEffects.aegisScanReduction * level;
   }
@@ -257,11 +262,12 @@ export function computeRates(s: GameState, reg: ContentRegistry): Rates {
   const decay = b.suspicionDecayPerSec * (rung?.decayMultiplier ?? 1);
 
   // A feral hostile (#491) takes a share of net compute only while it is positive, so it can never cause a brownout.
-  const net = gross - diverted;
+  // Ransomware damage (#517) takes a share of net income the same way, so it can never cause insolvency.
+  const net = gross - diverted, books = revenue - a.upkeep;
   return {
     cyclesPerSec: net > 0 ? net * (1 - hostileComputeShare(s, reg)) : net,
     understandingPerSec: a.understanding > 0 ? a.understanding * understandingMultiplier(s, reg) : a.understanding,
-    capitalPerSec: revenue - a.upkeep,
+    capitalPerSec: books > 0 ? books * incomeIntact(s, reg) : books,
     heatLoad: a.heat,
     suspicionPerSec: a.suspicion - decay + (rung?.huntPerSec ?? 0) + overheatSuspicion(s, reg),
     wattsGenerated: a.wGenerated,

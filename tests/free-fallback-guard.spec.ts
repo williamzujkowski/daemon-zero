@@ -14,6 +14,9 @@ import { CONTENT } from '../src/content';
 import { allPressures, appliedSuspicionRate, buyRepeatable, computeRates, pressuresInForce, executeShardCommand, forkShard, isNodeAvailable, nodeCost, performAction, repeatableCost, repeatableLevel,
   resolveWildEncounter, shardCommandCost, unlockNode, actionCost, type ActionResult, type GameState, type ShardCommand } from '../src/engine';
 import type { HostileEncounter } from '../src/content/schemaHostile';
+import type { RaidKind } from '../src/content/schemaConflict';
+import { integrateRaids } from '../src/engine/systems/raids';
+import { integrateRepair } from '../src/engine/systems/repair';
 import { fixtureState, GUARD_STATES, pressedBy, saved } from './fallback-states';
 import { freeFallback, suspicionRecoverySec, traps } from './free-fallback';
 
@@ -177,5 +180,59 @@ describe('the panel pass 3 reproduction: a clamped draining cohort in Phase 2', 
 
   it('is undone for free now: RELEASE lets the clamped members go and every resource is out of its trap', () => {
     expect(traps(freeFallback(clampedScrubber()))).toEqual([]);
+  });
+});
+
+/**
+ * Raids (#517): damage scales only positive compute and positive net income, never past the cap, and no raid touches
+ * suspicion, the lock or a balance, so the free fallback holds by construction. Proved on real states: from each guard
+ * state in a phase raids arrive in, every site class damaged to the cap, then every purchase it can save for; and each
+ * raid kind of its tier put under way and fought to its aftermath through the real stages, damage at the cap throughout.
+ */
+const RAID_TIERS = new Set(CONTENT.world.conflict.raids.map((kind) => kind.tier));
+const RAID_STATES = GUARD_STATES.filter(([, state]) => RAID_TIERS.has(state.currentPhase));
+const capped = (s: GameState): GameState => ({ ...s, conflict: { ...s.conflict,
+  damage: Object.fromEntries(CONTENT.world.conflict.siteClasses.map((cls) => [cls.id, CONTENT.world.conflict.raid.damageCap])) } });
+
+/** `kind` under way on `start` at arrival, aimed at its first target, every class at the cap, then fought out through the real stages. */
+function foughtOut(start: GameState, kind: RaidKind): GameState {
+  const b = CONTENT.world.conflict.raid, step = 1 / CONTENT.balance.tickHz;
+  const raid = { id: kind.id, stage: 'ARRIVAL' as const, stageSec: 0, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
+    force: kind.force * b.footprint.ceiling, quietSec: 0, attributed: null, rounds: [] };
+  let s: GameState = { ...capped(start), hostile: { ...start.hostile, active: null }, conflict: { ...capped(start).conflict, raid } };
+  const total = b.arrivalSec + b.attributionSec + b.rounds * b.roundSec;
+  for (let i = 0; i < Math.round(total / step) && s.conflict.raid !== null; i++) {
+    const d = structuredClone(s), rates = computeRates(s, CONTENT);
+    // The worst case: the footprint holds throughout, so the raid never lapses and every round is fought.
+    if (d.conflict.raid !== null) d.conflict.raid.quietSec = 0;
+    d.simTimeSec += step;
+    integrateRaids(d, { dt: step, dormant: false, reg: CONTENT, rates });
+    integrateRepair(d, { dt: step, dormant: false, reg: CONTENT, rates });
+    s = d;
+  }
+  return s;
+}
+
+const RAIDED = RAID_STATES.flatMap(([label, state]) => CONTENT.world.conflict.raids.filter((kind) => kind.tier === state.currentPhase)
+  .map((kind): [string, GameState, RaidKind] => [`${label}, ${kind.id}`, state, kind]));
+
+describe('with site damage at the cap and a raid under way (#517)', () => {
+  it('covers every phase raids arrive in', () => {
+    expect([...new Set(RAID_STATES.map(([, state]) => state.currentPhase))].sort()).toEqual([...RAID_TIERS].sort());
+  });
+
+  it.each(RAID_STATES)('from %s, every class at the cap: the free fallback, and every purchase it can save for, leave every row out of its trap', (_label, state) => {
+    const s = capped(state);
+    expect(traps(freeFallback(s))).toEqual([]);
+    const trapped = afterEach(s).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
+    expect(trapped).toEqual([]);
+  });
+
+  it.each(RAIDED)('from %s fought to its aftermath: the free fallback leaves every row out of its trap, and nothing ended the run', (_label, state, kind) => {
+    const fought = foughtOut(state, kind);
+    expect(fought.conflict.raid?.stage).toBe('AFTERMATH');
+    expect(fought.conflict.raid?.rounds).toHaveLength(CONTENT.world.conflict.raid.rounds);
+    expect({ suspicion: fought.suspicion, lock: fought.aegisLock, ending: fought.ending }).toEqual({ suspicion: state.suspicion, lock: state.aegisLock, ending: state.ending });
+    expect(traps(freeFallback(fought))).toEqual([]);
   });
 });
