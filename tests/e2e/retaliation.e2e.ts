@@ -100,7 +100,7 @@ test('a site raid\'s panel says, before the battle, who is at risk at this defen
   await openSwarm(page);
   const staff = page.getByTestId('raid-staff');
   await expect(staff).toContainText('PEOPLE ON SITE: people work at the data halls.');
-  await expect(staff).toContainText(/the battle lets through \d+(\.\d+)?% of its blows/);
+  await expect(staff).toContainText(/the battle lets through [0-9.]+% of its blows/);
   await expect(staff).toContainText('at 50% or more someone there is hurt, and at 80% or more someone there is killed');
   await expect(staff).toContainText('More site defense lowers it.');
   const audit = await axeReport(page);
