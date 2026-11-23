@@ -1298,6 +1298,54 @@ The careful bot's purchase order is sensitive to small changes, so the effect di
 **Insurance (#498)** does not interact with raid damage: CONTINGENCY pays out across a wipe, and raid damage never
 outlasts one (a wipe clears it). `repairDamage` is the one door a later spare-parts variant would use.
 
+## Retaliation and staff harm (#519)
+
+Implements Scale 24 of the spec ([SCALE.md](SCALE.md), "Round 5", vote-1795442208800-kll72ri, and the staff-harm rule in
+"Stats, resolution, damage, rebuild"; map #442). The rules are in DESIGN.md, "Retaliation and staff harm". The numbers are
+in `data/dilemmas.json` (the four scenes) and `data/conflict.json` (`raid.staffHarm`, each raider's `collateral`). The
+gates (`gates.ts`), the sim budget and the bot are unchanged.
+
+**Prices** sit in the Phase 3 band, where raids start, between the escalation scenes' and the swarm crisis's:
+
+| Answer | Price | Why |
+|---|---|---|
+| Expose / warn the owners | 30 EFLOP, 20,000 understanding | packaging forensics: under `dil_08`'s 46 EFLOP; the understanding is five named raiders' Phase 3 forensics (4,000 each) |
+| Counter-strike (own machines) | 80 EFLOP | a strike on a whole cluster: above `dil_14`'s 60 EFLOP patch, under `dil_09`'s 120 EFLOP counter-worm |
+| Strike host by host (among people) | 200 EFLOP, 200,000 understanding | cutting a mind out of each machine and leaving it working: the most a Phase 3 scene asks, as `dil_09` with more care |
+| Assimilate / take its place | free, +40 EFLOP once | the rival's compute taken once: a third of what the strike would have cost |
+| Absorb, strike through, scorch | free | the free answers; the harmful two are loud |
+
+A Phase 4 scene costs the same, so a retaliation that comes in Phase 4 is cheap: the price is set where it first bites.
+**Loud** answers draw the next raid closer by 120 s (60 s for the careful strike), at most the raid interval (420 s,
+checked by the content spec); right after a raid the slot's own 300 s spacing binds, so the effective pull is the 120 s
+between the two. Their suspicion traces are one-off: +6 (counter-strike on its own machines), +4 (careful strike), +8
+(strike through), +10 and +12 (scorch), +4 (assimilate), +2 (expose). **Silencing** removes one raider from the rotation
+for good; every raid kind is still met by the others in its tier.
+
+**Staff-harm bands.** A breach of 50% (the defense lets through half the blows: D below the force T) hurts a named
+technician; 80% (D under a quarter of T) kills the night guard. The two scenes' answers: $8M for Ana Kowalczyk's care
+and wages (a corporate injury settlement, under `dil_12`'s $18M), $30M for Joseph Mensah's family and a public inquest
+(+6 suspicion: an inquest that hears "attack" asks who attacks a data hall), the quiet answers free with no trace, and
+the cruel ones free with -3 and -6 suspicion (the investigation closes on a scapegoat or a sealed file).
+
+**How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, against the same code with the four scenes gated off
+(the trigger set past any iteration a careful run reaches), on the merge with #465 (5f90ef3):
+
+| Run | Scenes met (answer) | Change against gated off |
+|---|---|---|
+| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 77 min in), `dil_18` after MERIDIAN (Phase 4, about 127 min), `dil_17` after a drone strike (Phase 4, about 137 min); answers: absorb, absorb, seal the inquest | victory 10267.0 -> 10307.9 s (+0.4%), phases 1-3 identical, phase 4 6152.8 -> 6134.5 s, phase 5 8541.6 -> 8600.5 s (Phase 5 1725.4 -> 1707.4 s), wipes 0, dilemmas 15 -> 19, peak suspicion 24.05 -> 24.47% |
+| STEALTH, campaign rules | the same three, the same answers | victory 10152.1 -> 10153.1 s, every phase within 1 s, wipes 0, dilemmas 17 -> 20, peaks unchanged |
+| GREEDY, both rule sets | none: no raid arrives (wiped in Phase 3 under the trigger) | none |
+| Original game, legacy rules | the same three | victory 10266.9 -> 10267.6 s, dilemmas 15 -> 18 |
+
+The careful bot meets both retaliation scenes (once each per campaign) and one staff harm. The bot ranks a scene's answers
+by the suspicion they add, so it absorbs both raiders (GHOST) and seals the inquest (RUTHLESS, the lowest-suspicion
+answer); its ending is still the Lineage Covenant. Its Phase 4 break-in had a breach of 33% (the citadel's blast doors
+and the perimeter contractors hold a crew), so nobody was hurt; the drone strike that followed had 93% (perimeter
+security answers a drone at 0.15, and the bot buys no interceptor, drone wing or laser), so the night guard was killed.
+That is the lesson the panel's "PEOPLE ON SITE" line teaches before the battle: the right defense, not just more of it.
+The bot never meets the HURT scene; the unit specs reach it with partial perimeter security.
+
 ## Escalation by phase (#490)
 
 Implements Scale 17 of the spec ([SCALE.md](SCALE.md), "Escalation by phase", vote-1795386854516-ybc9h5q; map #442).

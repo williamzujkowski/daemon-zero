@@ -1,23 +1,11 @@
 /**
- * Shared setups for the retaliation and staff-harm specs (#519): a decoded mind on campaign rules at rest in a raided
- * phase with every other story out of the way (as the codec would record it), a raid fought to its aftermath through
- * the raid stage, and the scene that answers it presented through the full tick.
+ * Shared setups for the retaliation and staff-harm specs (#519): the campaign mind of raid-scene-helpers.ts, its site
+ * guarded, and a raid fought to its aftermath through the real raid stage.
  */
-import { createInitialState, type GameState } from '../src/engine';
-import { activeGame, preview } from './campaign-helpers';
+import type { GameState } from '../src/engine';
 import { arrived, PRE_BATTLE, R, raid, run } from './conflict-helpers';
-import { grant, PHASE0, PHASE1, rich } from './helpers';
-import { quiet } from './minds-helpers';
 
-export const HURT = 'dil_16_site_staff_hurt', KILLED = 'dil_17_site_staff_killed';
-export const NAMED = 'dil_18_raider_named', AMONG = 'dil_19_raider_among_people';
-export const SCENES = [HURT, KILLED, NAMED, AMONG];
-
-/** A decoded campaign mind in `phase` at rest: nothing draws a raid or a hostile, and only `keep` (default: the four scenes) can be presented. */
-export function campaignReady(phase: number, keep: string[] = SCENES): GameState {
-  const s = quiet(activeGame(grant(rich(createInitialState(preview)), ...PHASE0, ...PHASE1)), keep);
-  return { ...s, currentPhase: phase, simTimeSec: 1000, nextEncounterAtSec: 1e9, suspicion: 0, alertLevel: 0, aegisLock: 0, memoryUsed: 0, memoryCap: 2 ** 50 };
-}
+export { AMONG, campaignReady, HURT, KILLED, NAMED, SCENES } from './raid-scene-helpers';
 
 /** `s` with `levels` of perimeter contractors: each adds a point of perimeter security and half a point of site offense. */
 export const guarded = (s: GameState, levels: number): GameState => ({ ...s, levels: { ...s.levels, op_pmc_security: levels } });
