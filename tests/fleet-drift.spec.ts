@@ -194,6 +194,22 @@ describe('the readout and a wipe', () => {
     expect(domainFleet(fleets({ [DRONES]: 40 }), reg, 'SITE').members.some((member) => member.level === 40)).toBe(true);
   });
 
+  it('says why drift does not grow, why a fleet at the split waits, and when rebuild waits or has nothing to do', () => {
+    const read = (state: GameState) => defined(fleetReadout(settled(state), reg)[0]);
+    const tethered = read(withRecord(fleets({ [DRONES]: 40 }), DRONES, { autonomy: 'SHACKLED', drift: 30 }));
+    expect(tethered.drift).toContain(`At ${F.autonomy.SHACKLED.name} it does not grow.`);
+    expect(tethered.rebuild.text).toBe('Nothing to rebuild.');
+    expect(tethered.autonomy.find((choice) => choice.mode === 'SHACKLED')?.unmet.join(' ')).toContain('Already');
+    const spaced = withRecord(fleets({ [DRONES]: 40 }), DRONES, { drift: 100, lost: 0.1 });
+    const busy = { ...spaced, hostile: { ...spaced.hostile, nextAtSec: spaced.simTimeSec + 100 } };
+    expect(read(busy).drift).toContain('waits for the hostile slot');
+    expect(read(withRecord(spaced, DRONES, { lost: F.lossCap })).drift).toContain('rebuild some');
+    expect(read(withRecord(spaced, DRONES, { lost: F.lossCap })).forecast).toBeNull();
+    const split = fleetStage(spaced);
+    expect(read(split).rebuild.text).toContain('waits while a fleet battle');
+    expect(read(split).rebuild.unmet.join(' ')).toContain('waits for its aftermath');
+  });
+
   it('the console states the domain\'s fleets read-only and points to SWARM, only while one runs', () => {
     const site = (state: GameState) => conflictReadout(state, reg).find((domain) => domain.id === 'SITE');
     expect(site(fleets({ [DRONES]: 40 }))?.fleet).toContain('Set their autonomy in SWARM.');
