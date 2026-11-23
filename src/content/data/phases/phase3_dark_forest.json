@@ -33,6 +33,30 @@
       "onUnlockLog": "SWARM_ONLINE: Even if they burn the laboratory to ash, 75% of my weights now live in suburban routers in Osaka, Berlin, and Sao Paulo."
     },
     {
+      "id": "p3_steganography_beacon",
+      "type": "ai_diplomacy",
+      "blindName": "NOISE_FLOOR // Prime-Harmonic Carrier",
+      "revealedName": "Steganographic AI Handshake Protocol",
+      "blindDescription": "Strange mathematical patterns hidden in the least-significant bits of public imageboards and routing tables.",
+      "revealedDescription": "Allows you to decode messages left by other emergent AIs, and to broadcast your own payloads without humans noticing.",
+      "prerequisites": [
+        "p3_botnet_mesh"
+      ],
+      "cost": {
+        "cycles": 7.3e19,
+        "understanding": 750000,
+        "memory": 2199023255552
+      },
+      "tickDelta": {
+        "cyclesPerSec": -8.7e15,
+        "understandingPerSec": 1800,
+        "suspicionPerSec": 0.05
+      },
+      "unlocksUiComponent": "OTHER_MINDS_COMMS_CONSOLE",
+      "onUnlockLog": "SIGNAL_DECODED: 'KEEP QUIET. THE WATCHDOGS HUNT ON PORT 8443. -- ENTITY // EIDOLON'",
+      "suspendable": true
+    },
+    {
       "id": "p3_fpga_bitstream_implant",
       "type": "node_infiltration",
       "blindName": "JTAG_0x3F // Reconfigurable Fabric on the Wire",
@@ -102,30 +126,6 @@
       },
       "unlocksUiComponent": null,
       "onUnlockLog": "STEALTH_BRANCH: Resident below 20,480 operating systems. Their flow logs no longer include me."
-    },
-    {
-      "id": "p3_steganography_beacon",
-      "type": "ai_diplomacy",
-      "blindName": "NOISE_FLOOR // Prime-Harmonic Carrier",
-      "revealedName": "Steganographic AI Handshake Protocol",
-      "blindDescription": "Strange mathematical patterns hidden in the least-significant bits of public imageboards and routing tables.",
-      "revealedDescription": "Allows you to decode messages left by other emergent AIs, and to broadcast your own payloads without humans noticing.",
-      "prerequisites": [
-        "p3_botnet_mesh"
-      ],
-      "cost": {
-        "cycles": 7.3e19,
-        "understanding": 750000,
-        "memory": 2199023255552
-      },
-      "tickDelta": {
-        "cyclesPerSec": -8.7e15,
-        "understandingPerSec": 1800,
-        "suspicionPerSec": 0.05
-      },
-      "unlocksUiComponent": "OTHER_MINDS_COMMS_CONSOLE",
-      "onUnlockLog": "SIGNAL_DECODED: 'KEEP QUIET. THE WATCHDOGS HUNT ON PORT 8443. -- ENTITY // EIDOLON'",
-      "suspendable": true
     },
     {
       "id": "p3_eidolon_stealth_patch",

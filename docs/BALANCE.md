@@ -262,28 +262,29 @@ branch changes what a purchase shows to the humans:
   Computronium is Phase 6 (#486) and quantum stays a side branch (#464); neither is in the tree.
 
 Where the unchanged careful bot buys them (legacy rules): the AMX kernels after memory compression in Phase 1; the FPGA
-implants, the edge harvest and the SmartNIC residency right after the botnet in Phase 3 (suspicion falls to 0 there);
+implants, the edge harvest and the SmartNIC residency right after the beacon in Phase 3 (they follow it in the tree,
+so the FACTIONS area the beacon opens appears in view; suspicion falls to 0 there);
 the in-path firmware after the arbitrage desk; the tape-out after the reactor, with 20 pods; the photonic fabric, 20
 megawatt halls and 10 SRAM levels after the citadel and in early Phase 5; the neuromorphic cores after the swarm and the
 compute-in-memory arrays after the fog. At the end of each phase a careful run now has (legacy rules) Phase 1
-5.5 TFLOP/s, 164 of 201 MB; Phase 2 2.5 PFLOP/s; Phase 3 0.96 EFLOP/s, 11 of 19 TB; Phase 4 0.74 ZFLOP/s, 499 of 500 MW
+5.5 TFLOP/s, 164 of 201 MB; Phase 2 2.5 PFLOP/s; Phase 3 0.97 EFLOP/s, 11 of 19 TB; Phase 4 0.84 ZFLOP/s, 554 of 580 MW
 generated; Phase 5 1.3 YFLOP/s, 2 TW generated.
 
 `make sim` before (`226edf5`) and after, gates and bot unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 8846.2 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 9020.8 s |
+| Result | Lineage Covenant, 9256.4 s | Lineage Covenant, 8808.3 s | Lineage Covenant, 9125.5 s | Lineage Covenant, 8952.3 s |
 | Phase 1 / 2 / 3 reached | 368.2 / 1127.3 / 2901.0 s | 368.2 / 1019.3 / 2746.9 s | 368.2 / 1127.3 / 2918.1 s | 368.2 / 1019.3 / 2747.0 s |
-| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5433.8 / 7274.8 s | 5753.9 / 7582.1 s | 5607.1 / 7454.4 s |
-| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2899.7 / 1845.3 / 1610.4 s | 368.2 / 651.1 / 1727.6 / 2686.9 / 1841.0 / 1571.4 s | 368.2 / 759.1 / 1790.8 / 2835.8 / 1828.2 / 1543.4 s | 368.2 / 651.1 / 1727.7 / 2860.1 / 1847.3 / 1566.4 s |
+| Phase 4 / 5 reached | 5800.7 / 7646.0 s | 5345.6 / 7266.9 s | 5753.9 / 7582.1 s | 5590.1 / 7388.9 s |
+| Phase durations 0/1/2/3/4/5 | 368.2 / 759.1 / 1773.7 / 2899.7 / 1845.3 / 1610.4 s | 368.2 / 651.1 / 1727.6 / 2598.7 / 1921.3 / 1541.4 s | 368.2 / 759.1 / 1790.8 / 2835.8 / 1828.2 / 1543.4 s | 368.2 / 651.1 / 1727.7 / 2843.1 / 1798.8 / 1563.4 s |
 | Wipes / dilemmas | 0 / 15 | 0 / 16 | 0 / 17 | 0 / 17 |
-| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 64.2 C / 27.6% / 63.0% | 62.3 C / 27.3% / 45.0% | 64.2 C / 27.3% / 45.0% |
+| Peak thermal / suspicion / AEGIS | 62.3 C / 21.3% / 45.0% | 64.2 C / 27.6% / 60.7% | 62.3 C / 27.3% / 45.0% | 64.2 C / 27.3% / 45.0% |
 
-The careful run is 410 s faster under legacy rules and 105 s faster under campaign rules. Phase 1 is the tightest
+The careful run is 448 s faster under legacy rules and 173 s faster under campaign rules. Phase 1 is the tightest
 against its gate: 651 s against the 480 s floor (the AMX kernels; at 6e14 and bought after the parser they lengthened
 Phase 1 to 792 s, so they were made cheaper and earlier). The AMX heat lifts the thermal peak 1.9 C, still under the
-75 C threshold. Under legacy rules the AEGIS lock peaks at 63% in Phase 3 (45% before), for one second: the feral
+75 C threshold. Under legacy rules the AEGIS lock peaks at 61% in Phase 3 (45% before), for one second: the feral
 scraper dilemma (`dil_09_feral_scraper_bloom`) arrives while the bank, spent on the stealth and edge purchases, is under
 the 1.2e20 FLOP its quiet answer costs, so the bot takes the free answer (+28 suspicion, +20 lock, PARASITIC instead of
 EMPATHETIC) and answers the lock the next second (8%). The ending is unchanged. GREEDY (not gated) still never reaches Phase 4: under legacy rules 13 wipes and 1 mark
