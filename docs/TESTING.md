@@ -1639,7 +1639,7 @@ Phase 5 tests cover all four omens and every choice, final-purchase decision
 gates, legacy/flagged ending selection, save round-trips, retained rates,
 capped purchases and compact daemon controls. Bot tests check progression RAM
 reservation and observed epistemic, shard and Lineage activity. Pacing adds an
-inclusive 900–1800-second Phase 5 range and zero careful wipes; earlier bounds
+inclusive 900–1800-second Phase 5 range (raised to 900–3600 by vote-1795469247565-89wnt5m) and zero careful wipes; earlier bounds
 remain in force. Dedicated M7 browser scenarios, fresh two-size visual audits,
 30-tick render counts and an Android Phase 5 ending relaunch remain PR 3.
 
