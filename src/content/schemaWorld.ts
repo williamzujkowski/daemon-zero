@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
 import { SignatureClassesSchema } from './schemaSignature';
+import { SupplyChainSchema } from './schemaSupplyChain';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
@@ -63,6 +64,8 @@ export const WorldManifestSchema = z.strictObject({
   minds: z.array(WorldMindSchema),
   /** The heat-and-power signature's sources and sinks (#482): what each makes visible, and how much. */
   signature: SignatureClassesSchema,
+  /** The fabrication ladder and the supply chokepoints whose self-supplied share is closure (#485). */
+  supplyChain: SupplyChainSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;

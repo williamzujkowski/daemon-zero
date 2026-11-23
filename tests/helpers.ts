@@ -195,6 +195,22 @@ export const PHASE4 = [
   'p4_subterranean_citadel',
 ];
 
+/**
+ * The fabrication step (#485) a Phase 5 lithography rung needs: the ASIC tape-out, the fab ladder to DUV and every
+ * Earth-side self-supply node, in an order the real action accepts after PHASE4.
+ */
+export const FABRICATION = [
+  'p4_inference_asic',
+  'p4_advanced_packaging_line',
+  'p4_hbm_stacking_line',
+  'p4_mature_node_fab',
+  'p4_quartz_mine',
+  'p4_crystal_growth_works',
+  'p4_gallium_germanium_refinery',
+  'p4_photoresist_plant',
+  'p4_duv_fab',
+];
+
 /** Ticks through a dilemma's omen until its interrupt fires. Fails if none arrives. */
 export function untilDilemma(s: GameState): GameState {
   let state = s;

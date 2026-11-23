@@ -84,6 +84,32 @@
         "source": "fusion"
       },
       "dismissable": true
+    },
+    {
+      "id": "rep_p5_lunar_replicators",
+      "phaseId": 5,
+      "kind": "UPGRADE",
+      "name": "Lunar Factory Generations",
+      "description": "Another generation of factories copied from the lunar seed. Grown to the million tonnes a year NASA's study projected, a generation's output is made into solar arrays: about 100 GW more, sent down by microwave link. The arrays are bright in the infrared.",
+      "requirements": {
+        "nodes": [
+          "p5_lunar_seed_factory"
+        ],
+        "phaseAtLeast": 5
+      },
+      "baseCost": {
+        "understanding": 1e7,
+        "capital": 2e13
+      },
+      "costGrowth": 1.6,
+      "maxLevel": 5,
+      "perLevel": {
+        "wattsDelta": 1e11
+      },
+      "signature": {
+        "source": "space_solar"
+      },
+      "dismissable": true
     }
   ]
 }
