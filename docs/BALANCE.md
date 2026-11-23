@@ -9,7 +9,7 @@ All tunable numbers live in content manifests, in physical units since #461 (com
 3. If a gate fails, fix the content. Do not edit the bot or the gates to pass.
 4. Update the table below in the same commit.
 
-Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
+Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; Phase 5 lasts 900 to 3600 seconds with zero wipes (raised from 1800 by vote-1795469247565-89wnt5m, 2026-11-23: the cap was set in #52 for a short finale, and gates guard against stalls, not story length); at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
 ## Physical units (#461)
 
