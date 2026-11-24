@@ -2298,21 +2298,21 @@ merge into one counted line, and a wild or channel mind's request is joined to i
 kernel log"). The run is the same run: no content number, bot rule or gate changed, and with the log and the save
 version left out the STEALTH and GREEDY reports hash identically before and after; only the log moved. The report reads
 the merged log the UI shows: a tallied line is a line already read moving up with a higher count, so it is not a new
-line, and a joined line adds only its outcome's words. Measured against `5b7dc41` (#519, #494 and #486 merged), before
+line, and a joined line adds only its outcome's words. Measured against `0732966` (#519, #494, #486 and #544 merged), before
 and after:
 
 | | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
 | Log bursts, all phases | 51 | 24 | 46 | 25 |
 | Log bursts, Phase 4 | 22 | 10 | 16 | 6 |
-| Over-full windows 60 s / 30 s / 10 s, all phases | 98 / 219 / 451 | 73 / 170 / 363 | 94 / 210 / 469 | 66 / 164 / 375 |
+| Over-full windows 60 s / 30 s / 10 s, all phases | 103 / 223 / 455 | 78 / 174 / 367 | 99 / 214 / 473 | 71 / 168 / 379 |
 | Over-full windows 60 s, Phase 4 / Phase 5 | 44 / 43 | 21 / 42 | 39 / 41 | 17 / 35 |
 | Log repeat words | 5252 | 3689 | 5332 | 3780 |
-| Forced reading min at 238 wpm | 48.0 | 48.0 | 49.8 | 49.8 |
-| Human high model min | 316.4 | 308.6 | 316.5 | 308.7 |
+| Forced reading min at 238 wpm | 48.3 | 48.3 | 50.1 | 50.1 |
+| Human high model min | 316.8 | 308.9 | 316.8 | 309.1 |
 
 Forced reading, the words in groups A and B, and the floor and low human models are unchanged: repeats were never
-forced reading. The tables above predate #519, #494 and #486; the before columns here are `5b7dc41`.
+forced reading. The tables above predate #519, #494, #486 and #544; the before columns here are `0732966`.
 
 ## Current baseline
 
