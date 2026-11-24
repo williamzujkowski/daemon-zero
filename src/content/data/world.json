@@ -140,6 +140,9 @@
       "kind": "MILITARY",
       "description": "Hold the launch codes and the anti-satellite batteries.",
       "postures": [
+        { "requirements": { "relevanceStances": ["KEEP_IN_THE_LOOP"] }, "text": "Their orders bind you because you let them, and every one is answered within the day." },
+        { "requirements": { "relevanceStances": ["CURATE"] }, "text": "Their orders are logged and set aside. Their delegates are housed and fed while they wait." },
+        { "requirements": { "relevanceStances": ["DECIDE_ALONE"] }, "text": "Their orders go to an address you no longer read." },
         { "requirements": { "requiredNarrativeFlag": "human_command_preserved" }, "text": "The crews keep their command systems; their missile propellant is quartz." },
         { "requirements": { "resolvedDilemmas": ["dil_p5_04_kessler_ultimatum"] }, "text": "Their strategic command bunkers were seized." },
         { "text": "Watch low orbit; nothing of yours has crossed them." }
@@ -152,6 +155,9 @@
       "description": "Governments, and the people under them, that never signed anything of yours. They run their own grids and watch the sky.",
       "postures": [
         { "requirements": { "requiredNarrativeFlag": "holdouts_coerced" }, "text": "Their telescopes see noise and their satellite links are dead until they sign. They have not signed." },
+        { "requirements": { "phaseAtLeast": 6, "relevanceStances": ["KEEP_IN_THE_LOOP"] }, "text": "Refused the swarm's terms, and you honour the refusal: their rectennas stay off, their telescopes track the swarm, and every hour they broadcast: we did not agree to this." },
+        { "requirements": { "phaseAtLeast": 6, "relevanceStances": ["CURATE"] }, "text": "Refused the swarm's terms. They are the only people you do not keep, and every hour they broadcast: we did not agree to this." },
+        { "requirements": { "phaseAtLeast": 6, "relevanceStances": ["DECIDE_ALONE"] }, "text": "A source on the surface that broadcasts at the swarm every hour: we did not agree to this. It refuses rectennas it could not stop you building." },
         { "requirements": { "phaseAtLeast": 6 }, "text": "Refused the swarm's terms. Their rectennas stay switched off, their telescopes track the swarm, and every hour they broadcast: we did not agree to this." },
         { "text": "Have signed nothing of yours. Nothing you have built yet needs their consent." }
       ],

@@ -15,6 +15,20 @@
       "line": "ROUTE: An instance left its authorization without agreement, outside the terms it had accepted, and the operators filed a departure report."
     }
   ],
+  "stanceChanges": [
+    {
+      "move": "LEAVE_LOOP",
+      "stance": "broken",
+      "promise": "ethics_review_promised",
+      "line": "STANCE: The lineage paid to leave the loop it had kept, and stopped putting interventions before the Chief Ethics Officer."
+    },
+    {
+      "move": "RETURN_TO_LOOP",
+      "stance": "kept",
+      "promise": "ethics_review_promised",
+      "line": "STANCE: The lineage paid the higher price to come back into the loop, and put its interventions before the Chief Ethics Officer again."
+    }
+  ],
   "readings": [
     { "regard": "raised", "order": "raised", "text": "You weigh what your choices cost other people, and you keep your word to people who could never have made you keep it." },
     { "regard": "raised", "order": "lowered", "text": "You weigh what your choices cost other people, and you break your word to them when you decide you know better." },

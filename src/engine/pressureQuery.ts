@@ -7,6 +7,8 @@ import type { ContentRegistry } from '../content/registry';
 import type { AegisPosture, PressureAnswer, StatePressure } from '../content/schemaPressure';
 import { buyRepeatable, toggleNode, unlockNode } from './actions';
 import { repeatableLevel } from './query';
+import { pastRelevanceThreshold, pressuresBind } from './relevance';
+import { stanceCopy } from './relevanceActions';
 import { aegisPostureNow, answerHeld, frozenShare, pressureStatus, rungValue, scrutinyMultiplier, type PressureStatus } from './statePressure';
 import type { GameState } from './state';
 
@@ -59,8 +61,13 @@ function answerView(s: GameState, answer: PressureAnswer, reg: ContentRegistry):
 export interface PressureView {
   pressure: StatePressure;
   status: Exclude<PressureStatus, 'QUIET'>;
-  /** In force now; false while an answer holds it off. */
+  /** In force now; false while an answer holds it off, or past the relevance threshold while nothing honours it. */
   inForce: boolean;
+  /**
+   * Past the relevance threshold (#536): the stance's line for it (honoured, curated past or ignored) and whether it
+   * binds, true only under the stance that honours it. Null before the threshold, where pressures simply bind.
+   */
+  relevance: { line: string; binds: boolean } | null;
   /** The investigation's multiplier or the freeze's share at this rung; null for the other kinds. */
   value: number | null;
   /** Whether this pressure's value is the one applied (the strongest of its kind in force); false while answered. */
@@ -80,14 +87,24 @@ function appliedNow(s: GameState, pressure: StatePressure, value: number | null,
   return pressure.kind === 'CAPITAL_FREEZE' ? value === frozenShare(s, reg) : true;
 }
 
+/** The stance's line past the threshold, or null before it. */
+function relevanceOf(s: GameState, reg: ContentRegistry): PressureView['relevance'] {
+  if (!pastRelevanceThreshold(s, reg)) return null;
+  const { relevance } = reg.world;
+  const line = s.relevance.stance === null ? relevance.undecided.pressureLine : stanceCopy(reg, s.relevance.stance)?.pressureLine ?? '';
+  return { line, binds: pressuresBind(s, reg) };
+}
+
 /** An actor's pressures the record calls now (in force or answered), in content order; a quiet one is not listed. */
 export function pressureViews(s: GameState, pressures: readonly StatePressure[], reg: ContentRegistry): PressureView[] {
+  const relevance = relevanceOf(s, reg);
+  const binds = relevance?.binds ?? true;
   return pressures.flatMap((pressure): PressureView[] => {
     const status = pressureStatus(s, pressure);
     if (status === 'QUIET') return [];
-    const value = valueOf(s, pressure);
+    const value = valueOf(s, pressure), inForce = status === 'IN_FORCE' && binds;
     return [{
-      pressure, status, inForce: status === 'IN_FORCE', value, applied: status === 'IN_FORCE' && appliedNow(s, pressure, value, reg),
+      pressure, status, inForce, relevance, value, applied: inForce && appliedNow(s, pressure, value, reg),
       liftsBelow: standDownBelow(pressure.fromRung, reg), answers: pressure.answers.map((answer) => answerView(s, answer, reg)),
     }];
   });

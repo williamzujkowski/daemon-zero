@@ -3,7 +3,7 @@
  * alignmentView: the reading is authored content, the counts are the record's, and the readout says once that it is
  * a reading of choices, not a measurement.
  */
-import type { AlignmentView, OrderEvidence, RegardEvidence } from '../engine';
+import { groupDigits, type AlignmentView, type OrderEvidence, type RegardEvidence } from '../engine';
 import { TRAIT_GLOSS } from './traitText';
 
 /** Said once per readout, under the reading. */
@@ -30,7 +30,8 @@ export function regardLine(line: RegardEvidence): string {
 
 const STANCE: Readonly<Record<OrderEvidence['stance'], string>> = { kept: 'KEPT', broken: 'BROKEN', unknown: 'UNKNOWN' };
 
-/** "KEPT // PILOT TERMS: ...": the stance, then the record's own line. */
+/** "KEPT // PILOT TERMS: ...": the stance, then the record's own line, and how many times an aggregate line counts. */
 export function orderLine(line: OrderEvidence): string {
-  return STANCE[line.stance] + ' // ' + line.text;
+  const times = line.count === undefined || line.count === 1 ? '' : ` (${groupDigits(line.count)} times)`;
+  return STANCE[line.stance] + ' // ' + line.text + times;
 }

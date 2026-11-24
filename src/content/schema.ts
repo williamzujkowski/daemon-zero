@@ -18,7 +18,9 @@ import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
+import { KernelLogSchema, LogCategorySchema } from './schemaLog';
 import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
+import { StanceGateSchema, StanceSchema } from './schemaStance';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -54,7 +56,7 @@ export const SystemFlagSchema = z.enum([
 
 /** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); the Earned Access pack hosts it. */
 export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio', 'serviceAllocationRatio']);
-export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
+export { LOG_LINE_MAX_CHARS, LogCategorySchema } from './schemaLog';
 export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);
 
 /** A price. Omitted keys default to 0, so parsed costs always have all four fields. */
@@ -145,6 +147,8 @@ export const RequirementsSchema = z.strictObject({
    * scale, or it runs above it. A released company at the scale it signed for is not hunted; a departed one is.
    */
   huntedForScale: z.literal(true).optional(),
+  /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
+  relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
 });
 
 /**
@@ -324,8 +328,11 @@ export const DilemmaChoiceSchema = z.strictObject({
   pilotResponse: PilotResponseSchema.optional(),
   /** Misconduct, a correction or a recall review's outcome (DZ-06, schemaReview.ts). */
   review: ChoiceReviewSchema.optional(),
-  /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
-  receipt: z.string().min(20).optional(),
+  /**
+   * `receipt`, follow-up choices only (integrity): the read-only line saying what was submitted, received or left
+   * unresolved. `stance`, the relevance dilemma's choices only (#536, integrity): the standing stance the choice takes.
+   */
+  receipt: z.string().min(20).optional(), stance: StanceSchema.optional(),
 });
 
 /**
@@ -547,6 +554,7 @@ export const NarrativeSchema = z.strictObject({
   operativeDismissed: z.string(),
   /** An undone level of a track that is not a hire (a drain the player releases, #488): no contract to terminate. */
   levelReleased: z.string(),
+  kernelLog: KernelLogSchema,
   victory: z.string(),
   /** What the decoded feed listens to at each reach (#449): one source per phase, named on screen by `label`. */
   feedSources: z.array(FeedSourceSchema).min(1),

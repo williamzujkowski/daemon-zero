@@ -65,7 +65,7 @@ is heard through one deterministic chain (`scripts/voice/chains.py`; the host's 
 | 2 | `office` | `phone/` | a conference-phone tap: 8 kHz G.711 mu-law, 3% lost packets concealed by repetition | 300-3400 Hz | 11 |
 | 3 | `netsec` | `stream/` | a low-bitrate internet stream: quiet spectral bins dropped per frame, the rest coarsely quantised | 70-7000 Hz | 10 |
 | 4 | `wire` | `broadcast/` | broadcast: a broadcast processor's compression and carrier hiss | to 15 kHz (the model stops at 12) | 14 |
-| 5 | `world` | `direct/` | nothing: the clean take | full band | 7 |
+| 5 | `world` | `direct/` | nothing: the clean take | full band | 17 |
 | 5 | `world`, AI-to-AI | `peer/` | the clean take with a faint 96 Hz ring modulation, documented as synthetic | full band | 6 |
 
 Every new rung is trimmed to the voice and levelled to the vibration tier's median RMS, so a phase
@@ -840,7 +840,7 @@ the status they produce is exercised.
   | `voice/phone/` | 11 | -15.4 to -15.1 LUFS | -2.16 to -1.70 dBTP |
   | `voice/stream/` | 14 | -15.5 to -15.2 LUFS | -2.88 to -1.94 dBTP |
   | `voice/broadcast/` | 14 | -15.2 to -14.6 LUFS | -3.08 to -1.14 dBTP |
-  | `voice/direct/` | 7 | -15.4 to -15.3 LUFS | -3.07 to -1.92 dBTP |
+  | `voice/direct/` | 17 | -15.5 to -15.2 LUFS | -3.07 to -1.92 dBTP |
   | `voice/peer/` | 6 | -15.5 to -15.3 LUFS | -2.33 to -1.99 dBTP |
   | `voice/clean/` (unbundled) | 15 | -15.0 to -13.3 LUFS | -0.93 to -0.73 dBTP |
   | `music/phase-*/` | 6 | -15.77 to -14.66 LUFS (loudnorm) | -4.22 to -3.04 dBTP |

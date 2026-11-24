@@ -17,6 +17,7 @@ import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
 import { reconcileSwarm } from './saveSwarm';
 import { allPressures } from './statePressure';
+import { migrateRelevance } from './relevanceSave';
 import { migrateFleets, reconcileConflict } from './conflictSave';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
@@ -162,6 +163,11 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v27: retaliation and staff harm (#519). No earlier build kept a raid's aftermath or silenced a raider, so neither is
   // held. Self-contained: it adds only its own two fields to the conflict record, so it can be renumbered past another step.
   26: (save) => ({ ...save, conflict: { ...(isRecord(save.conflict) ? save.conflict : {}), lastRaid: null, silenced: [] } }),
+  // v28: merged kernel-log lines (#541). An earlier log holds only single lines, which is what an entry without a merge
+  // key or a count means, so every saved entry is already valid. Self-contained, so it can be renumbered past another step.
+  27: (save) => save,
+  // v29: the standing stance toward humanity (#536, relevanceSave.ts). Self-contained, so it can be renumbered past another step.
+  28: migrateRelevance,
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */

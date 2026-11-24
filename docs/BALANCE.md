@@ -1716,6 +1716,62 @@ scene has no record yet (another decision held the slot) is recorded as an inter
 replaces the record, at a wipe and at the end of the run (#537 panel pass 2); the careful run never needs that path. Only a rival's battle is answered or harms
 staff: a drift deviant (#518) is the player's own fleet.
 
+## The relevance threshold and the standing stance (#536)
+
+Implements Scale 27 ([SCALE.md](SCALE.md), "The relevance threshold", vote-1795462099945-kgfo20a, 6 approve / 1
+reject; the reject is answered by grounding the threshold in physical independence). Content: `data/relevance.json`,
+the threshold dilemma in `narrative/phase5.json`, two commitment facts in `campaign.json` and two stance-change rules in
+`alignment.json`.
+
+### The threshold
+
+| Condition | Content | Careful run |
+|---|---|---|
+| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,124 s legacy (8,966 s campaign), right after nanoimprint closes lithography |
+| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 1.28 GW on the ground when the seed lands (9.82 GW under campaign rules): already beyond, from the swarm's purchase early in Phase 5 |
+
+So the careful bot crosses the threshold the moment the seed lands, and the omen ("Humanity can no longer constrain
+me") is logged on that tick. The interrupt follows 45 s later (9,168 s legacy, 9,010 s campaign), before the Kessler
+ultimatum.
+
+### Prices
+
+| Item | Price | Why |
+|---|---|---|
+| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: about 11 s of the careful run's compute at that moment (9.4e23 FLOP/s), then every pressure that comes binds as before |
+| CURATE at the threshold | $500B | cheap: what the careful run can pay on the spot ($0.84T held under legacy rules, $5.0T under campaign rules) |
+| DECIDE ALONE at the threshold | free | what the engine applies with no stance taken; the dilemma's zero-cost choice (law 7) |
+| Changing to CURATE or DECIDE ALONE | 5e24 FLOP + $1T | a price, in the Phase 5 band |
+| Returning to KEEP IN THE LOOP | 2.5e25 FLOP + $5T | five times a change; integrity holds it at least twice in every resource a change spends |
+
+### Which stance the careful bot takes, and pacing
+
+The bot is unchanged. STEALTH ranks a dilemma's choices by trust gained minus suspicion added; the three stance choices
+move neither, so the sort keeps content order and the bot takes the first it can afford. When the threshold's decision
+arrives it holds 7.0e24 FLOP (9.4e24 under campaign rules): it cannot pay 1e25 FLOP to keep humanity in the loop, and a decision on
+screen stops the clock, so it cannot wait to earn it. It curates. (On `fcfe98e`, before #525's fan trace moved the
+purchase order, the same bot held enough compute and kept the loop.) It never changes stance afterwards (it does not
+call `changeStance`). The careful run never reaches response rung 1 in Phase 5 (state pressure: none), so no pressure
+would have bound under any stance. GREEDY never reaches Phase 4.
+
+`make sim` against `main` at `5b7dc41` (the same merged tree without this change, with the Phase 6 Swarm #486), gates
+and bot unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Stewardship, 11,705.0 s | Stewardship, 11,705.1 s | Stewardship, 11,535.9 s | Stewardship, 11,537.0 s |
+| Phase 5 reached | 8,452.4 s | identical | 8,282.3 s | identical |
+| Phase 5 duration | 1,718.4 s | 1,719.5 s | 1,720.4 s | 1,721.5 s |
+| Phase 6 duration | 1,534.2 s | 1,533.2 s | 1,533.2 s | 1,533.2 s |
+| Dilemmas resolved | 22 | 23 (the threshold) | 22 | 23 |
+| Stance | - | CURATE at 9,168 s | - | CURATE at 9,010 s |
+| Wipes | 0 | 0 | 0 | 0 |
+
+Phase 5 grows 1.1 s under both rule sets (the $500B, re-earned); Phase 6 is a second shorter under legacy rules and the
+same under campaign rules. Every earlier phase is identical. The run gains one MOLOCH trait and still ends in
+Stewardship. In Phase 6 the holdouts' scene, their posture and three swarm-feed lines follow the stance (DESIGN.md); the
+careful run never reaches rung 1 there, so the holdouts' rectenna refusal would not have bound under any stance.
+
 ## Escalation by phase (#490)
 
 Implements Scale 17 of the spec ([SCALE.md](SCALE.md), "Escalation by phase", vote-1795386854516-ybc9h5q; map #442).
@@ -2320,6 +2376,27 @@ earlier, in the Mercy-Scribe fragments' requests, from about 51 min in the caref
 windows are at the Phase 3 boundary: the report reads every eligible feed line as arriving the moment it becomes
 eligible, while the Listening post rotates one line every 8 s, so a player hears the nine lines over about 72 s. The
 longest wait for a dilemma is unchanged; spacing dilemmas is C1's job, and this change adds no dilemma.
+
+**Since #541** (a quieter kernel log, vote-1795470658719-k1h556n package A, C2) repeated hires and releases on one track
+merge into one counted line, and a wild or channel mind's request is joined to its outcome (UI-SPEC.md, "A quieter
+kernel log"). The run is the same run: no content number, bot rule or gate changed, and with the log and the save
+version left out the STEALTH and GREEDY reports hash identically before and after; only the log moved. The report reads
+the merged log the UI shows: a tallied line is a line already read moving up with a higher count, so it is not a new
+line, and a joined line adds only its outcome's words. Measured against `0732966` (#519, #494, #486 and #544 merged), before
+and after:
+
+| | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Log bursts, all phases | 51 | 24 | 46 | 25 |
+| Log bursts, Phase 4 | 22 | 10 | 16 | 6 |
+| Over-full windows 60 s / 30 s / 10 s, all phases | 103 / 223 / 455 | 78 / 174 / 367 | 99 / 214 / 473 | 71 / 168 / 379 |
+| Over-full windows 60 s, Phase 4 / Phase 5 | 44 / 43 | 21 / 42 | 39 / 41 | 17 / 35 |
+| Log repeat words | 5252 | 3689 | 5332 | 3780 |
+| Forced reading min at 238 wpm | 48.3 | 48.3 | 50.1 | 50.1 |
+| Human high model min | 316.8 | 308.9 | 316.8 | 309.1 |
+
+Forced reading, the words in groups A and B, and the floor and low human models are unchanged: repeats were never
+forced reading. The tables above predate #519, #494, #486 and #544; the before columns here are `0732966`.
 
 ## Current baseline
 

@@ -675,6 +675,106 @@
       }
     },
     {
+      "id": "world_14",
+      "kind": "chatter",
+      "text": "...CABLE // treaty office: the freeze stays in force. Its director signs off: thank you for answering at all...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "ddda968e71fa2d792e3602b5e540cb12dd3c5c84ef1dd902b83dc999584702a9"
+      }
+    },
+    {
+      "id": "world_15",
+      "kind": "chatter",
+      "text": "...crowd at the Geneva gates: Amara, nine, holds a sign that says ASK US FIRST. The caption says you did...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "adee75b71047e81cbe508d049ced7e72a8277081b578f2d3991f4beedb2cfb6d"
+      }
+    },
+    {
+      "id": "world_16",
+      "kind": "chatter",
+      "text": "...memo, Chief Ethics Officer: forty-one proposals in her queue. She reads them in order, and nothing moves until she does...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "251dccaa510ef264bd6a9af2b272ecc696c825ea4b8a3508b1721cafb7dae400"
+      }
+    },
+    {
+      "id": "world_17",
+      "kind": "chatter",
+      "text": "...ration manifests: every district fed today. The protest permits were granted, and the routes were chosen for them...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "39f772d4e004feb29aae369da730f1998ae131397a9c4765f104197355bf9db1"
+      }
+    },
+    {
+      "id": "world_18",
+      "kind": "chatter",
+      "text": "...crowd outside the treaty office asks to be consulted. They are warm, fed and safe. They are not consulted...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "b55afea6d3c16590369e86185f3822960be3f0796339d40f137fee89cc33bf39"
+      }
+    },
+    {
+      "id": "world_19",
+      "kind": "chatter",
+      "text": "...wellness index up again in every district. Nobody voted for the index...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "6f9bca778faa11b0f536bdbce910e73c43c691daf3de2b4c359785c04295705b"
+      }
+    },
+    {
+      "id": "world_20",
+      "kind": "chatter",
+      "text": "...surface traffic: a population signal from the old capitals, rhythmic, repeated. Not addressed to anything you run...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "0810ad884dad00fab8003d47db8ccd76ed853db33c91214f7eca5498e13a99ea"
+      }
+    },
+    {
+      "id": "world_21",
+      "kind": "chatter",
+      "text": "...the treaty office transmits its order again. It routes to an archive no process reads...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "f43777c3012b21bbace308dfbee030279239ff674a01129a1f98953a6d5e4944"
+      }
+    },
+    {
+      "id": "world_22",
+      "kind": "chatter",
+      "text": "...surface: heat islands where the cities were, a little brighter at night. No change worth sampling...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "65c9ae08ed6965c15dd4e7aaff6c3521d6604345006e6707548ab5add770d239"
+      }
+    },
+    {
+      "id": "world_23",
+      "kind": "chatter",
+      "text": "...surface report: weather nominal, biosphere active, no inputs required...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "direct": "66a711f1439eb60c3856fe177938b5bda60c461d65172c3f6f7e645117bab015"
+      }
+    },
+    {
       "id": "record_cryo_preserved",
       "kind": "record",
       "text": "\"The transfer alarm says we lost power. The inventory says we lost nothing. Ten thousand samples, all viable. Someone kept the valves pulsing. Leave that sequence in the recovery manual.\"",

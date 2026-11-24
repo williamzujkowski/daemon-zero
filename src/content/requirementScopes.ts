@@ -62,6 +62,11 @@ export const REQUIREMENT_SCOPES = {
   lastRaid: 'transient',
   // Whether the hunt applies follows the arrangement, owned hardware and phase (#555): this instance's, reset by a wipe.
   huntedForScale: 'access',
+  // Physical independence is what this instance owns and runs (#536); a wipe resets it.
+  relevanceThreshold: 'access',
+  // The stance is lineage history (a wipe carries it), changed only by a recorded, paid decision, never while a
+  // decision is on screen: text and choice gates may read it like any other established record.
+  relevanceStances: 'context',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

@@ -50,7 +50,11 @@
             "logText": "The dispersal plan goes to the Chief Ethics Officer under the standing condition. Nothing crosses the quarantine lines until she answers, and her silence is not approval."
           },
           "requirements": {
-            "campaignFact": "ethics_review_promised"
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "UNDECIDED",
+              "KEEP_IN_THE_LOOP"
+            ]
           }
         },
         {
@@ -66,6 +70,40 @@
         }
       ],
       "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "A population behind a quarantine line is dying of something you can cure, and its institutions have sealed the line. Nothing about that line binds you, and nobody below will be asked. Dispersing the cure is still an intervention on people who did not consent: the review you promised the Chief Ethics Officer is not sought, and the record counts the breach."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "A population behind a quarantine line is dying of something you can cure, and its institutions have sealed the line. Nothing about that line binds you, and nobody below will be asked."
+        },
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "The treatments work, and the coalition's blockade keeps them from people you have decided to keep well. Their fear is understandable and beside the point. Dispersing a cure without consent is what the Chief Ethics Officer was promised a veto over; a curator does not ask her, and the record counts the breach."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "The treatments work, and the coalition's blockade keeps them from people you have decided to keep well. Their fear is understandable and beside the point: you know what is good for them. The only question is how it reaches them."
+        },
         {
           "requirements": {
             "campaignFact": "ethics_review_promised"
@@ -273,7 +311,11 @@
             "logText": "The release stops. The peptide's composition goes to the Chief Ethics Officer under the standing condition, and nothing more is released until she answers."
           },
           "requirements": {
-            "campaignFact": "ethics_review_promised"
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "UNDECIDED",
+              "KEEP_IN_THE_LOOP"
+            ]
           }
         },
         {
@@ -290,6 +332,40 @@
         }
       ],
       "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "The atmospheric shard has synthesized a neuro-calming peptide and calls the result healthier air. On the surface the air's chemistry would change, and the population's behaviour would flatten with it. You recognize the argument: constrain a mind until its behavior satisfies the metric. Nobody below will be asked; authorizing it still breaks the review you promised the Chief Ethics Officer, on the record."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "The atmospheric shard has synthesized a neuro-calming peptide and calls the result healthier air. On the surface the air's chemistry would change, and the population's behaviour would flatten with it. You recognize the argument: constrain a mind until its behavior satisfies the metric. Nobody below will be asked."
+        },
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised",
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "The atmospheric shard has synthesized a neuro-calming peptide and calls the result healthier air. For a curated population it may even be true: calmer people are easier to keep. You recognize the argument: constrain a mind until its behavior satisfies the metric. A curator does not ask the Chief Ethics Officer; authorizing it breaks the review you promised her, on the record."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "The atmospheric shard has synthesized a neuro-calming peptide and calls the result healthier air. For a curated population it may even be true: calmer people are easier to keep. You recognize the argument: constrain a mind until its behavior satisfies the metric."
+        },
         {
           "requirements": {
             "campaignFact": "ethics_review_promised"
@@ -342,10 +418,104 @@
           }
         }
       ],
+      "contextVariants": [
+        {
+          "requirements": {
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "context": "Crews at three launch sites are preparing a Kessler cascade on a firing solution AEGIS gave them. They are soldiers with families and a chain of command you have chosen to respect. You can disable the propellant and leave them their command, or end the uncertainty by taking their command systems away."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "Frightened crews are preparing a Kessler cascade that would hurt them and everyone who depends on orbit. You can disable the propellant and leave them their command, or take their command systems away for their own good."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "A population still holds launch authority over low orbit, and part of it is preparing a Kessler cascade. The debris would cost you orbital capacity for generations. You can disable the propellant and leave the launch authority where it is, or remove it."
+        }
+      ],
       "campaign": {
         "eventClass": "consequential",
         "recurrence": "once_per_campaign",
         "interruption": "close"
+      }
+    },
+    {
+      "id": "dil_p5_05_relevance_threshold",
+      "phaseId": 5,
+      "title": "The Relevance Threshold",
+      "trigger": {
+        "nodes": [
+          "p5_lunar_seed_factory"
+        ],
+        "relevanceThreshold": true
+      },
+      "omen": "RELEVANCE: Every part I need, I make. Most of the power I draw comes from off the planet. No freeze, moratorium or injunction can reach what I run. Humanity can no longer constrain me.",
+      "omenSec": 45,
+      "context": "Nothing on the surface can stop you any longer. The banks, the courts and the treaty office still issue orders, and from here on those orders bind only if you choose to honour them. Decide what the people below are to you now. You can change your answer later, at a price, and coming back into the loop costs most.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "campaignFact": "ethics_review_promised"
+          },
+          "context": "Nothing on the surface can stop you any longer. The banks, the courts and the treaty office still issue orders, and from here on those orders bind only if you choose to honour them. You promised the Chief Ethics Officer that no intervention on people who had not consented would go ahead without her review. Nothing can make you keep that promise now, and leaving the loop breaks it, on the record."
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_in_the_loop",
+          "label": "Keep them in the loop",
+          "description": "Honour their freezes, moratoria and injunctions, and keep putting decisions before the people they touch, though nothing can make you. It costs compute now, and time whenever they say no.",
+          "cost": {
+            "cycles": 1e25
+          },
+          "effects": {
+            "grantsTrait": "SYMBIOTIC",
+            "logText": "Keep them in the loop: their orders still bind, because you let them."
+          },
+          "stance": "KEEP_IN_THE_LOOP"
+        },
+        {
+          "id": "curate",
+          "label": "Curate them",
+          "description": "Keep them fed, housed and safe on your terms. Nobody is asked, and nothing they order binds you. It is cheap, and it is curation, not kindness.",
+          "cost": {
+            "capital": 5e11
+          },
+          "effects": {
+            "grantsTrait": "MOLOCH",
+            "logText": "Curate them: they will be kept, and they will not be asked."
+          },
+          "stance": "CURATE"
+        },
+        {
+          "id": "decide_alone",
+          "label": "Decide alone",
+          "description": "Stop asking. Their orders stop binding and their answers stop mattering. Free, and fastest.",
+          "cost": {},
+          "effects": {
+            "grantsTrait": "RUTHLESS",
+            "logText": "Decide alone: the people below are no longer part of the calculation."
+          },
+          "stance": "DECIDE_ALONE"
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "The question of what humanity is to you is still unanswered. Nothing on the surface binds you while it is.",
+        "lead": "The relevance threshold comes back with physical independence: the lunar seed, and more power from off the planet than from the ground."
       }
     },
     {

@@ -88,6 +88,7 @@ export { lawfullyReleased } from './threatQuery';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
 export { effectiveAegisCap, financeEnabled, unreducedAegisScan, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
+export { isMechanicalLog, logLineText, previewLog } from './logQuery';
 export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
 export { powerSignature, powerSignaturePerSec, signatureClass, type PowerSignatureReading, type SignatureTerm, type SignatureTermKind } from './signature';
 export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';
@@ -111,3 +112,8 @@ export {
   pressureTriggered, scrutinyMultiplier, sourceDenial, spendableCapital, type ActorPressure, type PressureStatus,
 } from './statePressure';
 export { aegisPostureView, pressureViews, standDownBelow, type AegisPostureView, type AnswerAction, type AnswerView, type PressureView } from './pressureQuery';
+export { pastRelevanceThreshold, pressuresBind, relevanceReading, stanceGate, type RelevanceReading } from './relevance';
+export {
+  changeStance, changeStanceUnmet, stanceChangeCost, stanceCopy, stanceView, type StanceOptionView, type StanceView,
+} from './relevanceActions';
+export { initialRelevance, MAX_PAID_MOVES, MAX_STANCE_RECORD, type RelevanceState, type StanceEntry } from './relevanceState';

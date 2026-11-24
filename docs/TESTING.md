@@ -190,7 +190,9 @@ What it prints, per phase:
 - forced density: words of A and B per minute of the bot's time in the phase;
 - over-full windows: arrivals whose 60, 30 or 10 s window holds more pushed words (A and B, repeats included) than a
   238 wpm reader reads in it;
-- log bursts: three or more log lines within 5 s (the desktop dock previews only the newest line);
+- log bursts: three or more new log lines within 5 s (the desktop dock previews one line; since #541, the newest story
+  line). Since #541 a tallied line (a repeat folded into one counted line) is not a new line, so the recorder skips it,
+  and a request joined to its outcome adds only the outcome's words when the request was already read;
 - the dilemma timeline: when each opened, the longest wait for a dilemma that ends in the phase (counted from the
   previous dilemma, so a quiet stretch that crosses a phase boundary counts whole), and the shortest gap in the run;
 - three modelled human times. **Floor**: reading overlaps all game time, so a phase pays only for forced reading it
@@ -1372,12 +1374,15 @@ raised to make room. When a spec runs close to its limit, the run gets cheaper i
   seconds, with the reason beside it.
 - **Faster engine only where identical.** A speed-up in `src/engine/` or a sim policy must leave every pinned sim
   hash byte-identical (ARCHITECTURE.md, "The per-tick hot path").
-- **A shared report another test replays may run outside coverage (#548).** V8 coverage makes a full campaign about
-  2.3 times slower in the test worker. `runHeadlessSimInWorker()` (`tests/sim-worker-helpers.ts`) plays a production
-  run in a worker thread, its own isolate outside the coverage session, and returns the report by structured clone.
-  Use it only for a report that tests read and that another test in the same file replays in-process. That replay
-  keeps the lines covered and asserts the two reports are byte-identical. `tests/sim.spec.ts`'s setup hook works this
-  way; its determinism test is the in-process replay.
+- **A full campaign may run outside coverage when no line depends on it (#548).** V8 coverage makes a full campaign
+  about 2.3 times slower in the test worker. After the Phase 6 Swarm, an in-process careful replay took 31-60 s on CI.
+  `playInWorker()` (`tests/sim-worker-helpers.ts`) plays a named scenario from `tests/sim-worker-scenarios.ts` in a
+  worker thread, which is its own isolate outside the coverage session, and returns the result by structured clone.
+  A run moves there only with evidence that the merged coverage report keeps every line, which means comparing CI's
+  `unit coverage` table before and after. Today the careful runs in `tests/sim.spec.ts` (shared report, determinism,
+  original game, kernel-log), `tests/sim-assignment.spec.ts` and `tests/sim-report.spec.ts` run this way. The reckless
+  runs and the shorter runs stay in-process and keep the engine's sim paths covered. A determinism check compares two
+  isolates byte for byte.
 - **A slow fixture is not built inside a 5 s test.** A state several seconds of play away (the lawful chain to a
   charter or a release, about 1 s alone under coverage) is built once at module level, as `tests/ui-release.spec.ts`
   does, and not inside a test running on Vitest's 5 s default.

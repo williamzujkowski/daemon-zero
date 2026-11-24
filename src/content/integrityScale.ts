@@ -79,6 +79,11 @@ function checkCost(reg: ContentRegistry, owner: string, phase: number, cost: Cos
   return problems;
 }
 
+/** A price outside the per-item tables (the relevance stance's changes, #536), checked against `phase`'s band. */
+export function checkPhasePrice(reg: ContentRegistry, owner: string, phase: number, cost: Cost): string[] {
+  return checkCost(reg, owner, phase, cost);
+}
+
 /** What a phase calls compute in a message: "cycles" where it counts them, "FLOP" otherwise. */
 function computeWord(reg: ContentRegistry, phase: number): string {
   return reg.phases.find((entry) => entry.phaseId === phase)?.computeUnit === 'CYCLE' ? 'cycles' : 'FLOP';

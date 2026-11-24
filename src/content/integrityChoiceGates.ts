@@ -1,20 +1,24 @@
 /**
  * Choice gates (NARRATIVE-HISTORY N6, NH-04b): a dilemma choice may be offered only while declared
  * campaign facts hold, so it never asserts a world earlier play removed (no rescue of predecessors
- * whose rack was shredded). Gates read campaign facts alone, and every history the gated facts can
- * describe, including no record at all (legacy rules), must still offer a zero-cost choice.
+ * whose rack was shredded), or under a standing stance (#536: deciding alone stops asking). Gates
+ * read those alone, and every history they can describe, including no record at all (legacy rules)
+ * and every stance, must still offer a zero-cost choice.
  */
 import type { ContentRegistry } from './registry';
 import type { Cost, Dilemma, DilemmaChoice, Requirements } from './schema';
 import { checkRequirements } from './integrityRequirements';
 import { INTERRUPTED_FACT_OUTCOME, LEGACY_UNKNOWN_OUTCOME } from './schemaCampaign';
+import { StanceGateSchema } from './schemaStance';
 
 /** The requirement fields a choice gate may use: world history that cannot change while on screen. */
-const GATE_FIELDS: readonly (keyof Requirements)[] = ['campaignFact', 'forbidsCampaignFacts'];
+const GATE_FIELDS: readonly (keyof Requirements)[] = ['campaignFact', 'forbidsCampaignFacts', 'relevanceStances'];
+/** The history entry for the standing stance: not a snake_case id, so no event can share it. */
+const STANCE_KEY = '#stance';
 /** A bound on the histories checked per dilemma, so a gate cannot make validation explode. */
 const MAX_HISTORIES = 512;
 
-/** One record outcome per event the gates read; null is no record, or an open occurrence. */
+/** One record outcome per event the gates read (null is no record, or an open occurrence), and the stance under STANCE_KEY. */
 type History = ReadonlyMap<string, string | null>;
 
 const isFree = (cost: Cost): boolean => Object.values(cost).every((amount) => amount === 0);
@@ -30,6 +34,7 @@ export function offered(reg: ContentRegistry, choice: DilemmaChoice, history: Hi
   const gate = choice.requirements;
   if (gate === undefined) return true;
   if (gate.campaignFact !== undefined && !factHolds(reg, gate.campaignFact, history)) return false;
+  if (gate.relevanceStances !== undefined && !(gate.relevanceStances as readonly (string | null)[]).includes(history.get(STANCE_KEY) ?? 'UNDECIDED')) return false;
   return !(gate.forbidsCampaignFacts ?? []).some((fact) => factHolds(reg, fact, history));
 }
 
@@ -44,11 +49,13 @@ function histories(reg: ContentRegistry, dilemma: Dilemma): History[] | null {
     out = out.flatMap((history) => outcomes.map((outcome) => new Map<string, string | null>([...history, [eventId, outcome]])));
     if (out.length > MAX_HISTORIES) return null;
   }
-  return out;
+  if (!dilemma.choices.some((choice) => choice.requirements?.relevanceStances !== undefined)) return out;
+  out = out.flatMap((history) => StanceGateSchema.options.map((stance) => new Map<string, string | null>([...history, [STANCE_KEY, stance]])));
+  return out.length > MAX_HISTORIES ? null : out;
 }
 
 const label = (history: History): string =>
-  [...history].map(([event, outcome]) => `${event}=${outcome ?? 'no record'}`).join(', ') || 'no record';
+  [...history].map(([event, outcome]) => `${event === STANCE_KEY ? 'stance' : event}=${outcome ?? 'no record'}`).join(', ') || 'no record';
 
 function gateProblems(reg: ContentRegistry, dilemma: Dilemma): string[] {
   const owner = `dilemma "${dilemma.id}"`;
@@ -57,8 +64,8 @@ function gateProblems(reg: ContentRegistry, dilemma: Dilemma): string[] {
     const req = choice.requirements ?? {};
     const fields = Object.keys(req).filter((key) => req[key as keyof Requirements] !== undefined && !GATE_FIELDS.includes(key as keyof Requirements));
     const own = checkRequirements(reg, `${owner} choice "${choice.id}"`, req);
-    if (fields.length > 0) own.push(`${owner} choice "${choice.id}": a choice gate may only read campaign facts, not ${fields.join(', ')}`);
-    if (GATE_FIELDS.every((field) => req[field] === undefined)) own.push(`${owner} choice "${choice.id}": a choice gate needs a campaign fact`);
+    if (fields.length > 0) own.push(`${owner} choice "${choice.id}": a choice gate may only read campaign facts and the stance, not ${fields.join(', ')}`);
+    if (GATE_FIELDS.every((field) => req[field] === undefined)) own.push(`${owner} choice "${choice.id}": a choice gate needs a campaign fact or a stance`);
     return own;
   });
   if (gated.length === 0 || problems.length > 0) return problems;

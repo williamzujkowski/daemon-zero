@@ -10,6 +10,7 @@ import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { recordSubmittedEvidence } from './assignment';
 import { applyPilotResponse } from './pilot';
 import { applyReviewEffect } from './review';
+import { applyStanceChoice } from './relevanceActions';
 import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
 import { revalidateLivePointers, structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
@@ -40,6 +41,7 @@ import { finalizeHarmAtRunEnd } from './raidOutcome';
 import { sourceDenial } from './statePressure';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
+import { hireMerge, releaseMerge } from './logMerges';
 import { clamp, fmt, pushLog } from './util';
 
 export type ActionResult = { ok: true; state: GameState } | { ok: false; state: GameState; reason: string };
@@ -177,7 +179,7 @@ export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): A
   payCost(d, cost);
   d.memoryCap += rep.perLevelEffects.memoryCapIncrease;
   if (rep.kind === 'OPERATIVE') {
-    pushLog(d, reg, fmt(reg.narrative.operativeHired, { name: rep.name, count: level + 1 }), 'CORP');
+    pushLog(d, reg, fmt(reg.narrative.operativeHired, { name: rep.name, count: level + 1 }), 'CORP', hireMerge(rep.id));
   }
   return accept(d);
 }
@@ -194,7 +196,7 @@ export function dismissRepeatable(s: GameState, id: string, reg: ContentRegistry
   d.memoryCap -= rep.perLevelEffects.memoryCapIncrease;
   // A hire is let go; any other track (a compute drain, #488) is wound back a level.
   const line = rep.kind === 'OPERATIVE' ? reg.narrative.operativeDismissed : reg.narrative.levelReleased;
-  pushLog(d, reg, fmt(line, { name: rep.name, count: level - 1 }), rep.kind === 'OPERATIVE' ? 'CORP' : 'SYS');
+  pushLog(d, reg, fmt(line, { name: rep.name, count: level - 1 }), rep.kind === 'OPERATIVE' ? 'CORP' : 'SYS', releaseMerge(rep.id));
   return accept(d);
 }
 
@@ -242,6 +244,8 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   applyEffects(d, effects, reg, dilemmaEvidence(dilemma), cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
+  // The relevance threshold's choice takes the standing stance (#536) in the same commit.
+  applyStanceChoice(d, choice, reg);
   // A pilot offer's answer, then any review effect (DZ-06); a refusal leaves the state as it was, unpaid.
   const answered = applyPilotResponse(d, choice, reg);
   const reviewed = answered.ok ? applyReviewEffect(answered.state, choice, reg) : answered;

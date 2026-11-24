@@ -123,10 +123,15 @@ const ANSWER_TRACKS = new Set(allPressures(CONTENT).flatMap(({ pressure }) => pr
 const PRESSURED_PHASES = new Set(allPressures(CONTENT).flatMap(({ pressure }) => pressure.phases));
 const BELOW_TOP = CONTENT.balance.escalation.slice(0, -1).map((_rung, index) => index + 1);
 
+/**
+ * Past the relevance threshold (#536) a pressure binds only while the stance keeps humanity in the loop, so the worst
+ * case holds that stance: every pressure the rung calls is in force in every guard state, independent or not.
+ */
 function pressured(start: GameState, rung: number): GameState {
   const at = CONTENT.balance.escalation[rung - 1]?.at ?? 0;
   return { ...start, alertLevel: rung, suspicion: at + 1, unlockedNodes: start.unlockedNodes.filter((id) => !ANSWER_NODES.has(id)),
-    levels: Object.fromEntries(Object.entries(start.levels).filter(([id]) => !ANSWER_TRACKS.has(id))) };
+    levels: Object.fromEntries(Object.entries(start.levels).filter(([id]) => !ANSWER_TRACKS.has(id))),
+    relevance: { ...start.relevance, stance: 'KEEP_IN_THE_LOOP' } };
 }
 
 /** Suspicion's own sources at the state's rung, its decay and hunt included, overheat and insolvency (their own rows) aside. */

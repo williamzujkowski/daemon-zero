@@ -3,7 +3,7 @@ import DisclosureText from '../DisclosureText';
 /** Registry phase/group metadata builds one network tree without duplicate cards. */
 
 import { CONTENT } from '../../content';
-import { cycleContributions, understandingShare, type GameState } from '../../engine';
+import { cycleContributions, logLineText, understandingShare, type GameState } from '../../engine';
 import { sharePercent } from '../carryText';
 import ActionsPanel from '../ActionsPanel';
 import NodeList from '../NodeList';
@@ -57,7 +57,7 @@ export function Retention() {
 export function Lore() {
   const logs = useGame((game) => game.logs);
   return <View style={{ gap: 10 }}>{logs.filter((log) => log.category === 'LORE')
-    .map((log) => <DisclosureText key={log.seq} style={theme.text}>{log.text}</DisclosureText>)}</View>;
+    .map((log) => <DisclosureText key={log.seq} style={theme.text}>{logLineText(log, CONTENT)}</DisclosureText>)}</View>;
 }
 
 /**

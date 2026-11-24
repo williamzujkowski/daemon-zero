@@ -10,6 +10,7 @@ import { actionAvailable } from '../epistemic';
 import { epistemicView } from '../epistemicQuery';
 import { fleetReadout } from '../fleetQuery';
 import { hostileView } from '../hostileQuery';
+import { logLineText } from '../logQuery';
 import { aegisPostureView } from '../pressureQuery';
 import { isNodePending, shownRepeatables } from '../purchaseQuery';
 import { raidView } from '../raidQuery';
@@ -80,6 +81,8 @@ export class ReadingRecorder {
   private readonly seen = new Set<string>();
   private readonly decoders: string[];
   private lastSeq = 0;
+  /** The newest line read under each merge key: what a joined line repeats at its start. */
+  private readonly open = new Map<string, string>();
 
   constructor(private readonly reg: ContentRegistry) {
     this.decoders = [...new Set(reg.narrative.recordedTransmissions.map((record) => record.decoderWidgetId))];
@@ -97,10 +100,20 @@ export class ReadingRecorder {
     });
   }
 
-  /** Log lines written since the last call, oldest first; `boot` marks the lines a new game opens with. */
+  /**
+   * Log lines written since the last call, oldest first; `boot` marks the lines a new game opens with. A tallied line
+   * (#541) is a line the player has already read moving up with a higher count, so it is not a new line to read. A
+   * request joined to its outcome adds only the outcome's words when it opens with the request already read.
+   */
   logs(s: GameState, boot = false): void {
-    const fresh = s.logs.filter((entry) => entry.seq > this.lastSeq).reverse();
-    for (const entry of fresh) this.emit(s, boot ? 'boot' : 'log', 'A', entry.category, entry.text);
+    const fresh = s.logs.filter((entry) => entry.seq > this.lastSeq && entry.times === undefined).reverse();
+    for (const entry of fresh) {
+      const text = logLineText(entry, this.reg);
+      const opened = entry.merge === undefined ? undefined : this.open.get(entry.merge);
+      const read = opened !== undefined && text.length > opened.length && text.startsWith(opened) ? opened.length : 0;
+      if (entry.merge !== undefined) this.open.set(entry.merge, text);
+      this.emit(s, boot ? 'boot' : 'log', 'A', entry.category, text.slice(read).trim());
+    }
     this.lastSeq = Math.max(this.lastSeq, s.logSeq);
   }
 

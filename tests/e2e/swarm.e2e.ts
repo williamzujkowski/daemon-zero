@@ -14,9 +14,13 @@ const SUBMINDS = 'rep_p6_federated_subminds';
 const rung1 = (CONTENT.balance.escalation[0]?.at ?? 25) + 1;
 const holdouts = CONTENT.world.stateActors.find((actor) => actor.id === 'holdout_nations');
 
-/** The swarm on response rung 1, with two sub-minds seeded and no raid or hostile under way. */
+/**
+ * The swarm on response rung 1, with two sub-minds seeded and no raid or hostile under way. The swarm is past the relevance
+ * threshold (#536), so the holdouts' refusal binds only in the loop: the run keeps them there, so it presses.
+ */
 function pressed(game: GameState): GameState {
   return { ...game, alertLevel: 1, suspicion: rung1, aegisLock: 0, activeDilemmaId: null, pendingDilemma: null,
+    relevance: { ...game.relevance, stance: 'KEEP_IN_THE_LOOP' },
     levels: { ...game.levels, [SUBMINDS]: 2 }, hostile: { ...game.hostile, active: null }, conflict: { ...game.conflict, raid: null, nextRaidAtSec: 1e9 } };
 }
 
@@ -49,8 +53,9 @@ test('the swarm discloses its build, its federation and the holdouts, true to th
   await expect(page.getByTestId('fleet-' + SUBMINDS + '-autonomy-shackled')).toBeVisible();
   expect((await axeReport(page)).violations).toEqual([]);
   await openMinds(page);
-  await expect(page.getByTestId('actor-holdout_nations-posture')).toHaveText(holdouts?.postures[1]?.text ?? '');
-  await expect(page.getByTestId('pressure-holdout_downlink_refusal-text')).toHaveText('IN FORCE: ' + (holdouts?.pressures?.[0]?.text ?? ''));
+  const honoured = holdouts?.postures.find((posture) => posture.requirements?.relevanceStances?.includes('KEEP_IN_THE_LOOP'));
+  await expect(page.getByTestId('actor-holdout_nations-posture')).toHaveText(honoured?.text ?? '');
+  await expect(page.getByTestId('pressure-holdout_downlink_refusal-text')).toHaveText('HONOURED: ' + (holdouts?.pressures?.[0]?.text ?? ''));
   await expect(page.getByTestId('pressure-holdout_downlink_refusal-effect')).toHaveText('New space solar cannot be bought; what you hold keeps running.');
   await expect(page.getByTestId('pressure-holdout_downlink_refusal-answer')).toHaveText('Answer it: build Collector Generations (0 of 3 held).');
   expect((await axeReport(page)).violations).toEqual([]);

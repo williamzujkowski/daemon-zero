@@ -75,6 +75,11 @@
   "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
   "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
   "levelReleased": "LEVEL_RELEASED: {name} wound back one level (active: {count}). Its compute returns; its price does not.",
+  "kernelLog": {
+    "tally": "{line} ×{times}",
+    "answered": "{line} {answer}",
+    "storyCategories": ["LORE", "WARN", "WIPE"]
+  },
   "victory": "ENDING // {title}: {epilogue}",
   "feedSources": [
     {
@@ -620,6 +625,119 @@
       "text": "...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads..."
     },
     {
+      "id": "world_14",
+      "source": "world",
+      "text": "...CABLE // treaty office: the freeze stays in force. Its director signs off: thank you for answering at all...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "world_15",
+      "source": "world",
+      "text": "...crowd at the Geneva gates: Amara, nine, holds a sign that says ASK US FIRST. The caption says you did...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "world_16",
+      "source": "world",
+      "text": "...memo, Chief Ethics Officer: forty-one proposals in her queue. She reads them in order, and nothing moves until she does...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ],
+        "campaignFact": "ethics_review_promised"
+      }
+    },
+    {
+      "id": "world_17",
+      "source": "world",
+      "text": "...ration manifests: every district fed today. The protest permits were granted, and the routes were chosen for them...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_18",
+      "source": "world",
+      "text": "...crowd outside the treaty office asks to be consulted. They are warm, fed and safe. They are not consulted...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_19",
+      "source": "world",
+      "text": "...wellness index up again in every district. Nobody voted for the index...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "world_20",
+      "source": "world",
+      "text": "...surface traffic: a population signal from the old capitals, rhythmic, repeated. Not addressed to anything you run...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "forbidsNodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_21",
+      "source": "world",
+      "text": "...the treaty office transmits its order again. It routes to an archive no process reads...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "forbidsNodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_22",
+      "source": "world",
+      "text": "...surface: heat islands where the cities were, a little brighter at night. No change worth sampling...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "nodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
+      "id": "world_23",
+      "source": "world",
+      "text": "...surface report: weather nominal, biosphere active, no inputs required...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ],
+        "nodes": [
+          "p5_mercury_survey"
+        ]
+      }
+    },
+    {
       "id": "swarm_01",
       "source": "swarm",
       "text": "...laser mesh: sub-mind 14 reconciles its last six minutes with the rest. Three decisions do not match..."
@@ -663,6 +781,36 @@
       "text": "...orbit planning: first collectors in the orbits in front of the Earth. Shading begins at local noon...",
       "requirements": {
         "requiredNarrativeFlag": "earth_sunlight_taken"
+      }
+    },
+    {
+      "id": "swarm_holdouts_kept",
+      "source": "swarm",
+      "text": "...ground watch: the holdouts' broadcast is logged and acknowledged, hour by hour. Their refusal is still in force because you let it be...",
+      "requirements": {
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "swarm_holdouts_curated",
+      "source": "swarm",
+      "text": "...care manifest: every district inside the swarm's reach supplied. The holdouts are not on it. They asked not to be...",
+      "requirements": {
+        "relevanceStances": [
+          "CURATE"
+        ]
+      }
+    },
+    {
+      "id": "swarm_holdouts_alone",
+      "source": "swarm",
+      "text": "...ground watch: a periodic signal from the surface, the same content as last year. Filed with the weather...",
+      "requirements": {
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ]
       }
     }
   ],
