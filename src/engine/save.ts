@@ -21,6 +21,7 @@ import { migrateFleets, reconcileConflict } from './conflictSave';
 import { reconcileQuantum } from './quantum';
 import { reconcileStorage } from './storage';
 import { reconcileRoutine } from './routine';
+import { withIterationRouteWidgets } from './routeWidgets';
 import { fromBase64, toBase64 } from './base64';
 import { computeRates } from './rates';
 import { redenominate } from './saveRescale';
@@ -257,8 +258,8 @@ function withAncestors(owned: readonly string[], reg: ContentRegistry): string[]
 }
 
 /**
- * Owning a node implies holding the widget its unlock grants: an unlock is the only thing
- * that adds a widget and a wipe, which clears both lists, the only thing that removes one.
+ * Owning a node implies holding the widget its unlock grants: an unlock (or a route event, routeWidgets.ts) is the
+ * only thing that adds a widget and a wipe, which clears both lists, the only thing that removes one.
  * A save that breaks this (#176) can own a dial's hardware without the control that sets
  * it. Missing widgets are appended in ownership order, so a healthy save is unchanged.
  * Remembered hardware (legacy.knownNodes) is not owned and grants nothing.
@@ -294,7 +295,9 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const activeKnown = s.activeDilemmaId !== null && dilemmaIds.has(s.activeDilemmaId);
   const endingKnown = s.ending !== null && reg.endings.some((ending) => ending.id === s.ending);
   const unlockedNodes = withAncestors(s.unlockedNodes, reg);
-  const healed = reconcileConflict(reconcileCachedLevels(reconcileQuantum(reconcileStorage(reconcileSwarm(reconcileRoutine({
+  // The windows this iteration's route unlocked are restored as owned hardware's are (#555): a save released before
+  // the route opened them loads with them.
+  const healed = withIterationRouteWidgets(reconcileConflict(reconcileCachedLevels(reconcileQuantum(reconcileStorage(reconcileSwarm(reconcileRoutine({
     ...s,
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
@@ -312,7 +315,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     activeDilemmaId: activeKnown ? s.activeDilemmaId : null,
     resolvedDilemmas: s.resolvedDilemmas.filter((id) => dilemmaIds.has(id)),
     logs: s.logs.slice(0, reg.balance.maxLogEntries),
-  }, reg), reg), reg), reg), reg), reg);
+  }, reg), reg), reg), reg), reg), reg), reg);
   // Checked on the flags as stored too: the campaign upgrade moves outcome flags into records, and
   // must never consume the evidence of a contradiction before it is seen (#242 panel round 2).
   if (hasConflictingStoredFlags(healed, reg)) throw new SaveError(CONTRADICTION);

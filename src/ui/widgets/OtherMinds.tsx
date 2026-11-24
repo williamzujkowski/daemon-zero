@@ -15,6 +15,7 @@ import Meter from './Meter';
 import WorldView from './WorldView';
 import { HostileStatus } from './HostileEncounter';
 import ConflictSection from './ConflictSection';
+import { threatWidget } from '../registry/widgetRegistry';
 
 function FactionPanel({ faction }: { faction: Faction }) {
   const trust = useGame((game) => game.trust[faction.id] ?? faction.initialTrust);
@@ -37,12 +38,23 @@ function FactionPanel({ faction }: { faction: Faction }) {
 }
 
 /**
+ * Whether the minds' channel is decoded: this instance owns the hardware whose unlock opens the console. A console that
+ * a release or a departure opened (#555) carries the threat readouts alone: no handshake reached the other minds, so
+ * every faction card would wait on hardware this instance never mapped.
+ */
+function channelDecoded(unlockedNodes: readonly string[]): boolean {
+  return unlockedNodes.some((id) => CONTENT.nodes.get(id)?.unlocksUiComponent === threatWidget);
+}
+
+/**
  * Before its disclosure phase the console is AEGIS and the faction panels. From then on it is the world view (#463),
  * which keeps the same faction panels, once, under Other minds: no parallel faction display.
  */
 export default function OtherMinds() {
   const world = useGame((game) => worldViewOpen(game, CONTENT));
-  const factions = [...CONTENT.factions.values()].map((faction) => <FactionPanel key={faction.id} faction={faction} />);
+  const decoded = useGame((game) => channelDecoded(game.unlockedNodes));
+  const factions = decoded ? [...CONTENT.factions.values()].map((faction) => <FactionPanel key={faction.id} faction={faction} />)
+    : <Text testID="minds-undecoded" style={theme.muted}>No channel to the other minds is decoded, so none of their offers or terms reach this instance.</Text>;
   if (world) return <WorldView factions={factions} />;
   return <View style={{ gap: 16 }}>
     <AegisStatus />

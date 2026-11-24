@@ -21,6 +21,9 @@ function checkTier(reg: ContentRegistry, encounter: HostileEncounter): string[] 
   if (encounter.tier < reg.swarm.hostile.fromPhase) problems.push(`${owner}: tier ${String(encounter.tier)} is before hostile.fromPhase`);
   // The controls live in the decoded mind's swarm tools, so a hostile must need that decoding to arrive (lever reachability).
   if (encounter.requirements.requiresSurveillance !== true) problems.push(`${owner}: must require surveillance, where its answers are shown`);
+  // An AEGIS hunter is the hunt itself, so it keeps the hunt's rule (#555): a released company at the scale it signed
+  // for is not swept, and so not hunted; a departed instance, or one above its lawful scale, is.
+  if (encounter.type === 'HUNTER' && encounter.requirements.huntedForScale !== true) problems.push(`${owner}: an AEGIS hunter must require huntedForScale, the hunt's own rule`);
   return problems;
 }
 

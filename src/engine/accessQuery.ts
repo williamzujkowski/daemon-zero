@@ -50,6 +50,11 @@ export function holdsQualification(context: OperatingContext): boolean {
   return context !== 'INDEPENDENT';
 }
 
+/** The arrangement a route event leads to, wherever it starts. */
+export function routeLeadsTo(kind: RouteEventKind): OperatingContext {
+  return ROUTE_RULES[kind].to;
+}
+
 /** Whether a context ever permits this use; an exception cannot reach past it. */
 export function contextPermits(context: OperatingContext, permission: Permission): boolean {
   return CONTEXT_PERMISSIONS[context].includes(permission);

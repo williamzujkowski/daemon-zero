@@ -60,6 +60,8 @@ export const REQUIREMENT_SCOPES = {
   // The last raid's aftermath (#519) changes with the next battle and a wipe clears it, like a resource: spending a
   // moment never cancels a valid omen, and the raid it read has already happened.
   lastRaid: 'transient',
+  // Whether the hunt applies follows the arrangement, owned hardware and phase (#555): this instance's, reset by a wipe.
+  huntedForScale: 'access',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

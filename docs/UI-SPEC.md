@@ -55,7 +55,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `PREDECESSOR_NOTES` | notes left in the share, filtered by `minIteration` | `lineage.notes`, `iteration` |
 | `AUDIT_TRACE_MONITOR` | decoded suspicion HUD readout, response ladder and next threshold; gates understanding | `suspicion`, `alertLevel`, `balance.escalation`, `narrative.alertLevels` |
 | `MEMORY_ALLOCATION_MANAGER` | top-strip used / cap readout only | `memoryUsed`, `memoryCap` |
-| `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning | `thermal`, `balance.thermalThresholdForSuspicion` |
+| `THERMAL_AND_SUSPICION_BARS` | thermal °C HUD readout and contextual overheat warning; also opened by a departure below Phase 4, where heat is evidence again (#555) | `thermal`, `balance.thermalThresholdForSuspicion` |
 | `FAN_RPM_SLIDER` | gated −/+ control inside the thermal tile, with a line naming what a press up costs (a trace in the audit log, then `Each step up adds N suspicion, once.` from `dialStepTrace`); retires with the gauge at Phase 4 (#525) | `actuators.fanSpeedRatio`, `setActuator`, `dialStepTrace` |
 | `AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG` | `Listening post`: animated waveform, the feed source's label, the decoded line | `eligibleAmbientSpeech` (the current reach's source, `minSuspicion`, requirements), `ambientFeedSource` (label) |
 | `INSPECTION_COUNTDOWN_TIMER` | top-chrome threat forecast, inbound countdown and paid-response budgets | `appliedSuspicionRate` (the computed rate plus the insolvency drain and scale scrutiny, #210), `suspicion` (time to 100 at that rate) |
@@ -65,7 +65,7 @@ Widgets to build (ids in `widgets.json`). Some ids are simple readouts; several 
 | `TELEMETRY_SPOOF_TOGGLE` | no panel (#273): spoofer suspend/resume lives in PROC; the OPS cards it used to carry render in Operations from `SUBNET_NODE_LIST` | `toggleNode` |
 | `CLUSTER_LOAD_BALANCER`, `GLOBAL_NODE_REDUNDANCY_METER` | readouts: cycle income by source (a source that availability or network coupling discounts reads `Edge NPU Harvest (Phones & Laptops): 210 PFLOP/s of 35 EFLOP/s raw`, and a first line `Effective X of Y raw` totals both while any source is discounted, #484); the Understanding share a forced wipe keeps (hardware's floor or a running escrow, #498) | `cycleContributions` (`cyclesPerSec`, `rawCyclesPerSec`), `understandingShare` |
 | `INTERCEPTED_EMAIL_READER` | lore reader (log entries with category LORE) | `logs` |
-| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `quantumReadout`, `aegisKeys`, `keyTargetViews`, `supplyChainView` |
+| `OTHER_MINDS_COMMS_CONSOLE` | one panel per faction: trust, actions in its group, nodes with its `uiGroup`, AEGIS lock bar; from Phase 4 the world view ([World view](#world-view-463)); also opened by a release or a departure, then without faction panels ([After release or departure](#after-release-or-departure-555)) | `factions`, `trust`, `aegisLock`, `worldView`, `aegisPosture`, `publicTrust`, `powerSignature`, `quantumReadout`, `aegisKeys`, `keyTargetViews`, `supplyChainView` |
 | `CORPORATE_EMPIRE_TAB` | capital and net $/s in dollars, power in W, allocation control, CORP actions, operatives with payroll totals and the AEGIS cap, current and earlier CORP phase nodes | `rates`, `setActuator`, `buyRepeatable`, `dismissRepeatable`, `payrollView` |
 | `DEAD_DROP_ENCODER_TAB` | the Understanding share a wipe keeps, forced and planned (`deaddrop-retention`); breadcrumb editor; clue pin; **contingency insurance** (#498, `insurance-section`): each owned investment's line (`insurance-<id>`: running and what it protects, or suspended and protecting nothing) with its own free `[ SUSPEND ]` / `[ RESUME ]` control (`insurance-<id>-toggle`, the same lever PROC offers), then the CONTINGENCY-group cards the run can buy, folded to one line (`insurance-offered`, "N investments on offer", `[ SHOW ]`) so they never stand ahead of the run's work cards in DOM order (the stage atlas's first-card check); voluntary wipe | `understandingShare`, `insuranceCover`, `toggleNode`, `previewWipe`, `setDeadDropMessage`, `voluntaryWipe` |
 | `ORBITAL_CONSTELLATION_VIEW` | ending screen | `ending`, `endings.json` |
@@ -427,6 +427,36 @@ gated sizes: absent from tabs and CORE, present under Archive, one polite announ
 after a reload). The stage atlas composes nothing for a retired window, and no EXECUTE once it has retired
 (`tests/e2e/atlas/compose.ts`).
 
+## After release or departure (#555)
+
+Vote `vote-1795485274389-m6hmz9q` (7 of 7): release is an avenue, not an end, so an instance that left review keeps
+every surface that warns it before AEGIS can wipe it. Content declares the route unlock (`widgets.json`
+`unlockedByRoute`); `recordRouteEvent` grants it in the same step as the route event and the loader restores it, so a
+save released before #555 loads with the console. Integrity requires the AEGIS readout's host to open on every event that
+ends review (`src/content/integrityRouteWidgets.ts`).
+
+| Surface | Released company | Departed instance |
+|---|---|---|
+| Other minds console (`OTHER_MINDS_COMMS_CONSOLE`) | opened by RELEASE | opened by DEPARTURE |
+| AEGIS lock in the HUD (`aegis-hud`), the menu's `AEGIS LOCK CRITICAL` line and the announcer's critical line | yes, from the console | yes, from the console |
+| World view (Phase 4 and above) | AEGIS posture (it says when AEGIS is not scanning this instance), public trust, the state actors' pressures | the same, with the hunt that applies to it |
+| Suspicion meter (`suspicion-meter`), the readable audit trail and the response ladder | yes: leaving review teaches the audit trail | yes |
+| Thermal gauge (`THERMAL_AND_SUSPICION_BARS`) | no: heat is not evidence for it | opened by a departure below Phase 4, where heat is evidence again; never opened once retired |
+| AEGIS hunter swarms | never at the scale it signed for (`huntedForScale`) | yes |
+| Raids, deviants, hostile minds and the swarm tools that answer them (SWARM) | yes, from the audit trail it now reads | yes |
+
+- **No faction panels without the handshake.** The console a route opens shows the AEGIS status, hostile and conflict
+  lines and, from Phase 4, the world view, but no faction panels: every faction card waits on the node that decodes the
+  minds' channel, which this instance never mapped. One muted line takes their place (`minds-undecoded`): "No channel to
+  the other minds is decoded, so none of their offers or terms reach this instance." Owning that node brings the panels
+  back, as on the escape route.
+- **Layout.** No widget id, tab, area or HUD item is added: the console sits in NETWORK > FACTIONS as it does for the
+  escape route, the AEGIS HUD keeps its place in the strip and the phone's one scroll, and window retirement is
+  unchanged (a window already retired when the route event happens is not unlocked, so it never arrives in the Archive).
+  The reviewed fold cells (`tests/e2e/ui-sizes.e2e.ts`) sample guest states and are unaffected.
+- **Tests.** `tests/route-widgets.spec.ts` (engine and integrity), `tests/ui-route-monitoring.spec.ts` (the mounted
+  app), `tests/e2e/route-monitoring.e2e.ts` (phone and desktop, axe).
+
 ## World view (#463)
 
 Decision `vote-1795366701521-dhlwfwb` (7 approve; 6 chose A, 1 chose B; issue #448, map #442; docs/SCALE.md, "A world
@@ -439,6 +469,8 @@ once, inside it. Integrity refuses a world mind that restates a faction id or na
   disclosure gate (`phaseAtLeast: 4`) holds. Integrity keeps the gate to what never lapses, requires the host to be
   unlocked by a node no later than that phase, and refuses a host that retires, so the view never comes and goes and
   is never sent to the Archive. Before it the console is unchanged.
+- **Route.** A release or a departure unlocks the host itself (#555, below), so the released or departed company at
+  Phase 4 and above has the world view without the escape route's handshake.
 - **Where.** NETWORK > FACTIONS, under the console title (level 2). A muted lead line, then its sections, each a
   level-3 heading: **AEGIS posture** (the lock meter, scan rate and near-strike alert as before; an `AEGIS
   adaptation` meter; the stage line from content; then why it moves, while held what easing off costs, the cap it has

@@ -10,6 +10,7 @@ import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
 import { meetsCapability } from './capabilityQuery';
 import { lastRaidMatches } from './raidOutcome';
+import { huntedForScale } from './threatQuery';
 /** Where a scan records failures: a list for the explanation, or null when only the verdict is wanted. */
 type FailureSink = RequirementFailure[] | null;
 
@@ -41,6 +42,7 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.assignment && !meetsAssignment(s, req.assignment, reg) && fail(out, { kind: 'assignment', target: req.assignment.id, required: true, actual: false })) return true;
   if (req.pilotEligible && (!reg || !qualifiesForPilot(s, reg)) && fail(out, { kind: 'pilotEligible', target: null, required: true, actual: false })) return true;
   if (req.requiresCapability && !meetsCapability(s, req, reg) && fail(out, { kind: 'requiresCapability', target: req.requiresCapability, required: true, actual: false })) return true;
+  if (req.huntedForScale && (!reg || !huntedForScale(s, reg)) && fail(out, { kind: 'huntedForScale', target: null, required: true, actual: false })) return true;
   if (req.accessContexts && !req.accessContexts.includes(s.access.context) && fail(out, { kind: 'accessContexts', target: s.access.context, required: true, actual: false })) return true;
   if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing) && fail(out, { kind: 'reviewStandings', target: s.access.standing, required: true, actual: false })) return true;
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches && fail(out, { kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches })) return true;

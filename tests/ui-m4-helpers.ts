@@ -4,7 +4,7 @@ import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { makeFixtures } from '../scripts/make-fixtures';
-import { importSave } from '../src/engine';
+import { importSave, type GameState } from '../src/engine';
 import { CONTENT } from '../src/content';
 import { gameStore } from '../src/app/session';
 import TerminalScreen from '../src/ui/TerminalScreen';
@@ -36,6 +36,15 @@ export async function mountM4(
   // Lets a spec mount the screen inside a context it controls (safe-area insets).
   wrap: (screen: ReactElement) => ReactElement = (screen) => screen
 ) {
+  return mountState(m4State(name), viewport, wrap);
+}
+
+/** The mounted app on a state a spec reached itself (route helpers), loaded as a restore is. */
+export async function mountState(
+  state: GameState,
+  viewport: { width: number; height: number } = { width: 1440, height: 900 },
+  wrap: (screen: ReactElement) => ReactElement = (screen) => screen
+) {
   Object.defineProperty(host.document.documentElement, 'clientWidth', { configurable: true, value: viewport.width });
   Object.defineProperty(host.document.documentElement, 'clientHeight', { configurable: true, value: viewport.height });
   // react-native-web's Dimensions reads the window, not documentElement, in some
@@ -47,7 +56,7 @@ export async function mountM4(
   host.document.body.appendChild(container);
   const root = createRoot(container);
   await act(async () => { root.render(wrap(createElement(TerminalScreen))); await vi.advanceTimersByTimeAsync(0); });
-  await act(async () => { gameStore.initialize(m4State(name), 0, null); await vi.advanceTimersByTimeAsync(0); });
+  await act(async () => { gameStore.initialize(state, 0, null); await vi.advanceTimersByTimeAsync(0); });
   const close = () => { act(() => { root.unmount(); }); container.remove(); closes.delete(close); };
   closes.add(close);
   const find = (id: string) => host.document.querySelector<HTMLElement>('[data-testid="' + id + '"]');

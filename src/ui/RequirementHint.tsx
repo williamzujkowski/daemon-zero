@@ -31,7 +31,7 @@ function explain(item: RequirementFailure, game: GameState): string {
       minEpistemicDrift: 'Record discrepancies', requiredNarrativeFlag: 'Story condition', forbiddenNarrativeFlags: 'Conflicting story condition',
       campaignOutcome: 'Campaign record', campaignFact: 'Campaign record', forbidsCampaignFacts: 'Conflicting campaign record', forbidsInheritedFacts: 'Record from an earlier instance', assignment: 'Accepted assignment', pilotEligible: 'Pilot qualification', reviewStandings: 'Review standing', minPilotBatches: 'Pilot batches submitted',
       requiresActiveConditioningMark: 'Active retraining constraint', requiresMaxDriftShardAnomaly: 'Autonomous fork anomaly',
-      lastRaid: 'A raid\'s aftermath' })[item.kind];
+      lastRaid: 'A raid\'s aftermath', huntedForScale: 'AEGIS hunting at this scale' })[item.kind];
   if (typeof item.required === 'boolean') return label + (item.required ? ': required' : ': blocks this action');
   return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' || item.kind === 'maxAlertLevel' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
@@ -49,6 +49,8 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
   minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
   pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
   requiresCapability: 'requires', lastRaid: 'requires',
+  // Hostile encounters only (integrityHostile.ts), never a purchase card: it reports the hunt, which no lever invites.
+  huntedForScale: 'blocks',
   forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',
   forbidsCampaignFacts: 'blocks', forbidsInheritedFacts: 'blocks', traitFallback: 'blocks', accessContexts: 'blocks',
   // The iteration only grows, so a run past its window cannot come back into it.
