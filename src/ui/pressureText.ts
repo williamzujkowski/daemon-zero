@@ -59,7 +59,9 @@ function offer(answer: AnswerView, names: Names): string | null {
   const name = answerName(answer, names);
   if (answer.action === 'BUY') return `buy ${name}`;
   if (answer.action === 'RESUME') return `resume ${name}`;
-  if (answer.action === 'HIRE' && answer.level) return `hire ${name} (${String(answer.level.held)} of ${String(answer.level.needed)} held)`;
+  if ((answer.action === 'HIRE' || answer.action === 'BUILD') && answer.level) {
+    return `${answer.action === 'HIRE' ? 'hire' : 'build'} ${name} (${String(answer.level.held)} of ${String(answer.level.needed)} held)`;
+  }
   return null;
 }
 

@@ -6,7 +6,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { EffectPayload } from '../content/schema';
-import type { RaidKind } from '../content/schemaConflict';
+import { tracedRival, type RaidKind } from '../content/schemaConflict';
 import type { LastRaidRequirement, StaffHarm } from '../content/schemaRaidOutcome';
 import type { Dilemma } from '../content/schema';
 import { campaignRecord, isCampaignActive, isCampaignConsumed } from './campaignQuery';
@@ -47,7 +47,8 @@ export function lastStaffHarm(s: Pick<GameState, 'conflict'>): StaffHarm | null 
 export function lastRaidMatches(s: Pick<GameState, 'conflict'>, gate: LastRaidRequirement, reg: ContentRegistry | undefined): boolean {
   const last = s.conflict.lastRaid;
   const kind = reg === undefined ? undefined : kindOf(reg, last?.id);
-  if (last === null || reg === undefined || kind === undefined) return false;
+  // Only a traced rival's battle answers a gate: a deviant's or a hazard's is never anyone's to answer for (#486).
+  if (last === null || reg === undefined || kind === undefined || !tracedRival(kind)) return false;
   if (gate.named === true && !last.named) return false;
   if (gate.collateral !== undefined && (kind.attacker.collateral !== undefined) !== gate.collateral) return false;
   return gate.staffHarm === undefined || last.harm === gate.staffHarm;
@@ -55,8 +56,8 @@ export function lastRaidMatches(s: Pick<GameState, 'conflict'>, gate: LastRaidRe
 
 /** The raider the last battle's attribution named, or undefined when it was not named or no battle is on record. */
 export function namedRaider(s: Pick<GameState, 'conflict'>, reg: ContentRegistry): RaidKind | undefined {
-  const last = s.conflict.lastRaid;
-  return last?.named === true ? kindOf(reg, last.id) : undefined;
+  const last = s.conflict.lastRaid, kind = last?.named === true ? kindOf(reg, last.id) : undefined;
+  return kind !== undefined && tracedRival(kind) ? kind : undefined;
 }
 
 /**
@@ -76,9 +77,10 @@ export function raiderVars(s: Pick<GameState, 'conflict'>, reg: ContentRegistry)
  * harms one person at most, and a scene answered later cannot re-band the same raid.
  */
 export function lastRaidOf(s: GameState, reg: ContentRegistry, kind: RaidKind, attributed: boolean | null, rounds: readonly RaidRound[]): LastRaid {
-  const breach = breachOf(rounds), rival = kind.source === 'RIVAL';
-  // Only a rival is answered or harms anyone: a drift deviant is the player's own fleet, and the player's machines never
-  // harm a human by an automatic rule; retaliation targets rival AIs.
+  const breach = breachOf(rounds), rival = tracedRival(kind);
+  // Only a traced rival is answered or harms anyone: a drift deviant is the player's own fleet, and the player's machines
+  // never harm a human by an automatic rule; retaliation targets rival AIs; and a hazard (#486, the swarm's debris) is no
+  // one's raid to name, answer, silence or blame, so it leaves a record that is never named and harms no one.
   return { id: kind.id, named: rival && attributed === true, breach, harm: rival ? staffHarmFor(kind, breach, reg, openStaffBands(s, reg)) : null };
 }
 

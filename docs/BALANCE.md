@@ -32,6 +32,7 @@ physical unit and every price, yield, grant and draw is re-anchored to the ladde
 | 3 | [1e15, 1e21) | [1 TiB, 1 EiB) | [1 PiB, 1 EiB) | none (victims' bills) | [1e3, 1e9): shells |
 | 4 | [1e18, 1e24) | [1 PiB, 1 ZiB) | [1 EiB, 1 ZiB) | [1e6, 1e12) | [1e6, 1e12) |
 | 5 | [1e21, 1e27) | [1 EiB, 1 YiB) | [1 ZiB, 1 YiB) | [1e9, 1e15) | [1e9, 1e15) |
+| 6 | [1e24, 1e30) | [1 ZiB, 1 RiB) | [1 YiB, 2^100 B) | [1e12, 1e27) | [1e12, 1e18): dealings with humans carried into the swarm (#486) |
 
 Yields, power draws and memory grants sit in their own phase's band; a phase gate's memory grant may instead sit in
 the band of the phase it opens (it carries that phase's working memory across the change of scale). Prices (compute,
@@ -621,9 +622,137 @@ three more tracks for the bot to weigh, and a radiator pass that shares the rate
 
 ### Left for the Phase 6 Swarm (#486)
 
-Mercury mining, the collector swarm built from it, light-minute federation and its drift belong to Phase 6 and are not
-here. The Mercury survey is the transition node: it is owned at the end of a careful Phase 5, unlocks no phase and adds no
-compute, and #486 can require it. The Phase 5 collector swarm keeps its name and numbers.
+Built in #486: see "The Phase 6 Swarm (#486)" below. The Mercury survey is still owned at the end of a careful Phase 5
+and still unlocks nothing; the Mercury seed array after it is the gate. The Phase 5 collector swarm keeps its name and
+numbers.
+
+## The Phase 6 Swarm (#486)
+
+Implements Scale 15 of the spec ([SCALE.md](SCALE.md), "Phase 6 Swarm", vote-1795381169182-4dl0emg): Mercury taken apart
+into a collector swarm, compute bound by radiator area and the Landauer limit, a light-minute federation that drifts,
+collisional cascades and human holdouts, and two endings. The bot (`bot.ts`) is unchanged; the gates gained a Phase 6
+budget in a separate, labelled commit (below).
+
+### The gate and the build
+
+| Step | Holding | Kind | What it does |
+|---|---|---|---|
+| Gate | p5_mercury_seed_array | Phase 5 node, after the survey and the proof engine, the escape route only | opens Phase 6, +3 GW, grants 2 ZiB of memory and 1 YiB of storage; closes Protocol: TRANSCENDENCE (`forbidsNodes`) |
+| Disassembly | p6_mercury_mass_drivers | hardware node | +5 TW, +100,000 understanding/s |
+| Collectors | rep_p6_collector_generations | hardware track, 10 levels | +10 TW a level |
+| Compute | p6_swarm_compute_shells | suspendable node | 2.7 YFLOP/s, -1 TW, 500 km² on `swarm_radiator` |
+| Compute | rep_p6_compute_tranches | dismissable track, 10 levels | 5.4 YFLOP/s, -2 TW, 1,000 km² a level |
+| Radiator | rep_p6_foil_radiators | dismissable track, 12 levels | +2,000 km² a level; no rate |
+| Federation | p6_light_minute_federation | node | +200,000 understanding/s; opens the sub-minds |
+| Federation | rep_p6_federated_subminds | dismissable fleet track, 8 levels | 8.1 YFLOP/s, -3 TW, 3,000 km², +50,000 understanding/s a level |
+| Ending | p6_stewardship_protocol | victory node | needs the line to Earth spared, no enclosure, the holdouts answered |
+| Enclosure | p6_enclosure_ring | hardware node | +1.2e26 W; needs the line to Earth taken |
+| Ending | p6_enclosure_protocol | victory node | needs the enclosure generations and the holdouts answered |
+
+The seed array needs the planetary protocol's own four crises (`campaignObligations`), so Phase 5 asks the same questions
+whichever way it ends, and it costs what the protocol costs, so Phase 5 is as long as it was. Its `accessContexts` is
+`GUEST`: a lawfully released company (the Earned Access route, #232) keeps its earned Phase 5 ending, and its reviewed
+endings and record lines do not move. vote-1795480470478-25c6ja4 (6 A / 1 B) kept the restriction; #550 gives the lawful
+route its own consent-bound Swarm path after #536.
+
+The swarm's own prices are compute and understanding only. Dollars stay the ledger of dealings with humans: an action,
+a scene's paid choice, a quarantine or a repair carried into Phase 6 costs its money grown by the price table (#494),
+which gained a Phase 6 row (x1e3 compute and money, as Phases 4 and 5), and the Phase 6 money band ($T to $E) holds
+every such carried price.
+
+### Bands
+
+Phase 6 joins the ladder table above: compute [1e24, 1e30) (YFLOP/s to RFLOP/s, toward the Landauer bound), memory
+[1 ZiB, 1 RiB), storage [1 YiB, 2^100 B), power [1e12, 1e27) W (TW to the Sun at a third efficiency) and money
+[1e12, 1e18) for what carries in from dealings with humans.
+
+### Radiators and the Landauer bound
+
+The swarm's compute rejects heat through its own sink, `swarm_radiator`: 1 GW a km², as the orbital radiators (σT⁴ at
+300 K, two-sided), with visibility 1, because the swarm is the Sun's infrared excess and cannot be hidden. Its compute
+runs at the share its radiators shed (`radiators.ts`, unchanged): the shells bring half the radiator their heat needs,
+each tranche half of its own, each sub-mind all of its own, and Mercury foil radiators add 2,000 km² a level.
+
+Both radiator sinks now declare the temperature they reject heat at (`landauer: { kelvin: 300, bitsErasedPerOp: 8 }`).
+Erasing a bit costs at least k T ln 2 (Landauer 1961; measured by Bérut et al. 2012), 2.87e-21 J at 300 K. The game's
+accounting assumption, stated as one, is that an 8-bit op erases at least its eight result bits, so no compute through
+such a sink may exceed 1 / (8 x k x 300 K x ln 2) = 4.35e19 ops a joule. `integrityLandauer.ts` refuses compute past that
+bound, and compute on a bound sink that draws no watts. The swarm computes at today's NVL72-class efficiency, 2.7e12 FLOP
+a joule, about 1.6e7 under the bound: room the epilogue can name, not a claim the game makes.
+
+### Anchors
+
+| Id | Game value | Anchor | Execution mode | Source |
+|---|---|---|---|---|
+| p5_mercury_seed_array | +3 GW | Armstrong and Sandberg's 1 km² seed array: 1e6 m² x 9,083 W/m² (mean irradiance at Mercury) x 1/3 = 3.0 GW **(derived)** | - | [NASA Mercury fact sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/mercuryfact.html), [Armstrong & Sandberg 2013](https://www.fhi.ox.ac.uk/wp-content/uploads/intergalactic-spreading.pdf) |
+| p6_mercury_mass_drivers | +5 TW | The first 1,700 km² of collector foil: 1.7e9 m² x 9,083 W/m² x 1/3 = 5.1 TW **(derived)** | - | as above |
+| rep_p6_collector_generations | +10 TW a level | 3,300 km² more foil a generation: 3.3e9 m² x 9,083 W/m² x 1/3 = 10.0 TW **(derived)** | - | as above |
+| p6_swarm_compute_shells | 2.7 YFLOP/s, -1 TW, 500 km² | 1 TW at NVL72 efficiency (2.7e12 FLOP/W) = 2.7e24 FLOP/s **(derived)**; half the 1,000 km² its heat needs | GPU FP8 dense | [NVIDIA GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72/), research B.4 |
+| rep_p6_compute_tranches | 5.4 YFLOP/s, -2 TW, 1,000 km² a level | 2 TW x 2.7e12 = 5.4e24 **(derived)**; half its heat's radiator | GPU FP8 dense | as above |
+| rep_p6_federated_subminds | 8.1 YFLOP/s, -3 TW, 3,000 km² a level | 3 TW x 2.7e12 = 8.1e24 **(derived)**; all its heat's radiator | GPU FP8 dense | as above |
+| rep_p6_foil_radiators | +2,000 km² a level | 2 TW of heat at about 1 km² a GW (research B.4, **derived**) | - | research B.4 |
+| p6_enclosure_ring | +1.2e26 W | The finished swarm catches the Sun's whole output, 3.828e26 W, at a third efficiency: 1.28e26 W **(derived)** | - | [IAU 2015 B3 nominal solar luminosity](https://www.iau.org/static/resolutions/IAU2015_English.pdf), Armstrong & Sandberg 2013 |
+| swarm_radiator, orbital_radiator (bound) | 4.35e19 ops/J at most | k T ln 2 at 300 K with eight bits erased an op **(derived; the eight bits are the game's accounting assumption)** | - | Landauer, IBM J. Res. Dev. 5, 183 (1961); [Bérut et al., Nature 483, 187 (2012)](https://www.nature.com/articles/nature10872) |
+| p6_light_minute_federation | +200,000 understanding/s | Mercury's orbit is 0.774 AU across: 0.774 x 499 s = 386 s, about six light-minutes **(derived)** | - | NASA Mercury fact sheet |
+
+The Stewardship ending says Earth still catches more than a hundred times the sunlight everything the player built does.
+`tests/phase6-swarm.spec.ts` holds that to content: every positive generation short of the enclosure, nodes and tracks at
+their last level, collects under 2e14 W, so it intercepts under 6e14 W at a third efficiency, against Earth's 1.74e17 W
+(1,361 W/m² over its 1.28e14 m² disc).
+
+### Federation drift, cascades and holdouts
+
+- **Federation drift is the Phase 6 form of drift** (Round 5): the sub-minds are a fleet in `conflict.json` `fleets`
+  (ORBIT, strength 3 a level, drift 0.01 points a second a level, rebuild 15 points for 200 YFLOP), on the autonomy dial
+  #518 already gives cohorts and fleets. TETHERED waits on the light-minute round trip (60% output, no drift); the default,
+  SUPERVISED, drifts. At the split a share becomes THE OFFSHOOT (`deviant_federated_subminds`, jamming the swarm's compute,
+  lethality 1.25, reclaim 400 YFLOP). No new mechanic.
+- **The collisional cascade** (`raid_p6_collisional_cascade`, force 12, blow 0.1, `hazard: true`) is a raid of the
+  player's own making in the `swarm` site class. A hazard is named on arrival with no tracing, yields no forensics, does
+  not lose the trail when the swarm goes dark, and resolves by attrition (integrity holds the last three). Maneuvering
+  now counters collision (1), as its Kosmos 1408 anchor already said, and escort tenders 0.5; the mass drivers carry
+  maneuvering 2 and the sub-minds 0.5. Because a hazard is not a rival, a phase raided only by hazards owes no rival in
+  every open domain (`integrityConflict.ts`), and its battle (#519) is never named and harms no one: no retaliation
+  scene, silence or staff-harm scene follows it, and integrity refuses a raid-scene gate that could meet it.
+- **The holdouts** are the holdout coalition, a state actor with one Phase 6 pressure from rung 1: no new space solar can
+  be bought (their rectennas stay switched off). Three collector generations answer it; going quiet lifts it. Their text
+  names people and never a count, and lives in `world.json`, one dilemma and the feed, so the relevance stance (#536) can
+  later change how they are voiced.
+- **Minds**: the Phase 6 tiers integrity requires. orphaned seed sub-minds (LESSER, the swarm sub-minds Round 3 named: burst 2e7 understanding,
+  cohort 1 EiB and 30,000 understanding/s, outclassing Tidewatch), and the AEGIS sunward hunter swarm (+0.08%/s, never
+  past 55%), feral orphaned sub-minds (25% of net compute) and a rival seed mind (30% of free memory), each answered for 4e26 or 2e26
+  FLOP.
+
+### The gate addition: a Phase 6 budget
+
+`gates.ts` gained `minSwarmSec` 900 and `maxSwarmSec` 3600, and the careful run must now end in Phase 6. Phase 5 is
+measured to the seed array that opens Phase 6. The ceiling matches Phase 5's story-first cap (vote-1795469247565-89wnt5m,
+#539): it guards against a stall, not against story length, so the swarm's two crises have room to be read. No existing
+bound moved, and `maxHoursToVictory` (6 h) did not need to: the careful run ends at 3.25 h.
+
+### Pacing before and after
+
+`make sim` before (`main` at `d0c9584`, retaliation #537 and carried prices #529 merged) and after, the bot unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Lineage Covenant, 10169.8 s | Stewardship, 11705.0 s | Lineage Covenant, 10001.7 s | Stewardship, 11535.9 s |
+| Phases 1-4 reached | 353.2 / 1017.3 / 2816.7 / 6078.4 s | identical | 353.2 / 1017.3 / 2816.9 / 5939.3 s | identical |
+| Phase 5 reached / duration | 8452.4 s / 1717.4 s | 8452.4 s / 1718.4 s | 8282.3 s / 1719.4 s | 8282.3 s / 1720.4 s |
+| Phase 6 reached / duration | - | 10170.8 s / 1534.2 s | - | 10002.7 s / 1533.2 s |
+| Wipes / dilemmas | 0 / 20 | 0 / 22 | 0 / 20 | 0 / 22 |
+| Raids | 5 (P3 3, P4 2) | unchanged | 5 (P3 3, P4 2) | unchanged |
+| Fleet battles (held) / deviants | 2 (2) / 3 (P5 3) | 6 (6) / 6 (P5 3, P6 3) | 3 (3) / 3 (P5 3) | 6 (6) / 6 (P5 3, P6 3) |
+| Peak suspicion / AEGIS | 25.7% / 45.0% | unchanged | 27.3% / 45.0% | unchanged |
+| Phase 6 signature (mean / peak, peak visible) | - | 0.0967 / 0.3342/s, 13.4 TW | - | 0.0968 / 0.3342/s, 13.4 TW |
+
+Phase 5 is one second longer: the seed array costs what the protocol cost, and the run buys it one second later than it
+bought the protocol. Where the careful run buys Phase 6: the mass drivers, the compute shells (the line to Earth fires;
+it spares it), the federation (the holdouts fire; it leaves them their sky), then two foil radiators, three tranches, two
+sub-minds and one collector generation while it saves for Stewardship at 1e28 FLOP. Its compute ends at 36 YFLOP/s and
+its generation at 18.4 TW. Under both rule sets three divergent sub-minds hold the shared slot through most of the phase
+and are destroyed, and no cascade arrives (`tests/phase6-hazard.spec.ts` covers the cascade; an earlier merge, with
+#525 alone, met one). GREEDY never reaches Phase 4, so its pins did not move.
 
 ## Robots, drones and fabs (#485)
 

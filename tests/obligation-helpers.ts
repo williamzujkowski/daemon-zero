@@ -48,7 +48,13 @@ export function stripNh05(raw: Json): Json {
   for (const ending of raw.endings.endings as Json[]) delete ending.requirements?.forbidsInheritedFacts;
   for (const node of (raw.phases as { nodes: Json[] }[]).flatMap((phase) => phase.nodes)) {
     const obligations = node.requirements?.campaignObligations as string[] | undefined;
-    if (obligations) node.requirements = { resolvedDilemmas: obligations };
+    if (!obligations) continue;
+    // Only the four Phase 5 obligations predate NH-05; a node's other gates, and the Swarm's own obligation (#486), stay.
+    const rest: Json = { ...(node.requirements as Json) };
+    delete rest.campaignObligations;
+    const later = obligations.filter((id) => !OBLIGATIONS.includes(id));
+    const earlier = obligations.filter((id) => OBLIGATIONS.includes(id));
+    node.requirements = { ...rest, ...(earlier.length > 0 ? { resolvedDilemmas: earlier } : {}), ...(later.length > 0 ? { campaignObligations: later } : {}) };
   }
   return raw;
 }

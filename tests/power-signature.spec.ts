@@ -42,7 +42,7 @@ function citadel(): GameState {
 
 describe('the signature rule', () => {
   it('is declared for every phase that has power, linear in visible watts and capped', () => {
-    expect(reg.phases.filter((phase) => phase.powerSignature !== undefined).map((phase) => phase.phaseId)).toEqual([1, 2, 3, 4, 5]);
+    expect(reg.phases.filter((phase) => phase.powerSignature !== undefined).map((phase) => phase.phaseId)).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
   it('charges borrowed watts times the visibility of their source', () => {

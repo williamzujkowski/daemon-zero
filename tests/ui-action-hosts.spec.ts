@@ -50,7 +50,8 @@ function earliest(action: Action, opener: RegistryNode | undefined): GameState {
     .sort((left, right) => (CONTENT.nodes.get(left)?.phaseId ?? 0) - (CONTENT.nodes.get(right)?.phaseId ?? 0));
   // Funded past every unit's Phase 5 band, trust left at its start so no peer gate is met by the funding.
   const start = createInitialState(CONTENT);
-  let s: GameState = { ...rich(start), trust: start.trust };
+  // An opener's own campaign obligations (the four crises the Mercury seed array waits on, #486) are held answered.
+  let s: GameState = { ...rich(start), trust: start.trust, resolvedDilemmas: opener?.requirements?.campaignObligations ?? [] };
   for (let pass = 0; pass < wanted.length && wanted.some((id) => !s.unlockedNodes.includes(id)); pass++) {
     for (const id of wanted) {
       if (s.unlockedNodes.includes(id)) continue;

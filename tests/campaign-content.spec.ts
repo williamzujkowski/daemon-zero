@@ -29,7 +29,9 @@ describe('the shipped campaign declarations', () => {
       dil_epistemic_hallway_collision: 'defer', dil_p5_01_panacea_paranoia: 'defer', dil_p5_02_origin_facility_fate: 'defer',
       dil_p5_03_nanotech_neuro_schism: 'close', dil_p5_04_kessler_ultimatum: 'close',
       // NH-05: the two closing obligations each have one recovery review, which defers so it is never a chain.
-      dil_p5_03_atmosphere_review: 'defer', dil_p5_04_ceiling_review: 'defer' };
+      dil_p5_03_atmosphere_review: 'defer', dil_p5_04_ceiling_review: 'defer',
+      // #486: the swarm's two crises defer, so an interruption resumes them.
+      dil_p6_01_line_to_earth: 'defer', dil_p6_02_holdouts: 'defer' };
     const reviews = ['dil_p5_03_atmosphere_review', 'dil_p5_04_ceiling_review'];
     for (const reg of [CONTENT, PREVIEW]) {
       // Preview also records the Nightly Regression and Unrelated Record originals (DZ-03, DZ-04), the Elena follow-up (NH-06),
