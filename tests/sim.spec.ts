@@ -6,6 +6,7 @@ import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, ORIGINAL_GAME, reg } from './helpers';
+import { runHeadlessSimInWorker } from './sim-worker-helpers';
 import { buildRegistry, RAW_CONTENT, type RawContent } from '../src/content';
 import type { ContentRegistry } from '../src/content/registry';
 
@@ -150,7 +151,10 @@ function asV9(report: SimReport): unknown {
 
 describe('headless balance simulation', () => {
   let stealth: SimReport;
-  beforeAll(() => { stealth = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }); }, 30_000);
+  // The report every test below reads, played in a worker thread outside the coverage session (#548): its setup hook
+  // timed out at 30 s on busy CI shards, and the determinism test replays the same run in-process, so every line it
+  // runs is still covered and the two must agree byte for byte across isolates.
+  beforeAll(async () => { stealth = await runHeadlessSimInWorker({ strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }); }, 30_000);
 
   it('a careful player can finish the game inside the pacing budget', () => {
     expect(checkGates(stealth)).toEqual([]);
@@ -189,10 +193,12 @@ describe('headless balance simulation', () => {
   });
 
   it('is deterministic', () => {
+    // In-process, against the worker's run: the same report from two isolates, and the replay coverage counts (#548).
     const again = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
+    expect(JSON.stringify(stealth)).toBe(JSON.stringify(again));
     // The release (#233) folded the Earned Access pack into production; the escape route can buy its shared network
     // content, so production play moved. These are its baselines, legacy rules; make sim gates the same run under
     // campaign rules too. The historical hashes below now pin the original game alone, which must not move.
