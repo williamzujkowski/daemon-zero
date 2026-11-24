@@ -4,6 +4,7 @@
 import { cohortAutonomy, driftAfter, driftPerSec } from '../autonomy';
 import { channelEncounterEligible } from '../channelContact';
 import { eligibleWildEncounters, lapseRetiredEncounter } from '../encounterTiers';
+import { requestMerge } from '../logMerges';
 import { shardOutput } from '../swarmRates';
 import { refreshAnomaly } from '../swarmEffects';
 import { clamp, fmt, pushLog } from '../util';
@@ -45,5 +46,5 @@ export const evaluateShardMutationsAndEncounters: TickSystem = (d, { dt, reg, do
   if (!next) return;
   d.pendingWildEncounterId = next.id;
   d.encounterSequenceIndex += 1;
-  pushLog(d, reg, next.description, 'LORE');
+  pushLog(d, reg, next.description, 'LORE', requestMerge(next.id));
 };

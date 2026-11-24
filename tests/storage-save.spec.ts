@@ -16,8 +16,8 @@ const withLexicon = (): GameState => {
 };
 
 describe('save v20 (#484)', () => {
-  it('is followed only by the quantum record (#464, v21), the escalation announcements (#490, v22), insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27)', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+  it('is followed only by the quantum record (#464, v21), the escalation announcements (#490, v22), insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28)', () => {
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
   it('migrates a v19 save to the v20 literals, then derives storage from ownership on load', () => {

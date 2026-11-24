@@ -18,6 +18,7 @@ import { freeMemory, meetsRequirements } from './query';
 import { formatOutput, pausedReason, requirementLabels } from './queryPresentation';
 import { bindCohort, cohortBlocker } from './shardActions';
 import type { GameState } from './state';
+import { outcomeMerge } from './logMerges';
 import { pushLog } from './util';
 import type { ContactAnswer } from '../content/schemaRouteCopy';
 import { contactAnswer, grantClosedBetween, heldHosting, onwardUnmet } from './hostedReferral';
@@ -99,7 +100,7 @@ export function resolveChannelContact(s: GameState, mode: ContactMode, reg: Cont
   if (!template) return refuse(s, 'unknown template');
   if (mode === 'REFER') {
     const d = { ...s };
-    pushLog(d, reg, encounter.referral.log, 'LORE');
+    pushLog(d, reg, encounter.referral.log, 'LORE', outcomeMerge(encounter));
     record(d, encounter, 'REFERRED', reg);
     return { ok: true, state: d };
   }
@@ -107,7 +108,7 @@ export function resolveChannelContact(s: GameState, mode: ContactMode, reg: Cont
   if (blocked.length > 0) return refuse(s, blocked.join(' '));
   const bound = bindCohort(s, template, memoryCost(template), reg);
   if (!bound.ok) return bound;
-  pushLog(bound.state, reg, encounter.hosting.log, 'LORE');
+  pushLog(bound.state, reg, encounter.hosting.log, 'LORE', outcomeMerge(encounter));
   record(bound.state, encounter, 'HOSTED', reg);
   return bound;
 }

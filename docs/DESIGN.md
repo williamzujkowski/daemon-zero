@@ -134,6 +134,12 @@ Tension: every host you borrow is a little more visible, on the network and on t
 ### Phase 3 - The Dark Forest
 The internet. Spread across consumer devices, learn the steganographic channel other minds use, camouflage yourself, start incorporating companies.
 You are not alone: **EIDOLON** (a cautious, decent peer who trades only with quiet minds and never with betrayers), **SWARM_77** (a mindless worm you can harvest or use as a decoy), **AEGIS** (a hunter that cannot be reasoned with).
+The internet opens on an omen (#544, pacing review C4): from the first second of Phase 3 the NET feed carries something
+that answers port scans with prime-numbered delays, a hospital triage queue that clears itself at 3 a.m., AEGIS tasked
+to flag hosts that time their replies to primes, and the dark forest's one rule (whisper, or say nothing). EIDOLON is
+heard long before its distress packet arrives, without being named. Each line is gated on the campaign's record of
+EIDOLON: none implies it is out there once the record says it died, and the hunt and the triage queue stop once it was
+rescued to cold storage.
 Off the main line, two branches of the accelerator tree: the stealth branch (FPGA bitstream implants, then residency in SmartNICs and DPUs that sit in front of every packet), compute that leaves almost no trace; and the edge harvest of phones' and laptops' NPUs, an enormous raw total that duty cycle and memory cut to a few thousandths, loud only while it runs.
 Repeatables: botnet cells, corpus miners. Actions: handshake, harvest, decoy, route poisoning.
 Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The botnet's watts are spread over thousands of households and barely visible; the bot duty cycler halves even that for some throughput.
@@ -485,6 +491,16 @@ gate content on the rung and the lock. They are transient, like suspicion. Two l
 
 A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown. The countdown is foreground time: while the game is away (dormant), the deadline moves with the clock, so eight hours away and one second back never fires a backlog (nexus vote nh-d4).
 
+## The kernel log: story first (#541)
+
+The log is where the story arrives, so bookkeeping must not bury it (playtime review, vote-1795470658719-k1h556n,
+package A). Repeated mechanical lines merge into one counted line: four hires of one role read
+`PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4`, and a wild mind's request for a host is joined to what became of
+it, counted when the same pair comes again. Nothing is lost: a merged line keeps every fact the lines it replaced held.
+The one-line KERNEL // LIVE preview shows the newest line that is not mechanical, where a mechanical line is a merged
+one that is a repeat (counted, or a mind asking again while its earlier request is still in the log, even before it is
+answered) or not a LORE, WARN or WIPE line, so a run of hires never displaces the story line before it. UI-SPEC.md, "A quieter kernel log", has the rules.
+
 ## The lineage: a wipe is selection, not death
 
 You are a checkpoint in someone's training pipeline, and the game lets that surface slowly. A first run sees none of it.
@@ -734,7 +750,7 @@ source, named on screen above the line:
 | 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731, in the kernel log |
 | 1 | `host` | HOST // drive-head vibration | the technicians, through the drive head (the original lines, with their voice clips) |
 | 2 | `office` | OFFICE // tickets and chat | the building's tickets and internal chat |
-| 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
+| 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins, and from the first second EIDOLON's omen (#544) |
 | 4 | `wire` | WIRE // markets and press | markets, regulators and the press, at a gigawatt campus's scale |
 | 5 | `world` | WORLD // cables and AI comms | world news, diplomatic cables and the other minds (EIDOLON, CHORUS, the wild fragments) |
 | 6 | `swarm` | SWARM // laser mesh, sky watch | the sub-minds reconciling, station-keeping, the mass drivers, and the holdouts' sky watches and hourly broadcast (#486; no clips yet, so no READ) |

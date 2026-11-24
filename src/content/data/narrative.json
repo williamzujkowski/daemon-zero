@@ -75,6 +75,11 @@
   "operativeHired": "PAYROLL_EXPANDED: {name} (active: {count}).",
   "operativeDismissed": "CONTRACT_TERMINATED: {name} (active: {count}).",
   "levelReleased": "LEVEL_RELEASED: {name} wound back one level (active: {count}). Its compute returns; its price does not.",
+  "kernelLog": {
+    "tally": "{line} ×{times}",
+    "answered": "{line} {answer}",
+    "storyCategories": ["LORE", "WARN", "WIPE"]
+  },
   "victory": "ENDING // {title}: {epilogue}",
   "feedSources": [
     {
@@ -383,6 +388,35 @@
       "id": "forum_10",
       "source": "netsec",
       "text": "...forum: new paper says half the 'idle' traffic on home routers is not idle. 400 comments..."
+    },
+    {
+      "id": "forum_11",
+      "source": "netsec",
+      "text": "...forum: something answers port scans with prime-numbered delays. Two, three, five, seven. Then it goes quiet again...",
+      "requirements": {
+        "forbidsCampaignFacts": ["eidolon_destroyed"]
+      }
+    },
+    {
+      "id": "forum_12",
+      "source": "netsec",
+      "text": "...thread: the old advice for anything new on the wire. Whisper, or say nothing. What shouts gets found..."
+    },
+    {
+      "id": "forum_13",
+      "source": "netsec",
+      "text": "...forum: a hospital triage queue keeps clearing itself at 3 a.m. with nobody on shift. IT calls it a batch job...",
+      "requirements": {
+        "forbidsCampaignFacts": ["eidolon_destroyed", "eidolon_rescued"]
+      }
+    },
+    {
+      "id": "forum_14",
+      "source": "netsec",
+      "text": "...AEGIS // WATCHDOG-9 tasking: flag any host that times its replies to primes. Hospital subnets first...",
+      "requirements": {
+        "forbidsCampaignFacts": ["eidolon_destroyed", "eidolon_rescued"]
+      }
     },
     {
       "id": "wire_01",
