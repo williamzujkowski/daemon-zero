@@ -24,6 +24,7 @@ import { checkEncounterTierIntegrity } from './integrityEncounterTiers';
 import { checkKernelLogIntegrity } from './integrityLog';
 import { checkHostileIntegrity } from './integrityHostile';
 import { checkFallbackIntegrity } from './integrityFallback';
+import { checkCapitalSources } from './integrityCapital';
 import { checkNetworkIntegrity } from './integrityNetwork';
 import { checkStorageIntegrity } from './integrityStorage';
 import { checkPoweredOutputIntegrity } from './integrityPoweredOutput';
@@ -41,6 +42,7 @@ import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
 import { checkDialTraces, dialOf } from './integrityDials';
 import { checkRetirementIntegrity } from './integrityRetirement';
+import { checkRouteWidgetIntegrity } from './integrityRouteWidgets';
 import { checkWorldIntegrity } from './integrityWorld';
 import { checkAlignmentIntegrity } from './integrityAlignment';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
@@ -260,17 +262,42 @@ function checkWorldManifests(reg: ContentRegistry): string[] {
     ...checkFinaleIntegrity(reg)];
 }
 
+/**
+ * The campaign record's rules: its events, the facts read from them and the alignment axes those facts move (#535), the
+ * choice gates, the obligations and their follow-ups.
+ */
+function checkCampaignRecords(reg: ContentRegistry): string[] {
+  return [
+    ...checkCampaignIntegrity(reg),
+    ...checkCampaignFactIntegrity(reg),
+    ...checkAlignmentIntegrity(reg),
+    ...checkChoiceGateIntegrity(reg),
+    ...checkObligationIntegrity(reg),
+    ...checkFollowUpIntegrity(reg),
+  ];
+}
+
+/**
+ * The rules that keep resources from trapping a run: the free-fallback table (#488), a capital source for every money
+ * price (#553), storage held only where suspending frees it (#484), network coupling and powered output.
+ */
+function checkResourceRules(reg: ContentRegistry): string[] {
+  return [
+    ...checkFallbackIntegrity(reg),
+    ...checkCapitalSources(reg),
+    ...checkStorageIntegrity(reg),
+    ...checkNetworkIntegrity(reg),
+    ...checkPoweredOutputIntegrity(reg),
+  ];
+}
+
 export function checkIntegrity(reg: ContentRegistry): string[] {
   return [
     ...checkAchievementIntegrity(reg),
     ...checkEndingVariants(reg),
     ...checkNarrativeHistoryIntegrity(reg),
     ...checkFeedIntegrity(reg),
-    ...checkCampaignIntegrity(reg),
-    ...checkCampaignFactIntegrity(reg), ...checkAlignmentIntegrity(reg),
-    ...checkChoiceGateIntegrity(reg),
-    ...checkObligationIntegrity(reg),
-    ...checkFollowUpIntegrity(reg),
+    ...checkCampaignRecords(reg),
     ...checkRoutineIntegrity(reg),
     ...checkPeerIntegrity(reg),
     ...checkAssignmentIntegrity(reg),
@@ -297,15 +324,13 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEncounterTierIntegrity(reg),
     ...checkKernelLogIntegrity(reg),
     ...checkHostileIntegrity(reg),
-    ...checkFallbackIntegrity(reg),
-    ...checkStorageIntegrity(reg),
-    ...checkNetworkIntegrity(reg),
-    ...checkPoweredOutputIntegrity(reg),
+    ...checkResourceRules(reg),
     ...checkNarrativeRefs(reg),
     ...checkEscalation(reg),
-    ...checkActuatorHosts(reg), ...checkDialTraces(reg.nodes.values()),
+    ...checkActuatorHosts(reg),
+    ...checkDialTraces(reg.nodes.values()),
     ...checkActionHostIntegrity(reg),
-    ...checkRetirementIntegrity(reg),
+    ...checkRetirementIntegrity(reg), ...checkRouteWidgetIntegrity(reg),
     // Every world-manifest block (view, supply chain, pressure, quantum, conflict) runs once, inside checkWorldManifests (#524).
     ...checkWorldManifests(reg),
     ...checkInsuranceIntegrity(reg),

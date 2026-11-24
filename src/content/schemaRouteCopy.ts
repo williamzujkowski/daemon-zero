@@ -52,6 +52,13 @@ export const DilemmaCopySchema = z.strictObject({
   choices: z.array(ChoiceCopySchema).default([]),
 });
 
+/**
+ * An instance's answer through one channel, read from its contact record: referred, hosted, or hosted and then
+ * referred onward once the grant it was hosted under had closed (#553), when the record holds both answers.
+ */
+export const ContactAnswerSchema = z.enum(['REFERRED', 'HOSTED', 'HOSTED_THEN_REFERRED']);
+export type ContactAnswer = z.infer<typeof ContactAnswerSchema>;
+
 /** Whose answer a contact line reads: the instance that reached the ending, or one before it. */
 export const ContactBySchema = z.enum(['THIS_INSTANCE', 'EARLIER_INSTANCE']);
 
@@ -64,7 +71,7 @@ export const AccountLineSchema = z.strictObject({
   id,
   requirements: RequirementsSchema.optional(),
   route: RouteEventKindSchema.optional(),
-  contact: z.strictObject({ encounter: id, response: z.enum(['REFERRED', 'HOSTED']), by: ContactBySchema }).optional(),
+  contact: z.strictObject({ encounter: id, response: ContactAnswerSchema, by: ContactBySchema }).optional(),
   text: z.string().min(20),
 });
 

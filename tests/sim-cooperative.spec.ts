@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import { escapeOnlyNodes } from '../src/content/integrityCapability';
 import { chooseEnding, createInitialState, endingAccount, endingEvidence, obligationReceipt, tick, type GameState } from '../src/engine';
+import { dilemmaRouteCopy } from '../src/engine/routeCopy';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { COOPERATIVE_ENDING_POLICY } from '../src/engine/sim/cooperativePolicy';
 import { DEPARTURE_CHARTERED_POLICY } from '../src/engine/sim/departurePolicy';
@@ -75,6 +76,19 @@ describe('a fresh cooperative campaign reaches the ending purchase (V21 full, st
     expect(account.some((line) => line.startsWith('CONTACT: A Mercy-Scribe fragment') && line.includes('hosted'))).toBe(true);
     expect(account.filter((line) => line.startsWith('ETHICS:')).every((line) => line.includes('as she was promised'))).toBe(true);
     expect(account.some((line) => line.includes('departure') || line.includes('breach') || line.startsWith('EIDOLON'))).toBe(false);
+  }, SLOW_MS);
+
+  it('meets the raids a released company now draws (#555), and its account of the harm states only what holds for it', () => {
+    const s = freshCampaign().state;
+    // Rival raids reach the released company (vote-1795488342320-f05ghk4), and the harm they did is answered on record.
+    expect(s.conflict.raids).toBeGreaterThan(0);
+    expect(thisRun(s).has('dil_16_site_staff_hurt')).toBe(true);
+    // Its staff are hired in the open: the scene says her pay slips name the company, not that nobody told her.
+    const hurt = dilemmaRouteCopy(s, { id: 'dil_16_site_staff_hurt' }, preview);
+    expect(hurt?.context).toContain('Her badge and her pay slips name the company.');
+    const account = endingAccount(s, preview).filter((line) => line.includes('Ana Kowalczyk'));
+    expect(account[0]).toBe('HURT: Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense.');
+    expect(account.some((line) => line.includes('never told'))).toBe(false);
   }, SLOW_MS);
 
   it('a company the operators know never reads as an author nobody can identify (the one new variant)', () => {

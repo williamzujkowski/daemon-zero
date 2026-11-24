@@ -468,7 +468,7 @@ natural decay and thermal retirement. A purchase or an action that spends someth
 
 **Permanent holdings** (`fallbackHoldings.ts`) are what no free lever undoes: an unsuspendable node (hardware) at its
 dial's quiet end when its dial host never retires and every route to the node opens it; an undismissable track at its
-last level; a cohort an authorized channel hosts (hosted, not commanded, so never released) at its cap with the worst
+last level; a cohort an authorized channel hosts (hosted, not commanded, and not released while its grant stands) at its cap with the worst
 quirk on each term; an action output with no `durationSec` (times `maxPurchases`; with no limit it may worsen nothing).
 A timed action output is bounded by its `durationSec`. Each holding carries what owning it guarantees: the nodes every
 route to it passes through (prerequisites and required nodes; a capability gate guarantees only what every
@@ -510,6 +510,21 @@ rates are safe); heat relaxes to a steady state at or under the threshold with t
 `suspicionRecoverySec()` (4,300 s on the shipped ladder; the top rung hunts, so nothing above it is free); a timed
 action is judged once it has expired. It includes the panel pass 3 reproduction: a clamped draining cohort forked from
 the migrated Phase 2 save was a permanent brownout with the levers of 97d639f and is undone by RELEASE now.
+
+**Progress stays reachable (#553).** The traps read rates only, and the maintainer's departed instance with a hosted
+fragment had every rate safe and nothing it could buy. So the guard also checks, from every guard state and from every
+state a purchase it can save for leaves, that play can go on (`progress` in `tests/free-fallback.ts`): with every free
+memory lever pulled (each cohort member the engine lets go, a release or an onward referral), some node on offer has a
+reachable price (its memory and storage free, its cycles and understanding on hand or earned, its capital on hand or
+earned with the allocation dial at its top), and every capital price on offer has a reachable source (capital earned
+now, or a reachable node that would earn it). Its corpus includes the hosted-fragment route states
+(`tests/hosted-exit-fixtures.ts`, built on production content and loaded through the codec): the service with its grant
+standing and after a departure, a negotiated release and a recall. With the fix reverted (engine and content back to
+d0c9584) the three closed-grant states fail it ("nothing on offer is reachable (p2_arp_discovery, p2_leased_rack)",
+"no reachable capital for p2_leased_rack") while every trap check on them still passes. Content carries the matching
+rule (`integrityCapital.ts`): a node or track priced in capital that an arrangement can buy needs a node that
+arrangement can own, priced in no capital, in that phase or earlier, that pays capital or carries
+`ENABLES_CORPORATE_FINANCE` (`tests/capital-source-integrity.spec.ts` proves it refuses the content as it stood).
 
 **Reachability in the UI** (#488 panel passes 4 and 5). A lever the engine accepts is only free if the player can find
 its control, so every gate on the path to one asks one predicate in `src/ui/purchaseVisibility.ts`:
@@ -1998,6 +2013,27 @@ be clamped for free (shackled, MOLOCH as operational evidence) with no review co
 population that no channel hosted keeps every command. Tests: `tests/hosted-not-commanded.spec.ts` (every command refused unchanged
 and not offered, through a reload; referred, unhosted and earlier-instance cohorts unaffected) and
 `ui-service-channel.spec.ts` (the swarm row).
+
+**Terms bind only while the grant stands (#553, vote-1795485264278-8b5rhj0).** `hostedReferral.ts` reads, from the
+contact record and the route alone, whether this instance holds a hosted fragment it has not referred onward
+(`heldHosting`) and whether the grant it was hosted under still stands: `grantClosedBetween` replays this iteration's
+route and asks whether any event since the hosting led to an arrangement that does not permit the channel's `grant`, so
+a later grant never revives the first one's terms and no content id is named. While the grant stands nothing changes:
+RELEASE is refused with the terms (`shardReleaseUnmet`) and no referral is offered. Once it has closed,
+`referHostedOnward(s, encounterId, reg)` (and RELEASE on a cohort whose last member is the hosted fragment; members
+harnessed beside it go first) lets the member go for free and appends a second contact entry, `REFERRED`, after the
+`HOSTED` one, logging the channel's `onward.log`. Commands stay refused until then (`shardCommandTerms`): a closed grant
+does not make the fragment commandable. An instance's answer is derived (`contactAnswer`): `HOSTED_THEN_REFERRED` when
+its record holds both, which the ending account's contact gates and the channel view read. No GameState field changed,
+so no schema bump: the loader (`contactProblem`) admits at most one answer per channel per instance or a hosting
+followed by one onward referral, requires the cohort only for a hosting not referred onward, and refuses a referral
+with no route event of its own iteration closing the grant between the hosting and it, an earlier instance's referral
+included (the route record is never trimmed, panel pass 1 on #562). A closure is a real transition: the arrangement before
+the event permits the grant and the one after does not, so a promotion into a pilot or a recall that keeps a pilot a pilot
+closes nothing; and a HOSTED entry, in any iteration, must be dated while the grant stood in that iteration's route
+(`grantStoodAt`: from the event that opened it until one that closed it, an event at the same instant counting either
+way), or the save is refused (panel pass 2 on #562). Tests: `tests/departed-hosted-softlock.spec.ts`,
+`tests/hosted-provenance.spec.ts`.
 
 **One gate for cohort commands (#313).** `shardCommandUnmet` (in `shardActions.ts`) is the only place a cohort
 command's legality is decided: a paused run, a mind that has not decoded its audit trail (`understandsSurveillance`,

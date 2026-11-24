@@ -12,6 +12,7 @@ import { isCampaignActive } from './campaignQuery';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { contextPermits, holdsQualification, isReviewed, routeTarget } from './accessQuery';
 import { ROUTE_HISTORY_LIMIT, type Permission, type Qualification, type ReviewStanding, type RouteEventKind } from './accessState';
+import { withRouteWidgets } from './routeWidgets';
 import type { GameState } from './state';
 
 function refuse(s: GameState, reason: string): ActionResult {
@@ -44,8 +45,9 @@ export function recordRouteEvent(s: GameState, kind: RouteEventKind, reg: Conten
       qualification: holdsQualification(context) ? s.access.qualification : null, scope: holdsQualification(context) ? s.access.scope : null },
     campaign: { ...s.campaign, route: [...s.campaign.route, event] } };
   // DECISIONS D5, VALIDATION V32: a scene the new arrangement cannot structurally hold takes its declared
-  // policy now, through the same check activation and load use; transient triggers are never rechecked.
-  return { ok: true, state: revalidateLivePointers(moved, reg) };
+  // policy now, through the same check activation and load use; transient triggers are never rechecked. The windows
+  // content says this event brings into view open with it (#555), so the threats that follow it are on screen.
+  return { ok: true, state: withRouteWidgets(revalidateLivePointers(moved, reg), [kind], reg) };
 }
 
 /** Sets review standing. Only a reviewed arrangement (pilot or service) has one. */

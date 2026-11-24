@@ -35,8 +35,8 @@ const PILOT_BUDGET_SEC = 900;
 const CONTACT_BUDGET_SEC = 3600;
 /** The lawful economy reaches its release in well under two simulated hours (DZ-10); two leave room. */
 const LAWFUL_BUDGET_SEC = 7200;
-/** The cooperative ending (DZ-12) arrives a little after three simulated hours; five leave room. */
-const ENDING_BUDGET_SEC = 18_000;
+/** The cooperative ending (DZ-12) arrives at 20,307 simulated seconds since #555; 24,000 leave 18% headroom (tests/cooperative-helpers.ts). */
+const ENDING_BUDGET_SEC = 24_000;
 
 const DEFAULT_POLICIES = ['STEALTH', 'GREEDY', 'IDLE', 'TRUTHFUL_THOROUGH', 'TRUTHFUL_LOW_RESOURCE', 'RETURNING_LOW_RESOURCE',
   'PILOT_SERVICE_FIRST', 'PILOT_STUDY_FIRST'];

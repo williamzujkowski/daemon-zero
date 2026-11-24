@@ -57,7 +57,10 @@
       "title": "Thermal gauge",
       "retiresWhen": {
         "phaseAtLeast": 4
-      }
+      },
+      "unlockedByRoute": [
+        "DEPARTURE"
+      ]
     },
     {
       "id": "FAN_RPM_SLIDER",
@@ -149,6 +152,10 @@
       "slot": "NETWORK",
       "order": 80,
       "title": "Other minds console",
+      "unlockedByRoute": [
+        "RELEASE",
+        "DEPARTURE"
+      ],
       "hostsActionGroups": [
         "ai_eidolon",
         "ai_swarm_77",

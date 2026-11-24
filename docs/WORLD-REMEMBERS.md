@@ -111,6 +111,7 @@ main d48130506a6d (preview channel) and the campaign-records note (the NH and DZ
 | dz13a: the preview machinery after release | approved 7/7, option remove-dead-preview-machinery, thresholdMet true; declared alternatives keep-empty-overlay-and-alias and keep-preview-build-same-content | `vote-1795035929741-dezdlho` |
 | dz13b: where the unaccepted assignment offer sits | approved 7/7, option offer-after-hardware, thresholdMet true; declared alternatives one-line-notice-in-place and keep-in-place-rebaseline-fold | `vote-1795035911390-zjcqf8d` |
 | dz13c: the live journey's settings after its first wipe | approved 7/7, option evaluating-settings-from-iteration-2 (bot unchanged), thresholdMet true; declared alternatives keep-greedy-settings-and-accept-stalls and drop-return-iterations-from-live | `vote-1795036211282-jk5xy0o` |
+| Release is an avenue, not an end (map #442): a released or departed instance keeps AEGIS, the world view and its suspicion (#555) | approved 7 of 7. Built as route-declared window unlocks (`unlockedByRoute`), surveillance knowledge from leaving review, and the hunters keeping the hunt's rule (`huntedForScale`); see UI-SPEC "After release or departure (#555)" | `vote-1795485274389-m6hmz9q` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.
@@ -201,6 +202,40 @@ and never submits evidence. It is all declared in content and the engine names n
   its offer.
 
 The headless sim is byte-identical to main: no bot accepts an assignment and then escapes.
+
+## When the grant a hosted fragment came under closes (decision note)
+
+**Decided (#553).** The maintainer hit a dead end in real play: the route ran PROMOTION, SERVICE_GRANT, DEPARTURE,
+the Mercy-Scribe fragment hosted through the support channel reserved the network card's memory, ARP discovery needed
+3 GiB, the fragment could not be released ("Hosted through an authorized channel on the terms it was offered"), and
+the only other memory source, the leased rack, cost $6,600 against $5,450 with no capital income in INDEPENDENT.
+A multi-model Nexus `consensus_vote`, every option declared, chose A, 6 to 1 (`vote-1795485264278-8b5rhj0`; record in
+`daemon-zero-agent-plan/execution/votes/scale-ea-f.json`).
+
+| Option | What it means |
+|---|---|
+| **A (implemented)** | Hosting terms bind only while the grant that offered them stands. After a departure, a negotiated release or a recall the fragment may be referred onward for free, and the record keeps both answers; keeping it stays possible. An independent instance gets a capital source. The guard gains the departed-with-hosted-fragment state and checks that a next purchase stays reachable; integrity requires a capital source wherever capital is a price. |
+| B | Refer the fragment onward automatically at the route event. |
+| C (dissent, the Contrarian) | Keep #309's terms and add only a memory source and a capital source for INDEPENDENT. |
+
+The Contrarian's point stands in the copy: the obligations promised the fragment would stay through a recall, so the
+obligations now also say the terms are made under the service grant, and the onward referral says plainly that the
+promise was made under the grant and the grant is gone. Nothing is automatic: the fragment stays until the player
+refers it.
+
+- **The record.** The referral appends `REFERRED` after the instance's `HOSTED` contact. The ending account reads both
+  as one answer and says: "this instance hosted it under the service grant. When that grant closed, this instance
+  referred it onward. Its terms had promised it would stay through a recall; that promise was made under the grant."
+  An earlier instance's hosting-then-referral has its own line.
+- **Order.** The referral is not commitment evidence. Order counts recorded commitment facts and route events; the
+  contact record is neither, the fragment's consent allows it ("If you cannot host me, pass me on"), and the route
+  event that closed the grant already counts on its own.
+- **Capital.** `p2_spot_compute_market`, Phase 2, INDEPENDENT only, after the service contract (so it is offered to
+  exactly the instances the leased rack is), priced in cycles and understanding: it carries `ENABLES_CORPORATE_FINANCE`
+  and opens the ledger's dial, so diverted compute sells at the market rate (docs/BALANCE.md).
+- **Saves.** No GameState field changed, so this adds no schema bump or migration, and the maintainer's existing save
+  unsticks on load: loading the decoded prefix of that v27 save on this branch (through #551's v28 migration) offers the
+  referral, frees 16 GiB and lets ARP discovery be bought.
 
 ## Tracker
 

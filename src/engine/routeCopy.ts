@@ -8,6 +8,7 @@ import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Dilemma, DilemmaChoice, Requirements } from '../content/schema';
 import type { AccountLine, DilemmaCopy } from '../content/schemaRouteCopy';
 import { iterationRoute } from './accessQuery';
+import { contactAnswer } from './hostedReferral';
 import { meetsRequirements } from './query';
 import { raiderVars } from './raidOutcome';
 import { fmt } from './util';
@@ -58,10 +59,14 @@ export function choiceText(s: GameState, dilemma: Pick<Dilemma, 'id'>, choice: D
   };
 }
 
-/** Whether a contact answer on record satisfies a contact line, by the ending instance or one before it. */
+/**
+ * Whether a contact answer on record satisfies a contact line, by the ending instance or one before it. An instance's
+ * answer is read from all its entries, so a fragment hosted and then referred onward reads as that, not as either (#553).
+ */
 function contactHolds(s: GameState, gate: NonNullable<AccountLine['contact']>): boolean {
-  return s.campaign.contacts.some((contact) => contact.encounter === gate.encounter && contact.response === gate.response
-    && (gate.by === 'THIS_INSTANCE' ? contact.iteration === s.iteration : contact.iteration < s.iteration));
+  const iterations = new Set(s.campaign.contacts.filter((contact) => contact.encounter === gate.encounter).map((contact) => contact.iteration));
+  return [...iterations].some((iteration) => (gate.by === 'THIS_INSTANCE' ? iteration === s.iteration : iteration < s.iteration)
+    && contactAnswer(s, gate.encounter, iteration) === gate.response);
 }
 
 function lineHolds(s: GameState, line: AccountLine, reg: ContentRegistry): boolean {
