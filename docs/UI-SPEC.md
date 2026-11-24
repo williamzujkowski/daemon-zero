@@ -453,7 +453,9 @@ ends review (`src/content/integrityRouteWidgets.ts`).
 - **Layout.** No widget id, tab, area or HUD item is added: the console sits in NETWORK > FACTIONS as it does for the
   escape route, the AEGIS HUD keeps its place in the strip and the phone's one scroll, and window retirement is
   unchanged (a window already retired when the route event happens is not unlocked, so it never arrives in the Archive).
-  The reviewed fold cells (`tests/e2e/ui-sizes.e2e.ts`) sample guest states and are unaffected.
+  The reviewed fold cells (`tests/e2e/ui-sizes.e2e.ts`) sample guest states and are unaffected; the stage atlas's
+  `route-p5-independent` cell passes its hard gates and its ARIA baseline gains the suspicion meter and the wild-signal
+  notice the released company now meets.
 - **Tests.** `tests/route-widgets.spec.ts` (engine and integrity), `tests/ui-route-monitoring.spec.ts` (the mounted
   app), `tests/e2e/route-monitoring.e2e.ts` (phone and desktop, axe).
 

@@ -297,6 +297,8 @@ route-departure route.departure * - 'button "Review departure: Leave authorizati
 route-p5-independent chrome.menu * - 'button "[ MENU ] Game menu"'
 route-p5-independent chrome.status desktop - 'region "Terminal status"'
 route-p5-independent chrome.status phone - 'region "Run status"'
+route-p5-independent hud.suspicion * - 'meter /^Suspicion: \d[\d.,]*%$/'
+route-p5-independent notice.wild * - 'button "SIGNAL PENDING // Tidewatch planetary agent [ REVIEW ] - review this wild signal"'
 route-pilot-dial chrome.menu * - 'button "[ MENU ] Game menu"'
 route-pilot-dial chrome.status desktop - 'region "Terminal status"'
 route-pilot-dial chrome.status phone - 'region "Run status"'
