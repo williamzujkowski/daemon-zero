@@ -8,9 +8,7 @@ import {
   ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignObligationsRequirementSchema, CampaignOutcomeRequirementSchema,
   ChoiceEvidenceSchema, InheritedFactsRequirementSchema,
 } from './schemaCampaign';
-import {
-  AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, RouteEventKindSchema, ScopeConductSchema,
-} from './schemaAssessment';
+import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, RouteEventKindSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, ActuatorRatiosSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
@@ -140,13 +138,12 @@ export const RequirementsSchema = z.strictObject({
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
   /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
   requiresCapability: CapabilitySchema.optional(),
-  /** Met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts). */
-  lastRaid: LastRaidRequirementSchema.optional(),
   /**
-   * Met while AEGIS's scale sweep applies to this instance (threatQuery.huntedForScale, #555): nothing lawful opened its
-   * scale, or it runs above it. A released company at the scale it signed for is not hunted; a departed one is.
+   * lastRaid: met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts).
+   * huntedForScale: met while AEGIS's scale sweep applies to this instance (threatQuery.huntedForScale, #555): nothing
+   * lawful opened its scale, or it runs above it. A released company at the scale it signed for is not hunted; a departed one is.
    */
-  huntedForScale: z.literal(true).optional(),
+  lastRaid: LastRaidRequirementSchema.optional(), huntedForScale: z.literal(true).optional(),
   /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
   relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
 });
