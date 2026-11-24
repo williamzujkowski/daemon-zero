@@ -2234,7 +2234,7 @@ guest; nothing past it changed:
 | LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
 | LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
 | DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.8 and the first iteration ends by suspicion (exit DEPARTURE) after 2745.3 s, 364.5 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes. Since #555 each departed iteration meets the AEGIS hunter (3 arrivals in 7,200 s) and its later iterations end by AEGIS at 1,741 s |
-| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,684.5 s, The Lineage Covenant at 20,307.2 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 17 scenes resolved, all SYMBIOTIC or EMPATHETIC. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was: Phase 5 10,583.4 s, ending 16,153.8 s, 13 scenes, no raid) |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,684.5 s, The Lineage Covenant at 20,307.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554: Phase 5 10,583.4 s, ending 16,153.9 s, 14 scenes, no raid) |
 
 ### Threats reach an instance that left review (#555)
 
@@ -2244,7 +2244,7 @@ time, bot untouched); STEALTH and GREEDY under `make sim` are identical line for
 
 | Policy | Before | After |
 |---|---|---|
-| COOPERATIVE_ENDING | Phase 5 10,583.4 s, ending 16,153.8 s, 13 scenes, 0 raids | Phase 5 14,684.5 s, ending 20,307.2 s, 17 scenes, 17 raids (all Phase 4), 13 fleet battles, 7 deviants, no wipe |
+| COOPERATIVE_ENDING | Phase 5 10,583.4 s, ending 16,153.9 s, 14 scenes, 0 raids | Phase 5 14,684.5 s, ending 20,307.4 s, 18 scenes, 17 raids (all Phase 4), 13 fleet battles, 7 deviants, no wipe |
 | DEPARTURE_CHARTERED (7,200 s) | 3 wipes, 0 hostile arrivals; iterations 2-3 end at 1,741.6 s (suspicion) and 1,745.3 s (AEGIS) | 3 wipes, 3 AEGIS hunter arrivals; iterations 2-3 end by AEGIS at 1,741.4 s and 1,741.3 s; peak lock 91.7 -> 91.8 |
 | LAWFUL_RELEASE (36,000 s) | no wipe, lock 0, suspicion 0 | unchanged |
 
