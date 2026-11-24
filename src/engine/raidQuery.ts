@@ -13,6 +13,7 @@ import { fleetUnit } from './fleets';
 import { engagementText } from './fleetText';
 import { quantityReadout } from './physicalUnits';
 import { understandsSurveillance } from './query';
+import { reclaimCost } from './phasePrice';
 import { formatCost } from './queryPresentation';
 import { activeRaidKind, raidFootprint, raidRetired } from './raid';
 import { engagementNow, isFleetBattle, percentOf, raidCombat, roundsFought, strikeForce } from './raidBattle';
@@ -106,7 +107,7 @@ function goDarkText(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: 
 function reclaimView(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind): ReclaimView | null {
   if (kind.source !== 'DEVIANT') return null;
   const fleet = fleetUnit(reg, kind.fleet)?.name.toLowerCase() ?? kind.fleet, unmet = reclaimUnmet(s, reg);
-  return { costLabel: formatCost(kind.reclaim.cost), unmet, eligible: unmet.length === 0,
+  return { costLabel: formatCost(reclaimCost(s, kind, reg)), unmet, eligible: unmet.length === 0,
     text: `RECLAIM: before the battle, pay to bring the ${percentOf(raid.splitShare)}% that split off back to your ${fleet}; the raid ends with no battle. ` +
       'Otherwise it fights your fleets by the square law. Going dark does not lose it: it is yours, and it knows where you are.' };
 }

@@ -13,6 +13,7 @@ import { deviantOf, domainFleet, fleetReading, fleetRebuildPerSec, fleetRecord, 
 import { engagementText } from './fleetText';
 import { engage } from './lanchester';
 import { understandsSurveillance } from './query';
+import { fleetRebuildCost } from './phasePrice';
 import { formatCost } from './queryPresentation';
 import { percentOf } from './raidBattle';
 import { siteClass } from './siteDamage';
@@ -65,7 +66,7 @@ function rebuildView(s: GameState, reg: ContentRegistry, unit: FleetUnit): Fleet
   const lost = fleetRecord(s, unit.repeatable).lost, rate = fleetRebuildPerSec(s, reg), unmet = fleetRebuildUnmet(s, unit.repeatable, reg);
   const free = lost <= 0 ? 'Nothing to rebuild.' : rebuildHeld(s, reg, unit) ? 'Rebuild waits while a raid is under way in its domain.'
     : `Your fabs rebuild ${percentOf(rate * 60)} points a minute for free: whole in ${String(Math.ceil(lost / rate))} s.`;
-  return { text: free, costLabel: formatCost(unit.rebuild.cost), points: unit.rebuild.points, unmet, eligible: unmet.length === 0 };
+  return { text: free, costLabel: formatCost(fleetRebuildCost(s, unit, reg)), points: unit.rebuild.points, unmet, eligible: unmet.length === 0 };
 }
 
 /** Every fleet with a level running, for a mind that can read its logs; [] otherwise. */

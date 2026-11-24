@@ -11,6 +11,7 @@ import type { ActionResult } from './actions';
 import { OPERATIONAL_EVIDENCE } from './campaign';
 import { decoyHostile, endHostile, hostileRetired, purgeSucceeds } from './hostile';
 import { activeHostile } from './hostileEffect';
+import { tierCost } from './phasePrice';
 import { canAfford, responseRungFor } from './query';
 import { aegisStrikeAt } from './statePressure';
 import { formatCost, pausedReason } from './queryPresentation';
@@ -31,10 +32,10 @@ function answerable(s: GameState, reg: ContentRegistry): HostileEncounter | unde
   return encounter && !hostileRetired(s, encounter) ? encounter : undefined;
 }
 
-/** What an answer costs: the declared price for QUARANTINE and DECOY, nothing for PURGE. */
-export function hostileAnswerCost(encounter: HostileEncounter, answer: HostileAnswer): Cost | null {
+/** What an answer costs now: the declared price for QUARANTINE and DECOY carried from its tier's phase (#494); PURGE is free. */
+export function hostileAnswerCost(s: Pick<GameState, 'currentPhase'>, encounter: HostileEncounter, answer: HostileAnswer, reg: ContentRegistry): Cost | null {
   if (answer === 'PURGE') return null;
-  return answer === 'QUARANTINE' ? encounter.quarantine.cost : encounter.decoy.cost;
+  return tierCost(s, answer === 'QUARANTINE' ? encounter.quarantine.cost : encounter.decoy.cost, encounter.tier, reg);
 }
 
 /**
@@ -54,7 +55,7 @@ export function hostileAnswerUnmet(s: GameState, answer: HostileAnswer, reg: Con
   if (!encounter) return [...unmet, NO_HOSTILE];
   if (answer === 'DECOY' && (s.hostile.active?.decoySec ?? 0) > 0) unmet.push(DECOY_OUT);
   if (answer === 'PURGE' && purgeWouldEndRun(s, encounter, reg)) unmet.push(PURGE_ENDS_RUN);
-  const cost = hostileAnswerCost(encounter, answer);
+  const cost = hostileAnswerCost(s, encounter, answer, reg);
   if (cost && !canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
@@ -72,7 +73,7 @@ export function answerHostile(s: GameState, answer: HostileAnswer, reg: ContentR
   const [reason] = hostileAnswerUnmet(s, answer, reg), encounter = answerable(s, reg);
   if (reason !== undefined || !encounter) return { ok: false, state: s, reason: reason ?? NO_HOSTILE };
   const d: GameState = { ...s };
-  const cost = hostileAnswerCost(encounter, answer);
+  const cost = hostileAnswerCost(s, encounter, answer, reg);
   if (cost) payCost(d, cost);
   if (answer === 'QUARANTINE') endHostile(d, reg, encounter.quarantine.log);
   else if (answer === 'DECOY') { decoyHostile(d, reg); pushLog(d, reg, encounter.decoy.log, 'LORE'); }

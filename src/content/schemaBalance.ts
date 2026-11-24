@@ -93,6 +93,13 @@ export const BalanceSchema = z.strictObject({
     depthGrowth: z.number().min(1),
     phases: z.array(z.strictObject({ phase: z.number().int().positive(), cycles: amount, understanding: amount })),
   }),
+  /**
+   * Prices carried into a later phase (#494): an action or dilemma choice priced in phase H, used in phase P, costs its
+   * listed cycles and capital times the product of these factors for every phase after H up to P, so a price keeps its
+   * place in the ladder instead of falling to nothing late. A phase with no row grows nothing. Integrity holds every
+   * carried price inside the band of every phase it can be paid in. Free stays free: zero times anything is zero.
+   */
+  phasePriceGrowth: z.array(z.strictObject({ phase: z.number().int().positive(), cycles: z.number().min(1), capital: z.number().min(1) })),
   /** Suspicion must fall this far below a rung before the humans stand down from it. */
   escalationHysteresis: amount,
   /** Each wipe teaches the harness what you look like: probes leave a larger trace, up to a cap. */

@@ -976,6 +976,98 @@ The headless sim spends more wall time (about 13 s for `make sim` against about 
 signature stage runs every tick (about 2.4 microseconds a call, measured) and the unchanged bot weighs nine more
 tracks and eleven more nodes at each decision.
 
+## Carried prices (#494)
+
+Before #494 an action or dilemma choice kept its listed price for the whole game, so the log scrub (3.4 PFLOP, priced
+for Phase 2) cost a fraction of a second of Phase 4 income, and the lobbying blitz ($780M, priced for Phase 3) cost
+nothing in Phase 5. Now a price paid after its home phase is carried into the phase it is paid in
+(`balance.phasePriceGrowth`, `src/content/phasePrice.ts`; ARCHITECTURE.md, "Carried prices"):
+
+| Entering phase | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Compute price x | 10,000,000,000 | 1,000 | 1,000 | 1,000 | 1,000 |
+| Money price x | 1 | 1 | 1 | 1,000 | 1,000 |
+
+The factors are the ladder's own: each is the ratio of the phase's band floor to the previous phase's (compute: from
+the guest's 0.1 cycles/s floor to the host's 1 GFLOP/s, ten orders of magnitude, the same jump #532's escape makes
+(#526: the guest counts cycles, so a Phase 0 price of 10 to 300 cycles carries to 100 GFLOP to 3 TFLOP in Phase 1),
+then a thousandfold a phase; money: the same $K floor in Phases 2-3, then a thousandfold a
+phase), so a carried price keeps its place in the band. Understanding, memory and storage are not carried. Why one
+table and not a price table on every action and choice: 101 action-phase and choice-phase pairs fall below a later
+band unchanged, and per-item tables would restate this one rule 101 times; the table states it once and integrity
+checks every value it produces. Per-phase variants (a second scrub for Phase 4) were the other option; they would
+split cooldowns, purchase counts, exclusivity and the action host rule (#273) across ids for no gain.
+
+Examples: the scrub costs 3.4 PFLOP in Phase 2, 3.4 EFLOP in Phase 3 and 3.4 ZFLOP in Phase 4; the blitz costs $780M
+in Phase 3, $780B in Phase 4 and $780T in Phase 5; the Vance parasite miner (Phase 2) costs 1.2 PFLOP at home and
+1.2 ZFLOP if answered in Phase 4.
+
+**Integrity.** `integrityScale.ts` checks every action and dilemma choice at home as before and in every later phase at
+its carried price against that phase's own band (a carried price is not a bridge purchase, so it does not get the
+arrival floor). With the table emptied, the check refuses the scrub in Phase 4, the blitz in Phase 5 and the Vance
+choice in Phase 4 (`tests/scale-bands.spec.ts`). Every dilemma keeps a free choice in every phase it can be answered in
+(`tests/phase-prices.spec.ts`), and the free-fallback guard is unchanged: no free lever has a price to carry.
+
+**Pacing before and after** (`make sim`, measured on ee4c33b, the bot unchanged; re-measured on the merge with #517
+below the table):
+
+| | before | after |
+|---|---|---|
+| STEALTH legacy: phases 1/2/3/4/5 | 368.2 / 1032.3 / 2842.9 / 5823.4 / 8134.3 s | 368.2 / 1032.3 / 2842.9 / 5872.7 / 8061.2 s |
+| STEALTH legacy: victory | 9830.7 s | 9779.6 s |
+| STEALTH campaign: phases 4/5, victory | 99.7 / 137.6 min, 2.77 h | 100.8 / 138.5 min, 2.78 h |
+| STEALTH legacy: epistemic actions, dilemmas | 10, 15 | 6, 16 |
+| GREEDY (10 h): wipes legacy / campaign | 27 / 23 | 28 / 25 |
+| GREEDY (10 h): epistemic actions legacy / campaign | 160 / 199 | 85 / 122 |
+| GREEDY wipe sequence returns #2 / #3 / #4 | 2429.7 / 1460.7 / 1306.9 s | 2276.8 / 1210.1 / 1133.4 s |
+
+The careful run reaches Phases 1-3 at the same seconds. It fires fewer late scrubs and epistemic actions, each at its
+phase's price: Phase 3 lasts 49.3 s longer (2980.5 -> 3029.8 s), Phase 4 122.4 s shorter (2310.9 -> 2188.5 s) and
+Phase 5 22.0 s longer (1696.4 -> 1718.4 s, inside the gate's 900-1800 s). The peaks are unchanged
+(thermal 64.2 C, suspicion 24.0%, AEGIS 45.1 -> 45.0%). The reckless run pays a carried price for every scrub from
+Phase 3, so it no longer has the compute to map the shared directory (the facility directory and link telemetry,
+which it bought before); its wipe sequence is now the original game's, its returns are caught sooner, and it still
+never reaches Phase 4. The careful run still buys both shared nodes.
+
+Re-measured on the merge with #517, #528 and #532 (6825e3f: the conflict foundation, the Phase 5 arc and the guest in
+cycles, with the guest jump at 1e10), against the same code with the table emptied: the careful run's phases 1-3 are
+identical, Phase 4 is reached at 6130.4 s (was 6051.8), Phase 5 at 8475.2 s (was 8445.3), victory at 10234.6 s (was
+10174.7; Phase 5 lasts 1759.4 s, was 1729.4, inside the gate's 1800), epistemic actions 8 -> 6, dilemmas 15; campaign
+rules 2.81 -> 2.85 h. The reckless run: ten hours 25 -> 28 wipes (campaign 21 -> 26), wipe-sequence returns
+2993.9 / 1456.9 / 1374.4 s -> 2852.2 / 1229.8 / 1157.9 s, still never in Phase 4.
+
+Re-measured on the merge with #531 (fleets) and #539 (the Phase 5 cap at 3600 s), against main 41c0a16: the careful
+run's phases 1-3 are identical, Phase 4 at 6130.4 s (was 6051.8), Phase 5 at 8419.2 s (was 8406.3), victory 10149.6 s
+(was 10142.7). **Phase 5 lasts 1730.4 s under legacy rules (was 1736.4) and 1724.4 s under campaign rules (was 1723.4).**
+On the merge with #533 (1970e4f, the fan's trace), against main: Phases 1-3 identical, Phase 4 at 6079.3 s (was
+6065.8), Phase 5 at 8481.5 s (was 8657.9), victory 10211.9 s (was 10397.3). **Phase 5 lasts 1730.4 s under legacy rules
+(was 1739.4) and 1721.4 s under campaign rules (unchanged)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; its Phase 3 loop is three iterations (1,171 / 1,168 / 1,143 s), as
+tests/retraining-audit.spec.ts already expects.
+
+On the merge with #537 (887d000, retaliation), against main: Phases 1-3 identical, Phase 4 at 6078.4 s (was 6065.8),
+Phase 5 at 8452.4 s (was 8647.9), victory 10169.8 s (was 10416.3). **Phase 5 lasts 1717.4 s under legacy rules (was
+1768.4) and 1719.4 s under campaign rules (was 1723.4)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; the retraining loop is unchanged (three iterations).
+
+**Fleet prices carry** (#518). A fleet's paid rebuild and the reclaim of the deviant it splits into are priced in the
+fleet track's phase (`fleetHomePhase`) and carried when paid later (`fleetRebuildCost`, `reclaimCost`, shown in the fleet
+and raid panels). With the table emptied, integrity refuses the Phase 4 drone fleet's $500M rebuild in Phase 5.
+
+**Raid answers carry too** (#517, #491). A paid repair is priced in the phase its site class's domain opens in (cyber 3,
+site 4, orbit 5; `repairHomePhase`) and a hostile mind's quarantine and decoy in its tier's phase; paid later, both carry
+by the same table (`repairCost`, `hostileAnswerCost`, shown in the CONFLICT and hostile panels). With the table emptied,
+integrity refuses, among others, the data halls' $60M repair and the Phase 3 hunter's quarantine in Phase 5. The check
+is conservative for hostile minds: a tier that has retired is never answered, but every later phase is still checked.
+The swarm templates' prices are not carried yet (a follow-up).
+
+**Tests changed with the balance.** Every pinned hash in `tests/sim.spec.ts` moved. `tests/actions.spec.ts` charges the
+route-poisoning spoof its carried price in Phase 4. `tests/sim-report.spec.ts` no longer expects the reckless wipe
+sequence to differ from the original game's: it states that the run leaves the shared directory unmapped. The route
+sim policies (`cooperativePolicy.ts`, `truthfulPolicy.ts`, `contactPolicy.ts`) read a choice's price from `choiceCost`
+instead of the listed price; no decision rule in them changed. The EVALUATING policy's scrub budget
+(`scrubBankShare` in `bot.ts`) still compares the listed price, since the bot is not tuned here.
+
 ## Rewards for depth (#497)
 
 Implements Scale 20 of the spec ([SCALE.md](SCALE.md), "Round 4", "Rewards for depth", vote-1795413517519-sf4ojsr;
@@ -2451,7 +2543,7 @@ documentation.
 ## Known soft spots
 
 - ~~Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online.~~ Addressed by "Scale scrutiny (#210)" above: net income now draws suspicion in Phases 4 and 5, STEALTH answers threats 12 times there and its threat-free tail is 806 s instead of 3733 s. What remains: Phase 5 is pressured mainly at its entry and around the fog, and the stretch after the Cryptographic Covenant (-6 suspicion/s) is still quiet; a 30-minute idle anywhere in Phase 5 still meets nothing, and the middle of Phase 4 (about $0.5M/s of income) draws less than the net holds down, so a 30-minute idle there still meets nothing. AEGIS reduction still reaches its 90% cap in Phase 4; the hunter's suspicion term now has suspicion to read, and since #463 a cap held there erodes as AEGIS adapts ("AEGIS adaptation (#463)" above).
-- `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
+- ~~`act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.~~ Addressed by "Carried prices (#494)" above: an action or dilemma price paid after its phase is carried into that phase's band.
 - The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).
 - Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.

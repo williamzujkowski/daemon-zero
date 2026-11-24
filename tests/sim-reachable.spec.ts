@@ -153,7 +153,7 @@ function simImports(): string[] {
 
 /** Engine reads the sim modules import: queries, never transitions. */
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
-  'meetsRequirements', 'repeatableCost', 'repeatablePrice', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
+  'meetsRequirements', 'repeatableCost', 'repeatablePrice', 'choiceCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
   'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView', 'isCampaignConsumed',
   'isChoiceOffered', 'lawfullyReached',

@@ -205,7 +205,7 @@ does not discard the next. Hydration and new iterations establish a baseline.
 An inbound dilemma's authored omen appears outside the log even before decoding;
 the unlocked forecast displays its remaining simulation-time countdown. Once surveillance
 is understood, the same forecast lists the pending dilemma’s actual nonzero
-choice prices as paid-response budgets. Equal prices appear once; distinct
+choice prices as paid-response budgets, at the price the engine charges in the current phase (#494). Equal prices appear once; distinct
 complete cost bundles are alternatives, never combined into a fictional price.
 A reminder says a free response remains available. No choice names, outcomes or
 traits appear before the interrupt. Budgets disappear when it fires or clears,
