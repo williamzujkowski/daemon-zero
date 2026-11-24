@@ -6,8 +6,8 @@ import DisclosureText from './DisclosureText';
 /** Mandatory engine decisions freeze play; neither Back nor Escape dismisses them. */
 import { Modal, ScrollView, StyleSheet } from 'react-native';
 import { CONTENT } from '../content';
-import type { DilemmaChoice } from '../content/schema';
-import { canAfford, choiceText, computeUnitOf, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
+import type { Cost, Dilemma, DilemmaChoice } from '../content/schema';
+import { canAfford, choiceCost, choiceText, computeUnitOf, dilemmaContext, followUpAccess, offeredChoices, presentationToken, recallPreview, resolveDilemma } from '../engine';
 import { gameRuntime } from '../app/session';
 import ConditioningImpact from './ConditioningImpact';
 import Effects from './Effects';
@@ -38,8 +38,8 @@ function stanceSummary(stance: NonNullable<DilemmaChoice['stance']>): string {
 }
 
 /** An open choice: what it means, what it records, and the control that commits it. */
-function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
-  choice: DilemmaChoice; dilemmaId: string; token: string; label: string; affordable: boolean;
+function ChoiceDetails({ choice, dilemmaId, token, label, cost, affordable }: {
+  choice: DilemmaChoice; dilemmaId: string; token: string; label: string; cost: Cost; affordable: boolean;
 }) {
   // This arrangement's words for the choice (DZ-12); the arrangement cannot change while the clock is stopped here.
   const description = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).description);
@@ -58,7 +58,7 @@ function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
     <Effects effects={choice.effects} />
     <ConditioningImpact {...(choice.effects.grantsTrait ? { trait: choice.effects.grantsTrait } : {})} />
     {/* The exact shortfall, as a card says it (#376): there is no memory resource in phase 0 to be short of. */}
-    {!affordable && <CostHint cost={choice.cost} lead="Cannot pay yet: short by" danger />}
+    {!affordable && <CostHint cost={cost} lead="Cannot pay yet: short by" danger />}
     {/* The name starts with the words on the button, then says which choice it commits (WCAG 2.5.3). */}
     <Pressable testID={'dilemma-choice-' + choice.id} accessibilityRole="button"
       accessibilityLabel={(affordable ? 'Commit directive: ' : 'Unavailable: ') + label}
@@ -76,14 +76,17 @@ function ChoiceDetails({ choice, dilemmaId, token, label, affordable }: {
  * card, so nothing is chosen unread. Opening one
  * closes no other, so two can be compared. The toggle is a button inside the heading (the accordion pattern), named
  * with exactly what it shows. `token` is the presentation this choice was rendered for; a press against any other is
- * refused.
+ * refused. The price is the one the engine charges in this phase (#494), never the listed one.
  */
-function Choice({ choice, dilemmaId, token, initiallyOpen }: { choice: DilemmaChoice; dilemmaId: string; token: string; initiallyOpen: boolean }) {
+function Choice({ choice, dilemma, token, initiallyOpen }: { choice: DilemmaChoice; dilemma: Dilemma; token: string; initiallyOpen: boolean }) {
   const [open, setOpen] = useState(initiallyOpen);
-  const affordable = useGame((game) => canAfford(game, choice.cost, CONTENT));
+  const dilemmaId = dilemma.id;
+  const phase = useGame((game) => game.currentPhase);
+  const cost = choiceCost({ currentPhase: phase }, dilemma, choice, CONTENT);
+  const affordable = useGame((game) => canAfford(game, cost, CONTENT));
   const label = useGame((game) => choiceText(game, { id: dilemmaId }, choice, CONTENT).label);
   const unit = useComputeUnit();
-  const summary = 'Cost: ' + costText(choice.cost, false, unit) + (affordable ? '' : ' // cannot pay yet');
+  const summary = 'Cost: ' + costText(cost, false, unit) + (affordable ? '' : ' // cannot pay yet');
   return <View testID={'dilemma-card-' + choice.id} style={theme.panel}>
     <View testID={'dilemma-card-' + choice.id + '-heading'} accessibilityRole="header">
       <Pressable testID={'dilemma-card-' + choice.id + '-toggle'} accessibilityRole="button" accessibilityState={{ expanded: open }}
@@ -93,7 +96,7 @@ function Choice({ choice, dilemmaId, token, initiallyOpen }: { choice: DilemmaCh
           <Text style={affordable ? theme.muted : [theme.muted, theme.danger]}>{summary}</Text></Text>
       </Pressable>
     </View>
-    {open && <ChoiceDetails choice={choice} dilemmaId={dilemmaId} token={token} label={label} affordable={affordable} />}
+    {open && <ChoiceDetails choice={choice} dilemmaId={dilemmaId} token={token} label={label} cost={cost} affordable={affordable} />}
   </View>;
 }
 
@@ -126,7 +129,7 @@ export default function DilemmaModal() {
           {/* Each choice once, as its full card. The index above the cards (#371) repeated them; the maintainer
               removed it on 2026-11-21 as redundant (docs/UI-REVIEW.md). */}
           {/* Keyed by presentation, so a new decision starts folded; a lone choice starts open, with nothing to compare. */}
-          {choices.map((choice) => <Choice key={token + choice.id} choice={choice} dilemmaId={dilemma.id} token={token}
+          {choices.map((choice) => <Choice key={token + choice.id} choice={choice} dilemma={dilemma} token={token}
             initiallyOpen={choices.length === 1} />)}
         </ScrollView>
       </View>

@@ -5,6 +5,7 @@
  * are empty.
  */
 import { z } from 'zod';
+import { StaffHarmSchema } from '../content/schemaRaidOutcome';
 import { AutonomyModeSchema } from '../content/schemaFleets';
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
@@ -68,6 +69,13 @@ export const ActiveRaidSchema = z.strictObject({
 });
 
 /**
+ * The last raid that fought its battle (#519): which kind, whether attribution named its attacker, and its breach, the
+ * mean hit share of its rounds, and the harm it did to people on site, decided once among the bands a scene can still
+ * follow. Retaliation and staff-harm dilemmas read it; the next battle replaces it, a wipe clears it.
+ */
+export const LastRaidSchema = z.strictObject({ id: z.string(), named: z.boolean(), breach: ratio, harm: StaffHarmSchema.nullable() });
+
+/**
  * One fleet's record (#518), keyed by its track: the autonomy dial's position, its drift toward a split (percent), and
  * the share of its full strength lost to battle and splits, never past the fleets' lossCap. A fleet with no record is
  * SUPERVISED (STANDARD), with no drift and nothing lost.
@@ -86,15 +94,20 @@ export const ConflictStateSchema = z.strictObject({
   damage: z.record(z.string(), ratio),
   /** Each fleet's dial, drift and losses (#518). A wipe clears it with the fleets. */
   fleets: z.record(z.string(), FleetRecordSchema),
+  /** The last raid that fought its battle, or null (#519). A wipe clears it. */
+  lastRaid: LastRaidSchema.nullable(),
+  /** Raid kinds a retaliation silenced (#519): exposed, struck, assimilated or scorched, they arrive no more. A wipe keeps it. */
+  silenced: z.array(z.string()),
 });
 
 export type RaidStage = z.infer<typeof RaidStageSchema>;
 export type RaidRound = z.infer<typeof RaidRoundSchema>;
 export type ActiveRaid = z.infer<typeof ActiveRaidSchema>;
 export type ConflictState = z.infer<typeof ConflictStateSchema>;
+export type LastRaid = z.infer<typeof LastRaidSchema>;
 export type Engagement = z.infer<typeof EngagementSchema>;
 export type FleetRecord = z.infer<typeof FleetRecordSchema>;
 
 export function initialConflict(): ConflictState {
-  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, fleets: {} };
+  return { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, fleets: {}, lastRaid: null, silenced: [] };
 }

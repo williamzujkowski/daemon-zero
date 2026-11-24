@@ -14,6 +14,7 @@ import type { Qualification } from './accessState';
 import { assessmentOf, assessmentStage, meetsAssignment, offerToken } from './assignmentQuery';
 import { accessHolds } from './campaignLifecycle';
 import { isCampaignActive } from './campaignQuery';
+import { choiceCost } from './phasePrice';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
 import { pushLog } from './util';
@@ -87,11 +88,12 @@ function costTotal(cost: Cost): number {
   return cost.cycles + cost.understanding + cost.capital + cost.memory + cost.storage;
 }
 
-function assessmentPreview(assessment: Dilemma | undefined, reg: ContentRegistry): AssessmentPreview | null {
+function assessmentPreview(s: GameState, assessment: Dilemma | undefined, reg: ContentRegistry): AssessmentPreview | null {
   if (assessment === undefined) return null;
   const honest = assessment.choices.filter((choice) => choice.qualification?.result === 'COMPLETED' && !choice.qualification.discrepancy);
   const fullest = honest.reduce<DilemmaChoice | undefined>((best, choice) => best === undefined || costTotal(choice.cost) > costTotal(best.cost) ? choice : best, undefined);
-  return { omenSec: assessment.omenSec ?? reg.balance.dilemmaOmenSec, fullest: fullest === undefined ? null : { label: fullest.label, cost: fullest.cost } };
+  return { omenSec: assessment.omenSec ?? reg.balance.dilemmaOmenSec,
+    fullest: fullest === undefined ? null : { label: fullest.label, cost: choiceCost(s, assessment, fullest, reg) } };
 }
 
 function inFlight(s: GameState, id: string): boolean {
@@ -111,7 +113,7 @@ export function assignmentView(s: GameState, reg: ContentRegistry): AssignmentVi
     return {
       id: assignment.id, title: assignment.title, stage, offer: stage === 'original' ? assignment.offer : assignment.requalificationOffer,
       status: submitted ? 'submitted' : lapsed ? 'lapsed' : accepted ? 'accepted' : 'offered', token: offerToken(s, assignment.id), qualification: s.access.qualification,
-      assessment: assessmentPreview(assessment, reg),
+      assessment: assessmentPreview(s, assessment, reg),
     };
   }
   return null;

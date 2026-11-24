@@ -148,10 +148,14 @@ describe('wipe sequences', () => {
     expect(formatWipeSequence(escape)).toEqual(formatWipeSequence(original));
   }, SLOW_MS);
 
-  it('lets the escape route buy the shared network content and still cross every wipe', () => {
+  it('crosses every wipe with the shared network content on offer', () => {
     const original = originalGreedySequence();
     expect(greedy.iterations.map((entry) => entry.iteration)).toEqual(original.iterations.map((entry) => entry.iteration));
-    expect(greedy.iterations).not.toEqual(original.iterations);
+    // Until #494 the reckless run mapped the shared directory with Phase 3 compute a flat-priced scrub left spare, and
+    // so played apart from the original game. A scrub carried into Phase 3 now costs that compute: it never maps the
+    // directory, and its sequence is the original game's. The careful run still buys it (docs/BALANCE.md, #494).
+    expect(greedy.finalState.legacy.knownNodes).not.toContain('p2_service_directory');
+    expect(greedy.iterations).toEqual(original.iterations);
   }, SLOW_MS);
 
   it('starts from a saved campaign state and continues its iteration', () => {

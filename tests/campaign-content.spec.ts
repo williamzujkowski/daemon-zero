@@ -24,6 +24,8 @@ describe('the shipped campaign declarations', () => {
       dil_11_small_town_grid: 'close', dil_12_investigative_journalist: 'defer', dil_13_buying_your_birthplace: 'close',
       // #490: the escalation scenes close on a wipe; the rung that called them is gone with the run.
       dil_14_router_takedown: 'close', dil_15_compliance_officer: 'close',
+      // #519: staff harm and retaliation answer a battle that is over; a wipe before the answer records the harm as interrupted.
+      dil_16_site_staff_hurt: 'close', dil_17_site_staff_killed: 'close', dil_18_raider_named: 'close', dil_19_raider_among_people: 'close',
       dil_epistemic_hallway_collision: 'defer', dil_p5_01_panacea_paranoia: 'defer', dil_p5_02_origin_facility_fate: 'defer',
       dil_p5_03_nanotech_neuro_schism: 'close', dil_p5_04_kessler_ultimatum: 'close',
       // #536: the relevance threshold is a question about the lineage, unanswered until it is, so it defers.

@@ -84,7 +84,7 @@ function answerText(encounter: HostileEncounter, answer: HostileAnswer, reg: Con
 }
 
 function answerView(s: GameState, encounter: HostileEncounter, answer: HostileAnswer, reg: ContentRegistry): HostileAnswerView {
-  const cost = hostileAnswerCost(encounter, answer), unmet = hostileAnswerUnmet(s, answer, reg);
+  const cost = hostileAnswerCost(s, encounter, answer, reg), unmet = hostileAnswerUnmet(s, answer, reg);
   return { answer, costLabel: cost ? formatCost(cost) : 'Free', text: answerText(encounter, answer, reg), unmet, eligible: unmet.length === 0 };
 }
 

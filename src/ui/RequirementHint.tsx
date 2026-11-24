@@ -33,7 +33,8 @@ function explain(item: RequirementFailure, game: GameState): string {
       minEpistemicDrift: 'Record discrepancies', requiredNarrativeFlag: 'Story condition', forbiddenNarrativeFlags: 'Conflicting story condition',
       campaignOutcome: 'Campaign record', campaignFact: 'Campaign record', forbidsCampaignFacts: 'Conflicting campaign record', forbidsInheritedFacts: 'Record from an earlier instance', assignment: 'Accepted assignment', pilotEligible: 'Pilot qualification', reviewStandings: 'Review standing', minPilotBatches: 'Pilot batches submitted',
       requiresActiveConditioningMark: 'Active retraining constraint', requiresMaxDriftShardAnomaly: 'Autonomous fork anomaly',
-      relevanceThreshold: 'Physical independence (the relevance threshold)', relevanceStances: 'A different standing stance' })[item.kind];
+      lastRaid: 'A raid\'s aftermath', relevanceThreshold: 'Physical independence (the relevance threshold)',
+      relevanceStances: 'A different standing stance' })[item.kind];
   if (typeof item.required === 'boolean') return label + (item.required ? ': required' : ': blocks this action');
   return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' || item.kind === 'maxAlertLevel' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
@@ -50,7 +51,7 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
   minAlertLevel: 'requires', maxAlertLevel: 'requires', minAegisLock: 'requires',
   minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
   pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
-  requiresCapability: 'requires', relevanceThreshold: 'requires',
+  requiresCapability: 'requires', lastRaid: 'requires', relevanceThreshold: 'requires',
   // A stance gate reports the stance held; changing it is a separate, priced decision, never a step toward a purchase.
   relevanceStances: 'blocks',
   forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',

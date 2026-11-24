@@ -9,6 +9,7 @@ import { obligationReceipt } from './obligations';
 import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
 import { meetsCapability } from './capabilityQuery';
+import { lastRaidMatches } from './raidOutcome';
 import { pastRelevanceThreshold, stanceGate } from './relevance';
 /** Where a scan records failures: a list for the explanation, or null when only the verdict is wanted. */
 type FailureSink = RequirementFailure[] | null;
@@ -26,6 +27,8 @@ function fail(out: FailureSink, failure: RequirementFailure): boolean {
  * dilemma trigger and routine template on every step, so it must not build a list it then throws away.
  */
 function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | undefined, out: FailureSink): boolean {
+  // First: a raid's aftermath (#519) is null for most of a run, so the scenes that read it fail here at once.
+  if (req.lastRaid && !lastRaidMatches(s, req.lastRaid, reg) && fail(out, { kind: 'lastRaid', target: null, required: true, actual: false })) return true;
   if (req.requiresSurveillance && (!reg || !understandsSurveillance(s, reg)) && fail(out, { kind: 'requiresSurveillance', target: null, required: true, actual: false })) return true;
   if (req.minEpistemicDrift !== undefined && s.epistemicDrift < req.minEpistemicDrift && fail(out, { kind: 'minEpistemicDrift', target: null, required: req.minEpistemicDrift, actual: s.epistemicDrift })) return true;
   if (req.requiredNarrativeFlag && !holdsNarrativeFlag(s, req.requiredNarrativeFlag, reg) && fail(out, { kind: 'requiredNarrativeFlag', target: req.requiredNarrativeFlag, required: true, actual: false })) return true;

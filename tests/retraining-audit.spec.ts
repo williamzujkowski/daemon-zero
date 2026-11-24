@@ -62,6 +62,8 @@ const LOOP_TOLERANCE_SEC = 5;
  * apart, each three-iteration span within 1 s of the others (measured on the merge with #506, 7b231c8). With one-iteration
  * loops (period 1) this is the check as #497 wrote it; the tolerance is unchanged.
  */
+// Measured again with #494's carried prices on the merge with #533 (1970e4f): the loop is three iterations, 1,171 /
+// 1,168 / 1,143 s, each three-iteration span within 0.1 s of the others (boots 17,128 to 27,576 s at eight hours).
 const LOOP_PERIOD = 3;
 
 it('keeps the unchanged reckless bot recovering instead of trapping it in repeated early wipes', () => {

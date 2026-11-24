@@ -1,5 +1,5 @@
 /**
- * Save v27 (#536): the standing stance. A v26 save migrates to no stance taken and an empty record, and nothing else
+ * Save v28 (#536): the standing stance. A v27 save migrates to no stance taken and an empty record, and nothing else
  * changes; a stance and its record survive a round trip; the record is validated as untrusted input (a stance content
  * does not know, a malformed entry, a record past its cap are all refused).
  */
@@ -11,22 +11,22 @@ import { reg } from './helpers';
 const p5 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v15-p5.json', 'utf8'), reg);
 const entry = { iteration: 1, atSimSec: 12, from: null, stance: 'DECIDE_ALONE', via: 'THRESHOLD' } as const;
 
-describe('save v27 (#536)', () => {
+describe('save v28 (#536)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
-  it('migrates a v26 save to no stance and an empty record, and keeps everything else', () => {
+  it('migrates a v27 save to no stance and an empty record, and keeps everything else', () => {
     const current = p5();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
-    const v26: Record<string, unknown> = { ...raw, schemaVersion: 26 };
-    delete v26.relevance;
-    expect(migrate(v26, MIGRATIONS, 27)).toEqual({ ...raw, schemaVersion: 27 });
-    expect(deserialize(JSON.stringify(v26), reg)).toEqual(current);
+    const v27: Record<string, unknown> = { ...raw, schemaVersion: 27 };
+    delete v27.relevance;
+    expect(migrate(v27, MIGRATIONS, 28)).toEqual({ ...raw, schemaVersion: 28 });
+    expect(deserialize(JSON.stringify(v27), reg)).toEqual(current);
     expect(current.relevance).toEqual(initialRelevance());
   });
 
-  it('migrates every older fixture through v27 to no stance taken', () => {
+  it('migrates every older fixture through v28 to no stance taken', () => {
     const fixtures = { v14: readFileSync('tests/fixtures/pre-release-v14.json', 'utf8'), p0: readFileSync('tests/fixtures/pre-scale-v15-p0.json', 'utf8'),
       p4: readFileSync('tests/fixtures/pre-scale-v15-p4.json', 'utf8') };
     for (const [name, text] of Object.entries(fixtures)) expect(deserialize(text, reg).relevance, name).toEqual(initialRelevance());

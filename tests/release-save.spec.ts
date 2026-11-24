@@ -51,7 +51,7 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     // v24 (#517) added the conflict record, written only by the raid and repair stages and paid repair.
     // v25 (#526) moves only a guest's compute balance and rate and the pilot's batch progress.
     // v26 (#518) added fleet records and a raid's engagement and split share, written only by the conflict stages and the fleet actions.
-    expect(SCHEMA_VERSION).toBe(27);
+    expect(SCHEMA_VERSION).toBe(28);
   });
 });
 

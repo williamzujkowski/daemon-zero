@@ -26,8 +26,8 @@ const fought = (): GameState => {
 };
 
 describe('save v26 (#518)', () => {
-  it('is followed only by the standing stance (#536, v27)', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+  it('is followed only by the raid aftermath (#519, v27)', () => {
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
   it('migrates a v25 save to no fleet records and keeps everything else', () => {

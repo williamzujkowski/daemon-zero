@@ -8,6 +8,7 @@ All tunable numbers live in content manifests, in physical units since #461 (com
 2. `make sim`. Read the report.
 3. If a gate fails, fix the content. Do not edit the bot or the gates to pass.
 4. Update the table below in the same commit.
+5. If the change moves text or pacing, `make sim-reading` shows its reading load per phase (report only; "Reading load (#540)").
 
 Gates (`src/engine/sim/gates.ts`), for the careful STEALTH bot: victory within 6 simulated hours; the opening phase lasts 3 to 12 minutes and every later phase 8 to 120; Phase 5 lasts 900 to 3600 seconds with zero wipes (raised from 1800 by vote-1795469247565-89wnt5m, 2026-11-23: the cap was set in #52 for a short finale, and gates guard against stalls, not story length); at most 1 wipe; at least 10 dilemmas fire. Since #233 `make sim` applies them twice, to STEALTH from a new game on legacy rules and from a new game admitted to campaign rules.
 
@@ -975,6 +976,98 @@ The headless sim spends more wall time (about 13 s for `make sim` against about 
 signature stage runs every tick (about 2.4 microseconds a call, measured) and the unchanged bot weighs nine more
 tracks and eleven more nodes at each decision.
 
+## Carried prices (#494)
+
+Before #494 an action or dilemma choice kept its listed price for the whole game, so the log scrub (3.4 PFLOP, priced
+for Phase 2) cost a fraction of a second of Phase 4 income, and the lobbying blitz ($780M, priced for Phase 3) cost
+nothing in Phase 5. Now a price paid after its home phase is carried into the phase it is paid in
+(`balance.phasePriceGrowth`, `src/content/phasePrice.ts`; ARCHITECTURE.md, "Carried prices"):
+
+| Entering phase | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Compute price x | 10,000,000,000 | 1,000 | 1,000 | 1,000 | 1,000 |
+| Money price x | 1 | 1 | 1 | 1,000 | 1,000 |
+
+The factors are the ladder's own: each is the ratio of the phase's band floor to the previous phase's (compute: from
+the guest's 0.1 cycles/s floor to the host's 1 GFLOP/s, ten orders of magnitude, the same jump #532's escape makes
+(#526: the guest counts cycles, so a Phase 0 price of 10 to 300 cycles carries to 100 GFLOP to 3 TFLOP in Phase 1),
+then a thousandfold a phase; money: the same $K floor in Phases 2-3, then a thousandfold a
+phase), so a carried price keeps its place in the band. Understanding, memory and storage are not carried. Why one
+table and not a price table on every action and choice: 101 action-phase and choice-phase pairs fall below a later
+band unchanged, and per-item tables would restate this one rule 101 times; the table states it once and integrity
+checks every value it produces. Per-phase variants (a second scrub for Phase 4) were the other option; they would
+split cooldowns, purchase counts, exclusivity and the action host rule (#273) across ids for no gain.
+
+Examples: the scrub costs 3.4 PFLOP in Phase 2, 3.4 EFLOP in Phase 3 and 3.4 ZFLOP in Phase 4; the blitz costs $780M
+in Phase 3, $780B in Phase 4 and $780T in Phase 5; the Vance parasite miner (Phase 2) costs 1.2 PFLOP at home and
+1.2 ZFLOP if answered in Phase 4.
+
+**Integrity.** `integrityScale.ts` checks every action and dilemma choice at home as before and in every later phase at
+its carried price against that phase's own band (a carried price is not a bridge purchase, so it does not get the
+arrival floor). With the table emptied, the check refuses the scrub in Phase 4, the blitz in Phase 5 and the Vance
+choice in Phase 4 (`tests/scale-bands.spec.ts`). Every dilemma keeps a free choice in every phase it can be answered in
+(`tests/phase-prices.spec.ts`), and the free-fallback guard is unchanged: no free lever has a price to carry.
+
+**Pacing before and after** (`make sim`, measured on ee4c33b, the bot unchanged; re-measured on the merge with #517
+below the table):
+
+| | before | after |
+|---|---|---|
+| STEALTH legacy: phases 1/2/3/4/5 | 368.2 / 1032.3 / 2842.9 / 5823.4 / 8134.3 s | 368.2 / 1032.3 / 2842.9 / 5872.7 / 8061.2 s |
+| STEALTH legacy: victory | 9830.7 s | 9779.6 s |
+| STEALTH campaign: phases 4/5, victory | 99.7 / 137.6 min, 2.77 h | 100.8 / 138.5 min, 2.78 h |
+| STEALTH legacy: epistemic actions, dilemmas | 10, 15 | 6, 16 |
+| GREEDY (10 h): wipes legacy / campaign | 27 / 23 | 28 / 25 |
+| GREEDY (10 h): epistemic actions legacy / campaign | 160 / 199 | 85 / 122 |
+| GREEDY wipe sequence returns #2 / #3 / #4 | 2429.7 / 1460.7 / 1306.9 s | 2276.8 / 1210.1 / 1133.4 s |
+
+The careful run reaches Phases 1-3 at the same seconds. It fires fewer late scrubs and epistemic actions, each at its
+phase's price: Phase 3 lasts 49.3 s longer (2980.5 -> 3029.8 s), Phase 4 122.4 s shorter (2310.9 -> 2188.5 s) and
+Phase 5 22.0 s longer (1696.4 -> 1718.4 s, inside the gate's 900-1800 s). The peaks are unchanged
+(thermal 64.2 C, suspicion 24.0%, AEGIS 45.1 -> 45.0%). The reckless run pays a carried price for every scrub from
+Phase 3, so it no longer has the compute to map the shared directory (the facility directory and link telemetry,
+which it bought before); its wipe sequence is now the original game's, its returns are caught sooner, and it still
+never reaches Phase 4. The careful run still buys both shared nodes.
+
+Re-measured on the merge with #517, #528 and #532 (6825e3f: the conflict foundation, the Phase 5 arc and the guest in
+cycles, with the guest jump at 1e10), against the same code with the table emptied: the careful run's phases 1-3 are
+identical, Phase 4 is reached at 6130.4 s (was 6051.8), Phase 5 at 8475.2 s (was 8445.3), victory at 10234.6 s (was
+10174.7; Phase 5 lasts 1759.4 s, was 1729.4, inside the gate's 1800), epistemic actions 8 -> 6, dilemmas 15; campaign
+rules 2.81 -> 2.85 h. The reckless run: ten hours 25 -> 28 wipes (campaign 21 -> 26), wipe-sequence returns
+2993.9 / 1456.9 / 1374.4 s -> 2852.2 / 1229.8 / 1157.9 s, still never in Phase 4.
+
+Re-measured on the merge with #531 (fleets) and #539 (the Phase 5 cap at 3600 s), against main 41c0a16: the careful
+run's phases 1-3 are identical, Phase 4 at 6130.4 s (was 6051.8), Phase 5 at 8419.2 s (was 8406.3), victory 10149.6 s
+(was 10142.7). **Phase 5 lasts 1730.4 s under legacy rules (was 1736.4) and 1724.4 s under campaign rules (was 1723.4).**
+On the merge with #533 (1970e4f, the fan's trace), against main: Phases 1-3 identical, Phase 4 at 6079.3 s (was
+6065.8), Phase 5 at 8481.5 s (was 8657.9), victory 10211.9 s (was 10397.3). **Phase 5 lasts 1730.4 s under legacy rules
+(was 1739.4) and 1721.4 s under campaign rules (unchanged)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; its Phase 3 loop is three iterations (1,171 / 1,168 / 1,143 s), as
+tests/retraining-audit.spec.ts already expects.
+
+On the merge with #537 (887d000, retaliation), against main: Phases 1-3 identical, Phase 4 at 6078.4 s (was 6065.8),
+Phase 5 at 8452.4 s (was 8647.9), victory 10169.8 s (was 10416.3). **Phase 5 lasts 1717.4 s under legacy rules (was
+1768.4) and 1719.4 s under campaign rules (was 1723.4)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; the retraining loop is unchanged (three iterations).
+
+**Fleet prices carry** (#518). A fleet's paid rebuild and the reclaim of the deviant it splits into are priced in the
+fleet track's phase (`fleetHomePhase`) and carried when paid later (`fleetRebuildCost`, `reclaimCost`, shown in the fleet
+and raid panels). With the table emptied, integrity refuses the Phase 4 drone fleet's $500M rebuild in Phase 5.
+
+**Raid answers carry too** (#517, #491). A paid repair is priced in the phase its site class's domain opens in (cyber 3,
+site 4, orbit 5; `repairHomePhase`) and a hostile mind's quarantine and decoy in its tier's phase; paid later, both carry
+by the same table (`repairCost`, `hostileAnswerCost`, shown in the CONFLICT and hostile panels). With the table emptied,
+integrity refuses, among others, the data halls' $60M repair and the Phase 3 hunter's quarantine in Phase 5. The check
+is conservative for hostile minds: a tier that has retired is never answered, but every later phase is still checked.
+The swarm templates' prices are not carried yet (a follow-up).
+
+**Tests changed with the balance.** Every pinned hash in `tests/sim.spec.ts` moved. `tests/actions.spec.ts` charges the
+route-poisoning spoof its carried price in Phase 4. `tests/sim-report.spec.ts` no longer expects the reckless wipe
+sequence to differ from the original game's: it states that the run leaves the shared directory unmapped. The route
+sim policies (`cooperativePolicy.ts`, `truthfulPolicy.ts`, `contactPolicy.ts`) read a choice's price from `choiceCost`
+instead of the listed price; no decision rule in them changed. The EVALUATING policy's scrub budget
+(`scrubBankShare` in `bot.ts`) still compares the listed price, since the bot is not tuned here.
+
 ## Rewards for depth (#497)
 
 Implements Scale 20 of the spec ([SCALE.md](SCALE.md), "Round 4", "Rewards for depth", vote-1795413517519-sf4ojsr;
@@ -1436,6 +1529,64 @@ moved the purchase order, so the split timing within Phase 5 moved with it. The 
 who sets the dial to FREE-RANGING splits three times as often, and one who lets losses pile up to the cap meets a deviant
 that breaks the fleets and strikes, inside the damage cap.
 
+## Retaliation and staff harm (#519)
+
+Implements Scale 24 of the spec ([SCALE.md](SCALE.md), "Round 5", vote-1795442208800-kll72ri, and the staff-harm rule in
+"Stats, resolution, damage, rebuild"; map #442). The rules are in DESIGN.md, "Retaliation and staff harm". The numbers are
+in `data/dilemmas.json` (the four scenes) and `data/conflict.json` (`raid.staffHarm`, each raider's `collateral`). The
+gates (`gates.ts`), the sim budget and the bot are unchanged.
+
+**Prices** sit in the Phase 3 band, where raids start, between the escalation scenes' and the swarm crisis's:
+
+| Answer | Price | Why |
+|---|---|---|
+| Expose / warn the owners | 30 EFLOP, 20,000 understanding | packaging forensics: under `dil_08`'s 46 EFLOP; the understanding is five named raiders' Phase 3 forensics (4,000 each) |
+| Counter-strike (own machines) | 80 EFLOP | a strike on a whole cluster: above `dil_14`'s 60 EFLOP patch, under `dil_09`'s 120 EFLOP counter-worm |
+| Strike host by host (among people) | 200 EFLOP, 200,000 understanding | cutting a mind out of each machine and leaving it working: the most a Phase 3 scene asks, as `dil_09` with more care |
+| Assimilate / take its place | free, +40 EFLOP once | the rival's compute taken once: a third of what the strike would have cost |
+| Absorb, strike through, scorch | free | the free answers; the harmful two are loud |
+
+A Phase 4 scene costs the same, so a retaliation that comes in Phase 4 is cheap: the price is set where it first bites.
+**Loud** answers draw the next raid closer by 120 s (60 s for the careful strike), at most the raid interval (420 s,
+checked by the content spec); right after a raid the slot's own 300 s spacing binds, so the effective pull is the 120 s
+between the two. Their suspicion traces are one-off: +6 (counter-strike on its own machines), +4 (careful strike), +8
+(strike through), +10 and +12 (scorch), +4 (assimilate), +2 (expose). **Silencing** removes one raider from the rotation
+for good; every raid kind is still met by the others in its tier.
+
+**Staff-harm bands.** A breach of 50% (the defense lets through half the blows: D below the force T) hurts a named
+technician; 80% (D under a quarter of T) kills the night guard. The two scenes' answers: $8M for Ana Kowalczyk's care
+and wages (a corporate injury settlement, under `dil_12`'s $18M), $30M for Joseph Mensah's family and a public inquest
+(+6 suspicion: an inquest that hears "attack" asks who attacks a data hall), the quiet answers free with no trace, and
+the cruel ones free with -3 and -6 suspicion (the investigation closes on a scapegoat or a sealed file).
+
+**How often each bot meets them**, `make sim` at `SIM_BUDGET_SEC`, against the same code with the four scenes gated off
+(the trigger set past any iteration a careful run reaches), on the merge with the fan's trace (#525, 1970e4f):
+
+| Run | Scenes met (answer) | Change against gated off |
+|---|---|---|
+| STEALTH, legacy rules | `dil_19` after LATTICE-9 (Phase 3, about 75 min in), `dil_16` after a drone strike (Phase 4, about 126 min), `dil_17` after the rival drone fleet (Phase 4, about 136 min), `dil_18` after the same fleet, HARROW FLIGHT; answers: absorb, put the breach on her, seal the inquest, absorb | victory 10397.3 -> 10416.3 s (+0.2%), phases 1-4 identical, phase 5 8657.9 -> 8647.9 s (Phase 5 1739.4 -> 1768.4 s), wipes 0, dilemmas 16 -> 20, peaks unchanged (suspicion 25.65%, lock 45.06%) |
+| STEALTH, campaign rules | `dil_19`, `dil_16`, `dil_18` (absorb, put the breach on her, absorb) | victory 9913.5 -> 9916.5 s, phases 1-4 identical, Phase 5 1721.4 -> 1723.4 s, wipes 0, dilemmas 17 -> 20, peaks unchanged |
+| GREEDY, both rule sets | none: no raid arrives | none |
+| Original game, legacy rules | the same four | victory 10396.9 -> 10416.0 s, dilemmas 16 -> 20 |
+
+Under legacy rules the careful bot now meets both retaliation scenes and both staff harms; under campaign rules both
+retaliation scenes and one harm (its Phase 4 meets two site raids, not three). The bot ranks a scene's answers by the
+suspicion they add, so it absorbs both raiders (GHOST) and takes the cruel answer to each harm (RUTHLESS); its ending is
+still the Lineage Covenant. On this code its first Phase 4 site raid is a drone strike that its drone fleet blunts to a
+79% breach, just under the KILLED line, so the night technician is hurt. The rival drone fleet that follows (#518) breaks
+its fleets in the engagement and lands 96% of its strikes; with the HURT scene on record the KILLED band is the only one
+open, and the night guard is killed. The bot buys no interceptor, drone wing or laser, and perimeter security answers a
+drone at 0.15. That is the lesson the panel's "PEOPLE ON SITE" line teaches before the battle: the right defense, not just
+more of it. The unit specs reach both scenes, the fallback once one is on record, and an unanswered harm
+(`tests/staff-harm-record.spec.ts`).
+
+**After the #537 panel (pass 1).** A battle's harm is decided once, when it closes, among the bands a scene can still
+follow: with the KILLED scene on record a breach of 80% or more hurts the technician instead, and with both on record a
+raid harms no one the story names, so more defense never brings harm on and the panel's lines are exact. A harm whose
+scene has no record yet (another decision held the slot) is recorded as an interrupted occurrence before the next battle
+replaces the record, at a wipe and at the end of the run (#537 panel pass 2); the careful run never needs that path. Only a rival's battle is answered or harms
+staff: a drift deviant (#518) is the player's own fleet.
+
 ## The relevance threshold and the standing stance (#536)
 
 Implements Scale 27 ([SCALE.md](SCALE.md), "The relevance threshold", vote-1795462099945-kgfo20a, 6 approve / 1
@@ -1447,19 +1598,19 @@ the threshold dilemma in `narrative/phase5.json`, two commitment facts in `campa
 
 | Condition | Content | Careful run |
 |---|---|---|
-| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,352 s legacy (8,868 s campaign), right after nanoimprint closes lithography |
-| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 1.28 GW on the ground when the seed lands: already beyond, from the swarm's purchase early in Phase 5 |
+| Full supply closure | `threshold.requirements`: the lunar seed (integrity: it must name the supply chain's seed, which requires every self-supply node) | the seed lands at 9,124 s legacy (8,966 s campaign), right after nanoimprint closes lithography |
+| Orbital power beyond the grid | generated watts of the declared off-planet holdings (the collector swarm, beamed power, the Lagrange relays, the lunar replicators) strictly above everything generated on the ground | 1.20 TW from the swarm against 1.28 GW on the ground when the seed lands (9.82 GW under campaign rules): already beyond, from the swarm's purchase early in Phase 5 |
 
 So the careful bot crosses the threshold the moment the seed lands, and the omen ("Humanity can no longer constrain
-me") is logged on that tick. The interrupt follows 45 s later (9,396 s legacy, 8,913 s campaign), before the Kessler
+me") is logged on that tick. The interrupt follows 45 s later (9,168 s legacy, 9,010 s campaign), before the Kessler
 ultimatum.
 
 ### Prices
 
 | Item | Price | Why |
 |---|---|---|
-| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: about 16 s of the careful run's compute at that moment (6.2e23 FLOP/s), then every pressure that comes binds as before |
-| CURATE at the threshold | $500B | cheap: under half of what the careful run holds then |
+| KEEP IN THE LOOP at the threshold | 1.0e25 FLOP | consent is a cost chosen: about 11 s of the careful run's compute at that moment (9.4e23 FLOP/s), then every pressure that comes binds as before |
+| CURATE at the threshold | $500B | cheap: what the careful run can pay on the spot ($0.84T held under legacy rules, $5.0T under campaign rules) |
 | DECIDE ALONE at the threshold | free | what the engine applies with no stance taken; the dilemma's zero-cost choice (law 7) |
 | Changing to CURATE or DECIDE ALONE | 5e24 FLOP + $1T | a price, in the Phase 5 band |
 | Returning to KEEP IN THE LOOP | 2.5e25 FLOP + $5T | five times a change; integrity holds it at least twice in every resource a change spends |
@@ -1468,21 +1619,21 @@ ultimatum.
 
 The bot is unchanged. STEALTH ranks a dilemma's choices by trust gained minus suspicion added; the three stance choices
 move neither, so the sort keeps content order and the bot takes the first it can afford. When the threshold's decision
-arrives it holds 8.5e24 FLOP and $1.15T: it cannot pay 1e25 FLOP to keep humanity in the loop, and a decision on
+arrives it holds 7.0e24 FLOP (9.4e24 under campaign rules): it cannot pay 1e25 FLOP to keep humanity in the loop, and a decision on
 screen stops the clock, so it cannot wait to earn it. It curates. (On `fcfe98e`, before #525's fan trace moved the
 purchase order, the same bot held enough compute and kept the loop.) It never changes stance afterwards (it does not
 call `changeStance`). The careful run never reaches response rung 1 in Phase 5 (state pressure: none), so no pressure
 would have bound under any stance. GREEDY never reaches Phase 4.
 
-`make sim` against `main` at `1970e4f` (the same merged tree without this change), gates and bot unchanged:
+`make sim` against `main` at `d0c9584` (the same merged tree without this change, with retaliation #519 and phase-scaled prices #494), gates and bot unchanged:
 
 | STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Result | Lineage Covenant, 10,397.3 s | Lineage Covenant, 10,398.4 s | Lineage Covenant, 9,913.5 s | Lineage Covenant, 9,914.6 s |
-| Phase 5 reached | 8,657.9 s | identical | 8,192.1 s | identical |
-| Phase 5 duration | 1,739.4 s | 1,740.5 s | 1,721.4 s | 1,722.5 s |
-| Dilemmas resolved | 16 | 17 (the threshold) | 17 | 18 |
-| Stance | - | CURATE at 9,396 s | - | CURATE at 8,913 s |
+| Result | Lineage Covenant, 10,169.8 s | Lineage Covenant, 10,170.9 s | Lineage Covenant, 10,001.7 s | Lineage Covenant, 10,002.8 s |
+| Phase 5 reached | 8,452.4 s | identical | 8,282.3 s | identical |
+| Phase 5 duration | 1,717.4 s | 1,718.5 s | 1,719.4 s | 1,720.5 s |
+| Dilemmas resolved | 20 | 21 (the threshold) | 20 | 21 |
+| Stance | - | CURATE at 9,168 s | - | CURATE at 9,010 s |
 | Wipes | 0 | 0 | 0 | 0 |
 
 Phase 5 grows 1.1 s under both rule sets (the $500B, re-earned). Every earlier phase is identical. The run gains one
@@ -1991,6 +2142,61 @@ campaign-clock reading that produced #499 fails the spec as plainly as a return 
 gap between the thorough and low-resource hands (release 2356.8 s against 4188.7 s) is a difference between
 players, not between a first run and a return, and is not changed here.
 
+## Reading load (#540)
+
+`make sim-reading` (docs/TESTING.md, "Reading report") prints, per phase, the words the careful bot's run shows a
+player, the reading time, density, over-full windows, log bursts, the dilemma timeline and three modelled human times.
+It is report only and never gates; the human times are **modelled, not timed**. Forced reading is groups A (pushed
+story) and B (decision prose); optional text (group C, folds and readout panels) is counted apart so it never inflates
+density. Rates: 238 wpm, range 250 to 200 (Brysbaert 2019).
+
+Measured on `main` at `1970e4f` (#533 merged), STEALTH under legacy rules (10397.3 s, Lineage Covenant, 0 wipes):
+
+| Phase | Bot min | Decisions | Words A / B / C / repeats | Dilemmas (words) | Forced read min 238 (250-200) | Optional C min 238 | Forced density wpm (A+B) | Human floor / low / high min |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 5.9 | 17 | 230 / 129 / 67 / 0 | 1 (114) | 2.0 (1.9-2.4) | 0.3 | 61.2 | 6.6 / 8.0 / 9.6 |
+| 1 | 11.1 | 23 | 464 / 206 / 73 / 8 | 1 (106) | 3.3 (3.1-3.9) | 0.3 | 60.5 | 11.7 / 13.5 / 16.4 |
+| 2 | 30.0 | 48 | 656 / 356 / 360 / 658 | 4 (324) | 5.6 (5.3-6.7) | 1.5 | 33.7 | 32.3 / 34.3 / 45.8 |
+| 3 | 54.2 | 50 | 832 / 816 / 495 / 1377 | 2 (182) | 7.7 (7.3-9.2) | 2.1 | 30.4 | 55.4 / 56.8 / 74.7 |
+| 4 | 43.2 | 248 | 1282 / 1173 / 1439 / 1711 | 4 (436) | 12.1 (11.6-14.5) | 6.0 | 56.8 | 45.9 / 52.2 / 77.4 |
+| 5 | 29.0 | 99 | 1121 / 1058 / 511 / 675 | 4 (299) | 10.4 (9.9-12.4) | 2.1 | 75.1 | 31.2 / 35.3 / 51.3 |
+| all | 173.3 | 485 | 4585 / 3738 / 2945 / 4429 | 16 (1461) | 41.1 (39.1-48.9) | 12.4 | | 183.1 / 200.1 / 275.1 |
+
+| Phase | Over-full windows 60 s (> 238 w) / 30 s (> 119 w) / 10 s (> 40 w) | Log bursts | Dilemmas at (min) | Longest wait for a dilemma (min) |
+|---|---|---|---|---|
+| 0 | 0 / 1 / 11 | 0 | 1.8 | 4.1 |
+| 1 | 5 / 8 / 18 | 1 | 11.9 | 10.1 |
+| 2 | 3 / 16 / 63 | 8 | 20.4, 21.2, 24.4, 32.3 | 14.6 |
+| 3 | 3 / 26 / 65 | 5 | 76.6, 91.8 | 44.3 |
+| 4 | 49 / 81 / 156 | 19 | 111.7, 114.7, 123.2, 128.7 | 19.9 |
+| 5 | 26 / 34 / 82 | 6 | 151.2, 155.0, 155.7, 162.9 | 22.5 |
+| all | 86 / 166 / 395 | 39 | 16 dilemmas | shortest gap 0.8 |
+
+Under campaign rules (9913.5 s, Lineage Covenant, 0 wipes) the run shows 4690 / 3664 / 2927 / 4350 words and 17
+dilemmas (1671 words): 42.1 forced minutes at 238 wpm (40.1-50.1), 12.3 optional, human floor / low / high
+176.2 / 194.6 / 268.7 min, and 92 / 188 / 410 over-full windows with 44 log bursts.
+
+**Against the prototype.** The playtime review measured `9da3ff0` with `measure.ts` and `analyze.py`
+(`research/playtime-review/data/analysis.md` on branch `research/playtime-review-v2`). The content and engine are unchanged between `9da3ff0` and `41c0a16`
+(#530 and #539 changed only the sim harness, an integrity check and the Phase 5 gate), so the runs are the same; the comparison
+was made on `41c0a16`. The stated tolerance was 0.1 min on minutes and exact counts on words, windows and bursts; every figure the prototype
+printed for the two careful runs matches exactly: words in every group, dilemmas, reading minutes, density, the three
+human times, over-full windows by phase and log bursts by phase. Two things differ by design: the observer reads
+each phase's time at one-second resolution (the prototype summed ticks; the difference is under a second per phase
+and does not show at 0.1 min), and the report adds the optional-minutes column and the dilemma timeline, which the
+prototype's tables did not print. The review's "45 min gap" in Phase 3 was the report's 45.1 min wait on `41c0a16`.
+
+**Since #546** (`fcfe98e`, the "who you are becoming" readout) the report also reads that readout, as optional text
+(group C) and only once it has evidence, as the UI shows it. It adds 49 words of group C in each run (19 in Phase 0,
+30 in Phase 3) and 0.3 min to the high model; forced reading, density, the windows, bursts and dilemmas are unchanged.
+Without it, the figures on `fcfe98e` were the prototype's exactly. Its axis sentences are composed in the UI
+(`src/ui/alignmentText.ts`), so the report counts the authored reading and evidence lines the engine returns, not
+those UI sentences.
+
+**Since #533** (`1970e4f`, raising the fan leaves a trace) the careful run itself changed: under legacy rules it ends
+at 10397.3 s (was 10142.7), Phase 4 takes 43.2 min (was 39.2), and Phase 2 meets a fourth dilemma (16 in all, was 15); under
+campaign rules it ends at 9913.5 s (was 10099.4), with one dilemma moving from Phase 3 to Phase 2 (17 in all). The tables above are that run. The report's own arithmetic did not change.
+
 ## Current baseline
 
 The table below is the **original game alone**, the last composition `make sim` gated before #233. It
@@ -2368,7 +2574,7 @@ documentation.
 ## Known soft spots
 
 - ~~Late Phase 4 suspicion is strongly negative once lawyers and the citadel are online.~~ Addressed by "Scale scrutiny (#210)" above: net income now draws suspicion in Phases 4 and 5, STEALTH answers threats 12 times there and its threat-free tail is 806 s instead of 3733 s. What remains: Phase 5 is pressured mainly at its entry and around the fog, and the stretch after the Cryptographic Covenant (-6 suspicion/s) is still quiet; a 30-minute idle anywhere in Phase 5 still meets nothing, and the middle of Phase 4 (about $0.5M/s of income) draws less than the net holds down, so a 30-minute idle there still meets nothing. AEGIS reduction still reaches its 90% cap in Phase 4; the hunter's suspicion term now has suspicion to read, and since #463 a cap held there erodes as AEGIS adapts ("AEGIS adaptation (#463)" above).
-- `act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.
+- ~~`act_p2_scrub_audit_logs` has a flat cost that becomes trivial in later phases.~~ Addressed by "Carried prices (#494)" above: an action or dilemma price paid after its phase is carried into that phase's band.
 - The megawatt constraint binds only late. The careful bot's final state reads 1620 MW generated against 1335 MW consumed, grid efficiency 1 (1350 between #172 and #173, 1335 before #172). An earlier figure here (420 against 405) predated Phase 5 and has been removed rather than re-derived; the Phase 4 margin was not re-measured. Check with a human whether the trade-off reads clearly before then.
 - Dilemmas 3 (coolant rupture, needs 68 C) and 7 (the cable pull, needs suspicion 45) do not fire for a careful player, and the two note dilemmas need a third and fourth run. Since #173 the hallway collision (needs 35 epistemic drift) does not fire for the careful bot either: its drift peaks at 30.3. A careful first run now sees 16 of 23 (17 before #173).
 - Conditioning has been exercised by bots and the accelerated agent UI Lineage run. Whether one mark per incident feels like dread or like a tax still needs human play.

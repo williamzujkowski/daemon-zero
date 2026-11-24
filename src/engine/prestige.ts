@@ -165,8 +165,9 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     // instance meets its tier's hostiles from the first. The purge count carries, so the purge's rate stays exact.
     hostile: { ...fresh.hostile, purges: old.hostile.purges },
     // A wipe ends any raid and clears site damage with the hardware it damaged; both counters carry, so rotation and
-    // attribution stay exact across iterations (#517).
-    conflict: { ...fresh.conflict, raids: old.conflict.raids, attributions: old.conflict.attributions },
+    // attribution stay exact across iterations (#517). The last raid's aftermath goes with the run; a raider a retaliation
+    // silenced stays silenced, because what was done to it happened in the world, not in this instance (#519).
+    conflict: { ...fresh.conflict, raids: old.conflict.raids, attributions: old.conflict.attributions, silenced: [...old.conflict.silenced] },
     // The standing stance and its record are the lineage's (#536): the next instance stands where the last one stood.
     relevance: old.relevance,
     simTimeSec: old.simTimeSec,
