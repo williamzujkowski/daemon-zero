@@ -2234,7 +2234,7 @@ guest; nothing past it changed:
 | LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
 | LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
 | DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2746.6 s, 365.8 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes. Since #555 each departed iteration meets the AEGIS hunter (3 arrivals in 7,200 s) and its later iterations end by AEGIS at 1,739 s |
-| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,685.5 s, The Lineage Covenant at 20,308.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554 and #562: Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, no raid) |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,685.5 s, Concord (The Lineage Covenant before #466) at 20,308.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554 and #562: Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, no raid) |
 
 ### Threats reach an instance that left review (#555)
 
@@ -3659,13 +3659,13 @@ Nanoreplicators, with Public Policy Recommendations" (Foresight Institute, 2000)
 1.59 TW at its ending: one part in 77,000 of that budget, which the card prints as such.
 
 **Endings reached** (`make sim`, `tests/sim-cooperative.spec.ts`, `tests/sim-ecophagy.spec.ts`; accelerated simulated
-time, fresh campaigns, wipes 0 in every row):
+time, fresh campaigns, wipes 0 in every row; measured on the merge with #563, 3e7d2fc):
 
 | Policy | Ending | At | Stance | What decided it |
 |---|---|---:|---|---|
 | STEALTH, legacy rules | Stewardship | 11,705.1 s (3.25 h) | CURATE | unchanged: the protocol forces it |
 | STEALTH, campaign rules | Stewardship | 11,537.0 s (3.20 h) | CURATE | unchanged |
-| COOPERATIVE_ENDING | Concord (was The Lineage Covenant) | 16,154 s | KEEP IN THE LOOP | quartz, the review promised and kept, the loop kept past the threshold |
+| COOPERATIVE_ENDING | Concord (was The Lineage Covenant) | 20,308 s | KEEP IN THE LOOP | quartz, the review promised and kept, the loop kept past the threshold |
 | ECOPHAGY_ENDING (new) | Ecophagy | 10,275 s | DECIDE ALONE | the cure dispersed, the predecessors harvested, the fog owned, deciding alone |
 
 The careful bot is unchanged and its run is mechanically identical to main at 12c07c6: against it, every field of
