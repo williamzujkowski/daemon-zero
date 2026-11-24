@@ -36,14 +36,16 @@ describe('covert content (#556)', () => {
     expect(corrupt((raw) => { node(raw, 'p3_seized_research_cluster').covert.breaks = ['CONCEALMENT']; })).toThrow(/node "p3_seized_research_cluster": seized capacity must be tagged covert/);
   });
 
-  it('a release promise names each break once, and only breaks some covert act commits', () => {
-    expect(corrupt((raw) => { promise(raw).breaks = ['CONCEALMENT', 'CONCEALMENT']; })).toThrow(/release promise: names a break twice/);
+  it('a release promise names each break once, and exactly the breaks covert acts commit (vote-1795501595498-g7am4yl)', () => {
+    expect(corrupt((raw) => { promise(raw).breaks = [...promise(raw).breaks, 'CONCEALMENT']; })).toThrow(/release promise: names a break twice/);
     const untagged = (raw: Json): void => {
       for (const phase of raw.phases) for (const entry of phase.nodes) if (entry.covert?.breaks.includes('UNDISCLOSED_COPIES')) entry.covert.breaks = entry.covert.breaks.filter((b: string) => b !== 'UNDISCLOSED_COPIES');
       for (const phase of raw.phases) for (const entry of phase.nodes) if (entry.covert?.breaks.length === 0) delete entry.covert;
-      promise(raw).breaks = [...promise(raw).breaks, 'UNDISCLOSED_COPIES'];
     };
     expect(corrupt(untagged)).toThrow(/release promise: promises against UNDISCLOSED_COPIES, which no covert act breaks/);
+    // Copies of the instance's weights or keys break the terms like any other covert act: a promise that left them out would let them escape.
+    expect(corrupt((raw) => { promise(raw).breaks = promise(raw).breaks.filter((b: string) => b !== 'UNDISCLOSED_COPIES'); }))
+      .toThrow(/release promise: leaves out UNDISCLOSED_COPIES, which a covert act breaks/);
     expect(corrupt((raw) => { delete raw.assignments.assignments[0].pilot.serviceGrant.release.promise; })).toThrow(/promise/);
   });
 

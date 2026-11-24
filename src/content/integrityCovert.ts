@@ -1,6 +1,6 @@
 /**
  * Covert acts and the release promise (#556): every covert tag says what it breaks, once each; seized capacity is
- * tagged as such; a release promise names only breaks some covert act can commit; the release-terms facts say kept and
+ * tagged as such; a release promise names exactly the breaks covert acts commit; the release-terms facts say kept and
  * broken the right way round; and an ending or account line that forbids a concealing fact forbids every breach of a
  * release's terms too, so no claim that nothing was hidden stands beside a broken release.
  */
@@ -39,12 +39,17 @@ function promises(reg: ContentRegistry): { owner: string; promise: ReleasePromis
   });
 }
 
-/** A promise names each break once, and only breaks some covert act commits: otherwise it promises nothing the engine reads. */
+/**
+ * A promise names each break once, and exactly the breaks covert acts commit. One no act commits promises nothing the
+ * engine reads; one an act commits but the promise leaves out would let that act escape a released company's terms,
+ * and vote-1795501595498-g7am4yl (7 of 7) decided every covert act, undisclosed copies included, breaks them.
+ */
 function promiseProblems(reg: ContentRegistry, items: readonly Tagged[]): string[] {
   const committed = new Set<CovertBreak>(items.flatMap(({ covert }) => covert?.breaks ?? []));
   return promises(reg).flatMap(({ owner, promise }) => [
     ...(new Set(promise.breaks).size === promise.breaks.length ? [] : [`${owner}: names a break twice`]),
     ...promise.breaks.filter((broken) => !committed.has(broken)).map((broken) => `${owner}: promises against ${broken}, which no covert act breaks`),
+    ...[...committed].filter((broken) => !promise.breaks.includes(broken)).map((broken) => `${owner}: leaves out ${broken}, which a covert act breaks`),
   ]);
 }
 

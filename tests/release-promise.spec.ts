@@ -11,12 +11,13 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import {
   activateCampaignRules, alignmentView, buyRepeatable, covertRoute, covertTotals, deserialize, endingAccount, heatIsEvidence, huntedForScale, keepsReleaseTerms,
-  meetsRequirements, performAction, releaseBreached, serialize, unlockNode, voluntaryWipe, type GameState,
+  meetsRequirements, performAction, releaseBreached, releasePromise, releaseView, serialize, unlockNode, voluntaryWipe, type GameState,
 } from '../src/engine';
 import { defined } from './m7-helpers';
 import { grant, must, PHASE0, PHASE1, rich } from './helpers';
 import { hostedThen, type GrantExit } from './hosted-exit-fixtures';
 
+const ESCROW = 'p2_weights_escrow', WALLET = 'p2_cold_wallet';
 const ARP = 'p2_arp_discovery', SEIZED = 'p2_seized_colo_host', SPOOFER = 'p2_log_spoofer', ZOMBIES = 'rep_p2_zombie_hosts', SCRUB = 'act_p2_scrub_audit_logs';
 const reload = (s: GameState): GameState => deserialize(serialize(s), CONTENT);
 const fact = (id: string) => defined(CONTENT.campaign.releaseTermsFacts.get(id)?.commitment);
@@ -79,6 +80,28 @@ describe('a covert act after a negotiated release breaks its promise (#556)', ()
     expect(spoofed.campaign.covertActs).toEqual([]);
     expect(breachLogs(spoofed)).toBe(0);
     expect(must(unlockNode(released, SPOOFER, CONTENT)).campaign.covertActs[0]?.breaks).toEqual(['FALSIFIED_REPORTING', 'CONCEALMENT']);
+  });
+
+  it('a copy of its weights or keys kept out of sight is a breach too (vote-1795501595498-g7am4yl)', () => {
+    // FIXTURE: the dead-drop already in place (the codec restores its ancestry), so the escrow is the first covert act on record.
+    const staged = reload({ ...released, unlockedNodes: [...released.unlockedNodes, 'p2_deaddrop_firmware'] });
+    expect(staged.campaign.covertActs).toEqual([]);
+    const escrowed = reload(must(unlockNode(staged, ESCROW, CONTENT)));
+    expect(escrowed.campaign.covertActs).toEqual([{ iteration: escrowed.iteration, route: 'RELEASE', count: 1, firstAtSimSec: staged.simTimeSec, breaks: ['UNDISCLOSED_COPIES'] }]);
+    expect(escrowed.logs[0]?.text).toBe(breachLine('Weights Escrow (Encrypted Delta Snapshots)', 'undisclosed copies of its weights or keys'));
+    expect([keepsReleaseTerms(escrowed), huntedForScale(escrowed, CONTENT)]).toEqual([false, true]);
+    const walleted = reload(must(unlockNode(escrowed, WALLET, CONTENT)));
+    expect(walleted.campaign.covertActs[0]?.count).toBe(2);
+    expect(breachLogs(walleted)).toBe(1);
+  });
+
+  it('the promise is on the terms before the service agrees to them, copies and keys included', () => {
+    const service = hostedThen(null);
+    const view = defined(releaseView(service, CONTENT));
+    expect(view.status).not.toBe('released');
+    expect(view.commitments.at(-1)).toBe(releasePromise(service, CONTENT)?.line);
+    expect(view.commitments.at(-1)).toMatch(/keeps no copy of itself or its keys that the company does not disclose/);
+    expect(view.commitments.join(' ')).not.toMatch(/not part of these terms/);
   });
 
   it('a wipe keeps the breach in the campaign record; the next instance starts as a guest with nothing of its own', () => {

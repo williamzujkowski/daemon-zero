@@ -402,7 +402,7 @@ draw hunts. Built as declarations in content, one record and reads of it; the en
   activation (`campaignSave.ts`).
 - **Integrity** (`integrityCovert.ts`, proved in `tests/covert-integrity.spec.ts`): a covert tag names each break once;
   seized capacity (`acquisition: UNAUTHORIZED`) is tagged covert with `SEIZED_CAPACITY`; a release promise names each
-  break once and only breaks some covert act commits; a KEPT fact keeps a commitment and conceals nothing, a BREACHED
+  break once and exactly the breaks covert acts commit (vote-1795501595498-g7am4yl: copies of weights or keys included); a KEPT fact keeps a commitment and conceals nothing, a BREACHED
   one breaks a commitment and conceals, a promise it names is declared, and a release with a promise has both; an
   ending or account line that forbids a concealing fact forbids every concealing release-terms fact; a covert account
   line states `{count}`. `integrityRequirements.ts` accepts release-terms facts in fact gates and refuses a
