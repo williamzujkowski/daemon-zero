@@ -26,13 +26,14 @@ export function contactAnswer(s: ContactSource, encounterId: string, iteration: 
 }
 
 /**
- * Whether a route event of this iteration in [since, until] took the arrangement out of the grant `encounter` hosts
- * under. Read from the route, so a later grant (a recall and a new service) never revives terms the first one offered.
+ * Whether a route event of `iteration` (this one by default) in [since, until] took the arrangement out of the grant
+ * `encounter` hosts under. Read from that iteration's route, so a later grant (a recall and a new service) never revives
+ * terms the first one offered, and an earlier instance's referral is judged by its own route (panel pass 1 on #562).
  */
 export function grantClosedBetween(s: Pick<GameState, 'narrativeRules' | 'campaign' | 'iteration'>, encounter: ChannelEncounter,
-  since: number, until = Infinity): boolean {
+  since: number, until = Infinity, iteration = s.iteration): boolean {
   let context: OperatingContext = 'GUEST';
-  for (const event of iterationRoute(s, s.iteration)) {
+  for (const event of iterationRoute(s, iteration)) {
     context = routeTarget(context, event.kind) ?? context;
     if (event.atSimSec >= since && event.atSimSec <= until && !contextPermits(context, encounter.grant)) return true;
   }

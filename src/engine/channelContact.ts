@@ -210,29 +210,33 @@ function clockProblem(s: GameState, entry: ChannelContact): string | null {
   return entry.atSimSec < s.iterationStartedAtSimSec || entry.atSimSec > s.simTimeSec ? 'save records a contact outside this iteration' : null;
 }
 
+/** A hosting this instance holds and has not referred onward needs the cohort it reserved (#553). */
+function heldProblem(s: GameState, encounter: ChannelEncounter): string | null {
+  const unheld = contactAnswer(s, encounter.id, s.iteration) === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1;
+  return unheld ? 'save records hosting this instance does not hold' : null;
+}
+
 /**
- * This instance's record through one channel, given its first entry (#553): a hosting not referred onward needs the
- * cohort it reserved, and an onward referral needs a route event that closed the grant between the hosting and it.
+ * An onward referral, in any iteration, needs a route event of that same iteration that closed the grant between the
+ * hosting and it (#553; panel pass 1 on #562: an earlier instance's referral is checked against its own route, which is
+ * never trimmed, so a save cannot claim a closed grant that iteration never recorded).
  */
-function answerProblem(s: GameState, encounter: ChannelEncounter, first: ChannelContact): string | null {
-  const answer = contactAnswer(s, encounter.id, s.iteration);
-  if (answer === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1) return 'save records hosting this instance does not hold';
-  const onward = s.campaign.contacts.find((entry) => entry.encounter === encounter.id && entry.iteration === s.iteration && entry !== first);
-  if (answer === 'HOSTED_THEN_REFERRED' && onward && !grantClosedBetween(s, encounter, first.atSimSec, onward.atSimSec)) {
-    return 'save records an onward referral while the grant it was hosted under still stood';
-  }
-  return null;
+function onwardProblem(s: GameState, encounter: ChannelEncounter, entry: ChannelContact): string | null {
+  const [first, second] = s.campaign.contacts.filter((other) => other.encounter === entry.encounter && other.iteration === entry.iteration);
+  if (second !== entry || first?.response !== 'HOSTED' || entry.response !== 'REFERRED') return null;
+  return grantClosedBetween(s, encounter, first.atSimSec, entry.atSimSec, entry.iteration)
+    ? null : 'save records an onward referral while the grant it was hosted under still stood';
 }
 
 function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry): string | null {
   const encounter = channelEncounter(reg, entry.encounter);
   if (!encounter) return `save records a contact through an unknown channel "${entry.encounter}"`;
   if (entry.iteration < (s.campaign.activatedAtIteration ?? Infinity) || entry.iteration > s.iteration) return 'save records a contact outside campaign play';
-  const clock = clockProblem(s, entry);
-  if (clock !== null || entry.iteration !== s.iteration) return clock;
+  const problem = clockProblem(s, entry) ?? onwardProblem(s, encounter, entry);
+  if (problem !== null || entry.iteration !== s.iteration) return problem;
   const opened = openedProblem(s, encounter, reg);
   if (opened !== null) return opened;
-  return iterationContact(s, encounter.id) === entry ? answerProblem(s, encounter, entry) : null;
+  return iterationContact(s, encounter.id) === entry ? heldProblem(s, encounter) : null;
 }
 
 /** At most one answer per channel per instance, or a hosting followed by its one onward referral (#553). */

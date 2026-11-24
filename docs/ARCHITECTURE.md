@@ -1946,7 +1946,8 @@ does not make the fragment commandable. An instance's answer is derived (`contac
 its record holds both, which the ending account's contact gates and the channel view read. No GameState field changed,
 so no schema bump: the loader (`contactProblem`) admits at most one answer per channel per instance or a hosting
 followed by one onward referral, requires the cohort only for a hosting not referred onward, and refuses a referral
-with no route event closing the grant between the hosting and it. Tests: `tests/departed-hosted-softlock.spec.ts`.
+with no route event of its own iteration closing the grant between the hosting and it, an earlier instance's referral
+included (the route record is never trimmed, panel pass 1 on #562). Tests: `tests/departed-hosted-softlock.spec.ts`.
 
 **One gate for cohort commands (#313).** `shardCommandUnmet` (in `shardActions.ts`) is the only place a cohort
 command's legality is decided: a paused run, a mind that has not decoded its audit trail (`understandsSurveillance`,

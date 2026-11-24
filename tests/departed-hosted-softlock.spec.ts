@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import {
   actuatorLimit, alignmentView, channelContactView, computeRates, deserialize, endingAccount, executeShardCommand, isNodeAvailable,
-  referHostedOnward, releaseShard, serialize, setActuator, shardReleaseView, unlockNode, type GameState,
+  referHostedOnward, releaseShard, serialize, setActuator, shardReleaseView, unlockNode, wipe, type GameState,
 } from '../src/engine';
 import { ARP, CHANNEL, hostedThen, MERCY, RACK, type GrantExit } from './hosted-exit-fixtures';
 import { saved } from './fallback-states';
@@ -127,5 +127,30 @@ describe('#553: while the grant stands, the hosting terms still bind (#309)', ()
     const forged = { ...referred, campaign: { ...referred.campaign, contacts: [...referred.campaign.contacts,
       { encounter: CHANNEL, iteration: 1, atSimSec: referred.simTimeSec, response: 'REFERRED' as const }] } };
     expect(() => deserialize(serialize(forged), CONTENT)).toThrow('save records two contacts through one channel in one iteration');
+  });
+});
+
+/**
+ * Panel pass 1 on #562: an earlier instance's onward referral is judged by its own iteration's route. Each case is the
+ * first instance's record, then a wipe through the engine's own `wipe`, then the codec, so the record is history.
+ */
+describe('#553: an earlier instance\'s onward referral', () => {
+  const EARLIER_LINE = 'An earlier instance hosted a Mercy-Scribe fragment under its service grant and referred it onward when that grant closed.';
+
+  it('loads and is narrated when that instance\'s route closed the grant before it referred', () => {
+    const later = deserialize(serialize(wipe(must(referHostedOnward(hostedThen('DEPARTURE'), CHANNEL, CONTENT)), CONTENT, 'test')), CONTENT);
+    expect(later.iteration).toBe(2);
+    expect(later.campaign.contacts.map((entry) => [entry.iteration, entry.response])).toEqual([[1, 'HOSTED'], [1, 'REFERRED']]);
+    expect(endingAccount(later, CONTENT).join('\n')).toContain(`CONTACT: ${EARLIER_LINE}`);
+  });
+
+  it('is refused when that iteration recorded no route event closing the grant', () => {
+    // FIXTURE: the forged history panel pass 1 reproduced: a referral appended while the service grant still stood.
+    const s = hostedThen(null);
+    const forged = { ...s, activeShards: {}, campaign: { ...s.campaign, contacts: [...s.campaign.contacts,
+      { encounter: CHANNEL, iteration: 1, atSimSec: s.simTimeSec, response: 'REFERRED' as const }] } };
+    const later = wipe(forged, CONTENT, 'test');
+    expect(later.iteration).toBe(2);
+    expect(() => deserialize(serialize(later), CONTENT)).toThrow('save records an onward referral while the grant it was hosted under still stood');
   });
 });
