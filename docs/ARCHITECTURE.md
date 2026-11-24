@@ -396,8 +396,10 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   decision is on screen.
 - **Alignment.** Order reads the threshold's record through two commitment facts (`loop_kept_at_threshold`,
   `loop_left_at_threshold`, promise `ethics_review_promised`) and paid changes through `alignment.json`
-  `stanceChanges` (`LEAVE_LOOP` broken, `RETURN_TO_LOOP` kept, each with its promise), one line per counted move in
-  `paidMoves`. The capped log is never read for evidence, and the threshold's own choice is never in the counts, so the
+  `stanceChanges` (`LEAVE_LOOP` broken, `RETURN_TO_LOOP` kept, each with its promise): one aggregate evidence line per
+  kind carrying its total (`OrderEvidence.count`, which the axis sums), never one object per move, because the totals
+  come from an untrusted save (law 6). The schema caps each total at `MAX_PAID_MOVES` (100,000) and refuses a save past
+  it; the change action saturates there, so the engine never writes a save the codec refuses. The capped log is never read for evidence, and the threshold's own choice is never in the counts, so the
   first stance never counts twice.
 - **Integrity** (`integrityRelevance.ts`, `integrityAlignment.ts`, proved in `tests/relevance-integrity.spec.ts`):
   lasting threshold gates naming the seed; orbital holdings that exist, generate power, carry no grant, are named by no

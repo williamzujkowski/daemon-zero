@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { deserialize, initialRelevance, MAX_STANCE_RECORD, MIGRATIONS, migrate, SCHEMA_VERSION, serialize, type GameState } from '../src/engine';
+import { deserialize, initialRelevance, MAX_PAID_MOVES, MAX_STANCE_RECORD, MIGRATIONS, migrate, SaveError, SCHEMA_VERSION, serialize, type GameState } from '../src/engine';
 import { reg } from './helpers';
 
 const p5 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v15-p5.json', 'utf8'), reg);
@@ -49,5 +49,8 @@ describe('save v28 (#536)', () => {
     expect(load({ stance: null, record: [] })).toThrow();
     expect(load({ stance: null, record: [], paidMoves: { leftLoop: -1, returnedToLoop: 0 } })).toThrow();
     expect(load({ stance: null, record: [], paidMoves: { leftLoop: 1.5, returnedToLoop: 0 } })).toThrow();
+    expect(load({ stance: null, record: [], paidMoves: { leftLoop: MAX_PAID_MOVES + 1, returnedToLoop: 0 } })).toThrow(SaveError);
+    expect(load({ stance: null, record: [], paidMoves: { leftLoop: 0, returnedToLoop: Number.MAX_SAFE_INTEGER } })).toThrow(SaveError);
+    expect(load({ stance: null, record: [], paidMoves: { leftLoop: MAX_PAID_MOVES, returnedToLoop: MAX_PAID_MOVES } })).not.toThrow();
   });
 });

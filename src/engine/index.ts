@@ -115,4 +115,4 @@ export { pastRelevanceThreshold, pressuresBind, relevanceReading, stanceGate, ty
 export {
   changeStance, changeStanceUnmet, stanceChangeCost, stanceCopy, stanceView, type StanceOptionView, type StanceView,
 } from './relevanceActions';
-export { initialRelevance, MAX_STANCE_RECORD, type RelevanceState, type StanceEntry } from './relevanceState';
+export { initialRelevance, MAX_PAID_MOVES, MAX_STANCE_RECORD, type RelevanceState, type StanceEntry } from './relevanceState';

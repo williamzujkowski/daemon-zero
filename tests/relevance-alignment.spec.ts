@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Stance } from '../src/content/schemaStance';
-import { alignmentView, changeStance, MAX_STANCE_RECORD, type CampaignRecord, type GameState, type StanceEntry } from '../src/engine';
+import { alignmentView, changeStance, MAX_PAID_MOVES, MAX_STANCE_RECORD, type CampaignRecord, type GameState, type StanceEntry } from '../src/engine';
 import { must } from './helpers';
 import { activeGame, preview, reload } from './campaign-helpers';
 import { defined } from './m7-helpers';
@@ -96,5 +96,19 @@ describe('pruning the stance log never erases a commitment (#554 panel)', () => 
     expect(s.relevance.paidMoves).toEqual({ leftLoop: 20, returnedToLoop: 20 });
     const order = alignmentView(s, preview).order;
     expect([order.raises, order.lowers]).toEqual([21, 20]);
+    // One aggregate line per kind carries its total: the evidence never grows with the count (#554 panel, law 6).
+    expect(counted(s)).toEqual([{ stance: 'kept', text: factLine('loop_kept_at_threshold') },
+      { stance: 'broken', text: moveLine('LEAVE_LOOP'), count: 20 }, { stance: 'kept', text: moveLine('RETURN_TO_LOOP'), count: 20 }]);
+  });
+});
+
+describe('the lasting totals are bounded (#554 panel, law 6)', () => {
+  it('a change at the cap saturates there, so the engine never writes a save the codec refuses', () => {
+    const kept = { ...promised, [THRESHOLD]: played('keep_in_the_loop') };
+    const atCap = { ...game(kept, [entry(null, 'CURATE', 'THRESHOLD')], 'CURATE'), cycles: 1e30, capital: 1e18,
+      relevance: { stance: 'CURATE' as const, record: [entry(null, 'CURATE', 'THRESHOLD')], paidMoves: { leftLoop: MAX_PAID_MOVES, returnedToLoop: MAX_PAID_MOVES } } };
+    const back = must(changeStance(must(changeStance(atCap, 'KEEP_IN_THE_LOOP', preview)), 'DECIDE_ALONE', preview));
+    expect(back.relevance.paidMoves).toEqual({ leftLoop: MAX_PAID_MOVES, returnedToLoop: MAX_PAID_MOVES });
+    expect(reload(back).relevance.paidMoves).toEqual(back.relevance.paidMoves);
   });
 });

@@ -15,8 +15,11 @@ type AlignmentSource = Pick<GameState, 'narrativeRules' | 'campaign' | 'traits' 
 /** One Regard line: how many times the ending evidence holds this trait, and which way it moves the axis. */
 export interface RegardEvidence { trait: Trait; direction: 'raises' | 'lowers'; count: number }
 
-/** One Order line: a commitment kept or broken, or a commitment-bearing outcome that is not on record. */
-export interface OrderEvidence { stance: CommitmentStance | 'unknown'; text: string }
+/**
+ * One Order line: a commitment kept or broken, or a commitment-bearing outcome that is not on record. `count` is set on
+ * an aggregate line (paid stance moves, #536): it stands for that many commitments, so a lasting total is one object.
+ */
+export interface OrderEvidence { stance: CommitmentStance | 'unknown'; text: string; count?: number }
 
 export interface AlignmentAxis<E> {
   /** Evidence for the axis (Regard: others count; Order: a commitment kept) and against it. */
@@ -76,16 +79,16 @@ function unknownLines(s: AlignmentSource, facts: readonly CampaignFact[], reg: C
 }
 
 /**
- * Paid stance changes (#536) that left the loop or returned to it, each counted where its promise was made. They are read
- * from the lasting counts, never the capped log, so no number of later changes can push a breach out. The first stance is
- * the threshold dilemma's record, read through its commitment facts above, and is never counted here.
+ * Paid stance changes (#536) that left the loop or returned to it, counted where their promise was made. Each kind is one
+ * aggregate line carrying its lasting total, never one object per move: the totals come from the save, which is untrusted
+ * input (law 6). The first stance is the threshold dilemma's record, read through its commitment facts above.
  */
 function stanceChangeLines(s: AlignmentSource, reg: ContentRegistry): OrderEvidence[] {
   const { leftLoop, returnedToLoop } = s.relevance.paidMoves;
   return ([['LEAVE_LOOP', leftLoop], ['RETURN_TO_LOOP', returnedToLoop]] as const).flatMap(([move, times]): OrderEvidence[] => {
     const rule = reg.alignment.stanceChanges.find((change) => change.move === move);
     if (rule === undefined || times === 0 || (rule.promise !== undefined && !holdsCampaignFact(s, rule.promise, reg))) return [];
-    return Array.from({ length: times }, () => ({ stance: rule.stance, text: rule.line }));
+    return [{ stance: rule.stance, text: rule.line, count: times }];
   });
 }
 
@@ -100,7 +103,7 @@ function orderAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentView['ord
   }) : [];
   const counted = [...recorded, ...routes, ...stanceChangeLines(s, reg)];
   const unknown = unknownLines(s, facts, reg);
-  const count = (stance: CommitmentStance) => counted.filter((line) => line.stance === stance).length;
+  const count = (stance: CommitmentStance) => counted.reduce((sum, line) => sum + (line.stance === stance ? line.count ?? 1 : 0), 0);
   return { ...axis(count('kept'), count('broken'), [...counted, ...unknown]), unknown: unknown.length };
 }
 

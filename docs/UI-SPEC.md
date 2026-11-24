@@ -1125,5 +1125,7 @@ function of the engine's `stanceView` or `pressureViews` (`src/ui/relevanceText.
 - **Pressure rows** past the threshold read `HONOURED: <order>` in the loop and `NOT BINDING: <order>` otherwise, with
   the stance's line under it (`pressure-<id>-stance`: "Filed. It binds nothing: what it names is out of reach of the
   hands that signed it."). The order's own text stays; an answer line is shown only for an answer the instance holds.
+- **Order lines for paid stance moves** appear once per kind in the "who you are becoming" readout, with the total when it
+  is more than one: `BROKEN // STANCE: The lineage paid to leave the loop ... (20 times)`.
 - **Voice.** The treaty office's posture, the WORLD feed lines and the Phase 5 scene contexts follow the stance
   (DESIGN.md). A stance gate that blocks something reads "Not open to the stance you hold (<NAME>)" in a requirement hint.

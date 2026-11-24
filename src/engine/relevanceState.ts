@@ -19,7 +19,12 @@ export const StanceEntrySchema = z.strictObject({
   via: z.enum(['THRESHOLD', 'CHANGE']),
 });
 
-const count = z.number().int().nonnegative();
+/**
+ * The most paid moves of either kind a lineage keeps count of. Each costs at least 5e24 FLOP and $1T and a press of its
+ * own, so no campaign comes near it; the action saturates here, and a save claiming more is forged and refused (law 6).
+ */
+export const MAX_PAID_MOVES = 100_000;
+const count = z.number().int().nonnegative().max(MAX_PAID_MOVES);
 
 export const RelevanceStateSchema = z.strictObject({
   /** Null until the threshold's dilemma is answered. */

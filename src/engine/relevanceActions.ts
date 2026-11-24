@@ -12,7 +12,7 @@ import type { ActionResult } from './actions';
 import { canAfford } from './query';
 import { formatCost, pausedReason } from './queryPresentation';
 import { relevanceReading, type RelevanceReading } from './relevance';
-import { MAX_STANCE_RECORD, paidMove, type StanceEntry } from './relevanceState';
+import { MAX_PAID_MOVES, MAX_STANCE_RECORD, paidMove, type StanceEntry } from './relevanceState';
 import type { GameState } from './state';
 import { payCost } from './transactions';
 import { pushLog } from './util';
@@ -26,7 +26,7 @@ export function stanceCopy(reg: ContentRegistry, stance: Stance): StanceCopy | u
 function takeStance(d: GameState, stance: Stance, via: StanceEntry['via'], reg: ContentRegistry): void {
   const from = d.relevance.stance, entry = { iteration: d.iteration, atSimSec: d.simTimeSec, from, stance, via };
   const move = via === 'CHANGE' ? paidMove(from, stance) : null;
-  const paidMoves = move === null ? d.relevance.paidMoves : { ...d.relevance.paidMoves, [move]: d.relevance.paidMoves[move] + 1 };
+  const paidMoves = move === null ? d.relevance.paidMoves : { ...d.relevance.paidMoves, [move]: Math.min(MAX_PAID_MOVES, d.relevance.paidMoves[move] + 1) };
   d.relevance = { stance, record: [...d.relevance.record, entry].slice(-MAX_STANCE_RECORD), paidMoves };
   const log = stanceCopy(reg, stance)?.log;
   if (log !== undefined) pushLog(d, reg, log, 'LORE');
