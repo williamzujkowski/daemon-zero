@@ -2150,21 +2150,21 @@ merge into one counted line, and a wild or channel mind's request is joined to i
 kernel log"). The run is the same run: no content number, bot rule or gate changed, and with the log and the save
 version left out the STEALTH and GREEDY reports hash identically before and after; only the log moved. The report reads
 the merged log the UI shows: a tallied line is a line already read moving up with a higher count, so it is not a new
-line, and a joined line adds only its outcome's words. Measured against `887d000` (#519 merged), before and after:
+line, and a joined line adds only its outcome's words. Measured against `d0c9584` (#519 and #494 merged), before and
+after:
 
 | | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Log bursts, all phases | 50 | 20 | 46 | 20 |
-| Log bursts, Phase 4 | 26 | 10 | 19 | 7 |
-| Over-full windows 60 s / 30 s / 10 s, all phases | 93 / 184 / 428 | 56 / 136 / 342 | 96 / 189 / 415 | 64 / 141 / 332 |
-| Over-full windows 60 s, Phase 4 / Phase 5 | 58 / 24 | 28 / 19 | 42 / 43 | 13 / 42 |
-| Log repeat words | 4476 | 3054 | 4342 | 2992 |
-| Forced reading min at 238 wpm | 45.5 | 45.5 | 45.7 | 45.7 |
-| Human high model min | 285.4 | 278.3 | 276.0 | 269.3 |
+| Log bursts, all phases | 47 | 21 | 44 | 23 |
+| Log bursts, Phase 4 | 22 | 10 | 16 | 6 |
+| Over-full windows 60 s / 30 s / 10 s, all phases | 95 / 204 / 404 | 71 / 160 / 326 | 89 / 200 / 425 | 61 / 156 / 342 |
+| Over-full windows 60 s, Phase 4 / Phase 5 | 44 / 43 | 21 / 42 | 39 / 42 | 17 / 36 |
+| Log repeat words | 4259 | 2866 | 4371 | 3006 |
+| Forced reading min at 238 wpm | 43.8 | 43.8 | 45.6 | 45.6 |
+| Human high model min | 277.5 | 270.5 | 277.7 | 270.8 |
 
-Forced reading is unchanged because repeats were never forced reading; group A moved by 5 words (4754 to 4749) under
-legacy rules and not at all under campaign rules. The floor and low human models are unchanged. The tables above
-predate #519; the before columns here are `887d000`.
+Forced reading, the words in groups A and B, and the floor and low human models are unchanged: repeats were never
+forced reading. The tables above predate #519 and #494; the before columns here are `d0c9584`.
 
 ## Current baseline
 
