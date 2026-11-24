@@ -10,6 +10,7 @@ import { meetsAssignment } from './assignmentQuery';
 import { qualifiesForPilot } from './pilotQuery';
 import { meetsCapability } from './capabilityQuery';
 import { lastRaidMatches } from './raidOutcome';
+import { pastRelevanceThreshold, stanceGate } from './relevance';
 /** Where a scan records failures: a list for the explanation, or null when only the verdict is wanted. */
 type FailureSink = RequirementFailure[] | null;
 
@@ -46,6 +47,8 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches && fail(out, { kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches })) return true;
   if (req.requiresActiveConditioningMark && s.conditioning.length === 0 && fail(out, { kind: 'requiresActiveConditioningMark', target: null, required: true, actual: false })) return true;
   if (req.requiresMaxDriftShardAnomaly && !s.hasMaxDriftShardAnomaly && fail(out, { kind: 'requiresMaxDriftShardAnomaly', target: null, required: true, actual: false })) return true;
+  if (req.relevanceStances && !req.relevanceStances.includes(stanceGate(s)) && fail(out, { kind: 'relevanceStances', target: stanceGate(s), required: false, actual: true })) return true;
+  if (req.relevanceThreshold && (!reg || !pastRelevanceThreshold(s, reg)) && fail(out, { kind: 'relevanceThreshold', target: null, required: true, actual: false })) return true;
   return false;
 }
 

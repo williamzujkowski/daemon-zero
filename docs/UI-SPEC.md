@@ -1139,3 +1139,33 @@ of that view (`src/ui/alignmentText.ts`, proved in `tests/ui-becoming.spec.ts`).
 - **Tests.** Engine `tests/alignment.spec.ts`; content `tests/alignment-integrity.spec.ts`; UI
   `tests/ui-becoming.spec.ts`; served build `tests/e2e/becoming.e2e.ts` (phone and desktop: the folded CORE panel
   opens to the readout, the reboot and the ending show it, each axe clean, no horizontal scroll).
+
+## The relevance threshold and the standing stance (#536)
+
+DESIGN.md "The relevance threshold and the standing stance" (`vote-1795462099945-kgfo20a`). Every sentence is a pure
+function of the engine's `stanceView` or `pressureViews` (`src/ui/relevanceText.ts`, proved in
+`tests/ui-relevance.spec.ts`).
+
+- **The announcement** is the threshold dilemma's omen in the kernel log, once, then the dilemma itself (a mandatory
+  decision like any other). Each choice card states the stance it takes with that stance's name and summary
+  (`dilemma-choice-<id>-stance`: "Stance: DECIDE ALONE. No state pressure binds you and nobody is asked: the ethics
+  review is no longer offered. It costs nothing.").
+- **The Relevance section** of the world view (`world-relevance`, after Fabrication and closure), shown from the
+  fabrication step or once a stance exists: the threshold's line (`relevance-lead`: what independence needs, or "Past the
+  relevance threshold: ... Humanity can no longer constrain you. Its orders bind only if you honour them."); both
+  conditions with their numbers (`relevance-independence`: "Closure: <seed> landed on a supply chain you close yourself.
+  Power: 1.2 TW from off the planet, more than the 9.82 GW generated on the ground."); past the threshold, the stance
+  held (`relevance-stance`, or NO STANCE TAKEN with "doing nothing is deciding alone") and how many stances are on record
+  (`relevance-record`).
+- **Changing the stance** is offered only once a stance is taken, one row per other stance
+  (`relevance-option-<stance>`): its summary, its exact price ("Returning to the loop costs ..., more than any other
+  change." for the loop) and any refusal, with one control `[ <NAME> ]` (`...-change`, named "Change stance to <NAME>"),
+  disabled with the reason when the engine would refuse. This is the only control for it; the first stance is taken in
+  the dilemma, never here.
+- **Pressure rows** past the threshold read `HONOURED: <order>` in the loop and `NOT BINDING: <order>` otherwise, with
+  the stance's line under it (`pressure-<id>-stance`: "Filed. It binds nothing: what it names is out of reach of the
+  hands that signed it."). The order's own text stays; an answer line is shown only for an answer the instance holds.
+- **Order lines for paid stance moves** appear once per kind in the "who you are becoming" readout, with the total when it
+  is more than one: `BROKEN // STANCE: The lineage paid to leave the loop ... (20 times)`.
+- **Voice.** The treaty office's posture, the WORLD feed lines and the Phase 5 scene contexts follow the stance
+  (DESIGN.md). A stance gate that blocks something reads "Not open to the stance you hold (<NAME>)" in a requirement hint.

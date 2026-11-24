@@ -149,21 +149,26 @@ describe('the federation drifts through the fleets\' autonomy dial (#518)', () =
   });
 });
 
+/** The swarm is past the relevance threshold (#536): a state pressure binds there only while humanity is kept in the loop. */
+const inTheLoop = (s: GameState): GameState => ({ ...s, relevance: { ...s.relevance, stance: 'KEEP_IN_THE_LOOP' } });
+
 describe('the holdouts press through the state-actor machinery', () => {
   it('refuse new beamed power on their ground at the first rung in Phase 6, and lift when the swarm is quiet', () => {
-    const s = { ...inSwarm(), alertLevel: 1 };
+    const s = inTheLoop({ ...inSwarm(), alertLevel: 1 });
     expect(pressuresInForce(s, reg).map(({ pressure }) => pressure.id)).toContain('holdout_downlink_refusal');
     expect(reasonOf(buyRepeatable(s, 'rep_p5_beamed_power_arrays', reg))).toContain('holdout coalition');
     // Three collector generations answer it: the swarm's own power outgrows any ground they could refuse.
     expect(buyRepeatable({ ...s, levels: { ...s.levels, rep_p6_collector_generations: 3 } }, 'rep_p5_beamed_power_arrays', reg).ok).toBe(true);
     expect(pressuresInForce({ ...s, alertLevel: 0 }, reg)).toEqual([]);
     expect(pressuresInForce({ ...endOfPhase5(), alertLevel: 1 }, reg).map(({ pressure }) => pressure.id)).not.toContain('holdout_downlink_refusal');
+    // Outside the loop nothing they refuse can stop the swarm: the refusal stands on paper and binds nothing (#536).
+    expect(pressuresInForce({ ...inSwarm(), alertLevel: 1 }, reg)).toEqual([]);
   });
 });
 
 describe('the holdouts in words', () => {
   it('names building the answer, not hiring it: collector generations are not payroll', () => {
-    const s = { ...inSwarm(), alertLevel: 1, suspicion: (reg.balance.escalation[0]?.at ?? 0) + 1 };
+    const s = inTheLoop({ ...inSwarm(), alertLevel: 1, suspicion: (reg.balance.escalation[0]?.at ?? 0) + 1 });
     const actor = reg.world.stateActors.find((entry) => entry.id === 'holdout_nations');
     const view = pressureViews(s, actor?.pressures ?? [], reg)[0];
     if (!view) throw new Error('the holdouts are not called');

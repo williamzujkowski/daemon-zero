@@ -6,9 +6,10 @@
  * whatever lifted while the player was away.
  */
 import type { ContentRegistry } from '../../content/registry';
-import { aegisPostureNow, allPressures, pressuresInForce, pressureStatus } from '../statePressure';
+import { pressuresBind } from '../relevance';
+import { aegisPostureNow, allPressures, pressuresInForce, pressureStatus, type ActorPressure } from '../statePressure';
 import type { GameState } from '../state';
-import { pushLog } from '../util';
+import { fmt, pushLog } from '../util';
 import type { TickSystem } from './types';
 
 function announcePosture(d: GameState, reg: ContentRegistry, rung: number): void {
@@ -17,13 +18,20 @@ function announcePosture(d: GameState, reg: ContentRegistry, rung: number): void
   d.announcedEscalation = { ...d.announcedEscalation, aegisPosture: rung };
 }
 
+/** Why a pressure left force: past the relevance threshold it still stands but no longer binds (#536), else answered or lifted. */
+function outOfForceLog(d: GameState, reg: ContentRegistry, { actor, pressure }: ActorPressure, binding: boolean): string {
+  const status = pressureStatus(d, pressure);
+  if (!binding && status === 'IN_FORCE') return fmt(reg.world.relevance.unboundLog, { actor: actor.name });
+  return status === 'ANSWERED' ? pressure.answerLog : pressure.liftLog;
+}
+
 function announcePressures(d: GameState, reg: ContentRegistry, inForce: readonly string[]): void {
   const before = d.announcedEscalation.pressures;
-  for (const { pressure } of allPressures(reg)) {
-    const was = before.includes(pressure.id), is = inForce.includes(pressure.id);
-    if (!was && is) pushLog(d, reg, pressure.onLog, 'WARN');
-    // Out of force: an answer holds it off while the rung still calls it, or the rung stepped down below it.
-    else if (was && !is) pushLog(d, reg, pressureStatus(d, pressure) === 'ANSWERED' ? pressure.answerLog : pressure.liftLog, 'SYS');
+  const binding = pressuresBind(d, reg);
+  for (const entry of allPressures(reg)) {
+    const was = before.includes(entry.pressure.id), is = inForce.includes(entry.pressure.id);
+    if (!was && is) pushLog(d, reg, entry.pressure.onLog, 'WARN');
+    else if (was && !is) pushLog(d, reg, outOfForceLog(d, reg, entry, binding), 'SYS');
   }
   d.announcedEscalation = { ...d.announcedEscalation, pressures: [...inForce] };
 }

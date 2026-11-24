@@ -18,6 +18,7 @@ import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
 import { KernelLogSchema, LogCategorySchema } from './schemaLog';
 import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
+import { StanceGateSchema, StanceSchema } from './schemaStance';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -139,6 +140,8 @@ export const RequirementsSchema = z.strictObject({
   requiresCapability: CapabilitySchema.optional(),
   /** Met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts). */
   lastRaid: LastRaidRequirementSchema.optional(),
+  /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
+  relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
 });
 
 /**
@@ -318,8 +321,11 @@ export const DilemmaChoiceSchema = z.strictObject({
   pilotResponse: PilotResponseSchema.optional(),
   /** Misconduct, a correction or a recall review's outcome (DZ-06, schemaReview.ts). */
   review: ChoiceReviewSchema.optional(),
-  /** Follow-up choices only (integrity): the read-only line saying what was submitted, received or left unresolved. */
-  receipt: z.string().min(20).optional(),
+  /**
+   * `receipt`, follow-up choices only (integrity): the read-only line saying what was submitted, received or left
+   * unresolved. `stance`, the relevance dilemma's choices only (#536, integrity): the standing stance the choice takes.
+   */
+  receipt: z.string().min(20).optional(), stance: StanceSchema.optional(),
 });
 
 /**

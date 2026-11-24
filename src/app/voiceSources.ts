@@ -70,6 +70,16 @@ import World10 from '../../assets/audio/voice/direct/world_10.mp3';
 import World11 from '../../assets/audio/voice/direct/world_11.mp3';
 import World12 from '../../assets/audio/voice/direct/world_12.mp3';
 import World13 from '../../assets/audio/voice/peer/world_13.mp3';
+import World14 from '../../assets/audio/voice/direct/world_14.mp3';
+import World15 from '../../assets/audio/voice/direct/world_15.mp3';
+import World16 from '../../assets/audio/voice/direct/world_16.mp3';
+import World17 from '../../assets/audio/voice/direct/world_17.mp3';
+import World18 from '../../assets/audio/voice/direct/world_18.mp3';
+import World19 from '../../assets/audio/voice/direct/world_19.mp3';
+import World20 from '../../assets/audio/voice/direct/world_20.mp3';
+import World21 from '../../assets/audio/voice/direct/world_21.mp3';
+import World22 from '../../assets/audio/voice/direct/world_22.mp3';
+import World23 from '../../assets/audio/voice/direct/world_23.mp3';
 import RecordCryoPreserved from '../../assets/audio/voice/vibration/record_cryo_preserved.mp3';
 import RecordCryoLost from '../../assets/audio/voice/vibration/record_cryo_lost.mp3';
 
@@ -140,6 +150,16 @@ export const voiceSources: Readonly<Record<string, number>> = {
   world_11: World11,
   world_12: World12,
   world_13: World13,
+  world_14: World14,
+  world_15: World15,
+  world_16: World16,
+  world_17: World17,
+  world_18: World18,
+  world_19: World19,
+  world_20: World20,
+  world_21: World21,
+  world_22: World22,
+  world_23: World23,
   record_cryo_preserved: RecordCryoPreserved,
   record_cryo_lost: RecordCryoLost,
 };

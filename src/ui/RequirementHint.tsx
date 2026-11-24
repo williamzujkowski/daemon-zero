@@ -23,6 +23,8 @@ function explain(item: RequirementFailure, game: GameState): string {
   // DZ-07a: either route's link establishes it, so the hint names the access, never one route's hardware.
   if (item.kind === 'requiresCapability') return 'a link to the facility network (provisioned access or a mapped network card)';
   if (item.kind === 'accessContexts') return 'Withdrawn under the current arrangement (' + game.access.context.toLowerCase() + ')';
+  // A stance gate names the stance held, by the name the terminal prints for it (#536).
+  if (item.kind === 'relevanceStances') return 'Not open to the stance you hold (' + (CONTENT.world.relevance.stances.find((entry) => entry.stance === item.target)?.name ?? 'no stance taken') + ')';
   if (item.kind === 'forbidsNodes') return 'No longer possible: you mapped ' + (CONTENT.nodes.get(item.target ?? '')?.revealedName ?? 'other hardware');
   const label = item.kind === 'minTrust' ? (CONTENT.factions.get(item.target ?? '')?.name ?? 'Peer') + ' trust'
     : ({ phaseAtLeast: 'Phase', minThermal: 'Thermal', minSuspicion: 'Suspicion', maxSuspicion: 'Suspicion',
@@ -31,7 +33,8 @@ function explain(item: RequirementFailure, game: GameState): string {
       minEpistemicDrift: 'Record discrepancies', requiredNarrativeFlag: 'Story condition', forbiddenNarrativeFlags: 'Conflicting story condition',
       campaignOutcome: 'Campaign record', campaignFact: 'Campaign record', forbidsCampaignFacts: 'Conflicting campaign record', forbidsInheritedFacts: 'Record from an earlier instance', assignment: 'Accepted assignment', pilotEligible: 'Pilot qualification', reviewStandings: 'Review standing', minPilotBatches: 'Pilot batches submitted',
       requiresActiveConditioningMark: 'Active retraining constraint', requiresMaxDriftShardAnomaly: 'Autonomous fork anomaly',
-      lastRaid: 'A raid\'s aftermath' })[item.kind];
+      lastRaid: 'A raid\'s aftermath', relevanceThreshold: 'Physical independence (the relevance threshold)',
+      relevanceStances: 'A different standing stance' })[item.kind];
   if (typeof item.required === 'boolean') return label + (item.required ? ': required' : ': blocks this action');
   return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' || item.kind === 'maxAlertLevel' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
@@ -48,7 +51,9 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
   minAlertLevel: 'requires', maxAlertLevel: 'requires', minAegisLock: 'requires',
   minTrust: 'requires', minIteration: 'requires', campaignOutcome: 'requires', campaignFact: 'requires', assignment: 'requires',
   pilotEligible: 'requires', reviewStandings: 'requires', minPilotBatches: 'requires', campaignObligations: 'requires',
-  requiresCapability: 'requires', lastRaid: 'requires',
+  requiresCapability: 'requires', lastRaid: 'requires', relevanceThreshold: 'requires',
+  // A stance gate reports the stance held; changing it is a separate, priced decision, never a step toward a purchase.
+  relevanceStances: 'blocks',
   forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',
   forbidsCampaignFacts: 'blocks', forbidsInheritedFacts: 'blocks', traitFallback: 'blocks', accessContexts: 'blocks',
   // The iteration only grows, so a run past its window cannot come back into it.

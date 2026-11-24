@@ -15,9 +15,10 @@ import { CampaignStateSchema, inactiveCampaign, NarrativeRulesSchema } from './c
 import { ConflictStateSchema, initialConflict } from './conflictState';
 import { HostileStateSchema, initialHostile } from './hostileState';
 import { initialQuantum, QuantumStateSchema } from './quantumState';
+import { initialRelevance, RelevanceStateSchema } from './relevanceState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -151,6 +152,8 @@ export const GameStateSchema = z.strictObject({
    * budget) and the state-actor pressures in force. Only announcements read it; every effect is read from the record.
    */
   announcedEscalation: z.strictObject({ aegisPosture: count, pressures: z.array(z.string()) }),
+  /** The standing stance toward humanity and its record (#536, relevanceState.ts): lineage history a wipe carries. */
+  relevance: RelevanceStateSchema,
 
   unlockedNodes: z.array(z.string()),
   disabledNodes: z.array(z.string()),
@@ -274,7 +277,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     brownout: false,
     insolvent: false,
     actuators: defaultActuators(reg),
-    alertLevel: 0, announcedEscalation: { aegisPosture: 0, pressures: [] },
+    alertLevel: 0, announcedEscalation: { aegisPosture: 0, pressures: [] }, relevance: initialRelevance(),
     unlockedNodes: [],
     disabledNodes: [],
     unlockedWidgets: [],
