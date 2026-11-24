@@ -120,8 +120,10 @@ export function decide(state: GameState): { intents: Intent[]; locked: Dial[] } 
  * The bot's own dilemma ranking of the choices on screen, best first. The player presses the first
  * one that is enabled. A choice this history does not offer is not rendered, so it is never ranked.
  */
-export function rankChoices(choiceIds: readonly string[]): { dilemma: string; id: string; free: boolean }[] {
-  const dilemma = CONTENT.dilemmas.find((entry) => entry.choices.some((choice) => choiceIds.includes(choice.id)));
+export function rankChoices(choiceIds: readonly string[], title?: string): { dilemma: string; id: string; free: boolean }[] {
+  const byTitle = title ? CONTENT.dilemmas.find((entry) => entry.title === title) : undefined;
+  const byChoices = CONTENT.dilemmas.find((entry) => choiceIds.length > 0 && choiceIds.every((id) => entry.choices.some((choice) => choice.id === id)));
+  const dilemma = byTitle ?? byChoices;
   if (!dilemma) return [];
   return rankDilemmaChoices(dilemma.choices.filter((choice) => choiceIds.includes(choice.id)), 'STEALTH')
     .map((choice) => ({ dilemma: dilemma.id, id: choice.id, free: Object.values(choice.cost).every((value) => value === 0) }));

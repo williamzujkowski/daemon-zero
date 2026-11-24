@@ -64,7 +64,7 @@ test('a fresh profile is played live through every phase to an ending', async ({
     expectAtBase(player, 'the ending after a reload');
     expect((await player.read()).ending).toBe(last.ending);
 
-    expect(journey.phases, 'every phase boundary was crossed and asserted in the UI').toEqual([0, 1, 2, 3, 4, 5]);
+    expect(journey.phases, 'every phase boundary was crossed and asserted in the UI').toEqual(CONTENT.phases.map((phase) => phase.phaseId));
     expect([...journey.done].sort(), 'every cross-cutting system was exercised').toEqual(errands.map((errand) => errand.name).sort());
     expect(player.stats.dilemmas).toBeGreaterThanOrEqual(GATES.minDilemmasResolved);
     expect(player.stats.freeChoices, 'at least one dilemma was answered with a zero-cost choice').toBeGreaterThan(0);

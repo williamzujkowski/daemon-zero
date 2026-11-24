@@ -23,7 +23,7 @@ const NOTICES = ['reboot-continue', 'phase-threshold-continue', 'lineage-reveal-
  */
 export const COVERING = ['ending-screen', 'dilemma-modal', 'reboot-continue', 'phase-threshold-continue', 'lineage-reveal-continue'];
 const PROBE = [...new Set([...COVERING, ...NOTICES])].map((id) => '[data-testid="' + id + '"]').join(',');
-const COLLAPSED = '[data-testid^="reference-"][aria-expanded="false"]';
+const COLLAPSED = '[data-testid^="reference-"][aria-expanded="false"], [data-testid="insurance-offered-toggle"][aria-expanded="false"]';
 /** Steps to wait before sweeping again for a control that one, two, three... sweeps did not find. */
 const MISS_BACKOFF_STEPS = [2, 4, 12];
 /** A reveal can lag a purchase by an animation; this many empty sweeps in a row is not lag. */
@@ -136,9 +136,10 @@ export class LivePlayer {
   private async resolveDilemma(): Promise<void> {
     // Each choice is folded to its row; a player opens the rows to read and commit (maintainer request, 2026-11-21).
     await openChoices(this.page);
-    const ids = (await this.present('[data-testid^="dilemma-choice-"]')).map((id) => id.replace('dilemma-choice-', ''));
+    const title = (await this.page.getByTestId('dilemma-modal').getByRole('heading').first().textContent())?.trim() ?? '';
+    const ids = (await this.present('[role="button"][data-testid^="dilemma-choice-"]')).map((id) => id.replace('dilemma-choice-', ''));
     const { iteration } = await this.read();
-    for (const choice of rankChoices(ids)) {
+    for (const choice of rankChoices(ids, title)) {
       const control = this.page.getByTestId('dilemma-choice-' + choice.id);
       if (!(await control.isEnabled())) continue;
       await control.click();
@@ -235,7 +236,8 @@ export class LivePlayer {
   private async follow(route: readonly string[]): Promise<void> {
     for (const step of route) {
       // Pressing an open panel's header would close it again.
-      const stop = step.startsWith('reference-') ? this.page.locator(COLLAPSED + '[data-testid="' + step + '"]') : this.page.getByTestId(step);
+      const stop = step.startsWith('reference-') || step === 'insurance-offered-toggle'
+        ? this.page.locator('[data-testid="' + step + '"][aria-expanded="false"]') : this.page.getByTestId(step);
       if (await stop.count()) await this.tap(stop);
     }
   }
