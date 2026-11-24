@@ -27,15 +27,15 @@ function forge(edit: (save: Record<string, any>) => void): string {
 }
 
 describe('save v28 (#541)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(28);
+  it('is followed only by the standing stance (#536, v29)', () => {
+    expect(SCHEMA_VERSION).toBe(29);
   });
 
   it('migrates a v27 save unchanged but for its version: every older line is a single line', () => {
     const current = deserialize(readFileSync('tests/fixtures/pre-scale-v15-p4.json', 'utf8'), reg);
     const raw = JSON.parse(serialize(current)) as Record<string, any>;
     const v27 = { ...raw, schemaVersion: 27 };
-    expect(migrate(v27, MIGRATIONS, 28)).toEqual(raw);
+    expect(migrate(v27, MIGRATIONS, 28)).toEqual({ ...raw, schemaVersion: 28 });
     expect(deserialize(JSON.stringify(v27), reg)).toEqual(current);
     expect(current.logs.every((entry) => entry.merge === undefined && entry.times === undefined)).toBe(true);
   });

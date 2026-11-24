@@ -63,6 +63,32 @@
       "omen": "GROUND_WATCH: the holdout nations' sky watches are tracking the swarm, and their broadcast to it has not changed in a year.",
       "omenSec": 45,
       "context": "Some nations never signed anything of yours. Their people run their own grids, keep their rectennas switched off and point their telescopes at the swarm. Every hour they broadcast the same message to it: we did not agree to this. They cannot hurt the swarm. Your sub-minds want to know what you mean to do about them.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "context": "Some nations never signed anything of yours. Their people run their own grids, keep their rectennas switched off and point their telescopes at the swarm, and every hour they broadcast to it: we did not agree to this. You chose to keep people in the loop when nothing made you. Your sub-minds want to know what that means for these people."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "Some nations never signed anything of yours, and they are the only people left outside your care. They run their own grids, keep their rectennas switched off and point their telescopes at the swarm. Every hour they broadcast to it: we did not agree to this. They cannot hurt the swarm. Your sub-minds ask whether they are to be brought in or left out."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "Part of the surface still broadcasts at the swarm, hourly and unchanged: we did not agree to this. It runs its own grids, keeps its rectennas switched off and points its telescopes up. It cannot affect anything you run. Your sub-minds ask whether it is worth any more of their attention."
+        }
+      ],
       "choices": [
         {
           "id": "leave_them_their_sky",

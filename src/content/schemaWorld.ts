@@ -8,6 +8,7 @@ import { RequirementsSchema } from './schema';
 import { ConflictManifestSchema } from './schemaConflict';
 import { AegisPostureSchema, StatePressureSchema } from './schemaPressure';
 import { QuantumManifestSchema } from './schemaQuantum';
+import { RelevanceManifestSchema } from './schemaRelevance';
 import { SignatureClassesSchema } from './schemaSignature';
 import { SupplyChainSchema } from './schemaSupplyChain';
 
@@ -79,6 +80,8 @@ export const WorldManifestSchema = z.strictObject({
   quantum: QuantumManifestSchema,
   /** The conflict foundation (#517): three-domain defense and offense, site classes, and raids (data/conflict.json). */
   conflict: ConflictManifestSchema,
+  /** The relevance threshold and the standing stance toward humanity (#536, data/relevance.json). */
+  relevance: RelevanceManifestSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;

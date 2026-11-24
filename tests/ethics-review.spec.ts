@@ -18,7 +18,9 @@ import { ATMOSPHERE, BLOCKADE, CEILING, ORDER } from './obligation-helpers';
 const PRESS = 'dil_12_investigative_journalist';
 const PROMISED = 'ethics_review_promised';
 const offered = (s: GameState, id: string) => offeredChoices(s, event(id), preview).map((choice) => choice.id);
-const promiseContext = (id: string) => event(id).contextVariants?.find((variant) => variant.requirements.campaignFact === PROMISED)?.context ?? '';
+/** The promise's own variant, read while no stance is taken (#536's stance variants come first and read the stance too). */
+const promiseContext = (id: string) => event(id).contextVariants?.find((variant) => variant.requirements.campaignFact === PROMISED
+  && variant.requirements.relevanceStances === undefined)?.context ?? '';
 /** The blockade or the calm on screen after the journalist's inquiry ended with `choice` in this iteration. */
 function after(choice: string, id: string, keep: string[]): GameState {
   const answered = exactReload(play(campaignStart(), PRESS, choice, [id, ...keep]));

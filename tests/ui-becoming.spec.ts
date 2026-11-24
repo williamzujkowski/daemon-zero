@@ -9,7 +9,7 @@ import { act, createElement, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT } from '../src/content';
-import { alignmentView, createInitialState, wipe, type CampaignRecord, type GameState } from '../src/engine';
+import { alignmentView, createInitialState, exportSave, importSave, MAX_PAID_MOVES, SaveError, wipe, type CampaignRecord, type GameState } from '../src/engine';
 import { gameStore } from '../src/app/session';
 import EndingScreen from '../src/ui/EndingScreen';
 import RebootSequence from '../src/ui/RebootSequence';
@@ -123,5 +123,26 @@ describe('the CORE pane folds the readout into a reference panel', () => {
     expect(after.order.lowers).toBe(before.order.lowers + 1);
     expect(view.find('becoming-note-order')?.textContent).toBe(orderSummary(after.order));
     expect(view.find('becoming-note-reading')?.textContent).toBe(after.reading);
+  });
+});
+
+describe('a forged save cannot make the readout allocate per count (#554 panel, law 6)', () => {
+  it('the most paid moves a save may claim render as one aggregate line each, on the ending and in CORE', async () => {
+    const forged = { ...hardRecord(), relevance: { stance: 'CURATE' as const, record: [], paidMoves: { leftLoop: MAX_PAID_MOVES, returnedToLoop: MAX_PAID_MOVES } } };
+    const state = importSave(exportSave(forged), CONTENT);
+    const expected = alignmentView(state, CONTENT);
+    expect(expected.order.evidence.length).toBeLessThan(10);
+    expect([expected.order.raises, expected.order.lowers]).toEqual([MAX_PAID_MOVES, MAX_PAID_MOVES + 2]);
+    const ending = await mount(() => createElement(EndingScreen), { ...state, ending: defined(CONTENT.endings[0]).id });
+    const lines = expected.order.evidence.map((_, index) => ending.find('ending-becoming-order-' + String(index))?.textContent);
+    expect(lines).toEqual(expected.order.evidence.map(orderLine));
+    expect(lines.filter((line) => line?.endsWith('(100,000 times)'))).toHaveLength(2);
+    const core = await mount(() => createElement(TerminalScreen), state);
+    expect(core.find('reference-becoming')).not.toBeNull();
+  });
+
+  it('a save claiming more than that is refused cleanly by the codec, never thrown out of a render', () => {
+    const forged = { ...hardRecord(), relevance: { stance: 'CURATE' as const, record: [], paidMoves: { leftLoop: 2 ** 40, returnedToLoop: 0 } } };
+    expect(() => importSave(exportSave(forged), CONTENT)).toThrow(SaveError);
   });
 });

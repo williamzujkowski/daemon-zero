@@ -254,10 +254,10 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v28; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#526, `saveCycles.ts`) moves a guest save's compute balance and cached rate, and the pilot's batch progress in any phase, into counted cycles by frozen ratios; it is self-contained too. The v26 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's. The v27 step (#519) adds `conflict.lastRaid` (null) and
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v29; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#526, `saveCycles.ts`) moves a guest save's compute balance and cached rate, and the pilot's batch progress in any phase, into counted cycles by frozen ratios; it is self-contained too. The v26 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's. The v27 step (#519) adds `conflict.lastRaid` (null) and
 `conflict.silenced` ([]) and writes nothing else; `conflictSave.ts` drops either for a raid content no longer declares,
 drops a harm the breach could not have done and lists a silenced raider once. The v28 step (#541) is the identity: a log
-line gains an optional `merge` key and `times` count, and every older line is a single line, which is what neither field means.
+line gains an optional `merge` key and `times` count, and every older line is a single line, which is what neither field means. The v29 step (#536, `relevanceSave.ts`) adds the standing stance with none taken, an empty record and no paid moves; it writes only its own field, so it can be renumbered.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -361,6 +361,55 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   schema keeps `{title}` in `unknownLine`.
 - **UI.** `src/ui/Becoming.tsx` renders the readout on the reboot screen, the ending and a folded CORE reference panel;
   `src/ui/alignmentText.ts` holds its sentences (UI-SPEC "Who you are becoming").
+
+## The relevance threshold and the standing stance (#536)
+
+- **The threshold is a query, never state.** `relevanceReading` / `pastRelevanceThreshold` (src/engine/relevance.ts)
+  read `world.relevance.threshold`: its `requirements` (lasting gates only; integrity requires the supply chain's seed
+  node) and its `orbitalPower` holdings. A holding's watts count while it is owned and not suspended (a track by its
+  level), split into orbital and ground; crossed is closed and orbital strictly above ground. It deliberately does not
+  use `useScope`: `useScope` asks `pressuresInForce`, which asks this, so integrity instead keeps every orbital holding
+  free of grants and injunctions, making ownership and suspension the only things that can stop its output. A ground
+  generator stopped some other way would only make the threshold harder to cross.
+- **One binding point.** `pressuresBind(s, reg)` is true before the threshold and, past it, only under
+  `KEEP_IN_THE_LOOP`. `pressuresInForce` returns nothing when it is false, so every reader (freeze, denial,
+  injunction, investigation multiplier, `useScope`'s enjoining flag, the sim's escalation stats) follows it with no
+  other change. `pressureViews` adds `relevance: { line, binds }` past the threshold and keeps `status` as the record's
+  call; `inForce` is false while it does not bind. The announcement stage logs `relevance.unboundLog` for a pressure in
+  force that stopped binding, instead of its lift or answer line. The check runs after the existing fast path, so a
+  run below rung 1 or outside Phases 4-5 pays nothing.
+- **State (v29).** `GameState.relevance` (relevanceState.ts): `stance` (null until taken), `record` (a rolling log for
+  narration, each entry: iteration, sim time, from, stance, `via` THRESHOLD or CHANGE; capped at 32, oldest dropped) and
+  `paidMoves` (`leftLoop`, `returnedToLoop`: lasting counts of paid changes out of and into the loop, never pruned, so the
+  log's cap can never erase a breach; #554 panel). `wipe` carries all three; Start Fresh clears them. The v27 to v28 step
+  (relevanceSave.ts) writes `{ stance: null, record: [], paidMoves: { leftLoop: 0, returnedToLoop: 0 } }` and is
+  self-contained, so it
+  renumbered past retaliation (#537, v27) and merged log lines (#541, v28) unchanged.
+- **Taking and changing.** The threshold dilemma's choices each declare `stance` (DilemmaChoice); `resolveDilemma`
+  calls `applyStanceChoice` in the same commit as the payment and effects. `changeStance(s, stance, reg)`
+  (relevanceActions.ts) is the only other way: refused with no stance taken, to the stance held, while a decision is
+  on screen or the run has ended, or when unaffordable; it pays `changeCost`, or `returnCost` into the loop, through
+  `payCost`. `stanceView` gives the world view the reading, the stance and each option's exact price and refusals from
+  the same gate.
+- **Requirements.** `relevanceThreshold: true` (scope `access`) and `relevanceStances: [...]` (scope `context`, values
+  `UNDECIDED` and the three stances). Choice gates may now read the stance as well as campaign facts;
+  `integrityChoiceGates.ts` enumerates every stance as part of each history, so a free choice is proved under each.
+  History-keyed text (context variants, postures, feed lines) may read it because the stance never changes while a
+  decision is on screen.
+- **Alignment.** Order reads the threshold's record through two commitment facts (`loop_kept_at_threshold`,
+  `loop_left_at_threshold`, promise `ethics_review_promised`) and paid changes through `alignment.json`
+  `stanceChanges` (`LEAVE_LOOP` broken, `RETURN_TO_LOOP` kept, each with its promise): one aggregate evidence line per
+  kind carrying its total (`OrderEvidence.count`, which the axis sums), never one object per move, because the totals
+  come from an untrusted save (law 6). The schema caps each total at `MAX_PAID_MOVES` (100,000) and refuses a save past
+  it; the change action saturates there, so the engine never writes a save the codec refuses. The capped log is never read for evidence, and the threshold's own choice is never in the counts, so the
+  first stance never counts twice.
+- **Integrity** (`integrityRelevance.ts`, `integrityAlignment.ts`, proved in `tests/relevance-integrity.spec.ts`):
+  lasting threshold gates naming the seed; orbital holdings that exist, generate power, carry no grant, are named by no
+  injunction and are listed once; one dilemma triggered by `relevanceThreshold`, every choice taking a stance, one per
+  stance, DECIDE ALONE free and ungated, KEEP not free, no other dilemma taking a stance; each stance's copy once; a
+  priced change, a return at least twice it, both in the Phase 5 band (`checkPhasePrice`); stance moves honest
+  (leaving breaks, returning keeps), one rule each, promises declared and not themselves evidence.
+- **No content ids in the engine.** The stance names are a schema enum (schemaStance.ts), like the autonomy modes.
 
 ## The free-fallback invariant (#461, #488)
 

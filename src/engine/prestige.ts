@@ -168,6 +168,8 @@ export function wipe(old: GameState, reg: ContentRegistry, reason: string, kind:
     // attribution stay exact across iterations (#517). The last raid's aftermath goes with the run; a raider a retaliation
     // silenced stays silenced, because what was done to it happened in the world, not in this instance (#519).
     conflict: { ...fresh.conflict, raids: old.conflict.raids, attributions: old.conflict.attributions, silenced: [...old.conflict.silenced] },
+    // The standing stance and its record are the lineage's (#536): the next instance stands where the last one stood.
+    relevance: old.relevance,
     simTimeSec: old.simTimeSec,
     iterationStartedAtSimSec: old.simTimeSec,
     understanding: kept.understanding,

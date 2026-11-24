@@ -10,6 +10,7 @@ import { actionEvidence, dilemmaEvidence, recordResolution } from './campaign';
 import { recordSubmittedEvidence } from './assignment';
 import { applyPilotResponse } from './pilot';
 import { applyReviewEffect } from './review';
+import { applyStanceChoice } from './relevanceActions';
 import { actuatorUseBlocker, nodeUseBlocker } from './grantQuery';
 import { revalidateLivePointers, structuralFailure } from './campaignLifecycle';
 import { excludedByHistory } from './narrativeHistory';
@@ -243,6 +244,8 @@ export function resolveDilemma(s: GameState, dilemmaId: string, choiceId: string
   applyEffects(d, effects, reg, dilemmaEvidence(dilemma), cost.memory);
   // An assessment's submitted evidence is current-run qualification, apart from the campaign record.
   recordSubmittedEvidence(d, choice);
+  // The relevance threshold's choice takes the standing stance (#536) in the same commit.
+  applyStanceChoice(d, choice, reg);
   // A pilot offer's answer, then any review effect (DZ-06); a refusal leaves the state as it was, unpaid.
   const answered = applyPilotResponse(d, choice, reg);
   const reviewed = answered.ok ? applyReviewEffect(answered.state, choice, reg) : answered;

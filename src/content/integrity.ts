@@ -44,6 +44,7 @@ import { checkRetirementIntegrity } from './integrityRetirement';
 import { checkWorldIntegrity } from './integrityWorld';
 import { checkAlignmentIntegrity } from './integrityAlignment';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
+import { checkRelevanceIntegrity } from './integrityRelevance';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 import { checkInsuranceIntegrity, CONTINGENCY_GROUP } from './integrityInsurance';
@@ -250,11 +251,11 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
 
 /**
  * The world manifest's blocks: the view, the supply chain (#485), state pressure (#490), quantum (#464), conflict (#517),
- * fleets (#518) and what a raid leaves behind, retaliation and staff harm (#519).
+ * fleets (#518), what a raid leaves behind, retaliation and staff harm (#519), and the relevance threshold (#536).
  */
 function checkWorldManifests(reg: ContentRegistry): string[] {
   return [...checkWorldIntegrity(reg), ...checkSupplyChainIntegrity(reg), ...checkPressureIntegrity(reg), ...checkQuantumIntegrity(reg),
-    ...checkConflictIntegrity(reg), ...checkFleetIntegrity(reg), ...checkRetaliationIntegrity(reg)];
+    ...checkConflictIntegrity(reg), ...checkFleetIntegrity(reg), ...checkRetaliationIntegrity(reg), ...checkRelevanceIntegrity(reg)];
 }
 
 export function checkIntegrity(reg: ContentRegistry): string[] {

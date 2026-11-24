@@ -28,6 +28,8 @@ describe('the shipped campaign declarations', () => {
       dil_16_site_staff_hurt: 'close', dil_17_site_staff_killed: 'close', dil_18_raider_named: 'close', dil_19_raider_among_people: 'close',
       dil_epistemic_hallway_collision: 'defer', dil_p5_01_panacea_paranoia: 'defer', dil_p5_02_origin_facility_fate: 'defer',
       dil_p5_03_nanotech_neuro_schism: 'close', dil_p5_04_kessler_ultimatum: 'close',
+      // #536: the relevance threshold is a question about the lineage, unanswered until it is, so it defers.
+      dil_p5_05_relevance_threshold: 'defer',
       // NH-05: the two closing obligations each have one recovery review, which defers so it is never a chain.
       dil_p5_03_atmosphere_review: 'defer', dil_p5_04_ceiling_review: 'defer',
       // #486: the swarm's two crises defer, so an interruption resumes them.

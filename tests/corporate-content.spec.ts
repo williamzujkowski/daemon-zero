@@ -24,10 +24,10 @@ describe('choice gates', () => {
   });
 
   it('read campaign facts only, never resources, access or other history', () => {
-    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements.minCapital = 5; })).toThrow(/a choice gate may only read campaign facts, not minCapital/);
-    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements = { nodes: ['p0_proc_self'] }; })).toThrow(/may only read campaign facts, not nodes/);
+    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements.minCapital = 5; })).toThrow(/a choice gate may only read campaign facts and the stance, not minCapital/);
+    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements = { nodes: ['p0_proc_self'] }; })).toThrow(/may only read campaign facts and the stance, not nodes/);
     expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements = { requiredNarrativeFlag: 'predecessors_rescued' }; })).toThrow(/may only read campaign facts/);
-    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements = {}; })).toThrow(/a choice gate needs a campaign fact/);
+    expect(corrupt((raw) => { choice(raw, 'sanctuary').requirements = {}; })).toThrow(/a choice gate needs a campaign fact or a stance/);
   });
 
   it('name declared facts and never require and forbid the same one', () => {
