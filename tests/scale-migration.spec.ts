@@ -15,7 +15,7 @@ import { botStep } from '../src/engine/sim/bot';
 
 type Raw = Record<string, unknown> & {
   currentPhase: number; cycles: number; capital: number; memoryUsed: number; memoryCap: number; logs: unknown[];
-  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: { runs: { phase: number }[] }; campaign: unknown;
+  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: { runs: { phase: number }[] }; campaign: Record<string, unknown>;
   iteration: number;
 };
 
