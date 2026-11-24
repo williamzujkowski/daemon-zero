@@ -91,12 +91,12 @@ export function raidTarget(s: GameState, rates: Rates, reg: ContentRegistry, kin
 }
 
 /**
- * The rival raids that may arrive next, in content order: from fromPhase, not retired, gated open, with something to
- * strike. A deviant is never dealt: only its fleet's split brings it.
+ * The rival raids that may arrive next, in content order: from fromPhase, not retired, not silenced by a retaliation
+ * (#519), gated open, with something to strike. A deviant is never dealt: only its fleet's split brings it.
  */
 export function eligibleRaids(s: GameState, rates: Rates, reg: ContentRegistry): RivalRaid[] {
   if (s.currentPhase < reg.world.conflict.raid.fromPhase) return [];
-  return rivalRaids(reg).filter((kind) => !raidRetired(s, kind) && meetsRequirements(s, kind.requirements, reg)
+  return rivalRaids(reg).filter((kind) => !raidRetired(s, kind) && !s.conflict.silenced.includes(kind.id) && meetsRequirements(s, kind.requirements, reg)
     && raidTarget(s, rates, reg, kind) !== undefined);
 }
 

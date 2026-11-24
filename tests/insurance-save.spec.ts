@@ -25,8 +25,8 @@ function asV22(s: GameState): Raw {
 }
 
 describe('save v23 (#498)', () => {
-  it('is followed only by the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26)', () => {
-    expect(SCHEMA_VERSION).toBe(26);
+  it('is followed only by the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27)', () => {
+    expect(SCHEMA_VERSION).toBe(27);
   });
 
   it('migrates a v22 save: nothing stashed, planned wipes counted, carry-overs kept no levels and no standing', () => {

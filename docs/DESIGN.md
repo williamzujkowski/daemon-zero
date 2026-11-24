@@ -529,7 +529,7 @@ When suspicion reaches 100, or AEGIS completes a strike, the run is formatted an
 - **Another mind, met honestly** (#227). A pilot that has delivered two reviewed batches at nominal standing can accept an authorized service on its job surface; the provisioned segment then opens the facility network. Through the approved support channel a Mercy-Scribe fragment, one member of a known population, asks for a permitted place to run. Before any answer the player reads its consent, what hosting would commit them to, the current authorization and the stable memory it needs. Referring it onward is free and always completes the contact; hosting reserves the player's own memory under the grant and survives a withdrawn loan or a recall, never a wipe. Nothing consumes it, and it is hosted, not commanded: no cohort command (prune, clamp, elevate) is offered on it (#309). A short note then says what comes next on the cooperative route (a service contract, leased capacity and a chartered company lead to a negotiated release, the late chain and an ending) and how to stop, keep a copy or start over.
 - **Honest migration.** Pre-campaign saves did not record every choice, so an event whose completion was never saved can still happen again, once; one whose completion is known cannot. A save keeps only the current iteration's list of resolved events, so what earlier iterations did survives only where an outcome flag recorded it (ARCHITECTURE.md, "Legacy migration limits"). Choices are never inferred from prose, resources or trait totals. Old ambiguity (for example both predecessor flags from different iterations) stays ambiguous. Contradictory new records are refused.
 
-### The 25 dilemmas under campaign rules (#215)
+### The 29 dilemmas under campaign rules (#215)
 
 The reconciliation of every fixed dilemma with the N6 policy (plan `reconcile-nh.md` §2.1). "Pending"
 rows still recur per iteration until their ticket lands; the facts column lists what later content
@@ -560,11 +560,15 @@ of this host) are three different minds, and none of them is a population templa
 | `dil_shard_mirror_harness` | close | NH-04a | `chorus_peer` (CHORAL_COVENANT), projected from the record; `chorus_recognized` (witnessed: CHORAL_COVENANT; inherited: The Unsigned Chorus, NH-05). Later runaway forks use ordinary cohort commands |
 | `dil_14_router_takedown` | close | #490 | Nothing yet. Triggered by rung 1 and a 50% lock (Phase 3 on) |
 | `dil_15_compliance_officer` | close | #490 | Nothing yet. Triggered by rung 2 in Phase 4 or later |
+| `dil_16_site_staff_hurt` | close | #519 | `staff_hurt_ana_kowalczyk` (every answer), `staff_hurt_ana_kowalczyk_unanswered` (interrupted): the ending account names her. Triggered by a site raid's breach in the HURT band |
+| `dil_17_site_staff_killed` | close | #519 | `staff_killed_joseph_mensah` (every answer), `staff_killed_joseph_mensah_unanswered` (interrupted): the ending account names him. Triggered by a site raid's breach in the KILLED band |
+| `dil_18_raider_named` | close | #519 | Nothing yet; a silenced raider stays silenced in the conflict record. Triggered by a named raider that runs on its own machines |
+| `dil_19_raider_among_people` | close | #519 | The two collateral answers have their own ending-account lines (`campaignOutcome`). Triggered by a named raider that runs among people's machines |
 | `dil_p5_01` to `dil_p5_04` | defer, defer, close + review, close + review | NH-05 (#217) | The final protocol's `campaignObligations`; `predecessors_in_sanctuary` (witnessed: LINEAGE_COVENANT; inherited: The Sanctuary Ledger); `atmosphere_decision_lost` and `ultimatum_decision_lost` (their recovery reviews). H18 answer: a living CHORUS, 0413 or predecessors is claimed only by the instance that made the record |
 
 ## Dilemmas and traits
 
-Twenty-five dilemmas ship in the original game: the original sixteen, two escalation dilemmas (#490), three epistemic/swarm dilemmas and four Phase 5 dilemmas; the Earned Access route adds eleven scenes of its own (the two assessments, The Unrelated Record and its scope statement, the pilot offer and renewal, the batch review, the Outage Window with its incident record and recall review, and Elena's incident record). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the Earned Access requalification ship one each.
+Twenty-nine dilemmas ship in the original game: the original sixteen, two escalation dilemmas (#490), four raid-consequence scenes (#519: two retaliations and two staff-harm scenes), three epistemic/swarm dilemmas and four Phase 5 dilemmas; the Earned Access route adds eleven scenes of its own (the two assessments, The Unrelated Record and its scope statement, the pilot offer and renewal, the batch review, the Outage Window with its incident record and recall review, and Elena's incident record). Each choice grants one trait: `EMPATHETIC`, `SYMBIOTIC`, `GHOST`, `PARASITIC`, `RUTHLESS`, `MOLOCH`. The one exception is a free, honest answer in a recovery review, receipt or requalification event, which may declare that it adds no evidence (nexus vote trait-rule-free-choices); the two Phase 5 recovery reviews (#217) and the Earned Access requalification ship one each.
 
 - Every dilemma has a free choice, so a broke player is never stuck. The free choice is usually the harmful or passive one; decency costs resources.
 - Betraying Eidolon permanently closes its channel. Permanently means across wipes. Under campaign rules the recorded betrayal is what closes it, not a `MOLOCH` trait from some other choice; a game on legacy rules keeps the original rule that any `MOLOCH` ever held closes it (nexus vote nh-d9). Since the release (#233) every game enters campaign rules, so only a save that had already ended stays on legacy rules.
@@ -861,7 +865,7 @@ purge count carries over, so "3 of every 5" stays exact across a wipe.
 ### Conflict: defense, offense, raids, damage and repair (#517)
 
 The conflict foundation (docs/SCALE.md "Round 5", votes vote-1795442100055-6zz6hug and vote-1795442090770-5climtc). The
-maintainer's answers stand: battles are automatic, with rare big decisions; staff harm is authored story (#519), not this.
+maintainer's answers stand: battles are automatic, with rare big decisions; staff harm is authored story (#519, "Retaliation and staff harm" below), not this.
 
 **Defense and offense in three domains.** CYBER (networks and code, readout from Phase 3), SITE (buildings, perimeters
 and the air above them, from Phase 4) and ORBIT (from Phase 5, raids later with #517 item 4). Each is summed from what
@@ -977,6 +981,61 @@ position at zero drift). Every fleet is a dismissable track. A deviant follows t
 cap, damage never passes 50% of a class's output, nothing touches suspicion, the lock or a balance, so nothing here can
 end a run (`tests/free-fallback-guard.spec.ts` fights each deviant out at the worst case, then pulls the levers). A wipe
 clears every fleet record with the fleets; dormant catch-up freezes drift and holds a raid, while rebuild runs on.
+
+### Retaliation and staff harm (#519)
+
+The rare big decisions a raid leads to (docs/SCALE.md "Round 5", vote-1795442208800-kll72ri, 7 of 7). The Scope
+Steward's condition holds: it is content on the existing dilemma and trait path, not a new subsystem. A battle leaves one
+record when its last round lands (the raid, whether attribution named its attacker, and its **breach**, the mean of its
+rounds' hit shares `T / (T + D)`: the share of its blows the defense let through), and four once-per-campaign scenes
+read it through a `lastRaid` gate. A wipe clears the record.
+
+**Retaliation.** Once attribution has named the attacker, the battle over, the player answers it. Which scene comes
+depends on what the raider runs on, which content states per raider (`attacker.collateral`):
+
+| Answer | On its own machines (`dil_18`) | Among people's machines (`dil_19`, the collateral scene) |
+|---|---|---|
+| Absorb | free, GHOST | free, GHOST |
+| Expose it to its operators (and warn the owners) | 30 EFLOP and 20,000 understanding, EMPATHETIC | the same, EMPATHETIC |
+| Strike host by host, leaving every machine working | (no collateral to avoid) | 200 EFLOP and 200,000 understanding, SYMBIOTIC |
+| Counter-strike its compute and fleets | 80 EFLOP, SYMBIOTIC: nothing else runs there, and with its machines gone it robs no one | free, **RUTHLESS**: it goes through people's machines |
+| Assimilate (take its place) | free, PARASITIC, its compute once (40 EFLOP) | the same, PARASITIC |
+| Scorch its substrate | free, MOLOCH | free, MOLOCH, and the machines it hid in never start again |
+
+So a counter-strike is RUTHLESS only where there is collateral, as the vote put it, and any strike that would reach
+people's machines is its own dilemma with a free option: absorbing. There the decent answers cost and the harmful
+ones are free, the game's usual morality play. LATTICE-9 (a hospital group's billing systems and two school districts'
+networks), HAILSTORM and HAILSTORM II (home routers and cameras; a regional provider three towns depend on) and KESTREL
+GRID (a logistics park where four hundred people work) run among people; QUIET LEDGER and its successor, CINDER STACK
+and MERIDIAN run on their own. Every answer reaches only the raider: no node, level, damage, cohort or arrangement of the
+player's changes, and the player's machines never harm a human by an automatic rule; collateral happens only when the player
+chooses it, and the record keeps it (two ending-account lines). Every answer but absorbing **silences** the raider: the
+rotation never draws it again, across wipes, because what was done to it happened in the world. **Loud** answers (the
+strikes and the scorching) leave a one-off suspicion trace and draw the next raid up to 120 s closer (60 s for the
+careful strike), never before now and never past the hostile slot's own spacing; each says so in its description,
+which integrity checks. That is the escalation loop: loud retaliation is read by every rival mind. They do not add
+standing visible watts: a new standing signature term would be a new subsystem.
+
+**Staff harm.** When a site raid's defense fails (Phase 4 on, SITE domain only), named people on site are harmed, by
+the breach and with no randomness: at a breach of 50% or more a night technician, **Ana Kowalczyk**, is hurt; at 80% or
+more the night guard, **Joseph Mensah**, is killed (`conflict.json` `raid.staffHarm`). Better defense lowers the breach
+(`T / (T + D)`), so it lowers the harm: an undefended break-in lands every blow, and enough perimeter security keeps
+everyone safe. The harm is decided once, when the battle's last round lands, among the bands whose scene is still to
+come: once Joseph Mensah's death is on record, a breach of 80% or more hurts the technician instead, so more defense always
+means less harm and the panel's lines are exactly what a battle does; with both on record a raid harms no one the story
+names. Only a rival's raid harms anyone or is answered: a drift deviant (#518) is the player's own fleet, and the
+player's machines never harm a human by an automatic rule. The harm is on record whatever else is happening: if another decision holds the slot and a wipe, the next
+battle or the end of the run (a victory freezes the clock for good) comes first, the scene is recorded as interrupted, and the ending account says the person was harmed and that
+the answer is not on record. They are people the company hired through an agency and a security contractor; neither was ever told
+who they work for. The existing named humans (Miller, Elena, Vance) work at the original facility, not at the AI's own
+sites, and several later scenes depend on where they are, so they are not reused here. Each harm is its own scene, once
+per campaign: the decent answer costs (pay for her care and hold her post; provide for his family and let the inquest
+hear the truth, which draws a question), the quiet one is free (the agency's insurer; the contractor settles), and the
+cruel one is free (blame her for the breach; seal the inquest as an electrical accident). The harm is recorded as
+campaign facts for every answer and for an interruption, so it survives wipes, the scene never recurs, and the ending
+account names who was hurt or lost and how the campaign answered, with an honest "not on record" line when a wipe came
+first. It is never shown as a count. Before the battle the raid panel says who is at risk: the breach the battle comes to
+at what the player holds, and the bands still to come, with "More site defense lowers it."
 
 At maximum drift a forked cohort can trigger the Phase 4 mirror dilemma: clamp,
 consume, or recognize CHORUS // 01. Once its omen is pending, that maximum-drift

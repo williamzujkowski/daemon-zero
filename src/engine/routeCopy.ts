@@ -9,6 +9,8 @@ import type { Dilemma, DilemmaChoice, Requirements } from '../content/schema';
 import type { AccountLine, DilemmaCopy } from '../content/schemaRouteCopy';
 import { iterationRoute } from './accessQuery';
 import { meetsRequirements } from './query';
+import { raiderVars } from './raidOutcome';
+import { fmt } from './util';
 import type { GameState } from './state';
 
 /** Whether a variant's arrangement and evidence both hold: its claims are true of this instance. */
@@ -47,10 +49,12 @@ export interface ChoiceText {
 /** One choice's words under this arrangement. Its cost, effects and gates stay the authored choice's. */
 export function choiceText(s: GameState, dilemma: Pick<Dilemma, 'id'>, choice: DilemmaChoice, reg: ContentRegistry): ChoiceText {
   const variant = dilemmaRouteCopy(s, dilemma, reg)?.choices.find((entry) => entry.id === choice.id);
+  // A retaliation's choices name the raider attribution named (#519); other text has no placeholder, so fmt leaves it as is.
+  const vars = raiderVars(s, reg);
   return {
-    label: variant?.label ?? choice.label,
-    description: variant?.description ?? choice.description,
-    logText: variant?.logText ?? choice.effects.logText,
+    label: fmt(variant?.label ?? choice.label, vars),
+    description: fmt(variant?.description ?? choice.description, vars),
+    logText: fmt(variant?.logText ?? choice.effects.logText, vars),
   };
 }
 

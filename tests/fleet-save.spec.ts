@@ -26,8 +26,8 @@ const fought = (): GameState => {
 };
 
 describe('save v26 (#518)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(26);
+  it('is followed only by the raid aftermath (#519, v27)', () => {
+    expect(SCHEMA_VERSION).toBe(27);
   });
 
   it('migrates a v25 save to no fleet records and keeps everything else', () => {

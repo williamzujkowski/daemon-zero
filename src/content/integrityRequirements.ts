@@ -2,6 +2,7 @@
 import type { ContentRegistry } from './registry';
 import type { Requirements } from './schema';
 import { INTERRUPTED_FACT_OUTCOME, LEGACY_UNKNOWN_OUTCOME, type CampaignOutcomeRequirement } from './schemaCampaign';
+import { lastRaidGateProblems } from './integrityRetaliation';
 
 function checkCampaignOutcome(reg: ContentRegistry, owner: string, gate: CampaignOutcomeRequirement): string[] {
   const event = reg.campaign.events.get(gate.event);
@@ -91,6 +92,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));
   problems.push(...checkCampaignHistoryGates(reg, owner, req));
+  problems.push(...lastRaidGateProblems(owner, req));
   return problems;
 }
 

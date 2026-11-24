@@ -193,7 +193,9 @@ describe('going dark, retiring and dormancy', () => {
     const fought = run(arrived(withBotnet(ready(3)), ddos), PRE_BATTLE + 2 * R.roundSec);
     expect(fought.conflict.damage.botnet).toBeGreaterThan(0);
     const next = wipe(fought, reg, 'test');
-    expect(next.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: fought.conflict.raids, attributions: fought.conflict.attributions, damage: {}, fleets: {} });
+    // A raider a retaliation silenced stays silenced (#519); the last battle's record goes with the run.
+    expect(next.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: fought.conflict.raids, attributions: fought.conflict.attributions, damage: {},
+      fleets: {}, lastRaid: null, silenced: fought.conflict.silenced });
   });
 });
 
