@@ -437,7 +437,8 @@ package A). Repeated mechanical lines merge into one counted line: four hires of
 `PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4`, and a wild mind's request for a host is joined to what became of
 it, counted when the same pair comes again. Nothing is lost: a merged line keeps every fact the lines it replaced held.
 The one-line KERNEL // LIVE preview shows the newest line that is not mechanical, where a mechanical line is a merged
-one that is a repeat or not a LORE, WARN or WIPE line, so a run of hires never displaces the story line before it. UI-SPEC.md, "A quieter kernel log", has the rules.
+one that is a repeat (counted, or a mind asking again while its earlier request is still in the log, even before it is
+answered) or not a LORE, WARN or WIPE line, so a run of hires never displaces the story line before it. UI-SPEC.md, "A quieter kernel log", has the rules.
 
 ## The lineage: a wipe is selection, not death
 

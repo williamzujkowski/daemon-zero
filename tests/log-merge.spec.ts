@@ -158,6 +158,27 @@ describe('story lines hold the preview over mechanical lines', () => {
     expect(previewLog(twice, reg)?.text).not.toBe(joined);
   });
 
+  it('keeps the story line while a repeated request is still pending, and the request stays in the history (panel on #551)', () => {
+    // Only the first Phase 2 mind arrives, so every arrival after the first is a repeat of it.
+    const only = { ...reg, swarm: { ...reg.swarm, wildShardEncounters: [lex] } };
+    const arriveOnly = (s: GameState): GameState => {
+      const d = structuredClone({ ...s, simTimeSec: s.nextEncounterAtSec });
+      evaluateShardMutationsAndEncounters(d, { dt: .1, dormant: false, reg: only, rates: computeRates(s, only) });
+      return d;
+    };
+    const first = arriveOnly(arrivalDue());
+    expect(first.pendingWildEncounterId).toBe(lex.id);
+    // The first time a mind asks, the request is story and takes the preview.
+    expect(previewLog(first, only)?.text).toBe(lex.description);
+    const d = structuredClone(must(resolveWildEncounter(first, 'CONSUME', only)));
+    pushLog(d, only, 'A warning the player should read.', 'WARN');
+    const again = arriveOnly(d);
+    expect(again.pendingWildEncounterId).toBe(lex.id);
+    expect(again.logs[0]?.text).toBe(lex.description);
+    expect(isMechanicalLog(defined(again.logs[0]), only, again.logs.slice(1))).toBe(true);
+    expect(previewLog(again, only)?.text).toBe('A warning the player should read.');
+  });
+
   it('falls back to the newest line when every line is mechanical', () => {
     const d = structuredClone(corporate());
     d.logs = [];

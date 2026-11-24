@@ -927,8 +927,10 @@ story lines, and the desktop preview showed only the newest of them.
   reader show merged lines with their counts. Merging only frees room in the 80-entry history.
 - **Story holds the preview.** KERNEL // LIVE shows the newest line that is not mechanical, or the newest line when
   every line is. A mechanical line is a merged one that is a repeat or outside `narrative.kernelLog.storyCategories`
-  (LORE, WARN, WIPE). So a run of hires never displaces the story line before it, a mind's first request shows, and
-  its fourteenth does not. Unmerged lines (purchase feedback, phase lines, warnings) take the preview as before.
+  (LORE, WARN, WIPE). A repeat is a counted line, or one whose story the older log already tells: a mind asking again
+  while its earlier request and outcome are still in the history is a repeat even while it waits for an answer (panel
+  finding on #551). So a run of hires never displaces the story line before it, a mind's first request shows, and its
+  fourteenth does not, pending or answered. Unmerged lines (purchase feedback, phase lines, warnings) take the preview as before.
 - **Phones.** The phone tier still has no preview, by the vote above; its history shows the merged lines. Giving phones
   a story preview would reopen that fold budget, so it is left to a design vote.
 
