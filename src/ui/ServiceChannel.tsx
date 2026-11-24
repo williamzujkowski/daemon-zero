@@ -116,7 +116,7 @@ function Onward({ onward }: { onward: NonNullable<ChannelContactView['onward']> 
     <Text accessibilityRole="header" style={theme.heading}>REFER ONWARD // free</Text>
     <Text testID="channel-onward-text" style={theme.text}>{onward.text}</Text>
     {onward.unmet.length > 0 && <Text testID="channel-onward-unmet" style={theme.muted}>{onward.unmet.join('\n')}</Text>}
-    <Pressable testID="channel-onward-refer" accessibilityRole="button" accessibilityLabel="Refer the hosted fragment onward, free"
+    <Pressable testID="channel-onward-refer" accessibilityRole="button" accessibilityLabel="Refer onward: the hosted fragment, free"
       disabled={!onward.eligible} style={[theme.button, !onward.eligible && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => referHostedOnward(game, onward.id, CONTENT)); }}>
       <Text style={theme.text}>[ REFER ONWARD ]</Text>
