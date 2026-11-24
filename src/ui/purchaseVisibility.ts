@@ -3,32 +3,26 @@ import { CONTENT } from '../content';
 import type { RegistryNode } from '../content/registry';
 import { worsensAny } from '../content/constrainedResources';
 import type { Repeatable, Requirements } from '../content/schema';
-import { fallbackTraits, hasEverHeld, holdsCampaignFact, isNodeDiscoverable, meetsRequirements, repeatableLevel, type GameState } from '../engine';
+import {
+  isNodePending, isRepeatablePending, isRepeatableReleasable, requirementsPermanentlyBlocked, shownRepeatables, type GameState,
+} from '../engine';
 
-/**
- * Only monotonic exclusions: affordability, trust and suspicion can recover. A campaign fact is
- * monotonic too: it holds only for a resolved or closed record, which never reopens.
- */
+/** Monotonic exclusions only; the rule is the engine's (src/engine/purchaseQuery.ts), shared with the reading report. */
 export function permanentlyBlocked(game: GameState, requirements: Requirements | undefined): boolean {
-  return (requirements?.forbidsNodes?.some((id) => game.unlockedNodes.includes(id)) ?? false) ||
-    (requirements?.forbidsTraits?.some((trait) => hasEverHeld(game, trait)) ?? false) ||
-    (requirements !== undefined && fallbackTraits(game, requirements, CONTENT).length > 0) ||
-    (requirements?.forbidsCampaignFacts?.some((fact) => holdsCampaignFact(game, fact, CONTENT)) ?? false) ||
-    game.iteration > (requirements?.maxIteration ?? Infinity);
+  return requirementsPermanentlyBlocked(game, requirements, CONTENT);
 }
 
 export function pendingNode(game: GameState, node: RegistryNode, showLocked = false): boolean {
-  return !game.unlockedNodes.includes(node.id) && !permanentlyBlocked(game, node.requirements) && (showLocked ||
-    ((game.cycles > 0 || game.unlockedNodes.length > 0) && isNodeDiscoverable(game, node, CONTENT)));
+  return isNodePending(game, node, CONTENT, showLocked);
 }
 
 export function pendingRepeatable(game: GameState, rep: Repeatable): boolean {
-  return meetsRequirements(game, rep.requirements, CONTENT) && repeatableLevel(game, rep.id) < rep.maxLevel;
+  return isRepeatablePending(game, rep, CONTENT);
 }
 
 /** An owned level of a dismissable track: its free release must stay reachable whether or not it is still buyable. */
 export function releasable(game: GameState, rep: Repeatable): boolean {
-  return rep.dismissable && repeatableLevel(game, rep.id) > 0;
+  return isRepeatableReleasable(game, rep);
 }
 
 export function needsProcessControl(game: GameState, node: RegistryNode): boolean {
@@ -45,8 +39,7 @@ export interface SectionScope { group?: string | false; kind?: Repeatable['kind'
 
 /** The tracks a section lists: each buyable now, or holding a level the player can release for free (#488 pass 4). */
 export function shownTracks(game: GameState, phase: number, kind?: Repeatable['kind']): Repeatable[] {
-  return [...CONTENT.repeatables.values()].filter((rep) => rep.phaseId === phase && (kind === undefined || rep.kind === kind) &&
-    (pendingRepeatable(game, rep) || releasable(game, rep)));
+  return shownRepeatables(game, CONTENT, phase, kind);
 }
 
 /**
