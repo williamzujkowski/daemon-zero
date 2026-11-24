@@ -1009,7 +1009,16 @@ Desktop terminal layout is unchanged. Verification and limits: REVIEW-LARGE-TEXT
 - **A hosted fragment is not commanded (#309).** The swarm row of a cohort holding a fragment hosted
   through the support channel shows `shard-terms-<id>` with `Hosted through an authorized channel on
   the terms it was offered: it is not commanded.` in place of the PRUNE / CLAMP / ELEVATE help line
-  and controls, `[ RELEASE ]` included: hosting ends only with the instance, as its obligations say.
+  and controls. `[ RELEASE ]` is hidden too while the grant it was hosted under stands. Once a route
+  event has closed that grant (#553) the row shows `[ RELEASE ]` again, with the line saying that
+  releasing it refers it onward, its memory returns and the record keeps both answers; the commands
+  stay hidden, since a closed grant does not make it commandable.
+- **Referring a hosted fragment onward (#553).** After the grant closes, the answered ticket on the
+  service channel shows `channel-onward`: a `REFER ONWARD // free` heading, the channel's own text
+  (`channel-onward-text`, which says the promise to keep it through a recall was made under the grant
+  and the grant is gone), the reasons it waits if any (`channel-onward-unmet`, a pending decision) and
+  `[ REFER ONWARD ]` (`channel-onward-refer`). Nothing is shown while the grant stands. Afterwards the
+  ticket reads `Hosted here under the service grant, then referred onward when that grant closed.`
 - **A waiting ticket off screen (#284).** The phone tier shows one pane, so while a support
   channel ticket waits on CORE and another pane is open, the chrome shows a non-modal notice
   (`contact-notice`, polite live region, `[ OPEN CORE ]`) beside the omen and response notices,
