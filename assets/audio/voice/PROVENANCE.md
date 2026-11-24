@@ -87,7 +87,7 @@ How to read it:
   output headroom arithmetic (`src/app/outputLevel.ts`) is unchanged.
 
 **Nobody has listened to any of these chains.** The one exception is the 14 clips added on 2026-11-23 and 2026-11-24 (`stream/forum_11` to `forum_14`,
-`world/world_14` to `world_23`): the maintainer listened to them on 2026-11-24 and reported that they sound fine. The numbers above say each one does what its
+`direct/world_14` to `world_23`): the maintainer listened to them on 2026-11-24 and reported that they sound fine. The numbers above say each one does what its
 code says; whether a phone tap sounds like a phone tap, or the peer treatment sounds synthetic
 rather than broken, needs a listener.
 
