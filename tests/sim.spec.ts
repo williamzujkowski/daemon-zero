@@ -337,7 +337,9 @@ describe('headless balance simulation', () => {
     // 41c0a16: phases 1-3 identical, phase 4 6051.8 -> 6130.4, 5 8406.3 -> 8419.2 s, victory 10142.7 -> 10149.6 s; Phase 5
     // lasts 1736.4 -> 1730.4 s (campaign 1723.4 -> 1724.4 s). On the merge with #533 (1970e4f, the fan's trace), against
     // main: phases 1-3 identical, phase 4 6065.8 -> 6079.3, 5 8657.9 -> 8481.5 s, victory 10397.3 -> 10211.9 s; Phase 5
-    // lasts 1739.4 -> 1730.4 s (campaign 1721.4 either way).
+    // lasts 1739.4 -> 1730.4 s (campaign 1721.4 either way). On the merge with #537 (887d000, retaliation), against main:
+    // phases 1-3 identical, phase 4 6065.8 -> 6078.4, 5 8647.9 -> 8452.4 s, victory 10416.3 -> 10169.8 s; Phase 5 lasts
+    // 1768.4 -> 1717.4 s (campaign 1723.4 -> 1719.4 s).
     // A raid's paid repair and a hostile mind's answers carry the same way; the careful run pays neither after its phase.
     expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('d4f21db3bbdc9fb45f99d643a54e90dc0b59decc903b1c910374a6ef3ecf5471');
     expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('7cbf00cdb478155a113cf09fea442df60cd5d7002f2e7eed8a45977f0a8e3690');

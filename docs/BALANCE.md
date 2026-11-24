@@ -1045,6 +1045,11 @@ On the merge with #533 (1970e4f, the fan's trace), against main: Phases 1-3 iden
 wipes (campaign 23 -> 22), still never in Phase 4; its Phase 3 loop is three iterations (1,171 / 1,168 / 1,143 s), as
 tests/retraining-audit.spec.ts already expects.
 
+On the merge with #537 (887d000, retaliation), against main: Phases 1-3 identical, Phase 4 at 6078.4 s (was 6065.8),
+Phase 5 at 8452.4 s (was 8647.9), victory 10169.8 s (was 10416.3). **Phase 5 lasts 1717.4 s under legacy rules (was
+1768.4) and 1719.4 s under campaign rules (was 1723.4)**, against the 3600 s cap. The reckless run: ten hours 23 -> 29
+wipes (campaign 23 -> 22), still never in Phase 4; the retraining loop is unchanged (three iterations).
+
 **Fleet prices carry** (#518). A fleet's paid rebuild and the reclaim of the deviant it splits into are priced in the
 fleet track's phase (`fleetHomePhase`) and carried when paid later (`fleetRebuildCost`, `reclaimCost`, shown in the fleet
 and raid panels). With the table emptied, integrity refuses the Phase 4 drone fleet's $500M rebuild in Phase 5.
