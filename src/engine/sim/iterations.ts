@@ -86,7 +86,7 @@ function openIteration(s: GameState, reg: ContentRegistry, resumed: boolean): It
 const total = (values: Record<string, number>): number => Object.values(values).reduce((sum, value) => sum + value, 0);
 
 /** Whether a decision did something a player would call progress (clicks and dials do not count). */
-function progressed(before: GameState, after: GameState): boolean {
+export function progressed(before: GameState, after: GameState): boolean {
   return after.unlockedNodes.length > before.unlockedNodes.length
     || after.resolvedDilemmas.length > before.resolvedDilemmas.length
     || after.conditioning.length < before.conditioning.length

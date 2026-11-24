@@ -6,6 +6,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { ActionResult } from './actions';
+import { repairCost } from './phasePrice';
 import { canAfford } from './query';
 import { formatCost, pausedReason } from './queryPresentation';
 import { percentOf } from './raid';
@@ -22,7 +23,8 @@ export function repairUnmet(s: GameState, classId: string, reg: ContentRegistry)
   if (cls === undefined) return [...unmet, NO_CLASS];
   if (classDamage(s, classId) <= 0) unmet.push(`Nothing in ${cls.name.toLowerCase()} is damaged.`);
   else if (repairHeld(s, classId)) unmet.push(`A raid is still on ${cls.name.toLowerCase()}: repair waits for its aftermath.`);
-  if (!canAfford(s, cls.repair.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cls.repair.cost));
+  const cost = repairCost(s, cls, reg);
+  if (!canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
 
@@ -31,7 +33,7 @@ export function repairSite(s: GameState, classId: string, reg: ContentRegistry):
   const [reason] = repairUnmet(s, classId, reg), cls = siteClass(reg, classId);
   if (reason !== undefined || cls === undefined) return { ok: false, state: s, reason: reason ?? NO_CLASS };
   const d: GameState = { ...s };
-  payCost(d, cls.repair.cost);
+  payCost(d, repairCost(s, cls, reg));
   const restored = repairDamage(d, classId, cls.repair.points);
   pushLog(d, reg, fmt(reg.world.conflict.raid.logs.repaired, { target: cls.name, points: percentOf(restored), damage: percentOf(classDamage(d, classId)) }), 'LORE');
   return { ok: true, state: d };

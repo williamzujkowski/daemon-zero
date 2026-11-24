@@ -205,7 +205,7 @@ does not discard the next. Hydration and new iterations establish a baseline.
 An inbound dilemma's authored omen appears outside the log even before decoding;
 the unlocked forecast displays its remaining simulation-time countdown. Once surveillance
 is understood, the same forecast lists the pending dilemma’s actual nonzero
-choice prices as paid-response budgets. Equal prices appear once; distinct
+choice prices as paid-response budgets, at the price the engine charges in the current phase (#494). Equal prices appear once; distinct
 complete cost bundles are alternatives, never combined into a fictional price.
 A reminder says a free response remains available. No choice names, outcomes or
 traits appear before the interrupt. Budgets disappear when it fires or clears,
@@ -684,7 +684,13 @@ A raid shares the hostile slot, so it takes the hostile card's places, with its 
   trigger, and how long to stay dark); attribution's rate or result (`raid-attribution`); the forecast, one line per round
   still to come and the outcome it adds up to, "while what you hold does not change" (`raid-forecast`); the battle log, one
   line per resolved round, which repeats the forecast's lines word for word (`raid-log`); and in the aftermath what it
-  did, with "Ownership is untouched" (`raid-aftermath`). There is no control: battles fight themselves.
+  did, with "Ownership is untouched" (`raid-aftermath`). There is no control: battles fight themselves. On a raid in a
+  domain people work in (SITE), before the aftermath, while a staff-harm scene is still to come in the campaign, one line
+  says who is at risk (`raid-staff`, #519), for example "PEOPLE ON SITE: people work at the data halls. At what you hold now the battle
+  lets through 72% of its blows; at 50% or more someone there is hurt, and at 80% or more someone there is killed. More
+  site defense lowers it." The share is the battle's breach (the rounds fought and the forecast's, averaged), so it is
+  exact while holdings do not change; a band whose scene is on record is dropped (the engine then bands a breach among
+  the open bands only, so the line stays exact), and nothing is ever counted.
 - **SWARM** (`site-repair`, under the raid panel, only while a class is damaged): `// SITE DAMAGE`, one line saying damage
   cuts output and never ownership, then each damaged class: what the damage does exactly ("its holdings deliver 30% less
   compute" or "30% of positive net income is taken"), the free repair rate and seconds to clear (or that repair waits
@@ -764,6 +770,18 @@ drift meter and dial, the holdouts' posture, pressure and answer) and both endin
 each view against the repo's axe rules. No atlas stage or ARIA baseline line changed. A flag-gated card's requirement
 still reads the generic "Story condition: required" (a label shared with the fusion pilot); naming the condition is left
 to the copy owners.
+
+### Retaliation and staff-harm scenes (#519)
+
+The four scenes a raid leads to are ordinary decisions (`dilemma-modal`), with no new control. A retaliation names the
+raider attribution named in its omen, context and choices (`{attacker}`, filled by `dilemmaContext`, `dilemmaOmen` and
+`choiceText`; the record cannot change while the clock is stopped), and the collateral scene states what people's machines
+it runs among (`{collateral}`). A choice's card lists its raid effects beside its other effects, exactly as the engine
+applies them: `effect-next-raid` ("next raid: up to 120 s sooner (risk)", "up to" because the hostile slot's own spacing
+still applies) and `effect-silences-raider` ("the named raider never raids again (benefit)"). A staff-harm scene names
+the person, says what happened to them in one restrained sentence, and never states a number of people.
+`tests/ui-retaliation.spec.ts` checks the mounted scene; `tests/e2e/retaliation.e2e.ts` the flow on the phone and the
+desktop, with axe.
 
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending

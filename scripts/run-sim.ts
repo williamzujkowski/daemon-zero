@@ -9,7 +9,7 @@ import { activateCampaignRules } from '../src/engine/campaign';
 import { createInitialState, type GameState } from '../src/engine/state';
 import { checkGates, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
-import { aegisPhaseLine, postureLine, pressureLine, signaturePhaseLine } from '../src/engine/sim/simReport';
+import { aegisPhaseLine, postureLine, pressureLine, raidAnswersLine, signaturePhaseLine } from '../src/engine/sim/simReport';
 
 function minutes(seconds: number | undefined): string {
   return seconds === undefined ? '   -  ' : (seconds / 60).toFixed(1).padStart(6);
@@ -28,6 +28,8 @@ function print(label: string, report: SimReport): void {
   const raids = report.activity.raids;
   const byPhase = Object.entries(raids.byPhase).map(([phase, count]) => `P${phase} ${String(count)}`).join(' | ') || 'none';
   console.log(`  raids             ${String(raids.arrivals)} (${byPhase}) | rounds ${String(raids.rounds)} | peak damage ${(raids.peakDamage * 100).toFixed(1)}%`);
+  // Retaliation and staff harm (#519): which scenes the raids led to, and the answer each run gave.
+  console.log(`  raid answers      ${raidAnswersLine(report, CONTENT)}`);
   // Fleets (#518): battles by the square law (and how many the fleets held), drift deviants by phase, worst fleet loss.
   const fleets = report.activity.fleets;
   const deviants = Object.entries(fleets.deviantsByPhase).map(([phase, count]) => `P${phase} ${String(count)}`).join(' | ') || 'none';

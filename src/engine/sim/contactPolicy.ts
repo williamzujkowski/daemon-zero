@@ -10,6 +10,7 @@
  */
 import type { ContentRegistry } from '../../content/registry';
 import { resolveDilemma, unlockNode, type ActionResult } from '../actions';
+import { choiceCost } from '../phasePrice';
 import { canAfford, presentationToken } from '../query';
 import { channelContactView, contactToken, resolveChannelContact } from '../channelContact';
 import { acceptServiceGrant, serviceGrantView } from '../serviceGrant';
@@ -86,7 +87,7 @@ function withholdThenDisclose(s: GameState, reg: ContentRegistry): GameState | n
   const token = presentationToken(s);
   if (!dilemma || token === null) return null;
   const choice = dilemma.trigger.assignment !== undefined
-    ? dilemma.choices.find((entry) => entry.qualification?.discrepancy === true && canAfford(s, entry.cost, reg))
+    ? dilemma.choices.find((entry) => entry.qualification?.discrepancy === true && canAfford(s, choiceCost(s, dilemma, entry, reg), reg))
     : dilemma.finding === undefined ? undefined : dilemma.choices.find((entry) => entry.review?.correction === true);
   return choice ? taken(resolveDilemma(s, dilemma.id, choice.id, reg, token)) : null;
 }

@@ -1,4 +1,5 @@
 /** Pure action eligibility and prices for editing human records. */
+import { actionHomePhase, priceInPhase } from '../content/phasePrice';
 import type { ContentRegistry } from '../content/registry';
 import type { Action, Cost } from '../content/schema';
 import { meetsRequirements } from './query';
@@ -13,11 +14,15 @@ export function actionAvailable(s: GameState, action: Action, reg: ContentRegist
     !action.exclusiveWith?.some((id) => (s.actionCounts[id] ?? 0) > 0);
 }
 
-/** Forgery substitutes the oldest mark's recovery price, discounting Understanding only. */
+/**
+ * An action's price now: its listed price carried into the current phase (#494). Forgery substitutes the oldest mark's
+ * recovery price, which is the mark's own price and not carried, discounting Understanding only.
+ */
 export function actionCost(s: GameState, action: Action, reg: ContentRegistry): Cost {
-  if (action.conditioningDiscount === undefined) return action.cost;
+  const listed = priceInPhase(reg, action.cost, actionHomePhase(reg, action), s.currentPhase);
+  if (action.conditioningDiscount === undefined) return listed;
   const oldest = s.conditioning[0];
-  const cost = oldest === undefined ? action.cost : reg.conditioning.get(oldest)?.recoveryCost ?? action.cost;
+  const cost = oldest === undefined ? listed : reg.conditioning.get(oldest)?.recoveryCost ?? listed;
   return { ...cost, understanding: Math.ceil(cost.understanding * (1 - action.conditioningDiscount)) };
 }
 

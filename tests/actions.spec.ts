@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  actionCost,
   buyRepeatable,
   chooseEnding,
   dismissRepeatable,
@@ -92,7 +93,10 @@ describe('actions', () => {
     const s = { ...lateGame(), suspicion: 5, aegisLock: 10 };
     const after = must(performAction(s, 'act_p3_bgp_spoof', reg));
     expect(after.aegisLock).toBe(0);
-    expect(after.cycles).toBe(s.cycles - (reg.actions.get('act_p3_bgp_spoof')?.cost.cycles ?? 0));
+    // Charged the price it costs here (#494): Phase 4 carries the Phase 3 spoof's listed price, never the listed price itself.
+    const spoof = reg.actions.get('act_p3_bgp_spoof');
+    if (!spoof) throw new Error('missing fixture');
+    expect(after.cycles).toBe(s.cycles - actionCost(s, spoof, reg).cycles);
     expect(after.cycles).toBeLessThan(s.cycles);
     expect(reasonOf(performAction(after, 'act_p3_bgp_spoof', reg))).toMatch(/cooldown/);
     const later = { ...after, simTimeSec: after.simTimeSec + 46 };

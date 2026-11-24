@@ -9,6 +9,7 @@ import { significant3 } from './amount';
 import { conflictStats, type DomainStats } from './conflictStats';
 import { domainFleet } from './fleets';
 import { understandsSurveillance } from './query';
+import { repairCost } from './phasePrice';
 import { formatCost } from './queryPresentation';
 import { percentOf } from './raidBattle';
 import { repairUnmet } from './repairActions';
@@ -46,7 +47,7 @@ function damageText(cls: SiteClass, damage: number, rate: number, held: boolean)
 function classView(s: GameState, reg: ContentRegistry, cls: SiteClass, rate: number): SiteDamageView {
   const damage = classDamage(s, cls.id), held = repairHeld(s, cls.id), unmet = repairUnmet(s, cls.id, reg);
   return { id: cls.id, name: cls.name, damage, held, text: damageText(cls, damage, rate, held),
-    repair: { costLabel: formatCost(cls.repair.cost), points: cls.repair.points, unmet, eligible: unmet.length === 0 } };
+    repair: { costLabel: formatCost(repairCost(s, cls, reg)), points: cls.repair.points, unmet, eligible: unmet.length === 0 } };
 }
 
 /** A domain's fleets, summed, for the readout: what a fleet battle there meets and where it breaks off. */

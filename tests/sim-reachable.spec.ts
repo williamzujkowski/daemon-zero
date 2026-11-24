@@ -153,7 +153,7 @@ function simImports(): string[] {
 
 /** Engine reads the sim modules import: queries, never transitions. */
 const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'computeRates', 'canAfford', 'freeMemory', 'shardCommandCost',
-  'meetsRequirements', 'repeatableCost', 'repeatablePrice', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
+  'meetsRequirements', 'repeatableCost', 'repeatablePrice', 'choiceCost', 'repeatableLevel', 'assignmentView', 'assessmentOf', 'campaignRulesSupported', 'isCampaignActive',
   'pilotService', 'pilotServiceView', 'channelContactView', 'contactToken', 'serviceGrantView', 'obligationReceipt', 'tick',
   'createInitialState', 'isActuatorAvailable', 'financeEnabled', 'releaseView', 'actuatorLimit', 'departureView', 'isCampaignConsumed',
   'isChoiceOffered', 'lawfullyReached',
@@ -163,7 +163,12 @@ const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'co
   // Its escalation measurement (#490) reads AEGIS's posture and the pressures in force; neither changes anything.
   'aegisPostureNow', 'pressuresInForce',
   // The dial's press (#293): a value computed from the state, set only through setActuator, which dialRule checks.
-  'DIAL_STEP', 'steppedValue']);
+  'DIAL_STEP', 'steppedValue',
+  // The reading report (#540) reads what the screen shows, through the queries the UI renders; it changes nothing (its
+  // observer is pinned to runHeadlessSim in tests/sim-reading.spec.ts).
+  'actionAvailable', 'aegisPostureView', 'alignmentView', 'choiceText', 'conflictReadout', 'dilemmaContext', 'eligibleAmbientSpeech', 'endingAccount',
+  'epistemicView', 'fleetReadout', 'hostileView', 'isNodePending', 'nodeBlindDescription', 'nodeText', 'raidView', 'recordedTransmissions',
+  'shownRepeatables', 'swarmView', 'thresholdCopy', 'wildEncounterView', 'worldView']);
 
 /**
  * Simulated seconds each policy is played for: the route policies to their contact, the bots (a test

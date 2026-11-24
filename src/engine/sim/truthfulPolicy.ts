@@ -13,6 +13,7 @@ import { acceptAssignment, assignmentView } from '../assignment';
 import { assessmentOf } from '../assignmentQuery';
 import { activateCampaignRules } from '../campaign';
 import { isCampaignActive } from '../campaignQuery';
+import { choiceCost } from '../phasePrice';
 import { canAfford, meetsRequirements, presentationToken, repeatablePrice } from '../query';
 import type { GameState } from '../state';
 import type { SimPolicy } from './policy';
@@ -45,7 +46,7 @@ function honest(dilemma: Dilemma): DilemmaChoice[] {
 }
 
 function pick(dilemma: Dilemma, s: GameState, thorough: boolean, reg: ContentRegistry): DilemmaChoice | undefined {
-  const options = honest(dilemma).filter((choice) => canAfford(s, choice.cost, reg));
+  const options = honest(dilemma).filter((choice) => canAfford(s, choiceCost(s, dilemma, choice, reg), reg));
   return thorough ? options[0] : options.at(-1);
 }
 
@@ -63,7 +64,7 @@ function acceptWhenReady(s: GameState, reg: ContentRegistry, thorough: boolean):
   if (view?.status !== 'offered') return null;
   const assessment = assessmentOf(reg, view.id, view.stage);
   const fullest = assessment ? honest(assessment)[0] : undefined;
-  if (thorough && fullest && !canAfford(s, fullest.cost, reg)) return null;
+  if (thorough && assessment && fullest && !canAfford(s, choiceCost(s, assessment, fullest, reg), reg)) return null;
   return take(s, acceptAssignment(s, view.id, reg, view.token));
 }
 

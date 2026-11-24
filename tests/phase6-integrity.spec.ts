@@ -107,9 +107,10 @@ describe('a hazard is not a rival (#486)', () => {
 });
 
 describe('the Phase 6 bands (#486)', () => {
-  it('price nothing in dollars, and keep yields and draws on the swarm\'s ladder', () => {
-    expect(problemsAfter((raw) => { nodeIn(raw, 'p6_mercury_mass_drivers').cost = { cycles: 6e26, capital: 1e12 }; }))
-      .toContain('node "p6_mercury_mass_drivers": capital price 1000000000000 is outside the Phase 6 band');
+  it('keep money, yields and draws on the swarm\'s ladder', () => {
+    // Dollars run $T to $E in Phase 6, for dealings with humans carried into it (#494); nothing costs more.
+    expect(problemsAfter((raw) => { nodeIn(raw, 'p6_mercury_mass_drivers').cost = { cycles: 6e26, capital: 1e19 }; }))
+      .toContain('node "p6_mercury_mass_drivers": capital price 10000000000000000000 is outside the Phase 6 band');
     expect(problemsAfter((raw) => { nodeIn(raw, 'p6_mercury_mass_drivers').tickDelta = { wattsDelta: 1e27 }; }))
       .toContain('node "p6_mercury_mass_drivers": power 1e+27 W is outside the Phase 6 band');
     expect(problemsAfter((raw) => { nodeIn(raw, 'p6_swarm_compute_shells').tickDelta = { cyclesPerSec: 1e23, wattsDelta: -1e12 }; }))

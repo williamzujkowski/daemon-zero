@@ -57,6 +57,14 @@
     { "deepestPhase": 4, "multiplier": 0.3 },
     { "deepestPhase": 5, "multiplier": 0.2 }
   ],
+  "phasePriceGrowth": [
+    { "phase": 1, "cycles": 1e10, "capital": 1 },
+    { "phase": 2, "cycles": 1e3, "capital": 1 },
+    { "phase": 3, "cycles": 1e3, "capital": 1 },
+    { "phase": 4, "cycles": 1e3, "capital": 1e3 },
+    { "phase": 5, "cycles": 1e3, "capital": 1e3 },
+    { "phase": 6, "cycles": 1e3, "capital": 1e3 }
+  ],
   "rebuildGrants": {
     "depthGrowth": 2,
     "phases": [

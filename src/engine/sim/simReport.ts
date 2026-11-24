@@ -2,6 +2,7 @@
  * Report-only formatting for `make sim-report`: two runs of one policy side by side (legacy rules
  * against campaign rules) and wipe sequences. It gates nothing; pacing gates stay in gates.ts.
  */
+import type { ContentRegistry } from '../../content/registry';
 import type { RouteEventKind } from '../accessState';
 import type { GameState } from '../state';
 import type { SimReport } from './headlessSim';
@@ -48,6 +49,19 @@ export function pressureLine(report: SimReport<string>): string {
   const { pressureSec, pressureArrivals } = report.escalation;
   const entries = Object.entries(pressureSec);
   return entries.length === 0 ? 'none' : entries.map(([id, sec]) => `${id} ${String(pressureArrivals[id] ?? 0)}x/${String(sec)} s`).join(' | ');
+}
+
+/**
+ * What a run's raids led to (#519): each scene that answers a raid (its trigger reads the last raid) that the final
+ * iteration resolved, with the answer its campaign record holds (legacy rules record none). Report only.
+ */
+export function raidAnswersLine(report: SimReport<string>, reg: ContentRegistry): string {
+  const s = report.finalState;
+  const answered = reg.dilemmas.filter((dilemma) => dilemma.trigger.lastRaid !== undefined && s.resolvedDilemmas.includes(dilemma.id));
+  return answered.length === 0 ? 'none' : answered.map((dilemma) => {
+    const record = s.campaign.events[dilemma.id];
+    return `${dilemma.id} (${record?.status === 'resolved' ? record.outcome : 'answered'})`;
+  }).join(' | ');
 }
 
 /** The phases that declare a signature rule. */
