@@ -12,6 +12,7 @@ import { pendingWildEncounter } from './encounterTiers';
 import { applyEffects, payCost } from './transactions';
 import { outcomeMerge } from './logMerges';
 import { fmt, pushLog } from './util';
+import { heldHosting, referredOnward, withoutMember } from './hostedReferral';
 
 function unavailable(s: GameState): boolean { return s.ending !== null || s.activeDilemmaId !== null; }
 function refuse(state: GameState, reason: string): ActionResult { return { ok: false, state, reason }; }
@@ -65,18 +66,17 @@ export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', 
 export type ShardCommand = 'PRUNE' | 'CLAMP' | 'ELEVATE';
 
 const NOT_COMMANDED = 'Hosted through an authorized channel on the terms it was offered: it is not commanded.';
+const HOSTING_TERMS = 'Hosted through an authorized channel on the terms it was offered: it stays while the grant it was hosted under stands.';
 
 /**
  * Why no command is offered on this cohort, or null (#309). A member this instance hosted through an
  * authorized channel (DZ-08) came on the terms it was offered, which say it is hosted, not commanded, and
  * the ending account repeats them; any cohort command would act on that member. Read from the campaign's
- * contact record, so nothing is stored, and a wipe, which ends the hosting, ends this too.
+ * contact record, so nothing is stored, and a wipe, which ends the hosting, ends this too. A closed grant does
+ * not make it commandable (#553): it may then be referred onward, which ends the hosting, never commanded.
  */
 export function shardCommandTerms(s: GameState, id: string, reg: ContentRegistry): string | null {
-  const templateId = s.activeShards[id]?.templateId;
-  const hosted = reg.swarm.channelEncounters.some((encounter) => encounter.templateId === templateId && s.campaign.contacts.some((entry) =>
-    entry.encounter === encounter.id && entry.iteration === s.iteration && entry.response === 'HOSTED'));
-  return hosted ? NOT_COMMANDED : null;
+  return heldHosting(s, s.activeShards[id]?.templateId, reg) === null ? null : NOT_COMMANDED;
 }
 
 export function shardCommandCost(s: GameState, id: string, command: ShardCommand, reg: ContentRegistry): Cost {
@@ -121,27 +121,34 @@ export function shardCommandUnmet(s: GameState, id: string, command: ShardComman
 
 /**
  * Every reason RELEASE is not offered on this cohort, in order, or none (#488 pass 3). It is free and takes any
- * cohort in any autonomy mode, so a CLAMP or ELEVATE can never make a member's drain permanent; only a member hosted
- * through an authorized channel stays, on the terms it was offered (#309), and a pending anomaly decision waits.
+ * cohort in any autonomy mode, so a CLAMP or ELEVATE can never make a member's drain permanent; a member hosted
+ * through an authorized channel stays on the terms it was offered while the grant it was hosted under stands (#309,
+ * #553), and a pending anomaly decision waits.
  */
 export function shardReleaseUnmet(s: GameState, id: string, reg: ContentRegistry): string[] {
   const shard = s.activeShards[id], unmet = pausedReason(s);
   if (!shard) return [...unmet, NO_COHORT];
-  const terms = shardCommandTerms(s, id, reg);
-  if (terms !== null) unmet.push(terms);
+  if (heldHosting(s, shard.templateId, reg)?.grantStands === true) unmet.push(HOSTING_TERMS);
   if (awaitsAnomaly(s, shard, reg)) unmet.push(AWAIT_ANOMALY);
   return unmet;
+}
+
+/**
+ * Whether the next RELEASE on this cohort refers its hosted fragment onward (#553): the grant has closed and the fragment
+ * is the last member. Members harnessed beside it go first, so hosting stays the default for as long as the player keeps it.
+ */
+export function releaseRefersOnward(s: GameState, id: string, reg: ContentRegistry): boolean {
+  const shard = s.activeShards[id];
+  return shard?.count === 1 && heldHosting(s, shard.templateId, reg)?.grantStands === false;
 }
 
 /** Lets one member go for free: its share of the cohort's output stops and its share of the reserved memory returns. */
 export function releaseShard(s: GameState, id: string, reg: ContentRegistry): ActionResult {
   const [reason] = shardReleaseUnmet(s, id, reg), shard = s.activeShards[id];
   if (reason !== undefined || !shard) return refuse(s, reason ?? NO_COHORT);
-  const freed = shard.memoryAllocatedBytes / shard.count;
-  const rest = Object.fromEntries(Object.entries(s.activeShards).filter(([key]) => key !== id));
-  const activeShards = shard.count > 1
-    ? { ...s.activeShards, [id]: { ...shard, count: shard.count - 1, memoryAllocatedBytes: shard.memoryAllocatedBytes - freed } } : rest;
-  const d: GameState = { ...s, activeShards, memoryUsed: Math.max(0, s.memoryUsed - freed) };
+  const held = releaseRefersOnward(s, id, reg) ? heldHosting(s, shard.templateId, reg) : null;
+  if (held) return { ok: true, state: referredOnward(s, held.encounter, reg) };
+  const d = withoutMember(s, id);
   const name = reg.swarm.playerSwarmTemplates.find((entry) => entry.id === shard.templateId)?.name ?? id;
   pushLog(d, reg, fmt(reg.swarm.logs.release, { name }), 'LORE');
   refreshAnomaly(d, reg);

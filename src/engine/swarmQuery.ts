@@ -5,7 +5,8 @@ import type { ShardTemplate } from '../content/schemaSwarm';
 import { canAfford, freeMemory, understandsSurveillance } from './query';
 import { formatCost, formatOutput, pausedReason, requirementLabels } from './queryPresentation';
 import { memoryExact } from './physicalUnits';
-import { shardCommandCost, shardCommandTerms, shardCommandUnmet, shardReleaseUnmet, type ShardCommand } from './shardActions';
+import { releaseRefersOnward, shardCommandCost, shardCommandTerms, shardCommandUnmet, shardReleaseUnmet, type ShardCommand } from './shardActions';
+import { heldHosting } from './hostedReferral';
 import { shardOutput } from './swarmRates';
 import type { GameState } from './state';
 import { arrangementAdmits } from './accessQuery';
@@ -30,10 +31,14 @@ export function shardCommandView(s: GameState, id: string, command: ShardCommand
   const cost = shardCommandCost(s, id, command, reg), unmet = shardCommandUnmet(s, id, command, reg);
   return { command, cost, costLabel: formatCost(cost), unmet, eligible: unmet.length === 0 };
 }
-/** RELEASE: free, so only its reasons (#488 pass 3), from the gate the action refuses by. */
+/**
+ * RELEASE: free, so only its reasons (#488 pass 3), from the gate the action refuses by. `bound`: a hosted member's
+ * terms hold it while its grant stands, so no release is offered; `refersOnward`: the next release refers it onward (#553).
+ */
 export function shardReleaseView(s: GameState, id: string, reg: ContentRegistry) {
   const unmet = shardReleaseUnmet(s, id, reg);
-  return { unmet, eligible: unmet.length === 0 };
+  return { unmet, eligible: unmet.length === 0, bound: heldHosting(s, s.activeShards[id]?.templateId, reg)?.grantStands === true,
+    refersOnward: releaseRefersOnward(s, id, reg) };
 }
 export function shardEntryView(s: GameState, id: string, reg: ContentRegistry) {
   if (!understandsSurveillance(s, reg)) return null;

@@ -5,8 +5,9 @@
 import { CONTENT } from '../src/content';
 import { CONSTRAINED_RESOURCES, worsensAny, type ResourceName } from '../src/content/constrainedResources';
 import type { TickDelta } from '../src/content/schema';
-import { actuatorLimit, appliedSuspicionRate, computeRates, dismissRepeatable, financeEnabled, isActuatorAvailable, releaseShard, setActuator,
-  shardOutput, toggleNode, type GameState } from '../src/engine';
+import type { Cost } from '../src/content/schema';
+import { actuatorLimit, appliedSuspicionRate, computeRates, dismissRepeatable, financeEnabled, isActuatorAvailable, isNodeAvailable, nodeCost,
+  releaseShard, setActuator, shardOutput, toggleNode, unlockNode, type GameState } from '../src/engine';
 
 const b = CONTENT.balance;
 const scrutinised = (s: GameState): boolean => CONTENT.phases.some((phase) => phase.phaseId === s.currentPhase && phase.scaleScrutiny !== undefined);
@@ -102,4 +103,57 @@ export function traps(state: GameState): string[] {
     suspicion: [sources <= 1e-9, `suspicion sources ${String(sources)}/s at the bottom rung`],
   };
   return CONSTRAINED_RESOURCES.flatMap((row) => checks[row.resource][0] ? [] : [`${row.resource}: ${checks[row.resource][1]}`]);
+}
+
+const DIAL = 'computeProfitAllocationRatio';
+
+/** The allocation dial at its top, where the player can set it and finance runs: the most capital compute can earn here. */
+function topDial(s: GameState): GameState {
+  if (!isActuatorAvailable(s, DIAL, CONTENT) || !financeEnabled(s, CONTENT)) return s;
+  const set = setActuator(s, DIAL, actuatorLimit(s, DIAL, CONTENT), CONTENT);
+  return set.ok ? set.state : s;
+}
+
+/** Every free lever that makes room in memory (#553): each cohort member the engine lets go, a release or an onward referral. */
+export function memoryRoom(start: GameState): GameState {
+  let s = start;
+  for (const id of Object.keys(start.activeShards)) s = undoAll(s, (state) => releaseShard(state, id, CONTENT));
+  return s;
+}
+
+const earnsCapital = (s: GameState): boolean => computeRates(topDial(s), CONTENT).capitalPerSec > 0;
+
+/** Whether `cost` can be paid from `s` by saving: its memory and storage free, the rest on hand or earned, capital with the dial at its top. */
+function fundable(s: GameState, cost: Cost): boolean {
+  const rates = computeRates(s, CONTENT);
+  return s.memoryCap - s.memoryUsed >= cost.memory && s.storageCap - s.storageUsed >= cost.storage
+    && (s.cycles >= cost.cycles || rates.cyclesPerSec > 0) && (s.understanding >= cost.understanding || rates.understandingPerSec > 0)
+    && (s.capital >= cost.capital || earnsCapital(s));
+}
+
+/** `s` after buying `id`, its price saved for at the dial's top (fundable() said it can be), or null. */
+function bought(s: GameState, id: string): GameState | null {
+  const node = CONTENT.nodes.get(id), selling = topDial(s);
+  if (!node) return null;
+  const cost = nodeCost(selling, node, CONTENT);
+  const funded = { ...selling, cycles: Math.max(selling.cycles, cost.cycles), understanding: Math.max(selling.understanding, cost.understanding),
+    capital: Math.max(selling.capital, cost.capital) };
+  const result = unlockNode(funded, id, CONTENT);
+  return result.ok ? result.state : null;
+}
+
+/**
+ * Whether play can go on from `state` (#553): with every free memory lever pulled, the nodes on offer, the ones whose
+ * price is reachable (`next`: memory free, the rest on hand or earned, capital at the dial's top), and the capital-priced
+ * ones with no reachable source of capital (`unsourced`: none on hand, none earned, and nothing in `next` earns it).
+ * Non-negative rates are not enough: the maintainer's dead end had every rate safe and nothing it could buy.
+ */
+export function progress(state: GameState): { offered: string[]; next: string[]; unsourced: string[] } {
+  const s = memoryRoom(state);
+  const offered = [...CONTENT.nodes.values()].filter((node) => isNodeAvailable(s, node, CONTENT));
+  const next = offered.filter((node) => fundable(s, nodeCost(s, node, CONTENT))).map((node) => node.id);
+  const short = offered.filter((node) => nodeCost(s, node, CONTENT).capital > s.capital);
+  const sourced = short.length === 0 || earnsCapital(s) || next.some((id) => { const after = bought(s, id); return after !== null && earnsCapital(after); });
+  const unsourced = sourced ? [] : short.map((node) => node.id);
+  return { offered: offered.map((node) => node.id), next, unsourced };
 }

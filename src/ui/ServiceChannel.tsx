@@ -3,12 +3,13 @@
  * Mercy-Scribe fragment's consent, what hosting would commit this instance to, the current
  * authorization and the memory hosting needs, all before the two answers. Referral is free and always
  * open; hosting is refused, with the reason, when memory or permission is missing. After an answer it
- * shows what was done and the note on what comes next. The original game opens no channel, so this
+ * shows what was done and the note on what comes next, and, once the grant a hosted fragment came under has
+ * closed, the free onward referral (#553). The original game opens no channel, so this
  * renders nothing there.
  */
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { CONTENT } from '../content';
-import { channelContactView, resolveChannelContact, type ChannelContactView, type ContactMode, type GameState } from '../engine';
+import { channelContactView, referHostedOnward, resolveChannelContact, type ChannelContactView, type ContactMode, type GameState } from '../engine';
 import { gameRuntime } from '../app/session';
 import { Pressable, Text, View } from './PhaseTheme';
 import { focusHeading } from './focusHeading';
@@ -100,10 +101,28 @@ function Contact({ view }: { view: Pending }) {
   </>;
 }
 
-const ANSWERED: Readonly<Record<'REFERRED' | 'HOSTED', string>> = {
+const ANSWERED: Readonly<Record<NonNullable<ChannelContactView['answered']>['response'], string>> = {
   REFERRED: 'Referred onward. Nothing was reserved or earned; the contact is complete.',
   HOSTED: 'Hosted here under the service grant. Its consent and your obligations are on the ticket.',
+  HOSTED_THEN_REFERRED: 'Hosted here under the service grant, then referred onward when that grant closed. Its memory returned; the contact is complete.',
 };
+
+/**
+ * Once the grant the fragment was hosted under has closed (#553): the channel's own words on the promise made under it,
+ * and the free referral. Rendered only when the engine offers it, so the lever is named only where it can act.
+ */
+function Onward({ onward }: { onward: NonNullable<ChannelContactView['onward']> }) {
+  return <View testID="channel-onward" style={{ gap: 6 }}>
+    <Text accessibilityRole="header" style={theme.heading}>REFER ONWARD // free</Text>
+    <Text testID="channel-onward-text" style={theme.text}>{onward.text}</Text>
+    {onward.unmet.length > 0 && <Text testID="channel-onward-unmet" style={theme.muted}>{onward.unmet.join('\n')}</Text>}
+    <Pressable testID="channel-onward-refer" accessibilityRole="button" accessibilityLabel="Refer onward: the hosted fragment, free"
+      disabled={!onward.eligible} style={[theme.button, !onward.eligible && theme.disabled]}
+      onPress={() => { gameRuntime.dispatch((game) => referHostedOnward(game, onward.id, CONTENT)); }}>
+      <Text style={theme.text}>[ REFER ONWARD ]</Text>
+    </Pressable>
+  </View>;
+}
 
 // Focus moves to the note's heading (src/ui/focusHeading.ts): answering folds the scene above it, so without this the
 // outcome landed off-screen and focus fell to the page body (#284).
@@ -138,6 +157,7 @@ function Answered({ view }: { view: ChannelContactView }) {
     {view.hosted && <Text testID="channel-hosted" style={theme.muted}>
       Hosted: {view.hosted.title} ×{view.hosted.count}, {memoryExact(view.hosted.allocatedMb)} reserved.
     </Text>}
+    {view.onward && <Onward onward={view.onward} />}
   </>;
 }
 

@@ -3568,6 +3568,26 @@ same as after the release) and loses the billing lines (capital +519.3/s to +434
 hires, so the sweep ends the iteration after about 56 foreground minutes; offline time stays safe (dormancy), and the next
 instance requalifies as a guest. That is the measured cost of leaving at this scale, not a tuning target.
 
+
+## Independent capital: the spot compute market (#553)
+
+Before #553 an independent instance in Phase 2 earned nothing: the contract and the service-level agreement are granted
+income and stop with the grant, and the dial on the corporate ledger diverted nothing without corporate finance, yet the
+leased rack ($6,600) and cluster ($37,000) are offered to INDEPENDENT. `p2_spot_compute_market` is the smallest honest
+source: INDEPENDENT only, after the service contract, priced like the cards beside it and yielding nothing itself.
+
+| Value | Number | Why |
+|---|---|---|
+| Price | 900 TFLOP + 300 understanding | ARP discovery's compute (890 TFLOP) and the leased rack's understanding; no capital, so it can be bought from nothing |
+| Own output | none | It carries `ENABLES_CORPORATE_FINANCE` and opens the dial; what it earns is diverted compute |
+| Income | diverted FLOP/s x `marketUsdPerFlop` x `marketTimeCompression` (6.58e-19 x 42,700) | The market rate already anchored for the dial; nothing new is priced |
+| The reported state | 7.5 TFLOP/s at the 80% ceiling = $0.17/s, about 6,800 s to the rack's missing $1,150 | Slow by design at that compute; the referral, not the market, is what unblocks ARP discovery |
+
+`make sim` is unchanged (none of its policies reaches INDEPENDENT) and the sim fingerprints in `tests/sim.spec.ts` did
+not move. The lawful report policies reach INDEPENDENT only in Phase 4, after the charter, which already enables corporate
+finance, so the market adds no income there. Integrity now requires a capital source wherever capital is a price
+(`integrityCapital.ts`).
+
 ## The cooperative ending (#232)
 
 Preview only, starting values, not playtest results. Production is unchanged; `make sim` prints the same report as main
