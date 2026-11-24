@@ -16,7 +16,7 @@ export const READING_WPM = { central: 238, fast: 250, slow: 200 } as const;
 export const DELIBERATION_SEC = { low: 15, high: 60 } as const;
 /** Window widths, in simulated seconds, over which pushed text is checked against a central reader. */
 export const WINDOW_WIDTHS_SEC = [60, 30, 10] as const;
-/** A log burst: this many lines or more within this many seconds (the desktop dock previews only the newest line). */
+/** A log burst: this many new lines or more within this many seconds (the desktop dock previews one line; since #541, the newest story line). */
 export const BURST = { spanSec: 5, minLines: 3 } as const;
 
 export interface PhaseWords {

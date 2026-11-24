@@ -1,6 +1,7 @@
 /** Recurring fragments retain their mechanics and legacy saves without rewriting historical prose. */
 import { describe, expect, it } from 'vitest';
 import { deserialize, SCHEMA_VERSION, serialize, resolveWildEncounter, shardEntryView, wildEncounterView, tick, wipe } from '../src/engine';
+import { fmt } from '../src/engine/util';
 import { defined } from './m7-helpers';
 import { fresh, grant, must, PHASE0, PHASE1, reg, rich, withoutDilemmas } from './helpers';
 
@@ -46,7 +47,8 @@ describe.each(reg.swarm.wildShardEncounters)('$id recurring population', (encoun
     expect(consumed.cycles).toBe(later.cycles + encounter.consume.cyclesDelta);
     expect(consumed.aegisLock).toBe(Math.max(0, later.aegisLock + encounter.consume.aegisLockDelta));
     expect(consumed.epistemicDrift).toBe(Math.max(0, later.epistemicDrift + (encounter.consume.epistemicDriftDelta ?? 0)));
-    expect(consumed.logs[0]?.text).toBe(encounter.consume.logText);
+    // The request that arrived on the tick and its outcome read as one line (#541).
+    expect(consumed.logs[0]?.text).toBe(fmt(reg.narrative.kernelLog.answered, { line: encounter.description, answer: encounter.consume.logText }));
     expect(consumed.nextEncounterAtSec).toBe(later.simTimeSec + reg.swarm.balance.encounterIntervalSec);
     const reboot = deserialize(serialize(wipe(consumed, only, 'test', 'VOLUNTARY')), only);
     expect(reboot.activeShards).toEqual({});

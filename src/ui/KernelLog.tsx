@@ -5,12 +5,13 @@ import DisclosureText from './DisclosureText';
  * Engine-owned array identity prevents log rerenders on ordinary resource ticks.
  */
 import { FlatList, StyleSheet } from 'react-native';
-import type { LogEntry } from '../engine';
+import { logLineText, type LogEntry } from '../engine';
+import { CONTENT } from '../content';
 import { useGame } from './state';
 import { palette, theme } from './theme';
 
 function LogLine({ item }: { item: LogEntry }) {
-  return <DisclosureText testID={'log-' + String(item.seq)} style={[theme.muted, styles.line]}>{item.text}</DisclosureText>;
+  return <DisclosureText testID={'log-' + String(item.seq)} style={[theme.muted, styles.line]}>{logLineText(item, CONTENT)}</DisclosureText>;
 }
 
 export default function KernelLog() {

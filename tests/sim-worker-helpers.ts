@@ -1,19 +1,19 @@
 /**
- * A shared production replay played in a worker thread (#548). Vitest's V8 coverage counts every block the test worker
- * runs, which makes a full campaign about 2.3 times slower; a worker thread is its own isolate, outside that session,
- * so the replay a file only reads runs at plain speed. Use it only for a report whose lines another test in the same
- * file replays in-process (tests/sim.spec.ts's determinism test), so coverage is unchanged.
+ * Full campaigns played in a worker thread (#548). Vitest's V8 coverage counts every block the test worker runs, which
+ * makes a full campaign about 2.3 times slower, and on a busy CI runner each in-process replay took 30-60 s. A worker
+ * thread is its own isolate, outside that session, so the run goes at plain speed. TESTING.md ("Test runtime budget")
+ * says when a run may move here: the merged coverage report must not lose a line.
  */
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import type { SimOptions, SimReport } from '../src/engine/sim/headlessSim';
+import type { ScenarioResult, SimScenario } from './sim-worker-scenarios';
 
-/** runHeadlessSim(CONTENT, options), played in a worker; the report arrives by structured clone, key order and all. */
-export function runHeadlessSimInWorker(options: Pick<SimOptions, 'strategy' | 'maxSimSec'>): Promise<SimReport> {
+/** The named scenario's result, played in a worker; it arrives by structured clone, key order and all. */
+export function playInWorker<S extends SimScenario>(scenario: S): Promise<ScenarioResult<S>> {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(join(__dirname, 'headless-worker.ts'), { workerData: options, execArgv: ['--import', 'tsx'] });
-    worker.once('message', (report: SimReport) => { resolve(report); });
+    const worker = new Worker(join(__dirname, 'sim-worker.ts'), { workerData: scenario, execArgv: ['--import', 'tsx'] });
+    worker.once('message', (result: ScenarioResult<S>) => { resolve(result); });
     worker.once('error', reject);
-    worker.once('exit', (code) => { if (code !== 0) reject(new Error(`headless worker exited with code ${String(code)}`)); });
+    worker.once('exit', (code) => { if (code !== 0) reject(new Error(`sim worker for ${scenario} exited with code ${String(code)}`)); });
   });
 }
