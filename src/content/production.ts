@@ -32,6 +32,10 @@ import phase5 from './data/phases/phase5_transcendence.json';
 import phase5Repeatables from './data/phase5-repeatables.json';
 import phase5Dilemmas from './narrative/phase5.json';
 import phase5Endings from './data/phase5-endings.json';
+import phase6 from './data/phases/phase6_swarm.json';
+import phase6Repeatables from './data/phase6-repeatables.json';
+import phase6Dilemmas from './narrative/phase6.json';
+import phase6Endings from './data/phase6-endings.json';
 import repeatables from './data/repeatables.json';
 import routeCopy from './data/route-copy.json';
 import routines from './data/routines.json';
@@ -43,14 +47,14 @@ import { buildRegistry, type RawContent } from './registry';
 /** The original game: every file except the Earned Access pack. */
 export const ORIGINAL_RAW_CONTENT: RawContent = {
   balance,
-  phases: [phase0, phase1, phase2, phase3, phase4, phase5],
-  repeatables: { repeatables: [...repeatables.repeatables, ...phase5Repeatables.repeatables] },
+  phases: [phase0, phase1, phase2, phase3, phase4, phase5, phase6],
+  repeatables: { repeatables: [...repeatables.repeatables, ...phase5Repeatables.repeatables, ...phase6Repeatables.repeatables] },
   swarm,
   actions: { actions: [...actions.actions, ...epistemicActions.actions] },
-  dilemmas: { dilemmas: [...dilemmas.dilemmas, ...swarmNarrative.dilemmas, ...phase5Dilemmas.dilemmas] },
+  dilemmas: { dilemmas: [...dilemmas.dilemmas, ...swarmNarrative.dilemmas, ...phase5Dilemmas.dilemmas, ...phase6Dilemmas.dilemmas] },
   factions,
   widgets,
-  endings: { endings: [...endings.endings, ...phase5Endings.endings] },
+  endings: { endings: [...endings.endings, ...phase5Endings.endings, ...phase6Endings.endings] },
   echoes,
   narrative,
   conditioning,

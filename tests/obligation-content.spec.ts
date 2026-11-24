@@ -21,7 +21,8 @@ describe('the shipped obligations', () => {
   it('pass on both channels: four obligations, two reviews, one per closing crisis', () => {
     expect(corrupt(() => undefined)).not.toThrow();
     for (const reg of [CONTENT, PREVIEW]) {
-      expect([...reg.nodes.values()].flatMap((node) => node.requirements?.campaignObligations ?? [])).toEqual(OBLIGATIONS);
+      // The protocol and the Mercury seed array that opens the Swarm both need the four (#486); the swarm's protocols need the holdouts.
+      expect([...new Set([...reg.nodes.values()].flatMap((node) => node.requirements?.campaignObligations ?? []))]).toEqual([...OBLIGATIONS, 'dil_p6_02_holdouts']);
       expect(new Map([...reg.campaign.reviews].map(([id, review]) => [id, review.id]))).toEqual(new Map([[ATMOSPHERE, ATMOSPHERE_REVIEW], [CEILING, CEILING_REVIEW]]));
     }
   });
@@ -83,7 +84,12 @@ describe('a recovery review completes only a closed original, honestly, once', (
 
   it('reviews only a closing crisis that an obligation names', () => {
     expect(corrupt((raw) => { dilemma(raw, CEILING).campaign = { ...dilemma(raw, BLOCKADE).campaign }; })).toThrow(/defers and never closes, so the review could never be offered/);
-    expect(corrupt((raw) => { finalReq(raw).campaignObligations = OBLIGATIONS.filter((id) => id !== CEILING); })).toThrow(/no requirement names "dil_p5_04_kessler_ultimatum" as an obligation/);
+    expect(corrupt((raw) => {
+      // Both nodes that name the four (the protocol and the Mercury seed array, #486) drop it.
+      for (const node of raw.phases[5].nodes.filter((entry: Json) => entry.requirements?.campaignObligations !== undefined)) {
+        node.requirements.campaignObligations = OBLIGATIONS.filter((id) => id !== CEILING);
+      }
+    })).toThrow(/no requirement names "dil_p5_04_kessler_ultimatum" as an obligation/);
   });
 });
 

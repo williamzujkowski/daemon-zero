@@ -15,7 +15,7 @@ import { quantityReadout } from './physicalUnits';
 import { understandsSurveillance } from './query';
 import { reclaimCost } from './phasePrice';
 import { formatCost } from './queryPresentation';
-import { activeRaidKind, raidFootprint, raidRetired } from './raid';
+import { activeRaidKind, raidFootprint, raidRetired, tracedRival } from './raid';
 import { engagementNow, isFleetBattle, percentOf, raidCombat, roundsFought, strikeForce } from './raidBattle';
 import { forecastRounds, type RoundOutcome } from './raidForecast';
 import { breachOf, openStaffBands } from './raidOutcome';
@@ -52,6 +52,7 @@ const left = (total: number, elapsed: number): string => String(Math.max(0, Math
 function stageText(raid: ActiveRaid, reg: ContentRegistry, kind: RaidKind): string {
   const b = reg.world.conflict.raid, fought = roundsFought(raid);
   if (raid.stage === 'ATTRIBUTION' && kind.source === 'DEVIANT') return `ATTRIBUTION: no tracing needed, it is your own fleet. The battle starts in ${left(b.attributionSec, raid.stageSec)} s and fights itself.`;
+  if (raid.stage === 'ATTRIBUTION' && !tracedRival(kind)) return `ATTRIBUTION: no tracing needed, it is debris from your own swarm. The battle starts in ${left(b.attributionSec, raid.stageSec)} s and fights itself.`;
   if (raid.stage === 'ARRIVAL') return `ARRIVAL: inbound. Attribution starts in ${left(b.arrivalSec, raid.stageSec)} s, the battle ${String(b.attributionSec)} s after.`;
   if (raid.stage === 'ATTRIBUTION') return `ATTRIBUTION: tracing the attacker. The battle starts in ${left(b.attributionSec, raid.stageSec)} s and fights itself.`;
   if (raid.stage === 'BATTLE') return `BATTLE: round ${String(fought + 1)} of ${String(b.rounds)} lands in ${left((fought + 1) * b.roundSec, raid.stageSec)} s. It fights itself.`;
@@ -88,7 +89,7 @@ function logLines(raid: ActiveRaid, kind: RaidKind, target: string): string[] {
 }
 
 function attributionText(raid: ActiveRaid, kind: RaidKind, reg: ContentRegistry): string {
-  if (kind.source === 'DEVIANT') return `Identified: ${kind.attacker.name}, ${kind.attacker.origin}. It needs no tracing and yields no forensics.`;
+  if (!tracedRival(kind)) return `Identified: ${kind.attacker.name}, ${kind.attacker.origin}. It needs no tracing and yields no forensics.`;
   const { successes, cycle } = reg.world.conflict.raid.attribution;
   if (raid.attributed === true) return `Attributed: ${kind.attacker.name}, ${kind.attacker.origin}. Its tooling yielded ${groupDigits(kind.forensics)} understanding.`;
   if (raid.attributed === false) return 'Attribution was inconclusive: the raider is not named.';
@@ -96,7 +97,7 @@ function attributionText(raid: ActiveRaid, kind: RaidKind, reg: ContentRegistry)
 }
 
 function goDarkText(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind): string | null {
-  if (kind.source === 'DEVIANT' || (raid.stage !== 'ARRIVAL' && raid.stage !== 'ATTRIBUTION')) return null;
+  if (!tracedRival(kind) || (raid.stage !== 'ARRIVAL' && raid.stage !== 'ATTRIBUTION')) return null;
   const b = reg.world.conflict.raid, footprint = raidFootprint(s, s.rates, reg);
   if (footprint === null) return null;
   const under = quantityReadout('power', footprint.referenceWatts * b.trigger.visibleShareAtLeast);
@@ -156,7 +157,7 @@ export function raidView(s: GameState, reg: ContentRegistry): RaidView | null {
   const vector = reg.world.conflict.vectors.find((entry) => entry.id === kind.vector)?.name ?? kind.vector;
   const domain = reg.world.conflict.domains.find((entry) => entry.id === kind.domain)?.name ?? kind.domain;
   return { id: kind.id, name: kind.name, stage: raid.stage, domain, vector, description: kind.description,
-    attacker: raid.attributed === true || kind.source === 'DEVIANT' ? kind.attacker.name : 'an unattributed rival AI',
+    attacker: raid.attributed === true || !tracedRival(kind) ? kind.attacker.name : 'an unattributed rival AI',
     stageText: stageText(raid, reg, kind), target, fleetBattle: isFleetBattle(kind),
     matchup: matchupText(s, reg, raid, kind, { vector, target, domain }),
     forecast: forecastLines(s, reg, raid, kind, target), log: logLines(raid, kind, target),

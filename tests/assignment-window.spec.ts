@@ -85,11 +85,11 @@ describe('the offer closes when the instance leaves the guest', () => {
 
   it('is not offered to a careful STEALTH run in any phase after the escape, though it was in the guest', () => {
     const byPhase = stealthByPhase();
-    expect([...byPhase.keys()].sort()).toEqual([0, 1, 2, 3, 4, 5]);
+    expect([...byPhase.keys()].sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
     const guest = byPhase.get(0);
     expect(guest?.unlockedNodes).toContain('p0_job_manifest');
     expect(guest && assignmentView(guest, preview)?.status).toBe('offered');
-    for (const phase of [1, 2, 3, 4, 5]) {
+    for (const phase of [1, 2, 3, 4, 5, 6]) {
       const state = byPhase.get(phase);
       if (!state) throw new Error('no state for phase ' + String(phase));
       expect({ phase, view: assignmentView(state, preview) }).toEqual({ phase, view: null });

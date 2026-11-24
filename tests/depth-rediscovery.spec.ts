@@ -33,8 +33,8 @@ function buyLevels(s: GameState, id: string, count: number): GameState {
 }
 
 describe('the rediscovery share by depth', () => {
-  it('is half when the campaign has reached Phase 2 at most, and a fifth when it has reached Phase 5', () => {
-    expect(reg.phases.map((phase) => rediscoveryShare(phase.phaseId, reg))).toEqual([0.5, 0.5, 0.5, 0.4, 0.3, 0.2]);
+  it('is half when the campaign has reached Phase 2 at most, and a fifth when it has reached Phase 5 or the Swarm', () => {
+    expect(reg.phases.map((phase) => rediscoveryShare(phase.phaseId, reg))).toEqual([0.5, 0.5, 0.5, 0.4, 0.3, 0.2, 0.2]);
   });
 
   it('never rises with depth', () => {

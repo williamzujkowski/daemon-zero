@@ -203,6 +203,21 @@ it('switches one current-phase player for all six phases and ignores every remov
   h.stop();
 });
 
+it('keeps the Phase 5 score playing into the Phase 6 Swarm, which borrows it (#486)', async () => {
+  const h = harness(); await settle(); h.controller.toggle(); await settle();
+  h.game.initialize({ ...h.game.store.getState().game, currentPhase: 5 }, 0, null);
+  h.status(true);
+  const before = h.backend.createMusicPlayer.mock.calls.length, removed = h.player.remove.mock.calls.length;
+  h.game.dispatch((game) => ({ ok: true, state: { ...game, currentPhase: 6 } }));
+  expect(h.backend.createMusicPlayer).toHaveBeenCalledTimes(before);
+  expect(h.player.remove).toHaveBeenCalledTimes(removed);
+  expect(h.controller.state.getState()).toMatchObject({ trackPhase: 5, playing: true });
+  // A Phase 6 save loaded fresh plays the borrowed score too.
+  h.game.initialize({ ...h.game.store.getState().game, currentPhase: 6 }, 0, null);
+  expect(h.backend.createMusicPlayer.mock.lastCall?.[0]).toBe(5);
+  h.stop();
+});
+
 it('reconciles only the latest phase when preparation completes after several transitions and backgrounding', async () => {
   const h = harness(); await settle();
   let resolve: () => void = () => undefined;

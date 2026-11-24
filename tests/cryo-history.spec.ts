@@ -91,7 +91,8 @@ describe('recorded cryo outcomes', () => {
 
   it.each(source.choices)('keeps all four Phase 5 decisions reachable after $id and a wipe', (choice) => {
     const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
-    const nodes = defined(reg.phases.find((phase) => phase.phaseId === 5)).nodes;
+    // Every Phase 5 node but the Mercury seed array, which opens the Swarm and closes the protocol behind it (#486).
+    const nodes = defined(reg.phases.find((phase) => phase.phaseId === 5)).nodes.filter((node) => node.effects.unlocksPhase === undefined);
     const final = defined(reg.nodes.get(defined(nodes.at(-1)).id));
     let state = grant(returned(resolved(choice)), ...PHASE2.slice(3), ...PHASE3, ...PHASE4, ...FABRICATION,
       orbital.id, ...nodes.slice(0, -1).map((node) => node.id));

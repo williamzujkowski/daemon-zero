@@ -13,7 +13,7 @@ import { CONTENT } from '../src/content';
 import { dismissRepeatable, fleetAutonomyUnmet, fleetRebuildUnmet, HOSTILE_ANSWERS, hostileAnswerUnmet, reclaimUnmet, repairUnmet, repeatableLevel, shardReleaseView, toggleNode,
   unlockNode, type GameState } from '../src/engine';
 import { pendingNode } from '../src/ui/purchaseVisibility';
-import { fixtureState, GUARD_STATES, pressedBy } from './fallback-states';
+import { fixtureState, GUARD_STATES, phaseState, pressedBy } from './fallback-states';
 import { worsensNow } from './free-fallback';
 import { host, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
@@ -104,7 +104,7 @@ const networkExhausted = () => capped(boughtOut(fixtureState(3), 2), PHASE2_TRAC
 
 /** States built to exhaust a section's purchases while it still holds levels to release. */
 const EXHAUSTED: [string, GameState][] = [
-  ...[0, 1, 2, 3, 4, 5].map((phase): [string, GameState] => [`every track capped, phase ${String(phase)}`, capped(fixtureState(phase), tracksThrough(phase))]),
+  ...CONTENT.phases.map(({ phaseId: phase }): [string, GameState] => [`every track capped, phase ${String(phase)}`, capped(phaseState(phase), tracksThrough(phase))]),
   ['the boost override owned below its 65 C gate, everything else capped', (() => {
     const s = capped(fixtureState(1), tracksThrough(1).filter((id) => id !== boostOverride));
     return { ...s, thermal: 30, levels: { ...s.levels, [boostOverride]: 2 } };
@@ -130,7 +130,7 @@ describe.each(VIEWPORTS)('on the %s', (_name, viewport) => {
 
 /** Each hostile type pressing the pre-rescale save of each phase it arrives in, funded so every answer is accepted. */
 const HOSTILE_STATES: [string, GameState][] = CONTENT.swarm.hostileEncounters.map((encounter): [string, GameState] => {
-  const start = fixtureState(encounter.tier);
+  const start = phaseState(encounter.tier);
   return [`${encounter.type} pressing the phase ${String(encounter.tier)} save`, { ...pressedBy(start, encounter), cycles: 1e30, understanding: 1e15, capital: 1e18 }];
 });
 
@@ -153,7 +153,7 @@ describe.each(VIEWPORTS)('with a hostile mind pressing, on the %s', (_name, view
  */
 const RAID_STATES: [string, GameState][] = CONTENT.world.conflict.raids.flatMap((kind): [string, GameState][] => {
   if (kind.source !== 'RIVAL') return [];
-  const start = fixtureState(kind.tier);
+  const start = phaseState(kind.tier);
   const damage = Object.fromEntries(CONTENT.world.conflict.siteClasses.map((cls) => [cls.id, 0.3]));
   return [[`${kind.id} on the phase ${String(kind.tier)} save`, { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
     conflict: { ...start.conflict, damage, raid: { id: kind.id, stage: 'BATTLE', stageSec: 1, arrivedAtSec: start.simTimeSec, target: kind.targets[0] ?? '',
@@ -187,7 +187,7 @@ const FLEETS = CONTENT.world.conflict.fleets;
 const fleetPhase = (id: string): number => CONTENT.repeatables.get(id)?.phaseId ?? Infinity;
 
 function armedFleets(phase: number): GameState {
-  const start = fixtureState(phase), units = FLEETS.units.filter((unit) => fleetPhase(unit.repeatable) <= phase);
+  const start = phaseState(phase), units = FLEETS.units.filter((unit) => fleetPhase(unit.repeatable) <= phase);
   return { ...start, cycles: 1e30, understanding: 1e15, capital: 1e18, hostile: { ...start.hostile, active: null },
     levels: { ...start.levels, ...Object.fromEntries(units.map((unit) => [unit.repeatable, CONTENT.repeatables.get(unit.repeatable)?.maxLevel ?? 1])) },
     conflict: { ...start.conflict, raid: null, fleets: Object.fromEntries(units.map((unit) => [unit.repeatable, { autonomy: 'ELEVATED' as const, drift: 40, lost: 0.2 }])) } };
