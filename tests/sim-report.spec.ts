@@ -13,6 +13,7 @@ import { GREEDY_POLICY, STEALTH_POLICY } from '../src/engine/sim/policy';
 import { SIM_POLICIES } from '../src/engine/sim/policies';
 import { compareSimReports, formatComparison, formatWipeSequence, parsePolicyArgs } from '../src/engine/sim/simReport';
 import { must, reg } from './helpers';
+import { playInWorker } from './sim-worker-helpers';
 
 const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
@@ -192,8 +193,10 @@ describe('wipe sequences', () => {
     expect(formatWipeSequence(resumed)[1]).toContain('P2 unknown');
   }, SLOW_MS);
 
-  it('ends on an ending or the budget when the policy is never wiped', () => {
-    const careful = runWipeSequence(reg, STEALTH_POLICY, { wipeTransitions: MIN_WIPE_TRANSITIONS, maxSimSec: 4 * 3600 });
+  it('ends on an ending or the budget when the policy is never wiped', async () => {
+    // The full careful campaign plays in a worker thread (carefulSequence, #548): in-process under coverage it ran past
+    // 30 s on CI after the Phase 6 Swarm. The short run below stays in-process.
+    const careful = await playInWorker('carefulSequence');
     expect(careful.completed).toBe(false);
     expect(careful.iterations).toHaveLength(1);
     expect(careful.iterations[0]?.endedBy).toBe('ending');
