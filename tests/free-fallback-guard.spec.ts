@@ -21,7 +21,7 @@ import { integrateFleetRebuild } from '../src/engine/systems/fleetRebuild';
 import { integrateRaids } from '../src/engine/systems/raids';
 import { integrateRepair } from '../src/engine/systems/repair';
 import { fixtureState, GUARD_STATES, pressedBy, saved } from './fallback-states';
-import { freeFallback, suspicionRecoverySec, traps } from './free-fallback';
+import { freeFallback, progress, suspicionRecoverySec, traps } from './free-fallback';
 
 /** A purchase priced off the state it starts from: what it costs, and the act of buying it. */
 type Purchase = { label: string; cost: (s: GameState) => Parameters<typeof saved>[1] | null; buy: (s: GameState) => ActionResult };
@@ -89,6 +89,27 @@ describe.each(GUARD_STATES)('from %s', (_label, state) => {
   it('every purchase it can save for leaves every resource out of its trap after the free fallback', () => {
     const trapped = afterEach(state).flatMap(([label, bought]) => traps(freeFallback(bought)).map((trap) => `${label} -> ${trap}`));
     expect(trapped).toEqual([]);
+  });
+});
+
+/** Where play cannot go on from `s`, or nothing (#553): nothing on offer is reachable, or a capital price on offer has no source. */
+function deadEnds(label: string, s: GameState): string[] {
+  if (s.ending !== null) return [];
+  const { offered, next, unsourced } = progress(s);
+  const stuck = offered.length > 0 && next.length === 0 ? [`${label}: nothing on offer is reachable (${offered.join(', ')})`] : [];
+  return unsourced.length > 0 ? [...stuck, `${label}: no reachable capital for ${unsourced.join(', ')}`] : stuck;
+}
+
+/**
+ * Play can always go on (#553): from every guard state, and from every state a purchase it can save for leaves, some node
+ * on offer has a reachable price (its memory freed by the free levers, the rest on hand or earned) and every capital price
+ * on offer has a reachable source. The traps above read rates only: the maintainer's departed instance with a hosted
+ * fragment had every rate safe and nothing it could buy, so this is checked on its own.
+ */
+describe.each(GUARD_STATES)('progress from %s (#553)', (label, state) => {
+  it('a next purchase is reachable, now and after every purchase it can save for', () => {
+    const stuck = [deadEnds(label, state), ...afterEach(state).map(([bought, s]) => deadEnds(`${label}, then ${bought}`, s))].flat();
+    expect(stuck).toEqual([]);
   });
 });
 

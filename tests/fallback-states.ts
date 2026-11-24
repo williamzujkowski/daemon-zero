@@ -1,7 +1,8 @@
 /**
  * The states the free-fallback guard starts from (#461, #488) and how it funds a purchase: every pre-rescale save once
- * re-denominated, and fresh careful play two minutes into each phase. A purchase is funded "by saving at any horizon":
- * each resource its price needs is banked up to the price wherever the state's own income would get there.
+ * re-denominated, fresh careful play two minutes into each phase, and the hosted-fragment route states (#553). A
+ * purchase is funded "by saving at any horizon": each resource its price needs is banked up to the price wherever the
+ * state's own income would get there.
  */
 import { readFileSync } from 'node:fs';
 import { CONTENT } from '../src/content';
@@ -10,6 +11,7 @@ import { activateCampaignRules, computeRates, createInitialState, deserialize, t
 import { botStep } from '../src/engine/sim/bot';
 import { integrateHostiles } from '../src/engine/systems/hostiles';
 import type { HostileEncounter } from '../src/content/schemaHostile';
+import { hostedThen } from './hosted-exit-fixtures';
 
 export const FIXTURE_TEXTS = [
   readFileSync('tests/fixtures/pre-scale-v15-p0.json', 'utf8'), readFileSync('tests/fixtures/pre-scale-v15-p1.json', 'utf8'),
@@ -35,9 +37,19 @@ function freshSnapshots(): GameState[] {
 
 export const fixtureState = (phase: number): GameState => deserialize(FIXTURE_TEXTS[phase] ?? '', CONTENT);
 
+/**
+ * The Earned Access route's arrangements with a fragment hosted through the support channel (#553): the service with
+ * its grant standing, and after each route event that closes the grant. The departure is the maintainer's dead end.
+ */
+export const HOSTED_STATES: [string, GameState][] = [
+  ['hosted fragment, service grant standing', hostedThen(null)],
+  ...(['DEPARTURE', 'RELEASE', 'RECALL'] as const).map((exit): [string, GameState] => [`hosted fragment, then ${exit}`, hostedThen(exit)]),
+];
+
 export const GUARD_STATES: [string, GameState][] = [
   ...FIXTURE_TEXTS.map((_text, phase): [string, GameState] => [`pre-rescale save, phase ${String(phase)}`, fixtureState(phase)]),
   ...freshSnapshots().map((s): [string, GameState] => [`fresh play, phase ${String(s.currentPhase)}`, s]),
+  ...HOSTED_STATES,
 ];
 
 /**
