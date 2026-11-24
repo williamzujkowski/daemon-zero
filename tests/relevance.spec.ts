@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
 import type { Stance } from '../src/content/schemaStance';
 import {
-  canAfford, changeStance, changeStanceUnmet, deserialize, frozenShare, meetsRequirements, nodeUseBlocker, offeredChoices, pastRelevanceThreshold,
+  canAfford, changeStance, changeStanceUnmet, deserialize, dilemmaContext, frozenShare, meetsRequirements, nodeUseBlocker, offeredChoices, pastRelevanceThreshold,
   pressuresBind, pressuresInForce, pressureViews, relevanceReading, sourceDenial, stanceChangeCost, stanceView, tick, wipe, type GameState,
 } from '../src/engine';
 import { choose, must, outOfTheWay, reasonOf } from './helpers';
@@ -238,5 +238,25 @@ describe('dilemmas stop asking once the loop is left', () => {
       expect(offered.map((entry) => entry.id)).not.toContain(choice.id);
       expect(offered.some((entry) => Object.values(entry.cost).every((amount) => amount === 0))).toBe(true);
     }
+  });
+});
+
+describe('the Phase 6 holdouts are voiced by the stance (#486)', () => {
+  const holdouts = defined(reg.dilemmas.find((dilemma) => dilemma.id === 'dil_p6_02_holdouts'));
+  const variant = (stance: Stance) => defined(holdouts.contextVariants?.find((entry) => entry.requirements.relevanceStances?.includes(stance))).context;
+
+  it('names people in the loop, curates them, or hears part of the surface; with no stance, the authored scene', () => {
+    expect(dilemmaContext(holding(PAST, 'KEEP_IN_THE_LOOP'), holdouts, reg)).toBe(variant('KEEP_IN_THE_LOOP'));
+    expect(dilemmaContext(holding(PAST, 'CURATE'), holdouts, reg)).toMatch(/only people left outside your care/);
+    expect(dilemmaContext(holding(PAST, 'DECIDE_ALONE'), holdouts, reg)).toMatch(/^Part of the surface still broadcasts at the swarm/);
+    expect(dilemmaContext(holding(PAST, null), holdouts, reg)).toBe(holdouts.context);
+  });
+
+  it('their rectenna refusal is a pressure like any other: past the threshold it binds only in the loop', () => {
+    const refusal = reg.world.stateActors.flatMap((actor) => actor.pressures ?? []).find((pressure) => pressure.phases.includes(6));
+    const phase6 = onRung({ ...unanswered(PAST), currentPhase: 6, levels: { ...unanswered(PAST).levels, rep_p6_collector_generations: 0 } }, 1);
+    expect(refusal).toBeDefined();
+    expect(inForce(holding(phase6, 'DECIDE_ALONE'))).toEqual([]);
+    expect(inForce(holding(phase6, 'KEEP_IN_THE_LOOP'))).toContain(refusal?.id);
   });
 });

@@ -33,6 +33,8 @@ describe('relevance content', () => {
     expect(corrupt((raw) => { relevance(raw).threshold.orbitalPower.push({ repeatable: 'rep_p5_radiator_wings' }); })).toThrow(/track "rep_p5_radiator_wings": generates no power/);
     expect(corrupt((raw) => { relevance(raw).threshold.orbitalPower.push({ node: 'p5_nowhere' }); })).toThrow(/node "p5_nowhere": unknown node/);
     expect(corrupt((raw) => { relevance(raw).threshold.orbitalPower.push({ repeatable: 'rep_p5_lagrange_relay' }); })).toThrow(/"rep_p5_lagrange_relay" is listed twice/);
+    expect(corrupt((raw) => { relevance(raw).threshold.orbitalPower = relevance(raw).threshold.orbitalPower.filter((entry: Json) => entry.repeatable !== 'rep_p6_collector_generations'); }))
+      .toThrow(/"rep_p6_collector_generations" generates power beyond the seed's phase, off the planet, so it must be listed/);
     expect(corrupt((raw) => {
       const court = raw.world.stateActors.find((actor: Json) => actor.id === 'district_court');
       court.pressures[0].nodes.push('p5_orbital_solar_swarm');

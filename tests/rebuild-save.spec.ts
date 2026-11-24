@@ -52,7 +52,8 @@ describe('save v18 (#497)', () => {
     const s = twoWipes();
     const edited = { ...s, legacy: { ...s.legacy, deepestPhase: 40, knownLevels: { rep_p1_heap_defrag: 999, retired_track: 4 } } };
     const loaded = deserialize(serialize(edited), reg);
-    expect(loaded.legacy.deepestPhase).toBe(5);
+    expect(loaded.legacy.deepestPhase).toBe(reg.phases.at(-1)?.phaseId);
+    expect(loaded.legacy.deepestPhase).toBe(6);
     expect(loaded.legacy.knownLevels).toEqual({ rep_p1_heap_defrag: reg.repeatables.get('rep_p1_heap_defrag')?.maxLevel });
   });
 

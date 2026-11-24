@@ -120,7 +120,8 @@ export class MusicController {
 
   private syncGame(): void {
     const { ready, restoreRevision, game } = this.game.store.getState();
-    const scope = [ready, restoreRevision, game.currentPhase, game.iteration, game.ending].join(':');
+    // The score's phase, not the game's: a phase that borrows the one before's score (#486) keeps it playing.
+    const scope = [ready, restoreRevision, musicPhase(game.currentPhase), game.iteration, game.ending].join(':');
     if (scope === this.scope) return;
     this.scope = scope;
     this.phase = ready && game.ending === null ? musicPhase(game.currentPhase) : null;

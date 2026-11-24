@@ -17,6 +17,11 @@ const trackSchema = z.strictObject({
   sha256: z.string().regex(/^[0-9a-f]{64}$/),
   bytes: z.number().int().positive(),
   duration: z.number().positive(),
+  /**
+   * Phases with no score of their own that play this one until the maintainer supplies theirs (#486: the Phase 6 Swarm
+   * plays Phase 5's). A phase's own entry always wins, so a score dropped in later is heard without editing this list.
+   */
+  reusedBy: z.array(z.number().int().min(0)).min(1).optional(),
 });
 export type ScoreTrack = z.infer<typeof trackSchema>;
 /** A phase that has a score. Which phases do is the manifest's business, not this type's. */
@@ -39,16 +44,23 @@ export function parseTracks(raw: unknown): readonly ScoreTrack[] {
     const twice = repeated(values);
     if (twice !== undefined) throw new Error('Score manifest repeats ' + name + ' ' + String(twice));
   }
+  // Two scores lent to one phase would need a rule for which plays, as two scores of its own would.
+  const lent = repeated(tracks.flatMap((track) => track.reusedBy ?? []));
+  if (lent !== undefined) throw new Error('Score manifest lends phase ' + String(lent) + ' two scores');
   return tracks;
 }
 
 export const scoreTracks = parseTracks(manifest);
 
+/** The score a phase plays: its own, else the one lent to it (`reusedBy`), else none. */
 export function trackFor(phase: number, tracks: readonly ScoreTrack[] = scoreTracks): ScoreTrack | null {
-  return tracks.find((track) => track.phase === phase) ?? null;
+  return tracks.find((track) => track.phase === phase) ?? tracks.find((track) => track.reusedBy?.includes(phase) === true) ?? null;
 }
 
-/** The phase, when it has a score; null when it has none and the run plays in silence. */
+/**
+ * The phase whose score plays, when there is one: a phase's own, or the phase that lends it its score (Phase 6 reads 5),
+ * so moving between two phases that share a score does not restart it. Null when none plays and the run is silent.
+ */
 export function musicPhase(phase: number): MusicPhase | null {
   return trackFor(phase)?.phase ?? null;
 }

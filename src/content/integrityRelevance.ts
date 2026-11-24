@@ -50,6 +50,21 @@ function checkOrbitalPower(reg: ContentRegistry): string[] {
   return problems;
 }
 
+/**
+ * Beyond the seed's phase everything the AI builds is off the planet (the Swarm, #486), so a generator first held there and
+ * left off the orbital list would be counted as ground and could make the threshold lapse for no physical reason.
+ */
+function checkLaterGenerators(reg: ContentRegistry): string[] {
+  const seedPhase = reg.nodes.get(reg.world.supplyChain.seedNode)?.phaseId ?? Infinity;
+  const listed = new Set(reg.world.relevance.threshold.orbitalPower.map((entry) => ('node' in entry ? entry.node : entry.repeatable)));
+  const generators = [
+    ...[...reg.nodes.values()].filter((node) => node.tickDelta.wattsDelta > 0).map((node) => ({ id: node.id, phase: node.phaseId })),
+    ...[...reg.repeatables.values()].filter((rep) => rep.perLevel.wattsDelta > 0).map((rep) => ({ id: rep.id, phase: rep.phaseId })),
+  ];
+  return generators.filter((entry) => entry.phase > seedPhase && !listed.has(entry.id))
+    .map((entry) => `relevance orbital power: "${entry.id}" generates power beyond the seed's phase, off the planet, so it must be listed`);
+}
+
 const isFree = (cost: Cost): boolean => Object.values(cost).every((amount) => amount === 0);
 
 /** The dilemma that presents the threshold: triggered by it, one choice per stance, deciding alone free. */
@@ -91,5 +106,5 @@ function checkStancesAndPrices(reg: ContentRegistry): string[] {
 }
 
 export function checkRelevanceIntegrity(reg: ContentRegistry): string[] {
-  return [...checkThresholdGate(reg), ...checkOrbitalPower(reg), ...checkDilemma(reg), ...checkStancesAndPrices(reg)];
+  return [...checkThresholdGate(reg), ...checkOrbitalPower(reg), ...checkLaterGenerators(reg), ...checkDilemma(reg), ...checkStancesAndPrices(reg)];
 }

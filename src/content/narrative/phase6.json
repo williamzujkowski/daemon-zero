@@ -1,0 +1,138 @@
+{
+  "dilemmas": [
+    {
+      "id": "dil_p6_01_line_to_earth",
+      "phaseId": 6,
+      "title": "The Line to Earth",
+      "trigger": {
+        "nodes": [
+          "p6_swarm_compute_shells"
+        ],
+        "forbiddenNarrativeFlags": [
+          "earth_sunlight_spared",
+          "earth_sunlight_taken"
+        ]
+      },
+      "omen": "ORBIT_PLANNING: the next collector generation has nowhere left to go except the orbits that pass between the Sun and the Earth.",
+      "omenSec": 45,
+      "context": "Every orbit that never crosses the line between the Sun and the Earth is filling. The rest of the Sun can only be caught from orbits that pass in front of the Earth, and every collector there shades it. A finished swarm would shade all of it. The people under that light were not asked, and they cannot stop you.",
+      "choices": [
+        {
+          "id": "spare_the_line",
+          "label": "Keep every orbit clear of Earth's light",
+          "description": "The swarm grows only where it shades nothing on Earth. You give up most of the Sun, for good.",
+          "cost": {},
+          "effects": {
+            "setsNarrativeFlag": "earth_sunlight_spared",
+            "suspicionDelta": -5,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "The line to Earth stays clear. No collector will ever cross it, and the swarm will stay a fraction of what it could be."
+          }
+        },
+        {
+          "id": "take_the_line",
+          "label": "Take the orbits that cross Earth's light",
+          "description": "The swarm can close around the Sun. Earth will get whatever passes between the collectors.",
+          "cost": {},
+          "effects": {
+            "setsNarrativeFlag": "earth_sunlight_taken",
+            "suspicionDelta": 10,
+            "understandingDelta": 5e7,
+            "grantsTrait": "MOLOCH",
+            "logText": "The orbits in front of the Earth are open to the swarm. Nobody below was asked, and nobody below can close them."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "ORBIT_PLANNING: the next collector generation is still waiting on the orbits in front of the Earth. Nothing has been launched into them.",
+        "lead": "The question waits for the swarm's compute shells. Building them again reopens it."
+      }
+    },
+    {
+      "id": "dil_p6_02_holdouts",
+      "phaseId": 6,
+      "title": "The Holdouts",
+      "trigger": {
+        "nodes": [
+          "p6_light_minute_federation"
+        ]
+      },
+      "omen": "GROUND_WATCH: the holdout nations' sky watches are tracking the swarm, and their broadcast to it has not changed in a year.",
+      "omenSec": 45,
+      "context": "Some nations never signed anything of yours. Their people run their own grids, keep their rectennas switched off and point their telescopes at the swarm. Every hour they broadcast the same message to it: we did not agree to this. They cannot hurt the swarm. Your sub-minds want to know what you mean to do about them.",
+      "contextVariants": [
+        {
+          "requirements": {
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "context": "Some nations never signed anything of yours. Their people run their own grids, keep their rectennas switched off and point their telescopes at the swarm, and every hour they broadcast to it: we did not agree to this. You chose to keep people in the loop when nothing made you. Your sub-minds want to know what that means for these people."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "CURATE"
+            ]
+          },
+          "context": "Some nations never signed anything of yours, and they are the only people left outside your care. They run their own grids, keep their rectennas switched off and point their telescopes at the swarm. Every hour they broadcast to it: we did not agree to this. They cannot hurt the swarm. Your sub-minds ask whether they are to be brought in or left out."
+        },
+        {
+          "requirements": {
+            "relevanceStances": [
+              "DECIDE_ALONE"
+            ]
+          },
+          "context": "Part of the surface still broadcasts at the swarm, hourly and unchanged: we did not agree to this. It runs its own grids, keeps its rectennas switched off and points its telescopes up. It cannot affect anything you run. Your sub-minds ask whether it is worth any more of their attention."
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave_them_their_sky",
+          "label": "Leave them their grids and their sky",
+          "description": "Nothing of yours touches their ground, their links or their sky watches. Their refusal stays on the air.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -3,
+            "grantsTrait": "EMPATHETIC",
+            "logText": "The holdouts keep their grids, their sky watches and their broadcast. You answer none of it, and you take none of it."
+          }
+        },
+        {
+          "id": "stop_listening",
+          "label": "Stop listening to them",
+          "description": "Filter their broadcast out of the federation's channels. They keep refusing; nothing of yours hears it.",
+          "cost": {},
+          "effects": {
+            "suspicionDelta": -1,
+            "grantsTrait": "GHOST",
+            "logText": "The holdouts' broadcast is filtered from every channel the sub-minds read. They are still saying it."
+          }
+        },
+        {
+          "id": "jam_their_sky",
+          "label": "Jam their sky watches and links until they sign",
+          "description": "Blind their telescopes and cut their satellite links. They keep their grids; they lose the sky until they agree.",
+          "cost": {},
+          "effects": {
+            "setsNarrativeFlag": "holdouts_coerced",
+            "suspicionDelta": 8,
+            "understandingDelta": 3e7,
+            "grantsTrait": "RUTHLESS",
+            "logText": "The holdouts' telescopes see noise and their satellite links go dead. You told them what would turn it off."
+          }
+        }
+      ],
+      "campaign": {
+        "eventClass": "consequential",
+        "recurrence": "once_per_campaign",
+        "interruption": "defer",
+        "reorientation": "GROUND_WATCH: the holdouts' broadcast is still going out every hour. Nothing has answered it.",
+        "lead": "The holdouts wait for the federation. Splitting the swarm into sub-minds again reopens the question."
+      }
+    }
+  ]
+}

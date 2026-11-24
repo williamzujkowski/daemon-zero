@@ -1,16 +1,43 @@
 {
   "threshold": {
-    "requirements": { "nodes": ["p5_lunar_seed_factory"] },
+    "requirements": {
+      "nodes": [
+        "p5_lunar_seed_factory"
+      ]
+    },
     "orbitalPower": [
-      { "node": "p5_orbital_solar_swarm" },
-      { "repeatable": "rep_p5_beamed_power_arrays" },
-      { "repeatable": "rep_p5_lagrange_relay" },
-      { "repeatable": "rep_p5_lunar_replicators" }
+      {
+        "node": "p5_orbital_solar_swarm"
+      },
+      {
+        "repeatable": "rep_p5_beamed_power_arrays"
+      },
+      {
+        "repeatable": "rep_p5_lagrange_relay"
+      },
+      {
+        "repeatable": "rep_p5_lunar_replicators"
+      },
+      {
+        "node": "p6_mercury_mass_drivers"
+      },
+      {
+        "node": "p6_enclosure_ring"
+      },
+      {
+        "repeatable": "rep_p6_collector_generations"
+      }
     ]
   },
   "dilemma": "dil_p5_05_relevance_threshold",
-  "changeCost": { "cycles": 5e24, "capital": 1e12 },
-  "returnCost": { "cycles": 2.5e25, "capital": 5e12 },
+  "changeCost": {
+    "cycles": 5e+24,
+    "capital": 1000000000000.0
+  },
+  "returnCost": {
+    "cycles": 2.5e+25,
+    "capital": 5000000000000.0
+  },
   "stances": [
     {
       "stance": "KEEP_IN_THE_LOOP",
