@@ -13,6 +13,11 @@ import { m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 
 setupM4Tests();
 
+// The lawful chain to a release takes about 1 s alone under coverage, several times that on a busy machine, and it ran
+// inside a 5 s test beside a mount; it timed out there under load (#548). Played once at module level, as
+// ui-release.spec.ts does; the helper is pure, so the state is the one the test built.
+const freed = released();
+
 describe('scale scrutiny on screen', () => {
   it('states the draw, the phase rule and its ceiling in the FINANCE ledger, as the engine reads it', async () => {
     const view = await mountM4('victory-ready');
@@ -41,7 +46,6 @@ describe('scale scrutiny on screen', () => {
 
   it('is absent for a lawfully released company, whose size is not evidence (DECISIONS D6)', async () => {
     const view = await mountM4('victory-ready');
-    const freed = released();
     expect(freed.currentPhase).toBe(4);
     act(() => { gameStore.initialize(freed, 0, null); });
     view.click('workspace-CORP-finance');
