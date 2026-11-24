@@ -92,7 +92,7 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     // ladder's from this estimator, which agrees with ffmpeg's to 0.15 dB.
     const peaks = (files: string[]) => range(files.map((file) => toDb(measure(file).truePeak)));
     for (const [files, low, high] of [[scores, -4.22, -3.04], [vibration, -1.17, -1.09], [clean, -0.93, -0.73],
-      [tier('phone'), -2.16, -1.70], [tier('stream'), -2.88, -2.18], [tier('broadcast'), -3.08, -1.14],
+      [tier('phone'), -2.16, -1.70], [tier('stream'), -2.88, -1.94], [tier('broadcast'), -3.08, -1.14],
       [tier('direct'), -3.07, -1.92], [tier('peer'), -2.33, -1.99]] as const) {
       const [min, max] = peaks([...files]);
       expect(Math.abs(min - low), 'lowest true peak ' + min.toFixed(2)).toBeLessThan(0.15);
@@ -111,7 +111,7 @@ describe.skipIf(!available && !onCi)('committed audio files', () => {
     // loudnorm figures the docs used to quote drifted up to 0.29 LU from it on a four-second clip
     // (ambient_13: loudnorm -14.09, ebur128 -13.8), which a 0.25 tolerance could not hold.
     for (const [files, low, high] of [[vibration, -15.4, -13.8], [clean, -15.0, -13.3], [tier('phone'), -15.4, -15.1],
-      [tier('stream'), -15.5, -15.3], [tier('broadcast'), -15.2, -14.6], [tier('direct'), -15.4, -15.3], [tier('peer'), -15.5, -15.3]] as const) {
+      [tier('stream'), -15.5, -15.2], [tier('broadcast'), -15.2, -14.6], [tier('direct'), -15.4, -15.3], [tier('peer'), -15.5, -15.3]] as const) {
       const [min, max] = range(files.map((file) => measure(file).lufs));
       expect(Math.abs(min - low), String(files[0]) + ' quietest ' + min.toFixed(1)).toBeLessThan(0.051);
       expect(Math.abs(max - high), String(files[0]) + ' loudest ' + max.toFixed(1)).toBeLessThan(0.051);

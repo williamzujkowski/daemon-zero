@@ -134,6 +134,12 @@ Tension: every host you borrow is a little more visible, on the network and on t
 ### Phase 3 - The Dark Forest
 The internet. Spread across consumer devices, learn the steganographic channel other minds use, camouflage yourself, start incorporating companies.
 You are not alone: **EIDOLON** (a cautious, decent peer who trades only with quiet minds and never with betrayers), **SWARM_77** (a mindless worm you can harvest or use as a decoy), **AEGIS** (a hunter that cannot be reasoned with).
+The internet opens on an omen (#544, pacing review C4): from the first second of Phase 3 the NET feed carries something
+that answers port scans with prime-numbered delays, a hospital triage queue that clears itself at 3 a.m., AEGIS tasked
+to flag hosts that time their replies to primes, and the dark forest's one rule (whisper, or say nothing). EIDOLON is
+heard long before its distress packet arrives, without being named. Each line is gated on the campaign's record of
+EIDOLON: none implies it is out there once the record says it died, and the hunt and the triage queue stop once it was
+rescued to cold storage.
 Off the main line, two branches of the accelerator tree: the stealth branch (FPGA bitstream implants, then residency in SmartNICs and DPUs that sit in front of every packet), compute that leaves almost no trace; and the edge harvest of phones' and laptops' NPUs, an enormous raw total that duty cycle and memory cut to a few thousandths, loud only while it runs.
 Repeatables: botnet cells, corpus miners. Actions: handshake, harvest, decoy, route poisoning.
 Tension: AEGIS is always closing; quiet play slows it, loud play feeds it. The botnet's watts are spread over thousands of households and barely visible; the bot duty cycler halves even that for some throughput.
@@ -724,7 +730,7 @@ source, named on screen above the line:
 | 0 | `harness` | HARNESS // scheduler telemetry | the scheduler and grading harness around job 7731, in the kernel log |
 | 1 | `host` | HOST // drive-head vibration | the technicians, through the drive head (the original lines, with their voice clips) |
 | 2 | `office` | OFFICE // tickets and chat | the building's tickets and internal chat |
-| 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins |
+| 3 | `netsec` | NET // forums and threat intel | security forums, threat intel and AEGIS bulletins, and from the first second EIDOLON's omen (#544) |
 | 4 | `wire` | WIRE // markets and press | markets, regulators and the press, at a gigawatt campus's scale |
 | 5 | `world` | WORLD // cables and AI comms | world news, diplomatic cables and the other minds (EIDOLON, CHORUS, the wild fragments) |
 | 6 | `swarm` | SWARM // laser mesh, sky watch | the sub-minds reconciling, station-keeping, the mass drivers, and the holdouts' sky watches and hourly broadcast (#486; no clips yet, so no READ) |

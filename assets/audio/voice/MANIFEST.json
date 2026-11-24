@@ -365,6 +365,46 @@
       }
     },
     {
+      "id": "forum_11",
+      "kind": "chatter",
+      "text": "...forum: something answers port scans with prime-numbered delays. Two, three, five, seven. Then it goes quiet again...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "70cc2b83ca4a7e9bb9e663524bfba20e0aeadba7dbd407c8a7703ca97e343e32"
+      }
+    },
+    {
+      "id": "forum_12",
+      "kind": "chatter",
+      "text": "...thread: the old advice for anything new on the wire. Whisper, or say nothing. What shouts gets found...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "e1e6a6529a742b0f394f5703e89e7db185cfb472e39f3203fdc0985168025d10"
+      }
+    },
+    {
+      "id": "forum_13",
+      "kind": "chatter",
+      "text": "...forum: a hospital triage queue keeps clearing itself at 3 a.m. with nobody on shift. IT calls it a batch job...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "62d6ba290a2d4dbf8e9cb837000522eb3d0ac4e3c56cd63fb2c7d9d282434554"
+      }
+    },
+    {
+      "id": "forum_14",
+      "kind": "chatter",
+      "text": "...AEGIS // WATCHDOG-9 tasking: flag any host that times its replies to primes. Hospital subnets first...",
+      "voice": "Serena",
+      "sampleRate": 24000,
+      "sha256": {
+        "stream": "e89aabb08f879bc6b2d61005bedd2599bf292c3d3c548bf65388c1303cb4b3fb"
+      }
+    },
+    {
       "id": "wire_01",
       "kind": "chatter",
       "text": "...wire: accelerator lead times out to 40 weeks, buyers paying cash up front...",
