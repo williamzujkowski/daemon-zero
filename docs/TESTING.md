@@ -1372,6 +1372,15 @@ raised to make room. When a spec runs close to its limit, the run gets cheaper i
   seconds, with the reason beside it.
 - **Faster engine only where identical.** A speed-up in `src/engine/` or a sim policy must leave every pinned sim
   hash byte-identical (ARCHITECTURE.md, "The per-tick hot path").
+- **A shared report another test replays may run outside coverage (#548).** V8 coverage makes a full campaign about
+  2.3 times slower in the test worker. `runHeadlessSimInWorker()` (`tests/sim-worker-helpers.ts`) plays a production
+  run in a worker thread, its own isolate outside the coverage session, and returns the report by structured clone.
+  Use it only for a report that tests read and that another test in the same file replays in-process. That replay
+  keeps the lines covered and asserts the two reports are byte-identical. `tests/sim.spec.ts`'s setup hook works this
+  way; its determinism test is the in-process replay.
+- **A slow fixture is not built inside a 5 s test.** A state several seconds of play away (the lawful chain to a
+  charter or a release, about 1 s alone under coverage) is built once at module level, as `tests/ui-release.spec.ts`
+  does, and not inside a test running on Vitest's 5 s default.
 - **Heavy specs are listed for the shard split.** `tests/shard-balance.mts` gives each spec over about 14 s its
   measured seconds and splits the files longest-first across the CI shards; a new spec that plays full campaigns
   joins the list. A stale figure only moves a file to another shard; `tests/shard-balance.spec.ts` fails on a name
@@ -1383,6 +1392,11 @@ ui-scrutiny test), this change 148 s with none. sim-cooperative 264 -> 94 s, sim
 determinism test 31 -> 13 s and reckless test 30 -> 16 s, the retraining audit 24 -> 18 s; the cooperative campaign
 alone (no coverage) 8.0 -> 1.8 s. On those timings Vitest's hash split gives the three shards 528 / 305 / 408 summed
 file-seconds and the balanced split 408 / 408 / 426.
+
+Measured on #548 on main at 5b7dc41 (the Phase 6 Swarm merged), on one shared 16-thread machine under V8 coverage.
+The careful report sim.spec's setup hook plays took 21.3 / 23.5 s in-process and 8.1 / 7.5 s in a worker (load
+average 8-9). The retraining audit took 10.4 / 11.2 s at eight hours and 7.7 / 8.1 s at five and a half (load 3).
+The release test in ui-job-surface-gates took 1,023 ms inside its 5 s default and takes 1 ms with the chain built once.
 
 Four other workflows run beside it. `ui-atlas.yml` runs `make e2e-atlas` (the stage atlas's full matrix,
 see "Stage atlas") nightly and on demand and uploads its gallery as `ui-atlas-matrix`; the matrix sizes report,
