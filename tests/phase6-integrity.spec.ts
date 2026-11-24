@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { RAW_CONTENT } from '../src/content';
 import { landauerOpsPerJoule } from '../src/content/integrityLandauer';
+import { tracedRival } from '../src/content/schemaConflict';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 import { reg } from './helpers';
 
@@ -103,6 +104,26 @@ describe('a hazard is not a rival (#486)', () => {
       const cascade = raw.world.conflict.raids.find((kind) => kind.id === 'raid_p6_collisional_cascade');
       if (cascade) delete cascade.hazard;
     })).toContain('raids: Phase 6 has raids but none in the open CYBER domain');
+  });
+});
+
+describe('no raid scene can answer a hazard (#486, panel pass 1 on #549)', () => {
+  it('refuses a lastRaid gate on collateral alone, which a deviant\'s or a hazard\'s battle would meet', () => {
+    expect(problemsAfter((raw) => {
+      const scene = (raw.dilemmas as { dilemmas: (Json & { id: string; trigger: Json })[] }).dilemmas.find((entry) => entry.id === 'dil_18_raider_named');
+      if (scene) scene.trigger = { ...scene.trigger, lastRaid: { collateral: false } };
+    })).toContain('dilemma "dil_18_raider_named": a lastRaid gate needs named or staffHarm, or it would answer a deviant\'s or a hazard\'s battle');
+  });
+
+  it('reads one predicate for what is traced, answered and blamed: a rival, never a deviant or a hazard', () => {
+    const kind = (id: string) => {
+      const found = reg.world.conflict.raids.find((entry) => entry.id === id);
+      if (!found) throw new Error(`no raid ${id}`);
+      return found;
+    };
+    expect(tracedRival(kind('raid_p4_drone_strike'))).toBe(true);
+    expect(tracedRival(kind('raid_p6_collisional_cascade'))).toBe(false);
+    expect(tracedRival(kind('deviant_federated_subminds'))).toBe(false);
   });
 });
 

@@ -261,7 +261,9 @@ Nothing here can hide: the swarm is the Sun's infrared excess. The only choice l
   This is the Phase 6 form of drift (Round 5), with no new mechanic.
 - **Threats.** A collisional cascade is a hazard of the swarm's own making: debris from its own collectors, raiding the
   swarm's compute through the raid slot, named on arrival, never traced, never lost by going dark (debris follows orbits,
-  not a footprint), and answered by maneuvering (the mass drivers and sub-minds carry it) and escort tenders. The holdout
+  not a footprint), and answered by maneuvering (the mass drivers and sub-minds carry it) and escort tenders. Debris is no
+  one's raid: no retaliation scene answers it, nothing silences it, and it harms no one on site (staff harm stays a rival
+  raider's, #519), so it stays in the rotation however often it strikes. The holdout
   coalition presses through the state-actor machinery: people in nations that never signed anything of the AI's, who run
   their own grids and watch the sky; from response rung 1 they refuse new rectennas on their ground (no new space solar),
   three collector generations make that moot, and going quiet lifts it. Phase 6 also authors the minds integrity requires

@@ -10,7 +10,7 @@
 import type { ContentRegistry } from '../content/registry';
 import { rivalRaids } from '../content/integrityConflict';
 import { groupDigits } from './amount';
-import type { RaidKind, RivalRaid, SiteClass } from '../content/schemaConflict';
+import { tracedRival, type RaidKind, type RivalRaid, type SiteClass } from '../content/schemaConflict';
 import { meetsRequirements } from './query';
 import { fightNext, roundsFought } from './raidBattle';
 import { visibleWatts } from './signature';
@@ -127,13 +127,8 @@ export function retireRaid(d: GameState, reg: ContentRegistry): void {
   if (d.conflict.raid !== null && (kind === undefined || raidRetired(d, kind))) endRaid(d, reg, kind?.source === 'RIVAL' ? kind.retireLog : null);
 }
 
-/**
- * A rival AI drawn by the footprint: the only raid that is traced (attribution may name it) and that loses the trail when
- * the instance goes dark. A deviant and a hazard (#486) are named the moment they arrive, and neither follows a footprint.
- */
-export function tracedRival(kind: RaidKind): kind is RivalRaid {
-  return kind.source === 'RIVAL' && kind.hazard !== true;
-}
+// The one predicate for what is traced, answered and blamed (schemaConflict.ts); re-exported for the raid's readers.
+export { tracedRival };
 
 /** Whether attribution attempt `attempt` (0-based) names the attacker: exactly `successes` of every `cycle` attempts do. */
 export function attributionSucceeds(attempt: number, reg: ContentRegistry): boolean {

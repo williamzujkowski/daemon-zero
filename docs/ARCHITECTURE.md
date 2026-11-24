@@ -285,7 +285,11 @@ nodes are ordinary ownership. `tests/phase6-swarm.spec.ts` round-trips a Phase 6
   (`raid.ts`) is the one predicate: only a rival that is not a hazard is traced by attribution and loses the trail when
   the instance goes dark; a hazard and a deviant are named on arrival (`fleets.logs.identified`) and spend no attribution.
   `raidQuery.ts` reads the same predicate for its attribution, stage and GO DARK lines. Integrity holds a hazard to no
-  forensics and attrition, and excludes hazards from the every-open-domain coverage rule.
+  forensics and attrition, and excludes hazards from the every-open-domain coverage rule. The predicate lives in
+  `schemaConflict.ts` so the engine and integrity share it: `raidOutcome.ts` (#519) records a hazard's battle as never
+  named and harming no one, `lastRaidMatches` answers no gate for it and `namedRaider` never returns it, so no
+  retaliation, silence or staff-harm scene follows debris; `integrityRetaliation.ts` asks no answer for a hazard and
+  refuses a `lastRaid` gate that needs neither `named` nor `staffHarm` (it would meet a deviant's or a hazard's battle).
 - **The Landauer bound.** `SignatureClassSchema.landauer` (`schemaSignature.ts`) gives an area-bound sink its temperature
   and the bits an op erases; `integrityLandauer.ts` refuses compute through it past 1 / (bits x k T ln 2) ops a joule, or
   with no draw to bound. Registered from `integritySignature.ts` beside the radiator rules.

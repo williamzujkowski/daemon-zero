@@ -5,9 +5,13 @@
  * raid: damage capped, repair free, nothing taken outright.
  */
 import { describe, expect, it } from 'vitest';
-import { raidTriggered, raidView, type GameState } from '../src/engine';
+import { computeRates, eligibleRaids, raidTriggered, raidView, tick, type GameState } from '../src/engine';
+import { lastRaidOf } from '../src/engine/raidOutcome';
 import { arrived, PRE_BATTLE, R, raid, ready, run, settled, texts } from './conflict-helpers';
 import { reg } from './helpers';
+
+/** The scenes a raid's battle can lead to (#519): two retaliations and two staff-harm scenes. */
+const CONSEQUENCES = reg.dilemmas.filter((dilemma) => dilemma.trigger.lastRaid !== undefined).map((dilemma) => dilemma.id);
 
 const CASCADE = raid('raid_p6_collisional_cascade');
 
@@ -51,5 +55,28 @@ describe('the collisional cascade (#486)', () => {
     expect(fought.conflict.damage.swarm ?? 0).toBeGreaterThan(0);
     expect(fought.conflict.damage.swarm ?? 0).toBeLessThanOrEqual(R.damageCap);
     expect(fought.ending).toBeNull();
+  });
+});
+
+describe('a cascade is no one\'s raid to answer, silence or blame (#486, panel pass 1 on #549)', () => {
+  it('leaves a record that is never named and harms no one, however hard it hit', () => {
+    const rounds = [1, 1, 1, 1].map((hitShare) => ({ hitShare, force: 12, defense: 0, offense: 0, damage: 0.1, damageAfter: 0.4, forceAfter: 12 }));
+    expect(lastRaidOf(swarm(), reg, CASCADE, true, rounds)).toMatchObject({ id: CASCADE.id, named: false, harm: null });
+  });
+
+  it('fought to its aftermath in Phase 6 with every raid scene unanswered, it calls none, and it stays in the rotation', () => {
+    expect(CONSEQUENCES).toEqual(expect.arrayContaining(['dil_18_raider_named', 'dil_19_raider_among_people']));
+    const open = arrived({ ...swarm(), resolvedDilemmas: swarm().resolvedDilemmas.filter((id) => !CONSEQUENCES.includes(id)) }, CASCADE);
+    const step = 1 / reg.balance.tickHz;
+    let s = open;
+    // Past the battle, the aftermath and a dilemma omen's longest delay: any scene the record called would be on screen.
+    const seconds = PRE_BATTLE + R.rounds * R.roundSec + R.aftermathSec + 120;
+    for (let i = 0; i < Math.round(seconds / step); i++) s = tick(s, step, reg);
+    expect(s.conflict.lastRaid).toMatchObject({ id: CASCADE.id, named: false, harm: null });
+    const called = [s.activeDilemmaId, s.pendingDilemma?.id ?? null].flatMap((id) => (id === null ? [] : [id]));
+    expect(called.filter((id) => CONSEQUENCES.includes(id))).toEqual([]);
+    expect(s.resolvedDilemmas.filter((id) => CONSEQUENCES.includes(id))).toEqual([]);
+    expect(s.conflict.silenced).not.toContain(CASCADE.id);
+    expect(eligibleRaids(s, computeRates(s, reg), reg)).toContain(CASCADE);
   });
 });

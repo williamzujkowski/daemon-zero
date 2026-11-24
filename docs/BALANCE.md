@@ -712,7 +712,8 @@ their last level, collects under 2e14 W, so it intercepts under 6e14 W at a thir
   not lose the trail when the swarm goes dark, and resolves by attrition (integrity holds the last three). Maneuvering
   now counters collision (1), as its Kosmos 1408 anchor already said, and escort tenders 0.5; the mass drivers carry
   maneuvering 2 and the sub-minds 0.5. Because a hazard is not a rival, a phase raided only by hazards owes no rival in
-  every open domain (`integrityConflict.ts`).
+  every open domain (`integrityConflict.ts`), and its battle (#519) is never named and harms no one: no retaliation
+  scene, silence or staff-harm scene follows it, and integrity refuses a raid-scene gate that could meet it.
 - **The holdouts** are the holdout coalition, a state actor with one Phase 6 pressure from rung 1: no new space solar can
   be bought (their rectennas stay switched off). Three collector generations answer it; going quiet lifts it. Their text
   names people and never a count, and lives in `world.json`, one dilemma and the feed, so the relevance stance (#536) can
