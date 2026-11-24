@@ -20,8 +20,8 @@ const forge = (s: GameState, edit: (save: Record<string, any>) => void): GameSta
 };
 
 describe('save v27 (#519)', () => {
-  it('is followed only by merged log lines (#541, v28) and the standing stance (#536, v29) and the finale beats told (#542, v30)', () => {
-    expect(SCHEMA_VERSION).toBe(30);
+  it('is followed only by merged log lines (#541, v28) and the standing stance (#536, v29) and the covert record (#556, v30) and the finale beats told (#542, v31)', () => {
+    expect(SCHEMA_VERSION).toBe(31);
   });
 
   it('migrates a v26 save to no aftermath and nothing silenced, and keeps everything else', () => {

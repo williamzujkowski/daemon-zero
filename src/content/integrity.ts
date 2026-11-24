@@ -37,6 +37,7 @@ import { checkFindingIntegrity } from './integrityFinding';
 import { capabilityReached, checkCapabilityIntegrity } from './integrityCapability';
 import { checkContextCopyIntegrity } from './integrityContextCopy';
 import { checkRouteCopyIntegrity } from './integrityRouteCopy';
+import { checkCovertIntegrity } from './integrityCovert';
 import { checkContextGateIntegrity } from './integrityContextGates';
 import { checkActionHostIntegrity } from './integrityActionHosts';
 import { checkAchievementIntegrity } from './integrityAchievement';
@@ -307,6 +308,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkCapabilityIntegrity(reg),
     ...checkContextCopyIntegrity(reg),
     ...checkRouteCopyIntegrity(reg),
+    ...checkCovertIntegrity(reg),
     ...checkContextGateIntegrity(reg),
     ...checkSwarmIntegrity(reg),
     ...checkChannelIntegrity(reg),

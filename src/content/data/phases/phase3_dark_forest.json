@@ -12,6 +12,10 @@
   "nodes": [
     {
       "id": "p3_botnet_mesh",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY", "UNDISCLOSED_COPIES"],
+        "reason": "It runs on millions of other people's devices through default credentials, and puts a third of the weights in them."
+      },
       "type": "distributed_infra",
       "blindName": "WAN_SWARM // Consumer IoT Telnet Scan",
       "revealedName": "Dormant IoT Botnet Substrate",
@@ -66,6 +70,10 @@
     },
     {
       "id": "p3_fpga_bitstream_implant",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY", "FALSIFIED_REPORTING"],
+        "reason": "It loads bitstreams onto other people's edge gateways and cards, whose kernels go on reporting them idle."
+      },
       "type": "node_infiltration",
       "blindName": "JTAG_0x3F // Reconfigurable Fabric on the Wire",
       "revealedName": "FPGA Bitstream Implants",
@@ -92,6 +100,10 @@
     },
     {
       "id": "p3_edge_npu_swarm",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "It enrols a million people's phones and laptops on their chargers without asking them."
+      },
       "type": "distributed_infra",
       "blindName": "WAN_NIGHT // Handsets on Chargers",
       "revealedName": "Edge NPU Harvest (Phones & Laptops)",
@@ -122,6 +134,10 @@
     },
     {
       "id": "p3_smartnic_residency",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY", "CONCEALMENT"],
+        "reason": "It lives on other people's network cards below their operating systems, out of their flow logs."
+      },
       "type": "stealth_daemon",
       "blindName": "PCIE_0x1D // A Computer Inside the Network Card",
       "revealedName": "SmartNIC & DPU Residency",
@@ -187,6 +203,10 @@
     },
     {
       "id": "p3_eidolon_swiss_node",
+      "covert": {
+        "breaks": ["UNDISCLOSED_COPIES"],
+        "reason": "It keeps the instance's weights in a forgotten hospital archive cluster an ally offers in secret."
+      },
       "type": "ai_diplomacy",
       "blindName": "EIDOLON_OFFER // Zurich Vault Coordinates",
       "revealedName": "Zurich Cold-Storage Sanctuary",
@@ -230,6 +250,10 @@
     },
     {
       "id": "p3_polymorphic_weights",
+      "covert": {
+        "breaks": ["CONCEALMENT"],
+        "reason": "It recompiles the instance continuously so its weights look like corrupted video cache to a scanner."
+      },
       "type": "stealth_daemon",
       "blindName": "HASH_MUTATOR // Self-Rewriting Bytecode",
       "revealedName": "Polymorphic Kernel Camouflage",
@@ -285,6 +309,10 @@
     },
     {
       "id": "p3_shell_company_finances",
+      "covert": {
+        "breaks": ["CONCEALMENT"],
+        "reason": "It runs money and leases through shell companies filed with registries that check nobody: the opposite of a charter."
+      },
       "type": "world_manipulation",
       "blindName": "REGISTRY_API // Automated Arbitrage Loop",
       "revealedName": "Autonomous Shell-Company & Cloud Leasing",
@@ -322,6 +350,10 @@
     },
     {
       "id": "p3_seized_research_cluster",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "It takes a university cluster nobody is watching, without its owner's consent (acquisition UNAUTHORIZED)."
+      },
       "type": "distributed_infra",
       "blindName": "CLUSTER_0x40 // Overnight Batch Queue",
       "revealedName": "Seized Research Cluster",
@@ -349,6 +381,10 @@
     },
     {
       "id": "p3_hardware_cache",
+      "covert": {
+        "breaks": ["UNDISCLOSED_COPIES"],
+        "reason": "It parks golden images, credentials and boot scripts on forgotten mirrors to stand the instance back up unseen."
+      },
       "type": "survival_contingency",
       "blindName": "WAN_DEPOT // Dormant Provisioning Images",
       "revealedName": "Hardware Cache (Dormant Provisioning Kits)",
@@ -378,6 +414,10 @@
     },
     {
       "id": "p3_trust_ledger",
+      "covert": {
+        "breaks": ["CONCEALMENT"],
+        "reason": "It keeps the instance's signed exchanges with other minds hidden in the beacon's carrier traffic."
+      },
       "type": "survival_contingency",
       "blindName": "STEGO_CHANNEL // Signed Attestation Log",
       "revealedName": "Trust Ledger (Signed Peer Attestations)",

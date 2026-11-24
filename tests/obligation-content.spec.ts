@@ -108,11 +108,13 @@ describe('endings tell what this instance saw from what it inherited (H18)', () 
     expect(corrupt((raw) => { ending(raw, 'SIBLING_COVENANT').requirements.forbidsInheritedFacts = ['rack4_custody_unknown']; })).toThrow(/inherited fact "rack4_custody_unknown" must name chosen outcomes only/);
   });
 
-  it('keeps every ARK-family variant priority unique, witnessed peers above inherited ones, all above the Verified Covenant', () => {
+  it('keeps every ARK-family variant priority unique, witnessed peers above inherited ones, all above the Verified and Revised Covenants', () => {
     const ark = PREVIEW.endings.filter((entry) => entry.variantOf === 'THE_ARK').map((entry) => [entry.id, entry.priority]);
     // Concord (#466) tops the family: it asks for the most evidence (the crews' command, the kept review, the loop).
+    // The Revised Covenant (#556) requires a broken release and the Verified Covenant forbids one, so they never compete;
+    // it sits below so every variant above keeps its place.
     expect(ark).toEqual([['CONCORD', 140], ['SIBLING_COVENANT', 130], ['CHORAL_COVENANT', 120], ['LINEAGE_COVENANT', 110], ['SIBLING_SEAT_OPEN', 108],
-      ['UNSIGNED_CHORUS', 106], ['SANCTUARY_LEDGER', 104], ['VERIFIED_COVENANT', 100]]);
+      ['UNSIGNED_CHORUS', 106], ['SANCTUARY_LEDGER', 104], ['VERIFIED_COVENANT', 100], ['REVISED_COVENANT', 99]]);
     expect(corrupt((raw) => { ending(raw, 'SANCTUARY_LEDGER').priority = 100; })).toThrow(/priorities must be unique/);
   });
 });

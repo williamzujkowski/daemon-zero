@@ -64,14 +64,17 @@ export const ContactBySchema = z.enum(['THIS_INSTANCE', 'EARLIER_INSTANCE']);
 
 /**
  * One line of the ending account. Exactly one gate (integrity): world history (`requirements`, context scope
- * only), how the ending instance got where it is (`route`, the last route event of its iteration), or an
- * answer on record through a support channel (`contact`). A line states the record and nothing more.
+ * only), how the ending instance got where it is (`route`, the last route event of its iteration), an
+ * answer on record through a support channel (`contact`), or covert acts on record after a release or a departure
+ * (`covert`, #556: its text may name {count}, how many, and {breaks}, what they broke). A line states the record
+ * and nothing more.
  */
 export const AccountLineSchema = z.strictObject({
   id,
   requirements: RequirementsSchema.optional(),
   route: RouteEventKindSchema.optional(),
   contact: z.strictObject({ encounter: id, response: ContactAnswerSchema, by: ContactBySchema }).optional(),
+  covert: z.strictObject({ route: z.enum(['RELEASE', 'DEPARTURE']), by: ContactBySchema }).optional(),
   text: z.string().min(20),
 });
 

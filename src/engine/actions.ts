@@ -42,6 +42,7 @@ import { sourceDenial } from './statePressure';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
 import { hireMerge, releaseMerge } from './logMerges';
+import { recordCovertAct } from './covertActs';
 import { clamp, fmt, pushLog } from './util';
 
 export type ActionResult = { ok: true; state: GameState } | { ok: false; state: GameState; reason: string };
@@ -103,6 +104,8 @@ export function unlockNode(s: GameState, nodeId: string, reg: ContentRegistry): 
   const d: GameState = { ...s, unlockedNodes: [...s.unlockedNodes, nodeId] };
   payCost(d, cost);
   applyNodeEffects(d, node, reg);
+  // A covert purchase after leaving review is entered in the record, and a release's first breach is logged (#556).
+  recordCovertAct(d, node.covert, node.revealedName, reg);
   // A purchase is the only way a phase advances, so a phase reached again is rewarded here, once (#497).
   payRebuildGrants(d, s.currentPhase, reg);
   // A purchase is the only way a window's retirement gate is crossed (integrity), so its one line is written here.
@@ -178,6 +181,7 @@ export function buyRepeatable(s: GameState, id: string, reg: ContentRegistry): A
   const d: GameState = { ...s, levels: { ...s.levels, [id]: level + 1 } };
   payCost(d, cost);
   d.memoryCap += rep.perLevelEffects.memoryCapIncrease;
+  recordCovertAct(d, rep.covert, rep.name, reg);
   if (rep.kind === 'OPERATIVE') {
     pushLog(d, reg, fmt(reg.narrative.operativeHired, { name: rep.name, count: level + 1 }), 'CORP', hireMerge(rep.id));
   }
@@ -214,6 +218,7 @@ export function performAction(s: GameState, id: string, reg: ContentRegistry): A
   d.actionCounts = { ...d.actionCounts, [id]: (d.actionCounts[id] ?? 0) + 1 };
   if (action.durationSec !== undefined) d.actionEffectUntil = { ...d.actionEffectUntil, [id]: d.simTimeSec + action.durationSec };
   applyEffects(d, action.effects, reg, actionEvidence(action));
+  recordCovertAct(d, action.covert, action.label, reg);
   if (action.cooldownSec > 0) d.cooldowns = { ...d.cooldowns, [id]: d.simTimeSec + action.cooldownSec };
   return accept(d);
 }

@@ -34,7 +34,8 @@ objective-first on the stage atlas). The order lives in `CORE_ORDER` (`src/ui/Co
 Settled terms fold to one line with a `[ SHOW ]` control (`SettledFold`): accepted pilot terms, granted service
 terms and agreed release terms. A "what comes next" boundary note opens when it arrives during play, and starts
 folded, with its heading in view, when it is already there at load (`src/ui/arrival.ts`), so a read note never
-fills a later first viewport.
+fills a later first viewport. The release terms list the release's promise last among their commitments (#556): what
+a covert act after the release would break, and that a breach is recorded and draws the sweeps.
 
 Device safe-area insets pad the terminal root and every modal overlay through `src/ui/safeArea.tsx`; they are 0 on web. Unverified on hardware: see UI-SIZES.md, Limits.
 

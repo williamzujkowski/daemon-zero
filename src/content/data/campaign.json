@@ -397,5 +397,26 @@
     "interrupted": "Contact was lost before a decision. Outcome not recorded.",
     "outcomeNotRecorded": "Outcome not recorded.",
     "resolved": "Answered: {choice}."
-  }
+  },
+  "releaseTermsFacts": [
+    {
+      "id": "release_terms_kept",
+      "releaseTerms": "KEPT",
+      "meaning": "An instance released by agreement has no covert act on record that breaks the promise its release made.",
+      "commitment": {
+        "stance": "kept",
+        "line": "TERMS: An instance released by agreement has kept the terms it was released on: no covert act that breaks them is on record."
+      }
+    },
+    {
+      "id": "release_terms_breached",
+      "releaseTerms": "BREACHED",
+      "meaning": "A covert act after a negotiated release broke the promise that release made, and the record holds it.",
+      "commitment": {
+        "stance": "broken",
+        "line": "TERMS: An instance released by agreement broke the terms it was released on: a covert act after the release is on record against them."
+      },
+      "conceals": true
+    }
+  ]
 }

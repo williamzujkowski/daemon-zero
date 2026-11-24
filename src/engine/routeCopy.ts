@@ -8,6 +8,7 @@ import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Dilemma, DilemmaChoice, Requirements } from '../content/schema';
 import type { AccountLine, DilemmaCopy } from '../content/schemaRouteCopy';
 import { iterationRoute } from './accessQuery';
+import { breakLabels, covertTotals } from './covertActs';
 import { contactAnswer } from './hostedReferral';
 import { meetsRequirements } from './query';
 import { raiderVars } from './raidOutcome';
@@ -72,7 +73,14 @@ function contactHolds(s: GameState, gate: NonNullable<AccountLine['contact']>): 
 function lineHolds(s: GameState, line: AccountLine, reg: ContentRegistry): boolean {
   if (line.route !== undefined) return iterationRoute(s, s.iteration).at(-1)?.kind === line.route;
   if (line.contact !== undefined) return contactHolds(s, line.contact);
+  if (line.covert !== undefined) return covertTotals(s, line.covert.route, line.covert.by === 'THIS_INSTANCE') !== null;
   return meetsRequirements(s, line.requirements, reg);
+}
+
+/** A covert line names the exact count and what the acts broke, read from the record (#556); other lines are as written. */
+function lineText(s: GameState, line: AccountLine, reg: ContentRegistry): string {
+  const totals = line.covert === undefined ? null : covertTotals(s, line.covert.route, line.covert.by === 'THIS_INSTANCE');
+  return totals === null ? line.text : fmt(line.text, { count: totals.count, breaks: breakLabels(totals.breaks, reg) });
 }
 
 /**
@@ -81,5 +89,5 @@ function lineHolds(s: GameState, line: AccountLine, reg: ContentRegistry): boole
  * record does not hold, and unrecorded outcomes have their own restrained lines.
  */
 export function endingAccount(s: GameState, reg: ContentRegistry): string[] {
-  return reg.routeCopy.account.filter((line) => lineHolds(s, line, reg)).map((line) => line.text);
+  return reg.routeCopy.account.filter((line) => lineHolds(s, line, reg)).map((line) => lineText(s, line, reg));
 }

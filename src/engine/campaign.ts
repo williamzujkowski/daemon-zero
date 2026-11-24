@@ -98,6 +98,8 @@ function legacyHistory(s: GameState, reg: ContentRegistry): CampaignState {
     route: [],
     // Authorized-channel contacts likewise exist only under campaign rules.
     contacts: [],
+    // So do covert acts after a release or a departure (#556): both need a route event.
+    covertActs: [],
   };
 }
 

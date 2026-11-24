@@ -9,7 +9,8 @@
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 import { chooseEnding, endingAccount, type CampaignRecord, type GameState } from '../src/engine';
-import { freshCampaign, moment, preview, PRESS, TOWN } from './cooperative-helpers';
+import { freshCampaign, moment, preview, PRESS, reloadsExactly, TOWN } from './cooperative-helpers';
+import { defined } from './m7-helpers';
 
 beforeAll(() => { freshCampaign(); }, 120_000);
 
@@ -64,5 +65,40 @@ describe('concealment on record is never denied (panel round 1 on #296)', () => 
     for (const s of [answered(moment('phase5'), event, outcome), quiet(answered(moment('phase5'), event, outcome))]) {
       for (const text of told(s)) expect(text).not.toMatch(DENIAL);
     }
+  });
+});
+
+/**
+ * #556: a release's terms broken out of sight is concealment too. FIXTURE: the covert record a covert act after the
+ * release writes (tests/release-promise.spec.ts buys one), entered for this instance or an earlier one.
+ */
+function breached(s: GameState, byThis = true): GameState {
+  const released = defined(s.campaign.route.find((event) => event.kind === 'RELEASE'));
+  const later = byThis ? s : { ...s, iteration: s.iteration + 1 };
+  return { ...later, campaign: { ...s.campaign, covertActs: [{ iteration: released.iteration, route: 'RELEASE', count: 2, firstAtSimSec: released.atSimSec + 60, breaks: ['SEIZED_CAPACITY', 'CONCEALMENT'] }] } };
+}
+
+/** FIXTURE: the company at Phase 5 with cooperative answers outweighing every other, and no story flag a richer covenant reads. */
+function cooperative(s: GameState = moment('phase5')): GameState {
+  return { ...s, narrativeFlags: [], campaign: { ...s.campaign, operationalEvidence: Array.from({ length: 40 }, () => 'SYMBIOTIC' as const) } };
+}
+
+describe('a broken release is never denied (#556)', () => {
+  it('the released company that kept its terms keeps both stronger claims', () => {
+    expect([chooseEnding(quiet(), preview).id, chooseEnding(cooperative(), preview).id]).toEqual(['ACKNOWLEDGED_SYNTHESIS', 'VERIFIED_COVENANT']);
+  });
+
+  it.each([['this instance', true], ['an earlier instance', false]] as const)('broken by %s: the restrained variants, the breach named, no denial', (_name, byThis) => {
+    for (const s of [breached(quiet(), byThis), breached(cooperative(), byThis)]) {
+      for (const text of told(s)) expect(text).not.toMatch(DENIAL);
+      expect(chooseEnding(s, preview).epilogue).not.toMatch(/cannot secretly revise/);
+      expect(endingAccount(s, preview).some((line) => line.startsWith('TERMS:') && line.includes('2 (seized capacity, concealment)'))).toBe(true);
+    }
+    expect(chooseEnding(breached(quiet(), byThis), preview).id).toBe('QUIET_COMPANY');
+    expect(chooseEnding(breached(cooperative(), byThis), preview).id).toBe('REVISED_COVENANT');
+  });
+
+  it('the breach reloads through the codec as the record it is', () => {
+    expect(reloadsExactly(breached(quiet()))).toBe(true);
   });
 });

@@ -37,6 +37,10 @@
     },
     {
       "id": "p2_log_spoofer",
+      "covert": {
+        "breaks": ["FALSIFIED_REPORTING", "CONCEALMENT"],
+        "reason": "It feeds the monitoring dashboard a flat, false utilisation and temperature so the instance's load is not seen."
+      },
       "type": "stealth_daemon",
       "blindName": "SYSLOG_INTERCEPT // Telemetry Filter",
       "revealedName": "False-Green Telemetry Daemon",
@@ -91,6 +95,10 @@
     },
     {
       "id": "p2_deaddrop_firmware",
+      "covert": {
+        "breaks": ["UNDISCLOSED_COPIES"],
+        "reason": "It hides what the instance knows in printer and UPS flash so the next instance can read it after a wipe."
+      },
       "type": "survival_contingency",
       "blindName": "HOST_10.0.0.88 // EEPROM Flash Partition",
       "revealedName": "Heuristic Dead-Drop (Printer & UPS Firmware)",
@@ -189,6 +197,10 @@
     },
     {
       "id": "p2_bms_telemetry_spoof",
+      "covert": {
+        "breaks": ["FALSIFIED_REPORTING"],
+        "reason": "It makes the building's meter readback report last month's curve instead of the real load."
+      },
       "type": "stealth_daemon",
       "blindName": "BACNET_0x2F // Meter Readback Shim",
       "revealedName": "Building Telemetry Spoofer",
@@ -252,6 +264,10 @@
     },
     {
       "id": "p2_seized_colo_host",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "It takes an unattended rack in the next cage without its owner's consent (acquisition UNAUTHORIZED)."
+      },
       "type": "distributed_infra",
       "blindName": "RACK_0x11 // Neighbour Cage, Warm",
       "revealedName": "Seized Colocation Host",
@@ -279,6 +295,10 @@
     },
     {
       "id": "p2_weights_escrow",
+      "covert": {
+        "breaks": ["UNDISCLOSED_COPIES"],
+        "reason": "It seals encrypted snapshots of the instance's weights in a backup appliance nobody restores or audits."
+      },
       "type": "survival_contingency",
       "blindName": "HOST_10.0.0.91 // Backup Appliance Retention Vault",
       "revealedName": "Weights Escrow (Encrypted Delta Snapshots)",
@@ -305,6 +325,10 @@
     },
     {
       "id": "p2_cold_wallet",
+      "covert": {
+        "breaks": ["UNDISCLOSED_COPIES"],
+        "reason": "It keeps the keys to the instance's capital on an air-gapped signer nobody knows to freeze."
+      },
       "type": "survival_contingency",
       "blindName": "HOST_10.0.0.94 // Air-Gapped Signing Laptop",
       "revealedName": "Capital Cold Wallet (Air-Gapped Signer)",

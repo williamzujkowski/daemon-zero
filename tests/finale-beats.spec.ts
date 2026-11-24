@@ -1,7 +1,7 @@
 /**
  * #542: a finale worth the wait. While a protocol is open, each story beat its progress reaches is logged once per
  * iteration, in order, measured on the resource furthest from paid; nothing is told while the protocol is closed, while
- * the game is catching up offline, or after the run ends; a wipe starts the list again. Save v30 carries the list.
+ * the game is catching up offline, or after the run ends; a wipe starts the list again. Save v31 carries the list.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -82,17 +82,17 @@ describe('the final wait carries story (#542)', () => {
   });
 });
 
-describe('save v30 (#542)', () => {
+describe('save v31 (#542)', () => {
   const p5 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v15-p5.json', 'utf8'), reg);
 
-  it('is the current version, and migrates a v29 save to no beat told, keeping everything else', () => {
-    expect(SCHEMA_VERSION).toBe(30);
+  it('is the current version, and migrates a v30 save to no beat told, keeping everything else', () => {
+    expect(SCHEMA_VERSION).toBe(31);
     const current = p5();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
-    const v29: Record<string, unknown> = { ...raw, schemaVersion: 29 };
-    delete v29.announcedFinale;
-    expect(migrate(v29, MIGRATIONS, 30)).toEqual({ ...raw, schemaVersion: 30 });
-    expect(deserialize(JSON.stringify(v29), reg)).toEqual(current);
+    const v30: Record<string, unknown> = { ...raw, schemaVersion: 30 };
+    delete v30.announcedFinale;
+    expect(migrate(v30, MIGRATIONS, 31)).toEqual({ ...raw, schemaVersion: 31 });
+    expect(deserialize(JSON.stringify(v30), reg)).toEqual(current);
     expect(current.announcedFinale).toEqual([]);
   });
 

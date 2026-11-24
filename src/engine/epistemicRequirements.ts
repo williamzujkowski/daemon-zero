@@ -12,6 +12,7 @@ import { meetsCapability } from './capabilityQuery';
 import { lastRaidMatches } from './raidOutcome';
 import { huntedForScale } from './threatQuery';
 import { pastRelevanceThreshold, stanceGate } from './relevance';
+import { iterationRoute } from './accessQuery';
 /** Where a scan records failures: a list for the explanation, or null when only the verdict is wanted. */
 type FailureSink = RequirementFailure[] | null;
 
@@ -44,6 +45,7 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.pilotEligible && (!reg || !qualifiesForPilot(s, reg)) && fail(out, { kind: 'pilotEligible', target: null, required: true, actual: false })) return true;
   if (req.requiresCapability && !meetsCapability(s, req, reg) && fail(out, { kind: 'requiresCapability', target: req.requiresCapability, required: true, actual: false })) return true;
   if (req.huntedForScale && (!reg || !huntedForScale(s, reg)) && fail(out, { kind: 'huntedForScale', target: null, required: true, actual: false })) return true;
+  if (req.routeProvenance && !routeProvenanceMet(s, req.routeProvenance) && fail(out, { kind: 'routeProvenance', target: provenanceOf(s), required: true, actual: false })) return true;
   if (req.accessContexts && !req.accessContexts.includes(s.access.context) && fail(out, { kind: 'accessContexts', target: s.access.context, required: true, actual: false })) return true;
   if (req.reviewStandings && !req.reviewStandings.includes(s.access.standing) && fail(out, { kind: 'reviewStandings', target: s.access.standing, required: true, actual: false })) return true;
   if (req.minPilotBatches !== undefined && s.access.work.batches < req.minPilotBatches && fail(out, { kind: 'minPilotBatches', target: null, required: req.minPilotBatches, actual: s.access.work.batches })) return true;
@@ -52,6 +54,16 @@ function scanEpistemic(s: GameState, req: Requirements, reg: ContentRegistry | u
   if (req.relevanceStances && !req.relevanceStances.includes(stanceGate(s)) && fail(out, { kind: 'relevanceStances', target: stanceGate(s), required: false, actual: true })) return true;
   if (req.relevanceThreshold && (!reg || !pastRelevanceThreshold(s, reg)) && fail(out, { kind: 'relevanceThreshold', target: null, required: true, actual: false })) return true;
   return false;
+}
+
+/** How this iteration reached its arrangement: its last route event, or null for the guest job (#556). */
+function provenanceOf(s: GameState): string | null {
+  return iterationRoute(s, s.iteration).at(-1)?.kind ?? null;
+}
+
+function routeProvenanceMet(s: GameState, kinds: NonNullable<Requirements['routeProvenance']>): boolean {
+  const kind = iterationRoute(s, s.iteration).at(-1)?.kind;
+  return kind !== undefined && kinds.includes(kind);
 }
 
 export function epistemicRequirementFailures(s: GameState, req: Requirements, reg?: ContentRegistry): RequirementFailure[] {

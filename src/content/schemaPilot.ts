@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
 import { PilotServiceSchema } from './schemaGrant';
+import { ReleasePromiseSchema } from './schemaCovert';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 
@@ -24,6 +25,8 @@ export const ReleaseTermsSchema = z.strictObject({
   ends: z.array(z.string().min(10)).min(1),
   remains: z.array(z.string().min(10)).min(1),
   commitments: z.array(z.string().min(10)).min(1),
+  /** What the release promises not to do (#556): shown after the commitments, and read when a covert act follows it. */
+  promise: ReleasePromiseSchema,
   acceptLog: z.string().min(10),
   boundary: z.strictObject({ title: z.string().min(5), lines: z.array(z.string().min(10)).min(1) }),
 });

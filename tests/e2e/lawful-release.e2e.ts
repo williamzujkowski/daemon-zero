@@ -71,7 +71,7 @@ test('FIXTURE charter affordable: file the charter, read the company, negotiate 
 
   await core(page);
   await expect(page.getByTestId('release-purpose')).toContainText(RELEASE_TERMS.purpose);
-  for (const line of RELEASE_TERMS.commitments) await expect(page.getByTestId('release-commitments')).toContainText(line);
+  for (const line of [...RELEASE_TERMS.commitments, RELEASE_TERMS.promise.line]) await expect(page.getByTestId('release-commitments')).toContainText(line);
   await expect(page.getByTestId('release-stops')).toContainText(name(CONTRACT));
   await expect(page.getByTestId('release-keeps')).toContainText(name(CHARTER));
   await expect(page.getByTestId('release-accept')).toBeEnabled();

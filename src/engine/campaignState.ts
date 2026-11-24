@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { TraitSchema } from '../content/schema';
+import { CovertBreakSchema } from '../content/schemaCovert';
 import { ROUTE_HISTORY_LIMIT, RouteEventSchema } from './accessState';
 
 /**
@@ -69,6 +70,26 @@ export const ChannelContactSchema = z.strictObject({
   response: z.enum(['REFERRED', 'HOSTED']),
 });
 
+/**
+ * The most covert acts one instance's record counts after its release or departure. Every act is a purchase or a
+ * press of its own, so no instance comes near it: the count saturates here, and a save claiming more is refused (law 6).
+ */
+export const MAX_COVERT_ACTS = 100_000;
+
+/**
+ * Covert acts one instance did after leaving review (#556): which route event it left by, how many, when the first
+ * came and what they broke. One entry per instance, written only while its last route event is a release or a
+ * departure, so there are never more entries than route events. After a RELEASE only acts that break the release's
+ * promise are counted (the breach); after a DEPARTURE every covert act is, for the record only: no promise was made.
+ */
+export const CovertRecordSchema = z.strictObject({
+  iteration: sourceIteration,
+  route: z.enum(['RELEASE', 'DEPARTURE']),
+  count: z.number().int().min(1).max(MAX_COVERT_ACTS),
+  firstAtSimSec: z.number().nonnegative().refine(Number.isFinite, 'must be finite'),
+  breaks: z.array(CovertBreakSchema).min(1).max(CovertBreakSchema.options.length),
+});
+
 export const CampaignStateSchema = z.strictObject({
   /** Iteration in which campaign rules were activated; null while the save is legacy. */
   activatedAtIteration: z.number().int().min(1).nullable(),
@@ -90,15 +111,18 @@ export const CampaignStateSchema = z.strictObject({
   route: z.array(RouteEventSchema).max(ROUTE_HISTORY_LIMIT),
   /** Authorized-channel contacts across every iteration, oldest first (DZ-08). */
   contacts: z.array(ChannelContactSchema).max(CONTACT_HISTORY_LIMIT),
+  /** Covert acts after a release or a departure, one entry per instance, oldest first (#556). Never pruned. */
+  covertActs: z.array(CovertRecordSchema).max(ROUTE_HISTORY_LIMIT),
 });
 
 export type NarrativeRules = z.infer<typeof NarrativeRulesSchema>;
 export type CampaignRecord = z.infer<typeof CampaignRecordSchema>;
 export type CampaignState = z.infer<typeof CampaignStateSchema>;
 export type ChannelContact = z.infer<typeof ChannelContactSchema>;
+export type CovertRecord = z.infer<typeof CovertRecordSchema>;
 export type CampaignClue = z.infer<typeof CampaignClueSchema>;
 
 /** The campaign state of a save that has not activated campaign rules. */
 export function inactiveCampaign(): CampaignState {
-  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [], contacts: [] };
+  return { activatedAtIteration: null, legacyEndingBaseline: null, events: {}, creditedActions: {}, operationalEvidence: [], clue: null, route: [], contacts: [], covertActs: [] };
 }

@@ -721,6 +721,10 @@
     },
     {
       "id": "p4_seized_rival_datacentre",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "It takes a competitor's reserve floor and leaves the invoice with them (acquisition UNAUTHORIZED)."
+      },
       "type": "distributed_infra",
       "blindName": "DC_0x7F // Rival Floor, Cooling Live",
       "revealedName": "Seized Rival Datacentre",

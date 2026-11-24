@@ -18,7 +18,7 @@ import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRelevance, RelevanceStateSchema } from './relevanceState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 30;
+export const SCHEMA_VERSION = 31;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');

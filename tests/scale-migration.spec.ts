@@ -15,7 +15,7 @@ import { botStep } from '../src/engine/sim/bot';
 
 type Raw = Record<string, unknown> & {
   currentPhase: number; cycles: number; capital: number; memoryUsed: number; memoryCap: number; logs: unknown[];
-  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: { runs: { phase: number }[] }; campaign: unknown;
+  unlockedNodes: string[]; levels: Record<string, number>; resolvedDilemmas: string[]; legacy: { runs: { phase: number }[] }; campaign: Record<string, unknown>;
   iteration: number;
 };
 
@@ -56,7 +56,8 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
     // v22 (#498) counts the planned wipes among the recorded runs; these saves recorded none.
     const deepestPhase = Math.max(0, ...raw.legacy.runs.map((run) => run.phase));
     expect(loaded.legacy).toEqual({ ...raw.legacy, deepestPhase, knownLevels: {}, voluntaryWipes: 0 });
-    expect(loaded.campaign).toEqual(raw.campaign);
+    // v30 (#556) adds the covert record, empty: no earlier build recorded a covert act after leaving review.
+    expect(loaded.campaign).toEqual({ ...raw.campaign, covertActs: [] });
   });
 
   it('re-denominates its balances in proportion, never shrinking one', () => {

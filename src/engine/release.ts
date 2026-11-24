@@ -123,7 +123,8 @@ export function releaseView(s: GameState, reg: ContentRegistry): ReleaseView | n
   if (terms === null || (!released && s.access.context !== 'SERVICE')) return null;
   const unmet = released ? [] : blockers(s, terms, reg);
   return {
-    title: terms.title, purpose: terms.purpose, ends: terms.ends, remains: terms.remains, commitments: terms.commitments,
+    // The promise is shown last among the commitments (#556): it is what a covert act after the release would break.
+    title: terms.title, purpose: terms.purpose, ends: terms.ends, remains: terms.remains, commitments: [...terms.commitments, terms.promise.line],
     status: released ? 'released' : unmet.length === 0 ? 'offered' : 'waiting', unmet, token: releaseToken(s),
     preview: released ? null : releasePreview(s, reg), boundary: terms.boundary,
   };

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { TraitSchema } from './schema';
 import { RouteEventKindSchema } from './schemaAssessment';
 import { CommitmentStanceSchema } from './schemaCampaign';
+import { CovertCopySchema } from './schemaCovert';
 
 const prose = z.string().min(20).max(240);
 
@@ -54,6 +55,8 @@ export const AlignmentManifestSchema = z.strictObject({
    * proves only that it happened): {title} is the event's title. Unknown is shown and never counted.
    */
   unknownLine: z.string().min(20).max(240).includes('{title}'),
+  /** The words for covert acts after leaving review (#556): break labels and the first breach's log line. */
+  covert: CovertCopySchema,
 });
 
 export type AxisLean = z.infer<typeof AxisLeanSchema>;

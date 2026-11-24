@@ -59,7 +59,7 @@ describe('the release terms on the job surface', () => {
   it('lists every term and what is still needed, with the control disabled', async () => {
     const view = await mount(rack, createElement('div', null, jobSurface(), createElement(AssignmentPanel, { placement: 'offer' })));
     expect(view.find('release-purpose')?.textContent).toContain(RELEASE_TERMS.purpose);
-    for (const line of [...RELEASE_TERMS.ends, ...RELEASE_TERMS.remains, ...RELEASE_TERMS.commitments]) expect(view.find('release-terms')?.textContent).toContain(line);
+    for (const line of [...RELEASE_TERMS.ends, ...RELEASE_TERMS.remains, ...RELEASE_TERMS.commitments, RELEASE_TERMS.promise.line]) expect(view.find('release-terms')?.textContent).toContain(line);
     expect(view.find('release-terms')?.textContent).toContain(`Own ${name(CHARTER)} first`);
     expect(view.find('release-accept')?.getAttribute('aria-disabled')).toBe('true');
   });

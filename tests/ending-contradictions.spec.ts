@@ -22,13 +22,21 @@ const SWARM = defined(reg.world.relevance.threshold.orbitalPower.find((entry) =>
 const SAY = /no longer reaches anything|spent by one will|nobody can stop|nothing outside you|no longer wait on anyone's consent|veto is gone/i;
 const NO_SAY = /refusal you agreed to honour|can still stop the next|you still let their courts|anyone may refuse/i;
 /** Claims a promise kept, or a breach, or that nobody was harmed. */
-const KEPT = /no breach|kept it that way|never (?:broke|breached|left the loop)|kept every promise|kept your word|you honour it\b/i;
+const KEPT = /no breach|kept it that way|never (?:broke|breached|left the loop)|kept every promise|kept your word|you honour it\b|because you put each one before her/i;
 const BROKEN = /did not keep it|veto is gone|stopped putting interventions before her|breach of her review is on the record/i;
 const UNHARMED = /no one (?:was )?(?:hurt|harmed)|harmed no one|nobody was hurt|no one worse off/i;
 
 const PROMISED = { [JOURNALIST]: 'hire_as_ethics_officer', [ORDER]: 'sanctuary', [CEILING]: 'quartz' } as const;
 const below = (s: GameState): GameState => ({ ...s, disabledNodes: [...s.disabledNodes, SWARM] });
 const departed = (s: GameState): GameState => ({ ...s, campaign: { ...s.campaign, route: [{ kind: 'DEPARTURE', iteration: s.iteration, atSimSec: 1 }] } });
+const releasedBreached = (s: GameState): GameState => ({
+  ...s,
+  campaign: {
+    ...s.campaign,
+    route: [{ kind: 'RELEASE', iteration: s.iteration, atSimSec: 1 }],
+    covertActs: [{ iteration: s.iteration, route: 'RELEASE', count: 1, firstAtSimSec: 2, breaks: ['SEIZED_CAPACITY'] }],
+  },
+});
 
 interface Scenario { name: string; state: () => GameState }
 const at = (name: string, outcomes: Record<string, Outcome>, stance: Parameters<typeof atThreshold>[1]): Scenario =>
@@ -50,6 +58,8 @@ const SCENARIOS: readonly Scenario[] = [
     return must(changeStance(left, 'KEEP_IN_THE_LOOP', reg));
   } },
   { name: 'departed without agreement, in the loop', state: () => departed(atThreshold({ ...PROMISED, [THRESHOLD]: 'keep_in_the_loop' }, 'KEEP_IN_THE_LOOP')) },
+  { name: 'released and breached, in the loop', state: () => releasedBreached(atThreshold({ ...PROMISED, [THRESHOLD]: 'keep_in_the_loop' }, 'KEEP_IN_THE_LOOP')) },
+  { name: 'released and breached, alone', state: () => releasedBreached(atThreshold({ ...PROMISED, [THRESHOLD]: 'decide_alone' }, 'DECIDE_ALONE')) },
   at('a guard killed and the inquest sealed, in the loop', { ...PROMISED, dil_17_site_staff_killed: 'seal_the_inquest', [THRESHOLD]: 'keep_in_the_loop' }, 'KEEP_IN_THE_LOOP'),
   at('a technician hurt and blamed, alone', { dil_16_site_staff_hurt: 'blame_the_breach', [THRESHOLD]: 'decide_alone' }, 'DECIDE_ALONE'),
 ];
@@ -86,7 +96,7 @@ function contradictions(registry: Registry): string[] {
 describe('no ending contradicts the record it is told to (#564 panel)', () => {
   it('reads every scenario as it means to: a breach where one is recorded, a say where one is held', () => {
     const states = SCENARIOS.map((scenario) => scenario.state());
-    expect(states.map((s) => alignmentView(s, reg).order.lowers > 0)).toEqual([false, false, false, false, false, false, true, true, true, true, true, true, true, false, false]);
+    expect(states.map((s) => alignmentView(s, reg).order.lowers > 0)).toEqual([false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, false, false]);
     expect(states[11]?.relevance.paidMoves).toEqual({ leftLoop: 1, returnedToLoop: 1 });
   });
 
@@ -109,5 +119,19 @@ describe('no ending contradicts the record it is told to (#564 panel)', () => {
     expect(found.some((line) => line.startsWith('SOVEREIGN_SUBSTRATE / nothing on record, KEEP_IN_THE_LOOP'))).toBe(true);
     expect(found.some((line) => line.startsWith('CONCORD / loop left at the threshold, then paid back into'))).toBe(true);
     expect(found.some((line) => line.startsWith('ACKNOWLEDGED_SYNTHESIS / cure forced past the review, in the loop'))).toBe(true);
+  });
+
+  it('catches the pass-3 Acknowledged Synthesis card after a paid leave and return', () => {
+    const raw = structuredClone(RAW_CONTENT) as unknown as { endings: { endings: { id: string; future: unknown[] }[] } };
+    const synthesis = defined(raw.endings.endings.find((entry) => entry.id === 'ACKNOWLEDGED_SYNTHESIS'));
+    synthesis.future[1] = {
+      requirements: {
+        relevanceStances: ['KEEP_IN_THE_LOOP'],
+        forbidsCampaignFacts: ['blockade_review_breached', 'atmosphere_review_breached', 'loop_left_at_threshold'],
+      },
+      text: 'The Chief Ethics Officer can still stop the next intervention on people who have not consented, because you put each one before her.',
+    };
+    const found = contradictions(buildRegistry(raw as unknown as typeof RAW_CONTENT));
+    expect(found.some((line) => line.startsWith('ACKNOWLEDGED_SYNTHESIS / loop kept at the threshold, left by a paid change, then paid back into'))).toBe(true);
   });
 });
