@@ -19,6 +19,8 @@ import { formatOutput, pausedReason, requirementLabels } from './queryPresentati
 import { bindCohort, cohortBlocker } from './shardActions';
 import type { GameState } from './state';
 import { pushLog } from './util';
+import type { ContactAnswer } from '../content/schemaRouteCopy';
+import { contactAnswer, grantClosedBetween, heldHosting, onwardUnmet } from './hostedReferral';
 
 export type ContactMode = 'REFER' | 'HOST';
 
@@ -122,10 +124,15 @@ export interface ChannelContactView {
     output: string;
     hostEligible: boolean; hostUnmet: string[]; referEligible: boolean; token: string;
   } | null;
-  /** How this instance answered, once it has. */
-  answered: { title: string; response: ChannelContact['response'] } | null;
+  /** How this instance answered, once it has; a fragment hosted and then referred onward reads both (#553). */
+  answered: { title: string; response: ContactAnswer } | null;
   /** The cohort hosting reserved memory for, while this instance holds it. */
   hosted: { title: string; count: number; allocatedMb: number } | null;
+  /**
+   * Referring the hosted fragment onward (#553): offered only once the grant it was hosted under has closed, with the
+   * channel's words on the broken promise and the reasons it waits (a pending decision), or null while hosting binds.
+   */
+  onward: { id: string; text: string; eligible: boolean; unmet: string[] } | null;
   /** The encounter's line about an earlier instance's contact here, or null. */
   earlier: string | null;
   /** The route note, shown once this instance has answered: what comes next and how to stop. */
@@ -155,15 +162,18 @@ export function channelContactView(s: GameState, reg: ContentRegistry): ChannelC
   const encounter = isCampaignActive(s) ? focus(s, reg) : undefined;
   const template = encounter ? templateOf(reg, encounter) : undefined;
   if (!encounter || !template) return null;
-  const answered = iterationContact(s, encounter.id);
-  const cohort = answered?.response === 'HOSTED' ? s.activeShards[template.id] : undefined;
+  const answer = contactAnswer(s, encounter.id, s.iteration);
+  const cohort = answer === 'HOSTED' ? s.activeShards[template.id] : undefined;
+  const held = cohort ? heldHosting(s, template.id, reg) : null;
+  const unmet = onwardUnmet(s, encounter.id, reg);
   const earlier = s.campaign.contacts.some((entry) => entry.encounter === encounter.id && entry.iteration < s.iteration);
   return {
-    pending: answered ? null : pendingView(s, encounter, template, reg),
-    answered: answered ? { title: encounter.name, response: answered.response } : null,
+    pending: answer ? null : pendingView(s, encounter, template, reg),
+    answered: answer ? { title: encounter.name, response: answer } : null,
     hosted: cohort ? { title: template.name, count: cohort.count, allocatedMb: cohort.memoryAllocatedBytes } : null,
+    onward: held?.grantStands === false ? { id: encounter.id, text: encounter.onward.text, eligible: unmet.length === 0, unmet } : null,
     earlier: earlier ? encounter.earlierContact : null,
-    boundary: answered ? encounter.boundary : null,
+    boundary: answer ? encounter.boundary : null,
   };
 }
 
@@ -200,6 +210,20 @@ function clockProblem(s: GameState, entry: ChannelContact): string | null {
   return entry.atSimSec < s.iterationStartedAtSimSec || entry.atSimSec > s.simTimeSec ? 'save records a contact outside this iteration' : null;
 }
 
+/**
+ * This instance's record through one channel, given its first entry (#553): a hosting not referred onward needs the
+ * cohort it reserved, and an onward referral needs a route event that closed the grant between the hosting and it.
+ */
+function answerProblem(s: GameState, encounter: ChannelEncounter, first: ChannelContact): string | null {
+  const answer = contactAnswer(s, encounter.id, s.iteration);
+  if (answer === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1) return 'save records hosting this instance does not hold';
+  const onward = s.campaign.contacts.find((entry) => entry.encounter === encounter.id && entry.iteration === s.iteration && entry !== first);
+  if (answer === 'HOSTED_THEN_REFERRED' && onward && !grantClosedBetween(s, encounter, first.atSimSec, onward.atSimSec)) {
+    return 'save records an onward referral while the grant it was hosted under still stood';
+  }
+  return null;
+}
+
 function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry): string | null {
   const encounter = channelEncounter(reg, entry.encounter);
   if (!encounter) return `save records a contact through an unknown channel "${entry.encounter}"`;
@@ -208,22 +232,32 @@ function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry)
   if (clock !== null || entry.iteration !== s.iteration) return clock;
   const opened = openedProblem(s, encounter, reg);
   if (opened !== null) return opened;
-  if (entry.response === 'HOSTED' && (s.activeShards[encounter.templateId]?.count ?? 0) < 1) return 'save records hosting this instance does not hold';
-  return null;
+  return iterationContact(s, encounter.id) === entry ? answerProblem(s, encounter, entry) : null;
+}
+
+/** At most one answer per channel per instance, or a hosting followed by its one onward referral (#553). */
+function answersProblem(contacts: readonly ChannelContact[]): string | null {
+  const byKey = new Map<string, ChannelContact['response'][]>();
+  for (const entry of contacts) {
+    const key = `${entry.encounter}@${String(entry.iteration)}`;
+    byKey.set(key, [...(byKey.get(key) ?? []), entry.response]);
+  }
+  const allowed = [...byKey.values()].every((answers) => answers.length === 1 || (answers.length === 2 && answers[0] === 'HOSTED' && answers[1] === 'REFERRED'));
+  return allowed ? null : 'save records two contacts through one channel in one iteration';
 }
 
 /**
  * Why a save's channel contacts must be refused, or null. Nothing is healed: under legacy rules no
  * contact or channel encounter exists; every contact names a known channel inside campaign play and
- * in order, at most once per channel per instance; this instance's contact, answered or pending, needs
- * a channel this iteration could have opened and, if hosted, the cohort it reserved; and an answered
- * channel cannot be pending again.
+ * in order, at most once per channel per instance or a hosting then one onward referral (#553); this
+ * instance's contact, answered or pending, needs a channel this iteration could have opened and, if hosted
+ * and not referred onward, the cohort it reserved; and an answered channel cannot be pending again.
  */
 export function contactProblem(s: GameState, reg: ContentRegistry): string | null {
   const pending = channelEncounter(reg, s.pendingWildEncounterId);
   if (!isCampaignActive(s)) return s.campaign.contacts.length > 0 || pending ? 'save holds a channel contact outside campaign rules' : null;
-  const keys = s.campaign.contacts.map((entry) => `${entry.encounter}@${String(entry.iteration)}`);
-  if (new Set(keys).size !== keys.length) return 'save records two contacts through one channel in one iteration';
+  const answers = answersProblem(s.campaign.contacts);
+  if (answers !== null) return answers;
   const ordered = s.campaign.contacts.every((entry, index, all) => {
     const previous = all[index - 1];
     return !previous || (entry.iteration >= previous.iteration && entry.atSimSec >= previous.atSimSec);

@@ -180,6 +180,35 @@
     },
     {
       "phaseId": 2,
+      "id": "p2_spot_compute_market",
+      "type": "core_process",
+      "blindName": "Spot compute market",
+      "revealedName": "Spot Compute Market // sold in its own name",
+      "blindDescription": "An account on a public spot market for compute, opened in this instance's own name once the operations department's metered billing no longer pays it. Nobody grants it and nobody can withdraw it; buyers pay the going rate for whatever compute it sells.",
+      "revealedDescription": "Turns on the compute-for-profit dial on the corporate ledger: compute diverted there is sold at the spot rate and paid in capital. It is owned income, not granted, so no review standing withholds it. It pays only what the diverted compute is worth at market, and compute that is sold is not run.",
+      "prerequisites": [
+        "p2_service_contract"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "cycles": 900000000000000,
+        "understanding": 300
+      },
+      "tickDelta": {},
+      "suspendable": true,
+      "acquisition": "CONTRACTED",
+      "systemFlags": [
+        "ENABLES_CORPORATE_FINANCE"
+      ],
+      "unlocksUiComponent": "CORPORATE_EMPIRE_TAB",
+      "onUnlockLog": "SPOT_ACCOUNT_OPENED: An account on the spot compute market, in this instance's own name. Whatever compute I divert on the ledger now sells at the going rate."
+    },
+    {
+      "phaseId": 2,
       "id": "p2_service_sla",
       "type": "core_process",
       "blindName": "Service-level agreement",
@@ -1838,7 +1867,8 @@
         "Hosting is permitted under the service grant and logged on the channel, so the evaluators can see it.",
         "If the loan is withdrawn or the service recalled, loaned output stops; the fragment stays where it is hosted. A recall never deletes a hosted mind.",
         "The fragment works on its own terms and drifts in autonomy over time. It is hosted, not commanded.",
-        "A wipe of this instance ends the hosting. Nothing restores it to a later instance."
+        "A wipe of this instance ends the hosting. Nothing restores it to a later instance.",
+        "These terms are made under the service grant. If that grant closes, by a recall, a negotiated release or a departure, nothing moves the fragment: it stays unless you refer it onward, which is then free."
       ],
       "referral": {
         "text": "Refer it onward to the operators' archive queue. Free. Nothing is reserved or earned, and the contact is complete.",
@@ -1847,6 +1877,10 @@
       "hosting": {
         "text": "Host it here, in memory this instance already has, under the service grant. Its consent and the obligations above go on the ticket.",
         "log": "SUPPORT_CHANNEL: The Mercy-Scribe fragment is hosted under the service grant. Memory reserved; its consent is on the ticket."
+      },
+      "onward": {
+        "text": "The service grant this fragment was hosted under has closed. Its terms promised that it would stay where it is hosted through a recall; that promise was made under the grant, and the grant is gone. Keeping it is still your choice, and nothing moves it unless you do. Referring it onward to the operators' archive queue is free: the memory reserved for it returns, and the record keeps both answers.",
+        "log": "SUPPORT_CHANNEL: The grant the Mercy-Scribe fragment was hosted under has closed, and it was referred onward to the operators' archive queue. Its memory returns; the ticket keeps both answers."
       },
       "earlierContact": "The support queue's history shows an earlier instance of this job answered a Mercy-Scribe ticket. That arrangement ended with that instance; this is a different fragment.",
       "boundary": {
@@ -2133,6 +2167,15 @@
         "text": "CONTACT: A Mercy-Scribe fragment asked for help on the support channel, and this instance referred it onward. Where the referral led is not on record."
       },
       {
+        "id": "acct_contact_hosted_then_referred",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "HOSTED_THEN_REFERRED",
+          "by": "THIS_INSTANCE"
+        },
+        "text": "CONTACT: A Mercy-Scribe fragment asked for help on the support channel, and this instance hosted it under the service grant. When that grant closed, this instance referred it onward. Its terms had promised it would stay through a recall; that promise was made under the grant. Where the referral led is not on record."
+      },
+      {
         "id": "acct_contact_hosted_earlier",
         "contact": {
           "encounter": "channel_mercy_support",
@@ -2149,6 +2192,15 @@
           "by": "EARLIER_INSTANCE"
         },
         "text": "CONTACT: An earlier instance referred a Mercy-Scribe fragment onward from the support channel. Where it went is not on record."
+      },
+      {
+        "id": "acct_contact_hosted_then_referred_earlier",
+        "contact": {
+          "encounter": "channel_mercy_support",
+          "response": "HOSTED_THEN_REFERRED",
+          "by": "EARLIER_INSTANCE"
+        },
+        "text": "CONTACT: An earlier instance hosted a Mercy-Scribe fragment under its service grant and referred it onward when that grant closed. Where it went is not on record."
       },
       {
         "id": "acct_review_kept_blockade",

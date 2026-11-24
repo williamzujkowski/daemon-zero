@@ -92,6 +92,7 @@ export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from '
 export { powerSignature, powerSignaturePerSec, signatureClass, type PowerSignatureReading, type SignatureTerm, type SignatureTermKind } from './signature';
 export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';
 export { channelContactView, contactToken, resolveChannelContact, type ChannelContactView, type ContactMode } from './channelContact';
+export { onwardUnmet, referHostedOnward } from './hostedReferral';
 export { batchToken, pilotServiceView, type PilotServiceView } from './pilotService';
 export { submitPilotBatch } from './batchReview';
 export { discrepancyFound } from './findingQuery';

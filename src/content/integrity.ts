@@ -23,6 +23,7 @@ import { checkSignatureIntegrity } from './integritySignature';
 import { checkEncounterTierIntegrity } from './integrityEncounterTiers';
 import { checkHostileIntegrity } from './integrityHostile';
 import { checkFallbackIntegrity } from './integrityFallback';
+import { checkCapitalSources } from './integrityCapital';
 import { checkNetworkIntegrity } from './integrityNetwork';
 import { checkStorageIntegrity } from './integrityStorage';
 import { checkPoweredOutputIntegrity } from './integrityPoweredOutput';
@@ -293,6 +294,7 @@ export function checkIntegrity(reg: ContentRegistry): string[] {
     ...checkEncounterTierIntegrity(reg),
     ...checkHostileIntegrity(reg),
     ...checkFallbackIntegrity(reg),
+    ...checkCapitalSources(reg),
     ...checkStorageIntegrity(reg),
     ...checkNetworkIntegrity(reg),
     ...checkPoweredOutputIntegrity(reg),

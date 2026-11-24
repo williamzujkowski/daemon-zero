@@ -23,6 +23,7 @@ import Swarm from '../src/ui/widgets/Swarm';
 import { CHANNEL_ENCOUNTER, contactPending, delivered, GRANT_TERMS, MERCY_MB, withMemory } from './contact-helpers';
 import { freshCampaign } from './assignment-helpers';
 import { jobSurface } from './jobSurface';
+import { hostedThen } from './hosted-exit-fixtures';
 
 const host = globalThis as unknown as Window & { IS_REACT_ACT_ENVIRONMENT: boolean };
 host.IS_REACT_ACT_ENVIRONMENT = true;
@@ -148,6 +149,24 @@ describe('the channel contact (V20)', () => {
     expect(view.find('shard-terms-shard_mercy')?.textContent).toBe('Hosted through an authorized channel on the terms it was offered: it is not commanded.');
     for (const command of ['prune', 'clamp', 'elevate']) expect(view.find('shard-shard_mercy-' + command)).toBeNull();
     expect(view.find('shard-row-shard_mercy')?.textContent).not.toContain('MOLOCH');
+  });
+
+  it('#309: while the grant stands the hosted row offers no RELEASE and the ticket no onward referral (#553)', async () => {
+    const view = await mount(hostedThen(null), createElement('div', null, createElement(ServiceChannel), createElement(Swarm)));
+    expect(view.find('shard-shard_mercy-release')).toBeNull();
+    expect(view.find('channel-onward')).toBeNull();
+  });
+
+  it('#553: once the grant has closed, the ticket refers the fragment onward and says so; the swarm RELEASE says it refers', async () => {
+    const view = await mount(hostedThen('DEPARTURE'), createElement('div', null, createElement(ServiceChannel), createElement(Swarm)));
+    expect(view.find('channel-onward-text')?.textContent).toBe(CHANNEL_ENCOUNTER.onward.text);
+    expect(view.find('shard-row-shard_mercy')?.textContent).toContain('releasing it refers it onward');
+    for (const command of ['prune', 'clamp', 'elevate']) expect(view.find('shard-shard_mercy-' + command)).toBeNull();
+    view.click('channel-onward-refer');
+    expect(game().activeShards['shard_mercy']).toBeUndefined();
+    expect(game().campaign.contacts.map((entry) => entry.response)).toEqual(['HOSTED', 'REFERRED']);
+    expect(view.find('channel-answered')?.textContent).toContain('then referred onward when that grant closed');
+    expect(view.find('channel-onward')).toBeNull();
   });
 
   it('renders nothing for a guest with no channel', async () => {
