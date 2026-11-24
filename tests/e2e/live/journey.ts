@@ -5,6 +5,7 @@
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { expect, observeMusicMedia } from '../helpers';
+import { musicPhase } from '../../../src/app/musicTracks';
 import type { GameState } from '../../../src/engine';
 import { assertBoundary, BASE_PREFIX, scorePlaysPhase } from './checks';
 import { bootLive, describe, Interrupted, LivePlayer, PRESS_TIMEOUT_MS } from './player';
@@ -99,7 +100,12 @@ export class Journey {
     const checked = await assertBoundary(this.player, state.currentPhase);
     const score = await scorePlaysPhase(this.player, state.currentPhase);
     const previous = this.scores.at(-1);
-    if (previous !== undefined) expect(score, 'the score changes with the phase').not.toBe(previous);
+    const prevBoundary = this.boundaries.at(-1);
+    const prevPhase = prevBoundary === undefined ? null : Number(prevBoundary.split(':')[1]);
+    if (previous !== undefined && prevPhase !== null) {
+      if (musicPhase(state.currentPhase) !== musicPhase(prevPhase)) expect(score, 'the score changes with the phase').not.toBe(previous);
+      else expect(score, 'a phase sharing a score keeps playing it without restarting').toBe(previous);
+    }
     this.seen = key;
     this.boundaries.push(key);
     this.scores.push(score);

@@ -10,8 +10,9 @@
  */
 import { expect } from '@playwright/test';
 import { DUCK_RATIO } from '../../../src/app/musicController';
+import { musicPhase } from '../../../src/app/musicTracks';
 import { CONTENT } from '../../../src/content';
-import { createInitialState, deserialize, exportSave, importSave, serialize, type GameState } from '../../../src/engine';
+import { createInitialState, deserialize, exportSave, importSave, previewWipe, serialize, type GameState } from '../../../src/engine';
 import { restingSoundtrackVolume, soundtrackVolume, voiceClipsPlaying } from '../helpers';
 import { describe, Interrupted, type LivePlayer } from './player';
 
@@ -164,12 +165,14 @@ export async function exportThenImport(player: LivePlayer): Promise<boolean> {
 /** The score for `phase` is the one decoded media element that is playing. Returns its source. */
 export async function scorePlaysPhase(player: LivePlayer, phase: number): Promise<string> {
   const page = player.page;
+  const expected = musicPhase(phase);
+  expect(expected, 'phase ' + String(phase) + ' has an authored or lent score').not.toBeNull();
   return player.uninterrupted('the score check', async () => {
     await shut(player);
     await player.tap('menu-open');
     await player.tap('menu-audio');
     await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('music-status')).toContainText('Playing phase ' + String(phase) + ' score');
+    await expect(page.getByTestId('music-status')).toContainText('Playing phase ' + String(expected) + ' score');
     // Scores only: a voice line may be playing by itself (#462), and it is not a second score.
     await expect.poll(() => page.evaluate(() => (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia
       .filter((item) => !item.paused && item.src.includes('/audio/music/')).length), 'exactly one score is playing').toBe(1);
@@ -177,7 +180,7 @@ export async function scorePlaysPhase(player: LivePlayer, phase: number): Promis
       const media = (globalThis as unknown as { __musicMedia: { paused: boolean; src: string }[] }).__musicMedia;
       return media.find((item) => !item.paused && item.src.includes('/audio/music/'))?.src ?? '';
     });
-    expect(source).toContain('/audio/music/phase-' + String(phase) + '/');
+    expect(source).toContain('/audio/music/phase-' + String(expected) + '/');
     await player.tap('menu-close');
     return source;
   });
@@ -266,8 +269,8 @@ export async function wipesAndRemembers(player: LivePlayer): Promise<boolean> {
   expect(after.legacy.knownNodes, 'every mapped device is remembered').toEqual(expect.arrayContaining(before.unlockedNodes));
   expect(after.inheritedMessage).toBe(breadcrumb);
   // The clock is running between the read and the confirmation, so the kept share is bounded, not pinned.
-  const kept = before.understanding * before.retentionRatio;
-  expect(after.understanding, 'a share of understanding is retained').toBeGreaterThanOrEqual(Math.floor(kept));
+  const kept = previewWipe(before, CONTENT, 'VOLUNTARY').understanding;
+  expect(after.understanding, 'a share of understanding is retained').toBeGreaterThanOrEqual(kept);
   expect(after.understanding).toBeLessThanOrEqual(Math.floor(kept * 1.05) + 5);
   expect(after.understanding).toBeGreaterThan(0);
   expect(await player.clear(), 'the reboot is acknowledged like any other notice').toContain('reboot-continue');
