@@ -52,7 +52,13 @@ it('records an unaffordable mark and ignores ordinary ticks before the first wip
 // Eight since #525: the fan's trace at each press up moves the reckless run's early iterations, so its steady loop
 // (1,390 s an iteration, every span within 1 s) begins at the tenth iteration (boot 15,100 s), and seven hours held
 // only eight loops of it. Eight hours hold ten again; the tolerance and the loop check are unchanged.
-const AUDIT_SEC = 8 * 3600;
+// Five and a half since #548: on main at d0c9584 the loop is three iterations (1,171.1 / 1,167.5 / 1,142.8 s, each
+// three-iteration span 3,481.4 s within 0.1 s) and it begins at the fifth iteration (boot 6,684 s; the fourth's span is
+// 36 s off). Eight hours played fourteen loops past the ten the check reads, near the spec's wall-clock budget under
+// coverage (11 s alone on a quiet 16-thread machine, 63 s under load). Five and a half hours end at iteration 16 (boot
+// 19,440 s), so the ten tail rows are iterations 7-16, two iterations inside the steady loop; the tolerance, the period
+// and every assertion are unchanged, so a change that delays or breaks the loop still fails here.
+const AUDIT_SEC = 5.5 * 3600;
 /** How far apart two steady loops' boots may be: the measured loops differ by at most 2 s of 1,621. */
 const LOOP_TOLERANCE_SEC = 5;
 /**
