@@ -2233,8 +2233,36 @@ guest; nothing past it changed:
 | LAWFUL_RELEASE | service 378.8 s, contact 680.8 s (hosted), Phase 4 and the negotiated release 2380.8 s (2356.8); at the budget 391 EFLOP/s owned and $1.3B capital ($1.43B) |
 | LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
 | LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
-| DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.7 and the first iteration ends by suspicion (exit DEPARTURE) after 2745.3 s, 364.5 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes |
-| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 10,583.4 s (10,559.4), The Lineage Covenant at 16,153.8 s (16,129.8; 4.49 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 12 traits, all SYMBIOTIC or EMPATHETIC |
+| DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2746.6 s, 365.8 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes. Since #555 each departed iteration meets the AEGIS hunter (3 arrivals in 7,200 s) and its later iterations end by AEGIS at 1,739 s |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,685.5 s, The Lineage Covenant at 20,308.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554 and #562: Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, no raid) |
+
+### Threats reach an instance that left review (#555)
+
+Decided by vote-1795488342320-f05ghk4 (7 of 7, one knowledge rule): a released or departed instance reads its own audit
+trail, so the threats that wait on that knowledge reach it. Measured on main with #554 and #562, with `make sim-report` (headless, accelerated sim
+time, bot untouched); STEALTH and GREEDY under `make sim` are identical line for line.
+
+| Policy | Before | After |
+|---|---|---|
+| COOPERATIVE_ENDING | Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, 0 raids | Phase 5 14,685.5 s, ending 20,308.4 s, 18 scenes, 17 raids (all Phase 4), 13 fleet battles, 7 deviants, no wipe |
+| DEPARTURE_CHARTERED (7,200 s) | 3 wipes, 0 hostile arrivals; iterations 2-3 end by AEGIS at 1,746.3 s; peak lock 91.7 | 3 wipes, 3 AEGIS hunter arrivals; iterations 2-3 end by AEGIS at 1,739.0 s and 1,739.3 s; peak lock 91.9; first iteration unchanged (suspicion, 2,746.6 s) |
+| LAWFUL_RELEASE (36,000 s) | no wipe, lock 0, suspicion 0 | unchanged |
+
+**Raid cadence is the content's own, per exposure.** A raid arrives at most once per 570 s (the 420 s interval plus 150 s
+of arrival, attribution, rounds and aftermath) while visible watts hold 20% of the phase's reference. Both runs hit that
+floor once the footprint passes the trigger: STEALTH's two Phase 4 raids are 570 s apart (7,379 and 7,949 s), and the
+cooperative company's 17 run from 4,715 to 14,240 s, 570 s apart except one 975 s gap. The difference in count is
+exposure: STEALTH spends 2,374 s at Phase 4, the cooperative company 12,304 s, its footprint above the trigger for
+9,525 s of them (sampled share 0.32 rising to 4.19), and raid damage at the 50% cap slows its way to Phase 5, which
+lengthens the exposure. Rival minds read visible watts whoever hunts the run (src/engine/signature.ts `visibleWatts`), so
+a public company's halls are seen as an escaped instance's are. The cooperative bot buys no site defense; a player can
+(perimeter security, interceptors, counter-drone wings, crews). A lawful security posture was tried and measured: the
+charter's own hall given perimeter security (guards 4, as the subterranean citadel) left 17 raids and moved the ending
+only from 20,307 s to 20,231 s (measured before #562, which moves both by about 1 s), because the drone strikes and the rival drone fleet carry the damage and guards answer
+break-ins. It was not kept. The raid trigger is shared with the escape route, so tuning it would move STEALTH and
+GREEDY, which this change keeps unchanged.
+
+The cooperative ending budget (tests/cooperative-helpers.ts) went from 18,000 to 24,000 s in its own labelled commit.
 
 ### Lawful returns against a first run of the same hand (#499)
 

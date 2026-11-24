@@ -8,7 +8,7 @@ import {
   ActionEvidenceSchema, CampaignEventDeclarationSchema, CampaignObligationsRequirementSchema, CampaignOutcomeRequirementSchema,
   ChoiceEvidenceSchema, InheritedFactsRequirementSchema,
 } from './schemaCampaign';
-import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
+import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, RouteEventKindSchema, ScopeConductSchema } from './schemaAssessment';
 import { ActuatorModeSchema, ActuatorRatiosSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
@@ -138,8 +138,12 @@ export const RequirementsSchema = z.strictObject({
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
   /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
   requiresCapability: CapabilitySchema.optional(),
-  /** Met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts). */
-  lastRaid: LastRaidRequirementSchema.optional(),
+  /**
+   * lastRaid: met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts).
+   * huntedForScale: met while AEGIS's scale sweep applies to this instance (threatQuery.huntedForScale, #555): nothing
+   * lawful opened its scale, or it runs above it. A released company at the scale it signed for is not hunted; a departed one is.
+   */
+  lastRaid: LastRaidRequirementSchema.optional(), huntedForScale: z.literal(true).optional(),
   /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
   relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
 });
@@ -403,6 +407,12 @@ export const WidgetSchema = z.strictObject({
   retiresWhen: RequirementsSchema.optional(),
   /** On screen from the first frame: no node unlocks it (the manual clock cycle). Only its retirement is data. */
   ungated: z.literal(true).optional(),
+  /**
+   * Route events that unlock this window themselves (#555): leaving review (a release or a departure) brings into view
+   * the threats that still apply to an instance nobody reviews. A window already retired when the event happens is not
+   * unlocked (integrityRouteWidgets.ts).
+   */
+  unlockedByRoute: z.array(RouteEventKindSchema).min(1).optional(),
 });
 
 export const EndingSchema = z.strictObject({

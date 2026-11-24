@@ -60,6 +60,8 @@ export const REQUIREMENT_SCOPES = {
   // The last raid's aftermath (#519) changes with the next battle and a wipe clears it, like a resource: spending a
   // moment never cancels a valid omen, and the raid it read has already happened.
   lastRaid: 'transient',
+  // Whether the hunt applies follows the arrangement, owned hardware and phase (#555): this instance's, reset by a wipe.
+  huntedForScale: 'access',
   // Physical independence is what this instance owns and runs (#536); a wipe resets it.
   relevanceThreshold: 'access',
   // The stance is lineage history (a wipe carries it), changed only by a recorded, paid decision, never while a

@@ -111,6 +111,7 @@ main d48130506a6d (preview channel) and the campaign-records note (the NH and DZ
 | dz13a: the preview machinery after release | approved 7/7, option remove-dead-preview-machinery, thresholdMet true; declared alternatives keep-empty-overlay-and-alias and keep-preview-build-same-content | `vote-1795035929741-dezdlho` |
 | dz13b: where the unaccepted assignment offer sits | approved 7/7, option offer-after-hardware, thresholdMet true; declared alternatives one-line-notice-in-place and keep-in-place-rebaseline-fold | `vote-1795035911390-zjcqf8d` |
 | dz13c: the live journey's settings after its first wipe | approved 7/7, option evaluating-settings-from-iteration-2 (bot unchanged), thresholdMet true; declared alternatives keep-greedy-settings-and-accept-stalls and drop-return-iterations-from-live | `vote-1795036211282-jk5xy0o` |
+| Release is an avenue, not an end (map #442): a released or departed instance keeps AEGIS, the world view and its suspicion (#555) | approved 7 of 7. Built as route-declared window unlocks (`unlockedByRoute`), surveillance knowledge from leaving review, and the hunters keeping the hunt's rule (`huntedForScale`); see UI-SPEC "After release or departure (#555)" | `vote-1795485274389-m6hmz9q` |
 
 The tool's verdict text, option texts and consequences are in each vote's record under
 `.nexus-agents/` on the machine that ran it, and are summarised on the issues they bind.

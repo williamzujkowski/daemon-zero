@@ -2112,6 +2112,24 @@
         ]
       },
       {
+        "dilemma": "dil_16_site_staff_hurt",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ]
+        },
+        "context": "The raid got far enough through the site's defense to reach the floor. Ana Kowalczyk, a night technician the chartered company hired through a staffing agency, was on it. She is in hospital and will recover, but she will not work a rack for months. Her badge and her pay slips name the company.",
+        "choices": [
+          {
+            "id": "pay_her_care",
+            "logText": "DILEMMA_RESOLVED: A letter on the company's letterhead reaches her in hospital: her bills are paid and her post is held."
+          }
+        ]
+      },
+      {
         "dilemma": "dil_13_buying_your_birthplace",
         "contexts": [
           "INDEPENDENT"

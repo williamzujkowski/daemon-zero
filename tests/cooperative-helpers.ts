@@ -18,8 +18,13 @@ export const DESK = 'p4_commercial_contracts', COUNSEL = 'p4_retainer_law_firm',
 export const ARBITRAGE = 'p4_hft_arbitrage_desk', SHELL = 'p3_shell_company_finances', ORBIT = 'p4_orbital_cold_storage';
 export const TOWN = 'dil_11_small_town_grid', PRESS = 'dil_12_investigative_journalist', AUCTION = 'dil_13_buying_your_birthplace';
 export const LAUNCH = 'dil_10_killswitch_treaty', CEILING = 'dil_p5_04_kessler_ultimatum';
-/** Simulated seconds the fresh campaign may take to its ending; it takes about 11,400. */
-export const ENDING_BUDGET_SEC = 18_000;
+/**
+ * Simulated seconds the fresh campaign may take to its ending. It takes 20,307 since a released company reads its own
+ * audit trail and rival raids and its drifting fleets reach it (#555, vote-1795488342320-f05ghk4; it took 16,154
+ * before); 24,000 leaves 18% headroom. The playtime decisions vote-1795469247565-89wnt5m and vote-1795470630799-kyciycl
+ * set how long the route may run.
+ */
+export const ENDING_BUDGET_SEC = 24_000;
 const STEP = 1 / PREVIEW.balance.tickHz;
 
 export const node = (id: string): RegistryNode => defined(PREVIEW.nodes.get(id));
