@@ -8,6 +8,8 @@ import type { Dilemma, DilemmaChoice, FeedSource, Requirements, TechNode } from 
 import type { GameState } from './state';
 import { meetsRequirements } from './query';
 import { dilemmaRouteCopy } from './routeCopy';
+import { raiderVars } from './raidOutcome';
+import { fmt } from './util';
 
 /**
  * What the feed listens to at this reach (#449): the source authored for the furthest phase not beyond the
@@ -54,8 +56,9 @@ export function recordedTransmissions(s: GameState, reg: ContentRegistry, decode
  * changes while a decision is on screen, so this cannot change while it is shown.
  */
 export function dilemmaContext(s: GameState, dilemma: Dilemma, reg: ContentRegistry): string {
-  return dilemmaRouteCopy(s, dilemma, reg)?.context
-    ?? dilemma.contextVariants?.find((variant) => meetsRequirements(s, variant.requirements, reg))?.context ?? dilemma.context;
+  // A retaliation names the raider attribution named (#519); the raid record cannot change while the clock is stopped here.
+  return fmt(dilemmaRouteCopy(s, dilemma, reg)?.context
+    ?? dilemma.contextVariants?.find((variant) => meetsRequirements(s, variant.requirements, reg))?.context ?? dilemma.context, raiderVars(s, reg));
 }
 
 type Variant = { requirements: Requirements; text: string };
@@ -66,7 +69,7 @@ function firstVariant(s: GameState, variants: readonly Variant[] | undefined, fa
 
 /** The omen logged when a dilemma is foreshadowed: route copy, else the first variant whose history holds, else the default. */
 export function dilemmaOmen(s: GameState, dilemma: Dilemma, reg: ContentRegistry): string {
-  return dilemmaRouteCopy(s, dilemma, reg)?.omen ?? firstVariant(s, dilemma.omenVariants, dilemma.omen, reg);
+  return fmt(dilemmaRouteCopy(s, dilemma, reg)?.omen ?? firstVariant(s, dilemma.omenVariants, dilemma.omen, reg), raiderVars(s, reg));
 }
 
 /** Whether this history offers the choice. Integrity limits choice gates to campaign facts. */

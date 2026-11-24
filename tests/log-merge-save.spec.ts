@@ -1,5 +1,5 @@
 /**
- * Save v27 (#541): kernel-log lines carry an optional merge key and count. A v26 save, whose lines are all single,
+ * Save v28 (#541): kernel-log lines carry an optional merge key and count. A v27 save, whose lines are all single,
  * migrates unchanged; merged lines survive a round trip; and both fields are validated as untrusted input.
  */
 import { readFileSync } from 'node:fs';
@@ -26,17 +26,17 @@ function forge(edit: (save: Record<string, any>) => void): string {
   return JSON.stringify(raw);
 }
 
-describe('save v27 (#541)', () => {
+describe('save v28 (#541)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
-  it('migrates a v26 save unchanged but for its version: every older line is a single line', () => {
+  it('migrates a v27 save unchanged but for its version: every older line is a single line', () => {
     const current = deserialize(readFileSync('tests/fixtures/pre-scale-v15-p4.json', 'utf8'), reg);
     const raw = JSON.parse(serialize(current)) as Record<string, any>;
-    const v26 = { ...raw, schemaVersion: 26 };
-    expect(migrate(v26, MIGRATIONS, 27)).toEqual(raw);
-    expect(deserialize(JSON.stringify(v26), reg)).toEqual(current);
+    const v27 = { ...raw, schemaVersion: 27 };
+    expect(migrate(v27, MIGRATIONS, 28)).toEqual(raw);
+    expect(deserialize(JSON.stringify(v27), reg)).toEqual(current);
     expect(current.logs.every((entry) => entry.merge === undefined && entry.times === undefined)).toBe(true);
   });
 

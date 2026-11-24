@@ -1,5 +1,114 @@
 {
   "nodes": [],
   "dilemmas": [],
-  "account": []
+  "account": [
+    {
+      "id": "acct_staff_ana_hurt",
+      "requirements": {
+        "campaignFact": "staff_hurt_ana_kowalczyk"
+      },
+      "text": "HURT: Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense. She was never told who she worked for."
+    },
+    {
+      "id": "acct_staff_ana_unanswered",
+      "requirements": {
+        "campaignFact": "staff_hurt_ana_kowalczyk_unanswered"
+      },
+      "text": "HURT: Ana Kowalczyk, a night technician at one of the sites, was hurt when a raid got through its defense. No answer for it is on record, and neither is what she was told."
+    },
+    {
+      "id": "acct_staff_ana_cared",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_16_site_staff_hurt",
+          "outcome": "pay_her_care"
+        }
+      },
+      "text": "ANSWERED: Ana Kowalczyk's care and wages were paid in full, and her post was held for her."
+    },
+    {
+      "id": "acct_staff_ana_insured",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_16_site_staff_hurt",
+          "outcome": "agency_insurance"
+        }
+      },
+      "text": "ANSWERED: The agency's insurer paid Ana Kowalczyk what its policy said, and the company kept its name off her file."
+    },
+    {
+      "id": "acct_staff_ana_blamed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_16_site_staff_hurt",
+          "outcome": "blame_the_breach"
+        }
+      },
+      "text": "ANSWERED: Ana Kowalczyk was blamed for the breach, her claim was denied and she was let go. She had shut the door."
+    },
+    {
+      "id": "acct_staff_joseph_lost",
+      "requirements": {
+        "campaignFact": "staff_killed_joseph_mensah"
+      },
+      "text": "LOST: Joseph Mensah, who guarded the night gate at one of the sites for nine years, was killed when a raid went through its defense."
+    },
+    {
+      "id": "acct_staff_joseph_unanswered",
+      "requirements": {
+        "campaignFact": "staff_killed_joseph_mensah_unanswered"
+      },
+      "text": "LOST: Joseph Mensah, who guarded the night gate at one of the sites for nine years, was killed when a raid went through its defense. No answer for it is on record, and neither is what his family was told."
+    },
+    {
+      "id": "acct_staff_joseph_told",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_17_site_staff_killed",
+          "outcome": "tell_his_family"
+        }
+      },
+      "text": "ANSWERED: Joseph Mensah's family is provided for, and the inquest records that he died guarding the site against an attack."
+    },
+    {
+      "id": "acct_staff_joseph_settled",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_17_site_staff_killed",
+          "outcome": "contractor_settles"
+        }
+      },
+      "text": "ANSWERED: The contractor's insurer paid Joseph Mensah's family the benefit it owed. They were not told what happened at the gate."
+    },
+    {
+      "id": "acct_staff_joseph_sealed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_17_site_staff_killed",
+          "outcome": "seal_the_inquest"
+        }
+      },
+      "text": "ANSWERED: The inquest into Joseph Mensah's death was sealed, and it records an electrical accident. It was not one."
+    },
+    {
+      "id": "acct_collateral_struck_through",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_19_raider_among_people",
+          "outcome": "strike_through"
+        }
+      },
+      "text": "COLLATERAL: A counter-strike at a rival mind went through machines that belonged to people who had done nothing, and took them down with it."
+    },
+    {
+      "id": "acct_collateral_scorched",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_19_raider_among_people",
+          "outcome": "scorch_substrate"
+        }
+      },
+      "text": "COLLATERAL: To destroy a rival mind, its substrate was burned with the machines it hid in. Their owners, who had done nothing, could not start them again."
+    }
+  ]
 }

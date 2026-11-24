@@ -21,6 +21,20 @@ function effectFigure(label: string, value: number, unit: ComputeUnit): string {
   return amountFigure(value) + ' ' + label;
 }
 
+/**
+ * A retaliation's raid effects (#519), exact as the engine applies them: the earliest next raid moves by its seconds
+ * (never before now, and the hostile slot's own spacing still applies, hence "up to"), and the named raider is silenced.
+ */
+function RaidEffects({ effects }: { effects: EffectPayload }) {
+  const delta = effects.nextRaidDeltaSec ?? 0;
+  return <>
+    {delta !== 0 && <Text testID="effect-next-raid" style={[theme.muted, { color: delta < 0 ? palette.danger : palette.accent }]}>
+      {'next raid: up to ' + String(Math.abs(delta)) + ' s ' + (delta < 0 ? 'sooner (risk)' : 'later (benefit)')}</Text>}
+    {effects.silencesNamedRaider === true && <Text testID="effect-silences-raider" style={[theme.muted, { color: palette.accent }]}>
+      the named raider never raids again (benefit)</Text>}
+  </>;
+}
+
 export default function Effects({ effects }: { effects: EffectPayload }) {
   const known = useSurveillanceKnown();
   const unit = useComputeUnit();
@@ -38,6 +52,7 @@ export default function Effects({ effects }: { effects: EffectPayload }) {
       {label === 'suspicion' && !known ? (value > 0 ? 'more' : 'less') + ' audit log activity'
         : (value > 0 ? '+' : '') + effectFigure(label, value, unit)}{label === 'suspicion' && !known ? '' : ' (' + ((value > 0) === positiveGood ? 'benefit' : 'risk') + ')'}
     </Text>)}
+    <RaidEffects effects={effects} />
     {effects.grantsTrait !== undefined && <Text testID="effect-trait" style={theme.text}>Trait: {traitWithGloss(effects.grantsTrait)}</Text>}
   </View>;
 }

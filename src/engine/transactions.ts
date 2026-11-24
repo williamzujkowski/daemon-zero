@@ -9,6 +9,7 @@ import { recordTraitEvidence, type EvidenceSource } from './campaign';
 import { isPeerLost } from './campaignQuery';
 import { resolveShardAnomaly } from './swarmEffects';
 import { flinches } from './conditioning';
+import { applyRaidEffects } from './raidOutcome';
 import type { GameState } from './state';
 import { clamp, fmt, pushLog, type LogMerge } from './util';
 
@@ -67,6 +68,7 @@ export function applyEffects(
   d.aegisLock = clamp(d.aegisLock + fx.aegisLockDelta, 0, 100);
   d.memoryCap += fx.memoryCapIncrease;
   applyTrust(d, fx.trustDelta, reg);
+  applyRaidEffects(d, fx, reg);
   pushLog(d, reg, fx.logText, fx.logCategory, merge);
   if (fx.grantsTrait) {
     d.traits = [...d.traits, fx.grantsTrait];

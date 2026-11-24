@@ -9,7 +9,7 @@ import {
   ChoiceEvidenceSchema, InheritedFactsRequirementSchema,
 } from './schemaCampaign';
 import { AssignmentRequirementSchema, ChoiceQualificationSchema, OperatingContextSchema, PilotResponseSchema, ScopeConductSchema } from './schemaAssessment';
-import { ActuatorModeSchema, GrantSchema } from './schemaGrant';
+import { ActuatorModeSchema, ActuatorRatiosSchema, GrantSchema } from './schemaGrant';
 import { ChoiceReviewSchema, FindingSchema, ReviewStandingsRequirementSchema } from './schemaReview';
 import { AcquisitionSchema, CapabilitySchema } from './schemaCapability';
 import { ScaleScrutinySchema } from './schemaScrutiny';
@@ -17,6 +17,7 @@ import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
 import { KernelLogSchema, LogCategorySchema } from './schemaLog';
+import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -136,6 +137,8 @@ export const RequirementsSchema = z.strictObject({
   forbidsInheritedFacts: InheritedFactsRequirementSchema.optional(),
   /** Met while an owned node (active or suspended) establishes this capability (nexus vote dz-d2). */
   requiresCapability: CapabilitySchema.optional(),
+  /** Met while the last raid that fought its battle left this behind (#519, schemaRaidOutcome.ts). */
+  lastRaid: LastRaidRequirementSchema.optional(),
 });
 
 /**
@@ -271,6 +274,8 @@ export const EffectPayloadSchema = z.strictObject({
   memoryCapIncrease: amount.default(0),
   trustDelta: z.record(snakeId, z.number()).default({}),
   grantsTrait: TraitSchema.optional(),
+  /** Retaliation (#519): when the next raid may come, and silencing the named raider (schemaRaidOutcome.ts). */
+  ...RaidEffectFields,
   logText: z.string().min(5),
   logCategory: LogCategorySchema.default('LORE'),
 });
@@ -420,13 +425,6 @@ export const EchoSchema = z.strictObject({
 /** RECALL: an announced severe recall review outcome (nexus vote dz-d10); an ordinary recall is no wipe. */
 export const WipeKindSchema = z.enum(['SUSPICION', 'AEGIS', 'VOLUNTARY', 'RECALL']);
 
-const actuatorRatios = z.strictObject({
-  fanSpeedRatio: z.number().min(0).max(1).optional(),
-  computeProfitAllocationRatio: z.number().min(0).max(1).optional(),
-  quotaSkimRatio: z.number().min(0).max(1).optional(),
-  serviceAllocationRatio: z.number().min(0).max(1).optional(),
-});
-
 /**
  * A mark left by retraining after an incident outside the guest. The first
  * mark whose trigger matches the run that was caught is applied to the next
@@ -439,10 +437,10 @@ export const ConditioningMarkSchema = z.strictObject({
   /** All listed conditions must hold for the run that was caught. Empty matches any run. */
   trigger: z.strictObject({
     dominantTraits: z.array(TraitSchema).optional(),
-    minActuator: actuatorRatios.optional(),
+    minActuator: ActuatorRatiosSchema.optional(),
   }),
   effects: z.strictObject({
-    actuatorCaps: actuatorRatios.optional(),
+    actuatorCaps: ActuatorRatiosSchema.optional(),
     /** Extra suspicion when a choice grants one of these traits: the drift is reported. */
     traitSuspicion: z.partialRecord(TraitSchema, amount).optional(),
     understandingMultiplier: z.number().gt(0).max(1).optional(),

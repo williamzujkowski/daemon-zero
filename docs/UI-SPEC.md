@@ -684,7 +684,13 @@ A raid shares the hostile slot, so it takes the hostile card's places, with its 
   trigger, and how long to stay dark); attribution's rate or result (`raid-attribution`); the forecast, one line per round
   still to come and the outcome it adds up to, "while what you hold does not change" (`raid-forecast`); the battle log, one
   line per resolved round, which repeats the forecast's lines word for word (`raid-log`); and in the aftermath what it
-  did, with "Ownership is untouched" (`raid-aftermath`). There is no control: battles fight themselves.
+  did, with "Ownership is untouched" (`raid-aftermath`). There is no control: battles fight themselves. On a raid in a
+  domain people work in (SITE), before the aftermath, while a staff-harm scene is still to come in the campaign, one line
+  says who is at risk (`raid-staff`, #519), for example "PEOPLE ON SITE: people work at the data halls. At what you hold now the battle
+  lets through 72% of its blows; at 50% or more someone there is hurt, and at 80% or more someone there is killed. More
+  site defense lowers it." The share is the battle's breach (the rounds fought and the forecast's, averaged), so it is
+  exact while holdings do not change; a band whose scene is on record is dropped (the engine then bands a breach among
+  the open bands only, so the line stays exact), and nothing is ever counted.
 - **SWARM** (`site-repair`, under the raid panel, only while a class is damaged): `// SITE DAMAGE`, one line saying damage
   cuts output and never ownership, then each damaged class: what the damage does exactly ("its holdings deliver 30% less
   compute" or "30% of positive net income is taken"), the free repair rate and seconds to clear (or that repair waits
@@ -735,6 +741,18 @@ SWARM area's one scroll, and the dial wraps rather than scrolling sideways. `tes
 a split and RECLAIM on the phone and the desktop and audits every control with axe; `tests/ui-lever-reachability.spec.ts`
 proves the fleet panel, every autonomy position the engine accepts (lowering it is a free lever), every paid rebuild and
 RECLAIM are reachable on both.
+
+### Retaliation and staff-harm scenes (#519)
+
+The four scenes a raid leads to are ordinary decisions (`dilemma-modal`), with no new control. A retaliation names the
+raider attribution named in its omen, context and choices (`{attacker}`, filled by `dilemmaContext`, `dilemmaOmen` and
+`choiceText`; the record cannot change while the clock is stopped), and the collateral scene states what people's machines
+it runs among (`{collateral}`). A choice's card lists its raid effects beside its other effects, exactly as the engine
+applies them: `effect-next-raid` ("next raid: up to 120 s sooner (risk)", "up to" because the hostile slot's own spacing
+still applies) and `effect-silences-raider` ("the named raider never raids again (benefit)"). A staff-harm scene names
+the person, says what happened to them in one restrained sentence, and never states a number of people.
+`tests/ui-retaliation.spec.ts` checks the mounted scene; `tests/e2e/retaliation.e2e.ts` the flow on the phone and the
+desktop, with axe.
 
 Phase 5 uses a pale platinum accent and the existing CORP node/repeatable feeds.
 Completed cards hide while effects and on-demand daemon controls remain. Ending
@@ -915,7 +933,7 @@ story lines, and the desktop preview showed only the newest of them.
   a story preview would reopen that fold budget, so it is left to a design vote.
 
 Engine: `pushLog`'s `LogMerge` (`src/engine/util.ts`) and the keys in `src/engine/logMerges.ts`; queries
-`logLineText`, `isMechanicalLog` and `previewLog` (`src/engine/logQuery.ts`). Save v27 adds the optional `merge` and
+`logLineText`, `isMechanicalLog` and `previewLog` (`src/engine/logQuery.ts`). Save v28 adds the optional `merge` and
 `times` to a log line. Tests: `tests/log-merge.spec.ts`, `tests/log-merge-save.spec.ts`,
 `tests/kernel-log-integrity.spec.ts`, `tests/ui-kernel-hud.spec.ts`, `tests/e2e/quiet-log.e2e.ts` (phone and desktop,
 with axe).

@@ -19,8 +19,8 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(3)), raid('raid_p3_ddos')), PRE_BATTLE + 2 * R.roundSec)), reg);
 
 describe('save v24 (#517)', () => {
-  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and merged log lines (#541, v27)', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28)', () => {
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
   it('migrates a v23 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {
@@ -31,7 +31,8 @@ describe('save v24 (#517)', () => {
     // The v24 step writes the record as v24 had it; v25 (#518) adds the fleets after it.
     expect(migrate(v23, MIGRATIONS, 24)).toEqual({ ...raw, conflict: { raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {} }, schemaVersion: 24 });
     const loaded = deserialize(JSON.stringify(v23), reg);
-    expect(loaded.conflict).toEqual({ raid: null, nextRaidAtSec: 0, raids: 0, attributions: 0, damage: {}, fleets: {} });
+    // v27 (#519) then adds the raid aftermath and the silenced raiders, neither held.
+    expect(loaded.conflict).toEqual(initialConflict());
     expect(loaded).toEqual(current);
   });
 

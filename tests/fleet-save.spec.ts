@@ -26,8 +26,8 @@ const fought = (): GameState => {
 };
 
 describe('save v26 (#518)', () => {
-  it('is followed only by merged log lines (#541, v27)', () => {
-    expect(SCHEMA_VERSION).toBe(27);
+  it('is followed only by the raid aftermath (#519, v27) and merged log lines (#541, v28)', () => {
+    expect(SCHEMA_VERSION).toBe(28);
   });
 
   it('migrates a v25 save to no fleet records and keeps everything else', () => {

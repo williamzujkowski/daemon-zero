@@ -13,6 +13,7 @@ import { applyFleetLosses, domainFleet } from './fleets';
 import { engagementText } from './fleetText';
 import { engage } from './lanchester';
 import { resolveRound } from './raidForecast';
+import { lastRaidOf, recordOwedHarm } from './raidOutcome';
 import { addDamage, classDamage, siteClass } from './siteDamage';
 import type { GameState } from './state';
 import { fmt, pushLog } from './util';
@@ -56,9 +57,14 @@ export function engagementNow(s: GameState, reg: ContentRegistry, kind: RaidKind
   return { force, lethality, fleet: fleet.strength, floor: fleet.floor, attackerWins, forceAfter, fleetAfter };
 }
 
+/**
+ * The battle is over. Its record is written for the scenes that answer it (#519): once, here, after a harm the last record
+ * still owes a scene is put on record, so a battle never overwrites a harm nobody answered.
+ */
 function closeBattle(d: GameState, reg: ContentRegistry, kind: RaidKind, raid: ActiveRaid): void {
   const target = siteClass(reg, raid.target)?.name ?? raid.target;
-  d.conflict = { ...d.conflict, raid: { ...raid, stage: 'AFTERMATH', stageSec: 0 } };
+  recordOwedHarm(d, reg);
+  d.conflict = { ...d.conflict, raid: { ...raid, stage: 'AFTERMATH', stageSec: 0 }, lastRaid: lastRaidOf(d, reg, kind, raid.attributed, raid.rounds) };
   pushLog(d, reg, fmt(reg.world.conflict.raid.logs.aftermath, { name: kind.name, target, damage: percentOf(classDamage(d, raid.target)) }), 'LORE');
 }
 
