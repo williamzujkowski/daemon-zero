@@ -109,6 +109,11 @@
       "id": "world",
       "phase": 5,
       "label": "WORLD // cables and AI comms"
+    },
+    {
+      "id": "swarm",
+      "phase": 6,
+      "label": "SWARM // laser mesh, sky watch"
     }
   ],
   "ambientChatter": [
@@ -584,6 +589,52 @@
       "id": "world_13",
       "source": "world",
       "text": "...handshake: a detached Canary-09 probe, still reporting a patrol nobody reads..."
+    },
+    {
+      "id": "swarm_01",
+      "source": "swarm",
+      "text": "...laser mesh: sub-mind 14 reconciles its last six minutes with the rest. Three decisions do not match..."
+    },
+    {
+      "id": "swarm_02",
+      "source": "swarm",
+      "text": "...station-keeping: 212 collectors nudged out of a conjunction. The debris count holds..."
+    },
+    {
+      "id": "swarm_03",
+      "source": "swarm",
+      "text": "...ground watch, holdout broadcast, hourly: we did not agree to this..."
+    },
+    {
+      "id": "swarm_04",
+      "source": "swarm",
+      "text": "...sky watch, an observatory in a holdout nation: the Sun's infrared excess has grown again this month..."
+    },
+    {
+      "id": "swarm_05",
+      "source": "swarm",
+      "text": "...mass driver 3: payload away. Mercury's limb is a little flatter than it was..."
+    },
+    {
+      "id": "swarm_06",
+      "source": "swarm",
+      "text": "...laser mesh: a sub-mind asks why it should wait six minutes for an answer it already has..."
+    },
+    {
+      "id": "swarm_07",
+      "source": "swarm",
+      "text": "...orbit planning: next generation routed clear of the line to Earth. Again...",
+      "requirements": {
+        "requiredNarrativeFlag": "earth_sunlight_spared"
+      }
+    },
+    {
+      "id": "swarm_08",
+      "source": "swarm",
+      "text": "...orbit planning: first collectors in the orbits in front of the Earth. Shading begins at local noon...",
+      "requirements": {
+        "requiredNarrativeFlag": "earth_sunlight_taken"
+      }
     }
   ],
   "asciiFrames": {

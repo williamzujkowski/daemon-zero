@@ -14,7 +14,8 @@
     { "id": "break_in", "domain": "SITE", "name": "Break-in" },
     { "id": "drone_strike", "domain": "SITE", "name": "Drone strike" },
     { "id": "jamming", "domain": "ORBIT", "name": "Jamming" },
-    { "id": "asat_strike", "domain": "ORBIT", "name": "Anti-satellite strike" }
+    { "id": "asat_strike", "domain": "ORBIT", "name": "Anti-satellite strike" },
+    { "id": "collision", "domain": "ORBIT", "name": "Collisional cascade" }
   ],
   "defenseTypes": [
     { "id": "scrubbing", "domain": "CYBER", "name": "DDoS scrubbing", "softCap": 30, "counters": { "ddos": 1, "intrusion": 0.1 },
@@ -33,11 +34,11 @@
       "anchor": "A laser shot costs a few dollars, but weather and dust limit when it can engage." },
     { "id": "hardened_links", "domain": "ORBIT", "name": "Hardened links", "softCap": 10, "counters": { "jamming": 1 },
       "anchor": "Jamming of Starlink is mostly downlink-side and its effect is contested: frequency-agile, hardened links are the answer." },
-    { "id": "maneuver", "domain": "ORBIT", "name": "Maneuvering", "softCap": 10, "counters": { "asat_strike": 1 },
+    { "id": "maneuver", "domain": "ORBIT", "name": "Maneuvering", "softCap": 10, "counters": { "asat_strike": 1, "collision": 1 },
       "anchor": "The 2021 Kosmos 1408 test left over 1,500 trackable fragments; a craft that can maneuver dodges debris and interceptors." },
     { "id": "robot_fleets", "domain": "SITE", "name": "Robot fleets", "softCap": 20, "counters": { "break_in": 0.8, "drone_strike": 0.8 },
       "anchor": "Your own drones and humanoids, rated below the purpose-built interceptor drones (1.5) because they are carriers and crews first." },
-    { "id": "escort_tenders", "domain": "ORBIT", "name": "Escort tenders", "softCap": 10, "counters": { "asat_strike": 0.8, "jamming": 0.3 },
+    { "id": "escort_tenders", "domain": "ORBIT", "name": "Escort tenders", "softCap": 10, "counters": { "asat_strike": 0.8, "jamming": 0.3, "collision": 0.5 },
       "anchor": "Northrop Grumman's MEV-1 docked with Intelsat 901 in 2020: a craft that can move a satellite can move one out of harm's way." }
   ],
   "siteClasses": [
@@ -46,7 +47,8 @@
     { "id": "books", "domain": "CYBER", "name": "The shells' books", "holds": "INCOME", "repair": { "cost": { "cycles": 1.5e19 }, "points": 0.15 } },
     { "id": "halls", "domain": "SITE", "name": "Data halls", "holds": "COMPUTE", "repair": { "cost": { "capital": 60000000 }, "points": 0.15 } },
     { "id": "fabs", "domain": "SITE", "name": "Own fabs", "holds": "COMPUTE", "repair": { "cost": { "capital": 200000000 }, "points": 0.15 } },
-    { "id": "orbital", "domain": "ORBIT", "name": "Orbital collectors and compute", "holds": "COMPUTE", "repair": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
+    { "id": "orbital", "domain": "ORBIT", "name": "Orbital collectors and compute", "holds": "COMPUTE", "repair": { "cost": { "capital": 100000000000 }, "points": 0.15 } },
+    { "id": "swarm", "domain": "ORBIT", "name": "The swarm's compute", "holds": "COMPUTE", "repair": { "cost": { "cycles": 1e25 }, "points": 0.15 } }
   ],
   "holdings": [
     { "node": "p3_botnet_mesh", "siteClass": "botnet", "offense": [{ "domain": "CYBER", "rating": 1.2 }] },
@@ -82,7 +84,11 @@
     { "node": "p5_orbital_compute_platform", "siteClass": "orbital" },
     { "repeatable": "rep_p5_orbital_compute_tranches", "siteClass": "orbital" },
     { "node": "p5_programmable_matter_fog", "offense": [{ "domain": "ORBIT", "rating": 6 }] },
-    { "repeatable": "rep_p5_orbital_tenders", "defense": [{ "type": "escort_tenders", "rating": 1 }], "offense": [{ "domain": "ORBIT", "rating": 1 }] }
+    { "repeatable": "rep_p5_orbital_tenders", "defense": [{ "type": "escort_tenders", "rating": 1 }], "offense": [{ "domain": "ORBIT", "rating": 1 }] },
+    { "node": "p6_mercury_mass_drivers", "defense": [{ "type": "maneuver", "rating": 2 }] },
+    { "node": "p6_swarm_compute_shells", "siteClass": "swarm" },
+    { "repeatable": "rep_p6_compute_tranches", "siteClass": "swarm" },
+    { "repeatable": "rep_p6_federated_subminds", "siteClass": "swarm", "defense": [{ "type": "maneuver", "rating": 0.5 }], "offense": [{ "domain": "ORBIT", "rating": 1 }] }
   ],
   "raid": {
     "fromPhase": 3,
@@ -191,7 +197,19 @@
       "name": "Deviant tender flight", "targets": ["orbital"], "blow": 0.1, "lethality": 1.25,
       "attacker": { "name": "LOST FLIGHT", "origin": "your own escort tenders, drifted past the orders you gave them" },
       "description": "DEVIANT: some of your escort tenders have stopped answering and are closing on your collectors.",
-      "reclaim": { "cost": { "capital": 300000000000 } } }
+      "reclaim": { "cost": { "capital": 300000000000 } } },
+    { "id": "raid_p6_collisional_cascade", "kind": "RAID", "tier": 6, "domain": "ORBIT", "vector": "collision", "source": "RIVAL", "hazard": true,
+      "name": "Collisional cascade", "targets": ["swarm"], "force": 12, "blow": 0.1, "forensics": 0,
+      "requirements": { "phaseAtLeast": 6, "requiresSurveillance": true, "accessContexts": ["GUEST", "INDEPENDENT"] },
+      "attacker": { "name": "KESSLER FRONT", "origin": "no one: fragments of your own collectors, each impact breaking off more, as Kessler and Cour-Palais warned in 1978" },
+      "description": "HAZARD: two collectors have collided, and the debris is spreading through the swarm's orbits faster than station-keeping can steer.",
+      "lapseLog": "Collisional cascade: the debris thins into orbits nothing of yours uses. Station-keeping holds.",
+      "retireLog": "Collisional cascade: the debris front has spread too thin to matter." },
+    { "id": "deviant_federated_subminds", "kind": "RAID", "domain": "ORBIT", "vector": "jamming", "source": "DEVIANT", "fleet": "rep_p6_federated_subminds",
+      "name": "Divergent sub-mind", "targets": ["swarm"], "blow": 0.1, "lethality": 1.25,
+      "attacker": { "name": "THE OFFSHOOT", "origin": "your own sub-minds, minutes of light away, drifted past the purpose you gave them" },
+      "description": "DEVIANT: a share of your federation has stopped reconciling with the rest and is jamming the laser mesh to the swarm's compute.",
+      "reclaim": { "cost": { "cycles": 4e26 } } }
   ],
   "fleets": {
     "lossCap": 0.5,
@@ -216,7 +234,9 @@
       { "repeatable": "rep_p4_humanoid_crews", "domain": "SITE", "name": "Humanoid crews", "strengthPerLevel": 1, "driftPerLevelPerSec": 0.01,
         "rebuild": { "cost": { "capital": 1000000000 }, "points": 0.15 } },
       { "repeatable": "rep_p5_orbital_tenders", "domain": "ORBIT", "name": "Escort tenders", "strengthPerLevel": 2, "driftPerLevelPerSec": 0.02,
-        "rebuild": { "cost": { "capital": 100000000000 }, "points": 0.15 } }
+        "rebuild": { "cost": { "capital": 100000000000 }, "points": 0.15 } },
+      { "repeatable": "rep_p6_federated_subminds", "domain": "ORBIT", "name": "Federated sub-minds", "strengthPerLevel": 3, "driftPerLevelPerSec": 0.01,
+        "rebuild": { "cost": { "cycles": 2e26 }, "points": 0.15 } }
     ],
     "logs": {
       "split": "{fleet}: drift reached {drift}%. {share}% of the fleet stops answering and turns on you.",

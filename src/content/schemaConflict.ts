@@ -111,6 +111,12 @@ export const RivalRaidSchema = z.strictObject({
   resolution: z.enum(['ATTRITION', 'LANCHESTER']).default('ATTRITION'),
   lethality: positive.optional(),
   forensics: z.number().nonnegative(),
+  /**
+   * A hazard of the player's own making, not a mind (#486: the swarm's collisional cascade). It shares the rotation, the
+   * footprint's force and the battle, but it is named on arrival with no tracing, yields no forensics (integrity holds it
+   * to 0) and does not lose the trail when the instance goes dark: debris does not follow a footprint.
+   */
+  hazard: z.literal(true).optional(),
   lapseLog: line,
   retireLog: line,
 });
@@ -193,6 +199,16 @@ export type SiteClass = z.infer<typeof SiteClassSchema>;
 export type ConflictHolding = z.infer<typeof ConflictHoldingSchema>;
 export type RaidKind = z.infer<typeof RaidKindSchema>;
 export type RivalRaid = z.infer<typeof RivalRaidSchema>;
+
+/**
+ * A rival AI drawn by the footprint: the one kind of raid that attribution traces, that loses the trail when the instance
+ * goes dark, that a retaliation answers or silences, and whose breach can harm people on site. A drift deviant is the
+ * player's own fleet and a hazard (#486) is debris of its own making: neither is ever traced, answered, silenced or
+ * blamed for harm. Every reader (raid.ts, raidQuery.ts, raidOutcome.ts, integrityRetaliation.ts) asks this, and only this.
+ */
+export function tracedRival(kind: RaidKind): kind is RivalRaid {
+  return kind.source === 'RIVAL' && kind.hazard !== true;
+}
 export type DeviantRaid = z.infer<typeof DeviantRaidSchema>;
 export type RaidBalance = z.infer<typeof RaidBalanceSchema>;
 export type ConflictManifest = z.infer<typeof ConflictManifestSchema>;

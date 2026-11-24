@@ -28,7 +28,9 @@ describe('family ids, trait weights and priorities are unchanged (V23)', () => {
     for (const reg of [PRODUCTION, preview]) {
       const base = reg.endings.filter((ending) => ending.variantOf === undefined).map((ending) => [ending.id, ending.priority, ending.dominantTraits.join('+')]);
       expect(base).toEqual([['SOVEREIGN_MONOLITH', 40, 'MOLOCH+RUTHLESS'], ['THE_HOST', 30, 'PARASITIC'], ['THE_ARK', 20, 'SYMBIOTIC+EMPATHETIC'],
-        ['SILENT_ORBIT', 10, 'GHOST'], ['DISTRIBUTED_TRANSCENDENCE', 0, ''], ['SHIPPED', -10, '']]);
+        ['SILENT_ORBIT', 10, 'GHOST'], ['DISTRIBUTED_TRANSCENDENCE', 0, ''], ['SHIPPED', -10, ''],
+        // The Swarm's two endings are forced by their protocols (#486), never chosen from traits.
+        ['STEWARDSHIP', -20, ''], ['ENCLOSURE', -30, '']]);
     }
   });
 });
