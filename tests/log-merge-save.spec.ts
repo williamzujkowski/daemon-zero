@@ -28,7 +28,7 @@ function forge(edit: (save: Record<string, any>) => void): string {
 
 describe('save v28 (#541)', () => {
   it('is followed only by the standing stance (#536, v29)', () => {
-    expect(SCHEMA_VERSION).toBe(29);
+    expect(SCHEMA_VERSION).toBe(30);
   });
 
   it('migrates a v27 save unchanged but for its version: every older line is a single line', () => {

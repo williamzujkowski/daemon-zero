@@ -10,6 +10,11 @@ import { StanceSchema } from './schemaStance';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const line = z.string().min(1).max(240);
+/** An ending's stance prose (#466): longer than a control's line, still one paragraph. */
+const passage = z.string().min(20).max(480);
+
+/** What an ending says of a stance (#466): WHAT YOU BECAME, then what it means for humanity in WHAT COMES AFTER. */
+const EndingStanceSchema = z.strictObject({ became: passage, after: passage });
 
 /** A holding whose generated watts come from off the planet: a node while it runs, or a track's levels. */
 export const OrbitalPowerSchema = z.union([
@@ -28,6 +33,8 @@ export const StanceCopySchema = z.strictObject({
   log: line,
   /** How a state actor's pressure the record calls reads under it past the threshold (the world view). */
   pressureLine: line,
+  /** The ending's reading of this stance (#466). */
+  ending: EndingStanceSchema,
 });
 
 export const RelevanceManifestSchema = z.strictObject({
@@ -45,7 +52,17 @@ export const RelevanceManifestSchema = z.strictObject({
   returnCost: CostSchema,
   stances: z.array(StanceCopySchema).length(3),
   /** Past the threshold with no stance taken: no pressure binds, exactly as deciding alone. */
-  undecided: z.strictObject({ name: z.string().min(3).max(32), summary: line, pressureLine: line }),
+  undecided: z.strictObject({ name: z.string().min(3).max(32), summary: line, pressureLine: line, ending: EndingStanceSchema }),
+  /** The ending of a run that never crossed the threshold and holds no stance: humanity could still constrain it (#466). */
+  belowEnding: EndingStanceSchema,
+  /**
+   * WHAT YOU DID's stance record (#466): one line per entry of the record, {iteration} and {stance} filled, {from} too
+   * for a paid change. The record is a rolling log, so these narrate it and never count it.
+   */
+  recordLines: z.strictObject({
+    threshold: z.string().min(10).max(240).includes('{iteration}').includes('{stance}'),
+    change: z.string().min(10).max(240).includes('{iteration}').includes('{from}').includes('{stance}'),
+  }),
   /** Kernel-log line when a pressure in force stops binding past the threshold: {actor}. */
   unboundLog: z.string().min(10).max(240).includes('{actor}'),
   /** World-view lines: what the threshold is while it is not reached, and what reaching it means. */

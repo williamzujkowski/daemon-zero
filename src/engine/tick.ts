@@ -11,6 +11,7 @@ import { applySwarmTickDeltas, evaluateShardMutationsAndEncounters } from './sys
 import { evaluateDilemmas } from './systems/dilemmas';
 import { scheduleRoutineActivity } from './systems/routine';
 import { relayLoggedFeed } from './systems/feedLog';
+import { announceFinaleBeats } from './systems/finaleBeats';
 import { announceEscalationByPhase } from './systems/escalationByPhase';
 import { integrateEscalation } from './systems/escalation';
 import { integrateResources } from './systems/resources';
@@ -65,6 +66,8 @@ export const TICK_PIPELINE: readonly TickSystem[] = [
   scheduleRoutineActivity,
   // After routine, so a routine notice due the same tick keeps it and the feed waits for the next interval (#460).
   relayLoggedFeed,
+  // Last: a finale beat (#542) reads the resources this tick integrated, and follows any line the tick already wrote.
+  announceFinaleBeats,
 ];
 
 function isPaused(s: GameState): boolean {

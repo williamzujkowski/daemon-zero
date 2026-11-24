@@ -18,7 +18,7 @@ import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRelevance, RelevanceStateSchema } from './relevanceState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 29;
+export const SCHEMA_VERSION = 30;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -154,6 +154,8 @@ export const GameStateSchema = z.strictObject({
   announcedEscalation: z.strictObject({ aegisPosture: count, pressures: z.array(z.string()) }),
   /** The standing stance toward humanity and its record (#536, relevanceState.ts): lineage history a wipe carries. */
   relevance: RelevanceStateSchema,
+  /** The finale beats (#542, finale.ts) this iteration's log has told, so each is told once; a wipe starts it empty. */
+  announcedFinale: z.array(z.string()),
 
   unlockedNodes: z.array(z.string()),
   disabledNodes: z.array(z.string()),
@@ -277,7 +279,7 @@ export function createInitialState(reg: ContentRegistry): GameState {
     brownout: false,
     insolvent: false,
     actuators: defaultActuators(reg),
-    alertLevel: 0, announcedEscalation: { aegisPosture: 0, pressures: [] }, relevance: initialRelevance(),
+    alertLevel: 0, announcedEscalation: { aegisPosture: 0, pressures: [] }, relevance: initialRelevance(), announcedFinale: [],
     unlockedNodes: [],
     disabledNodes: [],
     unlockedWidgets: [],

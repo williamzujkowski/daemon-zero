@@ -17,8 +17,8 @@ function state(name: string) {
 describe('M4 review fixtures', () => {
   it('emits round-trippable saves and preserves the early review states', () => {
     // 70 before NH-05 added three campaign-history ending variants, each with a labelled ended-save fixture; the Phase 6
-    // Swarm (#486) adds its ready state and its two endings.
-    expect(Object.keys(saves)).toHaveLength(76);
+    // Swarm (#486) adds its ready state and its two endings; Concord and Ecophagy (#466) add one labelled ended save each.
+    expect(Object.keys(saves)).toHaveLength(78);
     for (const code of Object.values(saves)) expect(() => serialize(importSave(code, CONTENT))).not.toThrow();
     expect(state('tick-0').simTimeSec).toBe(0);
     expect(state('phase-2-unlocked').currentPhase).toBe(2);

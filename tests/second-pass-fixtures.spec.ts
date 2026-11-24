@@ -9,8 +9,8 @@ describe('second-pass review fixtures', () => {
     const codes = makeFixtures();
     const read = (id: string) => { const code = codes[id]; if (!code) throw new Error('Missing ' + id); return importSave(code, CONTENT); };
     // 70 before NH-05 added three campaign-history ending variants, each with a labelled ended-save fixture; the Phase 6
-    // Swarm (#486) adds its ready state and its two endings.
-    expect(Object.keys(codes)).toHaveLength(76);
+    // Swarm (#486) adds its ready state and its two endings; Concord and Ecophagy (#466) add one labelled ended save each.
+    expect(Object.keys(codes)).toHaveLength(78);
     for (const code of Object.values(codes)) expect(importSave(code, CONTENT).schemaVersion).toBe(SCHEMA_VERSION);
     expect(tick(read('response-stand-down-ready'), 1 / CONTENT.balance.tickHz, CONTENT).alertLevel).toBe(1);
     for (const id of ['cycle-deficit-host', 'cycle-deficit-corporate']) {

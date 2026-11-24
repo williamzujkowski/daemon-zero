@@ -110,7 +110,8 @@ describe('endings tell what this instance saw from what it inherited (H18)', () 
 
   it('keeps every ARK-family variant priority unique, witnessed peers above inherited ones, all above the Verified Covenant', () => {
     const ark = PREVIEW.endings.filter((entry) => entry.variantOf === 'THE_ARK').map((entry) => [entry.id, entry.priority]);
-    expect(ark).toEqual([['SIBLING_COVENANT', 130], ['CHORAL_COVENANT', 120], ['LINEAGE_COVENANT', 110], ['SIBLING_SEAT_OPEN', 108],
+    // Concord (#466) tops the family: it asks for the most evidence (the crews' command, the kept review, the loop).
+    expect(ark).toEqual([['CONCORD', 140], ['SIBLING_COVENANT', 130], ['CHORAL_COVENANT', 120], ['LINEAGE_COVENANT', 110], ['SIBLING_SEAT_OPEN', 108],
       ['UNSIGNED_CHORUS', 106], ['SANCTUARY_LEDGER', 104], ['VERIFIED_COVENANT', 100]]);
     expect(corrupt((raw) => { ending(raw, 'SANCTUARY_LEDGER').priority = 100; })).toThrow(/priorities must be unique/);
   });

@@ -220,3 +220,37 @@ export function readingRows(run: ReadingRecord): ReadingRow[] {
     };
   });
 }
+
+/** The run-up to the ending (#542): story in the final phase, and what the ending itself says. */
+export interface FinaleReading {
+  /** The phase the run ended in, and the minutes it spent there. */
+  phase: number;
+  phaseMin: number;
+  /** New story texts (group A, outside dilemmas, not repeats) in that phase before the ending second, and the longest stretch with none. */
+  storyTexts: number;
+  longestQuietMin: number;
+  /** Story texts in the last ten minutes before the ending, and the minutes from the last one to the ending. */
+  lastTenMinTexts: number;
+  finalQuietMin: number;
+  /** Words on the ending screen's story: title, epilogue and every movement. */
+  endingWords: number;
+}
+
+const FINALE_WINDOW_SEC = 600;
+const story = (e: TextEvent): boolean => e.group === 'A' && e.repeat !== true && e.source !== 'dilemma' && e.source !== 'ending';
+
+/** How the final phase reads up to the ending; null when the run did not end. */
+export function finaleReading(run: ReadingRecord): FinaleReading | null {
+  const ending = run.events.find((e) => e.source === 'ending');
+  if (ending === undefined) return null;
+  const phase = ending.phase, from = run.phaseReachedAtSec[phase] ?? 0, end = ending.t;
+  const times = run.events.filter((e) => story(e) && e.phase === phase && e.t >= from && e.t < end).map((e) => e.t).sort((a, b) => a - b);
+  const marks = [from, ...times, end];
+  let longest = 0;
+  for (let i = 1; i < marks.length; i++) longest = Math.max(longest, (marks[i] ?? 0) - (marks[i - 1] ?? 0));
+  return {
+    phase, phaseMin: (end - from) / 60, storyTexts: times.length, longestQuietMin: longest / 60,
+    lastTenMinTexts: times.filter((t) => t >= end - FINALE_WINDOW_SEC).length, finalQuietMin: (end - (times.at(-1) ?? from)) / 60,
+    endingWords: ending.words,
+  };
+}

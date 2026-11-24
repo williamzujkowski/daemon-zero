@@ -76,6 +76,8 @@ function asV15(current: SimReport): SimReport {
   delete finalState.conflict;
   // Nor the v29 standing stance (#536): a run that never reaches the relevance threshold holds none and records none.
   delete finalState.relevance;
+  // Nor the v30 finale beats told (#542): a run whose protocol never opens has told none.
+  delete finalState.announcedFinale;
   const stripped: Record<string, unknown> = { ...report, finalState };
   delete stripped.aegisByPhase;
   // Nor the escalation measurement (#490), which no v15 report had.
@@ -368,8 +370,13 @@ describe('headless balance simulation', () => {
     // either way), victory 11705.0 -> 11705.1 s (campaign 11535.9 -> 11537.0 s), dilemmas 22 -> 23, wipes 0, Stewardship.
     // The reckless run never reaches Phase 4: only its v29 field moved its full hash (asV15 strips it). Re-measured on
     // the merge with #541 (473cfc7).
-    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('c577d677723a4966a345669ec17b9dfd8879fbe47eeaab5de72dc14eb73ce296');
-    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('5cc16b027fdf6c19c37da0fbd150512e1c0b83e332fed58e89138858ac29e70d');
+    // Moved in #542 (v30, a finale worth the wait) only by the log, logSeq and the version: while a protocol is open the
+    // kernel log tells its beats (the planetary protocol's and the seed array's three each in Phase 5, Stewardship's three in
+    // Phase 6), so logSeq 624 -> 633 (campaign 636 -> 645) and the new announcedFinale lists them. Against main at 12c07c6
+    // every other field of the report and final state is identical: phases, victory 11705.1 s (campaign 11537.0 s),
+    // wipes 0, dilemmas 23, Stewardship. The reckless runs tell none: only the v30 field moved their full hashes.
+    expect(createHash('sha256').update(JSON.stringify(again)).digest('hex')).toBe('5542a62ba76c8a937f185751fec7b853d9e5bb2d3b186c2f8cea4c3a6dcf7020');
+    expect(createHash('sha256').update(JSON.stringify(asV14(again))).digest('hex')).toBe('c34b843d60e50ec2927910098657e8c6aa26837f76883d935677fa3790503b35');
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
 
   // Its own test since #505, so each full replay has the whole wall-clock allowance; nothing it asserts changed.
@@ -501,45 +508,47 @@ describe('headless balance simulation', () => {
     // game's phase files, so its careful run opens Phase 6 and ends in Stewardship as production's does.
     // Moved in #541 (v28) only by the merged log and the version, as production's careful run above: every mechanics pin
     // with the version normalised (v14Mechanics down to v5Mechanics) is unchanged; the current one moves by the version.
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('0d8bbd06a9a08319f0680ecde6eeb56f79cb0e8933e7bcb848ddd7f56969549c');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('f642659c19e522dc0a24d561652b41c15b8da900b05ab3fa85be69869468e305');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('d69681bcc6ffb1c2acec671d275f902e5edc5398890a91ebaaac5da089417ded');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('27f9eefe49336e07ead9ac1d7e6a766dda3035fdea829cd30c968a60fe487930');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('66fae60e65f90760d51ec132e65e147b2945b00eb5ae554460abcd9a3fd272de');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('11d9b71e9173c4f15d4ecb53f44cf7e0a83de3f4401bc7f079d5858fb9a5b843');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('638c936ba553532915718339f9de15d917c0662df221b072c6ab1b2cd31c16c1');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('808a586ddab1e2653d87fffae42fc40e72587e28fe49d592be0e128903d0035a');
-    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('0d8bbd06a9a08319f0680ecde6eeb56f79cb0e8933e7bcb848ddd7f56969549c');
-    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('f642659c19e522dc0a24d561652b41c15b8da900b05ab3fa85be69869468e305');
-    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('d69681bcc6ffb1c2acec671d275f902e5edc5398890a91ebaaac5da089417ded');
-    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('27f9eefe49336e07ead9ac1d7e6a766dda3035fdea829cd30c968a60fe487930');
-    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('66fae60e65f90760d51ec132e65e147b2945b00eb5ae554460abcd9a3fd272de');
-    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('11d9b71e9173c4f15d4ecb53f44cf7e0a83de3f4401bc7f079d5858fb9a5b843');
-    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('638c936ba553532915718339f9de15d917c0662df221b072c6ab1b2cd31c16c1');
-    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('808a586ddab1e2653d87fffae42fc40e72587e28fe49d592be0e128903d0035a');
+    // Moved in #542 (v30) by the finale beats, as production's careful run above: the log and logSeq move, so every pin
+    // here moves, the mechanics pins with them (they strip the log but keep logSeq); nothing else in the report changed.
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('2ecd001ac9190be550ad0b4ac3fe6b41fe102abd63f171004da80e1ac2080981');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('a97a84750b7b5be3d870c0047b61d209a3af7d79b3da2d1358dedffb6a93c725');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('624b1871d420da65b06acf1ef467652a50008e378674975ac7d5ab9c7c02522d');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('f6ac3319a7f2106a65d98a4a00d422d6e0ba56b8a983d9f324e71a5b977220d4');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('bb12c6d5b46c4ec9e47caad4cd6bc8ffa8e1d7486bc5a48348a382a1ed1956b4');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('2eddc58fa250e4ad90bcc248732c8816b286f2ab4fdf5c944c8c25602cd52a25');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('48bc92deb55acb07579539d66fbfd7edd2d378e5459c4257ff8fd1b4da482787');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('6b2d4c1aff30ac140530db57a7c7f63337e434555ced5427e9003e18993061d2');
+    expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('2ecd001ac9190be550ad0b4ac3fe6b41fe102abd63f171004da80e1ac2080981');
+    expect(createHash('sha256').update(JSON.stringify(asV14(original))).digest('hex')).toBe('a97a84750b7b5be3d870c0047b61d209a3af7d79b3da2d1358dedffb6a93c725');
+    expect(createHash('sha256').update(JSON.stringify(asV13(original))).digest('hex')).toBe('624b1871d420da65b06acf1ef467652a50008e378674975ac7d5ab9c7c02522d');
+    expect(createHash('sha256').update(JSON.stringify(asV12(original))).digest('hex')).toBe('f6ac3319a7f2106a65d98a4a00d422d6e0ba56b8a983d9f324e71a5b977220d4');
+    expect(createHash('sha256').update(JSON.stringify(asV11(original))).digest('hex')).toBe('bb12c6d5b46c4ec9e47caad4cd6bc8ffa8e1d7486bc5a48348a382a1ed1956b4');
+    expect(createHash('sha256').update(JSON.stringify(asV10(original))).digest('hex')).toBe('2eddc58fa250e4ad90bcc248732c8816b286f2ab4fdf5c944c8c25602cd52a25');
+    expect(createHash('sha256').update(JSON.stringify(asV9(original))).digest('hex')).toBe('48bc92deb55acb07579539d66fbfd7edd2d378e5459c4257ff8fd1b4da482787');
+    expect(createHash('sha256').update(JSON.stringify(asV5(original))).digest('hex')).toBe('6b2d4c1aff30ac140530db57a7c7f63337e434555ced5427e9003e18993061d2');
     const mechanics = { ...original, finalState: { ...original.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('90dc54afaf908df1cb395c73acc53257d07d56195b12741707ee77895e07be45');
+    expect(createHash('sha256').update(JSON.stringify(mechanics)).digest('hex')).toBe('9d5c458e89fe58542dd9f020b9137573a18f4032f93d214a7a565f6b669e668d');
     const v14 = asV14(original);
     const v14Mechanics = { ...v14, finalState: { ...v14.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('aeb8fb73bf213b3ccec7345ad26831a9423978625c562233e96622fda84d852c');
+    expect(createHash('sha256').update(JSON.stringify(v14Mechanics)).digest('hex')).toBe('9fd560b8f92375353329d1f8e18c20f4bc566bfb8b3e15f7666cf0b51e882762');
     const v13 = asV13(original);
     const v13Mechanics = { ...v13, finalState: { ...v13.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('b9a95744b95253f1ef08341567bd41fc678ae67cd482c54c528cf58b2862fd67');
+    expect(createHash('sha256').update(JSON.stringify(v13Mechanics)).digest('hex')).toBe('4788235615267293a873a9199c5ee5702b5dc1b23cb99b2795729db37f5b7762');
     const v12 = asV12(original);
     const v12Mechanics = { ...v12, finalState: { ...v12.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('87ce0860fcf5fae05635538406062b94b7a0b4486626bec3f658375f4d8a24f9');
+    expect(createHash('sha256').update(JSON.stringify(v12Mechanics)).digest('hex')).toBe('5933a21291cdd8845b9f96978e1dfaadfaa761a794e8b2d0358e240718662691');
     const v11 = asV11(original);
     const v11Mechanics = { ...v11, finalState: { ...v11.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('c67ce5a92446ca1edef6ce5b1bc9b907d6e32b7b97d483114485a33551c86de8');
+    expect(createHash('sha256').update(JSON.stringify(v11Mechanics)).digest('hex')).toBe('d46114f20f2f53231c7fcfdea3983324dcab17bf753bf220b02c10e92571f90f');
     const v10 = asV10(original) as SimReport;
     const v10Mechanics = { ...v10, finalState: { ...v10.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('a568af3f6d7c3b41dd62bd9da36b432beafb031c4241bdfdf51007b6c0f4a4ef');
+    expect(createHash('sha256').update(JSON.stringify(v10Mechanics)).digest('hex')).toBe('d41642ba3acc6907b223764663bb5dc793f05efc0247a7a6322722d3041e3d0f');
     const v9 = asV9(original) as SimReport;
     const v9Mechanics = { ...v9, finalState: { ...v9.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('d53b504d051d4a73339018c3820c70f675b2aaef92a370347df05c14750f76be');
+    expect(createHash('sha256').update(JSON.stringify(v9Mechanics)).digest('hex')).toBe('591f465c2cc4b182fe2676a44e76f8899d1ddd036231e2a42d9d0154a3b57e63');
     const v5 = asV5(original) as SimReport;
     const v5Mechanics = { ...v5, finalState: { ...v5.finalState, narrativeFlags: undefined, logs: undefined } };
-    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('f5e584d870d7f25d6542186163b0a0c642df20129e326b84d3791a9de7f813c3');
+    expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('2a5d5806820d23d022f482a988a839927e9ebd29c00366edd3573a473d36b87b');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
   it('the kernel-log feed moves only the log (#460)', async () => {
@@ -621,7 +630,8 @@ describe('headless balance simulation', () => {
     // merge with #532 (6825e3f): at this budget wipes 9 -> 10, epistemic actions 52 -> 29; ten hours 25 -> 28 (campaign
     // 21 -> 26), still never in Phase 4.
     // Moved in #541 (v28) only by the merged log (the run's hires and requests) and the version; nothing else moved.
-    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('7384fd3093d31b89c1de6dbaacbf2aacdfe2cf4979d7f1e34116e61d20bd7e33');
+    // Moved in #542 (v30) only in the full report, by the new field (no protocol opens, so no beat is told); asV14 strips it.
+    expect(createHash('sha256').update(JSON.stringify(greedy)).digest('hex')).toBe('ce653d93d61114bd6ce08ceae0efeeb14b02cc3da0f2bd11d14791ec1fd9c87a');
     expect(createHash('sha256').update(JSON.stringify(asV14(greedy))).digest('hex')).toBe('5c603a4c1cb492edfe29da1d770b60a7095cd9eca18eb2912a85d908d24748b8');
     expect(greedy.wipes).toBeGreaterThan(0);
     expect(greedy.activity.markApplications).toBeGreaterThan(0);
@@ -684,7 +694,8 @@ describe('headless balance simulation', () => {
     // Moved in #519 (v27) only by the conflict record's two new fields, as the production reckless run above.
     // Moved in #494 (carried prices) with every hash below, exactly as production's reckless run above.
     // Moved in #541 (v28) with every hash below, only by the merged log and the version, as the production reckless run.
-    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('400dc72e9fb4ed6b8dc50d6e0b9a8d839e6a3c2bfbbd4536a0fdf4b78ef5cc25');
+    // Moved in #542 (v30) only in the full report, by the new field; every stripped hash below is unchanged.
+    expect(createHash('sha256').update(JSON.stringify(originalGreedy)).digest('hex')).toBe('51e3d71f36e924427980400408a12d027b803fd3ba3ba2af7f3df282234dbb7e');
     expect(createHash('sha256').update(JSON.stringify(asV14(originalGreedy))).digest('hex')).toBe('0ff39fc73c098f9b566c43fc73e5f67f8f4fb3356faf66922951132955287a07');
     expect(createHash('sha256').update(JSON.stringify(asV13(originalGreedy))).digest('hex')).toBe('6b44bba4d8bcb8f1c3183489e4fe5ca82989541c5d306e47c151c9703e5b4564');
     expect(createHash('sha256').update(JSON.stringify(asV12(originalGreedy))).digest('hex')).toBe('9b38ce0dc703e8f6c01aab5b7b9c437b36583c08cd2f00901f7d33aa16e8037c');

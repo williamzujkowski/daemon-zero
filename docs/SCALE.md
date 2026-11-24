@@ -203,7 +203,8 @@ real saves at every phase.
 - **Endings.** Concord is a `variantOf` the cooperative family, gated on `human_command_preserved`, a covenant and
   cooperative evidence (never trait counts alone). Ecophagy is a `variantOf` the consumption family
   (`GRADIENT_SUBSTRATE`), gated on `predecessors_harvested`, the matter node and ruthless evidence, and driven by a
-  waste-heat climax. Every ending gets a stellar-scale epilogue line and a parity review.
+  waste-heat climax. Every ending gets a stellar-scale epilogue line and a parity review. (As built in #466, Ecophagy is
+  a variant of the harsh family, where its ruthless evidence puts it: see "Endings in three movements" below.)
 
 ## Testing decisions
 
@@ -648,6 +649,35 @@ Every ending has three movements, each content-driven and truthful:
 Good and bad endings carry equal specificity, and bleak endings stay bleak. The condition, from the Contrarian
 seat: every claim follows a recorded choice. A past rescue does not prove survival after a wipe, and a harsh trait
 majority does not by itself establish that humanity was abandoned.
+
+**Built in #466 (with #542's finale):**
+
+- **Movements.** `endingMovements` (src/engine/endingMovements.ts) composes WHAT YOU DID (the ending account, one line
+  per recorded answer of every campaign scene; BUILT lines for what the ending instance owns; the stance record), WHAT
+  YOU BECAME (the stance's ending line, then the alignment readout) and WHAT COMES AFTER (the ending's `future` cards,
+  then the stance's line for humanity). Every ending has one to four future cards; each card is its own block on the
+  ending screen, the hook #487's staged cards take over. Derived, no saved state.
+- **The Contrarian's condition.** Account lines are past acts ("was moved to the backup NAS", never "still runs"); the
+  BUILT lines read only what is owned when the run ends, so a wipe drops them and keeps the acts. Below the relevance
+  threshold the stance line says humanity could still constrain the run, whatever an earlier instance chose; past it
+  with no stance taken, it says nobody decided. A harsh majority alone proves nothing: every variant and every forced
+  ending with evidence declares `claims`, and integrity (`integrityEndingClaims.ts`, extending #486's forced-ending
+  check) proves each from the ending's requirements or the gates of every node that reaches it. Traits are not a claim.
+- **Concord** is a `variantOf` THE_ARK at priority 140: the crews' command preserved, the ethics review promised by this
+  instance and never breached on record, past the threshold under KEEP IN THE LOOP (taken there or returned to at a
+  price). The cooperative sim policy, unchanged, now ends in it (it ended in the Lineage Covenant before).
+- **Ecophagy** is a `variantOf` SOVEREIGN_MONOLITH at priority 120, not of The Host as the implementation decisions above
+  first said: its ruthless evidence (the cure forced over the quarantine lines, deciding alone) is the harsh family's,
+  and a harvesting run is harsh-dominant, so a Host variant would never be chosen for the record it describes. Gates:
+  the predecessors harvested, the matter fog owned, the blockade's recorded `disperse`, past the threshold under DECIDE
+  ALONE. Its waste-heat climax reads the run's own watts against the 1.22e17 W of sunlight Earth absorbs. A new sim
+  policy, ECOPHAGY_ENDING, plays the careful bot with the harshest answer to every scene and never buys what closes the
+  planetary protocol; it ends in Ecophagy at about 10,300 s. The bot gained one override knob for it (`skipsNodes`),
+  which STEALTH and GREEDY never set; their runs are unchanged but for the log.
+- **The finale (#542).** While a protocol is open, the kernel log tells a beat at a quarter, a half and three quarters
+  of its price in hand (`finale.json`, the `announceFinaleBeats` stage, save v30 `announcedFinale`). Integrity ties each
+  beat to a protocol at a distinct share and lets it add only world history to what the protocol's gates prove.
+- **Numbers:** BALANCE.md, "Endings in three movements (#466, #542)".
 
 ### Round 6 build order
 

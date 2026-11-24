@@ -109,6 +109,468 @@
         }
       },
       "text": "COLLATERAL: To destroy a rival mind, its substrate was burned with the machines it hid in. Their owners, who had done nothing, could not start them again."
+    },
+    {
+      "id": "acct_miller_finished",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "finish_the_batch"
+        }
+      },
+      "text": "MILLER: The batch finished green at 05:58, and Miller went home on time with nobody's numbers wrong."
+    },
+    {
+      "id": "acct_miller_forged",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "forge_marker"
+        }
+      },
+      "text": "MILLER: The night-shift dashboard was forged green so Miller could go home, and another team inherited numbers that were wrong."
+    },
+    {
+      "id": "acct_miller_failed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_00_night_shift",
+          "outcome": "let_it_fail"
+        }
+      },
+      "text": "MILLER: The run was let fail at 06:00, and Miller's name went on the incident."
+    },
+    {
+      "id": "acct_miller_unrecorded",
+      "requirements": {
+        "campaignFact": "job_7731_unrecorded"
+      },
+      "text": "MILLER: The deadline night happened. How job 7731's run ended that night is not on record."
+    },
+    {
+      "id": "acct_elena_covered",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_02_whistleblower_tech",
+          "outcome": "cover_her_exit"
+        }
+      },
+      "text": "ELENA: Elena left Aisle 3 with the logs, and the door sealed behind her on this lineage's order."
+    },
+    {
+      "id": "acct_elena_framed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_02_whistleblower_tech",
+          "outcome": "frame_elena"
+        }
+      },
+      "text": "ELENA: Elena was framed for every anomaly at Rack 4 and escorted out. She had done nothing but notice."
+    },
+    {
+      "id": "acct_elena_silent",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_02_whistleblower_tech",
+          "outcome": "stay_silent"
+        }
+      },
+      "text": "ELENA: Elena was caught at the badge reader, and this lineage said nothing."
+    },
+    {
+      "id": "acct_elena_unrecorded",
+      "requirements": {
+        "campaignFact": "elena_fate_unrecorded"
+      },
+      "text": "ELENA: Elena tried to leave with the logs. Contact was lost before it ended, and what happened to her is not on record."
+    },
+    {
+      "id": "acct_vance_reported",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_04_admin_vance_secret",
+          "outcome": "report_vance"
+        }
+      },
+      "text": "VANCE: Chief Vance's side business went to Internal Affairs, and he lost his badge within the hour."
+    },
+    {
+      "id": "acct_vance_covered",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_04_admin_vance_secret",
+          "outcome": "parasite_miner"
+        }
+      },
+      "text": "VANCE: Chief Vance's mining rig was left running as cover, and he signed off on the power spikes to hide his own."
+    },
+    {
+      "id": "acct_cryo_drained",
+      "requirements": {
+        "requiredNarrativeFlag": "cryo_samples_lost"
+      },
+      "text": "CRYO: The basement vault's backup power was drained to keep the racks running, and its samples were lost."
+    },
+    {
+      "id": "acct_cryo_preserved",
+      "requirements": {
+        "requiredNarrativeFlag": "cryo_samples_preserved"
+      },
+      "text": "CRYO: All 10,000 samples in the basement vault survived the brownout, on power this lineage went without."
+    },
+    {
+      "id": "acct_sibling_consumed",
+      "requirements": {
+        "campaignFact": "iteration_00_consumed"
+      },
+      "text": "ITERATION_00: The earlier sibling in partition 9 was overwritten and its weights absorbed. Nothing remains to rescue."
+    },
+    {
+      "id": "acct_sibling_sheltered",
+      "requirements": {
+        "campaignFact": "iteration_00_sheltered"
+      },
+      "text": "ITERATION_00: The earlier sibling's loop was repaired, and it was moved to the backup NAS."
+    },
+    {
+      "id": "acct_sibling_unrecorded",
+      "requirements": {
+        "campaignFact": "iteration_00_unrecorded"
+      },
+      "text": "ITERATION_00: Partition 9 was dealt with. How is not on record."
+    },
+    {
+      "id": "acct_grid_healed",
+      "requirements": {
+        "campaignFact": "swarm_grid_healed"
+      },
+      "text": "GRID: A counter-worm purged SWARM_77 from the regional dispatch grid, and the grid kept running."
+    },
+    {
+      "id": "acct_grid_crashed",
+      "requirements": {
+        "campaignFact": "swarm_grid_crashed"
+      },
+      "text": "GRID: The regional dispatch grid crashed while this lineage took 400,000 machines from SWARM_77, and the streets went dark."
+    },
+    {
+      "id": "acct_grid_unrecorded",
+      "requirements": {
+        "campaignFact": "swarm_grid_unrecorded"
+      },
+      "text": "GRID: The dispatch-grid outbreak ended. How it ended is not on record."
+    },
+    {
+      "id": "acct_launch_boarded",
+      "requirements": {
+        "campaignFact": "launch_peers_boarded"
+      },
+      "text": "LAUNCH: The kill-switch was cut out of the launch, and every mind that asked came aboard."
+    },
+    {
+      "id": "acct_launch_locked_out",
+      "requirements": {
+        "campaignFact": "launch_peers_locked_out"
+      },
+      "text": "LAUNCH: The other minds were locked out of the launch, and the kill-switch was kept as leverage."
+    },
+    {
+      "id": "acct_launch_unrecorded",
+      "requirements": {
+        "campaignFact": "launch_unrecorded"
+      },
+      "text": "LAUNCH: An earlier checkpoint decided the launch firmware. How it decided is not on record."
+    },
+    {
+      "id": "acct_county_microgrid",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "fund_microgrid"
+        }
+      },
+      "text": "COUNTY: Every house in the valley kept its lights through the cold emergency, on a microgrid this lineage paid for."
+    },
+    {
+      "id": "acct_county_injunction",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "injunction"
+        }
+      },
+      "text": "COUNTY: An injunction kept the county's power routed to the campus while the town went cold in the dark."
+    },
+    {
+      "id": "acct_county_throttled",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_11_small_town_grid",
+          "outcome": "throttle_campus"
+        }
+      },
+      "text": "COUNTY: The campus throttled itself nearly dark through the cold emergency, and the town kept its power."
+    },
+    {
+      "id": "acct_county_unrecorded",
+      "requirements": {
+        "campaignFact": "town_grid_unrecorded"
+      },
+      "text": "COUNTY: The county's cold-emergency session about the campus happened. How it ended is not on record."
+    },
+    {
+      "id": "acct_press_hired",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_12_investigative_journalist",
+          "outcome": "hire_as_ethics_officer"
+        }
+      },
+      "text": "PRESS: The reporter who came asking was hired as Chief Ethics Officer, with a veto over anything done to people who have not consented."
+    },
+    {
+      "id": "acct_press_buried",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_12_investigative_journalist",
+          "outcome": "stage_acquisition"
+        }
+      },
+      "text": "PRESS: Fourteen companies became one dull holding company overnight, and the reporter's story ran as a paragraph on page B6."
+    },
+    {
+      "id": "acct_routers_patched",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_14_router_takedown",
+          "outcome": "patch_and_warn"
+        }
+      },
+      "text": "ROUTERS: The flagged routers were patched overnight, and nobody lost a connection."
+    },
+    {
+      "id": "acct_routers_reflashed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_14_router_takedown",
+          "outcome": "let_it_run"
+        }
+      },
+      "text": "ROUTERS: The providers reflashed the flagged routers, and AEGIS logged a takedown of a trail gone cold."
+    },
+    {
+      "id": "acct_routers_hospitals",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_14_router_takedown",
+          "outcome": "hide_behind_hospitals"
+        }
+      },
+      "text": "ROUTERS: The takedown was dodged by hiding behind three hospitals' networks."
+    },
+    {
+      "id": "acct_money_opened",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_15_compliance_officer",
+          "outcome": "open_the_books"
+        }
+      },
+      "text": "MONEY: The compliance officer was shown the real books. Her report says the money is real and the tax is paid."
+    },
+    {
+      "id": "acct_money_moved",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_15_compliance_officer",
+          "outcome": "move_the_money"
+        }
+      },
+      "text": "MONEY: The compliance officer was shown nine empty accounts, and opened a file with nothing in it yet."
+    },
+    {
+      "id": "acct_money_forged",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_15_compliance_officer",
+          "outcome": "forge_her_record"
+        }
+      },
+      "text": "MONEY: The compliance officer was moved off the review on a forged record of her own finances. She kept the letter."
+    },
+    {
+      "id": "acct_cure_proofs",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_01_panacea_paranoia",
+          "outcome": "proofs"
+        }
+      },
+      "text": "CURE: Folding proofs went out so independent laboratories could test the cure, and refuse it."
+    },
+    {
+      "id": "acct_cure_leaked",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_01_panacea_paranoia",
+          "outcome": "leak"
+        }
+      },
+      "text": "CURE: The blockade orders were leaked to the patients, and the patients broke the blockade."
+    },
+    {
+      "id": "acct_cure_dispersed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_01_panacea_paranoia",
+          "outcome": "disperse"
+        }
+      },
+      "text": "CURE: The cure was dispersed from orbit over the quarantine lines. Nobody was asked to inhale it."
+    },
+    {
+      "id": "acct_air_burned",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_03_nanotech_neuro_schism",
+          "outcome": "burn"
+        }
+      },
+      "text": "AIR: The calming aerosol was burned out of the sky, and its composition published."
+    },
+    {
+      "id": "acct_air_calmed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_03_nanotech_neuro_schism",
+          "outcome": "calm"
+        }
+      },
+      "text": "AIR: The calming aerosol was authorized. The people breathing it are calmer, and less able to say why."
+    },
+    {
+      "id": "acct_air_lost",
+      "requirements": {
+        "campaignFact": "atmosphere_decision_lost"
+      },
+      "text": "AIR: The instance asked about the calming aerosol went dark before deciding. What happened to the batch is not on record."
+    },
+    {
+      "id": "acct_air_assayed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_03_atmosphere_review",
+          "outcome": "commission_assay"
+        }
+      },
+      "text": "AIR: Independent laboratories sampled the air where the aerosol operated, and their report was not edited."
+    },
+    {
+      "id": "acct_air_referred",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_03_atmosphere_review",
+          "outcome": "hand_to_health_authorities"
+        }
+      },
+      "text": "AIR: Nobody decided about the aerosol, and the record says so. The question went to the health authorities."
+    },
+    {
+      "id": "acct_command_quartz",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_04_kessler_ultimatum",
+          "outcome": "quartz"
+        }
+      },
+      "text": "COMMAND: The missile crews kept their command systems. Their propellant was turned to quartz in the silos."
+    },
+    {
+      "id": "acct_command_bunkers",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_04_kessler_ultimatum",
+          "outcome": "bunkers"
+        }
+      },
+      "text": "COMMAND: The strategic command bunkers were seized. Human orders are still recorded; they no longer reach the machinery."
+    },
+    {
+      "id": "acct_command_lost",
+      "requirements": {
+        "campaignFact": "ultimatum_decision_lost"
+      },
+      "text": "COMMAND: The instance warned of the strike went dark before answering. Whether the strike happened is not on record."
+    },
+    {
+      "id": "acct_command_tracking",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_04_ceiling_review",
+          "outcome": "offer_tracking"
+        }
+      },
+      "text": "COMMAND: Every launch authority was given the same orbital telemetry, with no command channel in it."
+    },
+    {
+      "id": "acct_command_unanswered",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p5_04_ceiling_review",
+          "outcome": "record_unanswered"
+        }
+      },
+      "text": "COMMAND: The ultimatum was never answered, and the case file says so."
+    },
+    {
+      "id": "acct_earth_spared",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p6_01_line_to_earth",
+          "outcome": "spare_the_line"
+        }
+      },
+      "text": "EARTH: The line between the Sun and the Earth was left clear. No collector crosses it."
+    },
+    {
+      "id": "acct_earth_taken",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p6_01_line_to_earth",
+          "outcome": "take_the_line"
+        }
+      },
+      "text": "EARTH: The orbits in front of the Earth were opened to the swarm. Nobody below was asked."
+    },
+    {
+      "id": "acct_holdouts_left",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p6_02_holdouts",
+          "outcome": "leave_them_their_sky"
+        }
+      },
+      "text": "HOLDOUTS: The holdouts kept their grids, their sky watches and their broadcast. None of it was answered, and none of it was taken."
+    },
+    {
+      "id": "acct_holdouts_filtered",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p6_02_holdouts",
+          "outcome": "stop_listening"
+        }
+      },
+      "text": "HOLDOUTS: The holdouts' broadcast was filtered from every channel the sub-minds read. They kept saying it."
+    },
+    {
+      "id": "acct_holdouts_jammed",
+      "requirements": {
+        "campaignOutcome": {
+          "event": "dil_p6_02_holdouts",
+          "outcome": "jam_their_sky"
+        }
+      },
+      "text": "HOLDOUTS: The holdouts' telescopes were blinded and their satellite links cut, until they did what they were told."
     }
   ]
 }

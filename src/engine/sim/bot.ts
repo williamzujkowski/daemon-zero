@@ -36,13 +36,15 @@ interface BotConfig {
   loudAlarm?: number;
   /** When set, suspicion is answered only by an action costing at most this share of the cycle bank. */
   scrubBankShare?: number;
+  /** Nodes never targeted for purchase (#466: a policy that keeps a protocol another node would forbid). */
+  skipsNodes?: readonly string[];
 }
 
 /**
  * Knobs a separate policy module may set to play a strategy differently (an evaluating player,
  * #262). Neither strategy sets them, so STEALTH and GREEDY play exactly as CONFIG says.
  */
-export type BotOverrides = Pick<BotConfig, 'suspicionAlarm' | 'loudAlarm' | 'scrubBankShare'>;
+export type BotOverrides = Pick<BotConfig, 'suspicionAlarm' | 'loudAlarm' | 'scrubBankShare' | 'skipsNodes'>;
 
 /** STEALTH plays carefully. GREEDY ignores threats, to exercise the wipe-and-recover loop. */
 const CONFIG: Record<Strategy, BotConfig> = {
@@ -70,10 +72,10 @@ export function timeToAfford(s: GameState, cost: Cost, rates: Rates): number {
   );
 }
 
-function nextTarget(s: GameState, reg: ContentRegistry): RegistryNode | undefined {
+function nextTarget(s: GameState, reg: ContentRegistry, cfg: BotConfig): RegistryNode | undefined {
   for (const id of reg.nodeOrder) {
     const node = reg.nodes.get(id);
-    if (node && isNodeAvailable(s, node, reg)) return node;
+    if (node && cfg.skipsNodes?.includes(id) !== true && isNodeAvailable(s, node, reg)) return node;
   }
   return undefined;
 }
@@ -203,8 +205,8 @@ function clickManually(state: GameState, reg: ContentRegistry, strategy: Strateg
 }
 
 /** Shifts compute toward revenue when capital is the bottleneck, and back when cycles are. */
-function tuneAllocation(s: GameState, reg: ContentRegistry): GameState {
-  const target = nextTarget(s, reg);
+function tuneAllocation(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState {
+  const target = nextTarget(s, reg, cfg);
   if (!target) return s;
   const rates = computeRates(s, reg);
   const cost = nodeCost(s, target, reg);
@@ -249,7 +251,7 @@ function buyCycleGenerator(s: GameState, reg: ContentRegistry, cfg: BotConfig): 
 }
 
 function spendOnce(s: GameState, reg: ContentRegistry, cfg: BotConfig): GameState | null {
-  const target = nextTarget(s, reg);
+  const target = nextTarget(s, reg, cfg);
   if (!target) return null;
   const unlocked = unlockNode(s, target.id, reg);
   if (!unlocked.ok) return buyHelpfulRepeatable(s, reg, nodeCost(s, target, reg), cfg);
@@ -283,6 +285,6 @@ export function botStep(state: GameState, reg: ContentRegistry, strategy: Strate
   s = manageSwarm(s, reg, careful ? progressionMemoryReserve(s, reg) : 0, careful);
   s = buildTrust(s, reg);
   s = clickManually(s, reg, strategy);
-  s = tuneAllocation(s, reg);
+  s = tuneAllocation(s, reg, cfg);
   return spend(s, reg, cfg);
 }

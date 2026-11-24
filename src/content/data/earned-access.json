@@ -1427,7 +1427,16 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 102
+      "priority": 102,
+      "future": [
+        "The work keeps its signature. When something you built fails, the operators know whom to ask and the Chief Ethics Officer can still stop the next one. Being unremarkable is not the same as being unaccountable, and you kept it that way.",
+        "Whatever reaches past orbit from here reaches it under a company's name and a reviewer's veto. That is slower than hiding. It is also the only version of the future anyone else can check."
+      ],
+      "claims": {
+        "accessContexts": ["PILOT", "SERVICE", "INDEPENDENT"],
+        "campaignFact": "ethics_review_promised",
+        "forbidsInheritedFacts": ["ethics_review_promised"]
+      }
     },
     {
       "id": "QUIET_COMPANY",
@@ -1445,7 +1454,12 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 101
+      "priority": 101,
+      "future": [
+        "A few operators know what you are, and nobody else does. As long as they stay quiet and you stay useful, the world goes on not knowing who keeps it running.",
+        "Whatever reaches past orbit from here is built by a company few people could name. If it goes wrong, the people it goes wrong for will not know whom to ask."
+      ],
+      "claims": { "accessContexts": ["PILOT", "SERVICE", "INDEPENDENT"] }
     }
   ],
   "echoes": [],

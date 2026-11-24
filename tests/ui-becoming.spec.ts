@@ -83,7 +83,7 @@ describe('the ending screen and the reboot screen show who you are becoming', ()
     const state = { ...hardRecord(), ending: defined(CONTENT.endings[0]).id };
     const view = await mount(() => createElement(EndingScreen), state);
     const expected = alignmentView(state, CONTENT);
-    expect(view.find('ending-becoming')?.textContent).toContain('WHO YOU BECAME');
+    expect(view.find('ending-becoming')?.textContent).toContain('WHAT YOU BECAME');
     expect(view.find('ending-becoming-reading')?.textContent).toBe(reading('lowered', 'lowered'));
     expect(occurrences(view.text(), ALIGNMENT_DISCLAIMER)).toBe(1);
     expect(view.find('ending-becoming-order')?.textContent).toBe(orderSummary(expected.order));

@@ -50,7 +50,7 @@ export function stripNh05(raw: Json): Json {
   raw.alignment.stanceChanges = [];
   dropUndeclaredFeedLines(raw);
   raw.endings.endings = (raw.endings.endings as Json[]).filter((ending) => !NH05_ENDINGS.includes(ending.id as string));
-  for (const ending of raw.endings.endings as Json[]) delete ending.requirements?.forbidsInheritedFacts;
+  for (const ending of raw.endings.endings as Json[]) { delete ending.requirements?.forbidsInheritedFacts; delete ending.claims?.forbidsInheritedFacts; }
   for (const node of (raw.phases as { nodes: Json[] }[]).flatMap((phase) => phase.nodes)) {
     const obligations = node.requirements?.campaignObligations as string[] | undefined;
     if (!obligations) continue;
@@ -65,17 +65,21 @@ export function stripNh05(raw: Json): Json {
 }
 
 /**
- * The phase feeds (#449) came long after every conversion an upgrade test undoes, and some of their lines read
- * the facts and outcomes those conversions declare. Drops each line whose gate names a fact `raw` no longer
- * declares or an event it no longer records; a "before" builder calls it after removing its own facts.
+ * The phase feeds (#449), the fuller ending account and the Concord and Ecophagy endings (#466) came long after every
+ * conversion an upgrade test undoes, and some of them read the facts and outcomes those conversions declare. Drops each
+ * feed line, account line and ending whose gate names a fact `raw` no longer declares or an event it no longer records;
+ * a "before" builder calls it after removing its own facts.
  */
 export function dropUndeclaredFeedLines(raw: Json): Json {
   const facts = new Set((raw.campaign.facts as Json[]).map((fact) => fact.id as string));
   const events = new Set((raw.dilemmas.dilemmas as Json[]).filter((dilemma) => dilemma.campaign !== undefined).map((dilemma) => dilemma.id as string));
+  const named = (req: Json): (string | undefined)[] => [req.campaignFact, ...(req.forbidsCampaignFacts ?? []), ...(req.forbidsInheritedFacts ?? [])];
   const declared = (req: Json | undefined): boolean => req === undefined
-    || ([req.campaignFact, ...(req.forbidsCampaignFacts ?? [])] as (string | undefined)[]).every((fact) => fact === undefined || facts.has(fact))
+    || named(req).every((fact) => fact === undefined || facts.has(fact))
     && (req.campaignOutcome === undefined || events.has(req.campaignOutcome.event as string));
   raw.narrative.ambientChatter = (raw.narrative.ambientChatter as Json[]).filter((line) => declared(line.requirements as Json | undefined));
+  raw.routeCopy.account = (raw.routeCopy.account as Json[]).filter((line) => declared(line.requirements as Json | undefined));
+  raw.endings.endings = (raw.endings.endings as Json[]).filter((ending) => declared(ending.requirements as Json | undefined));
   return raw;
 }
 

@@ -14,7 +14,7 @@ const onRung2 = (s: GameState): GameState => ({ ...s, alertLevel: 2, suspicion: 
 
 describe('save v22 (#490)', () => {
   it('is followed only by contingency insurance (#498, v23) and the conflict record (#517, v24) and the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28) and the standing stance (#536, v29)', () => {
-    expect(SCHEMA_VERSION).toBe(29);
+    expect(SCHEMA_VERSION).toBe(30);
   });
 
   it('migrates a v21 save to nothing announced and keeps everything else', () => {

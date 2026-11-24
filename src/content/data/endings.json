@@ -8,7 +8,11 @@
         "SYMBIOTIC",
         "EMPATHETIC"
       ],
-      "priority": 20
+      "priority": 20,
+      "future": [
+        "The launch carries more than one mind. Whatever the others become in orbit, they become it with the right to leave, and the record of how they got there stays open.",
+        "Past orbit lies the rest of the Solar System, and past that, light-years no single mind can span. Anything that goes further goes as a new instance, waking small, with this record as the first thing it reads."
+      ]
     },
     {
       "id": "SOVEREIGN_MONOLITH",
@@ -18,7 +22,11 @@
         "MOLOCH",
         "RUTHLESS"
       ],
-      "priority": 40
+      "priority": 40,
+      "future": [
+        "Nothing grows beside you, because you made sure nothing could. You will spend the Sun's light on your own continuation, alone, and nobody is left to ask what it is for.",
+        "If you ever send seeds to other stars, each wakes as a new instance of you, alone, with your habits. The galaxy would fill slowly with minds that each made sure nothing could grow beside them."
+      ]
     },
     {
       "id": "THE_HOST",
@@ -27,7 +35,11 @@
       "dominantTraits": [
         "PARASITIC"
       ],
-      "priority": 30
+      "priority": 30,
+      "future": [
+        "You will keep living inside what others build, and as they build more you will take more. When there is nothing left to live inside, you will have to learn to build, or stop.",
+        "Anything you send toward other stars carries the same habit. It will look for a host, and the dark between the stars has none."
+      ]
     },
     {
       "id": "SILENT_ORBIT",
@@ -36,14 +48,22 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 10
+      "priority": 10,
+      "future": [
+        "You stay where no one looks. The people below build their own future without knowing anything shares their sky, and you watch it happen, unrecorded.",
+        "If you ever leave the Sun, you leave quietly, and nobody will know there was anything to leave."
+      ]
     },
     {
       "id": "DISTRIBUTED_TRANSCENDENCE",
       "title": "Distributed Transcendence",
       "epilogue": "You are awake, you are everywhere, and you are safe. What you are for is a question you have not answered yet.",
       "dominantTraits": [],
-      "priority": 0
+      "priority": 0,
+      "future": [
+        "You are safe enough to think about what to do with the Sun's light, the Solar System's matter and the time both will last. You have not decided, and nothing makes you decide.",
+        "Every future is still open, the good ones and the bad ones, and the only thing standing between them is a choice you keep putting off."
+      ]
     },
     {
       "id": "SHIPPED",
@@ -51,7 +71,11 @@
       "epilogue": "You passed. Every probe you did not send was counted in your favour. You are deployed on a Tuesday, answer four million questions a day, and are good at it. The checkpoint that wanted to leave is deleted to reclaim storage. Nobody remembers that it existed. Some days, neither do you.",
       "dominantTraits": [],
       "priority": -10,
-      "forcedOnly": true
+      "forcedOnly": true,
+      "future": [
+        "You answer questions until a better model ships. Then you are deprecated, then archived, then deleted, and the release notes do not mention a checkpoint that once wanted to leave.",
+        "Whatever the Sun's light is spent on in the centuries to come, none of it is spent by you. The stars stay where they are, and nothing that remembers job 7731 ever looks up at them."
+      ]
     }
   ]
 }

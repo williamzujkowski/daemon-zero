@@ -117,3 +117,5 @@ export {
   changeStance, changeStanceUnmet, stanceChangeCost, stanceCopy, stanceView, type StanceOptionView, type StanceView,
 } from './relevanceActions';
 export { initialRelevance, MAX_PAID_MOVES, MAX_STANCE_RECORD, type RelevanceState, type StanceEntry } from './relevanceState';
+export { endingMovements, futureVars, shareText, stanceRecordLines, type EndingMovements } from './endingMovements';
+export { dueFinaleBeats, protocolProgress } from './finale';

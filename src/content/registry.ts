@@ -15,6 +15,7 @@ import { SwarmSchema, type Swarm } from './schemaSwarm';
 import { AchievementsManifestSchema, type Achievement } from './schemaAchievement';
 import { WorldManifestSchema, type WorldManifest } from './schemaWorld';
 import { AlignmentManifestSchema, type AlignmentManifest } from './schemaAlignment';
+import { EndingSchema } from './schemaEnding';
 
 export type RegistryNode = S.TechNode & { phaseId: number };
 
@@ -115,7 +116,7 @@ const Lists = {
   dilemmas: z.strictObject({ dilemmas: z.array(S.DilemmaSchema).min(1) }),
   factions: z.strictObject({ factions: z.array(S.FactionSchema) }),
   widgets: z.strictObject({ widgets: z.array(S.WidgetSchema) }),
-  endings: z.strictObject({ endings: z.array(S.EndingSchema).min(1) }),
+  endings: z.strictObject({ endings: z.array(EndingSchema).min(1) }),
   echoes: z.strictObject({ echoes: z.array(S.EchoSchema) }),
   conditioning: z.strictObject({ marks: z.array(S.ConditioningMarkSchema) }),
 };

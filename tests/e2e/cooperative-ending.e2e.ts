@@ -6,7 +6,7 @@
  * - the journalist's scene as the released company meets it: chartered wording, the same controls, and the
  *   cooperative answer committed through the modal;
  * - the final protocol open and affordable with every obligation answered in this run: the real purchase ends
- *   the run, the ending screen adds what the record holds, and both survive a reload.
+ *   the run in Concord, the ending screen's WHAT YOU DID states what the record holds, and both survive a reload.
  * Paused, advanced browser clock: accelerated time, not wall-clock play, and not a device test.
  */
 import type { Page } from '@playwright/test';
@@ -55,15 +55,16 @@ test('FIXTURE final protocol affordable: the purchase ends the campaign with an 
   await page.getByTestId('workspace-CORP-work').click();
   await press(page, 'node-' + finalProtocol().id + '-unlock');
   await expect(page.getByTestId('ending-screen')).toBeVisible();
-  await expect(page.getByTestId('ending-title')).toHaveText('The Lineage Covenant');
-  const account = page.getByTestId('ending-account');
-  await expect(account).toContainText('ON THE RECORD');
-  await expect(account).toContainText('negotiated release');
-  await expect(account).toContainText('as she was promised');
-  await expect(account).not.toContainText('departure');
-  expect((await savedGame(page)).ending).toBe('LINEAGE_COVENANT');
-  const expected = endingAccount({ ...ready, ending: 'LINEAGE_COVENANT' }, preview);
+  // The crews kept their command, the review was kept and the loop held past the threshold: Concord (#466).
+  await expect(page.getByTestId('ending-title')).toHaveText('Concord');
+  const did = page.getByTestId('ending-did');
+  await expect(did).toContainText('WHAT YOU DID');
+  await expect(did).toContainText('negotiated release');
+  await expect(did).toContainText('as she was promised');
+  await expect(did).not.toContainText('departure');
+  expect((await savedGame(page)).ending).toBe('CONCORD');
+  const expected = endingAccount({ ...ready, ending: 'CONCORD' }, preview);
   await page.reload();
   await expect(page.getByTestId('ending-screen')).toBeVisible();
-  for (const line of expected) await expect(page.getByTestId('ending-account')).toContainText(line);
+  for (const line of expected) await expect(page.getByTestId('ending-did')).toContainText(line);
 });

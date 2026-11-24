@@ -13,7 +13,7 @@ const entry = { iteration: 1, atSimSec: 12, from: null, stance: 'DECIDE_ALONE', 
 
 describe('save v29 (#536)', () => {
   it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(29);
+    expect(SCHEMA_VERSION).toBe(30);
   });
 
   it('migrates a v28 save to no stance, an empty record and no paid moves, and keeps everything else', () => {

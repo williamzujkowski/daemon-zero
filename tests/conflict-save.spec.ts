@@ -20,7 +20,7 @@ const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(
 
 describe('save v24 (#517)', () => {
   it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28) and the standing stance (#536, v29)', () => {
-    expect(SCHEMA_VERSION).toBe(29);
+    expect(SCHEMA_VERSION).toBe(30);
   });
 
   it('migrates a v23 save to no raid, nothing damaged and both counters at 0, and keeps everything else', () => {

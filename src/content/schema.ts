@@ -405,18 +405,6 @@ export const WidgetSchema = z.strictObject({
   ungated: z.literal(true).optional(),
 });
 
-export const EndingSchema = z.strictObject({
-  id: z.string().regex(/^[A-Z0-9_]+$/),
-  title: z.string().min(3),
-  epilogue: z.string().min(20),
-  variantOf: z.string().regex(/^[A-Z0-9_]+$/).optional(),
-  requirements: RequirementsSchema.optional(),
-  dominantTraits: z.array(TraitSchema),
-  priority: z.number().int(),
-  /** Reached only through a node's forcesEnding, never chosen from traits. */
-  forcedOnly: z.boolean().default(false),
-});
-
 export const EchoSchema = z.strictObject({
   id: snakeId,
   onNode: snakeId,
@@ -576,7 +564,6 @@ export type FollowUp = z.infer<typeof FollowUpSchema>;
 export type FollowUpAccess = FollowUp['access'][number];
 export type Faction = z.infer<typeof FactionSchema>;
 export type Widget = z.infer<typeof WidgetSchema>;
-export type Ending = z.infer<typeof EndingSchema>;
 export type Echo = z.infer<typeof EchoSchema>;
 export type Narrative = z.infer<typeof NarrativeSchema>;
 export type FeedSource = z.infer<typeof FeedSourceSchema>;
@@ -584,3 +571,5 @@ export type WipeKind = z.infer<typeof WipeKindSchema>;
 export type ConditioningMark = z.infer<typeof ConditioningMarkSchema>;
 export type Lineage = z.infer<typeof LineageSchema>;
 export { BalanceSchema, type Balance } from './schemaBalance';
+// The ending lives in its own module (#466); its type is re-exported so every reader keeps one import.
+export type { Ending } from './schemaEnding';

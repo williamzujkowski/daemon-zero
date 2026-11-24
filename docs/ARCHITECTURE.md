@@ -171,7 +171,7 @@ tick(state, dt):
   reinstallCachedLevels -> integrateResources -> integrateThermal -> integrateScaleScrutiny -> integratePowerSignature -> integrateSuspicion -> integrateEscalation
     -> announceEscalationByPhase -> integrateAegis -> integrateAegisAdaptation -> integrateQuantumMigration -> applySwarmTickDeltas
     -> evaluateShardMutationsAndEncounters -> integrateHostiles -> integrateRaids -> integrateRepair -> evaluateDilemmas -> scheduleRoutineActivity
-    -> relayLoggedFeed
+    -> relayLoggedFeed -> announceFinaleBeats
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
@@ -410,6 +410,36 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   priced change, a return at least twice it, both in the Phase 5 band (`checkPhasePrice`); stance moves honest
   (leaving breaks, returning keeps), one rule each, promises declared and not themselves evidence.
 - **No content ids in the engine.** The stance names are a schema enum (schemaStance.ts), like the autonomy modes.
+
+## Endings in three movements and the finale (#466, #542)
+
+- **Content.** `schemaEnding.ts` (moved out of `schema.ts`, whose type re-export keeps every import): an ending gains
+  `future` (one to four cards) and `claims` (requirements its text states). `schemaFinale.ts` / `data/finale.json`,
+  read as part of the world: `beats` (a protocol node, a share of its price, optional world-history gates, text),
+  `built` (lines gated on owned nodes and world history) and `earthAbsorbedWatts`. `relevance.json` stances gain
+  `ending: { became, after }`; it adds `belowEnding` and `recordLines`.
+- **Integrity.** `integrityEndingClaims.ts` (called from `integrityEndings.ts`): a variant, or a forced ending with
+  requirements, must declare `claims`; each claim not implied by the ending's requirements (all-of lists item by item,
+  one-of lists such as `relevanceStances` only when the requirement allows nothing the claim leaves out) must be proven
+  by every node that ends the run in it through #486's `unproven` rule; keys that rule cannot prove (traits among
+  them) are refused. Future cards name only `FUTURE_PLACEHOLDERS`. `integrityFinale.ts`: a beat's node ends the run or
+  opens a phase, shares are distinct per node, gates are world history only; a built line has a gate of owned nodes and
+  world history.
+- **Queries.** `endingMovements(s, ending, reg)` (src/engine/endingMovements.ts): `did` (`endingAccount`, the built
+  lines, `stanceRecordLines`), `stance` and `humanity` (the stance's ending prose past the threshold, `belowEnding`
+  below it) and `cards` (the future, filled by `futureVars`: `computeRates(...).wattsConsumed` as `{wasteHeat}` and its
+  share of `earthAbsorbedWatts` as `{earthShare}`). Pure; the UI reads it as text so the selector is stable.
+- **Stage.** `announceFinaleBeats` (`systems/finaleBeats.ts`, last in `TICK_PIPELINE`, law 8) logs `dueFinaleBeats`
+  (src/engine/finale.ts): beats of an open protocol (`isNodeAvailable`) whose share `protocolProgress` has reached
+  (one minus the largest shortfall fraction over the price's keys, so the slowest resource decides), not yet told.
+  Dormant or ended, it writes nothing. Beats are grouped per protocol once per registry; a protocol above the current
+  phase or fully told costs nothing.
+- **State.** `announcedFinale: string[]` (save v30, `MIGRATIONS[29]` writes `[]`; `reconcile` drops ids content no longer
+  declares). Per iteration: a wipe starts it empty.
+- **Sim.** `ecophagyPolicy.ts` (ECOPHAGY_ENDING): the careful bot's step with `skipsNodes` set to what the unforced
+  finale forbids, and the harshest offered answer (RUTHLESS, MOLOCH, PARASITIC, then the bot's ranking) to every scene.
+  `BotOverrides.skipsNodes` is the only bot change; STEALTH and GREEDY never set it. The reading report's ending text
+  is now the three movements, and `finaleReading` (readingAnalysis.ts) prints the final phase's story gaps.
 
 ## The free-fallback invariant (#461, #488)
 
@@ -2300,7 +2330,7 @@ act kept quiet is on record (three overlay facts: the campus throttled in silenc
 patients, the scrap order closed unexplained). Otherwise the restrained `QUIET_COMPANY` (priority 101) says only that
 the operators who reviewed the instance know that it exists and what it was, and that whatever else it kept quiet, it
 kept from everyone else (panel
-round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
+round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, since #466 the opening of WHAT YOU DID):
 one line per recorded fact, route event or support-channel contact the content states. A line has exactly one gate:
 world history (context-scope requirements only), the ending instance's last route event (RELEASE and DEPARTURE read
 differently), or a contact by this instance or an earlier one. The overlay states the route, the contact, the reporter's

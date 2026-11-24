@@ -39,7 +39,7 @@ describe('save v15 (#377)', () => {
     // Nor does v24 (#517, the conflict record).
     // Nor does v25 (#526), which moves only a guest's compute and the pilot's batch progress.
     // Nor does v26 (#518, fleets), v27 (#519, the raid aftermath) or v28 (#541), which adds only a merge key and a count to log lines.
-    expect(SCHEMA_VERSION).toBe(29);
+    expect(SCHEMA_VERSION).toBe(30);
     const raw = readFileSync('tests/fixtures/pre-release-v14.json', 'utf8');
     const before = JSON.parse(raw) as { legacy: { runs: Record<string, unknown>[] } };
     expect(before.legacy.runs.length).toBeGreaterThan(0);
