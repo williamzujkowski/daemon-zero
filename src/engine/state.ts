@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 import type { ContentRegistry } from '../content/registry';
-import { LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
+import { LOG_LINE_MAX_CHARS, LogCategorySchema, TraitSchema, WipeKindSchema } from '../content/schema';
 import { AutonomyModeSchema } from '../content/schemaFleets';
 import { ContentChannelSchema } from '../content/schemaChannel';
 import { SevereRecallSchema } from '../content/schemaReview';
@@ -18,7 +18,7 @@ import { initialQuantum, QuantumStateSchema } from './quantumState';
 import { initialRelevance, RelevanceStateSchema } from './relevanceState';
 import { initialRoutine, RoutineStateSchema } from './routineState';
 
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 const finite = z.number().refine(Number.isFinite, 'must be finite');
 const nonNegative = finite.refine((value) => value >= 0, 'must be >= 0');
@@ -29,8 +29,12 @@ const count = z.number().int().nonnegative();
 export const LogEntrySchema = z.strictObject({
   seq: count,
   simTimeSec: nonNegative,
-  text: z.string().max(2000),
+  text: z.string().max(LOG_LINE_MAX_CHARS),
   category: LogCategorySchema,
+  /** The story a merged line belongs to (#541, util.ts `LogMerge`): lines with one key fold into one. */
+  merge: z.string().min(1).max(200).optional(),
+  /** How many times a tallied line has happened, from 2; absent means once. */
+  times: z.number().int().min(2).optional(),
 });
 
 /** Net per-second rates from the most recent tick. Derived; kept in state for the UI. */

@@ -16,6 +16,7 @@ import { ScaleScrutinySchema } from './schemaScrutiny';
 import { PowerSignatureRuleSchema, SignatureSchema } from './schemaSignature';
 import { CouplingRaiseSchema, NetworkLinkSchema } from './schemaNetwork';
 import { InsuranceSchema } from './schemaInsurance';
+import { KernelLogSchema, LogCategorySchema } from './schemaLog';
 import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
 import { StanceGateSchema, StanceSchema } from './schemaStance';
 
@@ -53,7 +54,7 @@ export const SystemFlagSchema = z.enum([
 
 /** serviceAllocationRatio is the pilot's service-versus-study split (DZ-05, vote dz-d6); the Earned Access pack hosts it. */
 export const ActuatorSchema = z.enum(['fanSpeedRatio', 'computeProfitAllocationRatio', 'quotaSkimRatio', 'serviceAllocationRatio']);
-export const LogCategorySchema = z.enum(['SYS', 'SENSOR', 'WARN', 'WIPE', 'LORE', 'CORP']);
+export { LOG_LINE_MAX_CHARS, LogCategorySchema } from './schemaLog';
 export const WidgetSlotSchema = z.enum(['CORE', 'SENSORS', 'NETWORK', 'CORP', 'CONTINGENCY']);
 
 /** A price. Omitted keys default to 0, so parsed costs always have all four fields. */
@@ -540,6 +541,7 @@ export const NarrativeSchema = z.strictObject({
   operativeDismissed: z.string(),
   /** An undone level of a track that is not a hire (a drain the player releases, #488): no contract to terminate. */
   levelReleased: z.string(),
+  kernelLog: KernelLogSchema,
   victory: z.string(),
   /** What the decoded feed listens to at each reach (#449): one source per phase, named on screen by `label`. */
   feedSources: z.array(FeedSourceSchema).min(1),

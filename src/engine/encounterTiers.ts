@@ -6,6 +6,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { WildEncounter } from '../content/schemaSwarm';
 import { meetsRequirements } from './query';
 import type { GameState } from './state';
+import { outcomeMerge } from './logMerges';
 import { fmt, pushLog } from './util';
 
 /** A tier retires once the player's phase has moved past it. */
@@ -32,7 +33,7 @@ export function lapseRetiredEncounter(d: GameState, reg: ContentRegistry): void 
   const encounter = reg.swarm.wildShardEncounters.find((entry) => entry.id === d.pendingWildEncounterId);
   if (!encounter || !encounterRetired(d, encounter)) return;
   d.pendingWildEncounterId = null;
-  pushLog(d, reg, encounter.lapseLog, 'LORE');
+  pushLog(d, reg, encounter.lapseLog, 'LORE', outcomeMerge(encounter));
 }
 
 /** The tier a cohort's template was harnessed from, or null for a template no wild arrival brings (a fork). */
