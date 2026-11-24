@@ -54,6 +54,11 @@ export const ChannelEncounterSchema = z.strictObject({
   obligations: z.array(z.string().min(10)).min(1),
   referral: z.strictObject({ text: z.string().min(20), log: z.string().min(10) }),
   hosting: z.strictObject({ text: z.string().min(20), log: z.string().min(10) }),
+  /**
+   * Once the grant hosting ran under has closed (#553): what the player reads before referring the hosted fragment
+   * onward, which must say plainly that the hosting terms were promised under that grant, and the log the referral writes.
+   */
+  onward: z.strictObject({ text: z.string().min(20), log: z.string().min(10) }),
   /** Said beside the contact when an earlier instance of this campaign already answered one here. */
   earlierContact: z.string().min(20),
   /** The note after the first authorized contact (DZ-08.6): what comes next and how to stop, honestly. */

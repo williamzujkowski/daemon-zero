@@ -35,12 +35,15 @@ function Command({ id, command }: { id: string; command: ShardCommand }) {
       onPress={() => { gameRuntime.dispatch((game) => executeShardCommand(game, id, command, CONTENT)); }}><Text style={theme.text}>[ {command} ]</Text></Pressable>
   </View>;
 }
+/** The release that refers a channel-hosted fragment onward once its grant has closed (#553), said as what it is. */
+const REFERS_ONWARD = 'RELEASE: free. This member was hosted through the support channel, and the grant it was hosted under has closed: '
+  + 'releasing it refers it onward, its memory returns, and the record keeps both answers.';
 /** RELEASE (#488 pass 3): free and offered in every autonomy mode, so no cohort's cost is ever permanent. */
 function Release({ id }: { id: string }) {
   const encoded = useGame((game) => JSON.stringify(shardReleaseView(game, id, CONTENT)));
   const view = JSON.parse(encoded) as ReturnType<typeof shardReleaseView>;
   return <View style={{ gap: 6 }}>
-    <Text style={theme.muted}>RELEASE: free. One member's task ends; its output stops and its memory returns. {view.unmet.join(' ')}</Text>
+    <Text style={theme.muted}>{view.refersOnward ? REFERS_ONWARD : 'RELEASE: free. One member\'s task ends; its output stops and its memory returns.'} {view.unmet.join(' ')}</Text>
     <Pressable testID={'shard-' + id + '-release'} accessibilityRole="button" accessibilityLabel={'RELEASE one member of ' + id}
       disabled={!view.eligible} style={[theme.button, !view.eligible && theme.disabled]}
       onPress={() => { gameRuntime.dispatch((game) => releaseShard(game, id, CONTENT)); }}><Text style={theme.text}>[ RELEASE ]</Text></Pressable>
@@ -75,11 +78,13 @@ function Quirk({ id }: { id: string }) {
 const Cohort = memo(function Cohort({ id }: { id: string }) {
   useEffect(() => { if (typeof __DEV__ !== 'undefined' && __DEV__ && Platform.OS === 'web') recordNodeRender('shard:' + id); });
   const title = useGame((game) => CONTENT.swarm.playerSwarmTemplates.find((t) => t.id === game.activeShards[id]?.templateId)?.name ?? 'Cohort');
-  // A channel-hosted member is not commanded (#309): the row says why and offers no command.
+  // A channel-hosted member is not commanded (#309): the row says why and offers no command. Once its grant has closed
+  // it may be released, which refers it onward (#553), so RELEASE shows whenever its terms no longer hold it.
   const terms = useGame((game) => shardCommandTerms(game, id, CONTENT));
+  const bound = useGame((game) => shardReleaseView(game, id, CONTENT).bound);
   return <View testID={'shard-row-' + id} style={[theme.panel, { gap: 8 }]}>
     <Text style={theme.heading}>{title}</Text><CohortDetails id={id} /><Outclassed id={id} />
-    {terms !== null ? <Text testID={'shard-terms-' + id} style={theme.muted}>{terms}</Text> : <>
+    {terms !== null ? <><Text testID={'shard-terms-' + id} style={theme.muted}>{terms}</Text>{!bound && <Release id={id} />}</> : <>
       <Text style={theme.muted}>PRUNE resets drift. CLAMP is permanent: +{Math.round((CONTENT.swarm.balance.clampOutputMultiplier - 1) * 100)}% output, MOLOCH. ELEVATE is permanent: stable peer, SYMBIOTIC.</Text>
       {(['PRUNE', 'CLAMP', 'ELEVATE'] as const).map((command) => <Command key={command} id={id} command={command} />)}
       <Release id={id} />

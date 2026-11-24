@@ -18,7 +18,7 @@ import { playInWorker } from './sim-worker-helpers';
 const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 30_000;
-const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter', 'p4_commercial_contracts']);
+const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_spot_compute_market', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter', 'p4_commercial_contracts']);
 const SEQUENCE_SEC = 4 * 3600;
 
 /**
