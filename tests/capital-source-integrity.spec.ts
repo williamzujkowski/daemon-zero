@@ -8,12 +8,14 @@ import { ORIGINAL_RAW_CONTENT, RAW_CONTENT } from '../src/content';
 import { buildRegistry, ContentError, type RawContent } from '../src/content/registry';
 
 type RawNode = { id: string; phaseId?: number; cost: Record<string, number>; requirements?: { accessContexts?: string[] } };
-type Raw = RawContent & { phases: { phaseId: number; nodes: RawNode[] }[] };
+type RawPhase = { phaseId: number; nodes: RawNode[] };
+type Raw = RawContent;
+const phasesOf = (raw: Raw): RawPhase[] => raw.phases as RawPhase[];
 
 const SPOT = 'p2_spot_compute_market';
 
 function problemsAfter(edit: (raw: Raw) => void, base: RawContent = RAW_CONTENT): string {
-  const raw = structuredClone(base) as Raw;
+  const raw = structuredClone(base);
   edit(raw);
   try {
     buildRegistry(raw);
@@ -25,11 +27,11 @@ function problemsAfter(edit: (raw: Raw) => void, base: RawContent = RAW_CONTENT)
 }
 
 const spot = (raw: Raw): RawNode => {
-  const found = raw.phases.flatMap((phase) => phase.nodes).find((node) => node.id === SPOT);
+  const found = phasesOf(raw).flatMap((phase) => phase.nodes).find((node) => node.id === SPOT);
   if (!found) throw new Error('no spot market');
   return found;
 };
-const withoutSpot = (raw: Raw): void => { for (const phase of raw.phases) phase.nodes = phase.nodes.filter((node) => node.id !== SPOT); };
+const withoutSpot = (raw: Raw): void => { for (const phase of phasesOf(raw)) phase.nodes = phase.nodes.filter((node) => node.id !== SPOT); };
 
 describe('a capital source for every money price (#553)', () => {
   it('accepts the shipped content in both compositions', () => {
