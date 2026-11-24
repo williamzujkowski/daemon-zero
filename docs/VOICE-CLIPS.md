@@ -838,7 +838,7 @@ the status they produce is exercised.
   | --- | ---: | --- | --- |
   | `voice/vibration/` | 15 | -15.4 to -13.8 LUFS | -1.17 to -1.09 dBTP |
   | `voice/phone/` | 11 | -15.4 to -15.1 LUFS | -2.16 to -1.70 dBTP |
-  | `voice/stream/` | 10 | -15.5 to -15.3 LUFS | -2.88 to -2.18 dBTP |
+  | `voice/stream/` | 14 | -15.5 to -15.2 LUFS | -2.88 to -1.94 dBTP |
   | `voice/broadcast/` | 14 | -15.2 to -14.6 LUFS | -3.08 to -1.14 dBTP |
   | `voice/direct/` | 17 | -15.5 to -15.2 LUFS | -3.07 to -1.92 dBTP |
   | `voice/peer/` | 6 | -15.5 to -15.3 LUFS | -2.33 to -1.99 dBTP |

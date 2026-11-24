@@ -2330,6 +2330,25 @@ those UI sentences.
 at 10397.3 s (was 10142.7), Phase 4 takes 43.2 min (was 39.2), and Phase 2 meets a fourth dilemma (16 in all, was 15); under
 campaign rules it ends at 9913.5 s (was 10099.4), with one dilemma moving from Phase 3 to Phase 2 (17 in all). The tables above are that run. The report's own arithmetic did not change.
 
+**Since #544** (an earlier Phase 3 beat, vote-1795470658719-k1h556n package A, C4) the NET feed carries four omen lines
+from the first second of Phase 3 (DESIGN.md, "Phase 3 - The Dark Forest"). Feed lines are not state, so the run, the
+sim and its hashes are unchanged. Measured on `d0c9584`, Phase 3, before and after:
+
+| Phase 3 | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| New feed lines (first shown at) | 5 (46.9 min) | 9 (46.9 min) | 6 (5 at 46.9, 1 at 95.9) | 10 (9 at 46.9, 1 at 95.9) |
+| Words A | 840 | 911 | 912 | 983 |
+| Forced reading min at 238 wpm | 8.9 | 9.2 | 9.4 | 9.7 |
+| Over-full windows 60 s / 30 s / 10 s | 0 / 25 / 73 | 5 / 29 / 77 | 0 / 23 / 87 | 5 / 27 / 91 |
+| Longest wait for a dilemma (min) | 43.5 | 43.5 | 43.0 | 43.0 |
+
+The distress plot's first hints (the prime responder, the hospital, AEGIS's hunt) now play from 46.9 min; before, the
+first were the beacon's SIGNAL_DECODED line and the NOISE_FLOOR omen at about 76 min. (EIDOLON's name already appeared
+earlier, in the Mercy-Scribe fragments' requests, from about 51 min in the careful run.) The new over-full
+windows are at the Phase 3 boundary: the report reads every eligible feed line as arriving the moment it becomes
+eligible, while the Listening post rotates one line every 8 s, so a player hears the nine lines over about 72 s. The
+longest wait for a dilemma is unchanged; spacing dilemmas is C1's job, and this change adds no dilemma.
+
 ## Current baseline
 
 The table below is the **original game alone**, the last composition `make sim` gated before #233. It
