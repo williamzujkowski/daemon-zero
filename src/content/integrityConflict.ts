@@ -69,6 +69,8 @@ function checkRaidGates(reg: ContentRegistry, raid: RivalRaid, owner: string): s
   if (reg.phases.find((phase) => phase.phaseId === raid.tier)?.powerSignature === undefined) problems.push(`${owner}: Phase ${String(raid.tier)} declares no signature reference for its force`);
   // A fleet (#518) fights by the square law at its lethality; an attrition raid has none to read.
   if ((raid.resolution === 'LANCHESTER') !== (raid.lethality !== undefined)) problems.push(`${owner}: a lethality is declared exactly when it resolves by LANCHESTER`);
+  // A hazard (#486) is nobody's tooling: nothing to dissect, and no fleet to meet by the square law.
+  if (raid.hazard === true && (raid.forensics !== 0 || raid.resolution !== 'ATTRITION')) problems.push(`${owner}: a hazard yields no forensics and resolves by ATTRITION`);
   return problems;
 }
 
@@ -93,9 +95,13 @@ export function rivalRaids(reg: ContentRegistry): RivalRaid[] {
   return reg.world.conflict.raids.flatMap((raid) => (raid.source === 'RIVAL' ? [raid] : []));
 }
 
-/** Every domain open in a phase that has raids, and holding a site class, is raided in that phase. */
+/**
+ * Every domain open in a phase that has rival raids, and holding a site class, is raided in that phase. A hazard (#486) is
+ * not a rival, so a phase raided only by hazards (the swarm's, whose threat is its own federation's drift: Round 5) owes
+ * no rival to each domain.
+ */
 function checkCoverage(reg: ContentRegistry): string[] {
-  const { domains, siteClasses } = reg.world.conflict, raids = rivalRaids(reg);
+  const { domains, siteClasses } = reg.world.conflict, raids = rivalRaids(reg).filter((raid) => raid.hazard !== true);
   return [...new Set(raids.map((raid) => raid.tier))].flatMap((tier) => domains
     .filter((domain) => domain.fromPhase <= tier && siteClasses.some((cls) => cls.domain === domain.id))
     .filter((domain) => !raids.some((raid) => raid.tier === tier && raid.domain === domain.id))

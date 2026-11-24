@@ -22,6 +22,12 @@ export const SignatureClassSchema = z.strictObject({
    * radiator, so compute whose heat leaves through it runs at the share its radiator area sheds (engine radiators.ts).
    */
   wattsPerKm2: z.number().positive().optional(),
+  /**
+   * The Landauer bound at the temperature this sink rejects heat (#486): erasing a bit costs at least k T ln 2, and the
+   * game's accounting assumption is that an 8-bit op erases at least `bitsErasedPerOp` bits. Integrity refuses compute
+   * whose heat leaves through it faster than its draw allows (integrityLandauer.ts).
+   */
+  landauer: z.strictObject({ kelvin: z.number().positive(), bitsErasedPerOp: z.number().int().positive() }).optional(),
 });
 
 export const SignatureClassesSchema = z.strictObject({

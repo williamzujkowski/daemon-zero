@@ -4,7 +4,8 @@ import { buyRepeatable, chooseEnding, computeRates, deserialize, isNodeAvailable
 import { defined } from './m7-helpers';
 import { FABRICATION, grant, must, PHASE0, PHASE1, PHASE2, PHASE3, PHASE4, reg, rich, withoutDilemmas, choose } from './helpers';
 const phase = defined(reg.phases.find((entry) => entry.phaseId === 5));
-const nodes = phase.nodes.map((node) => defined(reg.nodes.get(node.id)));
+// Every Phase 5 node but the Mercury seed array, which opens the Swarm and closes the protocol behind it (#486).
+const nodes = phase.nodes.filter((node) => node.effects.unlocksPhase === undefined).map((node) => defined(reg.nodes.get(node.id)));
 const orbital = defined([...reg.nodes.values()].find((node) => node.effects.unlocksPhase === 5));
 const ready = () => withoutDilemmas(grant(rich(), ...PHASE0, ...PHASE1, ...PHASE2, ...PHASE3, ...PHASE4, ...FABRICATION));
 const inOrbit = () => grant(ready(), orbital.id);

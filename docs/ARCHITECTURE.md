@@ -239,7 +239,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add a repeatable, action, dilemma, ending or echo.** Add an object to the matching JSON file. No code changes. A dilemma needs one zero-cost choice and a trait on every choice.
 
-**Add a phase.** Create `data/phases/phase5_*.json`, import it in `src/content/production.ts`, and give a Phase 4 node `effects.unlocksPhase: 5`. Move `triggersVictory` to the new final node. Extend the pacing gates.
+**Add a phase.** Create `data/phases/phase<N>_*.json`, import it in `src/content/production.ts`, and give a node of the phase before `effects.unlocksPhase: N`. Integrity then asks for what every phase owes: a feed source with six lines, its bands in `integrityScale.ts`, a lesser-mind tier that outclasses the last, all three hostile types, a signature rule where it has power, and a rival in every open domain if a rival raids it. An earlier victory node may stay a valid ending if the gate closes it (`forbidsNodes`, as the Phase 6 Swarm's seed array closes the Phase 5 protocol, #486). Give the score manifest a track for it or lend it one (`reusedBy`), add its pacing gate, and extend the guard states (`tests/fallback-states.ts` snapshots every phase).
 
 **Add a faction.** Add it to `factions.json`; give actions `group: <faction id>` and nodes `uiGroup: <faction id>`. The Other Minds console (M4) renders from this data.
 
@@ -268,6 +268,40 @@ drops a harm the breach could not have done and lists a silenced raider once.
 **Unfinished content.** There is no preview channel since #233: everything under `data/` ships. Content that is not ready stays on its branch until it is, or until a reviewed decision provides another way to merge it unreleased (see [WORLD-REMEMBERS.md](WORLD-REMEMBERS.md), "Preview machinery after release").
 
 **Add a sim policy.** Write a module beside `src/engine/sim/bot.ts` that exports a `SimPolicy` (`policy.ts`), add it to `SIM_POLICIES` (`policies.ts`), and test it through `runPolicySim` or `runWipeSequence`. Do not edit `bot.ts`, STEALTH or GREEDY to make a result pass. `make sim-report` reports a policy's legacy-versus-campaign-rules numbers without gating; see `docs/TESTING.md`, "Sim policies".
+
+## The Phase 6 Swarm (#486)
+
+Content only, plus four small rules; no GameState field changed, so the save stays at v26 and gains no migration (law 6:
+a migration follows a GameState change). A v26 save loads unchanged: `clampPhase` already admits any phase content
+declares, the federation's fleet record and a hazard under way use #517 and #518's shapes, and the seed array and Phase 6
+nodes are ordinary ownership. `tests/phase6-swarm.spec.ts` round-trips a Phase 6 save through the codec.
+
+- **Content.** `data/phases/phase6_swarm.json`, `data/phase6-repeatables.json`, `narrative/phase6.json` (two dilemmas) and
+  `data/phase6-endings.json`, composed in `production.ts`; the gate `p5_mercury_seed_array` in the Phase 5 file;
+  `conflict.json` (the cascade, the sub-mind fleet and its deviant, the `swarm` site class, a `collision` vector);
+  `world.json` (the holdout coalition and its pressure, the `swarm_radiator` sink); `shards.json` (the Phase 6 minds, two
+  flags and an exclusive group); `narrative.json` (the `swarm` feed source). The engine names none of it.
+- **Hazard raids.** `RivalRaidSchema.hazard` (`schemaConflict.ts`) marks a raid of the player's own making. `tracedRival`
+  (`raid.ts`) is the one predicate: only a rival that is not a hazard is traced by attribution and loses the trail when
+  the instance goes dark; a hazard and a deviant are named on arrival (`fleets.logs.identified`) and spend no attribution.
+  `raidQuery.ts` reads the same predicate for its attribution, stage and GO DARK lines. Integrity holds a hazard to no
+  forensics and attrition, and excludes hazards from the every-open-domain coverage rule. The predicate lives in
+  `schemaConflict.ts` so the engine and integrity share it: `raidOutcome.ts` (#519) records a hazard's battle as never
+  named and harming no one, `lastRaidMatches` answers no gate for it and `namedRaider` never returns it, so no
+  retaliation, silence or staff-harm scene follows debris; `integrityRetaliation.ts` asks no answer for a hazard and
+  refuses a `lastRaid` gate that needs neither `named` nor `staffHarm` (it would meet a deviant's or a hazard's battle).
+- **The Landauer bound.** `SignatureClassSchema.landauer` (`schemaSignature.ts`) gives an area-bound sink its temperature
+  and the bits an op erases; `integrityLandauer.ts` refuses compute through it past 1 / (bits x k T ln 2) ops a joule, or
+  with no draw to bound. Registered from `integritySignature.ts` beside the radiator rules.
+- **Forced-ending evidence.** `integrityEndings.ts` refuses a forced ending with requirements its forcing node's gates do
+  not prove: its `requiredNarrativeFlag`, the `nodes` its purchase implies (prerequisites, transitively), the
+  `forbidsNodes` it forbids and its phase; any other requirement key is refused as unprovable.
+- **Pressure answers.** `pressureQuery.ts` `AnswerAction` gained `BUILD` for an upgrade track; `HIRE` stays for payroll.
+- **Score lending.** `src/app/musicTracks.ts`: a manifest entry's `reusedBy` lends its score to phases with none;
+  `trackFor` prefers a phase's own entry, and `musicPhase` returns the lending phase, which `musicController.ts` keys on,
+  so 5 to 6 does not restart the score. Two lenders for one phase are refused at parse.
+- **Gates.** `gates.ts` `minSwarmSec` / `maxSwarmSec` (900-3600 s) and `checkSwarm`; Phase 5 is measured to the next
+  phase's arrival (`phaseSeconds`). The sim report prints P6.
 
 ## Contingency insurance (#498)
 

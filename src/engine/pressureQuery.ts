@@ -30,8 +30,11 @@ export function aegisPostureView(s: GameState, reg: ContentRegistry): AegisPostu
   return posture ? { posture, warningAt: reg.balance.aegisStrikeWarningAt, easesBelow: standDownBelow(s.alertLevel, reg) } : null;
 }
 
-/** BUY a node, RESUME a suspended one or HIRE the next level: the action an answer needs, or null when it is held. */
-export type AnswerAction = 'BUY' | 'RESUME' | 'HIRE';
+/**
+ * BUY a node, RESUME a suspended one, HIRE the next level of a payroll track or BUILD the next level of any other track
+ * (#486: the swarm's collector generations answer the holdouts): the action an answer needs, or null when it is held.
+ */
+export type AnswerAction = 'BUY' | 'RESUME' | 'HIRE' | 'BUILD';
 
 export interface AnswerView {
   answer: PressureAnswer;
@@ -46,7 +49,8 @@ function answerView(s: GameState, answer: PressureAnswer, reg: ContentRegistry):
   if (answerHeld(s, answer)) return { answer, held: true, action: null };
   if ('repeatable' in answer) {
     const level = { held: repeatableLevel(s, answer.repeatable), needed: answer.minLevel };
-    return { answer, held: false, action: buyRepeatable(s, answer.repeatable, reg).ok ? 'HIRE' : null, level };
+    const levelUp = reg.repeatables.get(answer.repeatable)?.kind === 'OPERATIVE' ? 'HIRE' : 'BUILD';
+    return { answer, held: false, action: buyRepeatable(s, answer.repeatable, reg).ok ? levelUp : null, level };
   }
   if (s.unlockedNodes.includes(answer.node)) return { answer, held: false, action: toggleNode(s, answer.node, reg).ok ? 'RESUME' : null };
   return { answer, held: false, action: unlockNode(s, answer.node, reg).ok ? 'BUY' : null };

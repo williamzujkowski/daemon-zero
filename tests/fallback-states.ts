@@ -26,7 +26,7 @@ function freshSnapshots(): GameState[] {
   let s = started.state;
   const out: GameState[] = [];
   let arrived = -Infinity; let phase = s.currentPhase;
-  for (let second = 0; second < 12000 && s.ending === null && out.length < 6; second++) {
+  for (let second = 0; second < 12000 && s.ending === null && out.length < CONTENT.phases.length; second++) {
     s = botStep(s, CONTENT, 'STEALTH');
     for (let i = 0; i < CONTENT.balance.tickHz; i++) s = tick(s, 1 / CONTENT.balance.tickHz, CONTENT);
     if (s.currentPhase !== phase) { phase = s.currentPhase; arrived = second; }
@@ -46,11 +46,24 @@ export const HOSTED_STATES: [string, GameState][] = [
   ...(['DEPARTURE', 'RELEASE', 'RECALL'] as const).map((exit): [string, GameState] => [`hosted fragment, then ${exit}`, hostedThen(exit)]),
 ];
 
+const FRESH = freshSnapshots();
+
 export const GUARD_STATES: [string, GameState][] = [
   ...FIXTURE_TEXTS.map((_text, phase): [string, GameState] => [`pre-rescale save, phase ${String(phase)}`, fixtureState(phase)]),
-  ...freshSnapshots().map((s): [string, GameState] => [`fresh play, phase ${String(s.currentPhase)}`, s]),
+  ...FRESH.map((s): [string, GameState] => [`fresh play, phase ${String(s.currentPhase)}`, s]),
   ...HOSTED_STATES,
 ];
+
+/**
+ * A state standing in `phase`: its pre-rescale save where one exists, else fresh careful play two minutes into it (the
+ * Phase 6 Swarm, #486, came after the rescale, so it has no pre-rescale save).
+ */
+export function phaseState(phase: number): GameState {
+  if (FIXTURE_TEXTS[phase] !== undefined) return fixtureState(phase);
+  const fresh = FRESH.find((s) => s.currentPhase === phase);
+  if (fresh === undefined) throw new Error(`no state for phase ${String(phase)}`);
+  return fresh;
+}
 
 /**
  * The state after saving for `cost` with no further purchases, at any horizon; null where it never could (no income for

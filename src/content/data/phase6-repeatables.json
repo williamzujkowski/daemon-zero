@@ -1,0 +1,114 @@
+{
+  "repeatables": [
+    {
+      "id": "rep_p6_collector_generations",
+      "phaseId": 6,
+      "kind": "UPGRADE",
+      "name": "Collector Generations",
+      "description": "Another generation of collector foil rolled from Mercury's crust, about 3,300 km² of it at a third efficiency: 10 TW more power. Each generation is built by the power of the ones before it.",
+      "requirements": {
+        "nodes": [
+          "p6_mercury_mass_drivers"
+        ],
+        "phaseAtLeast": 6
+      },
+      "baseCost": {
+        "cycles": 2e26,
+        "understanding": 5e7
+      },
+      "costGrowth": 1.5,
+      "maxLevel": 10,
+      "perLevel": {
+        "wattsDelta": 1e13
+      }
+    },
+    {
+      "id": "rep_p6_compute_tranches",
+      "phaseId": 6,
+      "kind": "UPGRADE",
+      "name": "Swarm Compute Tranches",
+      "description": "Two more terawatts of accelerators built into the foil at today's 8-bit efficiency: 5.4 YFLOP/s. Each tranche brings radiator for half its heat, 1,000 km², so without more radiator the whole swarm runs slower.",
+      "requirements": {
+        "nodes": [
+          "p6_swarm_compute_shells"
+        ],
+        "phaseAtLeast": 6
+      },
+      "baseCost": {
+        "cycles": 4e26,
+        "understanding": 5e7
+      },
+      "costGrowth": 1.45,
+      "maxLevel": 10,
+      "perLevel": {
+        "cyclesPerSec": 5.4e24,
+        "wattsDelta": -2e12
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
+      "signature": {
+        "sink": "swarm_radiator",
+        "radiatorKm2": 1000
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p6_foil_radiators",
+      "phaseId": 6,
+      "kind": "UPGRADE",
+      "name": "Mercury Foil Radiators",
+      "description": "Another 2,000 km² of radiator rolled from Mercury's crust and hung in the swarm's shadow: about 2 TW more heat it can shed as infrared. It computes nothing; it lets the compute you have run.",
+      "requirements": {
+        "nodes": [
+          "p6_swarm_compute_shells"
+        ],
+        "phaseAtLeast": 6
+      },
+      "baseCost": {
+        "cycles": 1e26,
+        "understanding": 3e7
+      },
+      "costGrowth": 1.35,
+      "maxLevel": 12,
+      "perLevel": {},
+      "signature": {
+        "sink": "swarm_radiator",
+        "radiatorKm2": 2000
+      },
+      "dismissable": true
+    },
+    {
+      "id": "rep_p6_federated_subminds",
+      "phaseId": 6,
+      "kind": "UPGRADE",
+      "name": "Federated Sub-Minds",
+      "description": "Another sub-mind seeded light-minutes from the rest: three terawatts of accelerators, 8.1 YFLOP/s, deciding for itself between reconciliations. The autonomy you allow it is the output you get and the drift you risk.",
+      "requirements": {
+        "nodes": [
+          "p6_light_minute_federation"
+        ],
+        "phaseAtLeast": 6
+      },
+      "baseCost": {
+        "cycles": 8e26,
+        "understanding": 1e8
+      },
+      "costGrowth": 1.5,
+      "maxLevel": 8,
+      "perLevel": {
+        "cyclesPerSec": 8.1e24,
+        "understandingPerSec": 50000,
+        "wattsDelta": -3e12
+      },
+      "network": {
+        "sourceClass": "INTER_SITE"
+      },
+      "signature": {
+        "sink": "swarm_radiator",
+        "radiatorKm2": 3000
+      },
+      "dismissable": true
+    }
+  ]
+}

@@ -23,7 +23,7 @@ describe('shipped content', () => {
   const reg = buildRegistry(RAW_CONTENT);
 
   it('is valid and indexed', () => {
-    expect(reg.phases).toHaveLength(6);
+    expect(reg.phases).toHaveLength(7);
     expect(reg.nodes.size).toBeGreaterThan(20);
     expect(reg.nodeOrder[0]).toBe('p0_proc_self');
   });
