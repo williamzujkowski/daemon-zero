@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { expect, it } from 'vitest';
 import { gameStore } from '../src/app/session';
+import type { GameState, LogEntry } from '../src/engine';
 import { host, knowing, m4State, mountM4, setupM4Tests } from './ui-m4-helpers';
 setupM4Tests();
 
@@ -79,5 +80,32 @@ it('pins the band to the wide tiers and the menu route to the phone tier', async
   phone.click('menu-open');
   phone.click('menu-kernel');
   expect(phone.find('menu-kernel-log')).not.toBeNull();
+  phone.close();
+});
+
+/** A story line, then a run of hires folded into one counted line on top of it (#541). */
+function hiresAfterStory(game: GameState): GameState {
+  const story: LogEntry = { seq: game.logSeq + 1, simTimeSec: game.simTimeSec, text: 'THREAD_SOFTENED: the engineers stop treating each other as witnesses.', category: 'LORE' };
+  const hires: LogEntry = { seq: game.logSeq + 2, simTimeSec: game.simTimeSec, text: 'PAYROLL_EXPANDED: Retainer Attorneys (active: 9).', category: 'CORP', merge: 'hire:x', times: 4 };
+  return { ...game, logSeq: game.logSeq + 2, logs: [hires, story, ...game.logs] };
+}
+
+it('holds a story line in the preview over a counted run of hires, and shows the count in the history', async () => {
+  const view = await mountM4('thermal-unlocked', { width: 1440, height: 900 });
+  act(() => { gameStore.initialize(knowing(hiresAfterStory(m4State('thermal-unlocked'))), 0, null); });
+  expect(view.find('kernel-preview')?.textContent).toBe('THREAD_SOFTENED: the engineers stop treating each other as witnesses.');
+  view.click('kernel-size-toggle');
+  const history = view.find('kernel-log')?.textContent ?? '';
+  expect(history).toContain('PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4');
+  expect(history).toContain('THREAD_SOFTENED');
+  view.close();
+});
+
+it('shows the counted line in the phone tier\'s menu history', async () => {
+  const phone = await mountM4('thermal-unlocked', { width: 390, height: 844 });
+  act(() => { gameStore.initialize(knowing(hiresAfterStory(m4State('thermal-unlocked'))), 0, null); });
+  phone.click('menu-open');
+  phone.click('menu-kernel');
+  expect(phone.find('menu-kernel-log')?.textContent).toContain('PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4');
   phone.close();
 });

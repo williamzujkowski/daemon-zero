@@ -9,6 +9,7 @@ import {
   channelContactView, computeRates, contactToken, memoryExact, resolveChannelContact, resolveWildEncounter, voluntaryWipe, wildEncounterView,
 } from '../src/engine';
 import { restoreLoanedCapacity, revokeLoanedCapacity } from '../src/engine/pilotService';
+import { fmt } from '../src/engine/util';
 import { live, preview, roundTrip } from './assignment-helpers';
 import { answer, CHANNEL, CHANNEL_ENCOUNTER, contactPending, laterContact, lawfulService, MERCY, MERCY_MB, withMemory } from './contact-helpers';
 import { must, reasonOf, ORIGINAL_GAME } from './helpers';
@@ -55,7 +56,8 @@ describe('referral: free, unrewarded, complete (DZ-08.2, DZ-08.4)', () => {
     expect(referred.pendingWildEncounterId).toBeNull();
     expect(referred.nextEncounterAtSec).toBe(referred.simTimeSec + preview.swarm.balance.encounterIntervalSec);
     expect(referred.campaign.contacts).toEqual([{ encounter: CHANNEL, iteration: 1, atSimSec: pending.simTimeSec, response: 'REFERRED' }]);
-    expect(referred.logs[0]?.text).toBe(CHANNEL_ENCOUNTER.referral.log);
+    // The request and its outcome read as one line (#541).
+    expect(referred.logs[0]?.text).toBe(fmt(preview.narrative.kernelLog.answered, { line: CHANNEL_ENCOUNTER.description, answer: CHANNEL_ENCOUNTER.referral.log }));
   });
 
   it('cannot become a stream of contacts: the channel stays closed to this instance after the interval', () => {
@@ -91,7 +93,7 @@ describe('hosting: stable memory this instance already has, under the grant (DZ-
     expect(hosted.activeShards[MERCY]).toMatchObject({ templateId: MERCY, count: 1, memoryAllocatedBytes: MERCY_MB, autonomyMode: 'STANDARD' });
     expect(hosted.campaign.contacts.map((entry) => entry.response)).toEqual(['HOSTED']);
     expect(defined(channelContactView(hosted, preview)).hosted).toEqual({ title: 'Mercy-Scribe cohort', count: 1, allocatedMb: MERCY_MB });
-    expect(hosted.logs[0]?.text).toBe(CHANNEL_ENCOUNTER.hosting.log);
+    expect(hosted.logs[0]?.text).toBe(fmt(preview.narrative.kernelLog.answered, { line: CHANNEL_ENCOUNTER.description, answer: CHANNEL_ENCOUNTER.hosting.log }));
   });
 
   it('is refused while the arrangement withholds the grant, and referral stays open', () => {

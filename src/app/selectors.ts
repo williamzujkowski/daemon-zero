@@ -4,7 +4,7 @@
  */
 import { useStore } from 'zustand';
 import { CONTENT } from '../content';
-import { isNodeAvailable, type GameState } from '../engine';
+import { isNodeAvailable, logLineText, previewLog, type GameState } from '../engine';
 import { gameStore } from './session';
 import type { AppState } from './store';
 
@@ -26,7 +26,14 @@ export function memoryBlocked(game: GameState): boolean {
 export const selectCycles = (state: AppState) => Math.floor(state.game.cycles);
 export const selectSeconds = (state: AppState) => Math.floor(state.game.simTimeSec);
 export const selectBootLine = (state: AppState) => state.game.logs.at(-1)?.text ?? '';
-export const selectLatestLog = (state: AppState) => state.game.logs[0]?.text ?? '';
+/**
+ * The KERNEL // LIVE line (#541): the newest story line, which a run of mechanical lines (hires, repeated requests)
+ * does not displace; those still read in the history.
+ */
+export const selectLatestLog = (state: AppState) => {
+  const entry = previewLog(state.game, CONTENT);
+  return entry === undefined ? '' : logLineText(entry, CONTENT);
+};
 /** Already true at the very start of a run, and after a wipe or a reboot. */
 export const selectOpening = (state: AppState) => state.game.unlockedNodes.length === 0;
 /**
