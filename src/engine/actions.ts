@@ -36,6 +36,7 @@ import {
   repeatableLevel,
   repeatablePrice,
 } from './query';
+import { finalizeHarmAtRunEnd } from './raidOutcome';
 import { sourceDenial } from './statePressure';
 import type { GameState } from './state';
 import { applyEffects, payCost } from './transactions';
@@ -82,6 +83,8 @@ function endRun(d: GameState, node: RegistryNode, reg: ContentRegistry): void {
   const forced = reg.endings.find((entry) => entry.id === node.effects.forcesEnding);
   const ending = forced ?? chooseEnding(d, reg);
   d.ending = ending.id;
+  // A raid's harm no scene will now answer goes on record first, so the ending account can name the person (#519).
+  finalizeHarmAtRunEnd(d, reg);
   pushLog(d, reg, fmt(reg.narrative.victory, { title: ending.title, epilogue: ending.epilogue }), 'LORE');
 }
 

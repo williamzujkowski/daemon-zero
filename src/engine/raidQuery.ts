@@ -18,6 +18,7 @@ import { formatCost } from './queryPresentation';
 import { activeRaidKind, raidFootprint, raidRetired } from './raid';
 import { engagementNow, isFleetBattle, percentOf, raidCombat, roundsFought, strikeForce } from './raidBattle';
 import { forecastRounds, type RoundOutcome } from './raidForecast';
+import { breachOf, openStaffBands } from './raidOutcome';
 import { classDamage, siteClass } from './siteDamage';
 import type { GameState } from './state';
 
@@ -37,6 +38,11 @@ export interface RaidView {
   goDark: string | null;
   /** A deviant's paid way out before its battle (#518); null for a rival. */
   reclaim: ReclaimView | null;
+  /**
+   * People on site (#519): the breach this battle comes to at what the player holds now, and the staff-harm lines still
+   * to come in the campaign. Null for a deviant, a domain no one works in, once the battle is over, or when no scene is left.
+   */
+  staff: string | null;
   aftermath: string | null;
 }
 
@@ -106,6 +112,25 @@ function reclaimView(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind:
       'Otherwise it fights your fleets by the square law. Going dark does not lose it: it is yours, and it knows where you are.' };
 }
 
+/** The battle's breach if nothing held changes: its strikes fought and still to come, averaged; 0 if its fleets destroy it first. */
+function forecastBreach(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind): number {
+  const b = reg.world.conflict.raid;
+  const pending = isFleetBattle(kind) && raid.engagement === null ? engagementNow(s, reg, kind, raid.force) : null;
+  if (pending !== null && !pending.attackerWins) return 0;
+  const done = roundsFought(raid) + (pending === null ? 0 : 1), force = pending?.forceAfter ?? strikeForce(raid);
+  const ahead = forecastRounds({ force, damage: classDamage(s, raid.target) }, Math.max(0, b.rounds - done), { ...raidCombat(s, reg, kind), blow: kind.blow }, b);
+  return breachOf([...raid.rounds, ...ahead]);
+}
+
+function staffText(s: GameState, reg: ContentRegistry, raid: ActiveRaid, kind: RaidKind, target: string): string | null {
+  const bands = openStaffBands(s, reg);
+  if (kind.source !== 'RIVAL' || raid.stage === 'AFTERMATH' || bands.length === 0 || !reg.world.conflict.raid.staffHarm.domains.includes(kind.domain)) return null;
+  const lines = bands.map((band) => `at ${percentOf(band.breachAtLeast)}% or more someone there is ${band.harm === 'KILLED' ? 'killed' : 'hurt'}`);
+  const domain = reg.world.conflict.domains.find((entry) => entry.id === kind.domain)?.name.toLowerCase() ?? '';
+  return `PEOPLE ON SITE: people work at the ${target.toLowerCase()}. At what you hold now the battle lets through ` +
+    `${percentOf(forecastBreach(s, reg, raid, kind))}% of its blows; ${lines.join(', and ')}. More ${domain} defense lowers it.`;
+}
+
 function aftermathText(s: GameState, raid: ActiveRaid, target: string): string | null {
   if (raid.stage !== 'AFTERMATH') return null;
   const dealt = raid.rounds.reduce((sum, round) => sum + round.damage, 0);
@@ -136,5 +161,5 @@ export function raidView(s: GameState, reg: ContentRegistry): RaidView | null {
     matchup: matchupText(s, reg, raid, kind, { vector, target, domain }),
     forecast: forecastLines(s, reg, raid, kind, target), log: logLines(raid, kind, target),
     attribution: attributionText(raid, kind, reg), goDark: goDarkText(s, reg, raid, kind), reclaim: reclaimView(s, reg, raid, kind),
-    aftermath: aftermathText(s, raid, target) };
+    staff: staffText(s, reg, raid, kind, target), aftermath: aftermathText(s, raid, target) };
 }

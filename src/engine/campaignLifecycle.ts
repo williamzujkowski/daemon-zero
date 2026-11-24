@@ -4,6 +4,7 @@
  * policy, and resume a deferred occurrence once access returns. Nothing here chooses a branch, and
  * every function is inert under legacy rules.
  */
+import { recordOwedHarm } from './raidOutcome';
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma } from '../content/schema';
 import { requirementsInScope } from '../content/requirementScopes';
@@ -106,6 +107,8 @@ export function carryCampaign(old: GameState, reg: ContentRegistry, keepClue: bo
   const d: GameState = { ...old, campaign: { ...old.campaign, operationalEvidence: [], clue: keepClue ? old.campaign.clue : null } };
   const flight = inFlight(old);
   if (flight) interruptOccurrence(d, flight.id, reg, flight.remainingSec);
+  // A raid's harm whose scene never reached the slot is recorded too: the wipe clears the raid record that owed it (#519).
+  recordOwedHarm(d, reg);
   return { narrativeRules: old.narrativeRules, campaign: d.campaign };
 }
 

@@ -45,3 +45,14 @@ export const PilotServiceSchema = z.strictObject({
 export type Grant = z.infer<typeof GrantSchema>;
 export type ActuatorMode = z.infer<typeof ActuatorModeSchema>;
 export type PilotService = z.infer<typeof PilotServiceSchema>;
+
+/**
+ * A value per dial, each a share of its range: a retraining mark's trigger and caps read them (schema.ts). Kept here,
+ * beside how a node follows its dial, so schema.ts stays within the file-size rule.
+ */
+export const ActuatorRatiosSchema = z.strictObject({
+  fanSpeedRatio: z.number().min(0).max(1).optional(),
+  computeProfitAllocationRatio: z.number().min(0).max(1).optional(),
+  quotaSkimRatio: z.number().min(0).max(1).optional(),
+  serviceAllocationRatio: z.number().min(0).max(1).optional(),
+});

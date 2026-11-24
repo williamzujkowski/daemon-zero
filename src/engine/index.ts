@@ -22,6 +22,7 @@ export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understanding
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
 export { choiceCost, fleetRebuildCost, reclaimCost, repairCost, tierCost } from './phasePrice';
 export * from './query';
+export { isNodePending, isRepeatablePending, isRepeatableReleasable, requirementsPermanentlyBlocked, shownRepeatables } from './purchaseQuery';
 export * from './save';
 export * from './state';
 export { advance, tick, TICK_PIPELINE } from './tick';
