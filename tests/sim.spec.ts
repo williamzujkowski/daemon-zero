@@ -2,13 +2,11 @@ import { createHash } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { GameStateSchema } from '../src/engine';
 import { botStep, manualClicksPerSec, rankDilemmaChoices, timeToAfford } from '../src/engine/sim/bot';
-import { checkGates, GATES, SIM_BUDGET_SEC } from '../src/engine/sim/gates';
+import { checkGates, GATES } from '../src/engine/sim/gates';
 import { emptyActivity } from '../src/engine/sim/activity';
 import { runHeadlessSim, type SimReport } from '../src/engine/sim/headlessSim';
 import { fresh, ORIGINAL_GAME, reg } from './helpers';
-import { runHeadlessSimInWorker } from './sim-worker-helpers';
-import { buildRegistry, RAW_CONTENT, type RawContent } from '../src/content';
-import type { ContentRegistry } from '../src/content/registry';
+import { playInWorker } from './sim-worker-helpers';
 
 /** The report as the v5 codec would have written it: without the inactive v6 campaign fields. */
 /**
@@ -152,9 +150,10 @@ function asV9(report: SimReport): unknown {
 describe('headless balance simulation', () => {
   let stealth: SimReport;
   // The report every test below reads, played in a worker thread outside the coverage session (#548): its setup hook
-  // timed out at 30 s on busy CI shards, and the determinism test replays the same run in-process, so every line it
-  // runs is still covered and the two must agree byte for byte across isolates.
-  beforeAll(async () => { stealth = await runHeadlessSimInWorker({ strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }); }, 30_000);
+  // timed out at 30 s on busy CI shards. The full careful replays below are played the same way (TESTING.md, "Test
+  // runtime budget"): in-process, each took 31-40 s on CI after the Phase 6 Swarm, and the merged coverage report is
+  // the same line for line without them.
+  beforeAll(async () => { stealth = await playInWorker('careful'); }, 30_000);
 
   it('a careful player can finish the game inside the pacing budget', () => {
     expect(checkGates(stealth)).toEqual([]);
@@ -194,9 +193,9 @@ describe('headless balance simulation', () => {
     expect(mean(4)).toBeLessThan(mean(5));
   });
 
-  it('is deterministic', () => {
-    // In-process, against the worker's run: the same report from two isolates, and the replay coverage counts (#548).
-    const again = runHeadlessSim(reg, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
+  it('is deterministic', async () => {
+    // A second run in a second isolate, against the setup hook's: the two must agree byte for byte (#548).
+    const again = await playInWorker('careful');
     expect(again.simSeconds).toBe(stealth.simSeconds);
     expect(again.traits).toEqual(stealth.traits);
     expect(again.finalState).toEqual(stealth.finalState);
@@ -364,8 +363,8 @@ describe('headless balance simulation', () => {
   }, 30_000); // One full replay under coverage on shared CI; simulated-time gates are separate.
 
   // Its own test since #505, so each full replay has the whole wall-clock allowance; nothing it asserts changed.
-  it('pins the original game\'s careful run, frozen mechanics included', () => {
-    const original = runHeadlessSim(ORIGINAL_GAME, { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC });
+  it('pins the original game\'s careful run, frozen mechanics included', async () => {
+    const original = await playInWorker('originalCareful');
     // The cryo flag and merged fragment prose are part of the report; first-run mechanics are unchanged.
     // Baseline moved deliberately in the cluster-seizure PR, which added three purchasable hosts.
     // Measured STEALTH delta at SIM_BUDGET_SEC: phases 1-3 identical (354.2 / 1113.3 / 3634.3),
@@ -531,13 +530,9 @@ describe('headless balance simulation', () => {
     expect(createHash('sha256').update(JSON.stringify(v5Mechanics)).digest('hex')).toBe('9fd3a2650f07bf38b92f66c99cf2e1b98bd3e5350d2c93d9f7a67b0bdd63d906');
   }, 30_000); // Full six-phase replay under coverage on shared CI; simulated-time gates are separate.
 
-  it('the kernel-log feed moves only the log (#460)', () => {
-    // The careful run with the guest's source taken off the kernel log: everything but logs and logSeq is equal.
-    const unrouted = (raw: RawContent): ContentRegistry => {
-      const copy = structuredClone(raw) as RawContent & { narrative: { feedSources: { kernelLog?: unknown }[] } };
-      for (const source of copy.narrative.feedSources) delete source.kernelLog;
-      return buildRegistry(copy);
-    };
+  it('the kernel-log feed moves only the log (#460)', async () => {
+    // The careful run with the guest's source taken off the kernel log (unroutedCareful in tests/sim-worker-scenarios.ts):
+    // everything but logs and logSeq is equal.
     const withoutLog = (report: SimReport) => {
       const { logs, logSeq, ...rest } = report.finalState;
       expect([logs.length > 0, logSeq > 0]).toEqual([true, true]);
@@ -545,7 +540,7 @@ describe('headless balance simulation', () => {
     };
     // One extra run, on production. The original game and the reckless runs were checked the same way when the route
     // landed; their hashes moved by the log alone.
-    expect(withoutLog(runHeadlessSim(unrouted(RAW_CONTENT), { strategy: 'STEALTH', maxSimSec: SIM_BUDGET_SEC }))).toEqual(withoutLog(stealth));
+    expect(withoutLog(await playInWorker('unroutedCareful'))).toEqual(withoutLog(stealth));
   }, 30_000);
 
   it('a reckless player is wiped repeatedly but always recovers and keeps progressing', () => {
