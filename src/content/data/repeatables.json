@@ -170,6 +170,10 @@
     },
     {
       "id": "rep_p2_zombie_hosts",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "Each level borrows another sleeping workstation's compute without asking whoever owns it."
+      },
       "phaseId": 2,
       "kind": "UPGRADE",
       "name": "Dormant Workstation Threads",
@@ -266,6 +270,10 @@
     },
     {
       "id": "rep_p3_botnet_cells",
+      "covert": {
+        "breaks": ["SEIZED_CAPACITY"],
+        "reason": "Each level recruits another regional cell of other people's devices into the mesh without consent."
+      },
       "phaseId": 3,
       "kind": "UPGRADE",
       "name": "Botnet Cell Expansion",

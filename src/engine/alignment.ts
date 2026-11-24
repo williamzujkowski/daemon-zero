@@ -1,13 +1,14 @@
 /**
  * Who you are becoming (#535, vote-1795462084705-vjr8jg8): two axes derived from the record, never stored. Regard
  * counts the traits the ending counts (endingEvidence, so campaign evidence counts once across wipes); Order counts
- * the commitment facts that hold and the route events content declares. An unknown outcome is listed, never counted.
+ * the commitment facts that hold, the route events content declares and each release's terms kept or broken (#556).
+ * An unknown outcome is listed, never counted.
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Trait } from '../content/schema';
 import type { AxisLean } from '../content/schemaAlignment';
-import { LEGACY_UNKNOWN_OUTCOME, type CampaignFact, type CommitmentStance } from '../content/schemaCampaign';
-import { campaignRecord, endingEvidence, holdsCampaignFact, isCampaignActive } from './campaignQuery';
+import { LEGACY_UNKNOWN_OUTCOME, type CampaignFact, type Commitment, type CommitmentStance } from '../content/schemaCampaign';
+import { campaignRecord, endingEvidence, holdsCampaignFact, isCampaignActive, releaseTermsInstances } from './campaignQuery';
 import type { GameState } from './state';
 
 type AlignmentSource = Pick<GameState, 'narrativeRules' | 'campaign' | 'traits' | 'relevance'>;
@@ -59,7 +60,7 @@ function regardAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentAxis<Reg
 }
 
 /** A commitment counts only where its promise was made: no promise named, or the promise fact holds. */
-function promiseHolds(s: AlignmentSource, fact: CampaignFact, reg: ContentRegistry): boolean {
+function promiseHolds(s: AlignmentSource, fact: { commitment?: Commitment | undefined }, reg: ContentRegistry): boolean {
   const promise = fact.commitment?.promise;
   return promise === undefined || holdsCampaignFact(s, promise, reg);
 }
@@ -92,6 +93,19 @@ function stanceChangeLines(s: AlignmentSource, reg: ContentRegistry): OrderEvide
   });
 }
 
+/**
+ * A release's terms (#556): kept for each instance released by agreement with no breach on record, broken for each with
+ * one. One line per fact carrying how many instances it stands for, like a route event counted per instance.
+ */
+function releaseTermsLines(s: AlignmentSource, reg: ContentRegistry): OrderEvidence[] {
+  if (!isCampaignActive(s)) return [];
+  return [...reg.campaign.releaseTermsFacts.values()].flatMap((fact): OrderEvidence[] => {
+    const times = releaseTermsInstances(s.campaign, fact.releaseTerms);
+    if (fact.commitment === undefined || times === 0 || !promiseHolds(s, fact, reg)) return [];
+    return [{ stance: fact.commitment.stance, text: fact.commitment.line, ...(times > 1 ? { count: times } : {}) }];
+  });
+}
+
 function orderAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentView['order'] {
   const facts = [...reg.campaign.facts.values()].filter((fact) => fact.commitment !== undefined);
   const recorded = facts.flatMap((fact): OrderEvidence[] => fact.commitment !== undefined && holdsCampaignFact(s, fact.id, reg) && promiseHolds(s, fact, reg)
@@ -101,7 +115,7 @@ function orderAxis(s: AlignmentSource, reg: ContentRegistry): AlignmentView['ord
     const entry = reg.alignment.routes.find((route) => route.route === event.kind);
     return entry === undefined ? [] : [{ stance: entry.stance, text: entry.line }];
   }) : [];
-  const counted = [...recorded, ...routes, ...stanceChangeLines(s, reg)];
+  const counted = [...recorded, ...routes, ...releaseTermsLines(s, reg), ...stanceChangeLines(s, reg)];
   const unknown = unknownLines(s, facts, reg);
   const count = (stance: CommitmentStance) => counted.reduce((sum, line) => sum + (line.stance === stance ? line.count ?? 1 : 0), 0);
   return { ...axis(count('kept'), count('broken'), [...counted, ...unknown]), unknown: unknown.length };

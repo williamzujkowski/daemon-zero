@@ -34,7 +34,8 @@ function explain(item: RequirementFailure, game: GameState): string {
       campaignOutcome: 'Campaign record', campaignFact: 'Campaign record', forbidsCampaignFacts: 'Conflicting campaign record', forbidsInheritedFacts: 'Record from an earlier instance', assignment: 'Accepted assignment', pilotEligible: 'Pilot qualification', reviewStandings: 'Review standing', minPilotBatches: 'Pilot batches submitted',
       requiresActiveConditioningMark: 'Active retraining constraint', requiresMaxDriftShardAnomaly: 'Autonomous fork anomaly',
       lastRaid: 'A raid\'s aftermath', huntedForScale: 'AEGIS hunting at this scale',
-      relevanceThreshold: 'Physical independence (the relevance threshold)', relevanceStances: 'A different standing stance' })[item.kind];
+      relevanceThreshold: 'Physical independence (the relevance threshold)', relevanceStances: 'A different standing stance',
+      routeProvenance: 'How this instance left review' })[item.kind];
   if (typeof item.required === 'boolean') return label + (item.required ? ': required' : ': blocks this action');
   return label + (item.kind === 'maxSuspicion' || item.kind === 'maxIteration' || item.kind === 'maxAlertLevel' ? ' ≤ ' : ' ≥ ') + String(item.required) + ' (current ' + String(item.actual) + ')';
 }
@@ -56,6 +57,8 @@ export const REQUIREMENT_KIND: Readonly<Record<RequirementFailure['kind'], 'requ
   huntedForScale: 'blocks',
   // A stance gate reports the stance held; changing it is a separate, priced decision, never a step toward a purchase.
   relevanceStances: 'blocks',
+  // How this instance left review is a recorded route event (#556): nothing the player buys changes it.
+  routeProvenance: 'blocks',
   forbidsResolvedDilemmas: 'blocks', forbiddenNarrativeFlags: 'blocks', forbidsTraits: 'blocks', forbidsNodes: 'blocks',
   forbidsCampaignFacts: 'blocks', forbidsInheritedFacts: 'blocks', traitFallback: 'blocks', accessContexts: 'blocks',
   // The iteration only grows, so a run past its window cannot come back into it.

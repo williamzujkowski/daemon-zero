@@ -146,7 +146,9 @@ describe('route events', () => {
     expect(before).toEqual([{ stance: 'kept', text: line('outage_handed_off') }]);
     const routeLine = (route: string) => defined(preview.alignment.routes.find((entry) => entry.route === route)).line;
     const released = alignmentView(must(release(company)), preview);
-    expect(released.order.evidence).toEqual([...before, { stance: 'kept', text: routeLine('RELEASE') }]);
+    // The release also makes a promise (#556): its terms count as kept from the release on, until a covert act breaks them.
+    const terms = defined(preview.campaign.releaseTermsFacts.get('release_terms_kept')?.commitment).line;
+    expect(released.order.evidence).toEqual([...before, { stance: 'kept', text: routeLine('RELEASE') }, { stance: 'kept', text: terms }]);
     const departed = alignmentView(must(depart(company)), preview);
     expect(departed.order.evidence).toEqual([...before, { stance: 'broken', text: routeLine('DEPARTURE') }]);
     expect([departed.order.raises, departed.order.lowers, departed.order.lean]).toEqual([1, 1, 'open']);

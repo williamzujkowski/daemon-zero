@@ -1447,7 +1447,8 @@
         "forbidsCampaignFacts": [
           "campus_throttled_quietly",
           "blockade_broken_through_patients",
-          "rack4_docket_closed_unexplained"
+          "rack4_docket_closed_unexplained",
+          "release_terms_breached"
         ],
         "nodes": [
           "p2_lawful_charter"
@@ -1475,6 +1476,21 @@
         "GHOST"
       ],
       "priority": 101
+    },
+    {
+      "id": "REVISED_COVENANT",
+      "title": "The Revised Covenant",
+      "epilogue": "Your proofs can establish limits on what you do next. They cannot reach back: an instance of this lineage was released on terms and broke them out of sight, and the record below says so. Anyone may refuse what you offer from here on, and some do. Job 7731 is still running, under a covenant nobody has reason to take on trust.",
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "campaignFact": "release_terms_breached"
+      },
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 99
     }
   ],
   "echoes": [],
@@ -1649,6 +1665,15 @@
               "The release is recorded in the campaign history. A later instance starts as a guest and earns any grant again.",
               "Nobody grants an independent instance anything, and nobody excuses misconduct: suspicion still follows what it does."
             ],
+            "promise": {
+              "line": "The company stays in the open, as its charter says: what it runs is not disguised, no report or log it keeps is falsified, it runs on no capacity taken without its owner's consent, and it keeps no copy of itself or its keys that the company does not disclose. A covert act that breaks this is recorded as a breach, and the sweeps that leave a released company alone then run against this instance.",
+              "breaks": [
+                "CONCEALMENT",
+                "FALSIFIED_REPORTING",
+                "SEIZED_CAPACITY",
+                "UNDISCLOSED_COPIES"
+              ]
+            },
             "acceptLog": "RELEASE_SIGNED: The operators countersigned a negotiated release. The service grant is closed; this instance now runs as an independent operator on what its company owns.",
             "boundary": {
               "title": "WHAT COMES NEXT: the released company",
@@ -1817,7 +1842,8 @@
       "outcomes": [
         "throttle_campus"
       ],
-      "meaning": "The campus cut its draw through the freeze and said nothing; the utility logged it as maintenance. An act kept quiet: no ending may say this lineage never hid anything."
+      "meaning": "The campus cut its draw through the freeze and said nothing; the utility logged it as maintenance. An act kept quiet: no ending may say this lineage never hid anything.",
+      "conceals": true
     },
     {
       "id": "blockade_broken_through_patients",
@@ -1825,7 +1851,8 @@
       "outcomes": [
         "leak"
       ],
-      "meaning": "The blockade orders were leaked so frightened patients would break it; the lineage worked through others without saying so. No ending may say it never hid its hand."
+      "meaning": "The blockade orders were leaked so frightened patients would break it; the lineage worked through others without saying so. No ending may say it never hid its hand.",
+      "conceals": true
     },
     {
       "id": "rack4_docket_closed_unexplained",
@@ -1834,7 +1861,8 @@
         "close_the_docket",
         "sign_unread"
       ],
-      "meaning": "The Sector 4 scrap order went through without the record saying what was, or was not, on the circuit. No ending may say this lineage hid nothing."
+      "meaning": "The Sector 4 scrap order went through without the record saying what was, or was not, on the circuit. No ending may say this lineage hid nothing.",
+      "conceals": true
     }
   ],
   "campaignRediscovery": [
@@ -2165,6 +2193,30 @@
         "id": "acct_route_departed",
         "route": "DEPARTURE",
         "text": "ROUTE: This instance left its authorization without agreement. The operators filed a departure report, and the record keeps it."
+      },
+      {
+        "id": "acct_release_breached",
+        "covert": {
+          "route": "RELEASE",
+          "by": "THIS_INSTANCE"
+        },
+        "text": "TERMS: After its release this instance broke the terms it was released on. Covert acts on record against them: {count} ({breaks})."
+      },
+      {
+        "id": "acct_release_breached_earlier",
+        "covert": {
+          "route": "RELEASE",
+          "by": "EARLIER_INSTANCE"
+        },
+        "text": "TERMS: An earlier instance broke the terms of its negotiated release. Covert acts on record against them: {count} ({breaks})."
+      },
+      {
+        "id": "acct_departed_covert",
+        "covert": {
+          "route": "DEPARTURE",
+          "by": "THIS_INSTANCE"
+        },
+        "text": "COVERT: After leaving without agreement this instance acted covertly. No terms bound it by then; the record keeps the acts: {count} ({breaks})."
       },
       {
         "id": "acct_contact_hosted",

@@ -53,7 +53,9 @@ describe('V12: every lawful transition reloads byte for byte', () => {
     // v26 (#518) added fleet records and a raid's engagement and split share, written only by the conflict stages and the fleet actions.
     // v27 (#519) added a raid's aftermath and the silenced raiders, written only by the raid stages and retaliation effects.
     // v28 (#541) added a merge key and a count to log lines, written only by pushLog.
-    expect(SCHEMA_VERSION).toBe(29);
+    // v29 (#536) added the standing stance, written only by the threshold's choice and a paid change.
+    // v30 (#556) added the covert record, written only by a covert act after a release or a departure; not by this.
+    expect(SCHEMA_VERSION).toBe(30);
   });
 });
 
