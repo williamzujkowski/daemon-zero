@@ -232,9 +232,9 @@ refers it.
 - **Capital.** `p2_spot_compute_market`, Phase 2, INDEPENDENT only, after the service contract (so it is offered to
   exactly the instances the leased rack is), priced in cycles and understanding: it carries `ENABLES_CORPORATE_FINANCE`
   and opens the ledger's dial, so diverted compute sells at the market rate (docs/BALANCE.md).
-- **Saves.** No GameState field changed and `SCHEMA_VERSION` stays 27, so the maintainer's existing save unsticks on
-  load: loading the decoded prefix of that save on this branch offers the referral, frees 16 GiB and lets ARP discovery
-  be bought.
+- **Saves.** No GameState field changed, so this adds no schema bump or migration, and the maintainer's existing save
+  unsticks on load: loading the decoded prefix of that v27 save on this branch (through #551's v28 migration) offers the
+  referral, frees 16 GiB and lets ARP discovery be bought.
 
 ## Tracker
 
