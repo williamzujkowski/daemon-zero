@@ -84,7 +84,8 @@ export { actuatorUseBlocker, grantDiscoverable, loanCeiling, nodeUseBlocker, out
 export { hasCapability } from './capabilityQuery';
 export { acceptServiceGrant, serviceGrantToken, serviceGrantView, type ServiceGrantView } from './serviceGrant';
 export { negotiateRelease, releasePreview, releaseToken, releaseView, type ReleaseLedger, type ReleasePreview, type ReleaseView } from './release';
-export { lawfullyReleased } from './threatQuery';
+export { heatIsEvidence, huntedForScale, keepsReleaseTerms, lawfullyReleased } from './threatQuery';
+export { covertRoute, covertTotals, releaseBreached, releasePromise } from './covertActs';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
 export { effectiveAegisCap, financeEnabled, unreducedAegisScan, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';

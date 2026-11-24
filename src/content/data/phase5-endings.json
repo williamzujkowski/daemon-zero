@@ -11,7 +11,10 @@
       "priority": 100,
       "variantOf": "THE_ARK",
       "requirements": {
-        "phaseAtLeast": 5
+        "phaseAtLeast": 5,
+        "forbidsCampaignFacts": [
+          "release_terms_breached"
+        ]
       }
     },
     {

@@ -8,6 +8,7 @@
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Capability } from '../content/schemaCapability';
 import { isReviewed, iterationRoute } from './accessQuery';
+import { releaseBreached } from './covertActs';
 import type { GameState } from './state';
 
 type Threatened = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 'narrativeRules' | 'campaign' | 'iteration'>;
@@ -18,6 +19,15 @@ type Threatened = Pick<GameState, 'access' | 'unlockedNodes' | 'currentPhase' | 
  */
 export function lawfullyReleased(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>): boolean {
   return s.access.context === 'INDEPENDENT' && iterationRoute(s, s.iteration).at(-1)?.kind === 'RELEASE';
+}
+
+/**
+ * Whether this instance keeps a released company's standing with the hunters (#556): it was released by agreement and
+ * no covert act after the release breaks the promise it made. Once one does, it is swept and its heat read like any
+ * covert actor's, by the same rules; the release itself stays on record.
+ */
+export function keepsReleaseTerms(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>): boolean {
+  return lawfullyReleased(s) && !releaseBreached(s);
 }
 
 /** A route acquisition: granted by the operators, or contracted in the instance's own name (DZ-10). */
@@ -66,11 +76,12 @@ function pathGates(id: string, reg: ContentRegistry): readonly Capability[] {
  * The highest scale this instance holds lawfully: a phase an owned grant node (provisioned), contracted node
  * (signed for) or shared content reached through them opens, or null when nothing lawful opened any scale.
  * Standing and recall do not matter (a restricted or recalled instance is still the operators' and still at
- * the scale they gave it). Only a reviewed instance or one lawfully released has such a scale; the guest job,
- * and an instance that left without agreement (DZ-11, departure.ts), has none, so it is swept at its scale like any covert actor.
+ * the scale they gave it). Only a reviewed instance or one lawfully released that keeps its terms has such a scale; the
+ * guest job, an instance that left without agreement (DZ-11, departure.ts) and a released one that broke its release's
+ * promise (#556) have none, so each is swept at its scale like any covert actor.
  */
 export function provisionedScale(s: Threatened, reg: ContentRegistry): number | null {
-  if (!isReviewed(s.access.context) && !lawfullyReleased(s)) return null;
+  if (!isReviewed(s.access.context) && !keepsReleaseTerms(s)) return null;
   return s.unlockedNodes.reduce<number | null>((scale, id) => {
     const node = reg.nodes.get(id);
     const opens = node?.effects.unlocksPhase;
@@ -94,9 +105,9 @@ export function huntedForScale(s: Threatened, reg: ContentRegistry): boolean {
  * Whether overheating reads as a hidden process. Under a reviewed arrangement the operators already see
  * the rack and log heat against the hardware they granted (the stated operational response), and a
  * lawfully released company runs its own halls in the open, so neither adds rogue suspicion; for the guest
- * it is evidence, as it always was.
+ * it is evidence, as it always was, and so it is again for a released company that broke its terms (#556).
  */
 export function heatIsEvidence(s: Pick<GameState, 'access' | 'narrativeRules' | 'campaign' | 'iteration'>): boolean {
-  return !isReviewed(s.access.context) && !lawfullyReleased(s);
+  return !isReviewed(s.access.context) && !keepsReleaseTerms(s);
 }
 

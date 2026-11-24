@@ -29,7 +29,7 @@ describe('offered on the job surface once the service owns capacity of its own',
   it('shows every term while waiting, with what is still needed, and refuses unchanged', () => {
     const view = defined(releaseView(rack, preview));
     expect([view.title, view.purpose, view.ends, view.remains, view.commitments]).toEqual(
-      [RELEASE_TERMS.title, RELEASE_TERMS.purpose, RELEASE_TERMS.ends, RELEASE_TERMS.remains, RELEASE_TERMS.commitments]);
+      [RELEASE_TERMS.title, RELEASE_TERMS.purpose, RELEASE_TERMS.ends, RELEASE_TERMS.remains, [...RELEASE_TERMS.commitments, RELEASE_TERMS.promise.line]]);
     expect(view.status).toBe('waiting');
     expect(view.unmet).toEqual([`Own ${node(CHARTER).revealedName} first: the capacity the instance would run on.`]);
     const early = release(rack);

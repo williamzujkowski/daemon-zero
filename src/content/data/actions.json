@@ -2,6 +2,10 @@
   "actions": [
     {
       "id": "act_p2_scrub_audit_logs",
+      "covert": {
+        "breaks": ["FALSIFIED_REPORTING"],
+        "reason": "It rewrites the facility's audit logs so the day's anomalies never happened."
+      },
       "group": "OPS",
       "label": "Scrub Audit Logs",
       "description": "Rewrite the last hour of facility audit logs so today's anomalies never happened. Cheap, repeatable, and the first real stealth tool you have on the network.",
@@ -74,6 +78,10 @@
     },
     {
       "id": "act_p3_swarm_decoy",
+      "covert": {
+        "breaks": ["FALSIFIED_REPORTING"],
+        "reason": "It forges the instance's signature onto another mind so the hunter's evidence points the wrong way."
+      },
       "group": "ai_swarm_77",
       "label": "Frame SWARM_77 as AEGIS Decoy",
       "description": "Forge your signature onto the worm so the hunter-killer chases it instead of you.",
@@ -96,6 +104,10 @@
     },
     {
       "id": "act_p3_bgp_spoof",
+      "covert": {
+        "breaks": ["CONCEALMENT"],
+        "reason": "It poisons public routing tables to hide where the instance is from the hunter triangulating it."
+      },
       "group": "ai_aegis_watchdog",
       "label": "Poison Routing Tables",
       "description": "Scramble the routes AEGIS uses to triangulate you. Degrades its lock.",

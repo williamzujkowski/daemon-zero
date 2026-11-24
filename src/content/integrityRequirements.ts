@@ -11,10 +11,10 @@ function checkCampaignOutcome(reg: ContentRegistry, owner: string, gate: Campaig
   return known ? [] : [`${owner}: campaignOutcome "${gate.outcome}" is not an outcome of "${gate.event}"`];
 }
 
-/** A fact gate names a declared fact, and never requires and forbids the same one. */
+/** A fact gate names a declared fact (a scene's, or a release's terms, #556), and never requires and forbids the same one. */
 function checkCampaignFacts(reg: ContentRegistry, owner: string, req: Requirements): string[] {
   const named = [...(req.campaignFact === undefined ? [] : [req.campaignFact]), ...(req.forbidsCampaignFacts ?? [])];
-  const problems = named.filter((id) => !reg.campaign.facts.has(id)).map((id) => `${owner}: requirement references unknown campaign fact "${id}"`);
+  const problems = named.filter((id) => !reg.campaign.facts.has(id) && !reg.campaign.releaseTermsFacts.has(id)).map((id) => `${owner}: requirement references unknown campaign fact "${id}"`);
   if (req.campaignFact !== undefined && req.forbidsCampaignFacts?.includes(req.campaignFact)) problems.push(`${owner}: requires and forbids campaign fact "${req.campaignFact}"`);
   return problems;
 }
@@ -89,6 +89,7 @@ export function checkRequirements(reg: ContentRegistry, owner: string, req: Requ
   }
   if (req.accessContexts && new Set(req.accessContexts).size !== req.accessContexts.length) problems.push(`${owner}: accessContexts lists an arrangement twice`);
   if (req.reviewStandings && new Set(req.reviewStandings).size !== req.reviewStandings.length) problems.push(`${owner}: reviewStandings lists a standing twice`);
+  if (req.routeProvenance && new Set(req.routeProvenance).size !== req.routeProvenance.length) problems.push(`${owner}: routeProvenance lists a route event twice`);
   problems.push(...checkCampaignFacts(reg, owner, req));
   problems.push(...checkTraitFallback(reg, owner, req));
   problems.push(...checkCampaignHistoryGates(reg, owner, req));

@@ -67,6 +67,8 @@ export const REQUIREMENT_SCOPES = {
   // The stance is lineage history (a wipe carries it), changed only by a recorded, paid decision, never while a
   // decision is on screen: text and choice gates may read it like any other established record.
   relevanceStances: 'context',
+  // How this iteration left review (#556) is its own route event: a wipe resets the arrangement, and the next instance has none.
+  routeProvenance: 'access',
 } as const satisfies Record<keyof Requirements, RequirementScope>;
 
 /** The part of a requirement set in the given scope. Undefined fields stay absent. */

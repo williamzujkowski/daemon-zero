@@ -123,6 +123,30 @@ export const CampaignFactSchema = z.strictObject({
   meaning: z.string().min(10),
   /** Set only on a fact that is evidence of keeping or breaking a commitment (#535). */
   commitment: CommitmentSchema.optional(),
+  /**
+   * The outcome kept something from the people it concerned (#556). An ending that forbids a concealing fact claims
+   * nothing was hidden, so integrity makes it forbid every breach of a release's terms as well.
+   */
+  conceals: z.literal(true).optional(),
+});
+
+/**
+ * What a release-terms fact reads from the route record (#556), counted once for each instance released by agreement:
+ * KEPT, the release is on record and no covert act after it breaks its promise; BREACHED, one does.
+ */
+export const ReleaseTermsRecordSchema = z.enum(['KEPT', 'BREACHED']);
+
+/**
+ * A campaign fact the route record states rather than a scene's outcome (#556): the promise a negotiated release makes
+ * is recorded with its RELEASE route event, and a covert act after it is recorded against it. Order counts it once
+ * for each released instance it holds for.
+ */
+export const ReleaseTermsFactSchema = z.strictObject({
+  id,
+  releaseTerms: ReleaseTermsRecordSchema,
+  meaning: z.string().min(10),
+  commitment: CommitmentSchema.optional(),
+  conceals: z.literal(true).optional(),
 });
 
 /**
@@ -167,6 +191,8 @@ export const CampaignManifestSchema = z.strictObject({
   aliases: z.array(z.strictObject({ from: id, to: id, since: z.number().int().positive() })),
   retired: z.array(id),
   facts: z.array(CampaignFactSchema).default([]),
+  /** Facts about a negotiated release's terms (#556), read from the route record; ids share the facts' namespace. */
+  releaseTermsFacts: z.array(ReleaseTermsFactSchema).default([]),
   /** Rediscovery discounts that apply under campaign rules only (the Earned Access pack adds them). */
   rediscovery: z.array(CampaignRediscoverySchema).default([]),
   labels: CampaignLabelsSchema,
@@ -176,6 +202,8 @@ export type CampaignEventDeclaration = z.infer<typeof CampaignEventDeclarationSc
 export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
 export type CampaignOutcomeRequirement = z.infer<typeof CampaignOutcomeRequirementSchema>;
 export type CampaignFact = z.infer<typeof CampaignFactSchema>;
+export type ReleaseTermsFact = z.infer<typeof ReleaseTermsFactSchema>;
+export type ReleaseTermsRecord = z.infer<typeof ReleaseTermsRecordSchema>;
 export type Commitment = z.infer<typeof CommitmentSchema>;
 export type CommitmentStance = z.infer<typeof CommitmentStanceSchema>;
 export type CampaignLabels = z.infer<typeof CampaignLabelsSchema>;

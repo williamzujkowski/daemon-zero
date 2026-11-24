@@ -5,8 +5,8 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Dilemma, Requirements, Trait } from '../content/schema';
-import { INTERRUPTED_FACT_OUTCOME, type CampaignOutcomeRequirement } from '../content/schemaCampaign';
-import type { CampaignRecord } from './campaignState';
+import { INTERRUPTED_FACT_OUTCOME, type CampaignOutcomeRequirement, type ReleaseTermsRecord } from '../content/schemaCampaign';
+import type { CampaignRecord, CampaignState } from './campaignState';
 import type { GameState } from './state';
 
 type History = Pick<GameState, 'narrativeRules' | 'campaign'>;
@@ -49,11 +49,24 @@ export function hasCampaignOutcome(s: History, gate: CampaignOutcomeRequirement)
 }
 
 /**
+ * How many instances a release-terms fact holds for (#556): instances released by agreement (a RELEASE route event,
+ * after which no route event can follow) with no breach on record (KEPT), or with one (BREACHED). Read from the
+ * route record and the covert record only, so the promise is recorded with the release itself. Campaign rules only.
+ */
+export function releaseTermsInstances(c: Pick<CampaignState, 'route' | 'covertActs'>, record: ReleaseTermsRecord): number {
+  const breached = new Set(c.covertActs.filter((entry) => entry.route === 'RELEASE').map((entry) => entry.iteration));
+  if (record === 'BREACHED') return breached.size;
+  return new Set(c.route.filter((event) => event.kind === 'RELEASE' && !breached.has(event.iteration)).map((event) => event.iteration)).size;
+}
+
+/**
  * Whether a declared campaign fact holds: its event's record is resolved with a listed outcome, or
  * closed unobserved and the fact lists 'interrupted'. False under legacy rules, for an unknown
  * fact and while the occurrence is still open, so absence of history never proves anything.
  */
 export function holdsCampaignFact(s: History, factId: string, reg: ContentRegistry): boolean {
+  const terms = reg.campaign.releaseTermsFacts.get(factId);
+  if (terms !== undefined) return isCampaignActive(s) && releaseTermsInstances(s.campaign, terms.releaseTerms) > 0;
   const fact = reg.campaign.facts.get(factId);
   const record = fact === undefined ? null : campaignRecord(s, fact.event);
   if (!fact || !record) return false;

@@ -89,8 +89,8 @@ function dilemmaProblems(reg: ContentRegistry, offered: ReadonlySet<OperatingCon
 /** Exactly one gate, recorded history only, and a contact line names a real channel. */
 function accountLineProblems(reg: ContentRegistry, line: AccountLine): string[] {
   const owner = `routeCopy.account "${line.id}"`;
-  const gates = [line.requirements, line.route, line.contact].filter((gate) => gate !== undefined).length;
-  if (gates !== 1) return [`${owner}: needs exactly one gate: world history, a route event or a contact`];
+  const gates = [line.requirements, line.route, line.contact, line.covert].filter((gate) => gate !== undefined).length;
+  if (gates !== 1) return [`${owner}: needs exactly one gate: world history, a route event, a contact or covert acts on record`];
   const problems = checkRequirements(reg, owner, line.requirements);
   const req = line.requirements ?? {};
   if (Object.keys(requirementsInScope(req, 'context')).length !== Object.values(req).filter((value) => value !== undefined).length) {

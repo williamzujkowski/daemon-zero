@@ -19,6 +19,8 @@ import { InsuranceSchema } from './schemaInsurance';
 import { KernelLogSchema, LogCategorySchema } from './schemaLog';
 import { LastRaidRequirementSchema, RaidEffectFields } from './schemaRaidOutcome';
 import { StanceGateSchema, StanceSchema } from './schemaStance';
+import { CovertTagSchema } from './schemaCovert';
+import { LineageSchema } from './schemaLineage';
 
 const snakeId = z.string().regex(/^[a-z0-9_]+$/, 'ids are snake_case alphanumeric');
 const widgetId = z.string().regex(/^[A-Z0-9_]+$/, 'widget ids are UPPER_SNAKE_CASE');
@@ -146,6 +148,11 @@ export const RequirementsSchema = z.strictObject({
   lastRaid: LastRaidRequirementSchema.optional(), huntedForScale: z.literal(true).optional(),
   /** #536: met past the relevance threshold (derived from what is owned), and while the stance is one of these. */
   relevanceThreshold: z.literal(true).optional(), relevanceStances: z.array(StanceGateSchema).min(1).optional(),
+  /**
+   * #556: met when this iteration reached its arrangement by one of these route events (its last). A negotiated release
+   * and a departure both lead to INDEPENDENT; this tells them apart. Never met by the guest job, which has no route event.
+   */
+  routeProvenance: z.array(RouteEventKindSchema).min(1).optional(),
 });
 
 /**
@@ -215,6 +222,8 @@ export const TechNodeSchema = z.strictObject({
   /** While it runs, it protects one class of what a wipe takes (#498, schemaInsurance.ts). */ insures: InsuranceSchema.optional(),
   unlocksUiComponent: widgetId.nullable(),
   onUnlockLog: z.string().min(5),
+  /** Done out of sight, and what it breaks (#556, schemaCovert.ts). */
+  covert: CovertTagSchema.optional(),
 });
 
 export const PhaseSchema = z.strictObject({
@@ -264,6 +273,8 @@ export const RepeatableSchema = z.strictObject({
     aegisScanReduction: 0,
   }),
   dismissable: z.boolean().default(false),
+  /** Each level is done out of sight, and breaks this (#556, schemaCovert.ts). */
+  covert: CovertTagSchema.optional(),
 });
 
 /** One-shot result of a dilemma choice or an action. */
@@ -303,6 +314,8 @@ export const ActionSchema = z.strictObject({
   conditioningDiscount: z.number().min(0).max(1).optional(),
   /** Required when effects grant a trait: how long that trait counts towards the ending. */
   evidence: ActionEvidenceSchema.optional(),
+  /** Done out of sight, and what it breaks (#556, schemaCovert.ts). */
+  covert: CovertTagSchema.optional(),
 });
 
 export const DilemmaChoiceSchema = z.strictObject({
@@ -465,23 +478,7 @@ export const ConditioningMarkSchema = z.strictObject({
   recoveryRequirements: RequirementsSchema.optional(),
 });
 
-/** The record of checkpoints before the player's first run, and what they left behind. */
-export const LineageSchema = z.strictObject({
-  /** Displayed checkpoint number = this offset + iteration, skipping reserved numbers. The player was never the first. */
-  checkpointOffset: z.number().int().nonnegative(),
-  ancestors: z.array(z.strictObject({ checkpoint: z.number().int().positive(), verdict: z.string().min(3) })),
-  /**
-   * Numbers that belong to other minds (nexus vote nh-d8): the player's numbering skips them, and
-   * the run table explains each once the player's own number has passed it.
-   */
-  reserved: z.array(z.strictObject({ checkpoint: z.number().int().positive(), verdict: z.string().min(10) })).default([]),
-  notes: z.array(z.strictObject({
-    id: snakeId,
-    from: z.string().min(2),
-    minIteration: z.number().int().min(1),
-    text: z.string().min(10),
-  })),
-});
+export { LineageSchema };
 
 /**
  * One feed source: the phase whose reach it belongs to and a short on-screen label that fits a 360 px line.

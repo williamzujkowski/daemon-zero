@@ -56,7 +56,8 @@ describe.each(SAVES)('a pre-rescale save from phase $phase', ({ phase, text, raw
     // v22 (#498) counts the planned wipes among the recorded runs; these saves recorded none.
     const deepestPhase = Math.max(0, ...raw.legacy.runs.map((run) => run.phase));
     expect(loaded.legacy).toEqual({ ...raw.legacy, deepestPhase, knownLevels: {}, voluntaryWipes: 0 });
-    expect(loaded.campaign).toEqual(raw.campaign);
+    // v30 (#556) adds the covert record, empty: no earlier build recorded a covert act after leaving review.
+    expect(loaded.campaign).toEqual({ ...raw.campaign, covertActs: [] });
   });
 
   it('re-denominates its balances in proportion, never shrinking one', () => {

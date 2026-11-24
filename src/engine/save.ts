@@ -12,6 +12,7 @@ import { serviceProblem } from './pilotService';
 import { reviewProblem } from './reviewSave';
 import { capabilityProblem } from './capabilityQuery';
 import { contactProblem } from './channelContact';
+import { covertProblem } from './covertActs';
 import { revalidateLivePointers } from './campaignLifecycle';
 import { reconcileCampaign } from './campaignSave';
 import { hasConflictingNarrativeFlags, hasConflictingStoredFlags, reconcileDilemmaHistory } from './narrativeHistory';
@@ -168,6 +169,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   27: (save) => save,
   // v29: the standing stance toward humanity (#536, relevanceSave.ts). Self-contained, so it can be renumbered past another step.
   28: migrateRelevance,
+  // v30: covert acts after a release or a departure (#556). No earlier build recorded one, so the record is empty.
+  // Self-contained: it adds only its own field to the campaign record, so it can be renumbered past another step.
+  29: (save) => ({ ...save, campaign: { ...(isRecord(save.campaign) ? save.campaign : {}), covertActs: [] } }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
@@ -328,7 +332,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
   const campaign = reconcileCampaign(healed, reg);
   if (typeof campaign === 'string') throw new SaveError(campaign);
   const access = accessProblem(campaign) ?? assignmentProblem(campaign, reg) ?? pilotProblem(campaign, reg) ?? serviceProblem(campaign, reg)
-    ?? capabilityProblem(campaign, reg) ?? reviewProblem(campaign, reg) ?? contactProblem(campaign, reg);
+    ?? capabilityProblem(campaign, reg) ?? reviewProblem(campaign, reg) ?? contactProblem(campaign, reg) ?? covertProblem(campaign);
   if (access !== null) throw new SaveError(access);
   if (hasConflictingNarrativeFlags(campaign, reg)) throw new SaveError(CONTRADICTION);
   return reconcileDilemmaHistory(revalidateLivePointers(campaign, reg), reg);
