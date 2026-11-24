@@ -12,6 +12,7 @@ import type { Cost, Dilemma, DilemmaChoice } from '../../content/schema';
 import { buyRepeatable, resolveDilemma, setActuator, unlockNode, type ActionResult } from '../actions';
 import { isCampaignConsumed } from '../campaignQuery';
 import { actuatorLimit } from '../conditioning';
+import { choiceCost } from '../phasePrice';
 import { canAfford, isActuatorAvailable, isNodeAvailable, meetsRequirements, nodeCost, presentationToken, repeatablePrice, repeatableLevel } from '../query';
 import { computeRates, financeEnabled } from '../rates';
 import { isChoiceOffered } from '../speechQuery';
@@ -43,23 +44,28 @@ function answers(s: GameState, dilemma: Dilemma, reg: ContentRegistry): DilemmaC
   return dilemma.choices.filter((choice) => cooperative(choice) && isChoiceOffered(s, choice, reg)).sort((a, b) => total(a.cost) - total(b.cost));
 }
 
+/** What `choice` costs in this phase (#494), the price the engine charges; nothing when there is no answer. */
+function priceOf(s: GameState, dilemma: Dilemma, choice: DilemmaChoice | undefined, reg: ContentRegistry): Cost {
+  return choice === undefined ? NOTHING : choiceCost(s, dilemma, choice, reg);
+}
+
 function answer(s: GameState, reg: ContentRegistry): GameState | null {
   const dilemma = reg.dilemmas.find((entry) => entry.id === s.activeDilemmaId);
   const token = presentationToken(s);
-  const choice = dilemma && answers(s, dilemma, reg).find((entry) => canAfford(s, entry.cost, reg));
+  const choice = dilemma && answers(s, dilemma, reg).find((entry) => canAfford(s, choiceCost(s, dilemma, entry, reg), reg));
   return dilemma && choice && token !== null ? taken(resolveDilemma(s, dilemma.id, choice.id, reg, token)) : null;
 }
 
 /** What to keep in hand after buying `node`: the cheapest cooperative answer of every scene it would raise. */
 function reserveFor(s: GameState, node: RegistryNode, reg: ContentRegistry): Cost {
   return reg.dilemmas.filter((dilemma) => dilemma.trigger.nodes?.includes(node.id) === true && !isCampaignConsumed(s, dilemma))
-    .reduce((sum, dilemma) => plus(sum, answers(s, dilemma, reg)[0]?.cost ?? NOTHING), NOTHING);
+    .reduce((sum, dilemma) => plus(sum, priceOf(s, dilemma, answers(s, dilemma, reg)[0], reg)), NOTHING);
 }
 
 /** What the scene already foreshadowed will ask for: its cheapest cooperative answer, kept in hand until it arrives. */
 function pendingReserve(s: GameState, reg: ContentRegistry): Cost {
   const dilemma = reg.dilemmas.find((entry) => entry.id === s.pendingDilemma?.id);
-  return dilemma ? answers(s, dilemma, reg)[0]?.cost ?? NOTHING : NOTHING;
+  return dilemma ? priceOf(s, dilemma, answers(s, dilemma, reg)[0], reg) : NOTHING;
 }
 
 /** The next purchase on the lawful late chain in authoring order: owned in the company's name or reached lawfully. */

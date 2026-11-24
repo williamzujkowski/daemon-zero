@@ -8,6 +8,7 @@ import type { ContentRegistry } from '../content/registry';
 import type { AutonomyMode } from '../content/schemaFleets';
 import type { ActionResult } from './actions';
 import { canAfford, understandsSurveillance } from './query';
+import { fleetRebuildCost, reclaimCost } from './phasePrice';
 import { formatCost, pausedReason } from './queryPresentation';
 import { endRaid } from './raid';
 import { percentOf } from './raidBattle';
@@ -47,7 +48,8 @@ export function fleetRebuildUnmet(s: GameState, trackId: string, reg: ContentReg
   if (unit === undefined) return [...unmet, NO_FLEET];
   if (fleetRecord(s, trackId).lost <= 0) unmet.push(`Nothing of the ${unit.name.toLowerCase()} is lost.`);
   else if (rebuildHeld(s, reg, unit)) unmet.push(`A raid is under way in its domain: rebuild waits for its aftermath.`);
-  if (!canAfford(s, unit.rebuild.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(unit.rebuild.cost));
+  const cost = fleetRebuildCost(s, unit, reg);
+  if (!canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
 
@@ -56,7 +58,7 @@ export function rebuildFleet(s: GameState, trackId: string, reg: ContentRegistry
   const [reason] = fleetRebuildUnmet(s, trackId, reg), unit = fleetUnit(reg, trackId);
   if (reason !== undefined || unit === undefined) return refuse(s, reason ?? NO_FLEET);
   const d: GameState = { ...s };
-  payCost(d, unit.rebuild.cost);
+  payCost(d, fleetRebuildCost(s, unit, reg));
   const before = fleetRecord(d, trackId).lost, lost = Math.max(0, before - unit.rebuild.points);
   setFleet(d, trackId, { lost });
   pushLog(d, reg, fmt(reg.world.conflict.fleets.logs.rebuilt, { fleet: unit.name, points: percentOf(before - lost), lost: percentOf(lost) }), 'LORE');
@@ -74,7 +76,8 @@ export function reclaimUnmet(s: GameState, reg: ContentRegistry): string[] {
   const unmet = pausedReason(s), kind = activeDeviant(s, reg), raid = s.conflict.raid;
   if (kind === undefined || raid === null) return [...unmet, 'No deviant force is under way.'];
   if (raid.stage !== 'ARRIVAL' && raid.stage !== 'ATTRIBUTION') unmet.push('Its battle has begun: it can only be destroyed now.');
-  if (!canAfford(s, kind.reclaim.cost, reg)) unmet.push('Insufficient resources: ' + formatCost(kind.reclaim.cost));
+  const cost = reclaimCost(s, kind, reg);
+  if (!canAfford(s, cost, reg)) unmet.push('Insufficient resources: ' + formatCost(cost));
   return unmet;
 }
 
@@ -83,7 +86,7 @@ export function reclaimDeviant(s: GameState, reg: ContentRegistry): ActionResult
   const [reason] = reclaimUnmet(s, reg), kind = activeDeviant(s, reg), raid = s.conflict.raid;
   if (reason !== undefined || kind === undefined || raid === null) return refuse(s, reason ?? 'No deviant force is under way.');
   const d: GameState = { ...s };
-  payCost(d, kind.reclaim.cost);
+  payCost(d, reclaimCost(s, kind, reg));
   setFleet(d, kind.fleet, { lost: Math.max(0, fleetRecord(d, kind.fleet).lost - raid.splitShare) });
   const fleet = fleetUnit(reg, kind.fleet)?.name ?? kind.fleet;
   endRaid(d, reg, fmt(reg.world.conflict.fleets.logs.reclaimed, { fleet, share: percentOf(raid.splitShare) }));

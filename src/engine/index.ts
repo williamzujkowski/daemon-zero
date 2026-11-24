@@ -20,6 +20,7 @@ export { radiatorReadings, radiatorShareTable, radiatorSlot, radiatorShareOf, ty
 export { wipe } from './prestige';
 export { capitalShare, insuranceCover, isPlannedWipe, previewWipe, understandingShare, type Cover, type WipePreview } from './insurance';
 export { rebuildGrant, type RebuildGrant } from './rebuildGrant';
+export { choiceCost, fleetRebuildCost, reclaimCost, repairCost, tierCost } from './phasePrice';
 export * from './query';
 export { isNodePending, isRepeatablePending, isRepeatableReleasable, requirementsPermanentlyBlocked, shownRepeatables } from './purchaseQuery';
 export * from './save';

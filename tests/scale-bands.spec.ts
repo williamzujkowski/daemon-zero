@@ -1,7 +1,8 @@
 /**
  * The scale ladder is validated content (docs/SCALE.md "The ladder", #461, integrityScale.ts). Each rule is proved by
  * a price that breaks it, among them the census clashes the rescale fixed: a planetary fog granting 512 GB, a flat
- * late price, and a hidden batch job priced like a data centre.
+ * late price, a hidden batch job priced like a data centre, and an action or dilemma price carried flat into a later
+ * phase (#494).
  */
 import { describe, expect, it } from 'vitest';
 import { ORIGINAL_RAW_CONTENT, RAW_CONTENT } from '../src/content';
@@ -62,6 +63,35 @@ describe('the scale ladder (#461)', () => {
     expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x05_nic').effects.memoryCapIncrease = 2 ** 34; })).toBe('');
     expect(problemsAfter((raw) => { node(raw, 'p1_bus_0x05_nic').effects.memoryCapIncrease = 2 ** 52; }))
       .toMatch(/node "p1_bus_0x05_nic": memory grant .* outside the Phase 1\/2 band/);
+  });
+
+  it('refuses an action or dilemma price left flat into a later phase (#494)', () => {
+    const flat = problemsAfter((raw) => { (raw.balance as { phasePriceGrowth: unknown[] }).phasePriceGrowth = []; });
+    // The scrub's Phase 2 compute price is under Phase 4's own floor once carried there unchanged.
+    expect(flat).toMatch(/action "act_p2_scrub_audit_logs" in Phase 4: cycles price 3400000000000000 is outside the Phase 4 band/);
+    expect(flat).toMatch(/action "act_p4_lobbying_blitz" in Phase 5: capital price 780000000 is outside the Phase 5 band/);
+    expect(flat).toMatch(/dilemma "dil_04_admin_vance_secret" choice "parasite_miner" in Phase 4: cycles price .* outside the Phase 4 band/);
+    // A raid's answers carry too: a paid repair and a hostile mind's quarantine, met after the phase they are priced in.
+    expect(flat).toMatch(/site class "halls" repair in Phase 5: capital price 60000000 is outside the Phase 5 band/);
+    expect(flat).toMatch(/hostile encounter "hostile_p3_hunter" quarantine in Phase 5: cycles price .* outside the Phase 5 band/);
+    // A fleet's paid rebuild carries as well (#518): a Phase 4 drone fleet rebuilt in Phase 5.
+    expect(flat).toMatch(/fleet "rep_p4_drone_fleet" rebuild in Phase 5: capital price 500000000 is outside the Phase 5 band/);
+    // At home the same prices stand: only the carried ones are refused.
+    expect(flat).not.toMatch(/action "act_p2_scrub_audit_logs": /);
+  });
+
+  it('refuses a carried price grown past the top of a later band', () => {
+    expect(problemsAfter((raw) => {
+      const rows = (raw.balance as { phasePriceGrowth: { phase: number; cycles: number }[] }).phasePriceGrowth;
+      const five = rows.find((row) => row.phase === 5);
+      if (five) five.cycles = 1e9;
+    })).toMatch(/action "act_p2_scrub_audit_logs" in Phase 5: cycles price .* outside the Phase 5 band/);
+  });
+
+  it('refuses a growth table that skips back or names a phase that does not exist', () => {
+    const table = (rows: unknown[]) => problemsAfter((raw) => { (raw.balance as { phasePriceGrowth: unknown[] }).phasePriceGrowth = rows; });
+    expect(table([{ phase: 2, cycles: 1, capital: 1 }, { phase: 1, cycles: 1, capital: 1 }])).toMatch(/phase price growth must ascend: Phase 1 follows Phase 2/);
+    expect(table([{ phase: 9, cycles: 1, capital: 1 }])).toMatch(/phase price growth names Phase 9, which does not exist/);
   });
 
   it('prices a bridge purchase from the band a player arrives with', () => {
